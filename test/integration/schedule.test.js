@@ -27,7 +27,10 @@ describe('AWS - Schedule Integration Test', function () {
       const functionName = 'scheduleMinimal';
 
       return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, async () => {}, {
-        timeout: 3 * 60 * 1000,
+        checkIsComplete: (soFarEvents) => {
+          const logs = soFarEvents.reduce((data, event) => data + event.message, '');
+          return logs.includes(functionName);
+        },
       }).then((events) => {
         const logs = events.reduce((data, event) => data + event.message, '');
         expect(logs).to.include(functionName);
@@ -40,7 +43,6 @@ describe('AWS - Schedule Integration Test', function () {
       const functionName = 'scheduleExtended';
 
       return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, async () => {}, {
-        timeout: 3 * 60 * 1000,
         checkIsComplete: (soFarEvents) => {
           const logs = soFarEvents.reduce((data, event) => data + event.message, '');
           return logs.includes('transformedInput');

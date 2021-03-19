@@ -246,6 +246,11 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
     const deleteObjectsStub = sinon.stub().resolves({});
     const awsRequestStubMap = {
       ...baseAwsRequestStubMap,
+      ECR: {
+        describeRepositories: sinon.stub().throws({
+          providerError: { code: 'RepositoryNotFoundException' },
+        }),
+      },
       S3: {
         deleteObjects: deleteObjectsStub,
         listObjectsV2: { Contents: [] },
@@ -319,6 +324,11 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
     const deleteObjectsStub = sinon.stub().resolves();
     const awsRequestStubMap = {
       ...baseAwsRequestStubMap,
+      ECR: {
+        describeRepositories: sinon.stub().throws({
+          providerError: { code: 'RepositoryNotFoundException' },
+        }),
+      },
       S3: {
         deleteObjects: deleteObjectsStub,
         listObjectsV2: listObjectsV2Stub,
@@ -415,7 +425,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json',
       })
       .returns({
-        Metadata: { filesha256: 'o3jgmZRgwiNIhECDFntBIwUJuH2YOhryxKIqZ0wlUbQ=' },
+        Metadata: { filesha256: 'Cs3d4Sap0nwF6NPJnw4JN1gI41zodxGGmmmKw2C8hRs=' },
       });
     s3HeadObjectStub
       .withArgs({
@@ -428,6 +438,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       });
 
     const awsRequestStubMap = {
+      ...baseAwsRequestStubMap,
       S3: {
         headObject: s3HeadObjectStub,
         listObjectsV2: listObjectsV2Stub,
@@ -454,14 +465,6 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         validateTemplate: {},
         updateStack: updateStackStub,
         listStackResources: {},
-      },
-      STS: {
-        getCallerIdentity: {
-          ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
-          UserId: 'XXXXXXXXXXXXXXXXXXXXX',
-          Account: '999999999999',
-          Arn: 'arn:aws:iam::999999999999:user/test',
-        },
       },
     };
 

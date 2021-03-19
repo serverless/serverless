@@ -50,6 +50,8 @@ AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=xxx npm run integration-test-run-all
 
 _Note: Home folder is mocked for test run, therefore relying on `AWS_PROFILE` won't work. _ and _secret key_, need to be configured directly into env variables\_
 
+_Note: Some integration tests depend on shared infrastructure stack (see below)_
+
 Ideally any feature that integrates with AWS functionality should be backed by integration test.
 
 Check existing set of AWS integration tests at [test/integration](./integration)

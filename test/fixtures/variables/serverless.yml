@@ -1,4 +1,7 @@
 service: service
+configValidationMode: error
+
+variablesResolutionMode: 20210219
 
 provider:
   name: aws
@@ -10,8 +13,9 @@ custom:
   awsVariable: ${AWS::Region}
   cloudFormationReference: ${AnotherResource}
   selfReference: ${self:custom.importedFileWithKey}
-  serviceReference: ${self:}
   nestedRef: nestedVal
   nestedVal:
     prop: resolvedNested
   nestedReference: ${self:custom.${self:custom.nestedRef}.prop}
+  prototype:
+    nestedInPrototype: ${file(config.json):foo}-in-prototype

@@ -6,10 +6,13 @@ const chai = require('chai');
 const overrideEnv = require('process-utils/override-env');
 const cjsResolve = require('ncjsm/resolve/sync');
 const spawn = require('child-process-ext/spawn');
+const overrideArgv = require('process-utils/override-argv');
 const resolveAwsEnv = require('@serverless/test/resolve-env');
 const Serverless = require('../../../../lib/Serverless');
 const CLI = require('../../../../lib/classes/CLI');
+const resolveInput = require('../../../../lib/cli/resolve-input');
 const Create = require('../../../../lib/plugins/create/create');
+const ServerlessError = require('../../../../lib/serverless-error');
 
 const path = require('path');
 const fs = require('fs');
@@ -18,9 +21,11 @@ const mockRequire = require('mock-require');
 const sinon = require('sinon');
 const proxyquire = require('proxyquire');
 const BbPromise = require('bluebird');
+const stripAnsi = require('strip-ansi');
 const getCacheFilePath = require('../../../../lib/utils/getCacheFilePath');
 const { installPlugin } = require('../../../utils/plugins');
 const { getTmpDirPath } = require('../../../utils/fs');
+const runServerless = require('../../../utils/run-serverless');
 
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
@@ -707,7 +712,7 @@ describe('PluginManager', () => {
     it('should throw an error when trying to load unknown plugin', () => {
       const servicePlugins = ['ServicePluginMock3', 'ServicePluginMock1'];
 
-      expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.throw(serverless.classes.Error);
+      expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.throw(ServerlessError);
     });
 
     it('should not throw error when trying to load unknown plugin with help flag', () => {
@@ -715,8 +720,9 @@ describe('PluginManager', () => {
 
       pluginManager.setCliOptions({ help: true });
 
-      expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.not.throw(
-        serverless.classes.Error
+      resolveInput.clear();
+      overrideArgv({ args: ['serverless', '--help'] }, () =>
+        expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.not.throw(ServerlessError)
       );
     });
 
@@ -731,9 +737,7 @@ describe('PluginManager', () => {
       const cliCommandsMock = ['plugin'];
       pluginManager.setCliCommands(cliCommandsMock);
 
-      expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.not.throw(
-        serverless.classes.Error
-      );
+      expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.not.throw(ServerlessError);
     });
 
     afterEach(() => {
@@ -1251,7 +1255,7 @@ describe('PluginManager', () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       expect(() => pluginManager.validateCommand(['mycmd', 'mysubcmd'])).to.not.throw(
-        serverless.classes.Error
+        ServerlessError
       );
     });
 
@@ -1259,7 +1263,7 @@ describe('PluginManager', () => {
       pluginManager.addPlugin(ContainerPluginMock);
 
       expect(() => pluginManager.validateCommand(['mycontainer', 'mysubcmd'])).to.not.throw(
-        serverless.classes.Error
+        ServerlessError
       );
     });
 
@@ -1267,14 +1271,6 @@ describe('PluginManager', () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       expect(() => pluginManager.validateCommand(['myep', 'mysubep'])).to.throw(
-        /command ".*" not found/
-      );
-    });
-
-    it('should throw on container', () => {
-      pluginManager.addPlugin(ContainerPluginMock);
-
-      expect(() => pluginManager.validateCommand(['mycontainer'])).to.throw(
         /command ".*" not found/
       );
     });
@@ -1345,13 +1341,12 @@ describe('PluginManager', () => {
 
     beforeEach(() => {
       serverlessInstance = new Serverless();
+      serverlessInstance.configurationInput = null;
       serverlessInstance.config.servicePath = 'my-service';
       pluginManagerInstance = new PluginManager(serverlessInstance);
     });
 
     it('should continue loading if the configDependent property is absent', () => {
-      pluginManagerInstance.serverlessConfigFile = null;
-
       pluginManagerInstance.commands = {
         foo: {},
       };
@@ -1362,8 +1357,6 @@ describe('PluginManager', () => {
     });
 
     it('should load if the configDependent property is false and config is null', () => {
-      pluginManagerInstance.serverlessConfigFile = null;
-
       pluginManagerInstance.commands = {
         foo: {
           configDependent: false,
@@ -1376,8 +1369,6 @@ describe('PluginManager', () => {
     });
 
     it('should throw an error if configDependent is true and no config is found', () => {
-      pluginManagerInstance.serverlessConfigFile = null;
-
       pluginManagerInstance.commands = {
         foo: {
           configDependent: true,
@@ -1392,8 +1383,6 @@ describe('PluginManager', () => {
     });
 
     it('should throw an error if configDependent is true and config is an empty string', () => {
-      pluginManagerInstance.serverlessConfigFile = '';
-
       pluginManagerInstance.commands = {
         foo: {
           configDependent: true,
@@ -1408,7 +1397,7 @@ describe('PluginManager', () => {
     });
 
     it('should load if the configDependent property is true and config exists', () => {
-      pluginManagerInstance.serverlessConfigFile = {
+      pluginManagerInstance.serverless.configurationInput = {
         servicePath: 'foo',
       };
 
@@ -1813,14 +1802,12 @@ describe('PluginManager', () => {
   });
 
   describe('#spawn()', () => {
-    it('should throw an error when the given command is not available', () => {
+    it('should throw an error when the given command is not available', async () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       const commandsArray = ['foo'];
 
-      expect(() => {
-        pluginManager.spawn(commandsArray);
-      }).to.throw(Error);
+      return expect(pluginManager.spawn(commandsArray)).to.eventually.be.rejectedWith(Error);
     });
 
     it('should show warning in debug mode and when the given command has no hooks', () => {
@@ -1883,14 +1870,6 @@ describe('PluginManager', () => {
     });
 
     describe('when invoking a container', () => {
-      it('should fail', () => {
-        pluginManager.addPlugin(ContainerPluginMock);
-
-        const commandsArray = ['mycontainer'];
-
-        return expect(() => pluginManager.spawn(commandsArray)).to.throw(/command ".*" not found/);
-      });
-
       it('should spawn nested commands', () => {
         pluginManager.addPlugin(ContainerPluginMock);
 
@@ -2093,5 +2072,13 @@ describe('PluginManager', () => {
         // Couldn't delete temporary file
       }
     });
+  });
+});
+
+describe('test/unit/lib/classes/PluginManager.test.js', () => {
+  it('should show help when running container command', async () => {
+    // Note: Arbitrarily picked "plugin" command for testing
+    const { stdoutData } = await runServerless({ fixture: 'aws', cliArgs: ['plugin'] });
+    expect(stripAnsi(stdoutData)).to.include('plugin install .......');
   });
 });

@@ -5,15 +5,16 @@ frameworkVersion: '*'
 
 provider:
   name: aws
-
-package:
-  artifact: artifact.zip
+  lambdaHashingVersion: 20201221
 
 functions:
-  fn1:
+  fnService:
     handler: index.handler
-  fn2:
+  fnIndividual:
     handler: index.handler
+    package:
+      individually: true
+
   fnGo:
     handler: bin/main
     runtime: go1.x

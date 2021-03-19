@@ -17,6 +17,132 @@ disabledDeprecations:
   - '*' # To disable all deprecation messages
 ```
 
+<a name="CLI_OPTIONS_BEFORE_COMMAND"><div>&nbsp;</div></a>
+
+## CLI command options should follow command
+
+Deprecation code: `CLI_OPTIONS_BEFORE_COMMAND`
+
+Starting with v3.0.0, Serverless will not support putting options before command, e.g. `sls -v deploy` will no longer be recognized as `deploy` command.
+
+Ensure to always format CLI command as `sls [command..] [options...]`
+
+<a name="CONFIG_VALIDATION_MODE_DEFAULT"><div>&nbsp;</div></a>
+
+## `configValidationMode: error` will be new default`
+
+Deprecation code: `CONFIG_VALIDATION_MODE_DEFAULT`
+
+Starting with v3.0.0, Serverless will throw on configuration errors by default. This is changing from the previous default, `configValidationMode: warn`
+
+Learn more about configuration validation here: http://slss.io/configuration-validation
+
+<a name="AWS_API_GATEWAY_SCHEMAS"><div>&nbsp;</div></a>
+
+## AWS API Gateway schemas
+
+Deprecation code: `AWS_API_GATEWAY_SCHEMAS`
+
+Starting with v3.0.0, `http.request.schema` property will be replaced by `http.request.schemas`. In addition to supporting functionalities such as model name definition and reuse of existing schemas, `http.request.schemas` also supports the same notation as `http.request.schema`, so you can safely migrate your existing configuration to the new property. For more details about the new configuration, please refer to the [API Gateway Event](/framework/docs/providers/aws/events/apigateway.md)
+
+<a name="AWS_EVENT_BRIDGE_CUSTOM_RESOURCE"><div>&nbsp;</div></a>
+
+## AWS EventBridge lambda event triggers
+
+Deprecation code: `AWS_EVENT_BRIDGE_CUSTOM_RESOURCE`
+
+Starting with v3.0.0 AWS EventBridge lambda event triggers and all associated EventBridge resources will be deployed using native CloudFormation resources instead of a custom resource that used a lambda to deploy them via the AWS SDK/API.
+
+Adapt to this behavior now by setting `provider.eventBridge.useCloudFormation: true`.
+
+<a name="NEW_VARIABLES_RESOLVER"><div>&nbsp;</div></a>
+
+## New variables resolver
+
+Deprecation code: `NEW_VARIABLES_RESOLVER`
+
+Framework was updated with a new implementation of variables resolver.
+
+It supports very same variable syntax, and is being updated with support for same resolution sources. Still as it has improved internal resolution rules (which leave no room for ambiguity) in some edge cases it may report errors on which old parser passed by.
+
+It's recommended to expose all errors that eventually new resolver may report (those will be an unconditional errors in v3). You can turn that behavior on by adding `variablesResolutionMode: 20210219` to service configuration
+
+<a name="AWS_HTTP_API_USE_PROVIDER_TAGS"><div>&nbsp;</div></a>
+
+## Http Api provider tags
+
+Deprecation code: `AWS_HTTP_API_USE_PROVIDER_TAGS`
+
+Starting with v3.0.0, `provider.tags` will be applied to Http Api Gateway by default
+Set `provider.httpApi.useProviderTags` to `true` to adapt to the new behavior now.
+
+<a name="MISSING_COMMANDS_OR_OPTIONS_AT_CONSTRUCTION"><div>&nbsp;</div></a>
+
+## `Serverless` constructor `config.commands` and `config.options` requirement
+
+Deprecation code: `MISSING_COMMANDS_OR_OPTIONS_AT_CONSTRUCTION`
+
+_Note: Applies only to eventual programmatic usage of the Framework_
+
+`Serverless` constructor was refactored to depend on CLI commands and arguments, to be resolved externally and passed to its constructor with `config.commands` and `config.options`. Starting from v3.0.0 CLI arguments will not be resolved internally.
+
+<a name="MISSING_SERVICE_CONFIGURATION"><div>&nbsp;</div></a>
+
+## `Serverless` constructor `config.configuration` requirement
+
+Deprecation code: `MISSING_SERVICE_CONFIGURATION`
+
+_Note: Applies only to eventual programmatic usage of the Framework_
+
+`Serverless` constructor was refactored to depend on service configuration being resolved externally and passed to its constructor with `config.configuration`. Starting from v3.0.0 configuration will not be resolved internally.
+
+<a name="NESTED_CUSTOM_CONFIGURATION_PATH"><div>&nbsp;</div></a>
+
+## Service configurations should not be nested in service sub directories
+
+Deprecation code: `NESTED_CUSTOM_CONFIGURATION_PATH`
+
+_Note: Applies only to eventual programmatic usage of the Framework_
+
+Service configuration in all cases should be put at root folder of a service.
+All paths in this configuration are resolved against service directory, and it's also the case if configuration is nested in sub directory.
+
+To avoid confusing behavior starting with v3.0.0 Framework will no longer permit to rely on configurations placed in sub directories
+
+<a name="MISSING_SERVICE_CONFIGURATION_PATH"><div>&nbsp;</div></a>
+
+## `Serverless` constructor `config.configurationPath` requirement
+
+Deprecation code: `MISSING_SERVICE_CONFIGURATION_PATH`
+
+_Note: Applies only to eventual programmatic usage of the Framework_
+
+`Serverless` constructor was refactored to depend on service configuration path being resolved externally and passed to its constructor with `config.configurationPath`. Starting from v3.0.0 this path will not be resolved internally.
+
+<a name="VARIABLES_ERROR_ON_UNRESOLVED"><div>&nbsp;</div></a>
+
+## Erroring on unresolved variable references
+
+Deprecation code: `VARIABLES_ERROR_ON_UNRESOLVED`
+
+Starting with v3.0.0, references to variables that cannot be resolved will result in an error being thrown.
+
+Adapt to this behaviour now by adding `unresolvedVariablesNotificationMode: error` to service configuration.
+
+<a name="PROVIDER_IAM_SETTINGS"><div>&nbsp;</div></a>
+
+## Grouping IAM settings under `provider.iam`
+
+Deprecation code: `PROVIDER_IAM_SETTINGS`
+
+Staring with v3.0.0, all IAM-related settings of _provider_ including `iamRoleStatements`, `iamManagedPolicies`, `role` and `cfnRole` will be grouped under `iam` property. Refer to the[IAM Guide](/framework/docs/providers/aws/guide/iam.md).
+
+- `provider.role` -> `provider.iam.role`
+- `provider.rolePermissionsBoundary` -> `provider.iam.role.permissionBoundary`
+- `provider.iamRoleStatements` -> `provider.iam.role.statements`
+- `provider.iamManagedPolicies` -> `provider.iam.role.managedPolicies`
+- `provider.cfnRole` -> `provider.iam.deploymentRole`
+
 <a name="AWS_API_GATEWAY_SPECIFIC_KEYS"><div>&nbsp;</div></a>
 
 ## API Gateway specific configuration
@@ -41,9 +167,11 @@ Org, app, service, stage, and region are required to resolve variables when logg
 
 Deprecation code: `LAMBDA_HASHING_VERSION_V2`
 
-Starting with v3.0.0, the default value of `lambdaHashingVersion` will be equal to `20201221`. You can adapt to this behavior now, by setting `provider.lambdaHashingVersion` to `20201221`.
+Resolution of lambda version hashes was improved with better (fixed deterministism issues) algorithm, which will be used starting with v3.0.0
 
-When trying to `sls deploy` for the first time after migration to new `lambdaHashingVersion`, you might encounter an error, similar to the one below:
+You can adapt your services to use it now, by setting `provider.lambdaHashingVersion` to `20201221`.
+
+**Notice:** If you apply this on already deployed service without any changes to lambda code, you might encounter an error similar to the one below:
 
 ```
   Serverless Error ---------------------------------------
@@ -51,7 +179,7 @@ When trying to `sls deploy` for the first time after migration to new `lambdaHas
   An error occurred: FooLambdaVersion3IV5NZ3sE5T2UFimCOai2Tc6eCaW7yIYOP786U0Oc - A version for this Lambda function exists ( 11 ). Modify the function to create a new version..
 ```
 
-It is an expected behavior, to avoid it, you need to modify your function(s) code and try to redeploy it again. One common approach is to modify an utility function that is used by all/most of your Lambda functions.
+It is an expected behavior. AWS complains here that received a different hash for very same lambda configuration. To workaround that, you need to modify your function(s) code and try to redeploy it again. One common approach is to modify an utility function that is used by all/most of your Lambda functions.
 
 <a name="LOAD_VARIABLES_FROM_ENV_FILES"><div>&nbsp;</div></a>
 

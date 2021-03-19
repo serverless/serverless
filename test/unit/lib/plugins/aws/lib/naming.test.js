@@ -410,20 +410,17 @@ describe('#naming()', () => {
 
   describe('#getValidatorLogicalId()', () => {
     it('', () => {
-      expect(sdk.naming.getValidatorLogicalId('ResourceId', 'get')).to.equal(
-        'ApiGatewayMethodResourceIdGetValidator'
+      expect(sdk.naming.getValidatorLogicalId('ApiGatewayMethodResourceId')).to.equal(
+        'ApiGatewayMethodResourceIdValidator'
       );
     });
   });
 
-  describe('#getModelLogicalId()', () => {
+  describe('#getEndpointModelLogicalId()', () => {
     it('', () => {
-      expect(sdk.naming.getModelLogicalId('ResourceId', 'get', 'application/json')).to.equal(
-        'ApiGatewayMethodResourceIdGetApplicationJsonModel'
-      );
       expect(
-        sdk.naming.getModelLogicalId('Example', 'post', 'application/x-www-form-urlencoded')
-      ).to.equal('ApiGatewayMethodExamplePostApplicationXWwwFormUrlencodedModel');
+        sdk.naming.getEndpointModelLogicalId('ResourceId', 'get', 'application/json')
+      ).to.equal('ApiGatewayMethodResourceIdGetApplicationJsonModel');
     });
   });
 
@@ -727,6 +724,25 @@ describe('#naming()', () => {
     });
   });
 
+  describe('#getKafkaEventLogicalId()', () => {
+    it('should normalize the function name and append topic name', () => {
+      expect(sdk.naming.getKafkaEventLogicalId('functionName', 'kafka-topic')).to.equal(
+        'FunctionNameEventSourceMappingKafkaKafkatopic'
+      );
+    });
+
+    it('should normalize long function name and append topic name', () => {
+      expect(
+        sdk.naming.getKafkaEventLogicalId(
+          'functionName',
+          'myVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicName'
+        )
+      ).to.equal(
+        'FunctionNameEventSourceMappingKafkaMyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVery'
+      );
+    });
+  });
+
   describe('#getMSKEventLogicalId()', () => {
     it('should normalize the function name and append normalized cluster and topic names', () => {
       expect(
@@ -952,6 +968,40 @@ describe('#naming()', () => {
           },
         })
       ).to.equal('custom/FnJoinRefApiGatewayRestApiexecuteapi');
+    });
+  });
+
+  describe('#getEcrRepositoryName', () => {
+    it('should correctly trim trailing dash and ensure no consecutive dashes are present', () => {
+      serverless.service.serviceObject = { name: 'service--with-weird-dashes---' };
+      sdk.options.stage = 'stage--with-dash-';
+      expect(sdk.naming.getEcrRepositoryName()).to.equal(
+        'serverless-service-with-weird-dashes-stage-with-dash'
+      );
+    });
+  });
+
+  describe('#getEventBridgeEventBusLogicalId()', () => {
+    it('should normalize the event bus name and append correct suffix', () => {
+      expect(sdk.naming.getEventBridgeEventBusLogicalId('ExampleEventBusName')).to.equal(
+        'ExampleEventBusNameEventBridgeEventBus'
+      );
+    });
+  });
+
+  describe('#getEventBridgeRuleLogicalId()', () => {
+    it('should normalize the rule name and append correct suffix', () => {
+      expect(sdk.naming.getEventBridgeRuleLogicalId('exampleRuleName')).to.equal(
+        'ExampleRuleNameEventBridgeRule'
+      );
+    });
+  });
+
+  describe('#getEventBridgeLambdaPermissionLogicalId()', () => {
+    it('should normalize the name and append correct suffix with index', () => {
+      expect(sdk.naming.getEventBridgeLambdaPermissionLogicalId('exampleFunction', 1)).to.equal(
+        'ExampleFunctionEventBridgeLambdaPermission1'
+      );
     });
   });
 });

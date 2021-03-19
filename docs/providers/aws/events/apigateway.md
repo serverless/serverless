@@ -805,8 +805,53 @@ functions:
           path: posts/create
           method: post
           request:
-            schema:
+            schemas:
               application/json: ${file(create_request.json)}
+```
+
+In addition, you can also customize created model with `name` and `description` properties.
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          request:
+            schemas:
+              application/json:
+                schema: ${file(create_request.json)}
+                name: PostCreateModel
+                description: 'Validation model for Creating Posts'
+```
+
+To reuse the same model across different events, you can define global models on provider level.
+In order to define global model you need to add its configuration to `provider.apiGateway.request.schemas`.
+After defining a global model, you can use it in the event by referencing it by the key. Provider models are created for `application/json` content type.
+
+```yml
+provider:
+    ...
+    apiGateway:
+      request:
+        schemas:
+          post-create-model:
+            name: PostCreateModel
+            schema: ${file(api_schema/post_add_schema.json)}
+            description: "A Model validation for adding posts"
+
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          request:
+            schemas:
+              application/json: post-create-model
 ```
 
 A sample schema contained in `create_request.json` might look something like this:
@@ -1720,7 +1765,7 @@ To be able to write logs, API Gateway [needs a CloudWatch role configured](https
         roleManagedExternally: true # disables automatic role creation/checks done by Serverless
   ```
 
-**Note:** Serverless configures the API Gateway CloudWatch role setting using a custom resource lambda function. If you're using `cfnRole` to specify a limited-access IAM role for your serverless deployment, the custom resource lambda will assume this role during execution.
+**Note:** Serverless configures the API Gateway CloudWatch role setting using a custom resource lambda function. If you're using `iam.deploymentRole` to specify a limited-access IAM role for your serverless deployment, the custom resource lambda will assume this role during execution.
 
 By default, API Gateway access logs will use the following format:
 
@@ -1752,7 +1797,7 @@ provider:
 
 Valid values are INFO, ERROR.
 
-If you want to disable access logging completly you can do with the following:
+If you want to disable access logging completely you can do with the following:
 
 ```yml
 # serverless.yml
@@ -1781,7 +1826,7 @@ Websockets have the same configuration options as the the REST API. Example:
 provider:
   name: aws
   logs:
-    websoocket:
+    websocket:
       level: INFO
       fullExecutionData: false
 ```

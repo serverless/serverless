@@ -1,6 +1,6 @@
 import type { AWS } from '@serverless/typescript';
 
-import { hello } from './src/functions';
+import hello from '@functions/hello';
 
 const serverlessConfiguration: AWS = {
   service: 'aws-nodejs-typescript',
@@ -8,13 +8,13 @@ const serverlessConfiguration: AWS = {
   custom: {
     webpack: {
       webpackConfig: './webpack.config.js',
-      includeModules: true
-    }
+      includeModules: true,
+    },
   },
   plugins: ['serverless-webpack'],
   provider: {
     name: 'aws',
-    runtime: 'nodejs12.x',
+    runtime: 'nodejs14.x',
     apiGateway: {
       minimumCompressionSize: 1024,
       shouldStartNameWithService: true,
@@ -24,7 +24,8 @@ const serverlessConfiguration: AWS = {
     },
     lambdaHashingVersion: '20201221',
   },
-  functions: { hello }
-}
+  // import the function via paths
+  functions: { hello },
+};
 
 module.exports = serverlessConfiguration;

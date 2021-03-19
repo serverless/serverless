@@ -42,41 +42,37 @@ describe('SlStats', () => {
       setStub.returns();
       slStats.options = { disable: true };
 
-      return slStats.toggleStats().then(() => {
-        expect(setStub.calledOnce).to.equal(true);
-        expect(setStub.calledWithExactly('trackingDisabled', true)).to.equal(true);
-      });
+      slStats.toggleStats();
+      expect(setStub.calledOnce).to.equal(true);
+      expect(setStub.calledWithExactly('trackingDisabled', true)).to.equal(true);
     });
 
     it('should set config.trackingDisabled to false if enabled', () => {
       setStub.returns();
       slStats.options = { enable: true };
 
-      return slStats.toggleStats().then(() => {
-        expect(setStub.calledOnce).to.equal(true);
-        expect(setStub.calledWithExactly('trackingDisabled', false)).to.equal(true);
-      });
+      slStats.toggleStats();
+      expect(setStub.calledOnce).to.equal(true);
+      expect(setStub.calledWithExactly('trackingDisabled', false)).to.equal(true);
     });
 
     it('should resolve if no "enabled" / "disabled" options is given', () => {
       setStub.returns();
       slStats.options = {};
 
-      return slStats.toggleStats().then(() => {
-        expect(setStub.calledOnce).to.equal(false);
-      });
+      slStats.toggleStats();
+      expect(setStub.calledOnce).to.equal(false);
     });
 
     it('should catch the error if enabling fails', () => {
       // here we assume that the tracking fails
-      setStub.returns();
+      setStub.throws();
 
       slStats.options = { enable: true };
 
-      return slStats.toggleStats().catch((error) => {
-        expect(setStub.calledOnce).to.equal(false);
-        expect(error).to.match(/of statistics failed/);
-      });
+      expect(() => slStats.toggleStats()).to.throw(/of statistics failed/);
+      expect(setStub.calledOnce).to.equal(true);
+      expect(setStub.calledWithExactly('trackingDisabled', false)).to.be.true;
     });
 
     it('should catch the error if enabling fails', () => {
@@ -84,10 +80,9 @@ describe('SlStats', () => {
       setStub.throws('error while updating config file');
       slStats.options = { disable: true };
 
-      return slStats.toggleStats().catch((error) => {
-        expect(setStub.calledOnce).to.equal(true);
-        expect(error).to.match(/of statistics failed/);
-      });
+      expect(() => slStats.toggleStats()).to.throw(/of statistics failed/);
+      expect(setStub.calledOnce).to.equal(true);
+      expect(setStub.calledWithExactly('trackingDisabled', true)).to.be.true;
     });
   });
 });

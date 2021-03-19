@@ -47,44 +47,43 @@ describe('#compileAuthorizers()', () => {
     });
 
     it('should create an authorizer resource', () => {
-      return awsCompileWebsocketsEvents.compileAuthorizers().then(() => {
-        const resources =
-          awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources;
+      awsCompileWebsocketsEvents.compileAuthorizers();
+      const resources =
+        awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources;
 
-        expect(resources).to.deep.equal({
-          AuthWebsocketsAuthorizer: {
-            Type: 'AWS::ApiGatewayV2::Authorizer',
-            Properties: {
-              ApiId: {
-                Ref: 'WebsocketsApi',
-              },
-              Name: 'auth',
-              AuthorizerType: 'REQUEST',
-              AuthorizerUri: {
-                'Fn::Join': [
-                  '',
-                  [
-                    'arn:',
-                    {
-                      Ref: 'AWS::Partition',
-                    },
-                    ':apigateway:',
-                    {
-                      Ref: 'AWS::Region',
-                    },
-                    ':lambda:path/2015-03-31/functions/',
-                    {
-                      'Fn::GetAtt': ['AuthLambdaFunction', 'Arn'],
-                    },
-                    '/invocations',
-                  ],
-                ],
-              },
-              IdentitySource: ['route.request.header.Auth'],
+      expect(resources).to.deep.equal({
+        AuthWebsocketsAuthorizer: {
+          Type: 'AWS::ApiGatewayV2::Authorizer',
+          Properties: {
+            ApiId: {
+              Ref: 'WebsocketsApi',
             },
+            Name: 'auth',
+            AuthorizerType: 'REQUEST',
+            AuthorizerUri: {
+              'Fn::Join': [
+                '',
+                [
+                  'arn:',
+                  {
+                    Ref: 'AWS::Partition',
+                  },
+                  ':apigateway:',
+                  {
+                    Ref: 'AWS::Region',
+                  },
+                  ':lambda:path/2015-03-31/functions/',
+                  {
+                    'Fn::GetAtt': ['AuthLambdaFunction', 'Arn'],
+                  },
+                  '/invocations',
+                ],
+              ],
+            },
+            IdentitySource: ['route.request.header.Auth'],
           },
-        });
+        },
       });
     });
 
@@ -93,14 +92,13 @@ describe('#compileAuthorizers()', () => {
         websocketApiId: '5ezys3sght',
       };
 
-      return awsCompileWebsocketsEvents.compileAuthorizers().then(() => {
-        const resources =
-          awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources;
+      awsCompileWebsocketsEvents.compileAuthorizers();
+      const resources =
+        awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources;
 
-        expect(resources.AuthWebsocketsAuthorizer.Properties).to.contain({
-          ApiId: '5ezys3sght',
-        });
+      expect(resources.AuthWebsocketsAuthorizer.Properties).to.contain({
+        ApiId: '5ezys3sght',
       });
     });
   });
@@ -135,13 +133,12 @@ describe('#compileAuthorizers()', () => {
         ],
       };
 
-      return awsCompileWebsocketsEvents.compileAuthorizers().then(() => {
-        const resources =
-          awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources;
+      awsCompileWebsocketsEvents.compileAuthorizers();
+      const resources =
+        awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources;
 
-        expect(resources).to.deep.equal({});
-      });
+      expect(resources).to.deep.equal({});
     });
   });
 });

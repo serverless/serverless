@@ -43,34 +43,33 @@ describe('#awsCompilePermissions()', () => {
       },
     ];
 
-    return awsCompileApigEvents.compilePermissions().then(() => {
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionApiGateway.Properties.FunctionName['Fn::GetAtt'][0]
-      ).to.equal('FirstLambdaFunction');
+    awsCompileApigEvents.compilePermissions();
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .FirstLambdaPermissionApiGateway.Properties.FunctionName['Fn::GetAtt'][0]
+    ).to.equal('FirstLambdaFunction');
 
-      const deepObj = {
-        'Fn::Join': [
-          '',
-          [
-            'arn:',
-            { Ref: 'AWS::Partition' },
-            ':execute-api:',
-            { Ref: 'AWS::Region' },
-            ':',
-            { Ref: 'AWS::AccountId' },
-            ':',
-            { Ref: 'ApiGatewayRestApi' },
-            '/*/*',
-          ],
+    const deepObj = {
+      'Fn::Join': [
+        '',
+        [
+          'arn:',
+          { Ref: 'AWS::Partition' },
+          ':execute-api:',
+          { Ref: 'AWS::Region' },
+          ':',
+          { Ref: 'AWS::AccountId' },
+          ':',
+          { Ref: 'ApiGatewayRestApi' },
+          '/*/*',
         ],
-      };
+      ],
+    };
 
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionApiGateway.Properties.SourceArn
-      ).to.deep.equal(deepObj);
-    });
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .FirstLambdaPermissionApiGateway.Properties.SourceArn
+    ).to.deep.equal(deepObj);
   });
 
   it('should create limited permission resource scope to REST API with restApiId provided', () => {
@@ -101,34 +100,33 @@ describe('#awsCompilePermissions()', () => {
       },
     ];
 
-    return awsCompileApigEvents.compilePermissions().then(() => {
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionApiGateway.Properties.FunctionName['Fn::GetAtt'][0]
-      ).to.equal('FirstLambdaFunction');
+    awsCompileApigEvents.compilePermissions();
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .FirstLambdaPermissionApiGateway.Properties.FunctionName['Fn::GetAtt'][0]
+    ).to.equal('FirstLambdaFunction');
 
-      const deepObj = {
-        'Fn::Join': [
-          '',
-          [
-            'arn:',
-            { Ref: 'AWS::Partition' },
-            ':execute-api:',
-            { Ref: 'AWS::Region' },
-            ':',
-            { Ref: 'AWS::AccountId' },
-            ':',
-            'xxxxx',
-            '/*/*',
-          ],
+    const deepObj = {
+      'Fn::Join': [
+        '',
+        [
+          'arn:',
+          { Ref: 'AWS::Partition' },
+          ':execute-api:',
+          { Ref: 'AWS::Region' },
+          ':',
+          { Ref: 'AWS::AccountId' },
+          ':',
+          'xxxxx',
+          '/*/*',
         ],
-      };
+      ],
+    };
 
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionApiGateway.Properties.SourceArn
-      ).to.deep.equal(deepObj);
-    });
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .FirstLambdaPermissionApiGateway.Properties.SourceArn
+    ).to.deep.equal(deepObj);
   });
 
   it('should setup permissions for an alias in case of provisioned function', () => {
@@ -160,12 +158,11 @@ describe('#awsCompilePermissions()', () => {
       },
     ];
 
-    return awsCompileApigEvents.compilePermissions().then(() => {
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionApiGateway.Properties.FunctionName['Fn::Join'][1][1]
-      ).to.equal('provisioned');
-    });
+    awsCompileApigEvents.compilePermissions();
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .FirstLambdaPermissionApiGateway.Properties.FunctionName['Fn::Join'][1][1]
+    ).to.equal('provisioned');
   });
 
   it('should create limited permission resources for authorizers', () => {
@@ -228,16 +225,15 @@ describe('#awsCompilePermissions()', () => {
       ],
     };
 
-    return awsCompileApigEvents.compilePermissions().then(() => {
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .AuthorizerLambdaPermissionApiGateway.Properties.FunctionName
-      ).to.deep.equal({ 'Fn::GetAtt': ['AuthorizerLambdaFunction', 'Arn'] });
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .AuthorizerLambdaPermissionApiGateway.Properties.SourceArn
-      ).to.deep.equal(deepObj);
-    });
+    awsCompileApigEvents.compilePermissions();
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .AuthorizerLambdaPermissionApiGateway.Properties.FunctionName
+    ).to.deep.equal({ 'Fn::GetAtt': ['AuthorizerLambdaFunction', 'Arn'] });
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .AuthorizerLambdaPermissionApiGateway.Properties.SourceArn
+    ).to.deep.equal(deepObj);
   });
 
   it('should create limited permission resources for aliased authorizers', () => {
@@ -301,28 +297,26 @@ describe('#awsCompilePermissions()', () => {
       ],
     };
 
-    return awsCompileApigEvents.compilePermissions().then(() => {
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .AuthorizerLambdaPermissionApiGateway.Properties.FunctionName
-      ).to.deep.equal({
-        'Fn::Join': [':', [{ 'Fn::GetAtt': ['AuthorizerLambdaFunction', 'Arn'] }, 'provisioned']],
-      });
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .AuthorizerLambdaPermissionApiGateway.Properties.SourceArn
-      ).to.deep.equal(deepObj);
+    awsCompileApigEvents.compilePermissions();
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .AuthorizerLambdaPermissionApiGateway.Properties.FunctionName
+    ).to.deep.equal({
+      'Fn::Join': [':', [{ 'Fn::GetAtt': ['AuthorizerLambdaFunction', 'Arn'] }, 'provisioned']],
     });
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .AuthorizerLambdaPermissionApiGateway.Properties.SourceArn
+    ).to.deep.equal(deepObj);
   });
 
   it('should not create permission resources when http events are not given', () => {
     awsCompileApigEvents.validated.events = [];
     awsCompileApigEvents.permissionMapping = [];
-    return awsCompileApigEvents.compilePermissions().then(() => {
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-      ).to.deep.equal({});
-    });
+    awsCompileApigEvents.compilePermissions();
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+    ).to.deep.equal({});
   });
 
   it('should not create permission resources when the authorizer is managed externally', () => {
@@ -383,10 +377,9 @@ describe('#awsCompilePermissions()', () => {
       },
     };
 
-    return awsCompileApigEvents.compilePermissions().then(() => {
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-      ).to.deep.equal(deepObj);
-    });
+    awsCompileApigEvents.compilePermissions();
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+    ).to.deep.equal(deepObj);
   });
 });

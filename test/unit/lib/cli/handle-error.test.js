@@ -7,7 +7,7 @@ const path = require('path');
 const overrideStdoutWrite = require('process-utils/override-stdout-write');
 const handleError = require('../../../../lib/cli/handle-error');
 const isStandaloneExecutable = require('../../../../lib/utils/isStandaloneExecutable');
-const { ServerlessError } = require('../../../../lib/classes/Error');
+const ServerlessError = require('../../../../lib/serverless-error');
 
 describe('test/unit/lib/cli/handle-error.test.js', () => {
   it('should log environment information', async () => {
@@ -23,6 +23,7 @@ describe('test/unit/lib/cli/handle-error.test.js', () => {
     expect(stdoutData).to.have.string('Node Version:');
     expect(stdoutData).to.have.string('Framework Version:');
     expect(stdoutData).to.have.string('Plugin Version:');
+    expect(stdoutData).to.have.string('SDK Version:');
     expect(stdoutData).to.have.string('Components Version:');
   });
 

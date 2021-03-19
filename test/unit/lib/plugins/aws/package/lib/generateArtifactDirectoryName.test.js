@@ -20,8 +20,8 @@ describe('#generateArtifactDirectoryName()', () => {
     awsPackage.serverless.cli = new serverless.classes.CLI();
   });
 
-  it('should generate a name for the artifact directory based on the current time', () =>
-    awsPackage.generateArtifactDirectoryName().then(() => {
-      expect(awsPackage.serverless.service.package.artifactDirectoryName).to.match(/[0-9]+-.+/);
-    }));
+  it('should generate a name for the artifact directory based on the current time', () => {
+    awsPackage.generateArtifactDirectoryName();
+    expect(awsPackage.serverless.service.package.artifactDirectoryName).to.match(/[0-9]+-.+/);
+  });
 });

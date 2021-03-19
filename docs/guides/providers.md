@@ -39,23 +39,31 @@ You’ll be able to select the provider, like AWS, Stripe, and Twilio, name the 
 
 It is recommended that you deploy your Serverless Framework apps to different accounts for each stage. To accomplish this we recommend adding a `dev` and `prod` provider to decouple the prod environment from all other environments.
 
+## Setting a default organization provider
+
+A Provider at the organization level can also be designated as the default provider for the organization. This provider will be used in any deployments where the service or instance do not have a provider set.
+
+To set the organizatwion default, go to the **orgs** section of the dashboard, and select the **providers** tab, under the **...** menu of the provider select **set as default**.
+
 ## Adding a provider to a service
 
-Adding the providers to the organization alone will not be sufficient, you must also link that account with the service.
+Adding the providers to the organization alone will not be sufficient, you must also link that provider with the service.
 
-Go to the **apps** section of the dashboard, and select **settings** under the **...** menu of the service for which you would like to use providers. On the service settings page navigate to the **providers** tab. From there you can click **add provider** which will allow you to add the providers from the organization into your service.
+To add a provider to a service, go to the **apps** section of the dashboard, and select **settings** under the **...** menu of the service for which you would like to use providers. On the service settings page navigate to the **providers** tab. From there you can click **add provider** which will allow you to add the providers from the organization into your service.
 
 ## Adding a provider to an instance
 
 If your service is deployed to the same account for each stage and region, then you do not need to configure providers per instance. However, if you have multiple providers, like one for each stages or regions, then you can add a provider to each instance.
 
-To add a provider to an instance navigate to the instance details page for that service instance. Navigate to the **providers** tab. From the **add providers** dropdown you can add any provider from the organization into the instance.
+To add a provider to an instance, navigate to the instance details page for that service instance, go to the **providers** tab, from the **add providers** dropdown you can add any provider from the organization into the instance.
 
 ## Inheritance and overriding
 
 If you are deploying a traditional Serverless Framework app, an instance of the service is created for that stage and region. If you are using a Component-based service, then an instance is created for each stage of the service.
 
-When you are performing a deployment the provider associated with the instance will be used. If no provider is associated with the instance, but one is associated with the service, then that provider will be used. In other words, the providers from the service are inherited at the instance level and they can be overridden on the instance.
+Serverless Framework, on deployment, will use the provider associate with the Instance, Service, or Organization Default Provider, in priority order. In other words, the providers are inherited and can be overridden at each level.
+
+The organization default provider enables you to deploy using that organization default provider without needing to set a provider at the service or instance level. Similarly, setting a provider at the service level enables you to create new instances and deploy right away without needing to set a provider on the instance.
 
 ### Different accounts per stage
 

@@ -18,6 +18,9 @@ Variables allow users to dynamically replace config values in `serverless.yml` c
 
 They are especially useful when providing secrets for your service to use and when you are working with multiple stages.
 
+If `unresolvedVariablesNotificationMode` is set to `error`, references to variables that cannot be resolved will result in an error being thrown.
+This will become the default behaviour in the next major version.
+
 ## Syntax
 
 To use variables, you will need to reference values enclosed in `${}` brackets.
@@ -60,15 +63,15 @@ For example:
 provider:
   name: aws
   environment:
-    MY_SECRET: ${file(./config.${opt:stage, self:provider.stage, 'dev'}.json):CREDS}
+    MY_SECRET: ${file(./config.${opt:stage, 'dev'}.json):CREDS}
 ```
 
-If `sls deploy --stage qa` is run, the option `stage=qa` is used inside the `${file(./config.${opt:stage, self:provider.stage, 'dev'}.json):CREDS}` variable and it will resolve the `config.qa.json` file and use the `CREDS` key defined.
+If `sls deploy --stage qa` is run, the option `stage=qa` is used inside the `${file(./config.${opt:stage, 'dev'}.json):CREDS}` variable and it will resolve the `config.qa.json` file and use the `CREDS` key defined.
 
 **How that works:**
 
 1. stage is set to `qa` from the option supplied to the `sls deploy --stage qa` command
-2. `${opt:stage, self:provider.stage, 'dev'}` resolves to `qa` and is used in `${file(./config.${opt:stage, self:provider.stage, 'dev'}.json):CREDS}`
+2. `${opt:stage, 'dev'}` resolves to `qa` and is used in `${file(./config.${opt:stage, 'dev'}.json):CREDS}`
 3. `${file(./config.qa.json):CREDS}` is found & the `CREDS` value is read
 4. `MY_SECRET` value is set
 
@@ -438,21 +441,60 @@ functions:
 
 ## Reference Variables in Javascript Files
 
-You can reference JavaScript files to add dynamic data into your variables.
+You can reference JavaScript modules to add dynamic data into your variables.
 
-References can be either named or unnamed exports. To use the exported `someModule` in `myFile.js` you'd use the following code `${file(./myFile.js):someModule}`. For an unnamed export you'd write `${file(./myFile.js)}`. If you export a function, the first argument will be a reference to the Serverless object, containing your configuration.
+### Exporting an object
 
-Here are some examples:
+To rely on exported `someModule` property in `myFile.js` you'd use the following code `${file(./myFile.js):someModule}`)
+
+e.g.
 
 ```js
 // scheduleConfig.js
 module.exports.rate = 'rate(10 minutes)';
 ```
 
+```yml
+# serverless.yml
+service: new-service
+provider: aws
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - schedule: ${file(./scheduleConfig.js):rate} # Reference a specific module
+```
+
+### Exporting a function
+
+With a new variables resolver (_which will be the only used resolver in v3 of a Framework, and which can be turned on now by setting `variablesResolutionMode: 20210219` in service config_) functions receives an object, with two properties:
+
+- `options` - An object referencing resolved CLI params as passed to the command
+- `resolveConfigurationProperty([key1, key2, ...keyN])` - Async function which resolves specific service configuration property. It returns a fully resolved value of configuration property. If circular reference is detected resolution will be rejected.
+
+Example, of how to obtain a value of AWS region that will be used by Serverless Framework:
+
 ```js
-// config.js
+// config.js (when relying on new variables resolver)
+module.exports = async ({ options, resolveConfigurationProperty }) => {
+  let region = options.region;
+  if (!region) {
+    region = await resolveConfigurationProperty(['provider', 'region']);
+    if (!region) region = 'us-east-1'; // Framework default
+  }
+  ...
+}
+```
+
+In the old legacy resolver (which is deprecated, but stays as default in v2) function receives a reference to the Serverless object containing your configuration.
+
+_**Notice:** Configuration is yet in unresolved state, so any properties configured with variables may still be presented with variables in it_
+
+```js
+// config.js (when relying on legacy resolver)
 module.exports = (serverless) => {
-  serverless.cli.consoleLog('You can access Serverless config and methods as well!');
+  serverless.cli.consoleLog('You can access Serverless config at serverless.configrationInput');
 
   return {
     property1: 'some value',
@@ -467,12 +509,6 @@ service: new-service
 provider: aws
 
 custom: ${file(./config.js)}
-
-functions:
-  hello:
-    handler: handler.hello
-    events:
-      - schedule: ${file(./scheduleConfig.js):rate} # Reference a specific module
 ```
 
 You can also return an object and reference a specific property. Just make sure you are returning a valid object and referencing a valid property:
@@ -625,7 +661,9 @@ You can have as many variable references as you want, from any source you want, 
 
 ## Using Custom Variable Syntax
 
-In some cases, the `${xxx}` variable syntax conflicts with some CloudFormation functionality. In that case you can provide a custom syntax to overwrite our default `${xxx}` syntax by setting the `provider.variableSyntax` property to the desired regex:
+_**Note:** This functionality is deprecated, and will no longer be provided with v3 release, which is backed by new variables resolver._
+
+You can provide a custom syntax to overwrite our default `${xxx}` syntax by setting the `provider.variableSyntax` property to the desired regex:
 
 ```yml
 service: new-service
@@ -663,14 +701,30 @@ You can reference [AWS Pseudo Parameters](http://docs.aws.amazon.com/AWSCloudFor
 Here's an example:
 
 ```yml
-Resources:
-  - 'Fn::Join':
-      - ':'
-      - - 'arn:aws:logs'
-        - Ref: 'AWS::Region'
-        - Ref: 'AWS::AccountId'
-        - 'log-group:/aws/lambda/*:*:*'
+functions:
+  hello:
+    handler: my-function.handler
+    environment:
+      var:
+        Fn::Join:
+          - ':'
+          - - 'arn:aws:logs'
+            - Ref: 'AWS::Region'
+            - Ref: 'AWS::AccountId'
+            - 'log-group:/aws/lambda/*:*:*'
 ```
+
+You can also directly use the [Sub] function:
+
+```yml
+functions:
+  hello:
+    handler: my-function.handler
+    environment:
+      var: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*:*:*'
+```
+
+[sub]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-sub.html
 
 ## Read String Variable Values as Boolean Values
 

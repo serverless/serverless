@@ -20,4 +20,4 @@ functions:
                 - sqs
                 - Ref: AWS::Region
                 - Ref: AWS::AccountId
-                - ${self:service.name}-basic
+                - ${self:service}-basic

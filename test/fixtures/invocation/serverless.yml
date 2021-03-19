@@ -5,6 +5,7 @@ frameworkVersion: '*'
 
 provider:
   name: aws
+  lambdaHashingVersion: 20201221
 
 functions:
   callback:

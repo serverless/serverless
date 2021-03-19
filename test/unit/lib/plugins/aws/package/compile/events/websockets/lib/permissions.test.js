@@ -32,35 +32,34 @@ describe('#compilePermissions()', () => {
       ],
     };
 
-    return awsCompileWebsocketsEvents.compilePermissions().then(() => {
-      const resources =
-        awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources;
+    awsCompileWebsocketsEvents.compilePermissions();
+    const resources =
+      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+        .Resources;
 
-      expect(resources).to.deep.equal({
-        FirstLambdaPermissionWebsockets: {
-          Type: 'AWS::Lambda::Permission',
-          DependsOn: ['WebsocketsApi', 'FirstLambdaFunction'],
-          Properties: {
-            FunctionName: {
-              'Fn::GetAtt': ['FirstLambdaFunction', 'Arn'],
-            },
-            Action: 'lambda:InvokeFunction',
-            Principal: 'apigateway.amazonaws.com',
+    expect(resources).to.deep.equal({
+      FirstLambdaPermissionWebsockets: {
+        Type: 'AWS::Lambda::Permission',
+        DependsOn: ['WebsocketsApi', 'FirstLambdaFunction'],
+        Properties: {
+          FunctionName: {
+            'Fn::GetAtt': ['FirstLambdaFunction', 'Arn'],
           },
+          Action: 'lambda:InvokeFunction',
+          Principal: 'apigateway.amazonaws.com',
         },
-        SecondLambdaPermissionWebsockets: {
-          Type: 'AWS::Lambda::Permission',
-          DependsOn: ['WebsocketsApi', 'SecondLambdaFunction'],
-          Properties: {
-            FunctionName: {
-              'Fn::GetAtt': ['SecondLambdaFunction', 'Arn'],
-            },
-            Action: 'lambda:InvokeFunction',
-            Principal: 'apigateway.amazonaws.com',
+      },
+      SecondLambdaPermissionWebsockets: {
+        Type: 'AWS::Lambda::Permission',
+        DependsOn: ['WebsocketsApi', 'SecondLambdaFunction'],
+        Properties: {
+          FunctionName: {
+            'Fn::GetAtt': ['SecondLambdaFunction', 'Arn'],
           },
+          Action: 'lambda:InvokeFunction',
+          Principal: 'apigateway.amazonaws.com',
         },
-      });
+      },
     });
   });
 
@@ -78,35 +77,34 @@ describe('#compilePermissions()', () => {
       ],
     };
 
-    return awsCompileWebsocketsEvents.compilePermissions().then(() => {
-      const resources =
-        awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources;
+    awsCompileWebsocketsEvents.compilePermissions();
+    const resources =
+      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+        .Resources;
 
-      expect(resources).to.deep.equal({
-        FirstLambdaPermissionWebsockets: {
-          Type: 'AWS::Lambda::Permission',
-          DependsOn: ['WebsocketsApi', 'FirstLambdaFunction'],
-          Properties: {
-            FunctionName: {
-              'Fn::GetAtt': ['FirstLambdaFunction', 'Arn'],
-            },
-            Action: 'lambda:InvokeFunction',
-            Principal: 'apigateway.amazonaws.com',
+    expect(resources).to.deep.equal({
+      FirstLambdaPermissionWebsockets: {
+        Type: 'AWS::Lambda::Permission',
+        DependsOn: ['WebsocketsApi', 'FirstLambdaFunction'],
+        Properties: {
+          FunctionName: {
+            'Fn::GetAtt': ['FirstLambdaFunction', 'Arn'],
           },
+          Action: 'lambda:InvokeFunction',
+          Principal: 'apigateway.amazonaws.com',
         },
-        AuthLambdaPermissionWebsockets: {
-          Type: 'AWS::Lambda::Permission',
-          DependsOn: ['WebsocketsApi', 'AuthLambdaPermissionWebsockets'],
-          Properties: {
-            FunctionName: {
-              'Fn::GetAtt': ['AuthLambdaPermissionWebsockets', 'Arn'],
-            },
-            Action: 'lambda:InvokeFunction',
-            Principal: 'apigateway.amazonaws.com',
+      },
+      AuthLambdaPermissionWebsockets: {
+        Type: 'AWS::Lambda::Permission',
+        DependsOn: ['WebsocketsApi', 'AuthLambdaPermissionWebsockets'],
+        Properties: {
+          FunctionName: {
+            'Fn::GetAtt': ['AuthLambdaPermissionWebsockets', 'Arn'],
           },
+          Action: 'lambda:InvokeFunction',
+          Principal: 'apigateway.amazonaws.com',
         },
-      });
+      },
     });
   });
 });

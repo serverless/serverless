@@ -143,7 +143,7 @@ Currently, `invoke local` only supports the NodeJs and Python runtimes.
 
 ## Resource permissions
 
-Lambda functions assume an _IAM role_ during execution: the framework creates this role, and set all the permission provided in the `iamRoleStatements` section of `serverless.yml`.
+Lambda functions assume an _IAM role_ during execution: the framework creates this role, and set all the permission provided in the `iam.role.statements` section of `serverless.yml`.
 
 Unless you explicitly state otherwise, every call to the AWS SDK inside the lambda function is made using this role (a temporary pair of key / secret is generated and set by AWS as environment variables, `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`).
 

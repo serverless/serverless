@@ -1,12 +1,17 @@
 'use strict';
 
-const { join } = require('path');
-const { expect } = require('chai');
+const chai = require('chai');
 const sinon = require('sinon');
+const configureInquirerStub = require('@serverless/test/configure-inquirer-stub');
+
+const { expect } = chai;
+
+chai.use(require('chai-as-promised'));
+
+const { join } = require('path');
 const { remove: rmDir, lstat } = require('fs-extra');
 const runServerless = require('../../../../utils/run-serverless');
 const inquirer = require('@serverless/utils/inquirer');
-const configureInquirerStub = require('@serverless/test/configure-inquirer-stub');
 
 const fixturesPath = join(__dirname, 'fixtures');
 const lifecycleHookNamesBlacklist = [
@@ -30,13 +35,13 @@ describe('interactiveCli: initializeService', () => {
 
   afterEach(() => sinon.restore());
 
-  it('Should be ineffective, when at service path', () =>
+  it('Should be ineffective, when at service path', async () =>
     runServerless({
       cwd: join(fixturesPath, 'some-other-service'),
       lifecycleHookNamesBlacklist,
     }));
 
-  it("Should abort if user doesn't want setup", () => {
+  it("Should abort if user doesn't want setup", async () => {
     configureInquirerStub(inquirer, {
       confirm: { shouldCreateNewProject: false },
     });
@@ -47,7 +52,7 @@ describe('interactiveCli: initializeService', () => {
     });
   });
 
-  it("Should abort if user choses 'other' template", () => {
+  it("Should abort if user choses 'other' template", async () => {
     configureInquirerStub(inquirer, {
       confirm: { shouldCreateNewProject: true },
       list: { projectType: 'other' },
@@ -60,57 +65,52 @@ describe('interactiveCli: initializeService', () => {
   });
 
   describe('Create new project', () => {
-    after(() => rmDir(newProjectPath));
+    after(async () => rmDir(newProjectPath));
 
-    it('Should create project at not existing directory', () => {
+    it('Should create project at not existing directory', async () => {
       configureInquirerStub(inquirer, {
         confirm: { shouldCreateNewProject: true },
         list: { projectType: 'aws-nodejs' },
         input: { projectName: newProjectName },
       });
-      return runServerless({
+      await runServerless({
         cwd: fixturesPath,
         pluginPathsWhitelist: ['./lib/plugins/interactiveCli'],
         lifecycleHookNamesBlacklist,
-      })
-        .then(() => lstat(join(newProjectPath, 'serverless.yml')))
-        .then((stats) => expect(stats.isFile()).to.be.true);
+      });
+      const stats = await lstat(join(newProjectPath, 'serverless.yml'));
+      expect(stats.isFile()).to.be.true;
     });
   });
 
-  it('Should not allow project creation in a directory in which already service is configured', () => {
+  it('Should not allow project creation in a directory in which already service is configured', async () => {
     configureInquirerStub(inquirer, {
       confirm: { shouldCreateNewProject: true },
       list: { projectType: 'aws-nodejs' },
       input: { projectName: existingProjectName },
     });
-    return runServerless({
-      cwd: fixturesPath,
-      pluginPathsWhitelist: ['./lib/plugins/interactiveCli'],
-      lifecycleHookNamesBlacklist,
-    }).then(
-      () => {
-        throw new Error('Unexpected');
-      },
-      (error) => expect(error.code).to.equal('INVALID_ANSWER')
-    );
+
+    await expect(
+      runServerless({
+        cwd: fixturesPath,
+        pluginPathsWhitelist: ['./lib/plugins/interactiveCli'],
+        lifecycleHookNamesBlacklist,
+      })
+    ).to.eventually.be.rejected.and.have.property('code', 'INVALID_ANSWER');
   });
 
-  it('Should not allow project creation using an invalid project name', () => {
+  it('Should not allow project creation using an invalid project name', async () => {
     configureInquirerStub(inquirer, {
       confirm: { shouldCreateNewProject: true },
       list: { projectType: 'aws-nodejs' },
       input: { projectName: 'elo grzegżółka' },
     });
-    return runServerless({
-      cwd: fixturesPath,
-      pluginPathsWhitelist: ['./lib/plugins/interactiveCli'],
-      lifecycleHookNamesBlacklist,
-    }).then(
-      () => {
-        throw new Error('Unexpected');
-      },
-      (error) => expect(error.code).to.equal('INVALID_ANSWER')
-    );
+    await expect(
+      runServerless({
+        cwd: fixturesPath,
+        pluginPathsWhitelist: ['./lib/plugins/interactiveCli'],
+        lifecycleHookNamesBlacklist,
+      })
+    ).to.eventually.be.rejected.and.have.property('code', 'INVALID_ANSWER');
   });
 });

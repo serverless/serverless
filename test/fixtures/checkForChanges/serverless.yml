@@ -1,0 +1,18 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+provider:
+  name: aws
+  lambdaHashingVersion: 20201221
+
+functions:
+  fn1:
+    handler: fn.handler
+  fn2:
+    handler: fn.handler
+  fnIndividually:
+    handler: fnIndividually.handler
+    package:
+      exclude: fn.js

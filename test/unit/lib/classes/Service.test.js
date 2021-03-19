@@ -10,102 +10,6 @@ const expect = require('chai').expect;
 
 describe('Service', () => {
   describe('#load()', () => {
-    it('should load serverless.yml from filesystem', () =>
-      runServerless({
-        fixture: 'configTypeYml',
-        cliArgs: ['print'],
-      }).then(
-        ({
-          serverless: {
-            service: { provider },
-          },
-        }) => {
-          expect(provider.name).to.deep.equal('yml-provider');
-        }
-      ));
-
-    it('should load serverless.yaml from filesystem', () =>
-      runServerless({
-        fixture: 'configTypeYaml',
-        cliArgs: ['print'],
-      }).then(
-        ({
-          serverless: {
-            service: { service, provider },
-          },
-        }) => {
-          expect(service).to.be.equal('yaml-service');
-          expect(provider.name).to.deep.equal('yaml-provider');
-        }
-      ));
-
-    it('should load serverless.json from filesystem', () =>
-      runServerless({
-        fixture: 'configTypeJson',
-        cliArgs: ['print'],
-      }).then(
-        ({
-          serverless: {
-            service: { service, provider },
-          },
-        }) => {
-          expect(service).to.be.equal('json-service');
-          expect(provider.name).to.deep.equal('json-provider');
-        }
-      ));
-
-    it('should load serverless.js from filesystem', () =>
-      runServerless({
-        fixture: 'configTypeJs',
-        cliArgs: ['print'],
-      }).then(
-        ({
-          serverless: {
-            service: { service, provider },
-          },
-        }) => {
-          expect(service).to.be.equal('js-service');
-          expect(provider.name).to.deep.equal('js-provider');
-        }
-      ));
-
-    it('should support promise result in serverless.js', () =>
-      runServerless({
-        fixture: 'configTypeJsDeferred',
-        cliArgs: ['print'],
-      }).then(
-        ({
-          serverless: {
-            service: { service, provider },
-          },
-        }) => {
-          expect(service).to.be.equal('js-service');
-          expect(provider.name).to.deep.equal('js-provider');
-        }
-      ));
-
-    it('should throw error if config exports non object value', () =>
-      expect(
-        runServerless({
-          fixture: 'configTypeNonObject',
-          cliArgs: ['print'],
-        })
-      ).to.eventually.be.rejected.and.have.property('code', 'INVALID_CONFIG_OBJECT_TYPE'));
-
-    it('should load YAML in favor of JSON', () =>
-      runServerless({
-        fixture: 'configTypeYmlAndJson',
-        cliArgs: ['print'],
-      }).then(
-        ({
-          serverless: {
-            service: { provider },
-          },
-        }) => {
-          expect(provider.name).to.deep.equal('yml-provider');
-        }
-      ));
-
     it('should reject when the service name is missing', () =>
       expect(
         runServerless({
@@ -211,14 +115,31 @@ describe('Service', () => {
   });
 
   describe('#setFunctionNames()', () => {
-    it('should make sure function name contains the default stage', () =>
-      runServerless({
+    it('should make sure function name contains the default stage', async () => {
+      const { cfTemplate, awsNaming } = await runServerless({
         fixture: 'function',
         cliArgs: ['package'],
-      }).then(({ cfTemplate, awsNaming }) =>
-        expect(
-          cfTemplate.Resources[awsNaming.getLambdaLogicalId('foo')].Properties.FunctionName
-        ).to.include('dev-foo')
-      ));
+      });
+      expect(
+        cfTemplate.Resources[awsNaming.getLambdaLogicalId('foo')].Properties.FunctionName
+      ).to.include('dev-foo');
+    });
+
+    it('should throw when receives function with non-object configuration', async () => {
+      await expect(
+        runServerless({
+          fixture: 'function',
+          cliArgs: ['package'],
+          configExt: {
+            functions: {
+              bar: null,
+            },
+          },
+        })
+      ).to.be.eventually.rejected.and.have.property(
+        'code',
+        'NON_OBJECT_FUNCTION_CONFIGURATION_ERROR'
+      );
+    });
   });
 });

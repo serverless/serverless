@@ -1,0 +1,15 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+provider:
+  name: aws
+  ecr:
+    images:
+      baseimage:
+        path: ./
+
+functions:
+  foo:
+    image: baseimage

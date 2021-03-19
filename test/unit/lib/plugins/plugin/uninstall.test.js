@@ -42,7 +42,6 @@ describe('PluginUninstall', () => {
   beforeEach(() => {
     serverless = new Serverless();
     serverless.cli = new CLI(serverless);
-    serverless.processedInput = serverless.cli.processInput();
     const options = {};
     pluginUninstall = new PluginUninstall(serverless, options);
     consoleLogStub = sinon.stub(serverless.cli, 'consoleLog').returns();
@@ -242,7 +241,10 @@ describe('PluginUninstall', () => {
     beforeEach(() => {
       servicePath = getTmpDirPath();
       pluginUninstall.serverless.config.servicePath = servicePath;
-      serverlessYmlFilePath = path.join(servicePath, 'serverless.yml');
+      pluginUninstall.serverless.configurationPath = serverlessYmlFilePath = path.join(
+        servicePath,
+        'serverless.yml'
+      );
     });
 
     it('should only remove the given plugin from the service', () => {
@@ -282,7 +284,10 @@ describe('PluginUninstall', () => {
     });
 
     it('should remove the plugin from serverless file path for a .yaml file', () => {
-      const serverlessYamlFilePath = path.join(servicePath, 'serverless.yaml');
+      const serverlessYamlFilePath = (pluginUninstall.serverless.configurationPath = path.join(
+        servicePath,
+        'serverless.yaml'
+      ));
       const serverlessYml = {
         service: 'plugin-service',
         provider: 'aws',
@@ -298,7 +303,10 @@ describe('PluginUninstall', () => {
     });
 
     it('should remove the plugin from serverless file path for a .json file', () => {
-      const serverlessJsonFilePath = path.join(servicePath, 'serverless.json');
+      const serverlessJsonFilePath = (pluginUninstall.serverless.configurationPath = path.join(
+        servicePath,
+        'serverless.json'
+      ));
       const serverlessJson = {
         service: 'plugin-service',
         provider: 'aws',
@@ -330,7 +338,10 @@ describe('PluginUninstall', () => {
     });
 
     it('should not modify serverless .js file', () => {
-      const serverlessJsFilePath = path.join(servicePath, 'serverless.js');
+      const serverlessJsFilePath = (pluginUninstall.serverless.configurationPath = path.join(
+        servicePath,
+        'serverless.js'
+      ));
       const serverlessJson = {
         service: 'plugin-service',
         provider: 'aws',
@@ -349,7 +360,10 @@ describe('PluginUninstall', () => {
     });
 
     it('should not modify serverless .ts file', () => {
-      const serverlessTsFilePath = path.join(servicePath, 'serverless.ts');
+      const serverlessTsFilePath = (pluginUninstall.serverless.configurationPath = path.join(
+        servicePath,
+        'serverless.ts'
+      ));
       const serverlessJson = {
         service: 'plugin-service',
         provider: 'aws',
@@ -416,7 +430,10 @@ describe('PluginUninstall', () => {
       });
 
       it('should remove the plugin from serverless file path for a .json file', () => {
-        const serverlessJsonFilePath = path.join(servicePath, 'serverless.json');
+        const serverlessJsonFilePath = (pluginUninstall.serverless.configurationPath = path.join(
+          servicePath,
+          'serverless.json'
+        ));
         const serverlessJson = {
           service: 'plugin-service',
           provider: 'aws',

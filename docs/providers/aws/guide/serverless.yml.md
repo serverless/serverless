@@ -22,8 +22,11 @@ Here is a list of all available properties in `serverless.yml` when the provider
 service: myService
 
 frameworkVersion: '2'
+configValidationMode: warn # Modes for config validation. `error` throws an exception, `warn` logs error to console, `off` disables validation at all. The default is warn.
 enableLocalInstallationFallback: false # If set to 'true', guarantees that it's a locally (for service, in its node_modules) installed framework which processes the command
 useDotenv: false # If set to 'true', environment variables will be automatically loaded from .env files
+variablesResolutionMode: null # To crash on variable resolution errors (as coming from new resolver), set this value to "20210219"
+unresolvedVariablesNotificationMode: warn # If set to 'error', references to variables that cannot be resolved will result in an error being thrown (applies to legacy resolver)
 
 disabledDeprecations: # Disable deprecation logs by their codes. Default is empty.
   - DEP_CODE_1 # Deprecation code to disable
@@ -57,10 +60,14 @@ provider:
       key1: value1
       key2: value2
   deploymentPrefix: serverless # The S3 prefix under which deployed artifacts should be stored. Default is serverless
-  role: arn:aws:iam::XXXXXX:role/role # Overwrite the default IAM role which is used for all functions
-  rolePermissionsBoundary: arn:aws:iam::XXXXXX:policy/policy # ARN of an Permissions Boundary for the role.
   lambdaHashingVersion: 20201221 # optional, version of hashing algorithm that should be used by the framework
-  cfnRole: arn:aws:iam::XXXXXX:role/role # ARN of an IAM role for CloudFormation service. If specified, CloudFormation uses the role's credentials
+  ecr:
+    images: # Definitions of images that later can be referenced by key in `function.image`
+      baseimage:
+        uri: 000000000000.dkr.ecr.us-east-1.amazonaws.com/test-image@sha256:6bb600b4d6e1d7cf521097177d111111ea373edb91984a505333be8ac9455d38 # Image uri of existing Docker image in ECR
+      anotherimage:
+        path: ./image/ # Path to Docker context that will be used when building that image locally
+        file: Dockerfile.dev # Name of Dockerfile that should be used when building image locally. Equal to 'Dockerfile' by default
   cloudFront:
     myCachePolicy1: # used as a reference in function.events[].cloudfront.cachePolicy.name
       DefaultTTL: 60
@@ -126,6 +133,12 @@ provider:
       throttle:
         burstLimit: 200
         rateLimit: 100
+    request:
+      schemas: # Optional request schema validation models that can be reused in `http` events. It is always defined for `application/json` content type
+        global-model:
+          name: GlobalModel # Optional: Name of the API Gateway model
+          description: "A global model that can be referenced in functions" # Optional: Description of the API Gateway model
+          schema: ${file(schema.json)}  # Valid JSON Schema
   alb:
     targetGroupPrefix: xxxxxxxxxx # Optional prefix to prepend when generating names for target groups
     authorizers:
@@ -161,7 +174,7 @@ provider:
     id: 'my-id' # If we want to attach to externally created HTTP API its id should be provided here
     name: 'dev-my-service' # Use custom name for the API Gateway API, default is ${opt:stage, self:provider.stage, 'dev'}-${self:service}
     payload: '1.0' # Specify payload format version for Lambda integration ('1.0' or '2.0'), default is '1.0'
-    cors: true # Implies default behavior, can be fine tuned with specficic options
+    cors: true # Implies default behavior, can be fine tuned with specific options
     authorizers:
       # JWT authorizers to back HTTP API endpoints
       someJwtAuthorizer:
@@ -172,17 +185,26 @@ provider:
           - xxxx
   stackTags: # Optional CF stack tags
     key: value
-  iamManagedPolicies: # Optional IAM Managed Policies, which allows to include the policies into IAM Role
-    - arn:aws:iam:*****:policy/some-managed-policy
-  iamRoleStatements: # IAM role statements so that services can be accessed in the AWS account
-    - Effect: 'Allow'
-      Action:
-        - 's3:ListBucket'
-      Resource:
-        Fn::Join:
-          - ''
-          - - 'arn:aws:s3:::'
-            - Ref: ServerlessDeploymentBucket
+  iam:
+    # Overwrite the default IAM role which is used for all functions
+    role: arn:aws:iam::XXXXXX:role/role
+    # .. OR configure logical role
+    role:
+      managedPolicies: # Optional IAM Managed Policies, which allows to include the policies into IAM Role
+        - arn:aws:iam:*****:policy/some-managed-policy
+      permissionsBoundary: arn:aws:iam::XXXXXX:policy/policy # ARN of an Permissions Boundary for the role.
+      statements: # IAM role statements so that services can be accessed in the AWS account
+        - Effect: 'Allow'
+          Action:
+            - 's3:ListBucket'
+          Resource:
+            Fn::Join:
+              - ''
+              - - 'arn:aws:s3:::'
+                - Ref: ServerlessDeploymentBucket
+      tags:
+        key: value
+    deploymentRole: arn:aws:iam::XXXXXX:role/role # ARN of an IAM role for CloudFormation service. If specified, CloudFormation uses the role's credentials
   stackPolicy: # Optional CF stack policy. The example below allows updates to all resources except deleting/replacing EC2 instances (use with caution!)
     - Effect: Allow
       Principal: '*'
@@ -252,7 +274,8 @@ package: # Optional deployment packaging configuration
 
 functions:
   usersCreate: # A Function
-    handler: users.create # The file and module for this specific function.
+    handler: users.create # The file and module for this specific function. Cannot be used when `image` is defined.
+    image: baseimage # Image to be used by function, cannot be used when `handler` is defined. It can be configured as concrete uri of Docker image in ECR or as a reference to image defined in `provider.ecr.images`
     name: ${opt:stage, self:provider.stage, 'dev'}-lambdaName # optional, Deployed Lambda name
     description: My function # The description of your function.
     memorySize: 512 # memorySize for this specific function.
@@ -327,6 +350,11 @@ functions:
             template: # Optional custom request mapping templates that overwrite default templates
               application/json: '{ "httpMethod" : "$context.httpMethod" }'
             passThrough: NEVER # Optional define pass through behavior when content-type does not match any of the specified mapping templates
+            schemas: # Optional request schema validation, mapped by content type
+              application/json:
+                name: ModelName  # Optional: Name of the API Gateway model
+                description: "Some description" # Optional: Description of the API Gateway model
+                schema: ${file(model_schema.json)} # Schema for selected content type
       - httpApi: # HTTP API endpoint
           method: GET
           path: /some-get-path/{param}
@@ -386,6 +414,7 @@ functions:
       - sqs:
           arn: arn:aws:sqs:region:XXXXXX:myQueue
           batchSize: 10
+          maximumBatchingWindow: 10 # optional, minimum is 0 and the maximum is 300 (seconds)
           enabled: true
       - stream:
           arn: arn:aws:kinesis:region:XXXXXX:stream/foo
@@ -393,6 +422,7 @@ functions:
           maximumRecordAgeInSeconds: 120
           startingPosition: LATEST
           enabled: true
+          functionResponseType: ReportBatchItemFailures
       - msk:
           arn: arn:aws:kafka:us-east-1:111111111111:cluster/ClusterName/a1a1a1a1a1a1a1a1a # ARN of MSK Cluster
           topic: kafkaTopic # name of Kafka topic to consume from
@@ -519,8 +549,6 @@ functions:
             OriginPath: /framework
             CustomOriginConfig:
               OriginProtocolPolicy: match-viewer
-
-configValidationMode: warn # Modes for config validation. `error` throws an exception, `warn` logs error to console, `off` disables validation at all. The default is warn.
 
 layers:
   hello: # A Lambda layer
