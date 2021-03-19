@@ -35,13 +35,12 @@ const processSpanPromise = (async () => {
       serverlessExecutionSpan: processSpanPromise,
     });
 
-    const {
-      command,
-      commands,
-      options,
-      isHelpRequest,
-      commandSchema,
-    } = require('../lib/cli/resolve-input')();
+    const resolveInput = require('../lib/cli/resolve-input');
+
+    // Parse args against schemas of commands which do not require to be run in service context
+    let { command, commands, options, isHelpRequest, commandSchema } = resolveInput(
+      require('../lib/cli/commands-schema/no-service')
+    );
 
     // If version number request, show it and abort
     if (options.version) {
@@ -152,6 +151,17 @@ const processSpanPromise = (async () => {
           if (isPropertyResolved(variablesMeta, 'provider\0name')) {
             providerName = resolveProviderName(configuration);
           }
+          if (!commandSchema) {
+            // If command was not recognized in first resolution phase
+            // Parse args again also against schemas commands which require (eventually AWS)
+            // service to be run
+            resolveInput.clear();
+            ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
+              providerName === 'aws'
+                ? require('../lib/cli/commands-schema/aws-service')
+                : require('../lib/cli/commands-schema/service')
+            ));
+          }
 
           if (variablesMeta.size) {
             // Some properties are configured with variables
@@ -189,6 +199,15 @@ const processSpanPromise = (async () => {
 
             if (!providerName && isPropertyResolved(variablesMeta, 'provider\0name')) {
               providerName = resolveProviderName(configuration);
+              if (!commandSchema && providerName === 'aws') {
+                // If command was not recognized in previous resolution phases
+                // Parse args again also against schemas of commands which work in context of an AWS
+                // service
+                resolveInput.clear();
+                ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
+                  require('../lib/cli/commands-schema/aws-service')
+                ));
+              }
             }
 
             if (!isPropertyResolved(variablesMeta, 'provider\0stage')) {
@@ -273,6 +292,12 @@ const processSpanPromise = (async () => {
               );
             }
             providerName = resolveProviderName(configuration);
+            if (!commandSchema && providerName === 'aws') {
+              resolveInput.clear();
+              ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
+                require('../lib/cli/commands-schema/aws-service')
+              ));
+            }
           }
 
           if (!variablesMeta.size) return; // All properties successuflly resolved
@@ -290,6 +315,14 @@ const processSpanPromise = (async () => {
             );
           }
         })();
+      } else if (!commandSchema) {
+        // If command was not recognized and not in service context
+        // We recognize all AWS service commands
+        // (to report "Missing service context" instead of "Unrecognized command" error)
+        resolveInput.clear();
+        ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
+          require('../lib/cli/commands-schema/aws-service')
+        ));
       }
     }
 
