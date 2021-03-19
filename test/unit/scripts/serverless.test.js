@@ -101,13 +101,16 @@ describe('test/unit/scripts/serverless.test.js', () => {
   it('should rejected unresolved "provider" section', async () => {
     try {
       await spawn('node', [serverlessPath, 'print'], {
-        cwd: (await fixturesEngine.setup('aws', { configExt: { provider: '${foo:bar}' } }))
-          .servicePath,
+        cwd: (
+          await fixturesEngine.setup('aws', {
+            configExt: { variablesResolutionMode: '20210219', provider: '${foo:bar}' },
+          })
+        ).servicePath,
       });
       throw new Error('Unexpected');
     } catch (error) {
       expect(error.code).to.equal(1);
-      expect(String(error.stdoutBuffer)).to.include('"provider" section is not accessible');
+      expect(String(error.stdoutBuffer)).to.include('"provider.stage" property is not accessible');
     }
   });
 

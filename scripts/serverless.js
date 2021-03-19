@@ -90,7 +90,6 @@ const processSpanPromise = (async () => {
       if (configuration) {
         const path = require('path');
         const resolveVariables = require('../lib/configuration/variables/resolve');
-        const humanizePropertyPathKeys = require('../lib/configuration/variables/humanize-property-path-keys');
         const eventuallyReportVariableResolutionErrors = require('../lib/configuration/variables/eventually-report-resolution-errors');
         let resolverConfiguration;
 
@@ -119,6 +118,7 @@ const processSpanPromise = (async () => {
           }
 
           const resolveVariablesMeta = require('../lib/configuration/variables/resolve-meta');
+          const isPropertyResolved = require('../lib/configuration/variables/is-property-resolved');
           variablesMeta = resolveVariablesMeta(configuration);
 
           if (variablesMeta.size) {
@@ -136,7 +136,7 @@ const processSpanPromise = (async () => {
               return;
             }
 
-            if (variablesMeta.has('variablesResolutionMode')) {
+            if (!isPropertyResolved(variablesMeta, 'variablesResolutionMode')) {
               // "variablesResolutionMode" must not be configured with variables as it influences
               // variable resolution choices
               variablesMeta = null;
@@ -180,19 +180,7 @@ const processSpanPromise = (async () => {
               return;
             }
 
-            if (variablesMeta.has('provider')) {
-              // It is unexpected to have "provider" configured with variables,
-              // that cannot be resolved at this stage, abort
-              variablesMeta = null;
-              if (isHelpRequest) return;
-              throw new ServerlessError(
-                `Cannot resolve ${path.basename(
-                  configurationPath
-                )}: "provider" section is not accessible ` +
-                  '(configured behind variables which cannot be resolved at this stage)'
-              );
-            }
-            if (variablesMeta.has('provider\0stage')) {
+            if (!isPropertyResolved(variablesMeta, 'provider\0stage')) {
               // "provider.stage" must be resolved at this point, otherwise abort
               variablesMeta = null;
               if (isHelpRequest) return;
@@ -219,7 +207,7 @@ const processSpanPromise = (async () => {
               return;
             }
 
-            if (variablesMeta.has('useDotenv')) {
+            if (!isPropertyResolved(variablesMeta, 'useDotenv')) {
               // "useDotenv" must be resolved at this point, otherwise abort
               variablesMeta = null;
               if (isHelpRequest) return;
@@ -265,19 +253,18 @@ const processSpanPromise = (async () => {
 
           // At this point we expect "plugins" to be fully resolved to move forward.
           // Report error if that's not the case
-          for (const propertyPath of variablesMeta.keys()) {
-            if (propertyPath !== 'plugins' && !propertyPath.startsWith('plugins\0')) continue;
+          if (!isPropertyResolved(variablesMeta, 'plugins')) {
             variablesMeta = null;
             if (isHelpRequest) return;
             throw new ServerlessError(
-              `Cannot resolve ${path.basename(configurationPath)}: "${humanizePropertyPathKeys(
-                propertyPath.split('\0')
-              )}" property is not accessible ` +
+              `Cannot resolve ${path.basename(
+                configurationPath
+              )}: "plugins" property is not accessible ` +
                 '(configured behind variables which cannot be resolved at this stage)'
             );
           }
 
-          if (variablesMeta.has('provider\0name')) {
+          if (!isPropertyResolved(variablesMeta, 'provider\0name')) {
             // "provider.name" must be resolved at this point, otherwise abort
             variablesMeta = null;
             if (isHelpRequest) return;
