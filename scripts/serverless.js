@@ -119,6 +119,8 @@ const processSpanPromise = (async () => {
           const resolveVariablesMeta = require('../lib/configuration/variables/resolve-meta');
           const resolveProviderName = require('../lib/configuration/resolve-provider-name');
           const isPropertyResolved = require('../lib/configuration/variables/is-property-resolved');
+          const filterSupportedOptions = require('../lib/cli/filter-supported-options');
+
           variablesMeta = resolveVariablesMeta(configuration);
 
           if (
@@ -179,7 +181,7 @@ const processSpanPromise = (async () => {
                 self: require('../lib/configuration/variables/sources/self'),
                 strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
               },
-              options,
+              options: filterSupportedOptions(options, { commandSchema, providerName }),
               fulfilledSources: new Set(['file', 'self', 'strToBool']),
               propertyPathsToResolve: new Set(['provider\0name', 'provider\0stage', 'useDotenv']),
             };
@@ -207,6 +209,24 @@ const processSpanPromise = (async () => {
                 ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
                   require('../lib/cli/commands-schema/aws-service')
                 ));
+
+                if (commandSchema) {
+                  resolverConfiguration.options = filterSupportedOptions(options, {
+                    commandSchema,
+                    providerName,
+                  });
+                  await resolveVariables(resolverConfiguration);
+                  if (
+                    eventuallyReportVariableResolutionErrors(
+                      configurationPath,
+                      configuration,
+                      variablesMeta
+                    )
+                  ) {
+                    variablesMeta = null;
+                    return;
+                  }
+                }
               }
             }
 
@@ -297,6 +317,23 @@ const processSpanPromise = (async () => {
               ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
                 require('../lib/cli/commands-schema/aws-service')
               ));
+              if (commandSchema) {
+                resolverConfiguration.options = filterSupportedOptions(options, {
+                  commandSchema,
+                  providerName,
+                });
+                await resolveVariables(resolverConfiguration);
+                if (
+                  eventuallyReportVariableResolutionErrors(
+                    configurationPath,
+                    configuration,
+                    variablesMeta
+                  )
+                ) {
+                  variablesMeta = null;
+                  return;
+                }
+              }
             }
           }
 
