@@ -118,36 +118,43 @@ const processSpanPromise = (async () => {
           }
 
           const resolveVariablesMeta = require('../lib/configuration/variables/resolve-meta');
+          const resolveProviderName = require('../lib/configuration/resolve-provider-name');
           const isPropertyResolved = require('../lib/configuration/variables/is-property-resolved');
           variablesMeta = resolveVariablesMeta(configuration);
 
+          if (
+            eventuallyReportVariableResolutionErrors(
+              configurationPath,
+              configuration,
+              variablesMeta
+            )
+          ) {
+            // Variable syntax errors, abort
+            variablesMeta = null;
+            return;
+          }
+
+          if (!isPropertyResolved(variablesMeta, 'variablesResolutionMode')) {
+            // "variablesResolutionMode" must not be configured with variables as it influences
+            // variable resolution choices
+            variablesMeta = null;
+            if (isHelpRequest) return;
+            throw new ServerlessError(
+              `Cannot resolve ${path.basename(
+                configurationPath
+              )}: "variablesResolutionMode" is not accessible ` +
+                '(configured behind variables which cannot be resolved at this stage)'
+            );
+          }
+
+          let providerName;
+
+          if (isPropertyResolved(variablesMeta, 'provider\0name')) {
+            providerName = resolveProviderName(configuration);
+          }
+
           if (variablesMeta.size) {
             // Some properties are configured with variables
-
-            if (
-              eventuallyReportVariableResolutionErrors(
-                configurationPath,
-                configuration,
-                variablesMeta
-              )
-            ) {
-              // Variable syntax errors, abort
-              variablesMeta = null;
-              return;
-            }
-
-            if (!isPropertyResolved(variablesMeta, 'variablesResolutionMode')) {
-              // "variablesResolutionMode" must not be configured with variables as it influences
-              // variable resolution choices
-              variablesMeta = null;
-              if (isHelpRequest) return;
-              throw new ServerlessError(
-                `Cannot resolve ${path.basename(
-                  configurationPath
-                )}: "variablesResolutionMode" is not accessible ` +
-                  '(configured behind variables which cannot be resolved at this stage)'
-              );
-            }
 
             // Resolve eventual variables in `provider.stage` and `useDotEnv`
             // (required for reliable .env resolution)
@@ -164,7 +171,7 @@ const processSpanPromise = (async () => {
               },
               options,
               fulfilledSources: new Set(['file', 'self', 'strToBool']),
-              propertyPathsToResolve: new Set(['provider\0stage', 'useDotenv']),
+              propertyPathsToResolve: new Set(['provider\0name', 'provider\0stage', 'useDotenv']),
             };
             await resolveVariables(resolverConfiguration);
 
@@ -178,6 +185,10 @@ const processSpanPromise = (async () => {
               // Unrecoverable resolution errors, abort
               variablesMeta = null;
               return;
+            }
+
+            if (!providerName && isPropertyResolved(variablesMeta, 'provider\0name')) {
+              providerName = resolveProviderName(configuration);
             }
 
             if (!isPropertyResolved(variablesMeta, 'provider\0stage')) {
@@ -232,7 +243,7 @@ const processSpanPromise = (async () => {
             // We do not need full config resolved, we just need to know what
             // provider is service setup with, and with what eventual plugins Framework is extended
             // as that influences what CLI commands and options could be used,
-            resolverConfiguration.propertyPathsToResolve.add('plugins').add('provider\0name');
+            resolverConfiguration.propertyPathsToResolve.add('plugins');
           } else {
             delete resolverConfiguration.propertyPathsToResolve;
           }
@@ -249,6 +260,21 @@ const processSpanPromise = (async () => {
             return;
           }
 
+          if (!providerName) {
+            if (!isPropertyResolved(variablesMeta, 'provider\0name')) {
+              // "provider.name" must be resolved at this point, otherwise abort
+              variablesMeta = null;
+              if (isHelpRequest) return;
+              throw new ServerlessError(
+                `Cannot resolve ${path.basename(
+                  configurationPath
+                )}: "provider.name" property is not accessible ` +
+                  '(configured behind variables which cannot be resolved at this stage)'
+              );
+            }
+            providerName = resolveProviderName(configuration);
+          }
+
           if (!variablesMeta.size) return; // All properties successuflly resolved
 
           // At this point we expect "plugins" to be fully resolved to move forward.
@@ -260,18 +286,6 @@ const processSpanPromise = (async () => {
               `Cannot resolve ${path.basename(
                 configurationPath
               )}: "plugins" property is not accessible ` +
-                '(configured behind variables which cannot be resolved at this stage)'
-            );
-          }
-
-          if (!isPropertyResolved(variablesMeta, 'provider\0name')) {
-            // "provider.name" must be resolved at this point, otherwise abort
-            variablesMeta = null;
-            if (isHelpRequest) return;
-            throw new ServerlessError(
-              `Cannot resolve ${path.basename(
-                configurationPath
-              )}: "provider.name" property is not accessible ` +
                 '(configured behind variables which cannot be resolved at this stage)'
             );
           }
