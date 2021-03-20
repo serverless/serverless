@@ -1797,7 +1797,7 @@ provider:
 
 Valid values are INFO, ERROR.
 
-The existence of the `logs` property enables both access and execution logging. If you want to disable one or both of them, you can do with the following:
+The existence of the `logs` property enables both access and execution logging. If you want to disable one or both of them, you can do so with the following:
 
 ```yml
 # serverless.yml
