@@ -21,11 +21,14 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
       variablesResolutionMode: '20210219',
       jsFunction: '${file(file-function.js)}',
       jsPropertyFunction: '${file(file-property-function.js):property}',
+      jsPropertyFunctionProperty: '${file(file-property-function.js):property.result}',
       addressSupport: '${file(file.json):result}',
       nonExistingYaml: '${file(not-existing.yaml), null}',
       nonExistingJson: '${file(not-existing.json), null}',
       nonExistingJs: '${file(not-existing.js), null}',
       primitiveAddress: '${file(file-primitive.json):someProperty}',
+      ambiguousAddress: '${file(file-ambiguous.json):foo.bar}',
+      deepNotExistingAddress: '${file(file.json):result.foo.bar, null}',
       jsFilePromiseRejected: '${file(file-promise-rejected.js)}',
       jsFilePromiseRejectedNonError: '${file(file-promise-rejected-non-error.js)}',
       jsFileFunctionErrored: '${file(file-function-errored.js)}',
@@ -80,8 +83,14 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
   it('should support function property resolvers in "js" file sources', () =>
     expect(configuration.jsPropertyFunction).to.deep.equal({ result: 'js-property-function' }));
 
+  it('should resolves properties on objects returned by function property resolvers in "js" file sources', () =>
+    expect(configuration.jsPropertyFunctionProperty).to.equal('js-property-function'));
+
   it('should support "address" argument', () =>
     expect(configuration.addressSupport).to.equal('json'));
+
+  it('should uncoditionally split "address" property keys by "."', () =>
+    expect(configuration.ambiguousAddress).to.equal('object'));
 
   it('should report with null non existing files', () =>
     expect(configuration.nonExistingYaml).to.equal(null));
@@ -91,6 +100,9 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
 
   it('should report with null non existing JS files', () =>
     expect(configuration.nonExistingJs).to.equal(null));
+
+  it('should report with null non existing addresses', () =>
+    expect(configuration.deepNotExistingAddress).to.equal(null));
 
   it('should resolve plain text content on unrecognized extension', () =>
     // .trim() as depending on local .git settings and OS (Windows or other)
