@@ -1797,7 +1797,7 @@ provider:
 
 Valid values are INFO, ERROR.
 
-If you want to disable access logging completely you can do with the following:
+The existence of the `logs` property enables both access and execution logging. If you want to disable one or both of them, you can do so with the following:
 
 ```yml
 # serverless.yml
@@ -1805,7 +1805,8 @@ provider:
   name: aws
   logs:
     restApi:
-      accessLogging: true
+      accessLogging: false
+      executionLogging: false
 ```
 
 By default, the full requests and responses data will be logged. If you want to disable like so:
