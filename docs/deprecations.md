@@ -215,6 +215,8 @@ Deprecation code: `CLOUDFRONT_CACHE_BEHAVIOR_FORWARDED_VALUES_AND_TTL`
 
 Deprecation code: `AWS_API_GATEWAY_NAME_STARTING_WITH_SERVICE`
 
+_Note_: This deprecation notice has been removed and the behavior won't be enforced with next major. Below you can find original description of the deprecation. You can still continue using `shouldStartNameWithService` property to adapt to the new convention of API Gateway name.
+
 Starting with v3.0.0, API Gateway naming will be changed from `${stage}-${service}` to `${service}-${stage}`.
 
 Adapt to this convention now by setting `provider.apiGateway.shouldStartNameWithService` to `true`.
