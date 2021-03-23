@@ -284,7 +284,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
 
       it('should support `provider.iam.role.name`', async () => {
         const customRoleName = 'custom-default-role';
-        const result = await runServerless({
+        const { cfTemplate, awsNaming } = await runServerless({
           fixture: 'function',
           cliArgs: ['package'],
           configExt: {
@@ -298,10 +298,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
           },
         });
 
-        const { cfTemplate, awsNaming } = result;
         const iamRoleLambdaResource = cfTemplate.Resources[awsNaming.getRoleLogicalId()];
-        const roleName = awsNaming.getRoleName();
-        expect(roleName).to.be.eq(customRoleName);
         expect(iamRoleLambdaResource.Properties.RoleName).to.be.eq(customRoleName);
       });
 
