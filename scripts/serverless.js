@@ -14,6 +14,7 @@ if (require('../lib/utils/tabCompletion/isSupported') && process.argv[2] === 'co
 }
 
 const handleError = require('../lib/cli/handle-error');
+const humanizePropertyPathKeys = require('../lib/configuration/variables/humanize-property-path-keys');
 
 let serverless;
 
@@ -135,18 +136,38 @@ const processSpanPromise = (async () => {
             return;
           }
 
-          if (!isPropertyResolved(variablesMeta, 'variablesResolutionMode')) {
-            // "variablesResolutionMode" must not be configured with variables as it influences
-            // variable resolution choices
+          const ensureResolvedProperty = (
+            propertyPath,
+            { shouldSilentlyReturnIfLegacyMode } = {}
+          ) => {
+            if (isPropertyResolved(variablesMeta, propertyPath)) return true;
             variablesMeta = null;
-            if (isHelpRequest) return;
-            throw new ServerlessError(
-              `Cannot resolve ${path.basename(
-                configurationPath
-              )}: "variablesResolutionMode" is not accessible ` +
-                '(configured behind variables which cannot be resolved at this stage)'
+            if (isHelpRequest) return false;
+            const humianizedPropertyPath = humanizePropertyPathKeys(propertyPath.split('\0'));
+            if (!shouldSilentlyReturnIfLegacyMode || configuration.variablesResolutionMode) {
+              throw new ServerlessError(
+                `Cannot resolve ${path.basename(
+                  configurationPath
+                )}: "${humianizedPropertyPath}" property is not accessible ` +
+                  '(configured behind variables which cannot be resolved at this stage)'
+              );
+            }
+            logDeprecation(
+              'NEW_VARIABLES_RESOLVER',
+              `"${humianizedPropertyPath}" is not accessible ' +
+                '(configured behind variables which cannot be resolved at this stage).\n' +
+                'Starting with next major release, ' +
+                'this will be communicated with a thrown error.\n' +
+                'Set "variablesResolutionMode: 20210219" in your service config, ' +
+                'to adapt to this behavior now`,
+              { serviceConfig: configuration }
             );
-          }
+            return false;
+          };
+
+          // "variablesResolutionMode" must not be configured with variables as it influences
+          // variable resolution choices
+          if (!ensureResolvedProperty('variablesResolutionMode')) return;
 
           let providerName;
 
@@ -230,44 +251,15 @@ const processSpanPromise = (async () => {
               }
             }
 
-            if (!isPropertyResolved(variablesMeta, 'provider\0stage')) {
-              // "provider.stage" must be resolved at this point, otherwise abort
-              variablesMeta = null;
-              if (isHelpRequest) return;
-              if (configuration.variablesResolutionMode) {
-                throw new ServerlessError(
-                  `Cannot resolve ${path.basename(
-                    configurationPath
-                  )}: "provider.stage" property is not accessible ` +
-                    '(configured behind variables which cannot be resolved at this stage)'
-                );
-              }
-              logDeprecation(
-                'NEW_VARIABLES_RESOLVER',
-                '"provider.stage" is not accessible ' +
-                  '(configured behind variables which cannot be resolved at this stage).\n' +
-                  'Starting with next major release, ' +
-                  'this will be communicated with a thrown error.\n' +
-                  'Set "variablesResolutionMode: 20210219" in your service config, ' +
-                  'to adapt to this behavior now',
-                { serviceConfig: configuration }
-              );
+            if (
+              !ensureResolvedProperty('provider\0stage', { shouldSilentlyReturnIfLegacyMode: true })
+            ) {
               // Hack to not duplicate the warning with similar deprecation
               logDeprecation.triggeredDeprecations.add('VARIABLES_ERROR_ON_UNRESOLVED');
               return;
             }
 
-            if (!isPropertyResolved(variablesMeta, 'useDotenv')) {
-              // "useDotenv" must be resolved at this point, otherwise abort
-              variablesMeta = null;
-              if (isHelpRequest) return;
-              throw new ServerlessError(
-                `Cannot resolve ${path.basename(
-                  configurationPath
-                )}: "useDotenv" is not accessible ` +
-                  '(configured behind variables which cannot be resolved at this stage)'
-              );
-            }
+            if (!ensureResolvedProperty('useDotenv')) return;
           }
 
           // Load eventual environment variables from .env files
@@ -300,17 +292,7 @@ const processSpanPromise = (async () => {
           }
 
           if (!providerName) {
-            if (!isPropertyResolved(variablesMeta, 'provider\0name')) {
-              // "provider.name" must be resolved at this point, otherwise abort
-              variablesMeta = null;
-              if (isHelpRequest) return;
-              throw new ServerlessError(
-                `Cannot resolve ${path.basename(
-                  configurationPath
-                )}: "provider.name" property is not accessible ` +
-                  '(configured behind variables which cannot be resolved at this stage)'
-              );
-            }
+            if (!ensureResolvedProperty('provider\0name')) return;
             providerName = resolveProviderName(configuration);
             if (!commandSchema && providerName === 'aws') {
               resolveInput.clear();
@@ -339,18 +321,7 @@ const processSpanPromise = (async () => {
 
           if (!variablesMeta.size) return; // All properties successuflly resolved
 
-          // At this point we expect "plugins" to be fully resolved to move forward.
-          // Report error if that's not the case
-          if (!isPropertyResolved(variablesMeta, 'plugins')) {
-            variablesMeta = null;
-            if (isHelpRequest) return;
-            throw new ServerlessError(
-              `Cannot resolve ${path.basename(
-                configurationPath
-              )}: "plugins" property is not accessible ` +
-                '(configured behind variables which cannot be resolved at this stage)'
-            );
-          }
+          if (!ensureResolvedProperty('plugins')) return;
         })();
       } else if (!commandSchema) {
         // If command was not recognized and not in service context
