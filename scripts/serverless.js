@@ -339,6 +339,7 @@ const processSpanPromise = (async () => {
         ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
           require('../lib/cli/commands-schema/aws-service')
         ));
+        require('../lib/cli/ensure-supported-command')();
       }
     }
 
@@ -374,6 +375,7 @@ const processSpanPromise = (async () => {
             ));
             serverless.processedInput.commands = serverless.pluginManager.cliCommands = commands;
             serverless.processedInput.options = serverless.pluginManager.cliOptions = options;
+            require('../lib/cli/ensure-supported-command')();
           } else {
             // Invocation fallen back to old Framework version. As we do not have easily
             // accessible info on loaded plugins, skip further variables resolution
