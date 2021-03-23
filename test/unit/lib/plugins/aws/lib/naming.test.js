@@ -125,7 +125,7 @@ describe('#naming()', () => {
     });
     it('uses custom role name', () => {
       const customRoleName = 'custom-default-role';
-      _.set(sdk.naming.provider, 'iam.role.name', customRoleName);
+      _.set(sdk.naming.provider, 'serverless.service.provider.iam.role.name', customRoleName);
       expect(sdk.naming.getRoleName()).to.eql(customRoleName);
     });
   });
