@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.83.3](https://github.com/serverless/serverless/compare/v1.83.2...v1.83.3) (2021-03-23)
+
+### Maintenance Improvements
+
+- Backport `analyticsUrl` from `@serverless/utils@4.0.0` ([#9162](https://github.com/serverless/serverless/pull/9162)) ([a1f6538](https://github.com/serverless/serverless/commit/a1f6538eb5207669ac108fe8e6cf8d12c6e90f20)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Enrich analytics payload with missing properties ([#9162](https://github.com/serverless/serverless/pull/9162)) ([a7b9498](https://github.com/serverless/serverless/commit/a7b9498a94e1130678b2f7c7ee8d8676cecd1521)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ### [1.83.2](https://github.com/serverless/serverless/compare/v1.83.1...v1.83.2) (2020-11-06)
 
 ### Bug Fixes
