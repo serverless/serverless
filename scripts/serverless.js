@@ -168,6 +168,7 @@ const processSpanPromise = (async () => {
           // "variablesResolutionMode" must not be configured with variables as it influences
           // variable resolution choices
           if (!ensureResolvedProperty('variablesResolutionMode')) return;
+          if (!ensureResolvedProperty('disabledDeprecations')) return;
 
           let providerName;
 
@@ -322,6 +323,14 @@ const processSpanPromise = (async () => {
           if (!variablesMeta.size) return; // All properties successuflly resolved
 
           if (!ensureResolvedProperty('plugins')) return;
+
+          if (!ensureResolvedProperty('frameworkVersion')) return;
+          if (!ensureResolvedProperty('configValidationMode')) return;
+          if (!ensureResolvedProperty('app')) return;
+          if (!ensureResolvedProperty('org')) return;
+          if (!ensureResolvedProperty('service', { shouldSilentlyReturnIfLegacyMode: true })) {
+            return;
+          }
         })();
       } else if (!commandSchema) {
         // If command was not recognized and not in service context
