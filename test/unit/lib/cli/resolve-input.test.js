@@ -81,6 +81,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
           command: 'deploy function',
           commands: ['deploy', 'function'],
           options: { force: true, function: 'foo' },
+          commandsSchema,
         });
       });
     });
@@ -161,6 +162,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         commands: [],
         options: { version: true },
         isHelpRequest: true,
+        commandsSchema,
       });
     });
 
@@ -177,6 +179,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         command: '',
         commands: [],
         options: { app: 'foo' },
+        commandsSchema,
       });
     });
   });
@@ -195,6 +198,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         command: 'package',
         commands: ['package'],
         options: {},
+        commandsSchema,
       });
     });
 
@@ -212,6 +216,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         commands: [],
         options: { help: true },
         isHelpRequest: true,
+        commandsSchema,
       });
     });
 
@@ -229,6 +234,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         commands: ['package'],
         options: { help: true },
         isHelpRequest: true,
+        commandsSchema,
       });
     });
 
@@ -246,6 +252,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         commands: [],
         options: { 'help-interactive': true },
         isHelpRequest: true,
+        commandsSchema,
       });
     });
 
@@ -263,6 +270,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         commands: ['help'],
         options: {},
         isHelpRequest: true,
+        commandsSchema,
       });
     });
   });
@@ -285,6 +293,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         command: 'invoke local',
         commands: ['invoke', 'local'],
         options: { env: ['foo=bar', 'bar=baz'] },
+        commandsSchema,
       });
     });
   });

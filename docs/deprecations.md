@@ -17,6 +17,21 @@ disabledDeprecations:
   - '*' # To disable all deprecation messages
 ```
 
+<a name="UNSUPPORTED_CLI_OPTIONS"><div>&nbsp;</div></a>
+
+## Handling of unrecognized CLI options
+
+Deprecation code: `UNSUPPORTED_CLI_OPTIONS`
+
+So far Framework ignored any not recognized CLI options as passed with a CLI command. Still such handling
+is error prone, as due to e.g. accidental typos, important information may not be passed to the command and lead to unwanted results.
+
+Starting with v3.0.0, Serverless will report unrecognized options with a thrown error.
+
+_Note: If you've used such options to aid dynamic resolution of service configuration (passing custom values to `${opt:..}` resolvers)._
+_We suggest to rely on environment variables instead. Setup of environment variables is also way more
+convenient since we've added support for [`.env`](/framework/docs/environment-variables#support-for-env-files) files._
+
 <a name="CLI_OPTIONS_BEFORE_COMMAND"><div>&nbsp;</div></a>
 
 ## CLI command options should follow command
