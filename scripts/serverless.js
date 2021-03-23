@@ -59,10 +59,15 @@ const processSpanPromise = (async () => {
     const uuid = require('uuid');
     const _ = require('lodash');
     const Serverless = require('../lib/Serverless');
+    const resolveVariables = require('../lib/configuration/variables/resolve');
+    const eventuallyReportVariableResolutionErrors = require('../lib/configuration/variables/eventually-report-resolution-errors');
+    const filterSupportedOptions = require('../lib/cli/filter-supported-options');
 
     let configurationPath = null;
     let configuration = null;
+    let providerName;
     let variablesMeta;
+    let resolverConfiguration;
 
     if (!commandSchema || commandSchema.serviceDependencyMode) {
       const resolveConfigurationPath = require('../lib/cli/resolve-configuration-path');
@@ -89,9 +94,6 @@ const processSpanPromise = (async () => {
 
       if (configuration) {
         const path = require('path');
-        const resolveVariables = require('../lib/configuration/variables/resolve');
-        const eventuallyReportVariableResolutionErrors = require('../lib/configuration/variables/eventually-report-resolution-errors');
-        let resolverConfiguration;
 
         // IIFE for maintanance convenience
         await (async () => {
@@ -120,7 +122,6 @@ const processSpanPromise = (async () => {
           const resolveVariablesMeta = require('../lib/configuration/variables/resolve-meta');
           const resolveProviderName = require('../lib/configuration/resolve-provider-name');
           const isPropertyResolved = require('../lib/configuration/variables/is-property-resolved');
-          const filterSupportedOptions = require('../lib/cli/filter-supported-options');
 
           variablesMeta = resolveVariablesMeta(configuration);
 
@@ -169,8 +170,6 @@ const processSpanPromise = (async () => {
           // variable resolution choices
           if (!ensureResolvedProperty('variablesResolutionMode')) return;
           if (!ensureResolvedProperty('disabledDeprecations')) return;
-
-          let providerName;
 
           if (isPropertyResolved(variablesMeta, 'provider\0name')) {
             providerName = resolveProviderName(configuration);
@@ -358,6 +357,41 @@ const processSpanPromise = (async () => {
       if (serverless.invokedInstance) {
         serverless.invokedInstance.invocationId = serverless.invocationId;
         serverless = serverless.invokedInstance;
+      }
+      if (configuration) {
+        if (configuration.plugins && providerName) {
+          // TODO: Remove "serverless.pluginManager.externalPlugins" check with next major
+          if (serverless.pluginManager.externalPlugins) {
+            // After plugins are loaded, re-resolve CLI command and options schema as plugin
+            // might have defined extra commands and options
+            const commandsSchema = require('../lib/cli/commands-schema/resolve-final')(
+              serverless.pluginManager.externalPlugins,
+              { providerName }
+            );
+            resolveInput.clear();
+            ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
+              commandsSchema
+            ));
+            serverless.processedInput.commands = serverless.pluginManager.cliCommands = commands;
+            serverless.processedInput.options = serverless.pluginManager.cliOptions = options;
+          } else {
+            // Invocation fallen back to old Framework version. As we do not have easily
+            // accessible info on loaded plugins, skip further variables resolution
+            variablesMeta = null;
+          }
+        }
+
+        if (_.get(variablesMeta, 'size')) {
+          if (commandSchema) {
+            resolverConfiguration.options = filterSupportedOptions(options, {
+              commandSchema,
+              providerName,
+            });
+          }
+          resolverConfiguration.fulfilledSources.add('opt');
+          await resolveVariables(resolverConfiguration);
+          eventuallyReportVariableResolutionErrors(configurationPath, configuration, variablesMeta);
+        }
       }
       await serverless.run();
     } catch (error) {
