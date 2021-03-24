@@ -197,4 +197,32 @@ describe('lib/utils/analytics/generatePayload', () => {
     expect(payload.dashboard.userId).to.be.null;
     expect(payload.frameworkLocalUserId).to.equal('123');
   });
+
+  it('Should correctly detect Serverless CI/CD', async () => {
+    const { serverless } = await runServerless({
+      fixture: 'customProvider',
+      cliArgs: ['config'],
+    });
+
+    let payload;
+
+    await overrideEnv({ variables: { SERVERLESS_CI_CD: 'true' } }, async () => {
+      payload = await generatePayload(serverless);
+    });
+    expect(payload.ciName).to.equal('Serverless CI/CD');
+  });
+
+  it('Should correctly detect Seed CI/CD', async () => {
+    const { serverless } = await runServerless({
+      fixture: 'customProvider',
+      cliArgs: ['config'],
+    });
+
+    let payload;
+
+    await overrideEnv({ variables: { SEED_APP_NAME: 'some-app' } }, async () => {
+      payload = await generatePayload(serverless);
+    });
+    expect(payload.ciName).to.equal('Seed');
+  });
 });
