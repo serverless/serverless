@@ -1,6 +1,7 @@
 'use strict';
 
 const expect = require('chai').expect;
+const _ = require('lodash');
 
 const SDK = require('../../../../../../lib/plugins/aws/provider');
 const Serverless = require('../../../../../../lib/Serverless');
@@ -121,6 +122,11 @@ describe('#naming()', () => {
           ],
         ],
       });
+    });
+    it('uses custom role name', () => {
+      const customRoleName = 'custom-default-role';
+      _.set(sdk.naming.provider, 'serverless.service.provider.iam.role.name', customRoleName);
+      expect(sdk.naming.getRoleName()).to.eql(customRoleName);
     });
   });
 

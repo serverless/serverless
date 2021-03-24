@@ -282,6 +282,26 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         service = fixtureData.serviceConfig.service;
       });
 
+      it('should support `provider.iam.role.name`', async () => {
+        const customRoleName = 'custom-default-role';
+        const { cfTemplate, awsNaming } = await runServerless({
+          fixture: 'function',
+          cliArgs: ['package'],
+          configExt: {
+            provider: {
+              iam: {
+                role: {
+                  name: customRoleName,
+                },
+              },
+            },
+          },
+        });
+
+        const iamRoleLambdaResource = cfTemplate.Resources[awsNaming.getRoleLogicalId()];
+        expect(iamRoleLambdaResource.Properties.RoleName).to.be.eq(customRoleName);
+      });
+
       it('should support `provider.iam.role.statements`', async () => {
         const IamRoleLambdaExecution = naming.getRoleLogicalId();
         const iamResource = cfResources[IamRoleLambdaExecution];
