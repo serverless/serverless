@@ -331,10 +331,8 @@ const processSpanPromise = (async () => {
             return;
           }
         })();
-      } else if (!commandSchema) {
-        // If command was not recognized and not in service context
-        // We recognize all AWS service commands
-        // (to report "Missing service context" instead of "Unrecognized command" error)
+      } else {
+        // In non-service context we recognize all AWS service commands
         resolveInput.clear();
         ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
           require('../lib/cli/commands-schema/aws-service')
