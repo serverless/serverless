@@ -245,7 +245,6 @@ describe('CLI', () => {
     let getCommandsStub;
     let consoleLogStub;
     let displayCommandUsageStub;
-    let displayCommandOptionsStub;
 
     const commands = {
       package: {
@@ -270,14 +269,12 @@ describe('CLI', () => {
       getCommandsStub = sinon.stub(cli.serverless.pluginManager, 'getCommands').returns(commands);
       consoleLogStub = sinon.stub(cli, 'consoleLog').returns();
       displayCommandUsageStub = sinon.stub(cli, 'displayCommandUsage').returns();
-      displayCommandOptionsStub = sinon.stub(cli, 'displayCommandOptions').returns();
     });
 
     afterEach(() => {
       cli.serverless.pluginManager.getCommands.restore();
       cli.consoleLog.restore();
       cli.displayCommandUsage.restore();
-      cli.displayCommandOptions.restore();
     });
 
     it('should gather and generate the commands help info if the command can be found', () => {
@@ -289,8 +286,6 @@ describe('CLI', () => {
       expect(consoleLogStub.called).to.equal(true);
       expect(displayCommandUsageStub.calledOnce).to.equal(true);
       expect(displayCommandUsageStub.calledWithExactly(commands.package, 'package')).to.equal(true);
-      expect(displayCommandOptionsStub.calledOnce).to.equal(true);
-      expect(displayCommandOptionsStub.calledWithExactly(commands.package)).to.equal(true);
     });
 
     it('should throw an error if the command could not be found', () => {
@@ -301,7 +296,6 @@ describe('CLI', () => {
       expect(getCommandsStub.calledOnce).to.equal(true);
       expect(consoleLogStub.called).to.equal(false);
       expect(displayCommandUsageStub.calledOnce).to.equal(false);
-      expect(displayCommandOptionsStub.calledOnce).to.equal(false);
     });
   });
 
