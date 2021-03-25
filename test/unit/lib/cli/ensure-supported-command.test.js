@@ -21,6 +21,19 @@ describe('test/unit/lib/cli/ensure-supported-command.test.js', () => {
     expect(triggeredDeprecations.has('UNSUPPORTED_CLI_OPTIONS')).to.be.false;
   });
 
+  it('should do nothing on container commmand', async () => {
+    resolveInput.clear();
+    triggeredDeprecations.clear();
+    overrideArgv(
+      {
+        args: ['serverless', 'config', 'tabcompletion'],
+      },
+      () => resolveInput()
+    );
+    ensureSupportedCommand();
+    expect(triggeredDeprecations.has('UNSUPPORTED_CLI_OPTIONS')).to.be.false;
+  });
+
   it('should reject invalid command', async () => {
     resolveInput.clear();
     triggeredDeprecations.clear();
