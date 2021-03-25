@@ -2051,11 +2051,13 @@ describe('PluginManager', () => {
         'plugins:\n  - local-plugin\n  - parent-plugin'
       );
 
-      return spawn(serverlessExec, [], { env, cwd: serviceDir }).then(({ stdoutBuffer }) => {
-        const stringifiedOutput = String(stdoutBuffer);
-        expect(stringifiedOutput).to.contain('SynchronousPluginMock');
-        expect(stringifiedOutput).to.contain('PromisePluginMock');
-      });
+      return spawn(serverlessExec, ['--help'], { env, cwd: serviceDir }).then(
+        ({ stdoutBuffer }) => {
+          const stringifiedOutput = String(stdoutBuffer);
+          expect(stringifiedOutput).to.contain('SynchronousPluginMock');
+          expect(stringifiedOutput).to.contain('PromisePluginMock');
+        }
+      );
     });
 
     afterEach(() => {
