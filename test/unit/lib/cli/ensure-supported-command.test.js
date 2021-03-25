@@ -47,4 +47,18 @@ describe('test/unit/lib/cli/ensure-supported-command.test.js', () => {
     ensureSupportedCommand();
     expect(triggeredDeprecations.has('UNSUPPORTED_CLI_OPTIONS')).to.be.true;
   });
+
+  it('should reject missing options', async () => {
+    resolveInput.clear();
+    triggeredDeprecations.clear();
+    overrideArgv(
+      {
+        args: ['serverless', 'deploy', 'function'],
+      },
+      () => resolveInput()
+    );
+    expect(() => ensureSupportedCommand())
+      .to.throw(ServerlessError)
+      .with.property('code', 'MISSING_REQUIRED_CLI_OPTION');
+  });
 });
