@@ -396,7 +396,12 @@ const processSpanPromise = (async () => {
           eventuallyReportVariableResolutionErrors(configurationPath, configuration, variablesMeta);
         }
       }
-      await serverless.run();
+
+      if (isHelpRequest && serverless.pluginManager.externalPlugins) {
+        require('../lib/cli/render-help')(serverless.pluginManager.externalPlugins);
+      } else {
+        await serverless.run();
+      }
     } catch (error) {
       // If Enterprise Plugin, capture error
       let enterpriseErrorHandler = null;
