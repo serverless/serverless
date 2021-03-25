@@ -2,7 +2,7 @@
 
 const { expect } = require('chai');
 const overrideStdoutWrite = require('process-utils/override-stdout-write');
-const listVersion = require('../../../../lib/cli/list-version');
+const listVersion = require('../../../../lib/cli/render-version');
 
 describe('test/unit/lib/cli/list-version.test.js', () => {
   it('should log version', async () => {
