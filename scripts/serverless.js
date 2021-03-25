@@ -45,7 +45,7 @@ const processSpanPromise = (async () => {
 
     // If version number request, show it and abort
     if (options.version) {
-      await require('../lib/cli/list-version')();
+      await require('../lib/cli/render-version')();
       return;
     }
 
