@@ -361,18 +361,20 @@ const processSpanPromise = (async () => {
         if (configuration.plugins && providerName) {
           // TODO: Remove "serverless.pluginManager.externalPlugins" check with next major
           if (serverless.pluginManager.externalPlugins) {
-            // After plugins are loaded, re-resolve CLI command and options schema as plugin
-            // might have defined extra commands and options
-            const commandsSchema = require('../lib/cli/commands-schema/resolve-final')(
-              serverless.pluginManager.externalPlugins,
-              { providerName }
-            );
-            resolveInput.clear();
-            ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
-              commandsSchema
-            ));
-            serverless.processedInput.commands = serverless.pluginManager.cliCommands = commands;
-            serverless.processedInput.options = serverless.pluginManager.cliOptions = options;
+            if (serverless.pluginManager.externalPlugins.size) {
+              // After plugins are loaded, re-resolve CLI command and options schema as plugin
+              // might have defined extra commands and options
+              const commandsSchema = require('../lib/cli/commands-schema/resolve-final')(
+                serverless.pluginManager.externalPlugins,
+                { providerName }
+              );
+              resolveInput.clear();
+              ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
+                commandsSchema
+              ));
+              serverless.processedInput.commands = serverless.pluginManager.cliCommands = commands;
+              serverless.processedInput.options = serverless.pluginManager.cliOptions = options;
+            }
             require('../lib/cli/ensure-supported-command')();
           } else {
             // Invocation fallen back to old Framework version. As we do not have easily
