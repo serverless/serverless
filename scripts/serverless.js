@@ -384,7 +384,7 @@ const processSpanPromise = (async () => {
           }
         }
 
-        if (_.get(variablesMeta, 'size')) {
+        if (!isHelpRequest && _.get(variablesMeta, 'size')) {
           if (commandSchema) {
             resolverConfiguration.options = filterSupportedOptions(options, {
               commandSchema,
