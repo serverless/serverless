@@ -1506,14 +1506,6 @@ describe('PluginManager', () => {
       return expect(pluginManager.run(commandsArray)).to.be.rejectedWith(Error);
     });
 
-    it('should throw an error when the given command is a container', () => {
-      pluginManager.addPlugin(ContainerPluginMock);
-
-      const commandsArray = ['mycontainer'];
-
-      return expect(pluginManager.run(commandsArray)).to.be.rejectedWith(Error);
-    });
-
     it('should NOT throw an error when the given command is a child of a container', () => {
       pluginManager.addPlugin(ContainerPluginMock);
 
