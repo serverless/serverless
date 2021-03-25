@@ -1503,7 +1503,7 @@ describe('PluginManager', () => {
 
       const commandsArray = ['myep'];
 
-      expect(pluginManager.run(commandsArray)).to.be.rejectedWith(Error);
+      return expect(pluginManager.run(commandsArray)).to.be.rejectedWith(Error);
     });
 
     it('should throw an error when the given command is a container', () => {
@@ -1511,7 +1511,7 @@ describe('PluginManager', () => {
 
       const commandsArray = ['mycontainer'];
 
-      expect(pluginManager.run(commandsArray)).to.be.rejectedWith(Error);
+      return expect(pluginManager.run(commandsArray)).to.be.rejectedWith(Error);
     });
 
     it('should NOT throw an error when the given command is a child of a container', () => {
@@ -1519,7 +1519,7 @@ describe('PluginManager', () => {
 
       const commandsArray = ['mycontainer', 'mysubcmd'];
 
-      expect(pluginManager.run(commandsArray)).to.not.be.rejectedWith(Error);
+      return expect(pluginManager.run(commandsArray)).to.not.be.rejectedWith(Error);
     });
 
     it('should throw an error when the given command is a child of an entrypoint', () => {
@@ -1527,7 +1527,7 @@ describe('PluginManager', () => {
 
       const commandsArray = ['mysubcmd'];
 
-      expect(pluginManager.run(commandsArray)).to.be.rejectedWith(Error);
+      return expect(pluginManager.run(commandsArray)).to.be.rejectedWith(Error);
     });
 
     it('should show warning if in debug mode and the given command has no hooks', () => {
@@ -1772,6 +1772,7 @@ describe('PluginManager', () => {
         },
       };
     });
+
     it('should give a suggestion for an unknown command', (done) => {
       try {
         pluginManager.getCommand(['creet']);
