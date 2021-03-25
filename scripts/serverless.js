@@ -345,6 +345,7 @@ const processSpanPromise = (async () => {
       configuration,
       configurationPath: configuration && configurationPath,
       isConfigurationResolved: Boolean(variablesMeta && !variablesMeta.size),
+      hasResolvedCommandsExternally: true,
       commands,
       options,
     });
