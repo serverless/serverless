@@ -34,7 +34,7 @@ disabledDeprecations: # Disable deprecation logs by their codes. Default is empt
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
   stage: dev # Default stage to be used. Default is "dev"
   region: us-east-1 # Default region to be used. Default is "us-east-1"
   stackName: custom-stack-name # Use a custom name for the CloudFormation stack
@@ -173,7 +173,7 @@ provider:
   httpApi:
     id: 'my-id' # If we want to attach to externally created HTTP API its id should be provided here
     name: 'dev-my-service' # Use custom name for the API Gateway API, default is ${opt:stage, self:provider.stage, 'dev'}-${self:service}
-    payload: '1.0' # Specify payload format version for Lambda integration ('1.0' or '2.0'), default is '1.0'
+    payload: '2.0' # Specify payload format version for Lambda integration ('1.0' or '2.0'), default is '2.0'
     cors: true # Implies default behavior, can be fine tuned with specific options
     authorizers:
       # JWT authorizers to back HTTP API endpoints
