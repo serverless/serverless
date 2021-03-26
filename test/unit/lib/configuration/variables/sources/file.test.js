@@ -18,7 +18,7 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
       json: '${file(file.json)}',
       tfstate: '${file(file.tfstate)}',
       js: '${file(file.js)}',
-      variablesResolutionMode: '20210219',
+      variablesResolutionMode: '20210326',
       jsFunction: '${file(file-function.js)}',
       jsPropertyFunction: '${file(file-property-function.js):property}',
       jsPropertyFunctionProperty: '${file(file-property-function.js):property.result}',

@@ -88,7 +88,7 @@ Framework was updated with a new implementation of variables resolver.
 
 It supports very same variable syntax, and is being updated with support for same resolution sources. Still as it has improved internal resolution rules (which leave no room for ambiguity) in some edge cases it may report errors on which old parser passed by.
 
-It's recommended to expose all errors that eventually new resolver may report (those will be an unconditional errors in v3). You can turn that behavior on by adding `variablesResolutionMode: 20210219` to service configuration
+It's recommended to expose all errors that eventually new resolver may report (those will be an unconditional errors in v3). You can turn that behavior on by adding `variablesResolutionMode: 20210326` to service configuration
 
 <a name="AWS_HTTP_API_USE_PROVIDER_TAGS"><div>&nbsp;</div></a>
 

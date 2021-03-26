@@ -219,17 +219,17 @@ resources:
         Name: memorySize
 ```
 
-You can also reference CloudFormation stack in another regions with the `cf.REGION:stackName.outputKey` syntax. For example:
+You can also reference CloudFormation stack in another regions with the `cf(REGION):stackName.outputKey` syntax. For example:
 
 ```yml
 service: new-service
 provider: aws
 functions:
   hello:
-    name: ${cf.us-west-2:another-service-dev.functionPrefix}-hello
+    name: ${cf(us-west-2):another-service-dev.functionPrefix}-hello
     handler: handler.hello
   world:
-    name: ${cf.ap-northeast-1:another-stack.functionPrefix}-world
+    name: ${cf(ap-northeast-1):another-stack.functionPrefix}-world
     handler: handler.world
 ```
 
@@ -468,7 +468,7 @@ functions:
 
 ### Exporting a function
 
-With a new variables resolver (_which will be the only used resolver in v3 of a Framework, and which can be turned on now by setting `variablesResolutionMode: 20210219` in service config_) functions receives an object, with two properties:
+With a new variables resolver (_which will be the only used resolver in v3 of a Framework, and which can be turned on now by setting `variablesResolutionMode: 20210326` in service config_) functions receives an object, with two properties:
 
 - `options` - An object referencing resolved CLI params as passed to the command
 - `resolveConfigurationProperty([key1, key2, ...keyN])` - Async function which resolves specific service configuration property. It returns a fully resolved value of configuration property. If circular reference is detected resolution will be rejected.

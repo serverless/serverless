@@ -103,7 +103,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       await spawn('node', [serverlessPath, 'print'], {
         cwd: (
           await fixturesEngine.setup('aws', {
-            configExt: { variablesResolutionMode: '20210219', provider: '${foo:bar}' },
+            configExt: { variablesResolutionMode: '20210326', provider: '${foo:bar}' },
           })
         ).servicePath,
       });
@@ -119,7 +119,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       await spawn('node', [serverlessPath, 'print'], {
         cwd: (
           await fixturesEngine.setup('aws', {
-            configExt: { variablesResolutionMode: '20210219', provider: { stage: '${foo:bar}' } },
+            configExt: { variablesResolutionMode: '20210326', provider: { stage: '${foo:bar}' } },
           })
         ).servicePath,
       });
@@ -150,7 +150,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       await spawn('node', [serverlessPath, 'print'], {
         cwd: (
           await fixturesEngine.setup('aws', {
-            configExt: { variablesResolutionMode: '20210219', plugins: '${foo:bar}' },
+            configExt: { variablesResolutionMode: '20210326', plugins: '${foo:bar}' },
           })
         ).servicePath,
       });
