@@ -64,24 +64,23 @@ plugins: # look for additional plugins in the community plugins repo: https://gi
 
 # you can add packaging information here
 package:
-  # include:
+  patterns:
+    - '!env/**'
+    - '!.env/**'
+    - '!local.settings.json'
+    - '!.vscode/**'
+    - '!__pycache__/**'
+    - '!node_modules/**'
+    - '!.python_packages/**'
+    - '!.funcignore'
+    - '!package.json'
+    - '!package-lock.json'
+    - '!.gitignore'
+    - '!.git/**'
+  # - '!exclude-me.py'
+  # - '!exclude-me-dir/**'
   #   - include-me.py
   #   - include-me-dir/**
-  exclude:
-    - env/**
-    - .env/**
-    - local.settings.json
-    - .vscode/**
-    - __pycache__/**
-    - node_modules/**
-    - .python_packages/**
-    - .funcignore
-    - package.json
-    - package-lock.json
-    - .gitignore
-    - .git/**
-  # - exclude-me.py
-  # - exclude-me-dir/**
 
 functions:
   hello:

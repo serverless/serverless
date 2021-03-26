@@ -98,7 +98,7 @@ Then you should have a packaging directory that includes all the files above:
 
 ```yaml
 package:
-  include:
+  patterns:
     - src/*.js
     - dist/*.js
     - dist/*.js.map

@@ -51,12 +51,11 @@ provider:
 
 # you can add packaging information here
 #package:
-#  include:
-#    - include-me.py
+#  patterns:
+#    - '!exclude-me.rb'
+#    - '!exclude-me-dir/**'
+#    - include-me.rb
 #    - include-me-dir/**
-#  exclude:
-#    - exclude-me.py
-#    - exclude-me-dir/**
 
 functions:
   hello:

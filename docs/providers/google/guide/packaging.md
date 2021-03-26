@@ -54,9 +54,8 @@ Exclude all files but `handler.js` using `exclude` and `include`
 
 ```yml
 package:
-  exclude:
-    - src/**
-  include:
+  patterns:
+    - '!src/**'
     - src/function/handler.js
 ```
 
@@ -80,10 +79,9 @@ The artifact option is especially useful in case your development environment al
 ```yml
 service: my-service
 package:
-  exclude:
-    - tmp/**
-    - .git/**
-  include:
+  patterns:
+    - '!tmp/**'
+    - '!.git/**'
     - some-file
   artifact: path/to/my-artifact.zip
 ```
@@ -99,13 +97,13 @@ service: my-service
 package:
   individually: true
   exclude:
-    - excluded-by-default.json
+    - '!excluded-by-default.json'
 functions:
   hello:
     handler: handler.hello
     package:
       # We're including this file so it will be in the final package of this function only
-      include:
+      patterns:
         - excluded-by-default.json
   world:
     handler: handler.hello

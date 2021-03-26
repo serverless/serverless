@@ -41,9 +41,8 @@ plugins:
 
 # you can add packaging information here
 #package:
-#  exclude:
-#    - ./**
-#  include:
+#  patterns:
+#    - '!./**'
 #    - ./bin/**
 
 functions:

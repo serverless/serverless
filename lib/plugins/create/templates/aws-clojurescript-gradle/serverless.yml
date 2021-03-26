@@ -50,10 +50,9 @@ provider:
 #    variable1: value1
 
 package:
-  exclude:
-    - ./**
-    - build/**
-  include:
+  patterns:
+    - '!./**'
+    - '!build/**'
     - node_modules/**
     - build/clojurescript/main/functions.js
 

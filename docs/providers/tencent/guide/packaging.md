@@ -71,9 +71,8 @@ Exclude all files but `handler.js` using `exclude` and `include`
 
 ```yml
 package:
-  exclude:
-    - src/**
-  include:
+  patterns:
+    - '!src/**'
     - src/function/handler.js
 ```
 

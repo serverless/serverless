@@ -131,14 +131,13 @@ plugins:
 
 # you can add packaging information here
 package:
-  include:
+  patterns:
+    - '!exclude-me.js'
+    - '!exclude-me-dir/**'
+    - '!local.settings.json'
+    - '!.vscode/**'
     - include-me.js
     - include-me-dir/**
-  exclude:
-    - exclude-me.js
-    - exclude-me-dir/**
-    - local.settings.json
-    - .vscode/**
 
 functions:
   hello:
