@@ -95,6 +95,15 @@ const processSpanPromise = (async () => {
       if (configuration) {
         const path = require('path');
 
+        if (!commandSchema) {
+          // If command was not recognized in first resolution phase
+          // Parse args again also against schemas commands which require service to be run
+          resolveInput.clear();
+          ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
+            require('../lib/cli/commands-schema/service')
+          ));
+        }
+
         // IIFE for maintanance convenience
         await (async () => {
           if (_.get(configuration.provider, 'variableSyntax')) {
@@ -174,15 +183,12 @@ const processSpanPromise = (async () => {
           if (isPropertyResolved(variablesMeta, 'provider\0name')) {
             providerName = resolveProviderName(configuration);
           }
-          if (!commandSchema) {
+          if (!commandSchema && providerName === 'aws') {
             // If command was not recognized in first resolution phase
-            // Parse args again also against schemas commands which require (eventually AWS)
-            // service to be run
+            // Parse args again also against schemas commands which require AWS service to be run
             resolveInput.clear();
             ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
-              providerName === 'aws'
-                ? require('../lib/cli/commands-schema/aws-service')
-                : require('../lib/cli/commands-schema/service')
+              require('../lib/cli/commands-schema/aws-service')
             ));
           }
 
@@ -361,7 +367,8 @@ const processSpanPromise = (async () => {
 
       // IIFE for maintanance convenience
       await (async () => {
-        if (!configuration || !providerName) return;
+        if (!configuration) return;
+        let hasFinalCommandSchema = false;
         if (configuration.plugins) {
           // TODO: Remove "serverless.pluginManager.externalPlugins" check with next major
           if (serverless.pluginManager.externalPlugins) {
@@ -370,7 +377,7 @@ const processSpanPromise = (async () => {
               // might have defined extra commands and options
               const commandsSchema = require('../lib/cli/commands-schema/resolve-final')(
                 serverless.pluginManager.externalPlugins,
-                { providerName }
+                { providerName: providerName || 'aws' }
               );
               resolveInput.clear();
               ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
@@ -378,14 +385,23 @@ const processSpanPromise = (async () => {
               ));
               serverless.processedInput.commands = serverless.pluginManager.cliCommands = commands;
               serverless.processedInput.options = serverless.pluginManager.cliOptions = options;
+              hasFinalCommandSchema = true;
             }
-            require('../lib/cli/ensure-supported-command')();
           } else {
             // Invocation fallen back to old Framework version. As we do not have easily
             // accessible info on loaded plugins, skip further variables resolution
             variablesMeta = null;
           }
         }
+        if (!providerName && !hasFinalCommandSchema) {
+          // Invalid configuration, ensure to recognize all AWS commands
+          resolveInput.clear();
+          ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
+            require('../lib/cli/commands-schema/aws-service')
+          ));
+        }
+
+        require('../lib/cli/ensure-supported-command')();
         if (isHelpRequest) return;
         if (!_.get(variablesMeta, 'size')) return;
 
