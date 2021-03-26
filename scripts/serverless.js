@@ -56,12 +56,15 @@ const processSpanPromise = (async () => {
       );
     }
 
+    const path = require('path');
     const uuid = require('uuid');
     const _ = require('lodash');
     const Serverless = require('../lib/Serverless');
     const resolveVariables = require('../lib/configuration/variables/resolve');
+    const isPropertyResolved = require('../lib/configuration/variables/is-property-resolved');
     const eventuallyReportVariableResolutionErrors = require('../lib/configuration/variables/eventually-report-resolution-errors');
     const filterSupportedOptions = require('../lib/cli/filter-supported-options');
+    const logDeprecation = require('../lib/utils/logDeprecation');
 
     let configurationPath = null;
     let configuration = null;
@@ -69,10 +72,35 @@ const processSpanPromise = (async () => {
     let variablesMeta;
     let resolverConfiguration;
 
+    const ensureResolvedProperty = (propertyPath, { shouldSilentlyReturnIfLegacyMode } = {}) => {
+      if (isPropertyResolved(variablesMeta, propertyPath)) return true;
+      variablesMeta = null;
+      if (isHelpRequest) return false;
+      const humanizedPropertyPath = humanizePropertyPathKeys(propertyPath.split('\0'));
+      if (!shouldSilentlyReturnIfLegacyMode || configuration.variablesResolutionMode) {
+        throw new ServerlessError(
+          `Cannot resolve ${path.basename(
+            configurationPath
+          )}: "${humanizedPropertyPath}" property is not accessible ` +
+            '(configured behind variables which cannot be resolved at this stage)'
+        );
+      }
+      logDeprecation(
+        'NEW_VARIABLES_RESOLVER',
+        `"${humanizedPropertyPath}" is not accessible ' +
+          '(configured behind variables which cannot be resolved at this stage).\n' +
+          'Starting with next major release, ' +
+          'this will be communicated with a thrown error.\n' +
+          'Set "variablesResolutionMode: 20210326" in your service config, ' +
+          'to adapt to this behavior now`,
+        { serviceConfig: configuration }
+      );
+      return false;
+    };
+
     if (!commandSchema || commandSchema.serviceDependencyMode) {
       const resolveConfigurationPath = require('../lib/cli/resolve-configuration-path');
       const readConfiguration = require('../lib/configuration/read');
-      const logDeprecation = require('../lib/utils/logDeprecation');
 
       // Resolve eventual service configuration path
       configurationPath = await resolveConfigurationPath();
@@ -93,8 +121,6 @@ const processSpanPromise = (async () => {
         : null;
 
       if (configuration) {
-        const path = require('path');
-
         if (!commandSchema) {
           // If command was not recognized in first resolution phase
           // Parse args again also against schemas commands which require service to be run
@@ -130,7 +156,6 @@ const processSpanPromise = (async () => {
 
           const resolveVariablesMeta = require('../lib/configuration/variables/resolve-meta');
           const resolveProviderName = require('../lib/configuration/resolve-provider-name');
-          const isPropertyResolved = require('../lib/configuration/variables/is-property-resolved');
 
           variablesMeta = resolveVariablesMeta(configuration);
 
@@ -145,35 +170,6 @@ const processSpanPromise = (async () => {
             variablesMeta = null;
             return;
           }
-
-          const ensureResolvedProperty = (
-            propertyPath,
-            { shouldSilentlyReturnIfLegacyMode } = {}
-          ) => {
-            if (isPropertyResolved(variablesMeta, propertyPath)) return true;
-            variablesMeta = null;
-            if (isHelpRequest) return false;
-            const humianizedPropertyPath = humanizePropertyPathKeys(propertyPath.split('\0'));
-            if (!shouldSilentlyReturnIfLegacyMode || configuration.variablesResolutionMode) {
-              throw new ServerlessError(
-                `Cannot resolve ${path.basename(
-                  configurationPath
-                )}: "${humianizedPropertyPath}" property is not accessible ` +
-                  '(configured behind variables which cannot be resolved at this stage)'
-              );
-            }
-            logDeprecation(
-              'NEW_VARIABLES_RESOLVER',
-              `"${humianizedPropertyPath}" is not accessible ' +
-                '(configured behind variables which cannot be resolved at this stage).\n' +
-                'Starting with next major release, ' +
-                'this will be communicated with a thrown error.\n' +
-                'Set "variablesResolutionMode: 20210219" in your service config, ' +
-                'to adapt to this behavior now`,
-              { serviceConfig: configuration }
-            );
-            return false;
-          };
 
           // "variablesResolutionMode" must not be configured with variables as it influences
           // variable resolution choices
@@ -405,6 +401,24 @@ const processSpanPromise = (async () => {
         if (isHelpRequest) return;
         if (!_.get(variablesMeta, 'size')) return;
 
+        if (providerName === 'aws') {
+          if (
+            !ensureResolvedProperty('provider\0credentials', {
+              shouldSilentlyReturnIfLegacyMode: true,
+            }) ||
+            !ensureResolvedProperty('provider\0deploymentBucket\0serverSideEncryption', {
+              shouldSilentlyReturnIfLegacyMode: true,
+            }) ||
+            !ensureResolvedProperty('provider\0profile', {
+              shouldSilentlyReturnIfLegacyMode: true,
+            }) ||
+            !ensureResolvedProperty('provider\0region', {
+              shouldSilentlyReturnIfLegacyMode: true,
+            })
+          ) {
+            return;
+          }
+        }
         if (commandSchema) {
           resolverConfiguration.options = filterSupportedOptions(options, {
             commandSchema,
@@ -415,8 +429,47 @@ const processSpanPromise = (async () => {
           serverless
         );
         resolverConfiguration.fulfilledSources.add('opt').add('sls');
+
+        if (providerName === 'aws') {
+          Object.assign(resolverConfiguration.sources, {
+            cf: require('../lib/configuration/variables/sources/instance-dependent/get-cf')(
+              serverless
+            ),
+          });
+          resolverConfiguration.fulfilledSources.add('cf');
+        }
+
         await resolveVariables(resolverConfiguration);
-        eventuallyReportVariableResolutionErrors(configurationPath, configuration, variablesMeta);
+        if (!variablesMeta.size) return;
+        if (
+          eventuallyReportVariableResolutionErrors(configurationPath, configuration, variablesMeta)
+        ) {
+          return;
+        }
+        const unresolvedSources = require('../lib/configuration/variables/resolve-unresolved-source-types')(
+          variablesMeta
+        );
+        if (!(configuration.variablesResolutionMode >= 20210326)) {
+          const legacyCfVarPropertyPaths = new Set();
+          for (const [sourceType, propertyPaths] of unresolvedSources) {
+            if (!sourceType.startsWith('cf.')) continue;
+            for (const propertyPath of propertyPaths) legacyCfVarPropertyPaths.add(propertyPath);
+            unresolvedSources.delete(sourceType);
+          }
+          if (legacyCfVarPropertyPaths.size) {
+            logDeprecation(
+              'NEW_VARIABLES_RESOLVER',
+              'Syntax for referencing CF outputs was upgraded to ' +
+                '"${cf(<region>):stackName.outputName}" (while  ' +
+                '"${cf.<region>:stackName.outputName}" is now deprecated, ' +
+                'as not supported by new variables resolver).\n' +
+                'Please upgrade to use new form instead.' +
+                'Starting with next major release, ' +
+                'this will be communicated with a thrown error.\n',
+              { serviceConfig: configuration }
+            );
+          }
+        }
       })();
 
       if (isHelpRequest && serverless.pluginManager.externalPlugins) {

@@ -57,7 +57,7 @@ describe('test/unit/lib/configuration/variables/eventually-report-resolution-err
       expect(stdoutData).to.include('NEW_VARIABLES_RESOLVER');
     });
     it('should throw with no "variablesResolutionMode" set', () => {
-      const configuration = { foo: '${foo:raz', variablesResolutionMode: 20210219 };
+      const configuration = { foo: '${foo:raz', variablesResolutionMode: 20210326 };
       const variablesMeta = resolveMeta(configuration);
       overrideArgv({ args: ['serverless', 'foo'] }, () =>
         expect(() => eventuallyReportResolutionErrors(process.cwd(), configuration, variablesMeta))
