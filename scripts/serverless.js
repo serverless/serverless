@@ -332,6 +332,10 @@ const processSpanPromise = (async () => {
           if (!ensureResolvedProperty('service', { shouldSilentlyReturnIfLegacyMode: true })) {
             return;
           }
+          if (configuration.org) {
+            // Dashboard requires AWS region to be resolved upfront
+            ensureResolvedProperty('provider\0region', { shouldSilentlyReturnIfLegacyMode: true });
+          }
         })();
       } else {
         // In non-service context we recognize all AWS service commands
