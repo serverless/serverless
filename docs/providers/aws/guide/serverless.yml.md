@@ -176,13 +176,26 @@ provider:
     payload: '2.0' # Specify payload format version for Lambda integration ('1.0' or '2.0'), default is '2.0'
     cors: true # Implies default behavior, can be fine tuned with specific options
     authorizers:
-      # JWT authorizers to back HTTP API endpoints
+      # JWT authorizer to back HTTP API endpoints
       someJwtAuthorizer:
         identitySource: $request.header.Authorization
         issuerUrl: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_xxxxx
         audience:
           - xxxx
           - xxxx
+      # Custom Lambda request authorizer to back HTTP API endpoints
+      someCustomLambdaAuthorizer:
+        type: request # Should be set to `request` for custom Lambda authorizers.
+        functionName: authorizerFunc # Mutually exclusive with `functionArn`
+        functionArn: arn:aws:lambda:us-east-1:11111111111:function:external-authorizer # Mutually exclusive with `functionName`
+        name: customAuthorizerName # Optional. Custom name for created authorizer
+        resultTtlInSeconds: 300 # Optional. Time to live for cached authorizer results, accepts values from 0 (no caching) to 3600 (1 hour). When set to non-zero value, `identitySource` must be defined as well.
+        enableSimpleResponses: true # Optional. Flag that specifies if authorizer function will return authorization responses in simple format. Defaults to `false`.
+        payloadVersion: '2.0' # Optional. Version of payload that will be sent to authorizer function. Defaults to `'2.0'`.
+        identitySource: # Optional. One or more mapping expressions of the request parameters in form of e.g `$request.header.Auth`. Specified values are verified to be non-empty and not null by authorizer. It is a required property when `resultTtlInSeconds` is non-zero as `identitySource` is additionally used as cache key for authorizer responses caching.
+          - $request.header.Auth
+          - $request.header.Authorization
+        managedExternally: true # Optional. Applicable only when using externally defined authorizer functions to prevent creation of permission resource
   stackTags: # Optional CF stack tags
     key: value
   iam:

@@ -1010,4 +1010,12 @@ describe('#naming()', () => {
       );
     });
   });
+
+  describe('#getLambdaAuthorizerHttpApiPermissionLogicalId()', () => {
+    it('should normalize the name and append correct suffix', () => {
+      expect(sdk.naming.getLambdaAuthorizerHttpApiPermissionLogicalId('authorizerName')).to.equal(
+        'AuthorizerNameLambdaAuthorizerPermissionHttpApi'
+      );
+    });
+  });
 });

@@ -66,6 +66,15 @@ describe('HTTP API Integration Test', function () {
                   issuerUrl: `https://cognito-idp.us-east-1.amazonaws.com/${poolId}`,
                   audience: clientId,
                 },
+                simpleCustomLambdaAuthorizer: {
+                  type: 'request',
+                  functionName: 'simpleCustomAuthorizer',
+                  enableSimpleResponses: true,
+                },
+                standardCustomLambdaAuthorizer: {
+                  type: 'request',
+                  functionName: 'standardCustomAuthorizer',
+                },
               },
             },
             logs: { httpApi: true },
@@ -82,6 +91,30 @@ describe('HTTP API Integration Test', function () {
             },
             other: {
               timeout: 1,
+            },
+            behindSimpleCustomAuthorizer: {
+              handler: 'index.handler',
+              events: [
+                {
+                  httpApi: {
+                    method: 'GET',
+                    path: '/behind-simple-authorizer',
+                    authorizer: 'simpleCustomLambdaAuthorizer',
+                  },
+                },
+              ],
+            },
+            behindStandardCustomAuthorizer: {
+              handler: 'index.handler',
+              events: [
+                {
+                  httpApi: {
+                    method: 'GET',
+                    path: '/behind-standard-authorizer',
+                    authorizer: 'standardCustomLambdaAuthorizer',
+                  },
+                },
+              ],
             },
           },
         },
@@ -168,6 +201,38 @@ describe('HTTP API Integration Test', function () {
       });
       const json = await responseAuthorized.json();
       expect(json).to.deep.equal({ method: 'GET', path: '/foo' });
+    });
+
+    it('should expose a GET HTTP endpoint backed by simple custom request authorization', async () => {
+      const testEndpoint = `${endpoint}/behind-simple-authorizer`;
+
+      const responseUnauthorized = await fetch(testEndpoint, {
+        method: 'GET',
+      });
+      expect(responseUnauthorized.status).to.equal(403);
+
+      const responseAuthorized = await fetch(testEndpoint, {
+        method: 'GET',
+        headers: { Authorization: 'secretToken' },
+      });
+      const json = await responseAuthorized.json();
+      expect(json).to.deep.equal({ method: 'GET', path: '/behind-simple-authorizer' });
+    });
+
+    it('should expose a GET HTTP endpoint backed by standard custom request authorization', async () => {
+      const testEndpoint = `${endpoint}/behind-standard-authorizer`;
+
+      const responseUnauthorized = await fetch(testEndpoint, {
+        method: 'GET',
+      });
+      expect(responseUnauthorized.status).to.equal(403);
+
+      const responseAuthorized = await fetch(testEndpoint, {
+        method: 'GET',
+        headers: { Authorization: 'secretToken' },
+      });
+      const json = await responseAuthorized.json();
+      expect(json).to.deep.equal({ method: 'GET', path: '/behind-standard-authorizer' });
     });
 
     it('should expose access logs when configured to', () =>
