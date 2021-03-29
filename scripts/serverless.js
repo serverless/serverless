@@ -564,20 +564,18 @@ const processSpanPromise = (async () => {
         await serverless.run();
       }
     } catch (error) {
-      // If Enterprise Plugin, capture error
-      let enterpriseErrorHandler = null;
-      serverless.pluginManager.plugins.forEach((p) => {
-        if (p.enterprise && p.enterprise.errorHandler) {
-          enterpriseErrorHandler = p.enterprise.errorHandler;
-        }
-      });
-      if (!enterpriseErrorHandler) throw error;
+      // If Dashboard Plugin, capture error
+      const dashboardPlugin =
+        serverless.pluginManager.dashboardPlugin ||
+        serverless.pluginManager.plugins.find((p) => p.enterprise);
+      const dashboardErrorHandler = _.get(dashboardPlugin, 'enterprise.errorHandler');
+      if (!dashboardErrorHandler) throw error;
       try {
-        await enterpriseErrorHandler(error, serverless.invocationId);
-      } catch (enterpriseErrorHandlerError) {
+        await dashboardErrorHandler(error, serverless.invocationId);
+      } catch (dashboardErrorHandlerError) {
         const log = require('@serverless/utils/log');
         const tokenizeException = require('../lib/utils/tokenize-exception');
-        const exceptionTokens = tokenizeException(enterpriseErrorHandlerError);
+        const exceptionTokens = tokenizeException(dashboardErrorHandlerError);
         log(
           `Publication to Serverless Dashboard errored with:\n${' '.repeat('Serverless: '.length)}${
             exceptionTokens.isUserError || !exceptionTokens.stack
