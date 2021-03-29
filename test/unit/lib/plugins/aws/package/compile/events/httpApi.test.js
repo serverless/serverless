@@ -354,6 +354,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
   describe('Authorizers: REQUEST (Custom Lambda Authorizer)', () => {
     let cfResources;
     let naming;
+
     before(async () => {
       const { awsNaming, cfTemplate } = await runServerless({
         fixture: 'httpApi',
@@ -684,6 +685,33 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
         'HTTP_API_CUSTOM_AUTHORIZER_IDENTITY_SOURCE_MISSING_WHEN_CACHING_ENABLED'
       );
     });
+
+    it('should throw when authorizer with `request` type does not have name or id configured', async () => {
+      await expect(
+        runServerless({
+          fixture: 'httpApi',
+          configExt: {
+            functions: {
+              foo: {
+                events: [
+                  {
+                    httpApi: {
+                      authorizer: {
+                        type: 'request',
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+          cliArgs: ['package'],
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'HTTP_API_AUTHORIZER_MISSING_ID_OR_NAME'
+      );
+    });
   });
 
   describe('Authorizers: JWT', () => {
@@ -748,6 +776,89 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
 
       expect(routeResourceProps.AuthorizationType).to.equal('JWT');
       expect(routeResourceProps.AuthorizationScopes).to.deep.equal(['foo']);
+    });
+
+    it('should throw when authorizer with `jwt` type does not have name or id configured', async () => {
+      await expect(
+        runServerless({
+          fixture: 'httpApi',
+          configExt: {
+            functions: {
+              foo: {
+                events: [
+                  {
+                    httpApi: {
+                      authorizer: {
+                        type: 'jwt',
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+          cliArgs: ['package'],
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'HTTP_API_AUTHORIZER_MISSING_ID_OR_NAME'
+      );
+    });
+  });
+
+  describe('Authorizers: AWS_IAM', () => {
+    it('should setup correct properties on an endpoint', async () => {
+      const { awsNaming, cfTemplate } = await runServerless({
+        fixture: 'httpApi',
+        configExt: {
+          functions: {
+            foo: {
+              events: [
+                {
+                  httpApi: {
+                    authorizer: {
+                      type: 'aws_iam',
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+        cliArgs: ['package'],
+      });
+      const routeResourceProps =
+        cfTemplate.Resources[awsNaming.getHttpApiRouteLogicalId('GET /foo')].Properties;
+
+      expect(routeResourceProps.AuthorizationType).to.equal('AWS_IAM');
+    });
+
+    it('should throw when authorizer with `aws_iam` type receives additional properties', async () => {
+      await expect(
+        runServerless({
+          fixture: 'httpApi',
+          configExt: {
+            functions: {
+              foo: {
+                events: [
+                  {
+                    httpApi: {
+                      authorizer: {
+                        type: 'aws_iam',
+                        name: 'something',
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+          cliArgs: ['package'],
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'HTTP_API_AUTHORIZER_AWS_IAM_UNEXPECTED_PROPERTIES'
+      );
     });
   });
 
