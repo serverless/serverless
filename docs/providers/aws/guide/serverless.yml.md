@@ -68,6 +68,8 @@ provider:
       anotherimage:
         path: ./image/ # Path to Docker context that will be used when building that image locally
         file: Dockerfile.dev # Name of Dockerfile that should be used when building image locally. Equal to 'Dockerfile' by default
+        buildArgs:
+          STAGE: ${opt:stage}
   cloudFront:
     myCachePolicy1: # used as a reference in function.events[].cloudfront.cachePolicy.name
       DefaultTTL: 60

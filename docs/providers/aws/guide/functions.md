@@ -216,6 +216,8 @@ provider:
       baseimage:
         path: ./path/to/context
         file: Dockerfile.dev
+        buildArgs:
+          STAGE: ${opt:stage}
       anotherimage:
         uri: 000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38
 ```
