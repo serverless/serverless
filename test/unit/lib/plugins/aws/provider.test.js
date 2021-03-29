@@ -431,55 +431,6 @@ describe('AwsProvider', () => {
     });
   });
 
-  describe('#getRegion()', () => {
-    let newAwsProvider;
-
-    it('should prefer options over config or provider', () => {
-      const newOptions = {
-        region: 'optionsRegion',
-      };
-      const config = {
-        region: 'configRegion',
-      };
-      serverless = new Serverless(config);
-      serverless.service.provider.region = 'providerRegion';
-      newAwsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(newAwsProvider.getRegion()).to.equal(newOptions.region);
-    });
-
-    it('should prefer config over provider in lieu of options', () => {
-      const newOptions = {};
-      const config = {
-        region: 'configRegion',
-      };
-      serverless = new Serverless(config);
-      serverless.service.provider.region = 'providerRegion';
-      newAwsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(newAwsProvider.getRegion()).to.equal(config.region);
-    });
-
-    it('should use provider in lieu of options and config', () => {
-      const newOptions = {};
-      const config = {};
-      serverless = new Serverless(config);
-      serverless.service.provider.region = 'providerRegion';
-      newAwsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(newAwsProvider.getRegion()).to.equal(serverless.service.provider.region);
-    });
-
-    it('should use the default us-east-1 in lieu of options, config, and provider', () => {
-      const newOptions = {};
-      const config = {};
-      serverless = new Serverless(config);
-      newAwsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(newAwsProvider.getRegion()).to.equal('us-east-1');
-    });
-  });
-
   describe('#request()', () => {
     let awsRequestStub;
     let awsProviderProxied;
@@ -788,6 +739,42 @@ describe('AwsProvider', () => {
 });
 
 describe('test/unit/lib/plugins/aws/provider.test.js', () => {
+  describe('#getRegion()', () => {
+    it('should default to "us-east-1"', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['-v'],
+      });
+      expect(serverless.getProvider('aws').getRegion()).to.equal('us-east-1');
+    });
+
+    it('should allow to override via `provider.region`', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['-v'],
+        configExt: {
+          provider: {
+            region: 'eu-central-1',
+          },
+        },
+      });
+      expect(serverless.getProvider('aws').getRegion()).to.equal('eu-central-1');
+    });
+
+    it('should allow to override via CLI `--region` param', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['-v', '--region', 'us-west-1'],
+        configExt: {
+          provider: {
+            region: 'eu-central-1',
+          },
+        },
+      });
+      expect(serverless.getProvider('aws').getRegion()).to.equal('us-west-1');
+    });
+  });
+
   describe('when resolving images', () => {
     it('should fail if `functions[].image` references image with both path and uri', async () => {
       await expect(
