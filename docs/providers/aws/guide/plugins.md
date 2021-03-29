@@ -204,60 +204,62 @@ module.exports = Deploy;
 
 ### Custom Variable Types
 
-As of version `1.52.0` of the Serverless Framework, plugins can officially implement their own
-variable types for use in serverless config files.
+Plugins may register its own configuration variables resolution sources.
 
-Example:
+Resolvers should be configured at `configurationVariablesSources` in form of a plain object that exposes `resolve` function.
+Check below example
 
 ```javascript
 'use strict';
 
-class EchoTestVarPlugin {
+class SomePlugin {
   constructor() {
-    getEchoTestValue(src) {
-      return src.slice(5);
-    }
-    getDependentEchoTestValue(src) {
-      return src.slice(5);
-    }
-    this.variableResolvers = {
-      echo: this.getEchoTestValue,
-      // if a variable type depends on profile/stage/region/credentials, to avoid infinite loops in
-      // trying to resolve variables that depend on themselves, specify as such by setting a
-      // dependendServiceName property on the variable getter
-      echoStageDependent: {
-        resolver: this.getDependentEchoTestValue,
-        serviceName: 'echo that isnt prepopulated',
-        isDisabledAtPrepopulation: true
-    };
-  }
+
+    this.configurationVariablesSources = {
+      foo: {
+        async resolve({ address, params, resolveConfigurationProperty, options  }) {
+          // `address` and `params` reflect values configured with a variable:
+          // ${foo(param1, param2):address}
+          // Note: they're passed if they're configured into variable
+
+          // `options` is CLI options
+          // `resolveConfigurationProperty` allows to access other configuration properties,
+          // and guarantees to return a fully resolved form (even if property is configured with variables)
+          const stage = options.stage || await  resolveConfigurationProperty(["provider", "stage"]) || "dev";
+
+          // Resolver is expected to return plain object, with resolved value set on `value` property.
+          // Resolve value can be any JSON value
+          return {
+            //
+            value: `Resolution of "foo" source for "${stage}" stage at "${address || ""}" addresss with "${(params || []).join(", ")}" params`
+          }
+        }
+      }
+
 }
 ```
 
-The above plugin will add support for variables like `${echo:foobar}` and resolve to the key. EG:
-`${echo:foobar}` will resolve to `'foobar'`.
+Having an above source resolver (as provided with a plugin), we may use new variable source in configuration as follows:
 
-#### `this.variableResolvers` structure
+```yaml
+service: test
+provider: aws
+custom:
+  value1: ${foo(one, two):whatever}
+plugins:
+  - ./some-plugin
+```
 
-The data structure of `this.variableResolvers` is an `Object` with keys that are either a
-`function` or `Object`.
+Configuration will be resolved into following form:
 
-The keys are used to generate the regex which matches the variable type. Eg, a key of `test` will
-match variables like `${test:foobar}`.
-
-If the value is a `function` it is used to resolve variables matched. It must be `async` or return
-a `Promise` and accepts the variable string(with prefix but not the wrapping variable syntax,
-eg `test:foobar`) as it's only argument.
-
-If the value is an `Object`, it can have the following keys:
-
-- `resolver` - required, a function, same requirements as described above.
-- `isDisabledAtPrepopulation` - optional, a boolean, disable this variable type when populating
-  stage, region, and credentials. This is important for variable types that depend on AWS or other
-  service that depend on those variables
-- `serviceName` - required if `isDisabledAtPrepopulation === true`, a string to display to users
-  if they try to use the variable type in one of the fields disabled for populating
-  stage/region/credentials.
+```yaml
+service: test
+provider: aws
+custom:
+  value1: Resolution of "foo" source for "dev" stage at "whatever" address with "one, two" params
+plugins:
+  - ./some-plugin
+```
 
 ### Defining Options
 
