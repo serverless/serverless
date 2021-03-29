@@ -65,6 +65,8 @@ describe('lib/utils/analytics/generatePayload', () => {
         functions: [
           { runtime: 'nodejs12.x', events: [{ type: 'httpApi' }, { type: 'httpApi' }] },
           { runtime: 'nodejs12.x', events: [{ type: 'httpApi' }] },
+          { runtime: 'nodejs12.x', events: [] },
+          { runtime: 'nodejs12.x', events: [] },
         ],
       },
       isAutoUpdateEnabled: false,
