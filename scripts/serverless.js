@@ -449,6 +449,15 @@ const processSpanPromise = (async () => {
           resolverConfiguration.fulfilledSources.add('cf').add('s3').add('ssm');
         }
 
+        if (configuration.org && serverless.pluginManager.dashboardPlugin) {
+          for (const [sourceName, sourceConfig] of Object.entries(
+            serverless.pluginManager.dashboardPlugin.configurationVariablesSources
+          )) {
+            resolverConfiguration.sources[sourceName] = sourceConfig;
+            resolverConfiguration.fulfilledSources.add(sourceName);
+          }
+        }
+
         const ensurePlainFunction = require('type/plain-function/ensure');
         const ensurePlainObject = require('type/plain-object/ensure');
 
