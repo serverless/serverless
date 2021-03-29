@@ -438,8 +438,11 @@ const processSpanPromise = (async () => {
             s3: require('../lib/configuration/variables/sources/instance-dependent/get-s3')(
               serverless
             ),
+            ssm: require('../lib/configuration/variables/sources/instance-dependent/get-ssm')(
+              serverless
+            ),
           });
-          resolverConfiguration.fulfilledSources.add('cf').add('s3');
+          resolverConfiguration.fulfilledSources.add('cf').add('s3').add('ssm');
         }
 
         await resolveVariables(resolverConfiguration);
@@ -454,10 +457,16 @@ const processSpanPromise = (async () => {
         );
         if (!(configuration.variablesResolutionMode >= 20210326)) {
           const legacyCfVarPropertyPaths = new Set();
+          const legacySsmVarPropertyPaths = new Set();
           for (const [sourceType, propertyPaths] of unresolvedSources) {
-            if (!sourceType.startsWith('cf.')) continue;
-            for (const propertyPath of propertyPaths) legacyCfVarPropertyPaths.add(propertyPath);
-            unresolvedSources.delete(sourceType);
+            if (sourceType.startsWith('cf.')) {
+              for (const propertyPath of propertyPaths) legacyCfVarPropertyPaths.add(propertyPath);
+              unresolvedSources.delete(sourceType);
+            }
+            if (sourceType.startsWith('ssm.')) {
+              for (const propertyPath of propertyPaths) legacySsmVarPropertyPaths.add(propertyPath);
+              unresolvedSources.delete(sourceType);
+            }
           }
           if (legacyCfVarPropertyPaths.size) {
             logDeprecation(
@@ -465,6 +474,19 @@ const processSpanPromise = (async () => {
               'Syntax for referencing CF outputs was upgraded to ' +
                 '"${cf(<region>):stackName.outputName}" (while  ' +
                 '"${cf.<region>:stackName.outputName}" is now deprecated, ' +
+                'as not supported by new variables resolver).\n' +
+                'Please upgrade to use new form instead.' +
+                'Starting with next major release, ' +
+                'this will be communicated with a thrown error.\n',
+              { serviceConfig: configuration }
+            );
+          }
+          if (legacySsmVarPropertyPaths.size) {
+            logDeprecation(
+              'NEW_VARIABLES_RESOLVER',
+              'Syntax for referencing SSM parameters was upgraded to ' +
+                '"${ssm(<region>):parameter-path}" (while  ' +
+                '"${ssm.<region>:parameter-path}" is now deprecated, ' +
                 'as not supported by new variables resolver).\n' +
                 'Please upgrade to use new form instead.' +
                 'Starting with next major release, ' +
