@@ -351,6 +351,341 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     });
   });
 
+  describe('Authorizers: REQUEST (Custom Lambda Authorizer)', () => {
+    let cfResources;
+    let naming;
+    before(async () => {
+      const { awsNaming, cfTemplate } = await runServerless({
+        fixture: 'httpApi',
+        configExt: {
+          provider: {
+            httpApi: {
+              authorizers: {
+                someAuthorizer: {
+                  type: 'request',
+                  identitySource: '$request.header.Authorization',
+                  functionName: 'other',
+                  resultTtlInSeconds: 300,
+                  enableSimpleResponses: true,
+                  payloadVersion: '2.0',
+                },
+                authorizerWithExternalFunction: {
+                  type: 'request',
+                  identitySource: '$request.header.Authorization',
+                  functionArn: 'arn:aws:lambda:us-east-2:xxx:function:my-function:1',
+                  resultTtlInSeconds: 300,
+                  enableSimpleResponses: true,
+                  payloadVersion: '2.0',
+                  managedExternally: true,
+                },
+              },
+            },
+          },
+          functions: {
+            foo: {
+              events: [
+                {
+                  httpApi: {
+                    authorizer: {
+                      name: 'someAuthorizer',
+                    },
+                  },
+                },
+              ],
+            },
+            anotherFunc: {
+              handler: 'index.handler',
+              events: [
+                {
+                  httpApi: {
+                    authorizer: {
+                      name: 'authorizerWithExternalFunction',
+                    },
+                    method: 'get',
+                    path: '/anotherfunc',
+                  },
+                },
+              ],
+            },
+          },
+        },
+        cliArgs: ['package'],
+      });
+      cfResources = cfTemplate.Resources;
+      naming = awsNaming;
+    });
+
+    it('should configure authorizer resource that references function from service', () => {
+      expect(cfResources[naming.getHttpApiAuthorizerLogicalId('someAuthorizer')]).to.deep.equal({
+        Type: 'AWS::ApiGatewayV2::Authorizer',
+        Properties: {
+          ApiId: { Ref: naming.getHttpApiLogicalId() },
+          AuthorizerPayloadFormatVersion: '2.0',
+          AuthorizerResultTtlInSeconds: 300,
+          AuthorizerType: 'REQUEST',
+          EnableSimpleResponses: true,
+          IdentitySource: ['$request.header.Authorization'],
+          Name: 'someAuthorizer',
+          AuthorizerUri: {
+            'Fn::Join': [
+              '',
+              [
+                'arn:',
+                { Ref: 'AWS::Partition' },
+                ':apigateway:',
+                { Ref: 'AWS::Region' },
+                ':lambda:path/2015-03-31/functions/',
+                {
+                  'Fn::GetAtt': ['OtherLambdaFunction', 'Arn'],
+                },
+                '/invocations',
+              ],
+            ],
+          },
+        },
+      });
+    });
+
+    it('should setup authorizer properties on an endpoint configured', () => {
+      const routeResourceProps =
+        cfResources[naming.getHttpApiRouteLogicalId('GET /foo')].Properties;
+
+      expect(routeResourceProps.AuthorizationType).to.equal('CUSTOM');
+      expect(routeResourceProps.AuthorizerId).to.deep.equal({
+        Ref: naming.getHttpApiAuthorizerLogicalId('someAuthorizer'),
+      });
+    });
+
+    it('should create permission resource when authorizer references function from service', () => {
+      const authorizerPermissionLogicalId = naming.getLambdaAuthorizerHttpApiPermissionLogicalId(
+        'someAuthorizer'
+      );
+      expect(cfResources[authorizerPermissionLogicalId]).to.deep.equal({
+        Type: 'AWS::Lambda::Permission',
+        Properties: {
+          FunctionName: {
+            'Fn::GetAtt': ['OtherLambdaFunction', 'Arn'],
+          },
+          Action: 'lambda:InvokeFunction',
+          Principal: 'apigateway.amazonaws.com',
+          SourceArn: {
+            'Fn::Join': [
+              '',
+              [
+                'arn:',
+                { Ref: 'AWS::Partition' },
+                ':execute-api:',
+                { Ref: 'AWS::Region' },
+                ':',
+                { Ref: 'AWS::AccountId' },
+                ':',
+                { Ref: naming.getHttpApiLogicalId() },
+                '/*',
+              ],
+            ],
+          },
+        },
+      });
+    });
+
+    it('should configure authorizer resource that references function outside of service', () => {
+      expect(
+        cfResources[naming.getHttpApiAuthorizerLogicalId('authorizerWithExternalFunction')]
+      ).to.deep.equal({
+        Type: 'AWS::ApiGatewayV2::Authorizer',
+        Properties: {
+          ApiId: { Ref: naming.getHttpApiLogicalId() },
+          AuthorizerPayloadFormatVersion: '2.0',
+          AuthorizerResultTtlInSeconds: 300,
+          AuthorizerType: 'REQUEST',
+          EnableSimpleResponses: true,
+          IdentitySource: ['$request.header.Authorization'],
+          Name: 'authorizerWithExternalFunction',
+          AuthorizerUri: {
+            'Fn::Join': [
+              '',
+              [
+                'arn:',
+                { Ref: 'AWS::Partition' },
+                ':apigateway:',
+                { Ref: 'AWS::Region' },
+                ':lambda:path/2015-03-31/functions/',
+                'arn:aws:lambda:us-east-2:xxx:function:my-function:1',
+                '/invocations',
+              ],
+            ],
+          },
+        },
+      });
+    });
+
+    it('should setup authorizer properties on an endpoint configured for authorizer that references function outside of service', () => {
+      const routeResourceProps =
+        cfResources[naming.getHttpApiRouteLogicalId('GET /anotherfunc')].Properties;
+
+      expect(routeResourceProps.AuthorizationType).to.equal('CUSTOM');
+      expect(routeResourceProps.AuthorizerId).to.deep.equal({
+        Ref: naming.getHttpApiAuthorizerLogicalId('authorizerWithExternalFunction'),
+      });
+    });
+
+    it('should not create permission resource when authorizer references externally managed function', () => {
+      const authorizerPermissionLogicalId = naming.getLambdaAuthorizerHttpApiPermissionLogicalId(
+        'authorizerWithExternalFunction'
+      );
+      expect(cfResources[authorizerPermissionLogicalId]).to.be.undefined;
+    });
+
+    it('should throw when request authorizer does not have "functionName" and "functionArn" defined', async () => {
+      await expect(
+        runServerless({
+          fixture: 'httpApi',
+          configExt: {
+            provider: {
+              httpApi: {
+                authorizers: {
+                  someAuthorizer: {
+                    type: 'request',
+                  },
+                },
+              },
+            },
+            functions: {
+              foo: {
+                events: [
+                  {
+                    httpApi: {
+                      authorizer: {
+                        name: 'someAuthorizer',
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+          cliArgs: ['package'],
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'HTTP_API_CUSTOM_AUTHORIZER_NEITHER_FUNCTION_ARN_NOR_FUNCTION_NAME_DEFINED'
+      );
+    });
+
+    it('should throw when request authorizer have both "functionName" and "functionArn" defined', async () => {
+      await expect(
+        runServerless({
+          fixture: 'httpApi',
+          configExt: {
+            provider: {
+              httpApi: {
+                authorizers: {
+                  someAuthorizer: {
+                    type: 'request',
+                    functionName: 'bar',
+                    functionArn: 'arn:xxxx',
+                  },
+                },
+              },
+            },
+            functions: {
+              foo: {
+                events: [
+                  {
+                    httpApi: {
+                      authorizer: {
+                        name: 'someAuthorizer',
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+          cliArgs: ['package'],
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'HTTP_API_CUSTOM_AUTHORIZER_BOTH_FUNCTION_ARN_AND_FUNCTION_NAME_DEFINED'
+      );
+    });
+
+    it('should throw when request authorizer have both references "functionName" not defined in service', async () => {
+      await expect(
+        runServerless({
+          fixture: 'httpApi',
+          configExt: {
+            provider: {
+              httpApi: {
+                authorizers: {
+                  someAuthorizer: {
+                    type: 'request',
+                    functionName: 'notdefined',
+                  },
+                },
+              },
+            },
+            functions: {
+              foo: {
+                events: [
+                  {
+                    httpApi: {
+                      authorizer: {
+                        name: 'someAuthorizer',
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+          cliArgs: ['package'],
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'HTTP_API_CUSTOM_AUTHORIZER_FUNCTION_NOT_FOUND_IN_SERVICE'
+      );
+    });
+
+    it('should throw when request authorizer has caching enabled but does not have "identitySource" defined', async () => {
+      await expect(
+        runServerless({
+          fixture: 'httpApi',
+          configExt: {
+            provider: {
+              httpApi: {
+                authorizers: {
+                  someAuthorizer: {
+                    type: 'request',
+                    functionName: 'other',
+                    resultTtlInSeconds: 300,
+                  },
+                },
+              },
+            },
+            functions: {
+              foo: {
+                events: [
+                  {
+                    httpApi: {
+                      authorizer: {
+                        name: 'someAuthorizer',
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+          cliArgs: ['package'],
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'HTTP_API_CUSTOM_AUTHORIZER_IDENTITY_SOURCE_MISSING_WHEN_CACHING_ENABLED'
+      );
+    });
+  });
+
   describe('Authorizers: JWT', () => {
     let cfResources;
     let naming;
@@ -416,13 +751,13 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     });
   });
 
-  describe('External authorizers: JWT', () => {
+  describe('External authorizers', () => {
     const apiId = 'external-http-api';
     describe('correct configuration', () => {
       let cfResources;
       let naming;
-      before(() =>
-        runServerless({
+      before(async () => {
+        const { awsNaming, cfTemplate } = await runServerless({
           fixture: 'httpApi',
           configExt: {
             provider: { httpApi: { id: apiId } },
@@ -432,8 +767,19 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
                   {
                     httpApi: {
                       authorizer: {
+                        type: 'jwt',
                         id: 'externalAuthorizer',
                         scopes: 'foo',
+                      },
+                    },
+                  },
+                  {
+                    httpApi: {
+                      method: 'get',
+                      path: '/requestauthorizer',
+                      authorizer: {
+                        id: 'externalRequestAuthorizer',
+                        type: 'request',
                       },
                     },
                   },
@@ -442,19 +788,26 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
             },
           },
           cliArgs: ['package'],
-        }).then(({ awsNaming, cfTemplate }) => {
-          cfResources = cfTemplate.Resources;
-          naming = awsNaming;
-        })
-      );
+        });
+        cfResources = cfTemplate.Resources;
+        naming = awsNaming;
+      });
 
-      it('should setup authorizer properties on an endpoint', () => {
+      it('should setup authorizer properties on an endpoint for JWT authorizer', () => {
         const routeResourceProps =
           cfResources[naming.getHttpApiRouteLogicalId('GET /foo')].Properties;
 
         expect(routeResourceProps.AuthorizerId).to.equal('externalAuthorizer');
         expect(routeResourceProps.AuthorizationType).to.equal('JWT');
         expect(routeResourceProps.AuthorizationScopes).to.deep.equal(['foo']);
+      });
+
+      it('should setup authorizer properties on an endpoint for REQUEST authorizer', () => {
+        const routeResourceProps =
+          cfResources[naming.getHttpApiRouteLogicalId('GET /requestauthorizer')].Properties;
+
+        expect(routeResourceProps.AuthorizerId).to.equal('externalRequestAuthorizer');
+        expect(routeResourceProps.AuthorizationType).to.equal('CUSTOM');
       });
     });
 

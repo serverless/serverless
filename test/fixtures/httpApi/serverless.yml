@@ -26,3 +26,9 @@ functions:
       - httpApi:
           method: get
           path: /bar/{marko}
+
+  simpleCustomAuthorizer:
+    handler: authorizers.simpleAuthorizer
+
+  standardCustomAuthorizer:
+    handler: authorizers.standardAuthorizer
