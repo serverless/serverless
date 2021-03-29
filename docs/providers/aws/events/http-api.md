@@ -240,6 +240,29 @@ provider:
         managedExternally: true # Applicable only when using externally defined authorizer functions to prevent creation of permission resource
 ```
 
+### AWS IAM Authorization
+
+It is also possible to secure your HTTP API endpoints by taking advantage of AWS IAM Policies.
+
+_For deep details on that follow [AWS documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-control-access-using-iam-policies-to-invoke-api.html)_
+
+In order to do that, you need to set `authorizer` with `type: aws_iam` on `httpApi` event, as seen on the example below:
+
+```yaml
+provider:
+  name: aws
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - httpApi:
+          method: get
+          path: /hello
+          authorizer:
+            type: aws_iam
+```
+
 ### Access logs
 
 Deployed stage can have access logging enabled, for that just turn on logs for HTTP API in provider settings as follows:
