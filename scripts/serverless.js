@@ -435,8 +435,11 @@ const processSpanPromise = (async () => {
             cf: require('../lib/configuration/variables/sources/instance-dependent/get-cf')(
               serverless
             ),
+            s3: require('../lib/configuration/variables/sources/instance-dependent/get-s3')(
+              serverless
+            ),
           });
-          resolverConfiguration.fulfilledSources.add('cf');
+          resolverConfiguration.fulfilledSources.add('cf').add('s3');
         }
 
         await resolveVariables(resolverConfiguration);
