@@ -285,59 +285,42 @@ functions:
 
 In the above example, the value for the SSM Parameters will be looked up and used to populate the variables.
 
-You can also reference encrypted SSM Parameters, of type SecureString, using the extended syntax, `ssm:/path/to/secureparam~true`.
+You can also reference SSM Parameters in another region with the `ssm(REGION):/path/to/param` syntax. For example:
 
 ```yml
-service: new-service
-provider: aws
-functions:
-  hello:
-    name: hello
-    handler: handler.hello
-custom:
-  supersecret: ${ssm:/path/to/secureparam~true}
-```
-
-In this example, the serverless variable will contain the decrypted value of the SecureString.
-
-For StringList type parameters, you can optionally split the resolved variable into an array using the extended syntax, `ssm:/path/to/stringlistparam~split`.
-
-```yml
-service: new-service
-provider: aws
-functions:
-  hello:
-    name: hello
-    handler: handler.hello
-custom:
-  myArrayVar: ${ssm:/path/to/stringlistparam~split}
-```
-
-You can also reference SSM Parameters in another region with the `ssm.REGION:/path/to/param` syntax. For example:
-
-```yml
-service: ${ssm.us-west-2:/path/to/service/id}-service
+service: ${ssm(us-west-2):/path/to/service/id}-service
 provider:
   name: aws
 functions:
   hello:
-    name: ${ssm.ap-northeast-1:/path/to/service/myParam}-hello
+    name: ${ssm(ap-northeast-1):/path/to/service/myParam}-hello
     handler: handler.hello
 ```
 
-## Reference Variables using AWS Secrets Manager
+### Resolution of non plain string types
 
-Variables in [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) can be referenced [using SSM](https://docs.aws.amazon.com/systems-manager/latest/userguide/integration-ps-secretsmanager.html). Use the `ssm:/aws/reference/secretsmanager/secret_ID_in_Secrets_Manager~true` syntax(note `~true` as secrets are always encrypted). For example:
+New variable resolver, ensures that automatically other types as `SecureString` and `StringList` are resolved into expected forms.
+
+For that please ensure to add `variablesResolutionMode: 20210326` to your service configuration.
+
+#### Auto decrypting of `SecureString` type parameters.
+
+All `SecureString` type parameters are automatically decrypted.
+
+Variables in [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) can be referenced [using SSM](https://docs.aws.amazon.com/systems-manager/latest/userguide/integration-ps-secretsmanager.html), just use the `ssm:/aws/reference/secretsmanager/secret_ID_in_Secrets_Manager` syntax. For example:
 
 ```yml
 service: new-service
+variablesResolutionMode: 20210326
 provider: aws
 functions:
   hello:
     name: hello
     handler: handler.hello
 custom:
-  supersecret: ${ssm:/aws/reference/secretsmanager/secret_ID_in_Secrets_Manager~true}
+  secret: ${ssm:/path/to/secureparam}
+  # AWS Secrets manager parameter
+  supersecret: ${ssm:/aws/reference/secretsmanager/secret_ID_in_Secrets_Manager}
 ```
 
 In this example, the serverless variable will contain the decrypted value of the secret.
@@ -358,6 +341,7 @@ variables will be resolved like
 
 ```yml
 service: new-service
+variablesResolutionMode: 20210326
 provider: aws
 functions:
   hello:
@@ -370,6 +354,22 @@ custom:
     arr:
       - true
       - false
+```
+
+#### Resolve `StringList` as array of strings
+
+Same `StringList` type parameters are automatically detected and resolved to array form
+
+```yml
+service: new-service
+variablesResolutionMode: 20210326
+provider: aws
+functions:
+  hello:
+    name: hello
+    handler: handler.hello
+custom:
+  myArrayVar: ${ssm:/path/to/stringlistparam}
 ```
 
 ## Reference Variables in Other Files
