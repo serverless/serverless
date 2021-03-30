@@ -71,7 +71,7 @@ describe('Service Lifecyle Integration Test', function () {
   it('should invoke function from aws', async () => {
     const { stdoutBuffer: invoked } = await spawn(
       serverlessExec,
-      ['invoke', '--function', 'hello', '--noGreeting', 'true'],
+      ['invoke', '--function', 'hello'],
       spawnOptions
     );
     const result = JSON.parse(invoked);
@@ -96,7 +96,7 @@ describe('Service Lifecyle Integration Test', function () {
   it('should invoke updated function from aws', async () => {
     const { stdoutBuffer: invoked } = await spawn(
       serverlessExec,
-      ['invoke', '--function', 'hello', '--noGreeting', 'true'],
+      ['invoke', '--function', 'hello'],
       spawnOptions
     );
     const result = JSON.parse(invoked);
@@ -122,7 +122,7 @@ describe('Service Lifecyle Integration Test', function () {
 
     const { stdoutBuffer: invoked } = await spawn(
       serverlessExec,
-      ['invoke', '--function', 'hello', '--noGreeting', 'true'],
+      ['invoke', '--function', 'hello'],
       spawnOptions
     );
     const result = JSON.parse(invoked);
