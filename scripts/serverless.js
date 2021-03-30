@@ -564,6 +564,25 @@ const processSpanPromise = (async () => {
               { serviceConfig: configuration }
             );
           }
+          if (unresolvedSources.size) {
+            logDeprecation(
+              'NEW_VARIABLES_RESOLVER',
+              `Approached unrecognized configuration variable sources: "${Array.from(
+                unresolvedSources.keys()
+              ).join('", "')}".\n` +
+                'From a next major this will be communicated with a thrown error.\n' +
+                'Set "variablesResolutionMode: 20210326" in your service config, ' +
+                'to adapt to new behavior now',
+              { serviceConfig: configuration }
+            );
+          }
+        } else {
+          throw new ServerlessError(
+            `Approached unrecognized configuration variable sources: "${Array.from(
+              unresolvedSources.keys()
+            ).join('", "')}"`,
+            'UNRECOGNIZED_VARIABLE_SOURCES'
+          );
         }
       })();
 
