@@ -7,7 +7,6 @@ const fixtures = require('../fixtures');
 
 const { confirmCloudWatchLogs } = require('../utils/misc');
 const { deployService, removeService, fetch } = require('../utils/integration');
-const { createRestApi, deleteRestApi, getResources } = require('../utils/apiGateway');
 
 describe('AWS - API Gateway Integration Test', function () {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
@@ -16,8 +15,6 @@ describe('AWS - API Gateway Integration Test', function () {
   let stackName;
   let servicePath;
   let updateConfig;
-  let restApiId;
-  let restApiRootResourceId;
   let apiKey;
   let isDeployed = false;
   const stage = 'dev';
@@ -226,72 +223,5 @@ describe('AWS - API Gateway Integration Test', function () {
       fetch(`${endpoint}/integration-lambda-timeout`).then((response) =>
         expect(response.status).to.equal(504)
       ));
-  });
-
-  // NOTE: this test should  be at the very end because we're using an external REST API here
-  describe('when using an existing REST API with stage specific configuration', () => {
-    before(async () => {
-      // create an external REST API
-      const externalRestApiName = `${stage}-${serviceName}-ext-api`;
-      await createRestApi(externalRestApiName)
-        .then((restApiMeta) => {
-          restApiId = restApiMeta.id;
-          return getResources(restApiId);
-        })
-        .then((resources) => {
-          restApiRootResourceId = resources[0].id;
-          log.notice(
-            'Created external rest API ' +
-              `(id: ${restApiId}, root resource id: ${restApiRootResourceId})`
-          );
-        });
-
-      await updateConfig({
-        provider: {
-          apiGateway: {
-            restApiId,
-            restApiRootResourceId,
-          },
-          tags: {
-            foo: 'bar',
-            baz: 'qux',
-          },
-          tracing: {
-            apiGateway: true,
-          },
-          logs: {
-            restApi: true,
-          },
-        },
-      });
-      log.notice('Redeploying service (with external Rest API ID)...');
-      await deployService(servicePath);
-      return resolveEndpoint();
-    });
-
-    after(async () => {
-      await updateConfig({
-        provider: {
-          apiGateway: {
-            restApiId: null,
-            restApiRootResourceId: null,
-          },
-        },
-      });
-      // NOTE: deploying once again to get the stack into the original state
-      log.notice('Redeploying service (without external Rest API ID)...');
-      await deployService(servicePath);
-      log.notice('Deleting external rest API...');
-      return deleteRestApi(restApiId);
-    });
-
-    it('should update the stage without service interruptions', () => {
-      // re-using the endpoint from the "minimal" test case
-      const testEndpoint = `${endpoint}/minimal-1`;
-
-      return fetch(testEndpoint, { method: 'POST' })
-        .then((response) => response.json())
-        .then((json) => expect(json.message).to.equal('Hello from API Gateway! - (minimal)'));
-    });
   });
 });

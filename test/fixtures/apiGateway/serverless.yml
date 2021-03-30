@@ -10,6 +10,13 @@ provider:
     shouldStartNameWithService: true
 
 functions:
+  minimal:
+    handler: index.minimal
+    events:
+      - http: GET /
+      - http:
+          method: POST
+          path: minimal-1
   foo:
     handler: index.handler
     events:
