@@ -1748,7 +1748,9 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           cliArgs: ['package'],
           configExt: {
             provider: {
-              role: 'arn:aws:iam::123456789012:role/fromProvider',
+              iam: {
+                role: 'arn:aws:iam::123456789012:role/fromProvider',
+              },
             },
             functions: {
               foo: {
@@ -1763,16 +1765,36 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         customRoleServiceConfig = fixtureData.serviceConfig;
       });
 
-      it('should support `provider.role` as arn string', async () => {
+      it('should support `provider.iam.role` as arn string', async () => {
         const providerConfig = customRoleServiceConfig.provider;
 
-        expect(otherFunctionRole).to.equal(providerConfig.role);
+        expect(otherFunctionRole).to.equal(providerConfig.iam.role);
       });
 
-      it('should prefer `functions[].role` over `provider.role`', () => {
+      it('should prefer `functions[].role` over `provider.iam.role`', () => {
         const fooFunctionConfig = customRoleServiceConfig.functions.foo;
 
         expect(fooFunctionRole).to.equal(fooFunctionConfig.role);
+      });
+
+      it('should support `provider.iam.role` defined as CF function', async () => {
+        const { awsNaming, cfTemplate, fixtureData } = await runServerless({
+          fixture: 'function',
+          cliArgs: ['package'],
+          configExt: {
+            provider: {
+              iam: {
+                role: {
+                  'Fn::Sub': 'arn:aws:iam::${AWS::AccountId}:role/fromFunction',
+                },
+              },
+            },
+          },
+        });
+
+        const functionRole =
+          cfTemplate.Resources[awsNaming.getLambdaLogicalId('foo')].Properties.Role;
+        expect(functionRole).to.deep.equal(fixtureData.serviceConfig.provider.iam.role);
       });
     });
   });
