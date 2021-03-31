@@ -631,53 +631,6 @@ describe('AwsProvider', () => {
     });
   });
 
-  describe('#getStage()', () => {
-    it('should prefer options over config or provider', () => {
-      const newOptions = {
-        stage: 'optionsStage',
-      };
-      const config = {
-        stage: 'configStage',
-      };
-      serverless = new Serverless(config);
-      serverless.service.provider.stage = 'providerStage';
-      awsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(awsProvider.getStage()).to.equal(newOptions.stage);
-    });
-
-    it('should prefer config over provider in lieu of options', () => {
-      const newOptions = {};
-      const config = {
-        stage: 'configStage',
-      };
-      serverless = new Serverless(config);
-      serverless.service.provider.stage = 'providerStage';
-      awsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(awsProvider.getStage()).to.equal(config.stage);
-    });
-
-    it('should use provider in lieu of options and config', () => {
-      const newOptions = {};
-      const config = {};
-      serverless = new Serverless(config);
-      serverless.service.provider.stage = 'providerStage';
-      awsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(awsProvider.getStage()).to.equal(serverless.service.provider.stage);
-    });
-
-    it('should use the default dev in lieu of options, config, and provider', () => {
-      const newOptions = {};
-      const config = {};
-      serverless = new Serverless(config);
-      awsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(awsProvider.getStage()).to.equal('dev');
-    });
-  });
-
   describe('#getAccountInfo()', () => {
     it('should return the AWS account id and partition', () => {
       const accountId = '12345678';
@@ -772,6 +725,42 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         },
       });
       expect(serverless.getProvider('aws').getRegion()).to.equal('us-west-1');
+    });
+  });
+
+  describe('#getStage()', () => {
+    it('should default to "dev"', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['-v'],
+      });
+      expect(serverless.getProvider('aws').getStage()).to.equal('dev');
+    });
+
+    it('should allow to override via `provider.stage`', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['-v'],
+        configExt: {
+          provider: {
+            stage: 'staging',
+          },
+        },
+      });
+      expect(serverless.getProvider('aws').getStage()).to.equal('staging');
+    });
+
+    it('should allow to override via CLI `--stage` param', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['-v', '--stage', 'production'],
+        configExt: {
+          provider: {
+            stage: 'staging',
+          },
+        },
+      });
+      expect(serverless.getProvider('aws').getStage()).to.equal('production');
     });
   });
 
