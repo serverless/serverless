@@ -429,10 +429,15 @@ const processSpanPromise = (async () => {
             providerName,
           });
         }
+        if (configuration.variablesResolutionMode >= 20210326) {
+          // New resolver, resolves just recognized CLI options. Therefore we cannot assume
+          // we have full "opt" source data if user didn't explicitly switch to new resolver
+          resolverConfiguration.fulfilledSources.add('opt');
+        }
         resolverConfiguration.sources.sls = require('../lib/configuration/variables/sources/instance-dependent/get-sls')(
           serverless
         );
-        resolverConfiguration.fulfilledSources.add('opt').add('sls');
+        resolverConfiguration.fulfilledSources.add('sls');
 
         if (providerName === 'aws') {
           Object.assign(resolverConfiguration.sources, {
@@ -529,6 +534,7 @@ const processSpanPromise = (async () => {
           variablesMeta
         );
         if (!(configuration.variablesResolutionMode >= 20210326)) {
+          unresolvedSources.delete('opt');
           const legacyCfVarPropertyPaths = new Set();
           const legacySsmVarPropertyPaths = new Set();
           for (const [sourceType, propertyPaths] of unresolvedSources) {
