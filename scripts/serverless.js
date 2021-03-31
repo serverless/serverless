@@ -516,7 +516,10 @@ const processSpanPromise = (async () => {
         }
 
         await resolveVariables(resolverConfiguration);
-        if (!variablesMeta.size) return;
+        if (!variablesMeta.size) {
+          serverless.isConfigurationInputResolved = true;
+          return;
+        }
         if (
           eventuallyReportVariableResolutionErrors(configurationPath, configuration, variablesMeta)
         ) {
