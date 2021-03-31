@@ -87,12 +87,12 @@ const processSpanPromise = (async () => {
       }
       logDeprecation(
         'NEW_VARIABLES_RESOLVER',
-        `"${humanizedPropertyPath}" is not accessible ' +
+        `"${humanizedPropertyPath}" is not accessible ` +
           '(configured behind variables which cannot be resolved at this stage).\n' +
           'Starting with next major release, ' +
           'this will be communicated with a thrown error.\n' +
           'Set "variablesResolutionMode: 20210326" in your service config, ' +
-          'to adapt to this behavior now`,
+          'to adapt to this behavior now',
         { serviceConfig: configuration }
       );
       return false;
