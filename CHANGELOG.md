@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.32.1](https://github.com/serverless/serverless/compare/v2.32.0...v2.32.1) (2021-03-31)
+
+### Bug Fixes
+
+- **AWS IAM:** Support for CF functions for `provider.iam.role` ([#9206](https://github.com/serverless/serverless/pull/9206)) ([0a84f1c](https://github.com/serverless/serverless/commit/0a84f1c84ee4e7ac32d9b5c247eba7f25da0d14a)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:** Fix `commands` pass to local installation ([#9207](https://github.com/serverless/serverless/pull/9207)) ([80bddce](https://github.com/serverless/serverless/commit/80bddce66729a82dde488a497e228cc42775a174)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:** Ensure resolution of unrecognized CLI options ([#9211](https://github.com/serverless/serverless/pull/9211)) ([b5668d5](https://github.com/serverless/serverless/commit/b5668d5be04902437c82b2ccb049f93f82a87ec3)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **CLI:** Fix deprecation message typo ([#9209](https://github.com/serverless/serverless/pull/9209)) ([7f788d2](https://github.com/serverless/serverless/commit/7f788d29e5b7ba45b9a3648b0b645f17706ac4a4)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:**
+  - Do not run old resolver when not needed ([#9207](https://github.com/serverless/serverless/pull/9207)) ([7601e26](https://github.com/serverless/serverless/commit/7601e26360226e77c4c8d631227a248e7a81afc2)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.32.0](https://github.com/serverless/serverless/compare/v2.31.0...v2.32.0) (2021-03-30)
 
 ### Features
