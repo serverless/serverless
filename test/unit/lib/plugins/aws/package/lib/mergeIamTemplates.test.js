@@ -366,6 +366,24 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         const iamResource = cfResources[IamRoleLambdaExecution];
         expect(iamResource.Properties.Tags).to.eql([{ Key: 'sweet', Value: 'potato' }]);
       });
+
+      it('should not create default role when `provider.iam.role` defined with CF intrinsic functions', async () => {
+        const { cfTemplate, awsNaming } = await runServerless({
+          fixture: 'function',
+          cliArgs: ['package'],
+          configExt: {
+            provider: {
+              iam: {
+                role: {
+                  'Fn::Sub': 'arn:aws:iam::${AWS::AccountId}:role/someRole',
+                },
+              },
+            },
+          },
+        });
+
+        expect(cfTemplate.Resources[awsNaming.getRoleLogicalId()]).to.be.undefined;
+      });
     });
 
     describe('Function properties', () => {
