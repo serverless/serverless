@@ -17,11 +17,11 @@ disabledDeprecations:
   - '*' # To disable all deprecation messages
 ```
 
-<a name="NEW_PACKAGING_PATTERNS"><div>&nbsp;</div></a>
+<a name="NEW_PACKAGE_PATTERNS"><div>&nbsp;</div></a>
 
 ## New way to define packaging patterns
 
-Deprecation code: `NEW_PACKAGING_PATTERNS`
+Deprecation code: `NEW_PACKAGE_PATTERNS`
 
 Please use `package.patterns`. `package.include` and `package.exclude` will be removed with v3.0.0
 
