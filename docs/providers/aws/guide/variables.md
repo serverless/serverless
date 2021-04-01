@@ -682,3 +682,12 @@ ${strToBool(2)} => Error
 ${strToBool(null)} => Error
 ${strToBool(anything)} => Error
 ```
+
+## AWS CloudFormation Pseudo Parameters and Intrinsic functions
+
+[AWS Pseudo Parameters](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/pseudo-parameter-reference.html)
+can be used in values which are passed through as is to CloudFormation template properties.
+
+Otherwise Serverless Framework has no implied understanding of them and does not try to resolve them on its own.
+
+Same handling applies to [CloudFormation Intrinsic functions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html)
