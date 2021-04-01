@@ -17,7 +17,16 @@ const versions = {
 
 describe('lib/utils/analytics/generatePayload', () => {
   it('Should resolve payload for AWS service', async () => {
-    const { servicePath } = await fixtures.setup('httpApi');
+    const { servicePath } = await fixtures.setup('httpApi', {
+      configExt: {
+        functions: {
+          withContainer: {
+            image:
+              '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38',
+          },
+        },
+      },
+    });
     await fs.promises.writeFile(
       path.resolve(servicePath, 'package.json'),
       JSON.stringify({
@@ -44,6 +53,8 @@ describe('lib/utils/analytics/generatePayload', () => {
 
     expect(payload).to.have.property('frameworkLocalUserId');
     delete payload.frameworkLocalUserId;
+    expect(payload).to.have.property('firstLocalInstallationTimestamp');
+    delete payload.firstLocalInstallationTimestamp;
     expect(payload).to.have.property('timestamp');
     delete payload.timestamp;
     expect(payload).to.have.property('dashboard');
@@ -67,6 +78,7 @@ describe('lib/utils/analytics/generatePayload', () => {
           { runtime: 'nodejs12.x', events: [{ type: 'httpApi' }] },
           { runtime: 'nodejs12.x', events: [] },
           { runtime: 'nodejs12.x', events: [] },
+          { runtime: '$containerimage', events: [] },
         ],
       },
       isAutoUpdateEnabled: false,
@@ -87,6 +99,8 @@ describe('lib/utils/analytics/generatePayload', () => {
 
     expect(payload).to.have.property('frameworkLocalUserId');
     delete payload.frameworkLocalUserId;
+    expect(payload).to.have.property('firstLocalInstallationTimestamp');
+    delete payload.firstLocalInstallationTimestamp;
     expect(payload).to.have.property('timestamp');
     delete payload.timestamp;
     expect(payload).to.have.property('dashboard');
@@ -129,6 +143,8 @@ describe('lib/utils/analytics/generatePayload', () => {
 
     expect(payload).to.have.property('frameworkLocalUserId');
     delete payload.frameworkLocalUserId;
+    expect(payload).to.have.property('firstLocalInstallationTimestamp');
+    delete payload.firstLocalInstallationTimestamp;
     expect(payload).to.have.property('timestamp');
     delete payload.timestamp;
     expect(payload).to.have.property('dashboard');
@@ -169,12 +185,16 @@ describe('lib/utils/analytics/generatePayload', () => {
       JSON.stringify({
         frameworkId: '123',
         userId: 'some-user-id',
+        meta: {
+          created_at: 1616151998,
+        },
       })
     );
 
     const payload = await generatePayload(serverless);
     expect(payload.dashboard.userId).to.equal('some-user-id');
     expect(payload.frameworkLocalUserId).to.equal('123');
+    expect(payload.firstLocalInstallationTimestamp).to.equal(1616151998);
   });
 
   it('Should not include userId from local config if SERVERLESS_ACCESS_KEY used', async () => {
