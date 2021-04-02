@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.33.0](https://github.com/serverless/serverless/compare/v2.32.1...v2.33.0) (2021-04-02)
+
+### Features
+
+- **Plugins:** Announce "type" requirement in CLI option definitions ([#9230](https://github.com/serverless/serverless/pull/9230)) ([959da67](https://github.com/serverless/serverless/commit/959da67a5eb49f2256b4763f5f235537e6253659)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **CLI:** Do not assume "string" param type, when not type set ([#9230](https://github.com/serverless/serverless/pull/9230)) ([c9be9bc](https://github.com/serverless/serverless/commit/c9be9bcc45d2da606d1660fb60156e56f5912e49)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:** Support resolving "raw" JSON string form of SSM params ([#9229](https://github.com/serverless/serverless/pull/9229)) ([4eba512](https://github.com/serverless/serverless/commit/4eba512c1529a0d1d6c60e3f9de3bf98d6c23002)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Packaging:**
+  - Ensure to apply dev dependency exclusion ([#92ee](https://github.com/serverless/serverless/pull/92ee)) ([7d16947](https://github.com/serverless/serverless/commit/7d16947273da079f4e844b4a62c98863206e848e)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Recognize `layers[].package.patterns` ([#9231](https://github.com/serverless/serverless/pull/9231)) ([9793c50](https://github.com/serverless/serverless/commit/9793c506ec364a4298a97e274c27c6f934749c74)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS CloudFront:** Recognize "?" character in `pathPattern` property ([#9234](https://github.com/serverless/serverless/pull/9234)) ([9d84596](https://github.com/serverless/serverless/commit/9d84596604a7338e82616723fe1a486c09272ae7)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- Remove injustified "eslint-disable" comments ([#9232](https://github.com/serverless/serverless/pull/9232)) ([2011649](https://github.com/serverless/serverless/commit/20116495372ff5de837d005868cdd2a3d74e1415)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [2.32.1](https://github.com/serverless/serverless/compare/v2.32.0...v2.32.1) (2021-03-31)
 
 ### Bug Fixes
