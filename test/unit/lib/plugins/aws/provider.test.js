@@ -313,7 +313,6 @@ describe('AwsProvider', () => {
     });
 
     it('should get credentials when profile is provied via --aws-profile option even if profile is defined in serverless.yml', () => {
-      // eslint-disable-line max-len
       process.env.AWS_PROFILE = 'notDefaultTemporary';
       newAwsProvider.options['aws-profile'] = 'notDefault';
 
@@ -324,7 +323,6 @@ describe('AwsProvider', () => {
     });
 
     it('should get credentials when profile is provied via process.env.AWS_PROFILE even if profile is defined in serverless.yml', () => {
-      // eslint-disable-line max-len
       process.env.AWS_PROFILE = 'notDefault';
 
       serverless.service.provider.profile = 'notDefaultTemporary';

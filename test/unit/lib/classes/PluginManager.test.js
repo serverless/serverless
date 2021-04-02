@@ -741,7 +741,6 @@ describe('PluginManager', () => {
     });
 
     afterEach(() => {
-      // eslint-disable-line prefer-arrow-callback
       mockRequire.stop('ServicePluginMock1');
       mockRequire.stop('ServicePluginMock2');
       mockRequire.stop('BrokenPluginMock');
@@ -751,7 +750,6 @@ describe('PluginManager', () => {
 
   describe('#resolveServicePlugins()', () => {
     beforeEach(() => {
-      // eslint-disable-line prefer-arrow-callback
       mockRequire('ServicePluginMock1', ServicePluginMock1);
       // Plugins loaded via a relative path should be required relative to the service path
       mockRequire(`${servicePath}/RelativePath/ServicePluginMock2`, ServicePluginMock2);
@@ -778,7 +776,6 @@ describe('PluginManager', () => {
     });
 
     afterEach(() => {
-      // eslint-disable-line prefer-arrow-callback
       mockRequire.stop('ServicePluginMock1');
       mockRequire.stop('ServicePluginMock2');
     });
@@ -1168,7 +1165,6 @@ describe('PluginManager', () => {
 
   describe('#getEvents()', () => {
     beforeEach(() => {
-      // eslint-disable-line prefer-arrow-callback
       pluginManager.addPlugin(SynchronousPluginMock);
     });
 
@@ -1199,7 +1195,6 @@ describe('PluginManager', () => {
 
   describe('#getHooks()', () => {
     beforeEach(() => {
-      // eslint-disable-line prefer-arrow-callback
       pluginManager.addPlugin(SynchronousPluginMock);
     });
 
@@ -1228,7 +1223,6 @@ describe('PluginManager', () => {
 
   describe('#getPlugins()', () => {
     beforeEach(() => {
-      // eslint-disable-line prefer-arrow-callback
       mockRequire('ServicePluginMock1', ServicePluginMock1);
       mockRequire('ServicePluginMock2', ServicePluginMock2);
     });
@@ -1244,7 +1238,6 @@ describe('PluginManager', () => {
     });
 
     afterEach(() => {
-      // eslint-disable-line prefer-arrow-callback
       mockRequire.stop('ServicePluginMock1');
       mockRequire.stop('ServicePluginMock2');
     });
@@ -1593,7 +1586,6 @@ describe('PluginManager', () => {
 
     describe('when using a synchronous hook function', () => {
       beforeEach(() => {
-        // eslint-disable-line prefer-arrow-callback
         pluginManager.addPlugin(SynchronousPluginMock);
       });
 
@@ -1618,7 +1610,6 @@ describe('PluginManager', () => {
 
     describe('when using a promise based hook function', () => {
       beforeEach(() => {
-        // eslint-disable-line prefer-arrow-callback
         pluginManager.addPlugin(PromisePluginMock);
       });
 
@@ -1643,7 +1634,6 @@ describe('PluginManager', () => {
 
     describe('when using provider specific plugins', () => {
       beforeEach(() => {
-        // eslint-disable-line prefer-arrow-callback
         pluginManager.serverless.service.provider.name = 'provider1';
 
         pluginManager.addPlugin(Provider1PluginMock);
@@ -1932,7 +1922,6 @@ describe('PluginManager', () => {
     let serviceDir;
     let tmpDir;
     beforeEach(() => {
-      // eslint-disable-line prefer-arrow-callback
       tmpDir = getTmpDirPath();
       serviceDir = path.join(tmpDir, 'service');
       fse.mkdirsSync(serviceDir);
@@ -1998,7 +1987,6 @@ describe('PluginManager', () => {
     });
 
     afterEach(() => {
-      // eslint-disable-line prefer-arrow-callback
       process.chdir(cwd);
       try {
         fse.removeSync(tmpDir);
@@ -2016,7 +2004,6 @@ describe('PluginManager', () => {
     const serverlessExec = require('../../../serverlessBinary');
 
     beforeEach(() => {
-      // eslint-disable-line prefer-arrow-callback
       serverlessInstance = new Serverless();
       return serverlessInstance.init().then(() => {
         // Cannot rely on shebang in severless.js to invoke script using NodeJS on Windows.

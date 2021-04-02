@@ -56,10 +56,10 @@ describe('AwsDeployFunction', () => {
     cryptoStub = {
       createHash() {
         return this;
-      }, // eslint-disable-line
+      },
       update() {
         return this;
-      }, // eslint-disable-line
+      },
       digest: sinon.stub(),
     };
     AwsDeployFunction = proxyquire('../../../../../lib/plugins/aws/deployFunction', {
