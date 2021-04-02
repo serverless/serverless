@@ -225,6 +225,8 @@ provider:
 When configuring functions, images should be referenced via `image` property, which can point to an image already defined in `provider.ecr.images` or directly to an existing AWS ECR image, following the same format as `uri` above.
 Both `handler` and `runtime` properties are not supported when `image` is used.
 
+Dockerfile `docker build` arguments (`--build-arg`) may be passed in so that your Dockerfile can use and reference `ARG` values withing your `Dockerfile`. These are passed in using the `buildArg` configuration section. This cannot be paired with `uri` configurations.
+
 Example configuration:
 
 ```yml
