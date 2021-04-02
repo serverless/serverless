@@ -7,7 +7,7 @@ const chaiAsPromised = require('chai-as-promised');
 
 chaiUse(chaiAsPromised);
 
-describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
+describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', () => {
   let cfResources;
   let naming;
 
