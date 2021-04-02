@@ -115,7 +115,6 @@ describe('Service Lifecyle Integration Test', function () {
     if (match) {
       timestamp = match[1];
     }
-    // eslint-disable-next-line no-unused-expressions
     expect(timestamp).to.not.undefined;
 
     await spawn(serverlessExec, ['rollback', '-t', timestamp], { cwd: tmpDir, env });

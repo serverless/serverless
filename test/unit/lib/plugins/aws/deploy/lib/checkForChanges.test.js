@@ -48,10 +48,10 @@ describe('checkForChanges', () => {
     cryptoStub = {
       createHash() {
         return this;
-      }, // eslint-disable-line
+      },
       update() {
         return this;
-      }, // eslint-disable-line
+      },
       digest: sandbox.stub(),
     };
     const checkForChanges = proxyquire(

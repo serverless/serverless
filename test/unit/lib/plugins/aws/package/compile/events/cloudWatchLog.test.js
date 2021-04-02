@@ -123,7 +123,7 @@ describe('AwsCompileCloudWatchLogEvents', () => {
             {
               cloudwatchLog: {
                 logGroup: '/aws/lambda/hello1',
-                filter: '\\"Total amount\\" -\\"level=Debug\\"', // eslint-disable-line quotes
+                filter: '\\"Total amount\\" -\\"level=Debug\\"',
               },
             },
           ],

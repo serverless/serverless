@@ -1,27 +1,18 @@
 'use strict';
 
 const expect = require('chai').expect;
-const sandbox = require('sinon');
+const overrideStdoutWrite = require('process-utils/override-stdout-write');
 const { logWarning } = require('../../../../lib/classes/Error');
 
 describe('#logWarning()', () => {
-  let consoleLogSpy;
-
-  beforeEach(() => {
-    consoleLogSpy = sandbox.spy(console, 'log');
-  });
-
-  afterEach(() => {
-    sandbox.restore();
-  });
-
   it('should log warning and proceed', () => {
-    logWarning('a message');
+    let stdoutData = '';
+    overrideStdoutWrite(
+      (data) => (stdoutData += data),
+      () => logWarning('a message')
+    );
 
-    const message = consoleLogSpy.args.join('\n');
-
-    expect(consoleLogSpy.called).to.equal(true);
-    expect(message).to.have.string('Serverless Warning');
-    expect(message).to.have.string('a message');
+    expect(stdoutData).to.have.string('Serverless Warning');
+    expect(stdoutData).to.have.string('a message');
   });
 });
