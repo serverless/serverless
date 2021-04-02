@@ -17,6 +17,20 @@ disabledDeprecations:
   - '*' # To disable all deprecation messages
 ```
 
+<a name="CLI_OPTIONS_SCHEMA'"><div>&nbsp;</div></a>
+
+## CLI Options extensions, `type` requirement
+
+Deprecation code: `CLI_OPTIONS_SCHEMA'`
+
+Internal handling of CLI arguments was improved with type awareness for options. Now each option definition is expected have `type` defined in its settings.
+
+Possible values are `string`, `boolean` and `multiple`. Check [Defining options](/framework/docs/providers/aws/guide/plugins#defining-options) documentation for more info.
+
+If you rely on a plugin which does not set types (yet) please report the issue at its issue tracker.
+
+Starting with v3.0.0 any option extensions which does not have `type` defined will be communicated with a thrown error
+
 <a name="NEW_PACKAGE_PATTERNS"><div>&nbsp;</div></a>
 
 ## New way to define packaging patterns

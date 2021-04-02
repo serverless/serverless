@@ -377,7 +377,7 @@ const processSpanPromise = (async () => {
               // might have defined extra commands and options
               const commandsSchema = require('../lib/cli/commands-schema/resolve-final')(
                 serverless.pluginManager.externalPlugins,
-                { providerName: providerName || 'aws' }
+                { providerName: providerName || 'aws', configuration }
               );
               resolveInput.clear();
               ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(

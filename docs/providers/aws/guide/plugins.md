@@ -273,6 +273,8 @@ The `options` object will be passed in as the second parameter to the constructo
 
 In it, you can optionally add a `shortcut` property, as well as a `required` property. The Framework will return an error if a `required` Option is not included. You can also set a `default` property if your option is not required.
 
+Additionally `type` for each option should be set. Supported types are `string`, `boolean` and `multiple` (multiple strings).
+
 **Note:** At this time, the Serverless Framework does not use parameters.
 
 ```javascript
@@ -291,6 +293,7 @@ class MyPlugin {
             usage: 'Specify the function you want to handle (e.g. "--function myFunction")',
             shortcut: 'f',
             required: true,
+            type: 'string', // Possible options: "string", "boolean", "multiple"
           },
         },
       },
@@ -335,6 +338,7 @@ class ProviderX {
           function: {
             usage: 'Specify the function you want to handle (e.g. "--function myFunction")',
             required: true,
+            type: 'string', // Possible options: "string", "boolean", "multiple"
           },
         },
       },
