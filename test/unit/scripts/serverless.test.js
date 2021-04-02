@@ -160,4 +160,26 @@ describe('test/unit/scripts/serverless.test.js', () => {
       expect(String(error.stdoutBuffer)).to.include('"plugins" property is not accessible');
     }
   });
+
+  it('should show help when requested and in context of invalid service configuration', async () => {
+    const output = String(
+      (
+        await spawn('node', [serverlessPath, '--help'], {
+          cwd: path.resolve(fixturesPath, 'configInvalid'),
+        })
+      ).stdoutBuffer
+    );
+    expect(output).to.include('Documentation: http://slss.io/docs');
+  });
+
+  it('should print general --help to stdout', async () => {
+    const output = String((await spawn('node', [serverlessPath, '--help'])).stdoutBuffer);
+    expect(output).to.include('Documentation: http://slss.io/docs');
+  });
+
+  it('should print command --help to stdout', async () => {
+    const output = String((await spawn('node', [serverlessPath, 'deploy', '--help'])).stdoutBuffer);
+    expect(output).to.include('deploy');
+    expect(output).to.include('stage');
+  });
 });
