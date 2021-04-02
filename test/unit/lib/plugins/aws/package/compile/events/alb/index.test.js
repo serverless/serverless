@@ -11,11 +11,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
   let cfResources;
   let naming;
 
+  const albId = '50dc6c495c0c9188';
   const baseEventConfig = {
-    listenerArn:
-      'arn:aws:elasticloadbalancing:' +
-      'us-east-1:123456789012:listener/app/my-load-balancer/' +
-      '50dc6c495c0c9188/f2f7dc8efc522ab2',
+    listenerArn: `arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/my-load-balancer/${albId}/f2f7dc8efc522ab2`,
   };
 
   before(async () => {
@@ -79,6 +77,18 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
                   ...baseEventConfig,
                   priority: 6,
                   conditions: { host: ['example1.com', 'example2.com'] },
+                },
+              },
+            ],
+          },
+          fnTargetGroupName: {
+            handler: 'index.handler',
+            events: [
+              {
+                alb: {
+                  ...validBaseEventConfig,
+                  priority: 7,
+                  targetGroupName: 'custom-targetgroup-name',
                 },
               },
             ],
@@ -217,6 +227,20 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
       await expect(runServerlessAction())
         .to.eventually.be.rejectedWith(ServerlessError)
         .and.have.property('code', 'ALB_NO_CONDITIONS');
+    });
+  });
+
+  describe('should support `functions[].events[].alb.targetGroupName` property', () => {
+    it('should use it if defined', () => {
+      const albListenerRuleLogicalId = naming.getAlbTargetGroupLogicalId(
+        'fnTargetGroupName',
+        albId,
+        false
+      );
+      const rule = cfResources[albListenerRuleLogicalId];
+
+      expect(rule.Type).to.equal('AWS::ElasticLoadBalancingV2::TargetGroup');
+      expect(rule.Properties.Name).to.equal('custom-targetgroup-name');
     });
   });
 });

@@ -258,4 +258,20 @@ describe('#validate()', () => {
       );
     });
   });
+
+  describe('#validateTargetGroupName()', () => {
+    it('should throw if both targetGroupName and targetGroup prefix are provided', () => {
+      expect(() =>
+        awsCompileAlbEvents.validateTargetGroupName('targetGroupName', 'targetGroupPrefix')
+      ).to.throw(
+        'ALB "targetGroupName" setting is exclusive with "provider.alb.targetGroupPrefix": Please specify only one.'
+      );
+    });
+
+    it('should return the targetGroup when no targetGroupPrefix is specified', () => {
+      expect(awsCompileAlbEvents.validateTargetGroupName('targetGroupName', undefined)).to.equal(
+        'targetGroupName'
+      );
+    });
+  });
 });

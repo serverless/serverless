@@ -779,37 +779,21 @@ describe('#naming()', () => {
     });
   });
 
-  describe('#getAlbTargetGroupName()', () => {
-    it('should use the targetGroupName value if set', () => {
+  describe('#generateAlbTargetGroupName()', () => {
+    it('should return a unique identifier based on the service name, function name, alb id, multi-value attribute and stage', () => {
       serverless.service.service = 'myService';
-      expect(
-        sdk.naming.getAlbTargetGroupName('userProvidedValue', 'functionName', 'abc123', true)
-      ).to.equal('userProvidedValue');
-    });
-
-    it('should return a unique identifier based on the service name, function name, alb id, multi-value attribute and stage if no targetGroupName is set', () => {
-      serverless.service.service = 'myService';
-      expect(sdk.naming.getAlbTargetGroupName(undefined, 'functionName', 'abc123', true)).to.equal(
+      expect(sdk.naming.generateAlbTargetGroupName('functionName', 'abc123', true)).to.equal(
         '79039bd239ac0b3f6ff6d9296f23e27c'
       );
     });
 
-    it('should return a prefixed unique identifer of not longer than 32 characters if alb.targetGroupPrefix is set and no targetGroupName is set', () => {
+    it('should return a prefixed unique identifer of not longer than 32 characters if alb.targetGroupPrefix is set', () => {
       serverless.service.service = 'myService';
       serverless.service.provider.alb = {};
       serverless.service.provider.alb.targetGroupPrefix = 'myPrefix-';
-      expect(sdk.naming.getAlbTargetGroupName(undefined, 'functionName', 'abc123', true)).to.equal(
+      expect(sdk.naming.generateAlbTargetGroupName('functionName', 'abc123', true)).to.equal(
         'myPrefix-79039bd239ac0b3f6ff6d92'
       );
-    });
-
-    it('should use the prefixe alb.targetGroupPrefix if specified in conjunction with targetGroupName', () => {
-      serverless.service.service = 'myService';
-      serverless.service.provider.alb = {};
-      serverless.service.provider.alb.targetGroupPrefix = 'myPrefix-';
-      expect(
-        sdk.naming.getAlbTargetGroupName('userProvidedValue', 'functionName', 'abc123', true)
-      ).to.equal('myPrefix-userProvidedValue');
     });
   });
 

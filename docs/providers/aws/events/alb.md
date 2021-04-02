@@ -198,15 +198,11 @@ functions:
 
 ## Specifying explicitly the target group names
 
-If you want full control over the name used for the target group you can specify it using the `targetGroupName` property. Note that the name must be unique accross the entire region and is limited to 32 characters.
+If you want full control over the name used for the target group you can specify it using the `targetGroupName` property. Note that the name must be unique accross the entire region and is limited to 32 characters with only alphanumerics and hyphens allowed.
 
-When used in conjunction with the `provider.alb.targetGroupPrefix` setting, the prefix will be used. You should also make sure that the total string length is below 32 characters.
+This setting is exclusive with the `provider.alb.targetGroupPrefix` setting.
 
 ```yml
-provider:
-  alb:
-    targetGroupPrefix: my-prefix
-
 functions:
   albEventConsumer:
     handler: handler.hello
