@@ -133,7 +133,7 @@ Code which defines _Commands_, any _Events_ within a _Command_, and any _Hooks_ 
 
 #### Command
 
-A CLI _Command_ that can be called by a user, e.g. `serverless deploy`. A Command has no logic, but simply defines the CLI configuration (e.g. command, parameters) and the _Lifecycle Events_ for the command. Every command defines its own lifecycle events.
+A CLI _Command_ that can be called by a user, e.g. `serverless foo`. A Command has no logic, but simply defines the CLI configuration (e.g. command, parameters) and the _Lifecycle Events_ for the command. Every command defines its own lifecycle events.
 
 ```javascript
 'use strict';
@@ -141,7 +141,7 @@ A CLI _Command_ that can be called by a user, e.g. `serverless deploy`. A Comman
 class MyPlugin {
   constructor() {
     this.commands = {
-      deploy: {
+      foo: {
         lifecycleEvents: ['resources', 'functions'],
       },
     };
@@ -155,12 +155,12 @@ module.exports = MyPlugin;
 
 Events that fire sequentially during a Command. The above example lists two Events. However, for each Event, an additional `before` and `after` event is created. Therefore, six Events exist in the above example:
 
-- `before:deploy:resources`
-- `deploy:resources`
-- `after:deploy:resources`
-- `before:deploy:functions`
-- `deploy:functions`
-- `after:deploy:functions`
+- `before:foo:resources`
+- `foo:resources`
+- `after:foo:resources`
+- `before:foo:functions`
+- `foo:functions`
+- `after:foo:functions`
 
 The name of the command in front of lifecycle events when they are used for Hooks.
 
@@ -171,35 +171,35 @@ A Hook binds code to any lifecycle event from any command.
 ```javascript
 'use strict';
 
-class Deploy {
+class MyPugin {
   constructor() {
     this.commands = {
-      deploy: {
+      foo: {
         lifecycleEvents: ['resources', 'functions'],
       },
     };
 
     this.hooks = {
-      'before:deploy:resources': this.beforeDeployResources,
-      'deploy:resources': this.deployResources,
-      'after:deploy:functions': this.afterDeployFunctions,
+      'before:foo:resources': this.beforeFooResources,
+      'foo:resources': this.fooResources,
+      'after:foo:functions': this.afterFooFunctions,
     };
   }
 
-  beforeDeployResources() {
-    console.log('Before Deploy Resources');
+  beforeFooResources() {
+    console.log('Before Foo Resources');
   }
 
-  deployResources() {
-    console.log('Deploy Resources');
+  fooResources() {
+    console.log('Foo Resources');
   }
 
-  afterDeployFunctions() {
-    console.log('After Deploy Functions');
+  afterFooFunctions() {
+    console.log('After Foo Functions');
   }
 }
 
-module.exports = Deploy;
+module.exports = MyPlugin;
 ```
 
 ### Custom Variable Types
@@ -265,9 +265,9 @@ plugins:
 
 Each command can have multiple Options.
 
-Options are passed in with a double dash (`--`) like this: `serverless function deploy --function functionName`.
+Options are passed in with a double dash (`--`) like this: `serverless foo --function functionName`.
 
-Option Shortcuts are passed in with a single dash (`-`) like this: `serverless function deploy -f functionName`.
+Option Shortcuts are passed in with a single dash (`-`) like this: `serverless foo -f functionName`.
 
 The `options` object will be passed in as the second parameter to the constructor of your plugin.
 
@@ -278,40 +278,35 @@ In it, you can optionally add a `shortcut` property, as well as a `required` pro
 ```javascript
 'use strict';
 
-class Deploy {
+class MyPlugin {
   constructor(serverless, options) {
     this.serverless = serverless;
     this.options = options;
 
     this.commands = {
-      deploy: {
+      foo: {
         lifecycleEvents: ['functions'],
         options: {
           function: {
-            usage: 'Specify the function you want to deploy (e.g. "--function myFunction")',
+            usage: 'Specify the function you want to handle (e.g. "--function myFunction")',
             shortcut: 'f',
             required: true,
-          },
-          stage: {
-            usage: 'Specify the stage you want to deploy to. (e.g. "--stage prod")',
-            shortcut: 's',
-            default: 'dev',
           },
         },
       },
     };
 
     this.hooks = {
-      'deploy:functions': this.deployFunction.bind(this),
+      'foo:functions': this.fooFunction.bind(this),
     };
   }
 
-  deployFunction() {
-    console.log('Deploying function: ', this.options.function);
+  fooFunction() {
+    console.log('Foo function: ', this.options.function);
   }
 }
 
-module.exports = Deploy;
+module.exports = MyPlugin;
 ```
 
 ### Provider Specific Plugins
@@ -325,20 +320,20 @@ The provider definition should be added inside the plugins constructor:
 ```javascript
 'use strict';
 
-class ProviderDeploy {
+class ProviderX {
   constructor(serverless, options) {
     this.serverless = serverless;
     this.options = options;
 
     // set the providers name here
-    this.provider = this.serverless.getProvider('providerName');
+    this.provider = this.serverless.getProvider('providerX');
 
     this.commands = {
-      deploy: {
+      foo: {
         lifecycleEvents: ['functions'],
         options: {
           function: {
-            usage: 'Specify the function you want to deploy (e.g. "--function myFunction")',
+            usage: 'Specify the function you want to handle (e.g. "--function myFunction")',
             required: true,
           },
         },
@@ -346,16 +341,16 @@ class ProviderDeploy {
     };
 
     this.hooks = {
-      'deploy:functions': this.deployFunction.bind(this),
+      'foo:functions': this.fooFunction.bind(this),
     };
   }
 
-  deployFunction() {
-    console.log('Deploying function: ', this.options.function);
+  fooFunction() {
+    console.log('Foo function: ', this.options.function);
   }
 }
 
-module.exports = ProviderDeploy;
+module.exports = ProviderX;
 ```
 
 The Plugin's functionality will now only be executed when the Serverless Service's provider matches the provider name which is defined inside the plugins constructor.
