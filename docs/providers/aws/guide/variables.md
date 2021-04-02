@@ -305,7 +305,7 @@ For that please ensure to add `variablesResolutionMode: 20210326` to your servic
 
 #### Auto decrypting of `SecureString` type parameters.
 
-All `SecureString` type parameters are automatically decrypted.
+All `SecureString` type parameters are automatically decrypted, and automatically parsed if they export stringified JSON content (Note: you can turn off parsing by passing `raw` instruction into variable as: `${ssm(raw):/path/to/secureparam}`, if you need to also pass custom region, put it first as: `${ssm(eu-west-1, raw):/path/to/secureparam}`)
 
 Variables in [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) can be referenced [using SSM](https://docs.aws.amazon.com/systems-manager/latest/userguide/integration-ps-secretsmanager.html), just use the `ssm:/aws/reference/secretsmanager/secret_ID_in_Secrets_Manager` syntax. For example:
 
@@ -358,7 +358,7 @@ custom:
 
 #### Resolve `StringList` as array of strings
 
-Same `StringList` type parameters are automatically detected and resolved to array form
+Same `StringList` type parameters are automatically detected and resolved to array form. (Note: you can turn off resolution to array by passing `raw` instruction into variable as: `${ssm(raw):/path/to/stringlistparam}`, if you need to also pass custom region, put it first as: `${ssm(eu-west-1, raw):/path/to/stringlistparam}`)
 
 ```yml
 service: new-service

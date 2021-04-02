@@ -22,7 +22,10 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
           existing: '${ssm:existing}',
           existingInRegion: '${ssm(eu-west-1):existing}',
           existingList: '${ssm:existingList}',
-          existingEncrypted: '${ssm:/aws/reference/secretsmanager/existing}',
+          existingListRaw: '${ssm(raw):existingList}',
+          secretManager: '${ssm:/aws/reference/secretsmanager/existing}',
+          existingEncrypted: '${ssm:/secret/existing}',
+          existingEncryptedRaw: '${ssm(raw):/aws/reference/secretsmanager/existing}',
           notExisting: '${ssm:notExisting, null}',
           missingAddress: '${ssm:}',
           nonStringAddress: '${ssm:${self:custom.someObject}}',
@@ -40,7 +43,7 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
             if (Name === 'existingList') {
               return { Parameter: { Type: 'StringList', Value: 'one,two,three' } };
             }
-            if (Name === '/aws/reference/secretsmanager/existing') {
+            if (Name === '/secret/existing' || Name === '/aws/reference/secretsmanager/existing') {
               return { Parameter: { Type: 'SecureString', Value: '{"someSecret":"someValue"}' } };
             }
             if (Name === 'notExisting') {
@@ -80,12 +83,32 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
       }
       expect(configuration.custom.existingList).to.deep.equal(['one', 'two', 'three']);
     });
+    it('should support "raw" output for list param', () => {
+      if (variablesMeta.get('custom\0existingListRaw')) {
+        throw variablesMeta.get('custom\0existingListRaw').error;
+      }
+      expect(configuration.custom.existingListRaw).to.equal('one,two,three');
+    });
+
+    it('should resolve existing encrypted AWS secret manager data', () => {
+      if (variablesMeta.get('custom\0secretManager')) {
+        throw variablesMeta.get('custom\0secretManager').error;
+      }
+      expect(configuration.custom.secretManager).to.deep.equal({ someSecret: 'someValue' });
+    });
 
     it('should resolve existing encrypted data', () => {
       if (variablesMeta.get('custom\0existingEncrypted')) {
         throw variablesMeta.get('custom\0existingEncrypted').error;
       }
       expect(configuration.custom.existingEncrypted).to.deep.equal({ someSecret: 'someValue' });
+    });
+
+    it('should support "raw" output for decrypted data', () => {
+      if (variablesMeta.get('custom\0existingEncryptedRaw')) {
+        throw variablesMeta.get('custom\0existingEncryptedRaw').error;
+      }
+      expect(configuration.custom.existingEncryptedRaw).to.equal('{"someSecret":"someValue"}');
     });
 
     it('should resolve existing output in specific region', () => {
@@ -123,8 +146,10 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
           existingWithSplit: '${ssm:existing~split}',
           existingList: '${ssm:existingList}',
           existingListWithSplit: '${ssm:existingList~split}',
-          existingEncrypted: '${ssm:/aws/reference/secretsmanager/existing}',
-          existingEncryptedWithDecrypt: '${ssm:/aws/reference/secretsmanager/existing~true}',
+          secretManager: '${ssm:/aws/reference/secretsmanager/existing}',
+          secretManagerWithDecrypt: '${ssm:/aws/reference/secretsmanager/existing~true}',
+          encyptedWithDecrypt: '${ssm:/secret/existing~true}',
+          encyptedRawWithDecrypt: '${ssm(raw):/secret/existing~true}',
         },
       };
       variablesMeta = resolveMeta(configuration);
@@ -138,7 +163,7 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
             if (Name === 'existingList') {
               return { Parameter: { Type: 'StringList', Value: 'one,two,three' } };
             }
-            if (Name === '/aws/reference/secretsmanager/existing') {
+            if (Name === '/secret/existing' || Name === '/aws/reference/secretsmanager/existing') {
               return { Parameter: { Type: 'SecureString', Value: '{"someSecret":"someValue"}' } };
             }
             if (Name === 'notExisting') {
@@ -192,18 +217,31 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
     });
 
     it('should abort if encrypted param misses "true" instruction', () => {
-      expect(variablesMeta.get('custom\0existingEncrypted').error.code).to.equal(
+      expect(variablesMeta.get('custom\0secretManager').error.code).to.equal(
         'VARIABLE_RESOLUTION_ERROR'
       );
     });
 
     it('should resolve existing encrypted data', () => {
-      if (variablesMeta.get('custom\0existingEncryptedWithDecrypt')) {
-        throw variablesMeta.get('custom\0existingEncryptedWithDecrypt').error;
+      if (variablesMeta.get('custom\0secretManagerWithDecrypt')) {
+        throw variablesMeta.get('custom\0secretManagerWithDecrypt').error;
       }
-      expect(configuration.custom.existingEncryptedWithDecrypt).to.deep.equal({
+      expect(configuration.custom.secretManagerWithDecrypt).to.deep.equal({
         someSecret: 'someValue',
       });
+    });
+
+    it('should abort if encrypted param is not AWS Secretn manager param', () => {
+      expect(variablesMeta.get('custom\0encyptedWithDecrypt').error.code).to.equal(
+        'VARIABLE_RESOLUTION_ERROR'
+      );
+    });
+
+    it('should resolve encrypted param that\'s not AWS Secret manager param with "raw" instruction', () => {
+      if (variablesMeta.get('custom\0encyptedRawWithDecrypt')) {
+        throw variablesMeta.get('custom\0encyptedRawWithDecrypt').error;
+      }
+      expect(configuration.custom.encyptedRawWithDecrypt).to.equal('{"someSecret":"someValue"}');
     });
   });
 });
