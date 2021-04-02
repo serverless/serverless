@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Bug Fixes
 
-- **CLI:** Do not assume "string" param type, when not type set ([#9230](https://github.com/serverless/serverless/pull/9230)) ([c9be9bc](https://github.com/serverless/serverless/commit/c9be9bcc45d2da606d1660fb60156e56f5912e49)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI:** Do not assume "string" option type, when no type set in definition ([#9230](https://github.com/serverless/serverless/pull/9230)) ([c9be9bc](https://github.com/serverless/serverless/commit/c9be9bcc45d2da606d1660fb60156e56f5912e49)) ([Mariusz Nowak](https://github.com/medikoo))
 - **Variables:** Support resolving "raw" JSON string form of SSM params ([#9229](https://github.com/serverless/serverless/pull/9229)) ([4eba512](https://github.com/serverless/serverless/commit/4eba512c1529a0d1d6c60e3f9de3bf98d6c23002)) ([Mariusz Nowak](https://github.com/medikoo))
 - **Packaging:**
   - Ensure to apply dev dependency exclusion ([#92ee](https://github.com/serverless/serverless/pull/92ee)) ([7d16947](https://github.com/serverless/serverless/commit/7d16947273da079f4e844b4a62c98863206e848e)) ([Mariusz Nowak](https://github.com/medikoo))
