@@ -178,6 +178,10 @@ const processSpanPromise = (async () => {
 
           if (isPropertyResolved(variablesMeta, 'provider\0name')) {
             providerName = resolveProviderName(configuration);
+            if (providerName == null) {
+              variablesMeta = null;
+              return;
+            }
           }
           if (!commandSchema && providerName === 'aws') {
             // If command was not recognized in first resolution phase
@@ -224,6 +228,10 @@ const processSpanPromise = (async () => {
 
             if (!providerName && isPropertyResolved(variablesMeta, 'provider\0name')) {
               providerName = resolveProviderName(configuration);
+              if (providerName == null) {
+                variablesMeta = null;
+                return;
+              }
               if (!commandSchema && providerName === 'aws') {
                 // If command was not recognized in previous resolution phases
                 // Parse args again also against schemas of commands which work in context of an AWS
@@ -296,6 +304,10 @@ const processSpanPromise = (async () => {
           if (!providerName) {
             if (!ensureResolvedProperty('provider\0name')) return;
             providerName = resolveProviderName(configuration);
+            if (providerName == null) {
+              variablesMeta = null;
+              return;
+            }
             if (!commandSchema && providerName === 'aws') {
               resolveInput.clear();
               ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
