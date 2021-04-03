@@ -7,6 +7,8 @@ const resolve = require('../../../../../../../lib/configuration/variables/resolv
 const selfSource = require('../../../../../../../lib/configuration/variables/sources/self');
 const getSsmSource = require('../../../../../../../lib/configuration/variables/sources/instance-dependent/get-ssm');
 
+const allowedRegionTypes = new Set(['undefined', 'string']);
+
 describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-ssm.test.js', () => {
   let configuration;
   let variablesMeta;
@@ -37,6 +39,7 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
       serverlessInstance = {
         getProvider: () => ({
           request: async (name, method, { Name }, { region }) => {
+            if (!allowedRegionTypes.has(typeof region)) throw new Error('Invalid region value');
             if (Name === 'existing') {
               return { Parameter: { Type: 'String', Value: region || 'value' } };
             }
@@ -157,6 +160,7 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
       serverlessInstance = {
         getProvider: () => ({
           request: async (name, method, { Name }, { region }) => {
+            if (!allowedRegionTypes.has(typeof region)) throw new Error('Invalid region value');
             if (Name === 'existing') {
               return { Parameter: { Type: 'String', Value: region || 'value' } };
             }
