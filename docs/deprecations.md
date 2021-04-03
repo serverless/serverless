@@ -363,3 +363,11 @@ Please use `onUnauthenticatedRequest` instead. `allowUnauthenticated` will be re
 Deprecation code: `BIN_SERVERLESS`
 
 Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2.0.0
+
+<a name="NON_APPLICABLE_SETTINGS_ARE_CONFIGURED"><div>&nbsp;</div></a>
+
+## Non-applicable settings configured
+
+Deprecation code: `NON_APPLICABLE_SETTINGS_ARE_CONFIGURED`
+
+When `provider.tracing.apiGateway` and `provider.logs.restApi` cannot be set without a stack.
