@@ -195,7 +195,8 @@ provider:
         identitySource: # Optional. One or more mapping expressions of the request parameters in form of e.g `$request.header.Auth`. Specified values are verified to be non-empty and not null by authorizer. It is a required property when `resultTtlInSeconds` is non-zero as `identitySource` is additionally used as cache key for authorizer responses caching.
           - $request.header.Auth
           - $request.header.Authorization
-        managedExternally: true # Optional. Applicable only when using externally defined authorizer functions to prevent creation of permission resource
+        managedExternally: true # Optional. Applicable only when using externally defined authorizer functions to prevent creation of 
+        resource
   stackTags: # Optional CF stack tags
     key: value
   iam:
@@ -206,7 +207,7 @@ provider:
       name: your-custom-name-role # Optional custom name for default IAM role
       managedPolicies: # Optional IAM Managed Policies, which allows to include the policies into IAM Role
         - arn:aws:iam:*****:policy/some-managed-policy
-      permissionsBoundary: arn:aws:iam::XXXXXX:policy/policy # ARN of an Permissions Boundary for the role.
+      permissionBoundary: arn:aws:iam::XXXXXX:policy/policy # ARN of an Permission Boundary for the role.
       statements: # IAM role statements so that services can be accessed in the AWS account
         - Effect: 'Allow'
           Action:
