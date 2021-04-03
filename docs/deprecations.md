@@ -370,4 +370,4 @@ Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2
 
 Deprecation code: `NON_APPLICABLE_SETTINGS_ARE_CONFIGURED`
 
-When `provider.tracing.apiGateway` and `provider.logs.restApi` cannot be set without a stack.
+When `provider.tracing.apiGateway` or `provider.logs.restApi` are set along with `provider.apiGateway.restApiId`, these are ignored when the API Gateway is created without a stack.
