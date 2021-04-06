@@ -364,10 +364,10 @@ Deprecation code: `BIN_SERVERLESS`
 
 Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2.0.0
 
-<a name="NON_APPLICABLE_SETTINGS_ARE_CONFIGURED"><div>&nbsp;</div></a>
+<a name="AWS_API_GATEWAY_NON_APPLICABLE_SETTINGS"><div>&nbsp;</div></a>
 
-## Non-applicable settings configured
+## Non-applicable settings configured for API Gateway
 
-Deprecation code: `NON_APPLICABLE_SETTINGS_ARE_CONFIGURED`
+Deprecation code: `AWS_API_GATEWAY_NON_APPLICABLE_SETTINGS`
 
-When `provider.tracing.apiGateway` or `provider.logs.restApi` are set along with `provider.apiGateway.restApiId`, these are ignored when the API Gateway is created without a stack.
+When `provider.apiGateway.restApiId` is set along `provider.tracing.apiGateway` or `provider.logs.restApi` these options are ignored as the API Gateway service has been created outside of serverless.
