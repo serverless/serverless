@@ -1481,12 +1481,13 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
     });
 
     describe('Environment variables', () => {
+      let responseBody;
       before(async () => {
         process.env.AWS_ACCESS_KEY_ID = 'AAKIXXX';
         process.env.AWS_SECRET_ACCESS_KEY = 'ASAKXXX';
 
         // Confirm outcome on { stdout }
-        await runServerless({
+        const response = await runServerless({
           fixture: 'invocation',
           cliArgs: [
             'invoke',
@@ -1495,12 +1496,13 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
             functionName,
             ...cliParams,
             '--env',
-            'PARAM_ENV_VAR=param-env-var-value',
+            'PARAM_ENV_VAR=-Dblart=snort',
           ],
           configExt: {
             provider: {
               environment: {
                 PROVIDER_LEVEL_VAR: 'PROVIDER_LEVEL_VAR_VALUE',
+                NULL_VAR: null,
               },
               region: 'us-east-2',
             },
@@ -1513,6 +1515,8 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
             },
           },
         });
+        const stdoutAsJson = JSON.parse(response.stdoutData);
+        responseBody = JSON.parse(stdoutAsJson.body);
       });
 
       after(() => {
@@ -1539,24 +1543,9 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
         // Replaces
         // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L365-L368
       });
-      it('should expose `--env` vars in environment variables', async () => {
-        const response = await runServerless({
-          fixture: 'invocation',
-          cliArgs: [
-            'invoke',
-            'local',
-            '--function',
-            'async',
-            '-e',
-            'NAME=-Dname1=value1 -Dname2=value2',
-          ],
-        });
-        const stdoutAsJson = JSON.parse(response.stdoutData);
-        const stdoutBodyAsJson = JSON.parse(stdoutAsJson.body);
-        expect(stdoutBodyAsJson.env).to.include({
-          NAME: '-Dname1=value1 -Dname2=value2',
-        });
-      });
+      it('should expose `--env` vars in environment variables', async () =>
+        expect(responseBody.env.PARAM_ENV_VAR).to.equal('-Dblart=snort'));
+
       xit('TODO: should expose default lambda environment variables', () => {
         // Replaces
         // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L370-L388
@@ -1566,30 +1555,8 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
         // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L426-L441
       });
 
-      it('should not expose null environment variables', async () => {
-        const response = await runServerless({
-          fixture: 'invocation',
-          cliArgs: ['invoke', 'local', '--function', 'async'],
-          configExt: {
-            provider: {
-              environment: {
-                PROVIDER_LEVEL_VAR: null,
-              },
-            },
-            functions: {
-              fn: {
-                environment: {
-                  FUNCTION_LEVEL_VAR: null,
-                },
-              },
-            },
-          },
-        });
-        const stdoutAsJson = JSON.parse(response.stdoutData);
-        const stdoutBodyAsJson = JSON.parse(stdoutAsJson.body);
-        expect(stdoutBodyAsJson.env.PROVIDER_LEVEL_VAR).to.be.undefined;
-        expect(stdoutBodyAsJson.env.FUNCTION_LEVEL_VAR).to.be.undefined;
-      });
+      it('should not expose null environment variables', async () =>
+        expect(responseBody.env).to.not.have.property('NULL_VAR'));
     });
   };
 
