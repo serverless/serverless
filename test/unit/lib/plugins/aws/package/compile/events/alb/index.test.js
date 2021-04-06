@@ -16,14 +16,14 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
     listenerArn: `arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/my-load-balancer/${albId}/f2f7dc8efc522ab2`,
   };
 
-  before(async () => {
-    const validBaseEventConfig = {
-      ...baseEventConfig,
-      conditions: {
-        path: '/',
-      },
-    };
+  const validBaseEventConfig = {
+    ...baseEventConfig,
+    conditions: {
+      path: '/',
+    },
+  };
 
+  before(async () => {
     const baseAuthorizerConfig = {
       type: 'cognito',
       userPoolClientId: 'userPoolClientId',
@@ -77,18 +77,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
                   ...baseEventConfig,
                   priority: 6,
                   conditions: { host: ['example1.com', 'example2.com'] },
-                },
-              },
-            ],
-          },
-          fnTargetGroupName: {
-            handler: 'index.handler',
-            events: [
-              {
-                alb: {
-                  ...validBaseEventConfig,
-                  priority: 7,
-                  targetGroupName: 'custom-targetgroup-name',
                 },
               },
             ],
@@ -231,16 +219,73 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
   });
 
   describe('should support `functions[].events[].alb.targetGroupName` property', () => {
-    it('should use it if defined', () => {
+    it('should use it if defined', async () => {
+      const result = await runServerless({
+        fixture: 'function',
+        cliArgs: ['package'],
+        configExt: {
+          functions: {
+            fnTargetGroupName: {
+              handler: 'index.handler',
+              events: [
+                {
+                  alb: {
+                    ...validBaseEventConfig,
+                    priority: 1,
+                    targetGroupName: 'custom-targetgroup-name',
+                  },
+                },
+              ],
+            },
+          },
+        },
+      });
+
       const albListenerRuleLogicalId = naming.getAlbTargetGroupLogicalId(
         'fnTargetGroupName',
         albId,
         false
       );
-      const rule = cfResources[albListenerRuleLogicalId];
 
-      expect(rule.Type).to.equal('AWS::ElasticLoadBalancingV2::TargetGroup');
-      expect(rule.Properties.Name).to.equal('custom-targetgroup-name');
+      expect(result.cfTemplate.Resources[albListenerRuleLogicalId].Properties.Name).to.equal(
+        'custom-targetgroup-name'
+      );
+    });
+
+    it('should reject if `provider.alb.targetGroupPrefix` is also specified', async () => {
+      const runServerlessAction = () =>
+        runServerless({
+          fixture: 'function',
+          cliArgs: ['package'],
+          configExt: {
+            provider: {
+              alb: {
+                targetGroupPrefix: 'a-prefix',
+              },
+            },
+            functions: {
+              fnTargetGroupName: {
+                handler: 'index.handler',
+                events: [
+                  {
+                    alb: {
+                      ...validBaseEventConfig,
+                      priority: 1,
+                      targetGroupName: 'custom-targetgroup-name',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        });
+
+      await expect(runServerlessAction())
+        .to.eventually.be.rejectedWith(ServerlessError)
+        .and.have.property(
+          'message',
+          'ALB "targetGroupName" setting is exclusive with "provider.alb.targetGroupPrefix": Please specify only one.'
+        );
     });
   });
 });
