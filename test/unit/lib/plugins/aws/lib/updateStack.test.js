@@ -198,8 +198,10 @@ describe('updateStack', () => {
     });
 
     it('should success if no changes to stack happened', () => {
-      awsDeploy.monitorStack.restore();
-      sinon.stub(awsDeploy, 'monitorStack').rejects(new Error('No updates are to be performed.'));
+      awsDeploy.provider.request.restore();
+      sinon
+        .stub(awsDeploy.provider, 'request')
+        .rejects(new Error('No updates are to be performed.'));
 
       return awsDeploy.update();
     });
