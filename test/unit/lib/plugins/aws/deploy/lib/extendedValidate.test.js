@@ -217,7 +217,8 @@ describe('test/unit/lib/plugins/aws/deploy/lib/extendedValidate.test.js', () => 
           },
         },
       },
-      cliArgs: ['deploy', '--noDeploy'],
+      cliArgs: ['deploy'],
+      lastLifecycleHookName: 'before:deploy:deploy',
     });
 
     expect(stdoutData.includes(msg)).to.be.equal(false);
