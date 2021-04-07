@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.34.0](https://github.com/serverless/serverless/compare/v2.33.1...v2.34.0) (2021-04-07)
+
+### Features
+
+- **AWS Lambda:** Add support for `buildArgs` to `images` ([#9198](https://github.com/serverless/serverless/issues/9198)) ([efd32d4](https://github.com/serverless/serverless/commit/efd32d4725cd36e5365aa09f50b75d9ca241d26e)) ([Nicholas Wehr](https://github.com/wwwehr))
+
+### Bug Fixes
+
+- **AWS Deploy:** Correctly identify "no updates" error during deploy ([#9248](https://github.com/serverless/serverless/pull/9248)) ([0e6a1ce](https://github.com/serverless/serverless/commit/0e6a1ce2d4a28a480683192cc6ac639c7bfe0d8b)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:** Ensure help output with missing `provider.name` ([#9235](https://github.com/serverless/serverless/pull/9235)) ([dae9058](https://github.com/serverless/serverless/commit/dae9058501ecc4ae8ff6b70e2bd1b22e914c241d)) ([Mariusz Nowak](https://github.com/medikoo))
+- Avoid re-registration of `ts-node` ([#9254](https://github.com/serverless/serverless/issues/9254)) ([88baf06](https://github.com/serverless/serverless/commit/88baf06b42d4c08f3034965b8a7ffa23455ae3e3)) ([Adam Pancutt](https://github.com/apancutt))
+
+### Maintenance Improvements
+
+- **Analytics**: Account for functions with containers for analytics ([#9216](https://github.com/serverless/serverless/issues/9216)) ([c88a2ea](https://github.com/serverless/serverless/commit/c88a2ea61a2016982cd24050af8cac5989b07f79)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ### [2.33.1](https://github.com/serverless/serverless/compare/v2.33.0...v2.33.1) (2021-04-03)
 
 ### Bug Fixes
