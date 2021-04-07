@@ -370,4 +370,4 @@ Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2
 
 Deprecation code: `AWS_API_GATEWAY_NON_APPLICABLE_SETTINGS`
 
-When `provider.apiGateway.restApiId` is set along `provider.tracing.apiGateway` or `provider.logs.restApi` these options are ignored as the API Gateway service has been created outside of serverless.
+When external API Gateway resource is used and imported via `provider.apiGateway.restApiId` setting, both `provider.logs.restApi` and `provider.tracing.apiGateway` will be ignored. These settings are applicable only if API Gateway resource is provisioned by Serverless Framework.
