@@ -475,7 +475,7 @@ describe('Variables', () => {
     });
     it('should populate object and return it', () => {
       const object = {
-        stage: '${opt:stage}', // eslint-disable-line no-template-curly-in-string
+        stage: '${opt:stage}',
       };
       const expectedPopulatedObject = {
         stage: 'prod',
@@ -493,7 +493,7 @@ describe('Variables', () => {
 
     it('should persist keys with dot notation', () => {
       const object = {
-        stage: '${opt:stage}', // eslint-disable-line no-template-curly-in-string
+        stage: '${opt:stage}',
       };
       object['some.nested.key'] = 'hello';
       const expectedPopulatedObject = {
@@ -530,7 +530,7 @@ describe('Variables', () => {
       });
       it('should properly replace self-references', () => {
         service.custom = {
-          me: '${self:}', // eslint-disable-line no-template-curly-in-string
+          me: '${self:}',
         };
         const expected = makeDefault();
         expected.custom = {
@@ -714,8 +714,8 @@ describe('Variables', () => {
       it('should properly replace duplicate variable declarations', () => {
         service.custom = {
           val0: 'my value',
-          val1: '${self:custom.val0}', // eslint-disable-line no-template-curly-in-string
-          val2: '${self:custom.val0}', // eslint-disable-line no-template-curly-in-string
+          val1: '${self:custom.val0}',
+          val2: '${self:custom.val0}',
         };
         const expected = {
           val0: 'my value',
@@ -730,10 +730,10 @@ describe('Variables', () => {
       });
       it('should recursively populate, regardless of order and duplication', () => {
         service.custom = {
-          val1: '${self:custom.depVal}', // eslint-disable-line no-template-curly-in-string
-          depVal: '${self:custom.val0}', // eslint-disable-line no-template-curly-in-string
+          val1: '${self:custom.depVal}',
+          depVal: '${self:custom.val0}',
           val0: 'my value',
-          val2: '${self:custom.depVal}', // eslint-disable-line no-template-curly-in-string
+          val2: '${self:custom.depVal}',
         };
         const expected = {
           val1: 'my value',
@@ -1072,8 +1072,8 @@ module.exports = {
         it('should populate any given variable only once', () => {
           makeTempFile(asyncFileName, asyncContent);
           service.custom = {
-            val1: '${self:custom.val0}', // eslint-disable-line no-template-curly-in-string
-            val2: '${self:custom.val1}', // eslint-disable-line no-template-curly-in-string
+            val1: '${self:custom.val0}',
+            val2: '${self:custom.val1}',
             val0: `\${file(${asyncFileName}):str}`,
           };
           const expected = {
@@ -1086,8 +1086,8 @@ module.exports = {
         it('should still work with a default file name in double or single quotes', () => {
           makeTempFile(asyncFileName, asyncContent);
           service.custom = {
-            val1: '${self:custom.val0}', // eslint-disable-line no-template-curly-in-string
-            val2: '${self:custom.val1}', // eslint-disable-line no-template-curly-in-string
+            val1: '${self:custom.val0}',
+            val2: '${self:custom.val1}',
             val3: `\${file(\${self:custom.nonexistent, "${asyncFileName}"}):str}`,
             val0: `\${file(\${self:custom.nonexistent, '${asyncFileName}'}):str}`,
           };
@@ -1102,15 +1102,15 @@ module.exports = {
         it('should populate any given variable only once regardless of ordering or reference count', () => {
           makeTempFile(asyncFileName, asyncContent);
           service.custom = {
-            val9: '${self:custom.val7}', // eslint-disable-line no-template-curly-in-string
-            val7: '${self:custom.val5}', // eslint-disable-line no-template-curly-in-string
-            val5: '${self:custom.val3}', // eslint-disable-line no-template-curly-in-string
-            val3: '${self:custom.val1}', // eslint-disable-line no-template-curly-in-string
-            val1: '${self:custom.val0}', // eslint-disable-line no-template-curly-in-string
-            val2: '${self:custom.val1}', // eslint-disable-line no-template-curly-in-string
-            val4: '${self:custom.val3}', // eslint-disable-line no-template-curly-in-string
-            val6: '${self:custom.val5}', // eslint-disable-line no-template-curly-in-string
-            val8: '${self:custom.val7}', // eslint-disable-line no-template-curly-in-string
+            val9: '${self:custom.val7}',
+            val7: '${self:custom.val5}',
+            val5: '${self:custom.val3}',
+            val3: '${self:custom.val1}',
+            val1: '${self:custom.val0}',
+            val2: '${self:custom.val1}',
+            val4: '${self:custom.val3}',
+            val6: '${self:custom.val5}',
+            val8: '${self:custom.val7}',
             val0: `\${file(${asyncFileName}):str}`,
           };
           const expected = {
@@ -1366,7 +1366,7 @@ module.exports = {
   describe('#populateVariable()', () => {
     it('should populate string variables as sub string', () => {
       const valueToPopulate = 'dev';
-      const matchedString = '${opt:stage}'; // eslint-disable-line no-template-curly-in-string
+      const matchedString = '${opt:stage}';
       // eslint-disable-next-line no-template-curly-in-string
       const property = 'my stage is ${opt:stage}';
       serverless.variables
@@ -1376,7 +1376,7 @@ module.exports = {
 
     it('should populate number variables as sub string', () => {
       const valueToPopulate = 5;
-      const matchedString = '${opt:number}'; // eslint-disable-line no-template-curly-in-string
+      const matchedString = '${opt:number}';
       // eslint-disable-next-line no-template-curly-in-string
       const property = 'your account number is ${opt:number}';
       serverless.variables
@@ -1386,8 +1386,8 @@ module.exports = {
 
     it('should populate non string variables', () => {
       const valueToPopulate = 5;
-      const matchedString = '${opt:number}'; // eslint-disable-line no-template-curly-in-string
-      const property = '${opt:number}'; // eslint-disable-line no-template-curly-in-string
+      const matchedString = '${opt:number}';
+      const property = '${opt:number}';
       return serverless.variables
         .populateVariable(property, matchedString, valueToPopulate)
         .should.equal(5);
@@ -1395,7 +1395,7 @@ module.exports = {
 
     it('should throw error if populating non string or non number variable as sub string', () => {
       const valueToPopulate = {};
-      const matchedString = '${opt:object}'; // eslint-disable-line no-template-curly-in-string
+      const matchedString = '${opt:object}';
       // eslint-disable-next-line no-template-curly-in-string
       const property = 'your account number is ${opt:object}';
       return expect(() =>
@@ -2660,7 +2660,7 @@ module.exports = {
       serverless.variables.service = {
         service: 'testService',
         custom: {
-          anotherVar: '${self:custom.var}', // eslint-disable-line no-template-curly-in-string
+          anotherVar: '${self:custom.var}',
         },
         provider: serverless.service.provider,
       };

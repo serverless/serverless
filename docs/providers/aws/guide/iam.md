@@ -149,6 +149,7 @@ provider:
       Fn::GetAtt:
         - myRole
         - Arn
+    role: !Sub arn:aws:iam::${AWS::AccountId}:role/roleInMyAccount
 
 functions:
   func0: # will assume 'myDefaultRole'

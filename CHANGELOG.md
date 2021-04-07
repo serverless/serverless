@@ -2,6 +2,116 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.34.0](https://github.com/serverless/serverless/compare/v2.33.1...v2.34.0) (2021-04-07)
+
+### Features
+
+- **AWS Lambda:** Add support for `buildArgs` to `images` ([#9198](https://github.com/serverless/serverless/issues/9198)) ([efd32d4](https://github.com/serverless/serverless/commit/efd32d4725cd36e5365aa09f50b75d9ca241d26e)) ([Nicholas Wehr](https://github.com/wwwehr))
+
+### Bug Fixes
+
+- **AWS Deploy:** Correctly identify "no updates" error during deploy ([#9248](https://github.com/serverless/serverless/pull/9248)) ([0e6a1ce](https://github.com/serverless/serverless/commit/0e6a1ce2d4a28a480683192cc6ac639c7bfe0d8b)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:** Ensure help output with missing `provider.name` ([#9235](https://github.com/serverless/serverless/pull/9235)) ([dae9058](https://github.com/serverless/serverless/commit/dae9058501ecc4ae8ff6b70e2bd1b22e914c241d)) ([Mariusz Nowak](https://github.com/medikoo))
+- Avoid re-registration of `ts-node` ([#9254](https://github.com/serverless/serverless/issues/9254)) ([88baf06](https://github.com/serverless/serverless/commit/88baf06b42d4c08f3034965b8a7ffa23455ae3e3)) ([Adam Pancutt](https://github.com/apancutt))
+
+### Maintenance Improvements
+
+- **Analytics**: Account for functions with containers for analytics ([#9216](https://github.com/serverless/serverless/issues/9216)) ([c88a2ea](https://github.com/serverless/serverless/commit/c88a2ea61a2016982cd24050af8cac5989b07f79)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### [2.33.1](https://github.com/serverless/serverless/compare/v2.33.0...v2.33.1) (2021-04-03)
+
+### Bug Fixes
+
+- **Variables:** Ensure valid region value type in SSM resolution ([#9236](https://github.com/serverless/serverless/pull/9236)) ([83cac53](https://github.com/serverless/serverless/commit/83cac533a387a216dd6c151307a0dc69f36eef9e)) ([Mariusz Nowak](https://github.com/medikoo))
+
+## [2.33.0](https://github.com/serverless/serverless/compare/v2.32.1...v2.33.0) (2021-04-02)
+
+### Features
+
+- **Plugins:** Announce "type" requirement in CLI option definitions ([#9230](https://github.com/serverless/serverless/pull/9230)) ([959da67](https://github.com/serverless/serverless/commit/959da67a5eb49f2256b4763f5f235537e6253659)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **CLI:** Do not assume "string" option type, when no type set in definition ([#9230](https://github.com/serverless/serverless/pull/9230)) ([c9be9bc](https://github.com/serverless/serverless/commit/c9be9bcc45d2da606d1660fb60156e56f5912e49)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:** Support resolving "raw" JSON string form of SSM params ([#9229](https://github.com/serverless/serverless/pull/9229)) ([4eba512](https://github.com/serverless/serverless/commit/4eba512c1529a0d1d6c60e3f9de3bf98d6c23002)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Packaging:**
+  - Ensure to apply dev dependency exclusion ([#92ee](https://github.com/serverless/serverless/pull/92ee)) ([7d16947](https://github.com/serverless/serverless/commit/7d16947273da079f4e844b4a62c98863206e848e)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Recognize `layers[].package.patterns` ([#9231](https://github.com/serverless/serverless/pull/9231)) ([9793c50](https://github.com/serverless/serverless/commit/9793c506ec364a4298a97e274c27c6f934749c74)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS CloudFront:** Recognize "?" character in `pathPattern` property ([#9234](https://github.com/serverless/serverless/pull/9234)) ([9d84596](https://github.com/serverless/serverless/commit/9d84596604a7338e82616723fe1a486c09272ae7)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- Remove injustified "eslint-disable" comments ([#9232](https://github.com/serverless/serverless/pull/9232)) ([2011649](https://github.com/serverless/serverless/commit/20116495372ff5de837d005868cdd2a3d74e1415)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### [2.32.1](https://github.com/serverless/serverless/compare/v2.32.0...v2.32.1) (2021-03-31)
+
+### Bug Fixes
+
+- **AWS IAM:** Support for CF functions for `provider.iam.role` ([#9206](https://github.com/serverless/serverless/pull/9206)) ([0a84f1c](https://github.com/serverless/serverless/commit/0a84f1c84ee4e7ac32d9b5c247eba7f25da0d14a)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:** Fix `commands` pass to local installation ([#9207](https://github.com/serverless/serverless/pull/9207)) ([80bddce](https://github.com/serverless/serverless/commit/80bddce66729a82dde488a497e228cc42775a174)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:** Ensure resolution of unrecognized CLI options ([#9211](https://github.com/serverless/serverless/pull/9211)) ([b5668d5](https://github.com/serverless/serverless/commit/b5668d5be04902437c82b2ccb049f93f82a87ec3)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **CLI:** Fix deprecation message typo ([#9209](https://github.com/serverless/serverless/pull/9209)) ([7f788d2](https://github.com/serverless/serverless/commit/7f788d29e5b7ba45b9a3648b0b645f17706ac4a4)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:**
+  - Do not run old resolver when not needed ([#9207](https://github.com/serverless/serverless/pull/9207)) ([7601e26](https://github.com/serverless/serverless/commit/7601e26360226e77c4c8d631227a248e7a81afc2)) ([Mariusz Nowak](https://github.com/medikoo))
+
+## [2.32.0](https://github.com/serverless/serverless/compare/v2.31.0...v2.32.0) (2021-03-30)
+
+### Features
+
+- **AWS HTTP API:**
+  - Add support for AWS IAM authorization ([#9195](https://github.com/serverless/serverless/pull/9195)) ([d3c6e43](https://github.com/serverless/serverless/commit/d3c6e4323b9a3345d71ec43e6ac3013c0ffa02b7)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Add support for custom Lambda authorizers ([#9192](https://github.com/serverless/serverless/pull/9192)) ([37d03b6](https://github.com/serverless/serverless/commit/37d03b6888788b2ee0b4a679de30ba94d25d7d53)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS IAM:** Add support for `iam.role.name` definition ([#9166](https://github.com/serverless/serverless/issues/9166)) ([8c3e1be](https://github.com/serverless/serverless/commit/8c3e1be735120f5e49f6850259072c13e175b71f)) ([Sergii Kovalev](https://github.com/Enase))
+- **AWS Lambda:** Do not require all `image` properties ([#9177](https://github.com/serverless/serverless/pull/9177)) ([14f5743](https://github.com/serverless/serverless/commit/14f57438467b5d5c9a3dc356ac4a8b0a6021657f)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:**
+  - Validate command and options against resolved schema ([#9171](https://github.com/serverless/serverless/pull/9171)) ([2dacbcc](https://github.com/serverless/serverless/commit/2dacbcce8529378d94abc7a0b0d0039ecee4d790)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Recognize CLI command plugin extensions in new resolver ([#9171](https://github.com/serverless/serverless/pull/9171)) ([3422a12](https://github.com/serverless/serverless/commit/3422a121d787fa716f708051f0bfe97644a3c1aa)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Packaging:** Deprecate `include` & `exclude` in favor of `patterns` ([#8581](https://github.com/serverless/serverless/issues/8581)) ([e1678fb](https://github.com/serverless/serverless/commit/e1678fb1c65ab0246e60d44857466be6771f889d)) ([Juanjo Diaz](https://github.com/juanjodiaz))
+- **Variables:**
+  - Report errors on unresolved variables ([#9200](https://github.com/serverless/serverless/pull/9200)) ([f112e4b](https://github.com/serverless/serverless/commit/f112e4b91c140d915cee493b24b66f94b8033d3d)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Support source extensions from plugins for new resolver ([#9200](https://github.com/serverless/serverless/pull/9200)) ([ee76876](https://github.com/serverless/serverless/commit/ee7687672557125b68a300f0cb1f7d8ec1785ec4)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **CLI:**
+  - Ensure to expose accurate `commandsSchema` in resolved input ([#9181](https://github.com/serverless/serverless/pull/9181)) ([01b135c](https://github.com/serverless/serverless/commit/01b135c69f731ec6841953491d310d06fd5740c0)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Fix `generate-event` and `test` commands schema visibility ([#9181](https://github.com/serverless/serverless/pull/9181)) ([ae645e7](https://github.com/serverless/serverless/commit/ae645e7e8ec165115cfb30fe24790a6741d858aa)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Fix handling of container commands ([#9181](https://github.com/serverless/serverless/pull/9181)) ([d9cf52b](https://github.com/serverless/serverless/commit/d9cf52b2c81d9332f7289ef046fa161137ee1d19)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Unconditionally crash on unrecognized command ([#9181](https://github.com/serverless/serverless/pull/9181)) ([f1af86a](https://github.com/serverless/serverless/commit/f1af86ab55b873e87a1d6bef2c0b02e133eba4a2)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Ensure to copy and not modify preset schemas ([#9181](https://github.com/serverless/serverless/pull/9181)) ([64684f2](https://github.com/serverless/serverless/commit/64684f2ed58e643726e4cea403b80af9844575ab)) ([Mariusz Nowak](https://github.com/medikoo))
+- Ensure detection of external plugins is multi instance safe ([#9181](https://github.com/serverless/serverless/pull/9181)) ([0f35375](https://github.com/serverless/serverless/commit/0f353750f16b5befff243221e2c5e3c66376bcb0)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **CLI:**
+  - Move to CLI logic required options validation ([#9181](https://github.com/serverless/serverless/pull/9181)) ([afad231](https://github.com/serverless/serverless/commit/afad2315a52785b0fff2408bb502698f176ff144)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Ensure resolved `provider.region` if dashboard used ([#9200](https://github.com/serverless/serverless/pull/9200)) ([af0242d](https://github.com/serverless/serverless/commit/af0242d716613777b2d03b418c9df39e984bb559)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Ensure to have up to date commands ([#9181](https://github.com/serverless/serverless/pull/9181)) ([8142515](https://github.com/serverless/serverless/commit/8142515bfc34fe88fc12f599aff6453217959ba5)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Generalize property resolution validation ([#9171](https://github.com/serverless/serverless/pull/9171)) ([59434af](https://github.com/serverless/serverless/commit/59434afd9519ed41bbb607f5bdb16b1158936798)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Improve command resolution handling ([#9200](https://github.com/serverless/serverless/pull/9200)) ([0065200](https://github.com/serverless/serverless/commit/00652005d44886c472c8ca6b0e77a5619e1601c0)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Improve validation of resolution state of core config ([#9171](https://github.com/serverless/serverless/pull/9171)) ([9e84423](https://github.com/serverless/serverless/commit/9e844234133d0b796bdeb2bdcce557da4ca996e3)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Move lifecycles definition to commands schema ([#9171](https://github.com/serverless/serverless/pull/9171)) ([2294a4b](https://github.com/serverless/serverless/commit/2294a4b4cb938ec34492bb5979da0677ff1d602f)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Move main help renderer out of internals ([#9181](https://github.com/serverless/serverless/pull/9181)) ([053fea1](https://github.com/serverless/serverless/commit/053fea18e0295507511881e59350207e60f142be)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Pass resolved commands options to local installation ([#9181](https://github.com/serverless/serverless/pull/9181)) ([2d4d05d](https://github.com/serverless/serverless/commit/2d4d05d425bc686c11b284354f5cc2ccead3814d)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Prevent superfluous vars resolution with help request ([#9181](https://github.com/serverless/serverless/pull/9181)) ([c2d4f83](https://github.com/serverless/serverless/commit/c2d4f834e5acccc022cd9769b6fe369b76ebdd4c)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Recalculate options only if external plugins were loaded ([#9181](https://github.com/serverless/serverless/pull/9181)) ([9aa026d](https://github.com/serverless/serverless/commit/9aa026d8f77020b466730fd16c908c5339943bee)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Seclude command help render from internals ([#9181](https://github.com/serverless/serverless/pull/9181)) ([aca3c0d](https://github.com/serverless/serverless/commit/aca3c0d57d563237aa1c1d8dfb3eccf809536e57)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Seclude command options render logic out of internals ([#9181](https://github.com/serverless/serverless/pull/9181)) ([41e921a](https://github.com/serverless/serverless/commit/41e921aa6fa74d07ce7d1757cc1101f09f3e7f47)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Seclude general help render logic from internals ([#9181](https://github.com/serverless/serverless/pull/9181)) ([87b1861](https://github.com/serverless/serverless/commit/87b186113a3b76c2b8065b3d97f7c8fa0c68984e)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Seclude interactive setup help render out of internals ([#9181](https://github.com/serverless/serverless/pull/9181)) ([2fd921d](https://github.com/serverless/serverless/commit/2fd921dbfc613f9064e069d00f1c5d11c8b86879)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:**
+  - Configure `cf` source in a new resolver ([#9200](https://github.com/serverless/serverless/pull/9200)) ([a60e90f](https://github.com/serverless/serverless/commit/a60e90f61c93c177ade8a2875e94feb7e886a0e2)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Configure `s3` source in a new resolver ([#9200](https://github.com/serverless/serverless/pull/9200)) ([12a4cad](https://github.com/serverless/serverless/commit/12a4cad102c67ecbdc308d35217a6247bd62dcb0)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Configure `sls` source in a new resolver ([#9200](https://github.com/serverless/serverless/pull/9200)) ([eecd928](https://github.com/serverless/serverless/commit/eecd9285d51506d9a245b47b9afa6a16ffd64fe0)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Configure `ssm` source in a new resolver ([#9200](https://github.com/serverless/serverless/pull/9200)) ([3f7f67c](https://github.com/serverless/serverless/commit/3f7f67ccc155d61ca9e7aa96c858058da55c635a)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Configure dashboard sources in a new resolver ([#9200](https://github.com/serverless/serverless/pull/9200)) ([385c15b](https://github.com/serverless/serverless/commit/385c15bc83ca34fdde2da61533a8b163f7bcc33c)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Dashboard:** Provide direct internal access to dashboard plugin ([#9200](https://github.com/serverless/serverless/pull/9200)) ([6292197](https://github.com/serverless/serverless/commit/6292197ee1dfbe107c3fe98059bd683896678b05)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Plugins:** Bulletproof way to recognize external plugins ([#9171](https://github.com/serverless/serverless/pull/9171)) ([1618e23](https://github.com/serverless/serverless/commit/1618e23c5cac32ee1168c951e5e70a8dfc66c2f9)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Analytics**: Detect Serverless CI/CD engine for analytics ([#9175](https://github.com/serverless/serverless/pull/9175)) ([e20766c](https://github.com/serverless/serverless/commit/e20766cf25e82442979662e0a415888f1727482a)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [2.31.0](https://github.com/serverless/serverless/compare/v2.30.3...v2.31.0) (2021-03-23)
 
 ### Features

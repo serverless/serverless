@@ -313,7 +313,6 @@ describe('AwsProvider', () => {
     });
 
     it('should get credentials when profile is provied via --aws-profile option even if profile is defined in serverless.yml', () => {
-      // eslint-disable-line max-len
       process.env.AWS_PROFILE = 'notDefaultTemporary';
       newAwsProvider.options['aws-profile'] = 'notDefault';
 
@@ -324,7 +323,6 @@ describe('AwsProvider', () => {
     });
 
     it('should get credentials when profile is provied via process.env.AWS_PROFILE even if profile is defined in serverless.yml', () => {
-      // eslint-disable-line max-len
       process.env.AWS_PROFILE = 'notDefault';
 
       serverless.service.provider.profile = 'notDefaultTemporary';
@@ -428,55 +426,6 @@ describe('AwsProvider', () => {
         delete input[2].value;
         expect(awsProvider.firstValue(input)).to.equal(input[2]);
       });
-    });
-  });
-
-  describe('#getRegion()', () => {
-    let newAwsProvider;
-
-    it('should prefer options over config or provider', () => {
-      const newOptions = {
-        region: 'optionsRegion',
-      };
-      const config = {
-        region: 'configRegion',
-      };
-      serverless = new Serverless(config);
-      serverless.service.provider.region = 'providerRegion';
-      newAwsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(newAwsProvider.getRegion()).to.equal(newOptions.region);
-    });
-
-    it('should prefer config over provider in lieu of options', () => {
-      const newOptions = {};
-      const config = {
-        region: 'configRegion',
-      };
-      serverless = new Serverless(config);
-      serverless.service.provider.region = 'providerRegion';
-      newAwsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(newAwsProvider.getRegion()).to.equal(config.region);
-    });
-
-    it('should use provider in lieu of options and config', () => {
-      const newOptions = {};
-      const config = {};
-      serverless = new Serverless(config);
-      serverless.service.provider.region = 'providerRegion';
-      newAwsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(newAwsProvider.getRegion()).to.equal(serverless.service.provider.region);
-    });
-
-    it('should use the default us-east-1 in lieu of options, config, and provider', () => {
-      const newOptions = {};
-      const config = {};
-      serverless = new Serverless(config);
-      newAwsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(newAwsProvider.getRegion()).to.equal('us-east-1');
     });
   });
 
@@ -680,53 +629,6 @@ describe('AwsProvider', () => {
     });
   });
 
-  describe('#getStage()', () => {
-    it('should prefer options over config or provider', () => {
-      const newOptions = {
-        stage: 'optionsStage',
-      };
-      const config = {
-        stage: 'configStage',
-      };
-      serverless = new Serverless(config);
-      serverless.service.provider.stage = 'providerStage';
-      awsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(awsProvider.getStage()).to.equal(newOptions.stage);
-    });
-
-    it('should prefer config over provider in lieu of options', () => {
-      const newOptions = {};
-      const config = {
-        stage: 'configStage',
-      };
-      serverless = new Serverless(config);
-      serverless.service.provider.stage = 'providerStage';
-      awsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(awsProvider.getStage()).to.equal(config.stage);
-    });
-
-    it('should use provider in lieu of options and config', () => {
-      const newOptions = {};
-      const config = {};
-      serverless = new Serverless(config);
-      serverless.service.provider.stage = 'providerStage';
-      awsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(awsProvider.getStage()).to.equal(serverless.service.provider.stage);
-    });
-
-    it('should use the default dev in lieu of options, config, and provider', () => {
-      const newOptions = {};
-      const config = {};
-      serverless = new Serverless(config);
-      awsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(awsProvider.getStage()).to.equal('dev');
-    });
-  });
-
   describe('#getAccountInfo()', () => {
     it('should return the AWS account id and partition', () => {
       const accountId = '12345678';
@@ -788,6 +690,78 @@ describe('AwsProvider', () => {
 });
 
 describe('test/unit/lib/plugins/aws/provider.test.js', () => {
+  describe('#getRegion()', () => {
+    it('should default to "us-east-1"', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['-v'],
+      });
+      expect(serverless.getProvider('aws').getRegion()).to.equal('us-east-1');
+    });
+
+    it('should allow to override via `provider.region`', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['-v'],
+        configExt: {
+          provider: {
+            region: 'eu-central-1',
+          },
+        },
+      });
+      expect(serverless.getProvider('aws').getRegion()).to.equal('eu-central-1');
+    });
+
+    it('should allow to override via CLI `--region` param', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['-v', '--region', 'us-west-1'],
+        configExt: {
+          provider: {
+            region: 'eu-central-1',
+          },
+        },
+      });
+      expect(serverless.getProvider('aws').getRegion()).to.equal('us-west-1');
+    });
+  });
+
+  describe('#getStage()', () => {
+    it('should default to "dev"', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['-v'],
+      });
+      expect(serverless.getProvider('aws').getStage()).to.equal('dev');
+    });
+
+    it('should allow to override via `provider.stage`', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['-v'],
+        configExt: {
+          provider: {
+            stage: 'staging',
+          },
+        },
+      });
+      expect(serverless.getProvider('aws').getStage()).to.equal('staging');
+    });
+
+    it('should allow to override via CLI `--stage` param', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['-v', '--stage', 'production'],
+        configExt: {
+          provider: {
+            stage: 'staging',
+          },
+        },
+      });
+      expect(serverless.getProvider('aws').getStage()).to.equal('production');
+    });
+  });
+
   describe('when resolving images', () => {
     it('should fail if `functions[].image` references image with both path and uri', async () => {
       await expect(
@@ -1528,6 +1502,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
           './',
         ]);
       });
+
       it('should work correctly when image is defined with `buildArgs` set', async () => {
         const awsRequestStubMap = {
           ...baseAwsRequestStubMap,

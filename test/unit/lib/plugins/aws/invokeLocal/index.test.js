@@ -329,7 +329,7 @@ describe('AwsInvokeLocal', () => {
       expect(process.env.LANG).to.equal('en_US.UTF-8');
       expect(process.env.LD_LIBRARY_PATH).to.equal(
         '/usr/local/lib64/node-v4.3.x/lib:/lib64:/usr/lib64:/var/runtime:/var/runtime/lib:/var/task:/var/task/lib'
-      ); // eslint-disable-line max-len
+      );
       expect(process.env.LAMBDA_TASK_ROOT).to.equal('/var/task');
       expect(process.env.LAMBDA_RUNTIME_DIR).to.equal('/var/runtime');
       expect(process.env.AWS_REGION).to.equal('us-east-1');
@@ -580,7 +580,7 @@ describe('AwsInvokeLocal', () => {
 
         expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain(
           '{\n    "statusCode": 200,\n    "headers": {\n        "Content-Type": "application/json"\n    },\n    "body": {\n        "result": true,\n        "message": "Whatever"\n    }\n}'
-        ); // eslint-disable-line
+        );
       });
     });
 
@@ -624,7 +624,7 @@ describe('AwsInvokeLocal', () => {
 
         expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain(
           '{\n    "statusCode": 200,\n    "headers": {\n        "Content-Type": "application/json"\n    },\n    "body": {\n        "result": true,\n        "message": "Whatever"\n    }\n}'
-        ); // eslint-disable-line
+        );
       });
     });
 
@@ -784,7 +784,7 @@ describe('AwsInvokeLocal', () => {
         );
         expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain(
           '{\n    "statusCode": 200,\n    "headers": {\n        "Content-Type": "application/json"\n    },\n    "body": {\n        "result": true,\n        "message": "Whatever"\n    }\n}'
-        ); // eslint-disable-line
+        );
       });
     });
 
@@ -836,7 +836,7 @@ describe('AwsInvokeLocal', () => {
         );
         expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain(
           '{\n    "statusCode": 200,\n    "headers": {\n        "Content-Type": "application/json"\n    },\n    "body": {\n        "result": true,\n        "message": "Whatever"\n    }\n}'
-        ); // eslint-disable-line
+        );
       });
     });
 

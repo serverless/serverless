@@ -1,7 +1,7 @@
 'use strict';
 
 // NOTE: the `utils.js` file is bundled into the deployment package
-// eslint-disable-next-line
+
 const { log } = require('./utils');
 
 function basic(event, context, callback) {

@@ -47,10 +47,10 @@ describe('uploadArtifacts', () => {
     cryptoStub = {
       createHash() {
         return this;
-      }, // eslint-disable-line
+      },
       update() {
         return this;
-      }, // eslint-disable-line
+      },
       digest: sinon.stub(),
     };
     const uploadArtifacts = proxyquire(

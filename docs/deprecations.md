@@ -17,11 +17,25 @@ disabledDeprecations:
   - '*' # To disable all deprecation messages
 ```
 
-<a name="NEW_PACKAGING_PATTERNS"><div>&nbsp;</div></a>
+<a name="CLI_OPTIONS_SCHEMA'"><div>&nbsp;</div></a>
+
+## CLI Options extensions, `type` requirement
+
+Deprecation code: `CLI_OPTIONS_SCHEMA'`
+
+Internal handling of CLI arguments was improved with type awareness for options. Now each option definition is expected have `type` defined in its settings.
+
+Possible values are `string`, `boolean` and `multiple`. Check [Defining options](/framework/docs/providers/aws/guide/plugins#defining-options) documentation for more info.
+
+If you rely on a plugin which does not set types (yet) please report the issue at its issue tracker.
+
+Starting with v3.0.0 any option extensions which does not have `type` defined will be communicated with a thrown error
+
+<a name="NEW_PACKAGE_PATTERNS"><div>&nbsp;</div></a>
 
 ## New way to define packaging patterns
 
-Deprecation code: `NEW_PACKAGING_PATTERNS`
+Deprecation code: `NEW_PACKAGE_PATTERNS`
 
 Please use `package.patterns`. `package.include` and `package.exclude` will be removed with v3.0.0
 
@@ -88,7 +102,7 @@ Framework was updated with a new implementation of variables resolver.
 
 It supports very same variable syntax, and is being updated with support for same resolution sources. Still as it has improved internal resolution rules (which leave no room for ambiguity) in some edge cases it may report errors on which old parser passed by.
 
-It's recommended to expose all errors that eventually new resolver may report (those will be an unconditional errors in v3). You can turn that behavior on by adding `variablesResolutionMode: 20210219` to service configuration
+It's recommended to expose all errors that eventually new resolver may report (those will be an unconditional errors in v3). You can turn that behavior on by adding `variablesResolutionMode: 20210326` to service configuration
 
 <a name="AWS_HTTP_API_USE_PROVIDER_TAGS"><div>&nbsp;</div></a>
 

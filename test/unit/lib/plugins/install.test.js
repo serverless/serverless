@@ -116,7 +116,7 @@ describe('Install', () => {
           arg[0].includes('installed "remote-service"')
         );
 
-        expect(downloadStub).to.have.been.calledOnce; // eslint-disable-line
+        expect(downloadStub).to.have.been.calledOnce;
         expect(installationMessage[0]).to.have.lengthOf(1);
       });
     });
@@ -131,7 +131,7 @@ describe('Install', () => {
           arg[0].includes('installed "remote-service" as "remote"')
         );
 
-        expect(downloadStub).to.have.been.calledOnce; // eslint-disable-line
+        expect(downloadStub).to.have.been.calledOnce;
         expect(installationMessage[0]).to.have.lengthOf(1);
       });
     });

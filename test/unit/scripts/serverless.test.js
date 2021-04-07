@@ -103,7 +103,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       await spawn('node', [serverlessPath, 'print'], {
         cwd: (
           await fixturesEngine.setup('aws', {
-            configExt: { variablesResolutionMode: '20210219', provider: '${foo:bar}' },
+            configExt: { variablesResolutionMode: '20210326', provider: '${foo:bar}' },
           })
         ).servicePath,
       });
@@ -119,7 +119,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       await spawn('node', [serverlessPath, 'print'], {
         cwd: (
           await fixturesEngine.setup('aws', {
-            configExt: { variablesResolutionMode: '20210219', provider: { stage: '${foo:bar}' } },
+            configExt: { variablesResolutionMode: '20210326', provider: { stage: '${foo:bar}' } },
           })
         ).servicePath,
       });
@@ -150,7 +150,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       await spawn('node', [serverlessPath, 'print'], {
         cwd: (
           await fixturesEngine.setup('aws', {
-            configExt: { variablesResolutionMode: '20210219', plugins: '${foo:bar}' },
+            configExt: { variablesResolutionMode: '20210326', plugins: '${foo:bar}' },
           })
         ).servicePath,
       });
@@ -159,5 +159,27 @@ describe('test/unit/scripts/serverless.test.js', () => {
       expect(error.code).to.equal(1);
       expect(String(error.stdoutBuffer)).to.include('"plugins" property is not accessible');
     }
+  });
+
+  it('should show help when requested and in context of invalid service configuration', async () => {
+    const output = String(
+      (
+        await spawn('node', [serverlessPath, '--help'], {
+          cwd: path.resolve(fixturesPath, 'configInvalid'),
+        })
+      ).stdoutBuffer
+    );
+    expect(output).to.include('Documentation: http://slss.io/docs');
+  });
+
+  it('should print general --help to stdout', async () => {
+    const output = String((await spawn('node', [serverlessPath, '--help'])).stdoutBuffer);
+    expect(output).to.include('Documentation: http://slss.io/docs');
+  });
+
+  it('should print command --help to stdout', async () => {
+    const output = String((await spawn('node', [serverlessPath, 'deploy', '--help'])).stdoutBuffer);
+    expect(output).to.include('deploy');
+    expect(output).to.include('stage');
   });
 });

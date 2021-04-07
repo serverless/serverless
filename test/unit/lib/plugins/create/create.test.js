@@ -76,7 +76,7 @@ describe('Create', () => {
 
         return create.create().catch((error) => {
           expect(error).to.match(/Wrong/);
-          expect(downloadStub).to.have.been.calledOnce; // eslint-disable-line
+          expect(downloadStub).to.have.been.calledOnce;
         });
       });
 
@@ -89,7 +89,7 @@ describe('Create', () => {
             arg[0].includes('installed "serverless"')
           );
 
-          expect(downloadStub).to.have.been.calledOnce; // eslint-disable-line
+          expect(downloadStub).to.have.been.calledOnce;
           expect(installationMessage[0]).to.have.lengthOf(1);
         });
       });
@@ -104,7 +104,7 @@ describe('Create', () => {
             arg[0].includes('installed "serverless" as "sls"')
           );
 
-          expect(downloadStub).to.have.been.calledOnce; // eslint-disable-line
+          expect(downloadStub).to.have.been.calledOnce;
           expect(installationMessage[0]).to.have.lengthOf(1);
         });
       });
