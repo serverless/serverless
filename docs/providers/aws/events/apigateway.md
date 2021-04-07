@@ -1714,6 +1714,8 @@ provider:
     apiGateway: true
 ```
 
+**Note:** If external API Gateway resource is used and imported via `provider.apiGateway.restApiId` setting, `provider.tracing.apiGateway` setting will be ignored.
+
 ## Tags / Stack Tags
 
 API Gateway stages will be tagged with the `tags` and `stackTags` values defined at the `provider` level:
