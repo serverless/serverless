@@ -100,16 +100,6 @@ describe('test/unit/lib/configuration/read.test.js', () => {
     }
   });
 
-  it('should interop default if config is exported using ES6 modules', async () => {
-    configurationPath = 'serverless.js';
-    const configuration = {
-      service: 'test-js',
-      provider: { name: 'aws' },
-    };
-    await fs.writeFile(configurationPath, `export default ${JSON.stringify(configuration)}`);
-    expect(await readConfiguration(configurationPath)).to.deep.equal(configuration);
-  });
-
   it('should support deferred configuration result', async () => {
     // JS configurations are required (so immune to modules caching).
     // In this tests we cannot use same JS configuration path twice for testing
