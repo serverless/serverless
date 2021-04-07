@@ -84,6 +84,22 @@ describe('test/unit/lib/configuration/read.test.js', () => {
     }
   });
 
+  it('should register ts-node only if it is not already registered', async () => {
+    try {
+      expect(process[Symbol.for('ts-node.register.instance')]).to.be.undefined;
+      process[Symbol.for('ts-node.register.instance')] = 'foo';
+      configurationPath = 'serverless.ts';
+      const configuration = {
+        service: 'test-ts',
+        provider: { name: 'aws' },
+      };
+      await fs.writeFile(configurationPath, `module.exports = ${JSON.stringify(configuration)}`);
+      expect(await readConfiguration(configurationPath)).to.deep.equal(configuration);
+    } finally {
+      delete process[Symbol.for('ts-node.register.instance')];
+    }
+  });
+
   it('should support deferred configuration result', async () => {
     // JS configurations are required (so immune to modules caching).
     // In this tests we cannot use same JS configuration path twice for testing
