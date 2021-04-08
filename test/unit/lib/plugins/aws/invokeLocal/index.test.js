@@ -395,6 +395,13 @@ describe('AwsInvokeLocal', () => {
       await awsInvokeLocal.loadEnvVars();
       expect(process.env.providerVar).to.be.equal('providerValueOverwritten');
     });
+
+    it('it should not pass null env vars to handler', async () => {
+      awsInvokeLocal.options.functionObj.environment.providerVar = null;
+
+      await awsInvokeLocal.loadEnvVars();
+      expect(process.env.providerVar).to.be.equal(undefined);
+    });
   });
 
   describe('#invokeLocal()', () => {
