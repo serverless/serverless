@@ -12,6 +12,7 @@ const {
   updateStage,
   defaultApiGatewayLogLevel,
 } = require('../../../../../../../../../../../lib/plugins/aws/package/compile/events/apiGateway/lib/hack/updateStage');
+const runServerless = require('../../../../../../../../../../utils/run-serverless');
 
 chai.use(require('sinon-chai'));
 chai.use(require('chai-as-promised'));
@@ -746,5 +747,66 @@ describe('#updateStage()', () => {
 
   it('should enable tracing if fullExecutionData is set to true', () => {
     return checkDataTrace(true);
+  });
+});
+
+describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/hack/updateStage.test.js', () => {
+  it('should correctly add and remove stage tags during update', async () => {
+    const tagResourceStub = sinon.stub();
+    const untagResourceStub = sinon.stub();
+    await runServerless({
+      fixture: 'apiGateway',
+      cliArgs: ['deploy'],
+      configExt: {
+        provider: {
+          apiName: 'test-api-name',
+          stackTags: {
+            key: 'value',
+          },
+        },
+      },
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      awsRequestStubMap: {
+        CloudFormation: {
+          describeStacks: {},
+          describeStackResource: {
+            StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
+          },
+        },
+        STS: {
+          getCallerIdentity: {
+            ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+            UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+            Account: '999999999999',
+            Arn: 'arn:aws-us-gov:iam::999999999999:user/test',
+          },
+        },
+        Lambda: {
+          getFunction: { Configuration: { LastModified: '2020-05-20T15:34:16.494+0000' } },
+        },
+        S3: {
+          listObjectsV2: {},
+          headObject: {},
+        },
+        APIGateway: {
+          getRestApis: () => ({
+            items: [{ name: 'test-api-name', id: 'api-id' }],
+          }),
+          getDeployments: () => ({
+            items: [{ id: 'deployment-id' }],
+          }),
+          getStage: () => ({
+            id: 'stage-id',
+            tags: { 'keytoremove': 'valuetoremove', 'aws:xxx': 'tokeep' },
+          }),
+          tagResource: tagResourceStub,
+          untagResource: untagResourceStub,
+        },
+      },
+    });
+    expect(tagResourceStub).to.have.been.calledOnce;
+    expect(tagResourceStub.args[0][0].tags).to.deep.equal({ key: 'value' });
+    expect(untagResourceStub).to.have.been.calledOnce;
+    expect(untagResourceStub.args[0][0].tagKeys).to.deep.equal(['keytoremove']);
   });
 });
