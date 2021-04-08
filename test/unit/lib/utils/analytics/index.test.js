@@ -64,7 +64,7 @@ describe('analytics', () => {
 
   it('Should ignore missing cacheDirPath', () =>
     sendPending().then((sendPendingResult) => {
-      expect(sendPendingResult).to.be.null;
+      expect(sendPendingResult).to.be.undefined;
       return sendReport().then(() => {
         expect(usedUrl).to.equal(analyticsUrl);
         return fse.readdir(cacheDirPath).then((dirFilenames) => {
