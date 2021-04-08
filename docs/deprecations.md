@@ -366,7 +366,7 @@ Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2
 
 <a name="AWS_API_GATEWAY_NON_APPLICABLE_SETTINGS"><div>&nbsp;</div></a>
 
-## Non-applicable settings configured for API Gateway
+## AWS API Gateway non-applicable settings configured
 
 Deprecation code: `AWS_API_GATEWAY_NON_APPLICABLE_SETTINGS`
 
