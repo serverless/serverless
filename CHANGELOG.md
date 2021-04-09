@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.35.0](https://github.com/serverless/serverless/compare/v2.34.0...v2.35.0) (2021-04-09)
+
+### Features
+
+- **AWS Lambda:** Add support for `cacheFrom` to `images` ([#9251](https://github.com/serverless/serverless/issues/9251)) ([341a886](https://github.com/serverless/serverless/commit/341a886874eb8a6c671f576323e75a77cffa1fd2)) ([Nicholas Wehr](https://github.com/wwwehr))
+
+### Bug Fixes
+
+- **AWS API Gateway:**
+  - Do not attempt to remove `aws:` tags during update ([#9265](https://github.com/serverless/serverless/pull/9265)) ([dac06c8](https://github.com/serverless/serverless/commit/dac06c8ce644f0d219329474cb83c644ca61d880)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Proper stage resolution for custom resource ([#9277](https://github.com/serverless/serverless/pull/9277)) ([50e4425](https://github.com/serverless/serverless/commit/50e44258835551523a089714396f12f6b229239c)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS HTTP API:** Correctly accept `identitySource` as single CF intrinsic function value for HTTP API authorizers ([#9275](https://github.com/serverless/serverless/pull/9275)) ([fce73ad](https://github.com/serverless/serverless/commit/fce73ad4df0f776cf950733f9e88c3d390d6fc66)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS Local Invocation:**
+  - Adjust `.gitignore` ([#9274](https://github.com/serverless/serverless/issues/9274)) ([ce210f7](https://github.com/serverless/serverless/commit/ce210f785271bf0fb54685ed1ef84fb09ceaf05d)) ([Yuji Yamano](https://github.com/yyamano))
+  - Correctly `decompress` artifact ([#9259](https://github.com/serverless/serverless/issues/9259)) ([af8d2a1](https://github.com/serverless/serverless/commit/af8d2a19269bf5480a6a87d91a17609f7f931eac)) ([Yuji Yamano](https://github.com/yyamano))
+  - Strip `null` envvars for `invoke local` command ([#9263](https://github.com/serverless/serverless/issues/9263)) ([34d2c2f](https://github.com/serverless/serverless/commit/34d2c2feacc3a19c740cf78e6dbeb0b9a9ad5a74)) ([Yuji Yamano](https://github.com/yyamano))
+
 ## [2.34.0](https://github.com/serverless/serverless/compare/v2.33.1...v2.34.0) (2021-04-07)
 
 ### Features
