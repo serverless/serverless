@@ -2,7 +2,7 @@
 
 const awsRequest = require('@serverless/test/aws-request');
 const { expect } = require('chai');
-const fixtures = require('../fixtures');
+const fixtures = require('../fixtures/programmatic');
 const { deployService, removeService } = require('../utils/integration');
 const { resolveIotEndpoint } = require('../utils/iot');
 

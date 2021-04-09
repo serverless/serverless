@@ -609,7 +609,7 @@ describe('AwsCompileSQSEvents #2', () => {
             },
           },
         },
-        cliArgs: ['package'],
+        command: 'package',
       });
       naming = awsNaming;
       const queueLogicalId = awsNaming.getQueueLogicalId('foo', 'MyQueue');

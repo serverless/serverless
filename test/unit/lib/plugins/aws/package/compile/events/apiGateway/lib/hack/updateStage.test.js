@@ -756,7 +756,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/hack/u
     const untagResourceStub = sinon.stub();
     await runServerless({
       fixture: 'apiGateway',
-      cliArgs: ['deploy'],
+      command: 'deploy',
       configExt: {
         provider: {
           apiName: 'test-api-name',

@@ -1,7 +1,7 @@
 'use strict';
 
 const { expect } = require('chai');
-const fixtures = require('../fixtures');
+const fixtures = require('../fixtures/programmatic');
 
 const { publishIotData } = require('../utils/iot');
 const { confirmCloudWatchLogs } = require('../utils/misc');

@@ -1282,14 +1282,18 @@ describe('AwsInvokeLocal', () => {
 });
 
 describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
-  const testRuntime = (functionName, cliParams = []) => {
+  const testRuntime = (functionName, options = {}) => {
     describe.skip('Input resolution', () => {
       // All tested with individual runServerless run
       it('TODO: should accept no data', async () => {
         // Confirm outcome on { stdout }
         await runServerless({
           fixture: 'invocation',
-          cliArgs: ['invoke', 'local', '--function', functionName, ...cliParams],
+          command: 'invoke local',
+          options: {
+            ...options,
+            function: functionName,
+          },
         });
 
         // Replaces
@@ -1310,15 +1314,12 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
         // Confirm outcome on { stdout }
         await runServerless({
           fixture: 'invocation',
-          cliArgs: [
-            'invoke',
-            'local',
-            '--function',
-            functionName,
-            ...cliParams,
-            '--data',
-            'inputData',
-          ],
+          command: 'invoke local',
+          options: {
+            ...options,
+            function: functionName,
+            data: 'inputData',
+          },
         });
 
         // Replaces
@@ -1330,15 +1331,12 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
           // Confirm outcome on { stdout }
           await runServerless({
             fixture: 'invocation',
-            cliArgs: [
-              'invoke',
-              'local',
-              '--function',
-              functionName,
-              ...cliParams,
-              '--data',
-              '{"inputKey":"inputValue"}',
-            ],
+            command: 'invoke local',
+            options: {
+              ...options,
+              function: functionName,
+              data: '{"inputKey":"inputValue"}',
+            },
           });
         });
 
@@ -1358,16 +1356,13 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
           // Confirm outcome on { stdout }
           await runServerless({
             fixture: 'invocation',
-            cliArgs: [
-              'invoke',
-              'local',
-              '--function',
-              functionName,
-              ...cliParams,
-              '--data',
-              '{"inputKey":"inputValue"}',
-              '--raw',
-            ],
+            command: 'invoke local',
+            options: {
+              ...options,
+              function: functionName,
+              data: '{"inputKey":"inputValue"}',
+              raw: true,
+            },
           });
         });
 
@@ -1386,15 +1381,12 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
           // Confirm outcome on { stdout }
           await runServerless({
             fixture: 'invocation',
-            cliArgs: [
-              'invoke',
-              'local',
-              '--function',
-              functionName,
-              ...cliParams,
-              '--path',
-              'payload.json',
-            ],
+            command: 'invoke local',
+            options: {
+              ...options,
+              function: functionName,
+              path: 'payload.json',
+            },
           });
         });
         // Single runServerless run
@@ -1408,15 +1400,12 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       it('TODO: should support YAML file path as data', async () => {
         await runServerless({
           fixture: 'invocation',
-          cliArgs: [
-            'invoke',
-            'local',
-            '--function',
-            functionName,
-            ...cliParams,
-            '--path',
-            'payload.yaml',
-          ],
+          command: 'invoke local',
+          options: {
+            ...options,
+            function: functionName,
+            path: 'payload.yaml',
+          },
         });
 
         // Replaces
@@ -1426,15 +1415,12 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       it('TODO: should support JS file path for data', async () => {
         await runServerless({
           fixture: 'invocation',
-          cliArgs: [
-            'invoke',
-            'local',
-            '--function',
-            functionName,
-            ...cliParams,
-            '--path',
-            'payload.js',
-          ],
+          command: 'invoke local',
+          options: {
+            ...options,
+            function: functionName,
+            path: 'payload.js',
+          },
         });
 
         // Replaces
@@ -1444,14 +1430,12 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       it('TODO: should support absolute file path as data', async () => {
         await runServerless({
           fixture: 'invocation',
-          cliArgs: [
-            'invoke',
-            'local',
-            '--function',
-            functionName,
-            ...cliParams,
-            '--path' /* TODO: Pass absolute path to payload.json in fixture */,
-          ],
+          command: 'invoke local',
+          options: {
+            ...options,
+            function: functionName,
+            path: '' /* TODO: Pass absolute path to payload.json in fixture */,
+          },
         });
         // Replaces
         // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L213-L227
@@ -1461,7 +1445,12 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
         await expect(
           runServerless({
             fixture: 'invocation',
-            cliArgs: ['invoke', '--function', 'callback', '--path', 'not-existing.yaml'],
+            command: 'invoke local',
+            options: {
+              ...options,
+              function: functionName,
+              path: 'not-existing.yaml',
+            },
           })
         ).to.eventually.be.rejected.and.have.property('code', 'TODO');
         // Replaces
@@ -1472,7 +1461,11 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
         await expect(
           runServerless({
             fixture: 'invocation',
-            cliArgs: ['invoke', '--function', 'notExisting'],
+            command: 'invoke local',
+            options: {
+              ...options,
+              function: 'notExisting',
+            },
           })
         ).to.eventually.be.rejected.and.have.property('code', 'TODO');
         // Replaces
@@ -1489,15 +1482,12 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
         // Confirm outcome on { stdout }
         const response = await runServerless({
           fixture: 'invocation',
-          cliArgs: [
-            'invoke',
-            'local',
-            '--function',
-            functionName,
-            ...cliParams,
-            '--env',
-            'PARAM_ENV_VAR=-Dblart=snort',
-          ],
+          command: 'invoke local',
+          options: {
+            ...options,
+            function: functionName,
+            env: 'PARAM_ENV_VAR=-Dblart=snort',
+          },
           configExt: {
             provider: {
               environment: {
@@ -1568,7 +1558,8 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       // Confirm outcome on { stdout }
       await runServerless({
         fixture: 'invocation',
-        cliArgs: ['invoke', '--function', 'async'],
+        command: 'invoke local',
+        options: { function: 'async' },
       });
 
       // Replaces
@@ -1581,7 +1572,8 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       // Confirm outcome on { stdout }
       await runServerless({
         fixture: 'invocation',
-        cliArgs: ['invoke', '--function', 'contextDone'],
+        command: 'invoke local',
+        options: { function: 'contextDone' },
       });
 
       // Replaces
@@ -1592,14 +1584,16 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       // Confirm outcome on { stdout }
       await runServerless({
         fixture: 'invocation',
-        cliArgs: ['invoke', '--function', 'contextSucceed'],
+        command: 'invoke local',
+        options: { function: 'contextSucceed' },
       });
     });
     xit('TODO: should support immediate failure at initialization', async () => {
       await expect(
         runServerless({
           fixture: 'invocation',
-          cliArgs: ['invoke', '--function', 'initFail'],
+          command: 'invoke local',
+          options: { function: 'initFail' },
         })
       ).to.eventually.be.rejected.and.have.property('code', 'TODO');
 
@@ -1611,7 +1605,8 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       await expect(
         runServerless({
           fixture: 'invocation',
-          cliArgs: ['invoke', '--function', 'invocationFail'],
+          command: 'invoke local',
+          options: { function: 'invocationFail' },
         })
       ).to.eventually.be.rejected.and.have.property('code', 'TODO');
     });
@@ -1619,7 +1614,8 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       await expect(
         runServerless({
           fixture: 'invocation',
-          cliArgs: ['invoke', '--function', 'async', '--data', '{"shouldFail":true}'],
+          command: 'invoke local',
+          options: { function: 'async', data: '{"shouldFail":true}' },
         })
       ).to.eventually.be.rejected.and.have.property('code', 'TODO');
 
@@ -1633,7 +1629,8 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       await expect(
         runServerless({
           fixture: 'invocation',
-          cliArgs: ['invoke', '--function', 'callback', '--data', '{"shouldFail":true}'],
+          command: 'invoke local',
+          options: { function: 'callback', data: '{"shouldFail":true}' },
         })
       ).to.eventually.be.rejected.and.have.property('code', 'TODO');
 
@@ -1644,7 +1641,8 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       await expect(
         runServerless({
           fixture: 'invocation',
-          cliArgs: ['invoke', '--function', 'contextDone', '--data', '{"shouldFail":true}'],
+          command: 'invoke local',
+          options: { function: 'contextDone', data: '{"shouldFail":true}' },
         })
       ).to.eventually.be.rejected.and.have.property('code', 'TODO');
 
@@ -1655,7 +1653,8 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       await expect(
         runServerless({
           fixture: 'invocation',
-          cliArgs: ['invoke', '--function', 'contextSucceed', '--data', '{"shouldFail":true}'],
+          command: 'invoke local',
+          options: { function: 'contextSucceed', data: '{"shouldFail":true}' },
         })
       ).to.eventually.be.rejected.and.have.property('code', 'TODO');
     });
@@ -1663,12 +1662,14 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       // Confirm outcome on { stdout }
       await runServerless({
         fixture: 'invocation',
-        cliArgs: ['invoke', '--function', 'doubledResolutionCallbackFirst'],
+        command: 'invoke local',
+        options: { function: 'doubledResolutionCallbackFirst' },
       });
       // Confirm outcome on { stdout }
       await runServerless({
         fixture: 'invocation',
-        cliArgs: ['invoke', '--function', 'doubledResolutionPromiseFirst'],
+        command: 'invoke local',
+        options: { function: 'doubledResolutionPromiseFirst' },
       });
 
       // Replaces
@@ -1679,7 +1680,8 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       // Confirm outcome on { stdout }
       await runServerless({
         fixture: 'invocation',
-        cliArgs: ['invoke', '--function', 'remainingTime'],
+        command: 'invoke local',
+        options: { function: 'remainingTime' },
       });
 
       // Replaces
@@ -1699,7 +1701,8 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
         // Confirm outcome on { stdout }
         await runServerless({
           fixture: 'invocation',
-          cliArgs: ['invoke', '--function', 'pythonRemainingTime'], // TODO: Configure python handler
+          command: 'invoke local',
+          options: { function: 'pythonRemainingTime' }, // TODO: Configure python handler
         });
 
         // Replaces
@@ -1718,7 +1721,8 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       // Confirm outcome on { stdout }
       await runServerless({
         fixture: 'invocation',
-        cliArgs: ['invoke', '--function', 'rubyClass'], // TODO: Configure ruby handler
+        command: 'invoke local',
+        options: { function: 'rubyClass' }, // TODO: Configure ruby handler
       });
 
       // Replaces
@@ -1729,7 +1733,8 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       // Confirm outcome on { stdout }
       await runServerless({
         fixture: 'invocation',
-        cliArgs: ['invoke', '--function', 'rubyRemainingTime'], // TODO: Configure ruby handler
+        command: 'invoke local',
+        options: { function: 'rubyRemainingTime' }, // TODO: Configure ruby handler
       });
 
       // Replaces
@@ -1739,7 +1744,8 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       // Confirm outcome on { stdout }
       await runServerless({
         fixture: 'invocation',
-        cliArgs: ['invoke', '--function', 'rubyDeadline'], // TODO: Configure ruby handler
+        command: 'invoke local',
+        options: { function: 'rubyDeadline' }, // TODO: Configure ruby handler
       });
 
       // Replaces

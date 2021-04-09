@@ -21,11 +21,9 @@ const mockRequire = require('mock-require');
 const sinon = require('sinon');
 const proxyquire = require('proxyquire');
 const BbPromise = require('bluebird');
-const stripAnsi = require('strip-ansi');
 const getCacheFilePath = require('../../../../lib/utils/getCacheFilePath');
 const { installPlugin } = require('../../../utils/plugins');
 const { getTmpDirPath } = require('../../../utils/fs');
-const runServerless = require('../../../utils/run-serverless');
 
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
@@ -2054,13 +2052,5 @@ describe('PluginManager', () => {
         // Couldn't delete temporary file
       }
     });
-  });
-});
-
-describe('test/unit/lib/classes/PluginManager.test.js', () => {
-  it('should show help when running container command', async () => {
-    // Note: Arbitrarily picked "plugin" command for testing
-    const { stdoutData } = await runServerless({ fixture: 'aws', cliArgs: ['plugin'] });
-    expect(stripAnsi(stdoutData)).to.include('plugin install .......');
   });
 });

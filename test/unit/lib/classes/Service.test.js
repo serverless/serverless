@@ -13,47 +13,47 @@ describe('Service', () => {
     it('should reject when the service name is missing', () =>
       expect(
         runServerless({
-          fixture: 'configInvalid',
-          cliArgs: ['print'],
+          fixture: 'blank',
+          command: 'print',
         })
       ).to.eventually.be.rejected.and.have.property('code', 'SERVICE_NAME_MISSING'));
 
     it('should reject if provider property is missing', () =>
       expect(
         runServerless({
-          fixture: 'configInvalid',
+          fixture: 'blank',
           configExt: { service: 'foo' },
-          cliArgs: ['print'],
+          command: 'print',
         })
       ).to.eventually.be.rejected.and.have.property('code', 'PROVIDER_NAME_MISSING'));
 
     it('should reject if frameworkVersion is not satisfied', () =>
       expect(
         runServerless({
-          fixture: 'configTypeYml',
+          fixture: 'aws',
           configExt: { frameworkVersion: '1.0' },
-          cliArgs: ['print'],
+          command: 'print',
         })
       ).to.eventually.be.rejected.and.have.property('code', 'FRAMEWORK_VERSION_MISMATCH'));
 
     it('should pass if frameworkVersion is satisfied', () =>
       runServerless({
-        fixture: 'configTypeYml',
+        fixture: 'aws',
         configExt: { frameworkVersion: version },
-        cliArgs: ['print'],
+        command: 'print',
       })
         .then(() =>
           runServerless({
-            fixture: 'configTypeYml',
+            fixture: 'aws',
             configExt: { frameworkVersion: '*' },
-            cliArgs: ['print'],
+            command: 'print',
           })
         )
         .then(() =>
           runServerless({
-            fixture: 'configTypeYml',
+            fixture: 'aws',
             configExt: { frameworkVersion: version.split('.')[0] },
-            cliArgs: ['print'],
+            command: 'print',
           })
         ));
   });
@@ -80,7 +80,7 @@ describe('Service', () => {
             },
           ],
         },
-        cliArgs: ['package'],
+        command: 'package',
       }).then(({ cfTemplate: { Resources } }) => {
         expect(Resources).to.be.an('object');
         expect(Resources.resource1).to.deep.equal({ Type: 'value' });
@@ -89,7 +89,7 @@ describe('Service', () => {
 
     it('should merge functions given as an array', () =>
       runServerless({
-        fixture: 'configTypeYml',
+        fixture: 'aws',
         configExt: {
           functions: [
             {
@@ -100,7 +100,7 @@ describe('Service', () => {
             },
           ],
         },
-        cliArgs: ['print'],
+        command: 'print',
       }).then(
         ({
           serverless: {
@@ -118,7 +118,7 @@ describe('Service', () => {
     it('should make sure function name contains the default stage', async () => {
       const { cfTemplate, awsNaming } = await runServerless({
         fixture: 'function',
-        cliArgs: ['package'],
+        command: 'package',
       });
       expect(
         cfTemplate.Resources[awsNaming.getLambdaLogicalId('foo')].Properties.FunctionName
@@ -129,7 +129,7 @@ describe('Service', () => {
       await expect(
         runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             functions: {
               bar: null,

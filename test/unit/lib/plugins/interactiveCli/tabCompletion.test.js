@@ -43,6 +43,7 @@ describe('interactiveCli: tabCompletion', () => {
     it('Should not suggest tab completion setup in non supported environments', () => {
       return runServerless({
         cwd: os.homedir(),
+        command: '',
         lifecycleHookNamesBlacklist,
       });
     });
@@ -55,6 +56,7 @@ describe('interactiveCli: tabCompletion', () => {
     });
     return runServerless({
       cwd: os.homedir(),
+      command: '',
       lifecycleHookNamesBlacklist,
     });
   });
@@ -65,11 +67,13 @@ describe('interactiveCli: tabCompletion', () => {
     });
     return runServerless({
       cwd: os.homedir(),
+      command: '',
       lifecycleHookNamesBlacklist,
     }).then(() => {
       inquirer.prompt.restore();
       return runServerless({
         cwd: os.homedir(),
+        command: '',
         lifecycleHookNamesBlacklist,
       });
     });
@@ -82,6 +86,7 @@ describe('interactiveCli: tabCompletion', () => {
     });
     return runServerless({
       cwd: os.homedir(),
+      command: '',
       env: { SHELL: 'bash' },
       lifecycleHookNamesBlacklist,
     }).then(() =>

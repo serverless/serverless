@@ -694,7 +694,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
     it('should default to "us-east-1"', async () => {
       const { serverless } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['-v'],
+        command: 'print',
       });
       expect(serverless.getProvider('aws').getRegion()).to.equal('us-east-1');
     });
@@ -702,7 +702,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
     it('should allow to override via `provider.region`', async () => {
       const { serverless } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['-v'],
+        command: 'print',
         configExt: {
           provider: {
             region: 'eu-central-1',
@@ -715,7 +715,8 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
     it('should allow to override via CLI `--region` param', async () => {
       const { serverless } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['-v', '--region', 'us-west-1'],
+        command: 'print',
+        options: { region: 'us-west-1' },
         configExt: {
           provider: {
             region: 'eu-central-1',
@@ -730,7 +731,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
     it('should default to "dev"', async () => {
       const { serverless } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['-v'],
+        command: 'print',
       });
       expect(serverless.getProvider('aws').getStage()).to.equal('dev');
     });
@@ -738,7 +739,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
     it('should allow to override via `provider.stage`', async () => {
       const { serverless } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['-v'],
+        command: 'print',
         configExt: {
           provider: {
             stage: 'staging',
@@ -751,7 +752,8 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
     it('should allow to override via CLI `--stage` param', async () => {
       const { serverless } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['-v', '--stage', 'production'],
+        command: 'print',
+        options: { stage: 'production' },
         configExt: {
           provider: {
             stage: 'staging',
@@ -767,7 +769,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
       await expect(
         runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             provider: {
               ecr: {
@@ -797,7 +799,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
       await expect(
         runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             provider: {
               ecr: {
@@ -823,7 +825,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
       await expect(
         runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           shouldStubSpawn: true,
           configExt: {
             provider: {
@@ -844,7 +846,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
       await expect(
         runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             functions: {
               fnInvalid: {
@@ -863,7 +865,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
       await expect(
         runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           shouldStubSpawn: true,
           configExt: {
             functions: {
@@ -887,7 +889,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
       await expect(
         runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           shouldStubSpawn: true,
           configExt: {
             functions: {
@@ -930,7 +932,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
       before(async () => {
         const { awsNaming, cfTemplate, fixtureData } = await runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             provider: {
               ecr: {
@@ -1138,7 +1140,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
           fixtureData: { servicePath },
         } = await runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           awsRequestStubMap,
           modulesCacheStub,
         });
@@ -1190,7 +1192,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
 
         const { awsNaming, cfTemplate } = await runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           awsRequestStubMap,
           modulesCacheStub,
         });
@@ -1229,7 +1231,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
           fixtureData: { servicePath },
         } = await runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           awsRequestStubMap,
           modulesCacheStub: {
             'child-process-ext/spawn': innerSpawnExtStub,
@@ -1292,7 +1294,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
           .throws({ stdBuffer: 'authorization token has expired' });
         await runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           awsRequestStubMap,
           modulesCacheStub: {
             'child-process-ext/spawn': innerSpawnExtStub,
@@ -1327,7 +1329,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
 
         const { stdoutData } = await runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           awsRequestStubMap,
           modulesCacheStub: {
             'child-process-ext/spawn': sinon
@@ -1360,7 +1362,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         };
         const { awsNaming, cfTemplate } = await runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           awsRequestStubMap,
           modulesCacheStub,
           configExt: {
@@ -1405,7 +1407,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
           fixtureData: { servicePath },
         } = await runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           awsRequestStubMap,
           modulesCacheStub,
           configExt: {
@@ -1461,7 +1463,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
           fixtureData: { servicePath },
         } = await runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           awsRequestStubMap,
           modulesCacheStub,
           configExt: {
@@ -1520,7 +1522,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
           fixtureData: { servicePath },
         } = await runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           awsRequestStubMap,
           modulesCacheStub,
           configExt: {
@@ -1577,7 +1579,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         };
         const { awsNaming, cfTemplate } = await runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           awsRequestStubMap,
           modulesCacheStub,
           configExt: {
@@ -1609,7 +1611,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         await expect(
           runServerless({
             fixture: 'ecr',
-            cliArgs: ['package'],
+            command: 'package',
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
               'child-process-ext/spawn': sinon.stub().throws(),
@@ -1622,7 +1624,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         await expect(
           runServerless({
             fixture: 'ecr',
-            cliArgs: ['package'],
+            command: 'package',
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
               'child-process-ext/spawn': sinon.stub().returns({}).onSecondCall().throws(),
@@ -1635,7 +1637,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         await expect(
           runServerless({
             fixture: 'ecr',
-            cliArgs: ['package'],
+            command: 'package',
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
               'child-process-ext/spawn': sinon.stub().returns({}).onCall(2).throws(),
@@ -1648,7 +1650,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         await expect(
           runServerless({
             fixture: 'ecr',
-            cliArgs: ['package'],
+            command: 'package',
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
               'child-process-ext/spawn': sinon.stub().returns({}).onCall(3).throws(),
@@ -1661,7 +1663,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         await expect(
           runServerless({
             fixture: 'ecr',
-            cliArgs: ['package'],
+            command: 'package',
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
               'child-process-ext/spawn': sinon

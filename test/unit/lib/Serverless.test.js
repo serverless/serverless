@@ -16,7 +16,7 @@ const CLI = require('../../../lib/classes/CLI');
 const ServerlessError = require('../../../lib/serverless-error');
 const conditionallyLoadDotenv = require('../../../lib/cli/conditionally-load-dotenv');
 const runServerless = require('../../utils/run-serverless');
-const fixtures = require('../../fixtures');
+const fixtures = require('../../fixtures/programmatic');
 const fs = require('fs');
 
 describe('Serverless', () => {
@@ -228,7 +228,7 @@ describe('Serverless [new tests]', () => {
       it('Should fallback to local version when it is found and "enableLocalInstallationFallback" is not set', () =>
         runServerless({
           fixture: 'locallyInstalledServerless',
-          cliArgs: ['-v'],
+          command: 'print',
           modulesCacheStub: {},
         }).then(({ serverless }) => {
           expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([]);
@@ -242,7 +242,7 @@ describe('Serverless [new tests]', () => {
         runServerless({
           fixture: 'locallyInstalledServerless',
           configExt: { enableLocalInstallationFallback: false },
-          cliArgs: ['-v'],
+          command: 'print',
           modulesCacheStub: {},
         }).then(({ serverless }) => {
           serverlessWithDisabledLocalInstallationFallback = serverless;
@@ -261,7 +261,7 @@ describe('Serverless [new tests]', () => {
         runServerless({
           fixture: 'locallyInstalledServerless',
           configExt: { enableLocalInstallationFallback: true },
-          cliArgs: ['-v'],
+          command: 'print',
           modulesCacheStub: {},
         }).then(({ serverless }) => {
           expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([
@@ -279,7 +279,7 @@ describe('Serverless [new tests]', () => {
           runServerless({
             serverlessDir: path.resolve(servicePath, 'node_modules/serverless'),
             cwd: servicePath,
-            cliArgs: ['-v'],
+            command: 'print',
           }).then(({ serverless }) => {
             expect(Array.from(serverless.triggeredDeprecations)).to.not.include(
               'DISABLE_LOCAL_INSTALLATION_FALLBACK_SETTING'
@@ -294,7 +294,7 @@ describe('Serverless [new tests]', () => {
 
   describe('When local version not available', () => {
     it('Should run without notice', () =>
-      runServerless({ fixture: 'aws', cliArgs: ['-v'], modulesCacheStub: {} }).then(
+      runServerless({ fixture: 'aws', command: 'print', modulesCacheStub: {} }).then(
         ({ serverless }) => {
           expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([]);
           expect(serverless._isInvokedByGlobalInstallation).to.be.false;
@@ -328,7 +328,8 @@ describe('Serverless [new tests]', () => {
     it('Should load environment variables from default .env file if no matching stage', async () => {
       const result = await runServerless({
         cwd: servicePath,
-        cliArgs: ['package'],
+        command: 'package',
+        shouldUseLegacyVariablesResolver: true,
       });
 
       expect(result.serverless.service.custom.fromDefaultEnv).to.equal('valuefromdefault');
@@ -342,7 +343,7 @@ describe('Serverless [new tests]', () => {
     before(async () => {
       ({ serverless } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['package'],
+        command: 'package',
       }));
     });
 

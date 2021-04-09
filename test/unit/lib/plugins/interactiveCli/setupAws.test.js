@@ -49,18 +49,21 @@ describe('interactiveCli: setupAws', () => {
   it('Should be ineffective, when not at service path', () =>
     runServerless({
       cwd: fixturesPath,
+      command: '',
       lifecycleHookNamesBlacklist,
     }));
 
   it('Should be ineffective, when not at AWS service', () =>
     runServerless({
       cwd: join(fixturesPath, 'some-other-service'),
+      command: '',
       lifecycleHookNamesBlacklist,
     }));
 
   it('Should be ineffective, when credentials are set in environment', () =>
     runServerless({
       cwd: awsProjectPath,
+      command: '',
       env: { AWS_ACCESS_KEY_ID: accessKeyId, AWS_SECRET_ACCESS_KEY: secretAccessKey },
       lifecycleHookNamesBlacklist,
     }));
@@ -69,6 +72,7 @@ describe('interactiveCli: setupAws', () => {
     configureInquirerStub(inquirer, { confirm: { shouldSetupAwsCredentials: false } });
     return runServerless({
       cwd: awsProjectPath,
+      command: '',
       lifecycleHookNamesBlacklist,
     });
   });
@@ -108,6 +112,7 @@ describe('interactiveCli: setupAws', () => {
       it('Should be ineffective, When credentials are set in AWS config', () =>
         runServerless({
           cwd: awsProjectPath,
+          command: '',
           lifecycleHookNamesBlacklist,
         }));
     });
@@ -124,6 +129,7 @@ describe('interactiveCli: setupAws', () => {
       });
       return runServerless({
         cwd: awsProjectPath,
+        command: '',
         lifecycleHookNamesBlacklist,
         modulesCacheStub,
       }).then(() => {
@@ -143,6 +149,7 @@ describe('interactiveCli: setupAws', () => {
       });
       return runServerless({
         cwd: awsProjectPath,
+        command: '',
         lifecycleHookNamesBlacklist,
         modulesCacheStub,
       }).then(() => {
@@ -161,6 +168,7 @@ describe('interactiveCli: setupAws', () => {
       });
       return runServerless({
         cwd: awsProjectPath,
+        command: '',
         lifecycleHookNamesBlacklist,
         modulesCacheStub,
       }).then(
@@ -178,6 +186,7 @@ describe('interactiveCli: setupAws', () => {
       });
       return runServerless({
         cwd: awsProjectPath,
+        command: '',
         lifecycleHookNamesBlacklist,
         modulesCacheStub,
       }).then(

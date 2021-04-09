@@ -2,7 +2,7 @@
 
 const chai = require('chai');
 const runServerless = require('../../../../../../../../utils/run-serverless');
-const templateBody = require('../../../../../../../../fixtures/iotFleetProvisioning/template.json');
+const templateBody = require('../../../../../../../../fixtures/programmatic/iotFleetProvisioning/template.json');
 
 chai.use(require('chai-as-promised'));
 
@@ -64,7 +64,7 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
             },
           },
         },
-        cliArgs: ['package'],
+        command: 'package',
       });
       ({ Resources: cfResources } = cfTemplate);
       serviceName = serviceConfig.service;
@@ -148,7 +148,7 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
               },
             },
           },
-          cliArgs: ['package'],
+          command: 'package',
         })
       ).to.eventually.be.rejected.and.have.property(
         'code',

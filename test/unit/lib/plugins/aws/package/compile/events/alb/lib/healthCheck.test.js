@@ -119,7 +119,7 @@ describe('ALB TargetGroup Health Checks', () => {
     runServerless({
       fixture: 'function',
       configExt: serverlessConfigurationExtension,
-      cliArgs: ['package'],
+      command: 'package',
     }).then(({ cfTemplate, awsNaming }) => {
       ({ Resources: cfResources } = cfTemplate);
       naming = awsNaming;

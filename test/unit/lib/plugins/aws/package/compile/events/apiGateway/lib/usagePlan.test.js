@@ -333,7 +333,7 @@ describe('UsagePlan', () => {
     const { cfTemplate } = await runServerless({
       fixture: 'apiGateway',
       configExt: serverlessConfigurationExtension,
-      cliArgs: ['package'],
+      command: 'package',
     });
 
     expect(cfTemplate.Resources.ApiGatewayUsagePlan.Properties.Throttle.BurstLimit).to.be.equal(
@@ -349,7 +349,7 @@ describe('UsagePlan', () => {
     const { cfTemplate } = await runServerless({
       fixture: 'apiGateway',
       configExt: serverlessConfigurationExtension,
-      cliArgs: ['package'],
+      command: 'package',
     });
 
     expect(cfTemplate.Resources.ApiGatewayUsagePlan.Properties.Quota.Limit).to.be.equal(limit);
@@ -362,7 +362,7 @@ describe('UsagePlan', () => {
     const { cfTemplate } = await runServerless({
       fixture: 'apiGateway',
       configExt: serverlessConfigurationExtension,
-      cliArgs: ['package'],
+      command: 'package',
     });
 
     expect(cfTemplate.Resources.ApiGatewayUsagePlan.Properties.Throttle.BurstLimit).to.be.equal(
@@ -380,7 +380,7 @@ describe('UsagePlan', () => {
     const { cfTemplate } = await runServerless({
       fixture: 'apiGateway',
       configExt: serverlessConfigurationExtension,
-      cliArgs: ['package'],
+      command: 'package',
     });
 
     expect(cfTemplate.Resources.ApiGatewayUsagePlan.Properties.Throttle.BurstLimit).to.be.equal(

@@ -6,7 +6,6 @@ const os = require('os');
 const BbPromise = require('bluebird');
 const { expect } = require('chai');
 const config = require('@serverless/utils/config');
-const ServerlessError = require('../../../../lib/serverless-error');
 const runServerless = require('../../../utils/run-serverless');
 const isTabCompletionSupported = require('../../../../lib/utils/tabCompletion/isSupported');
 
@@ -19,28 +18,17 @@ const unexpected = () => {
 describe('Config', () => {
   it('should support "config credentials" command', () =>
     runServerless({
-      config: { service: 'foo', provider: 'aws' },
-      cliArgs: ['config', 'credentials', '--provider', 'aws', '-k', 'foo', '-s', 'bar'],
+      noService: true,
+      command: 'config credentials',
+      options: { provider: 'aws', key: 'foo', secret: 'bar' },
     }));
-
-  it('should have a required option "provider" for the "credentials" sub-command', () =>
-    runServerless({
-      config: { service: 'foo', provider: 'aws' },
-      cliArgs: ['config', 'credentials', '-k', 'foo', '-s', 'bar'],
-    }).then(unexpected, (error) => expect(error).to.be.instanceof(ServerlessError)));
-
-  it('should throw an error if user passed unsupported "provider" option', () =>
-    runServerless({
-      config: { service: 'foo', provider: 'aws' },
-      cliArgs: ['config', 'credentials', '--provider', 'not-supported', '-k', 'foo', '-s', 'bar'],
-    }).then(unexpected, (error) => expect(error).to.be.instanceof(ServerlessError)));
 
   if (isTabCompletionSupported) {
     it('should support "config tabcompletion install" command', () =>
       runServerless({
         cwd: os.homedir(),
         env: { SHELL: 'bash' },
-        cliArgs: ['config', 'tabcompletion', 'install'],
+        command: 'config tabcompletion install',
       }).then(() =>
         Promise.all([
           fs
@@ -57,12 +45,12 @@ describe('Config', () => {
       runServerless({
         cwd: os.homedir(),
         env: { SHELL: 'bash' },
-        cliArgs: ['config', 'tabcompletion', 'install'],
+        command: 'config tabcompletion install',
       }).then(() =>
         runServerless({
           cwd: os.homedir(),
           env: { SHELL: 'bash' },
-          cliArgs: ['config', 'tabcompletion', 'uninstall'],
+          command: 'config tabcompletion uninstall',
         }).then(() =>
           Promise.all([
             fs
@@ -79,7 +67,8 @@ describe('Config', () => {
   it('should turn on autoupdate with "--autoupdate"', async () => {
     await runServerless({
       cwd: require('os').homedir(),
-      cliArgs: ['config', '--autoupdate'],
+      command: 'config',
+      options: { autoupdate: true },
       modulesCacheStub: {
         './lib/utils/npmPackage/isGlobal.js': async () => true,
         './lib/utils/npmPackage/isWritable.js': async () => true,
@@ -90,7 +79,8 @@ describe('Config', () => {
   it('should turn off autoupdate with "--no-autoupdate"', async () => {
     await runServerless({
       cwd: __dirname,
-      cliArgs: ['config', '--no-autoupdate'],
+      command: 'config',
+      options: { autoupdate: false },
     });
     expect(config.get('autoUpdate.enabled')).to.be.false;
   });

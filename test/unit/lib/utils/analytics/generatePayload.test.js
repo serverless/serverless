@@ -8,7 +8,7 @@ const overrideEnv = require('process-utils/override-env');
 
 const generatePayload = require('../../../../../lib/utils/analytics/generatePayload');
 const runServerless = require('../../../../utils/run-serverless');
-const fixtures = require('../../../../fixtures');
+const fixtures = require('../../../../fixtures/programmatic');
 
 const versions = {
   'serverless': require('../../../../../package').version,
@@ -47,7 +47,7 @@ describe('lib/utils/analytics/generatePayload', () => {
 
     const { serverless } = await runServerless({
       cwd: servicePath,
-      cliArgs: ['-v'],
+      command: '-v',
     });
     const payload = await generatePayload(serverless);
 
@@ -93,7 +93,7 @@ describe('lib/utils/analytics/generatePayload', () => {
   it('Should resolve payload for custom provider service', async () => {
     const { serverless } = await runServerless({
       fixture: 'customProvider',
-      cliArgs: ['config'],
+      command: 'config',
     });
     const payload = await generatePayload(serverless);
 
@@ -136,7 +136,7 @@ describe('lib/utils/analytics/generatePayload', () => {
   it('Should recognize local fallback', async () => {
     const { serverless } = await runServerless({
       fixture: 'locallyInstalledServerless',
-      cliArgs: ['config'],
+      command: 'config',
       modulesCacheStub: {},
     });
     const payload = await generatePayload(serverless);
@@ -177,7 +177,7 @@ describe('lib/utils/analytics/generatePayload', () => {
   it('Should resolve payload with predefined local config', async () => {
     const { serverless } = await runServerless({
       fixture: 'customProvider',
-      cliArgs: ['config'],
+      command: 'config',
     });
 
     await fs.promises.writeFile(
@@ -200,7 +200,7 @@ describe('lib/utils/analytics/generatePayload', () => {
   it('Should not include userId from local config if SERVERLESS_ACCESS_KEY used', async () => {
     const { serverless } = await runServerless({
       fixture: 'customProvider',
-      cliArgs: ['config'],
+      command: 'config',
     });
 
     await fs.promises.writeFile(
@@ -223,7 +223,7 @@ describe('lib/utils/analytics/generatePayload', () => {
   it('Should correctly detect Serverless CI/CD', async () => {
     const { serverless } = await runServerless({
       fixture: 'customProvider',
-      cliArgs: ['config'],
+      command: 'config',
     });
 
     let payload;
@@ -237,7 +237,7 @@ describe('lib/utils/analytics/generatePayload', () => {
   it('Should correctly detect Seed CI/CD', async () => {
     const { serverless } = await runServerless({
       fixture: 'customProvider',
-      cliArgs: ['config'],
+      command: 'config',
     });
 
     let payload;

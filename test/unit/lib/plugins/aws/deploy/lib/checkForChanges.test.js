@@ -577,7 +577,7 @@ describe('checkForChanges #2', () => {
   it('Should recognize package.artifact', () =>
     runServerless({
       fixture: 'packageArtifact',
-      cliArgs: ['deploy'],
+      command: 'deploy',
       env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
       awsRequestStubMap: {
@@ -695,7 +695,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
     let serverless;
     await runServerless({
       fixture: 'checkForChanges',
-      cliArgs: ['deploy'],
+      command: 'deploy',
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
       env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
       hooks: {
@@ -731,7 +731,8 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
     let serverless;
     await runServerless({
       fixture: 'checkForChanges',
-      cliArgs: ['deploy', '--force'],
+      command: 'deploy',
+      options: { force: true },
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
       env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
       hooks: {
@@ -761,7 +762,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
 
     const { serverless } = await runServerless({
       fixture: 'packageFoldern',
-      cliArgs: ['deploy'],
+      command: 'deploy',
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
       env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
       awsRequestStubMap: {
@@ -787,7 +788,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
     let serverless;
     await runServerless({
       fixture: 'checkForChanges',
-      cliArgs: ['deploy'],
+      command: 'deploy',
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
       env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
       hooks: {
@@ -818,7 +819,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
     let serverless;
     await runServerless({
       fixture: 'checkForChanges',
-      cliArgs: ['deploy'],
+      command: 'deploy',
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
       env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
       hooks: {
@@ -848,7 +849,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
       fixtureData: { updateConfig, servicePath },
     } = await runServerless({
       fixture: 'checkForChanges',
-      cliArgs: ['package'],
+      command: 'package',
     });
 
     const listObjectsV2Response = await generateMatchingListObjectsResponse(serverless);
@@ -857,7 +858,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
     let serverless;
     await runServerless({
       cwd: servicePath,
-      cliArgs: ['package'],
+      command: 'package',
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
       env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
       hooks: {
@@ -886,7 +887,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
     let serverless;
     await runServerless({
       fixture: 'checkForChanges',
-      cliArgs: ['deploy'],
+      command: 'deploy',
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
       env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
       hooks: {
@@ -915,7 +916,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
     let serverless;
     await runServerless({
       fixture: 'checkForChanges',
-      cliArgs: ['deploy'],
+      command: 'deploy',
       configExt: {
         package: { individually: true },
       },
@@ -948,7 +949,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
     let serverless;
     await runServerless({
       fixture: 'checkForChanges',
-      cliArgs: ['deploy'],
+      command: 'deploy',
       configExt: {
         package: { individually: true },
       },
@@ -982,7 +983,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
     let serverless;
     await runServerless({
       fixture: 'checkForChanges',
-      cliArgs: ['deploy'],
+      command: 'deploy',
       configExt: {
         package: { artifact: 'artifact.zip' },
       },
@@ -1013,7 +1014,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
 
     const { serverless } = await runServerless({
       fixture: 'packageArtifactInServerlessDir',
-      cliArgs: ['deploy'],
+      command: 'deploy',
       configExt: {
         // runServerless by default makes this: `test-${fixtureName}-${TIME_BASED_HASH}`
         // for safety of concurrent test runs. Unfortunately this will make our
@@ -1088,7 +1089,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
   it('should print a warning if missing lambda:GetFunction permission', async () => {
     const { stdoutData } = await runServerless({
       fixture: 'checkForChanges',
-      cliArgs: ['deploy'],
+      command: 'deploy',
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
       awsRequestStubMap: {
         ...commonAwsSdkMock,
@@ -1115,7 +1116,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
     return expect(
       runServerless({
         fixture: 'checkForChanges',
-        cliArgs: ['deploy'],
+        command: 'deploy',
         lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
         env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
         awsRequestStubMap: {
@@ -1139,7 +1140,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
     return expect(
       runServerless({
         fixture: 'checkForChanges',
-        cliArgs: ['deploy'],
+        command: 'deploy',
         lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
         env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
         awsRequestStubMap: {
@@ -1162,7 +1163,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
       let serverless;
       await runServerless({
         fixture: 'checkForChanges',
-        cliArgs: ['deploy'],
+        command: 'deploy',
         configExt: {
           functions: { fn1: { events: [{ cloudwatchLog: 'someLogGroupName' }] } },
         },
@@ -1210,7 +1211,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
       let serverless;
       await runServerless({
         fixture: 'checkForChanges',
-        cliArgs: ['deploy'],
+        command: 'deploy',
         configExt: {
           functions: { fn1: { events: [{ cloudwatchLog: 'someLogGroupName' }] } },
         },
@@ -1258,7 +1259,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
       let serverless;
       const { awsNaming } = await runServerless({
         fixture: 'checkForChanges',
-        cliArgs: ['deploy'],
+        command: 'deploy',
         configExt: {
           functions: {
             fn1: {
@@ -1339,7 +1340,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
       let serverless;
       await runServerless({
         fixture: 'checkForChanges',
-        cliArgs: ['deploy'],
+        command: 'deploy',
         configExt: {
           functions: { fn1: { events: [{ cloudwatchLog: 'someLogGroupName' }] } },
         },
