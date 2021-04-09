@@ -5,14 +5,14 @@
 const _ = require('lodash');
 const chai = require('chai');
 const path = require('path');
+const fs = require('fs-extra');
+const os = require('os');
 const proxyquire = require('proxyquire');
 const sinon = require('sinon');
 const overrideEnv = require('process-utils/override-env');
 
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
 const Serverless = require('../../../../../lib/Serverless');
-const { replaceEnv } = require('../../../../utils/misc');
-const { getTmpFilePath } = require('../../../../utils/fs');
 const runServerless = require('../../../../utils/run-serverless');
 
 chai.use(require('chai-as-promised'));
@@ -105,268 +105,6 @@ describe('AwsProvider', () => {
           'my.deployment.bucket'
         );
       });
-    });
-  });
-
-  describe('#getCredentials()', () => {
-    const awsStub = sinon.stub().returns();
-    const AwsProviderProxyquired = proxyquire('../../../../../lib/plugins/aws/provider.js', {
-      'aws-sdk': awsStub,
-    });
-
-    // add environment variables here if you want them cleared prior to your test and restored
-    // after it has completed.  Any environment variable that might alter credentials loading
-    // should be added here
-    const relevantEnvironment = {
-      AWS_ACCESS_KEY_ID: 'undefined',
-      AWS_SECRET_ACCESS_KEY: 'undefined',
-      AWS_SESSION_TOKEN: 'undefined',
-      AWS_TESTSTAGE_ACCESS_KEY_ID: 'undefined',
-      AWS_TESTSTAGE_SECRET_ACCESS_KEY: 'undefined',
-      AWS_TESTSTAGE_SESSION_TOKEN: 'undefined',
-      AWS_SHARED_CREDENTIALS_FILE: getTmpFilePath('credentials'),
-      AWS_PROFILE: 'undefined',
-      AWS_TESTSTAGE_PROFILE: 'undefined',
-    };
-
-    let newAwsProvider;
-    const newOptions = {
-      stage: 'teststage',
-      region: 'testregion',
-    };
-    const fakeCredentials = {
-      accessKeyId: 'AABBCCDDEEFF',
-      secretAccessKey: '0123456789876543',
-      sessionToken: '981237917391273918273918723987129837129873',
-      roleArn: 'a:role:arn',
-      sourceProfile: 'notDefaultTemporary',
-    };
-
-    let originalProviderCredentials;
-    let originalProviderProfile;
-    let originalEnvironmentVariables;
-
-    beforeEach(() => {
-      originalProviderCredentials = serverless.service.provider.credentials;
-      originalProviderProfile = serverless.service.provider.profile;
-      originalEnvironmentVariables = replaceEnv(relevantEnvironment);
-      // make temporary credentials file
-      serverless.utils.writeFileSync(
-        relevantEnvironment.AWS_SHARED_CREDENTIALS_FILE,
-        '[notDefault]\n' +
-          `aws_access_key_id = ${fakeCredentials.accessKeyId}\n` +
-          `aws_secret_access_key = ${fakeCredentials.secretAccessKey}\n` +
-          '\n' +
-          '[notDefaultTemporary]\n' +
-          `aws_access_key_id = ${fakeCredentials.accessKeyId}\n` +
-          `aws_secret_access_key = ${fakeCredentials.secretAccessKey}\n` +
-          `aws_session_token = ${fakeCredentials.sessionToken}\n` +
-          '\n' +
-          '[notDefaultAsync]\n' +
-          `role_arn = ${fakeCredentials.roleArn}\n` +
-          `source_profile = ${fakeCredentials.sourceProfile}\n`
-      );
-      newAwsProvider = new AwsProviderProxyquired(serverless, newOptions);
-    });
-
-    afterEach(() => {
-      replaceEnv(originalEnvironmentVariables);
-      serverless.service.provider.profile = originalProviderProfile;
-      serverless.service.provider.credentials = originalProviderCredentials;
-    });
-
-    it('should not set credentials if credentials is an empty object', () => {
-      serverless.service.provider.credentials = {};
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials).to.eql({});
-    });
-
-    it('should not set credentials if credentials has undefined values', () => {
-      serverless.service.provider.credentials = {
-        accessKeyId: undefined,
-        secretAccessKey: undefined,
-        sessionToken: undefined,
-      };
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials).to.eql({});
-    });
-
-    it('should not set credentials if credentials has empty string values', () => {
-      serverless.service.provider.credentials = {
-        accessKeyId: '',
-        secretAccessKey: '',
-        sessionToken: '',
-      };
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials).to.eql({});
-    });
-
-    it('should get credentials from provider declared credentials', () => {
-      serverless.service.provider.credentials = {
-        accessKeyId: 'accessKeyId',
-        secretAccessKey: 'secretAccessKey',
-        sessionToken: 'sessionToken',
-      };
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials).to.deep.eql(serverless.service.provider.credentials);
-    });
-
-    it('should load profile credentials from AWS_SHARED_CREDENTIALS_FILE', () => {
-      serverless.service.provider.profile = 'notDefault';
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.profile).to.equal(serverless.service.provider.profile);
-      expect(credentials.credentials.accessKeyId).to.equal(fakeCredentials.accessKeyId);
-      expect(credentials.credentials.secretAccessKey).to.equal(fakeCredentials.secretAccessKey);
-      expect(credentials.credentials.sessionToken).to.equal(undefined);
-    });
-
-    it('should load async profiles properly', () => {
-      serverless.service.provider.profile = 'notDefaultAsync';
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.roleArn).to.equal(fakeCredentials.roleArn);
-    });
-
-    it('should throw an error if a non-existent profile is set', () => {
-      serverless.service.provider.profile = 'not-a-defined-profile';
-      expect(() => {
-        newAwsProvider.getCredentials();
-      }).to.throw(Error);
-    });
-
-    it('should not set credentials if empty profile is set', () => {
-      serverless.service.provider.profile = '';
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials).to.eql({});
-    });
-
-    it('should not set credentials if profile is not set', () => {
-      serverless.service.provider.profile = undefined;
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials).to.eql({});
-    });
-
-    it('should not set credentials if empty profile is set', () => {
-      serverless.service.provider.profile = '';
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials).to.eql({});
-    });
-
-    it('should get credentials from provider declared temporary profile', () => {
-      serverless.service.provider.profile = 'notDefaultTemporary';
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.profile).to.equal(serverless.service.provider.profile);
-      expect(credentials.credentials.accessKeyId).to.equal(fakeCredentials.accessKeyId);
-      expect(credentials.credentials.secretAccessKey).to.equal(fakeCredentials.secretAccessKey);
-      expect(credentials.credentials.sessionToken).to.equal(fakeCredentials.sessionToken);
-    });
-
-    it('should get credentials from environment declared for-all-stages credentials', () => {
-      const testVal = {
-        accessKeyId: 'accessKeyId',
-        secretAccessKey: 'secretAccessKey',
-        sessionToken: 'sessionToken',
-      };
-      process.env.AWS_ACCESS_KEY_ID = testVal.accessKeyId;
-      process.env.AWS_SECRET_ACCESS_KEY = testVal.secretAccessKey;
-      process.env.AWS_SESSION_TOKEN = testVal.sessionToken;
-
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.accessKeyId).to.equal(testVal.accessKeyId);
-      expect(credentials.credentials.secretAccessKey).to.equal(testVal.secretAccessKey);
-      expect(credentials.credentials.sessionToken).to.equal(testVal.sessionToken);
-    });
-
-    it('should get credentials from environment declared stage specific credentials', () => {
-      const testVal = {
-        accessKeyId: 'accessKeyId',
-        secretAccessKey: 'secretAccessKey',
-        sessionToken: 'sessionToken',
-      };
-      process.env.AWS_TESTSTAGE_ACCESS_KEY_ID = testVal.accessKeyId;
-      process.env.AWS_TESTSTAGE_SECRET_ACCESS_KEY = testVal.secretAccessKey;
-      process.env.AWS_TESTSTAGE_SESSION_TOKEN = testVal.sessionToken;
-
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.accessKeyId).to.equal(testVal.accessKeyId);
-      expect(credentials.credentials.secretAccessKey).to.equal(testVal.secretAccessKey);
-      expect(credentials.credentials.sessionToken).to.equal(testVal.sessionToken);
-    });
-
-    it('should get credentials from environment declared for-all-stages profile', () => {
-      process.env.AWS_PROFILE = 'notDefault';
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.profile).to.equal('notDefault');
-    });
-
-    it('should get credentials from environment declared stage-specific profile', () => {
-      process.env.AWS_TESTSTAGE_PROFILE = 'notDefault';
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.profile).to.equal('notDefault');
-    });
-
-    it('should get credentials when profile is provied via --aws-profile option', () => {
-      process.env.AWS_PROFILE = 'notDefaultTemporary';
-      newAwsProvider.options['aws-profile'] = 'notDefault';
-
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.profile).to.equal('notDefault');
-    });
-
-    it('should get credentials when profile is provied via --aws-profile option even if profile is defined in serverless.yml', () => {
-      process.env.AWS_PROFILE = 'notDefaultTemporary';
-      newAwsProvider.options['aws-profile'] = 'notDefault';
-
-      serverless.service.provider.profile = 'notDefaultTemporary2';
-
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.profile).to.equal('notDefault');
-    });
-
-    it('should get credentials when profile is provied via process.env.AWS_PROFILE even if profile is defined in serverless.yml', () => {
-      process.env.AWS_PROFILE = 'notDefault';
-
-      serverless.service.provider.profile = 'notDefaultTemporary';
-
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.profile).to.equal('notDefault');
-    });
-
-    it('should set the signatureVersion to v4 if the serverSideEncryption is aws:kms', () => {
-      newAwsProvider.serverless.service.provider.deploymentBucketObject = {
-        serverSideEncryption: 'aws:kms',
-      };
-
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.signatureVersion).to.equal('v4');
-    });
-
-    it('should get credentials from process.env.AWS_DEFAULT_PROFILE, not "default"', () => {
-      process.env.AWS_DEFAULT_PROFILE = 'notDefaultTemporary';
-      newAwsProvider.options['aws-profile'] = undefined;
-
-      serverless.utils.appendFileSync(
-        relevantEnvironment.AWS_SHARED_CREDENTIALS_FILE,
-        '[default]\n' +
-          `aws_access_key_id = ${fakeCredentials.accessKeyId}\n` +
-          `aws_secret_access_key = ${fakeCredentials.secretAccessKey}\n`
-      );
-
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.profile).to.equal('notDefaultTemporary');
-    });
-
-    it('should get "default" credentials in lieu of anything else', () => {
-      newAwsProvider.options['aws-profile'] = undefined;
-
-      serverless.utils.appendFileSync(
-        relevantEnvironment.AWS_SHARED_CREDENTIALS_FILE,
-        '[default]\n' +
-          `aws_access_key_id = ${fakeCredentials.accessKeyId}\n` +
-          `aws_secret_access_key = ${fakeCredentials.secretAccessKey}\n`
-      );
-
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.profile).to.equal('default');
     });
   });
 
@@ -690,6 +428,224 @@ describe('AwsProvider', () => {
 });
 
 describe('test/unit/lib/plugins/aws/provider.test.js', () => {
+  describe('#getCredentials()', () => {
+    before(async () => {
+      // create default aws credentials file in before so that grouped run can use it
+      await fs.ensureDir(path.resolve(os.homedir(), './.aws'));
+      await fs.outputFile(
+        path.resolve(os.homedir(), './.aws/credentials'),
+        `
+[default]
+aws_access_key_id = DEFAULTKEYID
+aws_secret_access_key = DEFAULTSECRET
+
+[notDefault]
+aws_access_key_id = NOTDEFAULTKEYID
+aws_secret_access_key = NOTDEFAULTSECRET
+
+[notDefaultWithRole]
+source_profile = notDefault
+role_arn = NOTDEFAULTWITHROLEROLE
+`,
+        { flag: 'w+' }
+      );
+    });
+
+    it('should get credentials from default AWS profile', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['-v'],
+      });
+      const awsCredentials = serverless.getProvider('aws').getCredentials();
+      expect(awsCredentials.credentials.accessKeyId).to.equal('DEFAULTKEYID');
+    });
+
+    it('should get credentials from custom default AWS profile, set by AWS_DEFAULT_PROFILE', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['-v'],
+      });
+      // getCredentials resolve the env when called
+      let awsCredentials;
+      overrideEnv(() => {
+        process.env.AWS_DEFAULT_PROFILE = 'notDefault';
+        awsCredentials = serverless.getProvider('aws').getCredentials();
+      });
+      expect(awsCredentials.credentials.accessKeyId).to.equal('NOTDEFAULTKEYID');
+    });
+
+    it('should get credentials from `provider.credentials`', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['-v'],
+        configExt: {
+          provider: {
+            credentials: {
+              // only pick those if both key and secret are defined
+              accessKeyId: 'CONFIGKEYID',
+              secretAccessKey: 'CONFIGSECRET',
+            },
+          },
+        },
+      });
+      const awsCredentials = serverless.getProvider('aws').getCredentials();
+      expect(awsCredentials.credentials.accessKeyId).to.equal('CONFIGKEYID');
+    });
+
+    describe('assume role with provider.profile', () => {
+      let awsCredentials;
+      before(async () => {
+        const { serverless } = await runServerless({
+          fixture: 'aws',
+          cliArgs: ['-v'],
+          configExt: {
+            provider: {
+              profile: 'notDefaultWithRole',
+            },
+          },
+        });
+        awsCredentials = serverless.getProvider('aws').getCredentials();
+      });
+
+      it('should get credentials from `provider.profile`', () => {
+        expect(awsCredentials.credentials.profile).to.equal('notDefaultWithRole');
+      });
+
+      it('should accept a role to assume on credentials', () => {
+        expect(awsCredentials.credentials.roleArn).to.equal('NOTDEFAULTWITHROLEROLE');
+      });
+    });
+
+    it('should get credentials from environment variables', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['-v'],
+      });
+      let awsCredentials;
+      // getCredentials resolve the env when called
+      overrideEnv(() => {
+        process.env.AWS_ACCESS_KEY_ID = 'ENVKEYID';
+        process.env.AWS_SECRET_ACCESS_KEY = 'ENVSECRET';
+        awsCredentials = serverless.getProvider('aws').getCredentials();
+      });
+      expect(awsCredentials.credentials.accessKeyId).to.equal('ENVKEYID');
+    });
+
+    describe('profile with non default credentials file', () => {
+      let awsCredentials;
+      before(async () => {
+        await fs.outputFile(
+          path.resolve(os.homedir(), './custom_credentials'),
+          `
+[default]
+aws_access_key_id = DEFAULTKEYID
+aws_secret_access_key = DEFAULTSECRET
+
+[customProfile]
+aws_access_key_id = CUSTOMKEYID
+aws_secret_access_key = CUSTOMSECRET
+`,
+          { flag: 'w+' }
+        );
+        const { serverless } = await runServerless({
+          fixture: 'aws',
+          cliArgs: ['-v'],
+        });
+        // getCredentials resolve the env when called
+        overrideEnv(() => {
+          process.env.AWS_PROFILE = 'customProfile';
+          process.env.AWS_SHARED_CREDENTIALS_FILE = path
+            .resolve(os.homedir(), './custom_credentials')
+            .toString();
+          awsCredentials = serverless.getProvider('aws').getCredentials();
+        });
+      });
+
+      after(async () => {
+        await fs.remove(path.resolve(os.homedir(), './custom_credentials'));
+      });
+
+      it('should get credentials from AWS_PROFILE environment variable', () => {
+        expect(awsCredentials.credentials.profile).to.equal('customProfile');
+      });
+
+      it('should get credentials from AWS_SHARED_CREDENTIALS_FILE environment variable', () => {
+        expect(awsCredentials.credentials.accessKeyId).to.equal('CUSTOMKEYID');
+      });
+    });
+
+    it('should get credentials from stage specific environment variables', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['-v'],
+        configExt: {
+          provider: {
+            stage: 'testStage',
+          },
+        },
+      });
+      let awsCredentials;
+      overrideEnv(() => {
+        process.env.AWS_TESTSTAGE_ACCESS_KEY_ID = 'TESTSTAGEACCESSKEYID';
+        process.env.AWS_TESTSTAGE_SECRET_ACCESS_KEY = 'TESTSTAGESECRET';
+        awsCredentials = serverless.getProvider('aws').getCredentials();
+      });
+      expect(awsCredentials.credentials.accessKeyId).to.equal('TESTSTAGEACCESSKEYID');
+    });
+
+    it('should get credentials from AWS_{stage}_PROFILE environment variable', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['-v'],
+        configExt: {
+          provider: {
+            stage: 'testStage',
+          },
+        },
+      });
+      let awsCredentials;
+      overrideEnv(() => {
+        process.env.AWS_TESTSTAGE_PROFILE = 'notDefault';
+        awsCredentials = serverless.getProvider('aws').getCredentials();
+      });
+      expect(awsCredentials.credentials.accessKeyId).to.equal('NOTDEFAULTKEYID');
+    });
+
+    describe('profile with cli and encryption', () => {
+      let awsCredentials;
+      before(async () => {
+        const { serverless } = await runServerless({
+          fixture: 'aws',
+          cliArgs: ['-v', '--aws-profile', 'notDefault'],
+          configExt: {
+            provider: {
+              deploymentBucketObject: {
+                serverSideEncryption: 'aws:kms',
+              },
+            },
+          },
+        });
+        awsCredentials = serverless.getProvider('aws').getCredentials();
+      });
+
+      it('should get credentials "--aws-profile" CLI option', () => {
+        expect(awsCredentials.credentials.accessKeyId).to.equal('NOTDEFAULTKEYID');
+      });
+
+      it('should set the signatureVersion to v4 if the serverSideEncryption is aws:kms', () => {
+        expect(awsCredentials.signatureVersion).to.equal('v4');
+      });
+    });
+
+    it('should throw an error if a non-existent profile is set', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['-v', '--aws-profile', 'nonExistent'],
+      });
+      expect(() => serverless.getProvider('aws').getCredentials()).to.throw(Error);
+    });
+  });
+
   describe('#getRegion()', () => {
     it('should default to "us-east-1"', async () => {
       const { serverless } = await runServerless({
