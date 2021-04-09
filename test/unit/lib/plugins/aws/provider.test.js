@@ -454,7 +454,7 @@ role_arn = NOTDEFAULTWITHROLEROLE
     it('should get credentials from default AWS profile', async () => {
       const { serverless } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['-v'],
+        command: 'print',
       });
       const awsCredentials = serverless.getProvider('aws').getCredentials();
       expect(awsCredentials.credentials.accessKeyId).to.equal('DEFAULTKEYID');
@@ -463,7 +463,7 @@ role_arn = NOTDEFAULTWITHROLEROLE
     it('should get credentials from custom default AWS profile, set by AWS_DEFAULT_PROFILE', async () => {
       const { serverless } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['-v'],
+        command: 'print',
       });
       // getCredentials resolve the env when called
       let awsCredentials;
@@ -474,30 +474,12 @@ role_arn = NOTDEFAULTWITHROLEROLE
       expect(awsCredentials.credentials.accessKeyId).to.equal('NOTDEFAULTKEYID');
     });
 
-    it('should get credentials from `provider.credentials`', async () => {
-      const { serverless } = await runServerless({
-        fixture: 'aws',
-        cliArgs: ['-v'],
-        configExt: {
-          provider: {
-            credentials: {
-              // only pick those if both key and secret are defined
-              accessKeyId: 'CONFIGKEYID',
-              secretAccessKey: 'CONFIGSECRET',
-            },
-          },
-        },
-      });
-      const awsCredentials = serverless.getProvider('aws').getCredentials();
-      expect(awsCredentials.credentials.accessKeyId).to.equal('CONFIGKEYID');
-    });
-
     describe('assume role with provider.profile', () => {
       let awsCredentials;
       before(async () => {
         const { serverless } = await runServerless({
           fixture: 'aws',
-          cliArgs: ['-v'],
+          command: 'print',
           configExt: {
             provider: {
               profile: 'notDefaultWithRole',
@@ -519,7 +501,7 @@ role_arn = NOTDEFAULTWITHROLEROLE
     it('should get credentials from environment variables', async () => {
       const { serverless } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['-v'],
+        command: 'print',
       });
       let awsCredentials;
       // getCredentials resolve the env when called
@@ -549,7 +531,7 @@ aws_secret_access_key = CUSTOMSECRET
         );
         const { serverless } = await runServerless({
           fixture: 'aws',
-          cliArgs: ['-v'],
+          command: 'print',
         });
         // getCredentials resolve the env when called
         overrideEnv(() => {
@@ -577,7 +559,7 @@ aws_secret_access_key = CUSTOMSECRET
     it('should get credentials from stage specific environment variables', async () => {
       const { serverless } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['-v'],
+        command: 'print',
         configExt: {
           provider: {
             stage: 'testStage',
@@ -596,7 +578,7 @@ aws_secret_access_key = CUSTOMSECRET
     it('should get credentials from AWS_{stage}_PROFILE environment variable', async () => {
       const { serverless } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['-v'],
+        command: 'print',
         configExt: {
           provider: {
             stage: 'testStage',
@@ -616,10 +598,13 @@ aws_secret_access_key = CUSTOMSECRET
       before(async () => {
         const { serverless } = await runServerless({
           fixture: 'aws',
-          cliArgs: ['-v', '--aws-profile', 'notDefault'],
+          command: 'print',
+          options: {
+            'aws-profile': 'notDefault',
+          },
           configExt: {
             provider: {
-              deploymentBucketObject: {
+              deploymentBucket: {
                 serverSideEncryption: 'aws:kms',
               },
             },
@@ -640,7 +625,10 @@ aws_secret_access_key = CUSTOMSECRET
     it('should throw an error if a non-existent profile is set', async () => {
       const { serverless } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['-v', '--aws-profile', 'nonExistent'],
+        command: 'print',
+        options: {
+          'aws-profile': 'nonExistent',
+        },
       });
       expect(() => serverless.getProvider('aws').getCredentials()).to.throw(Error);
     });
