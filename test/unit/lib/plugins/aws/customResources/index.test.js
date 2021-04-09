@@ -355,3 +355,42 @@ describe('#addCustomResourceToService()', () => {
     });
   });
 });
+
+describe('test/unit/lib/plugins/aws/customResources/index.test.js', () => {
+  it('correctly takes stage from cli into account when constructing apiGatewayCloudWatchRole resource', async () => {
+    const { cfTemplate } = await runServerless({
+      fixture: 'apiGateway',
+      cliArgs: ['package', '--stage', 'testing'],
+      configExt: {
+        provider: {
+          logs: {
+            restApi: true,
+          },
+        },
+      },
+    });
+
+    const properties =
+      cfTemplate.Resources.CustomDashresourceDashapigwDashcwDashroleLambdaFunction.Properties;
+    expect(properties.FunctionName.endsWith('testing-custom-resource-apigw-cw-role')).to.be.true;
+  });
+
+  it('correctly takes stage from config into account when constructing apiGatewayCloudWatchRole resource', async () => {
+    const { cfTemplate } = await runServerless({
+      fixture: 'apiGateway',
+      cliArgs: ['package'],
+      configExt: {
+        provider: {
+          stage: 'testing',
+          logs: {
+            restApi: true,
+          },
+        },
+      },
+    });
+
+    const properties =
+      cfTemplate.Resources.CustomDashresourceDashapigwDashcwDashroleLambdaFunction.Properties;
+    expect(properties.FunctionName.endsWith('testing-custom-resource-apigw-cw-role')).to.be.true;
+  });
+});
