@@ -222,7 +222,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
     it('should use it if defined', async () => {
       const result = await runServerless({
         fixture: 'function',
-        cliArgs: ['package'],
+        command: 'package',
         configExt: {
           functions: {
             fnTargetGroupName: {
@@ -256,7 +256,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
       const runServerlessAction = () =>
         runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             provider: {
               alb: {
@@ -282,10 +282,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
 
       await expect(runServerlessAction())
         .to.eventually.be.rejectedWith(ServerlessError)
-        .and.have.property(
-          'message',
-          'ALB "targetGroupName" setting is exclusive with "provider.alb.targetGroupPrefix": Please specify only one.'
-        );
+        .and.have.property('code', 'ALB_TARGET_GROUP_NAME_EXCLUSIVE');
     });
   });
 });
