@@ -1,5 +1,5 @@
 *.pyc
-java/target
-java/.project
-java/.settings
-java/.classpath
+runtimeWrappers/java/target
+runtimeWrappers/java/.project
+runtimeWrappers/java/.settings
+runtimeWrappers/java/.classpath
