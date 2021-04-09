@@ -1569,12 +1569,7 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       it('should not expose null environment variables', async () => {
         const response = await runServerless({
           fixture: 'invocation',
-          cliArgs: [
-            'invoke',
-            'local',
-            '--function',
-            'async',
-          ],
+          cliArgs: ['invoke', 'local', '--function', 'async'],
           configExt: {
             provider: {
               environment: {
@@ -1588,7 +1583,7 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
                 },
               },
             },
-	  }
+          },
         });
         const stdoutAsJson = JSON.parse(response.stdoutData);
         const stdoutBodyAsJson = JSON.parse(stdoutAsJson.body);
