@@ -13,7 +13,7 @@ describe('#compileRequestValidators()', () => {
   before(async () => {
     const { cfTemplate, awsNaming } = await runServerless({
       fixture: 'requestSchema',
-      cliArgs: ['package'],
+      command: 'package',
     });
     cfResources = cfTemplate.Resources;
     naming = awsNaming;

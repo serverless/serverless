@@ -35,7 +35,7 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
   before(async () => {
     const { awsNaming, cfTemplate, fixtureData, serverless } = await runServerless({
       fixture: 'layer',
-      cliArgs: ['package'],
+      command: 'package',
       configExt: {
         package: {
           individually: true,
@@ -129,7 +129,7 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
         cfTemplate: { Resources: secondCfResources },
       } = await runServerless({
         cwd: servicePath,
-        cliArgs: ['package'],
+        command: 'package',
         awsRequestStubMap,
       });
       expect(secondCfResources).to.not.have.property(firstLayerResourceName);
@@ -139,7 +139,7 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
         cfTemplate: { Resources: firstCfResources },
       } = await runServerless({
         cwd: servicePath,
-        cliArgs: ['package'],
+        command: 'package',
         awsRequestStubMap,
       });
       expect(firstCfResources).to.have.property(firstLayerResourceName);

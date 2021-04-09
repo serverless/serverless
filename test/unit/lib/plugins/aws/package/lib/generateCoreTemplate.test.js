@@ -10,7 +10,7 @@ describe('#generateCoreTemplate()', () => {
   it('should reject non-HTTPS requests to the deployment bucket', () =>
     runServerless({
       config: { service: 'irrelevant', provider: 'aws' },
-      cliArgs: ['package'],
+      command: 'package',
     }).then(({ cfTemplate }) => {
       const serverlessDeploymentBucketPolicy =
         cfTemplate.Resources.ServerlessDeploymentBucketPolicy;
@@ -63,7 +63,7 @@ describe('#generateCoreTemplate()', () => {
         service: 'irrelevant',
         provider: { name: 'aws', deploymentBucket: bucketName },
       },
-      cliArgs: ['package'],
+      command: 'package',
     }).then(({ cfTemplate }) => {
       const template = cfTemplate;
       expect(template.Outputs.ServerlessDeploymentBucketName.Value).to.equal(bucketName);
@@ -83,7 +83,7 @@ describe('#generateCoreTemplate()', () => {
           },
         },
       },
-      cliArgs: ['package'],
+      command: 'package',
     }).then(({ cfTemplate }) => {
       expect(cfTemplate.Resources.ServerlessDeploymentBucket.Properties).to.deep.include({
         PublicAccessBlockConfiguration: {
@@ -109,7 +109,7 @@ describe('#generateCoreTemplate()', () => {
           },
         },
       },
-      cliArgs: ['package'],
+      command: 'package',
     }).then(({ cfTemplate }) => {
       expect(cfTemplate.Resources.ServerlessDeploymentBucket).to.be.deep.equal({
         Type: 'AWS::S3::Bucket',
@@ -142,7 +142,10 @@ describe('#generateCoreTemplate()', () => {
           deploymentBucket: bucketName,
         },
       },
-      cliArgs: ['package', '--aws-s3-accelerate'],
+      command: 'deploy',
+      options: { 'aws-s3-accelerate': true },
+      lastLifecycleHookName: 'before:deploy:deploy',
+      awsRequestStubMap: { S3: { getBucketLocation: { LocationConstraint: '' } } },
     }).then(({ cfTemplate: template }) => {
       expect(template.Outputs.ServerlessDeploymentBucketName.Value).to.equal(bucketName);
       // eslint-disable-next-line no-unused-expressions
@@ -155,7 +158,7 @@ describe('#generateCoreTemplate()', () => {
   it('should use a auto generated bucket if you does not specify deploymentBucket', () =>
     runServerless({
       config: { service: 'irrelevant', provider: 'aws' },
-      cliArgs: ['package'],
+      command: 'package',
     }).then(({ cfTemplate }) => {
       expect(cfTemplate.Resources.ServerlessDeploymentBucket).to.be.deep.equal({
         Type: 'AWS::S3::Bucket',
@@ -176,7 +179,9 @@ describe('#generateCoreTemplate()', () => {
   it('should add a custom output if S3 Transfer Acceleration is enabled', () =>
     runServerless({
       config: { service: 'irrelevant', provider: 'aws' },
-      cliArgs: ['package', '--aws-s3-accelerate'],
+      command: 'deploy',
+      options: { 'aws-s3-accelerate': true },
+      lastLifecycleHookName: 'before:deploy:deploy',
     }).then(({ cfTemplate: template }) => {
       expect(template.Outputs.ServerlessDeploymentBucketAccelerated).to.not.equal(null);
       expect(template.Outputs.ServerlessDeploymentBucketAccelerated.Value).to.equal(true);
@@ -185,7 +190,9 @@ describe('#generateCoreTemplate()', () => {
   it('should explicitly disable S3 Transfer Acceleration, if requested', () =>
     runServerless({
       config: { service: 'irrelevant', provider: 'aws' },
-      cliArgs: ['package', '--no-aws-s3-accelerate'],
+      command: 'deploy',
+      options: { 'aws-s3-accelerate': false },
+      lastLifecycleHookName: 'before:deploy:deploy',
     }).then(({ cfTemplate: template }) => {
       expect(template.Resources.ServerlessDeploymentBucket).to.be.deep.equal({
         Type: 'AWS::S3::Bucket',
@@ -209,7 +216,9 @@ describe('#generateCoreTemplate()', () => {
   it('should exclude AccelerateConfiguration for govcloud region', () =>
     runServerless({
       config: { service: 'irrelevant', provider: { name: 'aws', region: 'us-gov-west-1' } },
-      cliArgs: ['package', '--no-aws-s3-accelerate'],
+      command: 'deploy',
+      options: { 'aws-s3-accelerate': false },
+      lastLifecycleHookName: 'before:deploy:deploy',
     }).then(({ cfTemplate: template }) => {
       expect(template.Resources.ServerlessDeploymentBucket).to.be.deep.equal({
         Type: 'AWS::S3::Bucket',
@@ -238,7 +247,7 @@ describe('#generateCoreTemplate()', () => {
           },
         },
       },
-      cliArgs: ['package'],
+      command: 'package',
     });
 
     expect(cfTemplate.Resources).to.not.have.property(

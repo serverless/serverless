@@ -217,7 +217,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/extendedValidate.test.js', () => 
           },
         },
       },
-      cliArgs: ['deploy'],
+      command: 'deploy',
       lastLifecycleHookName: 'before:deploy:deploy',
     });
 

@@ -76,7 +76,7 @@
   "devDependencies": {
     "@commitlint/cli": "^12.1.1",
     "@serverless/eslint-config": "^3.0.0",
-    "@serverless/test": "^7.11.0",
+    "@serverless/test": "^8.0.0",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
     "cos-nodejs-sdk-v5": "^2.9.13",
@@ -121,7 +121,8 @@
   "eslintIgnore": [
     "!/.github",
     "/lib/plugins/create/templates/**",
-    "/lib/plugins/aws/customResources/node_modules/**"
+    "/lib/plugins/aws/customResources/node_modules/**",
+    "!/test/fixtures/programmatic/locallyInstalledServerless/node_modules/**"
   ],
   "mocha": {
     "require": [

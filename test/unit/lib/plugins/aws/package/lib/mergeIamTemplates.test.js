@@ -8,7 +8,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
     it('should not create role resource if there are no functions', async () => {
       const { cfTemplate, awsNaming } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['package'],
+        command: 'package',
       });
       const iamRoleLambdaExecution = awsNaming.getRoleLogicalId();
       expect(cfTemplate.Resources).to.not.have.property(iamRoleLambdaExecution);
@@ -17,7 +17,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
     it('should not create role resource with `provider.role`', async () => {
       const { cfTemplate, awsNaming } = await runServerless({
         fixture: 'function',
-        cliArgs: ['package'],
+        command: 'package',
         configExt: {
           provider: {
             name: 'aws',
@@ -33,7 +33,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
     it('should not create role resource with `provider.iam.role`', async () => {
       const { cfTemplate, awsNaming } = await runServerless({
         fixture: 'function',
-        cliArgs: ['package'],
+        command: 'package',
         configExt: {
           provider: {
             name: 'aws',
@@ -51,7 +51,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
     it('should not create role resource with all functions having `functions[].role`', async () => {
       const { cfTemplate, awsNaming } = await runServerless({
         fixture: 'function',
-        cliArgs: ['package'],
+        command: 'package',
         configExt: {
           functions: {
             foo: {
@@ -79,7 +79,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       before(async () => {
         const test = await runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             functions: {
               myFunction: {
@@ -173,7 +173,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       before(async () => {
         const { cfTemplate, awsNaming } = await runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             provider: {
               iamRoleStatements: [
@@ -245,7 +245,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       before(async () => {
         const { cfTemplate, awsNaming, fixtureData } = await runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             provider: {
               iam: {
@@ -286,7 +286,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         const customRoleName = 'custom-default-role';
         const { cfTemplate, awsNaming } = await runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             provider: {
               iam: {
@@ -370,7 +370,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       it('should not create default role when `provider.iam.role` defined with CF intrinsic functions', async () => {
         const { cfTemplate, awsNaming } = await runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             provider: {
               iam: {
@@ -394,7 +394,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       before(async () => {
         const { awsNaming, cfTemplate, serverless: serverlessInstance } = await runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             functions: {
               fnDisableLogs: {

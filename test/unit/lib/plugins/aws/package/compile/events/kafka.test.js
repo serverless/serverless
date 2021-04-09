@@ -53,7 +53,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
             },
           },
         },
-        cliArgs: ['package'],
+        command: 'package',
       });
       naming = awsNaming;
       minimalEventSourceMappingResource =
@@ -136,7 +136,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
             },
           },
         },
-        cliArgs: ['package'],
+        command: 'package',
       });
 
       const eventSourceMappingResource =
@@ -358,7 +358,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
             },
           },
         },
-        cliArgs: ['package'],
+        command: 'package',
       });
       const defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution;
       expect(defaultIamRole.Properties.Policies[0].PolicyDocument.Statement).to.deep.include({
@@ -394,7 +394,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
             },
           },
         },
-        cliArgs: ['package'],
+        command: 'package',
       });
 
       const eventSourceMappingResource =
@@ -407,7 +407,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
     it('should not modify the default IAM role', async () => {
       const { cfTemplate } = await runServerless({
         fixture: 'function',
-        cliArgs: ['package'],
+        command: 'package',
       });
 
       const defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution;

@@ -44,6 +44,7 @@ describe('interactiveCli: autoUpdate', () => {
   it('Should not suggest auto update in non supported environments', async () => {
     await runServerless({
       noService: true,
+      command: '',
       lifecycleHookNamesBlacklist,
       modulesCacheStub: {
         ...modulesCacheStub,
@@ -53,6 +54,7 @@ describe('interactiveCli: autoUpdate', () => {
     expect(configUtils.get('autoUpdate.enabled')).to.be.undefined;
     await runServerless({
       noService: true,
+      command: '',
       lifecycleHookNamesBlacklist,
       modulesCacheStub: {
         ...modulesCacheStub,
@@ -68,6 +70,7 @@ describe('interactiveCli: autoUpdate', () => {
     });
     await runServerless({
       noService: true,
+      command: '',
       lifecycleHookNamesBlacklist,
       modulesCacheStub,
     });
@@ -80,6 +83,7 @@ describe('interactiveCli: autoUpdate', () => {
     });
     await runServerless({
       noService: true,
+      command: '',
       lifecycleHookNamesBlacklist,
       modulesCacheStub,
     });
@@ -87,6 +91,7 @@ describe('interactiveCli: autoUpdate', () => {
     inquirer.prompt.restore();
     await runServerless({
       noService: true,
+      command: '',
       lifecycleHookNamesBlacklist,
       modulesCacheStub: {
         './lib/utils/npmPackage/isGlobal.js': async () => true,
@@ -102,6 +107,7 @@ describe('interactiveCli: autoUpdate', () => {
     });
     await runServerless({
       noService: true,
+      command: '',
       lifecycleHookNamesBlacklist,
       modulesCacheStub,
     });

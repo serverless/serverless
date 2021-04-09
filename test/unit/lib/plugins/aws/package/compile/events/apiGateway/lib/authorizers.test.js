@@ -235,7 +235,7 @@ describe('#compileAuthorizers() #2', () => {
           },
         },
       },
-      cliArgs: ['package'],
+      command: 'package',
     }).then(({ awsNaming, cfTemplate }) => {
       // console.log(cfTemplate.Resources);
       const authorizerLogicalId = awsNaming.getAuthorizerLogicalId('foo');

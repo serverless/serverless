@@ -2762,7 +2762,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
   before(async () => {
     const result = await runServerless({
       fixture: 'variables-legacy',
-      cliArgs: ['print'],
+      command: 'print',
       shouldUseLegacyVariablesResolver: true,
     });
     processedConfig = result.serverless.service;
@@ -2827,7 +2827,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
         await expect(
           runServerless({
             fixture: 'variables-legacy',
-            cliArgs: ['print'],
+            command: 'print',
             configExt: {
               unresolvedVariablesNotificationMode: 'error',
               custom: { myVariable: '${env:missingEnvVar}' },
@@ -2841,7 +2841,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
         await expect(
           runServerless({
             fixture: 'variables-legacy',
-            cliArgs: ['print'],
+            command: 'print',
             configExt: {
               unresolvedVariablesNotificationMode: 'error',
               custom: { myVariable: '${opt:missingOpt}' },
@@ -2855,7 +2855,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
         await expect(
           runServerless({
             fixture: 'variables-legacy',
-            cliArgs: ['print'],
+            command: 'print',
             configExt: {
               unresolvedVariablesNotificationMode: 'error',
               custom: { myVariable: '${self:missingAttribute}' },
@@ -2869,7 +2869,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
         await expect(
           runServerless({
             fixture: 'variables-legacy',
-            cliArgs: ['print'],
+            command: 'print',
             configExt: {
               unresolvedVariablesNotificationMode: 'error',
               custom: { myVariable: '${file(./missingFile)}' },
@@ -2884,7 +2884,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
       it('prints warnings to the console but no deprecation message', async () => {
         const { serverless, stdoutData } = await runServerless({
           fixture: 'variables-legacy',
-          cliArgs: ['print'],
+          command: 'print',
           configExt: {
             unresolvedVariablesNotificationMode: 'warn',
             custom: {
@@ -2913,7 +2913,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
       it('should warn and print a deprecation message', async () => {
         const { serverless } = await runServerless({
           fixture: 'variables-legacy',
-          cliArgs: ['print'],
+          command: 'print',
           configExt: {
             custom: {
               myVariable1: '${env:missingEnvVar}',

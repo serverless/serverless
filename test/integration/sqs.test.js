@@ -3,7 +3,7 @@
 const { expect } = require('chai');
 const hasFailed = require('@serverless/test/has-failed');
 const log = require('log').get('serverless:test');
-const fixtures = require('../fixtures');
+const fixtures = require('../fixtures/programmatic');
 
 const { createSqsQueue, deleteSqsQueue, sendSqsMessage } = require('../utils/sqs');
 const { confirmCloudWatchLogs } = require('../utils/misc');

@@ -282,7 +282,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
 
     await runServerless({
       fixture: 'function',
-      cliArgs: ['deploy'],
+      command: 'deploy',
       awsRequestStubMap,
     });
 
@@ -360,7 +360,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
 
     await runServerless({
       fixture: 'function',
-      cliArgs: ['deploy'],
+      command: 'deploy',
       awsRequestStubMap,
       configExt: {
         // Default, non-deterministic service-name invalidates this test as S3 Bucket cleanup relies on it
@@ -470,7 +470,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
 
     const { serverless } = await runServerless({
       fixture: 'packageArtifactInServerlessDir',
-      cliArgs: ['deploy'],
+      command: 'deploy',
       awsRequestStubMap,
       configExt: {
         // Default, non-deterministic service-name invalidates this test

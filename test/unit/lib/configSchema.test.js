@@ -122,7 +122,7 @@ describe('#configSchema', () => {
       runServerless({
         fixture: 'configSchemaExtensions',
         configExt: someCase.mutation,
-        cliArgs: ['info'],
+        command: 'info',
       }).then(
         ({ stdoutData }) => {
           if (!someCase.isValid) {

@@ -254,14 +254,12 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
 
       result = await runServerless({
         fixture: 'invocation',
-        cliArgs: [
-          'invoke',
-          '--function',
-          'callback',
-          '--data',
-          '{"inputKey":"inputValue"}',
-          '--log',
-        ],
+        command: 'invoke',
+        options: {
+          function: 'callback',
+          data: '{"inputKey":"inputValue"}',
+          log: true,
+        },
         awsRequestStubMap: {
           Lambda: {
             invoke: (args) => {
@@ -301,7 +299,8 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
   xit('TODO: should accept no data', async () => {
     await runServerless({
       fixture: 'invocation',
-      cliArgs: ['invoke', '--function', 'callback'],
+      command: 'invoke',
+      options: { function: 'callback' },
       awsRequestStubMap: {
         // Stub AWS SDK invocation, and confirm `Payload` param
       },
@@ -313,7 +312,11 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
   xit('TODO: should support plain string data', async () => {
     await runServerless({
       fixture: 'invocation',
-      cliArgs: ['invoke', '--function', 'callback', '--data', 'inputData'],
+      command: 'invoke',
+      options: {
+        function: 'callback',
+        data: 'inputData',
+      },
       awsRequestStubMap: {
         // Stub AWS SDK invocation, and confirm `Payload` param
       },
@@ -325,7 +328,12 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
   xit('TODO: should should not attempt to parse data with raw option', async () => {
     await runServerless({
       fixture: 'invocation',
-      cliArgs: ['invoke', '--function', 'callback', '--data', '{"inputKey":"inputValue"}', '--raw'],
+      command: 'invoke',
+      options: {
+        function: 'callback',
+        data: '{"inputKey":"inputValue"}',
+        raw: true,
+      },
       awsRequestStubMap: {
         // Stub AWS SDK invocation, and confirm `Payload` param
       },
@@ -337,7 +345,11 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
   xit('TODO: should support JSON file path as data', async () => {
     await runServerless({
       fixture: 'invocation',
-      cliArgs: ['invoke', '--function', 'callback', '--path', 'payload.json'],
+      command: 'invoke',
+      options: {
+        function: 'callback',
+        path: 'payload.json',
+      },
       awsRequestStubMap: {
         // Stub AWS SDK invocation, and confirm `Payload` param
       },
@@ -349,12 +361,11 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
   xit('TODO: should support absolute file path as data', async () => {
     await runServerless({
       fixture: 'invocation',
-      cliArgs: [
-        'invoke',
-        '--function',
-        'callback',
-        '--path' /* TODO: Pass absolute path to payload.json in fixture */,
-      ],
+      command: 'invoke',
+      options: {
+        function: 'callback',
+        path: '' /* TODO: Pass absolute path to payload.json in fixture */,
+      },
       awsRequestStubMap: {
         // Stub AWS SDK invocation, and confirm `Payload` param
       },
@@ -366,7 +377,11 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
   xit('TODO: should support YAML file path as data', async () => {
     await runServerless({
       fixture: 'invocation',
-      cliArgs: ['invoke', '--function', 'callback', '--path', 'payload.yaml'],
+      command: 'invoke',
+      options: {
+        function: 'callback',
+        path: 'payload.yaml',
+      },
       awsRequestStubMap: {
         // Stub AWS SDK invocation, and confirm `Payload` param
       },
@@ -379,7 +394,11 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
     await expect(
       runServerless({
         fixture: 'invocation',
-        cliArgs: ['invoke', '--function', 'callback', '--path', 'not-existing.yaml'],
+        command: 'invoke',
+        options: {
+          function: 'callback',
+          path: 'not-existing.yaml',
+        },
       })
     ).to.eventually.be.rejected.and.have.property('code', 'TODO');
     // Replaces
@@ -390,7 +409,8 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
     await expect(
       runServerless({
         fixture: 'invocation',
-        cliArgs: ['invoke', '--function', 'notExisting'],
+        command: 'invoke',
+        options: { function: 'notExisting' },
       })
     ).to.eventually.be.rejected.and.have.property('code', 'TODO');
     // Replaces
@@ -400,7 +420,11 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
   xit('TODO: should support --type option', async () => {
     await runServerless({
       fixture: 'invocation',
-      cliArgs: ['invoke', '--function', 'callback', '--type', 'Event'],
+      command: 'invoke',
+      options: {
+        function: 'callback',
+        type: 'Event',
+      },
       awsRequestStubMap: {
         // Stub AWS SDK invocation, and confirm `InvocationType` param
       },
@@ -412,7 +436,11 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
   xit('TODO: should support --qualifier option', async () => {
     await runServerless({
       fixture: 'invocation',
-      cliArgs: ['invoke', '--function', 'callback', '--qualifier', 'foo'],
+      command: 'invoke',
+      options: {
+        function: 'callback',
+        qualifier: 'foo',
+      },
       awsRequestStubMap: {
         // Stub AWS SDK invocation, and confirm `Qualifier` param
       },
@@ -426,7 +454,11 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
 
     const result = await runServerless({
       fixture: 'invocation',
-      cliArgs: ['invoke', '--function', 'callback', '--context', 'somecontext'],
+      command: 'invoke',
+      options: {
+        function: 'callback',
+        context: 'somecontext',
+      },
       awsRequestStubMap: {
         Lambda: {
           invoke: (args) => {
@@ -451,7 +483,12 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
 
     const result = await runServerless({
       fixture: 'invocation',
-      cliArgs: ['invoke', '--function', 'callback', '--raw', '--context', '{"ctx": "somecontext"}'],
+      command: 'invoke',
+      options: {
+        function: 'callback',
+        context: '{"ctx": "somecontext"}',
+        raw: true,
+      },
       awsRequestStubMap: {
         Lambda: {
           invoke: (args) => {
@@ -473,20 +510,25 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
 
   it('should support `--contextPath` param', async () => {
     const lambdaInvokeStub = sinon.stub();
-    const contextDataFile = path.join(
+    const contextDataFilePath = path.join(
       __dirname,
       '..',
       '..',
       '..',
       '..',
       'fixtures',
+      'programmatic',
       'invocation',
       'context.json'
     );
 
     const result = await runServerless({
       fixture: 'invocation',
-      cliArgs: ['invoke', '--function', 'callback', '--contextPath', contextDataFile],
+      command: 'invoke',
+      options: {
+        function: 'callback',
+        contextPath: contextDataFilePath,
+      },
       awsRequestStubMap: {
         Lambda: {
           invoke: (args) => {
@@ -509,12 +551,16 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
   it('should throw error on invoke with contextPath if file not exists', async () => {
     const lambdaInvokeStub = sinon.stub();
 
-    const contextDataFile = path.join(getTmpDirPath(), 'context.json');
+    const contextDataFilePath = path.join(getTmpDirPath(), 'context.json');
 
     await expect(
       runServerless({
         fixture: 'invocation',
-        cliArgs: ['invoke', '--function', 'callback', '--contextPath', contextDataFile],
+        command: 'invoke',
+        options: {
+          function: 'callback',
+          contextPath: contextDataFilePath,
+        },
         awsRequestStubMap: {
           Lambda: {
             invoke: (args) => {
@@ -534,7 +580,11 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
     await expect(
       runServerless({
         fixture: 'invocation',
-        cliArgs: ['invoke', '--function', 'callback', '--path', 'not-existing.yaml'],
+        command: 'invoke',
+        options: {
+          function: 'callback',
+          path: 'not-existing.yaml',
+        },
       })
     ).to.eventually.be.rejected.and.have.property('code', 'TODO');
     // Replace

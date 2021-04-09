@@ -355,7 +355,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
   it('should support deploying function that has image defined with sha', async () => {
     await runServerless({
       fixture: 'function',
-      cliArgs: ['deploy', 'function', '-f', 'foo'],
+      command: 'deploy function',
+      options: { function: 'foo' },
       awsRequestStubMap,
       configExt: {
         functions: {
@@ -372,7 +373,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
   it('should support updating function with image config', async () => {
     await runServerless({
       fixture: 'function',
-      cliArgs: ['deploy', 'function', '-f', 'foo'],
+      command: 'deploy function',
+      options: { function: 'foo' },
       awsRequestStubMap,
       configExt: {
         functions: {
@@ -400,7 +402,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
   it('should skip updating function configuration if image config did not change', async () => {
     const { stdoutData } = await runServerless({
       fixture: 'function',
-      cliArgs: ['deploy', 'function', '-f', 'foo'],
+      command: 'deploy function',
+      options: { function: 'foo' },
       awsRequestStubMap: {
         ...awsRequestStubMap,
         Lambda: {
@@ -443,7 +446,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
   it('should skip deployment if image sha did not change', async () => {
     const { stdoutData } = await runServerless({
       fixture: 'function',
-      cliArgs: ['deploy', 'function', '-f', 'foo'],
+      command: 'deploy function',
+      options: { function: 'foo' },
       awsRequestStubMap: {
         ...awsRequestStubMap,
         Lambda: {
@@ -472,7 +476,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     await expect(
       runServerless({
         fixture: 'function',
-        cliArgs: ['deploy', 'function', '-f', 'foo'],
+        command: 'deploy function',
+        options: { function: 'foo' },
         awsRequestStubMap: {
           ...awsRequestStubMap,
           Lambda: {
@@ -503,7 +508,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     await expect(
       runServerless({
         fixture: 'function',
-        cliArgs: ['deploy', 'function', '-f', 'foo'],
+        command: 'deploy function',
+        options: { function: 'foo' },
         awsRequestStubMap: {
           ...awsRequestStubMap,
           Lambda: {
@@ -532,7 +538,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       .resolves({});
     const { stdoutData } = await runServerless({
       fixture: 'function',
-      cliArgs: ['deploy', 'function', '-f', 'foo'],
+      command: 'deploy function',
+      options: { function: 'foo' },
       awsRequestStubMap: {
         ...awsRequestStubMap,
         Lambda: {
@@ -559,7 +566,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
   it('should update function configuration if configuration changed', async () => {
     const { stdoutData } = await runServerless({
       fixture: 'function',
-      cliArgs: ['deploy', 'function', '-f', 'foo'],
+      command: 'deploy function',
+      options: { function: 'foo' },
       awsRequestStubMap: {
         ...awsRequestStubMap,
         Lambda: {
@@ -630,7 +638,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
   it('should skip updating properties that contain references', async () => {
     const { stdoutData } = await runServerless({
       fixture: 'function',
-      cliArgs: ['deploy', 'function', '-f', 'foo'],
+      command: 'deploy function',
+      options: { function: 'foo' },
       awsRequestStubMap: {
         ...awsRequestStubMap,
         Lambda: {
@@ -678,7 +687,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
   it('should update function configuration with provider-level properties', async () => {
     const { stdoutData } = await runServerless({
       fixture: 'function',
-      cliArgs: ['deploy', 'function', '-f', 'foo'],
+      command: 'deploy function',
+      options: { function: 'foo' },
       awsRequestStubMap: {
         ...awsRequestStubMap,
         Lambda: {
@@ -736,7 +746,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
   it('should not update function configuration if configuration did not change', async () => {
     const { stdoutData } = await runServerless({
       fixture: 'function',
-      cliArgs: ['deploy', 'function', '-f', 'foo'],
+      command: 'deploy function',
+      options: { function: 'foo' },
       awsRequestStubMap: {
         ...awsRequestStubMap,
         Lambda: {
@@ -809,7 +820,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
   it('configuration uses the "kmsKeyArn" instead of functionObj.awsKmsKeyArn', async () => {
     await runServerless({
       fixture: 'function',
-      cliArgs: ['deploy', 'function', '--function', 'foo'],
+      command: 'deploy function',
+      options: { function: 'foo' },
       lastLifecycleHookName: 'deploy:function:deploy',
       awsRequestStubMap,
       configExt: {
@@ -836,7 +848,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
   it('configuration uses the "kmsKeyArn" instead of serviceObj.awsKmsKeyArn', async () => {
     await runServerless({
       fixture: 'function',
-      cliArgs: ['deploy', 'function', '--function', 'foo'],
+      command: 'deploy function',
+      options: { function: 'foo' },
       lastLifecycleHookName: 'deploy:function:deploy',
       awsRequestStubMap,
       configExt: {
@@ -864,7 +877,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
   it('configuration uses serviceObj.awsKmsKeyArn if no kmsKeyArn provided', async () => {
     await runServerless({
       fixture: 'function',
-      cliArgs: ['deploy', 'function', '--function', 'foo'],
+      command: 'deploy function',
+      options: { function: 'foo' },
       lastLifecycleHookName: 'deploy:function:deploy',
       awsRequestStubMap,
       configExt: {
@@ -891,7 +905,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
   it('configuration uses functionObj.awsKmsKeyArn and if kmsKeyArn not provided', async () => {
     await runServerless({
       fixture: 'function',
-      cliArgs: ['deploy', 'function', '--function', 'foo'],
+      command: 'deploy function',
+      options: { function: 'foo' },
       lastLifecycleHookName: 'deploy:function:deploy',
       awsRequestStubMap,
       configExt: {
@@ -916,7 +931,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     await expect(
       runServerless({
         fixture: 'function',
-        cliArgs: ['deploy', 'function', '--function', 'foo'],
+        command: 'deploy function',
+        options: { function: 'foo' },
         lastLifecycleHookName: 'deploy:function:deploy',
         awsRequestStubMap: {
           ...awsRequestStubMap,
@@ -935,7 +951,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     await expect(
       runServerless({
         fixture: 'function',
-        cliArgs: ['deploy', 'function', '--function', 'foo'],
+        command: 'deploy function',
+        options: { function: 'foo' },
         lastLifecycleHookName: 'deploy:function:deploy',
         awsRequestStubMap: {
           ...awsRequestStubMap,

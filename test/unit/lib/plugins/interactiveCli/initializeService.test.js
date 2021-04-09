@@ -38,6 +38,7 @@ describe('interactiveCli: initializeService', () => {
   it('Should be ineffective, when at service path', async () =>
     runServerless({
       cwd: join(fixturesPath, 'some-other-service'),
+      command: '',
       lifecycleHookNamesBlacklist,
     }));
 
@@ -47,6 +48,7 @@ describe('interactiveCli: initializeService', () => {
     });
     return runServerless({
       cwd: fixturesPath,
+      command: '',
       pluginPathsWhitelist: ['./lib/plugins/interactiveCli'],
       lifecycleHookNamesBlacklist,
     });
@@ -59,6 +61,7 @@ describe('interactiveCli: initializeService', () => {
     });
     return runServerless({
       cwd: fixturesPath,
+      command: '',
       pluginPathsWhitelist: ['./lib/plugins/interactiveCli'],
       lifecycleHookNamesBlacklist,
     });
@@ -75,6 +78,7 @@ describe('interactiveCli: initializeService', () => {
       });
       await runServerless({
         cwd: fixturesPath,
+        command: '',
         pluginPathsWhitelist: ['./lib/plugins/interactiveCli'],
         lifecycleHookNamesBlacklist,
       });
@@ -93,6 +97,7 @@ describe('interactiveCli: initializeService', () => {
     await expect(
       runServerless({
         cwd: fixturesPath,
+        command: '',
         pluginPathsWhitelist: ['./lib/plugins/interactiveCli'],
         lifecycleHookNamesBlacklist,
       })
@@ -108,6 +113,7 @@ describe('interactiveCli: initializeService', () => {
     await expect(
       runServerless({
         cwd: fixturesPath,
+        command: '',
         pluginPathsWhitelist: ['./lib/plugins/interactiveCli'],
         lifecycleHookNamesBlacklist,
       })

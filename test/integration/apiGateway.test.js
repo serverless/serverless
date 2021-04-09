@@ -3,7 +3,7 @@
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 const awsRequest = require('@serverless/test/aws-request');
-const fixtures = require('../fixtures');
+const fixtures = require('../fixtures/programmatic');
 
 const { confirmCloudWatchLogs } = require('../utils/misc');
 const { deployService, removeService, fetch } = require('../utils/integration');

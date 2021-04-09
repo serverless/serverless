@@ -62,7 +62,7 @@ describe('test/unit/lib/plugins/aws/remove/index.test.js', () => {
 
     const { awsNaming } = await runServerless({
       fixture: 'function',
-      cliArgs: ['remove'],
+      command: 'remove',
       awsRequestStubMap,
     });
 
@@ -86,7 +86,7 @@ describe('test/unit/lib/plugins/aws/remove/index.test.js', () => {
 
     const { awsNaming } = await runServerless({
       fixture: 'function',
-      cliArgs: ['remove'],
+      command: 'remove',
       awsRequestStubMap,
     });
 
@@ -109,7 +109,7 @@ describe('test/unit/lib/plugins/aws/remove/index.test.js', () => {
     describeRepositoriesStub.resolves();
     const { awsNaming } = await runServerless({
       fixture: 'function',
-      cliArgs: ['remove'],
+      command: 'remove',
       awsRequestStubMap,
     });
 
@@ -125,7 +125,7 @@ describe('test/unit/lib/plugins/aws/remove/index.test.js', () => {
 
     const { stdoutData } = await runServerless({
       fixture: 'ecr',
-      cliArgs: ['remove'],
+      command: 'remove',
       awsRequestStubMap,
     });
 

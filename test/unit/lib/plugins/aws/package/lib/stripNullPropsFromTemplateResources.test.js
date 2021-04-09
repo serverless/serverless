@@ -11,7 +11,7 @@ describe('test/unit/lib/plugins/aws/package/lib/stripNullPropsFromTemplateResour
   before(async () => {
     const result = await runServerless({
       fixture: 'aws',
-      cliArgs: ['deploy'],
+      command: 'deploy',
       lastLifecycleHookName: 'package:finalize',
       configExt: {
         resources: {

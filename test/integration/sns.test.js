@@ -3,7 +3,7 @@
 const BbPromise = require('bluebird');
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
-const fixtures = require('../fixtures');
+const fixtures = require('../fixtures/programmatic');
 
 const { confirmCloudWatchLogs } = require('../utils/misc');
 const { createSnsTopic, removeSnsTopic, publishSnsMessage } = require('../utils/sns');

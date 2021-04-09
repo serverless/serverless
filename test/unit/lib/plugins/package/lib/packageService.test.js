@@ -6,7 +6,7 @@ const chai = require('chai');
 const sinon = require('sinon');
 const { listFileProperties, listZipFiles } = require('../../../../../utils/fs');
 const runServerless = require('../../../../../utils/run-serverless');
-const fixtures = require('../../../../../fixtures');
+const fixtures = require('../../../../../fixtures/programmatic');
 
 // Configure chai
 chai.use(require('chai-as-promised'));
@@ -45,7 +45,7 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
         serverless: serverlessInstance,
       } = await runServerless({
         fixture: 'packaging',
-        cliArgs: ['package'],
+        command: 'package',
         awsRequestStubMap: mockedDescribeStacksResponse,
         configExt: {
           package: {
@@ -139,7 +139,7 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
         },
       } = await runServerless({
         fixture: 'packaging',
-        cliArgs: ['package'],
+        command: 'package',
         awsRequestStubMap: mockedDescribeStacksResponse,
         configExt: {
           useDotenv: true,
@@ -165,7 +165,7 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
         serverless: serverlessInstance,
       } = await runServerless({
         fixture: 'packaging',
-        cliArgs: ['package'],
+        command: 'package',
         awsRequestStubMap: mockedDescribeStacksResponse,
         configExt: {
           package: {
@@ -223,7 +223,7 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
     before(async () => {
       const { serverless: serverlessInstance } = await runServerless({
         fixture: 'packaging',
-        cliArgs: ['package'],
+        command: 'package',
         awsRequestStubMap: mockedDescribeStacksResponse,
         configExt: {
           package: {
@@ -311,7 +311,7 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
 
         await runServerless({
           cwd: servicePath,
-          cliArgs: ['deploy'],
+          command: 'deploy',
           lastLifecycleHookName: 'aws:deploy:deploy:uploadArtifacts',
           awsRequestStubMap,
         });
@@ -333,7 +333,7 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
         });
         await runServerless({
           cwd: servicePath,
-          cliArgs: ['deploy'],
+          command: 'deploy',
           lastLifecycleHookName: 'aws:deploy:deploy:uploadArtifacts',
           awsRequestStubMap,
         });
@@ -379,7 +379,8 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
         });
         await runServerless({
           cwd: servicePath,
-          cliArgs: ['deploy', '-f', 'other'],
+          command: 'deploy function',
+          options: { function: 'other' },
           awsRequestStubMap,
         });
         expect(updateFunctionCodeStub).to.have.been.calledOnce;
@@ -398,7 +399,8 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
         });
         await runServerless({
           cwd: servicePath,
-          cliArgs: ['deploy', '-f', 'foo'],
+          command: 'deploy function',
+          options: { function: 'foo' },
           awsRequestStubMap,
         });
         expect(updateFunctionCodeStub).to.have.been.calledOnce;

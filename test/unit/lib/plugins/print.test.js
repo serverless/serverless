@@ -337,7 +337,7 @@ describe('test/unit/lib/plugins/print.test.js', () => {
   it('correctly prints config', async () => {
     const { stdoutData } = await runServerless({
       fixture: 'aws',
-      cliArgs: ['print'],
+      command: 'print',
     });
 
     expect(stdoutData).to.include('name: aws');

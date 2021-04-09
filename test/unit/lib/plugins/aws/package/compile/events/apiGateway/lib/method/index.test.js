@@ -497,7 +497,7 @@ describe('#compileMethods()', () => {
 
   it('should set required to true when omitted from mapped value', async () => {
     const { cfTemplate } = await runServerless({
-      cliArgs: ['package'],
+      command: 'package',
       fixture: 'function',
       configExt: {
         functions: {
@@ -1763,7 +1763,7 @@ describe('#compileMethods v2()', () => {
             },
           },
         },
-        cliArgs: ['package'],
+        command: 'package',
       });
       const apiGatewayMethodConfig = cfResources[awsNaming.getMethodLogicalId('Foo', 'GET')];
 

@@ -837,8 +837,23 @@ describe('AwsCompileS3Events', () => {
 
     it('should create lambda permissions policy with wild card', async () => {
       const { cfTemplate } = await runServerless({
-        fixture: 's3',
-        cliArgs: ['package'],
+        fixture: 'function',
+        configExt: {
+          functions: {
+            foo: {
+              events: [
+                {
+                  s3: {
+                    bucket: 'foo',
+                    event: 's3:ObjectCreated:*',
+                    existing: true,
+                  },
+                },
+              ],
+            },
+          },
+        },
+        command: 'package',
       });
 
       const expectedResource = [

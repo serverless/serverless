@@ -50,7 +50,7 @@ describe('AwsCompileMSKEvents', () => {
             },
           },
         },
-        cliArgs: ['package'],
+        command: 'package',
       });
       naming = awsNaming;
       minimalEventSourceMappingResource =
@@ -117,7 +117,7 @@ describe('AwsCompileMSKEvents', () => {
     it('should not modify the default IAM role', async () => {
       const { cfTemplate } = await runServerless({
         fixture: 'function',
-        cliArgs: ['package'],
+        command: 'package',
       });
 
       const defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution;

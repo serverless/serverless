@@ -37,7 +37,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
 
     const { awsNaming, cfTemplate } = await runServerless({
       fixture: 'function',
-      cliArgs: ['package'],
+      command: 'package',
       configExt: {
         provider: {
           alb: {
@@ -195,7 +195,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
       const runServerlessAction = () =>
         runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             functions: {
               fnConditionsHostOnly: {

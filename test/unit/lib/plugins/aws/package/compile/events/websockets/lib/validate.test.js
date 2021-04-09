@@ -294,7 +294,7 @@ describe('#validate() using runServerless util', () => {
           },
         },
       },
-      cliArgs: ['package'],
+      command: 'package',
     });
 
     const cfResources = cfTemplate.Resources;
