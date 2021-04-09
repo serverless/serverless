@@ -1565,6 +1565,31 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
         // Replaces
         // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L426-L441
       });
+
+      it('should not expose null environment variables', async () => {
+        const response = await runServerless({
+          fixture: 'invocation',
+          cliArgs: ['invoke', 'local', '--function', 'async'],
+          configExt: {
+            provider: {
+              environment: {
+                PROVIDER_LEVEL_VAR: null,
+              },
+            },
+            functions: {
+              fn: {
+                environment: {
+                  FUNCTION_LEVEL_VAR: null,
+                },
+              },
+            },
+          },
+        });
+        const stdoutAsJson = JSON.parse(response.stdoutData);
+        const stdoutBodyAsJson = JSON.parse(stdoutAsJson.body);
+        expect(stdoutBodyAsJson.env.PROVIDER_LEVEL_VAR).to.be.undefined;
+        expect(stdoutBodyAsJson.env.FUNCTION_LEVEL_VAR).to.be.undefined;
+      });
     });
   };
 
