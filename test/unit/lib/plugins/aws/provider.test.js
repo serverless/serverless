@@ -451,10 +451,6 @@ role_arn = NOTDEFAULTWITHROLEROLE
       );
     });
 
-    after(async () => {
-      await fs.remove(path.resolve(os.homedir(), './.aws'));
-    });
-
     it('should get credentials from default AWS profile', async () => {
       const { serverless } = await runServerless({
         fixture: 'aws',
