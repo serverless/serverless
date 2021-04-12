@@ -81,6 +81,18 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
               },
             ],
           },
+          fnAlbTargetGroupName: {
+            handler: 'index.handler',
+            events: [
+              {
+                alb: {
+                  ...validBaseEventConfig,
+                  priority: 7,
+                  targetGroupName: 'custom-targetgroup-name',
+                },
+              },
+            ],
+          },
         },
       },
     });
@@ -220,34 +232,13 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
 
   describe('should support `functions[].events[].alb.targetGroupName` property', () => {
     it('should use it if defined', async () => {
-      const result = await runServerless({
-        fixture: 'function',
-        command: 'package',
-        configExt: {
-          functions: {
-            fnTargetGroupName: {
-              handler: 'index.handler',
-              events: [
-                {
-                  alb: {
-                    ...validBaseEventConfig,
-                    priority: 1,
-                    targetGroupName: 'custom-targetgroup-name',
-                  },
-                },
-              ],
-            },
-          },
-        },
-      });
-
       const albListenerRuleLogicalId = naming.getAlbTargetGroupLogicalId(
-        'fnTargetGroupName',
+        'fnAlbTargetGroupName',
         albId,
         false
       );
 
-      expect(result.cfTemplate.Resources[albListenerRuleLogicalId].Properties.Name).to.equal(
+      expect(cfResources[albListenerRuleLogicalId].Properties.Name).to.equal(
         'custom-targetgroup-name'
       );
     });
