@@ -347,22 +347,6 @@ describe('Variables', () => {
       { name: 'region', getter: (provider) => provider.getRegion() },
       { name: 'stage', getter: (provider) => provider.getStage() },
       { name: 'profile', getter: (provider) => provider.getProfile() },
-      {
-        name: 'credentials',
-        getter: (provider) => provider.serverless.service.provider.credentials,
-      },
-      {
-        name: 'credentials.accessKeyId',
-        getter: (provider) => provider.serverless.service.provider.credentials.accessKeyId,
-      },
-      {
-        name: 'credentials.secretAccessKey',
-        getter: (provider) => provider.serverless.service.provider.credentials.secretAccessKey,
-      },
-      {
-        name: 'credentials.sessionToken',
-        getter: (provider) => provider.serverless.service.provider.credentials.sessionToken,
-      },
     ];
     describe('basic population tests', () => {
       prepopulatedProperties.forEach((property) => {

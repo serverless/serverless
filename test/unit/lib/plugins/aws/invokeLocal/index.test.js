@@ -240,7 +240,6 @@ describe('AwsInvokeLocal', () => {
   describe('#getCredentialEnvVars()', () => {
     it('returns empty object when credentials is not set', () => {
       provider.cachedCredentials = null;
-      serverless.service.provider.credentials = null;
 
       const credentialEnvVars = awsInvokeLocal.getCredentialEnvVars();
 
@@ -254,24 +253,6 @@ describe('AwsInvokeLocal', () => {
           secretAccessKey: 'SECRET',
           sessionToken: 'TOKEN',
         },
-      };
-      serverless.service.provider.credentials = null;
-
-      const credentialEnvVars = awsInvokeLocal.getCredentialEnvVars();
-
-      expect(credentialEnvVars).to.be.eql({
-        AWS_ACCESS_KEY_ID: 'ID',
-        AWS_SECRET_ACCESS_KEY: 'SECRET',
-        AWS_SESSION_TOKEN: 'TOKEN',
-      });
-    });
-
-    it('returns credential env vars from credentials config', () => {
-      provider.cachedCredentials = null;
-      serverless.service.provider.credentials = {
-        accessKeyId: 'ID',
-        secretAccessKey: 'SECRET',
-        sessionToken: 'TOKEN',
       };
 
       const credentialEnvVars = awsInvokeLocal.getCredentialEnvVars();
