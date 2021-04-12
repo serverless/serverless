@@ -779,10 +779,10 @@ describe('#naming()', () => {
     });
   });
 
-  describe('#getAlbTargetGroupName()', () => {
+  describe('#generateAlbTargetGroupName()', () => {
     it('should return a unique identifier based on the service name, function name, alb id, multi-value attribute and stage', () => {
       serverless.service.service = 'myService';
-      expect(sdk.naming.getAlbTargetGroupName('functionName', 'abc123', true)).to.equal(
+      expect(sdk.naming.generateAlbTargetGroupName('functionName', 'abc123', true)).to.equal(
         '79039bd239ac0b3f6ff6d9296f23e27c'
       );
     });
@@ -791,7 +791,7 @@ describe('#naming()', () => {
       serverless.service.service = 'myService';
       serverless.service.provider.alb = {};
       serverless.service.provider.alb.targetGroupPrefix = 'myPrefix-';
-      expect(sdk.naming.getAlbTargetGroupName('functionName', 'abc123', true)).to.equal(
+      expect(sdk.naming.generateAlbTargetGroupName('functionName', 'abc123', true)).to.equal(
         'myPrefix-79039bd239ac0b3f6ff6d92'
       );
     });

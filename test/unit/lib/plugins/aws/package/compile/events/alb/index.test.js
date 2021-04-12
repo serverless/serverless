@@ -11,21 +11,19 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
   let cfResources;
   let naming;
 
+  const albId = '50dc6c495c0c9188';
   const baseEventConfig = {
-    listenerArn:
-      'arn:aws:elasticloadbalancing:' +
-      'us-east-1:123456789012:listener/app/my-load-balancer/' +
-      '50dc6c495c0c9188/f2f7dc8efc522ab2',
+    listenerArn: `arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/my-load-balancer/${albId}/f2f7dc8efc522ab2`,
+  };
+
+  const validBaseEventConfig = {
+    ...baseEventConfig,
+    conditions: {
+      path: '/',
+    },
   };
 
   before(async () => {
-    const validBaseEventConfig = {
-      ...baseEventConfig,
-      conditions: {
-        path: '/',
-      },
-    };
-
     const baseAuthorizerConfig = {
       type: 'cognito',
       userPoolClientId: 'userPoolClientId',
@@ -79,6 +77,18 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
                   ...baseEventConfig,
                   priority: 6,
                   conditions: { host: ['example1.com', 'example2.com'] },
+                },
+              },
+            ],
+          },
+          fnAlbTargetGroupName: {
+            handler: 'index.handler',
+            events: [
+              {
+                alb: {
+                  ...validBaseEventConfig,
+                  priority: 7,
+                  targetGroupName: 'custom-targetgroup-name',
                 },
               },
             ],
@@ -217,6 +227,53 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
       await expect(runServerlessAction())
         .to.eventually.be.rejectedWith(ServerlessError)
         .and.have.property('code', 'ALB_NO_CONDITIONS');
+    });
+  });
+
+  describe('should support `functions[].events[].alb.targetGroupName` property', () => {
+    it('should use it if defined', async () => {
+      const albListenerRuleLogicalId = naming.getAlbTargetGroupLogicalId(
+        'fnAlbTargetGroupName',
+        albId,
+        false
+      );
+
+      expect(cfResources[albListenerRuleLogicalId].Properties.Name).to.equal(
+        'custom-targetgroup-name'
+      );
+    });
+
+    it('should reject if `provider.alb.targetGroupPrefix` is also specified', async () => {
+      const runServerlessAction = () =>
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            provider: {
+              alb: {
+                targetGroupPrefix: 'a-prefix',
+              },
+            },
+            functions: {
+              fnTargetGroupName: {
+                handler: 'index.handler',
+                events: [
+                  {
+                    alb: {
+                      ...validBaseEventConfig,
+                      priority: 1,
+                      targetGroupName: 'custom-targetgroup-name',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        });
+
+      await expect(runServerlessAction())
+        .to.eventually.be.rejectedWith(ServerlessError)
+        .and.have.property('code', 'ALB_TARGET_GROUP_NAME_EXCLUSIVE');
     });
   });
 });

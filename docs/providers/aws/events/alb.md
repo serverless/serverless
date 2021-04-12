@@ -196,6 +196,25 @@ functions:
             path: /hello
 ```
 
+## Specifying explicitly the target group names
+
+If you want full control over the name used for the target group you can specify it using the `targetGroupName` property. Note that the name must be unique accross the entire region and is limited to 32 characters with only alphanumerics and hyphens allowed.
+
+This setting is exclusive with the `provider.alb.targetGroupPrefix` setting.
+
+```yml
+functions:
+  albEventConsumer:
+    handler: handler.hello
+    events:
+      - alb:
+          listenerArn: arn:aws:elasticloadbalancing:us-east-1:12345:listener/app/my-load-balancer/50dc6c495c0c9188/
+          priority: 1
+          targetGroupName: helloTargetGroup
+          conditions:
+            path: /hello
+```
+
 ## Configuring Health Checks
 
 Health checks for target groups with a _lambda_ target type are disabled by default.
