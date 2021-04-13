@@ -413,7 +413,7 @@ const processSpanPromise = (async () => {
           ));
         }
 
-        require('../lib/cli/ensure-supported-command')();
+        require('../lib/cli/ensure-supported-command')(configuration);
         if (isHelpRequest) return;
         if (!_.get(variablesMeta, 'size')) return;
 
