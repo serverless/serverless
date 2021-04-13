@@ -236,46 +236,6 @@ describe('AwsProvider', () => {
     });
   });
 
-  describe('#getProfile()', () => {
-    let newAwsProvider;
-
-    it('should prefer options over config or provider', () => {
-      const newOptions = {
-        profile: 'optionsProfile',
-      };
-      const config = {
-        profile: 'configProfile',
-      };
-      serverless = new Serverless(config);
-      serverless.service.provider.profile = 'providerProfile';
-      newAwsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(newAwsProvider.getProfile()).to.equal(newOptions.profile);
-    });
-
-    it('should prefer config over provider in lieu of options', () => {
-      const newOptions = {};
-      const config = {
-        profile: 'configProfile',
-      };
-      serverless = new Serverless(config);
-      serverless.service.provider.profile = 'providerProfile';
-      newAwsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(newAwsProvider.getProfile()).to.equal(config.profile);
-    });
-
-    it('should use provider in lieu of options and config', () => {
-      const newOptions = {};
-      const config = {};
-      serverless = new Serverless(config);
-      serverless.service.provider.profile = 'providerProfile';
-      newAwsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(newAwsProvider.getProfile()).to.equal(serverless.service.provider.profile);
-    });
-  });
-
   describe('#getServerlessDeploymentBucketName()', () => {
     it('should return the name of the serverless deployment bucket', () => {
       const describeStackResourcesStub = sinon.stub(awsProvider, 'request').resolves({
@@ -668,6 +628,54 @@ aws_secret_access_key = CUSTOMSECRET
         },
       });
       expect(serverless.getProvider('aws').getRegion()).to.equal('us-west-1');
+    });
+  });
+
+  describe('#getProfile()', () => {
+    it('should allow to set via `provider.profile`', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        command: 'print',
+        configExt: {
+          provider: {
+            profile: 'test-profile',
+          },
+        },
+      });
+      expect(serverless.getProvider('aws').getProfile()).to.equal('test-profile');
+    });
+
+    it('should allow to set via CLI `--profile` param', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        command: 'print',
+        options: { profile: 'cli-override' },
+        configExt: {
+          provider: {
+            profile: 'test-profile',
+          },
+        },
+      });
+      expect(serverless.getProvider('aws').getProfile()).to.equal('cli-override');
+    });
+
+    it('should allow to set via CLI `--aws-profile` param', async () => {
+      // Test with `provider.profile` `--profile` and `--aws-pofile` CLI param set
+      // Confirm that `--aws-profile` overrides
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        command: 'print',
+        options: {
+          'profile': 'cli-override',
+          'aws-profile': 'aws-override',
+        },
+        configExt: {
+          provider: {
+            profile: 'test-profile',
+          },
+        },
+      });
+      expect(serverless.getProvider('aws').getProfile()).to.equal('aws-override');
     });
   });
 
