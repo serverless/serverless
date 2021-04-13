@@ -280,7 +280,7 @@ const processSpanPromise = (async () => {
           // Resolve all unresolved configuration properties
           resolverConfiguration.fulfilledSources.add('env');
 
-          if (isHelpRequest) {
+          if (isHelpRequest || commands[0] === 'plugin') {
             // We do not need full config resolved, we just need to know what
             // provider is service setup with, and with what eventual plugins Framework is extended
             // as that influences what CLI commands and options could be used,
@@ -362,7 +362,8 @@ const processSpanPromise = (async () => {
     serverless = new Serverless({
       configuration,
       configurationPath: configuration && configurationPath,
-      isConfigurationResolved: Boolean(variablesMeta && !variablesMeta.size),
+      isConfigurationResolved:
+        commands[0] === 'plugin' || Boolean(variablesMeta && !variablesMeta.size),
       hasResolvedCommandsExternally: true,
       commands,
       options,
