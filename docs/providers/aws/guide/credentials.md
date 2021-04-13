@@ -198,7 +198,7 @@ service: new-service
 provider:
   name: aws
   runtime: nodejs12.x
-  profile: ${self:custom.profiles.${opt:stage, self:provider.stage, 'dev'}}
+  profile: ${self:custom.profiles.${sls:stage}}
 custom:
   profiles:
     dev: devProfile
