@@ -14,12 +14,12 @@ describe('#cleanupTempDir()', () => {
     serverless = new Serverless();
     packageService = new Package(serverless);
 
-    serverless.config.servicePath = getTmpDirPath();
+    serverless.serviceDir = getTmpDirPath();
   });
 
   it('should remove .serverless in the service directory', () => {
     const serverlessTmpDirPath = path.join(
-      packageService.serverless.config.servicePath,
+      packageService.serverless.serviceDir,
       '.serverless',
       'README'
     );
@@ -28,14 +28,14 @@ describe('#cleanupTempDir()', () => {
     return packageService.cleanupTempDir().then(() => {
       expect(
         serverless.utils.dirExistsSync(
-          path.join(packageService.serverless.config.servicePath, '.serverless')
+          path.join(packageService.serverless.serviceDir, '.serverless')
         )
       ).to.equal(false);
     });
   });
 
   it('should resolve if servicePath is not present', (done) => {
-    delete serverless.config.servicePath;
+    delete serverless.serviceDir;
     packageService.cleanupTempDir().then(() => {
       done();
     });

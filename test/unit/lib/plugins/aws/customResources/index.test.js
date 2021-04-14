@@ -45,7 +45,7 @@ describe('#addCustomResourceToService()', () => {
     serverless.service.provider.compiledCloudFormationTemplate = {
       Resources: {},
     };
-    serverless.config.servicePath = tmpDirPath;
+    serverless.serviceDir = tmpDirPath;
     serverless.service.package.artifactDirectoryName = 'artifact-dir-name';
   });
 

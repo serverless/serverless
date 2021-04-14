@@ -26,7 +26,7 @@ describe('uploadArtifacts', () => {
 
   beforeEach(() => {
     serverless = new Serverless();
-    serverless.config.servicePath = 'foo';
+    serverless.serviceDir = 'foo';
     serverless.setProvider('aws', new AwsProvider(serverless, {}));
     const options = {
       stage: 'dev',
@@ -225,7 +225,7 @@ describe('uploadArtifacts', () => {
     });
 
     it('should upload the service artifact file to the S3 bucket', () => {
-      awsDeploy.serverless.config.servicePath = 'some/path';
+      awsDeploy.serverless.serviceDir = 'some/path';
       awsDeploy.serverless.service.service = 'new-service';
 
       return awsDeploy.uploadFunctionsAndLayers().then(() => {
@@ -308,7 +308,7 @@ describe('uploadArtifacts', () => {
     });
 
     it('should log artifact size', () => {
-      awsDeploy.serverless.config.servicePath = 'some/path';
+      awsDeploy.serverless.serviceDir = 'some/path';
       awsDeploy.serverless.service.service = 'new-service';
 
       sinon.spy(awsDeploy.serverless.cli, 'log');
@@ -335,7 +335,7 @@ describe('uploadArtifacts', () => {
       // folder was cleaned before stream initialized fully, hence throwing uncaught
       // ENOENT exception into the air.
       sinon.stub(fs, 'createReadStream').returns({ path: customResourcesFilePath, on: () => {} });
-      serverless.config.servicePath = serviceDirPath;
+      serverless.serviceDir = serviceDirPath;
     });
 
     afterEach(() => {

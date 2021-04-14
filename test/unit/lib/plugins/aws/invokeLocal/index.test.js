@@ -66,7 +66,7 @@ describe('AwsInvokeLocal', () => {
       'child-process-ext/spawn': spawnExtStub,
     });
     serverless = new Serverless();
-    serverless.config.servicePath = 'servicePath';
+    serverless.serviceDir = 'servicePath';
     serverless.cli = new CLI(serverless);
     serverless.processedInput = { commands: ['invoke'] };
     provider = new AwsProvider(serverless, options);
@@ -81,7 +81,7 @@ describe('AwsInvokeLocal', () => {
   describe('#extendedValidate()', () => {
     let backupIsTTY;
     beforeEach(() => {
-      serverless.config.servicePath = true;
+      serverless.serviceDir = true;
       serverless.service.environment = {
         vars: {},
         stages: {
@@ -163,12 +163,12 @@ describe('AwsInvokeLocal', () => {
     });
 
     it('it should parse file if relative file path is provided', async () => {
-      serverless.config.servicePath = getTmpDirPath();
+      serverless.serviceDir = getTmpDirPath();
       const data = {
         testProp: 'testValue',
       };
       serverless.utils.writeFileSync(
-        path.join(serverless.config.servicePath, 'data.json'),
+        path.join(serverless.serviceDir, 'data.json'),
         JSON.stringify(data)
       );
       awsInvokeLocal.options.contextPath = 'data.json';
@@ -178,13 +178,13 @@ describe('AwsInvokeLocal', () => {
     });
 
     it('it should parse file if absolute file path is provided', async () => {
-      serverless.config.servicePath = getTmpDirPath();
+      serverless.serviceDir = getTmpDirPath();
       const data = {
         event: {
           testProp: 'testValue',
         },
       };
-      const dataFile = path.join(serverless.config.servicePath, 'data.json');
+      const dataFile = path.join(serverless.serviceDir, 'data.json');
       serverless.utils.writeFileSync(dataFile, JSON.stringify(data));
       awsInvokeLocal.options.path = dataFile;
       awsInvokeLocal.options.contextPath = false;
@@ -194,13 +194,10 @@ describe('AwsInvokeLocal', () => {
     });
 
     it('it should parse a yaml file if file path is provided', async () => {
-      serverless.config.servicePath = getTmpDirPath();
+      serverless.serviceDir = getTmpDirPath();
       const yamlContent = 'event: data';
 
-      serverless.utils.writeFileSync(
-        path.join(serverless.config.servicePath, 'data.yml'),
-        yamlContent
-      );
+      serverless.utils.writeFileSync(path.join(serverless.serviceDir, 'data.yml'), yamlContent);
       awsInvokeLocal.options.path = 'data.yml';
 
       await expect(awsInvokeLocal.extendedValidate()).to.be.fulfilled;
@@ -208,7 +205,7 @@ describe('AwsInvokeLocal', () => {
     });
 
     it('it should require a js file if file path is provided', async () => {
-      serverless.config.servicePath = getTmpDirPath();
+      serverless.serviceDir = getTmpDirPath();
       const jsContent = [
         'module.exports = {',
         '  headers: { "Content-Type" : "application/json" },',
@@ -216,10 +213,7 @@ describe('AwsInvokeLocal', () => {
         '}',
       ].join('\n');
 
-      serverless.utils.writeFileSync(
-        path.join(serverless.config.servicePath, 'data.js'),
-        jsContent
-      );
+      serverless.utils.writeFileSync(path.join(serverless.serviceDir, 'data.js'), jsContent);
       awsInvokeLocal.options.path = 'data.js';
 
       await expect(awsInvokeLocal.extendedValidate()).to.be.fulfilled;
@@ -230,7 +224,7 @@ describe('AwsInvokeLocal', () => {
     });
 
     it('it should reject error if file path does not exist', () => {
-      serverless.config.servicePath = getTmpDirPath();
+      serverless.serviceDir = getTmpDirPath();
       awsInvokeLocal.options.path = 'some/path';
 
       return expect(awsInvokeLocal.extendedValidate()).to.be.rejected;
@@ -269,7 +263,7 @@ describe('AwsInvokeLocal', () => {
     let restoreEnv;
     beforeEach(() => {
       ({ restoreEnv } = overrideEnv());
-      serverless.config.servicePath = true;
+      serverless.serviceDir = true;
       serverless.service.provider = {
         environment: {
           providerVar: 'providerValue',
@@ -537,7 +531,7 @@ describe('AwsInvokeLocal', () => {
 
     describe('with done method', () => {
       it('should exit with error exit code', () => {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
         awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithSuccess', 'withErrorByDone');
 
@@ -545,7 +539,7 @@ describe('AwsInvokeLocal', () => {
       });
 
       it('should succeed if succeed', () => {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
         awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithSuccess', 'withMessageByDone');
 
@@ -555,7 +549,7 @@ describe('AwsInvokeLocal', () => {
 
     describe('with Lambda Proxy with application/json response', () => {
       it('should succeed if succeed', () => {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
         awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithSuccess', 'withMessageByLambdaProxy');
 
@@ -567,7 +561,7 @@ describe('AwsInvokeLocal', () => {
 
     describe('context.remainingTimeInMillis', () => {
       it('should become lower over time', () => {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
         awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithSuccess', 'withRemainingTime');
 
@@ -576,7 +570,7 @@ describe('AwsInvokeLocal', () => {
       });
 
       it('should start with the timeout value', () => {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
         awsInvokeLocal.serverless.service.provider.timeout = 5;
 
         awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithSuccess', 'withRemainingTime');
@@ -586,7 +580,7 @@ describe('AwsInvokeLocal', () => {
       });
 
       it('should never become negative', () => {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
         awsInvokeLocal.serverless.service.provider.timeout = 0.00001;
 
         awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithSuccess', 'withRemainingTime');
@@ -598,7 +592,7 @@ describe('AwsInvokeLocal', () => {
 
     describe('with extraServicePath', () => {
       it('should succeed if succeed', () => {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
         awsInvokeLocal.options.extraServicePath = 'fixture';
 
         awsInvokeLocal.invokeLocalNodeJs('handlerWithSuccess', 'withMessageByLambdaProxy');
@@ -610,7 +604,7 @@ describe('AwsInvokeLocal', () => {
     });
 
     it('should exit with error exit code', () => {
-      awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+      awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
       awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithError', 'withError');
 
@@ -618,7 +612,7 @@ describe('AwsInvokeLocal', () => {
     });
 
     it('should log Error instance when called back', () => {
-      awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+      awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
       awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithError', 'withError');
       const logMessageContent = JSON.parse(stripAnsi(serverless.cli.consoleLog.lastCall.args[0]));
@@ -629,7 +623,7 @@ describe('AwsInvokeLocal', () => {
     });
 
     it('should log Error object if handler crashes at initialization', async () => {
-      awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+      awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
       try {
         await awsInvokeLocal.invokeLocalNodeJs(
@@ -646,7 +640,7 @@ describe('AwsInvokeLocal', () => {
     });
 
     it('should log error when called back', () => {
-      awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+      awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
       awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithError', 'withMessage');
 
@@ -654,7 +648,7 @@ describe('AwsInvokeLocal', () => {
     });
 
     it('should throw when module loading error', async () => {
-      awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+      awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
       try {
         await awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithLoadingError', 'anyMethod');
@@ -683,13 +677,13 @@ describe('AwsInvokeLocal', () => {
 
     describe('with return', () => {
       it('should exit with error exit code', async () => {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
         await awsInvokeLocal.invokeLocalNodeJs('fixture/asyncHandlerWithSuccess', 'withError');
         expect(process.exitCode).to.be.equal(1);
       });
 
       it('should succeed if succeed', async () => {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
         await awsInvokeLocal.invokeLocalNodeJs('fixture/asyncHandlerWithSuccess', 'withMessage');
         expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain('"Succeed"');
@@ -698,7 +692,7 @@ describe('AwsInvokeLocal', () => {
 
     describe('by context.done', () => {
       it('success should trigger one response', async () => {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
         await awsInvokeLocal.invokeLocalNodeJs(
           'fixture/asyncHandlerWithSuccess',
@@ -712,7 +706,7 @@ describe('AwsInvokeLocal', () => {
       });
 
       it('error should trigger one response', async () => {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
         await awsInvokeLocal.invokeLocalNodeJs(
           'fixture/asyncHandlerWithSuccess',
@@ -725,7 +719,7 @@ describe('AwsInvokeLocal', () => {
 
     describe('by callback method', () => {
       it('should succeed once if succeed if by callback', async () => {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
         await awsInvokeLocal.invokeLocalNodeJs(
           'fixture/asyncHandlerWithSuccess',
@@ -741,7 +735,7 @@ describe('AwsInvokeLocal', () => {
 
     describe("by callback method even if callback isn't called syncronously", () => {
       it('should succeed once if succeed if by callback', async () => {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
         await awsInvokeLocal.invokeLocalNodeJs(
           'fixture/asyncHandlerWithSuccess',
@@ -757,7 +751,7 @@ describe('AwsInvokeLocal', () => {
 
     describe('with Lambda Proxy with application/json response', () => {
       it('should succeed if succeed', async () => {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
         await awsInvokeLocal.invokeLocalNodeJs(
           'fixture/asyncHandlerWithSuccess',
@@ -771,7 +765,7 @@ describe('AwsInvokeLocal', () => {
 
     describe('context.remainingTimeInMillis', () => {
       it('should become lower over time', async () => {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
         await awsInvokeLocal.invokeLocalNodeJs(
           'fixture/asyncHandlerWithSuccess',
@@ -782,7 +776,7 @@ describe('AwsInvokeLocal', () => {
       });
 
       it('should start with the timeout value', async () => {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
         awsInvokeLocal.serverless.service.provider.timeout = 5;
 
         await awsInvokeLocal.invokeLocalNodeJs(
@@ -794,7 +788,7 @@ describe('AwsInvokeLocal', () => {
       });
 
       it('should never become negative', async () => {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
         awsInvokeLocal.serverless.service.provider.timeout = 0.00001;
 
         await awsInvokeLocal.invokeLocalNodeJs(
@@ -808,7 +802,7 @@ describe('AwsInvokeLocal', () => {
 
     describe('with extraServicePath', () => {
       it('should succeed if succeed', async () => {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
         awsInvokeLocal.options.extraServicePath = 'fixture';
 
         await awsInvokeLocal.invokeLocalNodeJs(
@@ -822,14 +816,14 @@ describe('AwsInvokeLocal', () => {
     });
 
     it('should exit with error exit code', async () => {
-      awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+      awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
       await awsInvokeLocal.invokeLocalNodeJs('fixture/asyncHandlerWithError', 'withError');
       expect(process.exitCode).to.be.equal(1);
     });
 
     it('should log Error instance when called back', async () => {
-      awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+      awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
       await awsInvokeLocal.invokeLocalNodeJs('fixture/asyncHandlerWithError', 'withError');
       expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain('"errorMessage": "failed"');
@@ -837,14 +831,14 @@ describe('AwsInvokeLocal', () => {
     });
 
     it('should log error', async () => {
-      awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+      awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
       await awsInvokeLocal.invokeLocalNodeJs('fixture/asyncHandlerWithError', 'withMessage');
       expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain('"errorMessage": "failed"');
     });
 
     it('should log error when error is returned', async () => {
-      awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+      awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
       await awsInvokeLocal.invokeLocalNodeJs('fixture/asyncHandlerWithError', 'returnsError');
       expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain('"errorMessage": "failed"');
@@ -875,7 +869,7 @@ describe('AwsInvokeLocal', () => {
           this.skip();
         }
 
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
         process.chdir(tmpServicePath);
 
         try {
@@ -921,7 +915,7 @@ describe('AwsInvokeLocal', () => {
 
     describe('context.remainingTimeInMillis', () => {
       it('should become lower over time', async function () {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
         try {
           await awsInvokeLocal.invokeLocalRuby('ruby', 'fixture/handler', 'withRemainingTime');
@@ -940,7 +934,7 @@ describe('AwsInvokeLocal', () => {
 
     describe('calling a class method', () => {
       it('should execute', async function () {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
         try {
           await awsInvokeLocal.invokeLocalRuby(
@@ -962,7 +956,7 @@ describe('AwsInvokeLocal', () => {
 
     describe('context.deadlineMs', () => {
       it('should return deadline', async function () {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
+        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
 
         try {
           await awsInvokeLocal.invokeLocalRuby('ruby', 'fixture/handler', 'withDeadlineMs');

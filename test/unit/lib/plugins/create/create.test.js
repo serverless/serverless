@@ -131,7 +131,7 @@ describe('Create', () => {
       process.chdir(tmpDir);
       create.options.template = 'aws-nodejs';
       return create.create().then(() => {
-        expect(create.serverless.config.servicePath).to.be.equal(process.cwd());
+        expect(create.serverless.serviceDir).to.be.equal(process.cwd());
       });
     });
 
@@ -1254,8 +1254,8 @@ describe('Create', () => {
         const dirContent = fs.readdirSync(process.cwd());
         expect(dirContent).to.include('handler.js');
         expect(dirContent).to.include('serverless.yml');
-        expect(create.serverless.config.servicePath).includes('my_good_service');
-        expect(create.serverless.config.servicePath).to.be.equal(process.cwd());
+        expect(create.serverless.serviceDir).includes('my_good_service');
+        expect(create.serverless.serviceDir).to.be.equal(process.cwd());
       });
     });
   });

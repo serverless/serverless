@@ -18,7 +18,7 @@ describe('#saveCompiledTemplate()', () => {
     serverless = new Serverless();
     serverless.setProvider('aws', new AwsProvider(serverless, options));
     awsPackage = new AwsPackage(serverless, options);
-    serverless.config.servicePath = 'my-service';
+    serverless.serviceDir = 'my-service';
     serverless.service = {
       provider: {
         compiledCloudFormationTemplate: 'compiled content',
@@ -36,11 +36,7 @@ describe('#saveCompiledTemplate()', () => {
   });
 
   it('should write the compiled template to disk', () => {
-    const filePath = path.join(
-      awsPackage.serverless.config.servicePath,
-      '.serverless',
-      'compiled.json'
-    );
+    const filePath = path.join(awsPackage.serverless.serviceDir, '.serverless', 'compiled.json');
 
     return awsPackage.saveCompiledTemplate().then(() => {
       expect(getCompiledTemplateFileNameStub.calledOnce).to.equal(true);

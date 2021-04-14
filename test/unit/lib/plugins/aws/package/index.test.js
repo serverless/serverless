@@ -20,7 +20,7 @@ describe('AwsPackage', () => {
       region: 'us-east-1',
     };
     serverless.setProvider('aws', new AwsProvider(serverless, options));
-    serverless.config.servicePath = 'foo';
+    serverless.serviceDir = 'foo';
     serverless.cli = new CLI(serverless);
     awsPackage = new AwsPackage(serverless, options);
   });
@@ -39,7 +39,7 @@ describe('AwsPackage', () => {
     });
 
     it('should default to an empty service path if not provided', () => {
-      serverless.config.servicePath = false;
+      serverless.serviceDir = false;
       awsPackage = new AwsPackage(serverless, options);
 
       expect(awsPackage.servicePath).to.equal('');

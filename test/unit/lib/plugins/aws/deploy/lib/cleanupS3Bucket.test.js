@@ -25,7 +25,7 @@ describe('cleanupS3Bucket', () => {
       region: 'us-east-1',
     };
     serverless = new Serverless();
-    serverless.config.servicePath = 'foo';
+    serverless.serviceDir = 'foo';
     provider = new AwsProvider(serverless, options);
     serverless.setProvider('aws', provider);
     serverless.service.service = 'cleanupS3Bucket';

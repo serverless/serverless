@@ -414,7 +414,7 @@ describe('PluginManager', () => {
     serverless.cli = new CLI();
     serverless.processedInput = { commands: [], options: {} };
     pluginManager = new PluginManager(serverless);
-    servicePath = pluginManager.serverless.config.servicePath = 'foo';
+    servicePath = pluginManager.serverless.serviceDir = 'foo';
   });
 
   afterEach(() => restoreEnv());
@@ -472,7 +472,7 @@ describe('PluginManager', () => {
       });
       pluginManager = new PluginManager(serverless);
       pluginManager.serverless.config = { servicePath: 'somePath' };
-      servicePath = pluginManager.serverless.config.servicePath;
+      servicePath = pluginManager.serverless.serviceDir;
       cacheFilePath = getCacheFilePath(servicePath);
       getCommandsStub = sinon.stub(pluginManager, 'getCommands');
     });
@@ -790,7 +790,7 @@ describe('PluginManager', () => {
 
       parsePluginsObjectAndVerifyResult(servicePlugins, {
         modules: servicePlugins,
-        localPath: path.join(serverless.config.servicePath, '.serverless_plugins'),
+        localPath: path.join(serverless.serviceDir, '.serverless_plugins'),
       });
     });
 
@@ -811,7 +811,7 @@ describe('PluginManager', () => {
 
       parsePluginsObjectAndVerifyResult(servicePlugins, {
         modules: [],
-        localPath: path.join(serverless.config.servicePath, '.serverless_plugins'),
+        localPath: path.join(serverless.serviceDir, '.serverless_plugins'),
       });
     });
 
@@ -820,7 +820,7 @@ describe('PluginManager', () => {
 
       parsePluginsObjectAndVerifyResult(servicePlugins, {
         modules: [],
-        localPath: path.join(serverless.config.servicePath, '.serverless_plugins'),
+        localPath: path.join(serverless.serviceDir, '.serverless_plugins'),
       });
     });
 
@@ -832,7 +832,7 @@ describe('PluginManager', () => {
 
       parsePluginsObjectAndVerifyResult(servicePlugins, {
         modules: servicePlugins.modules,
-        localPath: path.join(serverless.config.servicePath, '.serverless_plugins'),
+        localPath: path.join(serverless.serviceDir, '.serverless_plugins'),
       });
     });
   });
@@ -1333,7 +1333,7 @@ describe('PluginManager', () => {
     beforeEach(() => {
       serverlessInstance = new Serverless();
       serverlessInstance.configurationInput = null;
-      serverlessInstance.config.servicePath = 'my-service';
+      serverlessInstance.serviceDir = 'my-service';
       pluginManagerInstance = new PluginManager(serverlessInstance);
     });
 
@@ -1924,7 +1924,7 @@ describe('PluginManager', () => {
       serviceDir = path.join(tmpDir, 'service');
       fse.mkdirsSync(serviceDir);
       process.chdir(serviceDir);
-      pluginManager.serverless.config.servicePath = serviceDir;
+      pluginManager.serverless.serviceDir = serviceDir;
     });
 
     it('should load plugins from .serverless_plugins', () => {

@@ -18,7 +18,7 @@ describe('#saveServiceState()', () => {
     serverless = new Serverless();
     serverless.setProvider('aws', new AwsProvider(serverless, options));
     awsPackage = new AwsPackage(serverless, options);
-    serverless.config.servicePath = 'my-service';
+    serverless.serviceDir = 'my-service';
     serverless.service = {
       provider: {
         compiledCloudFormationTemplate: 'compiled content',
@@ -42,7 +42,7 @@ describe('#saveServiceState()', () => {
 
   it('should write the service state file template to disk', () => {
     const filePath = path.join(
-      awsPackage.serverless.config.servicePath,
+      awsPackage.serverless.serviceDir,
       '.serverless',
       'service-state.json'
     );
@@ -69,7 +69,7 @@ describe('#saveServiceState()', () => {
 
   it('should remove self references correctly', () => {
     const filePath = path.join(
-      awsPackage.serverless.config.servicePath,
+      awsPackage.serverless.serviceDir,
       '.serverless',
       'service-state.json'
     );
