@@ -1772,4 +1772,48 @@ describe('#compileMethods v2()', () => {
       );
     });
   });
+
+  describe('method authorization', () => {
+    it('should correctly set method authorization properties', async () => {
+      const {
+        awsNaming,
+        cfTemplate: { Resources: cfResources },
+      } = await runServerless({
+        fixture: 'apiGateway',
+        configExt: {
+          functions: {
+            foo: {
+              events: [
+                {
+                  http: {
+                    authorizer: {
+                      type: 'REQUEST',
+                      authorizerId: 'some-id',
+                    },
+                  },
+                },
+                {
+                  http: {
+                    authorizer: {
+                      type: 'TOKEN',
+                      authorizerId: 'another-id',
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+        command: 'package',
+      });
+      const apiGatewayRequestMethodConfig = cfResources[awsNaming.getMethodLogicalId('Foo', 'GET')];
+      expect(apiGatewayRequestMethodConfig.Properties.AuthorizationType).to.equal('CUSTOM');
+      expect(apiGatewayRequestMethodConfig.Properties.AuthorizerId).to.deep.equal('some-id');
+
+      const apiGatewayTokenMethodConfig =
+        cfResources[awsNaming.getMethodLogicalId('SomeDashpost', 'POST')];
+      expect(apiGatewayTokenMethodConfig.Properties.AuthorizationType).to.equal('CUSTOM');
+      expect(apiGatewayTokenMethodConfig.Properties.AuthorizerId).to.deep.equal('another-id');
+    });
+  });
 });
