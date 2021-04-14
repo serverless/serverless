@@ -101,7 +101,7 @@ describe('PluginUninstall', () => {
 
     beforeEach(() => {
       servicePath = getTmpDirPath();
-      pluginUninstall.serverless.config.servicePath = servicePath;
+      pluginUninstall.serverless.serviceDir = servicePath;
       fse.ensureDirSync(servicePath);
       serverlessYmlFilePath = path.join(servicePath, 'serverless.yml');
       validateStub = sinon.stub(pluginUninstall, 'validate').returns(BbPromise.resolve());
@@ -195,7 +195,7 @@ describe('PluginUninstall', () => {
     beforeEach(() => {
       pluginUninstall.options.pluginName = 'serverless-plugin-1';
       servicePath = getTmpDirPath();
-      pluginUninstall.serverless.config.servicePath = servicePath;
+      pluginUninstall.serverless.serviceDir = servicePath;
       fse.ensureDirSync(servicePath);
       packageJsonFilePath = path.join(servicePath, 'package.json');
       npmUninstallStub = sinon.stub(childProcess, 'execAsync').returns(BbPromise.resolve());
@@ -240,7 +240,7 @@ describe('PluginUninstall', () => {
 
     beforeEach(() => {
       servicePath = getTmpDirPath();
-      pluginUninstall.serverless.config.servicePath = pluginUninstall.serverless.serviceDir = servicePath;
+      pluginUninstall.serverless.serviceDir = pluginUninstall.serverless.serviceDir = servicePath;
       pluginUninstall.serverless.configurationFilename = 'serverless.yml';
       serverlessYmlFilePath = path.join(servicePath, 'serverless.yml');
     });
@@ -476,7 +476,7 @@ describe('PluginUninstall', () => {
       pluginName = 'some-plugin';
       pluginUninstall.options.pluginName = pluginName;
       servicePath = getTmpDirPath();
-      pluginUninstall.serverless.config.servicePath = servicePath;
+      pluginUninstall.serverless.serviceDir = servicePath;
       pluginPath = path.join(servicePath, 'node_modules', pluginName);
       fse.ensureDirSync(pluginPath);
       pluginPackageJsonFilePath = path.join(pluginPath, 'package.json');

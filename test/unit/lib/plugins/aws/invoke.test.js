@@ -40,7 +40,7 @@ describe('AwsInvoke', () => {
   describe('#extendedValidate()', () => {
     let backupIsTTY;
     beforeEach(() => {
-      serverless.config.servicePath = true;
+      serverless.serviceDir = true;
       serverless.service.environment = {
         vars: {},
         stages: {
@@ -112,12 +112,12 @@ describe('AwsInvoke', () => {
     });
 
     it('it should parse file if relative file path is provided', async () => {
-      serverless.config.servicePath = getTmpDirPath();
+      serverless.serviceDir = getTmpDirPath();
       const data = {
         testProp: 'testValue',
       };
       serverless.utils.writeFileSync(
-        path.join(serverless.config.servicePath, 'data.json'),
+        path.join(serverless.serviceDir, 'data.json'),
         JSON.stringify(data)
       );
       awsInvoke.options.path = 'data.json';
@@ -128,11 +128,11 @@ describe('AwsInvoke', () => {
     });
 
     it('it should parse file if absolute file path is provided', async () => {
-      serverless.config.servicePath = getTmpDirPath();
+      serverless.serviceDir = getTmpDirPath();
       const data = {
         testProp: 'testValue',
       };
-      const dataFile = path.join(serverless.config.servicePath, 'data.json');
+      const dataFile = path.join(serverless.serviceDir, 'data.json');
       serverless.utils.writeFileSync(dataFile, JSON.stringify(data));
       awsInvoke.options.path = dataFile;
 
@@ -142,13 +142,10 @@ describe('AwsInvoke', () => {
     });
 
     it('it should parse a yaml file if file path is provided', async () => {
-      serverless.config.servicePath = getTmpDirPath();
+      serverless.serviceDir = getTmpDirPath();
       const yamlContent = 'testProp: testValue';
 
-      serverless.utils.writeFileSync(
-        path.join(serverless.config.servicePath, 'data.yml'),
-        yamlContent
-      );
+      serverless.utils.writeFileSync(path.join(serverless.serviceDir, 'data.yml'), yamlContent);
       awsInvoke.options.path = 'data.yml';
 
       await expect(awsInvoke.extendedValidate()).to.be.fulfilled;
@@ -159,7 +156,7 @@ describe('AwsInvoke', () => {
     });
 
     it('it should throw error if file path does not exist', () => {
-      serverless.config.servicePath = getTmpDirPath();
+      serverless.serviceDir = getTmpDirPath();
       awsInvoke.options.path = 'some/path';
 
       return expect(awsInvoke.extendedValidate()).to.be.rejectedWith(

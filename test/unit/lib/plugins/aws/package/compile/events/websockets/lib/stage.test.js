@@ -28,7 +28,7 @@ describe('#compileStage()', () => {
     serverless.setProvider('aws', new AwsProvider(serverless));
     serverless.service.service = 'my-service';
     serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
-    serverless.config.servicePath = createTmpDir();
+    serverless.serviceDir = createTmpDir();
     serverless.cli = { log: () => {} };
 
     awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless, options);

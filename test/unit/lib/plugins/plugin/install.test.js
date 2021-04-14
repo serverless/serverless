@@ -106,7 +106,7 @@ describe('PluginInstall', () => {
 
     beforeEach(() => {
       servicePath = getTmpDirPath();
-      pluginInstall.serverless.config.servicePath = servicePath;
+      pluginInstall.serverless.serviceDir = servicePath;
       fse.ensureDirSync(servicePath);
       serverlessYmlFilePath = path.join(servicePath, 'serverless.yml');
       validateStub = sinon.stub(pluginInstall, 'validate').returns(BbPromise.resolve());
@@ -248,7 +248,7 @@ describe('PluginInstall', () => {
       pluginInstall.options.pluginName = 'serverless-plugin-1';
       pluginInstall.options.pluginVersion = 'latest';
       servicePath = getTmpDirPath();
-      pluginInstall.serverless.config.servicePath = servicePath;
+      pluginInstall.serverless.serviceDir = servicePath;
       fse.ensureDirSync(servicePath);
       packageJsonFilePath = path.join(servicePath, 'package.json');
       npmInstallStub = sinon.stub(childProcess, 'execAsync').callsFake(() => {
@@ -312,7 +312,7 @@ describe('PluginInstall', () => {
 
     beforeEach(() => {
       servicePath = getTmpDirPath();
-      pluginInstall.serverless.config.servicePath = pluginInstall.serverless.serviceDir = servicePath;
+      pluginInstall.serverless.serviceDir = pluginInstall.serverless.serviceDir = servicePath;
       pluginInstall.serverless.configurationFilename = 'serverless.yml';
       serverlessYmlFilePath = path.join(servicePath, 'serverless.yml');
     });
@@ -522,7 +522,7 @@ describe('PluginInstall', () => {
       pluginInstall.options.pluginName = pluginName;
       servicePath = getTmpDirPath();
       fse.ensureDirSync(servicePath);
-      pluginInstall.serverless.config.servicePath = servicePath;
+      pluginInstall.serverless.serviceDir = servicePath;
       servicePackageJsonFilePath = path.join(servicePath, 'package.json');
       fse.writeJsonSync(servicePackageJsonFilePath, {
         devDependencies: {},

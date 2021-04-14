@@ -62,7 +62,7 @@ describe('AwsLogs', () => {
 
   describe('#extendedValidate()', () => {
     beforeEach(() => {
-      serverless.config.servicePath = true;
+      serverless.serviceDir = true;
       serverless.service.environment = {
         vars: {},
         stages: {

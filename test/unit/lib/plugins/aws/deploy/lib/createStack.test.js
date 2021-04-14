@@ -33,7 +33,7 @@ describe('createStack', () => {
     const serverless = new Serverless();
     serverless.setProvider('aws', new AwsProvider(serverless, {}));
     serverless.utils.writeFileSync(serverlessYmlPath, serverlessYml);
-    serverless.config.servicePath = tmpDirPath;
+    serverless.serviceDir = tmpDirPath;
     const options = {
       stage: 'dev',
       region: 'us-east-1',

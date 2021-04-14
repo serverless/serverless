@@ -31,7 +31,7 @@ describe('#compileStage()', () => {
       Resources: {},
       Outputs: {},
     };
-    serverless.config.servicePath = createTmpDir();
+    serverless.serviceDir = createTmpDir();
     serverless.cli = { log: () => {} };
     awsCompileApigEvents = new AwsCompileApigEvents(serverless, options);
     awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi';

@@ -1022,7 +1022,7 @@ describe('Variables', () => {
         beforeEach(() => {
           tmpDirPath = getTmpDirPath();
           fse.mkdirsSync(tmpDirPath);
-          serverless.config.update({ servicePath: tmpDirPath });
+          serverless.serviceDir = tmpDirPath;
         });
         afterEach(() => {
           fse.removeSync(tmpDirPath);
@@ -1823,7 +1823,7 @@ module.exports = {
         },
       };
       SUtils.writeFileSync(path.join(tmpDirPath, 'config.yml'), yaml.dump(configYml));
-      serverless.config.update({ servicePath: tmpDirPath });
+      serverless.serviceDir = tmpDirPath;
       return serverless.variables
         .getValueFromFile('file(./config.yml)')
         .should.eventually.eql(configYml);
@@ -1831,7 +1831,7 @@ module.exports = {
 
     it('should get undefined if non existing file and the second argument is true', () => {
       const tmpDirPath = getTmpDirPath();
-      serverless.config.update({ servicePath: tmpDirPath });
+      serverless.serviceDir = tmpDirPath;
       const realpathSync = sinon.spy(fse, 'realpathSync');
       const existsSync = sinon.spy(fse, 'existsSync');
       return serverless.variables
@@ -1851,7 +1851,7 @@ module.exports = {
       const SUtils = new Utils();
       const tmpDirPath = getTmpDirPath();
       SUtils.writeFileSync(path.join(tmpDirPath, 'someFile'), 'hello world');
-      serverless.config.update({ servicePath: tmpDirPath });
+      serverless.serviceDir = tmpDirPath;
       return serverless.variables.getValueFromFile('file(./someFile)').should.become('hello world');
     });
 
@@ -1867,7 +1867,7 @@ module.exports = {
         skipOnDisabledSymlinksInWindows(error, this, afterCallback);
         throw error;
       }
-      serverless.config.update({ servicePath: tmpDirPath });
+      serverless.serviceDir = tmpDirPath;
       return serverless.variables
         .getValueFromFile('file(./refSomeFile)')
         .should.become('hello world')
@@ -1882,7 +1882,7 @@ module.exports = {
       const SUtils = new Utils();
       const tmpDirPath = getTmpDirPath();
       SUtils.writeFileSync(path.join(tmpDirPath, 'someFile'), 'hello world \n');
-      serverless.config.update({ servicePath: tmpDirPath });
+      serverless.serviceDir = tmpDirPath;
       return serverless.variables.getValueFromFile('file(./someFile)').should.become('hello world');
     });
 
@@ -1898,7 +1898,7 @@ module.exports = {
         },
       };
       SUtils.writeFileSync(path.join(tmpDirPath, 'config.yml'), yaml.dump(configYml));
-      serverless.config.update({ servicePath: tmpDirPath });
+      serverless.serviceDir = tmpDirPath;
       return serverless.variables
         .getValueFromFile('file(./config.yml):test2.sub')
         .should.become(configYml.test2.sub);
@@ -1909,7 +1909,7 @@ module.exports = {
       const tmpDirPath = getTmpDirPath();
       const jsData = 'module.exports.hello=function(){return "hello world";};';
       SUtils.writeFileSync(path.join(tmpDirPath, 'hello.js'), jsData);
-      serverless.config.update({ servicePath: tmpDirPath });
+      serverless.serviceDir = tmpDirPath;
       return serverless.variables
         .getValueFromFile('file(./hello.js):hello')
         .should.become('hello world');
@@ -1920,7 +1920,7 @@ module.exports = {
       const tmpDirPath = getTmpDirPath();
       const jsData = 'module.exports.hello="hello world";';
       SUtils.writeFileSync(path.join(tmpDirPath, 'hello.js'), jsData);
-      serverless.config.update({ servicePath: tmpDirPath });
+      serverless.serviceDir = tmpDirPath;
       return serverless.variables
         .getValueFromFile('file(./hello.js):hello')
         .should.become('hello world');
@@ -1931,7 +1931,7 @@ module.exports = {
       const tmpDirPath = getTmpDirPath();
       const jsData = 'module.exports=function(){return { hello: "hello world" };};';
       SUtils.writeFileSync(path.join(tmpDirPath, 'hello.js'), jsData);
-      serverless.config.update({ servicePath: tmpDirPath });
+      serverless.serviceDir = tmpDirPath;
       return serverless.variables
         .getValueFromFile('file(./hello.js)')
         .should.become({ hello: 'hello world' });
@@ -1942,7 +1942,7 @@ module.exports = {
       const tmpDirPath = getTmpDirPath();
       const jsData = 'module.exports={ hello: "hello world" };';
       SUtils.writeFileSync(path.join(tmpDirPath, 'hello.js'), jsData);
-      serverless.config.update({ servicePath: tmpDirPath });
+      serverless.serviceDir = tmpDirPath;
       return serverless.variables
         .getValueFromFile('file(./hello.js)')
         .should.become({ hello: 'hello world' });
@@ -1953,7 +1953,7 @@ module.exports = {
       const tmpDirPath = getTmpDirPath();
       const jsData = 'module.exports="hello world";';
       SUtils.writeFileSync(path.join(tmpDirPath, 'hello.js'), jsData);
-      serverless.config.update({ servicePath: tmpDirPath });
+      serverless.serviceDir = tmpDirPath;
       return serverless.variables.getValueFromFile('file(./hello.js)').should.become('hello world');
     });
 
@@ -1964,7 +1964,7 @@ module.exports = {
         return {one:{two:{three: 'hello world'}}}
       };`;
       SUtils.writeFileSync(path.join(tmpDirPath, 'hello.js'), jsData);
-      serverless.config.update({ servicePath: tmpDirPath });
+      serverless.serviceDir = tmpDirPath;
       serverless.variables.loadVariableSyntax();
       return serverless.variables
         .getValueFromFile('file(./hello.js):hello.one.two.three')
@@ -1978,7 +1978,7 @@ module.exports = {
       module.exports.one = {two: {three: 'hello world'}}
       module.exports.hello=function(){ return this; };`;
       SUtils.writeFileSync(path.join(tmpDirPath, 'hello.js'), jsData);
-      serverless.config.update({ servicePath: tmpDirPath });
+      serverless.serviceDir = tmpDirPath;
       serverless.variables.loadVariableSyntax();
       return serverless.variables
         .getValueFromFile('file(./hello.js):hello.one.two.three')
@@ -1997,7 +1997,7 @@ module.exports = {
         },
       };
       SUtils.writeFileSync(path.join(tmpDirPath, 'config.yml'), yaml.dump(configYml));
-      serverless.config.update({ servicePath: tmpDirPath });
+      serverless.serviceDir = tmpDirPath;
       return serverless.variables
         .getValueFromFile('file(./config.yml).testObj.sub')
         .should.be.rejectedWith(ServerlessError);
@@ -2008,7 +2008,7 @@ module.exports = {
       const tmpDirPath = getTmpDirPath();
       const jsData = 'module.exports=undefined;';
       SUtils.writeFileSync(path.join(tmpDirPath, 'hello.js'), jsData);
-      serverless.config.update({ servicePath: tmpDirPath });
+      serverless.serviceDir = tmpDirPath;
       return serverless.variables
         .getValueFromFile('file(./hello.js)')
         .should.be.rejectedWith(ServerlessError);
@@ -2019,7 +2019,7 @@ module.exports = {
       const tmpDirPath = getTmpDirPath();
       const jsData = 'module.exports=Symbol()';
       SUtils.writeFileSync(path.join(tmpDirPath, 'hello.js'), jsData);
-      serverless.config.update({ servicePath: tmpDirPath });
+      serverless.serviceDir = tmpDirPath;
       return serverless.variables
         .getValueFromFile('file(./hello.js)')
         .should.be.rejectedWith(ServerlessError);
@@ -2030,7 +2030,7 @@ module.exports = {
       const tmpDirPath = getTmpDirPath();
       const jsData = 'module.exports=function(){ return function(){}; };';
       SUtils.writeFileSync(path.join(tmpDirPath, 'hello.js'), jsData);
-      serverless.config.update({ servicePath: tmpDirPath });
+      serverless.serviceDir = tmpDirPath;
       return serverless.variables
         .getValueFromFile('file(./hello.js)')
         .should.be.rejectedWith(ServerlessError);
