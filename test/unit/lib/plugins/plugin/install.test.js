@@ -312,11 +312,9 @@ describe('PluginInstall', () => {
 
     beforeEach(() => {
       servicePath = getTmpDirPath();
-      pluginInstall.serverless.config.servicePath = servicePath;
-      pluginInstall.serverless.configurationPath = serverlessYmlFilePath = path.join(
-        servicePath,
-        'serverless.yml'
-      );
+      pluginInstall.serverless.config.servicePath = pluginInstall.serverless.serviceDir = servicePath;
+      pluginInstall.serverless.configurationFilename = 'serverless.yml';
+      serverlessYmlFilePath = path.join(servicePath, 'serverless.yml');
     });
 
     it('should add the plugin to the service file if plugins array is not present', () => {
@@ -360,10 +358,8 @@ describe('PluginInstall', () => {
     });
 
     it('should add the plugin to serverless file path for a .yaml file', () => {
-      const serverlessYamlFilePath = (pluginInstall.serverless.configurationPath = path.join(
-        servicePath,
-        'serverless.yaml'
-      ));
+      const serverlessYamlFilePath = path.join(servicePath, 'serverless.yaml');
+      pluginInstall.serverless.configurationFilename = 'serverless.yaml';
       const serverlessYml = {
         service: 'plugin-service',
         provider: 'aws',
@@ -378,10 +374,8 @@ describe('PluginInstall', () => {
     });
 
     it('should add the plugin to serverless file path for a .json file', () => {
-      const serverlessJsonFilePath = (pluginInstall.serverless.configurationPath = path.join(
-        servicePath,
-        'serverless.json'
-      ));
+      const serverlessJsonFilePath = path.join(servicePath, 'serverless.json');
+      pluginInstall.serverless.configurationFilename = 'serverless.json';
       const serverlessJson = {
         service: 'plugin-service',
         provider: 'aws',
@@ -407,10 +401,8 @@ describe('PluginInstall', () => {
     });
 
     it('should not modify serverless .js file', () => {
-      const serverlessJsFilePath = (pluginInstall.serverless.configurationPath = path.join(
-        servicePath,
-        'serverless.js'
-      ));
+      const serverlessJsFilePath = path.join(servicePath, 'serverless.js');
+      pluginInstall.serverless.configurationFilename = 'serverless.js';
       const serverlessJson = {
         service: 'plugin-service',
         provider: 'aws',
@@ -429,10 +421,8 @@ describe('PluginInstall', () => {
     });
 
     it('should not modify serverless .ts file', () => {
-      const serverlessTsFilePath = (pluginInstall.serverless.configurationPath = path.join(
-        servicePath,
-        'serverless.ts'
-      ));
+      const serverlessTsFilePath = path.join(servicePath, 'serverless.ts');
+      pluginInstall.serverless.configurationFilename = 'serverless.ts';
       const serverlessJson = {
         service: 'plugin-service',
         provider: 'aws',
@@ -478,10 +468,8 @@ describe('PluginInstall', () => {
       });
 
       it('should add the plugin to serverless file path for a .json file', () => {
-        const serverlessJsonFilePath = (pluginInstall.serverless.configurationPath = path.join(
-          servicePath,
-          'serverless.json'
-        ));
+        const serverlessJsonFilePath = path.join(servicePath, 'serverless.json');
+        pluginInstall.serverless.configurationFilename = 'serverless.json';
         const serverlessJson = {
           service: 'plugin-service',
           provider: 'aws',
