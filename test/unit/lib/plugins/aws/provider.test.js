@@ -274,28 +274,6 @@ describe('AwsProvider', () => {
     });
   });
 
-  describe('#getDeploymentPrefix()', () => {
-    it('should return custom deployment prefix if defined', () => {
-      serverless.service.provider.deploymentPrefix = 'providerPrefix';
-
-      expect(awsProvider.getDeploymentPrefix()).to.equal(
-        serverless.service.provider.deploymentPrefix
-      );
-    });
-
-    it('should use the default serverless if not defined', () => {
-      serverless.service.provider.deploymentPrefix = undefined;
-
-      expect(awsProvider.getDeploymentPrefix()).to.equal('serverless');
-    });
-
-    it('should support no prefix', () => {
-      serverless.service.provider.deploymentPrefix = '';
-
-      expect(awsProvider.getDeploymentPrefix()).to.equal('');
-    });
-  });
-
   describe('#getAlbTargetGroupPrefix()', () => {
     it('should return custom alb target group prefix if defined', () => {
       serverless.service.provider.alb = {};
@@ -676,6 +654,45 @@ aws_secret_access_key = CUSTOMSECRET
         },
       });
       expect(serverless.getProvider('aws').getProfile()).to.equal('aws-override');
+    });
+  });
+
+  describe('#getDeploymentPrefix()', () => {
+    it('should put all artifacts in namespaced folder', async () => {
+      const { cfTemplate } = await runServerless({
+        fixture: 'function',
+        command: 'package',
+      });
+      expect(cfTemplate).to.haveOwnProperty('Resources');
+      const resources = Object.values(cfTemplate.Resources);
+      const functions = resources.filter((r) => r.Type === 'AWS::Lambda::Function');
+      expect(functions.length).to.be.greaterThanOrEqual(1);
+      for (const f of functions) {
+        expect(f.Properties.Code.S3Key)
+          .to.be.a('string')
+          .and.satisfy((key) => key.startsWith('serverless/'));
+      }
+    });
+
+    it('should support custom namespaced folder', async () => {
+      const { cfTemplate } = await runServerless({
+        fixture: 'function',
+        command: 'package',
+        configExt: {
+          provider: {
+            deploymentPrefix: 'test-prefix',
+          },
+        },
+      });
+      expect(cfTemplate).to.haveOwnProperty('Resources');
+      const resources = Object.values(cfTemplate.Resources);
+      const functions = resources.filter((r) => r.Type === 'AWS::Lambda::Function');
+      expect(functions.length).to.be.greaterThanOrEqual(1);
+      for (const f of functions) {
+        expect(f.Properties.Code.S3Key)
+          .to.be.a('string')
+          .and.satisfy((key) => key.startsWith('test-prefix/'));
+      }
     });
   });
 
