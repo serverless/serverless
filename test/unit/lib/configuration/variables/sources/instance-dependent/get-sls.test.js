@@ -36,7 +36,7 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
     });
     serverlessInstance.init();
     await resolve({
-      servicePath: process.cwd(),
+      serviceDir: process.cwd(),
       configuration,
       variablesMeta,
       sources: { self: selfSource, sls: getSlsSource(serverlessInstance) },

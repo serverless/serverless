@@ -23,7 +23,7 @@ describe('test/unit/lib/configuration/variables/sources/opt.test.js', () => {
       };
       variablesMeta = resolveMeta(configuration);
       await resolve({
-        servicePath: process.cwd(),
+        serviceDir: process.cwd(),
         configuration,
         variablesMeta,
         sources: { opt: optSource, self: selfSource },
@@ -56,7 +56,7 @@ describe('test/unit/lib/configuration/variables/sources/opt.test.js', () => {
       };
       variablesMeta = resolveMeta(configuration);
       await resolve({
-        servicePath: process.cwd(),
+        serviceDir: process.cwd(),
         configuration,
         variablesMeta,
         sources: { opt: optSource, self: selfSource },

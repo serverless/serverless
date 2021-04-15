@@ -200,7 +200,7 @@ const processSpanPromise = (async () => {
             // Resolve eventual variables in `provider.stage` and `useDotEnv`
             // (required for reliable .env resolution)
             resolverConfiguration = {
-              servicePath: serviceDir,
+              serviceDir,
               configuration,
               variablesMeta,
               sources: {

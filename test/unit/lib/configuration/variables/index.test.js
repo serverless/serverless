@@ -18,7 +18,7 @@ describe('test/unit/lib/configuration/variables/index.test.js', () => {
       strToBool: "${strToBool('false')}",
     };
     await resolve({
-      servicePath: process.cwd(),
+      serviceDir: process.cwd(),
       configuration,
       options: { option: 'bar' },
     });

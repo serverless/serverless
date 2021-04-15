@@ -155,7 +155,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     before(async () => {
       variablesMeta = resolveMeta(configuration);
       await resolve({
-        servicePath: process.cwd(),
+        serviceDir: process.cwd(),
         configuration,
         variablesMeta,
         sources,
@@ -345,7 +345,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
 
     it('should allow to re-resolve fulfilled sources', async () => {
       await resolve({
-        servicePath: process.cwd(),
+        serviceDir: process.cwd(),
         configuration,
         variablesMeta,
         sources: { ...sources, sourceIncomplete: { resolve: () => ({ value: 'complete' }) } },
@@ -414,7 +414,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     before(async () => {
       variablesMeta = resolveMeta(configuration);
       await resolve({
-        servicePath: process.cwd(),
+        serviceDir: process.cwd(),
         configuration,
         variablesMeta,
         sources,
