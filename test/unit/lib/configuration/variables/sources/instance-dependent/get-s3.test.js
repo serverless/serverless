@@ -45,7 +45,7 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
     };
 
     await resolve({
-      servicePath: process.cwd(),
+      serviceDir: process.cwd(),
       configuration,
       variablesMeta,
       sources: { self: selfSource, s3: getS3Source(serverlessInstance) },

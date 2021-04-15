@@ -53,7 +53,7 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
     };
     variablesMeta = resolveMeta(configuration);
     await resolve({
-      servicePath: serviceDir,
+      serviceDir,
       configuration,
       variablesMeta,
       sources: { file: fileSource },
@@ -181,7 +181,7 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
     };
     variablesMeta = resolveMeta(configuration);
     await resolve({
-      servicePath: serviceDir,
+      serviceDir,
       configuration,
       variablesMeta,
       sources: { file: fileSource },

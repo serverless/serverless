@@ -22,7 +22,7 @@ describe('test/unit/lib/configuration/variables/sources/self.test.js', () => {
       nonExisting: '${self:hola.mola}',
     };
     await resolve({
-      servicePath: process.cwd(),
+      serviceDir: process.cwd(),
       configuration,
       variablesMeta: resolveMeta(configuration),
       sources: { self: selfSource },
@@ -53,7 +53,7 @@ describe('test/unit/lib/configuration/variables/sources/self.test.js', () => {
     const configuration = { foo: '${self:}' };
     const variablesMeta = resolveMeta(configuration);
     await resolve({
-      servicePath: process.cwd(),
+      serviceDir: process.cwd(),
       configuration,
       variablesMeta,
       sources: { self: selfSource },
