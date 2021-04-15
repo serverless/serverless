@@ -195,5 +195,4 @@ functions:
     handler: handler.hello1
   hello2:
     handler: handler.hello2
-
 ```
