@@ -274,6 +274,27 @@ describe('AwsProvider', () => {
     });
   });
 
+  describe('#getAccountInfo()', () => {
+    it('should return the AWS account id and partition', () => {
+      const accountId = '12345678';
+      const partition = 'aws';
+
+      const stsGetCallerIdentityStub = sinon.stub(awsProvider, 'request').resolves({
+        ResponseMetadata: { RequestId: '12345678-1234-1234-1234-123456789012' },
+        UserId: 'ABCDEFGHIJKLMNOPQRSTU:VWXYZ',
+        Account: accountId,
+        Arn: 'arn:aws:sts::123456789012:assumed-role/ROLE-NAME/VWXYZ',
+      });
+
+      return awsProvider.getAccountInfo().then((result) => {
+        expect(stsGetCallerIdentityStub.calledOnce).to.equal(true);
+        expect(result.accountId).to.equal(accountId);
+        expect(result.partition).to.equal(partition);
+        awsProvider.request.restore();
+      });
+    });
+  });
+
   describe('#getAccountId()', () => {
     it('should return the AWS account id', () => {
       const accountId = '12345678';
@@ -611,9 +632,9 @@ aws_secret_access_key = CUSTOMSECRET
         fixture: 'function',
         command: 'package',
       });
-      expect(cfTemplate).to.haveOwnProperty('Resources');
-      const resources = Object.values(cfTemplate.Resources);
-      const functions = resources.filter((r) => r.Type === 'AWS::Lambda::Function');
+      const functions = Object.values(cfTemplate.Resources).filter(
+        (r) => r.Type === 'AWS::Lambda::Function'
+      );
       expect(functions.length).to.be.greaterThanOrEqual(1);
       for (const f of functions) {
         expect(f.Properties.Code.S3Key)
@@ -632,9 +653,9 @@ aws_secret_access_key = CUSTOMSECRET
           },
         },
       });
-      expect(cfTemplate).to.haveOwnProperty('Resources');
-      const resources = Object.values(cfTemplate.Resources);
-      const functions = resources.filter((r) => r.Type === 'AWS::Lambda::Function');
+      const functions = Object.values(cfTemplate.Resources).filter(
+        (r) => r.Type === 'AWS::Lambda::Function'
+      );
       expect(functions.length).to.be.greaterThanOrEqual(1);
       for (const f of functions) {
         expect(f.Properties.Code.S3Key)
@@ -677,9 +698,7 @@ aws_secret_access_key = CUSTOMSECRET
           },
         },
       });
-      expect(cfTemplate).to.haveOwnProperty('Resources');
-      const resources = Object.values(cfTemplate.Resources);
-      const targetGroups = resources.filter(
+      const targetGroups = Object.values(cfTemplate.Resources).filter(
         (r) => r.Type === 'AWS::ElasticLoadBalancingV2::TargetGroup'
       );
       expect(targetGroups.length).to.be.greaterThanOrEqual(1);
