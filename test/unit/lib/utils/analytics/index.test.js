@@ -94,10 +94,6 @@ describe('analytics', () => {
   it('Should limit concurrent requests at sendPending', () => {
     expectedState = 'networkError';
     expect(pendingRequests).to.equal(0);
-    let resolveServerlessExecutionSpan;
-    const serverlessExecutionSpan = new BbPromise(
-      (resolve) => (resolveServerlessExecutionSpan = resolve)
-    );
     return Promise.all([
       sendReport(),
       sendReport(),
@@ -115,50 +111,18 @@ describe('analytics', () => {
         expectedState = 'success';
         expect(pendingRequests).to.equal(0);
         concurrentRequestsMax = 0;
-        return sendPending({ serverlessExecutionSpan });
+        return sendPending();
       })
       .then(() => fse.readdir(cacheDirPath))
       .then((dirFilenames) => {
         expect(dirFilenames.filter(isFilename).length).to.equal(0);
         expect(concurrentRequestsMax).to.equal(3);
-        resolveServerlessExecutionSpan();
-        return serverlessExecutionSpan;
-      });
-  });
-
-  it('Should not issue further requests after serverless execution ends', () => {
-    expectedState = 'networkError';
-    return Promise.all([
-      sendReport(),
-      sendReport(),
-      sendReport(),
-      sendReport(),
-      sendReport(),
-      sendReport(),
-      sendReport(),
-    ])
-      .then(() => {
-        return fse.readdir(cacheDirPath);
-      })
-      .then((dirFilenames) => {
-        expect(dirFilenames.filter(isFilename).length).to.equal(7);
-        expectedState = 'success';
-        return sendPending();
-      })
-      .then(() => fse.readdir(cacheDirPath))
-      .then((dirFilenames) => {
-        expect(dirFilenames.filter(isFilename).length).to.equal(4);
-        return fse.emptyDir(cacheDirPath);
       });
   });
 
   it('Should ditch stale events at sendPending', () => {
     expectedState = 'networkError';
     expect(pendingRequests).to.equal(0);
-    let resolveServerlessExecutionSpan;
-    const serverlessExecutionSpan = new BbPromise(
-      (resolve) => (resolveServerlessExecutionSpan = resolve)
-    );
     return Promise.all([
       cacheEvent(0),
       cacheEvent(0),
@@ -176,14 +140,12 @@ describe('analytics', () => {
         expectedState = 'success';
         expect(pendingRequests).to.equal(0);
         concurrentRequestsMax = 0;
-        return sendPending({ serverlessExecutionSpan });
+        return sendPending();
       })
       .then(() => fse.readdir(cacheDirPath))
       .then((dirFilenames) => {
         expect(dirFilenames.filter(isFilename).length).to.equal(0);
         expect(concurrentRequestsMax).to.equal(2);
-        resolveServerlessExecutionSpan();
-        return serverlessExecutionSpan;
       });
   });
 
