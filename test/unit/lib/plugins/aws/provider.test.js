@@ -274,59 +274,6 @@ describe('AwsProvider', () => {
     });
   });
 
-  describe('#getDeploymentPrefix()', () => {
-    it('should return custom deployment prefix if defined', () => {
-      serverless.service.provider.deploymentPrefix = 'providerPrefix';
-
-      expect(awsProvider.getDeploymentPrefix()).to.equal(
-        serverless.service.provider.deploymentPrefix
-      );
-    });
-
-    it('should use the default serverless if not defined', () => {
-      serverless.service.provider.deploymentPrefix = undefined;
-
-      expect(awsProvider.getDeploymentPrefix()).to.equal('serverless');
-    });
-
-    it('should support no prefix', () => {
-      serverless.service.provider.deploymentPrefix = '';
-
-      expect(awsProvider.getDeploymentPrefix()).to.equal('');
-    });
-  });
-
-  describe('#getAlbTargetGroupPrefix()', () => {
-    it('should return custom alb target group prefix if defined', () => {
-      serverless.service.provider.alb = {};
-      serverless.service.provider.alb.targetGroupPrefix = 'myPrefix';
-
-      expect(awsProvider.getAlbTargetGroupPrefix()).to.equal(
-        serverless.service.provider.alb.targetGroupPrefix
-      );
-    });
-
-    it('should return empty string if alb is not defined', () => {
-      serverless.service.provider.alb = undefined;
-
-      expect(awsProvider.getAlbTargetGroupPrefix()).to.equal('');
-    });
-
-    it('should return empty string if not defined', () => {
-      serverless.service.provider.alb = {};
-      serverless.service.provider.alb.targetGroupPrefix = undefined;
-
-      expect(awsProvider.getAlbTargetGroupPrefix()).to.equal('');
-    });
-
-    it('should support no prefix', () => {
-      serverless.service.provider.alb = {};
-      serverless.service.provider.alb.targetGroupPrefix = '';
-
-      expect(awsProvider.getAlbTargetGroupPrefix()).to.equal('');
-    });
-  });
-
   describe('#getAccountInfo()', () => {
     it('should return the AWS account id and partition', () => {
       const accountId = '12345678';
@@ -676,6 +623,90 @@ aws_secret_access_key = CUSTOMSECRET
         },
       });
       expect(serverless.getProvider('aws').getProfile()).to.equal('aws-override');
+    });
+  });
+
+  describe('#getDeploymentPrefix()', () => {
+    it('should put all artifacts in namespaced folder', async () => {
+      const { cfTemplate } = await runServerless({
+        fixture: 'function',
+        command: 'package',
+      });
+      const functions = Object.values(cfTemplate.Resources).filter(
+        (r) => r.Type === 'AWS::Lambda::Function'
+      );
+      expect(functions.length).to.be.greaterThanOrEqual(1);
+      for (const f of functions) {
+        expect(f.Properties.Code.S3Key)
+          .to.be.a('string')
+          .and.satisfy((key) => key.startsWith('serverless/'));
+      }
+    });
+
+    it('should support custom namespaced folder', async () => {
+      const { cfTemplate } = await runServerless({
+        fixture: 'function',
+        command: 'package',
+        configExt: {
+          provider: {
+            deploymentPrefix: 'test-prefix',
+          },
+        },
+      });
+      const functions = Object.values(cfTemplate.Resources).filter(
+        (r) => r.Type === 'AWS::Lambda::Function'
+      );
+      expect(functions.length).to.be.greaterThanOrEqual(1);
+      for (const f of functions) {
+        expect(f.Properties.Code.S3Key)
+          .to.be.a('string')
+          .and.satisfy((key) => key.startsWith('test-prefix/'));
+      }
+    });
+  });
+
+  describe('#getAlbTargetGroupPrefix()', () => {
+    it('should support `provider.alb.targetGroupPrefix`', async () => {
+      const albId = '50dc6c495c0c9188';
+      const validBaseEventConfig = {
+        listenerArn: `arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/my-load-balancer/${albId}/f2f7dc8efc522ab2`,
+        conditions: {
+          path: '/',
+        },
+      };
+      const { cfTemplate } = await runServerless({
+        fixture: 'function',
+        command: 'package',
+        configExt: {
+          provider: {
+            alb: {
+              targetGroupPrefix: 'a-prefix',
+            },
+          },
+          functions: {
+            fnTargetGroupName: {
+              handler: 'index.handler',
+              events: [
+                {
+                  alb: {
+                    ...validBaseEventConfig,
+                    priority: 1,
+                  },
+                },
+              ],
+            },
+          },
+        },
+      });
+      const targetGroups = Object.values(cfTemplate.Resources).filter(
+        (r) => r.Type === 'AWS::ElasticLoadBalancingV2::TargetGroup'
+      );
+      expect(targetGroups.length).to.be.greaterThanOrEqual(1);
+      for (const t of targetGroups) {
+        expect(t.Properties.Name)
+          .to.be.a('string')
+          .and.satisfy((key) => key.startsWith('a-prefix'));
+      }
     });
   });
 
