@@ -28,7 +28,7 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
   let cfResources;
   let naming;
   let updateConfig;
-  let servicePath;
+  let serviceDir;
   let service;
   let cfOutputs;
 
@@ -65,7 +65,7 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
     cfOutputs = cfTemplate.Outputs;
     naming = awsNaming;
     service = serverless.service;
-    ({ updateConfig, servicePath } = fixtureData);
+    ({ updateConfig, servicePath: serviceDir } = fixtureData);
   });
 
   it('should support `layers[].package.artifact` with `package.individually`', () => {
@@ -128,7 +128,7 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
       const {
         cfTemplate: { Resources: secondCfResources },
       } = await runServerless({
-        cwd: servicePath,
+        cwd: serviceDir,
         command: 'package',
         awsRequestStubMap,
       });
@@ -138,7 +138,7 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
       const {
         cfTemplate: { Resources: firstCfResources },
       } = await runServerless({
-        cwd: servicePath,
+        cwd: serviceDir,
         command: 'package',
         awsRequestStubMap,
       });

@@ -90,7 +90,7 @@ describe('PluginUninstall', () => {
   });
 
   describe('#uninstall()', () => {
-    let servicePath;
+    let serviceDir;
     let serverlessYmlFilePath;
     let pluginUninstallStub;
     let validateStub;
@@ -100,10 +100,10 @@ describe('PluginUninstall', () => {
     let uninstallPeerDependenciesStub;
 
     beforeEach(() => {
-      servicePath = getTmpDirPath();
-      pluginUninstall.serverless.serviceDir = servicePath;
-      fse.ensureDirSync(servicePath);
-      serverlessYmlFilePath = path.join(servicePath, 'serverless.yml');
+      serviceDir = getTmpDirPath();
+      pluginUninstall.serverless.serviceDir = serviceDir;
+      fse.ensureDirSync(serviceDir);
+      serverlessYmlFilePath = path.join(serviceDir, 'serverless.yml');
       validateStub = sinon.stub(pluginUninstall, 'validate').returns(BbPromise.resolve());
       pluginUninstallStub = sinon
         .stub(pluginUninstall, 'pluginUninstall')
@@ -119,7 +119,7 @@ describe('PluginUninstall', () => {
         .returns(BbPromise.resolve(plugins));
       // save the cwd so that we can restore it later
       savedCwd = process.cwd();
-      process.chdir(servicePath);
+      process.chdir(serviceDir);
     });
 
     afterEach(() => {
@@ -187,21 +187,21 @@ describe('PluginUninstall', () => {
   });
 
   describe('#pluginUninstall()', () => {
-    let servicePath;
+    let serviceDir;
     let packageJsonFilePath;
     let npmUninstallStub;
     let savedCwd;
 
     beforeEach(() => {
       pluginUninstall.options.pluginName = 'serverless-plugin-1';
-      servicePath = getTmpDirPath();
-      pluginUninstall.serverless.serviceDir = servicePath;
-      fse.ensureDirSync(servicePath);
-      packageJsonFilePath = path.join(servicePath, 'package.json');
+      serviceDir = getTmpDirPath();
+      pluginUninstall.serverless.serviceDir = serviceDir;
+      fse.ensureDirSync(serviceDir);
+      packageJsonFilePath = path.join(serviceDir, 'package.json');
       npmUninstallStub = sinon.stub(childProcess, 'execAsync').returns(BbPromise.resolve());
       // save the cwd so that we can restore it later
       savedCwd = process.cwd();
-      process.chdir(servicePath);
+      process.chdir(serviceDir);
     });
 
     afterEach(() => {
@@ -235,14 +235,14 @@ describe('PluginUninstall', () => {
   });
 
   describe('#removePluginFromServerlessFile()', () => {
-    let servicePath;
+    let serviceDir;
     let serverlessYmlFilePath;
 
     beforeEach(() => {
-      servicePath = getTmpDirPath();
-      pluginUninstall.serverless.serviceDir = pluginUninstall.serverless.serviceDir = servicePath;
+      serviceDir = getTmpDirPath();
+      pluginUninstall.serverless.serviceDir = pluginUninstall.serverless.serviceDir = serviceDir;
       pluginUninstall.serverless.configurationFilename = 'serverless.yml';
-      serverlessYmlFilePath = path.join(servicePath, 'serverless.yml');
+      serverlessYmlFilePath = path.join(serviceDir, 'serverless.yml');
     });
 
     it('should only remove the given plugin from the service', () => {
@@ -282,7 +282,7 @@ describe('PluginUninstall', () => {
     });
 
     it('should remove the plugin from serverless file path for a .yaml file', () => {
-      const serverlessYamlFilePath = path.join(servicePath, 'serverless.yaml');
+      const serverlessYamlFilePath = path.join(serviceDir, 'serverless.yaml');
       pluginUninstall.serverless.configurationFilename = 'serverless.yaml';
       const serverlessYml = {
         service: 'plugin-service',
@@ -299,7 +299,7 @@ describe('PluginUninstall', () => {
     });
 
     it('should remove the plugin from serverless file path for a .json file', () => {
-      const serverlessJsonFilePath = path.join(servicePath, 'serverless.json');
+      const serverlessJsonFilePath = path.join(serviceDir, 'serverless.json');
       pluginUninstall.serverless.configurationFilename = 'serverless.json';
       const serverlessJson = {
         service: 'plugin-service',
@@ -332,7 +332,7 @@ describe('PluginUninstall', () => {
     });
 
     it('should not modify serverless .js file', () => {
-      const serverlessJsFilePath = path.join(servicePath, 'serverless.js');
+      const serverlessJsFilePath = path.join(serviceDir, 'serverless.js');
       pluginUninstall.serverless.configurationFilename = 'serverless.js';
       const serverlessJson = {
         service: 'plugin-service',
@@ -352,7 +352,7 @@ describe('PluginUninstall', () => {
     });
 
     it('should not modify serverless .ts file', () => {
-      const serverlessTsFilePath = path.join(servicePath, 'serverless.ts');
+      const serverlessTsFilePath = path.join(serviceDir, 'serverless.ts');
       pluginUninstall.serverless.configurationFilename = 'serverless.ts';
       const serverlessJson = {
         service: 'plugin-service',
@@ -420,7 +420,7 @@ describe('PluginUninstall', () => {
       });
 
       it('should remove the plugin from serverless file path for a .json file', () => {
-        const serverlessJsonFilePath = path.join(servicePath, 'serverless.json');
+        const serverlessJsonFilePath = path.join(serviceDir, 'serverless.json');
         pluginUninstall.serverless.configurationFilename = 'serverless.json';
         const serverlessJson = {
           service: 'plugin-service',
@@ -465,7 +465,7 @@ describe('PluginUninstall', () => {
   });
 
   describe('#uninstallPeerDependencies()', () => {
-    let servicePath;
+    let serviceDir;
     let pluginPath;
     let pluginPackageJsonFilePath;
     let pluginName;
@@ -475,14 +475,14 @@ describe('PluginUninstall', () => {
     beforeEach(() => {
       pluginName = 'some-plugin';
       pluginUninstall.options.pluginName = pluginName;
-      servicePath = getTmpDirPath();
-      pluginUninstall.serverless.serviceDir = servicePath;
-      pluginPath = path.join(servicePath, 'node_modules', pluginName);
+      serviceDir = getTmpDirPath();
+      pluginUninstall.serverless.serviceDir = serviceDir;
+      pluginPath = path.join(serviceDir, 'node_modules', pluginName);
       fse.ensureDirSync(pluginPath);
       pluginPackageJsonFilePath = path.join(pluginPath, 'package.json');
       npmUninstallStub = sinon.stub(childProcess, 'execAsync').returns(BbPromise.resolve());
       savedCwd = process.cwd();
-      process.chdir(servicePath);
+      process.chdir(serviceDir);
     });
 
     afterEach(() => {

@@ -13,7 +13,7 @@ describe('AWS - API Gateway with External REST API Integration Test', function (
   let endpoint;
   let updateConfig;
   let stackName;
-  let servicePath;
+  let serviceDir;
   let isDeployed = false;
   let restApiId;
   const stage = 'dev';
@@ -28,7 +28,7 @@ describe('AWS - API Gateway with External REST API Integration Test', function (
 
   before(async () => {
     const serviceData = await fixtures.setup('apiGateway');
-    ({ servicePath, updateConfig } = serviceData);
+    ({ servicePath: serviceDir, updateConfig } = serviceData);
     const serviceName = serviceData.serviceConfig.service;
     const externalRestApiName = `${stage}-${serviceName}-ext-api`;
     const restApiMeta = await createRestApi(externalRestApiName);
@@ -48,7 +48,7 @@ describe('AWS - API Gateway with External REST API Integration Test', function (
       },
     });
     stackName = `${serviceName}-${stage}`;
-    await deployService(servicePath);
+    await deployService(serviceDir);
     isDeployed = true;
     return resolveEndpoint();
   });
@@ -56,7 +56,7 @@ describe('AWS - API Gateway with External REST API Integration Test', function (
   after(async () => {
     if (!isDeployed) return;
     log.notice('Removing service...');
-    await removeService(servicePath);
+    await removeService(serviceDir);
     log.notice('Deleting external rest API...');
     await deleteRestApi(restApiId);
   });

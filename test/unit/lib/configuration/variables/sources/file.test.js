@@ -8,7 +8,7 @@ const resolve = require('../../../../../../lib/configuration/variables/resolve')
 const fileSource = require('../../../../../../lib/configuration/variables/sources/file');
 
 describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
-  const servicePath = path.resolve(__dirname, 'fixture');
+  const serviceDir = path.resolve(__dirname, 'fixture');
   let configuration;
   let variablesMeta;
   before(async () => {
@@ -53,7 +53,7 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
     };
     variablesMeta = resolveMeta(configuration);
     await resolve({
-      servicePath,
+      servicePath: serviceDir,
       configuration,
       variablesMeta,
       sources: { file: fileSource },
@@ -181,7 +181,7 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
     };
     variablesMeta = resolveMeta(configuration);
     await resolve({
-      servicePath,
+      servicePath: serviceDir,
       configuration,
       variablesMeta,
       sources: { file: fileSource },

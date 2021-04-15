@@ -12,14 +12,14 @@ const { deployService, removeService } = require('../utils/integration');
 describe('AWS - Provisioned Concurrency Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let stackName;
-  let servicePath;
+  let serviceDir;
   let queueName;
   let streamName;
   const stage = 'dev';
 
   before(async () => {
     const serviceData = await fixtures.setup('provisionedConcurrency');
-    ({ servicePath } = serviceData);
+    ({ servicePath: serviceDir } = serviceData);
     const serviceName = serviceData.serviceConfig.service;
 
     streamName = `${serviceName}-kinesis`;
@@ -28,11 +28,11 @@ describe('AWS - Provisioned Concurrency Integration Test', function () {
     // NOTE: deployment can only be done once the SQS queue and Kinesis Stream is created
     log.notice(`Creating SQS queue "${queueName}" and Kinesis stream "${streamName}"...`);
     await Promise.all([createSqsQueue(queueName), createKinesisStream(streamName)]);
-    return deployService(servicePath);
+    return deployService(serviceDir);
   });
 
   after(async () => {
-    await removeService(servicePath);
+    await removeService(serviceDir);
     log.notice(`Deleting SQS queue "${queueName}" and Kinesis stream "${streamName}"...`);
     return Promise.all([deleteKinesisStream(streamName), deleteSqsQueue(queueName)]);
   });

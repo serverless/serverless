@@ -396,14 +396,14 @@ describe('PluginManager', () => {
       case 'ServicePluginMock2':
         return { realPath: pluginPath };
       case './RelativePath/ServicePluginMock2':
-        return { realPath: `${servicePath}/RelativePath/ServicePluginMock2` };
+        return { realPath: `${serviceDir}/RelativePath/ServicePluginMock2` };
       default:
         return cjsResolve(directory, pluginPath);
     }
   };
 
   let restoreEnv;
-  let servicePath;
+  let serviceDir;
   let PluginManager = proxyquire('../../../../lib/classes/PluginManager', {
     'ncjsm/resolve/sync': resolveStub,
   });
@@ -414,7 +414,7 @@ describe('PluginManager', () => {
     serverless.cli = new CLI();
     serverless.processedInput = { commands: [], options: {} };
     pluginManager = new PluginManager(serverless);
-    servicePath = pluginManager.serverless.serviceDir = 'foo';
+    serviceDir = pluginManager.serverless.serviceDir = 'foo';
   });
 
   afterEach(() => restoreEnv());
@@ -472,8 +472,8 @@ describe('PluginManager', () => {
       });
       pluginManager = new PluginManager(serverless);
       pluginManager.serverless.config = { servicePath: 'somePath' };
-      servicePath = pluginManager.serverless.serviceDir;
-      cacheFilePath = getCacheFilePath(servicePath);
+      serviceDir = pluginManager.serverless.serviceDir;
+      cacheFilePath = getCacheFilePath(serviceDir);
       getCommandsStub = sinon.stub(pluginManager, 'getCommands');
     });
 
@@ -750,7 +750,7 @@ describe('PluginManager', () => {
     beforeEach(() => {
       mockRequire('ServicePluginMock1', ServicePluginMock1);
       // Plugins loaded via a relative path should be required relative to the service path
-      mockRequire(`${servicePath}/RelativePath/ServicePluginMock2`, ServicePluginMock2);
+      mockRequire(`${serviceDir}/RelativePath/ServicePluginMock2`, ServicePluginMock2);
     });
 
     it('should resolve the service plugins', () => {
@@ -1917,7 +1917,6 @@ describe('PluginManager', () => {
 
   describe('Plugin / Load local plugins', () => {
     const cwd = process.cwd();
-    let serviceDir;
     let tmpDir;
     beforeEach(() => {
       tmpDir = getTmpDirPath();
@@ -1998,7 +1997,6 @@ describe('PluginManager', () => {
     this.timeout(1000 * 60 * 10);
 
     let serverlessInstance;
-    let serviceDir;
     const serverlessExec = require('../../../serverlessBinary');
 
     beforeEach(() => {

@@ -19,7 +19,7 @@ describe('AWS - Event Bridge Integration Test', () => {
     this.timeout(1000 * 60 * 100); // Involves time-taking deploys
     let serviceName;
     let stackName;
-    let servicePath;
+    let serviceDir;
     let namedEventBusName;
     let arnEventBusName;
     let arnEventBusArn;
@@ -35,7 +35,7 @@ describe('AWS - Event Bridge Integration Test', () => {
 
     before(async () => {
       const serviceData = await fixtures.setup('eventBridge');
-      ({ servicePath } = serviceData);
+      ({ servicePath: serviceDir } = serviceData);
       serviceName = serviceData.serviceConfig.service;
 
       namedEventBusName = `${serviceName}-named-event-bus`;
@@ -74,12 +74,12 @@ describe('AWS - Event Bridge Integration Test', () => {
         },
       });
       // deploy the service
-      return deployService(servicePath);
+      return deployService(serviceDir);
     });
 
     after(async () => {
       log.notice('Removing service...');
-      await removeService(servicePath);
+      await removeService(serviceDir);
       log.notice(`Deleting Event Bus "${arnEventBusName}"...`);
       return deleteEventBus(arnEventBusName);
     });
@@ -152,7 +152,7 @@ describe('AWS - Event Bridge Integration Test', () => {
     this.timeout(1000 * 60 * 10); // Involves time-taking deploys
     let serviceName;
     let stackName;
-    let servicePath;
+    let serviceDir;
     let namedEventBusName;
     let arnEventBusName;
     let arnEventBusArn;
@@ -168,7 +168,7 @@ describe('AWS - Event Bridge Integration Test', () => {
 
     before(async () => {
       const serviceData = await fixtures.setup('eventBridge');
-      ({ servicePath } = serviceData);
+      ({ servicePath: serviceDir } = serviceData);
       serviceName = serviceData.serviceConfig.service;
 
       namedEventBusName = `${serviceName}-named-event-bus`;
@@ -210,12 +210,12 @@ describe('AWS - Event Bridge Integration Test', () => {
           },
         },
       });
-      return deployService(servicePath);
+      return deployService(serviceDir);
     });
 
     after(async () => {
       log.notice('Removing service...');
-      await removeService(servicePath);
+      await removeService(serviceDir);
       log.notice(`Deleting Event Bus "${arnEventBusName}"...`);
       return deleteEventBus(arnEventBusName);
     });

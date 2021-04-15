@@ -12,7 +12,7 @@ describe('renameService', () => {
   let serverless;
   let cwd;
 
-  let servicePath;
+  let serviceDir;
 
   beforeEach(() => {
     const tmpDir = getTmpDirPath();
@@ -21,7 +21,7 @@ describe('renameService', () => {
     fse.mkdirsSync(tmpDir);
     process.chdir(tmpDir);
 
-    servicePath = tmpDir;
+    serviceDir = tmpDir;
 
     serverless = new Serverless();
     return serverless.init();
@@ -41,15 +41,15 @@ describe('renameService', () => {
     const defaultServiceName = 'service-name';
     const newServiceName = 'new-service-name';
 
-    const packageFile = path.join(servicePath, 'package.json');
-    const packageLockFile = path.join(servicePath, 'package-lock.json');
-    const serviceFile = path.join(servicePath, 'serverless.yml');
+    const packageFile = path.join(serviceDir, 'package.json');
+    const packageLockFile = path.join(serviceDir, 'package-lock.json');
+    const serviceFile = path.join(serviceDir, 'serverless.yml');
 
     serverless.utils.writeFileSync(packageFile, { name: defaultServiceName });
     serverless.utils.writeFileSync(packageLockFile, { name: defaultServiceName });
     fse.writeFileSync(serviceFile, defaultServiceYml);
 
-    renameService(newServiceName, servicePath);
+    renameService(newServiceName, serviceDir);
     const serviceYml = fse.readFileSync(serviceFile, 'utf-8');
     const packageJson = serverless.utils.readFileSync(packageFile);
     const packageLockJson = serverless.utils.readFileSync(packageLockFile);
@@ -67,15 +67,15 @@ describe('renameService', () => {
     const defaultServiceName = 'service-name';
     const newServiceName = 'new-service-name';
 
-    const packageFile = path.join(servicePath, 'package.json');
-    const packageLockFile = path.join(servicePath, 'package-lock.json');
-    const serviceFile = path.join(servicePath, 'serverless.ts');
+    const packageFile = path.join(serviceDir, 'package.json');
+    const packageLockFile = path.join(serviceDir, 'package-lock.json');
+    const serviceFile = path.join(serviceDir, 'serverless.ts');
 
     serverless.utils.writeFileSync(packageFile, { name: defaultServiceName });
     serverless.utils.writeFileSync(packageLockFile, { name: defaultServiceName });
     fse.writeFileSync(serviceFile, defaultServiceTs);
 
-    renameService(newServiceName, servicePath);
+    renameService(newServiceName, serviceDir);
     const serviceTs = fse.readFileSync(serviceFile, 'utf-8');
     const packageJson = serverless.utils.readFileSync(packageFile);
     const packageLockJson = serverless.utils.readFileSync(packageLockFile);
@@ -92,15 +92,15 @@ describe('renameService', () => {
     const defaultServiceName = 'service-name';
     const newServiceName = 'new-service-name';
 
-    const packageFile = path.join(servicePath, 'package.json');
-    const packageLockFile = path.join(servicePath, 'package-lock.json');
-    const serviceFile = path.join(servicePath, 'serverless.yml');
+    const packageFile = path.join(serviceDir, 'package.json');
+    const packageLockFile = path.join(serviceDir, 'package-lock.json');
+    const serviceFile = path.join(serviceDir, 'serverless.yml');
 
     serverless.utils.writeFileSync(packageFile, { name: defaultServiceName });
     serverless.utils.writeFileSync(packageLockFile, { name: defaultServiceName });
     fse.writeFileSync(serviceFile, defaultServiceYml);
 
-    renameService(newServiceName, servicePath);
+    renameService(newServiceName, serviceDir);
     const serviceYml = fse.readFileSync(serviceFile, 'utf-8');
     const packageJson = serverless.utils.readFileSync(packageFile);
     const packageLockJson = serverless.utils.readFileSync(packageLockFile);
@@ -114,12 +114,12 @@ describe('renameService', () => {
       '# service: service-name #comment\n\nprovider:\n  name: aws\n# comment';
     const newServiceYml = '# service: new-service-name\n\nprovider:\n  name: aws\n# comment';
 
-    const serviceFile = path.join(servicePath, 'serverless.yml');
+    const serviceFile = path.join(serviceDir, 'serverless.yml');
 
     serverless.utils.writeFileDir(serviceFile);
     fse.writeFileSync(serviceFile, defaultServiceYml);
 
-    renameService('new-service-name', servicePath);
+    renameService('new-service-name', serviceDir);
     const serviceYml = fse.readFileSync(serviceFile, 'utf-8');
     expect(serviceYml).to.equal(newServiceYml);
   });
@@ -131,15 +131,15 @@ describe('renameService', () => {
     const defaultServiceName = 'service-name';
     const newServiceName = 'new-service-name';
 
-    const packageFile = path.join(servicePath, 'package.json');
-    const packageLockFile = path.join(servicePath, 'package-lock.json');
-    const serviceFile = path.join(servicePath, 'serverless.yml');
+    const packageFile = path.join(serviceDir, 'package.json');
+    const packageLockFile = path.join(serviceDir, 'package-lock.json');
+    const serviceFile = path.join(serviceDir, 'serverless.yml');
 
     serverless.utils.writeFileSync(packageFile, { name: defaultServiceName });
     serverless.utils.writeFileSync(packageLockFile, { name: defaultServiceName });
     fse.writeFileSync(serviceFile, defaultServiceYml);
 
-    renameService(newServiceName, servicePath);
+    renameService(newServiceName, serviceDir);
     const serviceYml = fse.readFileSync(serviceFile, 'utf-8');
     const packageJson = serverless.utils.readFileSync(packageFile);
     const packageLockJson = serverless.utils.readFileSync(packageLockFile);
@@ -157,15 +157,15 @@ describe('renameService', () => {
     const defaultServiceName = 'service-name';
     const newServiceName = 'new-service-name';
 
-    const packageFile = path.join(servicePath, 'package.json');
-    const packageLockFile = path.join(servicePath, 'package-lock.json');
-    const serviceFile = path.join(servicePath, 'serverless.ts');
+    const packageFile = path.join(serviceDir, 'package.json');
+    const packageLockFile = path.join(serviceDir, 'package-lock.json');
+    const serviceFile = path.join(serviceDir, 'serverless.ts');
 
     serverless.utils.writeFileSync(packageFile, { name: defaultServiceName });
     serverless.utils.writeFileSync(packageLockFile, { name: defaultServiceName });
     fse.writeFileSync(serviceFile, defaultServiceTs);
 
-    renameService(newServiceName, servicePath);
+    renameService(newServiceName, serviceDir);
     const serviceTs = fse.readFileSync(serviceFile, 'utf-8');
     const packageJson = serverless.utils.readFileSync(packageFile);
     const packageLockJson = serverless.utils.readFileSync(packageLockFile);
@@ -183,15 +183,15 @@ describe('renameService', () => {
     const defaultServiceName = 'service-name';
     const newServiceName = 'new-service-name';
 
-    const packageFile = path.join(servicePath, 'package.json');
-    const packageLockFile = path.join(servicePath, 'package-lock.json');
-    const serviceFile = path.join(servicePath, 'serverless.yml');
+    const packageFile = path.join(serviceDir, 'package.json');
+    const packageLockFile = path.join(serviceDir, 'package-lock.json');
+    const serviceFile = path.join(serviceDir, 'serverless.yml');
 
     serverless.utils.writeFileSync(packageFile, { name: defaultServiceName });
     serverless.utils.writeFileSync(packageLockFile, { name: defaultServiceName });
     fse.writeFileSync(serviceFile, defaultServiceYml);
 
-    renameService(newServiceName, servicePath);
+    renameService(newServiceName, serviceDir);
     const serviceYml = fse.readFileSync(serviceFile, 'utf-8');
     const packageJson = serverless.utils.readFileSync(packageFile);
     const packageLockJson = serverless.utils.readFileSync(packageLockFile);
@@ -201,6 +201,6 @@ describe('renameService', () => {
   });
 
   it('should fail to set new service name in serverless.yml', () => {
-    expect(() => renameService('new-service-name', servicePath)).to.throw(Error);
+    expect(() => renameService('new-service-name', serviceDir)).to.throw(Error);
   });
 });

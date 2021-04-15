@@ -12,7 +12,7 @@ const { deployService, removeService } = require('../utils/integration');
 describe('AWS - SNS Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let stackName;
-  let servicePath;
+  let serviceDir;
   let minimalTopicName;
   let filteredTopicName;
   let existingTopicName;
@@ -20,7 +20,7 @@ describe('AWS - SNS Integration Test', function () {
 
   before(async () => {
     const serviceData = await fixtures.setup('sns');
-    ({ servicePath } = serviceData);
+    ({ servicePath: serviceDir } = serviceData);
     const serviceName = serviceData.serviceConfig.service;
 
     minimalTopicName = `${serviceName}-minimal`;
@@ -32,12 +32,12 @@ describe('AWS - SNS Integration Test', function () {
     // NOTE: deployment can only be done once the SNS topics are created
     log.notice(`Creating SNS topic "${existingTopicName}"...`);
     return createSnsTopic(existingTopicName).then(() => {
-      return deployService(servicePath);
+      return deployService(serviceDir);
     });
   });
 
   after(async () => {
-    await removeService(servicePath);
+    await removeService(serviceDir);
     log.notice('Deleting SNS topics');
     return removeSnsTopic(existingTopicName);
   });

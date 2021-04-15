@@ -11,7 +11,7 @@ describe('test/integration/iotFleetProvisioning.test.js', function () {
   const thingName = 'IotDevice';
   const stage = 'dev';
   let stackName;
-  let servicePath;
+  let serviceDir;
   let certificateId;
   let isDeployed = false;
 
@@ -29,10 +29,10 @@ describe('test/integration/iotFleetProvisioning.test.js', function () {
 
   before(async () => {
     let serviceConfig;
-    ({ serviceConfig, servicePath } = await fixtures.setup('iotFleetProvisioning'));
+    ({ serviceConfig, servicePath: serviceDir } = await fixtures.setup('iotFleetProvisioning'));
     const serviceName = serviceConfig.service;
     stackName = `${serviceName}-${stage}`;
-    await deployService(servicePath);
+    await deployService(serviceDir);
     isDeployed = true;
   });
 
@@ -71,7 +71,7 @@ describe('test/integration/iotFleetProvisioning.test.js', function () {
         certificateId,
       }),
     ]);
-    await removeService(servicePath);
+    await removeService(serviceDir);
   });
 
   it('setup a new IoT Thing with the provisioning template', async () => {

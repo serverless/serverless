@@ -12,7 +12,7 @@ describe('HTTP API Integration Test', function () {
   this.timeout(1000 * 60 * 20); // Involves time-taking deploys
   let endpoint;
   let stackName;
-  let servicePath;
+  let serviceDir;
   const stage = 'dev';
 
   const resolveEndpoint = async () => {
@@ -119,17 +119,17 @@ describe('HTTP API Integration Test', function () {
           },
         },
       });
-      ({ servicePath } = serviceData);
+      ({ servicePath: serviceDir } = serviceData);
       const serviceName = serviceData.serviceConfig.service;
       stackName = `${serviceName}-${stage}`;
-      await deployService(servicePath);
+      await deployService(serviceDir);
       return resolveEndpoint();
     });
 
     after(async () => {
       await awsRequest('CognitoIdentityServiceProvider', 'deleteUserPool', { UserPoolId: poolId });
-      if (!servicePath) return;
-      await removeService(servicePath);
+      if (!serviceDir) return;
+      await removeService(serviceDir);
     });
 
     it('should expose an accessible POST HTTP endpoint', async () => {
@@ -247,10 +247,10 @@ describe('HTTP API Integration Test', function () {
   describe('Catch-all endpoints', () => {
     before(async () => {
       const serviceData = await fixtures.setup('httpApiCatchAll');
-      ({ servicePath } = serviceData);
+      ({ servicePath: serviceDir } = serviceData);
       const serviceName = serviceData.serviceConfig.service;
       stackName = `${serviceName}-${stage}`;
-      await deployService(servicePath);
+      await deployService(serviceDir);
       return resolveEndpoint();
     });
 
@@ -259,7 +259,7 @@ describe('HTTP API Integration Test', function () {
       // TODO: Remove once properly diagnosed
       if (this.test.parent.tests.some((test) => test.state === 'failed')) return;
       log.notice('Removing service...');
-      await removeService(servicePath);
+      await removeService(serviceDir);
     });
 
     it('should catch all root endpoint', async () => {
@@ -308,15 +308,15 @@ describe('HTTP API Integration Test', function () {
           provider: { httpApi: { id: httpApiId } },
         },
       });
-      ({ servicePath } = serviceData);
+      ({ servicePath: serviceDir } = serviceData);
       serviceName = serviceData.serviceConfig.service;
       stackName = `${serviceName}-${stage}`;
-      await deployService(servicePath);
+      await deployService(serviceDir);
     });
 
     after(async () => {
       if (serviceName) {
-        await removeService(servicePath);
+        await removeService(serviceDir);
       }
       await removeService(exportServicePath);
     });

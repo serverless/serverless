@@ -24,7 +24,7 @@ describe('AWS - FileSystemConfig Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let stackName;
   let startTime;
-  let servicePath;
+  let serviceDir;
   const stage = 'dev';
   const filename = `/mnt/testing/${crypto.randomBytes(8).toString('hex')}.txt`;
 
@@ -55,17 +55,17 @@ describe('AWS - FileSystemConfig Integration Test', function () {
         functions: { writer: { fileSystemConfig }, reader: { fileSystemConfig } },
       },
     });
-    ({ servicePath } = serviceData);
+    ({ servicePath: serviceDir } = serviceData);
 
     const serviceName = serviceData.serviceConfig.service;
     stackName = `${serviceName}-${stage}`;
-    await deployService(servicePath);
+    await deployService(serviceDir);
     startTime = Date.now();
   });
 
   after(async () => {
-    if (servicePath) {
-      await removeService(servicePath);
+    if (serviceDir) {
+      await removeService(serviceDir);
     }
   });
 

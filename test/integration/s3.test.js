@@ -12,7 +12,7 @@ const { confirmCloudWatchLogs } = require('../utils/misc');
 describe('AWS - S3 Integration Test', function () {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
   let stackName;
-  let servicePath;
+  let serviceDir;
   let bucketMinimalSetup;
   let bucketExtendedSetup;
   let bucketCustomName;
@@ -22,7 +22,7 @@ describe('AWS - S3 Integration Test', function () {
 
   before(async () => {
     const serviceData = await fixtures.setup('s3');
-    ({ servicePath } = serviceData);
+    ({ servicePath: serviceDir } = serviceData);
     const serviceName = serviceData.serviceConfig.service;
     bucketMinimalSetup = `${serviceName}-s3-minimal`;
     bucketExtendedSetup = `${serviceName}-s3-extended`;
@@ -37,12 +37,12 @@ describe('AWS - S3 Integration Test', function () {
       createBucket(bucketExistingSimpleSetup),
       createBucket(bucketExistingComplexSetup),
     ]).then(() => {
-      return deployService(servicePath);
+      return deployService(serviceDir);
     });
   });
 
   after(async () => {
-    await removeService(servicePath);
+    await removeService(serviceDir);
     return BbPromise.all([
       deleteBucket(bucketExistingSimpleSetup),
       deleteBucket(bucketExistingComplexSetup),
