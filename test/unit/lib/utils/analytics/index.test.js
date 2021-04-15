@@ -16,6 +16,7 @@ describe('analytics', () => {
   let sendPending;
   let expectedState = 'success';
   let usedUrl;
+  let usedOptions;
   let pendingRequests = 0;
   let concurrentRequestsMax = 0;
 
@@ -32,8 +33,9 @@ describe('analytics', () => {
     ({ report, sendPending } = proxyquire('../../../../../lib/utils/analytics/index.js', {
       '@serverless/utils/analytics-and-notfications-url': analyticsUrl,
       './areDisabled': false,
-      'node-fetch': (url) => {
+      'node-fetch': (url, options) => {
         usedUrl = url;
+        usedOptions = options;
         ++pendingRequests;
         if (pendingRequests > concurrentRequestsMax) concurrentRequestsMax = pendingRequests;
         return new BbPromise((resolve, reject) => {
@@ -64,7 +66,7 @@ describe('analytics', () => {
 
   it('Should ignore missing cacheDirPath', () =>
     sendPending().then((sendPendingResult) => {
-      expect(sendPendingResult).to.be.undefined;
+      expect(sendPendingResult).to.be.null;
       return sendReport().then(() => {
         expect(usedUrl).to.equal(analyticsUrl);
         return fse.readdir(cacheDirPath).then((dirFilenames) => {
@@ -91,62 +93,16 @@ describe('analytics', () => {
       });
   });
 
-  it('Should limit concurrent requests at sendPending', () => {
-    expectedState = 'networkError';
-    expect(pendingRequests).to.equal(0);
-    return Promise.all([
-      sendReport(),
-      sendReport(),
-      sendReport(),
-      sendReport(),
-      sendReport(),
-      sendReport(),
-      sendReport(),
-    ])
-      .then(() => {
-        return fse.readdir(cacheDirPath);
-      })
-      .then((dirFilenames) => {
-        expect(dirFilenames.filter(isFilename).length).to.equal(7);
-        expectedState = 'success';
-        expect(pendingRequests).to.equal(0);
-        concurrentRequestsMax = 0;
-        return sendPending();
-      })
-      .then(() => fse.readdir(cacheDirPath))
-      .then((dirFilenames) => {
-        expect(dirFilenames.filter(isFilename).length).to.equal(0);
-        expect(concurrentRequestsMax).to.equal(3);
-      });
-  });
-
-  it('Should ditch stale events at sendPending', () => {
-    expectedState = 'networkError';
-    expect(pendingRequests).to.equal(0);
-    return Promise.all([
-      cacheEvent(0),
-      cacheEvent(0),
-      sendReport(),
-      cacheEvent(0),
-      sendReport(),
-      cacheEvent(0),
-      cacheEvent(0),
-    ])
-      .then(() => {
-        return fse.readdir(cacheDirPath);
-      })
-      .then((dirFilenames) => {
-        expect(dirFilenames.filter(isFilename).length).to.equal(7);
-        expectedState = 'success';
-        expect(pendingRequests).to.equal(0);
-        concurrentRequestsMax = 0;
-        return sendPending();
-      })
-      .then(() => fse.readdir(cacheDirPath))
-      .then((dirFilenames) => {
-        expect(dirFilenames.filter(isFilename).length).to.equal(0);
-        expect(concurrentRequestsMax).to.equal(2);
-      });
+  it('Should ditch stale events at sendPending', async () => {
+    await Promise.all([cacheEvent(0), cacheEvent(0), cacheEvent(), cacheEvent(), cacheEvent(0)]);
+    expectedState = 'success';
+    const dirFilenames = await fse.readdir(cacheDirPath);
+    expect(dirFilenames.filter(isFilename).length).to.equal(5);
+    await sendPending();
+    const dirFilenamesAfterSend = await fse.readdir(cacheDirPath);
+    expect(dirFilenamesAfterSend.filter(isFilename).length).to.equal(0);
+    // Check if only two events were send with request
+    expect(JSON.parse(usedOptions.body)).to.have.lengthOf(2);
   });
 
   it('Should ignore body procesing error', () => {
