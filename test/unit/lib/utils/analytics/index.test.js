@@ -23,7 +23,7 @@ describe('analytics', () => {
   };
 
   const cacheEvent = async (timestamp = Date.now()) => {
-    fse.writeJson(path.join(cacheDirPath, uuid()), { payload: {}, timestamp });
+    await fse.writeJson(path.join(cacheDirPath, uuid()), { payload: {}, timestamp });
   };
 
   before(() => {
