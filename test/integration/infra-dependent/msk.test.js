@@ -16,7 +16,7 @@ const { deployService, removeService } = require('../../utils/integration');
 describe('AWS - MSK Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let stackName;
-  let servicePath;
+  let serviceDir;
   const stage = 'dev';
 
   const topicName = `msk-topic-${crypto.randomBytes(8).toString('hex')}`;
@@ -62,16 +62,16 @@ describe('AWS - MSK Integration Test', function () {
       },
     });
 
-    ({ servicePath } = serviceData);
+    ({ servicePath: serviceDir } = serviceData);
 
     const serviceName = serviceData.serviceConfig.service;
     stackName = `${serviceName}-${stage}`;
-    await deployService(servicePath);
+    await deployService(serviceDir);
   });
 
   after(async () => {
-    if (servicePath) {
-      await removeService(servicePath);
+    if (serviceDir) {
+      await removeService(serviceDir);
     }
   });
 

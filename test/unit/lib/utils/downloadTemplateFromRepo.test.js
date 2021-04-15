@@ -25,7 +25,7 @@ describe('downloadTemplateFromRepo', () => {
   let parseRepoURL;
   let fetchStub;
 
-  let servicePath;
+  let serviceDir;
   let newServicePath;
 
   beforeEach(() => {
@@ -35,8 +35,8 @@ describe('downloadTemplateFromRepo', () => {
     fse.mkdirsSync(tmpDir);
     process.chdir(tmpDir);
 
-    servicePath = tmpDir;
-    newServicePath = path.join(servicePath, 'new-service-name');
+    serviceDir = tmpDir;
+    newServicePath = path.join(serviceDir, 'new-service-name');
 
     fetchStub = sinon.stub().resolves({
       json: () => ({
@@ -83,7 +83,7 @@ describe('downloadTemplateFromRepo', () => {
     });
 
     it('should reject an error if a directory with the same service name is already present', () => {
-      const serviceDirName = path.join(servicePath, 'existing-service');
+      const serviceDirName = path.join(serviceDir, 'existing-service');
       fse.mkdirsSync(serviceDirName);
 
       return expect(
@@ -220,7 +220,7 @@ describe('downloadTemplateFromRepo', () => {
 
     it('should throw an error if the same service name exists as directory in Github', () => {
       const url = 'https://github.com/serverless/examples/tree/master/rest-api-with-dynamodb';
-      const serviceDirName = path.join(servicePath, 'rest-api-with-dynamodb');
+      const serviceDirName = path.join(serviceDir, 'rest-api-with-dynamodb');
       fse.mkdirsSync(serviceDirName);
 
       return expect(downloadTemplateFromRepo(null, url)).to.be.rejectedWith(Error);

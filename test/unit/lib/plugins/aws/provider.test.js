@@ -1120,7 +1120,7 @@ aws_secret_access_key = CUSTOMSECRET
         const {
           awsNaming,
           cfTemplate,
-          fixtureData: { servicePath },
+          fixtureData: { servicePath: serviceDir },
         } = await runServerless({
           fixture: 'ecr',
           command: 'package',
@@ -1150,7 +1150,7 @@ aws_secret_access_key = CUSTOMSECRET
           '-t',
           `${awsNaming.getEcrRepositoryName()}:baseimage`,
           '-f',
-          path.join(servicePath, 'Dockerfile'),
+          path.join(serviceDir, 'Dockerfile'),
           './',
         ]);
         expect(spawnExtStub).to.be.calledWith('docker', [
@@ -1211,7 +1211,7 @@ aws_secret_access_key = CUSTOMSECRET
         const {
           awsNaming,
           cfTemplate,
-          fixtureData: { servicePath },
+          fixtureData: { servicePath: serviceDir },
         } = await runServerless({
           fixture: 'ecr',
           command: 'package',
@@ -1235,7 +1235,7 @@ aws_secret_access_key = CUSTOMSECRET
           '-t',
           `${awsNaming.getEcrRepositoryName()}:baseimage`,
           '-f',
-          path.join(servicePath, 'Dockerfile'),
+          path.join(serviceDir, 'Dockerfile'),
           './',
         ]);
         expect(innerSpawnExtStub).to.be.calledWith('docker', [
@@ -1387,7 +1387,7 @@ aws_secret_access_key = CUSTOMSECRET
         const {
           awsNaming,
           cfTemplate,
-          fixtureData: { servicePath },
+          fixtureData: { servicePath: serviceDir },
         } = await runServerless({
           fixture: 'ecr',
           command: 'package',
@@ -1424,7 +1424,7 @@ aws_secret_access_key = CUSTOMSECRET
           '-t',
           `${awsNaming.getEcrRepositoryName()}:baseimage`,
           '-f',
-          path.join(servicePath, 'Dockerfile.dev'),
+          path.join(serviceDir, 'Dockerfile.dev'),
           './',
         ]);
       });
@@ -1443,7 +1443,7 @@ aws_secret_access_key = CUSTOMSECRET
         const {
           awsNaming,
           cfTemplate,
-          fixtureData: { servicePath },
+          fixtureData: { servicePath: serviceDir },
         } = await runServerless({
           fixture: 'ecr',
           command: 'package',
@@ -1481,7 +1481,7 @@ aws_secret_access_key = CUSTOMSECRET
           '-t',
           `${awsNaming.getEcrRepositoryName()}:baseimage`,
           '-f',
-          path.join(servicePath, 'Dockerfile.dev'),
+          path.join(serviceDir, 'Dockerfile.dev'),
           '--cache-from',
           'my-image:latest',
           './',
@@ -1502,7 +1502,7 @@ aws_secret_access_key = CUSTOMSECRET
         const {
           awsNaming,
           cfTemplate,
-          fixtureData: { servicePath },
+          fixtureData: { servicePath: serviceDir },
         } = await runServerless({
           fixture: 'ecr',
           command: 'package',
@@ -1542,7 +1542,7 @@ aws_secret_access_key = CUSTOMSECRET
           '-t',
           `${awsNaming.getEcrRepositoryName()}:baseimage`,
           '-f',
-          path.join(servicePath, 'Dockerfile.dev'),
+          path.join(serviceDir, 'Dockerfile.dev'),
           '--build-arg',
           'TESTKEY=TESTVAL',
           './',

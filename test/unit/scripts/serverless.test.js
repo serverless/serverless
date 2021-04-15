@@ -133,7 +133,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
   });
 
   it('should load env variables from dotenv files', async () => {
-    const { servicePath } = await programmaticFixturesEngine.setup('aws', {
+    const { servicePath: serviceDir } = await programmaticFixturesEngine.setup('aws', {
       configExt: {
         useDotenv: true,
         custom: {
@@ -141,9 +141,9 @@ describe('test/unit/scripts/serverless.test.js', () => {
         },
       },
     });
-    await fs.writeFile(path.resolve(servicePath, '.env'), 'DEFAULT_ENV_VARIABLE=valuefromdefault');
+    await fs.writeFile(path.resolve(serviceDir, '.env'), 'DEFAULT_ENV_VARIABLE=valuefromdefault');
     expect(
-      String((await spawn('node', [serverlessPath, 'print'], { cwd: servicePath })).stdoutBuffer)
+      String((await spawn('node', [serverlessPath, 'print'], { cwd: serviceDir })).stdoutBuffer)
     ).to.include('fromDefaultEnv: valuefromdefault');
   });
 

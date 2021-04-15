@@ -1824,7 +1824,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
 
   describe('`provider.lambdaHashingVersion` support', () => {
     it('CodeSha256 for functions should be the same for default hashing and for 20201221 version', async () => {
-      const { servicePath, updateConfig } = await fixtures.setup('function', {
+      const { servicePath: serviceDir, updateConfig } = await fixtures.setup('function', {
         configExt: {
           provider: {
             versionFunctions: true,
@@ -1833,7 +1833,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       });
 
       const { cfTemplate: originalTemplate, awsNaming } = await runServerless({
-        cwd: servicePath,
+        cwd: serviceDir,
         command: 'package',
       });
 
@@ -1851,7 +1851,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         },
       });
       const { cfTemplate: updatedTemplate } = await runServerless({
-        cwd: servicePath,
+        cwd: serviceDir,
         command: 'package',
       });
       const updatedVersionCfConfig = Object.values(updatedTemplate.Resources).find(
@@ -2308,10 +2308,12 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       });
 
       it('should not create a different version if only function-wide configuration changed', async () => {
-        const { servicePath, updateConfig } = await fixtures.setup('function', { configExt });
+        const { servicePath: serviceDir, updateConfig } = await fixtures.setup('function', {
+          configExt,
+        });
 
         const { cfTemplate: originalTemplate } = await runServerless({
-          cwd: servicePath,
+          cwd: serviceDir,
           command: 'package',
         });
         const originalVersionArn = originalTemplate.Outputs.FooLambdaFunctionQualifiedArn.Value.Ref;
@@ -2327,7 +2329,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           },
         });
         const { cfTemplate: updatedTemplate } = await runServerless({
-          cwd: servicePath,
+          cwd: serviceDir,
           command: 'package',
         });
         const updatedVersionArn = updatedTemplate.Outputs.FooLambdaFunctionQualifiedArn.Value.Ref;
@@ -2341,7 +2343,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
 
       describe('with layers', () => {
         let firstCfTemplate;
-        let servicePath;
+        let serviceDir;
         let updateConfig;
         const mockDescribeStackResponse = {
           CloudFormation: {
@@ -2351,9 +2353,9 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
 
         beforeEach(async () => {
           const serviceData = await fixtures.setup('functionLayers', { configExt });
-          ({ servicePath, updateConfig } = serviceData);
+          ({ servicePath: serviceDir, updateConfig } = serviceData);
           const data = await runServerless({
-            cwd: servicePath,
+            cwd: serviceDir,
             command: 'package',
             awsRequestStubMap: mockDescribeStackResponse,
           });
@@ -2375,7 +2377,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           });
 
           const data = await runServerless({
-            cwd: servicePath,
+            cwd: serviceDir,
             command: 'package',
             awsRequestStubMap: mockDescribeStackResponse,
           });
@@ -2394,7 +2396,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
             firstCfTemplate.Resources.TestLayerLambdaLayer.Properties.Content.S3Key;
 
           const data = await runServerless({
-            cwd: servicePath,
+            cwd: serviceDir,
             command: 'package',
             awsRequestStubMap: mockDescribeStackResponse,
           });
@@ -2418,7 +2420,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           });
 
           const data = await runServerless({
-            cwd: servicePath,
+            cwd: serviceDir,
             command: 'package',
             awsRequestStubMap: mockDescribeStackResponse,
           });
@@ -2439,7 +2441,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           });
 
           const data = await runServerless({
-            cwd: servicePath,
+            cwd: serviceDir,
             command: 'package',
             awsRequestStubMap: mockDescribeStackResponse,
           });
@@ -2454,7 +2456,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
             firstCfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref;
 
           const data = await runServerless({
-            cwd: servicePath,
+            cwd: serviceDir,
             command: 'package',
             awsRequestStubMap: mockDescribeStackResponse,
           });
@@ -2478,7 +2480,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           });
 
           const data = await runServerless({
-            cwd: servicePath,
+            cwd: serviceDir,
             command: 'package',
             awsRequestStubMap: mockDescribeStackResponse,
           });
@@ -2494,9 +2496,9 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           let backupLayer;
 
           beforeEach(async () => {
-            originalLayer = path.join(servicePath, 'testLayer');
-            sourceChangeLayer = path.join(servicePath, 'extra_layers', 'testLayerSourceChange');
-            backupLayer = path.join(servicePath, 'extra_layers', 'testLayerBackup');
+            originalLayer = path.join(serviceDir, 'testLayer');
+            sourceChangeLayer = path.join(serviceDir, 'extra_layers', 'testLayerSourceChange');
+            backupLayer = path.join(serviceDir, 'extra_layers', 'testLayerBackup');
 
             await fse.rename(originalLayer, backupLayer);
             await fse.rename(sourceChangeLayer, originalLayer);
@@ -2513,7 +2515,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               firstCfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref;
 
             const data = await runServerless({
-              cwd: servicePath,
+              cwd: serviceDir,
               command: 'package',
               awsRequestStubMap: mockDescribeStackResponse,
             });

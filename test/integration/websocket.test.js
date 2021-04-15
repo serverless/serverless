@@ -15,7 +15,7 @@ describe('AWS - API Gateway Websocket Integration Test', function () {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
   let stackName;
   let serviceName;
-  let servicePath;
+  let serviceDir;
   let updateConfig;
   // TODO: Remove once occasional test fail is debugged
   let twoWayPassed;
@@ -23,15 +23,15 @@ describe('AWS - API Gateway Websocket Integration Test', function () {
 
   before(async () => {
     const serviceData = await fixtures.setup('websocket');
-    ({ servicePath, updateConfig } = serviceData);
+    ({ servicePath: serviceDir, updateConfig } = serviceData);
     serviceName = serviceData.serviceConfig.service;
     stackName = `${serviceName}-${stage}`;
-    return deployService(servicePath);
+    return deployService(serviceDir);
   });
 
   after(() => {
     if (!twoWayPassed) return null;
-    return removeService(servicePath);
+    return removeService(serviceDir);
   });
 
   async function getWebSocketServerUrl() {
@@ -140,7 +140,7 @@ describe('AWS - API Gateway Websocket Integration Test', function () {
             apiGateway: { websocketApiId },
           },
         });
-        return deployService(servicePath);
+        return deployService(serviceDir);
       });
 
       after(async () => {
@@ -155,7 +155,7 @@ describe('AWS - API Gateway Websocket Integration Test', function () {
         // otherwise CF will refuse to delete the deployment because a stage refers to that
         await deleteStage(websocketApiId, 'dev');
         // NOTE: deploying once again to get the stack into the original state
-        await deployService(servicePath);
+        await deployService(serviceDir);
         log.debug('Deleting external websocket API...');
         await deleteApi(websocketApiId);
       });

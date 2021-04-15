@@ -10,22 +10,22 @@ const { deployService, removeService } = require('../utils/integration');
 describe('AWS - IoT Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let iotTopic;
-  let servicePath;
+  let serviceDir;
   let stackName;
 
   before(async () => {
     const serviceData = await fixtures.setup('iot');
-    ({ servicePath } = serviceData);
+    ({ servicePath: serviceDir } = serviceData);
     const serviceName = serviceData.serviceConfig.service;
     iotTopic = `${serviceName}/test`;
     stackName = `${serviceName}-dev`;
 
-    return deployService(servicePath);
+    return deployService(serviceDir);
   });
 
   after(() => {
     // Topics are ephemeral and IoT endpoint is part of the account
-    return removeService(servicePath);
+    return removeService(serviceDir);
   });
 
   describe('Basic Setup', () => {

@@ -12,13 +12,13 @@ const { deployService, removeService } = require('../utils/integration');
 describe('AWS - SQS Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let stackName;
-  let servicePath;
+  let serviceDir;
   let queueName;
   const stage = 'dev';
 
   before(async () => {
     const serviceData = await fixtures.setup('sqs');
-    ({ servicePath } = serviceData);
+    ({ servicePath: serviceDir } = serviceData);
     const serviceName = serviceData.serviceConfig.service;
 
     queueName = `${serviceName}-basic`;
@@ -27,13 +27,13 @@ describe('AWS - SQS Integration Test', function () {
     // NOTE: deployment can only be done once the SQS queue is created
     log.notice(`Creating SQS queue "${queueName}"...`);
     return createSqsQueue(queueName).then(() => {
-      return deployService(servicePath);
+      return deployService(serviceDir);
     });
   });
 
   after(async function () {
     if (hasFailed(this.test.parent)) return null;
-    await removeService(servicePath);
+    await removeService(serviceDir);
     log.notice('Deleting SQS queue');
     return deleteSqsQueue(queueName);
   });

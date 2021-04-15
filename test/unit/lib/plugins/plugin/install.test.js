@@ -95,7 +95,7 @@ describe('PluginInstall', () => {
   });
 
   describe('#install()', () => {
-    let servicePath;
+    let serviceDir;
     let serverlessYmlFilePath;
     let pluginInstallStub;
     let validateStub;
@@ -105,10 +105,10 @@ describe('PluginInstall', () => {
     let installPeerDependenciesStub;
 
     beforeEach(() => {
-      servicePath = getTmpDirPath();
-      pluginInstall.serverless.serviceDir = servicePath;
-      fse.ensureDirSync(servicePath);
-      serverlessYmlFilePath = path.join(servicePath, 'serverless.yml');
+      serviceDir = getTmpDirPath();
+      pluginInstall.serverless.serviceDir = serviceDir;
+      fse.ensureDirSync(serviceDir);
+      serverlessYmlFilePath = path.join(serviceDir, 'serverless.yml');
       validateStub = sinon.stub(pluginInstall, 'validate').returns(BbPromise.resolve());
       pluginInstallStub = sinon.stub(pluginInstall, 'pluginInstall').returns(BbPromise.resolve());
       addPluginToServerlessFileStub = sinon
@@ -120,7 +120,7 @@ describe('PluginInstall', () => {
       getPluginsStub = sinon.stub(pluginInstall, 'getPlugins').returns(BbPromise.resolve(plugins));
       // save the cwd so that we can restore it later
       savedCwd = process.cwd();
-      process.chdir(servicePath);
+      process.chdir(serviceDir);
     });
 
     afterEach(() => {
@@ -239,7 +239,7 @@ describe('PluginInstall', () => {
   });
 
   describe('#pluginInstall()', () => {
-    let servicePath;
+    let serviceDir;
     let packageJsonFilePath;
     let npmInstallStub;
     let savedCwd;
@@ -247,10 +247,10 @@ describe('PluginInstall', () => {
     beforeEach(() => {
       pluginInstall.options.pluginName = 'serverless-plugin-1';
       pluginInstall.options.pluginVersion = 'latest';
-      servicePath = getTmpDirPath();
-      pluginInstall.serverless.serviceDir = servicePath;
-      fse.ensureDirSync(servicePath);
-      packageJsonFilePath = path.join(servicePath, 'package.json');
+      serviceDir = getTmpDirPath();
+      pluginInstall.serverless.serviceDir = serviceDir;
+      fse.ensureDirSync(serviceDir);
+      packageJsonFilePath = path.join(serviceDir, 'package.json');
       npmInstallStub = sinon.stub(childProcess, 'execAsync').callsFake(() => {
         const packageJson = serverless.utils.readFileSync(packageJsonFilePath, 'utf8');
         packageJson.devDependencies = {
@@ -262,7 +262,7 @@ describe('PluginInstall', () => {
 
       // save the cwd so that we can restore it later
       savedCwd = process.cwd();
-      process.chdir(servicePath);
+      process.chdir(serviceDir);
     });
 
     afterEach(() => {
@@ -307,14 +307,14 @@ describe('PluginInstall', () => {
   });
 
   describe('#addPluginToServerlessFile()', () => {
-    let servicePath;
+    let serviceDir;
     let serverlessYmlFilePath;
 
     beforeEach(() => {
-      servicePath = getTmpDirPath();
-      pluginInstall.serverless.serviceDir = pluginInstall.serverless.serviceDir = servicePath;
+      serviceDir = getTmpDirPath();
+      pluginInstall.serverless.serviceDir = pluginInstall.serverless.serviceDir = serviceDir;
       pluginInstall.serverless.configurationFilename = 'serverless.yml';
-      serverlessYmlFilePath = path.join(servicePath, 'serverless.yml');
+      serverlessYmlFilePath = path.join(serviceDir, 'serverless.yml');
     });
 
     it('should add the plugin to the service file if plugins array is not present', () => {
@@ -358,7 +358,7 @@ describe('PluginInstall', () => {
     });
 
     it('should add the plugin to serverless file path for a .yaml file', () => {
-      const serverlessYamlFilePath = path.join(servicePath, 'serverless.yaml');
+      const serverlessYamlFilePath = path.join(serviceDir, 'serverless.yaml');
       pluginInstall.serverless.configurationFilename = 'serverless.yaml';
       const serverlessYml = {
         service: 'plugin-service',
@@ -374,7 +374,7 @@ describe('PluginInstall', () => {
     });
 
     it('should add the plugin to serverless file path for a .json file', () => {
-      const serverlessJsonFilePath = path.join(servicePath, 'serverless.json');
+      const serverlessJsonFilePath = path.join(serviceDir, 'serverless.json');
       pluginInstall.serverless.configurationFilename = 'serverless.json';
       const serverlessJson = {
         service: 'plugin-service',
@@ -401,7 +401,7 @@ describe('PluginInstall', () => {
     });
 
     it('should not modify serverless .js file', () => {
-      const serverlessJsFilePath = path.join(servicePath, 'serverless.js');
+      const serverlessJsFilePath = path.join(serviceDir, 'serverless.js');
       pluginInstall.serverless.configurationFilename = 'serverless.js';
       const serverlessJson = {
         service: 'plugin-service',
@@ -421,7 +421,7 @@ describe('PluginInstall', () => {
     });
 
     it('should not modify serverless .ts file', () => {
-      const serverlessTsFilePath = path.join(servicePath, 'serverless.ts');
+      const serverlessTsFilePath = path.join(serviceDir, 'serverless.ts');
       pluginInstall.serverless.configurationFilename = 'serverless.ts';
       const serverlessJson = {
         service: 'plugin-service',
@@ -468,7 +468,7 @@ describe('PluginInstall', () => {
       });
 
       it('should add the plugin to serverless file path for a .json file', () => {
-        const serverlessJsonFilePath = path.join(servicePath, 'serverless.json');
+        const serverlessJsonFilePath = path.join(serviceDir, 'serverless.json');
         pluginInstall.serverless.configurationFilename = 'serverless.json';
         const serverlessJson = {
           service: 'plugin-service',
@@ -509,7 +509,7 @@ describe('PluginInstall', () => {
   });
 
   describe('#installPeerDependencies()', () => {
-    let servicePath;
+    let serviceDir;
     let servicePackageJsonFilePath;
     let pluginPath;
     let pluginPackageJsonFilePath;
@@ -520,19 +520,19 @@ describe('PluginInstall', () => {
     beforeEach(() => {
       pluginName = 'some-plugin';
       pluginInstall.options.pluginName = pluginName;
-      servicePath = getTmpDirPath();
-      fse.ensureDirSync(servicePath);
-      pluginInstall.serverless.serviceDir = servicePath;
-      servicePackageJsonFilePath = path.join(servicePath, 'package.json');
+      serviceDir = getTmpDirPath();
+      fse.ensureDirSync(serviceDir);
+      pluginInstall.serverless.serviceDir = serviceDir;
+      servicePackageJsonFilePath = path.join(serviceDir, 'package.json');
       fse.writeJsonSync(servicePackageJsonFilePath, {
         devDependencies: {},
       });
-      pluginPath = path.join(servicePath, 'node_modules', pluginName);
+      pluginPath = path.join(serviceDir, 'node_modules', pluginName);
       fse.ensureDirSync(pluginPath);
       pluginPackageJsonFilePath = path.join(pluginPath, 'package.json');
       npmInstallStub = sinon.stub(childProcess, 'execAsync').returns(BbPromise.resolve());
       savedCwd = process.cwd();
-      process.chdir(servicePath);
+      process.chdir(serviceDir);
     });
 
     afterEach(() => {

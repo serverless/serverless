@@ -13,7 +13,7 @@ describe('AWS - API Gateway Integration Test', function () {
   let serviceName;
   let endpoint;
   let stackName;
-  let servicePath;
+  let serviceDir;
   let updateConfig;
   let apiKey;
   let isDeployed = false;
@@ -29,11 +29,11 @@ describe('AWS - API Gateway Integration Test', function () {
 
   before(async () => {
     const serviceData = await fixtures.setup('apiGatewayExtended');
-    ({ servicePath, updateConfig } = serviceData);
+    ({ servicePath: serviceDir, updateConfig } = serviceData);
     serviceName = serviceData.serviceConfig.service;
     apiKey = `${serviceName}-api-key-1`;
     stackName = `${serviceName}-${stage}`;
-    await deployService(servicePath);
+    await deployService(serviceDir);
     isDeployed = true;
     return resolveEndpoint();
   });
@@ -41,7 +41,7 @@ describe('AWS - API Gateway Integration Test', function () {
   after(async () => {
     if (!isDeployed) return;
     log.notice('Removing service...');
-    await removeService(servicePath);
+    await removeService(serviceDir);
   });
 
   describe('Minimal Setup', () => {
@@ -199,7 +199,7 @@ describe('AWS - API Gateway Integration Test', function () {
           },
         },
       });
-      await deployService(servicePath);
+      await deployService(serviceDir);
     });
 
     it('should update the stage without service interruptions', () => {

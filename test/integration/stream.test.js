@@ -12,7 +12,7 @@ const { deployService, removeService } = require('../utils/integration');
 describe('AWS - Stream Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let stackName;
-  let servicePath;
+  let serviceDir;
   let streamName;
   let tableName;
   const historicStreamMessage = 'Hello from the Kinesis horizon!';
@@ -20,7 +20,7 @@ describe('AWS - Stream Integration Test', function () {
 
   before(async () => {
     const serviceData = await fixtures.setup('stream');
-    ({ servicePath } = serviceData);
+    ({ servicePath: serviceDir } = serviceData);
     const serviceName = serviceData.serviceConfig.service;
 
     streamName = `${serviceName}-kinesis`;
@@ -31,11 +31,11 @@ describe('AWS - Stream Integration Test', function () {
     log.notice(`Creating Kinesis stream "${streamName}"...`);
     return createKinesisStream(streamName)
       .then(() => putKinesisRecord(streamName, historicStreamMessage))
-      .then(() => deployService(servicePath));
+      .then(() => deployService(serviceDir));
   });
 
   after(async () => {
-    await removeService(servicePath);
+    await removeService(serviceDir);
     log.notice('Deleting Kinesis stream');
     return deleteKinesisStream(streamName);
   });

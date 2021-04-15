@@ -18,7 +18,7 @@ describe('Install', () => {
   let cwd;
   let logSpy;
 
-  let servicePath;
+  let serviceDir;
 
   beforeEach(() => {
     const tmpDir = getTmpDirPath();
@@ -27,7 +27,7 @@ describe('Install', () => {
     fse.mkdirsSync(tmpDir);
     process.chdir(tmpDir);
 
-    servicePath = tmpDir;
+    serviceDir = tmpDir;
 
     serverless = new Serverless();
     install = new Install(serverless);
@@ -97,7 +97,7 @@ describe('Install', () => {
     it('should throw an error if a directory with the same service name is already present', async () => {
       install.options = { url: 'https://github.com/johndoe/existing-service' };
 
-      const serviceDirName = path.join(servicePath, 'existing-service');
+      const serviceDirName = path.join(serviceDir, 'existing-service');
       fse.mkdirsSync(serviceDirName);
 
       try {

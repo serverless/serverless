@@ -275,10 +275,10 @@ describe('Serverless [new tests]', () => {
 
     describe('When running local version', () => {
       it('Should run without notice', () =>
-        fixtures.setup('locallyInstalledServerless').then(({ servicePath }) =>
+        fixtures.setup('locallyInstalledServerless').then(({ servicePath: serviceDir }) =>
           runServerless({
-            serverlessDir: path.resolve(servicePath, 'node_modules/serverless'),
-            cwd: servicePath,
+            serverlessDir: path.resolve(serviceDir, 'node_modules/serverless'),
+            cwd: serviceDir,
             command: 'print',
           }).then(({ serverless }) => {
             expect(Array.from(serverless.triggeredDeprecations)).to.not.include(
@@ -305,10 +305,10 @@ describe('Serverless [new tests]', () => {
   });
 
   describe('When .env file is available', () => {
-    let servicePath;
+    let serviceDir;
 
     before(async () => {
-      servicePath = (
+      serviceDir = (
         await fixtures.setup('function', {
           configExt: {
             useDotenv: true,
@@ -321,13 +321,13 @@ describe('Serverless [new tests]', () => {
       ).servicePath;
 
       const defaultFileContent = 'DEFAULT_ENV_VARIABLE=valuefromdefault';
-      await fs.promises.writeFile(path.join(servicePath, '.env'), defaultFileContent);
+      await fs.promises.writeFile(path.join(serviceDir, '.env'), defaultFileContent);
       conditionallyLoadDotenv.clear();
     });
 
     it('Should load environment variables from default .env file if no matching stage', async () => {
       const result = await runServerless({
-        cwd: servicePath,
+        cwd: serviceDir,
         command: 'package',
         shouldUseLegacyVariablesResolver: true,
       });

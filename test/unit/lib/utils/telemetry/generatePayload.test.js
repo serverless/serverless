@@ -17,7 +17,7 @@ const versions = {
 
 describe('lib/utils/telemetry/generatePayload', () => {
   it('Should resolve payload for AWS service', async () => {
-    const { servicePath } = await fixtures.setup('httpApi', {
+    const { servicePath: serviceDir } = await fixtures.setup('httpApi', {
       configExt: {
         functions: {
           withContainer: {
@@ -28,7 +28,7 @@ describe('lib/utils/telemetry/generatePayload', () => {
       },
     });
     await fs.promises.writeFile(
-      path.resolve(servicePath, 'package.json'),
+      path.resolve(serviceDir, 'package.json'),
       JSON.stringify({
         dependencies: {
           fooDep: '1',
@@ -46,7 +46,7 @@ describe('lib/utils/telemetry/generatePayload', () => {
     );
 
     const { serverless } = await runServerless({
-      cwd: servicePath,
+      cwd: serviceDir,
       command: '-v',
     });
     const payload = await generatePayload(serverless);

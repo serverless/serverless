@@ -846,7 +846,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
     // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L317-L350
 
     const {
-      fixtureData: { updateConfig, servicePath },
+      fixtureData: { updateConfig, servicePath: serviceDir },
     } = await runServerless({
       fixture: 'checkForChanges',
       command: 'package',
@@ -857,7 +857,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
 
     let serverless;
     await runServerless({
-      cwd: servicePath,
+      cwd: serviceDir,
       command: 'package',
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
       env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
