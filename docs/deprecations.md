@@ -125,13 +125,19 @@ _Note: Applies only to eventual programmatic usage of the Framework_
 
 <a name="MISSING_SERVICE_CONFIGURATION"><div>&nbsp;</div></a>
 
-## `Serverless` constructor `config.configuration` requirement
+## `Serverless` constructor service configuration dependency
 
 Deprecation code: `MISSING_SERVICE_CONFIGURATION`
 
 _Note: Applies only to eventual programmatic usage of the Framework_
 
-`Serverless` constructor was refactored to depend on service configuration being resolved externally and passed to its constructor with `config.configuration`. Starting from v3.0.0 configuration will not be resolved internally.
+`Serverless` constructor was refactored to depend on service configuration being resolved externally and passed to its constructor with following options:
+
+- `configuration` - Service configuration (JSON serializable plain object)
+- `serviceDir` - Directory in which service is placed (All path references in service configuration will be resolved against this path)
+- `configurationFilename` - Name of configuration file (e.g. `serverless.yml`).
+
+Starting from v3.0.0 configuration data will not be resolved internally, and if `Serverless` is invoked in service context, all three options will have to be provided
 
 <a name="NESTED_CUSTOM_CONFIGURATION_PATH"><div>&nbsp;</div></a>
 
@@ -148,13 +154,19 @@ To avoid confusing behavior starting with v3.0.0 Framework will no longer permit
 
 <a name="MISSING_SERVICE_CONFIGURATION_PATH"><div>&nbsp;</div></a>
 
-## `Serverless` constructor `config.configurationPath` requirement
+## `Serverless` constructor service configuration dependency
 
 Deprecation code: `MISSING_SERVICE_CONFIGURATION_PATH`
 
 _Note: Applies only to eventual programmatic usage of the Framework_
 
-`Serverless` constructor was refactored to depend on service configuration path being resolved externally and passed to its constructor with `config.configurationPath`. Starting from v3.0.0 this path will not be resolved internally.
+`Serverless` constructor was refactored to depend on service configuration being resolved externally and passed to its constructor with following options:
+
+- `configuration` - Service configuration (JSON serializable plain object)
+- `serviceDir` - Directory in which service is placed (All path references in service configuration will be resolved against this path)
+- `configurationFilename` - Name of configuration file (e.g. `serverless.yml`).
+
+Starting from v3.0.0 configuration data will not be resolved internally, and if `Serverless` is invoked in service context, all three options will have to be provided
 
 <a name="VARIABLES_ERROR_ON_UNRESOLVED"><div>&nbsp;</div></a>
 

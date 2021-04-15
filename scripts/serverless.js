@@ -68,6 +68,7 @@ const processSpanPromise = (async () => {
 
     let configurationPath = null;
     let configuration = null;
+    let serviceDir = null;
     let providerName;
     let variablesMeta;
     let resolverConfiguration;
@@ -121,6 +122,7 @@ const processSpanPromise = (async () => {
         : null;
 
       if (configuration) {
+        serviceDir = process.cwd();
         if (!commandSchema) {
           // If command was not recognized in first resolution phase
           // Parse args again also against schemas commands which require service to be run
@@ -198,7 +200,7 @@ const processSpanPromise = (async () => {
             // Resolve eventual variables in `provider.stage` and `useDotEnv`
             // (required for reliable .env resolution)
             resolverConfiguration = {
-              servicePath: process.cwd(),
+              servicePath: serviceDir,
               configuration,
               variablesMeta,
               sources: {
@@ -361,7 +363,8 @@ const processSpanPromise = (async () => {
 
     serverless = new Serverless({
       configuration,
-      configurationPath: configuration && configurationPath,
+      serviceDir,
+      configurationFilename: configuration && configurationPath.slice(serviceDir.length + 1),
       isConfigurationResolved:
         commands[0] === 'plugin' || Boolean(variablesMeta && !variablesMeta.size),
       hasResolvedCommandsExternally: true,
