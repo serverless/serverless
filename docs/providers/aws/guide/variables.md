@@ -219,17 +219,17 @@ resources:
         Name: memorySize
 ```
 
-You can also reference CloudFormation stack in another regions with the `cf(REGION):stackName.outputKey` syntax. For example:
+You can also reference CloudFormation stack in another regions with the `cf.REGION:stackName.outputKey` syntax. For example:
 
 ```yml
 service: new-service
 provider: aws
 functions:
   hello:
-    name: ${cf(us-west-2):another-service-dev.functionPrefix}-hello
+    name: ${cf.us-west-2:another-service-dev.functionPrefix}-hello
     handler: handler.hello
   world:
-    name: ${cf(ap-northeast-1):another-stack.functionPrefix}-world
+    name: ${cf.ap-northeast-1:another-stack.functionPrefix}-world
     handler: handler.world
 ```
 
