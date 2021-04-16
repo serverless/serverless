@@ -181,11 +181,11 @@ You can also configure layers at the service level. EG:
 
 ```yml
 # serverless.yml
-service: aws-nodejs
+service: myService
 
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: python3.8
   layers:
     - arn:aws:lambda:us-east-1:xxxxxxxxxxxxx:layer:xxxxx:mylayer1
     - arn:aws:lambda:us-east-1:xxxxxxxxxxxxx:layer:xxxxx:mylayer2
