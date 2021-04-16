@@ -65,6 +65,7 @@ describe('lib/utils/telemetry/generatePayload', () => {
     delete payload.ciName;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
+      command: 'print',
       config: {
         provider: {
           name: 'aws',
@@ -93,7 +94,7 @@ describe('lib/utils/telemetry/generatePayload', () => {
   it('Should resolve payload for custom provider service', async () => {
     const { serverless } = await runServerless({
       fixture: 'customProvider',
-      command: 'config',
+      command: 'print',
     });
     const payload = await generatePayload(serverless);
 
@@ -111,6 +112,7 @@ describe('lib/utils/telemetry/generatePayload', () => {
     delete payload.ciName;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
+      command: 'print',
       config: {
         provider: {
           name: 'customProvider',
@@ -136,7 +138,7 @@ describe('lib/utils/telemetry/generatePayload', () => {
   it('Should recognize local fallback', async () => {
     const { serverless } = await runServerless({
       fixture: 'locallyInstalledServerless',
-      command: 'config',
+      command: 'print',
       modulesCacheStub: {},
     });
     const payload = await generatePayload(serverless);
@@ -155,6 +157,7 @@ describe('lib/utils/telemetry/generatePayload', () => {
     delete payload.ciName;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
+      command: 'print',
       config: {
         provider: {
           name: 'aws',
@@ -170,6 +173,82 @@ describe('lib/utils/telemetry/generatePayload', () => {
       npmDependencies: [],
       triggeredDeprecations: [],
       installationType: 'local:fallback',
+      versions,
+    });
+  });
+
+  it('Should resolve service-agnostic payload', async () => {
+    const { serverless } = await runServerless({
+      fixture: 'aws',
+      command: 'config',
+    });
+    const payload = await generatePayload(serverless);
+
+    expect(payload).to.have.property('frameworkLocalUserId');
+    delete payload.frameworkLocalUserId;
+    expect(payload).to.have.property('firstLocalInstallationTimestamp');
+    delete payload.firstLocalInstallationTimestamp;
+    expect(payload).to.have.property('timestamp');
+    delete payload.timestamp;
+    expect(payload).to.have.property('dashboard');
+    delete payload.dashboard;
+    expect(payload).to.have.property('timezone');
+    delete payload.timezone;
+    expect(payload).to.have.property('ciName');
+    delete payload.ciName;
+    expect(payload).to.deep.equal({
+      cliName: 'serverless',
+      command: 'config',
+      isAutoUpdateEnabled: false,
+      isTabAutocompletionInstalled: false,
+      triggeredDeprecations: [],
+      installationType: 'global:other',
+      versions,
+    });
+  });
+
+  it('Should resolve service-agnostic payload for command with `serviceDependencyMode`', async () => {
+    const { serverless } = await runServerless({
+      fixture: 'httpApi',
+      command: 'help',
+    });
+    const payload = await generatePayload(serverless);
+
+    expect(payload).to.have.property('frameworkLocalUserId');
+    delete payload.frameworkLocalUserId;
+    expect(payload).to.have.property('firstLocalInstallationTimestamp');
+    delete payload.firstLocalInstallationTimestamp;
+    expect(payload).to.have.property('timestamp');
+    delete payload.timestamp;
+    expect(payload).to.have.property('dashboard');
+    delete payload.dashboard;
+    expect(payload).to.have.property('timezone');
+    delete payload.timezone;
+    expect(payload).to.have.property('ciName');
+    delete payload.ciName;
+    expect(payload).to.deep.equal({
+      command: 'help',
+      cliName: 'serverless',
+      config: {
+        provider: {
+          name: 'aws',
+          runtime: 'nodejs12.x',
+          stage: 'dev',
+          region: 'us-east-1',
+        },
+        plugins: [],
+        functions: [
+          { runtime: 'nodejs12.x', events: [{ type: 'httpApi' }, { type: 'httpApi' }] },
+          { runtime: 'nodejs12.x', events: [{ type: 'httpApi' }] },
+          { runtime: 'nodejs12.x', events: [] },
+          { runtime: 'nodejs12.x', events: [] },
+        ],
+      },
+      isAutoUpdateEnabled: false,
+      isTabAutocompletionInstalled: false,
+      triggeredDeprecations: [],
+      installationType: 'global:other',
+      npmDependencies: [],
       versions,
     });
   });
