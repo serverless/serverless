@@ -13,7 +13,7 @@ const isFilename = RegExp.prototype.test.bind(/^(?:\.[^.].*|\.\..+|[^.].*)$/);
 
 describe('test/unit/lib/utils/telemetry/index.test.js', () => {
   let report;
-  let sendPending;
+  let send;
   let expectedState = 'success';
   let usedUrl;
   let usedOptions;
@@ -27,7 +27,7 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
   };
 
   before(() => {
-    ({ report, sendPending } = proxyquire('../../../../../lib/utils/telemetry/index.js', {
+    ({ report, send } = proxyquire('../../../../../lib/utils/telemetry/index.js', {
       '@serverless/utils/analytics-and-notfications-url': telemetryUrl,
       './areDisabled': false,
       'node-fetch': async (url, options) => {
@@ -56,8 +56,8 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
   });
 
   it('Should ignore missing cacheDirPath', async () => {
-    const sendPendingResult = await sendPending();
-    expect(sendPendingResult).to.be.null;
+    const sendResult = await send();
+    expect(sendResult).to.be.null;
     await sendReport();
     expect(usedUrl).to.equal(telemetryUrl);
     const dirFilenames = await fse.readdir(cacheDirPath);
@@ -65,7 +65,7 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
     expect(JSON.parse(usedOptions.body)).to.have.lengthOf(1);
   });
 
-  it('Should cache failed requests and rerun then with sendPending', async () => {
+  it('Should cache failed requests and rerun then with `send`', async () => {
     expectedState = 'networkError';
     await sendReport();
     expect(usedUrl).to.equal(telemetryUrl);
@@ -73,7 +73,7 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
     expect(dirFilenames.filter(isFilename).length).to.equal(1);
 
     expectedState = 'success';
-    await sendPending();
+    await send();
     const dirFilenamesAfterSend = await fse.readdir(cacheDirPath);
     expect(dirFilenamesAfterSend.filter(isFilename).length).to.equal(0);
 
@@ -81,12 +81,12 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
     expect(JSON.parse(usedOptions.body)).to.have.lengthOf(1);
   });
 
-  it('Should ditch stale events at sendPending', async () => {
+  it('Should ditch stale events at `send`', async () => {
     await Promise.all([cacheEvent(0), cacheEvent(0), cacheEvent(), cacheEvent(), cacheEvent(0)]);
     expectedState = 'success';
     const dirFilenames = await fse.readdir(cacheDirPath);
     expect(dirFilenames.filter(isFilename).length).to.equal(5);
-    await sendPending();
+    await send();
     const dirFilenamesAfterSend = await fse.readdir(cacheDirPath);
     expect(dirFilenamesAfterSend.filter(isFilename).length).to.equal(0);
     // Check if only two events were send with request

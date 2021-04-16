@@ -32,7 +32,7 @@ const processSpanPromise = (async () => {
     await wait(); // Ensure access to "processSpanPromise"
 
     // Propagate (in a background) eventual pending telemetry requests
-    require('../lib/utils/telemetry').sendPending({
+    require('../lib/utils/telemetry').send({
       serverlessExecutionSpan: processSpanPromise,
     });
 
