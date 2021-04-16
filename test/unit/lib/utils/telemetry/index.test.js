@@ -18,11 +18,6 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
   let usedUrl;
   let usedOptions;
 
-  const storeEventLocally = async () => {
-    return storeLocally({});
-  };
-
-  // TODO: REMOVE
   const cacheEvent = async (timestamp = Date.now()) => {
     await fse.writeJson(path.join(cacheDirPath, uuid()), { payload: {}, timestamp });
   };
@@ -56,19 +51,27 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
     }));
   });
 
-  it('Should ignore missing cacheDirPath', async () => {
-    const sendResult = await send();
-    expect(sendResult).to.be.null;
-    await storeEventLocally();
-    expect(usedUrl).to.equal(telemetryUrl);
+  afterEach(async () => {
     const dirFilenames = await fse.readdir(cacheDirPath);
-    expect(dirFilenames.filter(isFilename).length).to.equal(0);
-    expect(JSON.parse(usedOptions.body)).to.have.lengthOf(1);
+    await Promise.all(
+      dirFilenames.map(async (filename) => fse.unlink(path.join(cacheDirPath, filename)))
+    );
+  });
+
+  it('`storeLocally` should persist an event in cacheDir', async () => {
+    const payload = { test: 'payloadvalue' };
+    await storeLocally(payload);
+    const dirFilenames = await fse.readdir(cacheDirPath);
+    expect(dirFilenames.length).to.equal(1);
+    const persistedEvent = await fse.readJson(path.join(cacheDirPath, dirFilenames[0]));
+    expect(persistedEvent.payload).to.deep.equal(payload);
+    expect(persistedEvent).to.have.property('timestamp');
   });
 
   it('Should cache failed requests and rerun then with `send`', async () => {
     expectedState = 'networkError';
-    await storeEventLocally();
+    await cacheEvent();
+    await send();
     expect(usedUrl).to.equal(telemetryUrl);
     const dirFilenames = await fse.readdir(cacheDirPath);
     expect(dirFilenames.filter(isFilename).length).to.equal(1);
@@ -96,7 +99,8 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
 
   it('Should ignore body procesing error', async () => {
     expectedState = 'responseBodyError';
-    await storeEventLocally();
+    await cacheEvent();
+    await send();
     const dirFilenames = await fse.readdir(cacheDirPath);
     expect(dirFilenames.filter(isFilename).length).to.equal(0);
   });
