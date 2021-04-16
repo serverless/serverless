@@ -20,83 +20,76 @@ describe('Integration test - Packaging - Lambda Files', function () {
     cwd = getTmpDirPath();
   });
 
-  it('packages the default aws template correctly in the zip', () => {
+  it('packages the default aws template correctly in the zip', async () => {
     fse.copySync(fixturePaths.regular, cwd);
     execSync(`${serverlessExec} package`, { cwd });
-    return listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip')).then((zipfiles) => {
-      expect(zipfiles).to.deep.equal(['handler.js']);
-    });
+    expect(await listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip'))).to.deep.equal([
+      'handler.js',
+    ]);
   });
 
-  it('packages the default aws template with an npm dep correctly in the zip', () => {
+  it('packages the default aws template with an npm dep correctly in the zip', async () => {
     fse.copySync(fixturePaths.regular, cwd);
     execSync('npm init --yes', { cwd });
     execSync('npm i lodash', { cwd });
     execSync(`${serverlessExec} package`, { cwd });
-    return listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip')).then((zipfiles) => {
-      const nodeModules = new Set(
-        zipfiles.filter((f) => f.startsWith('node_modules')).map((f) => f.split(path.sep)[1])
-      );
-      const nonNodeModulesFiles = zipfiles.filter((f) => !f.startsWith('node_modules'));
-      expect(nodeModules).to.deep.equal(new Set(['lodash']));
-      expect(nonNodeModulesFiles).to.deep.equal([
-        'handler.js',
-        'package-lock.json',
-        'package.json',
-      ]);
-    });
+    const zipfiles = await listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip'));
+    const nodeModules = new Set(
+      zipfiles.filter((f) => f.startsWith('node_modules')).map((f) => f.split(path.sep)[1])
+    );
+    const nonNodeModulesFiles = zipfiles.filter((f) => !f.startsWith('node_modules'));
+    expect(nodeModules).to.deep.equal(new Set(['lodash']));
+    expect(nonNodeModulesFiles).to.deep.equal(['handler.js', 'package-lock.json', 'package.json']);
   });
 
-  it("doesn't package a dev dependency in the zip", () => {
+  it("doesn't package a dev dependency in the zip", async () => {
     fse.copySync(fixturePaths.regular, cwd);
     execSync('npm init --yes', { cwd });
     execSync('npm i --save-dev lodash', { cwd });
     execSync(`${serverlessExec} package`, { cwd });
-    return listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip')).then((zipfiles) => {
-      const nodeModules = new Set(
-        zipfiles.filter((f) => f.startsWith('node_modules')).map((f) => f.split(path.sep)[1])
-      );
-      const nonNodeModulesFiles = zipfiles.filter((f) => !f.startsWith('node_modules'));
-      expect(nodeModules).to.deep.equal(new Set([]));
-      expect(nonNodeModulesFiles).to.deep.equal([
-        'handler.js',
-        'package-lock.json',
-        'package.json',
-      ]);
-    });
+    const zipfiles = await listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip'));
+    const nodeModules = new Set(
+      zipfiles.filter((f) => f.startsWith('node_modules')).map((f) => f.split(path.sep)[1])
+    );
+    const nonNodeModulesFiles = zipfiles.filter((f) => !f.startsWith('node_modules'));
+    expect(nodeModules).to.deep.equal(new Set([]));
+    expect(nonNodeModulesFiles).to.deep.equal(['handler.js', 'package-lock.json', 'package.json']);
   });
 
-  it('ignores package json files per ignore directive in the zip', () => {
+  it('ignores package json files per ignore directive in the zip', async () => {
     fse.copySync(fixturePaths.regular, cwd);
     execSync('npm init --yes', { cwd });
     execSync('echo \'package: {exclude: ["package*.json"]}\' >> serverless.yml', { cwd });
     execSync('npm i lodash', { cwd });
     execSync(`${serverlessExec} package`, { cwd });
-    return listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip')).then((zipfiles) => {
-      const nodeModules = new Set(
-        zipfiles.filter((f) => f.startsWith('node_modules')).map((f) => f.split(path.sep)[1])
-      );
-      const nonNodeModulesFiles = zipfiles.filter((f) => !f.startsWith('node_modules'));
-      expect(nodeModules).to.deep.equal(new Set(['lodash']));
-      expect(nonNodeModulesFiles).to.deep.equal(['handler.js']);
-    });
+    const zipfiles = await listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip'));
+    const nodeModules = new Set(
+      zipfiles.filter((f) => f.startsWith('node_modules')).map((f) => f.split(path.sep)[1])
+    );
+    const nonNodeModulesFiles = zipfiles.filter((f) => !f.startsWith('node_modules'));
+    expect(nodeModules).to.deep.equal(new Set(['lodash']));
+    expect(nonNodeModulesFiles).to.deep.equal(['handler.js']);
   });
 
-  it('handles package individually with include/excludes correctly', () => {
+  it('handles package individually with include/excludes correctly', async () => {
     fse.copySync(fixturePaths.individually, cwd);
     execSync(`${serverlessExec} package`, { cwd });
-    return listZipFiles(path.join(cwd, '.serverless/hello.zip'))
-      .then((zipfiles) => expect(zipfiles).to.deep.equal(['handler.js']))
-      .then(() => listZipFiles(path.join(cwd, '.serverless/hello2.zip')))
-      .then((zipfiles) => expect(zipfiles).to.deep.equal(['handler2.js']));
+    expect(await listZipFiles(path.join(cwd, '.serverless/hello.zip'))).to.deep.equal([
+      'handler.js',
+    ]);
+    expect(await listZipFiles(path.join(cwd, '.serverless/hello2.zip'))).to.deep.equal([
+      'handler2.js',
+    ]);
   });
 
-  it('handles package individually on function level with include/excludes correctly', () => {
+  it('handles package individually on function level with include/excludes correctly', async () => {
     fse.copySync(fixturePaths.individuallyFunction, cwd);
     execSync(`${serverlessExec} package`, { cwd });
-    return listZipFiles(path.join(cwd, '.serverless/hello.zip'))
-      .then((zipfiles) => expect(zipfiles).to.deep.equal(['handler.js']))
-      .then(() => listZipFiles(path.join(cwd, '.serverless/hello2.zip')))
-      .then((zipfiles) => expect(zipfiles).to.deep.equal(['handler2.js']));
+    expect(await listZipFiles(path.join(cwd, '.serverless/hello.zip'))).to.deep.equal([
+      'handler.js',
+    ]);
+    expect(await listZipFiles(path.join(cwd, '.serverless/hello2.zip'))).to.deep.equal([
+      'handler2.js',
+    ]);
   });
 });
