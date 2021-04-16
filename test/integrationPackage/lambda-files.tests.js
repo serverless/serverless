@@ -2,6 +2,7 @@
 
 const path = require('path');
 const { expect } = require('chai');
+const fs = require('fs').promises;
 const fse = require('fs-extra');
 const { execSync } = require('../utils/childProcess');
 const serverlessExec = require('../serverlessBinary');
@@ -59,7 +60,10 @@ describe('Integration test - Packaging - Lambda Files', function () {
   it('ignores package json files per ignore directive in the zip', async () => {
     await fse.copy(fixturePaths.regular, cwd);
     execSync('npm init --yes', { cwd });
-    execSync('echo \'package: {exclude: ["package*.json"]}\' >> serverless.yml', { cwd });
+    await fs.appendFile(
+      path.resolve(cwd, 'serverless.yml'),
+      '\npackage: {exclude: ["package*.json"]}\n'
+    );
     execSync('npm i lodash', { cwd });
     execSync(`${serverlessExec} package`, { cwd });
     const zipfiles = await listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip'));
