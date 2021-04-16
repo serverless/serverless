@@ -12,22 +12,23 @@ const telemetryUrl = 'https://..';
 const isFilename = RegExp.prototype.test.bind(/^(?:\.[^.].*|\.\..+|[^.].*)$/);
 
 describe('test/unit/lib/utils/telemetry/index.test.js', () => {
-  let report;
+  let storeLocally;
   let send;
   let expectedState = 'success';
   let usedUrl;
   let usedOptions;
 
-  const sendReport = async () => {
-    return report({});
+  const storeEventLocally = async () => {
+    return storeLocally({});
   };
 
+  // TODO: REMOVE
   const cacheEvent = async (timestamp = Date.now()) => {
     await fse.writeJson(path.join(cacheDirPath, uuid()), { payload: {}, timestamp });
   };
 
   before(() => {
-    ({ report, send } = proxyquire('../../../../../lib/utils/telemetry/index.js', {
+    ({ storeLocally, send } = proxyquire('../../../../../lib/utils/telemetry/index.js', {
       '@serverless/utils/analytics-and-notfications-url': telemetryUrl,
       './areDisabled': false,
       'node-fetch': async (url, options) => {
@@ -58,7 +59,7 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
   it('Should ignore missing cacheDirPath', async () => {
     const sendResult = await send();
     expect(sendResult).to.be.null;
-    await sendReport();
+    await storeEventLocally();
     expect(usedUrl).to.equal(telemetryUrl);
     const dirFilenames = await fse.readdir(cacheDirPath);
     expect(dirFilenames.filter(isFilename).length).to.equal(0);
@@ -67,7 +68,7 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
 
   it('Should cache failed requests and rerun then with `send`', async () => {
     expectedState = 'networkError';
-    await sendReport();
+    await storeEventLocally();
     expect(usedUrl).to.equal(telemetryUrl);
     const dirFilenames = await fse.readdir(cacheDirPath);
     expect(dirFilenames.filter(isFilename).length).to.equal(1);
@@ -95,7 +96,7 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
 
   it('Should ignore body procesing error', async () => {
     expectedState = 'responseBodyError';
-    await sendReport();
+    await storeEventLocally();
     const dirFilenames = await fse.readdir(cacheDirPath);
     expect(dirFilenames.filter(isFilename).length).to.equal(0);
   });
