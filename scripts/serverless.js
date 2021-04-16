@@ -31,11 +31,6 @@ const processSpanPromise = (async () => {
     const wait = require('timers-ext/promise/sleep');
     await wait(); // Ensure access to "processSpanPromise"
 
-    // Propagate (in a background) eventual pending telemetry requests
-    require('../lib/utils/telemetry').send({
-      serverlessExecutionSpan: processSpanPromise,
-    });
-
     const resolveInput = require('../lib/cli/resolve-input');
 
     // Parse args against schemas of commands which do not require to be run in service context
