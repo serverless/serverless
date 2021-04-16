@@ -1098,6 +1098,7 @@ aws_secret_access_key = CUSTOMSECRET
       });
       const modulesCacheStub = {
         'child-process-ext/spawn': spawnExtStub,
+        './lib/utils/telemetry/generatePayload.js': async () => ({}),
       };
 
       beforeEach(() => {
@@ -1217,6 +1218,7 @@ aws_secret_access_key = CUSTOMSECRET
           command: 'package',
           awsRequestStubMap,
           modulesCacheStub: {
+            ...modulesCacheStub,
             'child-process-ext/spawn': innerSpawnExtStub,
           },
         });
@@ -1280,6 +1282,7 @@ aws_secret_access_key = CUSTOMSECRET
           command: 'package',
           awsRequestStubMap,
           modulesCacheStub: {
+            ...modulesCacheStub,
             'child-process-ext/spawn': innerSpawnExtStub,
           },
         });
@@ -1315,6 +1318,7 @@ aws_secret_access_key = CUSTOMSECRET
           command: 'package',
           awsRequestStubMap,
           modulesCacheStub: {
+            ...modulesCacheStub,
             'child-process-ext/spawn': sinon
               .stub()
               .returns({
@@ -1610,6 +1614,7 @@ aws_secret_access_key = CUSTOMSECRET
             command: 'package',
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
+              ...modulesCacheStub,
               'child-process-ext/spawn': sinon.stub().returns({}).onSecondCall().throws(),
             },
           })
@@ -1623,6 +1628,7 @@ aws_secret_access_key = CUSTOMSECRET
             command: 'package',
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
+              ...modulesCacheStub,
               'child-process-ext/spawn': sinon.stub().returns({}).onCall(2).throws(),
             },
           })
@@ -1636,6 +1642,7 @@ aws_secret_access_key = CUSTOMSECRET
             command: 'package',
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
+              ...modulesCacheStub,
               'child-process-ext/spawn': sinon.stub().returns({}).onCall(3).throws(),
             },
           })
@@ -1649,6 +1656,7 @@ aws_secret_access_key = CUSTOMSECRET
             command: 'package',
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
+              ...modulesCacheStub,
               'child-process-ext/spawn': sinon
                 .stub()
                 .returns({})
