@@ -21,7 +21,7 @@ describe('Integration test - Packaging - Lambda Files', function () {
   });
 
   it('packages the default aws template correctly in the zip', async () => {
-    fse.copySync(fixturePaths.regular, cwd);
+    await fse.copy(fixturePaths.regular, cwd);
     execSync(`${serverlessExec} package`, { cwd });
     expect(await listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip'))).to.deep.equal([
       'handler.js',
@@ -29,7 +29,7 @@ describe('Integration test - Packaging - Lambda Files', function () {
   });
 
   it('packages the default aws template with an npm dep correctly in the zip', async () => {
-    fse.copySync(fixturePaths.regular, cwd);
+    await fse.copy(fixturePaths.regular, cwd);
     execSync('npm init --yes', { cwd });
     execSync('npm i lodash', { cwd });
     execSync(`${serverlessExec} package`, { cwd });
@@ -43,7 +43,7 @@ describe('Integration test - Packaging - Lambda Files', function () {
   });
 
   it("doesn't package a dev dependency in the zip", async () => {
-    fse.copySync(fixturePaths.regular, cwd);
+    await fse.copy(fixturePaths.regular, cwd);
     execSync('npm init --yes', { cwd });
     execSync('npm i --save-dev lodash', { cwd });
     execSync(`${serverlessExec} package`, { cwd });
@@ -57,7 +57,7 @@ describe('Integration test - Packaging - Lambda Files', function () {
   });
 
   it('ignores package json files per ignore directive in the zip', async () => {
-    fse.copySync(fixturePaths.regular, cwd);
+    await fse.copy(fixturePaths.regular, cwd);
     execSync('npm init --yes', { cwd });
     execSync('echo \'package: {exclude: ["package*.json"]}\' >> serverless.yml', { cwd });
     execSync('npm i lodash', { cwd });
@@ -72,7 +72,7 @@ describe('Integration test - Packaging - Lambda Files', function () {
   });
 
   it('handles package individually with include/excludes correctly', async () => {
-    fse.copySync(fixturePaths.individually, cwd);
+    await fse.copy(fixturePaths.individually, cwd);
     execSync(`${serverlessExec} package`, { cwd });
     expect(await listZipFiles(path.join(cwd, '.serverless/hello.zip'))).to.deep.equal([
       'handler.js',
@@ -83,7 +83,7 @@ describe('Integration test - Packaging - Lambda Files', function () {
   });
 
   it('handles package individually on function level with include/excludes correctly', async () => {
-    fse.copySync(fixturePaths.individuallyFunction, cwd);
+    await fse.copy(fixturePaths.individuallyFunction, cwd);
     execSync(`${serverlessExec} package`, { cwd });
     expect(await listZipFiles(path.join(cwd, '.serverless/hello.zip'))).to.deep.equal([
       'handler.js',
