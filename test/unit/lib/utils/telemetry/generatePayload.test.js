@@ -6,7 +6,7 @@ const fs = require('fs');
 const os = require('os');
 const overrideEnv = require('process-utils/override-env');
 
-const generatePayload = require('../../../../../lib/utils/analytics/generatePayload');
+const generatePayload = require('../../../../../lib/utils/telemetry/generatePayload');
 const runServerless = require('../../../../utils/run-serverless');
 const fixtures = require('../../../../fixtures/programmatic');
 
@@ -15,7 +15,7 @@ const versions = {
   '@serverless/enterprise-plugin': require('@serverless/enterprise-plugin/package').version,
 };
 
-describe('lib/utils/analytics/generatePayload', () => {
+describe('lib/utils/telemetry/generatePayload', () => {
   it('Should resolve payload for AWS service', async () => {
     const { servicePath } = await fixtures.setup('httpApi', {
       configExt: {

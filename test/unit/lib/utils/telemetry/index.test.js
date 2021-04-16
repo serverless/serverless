@@ -6,12 +6,12 @@ const proxyquire = require('proxyquire');
 const { expect } = require('chai');
 const { v1: uuid } = require('uuid');
 const wait = require('timers-ext/promise/sleep');
-const cacheDirPath = require('../../../../../lib/utils/analytics/cache-path');
+const cacheDirPath = require('../../../../../lib/utils/telemetry/cache-path');
 
-const analyticsUrl = 'https://..';
+const telemetryUrl = 'https://..';
 const isFilename = RegExp.prototype.test.bind(/^(?:\.[^.].*|\.\..+|[^.].*)$/);
 
-describe('analytics', () => {
+describe('test/unit/lib/utils/telemetry/index.test.js', () => {
   let report;
   let sendPending;
   let expectedState = 'success';
@@ -27,9 +27,8 @@ describe('analytics', () => {
   };
 
   before(() => {
-    process.env.SLS_ANALYTICS_URL = analyticsUrl;
-    ({ report, sendPending } = proxyquire('../../../../../lib/utils/analytics/index.js', {
-      '@serverless/utils/analytics-and-notfications-url': analyticsUrl,
+    ({ report, sendPending } = proxyquire('../../../../../lib/utils/telemetry/index.js', {
+      '@serverless/utils/analytics-and-notfications-url': telemetryUrl,
       './areDisabled': false,
       'node-fetch': async (url, options) => {
         usedUrl = url;
@@ -60,7 +59,7 @@ describe('analytics', () => {
     const sendPendingResult = await sendPending();
     expect(sendPendingResult).to.be.null;
     await sendReport();
-    expect(usedUrl).to.equal(analyticsUrl);
+    expect(usedUrl).to.equal(telemetryUrl);
     const dirFilenames = await fse.readdir(cacheDirPath);
     expect(dirFilenames.filter(isFilename).length).to.equal(0);
     expect(JSON.parse(usedOptions.body)).to.have.lengthOf(1);
@@ -69,7 +68,7 @@ describe('analytics', () => {
   it('Should cache failed requests and rerun then with sendPending', async () => {
     expectedState = 'networkError';
     await sendReport();
-    expect(usedUrl).to.equal(analyticsUrl);
+    expect(usedUrl).to.equal(telemetryUrl);
     const dirFilenames = await fse.readdir(cacheDirPath);
     expect(dirFilenames.filter(isFilename).length).to.equal(1);
 

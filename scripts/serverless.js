@@ -31,8 +31,8 @@ const processSpanPromise = (async () => {
     const wait = require('timers-ext/promise/sleep');
     await wait(); // Ensure access to "processSpanPromise"
 
-    // Propagate (in a background) eventual pending analytics requests
-    require('../lib/utils/analytics').sendPending({
+    // Propagate (in a background) eventual pending telemetry requests
+    require('../lib/utils/telemetry').sendPending({
       serverlessExecutionSpan: processSpanPromise,
     });
 
