@@ -4,7 +4,7 @@ const path = require('path');
 const { expect } = require('chai');
 const fs = require('fs').promises;
 const fse = require('fs-extra');
-const { execSync } = require('../utils/childProcess');
+const spawn = require('child-process-ext/spawn');
 const serverlessExec = require('../serverlessBinary');
 const { getTmpDirPath, listZipFiles } = require('../utils/fs');
 
@@ -23,7 +23,7 @@ describe('Integration test - Packaging - Lambda Files', function () {
 
   it('packages the default aws template correctly in the zip', async () => {
     await fse.copy(fixturePaths.regular, cwd);
-    execSync(`${serverlessExec} package`, { cwd });
+    await spawn(serverlessExec, ['package'], { cwd });
     expect(await listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip'))).to.deep.equal([
       'handler.js',
     ]);
@@ -31,9 +31,9 @@ describe('Integration test - Packaging - Lambda Files', function () {
 
   it('packages the default aws template with an npm dep correctly in the zip', async () => {
     await fse.copy(fixturePaths.regular, cwd);
-    execSync('npm init --yes', { cwd });
-    execSync('npm i lodash', { cwd });
-    execSync(`${serverlessExec} package`, { cwd });
+    await spawn('npm', ['init', '--yes'], { cwd });
+    await spawn('npm', ['i', 'lodash'], { cwd });
+    await spawn(serverlessExec, ['package'], { cwd });
     const zipfiles = await listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip'));
     const nodeModules = new Set(
       zipfiles.filter((f) => f.startsWith('node_modules')).map((f) => f.split(path.sep)[1])
@@ -45,9 +45,9 @@ describe('Integration test - Packaging - Lambda Files', function () {
 
   it("doesn't package a dev dependency in the zip", async () => {
     await fse.copy(fixturePaths.regular, cwd);
-    execSync('npm init --yes', { cwd });
-    execSync('npm i --save-dev lodash', { cwd });
-    execSync(`${serverlessExec} package`, { cwd });
+    await spawn('npm', ['init', '--yes'], { cwd });
+    await spawn('npm', ['i', '--save-dev', 'lodash'], { cwd });
+    await spawn(serverlessExec, ['package'], { cwd });
     const zipfiles = await listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip'));
     const nodeModules = new Set(
       zipfiles.filter((f) => f.startsWith('node_modules')).map((f) => f.split(path.sep)[1])
@@ -59,13 +59,13 @@ describe('Integration test - Packaging - Lambda Files', function () {
 
   it('ignores package json files per ignore directive in the zip', async () => {
     await fse.copy(fixturePaths.regular, cwd);
-    execSync('npm init --yes', { cwd });
+    await spawn('npm', ['init', '--yes'], { cwd });
     await fs.appendFile(
       path.resolve(cwd, 'serverless.yml'),
       '\npackage: {exclude: ["package*.json"]}\n'
     );
-    execSync('npm i lodash', { cwd });
-    execSync(`${serverlessExec} package`, { cwd });
+    await spawn('npm', ['i', 'lodash'], { cwd });
+    await spawn(serverlessExec, ['package'], { cwd });
     const zipfiles = await listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip'));
     const nodeModules = new Set(
       zipfiles.filter((f) => f.startsWith('node_modules')).map((f) => f.split(path.sep)[1])
@@ -77,7 +77,7 @@ describe('Integration test - Packaging - Lambda Files', function () {
 
   it('handles package individually with include/excludes correctly', async () => {
     await fse.copy(fixturePaths.individually, cwd);
-    execSync(`${serverlessExec} package`, { cwd });
+    await spawn(serverlessExec, ['package'], { cwd });
     expect(await listZipFiles(path.join(cwd, '.serverless/hello.zip'))).to.deep.equal([
       'handler.js',
     ]);
@@ -88,7 +88,7 @@ describe('Integration test - Packaging - Lambda Files', function () {
 
   it('handles package individually on function level with include/excludes correctly', async () => {
     await fse.copy(fixturePaths.individuallyFunction, cwd);
-    execSync(`${serverlessExec} package`, { cwd });
+    await spawn(serverlessExec, ['package'], { cwd });
     expect(await listZipFiles(path.join(cwd, '.serverless/hello.zip'))).to.deep.equal([
       'handler.js',
     ]);
