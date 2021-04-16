@@ -47,7 +47,7 @@ describe('lib/utils/telemetry/generatePayload', () => {
 
     const { serverless } = await runServerless({
       cwd: serviceDir,
-      command: '-v',
+      command: 'print',
     });
     const payload = await generatePayload(serverless);
 
