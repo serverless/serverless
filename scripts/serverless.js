@@ -206,12 +206,13 @@ const processSpanPromise = (async () => {
               sources: {
                 env: require('../lib/configuration/variables/sources/env'),
                 file: require('../lib/configuration/variables/sources/file'),
+                merge: require('../lib/configuration/variables/sources/merge'),
                 opt: require('../lib/configuration/variables/sources/opt'),
                 self: require('../lib/configuration/variables/sources/self'),
                 strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
               },
               options: filterSupportedOptions(options, { commandSchema, providerName }),
-              fulfilledSources: new Set(['file', 'self', 'strToBool']),
+              fulfilledSources: new Set(['file', 'merge', 'self', 'strToBool']),
               propertyPathsToResolve: new Set(['provider\0name', 'provider\0stage', 'useDotenv']),
             };
             await resolveVariables(resolverConfiguration);

@@ -50,6 +50,7 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 - [Properties exported from Javascript files (sync or async)](#reference-variables-in-javascript-files)
 - [Pseudo Parameters Reference](#pseudo-parameters-reference)
 - [Read String Variable Values as Boolean Values](#read-string-variable-values-as-boolean-values)
+- [Merge multiple object/array sources](#merge-multiple-objectarray-sources)
 
 ## Casting string variables to boolean values
 
@@ -691,3 +692,42 @@ can be used in values which are passed through as is to CloudFormation template 
 Otherwise Serverless Framework has no implied understanding of them and does not try to resolve them on its own.
 
 Same handling applies to [CloudFormation Intrinsic functions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html)
+
+## Merge multiple object/array sources
+
+The `${merge(...)}` pseudo-variable merges the provided values. The provided values can be a list of objects or a list of arrays.
+
+### Merging objects
+
+For example:
+
+```yml
+custom:
+  environment:
+    FOO: value
+
+provider:
+  environment: ${merge(${self:custom.environment}, ${file(common-env.json)}})}
+```
+
+will do a shallow merge of the objects obtained by resolving `${self:custom.environment}` and `${file(common-env.json)}`.
+
+If there is a key collision (the same key exists in more than one of the objects), the merge will raise an error.
+
+### Merging arrays
+
+Arrays are "merged" by concatenation.
+
+For example:
+
+```yml
+custom:
+  list1: ['a', 'b']
+  list2: ['c', 'd']
+
+  example: ${merge(${self:custom.list1}), ${self:custom.list2})}
+```
+
+In this case `example` will have the value `["a", "b", "c", "d"]`.
+
+There is no check for duplicate items in the provided arrays.
