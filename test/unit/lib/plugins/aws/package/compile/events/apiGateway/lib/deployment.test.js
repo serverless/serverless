@@ -16,6 +16,7 @@ describe('#compileDeployment()', () => {
       region: 'us-east-1',
     };
     serverless = new Serverless();
+    serverless.service.service = 'apig-service';
     provider = new AwsProvider(serverless, options);
     serverless.setProvider('aws', provider);
     serverless.service.provider.compiledCloudFormationTemplate = {
@@ -98,6 +99,14 @@ describe('#compileDeployment()', () => {
             '/dev',
           ],
         ],
+      },
+      Export: {
+        Name: {
+          'Fn::Join': [
+            '-',
+            ['sls', awsCompileApigEvents.serverless.service.service, 'dev', 'ServiceEndpoint'],
+          ],
+        },
       },
     });
   });
