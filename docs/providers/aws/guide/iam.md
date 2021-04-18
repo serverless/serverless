@@ -30,7 +30,7 @@ provider:
           NotAction: 'iam:DeleteUser',
       managedPolicies:
         - 'arn:aws:iam::123456789012:user/*',
-      permissionBoundary: arn:aws:iam::123456789012:policy/boundaries
+      permissionsBoundary: arn:aws:iam::123456789012:policy/boundaries
       tags:
         key: value
     deploymentRole: arn:aws:iam::123456789012:role/deploy-role
