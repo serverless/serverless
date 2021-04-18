@@ -17,6 +17,14 @@ disabledDeprecations:
   - '*' # To disable all deprecation messages
 ```
 
+<a name="AWS_API_GATEWAY_NON_APPLICABLE_SETTINGS"><div>&nbsp;</div></a>
+
+## AWS API Gateway non-applicable settings configured
+
+Deprecation code: `AWS_API_GATEWAY_NON_APPLICABLE_SETTINGS`
+
+When external API Gateway resource is used and imported via `provider.apiGateway.restApiId` setting, both `provider.logs.restApi` and `provider.tracing.apiGateway` will be ignored. These settings are applicable only if API Gateway resource is provisioned by Serverless Framework.
+
 <a name="CLI_OPTIONS_SCHEMA'"><div>&nbsp;</div></a>
 
 ## CLI Options extensions, `type` requirement
@@ -363,11 +371,3 @@ Please use `onUnauthenticatedRequest` instead. `allowUnauthenticated` will be re
 Deprecation code: `BIN_SERVERLESS`
 
 Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2.0.0
-
-<a name="AWS_API_GATEWAY_NON_APPLICABLE_SETTINGS"><div>&nbsp;</div></a>
-
-## AWS API Gateway non-applicable settings configured
-
-Deprecation code: `AWS_API_GATEWAY_NON_APPLICABLE_SETTINGS`
-
-When external API Gateway resource is used and imported via `provider.apiGateway.restApiId` setting, both `provider.logs.restApi` and `provider.tracing.apiGateway` will be ignored. These settings are applicable only if API Gateway resource is provisioned by Serverless Framework.
