@@ -235,6 +235,30 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
           'arn:aws:iam::123456789012:policy/XCompanyBoundaries'
         );
       });
+
+      it('should support `provider.iam.role.permissionBoundary`', async () => {
+        const { cfTemplate, awsNaming } = await runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            provider: {
+              iam: {
+                role: {
+                  permissionBoundary: ['arn:aws:iam::123456789012:policy/XCompanyBoundaries'],
+                },
+              },
+            },
+          },
+        });
+
+        const IamRoleLambdaExecution = awsNaming.getRoleLogicalId();
+        const {
+          Properties: { PermissionsBoundary },
+        } = cfTemplate.Resources[IamRoleLambdaExecution];
+        expect(PermissionsBoundary).to.be.equal(
+          'arn:aws:iam::123456789012:policy/XCompanyBoundaries'
+        );
+      });
     });
 
     describe('Provider properties', () => {
@@ -262,7 +286,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
                     'arn:aws:s3:::my_corporate_bucket/Development/*',
                     'arn:aws:iam::123456789012:u*',
                   ],
-                  permissionBoundary: ['arn:aws:iam::123456789012:policy/XCompanyBoundaries'],
+                  permissionsBoundary: ['arn:aws:iam::123456789012:policy/XCompanyBoundaries'],
                   tags: {
                     sweet: 'potato',
                   },
