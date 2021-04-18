@@ -166,6 +166,9 @@ Staring with v3.0.0, all IAM-related settings of _provider_ including `iamRoleSt
 - `provider.iamManagedPolicies` -> `provider.iam.role.managedPolicies`
 - `provider.cfnRole` -> `provider.iam.deploymentRole`
 
+In addition, a prior update had documented the new Permissions Boundary property as `iam.role.permissionBoundary`. This
+has now been deprecated in favor of `iam.role.permissionsBoundary` to match the CloudFormation property.
+
 <a name="AWS_API_GATEWAY_SPECIFIC_KEYS"><div>&nbsp;</div></a>
 
 ## API Gateway specific configuration
