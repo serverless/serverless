@@ -37,12 +37,6 @@ describe('AwsProvider', () => {
   });
   afterEach(() => restoreEnv());
 
-  describe('#getProviderName()', () => {
-    it('should return the provider name', () => {
-      expect(AwsProvider.getProviderName()).to.equal('aws');
-    });
-  });
-
   describe('#constructor()', () => {
     it('should set Serverless instance', () => {
       expect(typeof awsProvider.serverless).to.not.equal('undefined');
@@ -335,6 +329,58 @@ describe('AwsProvider', () => {
 });
 
 describe('test/unit/lib/plugins/aws/provider.test.js', () => {
+  it('`AwsProvider.getProviderName()` should resolve provider name', () => {
+    expect(AwsProvider.getProviderName()).to.equal('aws');
+  });
+
+  it('should retain sessionToken eventually updated internally by SDK', async () => {
+    const expectedToken = '123';
+    // Fake service that update credentials
+    class FakeCloudFormation {
+      constructor(credentials) {
+        this.credentials = credentials;
+        this.credentials.credentials.sessionToken = expectedToken;
+      }
+      describeStacks() {
+        return { promise: async () => {} };
+      }
+    }
+    // Stub functions for the credentials creation in the provider
+    class SharedIniFileCredentials {
+      constructor() {
+        this.sessionToken = 'abc';
+        this.accessKeyId = 'keyId';
+        this.secretAccessKey = 'secret';
+      }
+    }
+    class EnvironmentCredentials {
+      constructor() {
+        this.sessionToken = 'env';
+        this.accessKeyId = 'keyId';
+        this.secretAccessKey = 'secret';
+      }
+    }
+    const modulesCacheStub = {
+      'aws-sdk': {
+        SharedIniFileCredentials,
+        EnvironmentCredentials,
+        CloudFormation: FakeCloudFormation,
+      },
+    };
+    const { serverless } = await runServerless({
+      fixture: 'aws',
+      command: 'print',
+      modulesCacheStub,
+    });
+    expect(serverless.getProvider('aws').getCredentials().credentials.sessionToken).not.to.equal(
+      expectedToken
+    );
+    await serverless.getProvider('aws').request('CloudFormation', 'describeStacks');
+    expect(serverless.getProvider('aws').getCredentials().credentials.sessionToken).to.equal(
+      expectedToken
+    );
+  });
+
   describe('#getCredentials()', () => {
     before(async () => {
       // create default aws credentials file in before so that grouped run can use it
