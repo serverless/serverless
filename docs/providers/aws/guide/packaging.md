@@ -58,7 +58,7 @@ Exclude all node_modules but then re-include a specific modules (in this case no
 
 ```yml
 package:
-  patterns:
+  exclude:
     - '!node_modules/**'
     - 'node_modules/node-fetch/**'
 ```
