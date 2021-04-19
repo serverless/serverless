@@ -176,3 +176,23 @@ functions:
     layers:
       - { Ref: TestLambdaLayer }
 ```
+
+You can also configure layers at the service level. EG:
+
+```yml
+# serverless.yml
+service: myService
+
+provider:
+  name: aws
+  runtime: python3.8
+  layers:
+    - arn:aws:lambda:us-east-1:xxxxxxxxxxxxx:layer:xxxxx:mylayer1
+    - arn:aws:lambda:us-east-1:xxxxxxxxxxxxx:layer:xxxxx:mylayer2
+
+functions:
+  hello1:
+    handler: handler.hello1
+  hello2:
+    handler: handler.hello2
+```
