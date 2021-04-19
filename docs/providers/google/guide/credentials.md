@@ -49,9 +49,39 @@ Go to the <a href="https://console.cloud.google.com/apis/dashboard" target="_bla
 - Cloud Storage
 - Cloud Logging API
 
-## Get credentials & assign roles
+## Set up a user & assign roles
 
-You need to create credentials with appropriate roles Serverless can use to create resources in your Project.
+You can either use a **Service Account** or directly your **Google Account**
+with appropriate roles that Serverless can use to create resources in your project.
+
+### Google Account
+
+(<a href="https://cloud.google.com/iam/docs/overview#google_account" target="_blank">Google Accounts</a> are real users who can be authenticated by the Google SSO)
+
+This method is the most convenient to allow developers to develop and deploy a Serverless application locally.
+
+If you are owner of the project you have nothing to do.
+Otherwise, make sure your user has at least the following roles:
+
+- `Deployment Manager Editor`
+- `Storage Admin`
+- `Logging Admin`
+- `Cloud Functions Developer`
+
+### Service Account
+
+(<a href="https://cloud.google.com/iam/docs/overview#service_account" target="_blank">Service accounts</a> are accounts for applications instead of individuals end users)
+
+This method is useful for to authenticate a CI/CD or to assume a specific role without changing the roles of a **Google Account**.
+
+Create a **Service Account** with at least the following roles:
+
+- `Deployment Manager Editor`
+- `Storage Admin`
+- `Logging Admin`
+- `Cloud Functions Developer`
+
+How to create a **Service Account**:
 
 1. Go to the <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console</a>.
 2. Choose the project that you are working on from the top drop down
@@ -60,21 +90,43 @@ You need to create credentials with appropriate roles Serverless can use to crea
 5. Click `CREATE SERVICE ACCOUNT` button on the top
 6. Input Service account name and Service account ID will be generated automatically for you. Change it if you wish to.
 7. Click `Create` button
-8. Add `Deployment Manager Editor`, `Storage Admin`, `Logging Admin`, `Cloud Functions Developer` roles and click `Continue`
-9. Click `+CREATE KEY` button and select `JSON` key type and click `Create` button
-10. You will see a json (AKA `keyfile`) file downloaded
-11. Click `Done` button
-12. Save the `keyfile` somewhere secure. We recommend making a folder in your root folder and putting it there. Like this, `~/.gcloud/keyfile.json`. You can change the file name from `keyfile` to anything. Remember the path you saved it to.
+8. Add `Deployment Manager Editor`, `Storage Admin`, `Logging Admin`, `Cloud Functions Developer` roles
+9. Click `Done` button
 
-## Update the `provider` config in `serverless.yml`
+## Authenticate
 
-Open up your `serverless.yml` file and update the `provider` section with your Google Cloud Project id and
-the path to your `keyfile.json` file (this path needs to be absolute!). It should look something like this:
+The Serverless Google Cloud plugin supports several authentication methods.
+
+### Application Default Credentials
+
+The plugin will let Google find the **Application Default Credentials** and implicitly authenticate.
+
+To authenticate with a **Google Account** use <a href="https://cloud.google.com/sdk/gcloud/reference/auth/application-default/login" target="_blank">gcloud cli login</a>
+
+```shell
+gcloud auth application-default login
+```
+
+To authenticate with a **Service Account**:
+
+1. Go on the Service Account panel of `IAM & admin`
+2. Select a Service Account and click on `manage keys`
+3. Create a JSON credentials keyfile
+4. Download and store the keyfile
+5. expose the absolute path of the keyfile in the environment variable `GOOGLE_APPLICATION_CREDENTIALS`
+
+### Explicitly provide the path of a credentials keyfile
+
+1. Get a credentials keyfile as explained above.
+2. In the `provider` config in `serverless.yml`, add a `credentials` attribute with the absolute path of the credentials keyfile:
 
 ```yml
 provider:
   name: google
   runtime: nodejs
   project: my-serverless-project-1234
-  credentials: ~/.gcloud/keyfile.json
+
+  credentials: ~/.gcloud/keyfile.json # <- the path must be absolute
 ```
+
+If `provider.credentials` is provided in the `serverless.yml`, the **Application Default Credentials** will be ignored.
