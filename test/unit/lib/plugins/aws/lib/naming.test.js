@@ -416,10 +416,8 @@ describe('#naming()', () => {
 
   describe('#getValidatorLogicalId()', () => {
     it('', () => {
-      serverless.service.service = 'myService';
-      expect(sdk.naming.getValidatorLogicalId()).to.equal(
-        `${serverless.service.service}RequestValidator`
-      );
+      serverless.service.service = 'my-Service';
+      expect(sdk.naming.getValidatorLogicalId()).to.equal('ApiGatewayMyServiceRequestValidator');
     });
   });
 
