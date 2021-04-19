@@ -261,10 +261,10 @@ provider:
     foo: bar
     baz: qux
   tracing:
-    apiGateway: true
+    apiGateway: true # Can only be true if API Gateway is inside a stack.
     lambda: true # Optional, can be true (true equals 'Active'), 'Active' or 'PassThrough'
   logs:
-    restApi: # Optional configuration which specifies if API Gateway logs are used. This can either be set to `true` to use defaults, or configured via subproperties.
+    restApi: # Optional configuration which specifies if API Gateway logs are used. This can either be set to `true` to use defaults, or configured via subproperties. Can only be configured if API Gateway is inside a stack.
       accessLogging: true # Optional configuration which enables or disables access logging. Defaults to true.
       format: 'requestId: $context.requestId' # Optional configuration which specifies the log format to use for access logging.
       executionLogging: true # Optional configuration which enables or disables execution logging. Defaults to true.
