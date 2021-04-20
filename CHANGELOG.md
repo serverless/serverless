@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.37.0](https://github.com/serverless/serverless/compare/v2.36.0...v2.37.0) (2021-04-20)
+
+### Features
+
+- **Variables:** `sls:stage` variable ([#9296](https://github.com/serverless/serverless/issues/9296)) ([ef91ae1](https://github.com/serverless/serverless/commit/ef91ae1972448fd342aeda6189884f2d8b454756)) ([Matthieu Napoli](https://github.com/mnapoli))
+
+### Bug Fixes
+
+- **API:** Ensure `serverless.config.servicePath` ([#9330](https://github.com/serverless/serverless/pull/9330)) ([ff589ba](https://github.com/serverless/serverless/commit/ff589baef483ecd53d9d4301bf2e846d87d62224)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI:** Ensure to recognize interactive CLI command properly ([#9332](https://github.com/serverless/serverless/pull/9332)) ([40fddcc](https://github.com/serverless/serverless/commit/40fddcc0eecee0c34310ac36508975fdd58da939)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Telemetry:** Do not send request when there are no events ([#9331](https://github.com/serverless/serverless/pull/9331)) ([f430224](https://github.com/serverless/serverless/commit/f4302249a9d9bfba46ca3fb6823cc8da27f20939)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [2.36.0](https://github.com/serverless/serverless/compare/v2.35.0...v2.36.0) (2021-04-20)
 
 ### Features
