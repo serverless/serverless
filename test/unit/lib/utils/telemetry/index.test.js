@@ -52,6 +52,8 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
   });
 
   afterEach(async () => {
+    usedOptions = null;
+    usedUrl = null;
     const dirFilenames = await fse.readdir(cacheDirPath);
     await Promise.all(
       dirFilenames.map(async (filename) => fse.unlink(path.join(cacheDirPath, filename)))
@@ -103,5 +105,11 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
     await send();
     const dirFilenames = await fse.readdir(cacheDirPath);
     expect(dirFilenames.filter(isFilename).length).to.equal(0);
+  });
+
+  it('Should not send request when there are no events to send', async () => {
+    await send();
+    expect(usedUrl).to.be.null;
+    expect(usedOptions).to.be.null;
   });
 });
