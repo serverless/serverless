@@ -10,6 +10,7 @@ module.exports = {
       'always',
       [
         '',
+        'API',
         'AWS ALB',
         'AWS Alexa',
         'AWS API Gateway',
