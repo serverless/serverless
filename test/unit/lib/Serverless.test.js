@@ -350,5 +350,9 @@ describe('test/unit/lib/Serverless.test.js', () => {
     it('Ensure that instance is setup', async () => {
       expect(serverless.variables).to.have.property('variableSyntax');
     });
+
+    it('Ensure config.servicePath', async () => {
+      expect(serverless.config).to.have.property('servicePath');
+    });
   });
 });
