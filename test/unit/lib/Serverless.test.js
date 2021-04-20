@@ -222,7 +222,7 @@ describe('Serverless', () => {
   });
 });
 
-describe('Serverless [new tests]', () => {
+describe('test/unit/lib/Serverless.test.js', () => {
   describe('When local version available', () => {
     describe('When running global version', () => {
       it('Should fallback to local version when it is found and "enableLocalInstallationFallback" is not set', () =>
@@ -337,7 +337,7 @@ describe('Serverless [new tests]', () => {
     });
   });
 
-  describe('Old variables engine initialiation', () => {
+  describe('Legacy API interface', () => {
     let serverless;
 
     before(async () => {
