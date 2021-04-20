@@ -2,6 +2,50 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.36.0](https://github.com/serverless/serverless/compare/v2.35.0...v2.36.0) (2021-04-20)
+
+### Features
+
+- **AWS ALB:** Support `functions[].events[].alb.targetGroupName` ([#9222](https://github.com/serverless/serverless/issues/9222)) ([2cb8160](https://github.com/serverless/serverless/commit/2cb81608c8cb7dff7d6b9139235f2285b4b76044)) ([Gabriel Plassard](https://github.com/cbm-gplassard))
+- Support `Fn::Split` for `vpc` properties ([#9266](https://github.com/serverless/serverless/issues/9266)) ([19805d7](https://github.com/serverless/serverless/commit/19805d71eabb68bd7fd4046aa23090ef85fb1c36)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+
+### Bug Fixes
+
+- **AWS API Gateway:**
+  - Correctly recognize `type` for `authorizerId` ([#9300](https://github.com/serverless/serverless/pull/9300)) ([ef25d68](https://github.com/serverless/serverless/commit/ef25d681372d1ef16cdba24981a41eb957e59821)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Deprecate invalid `apiGateway` settings ([#9238](https://github.com/serverless/serverless/issues/9238)) ([bca46e5](https://github.com/serverless/serverless/commit/bca46e5ab509065e6b3b2031446593ac23aac261)) ([Jaakko Lappalainen](https://github.com/jkklapp))
+- **AWS IAM:** Deprecate `iam.role.permissionBoundary` in favor of `iam.role.permissionsBoundary` ([#9318](https://github.com/serverless/serverless/issues/9318)) ([d1c3b3f](https://github.com/serverless/serverless/commit/d1c3b3fbac0d2c80db7284d3ef4d8b808c33fa03)) ([Android3000](https://github.com/Android3000))
+- **AWS Local Invocation:**
+  - Allow optional `package.artifact` for `java` ([#9320](https://github.com/serverless/serverless/pull/9320)) ([924a698](https://github.com/serverless/serverless/commit/924a698d2a9d7a663c1fcbb11707ad8d2ed30b6b)) ([Yuji Yamano](https://github.com/yyamano))
+  - Do not build Java bridge if `artifact` missing ([#9280](https://github.com/serverless/serverless/issues/9280)) ([5392a7d](https://github.com/serverless/serverless/commit/5392a7dce2a325d3f93d8e8508d63d16d93c6f51)) ([Yuji Yamano](https://github.com/yyamano))
+- **CLI:**
+  - Ensure to respect `disabledDeprecations` config options ([#9298](https://github.com/serverless/serverless/pull/9298)) ([05635c5](https://github.com/serverless/serverless/commit/05635c5e2df2f63710cac333fa6b2bab4e53c0c7)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Recognize `--aws-profile` option by schema ([#9324](https://github.com/serverless/serverless/pull/9324)) ([014ff94](https://github.com/serverless/serverless/commit/014ff949b7a8d62e246fd47f2addc48a37e362e2)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Plugins:** Prevent variables resolution with `plugin` command ([#9298](https://github.com/serverless/serverless/pull/9298)) ([8ac2706](https://github.com/serverless/serverless/commit/8ac27061999a0005d5aab342319cccfe6bbc9d49)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:**
+  - Clear escape slashes ([#9327](https://github.com/serverless/serverless/pull/9327)) ([c63244c](https://github.com/serverless/serverless/commit/c63244ce967c2c424fea50aaab9e19d355003913)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Fix file access error message generation ([#9281](https://github.com/serverless/serverless/pull/9281)) ([6dd3996](https://github.com/serverless/serverless/commit/6dd39968f2c49f3d98139994e320846b082b6005)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **AWS Credentials:** Remove undocumented `provider.credentials` ([#9287](https://github.com/serverless/serverless/pull/9287)) ([d26e2ae](https://github.com/serverless/serverless/commit/d26e2ae4b8db944bb6f9de55043b46285f08e726)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:** Validate service dependency in CLI context ([#9298](https://github.com/serverless/serverless/pull/9298)) ([088088c](https://github.com/serverless/serverless/commit/088088c1d345ff07e0b098f28d46f325b9e0b4cc)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:**
+  - Use `serviceDir` option as replacement for `servicePath` ([#9307](https://github.com/serverless/serverless/pull/9307)) ([712a569](https://github.com/serverless/serverless/commit/712a569d5258f7770d4c23d8f0803c3d0062b79e)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Testing purpose variable resolution util ([#9281](https://github.com/serverless/serverless/pull/9281)) ([a2f1808](https://github.com/serverless/serverless/commit/a2f1808b2f2a2cc7cb18a57ccc81c68e6a16dfc2)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Telemetry**:
+  - Rename `analytics` to `telemetry` ([#9310](https://github.com/serverless/serverless/pull/9310)) ([d667111](https://github.com/serverless/serverless/commit/d66711108b1e69dd33259e43a0770e78631b9a8a)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Send all payloads with single request ([#9304](https://github.com/serverless/serverless/pull/9304)) ([278935d](https://github.com/serverless/serverless/commit/278935d3f504d040783d508b4f99a132715c751b)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Record all commands and send only on deploy ([#9323](https://github.com/serverless/serverless/pull/9323)) ([d3ecb7c](https://github.com/serverless/serverless/commit/d3ecb7cc3b95853b9ad7c1574a0c8fcbc6d08007)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Introduce `serviceDir` and `configurationFilename` ([#9307](https://github.com/serverless/serverless/pull/9307)) ([fc3a439](https://github.com/serverless/serverless/commit/fc3a4391b5411f77a51a84f93a166903c51cb80f)) ([Mariusz Nowak](https://github.com/medikoo))
+- Refactor constructor to accept new service configuration options ([#9307](https://github.com/serverless/serverless/pull/9307)) ([c02cd06](https://github.com/serverless/serverless/commit/c02cd06d907b7e54fb5a36ddbea8df1e4d29d897)) ([Mariusz Nowak](https://github.com/medikoo))
+- Mark functions `async` in `plugins/aws/remove` ([#9284](https://github.com/serverless/serverless/issues/9284)) ([0bdb7d8](https://github.com/serverless/serverless/commit/0bdb7d858c238ffca3c1b1113cbb6af8c39a62e9)) ([Jaakko Lappalainen](https://github.com/jkklapp))
+- Refactor `aws` provider tests for prefixes ([#9301](https://github.com/serverless/serverless/issues/9301)) ([196776c](https://github.com/serverless/serverless/commit/196776c65e3295e3e6e7bf341e000b8ea7ee76b5)) ([AlinoeDoctari](https://github.com/AlinoeDoctari))
+- Remove `config.update` usage ([#9307](https://github.com/serverless/serverless/pull/9307)) ([7fb55b6](https://github.com/serverless/serverless/commit/7fb55b64ddd1bd727e48c2baf49f312fb12d03ab)) ([Mariusz Nowak](https://github.com/medikoo))
+- Remove support for internal `noDeploy` option ([#9281](https://github.com/serverless/serverless/pull/9281)) ([688d09b](https://github.com/serverless/serverless/commit/688d09b1f7f28f8b1656d3f7f31c6c2765a01b9d)) ([Mariusz Nowak](https://github.com/medikoo))
+- Rename `servicePath` vars to `serviceDir` ([#9307](https://github.com/serverless/serverless/pull/9307)) ([e8c8f1c](https://github.com/serverless/serverless/commit/e8c8f1cfff785017e8e0e55cf8fb81c2dd0040a9)) ([Mariusz Nowak](https://github.com/medikoo))
+- Replace `config.servicePath` with `service.dir` ([#9307](https://github.com/serverless/serverless/pull/9307)) ([87d3802](https://github.com/serverless/serverless/commit/87d380275bc3102c71daa0f87e8211b90e5d58c4)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.35.0](https://github.com/serverless/serverless/compare/v2.34.0...v2.35.0) (2021-04-09)
 
 ### Features
