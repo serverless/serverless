@@ -117,7 +117,7 @@ service: new-service
 provider:
   iam:
     role:
-      name: your-custom-name-${self:provider.stage}-role
+      name: your-custom-name-${sls:stage}-role
 ```
 
 ## Custom IAM Roles

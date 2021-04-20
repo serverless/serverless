@@ -176,7 +176,7 @@ provider:
         sessionTimeout: 7000
   httpApi:
     id: 'my-id' # If we want to attach to externally created HTTP API its id should be provided here
-    name: 'dev-my-service' # Use custom name for the API Gateway API, default is ${opt:stage, self:provider.stage, 'dev'}-${self:service}
+    name: 'dev-my-service' # Use custom name for the API Gateway API, default is ${sls:stage}-${self:service}
     payload: '2.0' # Specify payload format version for Lambda integration ('1.0' or '2.0'), default is '2.0'
     cors: true # Implies default behavior, can be fine tuned with specific options
     authorizers:
@@ -293,7 +293,7 @@ functions:
   usersCreate: # A Function
     handler: users.create # The file and module for this specific function. Cannot be used when `image` is defined.
     image: baseimage # Image to be used by function, cannot be used when `handler` is defined. It can be configured as concrete uri of Docker image in ECR or as a reference to image defined in `provider.ecr.images`
-    name: ${opt:stage, self:provider.stage, 'dev'}-lambdaName # optional, Deployed Lambda name
+    name: ${sls:stage}-lambdaName # optional, Deployed Lambda name
     description: My function # The description of your function.
     memorySize: 512 # memorySize for this specific function.
     reservedConcurrency: 5 # optional, reserved concurrency limit for this function. By default, AWS uses account concurrency limit
@@ -570,7 +570,7 @@ functions:
 layers:
   hello: # A Lambda layer
     path: layer-dir # required, path to layer contents on disk
-    name: ${opt:stage, self:provider.stage, 'dev'}-layerName # optional, Deployed Lambda layer name
+    name: ${sls:stage}-layerName # optional, Deployed Lambda layer name
     description: Description of what the lambda layer does # optional, Description to publish to AWS
     compatibleRuntimes: # optional, a list of runtimes this layer is compatible with
       - python3.8

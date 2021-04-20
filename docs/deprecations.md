@@ -281,7 +281,7 @@ Starting with v3.0.0, API Gateway naming will be changed from `${stage}-${servic
 
 Adapt to this convention now by setting `provider.apiGateway.shouldStartNameWithService` to `true`.
 
-Eventually if you have a strong reason to stick to current convention, you may ensure it's kept after upgrading by setting: `provider.apiName: ${opt:stage, self:provider.stage, 'dev'}`
+Eventually if you have a strong reason to stick to current convention, you may ensure it's kept after upgrading by setting: `provider.apiName: ${sls:stage}`
 
 <a name="ALEXA_SKILL_EVENT_WITHOUT_APP_ID"><div>&nbsp;</div></a>
 

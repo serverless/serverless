@@ -37,10 +37,8 @@ You will also need to update the environment parameter to point to the config.js
 
 ```yaml
  spotinst:
-  environment: ${file(./config.json):${opt:stage, self:provider.stage, 'dev'}}
+  environment: ${file(./config.json):${sls:stage}}
 ```
-
-Note that while I am using 'dev' as the default stage, you may change this parameter to a custom default stage.
 
 ## Through the .yml File
 

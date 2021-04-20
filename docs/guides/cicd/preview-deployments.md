@@ -31,7 +31,7 @@ As development teams, we often have multiple pull requests and branches open at 
 
 To avoid this collision, you have the convenient option to "use branch name as stage", which ensures that each pull request will deploy to a unique stage. Since the stage is not preconfigured and may not yet exist at the time of deployment, the default deployment profile will be used. In this case, ensure that the default deployment profile is configured with an [AWS Access Role](/framework/docs/dashboard/access-roles/).
 
-If you use the "use branch name as stage", you may also want to reference the branch name in your configuration using [Variables](/framework/docs/providers/aws/guide/variables/). Since the stage name matches the branch name, you can use the `${opt:stage, self:provider.stage, 'dev'}` variable in your `serverless.yml` to reference the stage name, which will match the branch name.
+If you use the "use branch name as stage", you may also want to reference the branch name in your configuration using [Variables](/framework/docs/providers/aws/guide/variables/). Since the stage name matches the branch name, you can use the `${sls:stage}` variable in your `serverless.yml` to reference the stage name, which will match the branch name.
 
 Branch names may also include characters such as `/` which are invalid characters for stage names. Invalid characters are replaced with `-` in Serverless CI/CD. For example, a branch `feature/ph-api` will be normalized as `feature-ph-api`.
 
