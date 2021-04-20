@@ -18,6 +18,8 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       varAddress: 'foo${sourceAddress:${sourceDirect:}}',
       direct: '${sourceDirect:}',
       property: '${sourceProperty(direct)}',
+      escape:
+        'e\\${sourceDirect:}n\\$${sourceProperty(address)}qe\\\\\\${sourceProperty(direct)}qn\\\\${sourceProperty(address)}',
       otherProperty: '${sourceProperty(varAddress)}',
       deepProperty: '${sourceProperty(foo)}',
       deepPropertyUnrecognized: '${sourceProperty(nestUnrecognized)}',
@@ -196,6 +198,12 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         params: 'param1|param2',
         varParam: '234',
       });
+    });
+
+    it('should clear escapes', () => {
+      expect(configuration.escape).to.equal(
+        'e${sourceDirect:}n\\$fooaddress-resultqe\\${sourceProperty(direct)}qn\\fooaddress-result'
+      );
     });
 
     it('should support incomplete sources', () => {
