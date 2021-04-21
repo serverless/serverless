@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.37.1](https://github.com/serverless/serverless/compare/v2.37.0...v2.37.1) (2021-04-21)
+
+### Bug Fixes
+
+- **API:** Ensure `config.servicePath` is `config.serviceDir` live alias ([#9343](https://github.com/serverless/serverless/pull/9343)) ([2967065](https://github.com/serverless/serverless/commit/2967065bc7e45d7b0f0fac4ad9b9c33b977482fa)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Telemetry:** Allow to disable telemetry via `SLS_TELEMETRY_DISABLED` ([#9338](https://github.com/serverless/serverless/pull/9338)) ([ba7fd2e](https://github.com/serverless/serverless/commit/ba7fd2e1b428b2b76378aa90d0a19e8ec0d12498)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [2.37.0](https://github.com/serverless/serverless/compare/v2.36.0...v2.37.0) (2021-04-20)
 
 ### Features
