@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.37.2](https://github.com/serverless/serverless/compare/v2.37.1...v2.37.2) (2021-04-22)
+
+### Bug Fixes
+
+- **API:** Bring back legacy `service.serviceFilename` for plugins ([#9352](https://github.com/serverless/serverless/pull/9352)) ([6c896a5](https://github.com/serverless/serverless/commit/6c896a5ffdfc067ffded0791a34a943c89ea6136)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.37.1](https://github.com/serverless/serverless/compare/v2.37.0...v2.37.1) (2021-04-21)
 
 ### Bug Fixes
