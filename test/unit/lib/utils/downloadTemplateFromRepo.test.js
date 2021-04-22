@@ -73,13 +73,15 @@ describe('downloadTemplateFromRepo', () => {
 
   describe('downloadTemplateFromRepo', () => {
     it('should reject an error if the passed URL option is not a valid URL', () => {
-      return expect(downloadTemplateFromRepo('invalidUrl')).to.be.rejectedWith(Error);
+      return expect(
+        downloadTemplateFromRepo('invalidUrl')
+      ).to.be.eventually.rejected.and.have.property('code', 'INVALID_TEMPLATE_URL');
     });
 
     it('should reject an error if the passed URL is not a valid GitHub URL', () => {
       return expect(
         downloadTemplateFromRepo('http://no-git-hub-url.com/foo/bar')
-      ).to.be.rejectedWith(Error);
+      ).to.be.eventually.rejected.and.have.property('code', 'INVALID_TEMPLATE_PROVIDER');
     });
 
     it('should reject an error if a directory with the same service name is already present', () => {
@@ -88,7 +90,7 @@ describe('downloadTemplateFromRepo', () => {
 
       return expect(
         downloadTemplateFromRepo('https://github.com/johndoe/existing-service')
-      ).to.be.rejectedWith(Error);
+      ).to.be.eventually.rejected.and.have.property('code', 'TARGET_FOLDER_ALREADY_EXISTS');
     });
 
     it('should download the service based on a regular .git URL', () => {
@@ -223,23 +225,31 @@ describe('downloadTemplateFromRepo', () => {
       const serviceDirName = path.join(serviceDir, 'rest-api-with-dynamodb');
       fse.mkdirsSync(serviceDirName);
 
-      return expect(downloadTemplateFromRepo(null, url)).to.be.rejectedWith(Error);
+      return expect(
+        downloadTemplateFromRepo(null, url)
+      ).to.be.eventually.rejected.and.have.property('code', 'MISSING_TEMPLATE_URL');
     });
   });
 
   describe('parseRepoURL', () => {
     it('should reject an error if no URL is provided', () => {
-      return expect(parseRepoURL()).to.be.rejectedWith(Error);
+      return expect(parseRepoURL()).to.be.eventually.rejected.and.have.property(
+        'code',
+        'MISSING_TEMPLATE_URL'
+      );
     });
 
     it('should reject an error if URL is not valid', () => {
-      return expect(parseRepoURL('non_valid_url')).to.be.rejectedWith(Error);
+      return expect(parseRepoURL('non_valid_url')).to.be.eventually.rejected.and.have.property(
+        'code',
+        'INVALID_TEMPLATE_URL'
+      );
     });
 
     it('should throw an error if URL is not of valid provider', () => {
-      return expect(parseRepoURL('https://kostasbariotis.com/repo/owner')).to.be.rejectedWith(
-        Error
-      );
+      return expect(
+        parseRepoURL('https://kostasbariotis.com/repo/owner')
+      ).to.be.eventually.rejected.and.have.property('code', 'INVALID_TEMPLATE_PROVIDER');
     });
 
     it('should parse a valid GitHub URL', () => {
