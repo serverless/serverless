@@ -53,9 +53,7 @@ describe('#request', () => {
             Key: 'test-key',
           }
         )
-      ).to.be.rejectedWith(
-        'AWS provider credentials not found. Learn how to set up AWS provider credentials in our docs here: <\u001b[32mhttp://slss.io/aws-creds-setup\u001b[39m>.'
-      );
+      ).to.be.eventually.rejected.and.have.property('code', 'AWS_CREDENTIALS_NOT_FOUND');
     });
 
     it('should support passing params without credentials', async () => {
