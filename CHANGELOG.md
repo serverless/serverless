@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.38.0](https://github.com/serverless/serverless/compare/v2.37.2...v2.38.0) (2021-04-23)
+
+### Features
+
+- **AWS CloudFormation:** Add default export names to outputs ([#9313](https://github.com/serverless/serverless/issues/9313)) ([7e139bb](https://github.com/serverless/serverless/commit/7e139bb0136e0d053f4f6f8cb2876480bb2a485e)) ([Joseph Cha](https://github.com/js-cha))
+
+### Bug Fixes
+
+- **AWS API Gateway:** Create one request validator and reuse ([#9319](https://github.com/serverless/serverless/issues/9319)) ([154351f](https://github.com/serverless/serverless/commit/154351f1a5925a745873895014ed31f03b2842b3)) ([Jacques](https://github.com/gambit66))
+- **Variables:** Fix unresolved sources notifications ([#9356](https://github.com/serverless/serverless/issues/9356)) ([53a7872](https://github.com/serverless/serverless/commit/53a7872f78f51938b409925e052d34f2dc85abbd)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [2.37.2](https://github.com/serverless/serverless/compare/v2.37.1...v2.37.2) (2021-04-22)
 
 ### Bug Fixes
