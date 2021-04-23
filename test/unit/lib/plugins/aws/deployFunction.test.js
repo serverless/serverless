@@ -968,6 +968,6 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
           },
         },
       })
-    ).to.be.eventually.rejectedWith('Please run "serverless deploy" to deploy your service');
+    ).to.be.eventually.rejected.and.have.property('code', 'FUNCTION_NOT_YET_DEPLOYED');
   });
 });
