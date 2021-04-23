@@ -71,7 +71,13 @@ functions:
 
 ### Re-using an existing event bus
 
-If you want to reuse an existing event bus, you can define it with literal `arn` or with a reference to an existing event bus name via CF intrinsic functions. Referencing via intrinsic functions in available only if you use native CloudFormation support with `provider.eventBridge.useCloudFormation: true` setting.
+If you want to reuse an existing event bus, you can define it with literal `arn` or with a reference to an existing event bus name via CF intrinsic functions. Referencing via intrinsic functions in available only if you use native CloudFormation support with `provider.eventBridge.useCloudFormation: true` setting:
+
+```yml
+provider:
+  eventBridge:
+    useCloudFormation: true
+```
 
 Using literal `arn`:
 
