@@ -208,6 +208,7 @@ provider:
     # .. OR configure logical role
     role:
       name: your-custom-name-role # Optional custom name for default IAM role
+      path: /your-custom-path/ # Optional custom path for default IAM role
       managedPolicies: # Optional IAM Managed Policies, which allows to include the policies into IAM Role
         - arn:aws:iam:*****:policy/some-managed-policy
       permissionsBoundary: arn:aws:iam::XXXXXX:policy/policy # ARN of an Permissions Boundary for the role.
