@@ -34,10 +34,10 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       propertyDeepCircularC: '${sourceProperty(propertyDeepCircularA)}',
       propertyRoot: '${sourceProperty:}',
       withString: 'foo${sourceDirect:}',
-      resolvesVariablesObject: '${sourceVariables(object)}',
-      resolvesVariablesArray: '${sourceVariables(array)}',
-      resolvesVariablesString: '${sourceVariables(string)}',
-      resolvesVariablesStringInvalid: '${sourceVariables(stringInvalid)}',
+      resolvesResultVariablesObject: '${sourceResultVariables(object)}',
+      resolvesResultVariablesArray: '${sourceResultVariables(array)}',
+      resolvesResultVariablesString: '${sourceResultVariables(string)}',
+      resolvesResultVariablesStringInvalid: '${sourceResultVariables(stringInvalid)}',
       incomplete: '${sourceDirect:}elo${sourceIncomplete:}',
       missing: '${sourceDirect:}elo${sourceMissing:}other${sourceMissing:}',
       missingFallback: '${sourceDirect:}elo${sourceMissing:, "foo"}',
@@ -83,7 +83,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
           return { value: result == null ? null : result };
         },
       },
-      sourceVariables: {
+      sourceResultVariables: {
         resolve: ({ params: [type] }) => {
           switch (type) {
             case 'object':
@@ -229,9 +229,9 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     });
 
     it('should resolve variables in returned results', () => {
-      expect(configuration.resolvesVariablesObject).to.deep.equal({ foo: 234 });
-      expect(configuration.resolvesVariablesArray).to.deep.equal([1, 234]);
-      expect(configuration.resolvesVariablesString).to.equal(234);
+      expect(configuration.resolvesResultVariablesObject).to.deep.equal({ foo: 234 });
+      expect(configuration.resolvesResultVariablesArray).to.deep.equal([1, 234]);
+      expect(configuration.resolvesResultVariablesString).to.equal(234);
     });
 
     // https://github.com/serverless/serverless/issues/9016
@@ -340,7 +340,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     });
 
     it('should error on invalid variable notation in returned result', () => {
-      const valueMeta = variablesMeta.get('resolvesVariablesStringInvalid');
+      const valueMeta = variablesMeta.get('resolvesResultVariablesStringInvalid');
       expect(valueMeta).to.not.have.property('variables');
       expect(valueMeta.error.code).to.equal('UNTERMINATED_VARIABLE');
     });
@@ -375,7 +375,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         'propertyDeepCircularB',
         'propertyDeepCircularC',
         'propertyRoot',
-        'resolvesVariablesStringInvalid',
+        'resolvesResultVariablesStringInvalid',
         'missing',
         'nonStringStringPart',
         'nestUnrecognized\0unrecognized',
