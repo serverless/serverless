@@ -369,6 +369,7 @@ const processSpanPromise = (async () => {
       isConfigurationResolved:
         commands[0] === 'plugin' || Boolean(variablesMeta && !variablesMeta.size),
       hasResolvedCommandsExternally: true,
+      isTelemetryReportedExternally: true,
       commands,
       options,
     });
