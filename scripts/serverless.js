@@ -22,6 +22,7 @@ const {
 } = require('../lib/utils/telemetry');
 const generateTelemetryPayload = require('../lib/utils/telemetry/generatePayload');
 const processBackendNotificationRequest = require('../lib/utils/processBackendNotificationRequest');
+const isTelemetryDisabled = require('../lib/utils/telemetry/areDisabled');
 
 let serverless;
 
@@ -387,7 +388,6 @@ const processSpanPromise = (async () => {
       // TODO: REMOVE WITH NEXT MAJOR
       // The purpose of below logic is to ensure that locally resolved `serverless` instance
       // that might be in lower version will not attempt to handle telemetry on its own
-      require('../lib/utils/telemetry/areDisabled'); // Ensure value is resolved
       process.env.SLS_TRACKING_DISABLED = '1';
       await serverless.init();
       if (serverless.invokedInstance) {
@@ -646,15 +646,18 @@ const processSpanPromise = (async () => {
         // Run command
         await serverless.run();
       }
-      await storeTelemetryLocally(await generateTelemetryPayload(serverless));
-      let backendNotificationRequest;
-      if (commands.join(' ') === 'deploy') {
-        backendNotificationRequest = await sendTelemetry({
-          serverlessExecutionSpan: processSpanPromise,
-        });
-      }
-      if (backendNotificationRequest) {
-        await processBackendNotificationRequest(backendNotificationRequest);
+
+      if (!isTelemetryDisabled) {
+        await storeTelemetryLocally(await generateTelemetryPayload(serverless));
+        let backendNotificationRequest;
+        if (commands.join(' ') === 'deploy') {
+          backendNotificationRequest = await sendTelemetry({
+            serverlessExecutionSpan: processSpanPromise,
+          });
+        }
+        if (backendNotificationRequest) {
+          await processBackendNotificationRequest(backendNotificationRequest);
+        }
       }
     } catch (error) {
       // If Dashboard Plugin, capture error
