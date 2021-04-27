@@ -18,7 +18,6 @@ chai.use(require('chai-as-promised'));
 describe('PluginUninstall', () => {
   let pluginUninstall;
   let serverless;
-  let consoleLogStub;
   let serverlessErrorStub;
 
   const plugins = [
@@ -44,12 +43,10 @@ describe('PluginUninstall', () => {
     serverless.cli = new CLI(serverless);
     const options = {};
     pluginUninstall = new PluginUninstall(serverless, options);
-    consoleLogStub = sinon.stub(serverless.cli, 'consoleLog').returns();
     serverlessErrorStub = sinon.stub(serverless.classes, 'Error').throws();
   });
 
   afterEach(() => {
-    serverless.cli.consoleLog.restore();
     serverless.classes.Error.restore();
   });
 
@@ -145,7 +142,6 @@ describe('PluginUninstall', () => {
         expect(validateStub.calledOnce).to.equal(true);
         expect(getPluginsStub.calledOnce).to.equal(true);
         expect(pluginUninstallStub.calledOnce).to.equal(true);
-        expect(consoleLogStub.called).to.equal(true);
         expect(serverlessErrorStub.calledOnce).to.equal(false);
         expect(removePluginFromServerlessFileStub.calledOnce).to.equal(true);
         expect(uninstallPeerDependenciesStub.calledOnce).to.equal(true);
@@ -166,7 +162,6 @@ describe('PluginUninstall', () => {
         expect(validateStub.calledOnce).to.equal(true);
         expect(getPluginsStub.calledOnce).to.equal(true);
         expect(pluginUninstallStub.calledOnce).to.equal(true);
-        expect(consoleLogStub.called).to.equal(true);
         expect(serverlessErrorStub.calledOnce).to.equal(false);
         expect(removePluginFromServerlessFileStub.calledOnce).to.equal(true);
         expect(uninstallPeerDependenciesStub.calledOnce).to.equal(true);
@@ -223,7 +218,6 @@ describe('PluginUninstall', () => {
       serverless.utils.writeFileSync(packageJsonFilePath, packageJson);
 
       return expect(pluginUninstall.pluginUninstall()).to.be.fulfilled.then(() => {
-        expect(consoleLogStub.called).to.equal(true);
         expect(
           npmUninstallStub.calledWithExactly('npm uninstall --save-dev serverless-plugin-1', {
             stdio: 'ignore',

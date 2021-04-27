@@ -4,7 +4,6 @@ const chai = require('chai');
 const sinon = require('sinon');
 const CLI = require('../../../../lib/classes/CLI');
 const overrideArgv = require('process-utils/override-argv');
-const stripAnsi = require('strip-ansi');
 const Serverless = require('../../../../lib/Serverless');
 const resolveInput = require('../../../../lib/cli/resolve-input');
 
@@ -112,65 +111,6 @@ describe('CLI', () => {
 
       expect(logStub.calledOnce).to.equal(false);
       expect(consoleLogStub.calledOnce).to.equal(true);
-    });
-  });
-
-  describe('#log', () => {
-    let consoleLogSpy;
-
-    beforeEach(() => {
-      cli = new CLI(serverless);
-      consoleLogSpy = sinon.spy(cli, 'consoleLog');
-    });
-
-    afterEach(() => {
-      cli.consoleLog.restore();
-    });
-
-    it('should log messages', () => {
-      const msg = 'Hello World!';
-
-      cli.log(msg);
-
-      expect(consoleLogSpy.callCount).to.equal(1);
-      expect(stripAnsi(consoleLogSpy.firstCall.args[0])).to.equal('Serverless: Hello World!');
-    });
-
-    it('should support different entities', () => {
-      const msg = 'Hello World!';
-      const entity = 'Entity';
-
-      cli.log(msg, entity);
-
-      expect(consoleLogSpy.callCount).to.equal(1);
-      expect(stripAnsi(consoleLogSpy.firstCall.args[0])).to.equal('Entity: Hello World!');
-    });
-
-    // NOTE: Here we're just testing that it won't break
-    it('should support logging options', () => {
-      const msg = 'Hello World!';
-      const opts = {
-        color: 'orange',
-        bold: true,
-        underline: true,
-      };
-
-      cli.log(msg, 'Serverless', opts);
-
-      expect(consoleLogSpy.callCount).to.equal(1);
-      expect(stripAnsi(consoleLogSpy.firstCall.args[0])).to.equal('Serverless: Hello World!');
-    });
-
-    it('should ignore invalid logging options', () => {
-      const msg = 'Hello World!';
-      const opts = {
-        invalid: 'option',
-      };
-
-      cli.log(msg, 'Serverless', opts);
-
-      expect(consoleLogSpy.callCount).to.equal(1);
-      expect(stripAnsi(consoleLogSpy.firstCall.args[0])).to.equal('Serverless: Hello World!');
     });
   });
 });
