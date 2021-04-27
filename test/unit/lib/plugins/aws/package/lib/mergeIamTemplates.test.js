@@ -278,6 +278,8 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
             provider: {
               iam: {
                 role: {
+                  name: 'custom-default-role',
+                  path: '/custom-role-path/',
                   statements: [
                     {
                       Effect: 'Allow',
@@ -311,43 +313,13 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       });
 
       it('should support `provider.iam.role.name`', async () => {
-        const customRoleName = 'custom-default-role';
-        const { cfTemplate, awsNaming } = await runServerless({
-          fixture: 'function',
-          command: 'package',
-          configExt: {
-            provider: {
-              iam: {
-                role: {
-                  name: customRoleName,
-                },
-              },
-            },
-          },
-        });
-
-        const iamRoleLambdaResource = cfTemplate.Resources[awsNaming.getRoleLogicalId()];
-        expect(iamRoleLambdaResource.Properties.RoleName).to.be.eq(customRoleName);
+        const iamRoleLambdaResource = cfResources[naming.getRoleLogicalId()];
+        expect(iamRoleLambdaResource.Properties.RoleName).to.be.eq('custom-default-role');
       });
 
       it('should support `provider.iam.role.path`', async () => {
-        const customRolePath = '/custom-role-path/';
-        const { cfTemplate, awsNaming } = await runServerless({
-          fixture: 'function',
-          command: 'package',
-          configExt: {
-            provider: {
-              iam: {
-                role: {
-                  path: customRolePath,
-                },
-              },
-            },
-          },
-        });
-
-        const iamRoleLambdaResource = cfTemplate.Resources[awsNaming.getRoleLogicalId()];
-        expect(iamRoleLambdaResource.Properties.Path).to.be.eq(customRolePath);
+        const iamRoleLambdaResource = cfResources[naming.getRoleLogicalId()];
+        expect(iamRoleLambdaResource.Properties.Path).to.be.eq('/custom-role-path/');
       });
 
       it('should reject an invalid `provider.iam.role.path`', async () => {
