@@ -106,6 +106,12 @@ describe('#naming()', () => {
     it('should return `/`', () => {
       expect(sdk.naming.getRolePath()).to.equal('/');
     });
+
+    it('uses custom role path', () => {
+      const customRolePath = '/custom-role-path/';
+      _.set(sdk.naming.provider, 'serverless.service.provider.iam.role.path', customRolePath);
+      expect(sdk.naming.getRolePath()).to.eql(customRolePath);
+    });
   });
 
   describe('#getRoleName()', () => {

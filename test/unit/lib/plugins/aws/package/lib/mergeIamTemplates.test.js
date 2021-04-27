@@ -1,7 +1,11 @@
 'use strict';
 
-const expect = require('chai').expect;
+const chai = require('chai');
 const runServerless = require('../../../../../../utils/run-serverless');
+
+chai.use(require('chai-as-promised'));
+
+const expect = chai.expect;
 
 describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
   describe('No default role', () => {
@@ -274,6 +278,8 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
             provider: {
               iam: {
                 role: {
+                  name: 'custom-default-role',
+                  path: '/custom-role-path/',
                   statements: [
                     {
                       Effect: 'Allow',
@@ -307,23 +313,32 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       });
 
       it('should support `provider.iam.role.name`', async () => {
-        const customRoleName = 'custom-default-role';
-        const { cfTemplate, awsNaming } = await runServerless({
-          fixture: 'function',
-          command: 'package',
-          configExt: {
-            provider: {
-              iam: {
-                role: {
-                  name: customRoleName,
+        const iamRoleLambdaResource = cfResources[naming.getRoleLogicalId()];
+        expect(iamRoleLambdaResource.Properties.RoleName).to.be.eq('custom-default-role');
+      });
+
+      it('should support `provider.iam.role.path`', async () => {
+        const iamRoleLambdaResource = cfResources[naming.getRoleLogicalId()];
+        expect(iamRoleLambdaResource.Properties.Path).to.be.eq('/custom-role-path/');
+      });
+
+      it('should reject an invalid `provider.iam.role.path`', async () => {
+        const customRolePath = '/invalid';
+        await expect(
+          runServerless({
+            fixture: 'function',
+            command: 'package',
+            configExt: {
+              provider: {
+                iam: {
+                  role: {
+                    path: customRolePath,
+                  },
                 },
               },
             },
-          },
-        });
-
-        const iamRoleLambdaResource = cfTemplate.Resources[awsNaming.getRoleLogicalId()];
-        expect(iamRoleLambdaResource.Properties.RoleName).to.be.eq(customRoleName);
+          })
+        ).to.be.eventually.rejectedWith(/'provider.iam.role.path': should match pattern/);
       });
 
       it('should support `provider.iam.role.statements`', async () => {
