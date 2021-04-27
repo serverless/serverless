@@ -23,6 +23,8 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
       jsPropertyFunction: '${file(file-property-function.js):property}',
       jsPropertyFunctionProperty: '${file(file-property-function.js):property.result}',
       addressSupport: '${file(file.json):result}',
+      jsFunctionResolveVariable: '${file(file-function-variable.js)}',
+      jsPropertyFunctionResolveVariable: '${file(file-property-function-variable.js):property}',
       nonExistingYaml: '${file(not-existing.yaml), null}',
       nonExistingJson: '${file(not-existing.json), null}',
       nonExistingJs: '${file(not-existing.js), null}',
@@ -88,6 +90,15 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
 
   it('should support "address" argument', () =>
     expect(configuration.addressSupport).to.equal('json'));
+
+  it('should support internal variable resolution', () => {
+    expect(configuration.jsFunctionResolveVariable).to.deep.equal({
+      varResult: { result: 'yaml' },
+    });
+    expect(configuration.jsPropertyFunctionResolveVariable).to.deep.equal({
+      varResult: { result: 'json' },
+    });
+  });
 
   it('should uncoditionally split "address" property keys by "."', () =>
     expect(configuration.ambiguousAddress).to.equal('object'));

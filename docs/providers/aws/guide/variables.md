@@ -476,17 +476,17 @@ With a new variables resolver (_which will be the only used resolver in v3 of a 
 
 - `options` - An object referencing resolved CLI params as passed to the command
 - `resolveConfigurationProperty([key1, key2, ...keyN])` - Async function which resolves specific service configuration property. It returns a fully resolved value of configuration property. If circular reference is detected resolution will be rejected.
+- `resolveVariable(variableString)` - Async function which resolves provided variable string. String should be passed without wrapping (`${` and `}`) braces. Example valid values:
+  - `file(./config.js):SOME_VALUE`
+  - `env:SOME_ENV_VAR, null` (end with `, null`, if missing value at the variable source should be resolved with `null`, and not with a thrown error)
 
-Example, of how to obtain a value of AWS region that will be used by Serverless Framework:
+Example on how to obtain some Serverless Framework configuration values:
 
 ```js
 // config.js (when relying on new variables resolver)
-module.exports = async ({ options, resolveConfigurationProperty }) => {
-  let region = options.region;
-  if (!region) {
-    region = await resolveConfigurationProperty(['provider', 'region']);
-    if (!region) region = 'us-east-1'; // Framework default
-  }
+module.exports = async ({ options, resolveVariable }) => {
+  const stage = await resolveVariable('sls:stage');
+  const region = await resolveVariable('opt:region, self:provider.region, "us-east-1"');
   ...
 }
 ```

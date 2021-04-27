@@ -38,6 +38,10 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       resolvesResultVariablesArray: '${sourceResultVariables(array)}',
       resolvesResultVariablesString: '${sourceResultVariables(string)}',
       resolvesResultVariablesStringInvalid: '${sourceResultVariables(stringInvalid)}',
+      resolvesVariables: '${sourceResolveVariable("sourceParam(${sourceDirect:})")}',
+      resolvesVariablesFallback: '${sourceResolveVariable("sourceMissing:, null"), null}',
+      resolvesVariablesInvalid1: '${sourceResolveVariable("sourceDirect(")}',
+      resolvesVariablesInvalid2: '${sourceResolveVariable("sourceDirect")}',
       incomplete: '${sourceDirect:}elo${sourceIncomplete:}',
       missing: '${sourceDirect:}elo${sourceMissing:}other${sourceMissing:}',
       missingFallback: '${sourceDirect:}elo${sourceMissing:, "foo"}',
@@ -81,6 +85,11 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         resolve: async ({ params, resolveConfigurationProperty }) => {
           const result = await resolveConfigurationProperty(params || []);
           return { value: result == null ? null : result };
+        },
+      },
+      sourceResolveVariable: {
+        resolve: async ({ params, resolveVariable }) => {
+          return { value: await resolveVariable(params[0]) };
         },
       },
       sourceResultVariables: {
@@ -376,6 +385,8 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         'propertyDeepCircularC',
         'propertyRoot',
         'resolvesResultVariablesStringInvalid',
+        'resolvesVariablesInvalid1',
+        'resolvesVariablesInvalid2',
         'missing',
         'nonStringStringPart',
         'nestUnrecognized\0unrecognized',
@@ -390,6 +401,25 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         'invalidResultValue',
         `infiniteResolutionRecursion${'\0nest'.repeat(10)}`,
       ]);
+    });
+
+    describe('"resolveVariable" source util', () => {
+      it('should resolve variable', () => {
+        expect(configuration.resolvesVariables).to.equal('234');
+      });
+      it('should support multiple sources', () => {
+        expect(configuration.resolvesVariablesFallback).to.equal(null);
+      });
+
+      it('should error on invalid input', () => {
+        let valueMeta = variablesMeta.get('resolvesVariablesInvalid1');
+        expect(valueMeta).to.not.have.property('variables');
+        expect(valueMeta.error.code).to.equal('VARIABLE_RESOLUTION_ERROR');
+
+        valueMeta = variablesMeta.get('resolvesVariablesInvalid2');
+        expect(valueMeta).to.not.have.property('variables');
+        expect(valueMeta.error.code).to.equal('VARIABLE_RESOLUTION_ERROR');
+      });
     });
   });
 
