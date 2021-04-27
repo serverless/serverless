@@ -253,6 +253,38 @@ describe('lib/utils/telemetry/generatePayload', () => {
     });
   });
 
+  it('Should correctly resolve payload with missing `serverless` instance', async () => {
+    // Run serverless in order to ensure command resolution
+    await runServerless({
+      fixture: 'aws',
+      command: 'print',
+    });
+
+    const payload = await generatePayload();
+
+    expect(payload).to.have.property('frameworkLocalUserId');
+    delete payload.frameworkLocalUserId;
+    expect(payload).to.have.property('firstLocalInstallationTimestamp');
+    delete payload.firstLocalInstallationTimestamp;
+    expect(payload).to.have.property('timestamp');
+    delete payload.timestamp;
+    expect(payload).to.have.property('dashboard');
+    delete payload.dashboard;
+    expect(payload).to.have.property('timezone');
+    delete payload.timezone;
+    expect(payload).to.have.property('ciName');
+    delete payload.ciName;
+    expect(payload).to.deep.equal({
+      cliName: 'serverless',
+      command: 'print',
+      isAutoUpdateEnabled: false,
+      isTabAutocompletionInstalled: false,
+      triggeredDeprecations: [],
+      installationType: 'global:other',
+      versions,
+    });
+  });
+
   it('Should resolve payload with predefined local config', async () => {
     const { serverless } = await runServerless({
       fixture: 'customProvider',
