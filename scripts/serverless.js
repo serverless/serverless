@@ -16,6 +16,13 @@ if (require('../lib/utils/tabCompletion/isSupported') && process.argv[2] === 'co
 const handleError = require('../lib/cli/handle-error');
 const humanizePropertyPathKeys = require('../lib/configuration/variables/humanize-property-path-keys');
 
+const {
+  storeLocally: storeTelemetryLocally,
+  send: sendTelemetry,
+} = require('../lib/utils/telemetry');
+const generateTelemetryPayload = require('../lib/utils/telemetry/generatePayload');
+const processBackendNotificationRequest = require('../lib/utils/processBackendNotificationRequest');
+
 let serverless;
 
 process.once('uncaughtException', (error) =>
@@ -633,6 +640,16 @@ const processSpanPromise = (async () => {
       } else {
         // Run command
         await serverless.run();
+      }
+      await storeTelemetryLocally(await generateTelemetryPayload(serverless));
+      let backendNotificationRequest;
+      if (commands.join(' ') === 'deploy') {
+        backendNotificationRequest = await sendTelemetry({
+          serverlessExecutionSpan: processSpanPromise,
+        });
+      }
+      if (backendNotificationRequest) {
+        await processBackendNotificationRequest(backendNotificationRequest);
       }
     } catch (error) {
       // If Dashboard Plugin, capture error
