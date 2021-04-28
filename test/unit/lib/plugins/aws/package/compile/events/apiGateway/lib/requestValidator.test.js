@@ -9,14 +9,18 @@ chai.use(require('chai-as-promised'));
 describe('#compileRequestValidators()', () => {
   let cfResources;
   let naming;
+  let serviceName;
+  let stage;
 
   before(async () => {
-    const { cfTemplate, awsNaming } = await runServerless({
+    const { cfTemplate, awsNaming, serverless } = await runServerless({
       fixture: 'requestSchema',
       command: 'package',
     });
     cfResources = cfTemplate.Resources;
     naming = awsNaming;
+    serviceName = serverless.service.service;
+    stage = serverless.getProvider('aws').getStage();
   });
 
   describe(' reusable schemas ', () => {
@@ -329,6 +333,15 @@ describe('#compileRequestValidators()', () => {
           },
         },
       });
+    });
+
+    it('should create validator with that includes `service` and `stage`', () => {
+      const validatorLogicalId = naming.getValidatorLogicalId();
+      const validatorResource = cfResources[validatorLogicalId];
+
+      expect(validatorResource.Properties.Name).to.equal(
+        `${serviceName}-${stage} | Validate request body and querystring parameters`
+      );
     });
 
     it('should support multiple request:schema property for regression', () => {
