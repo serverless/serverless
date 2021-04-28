@@ -129,7 +129,7 @@ Artifacts can also be fetched from a remote S3 bucket. In this case you just nee
 service: my-service
 
 package:
-  artifact: https://some-bucket.s3.amazonaws.com/path/to/service-artifact.zip
+  artifact: s3://some-bucket/path/to/service-artifact.zip
 ```
 
 ##### Individual function packages
@@ -144,7 +144,7 @@ functions:
   hello:
     handler: com.serverless.Handler
   package:
-    artifact: https://some-bucket.s3.amazonaws.com/path/to/service-artifact.zip
+    artifact: s3://some-bucket/path/to/service-artifact.zip
 ```
 
 ### Packaging functions separately
