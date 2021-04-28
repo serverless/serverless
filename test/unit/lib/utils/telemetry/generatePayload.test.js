@@ -66,6 +66,7 @@ describe('lib/utils/telemetry/generatePayload', () => {
     expect(payload).to.deep.equal({
       cliName: 'serverless',
       command: 'print',
+      commandOptionNames: [],
       config: {
         provider: {
           name: 'aws',
@@ -113,6 +114,7 @@ describe('lib/utils/telemetry/generatePayload', () => {
     expect(payload).to.deep.equal({
       cliName: 'serverless',
       command: 'print',
+      commandOptionNames: [],
       config: {
         provider: {
           name: 'customProvider',
@@ -158,6 +160,7 @@ describe('lib/utils/telemetry/generatePayload', () => {
     expect(payload).to.deep.equal({
       cliName: 'serverless',
       command: 'print',
+      commandOptionNames: [],
       config: {
         provider: {
           name: 'aws',
@@ -199,6 +202,7 @@ describe('lib/utils/telemetry/generatePayload', () => {
     expect(payload).to.deep.equal({
       cliName: 'serverless',
       command: 'config',
+      commandOptionNames: [],
       isAutoUpdateEnabled: false,
       isTabAutocompletionInstalled: false,
       triggeredDeprecations: [],
@@ -228,6 +232,7 @@ describe('lib/utils/telemetry/generatePayload', () => {
     delete payload.ciName;
     expect(payload).to.deep.equal({
       command: 'help',
+      commandOptionNames: [],
       cliName: 'serverless',
       config: {
         provider: {
@@ -277,6 +282,7 @@ describe('lib/utils/telemetry/generatePayload', () => {
     expect(payload).to.deep.equal({
       cliName: 'serverless',
       command: 'print',
+      commandOptionNames: [],
       isAutoUpdateEnabled: false,
       isTabAutocompletionInstalled: false,
       triggeredDeprecations: [],
@@ -312,6 +318,7 @@ describe('lib/utils/telemetry/generatePayload', () => {
     const { serverless } = await runServerless({
       fixture: 'customProvider',
       command: 'config',
+      commandOptionNames: [],
     });
 
     await fs.promises.writeFile(
@@ -349,6 +356,7 @@ describe('lib/utils/telemetry/generatePayload', () => {
     const { serverless } = await runServerless({
       fixture: 'customProvider',
       command: 'config',
+      commandOptionNames: [],
     });
 
     let payload;
@@ -357,5 +365,22 @@ describe('lib/utils/telemetry/generatePayload', () => {
       payload = await generatePayload(serverless);
     });
     expect(payload.ciName).to.equal('Seed');
+  });
+
+  it('Should correctly resolve `commandOptionNames` property', async () => {
+    const { serverless } = await runServerless({
+      fixture: 'httpApi',
+      command: 'print',
+      options: {
+        region: 'eu-west-1',
+        format: 'json',
+        path: 'provider.name',
+      },
+    });
+    const payload = await generatePayload(serverless);
+
+    expect(new Set(payload.commandOptionNames)).to.deep.equal(
+      new Set(['region', 'format', 'path'])
+    );
   });
 });
