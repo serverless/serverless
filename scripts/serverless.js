@@ -646,7 +646,7 @@ const processSpanPromise = (async () => {
         await serverless.run();
       }
 
-      if (!isTelemetryDisabled) {
+      if (!isTelemetryDisabled && !isHelpRequest) {
         await storeTelemetryLocally(await generateTelemetryPayload(serverless));
         let backendNotificationRequest;
         if (commands.join(' ') === 'deploy') {
