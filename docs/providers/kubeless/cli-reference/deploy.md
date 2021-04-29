@@ -27,7 +27,6 @@ This is the simplest deployment usage possible. With this command Serverless wil
 ## Options
 
 - `--config` or `-c` Name of your configuration file, if other than `serverless.yml|.yaml|.js|.json`.
-- `--noDeploy` or `-n` Skips the deployment steps and leaves artifacts in the `.serverless` directory.
 - `--verbose` or `-v` Shows all stack events during deployment, and display any Stack Output.
 - `--package` or `-p` The path of a previously packaged deployment to get deployed (skips packaging step).
 - `--function` or `-f` Invoke `deploy function` (see above). Convenience shortcut - cannot be used with `--package`.
