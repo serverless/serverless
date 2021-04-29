@@ -16,6 +16,9 @@ const versions = {
 };
 
 describe('lib/utils/telemetry/generatePayload', () => {
+  // In order for tests below to return `commandDurationMs`
+  EvalError.$serverlessCommandStartTime = process.hrtime();
+
   it('Should resolve payload for AWS service', async () => {
     const { servicePath: serviceDir } = await fixtures.setup('httpApi', {
       configExt: {
@@ -63,6 +66,8 @@ describe('lib/utils/telemetry/generatePayload', () => {
     delete payload.timezone;
     expect(payload).to.have.property('ciName');
     delete payload.ciName;
+    expect(payload).to.have.property('commandDurationMs');
+    delete payload.commandDurationMs;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
       command: 'print',
@@ -111,6 +116,8 @@ describe('lib/utils/telemetry/generatePayload', () => {
     delete payload.timezone;
     expect(payload).to.have.property('ciName');
     delete payload.ciName;
+    expect(payload).to.have.property('commandDurationMs');
+    delete payload.commandDurationMs;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
       command: 'print',
@@ -157,6 +164,8 @@ describe('lib/utils/telemetry/generatePayload', () => {
     delete payload.timezone;
     expect(payload).to.have.property('ciName');
     delete payload.ciName;
+    expect(payload).to.have.property('commandDurationMs');
+    delete payload.commandDurationMs;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
       command: 'print',
@@ -199,6 +208,8 @@ describe('lib/utils/telemetry/generatePayload', () => {
     delete payload.timezone;
     expect(payload).to.have.property('ciName');
     delete payload.ciName;
+    expect(payload).to.have.property('commandDurationMs');
+    delete payload.commandDurationMs;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
       command: 'config',
@@ -230,6 +241,8 @@ describe('lib/utils/telemetry/generatePayload', () => {
     delete payload.timezone;
     expect(payload).to.have.property('ciName');
     delete payload.ciName;
+    expect(payload).to.have.property('commandDurationMs');
+    delete payload.commandDurationMs;
     expect(payload).to.deep.equal({
       command: 'help',
       commandOptionNames: [],
@@ -279,6 +292,8 @@ describe('lib/utils/telemetry/generatePayload', () => {
     delete payload.timezone;
     expect(payload).to.have.property('ciName');
     delete payload.ciName;
+    expect(payload).to.have.property('commandDurationMs');
+    delete payload.commandDurationMs;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
       command: 'print',
