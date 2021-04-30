@@ -61,6 +61,7 @@
     "ncjsm": "^4.1.0",
     "node-fetch": "^2.6.1",
     "object-hash": "^2.1.1",
+    "path2": "^0.1.0",
     "promise-queue": "^2.2.5",
     "replaceall": "^0.1.6",
     "semver": "^7.3.5",
