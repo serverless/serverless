@@ -31,7 +31,7 @@ let serviceDir = null;
 let configuration = null;
 let serverless;
 
-const hasTelemetryBeenReported = false;
+let hasTelemetryBeenReported = false;
 
 process.once('uncaughtException', (error) =>
   handleError(error, {
@@ -89,6 +89,7 @@ const processSpanPromise = (async () => {
     let providerName;
     let variablesMeta;
     let resolverConfiguration;
+    let isInteractiveSetup;
 
     const ensureResolvedProperty = (propertyPath, { shouldSilentlyReturnIfLegacyMode } = {}) => {
       if (isPropertyResolved(variablesMeta, propertyPath)) return true;
@@ -118,6 +119,8 @@ const processSpanPromise = (async () => {
 
     if (!commandSchema || commandSchema.serviceDependencyMode) {
       // Command is potentially service specific, follow up with resolution of service config
+
+      isInteractiveSetup = !isHelpRequest && command === '';
 
       const resolveConfigurationPath = require('../lib/cli/resolve-configuration-path');
       const readConfiguration = require('../lib/configuration/read');
@@ -234,6 +237,7 @@ const processSpanPromise = (async () => {
               fulfilledSources: new Set(['file', 'self', 'strToBool']),
               propertyPathsToResolve: new Set(['provider\0name', 'provider\0stage', 'useDotenv']),
             };
+            if (isInteractiveSetup) resolverConfiguration.fulfilledSources.add('opt');
             await resolveVariables(resolverConfiguration);
 
             if (
@@ -382,10 +386,44 @@ const processSpanPromise = (async () => {
       }
     }
 
+    const configurationFilename = configuration && configurationPath.slice(serviceDir.length + 1);
+
+    if (isInteractiveSetup) {
+      require('../lib/cli/ensure-supported-command')(configuration);
+
+      if (!process.stdin.isTTY && !process.env.SLS_INTERACTIVE_SETUP_ENABLE) {
+        throw new ServerlessError(
+          'Attempted to run an interactive setup in non TTY environment.\n' +
+            "If that's intentended enforce with SLS_INTERACTIVE_SETUP_ENABLE=1 environment variable",
+          'INTERACTIVE_SETUP_IN_NON_TTY'
+        );
+      }
+      await require('../lib/cli/interactive-setup')({
+        configuration,
+        serviceDir,
+        configurationFilename,
+        options,
+      });
+      hasTelemetryBeenReported = true;
+      if (!isTelemetryDisabled) {
+        await storeTelemetryLocally(
+          await generateTelemetryPayload({
+            command,
+            options,
+            commandSchema,
+            serviceDir,
+            configuration,
+          })
+        );
+        await sendTelemetry({ serverlessExecutionSpan: processSpanPromise });
+      }
+      return;
+    }
+
     serverless = new Serverless({
       configuration,
       serviceDir,
-      configurationFilename: configuration && configurationPath.slice(serviceDir.length + 1),
+      configurationFilename,
       isConfigurationResolved:
         commands[0] === 'plugin' || Boolean(variablesMeta && !variablesMeta.size),
       hasResolvedCommandsExternally: true,
@@ -659,6 +697,7 @@ const processSpanPromise = (async () => {
         await serverless.run();
       }
 
+      hasTelemetryBeenReported = true;
       if (!isTelemetryDisabled && !isHelpRequest && serverless.isTelemetryReportedExternally) {
         await storeTelemetryLocally({
           ...(await generateTelemetryPayload({

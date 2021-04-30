@@ -146,4 +146,29 @@ describe('test/unit/lib/cli/resolve-service-config-path.test.js', () => {
       );
     });
   });
+
+  describe('options support', () => {
+    before(async () =>
+      Promise.all([
+        fse.ensureFile(path.resolve('custom/custom.yml')),
+        fse.ensureFile(path.resolve('normal/serverless.yml')),
+      ])
+    );
+    beforeEach(() => {
+      triggeredDeprecations.clear();
+      resolveInput.clear();
+    });
+    after(() => triggeredDeprecations.clear());
+
+    it('should support custom cwd', async () => {
+      expect(await resolveServerlessConfigPath({ cwd: 'normal' })).to.equal(
+        path.resolve('normal/serverless.yml')
+      );
+    });
+    it('should support custom cli options', async () => {
+      expect(
+        await resolveServerlessConfigPath({ cwd: 'custom', options: { config: 'custom.yml' } })
+      ).to.equal(path.resolve('custom/custom.yml'));
+    });
+  });
 });
