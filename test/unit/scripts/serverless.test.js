@@ -185,6 +185,14 @@ describe('test/unit/scripts/serverless.test.js', () => {
     expect(output).to.include('stage');
   });
 
+  it('should print interactive setup help to stdout', async () => {
+    const output = String(
+      (await spawn('node', [serverlessPath, '--help-interactive'])).stdoutBuffer
+    );
+    expect(output).to.include('Interactive CLI');
+    expect(output).to.not.include('General Commands');
+  });
+
   it('should show help when running container command', async () => {
     // Note: Arbitrarily picked "plugin" command for testing
     const output = stripAnsi(
