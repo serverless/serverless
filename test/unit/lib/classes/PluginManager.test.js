@@ -412,7 +412,7 @@ describe('PluginManager', () => {
     ({ restoreEnv } = overrideEnv({ whitelist: ['APPDATA', 'PATH'] }));
     serverless = new Serverless();
     serverless.cli = new CLI();
-    serverless.processedInput = { commands: [], options: {} };
+    serverless.processedInput = { commands: ['print'], options: {} };
     pluginManager = new PluginManager(serverless);
     serviceDir = pluginManager.serverless.serviceDir = 'foo';
   });
