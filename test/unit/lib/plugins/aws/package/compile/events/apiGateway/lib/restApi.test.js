@@ -45,6 +45,7 @@ describe('#compileRestApi()', () => {
       Type: 'AWS::ApiGateway::RestApi',
       Properties: {
         BinaryMediaTypes: undefined,
+        DisableExecuteApiEndpoint: undefined,
         Name: 'dev-new-service',
         EndpointConfiguration: {
           Types: ['EDGE'],
@@ -79,6 +80,7 @@ describe('#compileRestApi()', () => {
       Properties: {
         Name: 'dev-new-service',
         BinaryMediaTypes: undefined,
+        DisableExecuteApiEndpoint: undefined,
         EndpointConfiguration: {
           Types: ['EDGE'],
         },
@@ -112,6 +114,7 @@ describe('#compileRestApi()', () => {
       Properties: {
         Name: 'dev-new-service',
         BinaryMediaTypes: undefined,
+        DisableExecuteApiEndpoint: undefined,
         EndpointConfiguration: {
           Types: ['EDGE'],
         },
@@ -143,6 +146,7 @@ describe('#compileRestApi()', () => {
       Type: 'AWS::ApiGateway::RestApi',
       Properties: {
         BinaryMediaTypes: ['*/*'],
+        DisableExecuteApiEndpoint: undefined,
         EndpointConfiguration: {
           Types: ['EDGE'],
         },
@@ -156,5 +160,24 @@ describe('#compileRestApi()', () => {
     awsCompileApigEvents.serverless.service.provider.endpointType = 'Testing';
     awsCompileApigEvents.serverless.service.provider.vpcEndpointIds = ['id1'];
     expect(() => awsCompileApigEvents.compileRestApi()).to.throw(Error);
+  });
+
+  it('should not disable default execute-api endpoint', () => {
+    awsCompileApigEvents.compileRestApi();
+    const resources =
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+
+    expect(resources.ApiGatewayRestApi.Properties.DisableExecuteApiEndpoint).to.equal(undefined);
+  });
+
+  it('should support `provider.apiGateway.disableDefaultEndpoint`', () => {
+    awsCompileApigEvents.serverless.service.provider.apiGateway = {
+      disableDefaultEndpoint: true,
+    };
+    awsCompileApigEvents.compileRestApi();
+    const resources =
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+
+    expect(resources.ApiGatewayRestApi.Properties.DisableExecuteApiEndpoint).to.equal(true);
   });
 });
