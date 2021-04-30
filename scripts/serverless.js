@@ -24,13 +24,23 @@ const generateTelemetryPayload = require('../lib/utils/telemetry/generatePayload
 const processBackendNotificationRequest = require('../lib/utils/processBackendNotificationRequest');
 const isTelemetryDisabled = require('../lib/utils/telemetry/areDisabled');
 
+let command;
+let options;
+let commandSchema;
+let serviceDir = null;
+let configuration = null;
 let serverless;
 
-let hasTelemetryBeenReported = false;
+const hasTelemetryBeenReported = false;
 
 process.once('uncaughtException', (error) =>
   handleError(error, {
     isUncaughtException: true,
+    command,
+    options,
+    commandSchema,
+    serviceDir,
+    configuration,
     serverless,
     hasTelemetryBeenReported,
   })
@@ -43,10 +53,12 @@ const processSpanPromise = (async () => {
 
     const resolveInput = require('../lib/cli/resolve-input');
 
+    let commands;
+    let isHelpRequest;
     // Parse args against schemas of commands which do not require to be run in service context
-    let { command, commands, options, isHelpRequest, commandSchema } = resolveInput(
+    ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
       require('../lib/cli/commands-schema/no-service')
-    );
+    ));
 
     // If version number request, show it and abort
     if (options.version) {
@@ -74,8 +86,6 @@ const processSpanPromise = (async () => {
     const logDeprecation = require('../lib/utils/logDeprecation');
 
     let configurationPath = null;
-    let configuration = null;
-    let serviceDir = null;
     let providerName;
     let variablesMeta;
     let resolverConfiguration;
@@ -649,10 +659,18 @@ const processSpanPromise = (async () => {
         await serverless.run();
       }
 
-      hasTelemetryBeenReported = true;
       if (!isTelemetryDisabled && !isHelpRequest && serverless.isTelemetryReportedExternally) {
-        const telemetryPayload = await generateTelemetryPayload(serverless);
-        await storeTelemetryLocally({ ...telemetryPayload, outcome: 'success' });
+        await storeTelemetryLocally({
+          ...(await generateTelemetryPayload({
+            command,
+            options,
+            commandSchema,
+            serviceDir,
+            configuration,
+            serverless,
+          })),
+          outcome: 'success',
+        });
         let backendNotificationRequest;
         if (commands.join(' ') === 'deploy') {
           backendNotificationRequest = await sendTelemetry({
@@ -689,6 +707,11 @@ const processSpanPromise = (async () => {
     }
   } catch (error) {
     handleError(error, {
+      command,
+      options,
+      commandSchema,
+      serviceDir,
+      configuration,
       serverless,
       hasTelemetryBeenReported,
     });
