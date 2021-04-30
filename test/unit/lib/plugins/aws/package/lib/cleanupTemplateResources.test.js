@@ -5,7 +5,7 @@ const runServerless = require('../../../../../../utils/run-serverless');
 
 const expect = chai.expect;
 
-describe('test/unit/lib/plugins/aws/package/lib/stripNullPropsFromTemplateResources.test.js', () => {
+describe('test/unit/lib/plugins/aws/package/lib/cleanupTemplateResources.test.js', () => {
   let finalTemplate;
 
   before(async () => {
@@ -41,5 +41,24 @@ describe('test/unit/lib/plugins/aws/package/lib/stripNullPropsFromTemplateResour
 
   it('Should not affect resources without null props', async () => {
     expect(Object.keys(finalTemplate.Resources.anotherBucket.Properties).length).to.equal(1);
+  });
+
+  it('should remove empty resources for first policy document', async () => {
+    const result = await runServerless({
+      fixture: 'aws',
+      command: 'deploy',
+      lastLifecycleHookName: 'package:finalize',
+      configExt: {
+        functions: {
+          foo: {
+            handler: 'index.handler',
+            disableLogs: true,
+          },
+        },
+      },
+    });
+    expect(result.cfTemplate.Resources.IamRoleLambdaExecution.Properties.Policies.length).to.equal(
+      0
+    );
   });
 });
