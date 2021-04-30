@@ -119,7 +119,9 @@ functions:
 
 #### Artifacts hosted on S3
 
-Artifacts can also be fetched from a remote S3 bucket. In this case you just need to provide the S3 object URL as the artifact value. This applies to both, service-wide and function-level artifact setups.
+Artifacts can also be fetched from a remote S3 bucket. In this case you just need to provide the S3 object URI (old style or new) as the artifact value. This applies to both, service-wide and function-level artifact setups.
+
+**Note:** At this time, only S3 URIs are supported. Serverless does not yet support fetching artifacts from non-S3 remote locations.
 
 ##### Service package
 
@@ -127,7 +129,7 @@ Artifacts can also be fetched from a remote S3 bucket. In this case you just nee
 service: my-service
 
 package:
-  artifact: https://s3.amazonaws.com/some-bucket/service-artifact.zip
+  artifact: s3://some-bucket/path/to/service-artifact.zip
 ```
 
 ##### Individual function packages
@@ -142,7 +144,7 @@ functions:
   hello:
     handler: com.serverless.Handler
   package:
-    artifact: https://s3.amazonaws.com/some-bucket/function-artifact.zip
+    artifact: s3://some-bucket/path/to/service-artifact.zip
 ```
 
 ### Packaging functions separately
