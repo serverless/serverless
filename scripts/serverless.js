@@ -26,10 +26,13 @@ const isTelemetryDisabled = require('../lib/utils/telemetry/areDisabled');
 
 let serverless;
 
+let hasTelemetryBeenReported = false;
+
 process.once('uncaughtException', (error) =>
   handleError(error, {
     isUncaughtException: true,
     serverless,
+    hasTelemetryBeenReported,
   })
 );
 
@@ -647,7 +650,9 @@ const processSpanPromise = (async () => {
       }
 
       if (!isTelemetryDisabled && !isHelpRequest) {
-        await storeTelemetryLocally(await generateTelemetryPayload(serverless));
+        hasTelemetryBeenReported = true;
+        const telemetryPayload = await generateTelemetryPayload(serverless);
+        await storeTelemetryLocally({ ...telemetryPayload, outcome: 'success' });
         let backendNotificationRequest;
         if (commands.join(' ') === 'deploy') {
           backendNotificationRequest = await sendTelemetry({
@@ -685,6 +690,7 @@ const processSpanPromise = (async () => {
   } catch (error) {
     handleError(error, {
       serverless,
+      hasTelemetryBeenReported,
     });
   }
 })();
