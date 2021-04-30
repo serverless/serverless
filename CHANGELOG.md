@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.39.0](https://github.com/serverless/serverless/compare/v2.38.0...v2.39.0) (2021-04-30)
+
+### Features
+
+- **AWS IAM:** Support `provider.iam.role.path` ([#9363](https://github.com/serverless/serverless/issues/9363)) ([c8adc0c](https://github.com/serverless/serverless/commit/c8adc0c796a6558c3fe1bc86e3647d3fe711a9ad)) ([Android3000](https://github.com/Android3000))
+- **Variables:** Expose variable resolver function to variable sources ([#9368](https://github.com/serverless/serverless/pull/9368)) ([2ff58b1](https://github.com/serverless/serverless/commit/2ff58b16bf3fe766685d5b6c30fd9a2bb6e22f0f)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **AWS API Gateway:** Ensure unique name for request validator ([#9382](https://github.com/serverless/serverless/pull/9382)) ([a05e88d](https://github.com/serverless/serverless/commit/a05e88d92e010ddfe019d5b5b873547b7d187d6d)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS S3:** Fix parsing of the artifact S3 url ([#9380](https://github.com/serverless/serverless/issues/9380)) ([360925d](https://github.com/serverless/serverless/commit/360925d2e0cddb6fbbbb72ca47495aa71a43d1fc)) ([Stephen](https://github.com/bishtawi))
+- **CLI:** Ensure no general help is listed under interactive setup help ([#9406](https://github.com/serverless/serverless/pull/9406)) ([132c830](https://github.com/serverless/serverless/commit/132c830b0a86998efbae1b4984dc9cea85957d61)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Telemetry:**
+  - Report failures via telemetry ([#9396](https://github.com/serverless/serverless/pull/9396)) ([5861d08](https://github.com/serverless/serverless/commit/5861d08768a06e2e88609d0785ce590d3f693683)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Ensure that container commands do not trigger telemetry ([#9397](https://github.com/serverless/serverless/pull/9397)) ([85b9e53](https://github.com/serverless/serverless/commit/85b9e5319df48904664f966e988cc725116ce865)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Add `commandDurationMs` to payload ([#9401](https://github.com/serverless/serverless/pull/9401)) ([d647125](https://github.com/serverless/serverless/commit/d647125ff5daa07972675fd28690d42746ab223b)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Add `commandOptionNames` to payload ([#9387](https://github.com/serverless/serverless/pull/9387)) ([f5b2b9b](https://github.com/serverless/serverless/commit/f5b2b9be395c9c2d3de4c4f91f991276bc22dc33)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Ensure `code` to `ServerlessError` instances ([#9357](https://github.com/serverless/serverless/pull/9357)) ([822a7cf](https://github.com/serverless/serverless/commit/822a7cf9f527514b53fd8cfc5c172ec5dc53f4ce)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Templates
+
+- Update dependencies for `cloudflare` template ([#9373](https://github.com/serverless/serverless/issues/9373)) ([543423d](https://github.com/serverless/serverless/commit/543423d869ba35c6866506bb49a8642700214b3a)) ([YErii](https://github.com/YEriin))
+
 ## [2.38.0](https://github.com/serverless/serverless/compare/v2.37.2...v2.38.0) (2021-04-23)
 
 ### Features
