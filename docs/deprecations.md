@@ -420,3 +420,12 @@ Please use `onUnauthenticatedRequest` instead. `allowUnauthenticated` will be re
 Deprecation code: `BIN_SERVERLESS`
 
 Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2.0.0
+
+<a name="CLI_DEPLOY_FUNCTION_OPTION"><div>&nbsp;</div></a>
+
+## CLI deploy command function option deprecated
+
+Deprecation code: `CLI_DEPLOY_FUNCTION_OPTION'`
+
+The `--function` or `-f` option in `deploy` command has been deprecated and will be removed in the next major release (3.0.0). Please use
+`sls deploy function` command instead.
