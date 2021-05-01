@@ -27,6 +27,14 @@ describe('test/unit/lib/plugins/aws/utils/parse-s3-uri.test.js', () => {
     const actual = parseS3URI('https://s3.us-west-1.amazonaws.com/test-bucket/path/to/artifact.zip');
     expect(actual).to.deep.equal(expected);
   });
+  it('should parse another old style S3 URL with region', () => {
+    const expected = {
+      Bucket: 'test-bucket',
+      Key: 'path/to/artifact.zip',
+    };
+    const actual = parseS3URI('https://s3-us-west-1.amazonaws.com/test-bucket/path/to/artifact.zip');
+    expect(actual).to.deep.equal(expected);
+  });
   it('should parse a new style S3 URL', () => {
     const expected = {
       Bucket: 'test-bucket',
@@ -41,6 +49,14 @@ describe('test/unit/lib/plugins/aws/utils/parse-s3-uri.test.js', () => {
       Key: 'path/to/artifact.zip',
     };
     const actual = parseS3URI('https://test-bucket.s3.eu-west-1.amazonaws.com/path/to/artifact.zip');
+    expect(actual).to.deep.equal(expected);
+  });
+  it('should parse another new style S3 URL with region', () => {
+    const expected = {
+      Bucket: 'test-bucket',
+      Key: 'path/to/artifact.zip',
+    };
+    const actual = parseS3URI('https://test-bucket.s3-eu-west-1.amazonaws.com/path/to/artifact.zip');
     expect(actual).to.deep.equal(expected);
   });
   it('should reject non S3 URLs', () => {
