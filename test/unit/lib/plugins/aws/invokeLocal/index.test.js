@@ -1542,6 +1542,7 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       it('should expose `--env` vars in environment variables', async () => {
         const response = await runServerless({
           fixture: 'invocation',
+          configExt: { disabledDeprecations: ['DEFAULT_NODEJS12X_RUNTIME_DEPRECATED'] },
           cliArgs: [
             'invoke',
             'local',
