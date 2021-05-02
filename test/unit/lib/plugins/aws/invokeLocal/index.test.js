@@ -1510,7 +1510,7 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       });
 
       it('should expose `--env` vars in environment variables', async () => {
-        expect(responseBody.env.PARAM_ENV_VAR).to.equal('-Dblart=snort'));
+        expect(responseBody.env.PARAM_ENV_VAR).to.equal('-Dblart=snort');
         const response = await runServerless({
           fixture: 'invocation',
           configExt: { disabledDeprecations: ['DEFAULT_NODEJS12X_RUNTIME_DEPRECATED'] },
