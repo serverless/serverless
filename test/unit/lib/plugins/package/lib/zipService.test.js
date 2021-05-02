@@ -31,7 +31,7 @@ describe('zipService', () => {
     tmpDirPath = getTmpDirPath();
     serverless = new Serverless();
     serverless.service.service = 'first-service';
-    serverless.config.servicePath = tmpDirPath;
+    serverless.serviceDir = tmpDirPath;
     packagePlugin = new Package(serverless, {});
     packagePlugin.serverless.cli = new serverless.classes.CLI();
     params = {
@@ -70,16 +70,16 @@ describe('zipService', () => {
   });
 
   describe('#getFileContentAndStat()', () => {
-    let servicePath;
+    let serviceDir;
 
     beforeEach(() => {
-      servicePath = serverless.config.servicePath;
-      fs.mkdirSync(servicePath);
+      serviceDir = serverless.serviceDir;
+      fs.mkdirSync(serviceDir);
     });
 
     it('should keep the file content as is', () => {
       const buf = Buffer.from([10, 20, 30, 40, 50]);
-      const filePath = path.join(servicePath, 'bin-file');
+      const filePath = path.join(serviceDir, 'bin-file');
 
       fs.writeFileSync(filePath, buf);
 
@@ -92,16 +92,16 @@ describe('zipService', () => {
   });
 
   describe('#getFileContent()', () => {
-    let servicePath;
+    let serviceDir;
 
     beforeEach(() => {
-      servicePath = serverless.config.servicePath;
-      fs.mkdirSync(servicePath);
+      serviceDir = serverless.serviceDir;
+      fs.mkdirSync(serviceDir);
     });
 
     it('should keep the file content as is', () => {
       const buf = Buffer.from([10, 20, 30, 40, 50]);
-      const filePath = path.join(servicePath, 'bin-file');
+      const filePath = path.join(serviceDir, 'bin-file');
 
       fs.writeFileSync(filePath, buf);
 
@@ -126,10 +126,10 @@ describe('zipService', () => {
       let globbySyncStub;
       let execAsyncStub;
       let readFileAsyncStub;
-      let servicePath;
+      let serviceDir;
 
       beforeEach(() => {
-        servicePath = packagePlugin.serverless.config.servicePath;
+        serviceDir = packagePlugin.serverless.serviceDir;
         globbySyncStub = sinon.stub(globby, 'sync');
         execAsyncStub = sinon.stub(childProcess, 'execAsync');
         readFileAsyncStub = sinon.stub(fs, 'readFileAsync');
@@ -152,7 +152,7 @@ describe('zipService', () => {
             expect(execAsyncStub).to.not.have.been.called;
             expect(readFileAsyncStub).to.not.have.been.called;
             expect(globbySyncStub).to.have.been.calledWithExactly(['**/package.json'], {
-              cwd: packagePlugin.serverless.config.servicePath,
+              cwd: packagePlugin.serverless.serviceDir,
               dot: true,
               silent: true,
               follow: true,
@@ -179,7 +179,7 @@ describe('zipService', () => {
             expect(execAsyncStub).to.have.been.calledTwice;
             expect(readFileAsyncStub).to.have.been.calledTwice;
             expect(globbySyncStub).to.have.been.calledWithExactly(['**/package.json'], {
-              cwd: packagePlugin.serverless.config.servicePath,
+              cwd: packagePlugin.serverless.serviceDir,
               dot: true,
               silent: true,
               follow: true,
@@ -278,10 +278,10 @@ describe('zipService', () => {
         execAsyncStub.onCall(4).resolves();
         execAsyncStub.onCall(5).resolves();
         const depPaths = [
-          path.join(servicePath, 'node_modules', 'module-1'),
-          path.join(servicePath, 'node_modules', 'module-2'),
-          path.join(servicePath, '1st', '2nd', 'node_modules', 'module-1'),
-          path.join(servicePath, '1st', '2nd', 'node_modules', 'module-2'),
+          path.join(serviceDir, 'node_modules', 'module-1'),
+          path.join(serviceDir, 'node_modules', 'module-2'),
+          path.join(serviceDir, '1st', '2nd', 'node_modules', 'module-1'),
+          path.join(serviceDir, '1st', '2nd', 'node_modules', 'module-2'),
         ].join(os.EOL);
         readFileAsyncStub.withArgs(sinon.match(/dev$/)).resolves(depPaths);
         readFileAsyncStub.withArgs(sinon.match(/prod$/)).resolves([]);
@@ -296,19 +296,19 @@ describe('zipService', () => {
             expect(execAsyncStub.callCount).to.equal(6);
             expect(readFileAsyncStub).to.have.callCount(6);
             expect(readFileAsyncStub).to.have.been.calledWith(
-              path.join(servicePath, 'node_modules', 'module-1', 'package.json')
+              path.join(serviceDir, 'node_modules', 'module-1', 'package.json')
             );
             expect(readFileAsyncStub).to.have.been.calledWith(
-              path.join(servicePath, 'node_modules', 'module-2', 'package.json')
+              path.join(serviceDir, 'node_modules', 'module-2', 'package.json')
             );
             expect(readFileAsyncStub).to.have.been.calledWith(
-              path.join(servicePath, '1st', '2nd', 'node_modules', 'module-1', 'package.json')
+              path.join(serviceDir, '1st', '2nd', 'node_modules', 'module-1', 'package.json')
             );
             expect(readFileAsyncStub).to.have.been.calledWith(
-              path.join(servicePath, '1st', '2nd', 'node_modules', 'module-1', 'package.json')
+              path.join(serviceDir, '1st', '2nd', 'node_modules', 'module-1', 'package.json')
             );
             expect(globbySyncStub).to.have.been.calledWithExactly(['**/package.json'], {
-              cwd: packagePlugin.serverless.config.servicePath,
+              cwd: packagePlugin.serverless.serviceDir,
               dot: true,
               silent: true,
               follow: true,
@@ -357,8 +357,8 @@ describe('zipService', () => {
         globbySyncStub.returns(filePaths);
         execAsyncStub.resolves();
         const depPaths = [
-          path.join(servicePath, 'node_modules', 'module-1'),
-          path.join(servicePath, 'node_modules', 'module-2'),
+          path.join(serviceDir, 'node_modules', 'module-1'),
+          path.join(serviceDir, 'node_modules', 'module-2'),
         ].join(os.EOL);
         readFileAsyncStub.withArgs(sinon.match(/dev$/)).resolves(depPaths);
         readFileAsyncStub.withArgs(sinon.match(/prod$/)).resolves([]);
@@ -371,13 +371,13 @@ describe('zipService', () => {
             expect(execAsyncStub).to.have.been.calledTwice;
             expect(readFileAsyncStub).to.have.callCount(4);
             expect(readFileAsyncStub).to.have.been.calledWith(
-              path.join(servicePath, 'node_modules', 'module-1', 'package.json')
+              path.join(serviceDir, 'node_modules', 'module-1', 'package.json')
             );
             expect(readFileAsyncStub).to.have.been.calledWith(
-              path.join(servicePath, 'node_modules', 'module-2', 'package.json')
+              path.join(serviceDir, 'node_modules', 'module-2', 'package.json')
             );
             expect(globbySyncStub).to.have.been.calledWithExactly(['**/package.json'], {
-              cwd: packagePlugin.serverless.config.servicePath,
+              cwd: packagePlugin.serverless.serviceDir,
               dot: true,
               silent: true,
               follow: true,
@@ -418,12 +418,12 @@ describe('zipService', () => {
         globbySyncStub.returns(filePaths);
         execAsyncStub.resolves();
         const depPaths = [
-          path.join(servicePath, 'node_modules', 'module-1'),
-          path.join(servicePath, 'node_modules', 'module-2'),
-          path.join(servicePath, '1st', 'node_modules', 'module-1'),
-          path.join(servicePath, '1st', 'node_modules', 'module-2'),
-          path.join(servicePath, '1st', '2nd', 'node_modules', 'module-1'),
-          path.join(servicePath, '1st', '2nd', 'node_modules', 'module-2'),
+          path.join(serviceDir, 'node_modules', 'module-1'),
+          path.join(serviceDir, 'node_modules', 'module-2'),
+          path.join(serviceDir, '1st', 'node_modules', 'module-1'),
+          path.join(serviceDir, '1st', 'node_modules', 'module-2'),
+          path.join(serviceDir, '1st', '2nd', 'node_modules', 'module-1'),
+          path.join(serviceDir, '1st', '2nd', 'node_modules', 'module-2'),
         ].join(os.EOL);
         readFileAsyncStub.withArgs(sinon.match(/dev$/)).resolves(depPaths);
         readFileAsyncStub.withArgs(sinon.match(/prod$/)).resolves([]);
@@ -440,7 +440,7 @@ describe('zipService', () => {
             expect(execAsyncStub.callCount).to.equal(6);
             expect(readFileAsyncStub).to.have.callCount(8);
             expect(globbySyncStub).to.have.been.calledWithExactly(['**/package.json'], {
-              cwd: packagePlugin.serverless.config.servicePath,
+              cwd: packagePlugin.serverless.serviceDir,
               dot: true,
               silent: true,
               follow: true,
@@ -492,12 +492,12 @@ describe('zipService', () => {
         execAsyncStub.resolves();
 
         const devDepPaths = [
-          path.join(servicePath, 'node_modules', 'module-1'),
-          path.join(servicePath, 'node_modules', 'module-2'),
+          path.join(serviceDir, 'node_modules', 'module-1'),
+          path.join(serviceDir, 'node_modules', 'module-2'),
         ].join(os.EOL);
         readFileAsyncStub.withArgs(sinon.match(/dev$/)).resolves(devDepPaths);
 
-        const prodDepPaths = [path.join(servicePath, 'node_modules', 'module-2')];
+        const prodDepPaths = [path.join(serviceDir, 'node_modules', 'module-2')];
         readFileAsyncStub.withArgs(sinon.match(/prod$/)).resolves(prodDepPaths);
         readFileAsyncStub.onCall(2).resolves('{}');
 
@@ -507,10 +507,10 @@ describe('zipService', () => {
             expect(execAsyncStub).to.have.been.calledTwice;
             expect(readFileAsyncStub).to.have.been.calledThrice;
             expect(readFileAsyncStub).to.have.been.calledWith(
-              path.join(servicePath, 'node_modules', 'module-1', 'package.json')
+              path.join(serviceDir, 'node_modules', 'module-1', 'package.json')
             );
             expect(globbySyncStub).to.have.been.calledWithExactly(['**/package.json'], {
-              cwd: packagePlugin.serverless.config.servicePath,
+              cwd: packagePlugin.serverless.serviceDir,
               dot: true,
               silent: true,
               follow: true,
@@ -549,7 +549,7 @@ describe('zipService', () => {
         globbySyncStub.returns(filePaths);
         execAsyncStub.resolves();
 
-        const mapper = (depPath) => path.join(`${servicePath}`, depPath);
+        const mapper = (depPath) => path.join(`${serviceDir}`, depPath);
 
         const devDepPaths = devPaths.map(mapper).join(os.EOL);
         readFileAsyncStub.withArgs(sinon.match(/dev$/)).resolves(devDepPaths);
@@ -573,13 +573,13 @@ describe('zipService', () => {
 
             expect(readFileAsyncStub).to.have.callCount(5);
             expect(readFileAsyncStub).to.have.been.calledWith(
-              path.join(servicePath, 'node_modules', 'bro-module', 'package.json')
+              path.join(serviceDir, 'node_modules', 'bro-module', 'package.json')
             );
             expect(readFileAsyncStub).to.have.been.calledWith(
-              path.join(servicePath, 'node_modules', 'lumo-clj', 'package.json')
+              path.join(serviceDir, 'node_modules', 'lumo-clj', 'package.json')
             );
             expect(readFileAsyncStub).to.have.been.calledWith(
-              path.join(servicePath, 'node_modules', 'meowmix', 'package.json')
+              path.join(serviceDir, 'node_modules', 'meowmix', 'package.json')
             );
 
             expect(updatedParams.exclude).to.deep.equal([
@@ -618,7 +618,7 @@ describe('zipService', () => {
           '1st/2nd/node_modules/module-1',
           '1st/2nd/node_modules/module-2',
         ];
-        const depPaths = deps.map((depPath) => path.join(`${servicePath}`, depPath));
+        const depPaths = deps.map((depPath) => path.join(`${serviceDir}`, depPath));
         readFileAsyncStub.withArgs(sinon.match(/dev$/)).resolves(depPaths.join(os.EOL));
         readFileAsyncStub.withArgs(sinon.match(/prod$/)).resolves([]);
 
@@ -647,11 +647,11 @@ describe('zipService', () => {
             expect(readFileAsyncStub).to.have.callCount(8);
             for (const depPath of deps) {
               expect(readFileAsyncStub).to.have.been.calledWith(
-                path.join(servicePath, depPath, 'package.json')
+                path.join(serviceDir, depPath, 'package.json')
               );
             }
             expect(globbySyncStub).to.have.been.calledWithExactly(['**/package.json'], {
-              cwd: packagePlugin.serverless.config.servicePath,
+              cwd: packagePlugin.serverless.serviceDir,
               dot: true,
               silent: true,
               follow: true,
@@ -754,9 +754,7 @@ describe('zipService', () => {
       params.zipFileName = getTestArtifactFileName('whole-service');
 
       return expect(packagePlugin.zip(params))
-        .to.eventually.be.equal(
-          path.join(serverless.config.servicePath, '.serverless', params.zipFileName)
-        )
+        .to.eventually.be.equal(path.join(serverless.serviceDir, '.serverless', params.zipFileName))
         .then((artifact) => {
           const data = fs.readFileSync(artifact);
           return expect(zip.loadAsync(data)).to.be.fulfilled;
@@ -804,9 +802,7 @@ describe('zipService', () => {
       params.zipFileName = getTestArtifactFileName('file-permissions');
 
       return expect(packagePlugin.zip(params))
-        .to.eventually.be.equal(
-          path.join(serverless.config.servicePath, '.serverless', params.zipFileName)
-        )
+        .to.eventually.be.equal(path.join(serverless.serviceDir, '.serverless', params.zipFileName))
         .then((artifact) => {
           const data = fs.readFileSync(artifact);
           return expect(zip.loadAsync(data)).to.be.fulfilled;
@@ -834,9 +830,7 @@ describe('zipService', () => {
       params.exclude = ['event.json', 'lib/**', 'node_modules/directory-1/**'];
 
       return expect(packagePlugin.zip(params))
-        .to.eventually.be.equal(
-          path.join(serverless.config.servicePath, '.serverless', params.zipFileName)
-        )
+        .to.eventually.be.equal(path.join(serverless.serviceDir, '.serverless', params.zipFileName))
         .then((artifact) => {
           const data = fs.readFileSync(artifact);
           return expect(zip.loadAsync(data)).to.be.fulfilled;
@@ -879,9 +873,7 @@ describe('zipService', () => {
       ];
 
       return expect(packagePlugin.zip(params))
-        .to.eventually.be.equal(
-          path.join(serverless.config.servicePath, '.serverless', params.zipFileName)
-        )
+        .to.eventually.be.equal(path.join(serverless.serviceDir, '.serverless', params.zipFileName))
         .then((artifact) => {
           const data = fs.readFileSync(artifact);
           return expect(zip.loadAsync(data)).to.be.fulfilled;
@@ -925,9 +917,7 @@ describe('zipService', () => {
       params.include = ['event.json', 'lib/**'];
 
       return expect(packagePlugin.zip(params))
-        .to.eventually.be.equal(
-          path.join(serverless.config.servicePath, '.serverless', params.zipFileName)
-        )
+        .to.eventually.be.equal(path.join(serverless.serviceDir, '.serverless', params.zipFileName))
         .then((artifact) => {
           const data = fs.readFileSync(artifact);
           return expect(zip.loadAsync(data)).to.be.fulfilled;
@@ -967,14 +957,12 @@ describe('zipService', () => {
 
     it('should include files even if outside working dir', () => {
       params.zipFileName = getTestArtifactFileName('include-outside-working-dir');
-      serverless.config.servicePath = path.join(serverless.config.servicePath, 'lib');
+      serverless.serviceDir = path.join(serverless.serviceDir, 'lib');
       params.exclude = ['./**'];
       params.include = ['../bin/binary-**'];
 
       return expect(packagePlugin.zip(params))
-        .to.eventually.be.equal(
-          path.join(serverless.config.servicePath, '.serverless', params.zipFileName)
-        )
+        .to.eventually.be.equal(path.join(serverless.serviceDir, '.serverless', params.zipFileName))
         .then((artifact) => {
           const data = fs.readFileSync(artifact);
           return expect(zip.loadAsync(data)).to.be.fulfilled;
@@ -990,14 +978,12 @@ describe('zipService', () => {
 
     it('should include files only once', () => {
       params.zipFileName = getTestArtifactFileName('include-outside-working-dir');
-      serverless.config.servicePath = path.join(serverless.config.servicePath, 'lib');
+      serverless.serviceDir = path.join(serverless.serviceDir, 'lib');
       params.exclude = ['./**'];
       params.include = ['.././bin/**'];
 
       return expect(packagePlugin.zip(params))
-        .to.eventually.be.equal(
-          path.join(serverless.config.servicePath, '.serverless', params.zipFileName)
-        )
+        .to.eventually.be.equal(path.join(serverless.serviceDir, '.serverless', params.zipFileName))
         .then((artifact) => {
           const data = fs.readFileSync(artifact);
           return expect(zip.loadAsync(data)).to.be.fulfilled;

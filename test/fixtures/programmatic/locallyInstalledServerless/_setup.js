@@ -12,7 +12,7 @@ module.exports = (originalFixturePath) => {
     fixtureModulePath,
     String(content).replace(
       '$SERVERLESS_PATH',
-      JSON.stringify(path.resolve(originalFixturePath, '../../../'))
+      JSON.stringify(path.resolve(originalFixturePath, '../../../../'))
     )
   );
 };

@@ -18,14 +18,14 @@ describe('updateStack', () => {
       region: 'us-east-1',
     };
     serverless = new Serverless();
-    serverless.config.servicePath = 'foo';
+    serverless.serviceDir = 'foo';
     serverless.setProvider('aws', new AwsProvider(serverless, options));
     awsDeploy = new AwsDeploy(serverless, options);
 
     awsDeploy.deployedFunctions = [{ name: 'first', zipFileKey: 'zipFileOfFirstFunction' }];
     awsDeploy.bucketName = 'deployment-bucket';
     serverless.service.service = `service-${new Date().getTime().toString()}`;
-    serverless.config.servicePath = tmpDirPath;
+    serverless.serviceDir = tmpDirPath;
     awsDeploy.serverless.service.package.artifactDirectoryName = 'somedir';
     awsDeploy.serverless.cli = new serverless.classes.CLI();
   });
@@ -198,8 +198,10 @@ describe('updateStack', () => {
     });
 
     it('should success if no changes to stack happened', () => {
-      awsDeploy.monitorStack.restore();
-      sinon.stub(awsDeploy, 'monitorStack').rejects(new Error('No updates are to be performed.'));
+      awsDeploy.provider.request.restore();
+      sinon
+        .stub(awsDeploy.provider, 'request')
+        .rejects(new Error('No updates are to be performed.'));
 
       return awsDeploy.update();
     });

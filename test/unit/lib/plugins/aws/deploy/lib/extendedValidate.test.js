@@ -44,7 +44,7 @@ describe('extendedValidate', () => {
     const serverless = new Serverless();
     serverless.setProvider('aws', new AwsProvider(serverless, options));
     serverless.utils.writeFileSync(serverlessYmlPath, serverlessYml);
-    serverless.config.servicePath = tmpDirPath;
+    serverless.serviceDir = tmpDirPath;
     awsDeploy = new AwsDeploy(serverless, options);
     awsDeploy.serverless.service.service = `service-${new Date().getTime().toString()}`;
     awsDeploy.serverless.cli = {
@@ -217,7 +217,8 @@ describe('test/unit/lib/plugins/aws/deploy/lib/extendedValidate.test.js', () => 
           },
         },
       },
-      cliArgs: ['deploy', '--noDeploy'],
+      command: 'deploy',
+      lastLifecycleHookName: 'before:deploy:deploy',
     });
 
     expect(stdoutData.includes(msg)).to.be.equal(false);

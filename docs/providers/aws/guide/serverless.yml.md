@@ -68,6 +68,10 @@ provider:
       anotherimage:
         path: ./image/ # Path to Docker context that will be used when building that image locally
         file: Dockerfile.dev # Name of Dockerfile that should be used when building image locally. Equal to 'Dockerfile' by default
+        buildArgs:
+          STAGE: ${opt:stage}
+        cacheFrom:
+          - my-image:latest
   cloudFront:
     myCachePolicy1: # used as a reference in function.events[].cloudfront.cachePolicy.name
       DefaultTTL: 60
@@ -172,7 +176,7 @@ provider:
         sessionTimeout: 7000
   httpApi:
     id: 'my-id' # If we want to attach to externally created HTTP API its id should be provided here
-    name: 'dev-my-service' # Use custom name for the API Gateway API, default is ${opt:stage, self:provider.stage, 'dev'}-${self:service}
+    name: 'dev-my-service' # Use custom name for the API Gateway API, default is ${sls:stage}-${self:service}
     payload: '2.0' # Specify payload format version for Lambda integration ('1.0' or '2.0'), default is '2.0'
     cors: true # Implies default behavior, can be fine tuned with specific options
     authorizers:
@@ -204,6 +208,7 @@ provider:
     # .. OR configure logical role
     role:
       name: your-custom-name-role # Optional custom name for default IAM role
+      path: /your-custom-path/ # Optional custom path for default IAM role
       managedPolicies: # Optional IAM Managed Policies, which allows to include the policies into IAM Role
         - arn:aws:iam:*****:policy/some-managed-policy
       permissionsBoundary: arn:aws:iam::XXXXXX:policy/policy # ARN of an Permissions Boundary for the role.
@@ -257,10 +262,10 @@ provider:
     foo: bar
     baz: qux
   tracing:
-    apiGateway: true
+    apiGateway: true # Can only be true if API Gateway is inside a stack.
     lambda: true # Optional, can be true (true equals 'Active'), 'Active' or 'PassThrough'
   logs:
-    restApi: # Optional configuration which specifies if API Gateway logs are used. This can either be set to `true` to use defaults, or configured via subproperties.
+    restApi: # Optional configuration which specifies if API Gateway logs are used. This can either be set to `true` to use defaults, or configured via subproperties. Can only be configured if API Gateway is inside a stack.
       accessLogging: true # Optional configuration which enables or disables access logging. Defaults to true.
       format: 'requestId: $context.requestId' # Optional configuration which specifies the log format to use for access logging.
       executionLogging: true # Optional configuration which enables or disables execution logging. Defaults to true.
@@ -289,7 +294,7 @@ functions:
   usersCreate: # A Function
     handler: users.create # The file and module for this specific function. Cannot be used when `image` is defined.
     image: baseimage # Image to be used by function, cannot be used when `handler` is defined. It can be configured as concrete uri of Docker image in ECR or as a reference to image defined in `provider.ecr.images`
-    name: ${opt:stage, self:provider.stage, 'dev'}-lambdaName # optional, Deployed Lambda name
+    name: ${sls:stage}-lambdaName # optional, Deployed Lambda name
     description: My function # The description of your function.
     memorySize: 512 # memorySize for this specific function.
     reservedConcurrency: 5 # optional, reserved concurrency limit for this function. By default, AWS uses account concurrency limit
@@ -483,6 +488,7 @@ functions:
       - alb:
           listenerArn: arn:aws:elasticloadbalancing:us-east-1:12345:listener/app/my-load-balancer/50dc6c495c0c9188/
           priority: 1
+          targetGroupName: helloTargetGroup # optional
           conditions:
             host: example.com
             path: /hello
@@ -565,7 +571,7 @@ functions:
 layers:
   hello: # A Lambda layer
     path: layer-dir # required, path to layer contents on disk
-    name: ${opt:stage, self:provider.stage, 'dev'}-layerName # optional, Deployed Lambda layer name
+    name: ${sls:stage}-layerName # optional, Deployed Lambda layer name
     description: Description of what the lambda layer does # optional, Description to publish to AWS
     compatibleRuntimes: # optional, a list of runtimes this layer is compatible with
       - python3.8

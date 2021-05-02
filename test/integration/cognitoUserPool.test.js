@@ -4,7 +4,7 @@ const BbPromise = require('bluebird');
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 const hasFailed = require('@serverless/test/has-failed');
-const fixtures = require('../fixtures');
+const fixtures = require('../fixtures/programmatic');
 
 const {
   createUserPool,
@@ -22,7 +22,7 @@ const { confirmCloudWatchLogs } = require('../utils/misc');
 describe('AWS - Cognito User Pool Integration Test', function () {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
   let stackName;
-  let servicePath;
+  let serviceDir;
   let poolBasicSetup;
   let poolExistingSimpleSetup;
   let poolExistingMultiSetup;
@@ -31,7 +31,7 @@ describe('AWS - Cognito User Pool Integration Test', function () {
 
   before(async () => {
     const serviceData = await fixtures.setup('cognitoUserPool');
-    ({ servicePath } = serviceData);
+    ({ servicePath: serviceDir } = serviceData);
     const serviceName = serviceData.serviceConfig.service;
     stackName = `${serviceName}-${stage}`;
 
@@ -51,15 +51,15 @@ describe('AWS - Cognito User Pool Integration Test', function () {
       createUserPool(poolExistingSimpleSetup, poolExistingSimpleSetupConfig),
       createUserPool(poolExistingMultiSetup),
     ]);
-    return deployService(servicePath);
+    return deployService(serviceDir);
   });
 
   after(async function () {
-    if (!servicePath) return null;
+    if (!serviceDir) return null;
     // Do not clean on fail, to allow further state investigation
     if (hasFailed(this.test.parent)) return null;
     log.notice('Removing service...');
-    await removeService(servicePath);
+    await removeService(serviceDir);
     log.notice('Deleting Cognito User Pools');
     return BbPromise.all([
       deleteUserPool(poolExistingSimpleSetup),

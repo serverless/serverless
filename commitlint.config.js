@@ -10,7 +10,7 @@ module.exports = {
       'always',
       [
         '',
-        'Analytics',
+        'API',
         'AWS ALB',
         'AWS Alexa',
         'AWS API Gateway',
@@ -44,6 +44,7 @@ module.exports = {
         'Plugins',
         'Print',
         'Standalone',
+        'Telemetry',
         'Templates',
         'User Config',
         'Variables',

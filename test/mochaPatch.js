@@ -1,6 +1,5 @@
 'use strict';
 
-const path = require('path');
 const fs = require('fs');
 
 // Temporary patch to help tackle peekaboo error, by revelaing fuller stack trace for "fs" errors
@@ -43,18 +42,18 @@ patchPromised('open');
 patchCallback('readFile');
 patchCallback('open');
 
-const disableServerlessStatsRequests = require('@serverless/test/disable-serverless-stats-requests');
 const ensureArtifact = require('../lib/utils/ensureArtifact');
 const resolveLocalServerless = require('../lib/cli/resolve-local-serverless-path');
 const resolveInput = require('../lib/cli/resolve-input');
-
-disableServerlessStatsRequests(path.resolve(__dirname, '..'));
 
 const BbPromise = require('bluebird');
 
 BbPromise.config({
   longStackTraces: true,
 });
+
+// In order to ensure that telemetry is not mistakenly emitted during test runs
+process.env.SLS_TELEMETRY_DISABLED = '1';
 
 const { runnerEmitter } = require('@serverless/test/setup/patch');
 

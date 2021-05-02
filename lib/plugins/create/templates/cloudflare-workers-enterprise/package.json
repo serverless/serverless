@@ -9,6 +9,6 @@
   "author": "cloudflare",
   "license": "MIT",
   "devDependencies": {
-    "serverless-cloudflare-workers": "1.0.5"
+    "serverless-cloudflare-workers": "1.2.0"
   }
 }

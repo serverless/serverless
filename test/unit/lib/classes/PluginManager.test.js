@@ -21,11 +21,9 @@ const mockRequire = require('mock-require');
 const sinon = require('sinon');
 const proxyquire = require('proxyquire');
 const BbPromise = require('bluebird');
-const stripAnsi = require('strip-ansi');
 const getCacheFilePath = require('../../../../lib/utils/getCacheFilePath');
 const { installPlugin } = require('../../../utils/plugins');
 const { getTmpDirPath } = require('../../../utils/fs');
-const runServerless = require('../../../utils/run-serverless');
 
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
@@ -398,14 +396,14 @@ describe('PluginManager', () => {
       case 'ServicePluginMock2':
         return { realPath: pluginPath };
       case './RelativePath/ServicePluginMock2':
-        return { realPath: `${servicePath}/RelativePath/ServicePluginMock2` };
+        return { realPath: `${serviceDir}/RelativePath/ServicePluginMock2` };
       default:
         return cjsResolve(directory, pluginPath);
     }
   };
 
   let restoreEnv;
-  let servicePath;
+  let serviceDir;
   let PluginManager = proxyquire('../../../../lib/classes/PluginManager', {
     'ncjsm/resolve/sync': resolveStub,
   });
@@ -416,7 +414,7 @@ describe('PluginManager', () => {
     serverless.cli = new CLI();
     serverless.processedInput = { commands: [], options: {} };
     pluginManager = new PluginManager(serverless);
-    servicePath = pluginManager.serverless.config.servicePath = 'foo';
+    serviceDir = pluginManager.serverless.serviceDir = 'foo';
   });
 
   afterEach(() => restoreEnv());
@@ -474,8 +472,8 @@ describe('PluginManager', () => {
       });
       pluginManager = new PluginManager(serverless);
       pluginManager.serverless.config = { servicePath: 'somePath' };
-      servicePath = pluginManager.serverless.config.servicePath;
-      cacheFilePath = getCacheFilePath(servicePath);
+      serviceDir = pluginManager.serverless.serviceDir;
+      cacheFilePath = getCacheFilePath(serviceDir);
       getCommandsStub = sinon.stub(pluginManager, 'getCommands');
     });
 
@@ -752,7 +750,7 @@ describe('PluginManager', () => {
     beforeEach(() => {
       mockRequire('ServicePluginMock1', ServicePluginMock1);
       // Plugins loaded via a relative path should be required relative to the service path
-      mockRequire(`${servicePath}/RelativePath/ServicePluginMock2`, ServicePluginMock2);
+      mockRequire(`${serviceDir}/RelativePath/ServicePluginMock2`, ServicePluginMock2);
     });
 
     it('should resolve the service plugins', () => {
@@ -792,7 +790,7 @@ describe('PluginManager', () => {
 
       parsePluginsObjectAndVerifyResult(servicePlugins, {
         modules: servicePlugins,
-        localPath: path.join(serverless.config.servicePath, '.serverless_plugins'),
+        localPath: path.join(serverless.serviceDir, '.serverless_plugins'),
       });
     });
 
@@ -813,7 +811,7 @@ describe('PluginManager', () => {
 
       parsePluginsObjectAndVerifyResult(servicePlugins, {
         modules: [],
-        localPath: path.join(serverless.config.servicePath, '.serverless_plugins'),
+        localPath: path.join(serverless.serviceDir, '.serverless_plugins'),
       });
     });
 
@@ -822,7 +820,7 @@ describe('PluginManager', () => {
 
       parsePluginsObjectAndVerifyResult(servicePlugins, {
         modules: [],
-        localPath: path.join(serverless.config.servicePath, '.serverless_plugins'),
+        localPath: path.join(serverless.serviceDir, '.serverless_plugins'),
       });
     });
 
@@ -834,7 +832,7 @@ describe('PluginManager', () => {
 
       parsePluginsObjectAndVerifyResult(servicePlugins, {
         modules: servicePlugins.modules,
-        localPath: path.join(serverless.config.servicePath, '.serverless_plugins'),
+        localPath: path.join(serverless.serviceDir, '.serverless_plugins'),
       });
     });
   });
@@ -1335,7 +1333,7 @@ describe('PluginManager', () => {
     beforeEach(() => {
       serverlessInstance = new Serverless();
       serverlessInstance.configurationInput = null;
-      serverlessInstance.config.servicePath = 'my-service';
+      serverlessInstance.serviceDir = 'my-service';
       pluginManagerInstance = new PluginManager(serverlessInstance);
     });
 
@@ -1919,14 +1917,13 @@ describe('PluginManager', () => {
 
   describe('Plugin / Load local plugins', () => {
     const cwd = process.cwd();
-    let serviceDir;
     let tmpDir;
     beforeEach(() => {
       tmpDir = getTmpDirPath();
       serviceDir = path.join(tmpDir, 'service');
       fse.mkdirsSync(serviceDir);
       process.chdir(serviceDir);
-      pluginManager.serverless.config.servicePath = serviceDir;
+      pluginManager.serverless.serviceDir = serviceDir;
     });
 
     it('should load plugins from .serverless_plugins', () => {
@@ -2000,7 +1997,6 @@ describe('PluginManager', () => {
     this.timeout(1000 * 60 * 10);
 
     let serverlessInstance;
-    let serviceDir;
     const serverlessExec = require('../../../serverlessBinary');
 
     beforeEach(() => {
@@ -2054,13 +2050,5 @@ describe('PluginManager', () => {
         // Couldn't delete temporary file
       }
     });
-  });
-});
-
-describe('test/unit/lib/classes/PluginManager.test.js', () => {
-  it('should show help when running container command', async () => {
-    // Note: Arbitrarily picked "plugin" command for testing
-    const { stdoutData } = await runServerless({ fixture: 'aws', cliArgs: ['plugin'] });
-    expect(stripAnsi(stdoutData)).to.include('plugin install .......');
   });
 });

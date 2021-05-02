@@ -45,7 +45,7 @@ describe('#addCustomResourceToService()', () => {
     serverless.service.provider.compiledCloudFormationTemplate = {
       Resources: {},
     };
-    serverless.config.servicePath = tmpDirPath;
+    serverless.serviceDir = tmpDirPath;
     serverless.service.package.artifactDirectoryName = 'artifact-dir-name';
   });
 
@@ -208,7 +208,7 @@ describe('#addCustomResourceToService()', () => {
     const role = 'arn:aws:iam::999999999999:role/my-role';
     const { cfTemplate } = await runServerless({
       fixture: 'function',
-      cliArgs: ['package'],
+      command: 'package',
       configExt: {
         provider: {
           cfnRole: role,
@@ -353,5 +353,45 @@ describe('#addCustomResourceToService()', () => {
         Resources.CustomDashresourceDashexistingDashs3LambdaFunction.Properties.FunctionName.length
       ).to.be.below(65);
     });
+  });
+});
+
+describe('test/unit/lib/plugins/aws/customResources/index.test.js', () => {
+  it('correctly takes stage from cli into account when constructing apiGatewayCloudWatchRole resource', async () => {
+    const { cfTemplate } = await runServerless({
+      fixture: 'apiGateway',
+      command: 'package',
+      options: { stage: 'testing' },
+      configExt: {
+        provider: {
+          logs: {
+            restApi: true,
+          },
+        },
+      },
+    });
+
+    const properties =
+      cfTemplate.Resources.CustomDashresourceDashapigwDashcwDashroleLambdaFunction.Properties;
+    expect(properties.FunctionName.endsWith('testing-custom-resource-apigw-cw-role')).to.be.true;
+  });
+
+  it('correctly takes stage from config into account when constructing apiGatewayCloudWatchRole resource', async () => {
+    const { cfTemplate } = await runServerless({
+      fixture: 'apiGateway',
+      command: 'package',
+      configExt: {
+        provider: {
+          stage: 'testing',
+          logs: {
+            restApi: true,
+          },
+        },
+      },
+    });
+
+    const properties =
+      cfTemplate.Resources.CustomDashresourceDashapigwDashcwDashroleLambdaFunction.Properties;
+    expect(properties.FunctionName.endsWith('testing-custom-resource-apigw-cw-role')).to.be.true;
   });
 });

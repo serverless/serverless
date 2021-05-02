@@ -48,7 +48,7 @@ describe('PluginUtils', () => {
 
   describe('#validate()', () => {
     it('should throw an error if the the cwd is not a Serverless service', () => {
-      pluginUtils.serverless.config.servicePath = false;
+      pluginUtils.serverless.serviceDir = false;
 
       expect(() => {
         pluginUtils.validate();
@@ -56,7 +56,7 @@ describe('PluginUtils', () => {
     });
 
     it('should resolve if the cwd is a Serverless service', (done) => {
-      pluginUtils.serverless.config.servicePath = true;
+      pluginUtils.serverless.serviceDir = true;
 
       pluginUtils.validate().then(() => done());
     });

@@ -6,7 +6,7 @@ const chai = require('chai');
 const sinon = require('sinon');
 const { listFileProperties, listZipFiles } = require('../../../../../utils/fs');
 const runServerless = require('../../../../../utils/run-serverless');
-const fixtures = require('../../../../../fixtures');
+const fixtures = require('../../../../../fixtures/programmatic');
 
 // Configure chai
 chai.use(require('chai-as-promised'));
@@ -39,13 +39,13 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
     before(async () => {
       const {
         fixtureData: {
-          servicePath,
+          servicePath: serviceDir,
           serviceConfig: { service: serviceName },
         },
         serverless: serverlessInstance,
       } = await runServerless({
         fixture: 'packaging',
-        cliArgs: ['package'],
+        command: 'package',
         awsRequestStubMap: mockedDescribeStacksResponse,
         configExt: {
           package: {
@@ -62,17 +62,17 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       serverless = serverlessInstance;
 
       serviceZippedFiles = await listZipFiles(
-        path.join(servicePath, '.serverless', `${serviceName}.zip`)
+        path.join(serviceDir, '.serverless', `${serviceName}.zip`)
       );
 
       fnIndividualZippedFiles = await listZipFiles(
-        path.join(servicePath, '.serverless', 'fnIndividual.zip')
+        path.join(serviceDir, '.serverless', 'fnIndividual.zip')
       );
 
-      fnLayerFiles = await listZipFiles(path.join(servicePath, '.serverless', 'layer.zip'));
+      fnLayerFiles = await listZipFiles(path.join(serviceDir, '.serverless', 'layer.zip'));
 
       fnFileProperties = await listFileProperties(
-        path.join(servicePath, '.serverless', 'fnIndividual.zip')
+        path.join(serviceDir, '.serverless', 'fnIndividual.zip')
       );
     });
 
@@ -134,12 +134,12 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
     it('should exclude .env files', async () => {
       const {
         fixtureData: {
-          servicePath,
+          servicePath: serviceDir,
           serviceConfig: { service: serviceName },
         },
       } = await runServerless({
         fixture: 'packaging',
-        cliArgs: ['package'],
+        command: 'package',
         awsRequestStubMap: mockedDescribeStacksResponse,
         configExt: {
           useDotenv: true,
@@ -147,7 +147,7 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       });
 
       const zippedFiles = await listZipFiles(
-        path.join(servicePath, '.serverless', `${serviceName}.zip`)
+        path.join(serviceDir, '.serverless', `${serviceName}.zip`)
       );
 
       expect(zippedFiles).to.not.include('.env');
@@ -161,11 +161,11 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
 
     before(async () => {
       const {
-        fixtureData: { servicePath },
+        fixtureData: { servicePath: serviceDir },
         serverless: serverlessInstance,
       } = await runServerless({
         fixture: 'packaging',
-        cliArgs: ['package'],
+        command: 'package',
         awsRequestStubMap: mockedDescribeStacksResponse,
         configExt: {
           package: {
@@ -187,7 +187,7 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       serverless = serverlessInstance;
 
       fnIndividualZippedFiles = await listZipFiles(
-        path.join(servicePath, '.serverless', 'fnIndividual.zip')
+        path.join(serviceDir, '.serverless', 'fnIndividual.zip')
       );
     });
 
@@ -223,7 +223,7 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
     before(async () => {
       const { serverless: serverlessInstance } = await runServerless({
         fixture: 'packaging',
-        cliArgs: ['package'],
+        command: 'package',
         awsRequestStubMap: mockedDescribeStacksResponse,
         configExt: {
           package: {
@@ -296,8 +296,8 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       });
 
       it('for function', async () => {
-        const { servicePath, updateConfig } = await fixtures.setup('packageArtifact');
-        const absoluteArtifactFilePath = path.join(servicePath, 'absoluteArtifact.zip');
+        const { servicePath: serviceDir, updateConfig } = await fixtures.setup('packageArtifact');
+        const absoluteArtifactFilePath = path.join(serviceDir, 'absoluteArtifact.zip');
 
         await updateConfig({
           functions: {
@@ -310,8 +310,8 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
         });
 
         await runServerless({
-          cwd: servicePath,
-          cliArgs: ['deploy'],
+          cwd: serviceDir,
+          command: 'deploy',
           lastLifecycleHookName: 'aws:deploy:deploy:uploadArtifacts',
           awsRequestStubMap,
         });
@@ -323,8 +323,8 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       });
 
       it('service-wide', async () => {
-        const { servicePath, updateConfig } = await fixtures.setup('packageArtifact');
-        const absoluteArtifactFilePath = path.join(servicePath, 'absoluteArtifact.zip');
+        const { servicePath: serviceDir, updateConfig } = await fixtures.setup('packageArtifact');
+        const absoluteArtifactFilePath = path.join(serviceDir, 'absoluteArtifact.zip');
 
         await updateConfig({
           package: {
@@ -332,8 +332,8 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
           },
         });
         await runServerless({
-          cwd: servicePath,
-          cliArgs: ['deploy'],
+          cwd: serviceDir,
+          command: 'deploy',
           lastLifecycleHookName: 'aws:deploy:deploy:uploadArtifacts',
           awsRequestStubMap,
         });
@@ -364,8 +364,8 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       });
 
       it('for function', async () => {
-        const { servicePath, updateConfig } = await fixtures.setup('packageArtifact');
-        const absoluteArtifactFilePath = path.join(servicePath, 'absoluteArtifact.zip');
+        const { servicePath: serviceDir, updateConfig } = await fixtures.setup('packageArtifact');
+        const absoluteArtifactFilePath = path.join(serviceDir, 'absoluteArtifact.zip');
         const zipContent = await fs.promises.readFile(absoluteArtifactFilePath);
 
         await updateConfig({
@@ -378,8 +378,9 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
           },
         });
         await runServerless({
-          cwd: servicePath,
-          cliArgs: ['deploy', '-f', 'other'],
+          cwd: serviceDir,
+          command: 'deploy function',
+          options: { function: 'other' },
           awsRequestStubMap,
         });
         expect(updateFunctionCodeStub).to.have.been.calledOnce;
@@ -387,8 +388,8 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       });
 
       it('service-wide', async () => {
-        const { servicePath, updateConfig } = await fixtures.setup('packageArtifact');
-        const absoluteArtifactFilePath = path.join(servicePath, 'absoluteArtifact.zip');
+        const { servicePath: serviceDir, updateConfig } = await fixtures.setup('packageArtifact');
+        const absoluteArtifactFilePath = path.join(serviceDir, 'absoluteArtifact.zip');
         const zipContent = await fs.promises.readFile(absoluteArtifactFilePath);
 
         await updateConfig({
@@ -397,8 +398,9 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
           },
         });
         await runServerless({
-          cwd: servicePath,
-          cliArgs: ['deploy', '-f', 'foo'],
+          cwd: serviceDir,
+          command: 'deploy function',
+          options: { function: 'foo' },
           awsRequestStubMap,
         });
         expect(updateFunctionCodeStub).to.have.been.calledOnce;

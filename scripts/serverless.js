@@ -16,13 +16,23 @@ if (require('../lib/utils/tabCompletion/isSupported') && process.argv[2] === 'co
 const handleError = require('../lib/cli/handle-error');
 const humanizePropertyPathKeys = require('../lib/configuration/variables/humanize-property-path-keys');
 
+const {
+  storeLocally: storeTelemetryLocally,
+  send: sendTelemetry,
+} = require('../lib/utils/telemetry');
+const generateTelemetryPayload = require('../lib/utils/telemetry/generatePayload');
+const processBackendNotificationRequest = require('../lib/utils/processBackendNotificationRequest');
+const isTelemetryDisabled = require('../lib/utils/telemetry/areDisabled');
+
 let serverless;
+
+let hasTelemetryBeenReported = false;
 
 process.once('uncaughtException', (error) =>
   handleError(error, {
     isUncaughtException: true,
-    isLocallyInstalled: serverless && serverless.isLocallyInstalled,
-    isInvokedByGlobalInstallation: serverless && serverless.isInvokedByGlobalInstallation,
+    serverless,
+    hasTelemetryBeenReported,
   })
 );
 
@@ -30,11 +40,6 @@ const processSpanPromise = (async () => {
   try {
     const wait = require('timers-ext/promise/sleep');
     await wait(); // Ensure access to "processSpanPromise"
-
-    // Propagate (in a background) eventual pending analytics requests
-    require('../lib/utils/analytics').sendPending({
-      serverlessExecutionSpan: processSpanPromise,
-    });
 
     const resolveInput = require('../lib/cli/resolve-input');
 
@@ -50,6 +55,8 @@ const processSpanPromise = (async () => {
     }
 
     const ServerlessError = require('../lib/serverless-error');
+
+    // Abort if command is not supported in this environment
     if (commandSchema && commandSchema.isHidden && commandSchema.noSupportNotice) {
       throw new ServerlessError(
         `Cannot run \`${command}\` command: ${commandSchema.noSupportNotice}`
@@ -68,6 +75,7 @@ const processSpanPromise = (async () => {
 
     let configurationPath = null;
     let configuration = null;
+    let serviceDir = null;
     let providerName;
     let variablesMeta;
     let resolverConfiguration;
@@ -99,6 +107,8 @@ const processSpanPromise = (async () => {
     };
 
     if (!commandSchema || commandSchema.serviceDependencyMode) {
+      // Command is potentially service specific, follow up with resolution of service config
+
       const resolveConfigurationPath = require('../lib/cli/resolve-configuration-path');
       const readConfiguration = require('../lib/configuration/read');
 
@@ -121,9 +131,10 @@ const processSpanPromise = (async () => {
         : null;
 
       if (configuration) {
+        serviceDir = process.cwd();
         if (!commandSchema) {
           // If command was not recognized in first resolution phase
-          // Parse args again also against schemas commands which require service to be run
+          // parse args again also against schemas of commands which require service context
           resolveInput.clear();
           ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
             require('../lib/cli/commands-schema/service')
@@ -133,7 +144,8 @@ const processSpanPromise = (async () => {
         // IIFE for maintanance convenience
         await (async () => {
           if (_.get(configuration.provider, 'variableSyntax')) {
-            // Request to rely on old variables resolver explictly, abort
+            // Request to rely on old variables resolver explictly
+            // abort (fallback to legacy internal resolution)
             if (isHelpRequest) return;
             if (configuration.variablesResolutionMode) {
               throw new ServerlessError(
@@ -178,10 +190,14 @@ const processSpanPromise = (async () => {
 
           if (isPropertyResolved(variablesMeta, 'provider\0name')) {
             providerName = resolveProviderName(configuration);
+            if (providerName == null) {
+              variablesMeta = null;
+              return;
+            }
           }
           if (!commandSchema && providerName === 'aws') {
-            // If command was not recognized in first resolution phase
-            // Parse args again also against schemas commands which require AWS service to be run
+            // If command was not recognized in previous resolution phases
+            // parse args again also against schemas commands which require AWS service context
             resolveInput.clear();
             ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
               require('../lib/cli/commands-schema/aws-service')
@@ -194,7 +210,7 @@ const processSpanPromise = (async () => {
             // Resolve eventual variables in `provider.stage` and `useDotEnv`
             // (required for reliable .env resolution)
             resolverConfiguration = {
-              servicePath: process.cwd(),
+              serviceDir,
               configuration,
               variablesMeta,
               sources: {
@@ -224,6 +240,10 @@ const processSpanPromise = (async () => {
 
             if (!providerName && isPropertyResolved(variablesMeta, 'provider\0name')) {
               providerName = resolveProviderName(configuration);
+              if (providerName == null) {
+                variablesMeta = null;
+                return;
+              }
               if (!commandSchema && providerName === 'aws') {
                 // If command was not recognized in previous resolution phases
                 // Parse args again also against schemas of commands which work in context of an AWS
@@ -269,10 +289,9 @@ const processSpanPromise = (async () => {
 
           if (!variablesMeta.size) return; // No properties configured with variables
 
-          // Resolve all unresolved configuration properties
           resolverConfiguration.fulfilledSources.add('env');
 
-          if (isHelpRequest) {
+          if (isHelpRequest || commands[0] === 'plugin') {
             // We do not need full config resolved, we just need to know what
             // provider is service setup with, and with what eventual plugins Framework is extended
             // as that influences what CLI commands and options could be used,
@@ -296,6 +315,10 @@ const processSpanPromise = (async () => {
           if (!providerName) {
             if (!ensureResolvedProperty('provider\0name')) return;
             providerName = resolveProviderName(configuration);
+            if (providerName == null) {
+              variablesMeta = null;
+              return;
+            }
             if (!commandSchema && providerName === 'aws') {
               resolveInput.clear();
               ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
@@ -343,15 +366,20 @@ const processSpanPromise = (async () => {
         ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
           require('../lib/cli/commands-schema/aws-service')
         ));
+
+        // Validate result command and options
         require('../lib/cli/ensure-supported-command')();
       }
     }
 
     serverless = new Serverless({
       configuration,
-      configurationPath: configuration && configurationPath,
-      isConfigurationResolved: Boolean(variablesMeta && !variablesMeta.size),
+      serviceDir,
+      configurationFilename: configuration && configurationPath.slice(serviceDir.length + 1),
+      isConfigurationResolved:
+        commands[0] === 'plugin' || Boolean(variablesMeta && !variablesMeta.size),
       hasResolvedCommandsExternally: true,
+      isTelemetryReportedExternally: true,
       commands,
       options,
     });
@@ -359,8 +387,14 @@ const processSpanPromise = (async () => {
     try {
       serverless.onExitPromise = processSpanPromise;
       serverless.invocationId = uuid.v4();
+      // TODO: REMOVE WITH NEXT MAJOR
+      // The purpose of below logic is to ensure that locally resolved `serverless` instance
+      // that might be in lower version will not attempt to handle telemetry on its own
+      process.env.SLS_TRACKING_DISABLED = '1';
       await serverless.init();
       if (serverless.invokedInstance) {
+        // Local (in service) installation was found and initialized internally,
+        // From now on refer to it only
         serverless.invokedInstance.invocationId = serverless.invocationId;
         serverless = serverless.invokedInstance;
       }
@@ -370,11 +404,12 @@ const processSpanPromise = (async () => {
         if (!configuration) return;
         let hasFinalCommandSchema = false;
         if (configuration.plugins) {
+          // After plugins are loaded, re-resolve CLI command and options schema as plugin
+          // might have defined extra commands and options
+
           // TODO: Remove "serverless.pluginManager.externalPlugins" check with next major
           if (serverless.pluginManager.externalPlugins) {
             if (serverless.pluginManager.externalPlugins.size) {
-              // After plugins are loaded, re-resolve CLI command and options schema as plugin
-              // might have defined extra commands and options
               const commandsSchema = require('../lib/cli/commands-schema/resolve-final')(
                 serverless.pluginManager.externalPlugins,
                 { providerName: providerName || 'aws', configuration }
@@ -401,11 +436,15 @@ const processSpanPromise = (async () => {
           ));
         }
 
-        require('../lib/cli/ensure-supported-command')();
+        // Validate result command and options
+        require('../lib/cli/ensure-supported-command')(configuration);
         if (isHelpRequest) return;
         if (!_.get(variablesMeta, 'size')) return;
 
+        // Resolve remaininig service configuration variables
         if (providerName === 'aws') {
+          // Ensure properties which are crucial to some variable source resolvers
+          // are actually resolved.
           if (
             !ensureResolvedProperty('provider\0credentials', {
               shouldSilentlyReturnIfLegacyMode: true,
@@ -434,6 +473,8 @@ const processSpanPromise = (async () => {
           // we have full "opt" source data if user didn't explicitly switch to new resolver
           resolverConfiguration.fulfilledSources.add('opt');
         }
+
+        // Register serverless instance and AWS provider specific variable sources
         resolverConfiguration.sources.sls = require('../lib/configuration/variables/sources/instance-dependent/get-sls')(
           serverless
         );
@@ -454,6 +495,7 @@ const processSpanPromise = (async () => {
           resolverConfiguration.fulfilledSources.add('cf').add('s3').add('ssm');
         }
 
+        // Register dashboard specific variable source resolvers
         if (configuration.org && serverless.pluginManager.dashboardPlugin) {
           for (const [sourceName, sourceConfig] of Object.entries(
             serverless.pluginManager.dashboardPlugin.configurationVariablesSources
@@ -466,6 +508,7 @@ const processSpanPromise = (async () => {
         const ensurePlainFunction = require('type/plain-function/ensure');
         const ensurePlainObject = require('type/plain-object/ensure');
 
+        // Register variable source resolvers provided by external plugins
         for (const externalPlugin of serverless.pluginManager.externalPlugins) {
           const pluginName = externalPlugin.constructor.name;
           if (externalPlugin.configurationVariablesSources != null) {
@@ -520,6 +563,7 @@ const processSpanPromise = (async () => {
           }
         }
 
+        // Having all source resolvers configured, resolve variables
         await resolveVariables(resolverConfiguration);
         if (!variablesMeta.size) {
           serverless.isConfigurationInputResolved = true;
@@ -530,6 +574,8 @@ const processSpanPromise = (async () => {
         ) {
           return;
         }
+
+        // Report unrecognized variable sources found in variables configured in service config
         const unresolvedSources = require('../lib/configuration/variables/resolve-unresolved-source-types')(
           variablesMeta
         );
@@ -596,9 +642,26 @@ const processSpanPromise = (async () => {
       })();
 
       if (isHelpRequest && serverless.pluginManager.externalPlugins) {
+        // Show help
         require('../lib/cli/render-help')(serverless.pluginManager.externalPlugins);
       } else {
+        // Run command
         await serverless.run();
+      }
+
+      if (!isTelemetryDisabled && !isHelpRequest) {
+        hasTelemetryBeenReported = true;
+        const telemetryPayload = await generateTelemetryPayload(serverless);
+        await storeTelemetryLocally({ ...telemetryPayload, outcome: 'success' });
+        let backendNotificationRequest;
+        if (commands.join(' ') === 'deploy') {
+          backendNotificationRequest = await sendTelemetry({
+            serverlessExecutionSpan: processSpanPromise,
+          });
+        }
+        if (backendNotificationRequest) {
+          await processBackendNotificationRequest(backendNotificationRequest);
+        }
       }
     } catch (error) {
       // If Dashboard Plugin, capture error
@@ -626,8 +689,8 @@ const processSpanPromise = (async () => {
     }
   } catch (error) {
     handleError(error, {
-      isLocallyInstalled: serverless && serverless.isLocallyInstalled,
-      isInvokedByGlobalInstallation: serverless && serverless.isInvokedByGlobalInstallation,
+      serverless,
+      hasTelemetryBeenReported,
     });
   }
 })();

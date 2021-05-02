@@ -60,7 +60,7 @@ describe('ApiGatewayEvents', () => {
             },
           },
         },
-        cliArgs: ['package'],
+        command: 'package',
       }).then(({ cfTemplate, awsNaming }) => {
         ({ Resources: cfResources } = cfTemplate);
         naming = awsNaming;

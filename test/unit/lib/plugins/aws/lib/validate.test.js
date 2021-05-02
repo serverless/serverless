@@ -28,7 +28,7 @@ describe('#validate', () => {
     awsPlugin.serverless = serverless;
     awsPlugin.serverless.setProvider('aws', provider);
 
-    awsPlugin.serverless.config.servicePath = true;
+    awsPlugin.serverless.serviceDir = true;
     serverless.processedInput = { commands: ['deploy'] };
 
     Object.assign(awsPlugin, validate);
@@ -39,7 +39,7 @@ describe('#validate', () => {
       expect(() => awsPlugin.validate()).not.to.throw());
 
     it('should throw error if not inside service (servicePath not defined)', () => {
-      awsPlugin.serverless.config.servicePath = false;
+      awsPlugin.serverless.serviceDir = false;
       return expect(() => awsPlugin.validate()).to.throw(
         ServerlessError,
         /can only be run inside a service directory/

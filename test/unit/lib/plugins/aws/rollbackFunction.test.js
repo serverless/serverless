@@ -20,7 +20,6 @@ describe('AwsRollbackFunction', () => {
       'node-fetch': fetchStub,
     });
     serverless = new Serverless();
-    serverless.servicePath = true;
     serverless.service.functions = {
       hello: {
         handler: true,

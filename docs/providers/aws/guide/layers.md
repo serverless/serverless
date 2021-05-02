@@ -31,7 +31,7 @@ provider:
 layers:
   hello:
     path: layer-dir # required, path to layer contents on disk
-    name: ${opt:stage, self:provider.stage, 'dev'}-layerName # optional, Deployed Lambda layer name
+    name: ${sls:stage}-layerName # optional, Deployed Lambda layer name
     description: Description of what the lambda layer does # optional, Description to publish to AWS
     compatibleRuntimes: # optional, a list of runtimes this layer is compatible with
       - python3.8
@@ -175,4 +175,24 @@ functions:
     handler: handler.hello
     layers:
       - { Ref: TestLambdaLayer }
+```
+
+You can also configure layers at the service level. EG:
+
+```yml
+# serverless.yml
+service: myService
+
+provider:
+  name: aws
+  runtime: python3.8
+  layers:
+    - arn:aws:lambda:us-east-1:xxxxxxxxxxxxx:layer:xxxxx:mylayer1
+    - arn:aws:lambda:us-east-1:xxxxxxxxxxxxx:layer:xxxxx:mylayer2
+
+functions:
+  hello1:
+    handler: handler.hello1
+  hello2:
+    handler: handler.hello2
 ```

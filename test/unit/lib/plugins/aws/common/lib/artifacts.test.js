@@ -17,7 +17,7 @@ describe('#moveArtifactsToPackage()', () => {
     serverless = new Serverless();
     awsCommon = new AWSCommon(serverless, {});
 
-    serverless.config.servicePath = moveBasePath;
+    serverless.serviceDir = moveBasePath;
     if (!serverless.utils.dirExistsSync(moveServerlessPath)) {
       serverless.utils.writeFileDir(moveServerlessPath);
     }
@@ -30,7 +30,7 @@ describe('#moveArtifactsToPackage()', () => {
   });
 
   it('should resolve if servicePath is not present', () => {
-    delete serverless.config.servicePath;
+    delete serverless.serviceDir;
     return awsCommon.moveArtifactsToPackage();
   });
 
@@ -107,7 +107,7 @@ describe('#moveArtifactsToTemp()', () => {
     serverless = new Serverless();
     awsCommon = new AWSCommon(serverless, {});
 
-    serverless.config.servicePath = moveBasePath;
+    serverless.serviceDir = moveBasePath;
     if (!serverless.utils.dirExistsSync(moveTargetPath)) {
       serverless.utils.writeFileDir(moveTargetPath);
     }
@@ -120,7 +120,7 @@ describe('#moveArtifactsToTemp()', () => {
   });
 
   it('should resolve if servicePath is not present', () => {
-    delete serverless.config.servicePath;
+    delete serverless.serviceDir;
     return awsCommon.moveArtifactsToTemp();
   });
 

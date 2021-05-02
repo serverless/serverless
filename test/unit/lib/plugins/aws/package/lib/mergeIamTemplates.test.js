@@ -1,14 +1,18 @@
 'use strict';
 
-const expect = require('chai').expect;
+const chai = require('chai');
 const runServerless = require('../../../../../../utils/run-serverless');
+
+chai.use(require('chai-as-promised'));
+
+const expect = chai.expect;
 
 describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
   describe('No default role', () => {
     it('should not create role resource if there are no functions', async () => {
       const { cfTemplate, awsNaming } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['package'],
+        command: 'package',
       });
       const iamRoleLambdaExecution = awsNaming.getRoleLogicalId();
       expect(cfTemplate.Resources).to.not.have.property(iamRoleLambdaExecution);
@@ -17,7 +21,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
     it('should not create role resource with `provider.role`', async () => {
       const { cfTemplate, awsNaming } = await runServerless({
         fixture: 'function',
-        cliArgs: ['package'],
+        command: 'package',
         configExt: {
           provider: {
             name: 'aws',
@@ -33,7 +37,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
     it('should not create role resource with `provider.iam.role`', async () => {
       const { cfTemplate, awsNaming } = await runServerless({
         fixture: 'function',
-        cliArgs: ['package'],
+        command: 'package',
         configExt: {
           provider: {
             name: 'aws',
@@ -51,7 +55,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
     it('should not create role resource with all functions having `functions[].role`', async () => {
       const { cfTemplate, awsNaming } = await runServerless({
         fixture: 'function',
-        cliArgs: ['package'],
+        command: 'package',
         configExt: {
           functions: {
             foo: {
@@ -79,7 +83,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       before(async () => {
         const test = await runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             functions: {
               myFunction: {
@@ -173,7 +177,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       before(async () => {
         const { cfTemplate, awsNaming } = await runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             provider: {
               iamRoleStatements: [
@@ -235,6 +239,30 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
           'arn:aws:iam::123456789012:policy/XCompanyBoundaries'
         );
       });
+
+      it('should support `provider.iam.role.permissionBoundary`', async () => {
+        const { cfTemplate, awsNaming } = await runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            provider: {
+              iam: {
+                role: {
+                  permissionBoundary: ['arn:aws:iam::123456789012:policy/XCompanyBoundaries'],
+                },
+              },
+            },
+          },
+        });
+
+        const IamRoleLambdaExecution = awsNaming.getRoleLogicalId();
+        const {
+          Properties: { PermissionsBoundary },
+        } = cfTemplate.Resources[IamRoleLambdaExecution];
+        expect(PermissionsBoundary).to.be.equal(
+          'arn:aws:iam::123456789012:policy/XCompanyBoundaries'
+        );
+      });
     });
 
     describe('Provider properties', () => {
@@ -245,11 +273,13 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       before(async () => {
         const { cfTemplate, awsNaming, fixtureData } = await runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             provider: {
               iam: {
                 role: {
+                  name: 'custom-default-role',
+                  path: '/custom-role-path/',
                   statements: [
                     {
                       Effect: 'Allow',
@@ -262,7 +292,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
                     'arn:aws:s3:::my_corporate_bucket/Development/*',
                     'arn:aws:iam::123456789012:u*',
                   ],
-                  permissionBoundary: ['arn:aws:iam::123456789012:policy/XCompanyBoundaries'],
+                  permissionsBoundary: ['arn:aws:iam::123456789012:policy/XCompanyBoundaries'],
                   tags: {
                     sweet: 'potato',
                   },
@@ -283,23 +313,32 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       });
 
       it('should support `provider.iam.role.name`', async () => {
-        const customRoleName = 'custom-default-role';
-        const { cfTemplate, awsNaming } = await runServerless({
-          fixture: 'function',
-          cliArgs: ['package'],
-          configExt: {
-            provider: {
-              iam: {
-                role: {
-                  name: customRoleName,
+        const iamRoleLambdaResource = cfResources[naming.getRoleLogicalId()];
+        expect(iamRoleLambdaResource.Properties.RoleName).to.be.eq('custom-default-role');
+      });
+
+      it('should support `provider.iam.role.path`', async () => {
+        const iamRoleLambdaResource = cfResources[naming.getRoleLogicalId()];
+        expect(iamRoleLambdaResource.Properties.Path).to.be.eq('/custom-role-path/');
+      });
+
+      it('should reject an invalid `provider.iam.role.path`', async () => {
+        const customRolePath = '/invalid';
+        await expect(
+          runServerless({
+            fixture: 'function',
+            command: 'package',
+            configExt: {
+              provider: {
+                iam: {
+                  role: {
+                    path: customRolePath,
+                  },
                 },
               },
             },
-          },
-        });
-
-        const iamRoleLambdaResource = cfTemplate.Resources[awsNaming.getRoleLogicalId()];
-        expect(iamRoleLambdaResource.Properties.RoleName).to.be.eq(customRoleName);
+          })
+        ).to.be.eventually.rejectedWith(/'provider.iam.role.path': should match pattern/);
       });
 
       it('should support `provider.iam.role.statements`', async () => {
@@ -370,7 +409,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       it('should not create default role when `provider.iam.role` defined with CF intrinsic functions', async () => {
         const { cfTemplate, awsNaming } = await runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             provider: {
               iam: {
@@ -394,7 +433,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       before(async () => {
         const { awsNaming, cfTemplate, serverless: serverlessInstance } = await runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             functions: {
               fnDisableLogs: {

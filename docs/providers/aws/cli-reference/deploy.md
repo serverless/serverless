@@ -23,7 +23,6 @@ serverless deploy
 ## Options
 
 - `--config` or `-c` Name of your configuration file, if other than `serverless.yml|.yaml|.js|.json`.
-- `--noDeploy` or `-n` Skips the deployment steps and leaves artifacts in the `.serverless` directory
 - `--stage` or `-s` The stage in your service that you want to deploy to.
 - `--region` or `-r` The region in that stage that you want to deploy to.
 - `--package` or `-p` path to a pre-packaged directory and skip packaging step.

@@ -5,14 +5,14 @@
 const _ = require('lodash');
 const chai = require('chai');
 const path = require('path');
+const fs = require('fs-extra');
+const os = require('os');
 const proxyquire = require('proxyquire');
 const sinon = require('sinon');
 const overrideEnv = require('process-utils/override-env');
 
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
 const Serverless = require('../../../../../lib/Serverless');
-const { replaceEnv } = require('../../../../utils/misc');
-const { getTmpFilePath } = require('../../../../utils/fs');
 const runServerless = require('../../../../utils/run-serverless');
 
 chai.use(require('chai-as-promised'));
@@ -36,12 +36,6 @@ describe('AwsProvider', () => {
     awsProvider = new AwsProvider(serverless, options);
   });
   afterEach(() => restoreEnv());
-
-  describe('#getProviderName()', () => {
-    it('should return the provider name', () => {
-      expect(AwsProvider.getProviderName()).to.equal('aws');
-    });
-  });
 
   describe('#constructor()', () => {
     it('should set Serverless instance', () => {
@@ -105,268 +99,6 @@ describe('AwsProvider', () => {
           'my.deployment.bucket'
         );
       });
-    });
-  });
-
-  describe('#getCredentials()', () => {
-    const awsStub = sinon.stub().returns();
-    const AwsProviderProxyquired = proxyquire('../../../../../lib/plugins/aws/provider.js', {
-      'aws-sdk': awsStub,
-    });
-
-    // add environment variables here if you want them cleared prior to your test and restored
-    // after it has completed.  Any environment variable that might alter credentials loading
-    // should be added here
-    const relevantEnvironment = {
-      AWS_ACCESS_KEY_ID: 'undefined',
-      AWS_SECRET_ACCESS_KEY: 'undefined',
-      AWS_SESSION_TOKEN: 'undefined',
-      AWS_TESTSTAGE_ACCESS_KEY_ID: 'undefined',
-      AWS_TESTSTAGE_SECRET_ACCESS_KEY: 'undefined',
-      AWS_TESTSTAGE_SESSION_TOKEN: 'undefined',
-      AWS_SHARED_CREDENTIALS_FILE: getTmpFilePath('credentials'),
-      AWS_PROFILE: 'undefined',
-      AWS_TESTSTAGE_PROFILE: 'undefined',
-    };
-
-    let newAwsProvider;
-    const newOptions = {
-      stage: 'teststage',
-      region: 'testregion',
-    };
-    const fakeCredentials = {
-      accessKeyId: 'AABBCCDDEEFF',
-      secretAccessKey: '0123456789876543',
-      sessionToken: '981237917391273918273918723987129837129873',
-      roleArn: 'a:role:arn',
-      sourceProfile: 'notDefaultTemporary',
-    };
-
-    let originalProviderCredentials;
-    let originalProviderProfile;
-    let originalEnvironmentVariables;
-
-    beforeEach(() => {
-      originalProviderCredentials = serverless.service.provider.credentials;
-      originalProviderProfile = serverless.service.provider.profile;
-      originalEnvironmentVariables = replaceEnv(relevantEnvironment);
-      // make temporary credentials file
-      serverless.utils.writeFileSync(
-        relevantEnvironment.AWS_SHARED_CREDENTIALS_FILE,
-        '[notDefault]\n' +
-          `aws_access_key_id = ${fakeCredentials.accessKeyId}\n` +
-          `aws_secret_access_key = ${fakeCredentials.secretAccessKey}\n` +
-          '\n' +
-          '[notDefaultTemporary]\n' +
-          `aws_access_key_id = ${fakeCredentials.accessKeyId}\n` +
-          `aws_secret_access_key = ${fakeCredentials.secretAccessKey}\n` +
-          `aws_session_token = ${fakeCredentials.sessionToken}\n` +
-          '\n' +
-          '[notDefaultAsync]\n' +
-          `role_arn = ${fakeCredentials.roleArn}\n` +
-          `source_profile = ${fakeCredentials.sourceProfile}\n`
-      );
-      newAwsProvider = new AwsProviderProxyquired(serverless, newOptions);
-    });
-
-    afterEach(() => {
-      replaceEnv(originalEnvironmentVariables);
-      serverless.service.provider.profile = originalProviderProfile;
-      serverless.service.provider.credentials = originalProviderCredentials;
-    });
-
-    it('should not set credentials if credentials is an empty object', () => {
-      serverless.service.provider.credentials = {};
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials).to.eql({});
-    });
-
-    it('should not set credentials if credentials has undefined values', () => {
-      serverless.service.provider.credentials = {
-        accessKeyId: undefined,
-        secretAccessKey: undefined,
-        sessionToken: undefined,
-      };
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials).to.eql({});
-    });
-
-    it('should not set credentials if credentials has empty string values', () => {
-      serverless.service.provider.credentials = {
-        accessKeyId: '',
-        secretAccessKey: '',
-        sessionToken: '',
-      };
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials).to.eql({});
-    });
-
-    it('should get credentials from provider declared credentials', () => {
-      serverless.service.provider.credentials = {
-        accessKeyId: 'accessKeyId',
-        secretAccessKey: 'secretAccessKey',
-        sessionToken: 'sessionToken',
-      };
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials).to.deep.eql(serverless.service.provider.credentials);
-    });
-
-    it('should load profile credentials from AWS_SHARED_CREDENTIALS_FILE', () => {
-      serverless.service.provider.profile = 'notDefault';
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.profile).to.equal(serverless.service.provider.profile);
-      expect(credentials.credentials.accessKeyId).to.equal(fakeCredentials.accessKeyId);
-      expect(credentials.credentials.secretAccessKey).to.equal(fakeCredentials.secretAccessKey);
-      expect(credentials.credentials.sessionToken).to.equal(undefined);
-    });
-
-    it('should load async profiles properly', () => {
-      serverless.service.provider.profile = 'notDefaultAsync';
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.roleArn).to.equal(fakeCredentials.roleArn);
-    });
-
-    it('should throw an error if a non-existent profile is set', () => {
-      serverless.service.provider.profile = 'not-a-defined-profile';
-      expect(() => {
-        newAwsProvider.getCredentials();
-      }).to.throw(Error);
-    });
-
-    it('should not set credentials if empty profile is set', () => {
-      serverless.service.provider.profile = '';
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials).to.eql({});
-    });
-
-    it('should not set credentials if profile is not set', () => {
-      serverless.service.provider.profile = undefined;
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials).to.eql({});
-    });
-
-    it('should not set credentials if empty profile is set', () => {
-      serverless.service.provider.profile = '';
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials).to.eql({});
-    });
-
-    it('should get credentials from provider declared temporary profile', () => {
-      serverless.service.provider.profile = 'notDefaultTemporary';
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.profile).to.equal(serverless.service.provider.profile);
-      expect(credentials.credentials.accessKeyId).to.equal(fakeCredentials.accessKeyId);
-      expect(credentials.credentials.secretAccessKey).to.equal(fakeCredentials.secretAccessKey);
-      expect(credentials.credentials.sessionToken).to.equal(fakeCredentials.sessionToken);
-    });
-
-    it('should get credentials from environment declared for-all-stages credentials', () => {
-      const testVal = {
-        accessKeyId: 'accessKeyId',
-        secretAccessKey: 'secretAccessKey',
-        sessionToken: 'sessionToken',
-      };
-      process.env.AWS_ACCESS_KEY_ID = testVal.accessKeyId;
-      process.env.AWS_SECRET_ACCESS_KEY = testVal.secretAccessKey;
-      process.env.AWS_SESSION_TOKEN = testVal.sessionToken;
-
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.accessKeyId).to.equal(testVal.accessKeyId);
-      expect(credentials.credentials.secretAccessKey).to.equal(testVal.secretAccessKey);
-      expect(credentials.credentials.sessionToken).to.equal(testVal.sessionToken);
-    });
-
-    it('should get credentials from environment declared stage specific credentials', () => {
-      const testVal = {
-        accessKeyId: 'accessKeyId',
-        secretAccessKey: 'secretAccessKey',
-        sessionToken: 'sessionToken',
-      };
-      process.env.AWS_TESTSTAGE_ACCESS_KEY_ID = testVal.accessKeyId;
-      process.env.AWS_TESTSTAGE_SECRET_ACCESS_KEY = testVal.secretAccessKey;
-      process.env.AWS_TESTSTAGE_SESSION_TOKEN = testVal.sessionToken;
-
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.accessKeyId).to.equal(testVal.accessKeyId);
-      expect(credentials.credentials.secretAccessKey).to.equal(testVal.secretAccessKey);
-      expect(credentials.credentials.sessionToken).to.equal(testVal.sessionToken);
-    });
-
-    it('should get credentials from environment declared for-all-stages profile', () => {
-      process.env.AWS_PROFILE = 'notDefault';
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.profile).to.equal('notDefault');
-    });
-
-    it('should get credentials from environment declared stage-specific profile', () => {
-      process.env.AWS_TESTSTAGE_PROFILE = 'notDefault';
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.profile).to.equal('notDefault');
-    });
-
-    it('should get credentials when profile is provied via --aws-profile option', () => {
-      process.env.AWS_PROFILE = 'notDefaultTemporary';
-      newAwsProvider.options['aws-profile'] = 'notDefault';
-
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.profile).to.equal('notDefault');
-    });
-
-    it('should get credentials when profile is provied via --aws-profile option even if profile is defined in serverless.yml', () => {
-      process.env.AWS_PROFILE = 'notDefaultTemporary';
-      newAwsProvider.options['aws-profile'] = 'notDefault';
-
-      serverless.service.provider.profile = 'notDefaultTemporary2';
-
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.profile).to.equal('notDefault');
-    });
-
-    it('should get credentials when profile is provied via process.env.AWS_PROFILE even if profile is defined in serverless.yml', () => {
-      process.env.AWS_PROFILE = 'notDefault';
-
-      serverless.service.provider.profile = 'notDefaultTemporary';
-
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.profile).to.equal('notDefault');
-    });
-
-    it('should set the signatureVersion to v4 if the serverSideEncryption is aws:kms', () => {
-      newAwsProvider.serverless.service.provider.deploymentBucketObject = {
-        serverSideEncryption: 'aws:kms',
-      };
-
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.signatureVersion).to.equal('v4');
-    });
-
-    it('should get credentials from process.env.AWS_DEFAULT_PROFILE, not "default"', () => {
-      process.env.AWS_DEFAULT_PROFILE = 'notDefaultTemporary';
-      newAwsProvider.options['aws-profile'] = undefined;
-
-      serverless.utils.appendFileSync(
-        relevantEnvironment.AWS_SHARED_CREDENTIALS_FILE,
-        '[default]\n' +
-          `aws_access_key_id = ${fakeCredentials.accessKeyId}\n` +
-          `aws_secret_access_key = ${fakeCredentials.secretAccessKey}\n`
-      );
-
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.profile).to.equal('notDefaultTemporary');
-    });
-
-    it('should get "default" credentials in lieu of anything else', () => {
-      newAwsProvider.options['aws-profile'] = undefined;
-
-      serverless.utils.appendFileSync(
-        relevantEnvironment.AWS_SHARED_CREDENTIALS_FILE,
-        '[default]\n' +
-          `aws_access_key_id = ${fakeCredentials.accessKeyId}\n` +
-          `aws_secret_access_key = ${fakeCredentials.secretAccessKey}\n`
-      );
-
-      const credentials = newAwsProvider.getCredentials();
-      expect(credentials.credentials.profile).to.equal('default');
     });
   });
 
@@ -498,46 +230,6 @@ describe('AwsProvider', () => {
     });
   });
 
-  describe('#getProfile()', () => {
-    let newAwsProvider;
-
-    it('should prefer options over config or provider', () => {
-      const newOptions = {
-        profile: 'optionsProfile',
-      };
-      const config = {
-        profile: 'configProfile',
-      };
-      serverless = new Serverless(config);
-      serverless.service.provider.profile = 'providerProfile';
-      newAwsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(newAwsProvider.getProfile()).to.equal(newOptions.profile);
-    });
-
-    it('should prefer config over provider in lieu of options', () => {
-      const newOptions = {};
-      const config = {
-        profile: 'configProfile',
-      };
-      serverless = new Serverless(config);
-      serverless.service.provider.profile = 'providerProfile';
-      newAwsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(newAwsProvider.getProfile()).to.equal(config.profile);
-    });
-
-    it('should use provider in lieu of options and config', () => {
-      const newOptions = {};
-      const config = {};
-      serverless = new Serverless(config);
-      serverless.service.provider.profile = 'providerProfile';
-      newAwsProvider = new AwsProvider(serverless, newOptions);
-
-      expect(newAwsProvider.getProfile()).to.equal(serverless.service.provider.profile);
-    });
-  });
-
   describe('#getServerlessDeploymentBucketName()', () => {
     it('should return the name of the serverless deployment bucket', () => {
       const describeStackResourcesStub = sinon.stub(awsProvider, 'request').resolves({
@@ -573,59 +265,6 @@ describe('AwsProvider', () => {
         expect(bucketName).to.equal('custom-bucket');
         awsProvider.request.restore();
       });
-    });
-  });
-
-  describe('#getDeploymentPrefix()', () => {
-    it('should return custom deployment prefix if defined', () => {
-      serverless.service.provider.deploymentPrefix = 'providerPrefix';
-
-      expect(awsProvider.getDeploymentPrefix()).to.equal(
-        serverless.service.provider.deploymentPrefix
-      );
-    });
-
-    it('should use the default serverless if not defined', () => {
-      serverless.service.provider.deploymentPrefix = undefined;
-
-      expect(awsProvider.getDeploymentPrefix()).to.equal('serverless');
-    });
-
-    it('should support no prefix', () => {
-      serverless.service.provider.deploymentPrefix = '';
-
-      expect(awsProvider.getDeploymentPrefix()).to.equal('');
-    });
-  });
-
-  describe('#getAlbTargetGroupPrefix()', () => {
-    it('should return custom alb target group prefix if defined', () => {
-      serverless.service.provider.alb = {};
-      serverless.service.provider.alb.targetGroupPrefix = 'myPrefix';
-
-      expect(awsProvider.getAlbTargetGroupPrefix()).to.equal(
-        serverless.service.provider.alb.targetGroupPrefix
-      );
-    });
-
-    it('should return empty string if alb is not defined', () => {
-      serverless.service.provider.alb = undefined;
-
-      expect(awsProvider.getAlbTargetGroupPrefix()).to.equal('');
-    });
-
-    it('should return empty string if not defined', () => {
-      serverless.service.provider.alb = {};
-      serverless.service.provider.alb.targetGroupPrefix = undefined;
-
-      expect(awsProvider.getAlbTargetGroupPrefix()).to.equal('');
-    });
-
-    it('should support no prefix', () => {
-      serverless.service.provider.alb = {};
-      serverless.service.provider.alb.targetGroupPrefix = '';
-
-      expect(awsProvider.getAlbTargetGroupPrefix()).to.equal('');
     });
   });
 
@@ -690,11 +329,277 @@ describe('AwsProvider', () => {
 });
 
 describe('test/unit/lib/plugins/aws/provider.test.js', () => {
+  describe('#getProviderName and #sessionCache', () => {
+    let sls;
+    const expectedToken = '123';
+
+    before(async () => {
+      // Fake service that update credentials
+      class FakeCloudFormation {
+        constructor(credentials) {
+          this.credentials = credentials;
+          this.credentials.credentials.sessionToken = expectedToken;
+        }
+        describeStacks() {
+          return { promise: async () => {} };
+        }
+      }
+      // Stub functions for the credentials creation in the provider
+      class SharedIniFileCredentials {
+        constructor() {
+          this.sessionToken = 'abc';
+          this.accessKeyId = 'keyId';
+          this.secretAccessKey = 'secret';
+        }
+      }
+      class EnvironmentCredentials {
+        constructor() {
+          this.sessionToken = 'env';
+          this.accessKeyId = 'keyId';
+          this.secretAccessKey = 'secret';
+        }
+      }
+      const modulesCacheStub = {
+        'aws-sdk': {
+          SharedIniFileCredentials,
+          EnvironmentCredentials,
+          CloudFormation: FakeCloudFormation,
+        },
+      };
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        command: 'print',
+        modulesCacheStub,
+      });
+      sls = serverless;
+    });
+
+    it('`AwsProvider.getProviderName()` should resolve provider name', () => {
+      expect(AwsProvider.getProviderName()).to.equal('aws');
+    });
+
+    it('should retain sessionToken eventually updated internally by SDK', async () => {
+      expect(sls.getProvider('aws').getCredentials().credentials.sessionToken).not.to.equal(
+        expectedToken
+      );
+      await sls.getProvider('aws').request('CloudFormation', 'describeStacks');
+      expect(sls.getProvider('aws').getCredentials().credentials.sessionToken).to.equal(
+        expectedToken
+      );
+    });
+  });
+
+  describe('#getCredentials()', () => {
+    before(async () => {
+      // create default aws credentials file in before so that grouped run can use it
+      await fs.ensureDir(path.resolve(os.homedir(), './.aws'));
+      await fs.outputFile(
+        path.resolve(os.homedir(), './.aws/credentials'),
+        `
+[default]
+aws_access_key_id = DEFAULTKEYID
+aws_secret_access_key = DEFAULTSECRET
+
+[notDefault]
+aws_access_key_id = NOTDEFAULTKEYID
+aws_secret_access_key = NOTDEFAULTSECRET
+
+[notDefaultWithRole]
+source_profile = notDefault
+role_arn = NOTDEFAULTWITHROLEROLE
+`,
+        { flag: 'w+' }
+      );
+    });
+
+    it('should get credentials from default AWS profile', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        command: 'print',
+      });
+      const awsCredentials = serverless.getProvider('aws').getCredentials();
+      expect(awsCredentials.credentials.accessKeyId).to.equal('DEFAULTKEYID');
+    });
+
+    it('should get credentials from custom default AWS profile, set by AWS_DEFAULT_PROFILE', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        command: 'print',
+      });
+      // getCredentials resolve the env when called
+      let awsCredentials;
+      overrideEnv(() => {
+        process.env.AWS_DEFAULT_PROFILE = 'notDefault';
+        awsCredentials = serverless.getProvider('aws').getCredentials();
+      });
+      expect(awsCredentials.credentials.accessKeyId).to.equal('NOTDEFAULTKEYID');
+    });
+
+    describe('assume role with provider.profile', () => {
+      let awsCredentials;
+      before(async () => {
+        const { serverless } = await runServerless({
+          fixture: 'aws',
+          command: 'print',
+          configExt: {
+            provider: {
+              profile: 'notDefaultWithRole',
+            },
+          },
+        });
+        awsCredentials = serverless.getProvider('aws').getCredentials();
+      });
+
+      it('should get credentials from `provider.profile`', () => {
+        expect(awsCredentials.credentials.profile).to.equal('notDefaultWithRole');
+      });
+
+      it('should accept a role to assume on credentials', () => {
+        expect(awsCredentials.credentials.roleArn).to.equal('NOTDEFAULTWITHROLEROLE');
+      });
+    });
+
+    it('should get credentials from environment variables', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        command: 'print',
+      });
+      let awsCredentials;
+      // getCredentials resolve the env when called
+      overrideEnv(() => {
+        process.env.AWS_ACCESS_KEY_ID = 'ENVKEYID';
+        process.env.AWS_SECRET_ACCESS_KEY = 'ENVSECRET';
+        awsCredentials = serverless.getProvider('aws').getCredentials();
+      });
+      expect(awsCredentials.credentials.accessKeyId).to.equal('ENVKEYID');
+    });
+
+    describe('profile with non default credentials file', () => {
+      let awsCredentials;
+      before(async () => {
+        await fs.outputFile(
+          path.resolve(os.homedir(), './custom_credentials'),
+          `
+[default]
+aws_access_key_id = DEFAULTKEYID
+aws_secret_access_key = DEFAULTSECRET
+
+[customProfile]
+aws_access_key_id = CUSTOMKEYID
+aws_secret_access_key = CUSTOMSECRET
+`,
+          { flag: 'w+' }
+        );
+        const { serverless } = await runServerless({
+          fixture: 'aws',
+          command: 'print',
+        });
+        // getCredentials resolve the env when called
+        overrideEnv(() => {
+          process.env.AWS_PROFILE = 'customProfile';
+          process.env.AWS_SHARED_CREDENTIALS_FILE = path
+            .resolve(os.homedir(), './custom_credentials')
+            .toString();
+          awsCredentials = serverless.getProvider('aws').getCredentials();
+        });
+      });
+
+      after(async () => {
+        await fs.remove(path.resolve(os.homedir(), './custom_credentials'));
+      });
+
+      it('should get credentials from AWS_PROFILE environment variable', () => {
+        expect(awsCredentials.credentials.profile).to.equal('customProfile');
+      });
+
+      it('should get credentials from AWS_SHARED_CREDENTIALS_FILE environment variable', () => {
+        expect(awsCredentials.credentials.accessKeyId).to.equal('CUSTOMKEYID');
+      });
+    });
+
+    it('should get credentials from stage specific environment variables', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        command: 'print',
+        configExt: {
+          provider: {
+            stage: 'testStage',
+          },
+        },
+      });
+      let awsCredentials;
+      overrideEnv(() => {
+        process.env.AWS_TESTSTAGE_ACCESS_KEY_ID = 'TESTSTAGEACCESSKEYID';
+        process.env.AWS_TESTSTAGE_SECRET_ACCESS_KEY = 'TESTSTAGESECRET';
+        awsCredentials = serverless.getProvider('aws').getCredentials();
+      });
+      expect(awsCredentials.credentials.accessKeyId).to.equal('TESTSTAGEACCESSKEYID');
+    });
+
+    it('should get credentials from AWS_{stage}_PROFILE environment variable', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        command: 'print',
+        configExt: {
+          provider: {
+            stage: 'testStage',
+          },
+        },
+      });
+      let awsCredentials;
+      overrideEnv(() => {
+        process.env.AWS_TESTSTAGE_PROFILE = 'notDefault';
+        awsCredentials = serverless.getProvider('aws').getCredentials();
+      });
+      expect(awsCredentials.credentials.accessKeyId).to.equal('NOTDEFAULTKEYID');
+    });
+
+    describe('profile with cli and encryption', () => {
+      let awsCredentials;
+      before(async () => {
+        const { serverless } = await runServerless({
+          fixture: 'aws',
+          command: 'print',
+          options: {
+            'aws-profile': 'notDefault',
+          },
+          configExt: {
+            provider: {
+              deploymentBucket: {
+                serverSideEncryption: 'aws:kms',
+              },
+            },
+          },
+        });
+        awsCredentials = serverless.getProvider('aws').getCredentials();
+      });
+
+      it('should get credentials "--aws-profile" CLI option', () => {
+        expect(awsCredentials.credentials.accessKeyId).to.equal('NOTDEFAULTKEYID');
+      });
+
+      it('should set the signatureVersion to v4 if the serverSideEncryption is aws:kms', () => {
+        expect(awsCredentials.signatureVersion).to.equal('v4');
+      });
+    });
+
+    it('should throw an error if a non-existent profile is set', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        command: 'print',
+        options: {
+          'aws-profile': 'nonExistent',
+        },
+      });
+      expect(() => serverless.getProvider('aws').getCredentials()).to.throw(Error);
+    });
+  });
+
   describe('#getRegion()', () => {
     it('should default to "us-east-1"', async () => {
       const { serverless } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['-v'],
+        command: 'print',
       });
       expect(serverless.getProvider('aws').getRegion()).to.equal('us-east-1');
     });
@@ -702,7 +607,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
     it('should allow to override via `provider.region`', async () => {
       const { serverless } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['-v'],
+        command: 'print',
         configExt: {
           provider: {
             region: 'eu-central-1',
@@ -715,7 +620,8 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
     it('should allow to override via CLI `--region` param', async () => {
       const { serverless } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['-v', '--region', 'us-west-1'],
+        command: 'print',
+        options: { region: 'us-west-1' },
         configExt: {
           provider: {
             region: 'eu-central-1',
@@ -726,11 +632,143 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
     });
   });
 
+  describe('#getProfile()', () => {
+    it('should allow to set via `provider.profile`', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        command: 'print',
+        configExt: {
+          provider: {
+            profile: 'test-profile',
+          },
+        },
+      });
+      expect(serverless.getProvider('aws').getProfile()).to.equal('test-profile');
+    });
+
+    it('should allow to set via CLI `--profile` param', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        command: 'print',
+        options: { profile: 'cli-override' },
+        configExt: {
+          provider: {
+            profile: 'test-profile',
+          },
+        },
+      });
+      expect(serverless.getProvider('aws').getProfile()).to.equal('cli-override');
+    });
+
+    it('should allow to set via CLI `--aws-profile` param', async () => {
+      // Test with `provider.profile` `--profile` and `--aws-pofile` CLI param set
+      // Confirm that `--aws-profile` overrides
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        command: 'print',
+        options: {
+          'profile': 'cli-override',
+          'aws-profile': 'aws-override',
+        },
+        configExt: {
+          provider: {
+            profile: 'test-profile',
+          },
+        },
+      });
+      expect(serverless.getProvider('aws').getProfile()).to.equal('aws-override');
+    });
+  });
+
+  describe('#getDeploymentPrefix()', () => {
+    it('should put all artifacts in namespaced folder', async () => {
+      const { cfTemplate } = await runServerless({
+        fixture: 'function',
+        command: 'package',
+      });
+      const functions = Object.values(cfTemplate.Resources).filter(
+        (r) => r.Type === 'AWS::Lambda::Function'
+      );
+      expect(functions.length).to.be.greaterThanOrEqual(1);
+      for (const f of functions) {
+        expect(f.Properties.Code.S3Key)
+          .to.be.a('string')
+          .and.satisfy((key) => key.startsWith('serverless/'));
+      }
+    });
+
+    it('should support custom namespaced folder', async () => {
+      const { cfTemplate } = await runServerless({
+        fixture: 'function',
+        command: 'package',
+        configExt: {
+          provider: {
+            deploymentPrefix: 'test-prefix',
+          },
+        },
+      });
+      const functions = Object.values(cfTemplate.Resources).filter(
+        (r) => r.Type === 'AWS::Lambda::Function'
+      );
+      expect(functions.length).to.be.greaterThanOrEqual(1);
+      for (const f of functions) {
+        expect(f.Properties.Code.S3Key)
+          .to.be.a('string')
+          .and.satisfy((key) => key.startsWith('test-prefix/'));
+      }
+    });
+  });
+
+  describe('#getAlbTargetGroupPrefix()', () => {
+    it('should support `provider.alb.targetGroupPrefix`', async () => {
+      const albId = '50dc6c495c0c9188';
+      const validBaseEventConfig = {
+        listenerArn: `arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/my-load-balancer/${albId}/f2f7dc8efc522ab2`,
+        conditions: {
+          path: '/',
+        },
+      };
+      const { cfTemplate } = await runServerless({
+        fixture: 'function',
+        command: 'package',
+        configExt: {
+          provider: {
+            alb: {
+              targetGroupPrefix: 'a-prefix',
+            },
+          },
+          functions: {
+            fnTargetGroupName: {
+              handler: 'index.handler',
+              events: [
+                {
+                  alb: {
+                    ...validBaseEventConfig,
+                    priority: 1,
+                  },
+                },
+              ],
+            },
+          },
+        },
+      });
+      const targetGroups = Object.values(cfTemplate.Resources).filter(
+        (r) => r.Type === 'AWS::ElasticLoadBalancingV2::TargetGroup'
+      );
+      expect(targetGroups.length).to.be.greaterThanOrEqual(1);
+      for (const t of targetGroups) {
+        expect(t.Properties.Name)
+          .to.be.a('string')
+          .and.satisfy((key) => key.startsWith('a-prefix'));
+      }
+    });
+  });
+
   describe('#getStage()', () => {
     it('should default to "dev"', async () => {
       const { serverless } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['-v'],
+        command: 'print',
       });
       expect(serverless.getProvider('aws').getStage()).to.equal('dev');
     });
@@ -738,7 +776,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
     it('should allow to override via `provider.stage`', async () => {
       const { serverless } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['-v'],
+        command: 'print',
         configExt: {
           provider: {
             stage: 'staging',
@@ -751,7 +789,8 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
     it('should allow to override via CLI `--stage` param', async () => {
       const { serverless } = await runServerless({
         fixture: 'aws',
-        cliArgs: ['-v', '--stage', 'production'],
+        command: 'print',
+        options: { stage: 'production' },
         configExt: {
           provider: {
             stage: 'staging',
@@ -767,7 +806,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
       await expect(
         runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             provider: {
               ecr: {
@@ -797,7 +836,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
       await expect(
         runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             provider: {
               ecr: {
@@ -823,7 +862,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
       await expect(
         runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           shouldStubSpawn: true,
           configExt: {
             provider: {
@@ -844,7 +883,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
       await expect(
         runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             functions: {
               fnInvalid: {
@@ -863,7 +902,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
       await expect(
         runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           shouldStubSpawn: true,
           configExt: {
             functions: {
@@ -887,7 +926,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
       await expect(
         runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           shouldStubSpawn: true,
           configExt: {
             functions: {
@@ -930,7 +969,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
       before(async () => {
         const { awsNaming, cfTemplate, fixtureData } = await runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             provider: {
               ecr: {
@@ -1113,6 +1152,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
       });
       const modulesCacheStub = {
         'child-process-ext/spawn': spawnExtStub,
+        './lib/utils/telemetry/generatePayload.js': async () => ({}),
       };
 
       beforeEach(() => {
@@ -1135,10 +1175,10 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         const {
           awsNaming,
           cfTemplate,
-          fixtureData: { servicePath },
+          fixtureData: { servicePath: serviceDir },
         } = await runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           awsRequestStubMap,
           modulesCacheStub,
         });
@@ -1165,7 +1205,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
           '-t',
           `${awsNaming.getEcrRepositoryName()}:baseimage`,
           '-f',
-          path.join(servicePath, 'Dockerfile'),
+          path.join(serviceDir, 'Dockerfile'),
           './',
         ]);
         expect(spawnExtStub).to.be.calledWith('docker', [
@@ -1190,7 +1230,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
 
         const { awsNaming, cfTemplate } = await runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           awsRequestStubMap,
           modulesCacheStub,
         });
@@ -1226,12 +1266,13 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         const {
           awsNaming,
           cfTemplate,
-          fixtureData: { servicePath },
+          fixtureData: { servicePath: serviceDir },
         } = await runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           awsRequestStubMap,
           modulesCacheStub: {
+            ...modulesCacheStub,
             'child-process-ext/spawn': innerSpawnExtStub,
           },
         });
@@ -1250,7 +1291,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
           '-t',
           `${awsNaming.getEcrRepositoryName()}:baseimage`,
           '-f',
-          path.join(servicePath, 'Dockerfile'),
+          path.join(serviceDir, 'Dockerfile'),
           './',
         ]);
         expect(innerSpawnExtStub).to.be.calledWith('docker', [
@@ -1292,9 +1333,10 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
           .throws({ stdBuffer: 'authorization token has expired' });
         await runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           awsRequestStubMap,
           modulesCacheStub: {
+            ...modulesCacheStub,
             'child-process-ext/spawn': innerSpawnExtStub,
           },
         });
@@ -1327,9 +1369,10 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
 
         const { stdoutData } = await runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           awsRequestStubMap,
           modulesCacheStub: {
+            ...modulesCacheStub,
             'child-process-ext/spawn': sinon
               .stub()
               .returns({
@@ -1360,7 +1403,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         };
         const { awsNaming, cfTemplate } = await runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           awsRequestStubMap,
           modulesCacheStub,
           configExt: {
@@ -1402,10 +1445,10 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         const {
           awsNaming,
           cfTemplate,
-          fixtureData: { servicePath },
+          fixtureData: { servicePath: serviceDir },
         } = await runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           awsRequestStubMap,
           modulesCacheStub,
           configExt: {
@@ -1439,7 +1482,127 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
           '-t',
           `${awsNaming.getEcrRepositoryName()}:baseimage`,
           '-f',
-          path.join(servicePath, 'Dockerfile.dev'),
+          path.join(serviceDir, 'Dockerfile.dev'),
+          './',
+        ]);
+      });
+
+      it('should work correctly when image is defined with `cacheFrom` set', async () => {
+        const awsRequestStubMap = {
+          ...baseAwsRequestStubMap,
+          ECR: {
+            ...baseAwsRequestStubMap.ECR,
+            describeRepositories: describeRepositoriesStub.resolves({
+              repositories: [{ repositoryUri }],
+            }),
+            createRepository: createRepositoryStub,
+          },
+        };
+        const {
+          awsNaming,
+          cfTemplate,
+          fixtureData: { servicePath: serviceDir },
+        } = await runServerless({
+          fixture: 'ecr',
+          command: 'package',
+          awsRequestStubMap,
+          modulesCacheStub,
+          configExt: {
+            provider: {
+              ecr: {
+                images: {
+                  baseimage: {
+                    path: './',
+                    file: 'Dockerfile.dev',
+                    cacheFrom: ['my-image:latest'],
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        const functionCfLogicalId = awsNaming.getLambdaLogicalId('foo');
+        const functionCfConfig = cfTemplate.Resources[functionCfLogicalId].Properties;
+        const versionCfConfig = Object.values(cfTemplate.Resources).find(
+          (resource) =>
+            resource.Type === 'AWS::Lambda::Version' &&
+            resource.Properties.FunctionName.Ref === functionCfLogicalId
+        ).Properties;
+
+        expect(functionCfConfig.Code.ImageUri).to.deep.equal(`${repositoryUri}@sha256:${imageSha}`);
+        expect(versionCfConfig.CodeSha256).to.equal(imageSha);
+        expect(describeRepositoriesStub).to.be.calledOnce;
+        expect(createRepositoryStub.notCalled).to.be.true;
+        expect(spawnExtStub).to.be.calledWith('docker', [
+          'build',
+          '-t',
+          `${awsNaming.getEcrRepositoryName()}:baseimage`,
+          '-f',
+          path.join(serviceDir, 'Dockerfile.dev'),
+          '--cache-from',
+          'my-image:latest',
+          './',
+        ]);
+      });
+
+      it('should work correctly when image is defined with `buildArgs` set', async () => {
+        const awsRequestStubMap = {
+          ...baseAwsRequestStubMap,
+          ECR: {
+            ...baseAwsRequestStubMap.ECR,
+            describeRepositories: describeRepositoriesStub.resolves({
+              repositories: [{ repositoryUri }],
+            }),
+            createRepository: createRepositoryStub,
+          },
+        };
+        const {
+          awsNaming,
+          cfTemplate,
+          fixtureData: { servicePath: serviceDir },
+        } = await runServerless({
+          fixture: 'ecr',
+          command: 'package',
+          awsRequestStubMap,
+          modulesCacheStub,
+          configExt: {
+            provider: {
+              ecr: {
+                images: {
+                  baseimage: {
+                    path: './',
+                    file: 'Dockerfile.dev',
+                    buildArgs: {
+                      TESTKEY: 'TESTVAL',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        const functionCfLogicalId = awsNaming.getLambdaLogicalId('foo');
+        const functionCfConfig = cfTemplate.Resources[functionCfLogicalId].Properties;
+        const versionCfConfig = Object.values(cfTemplate.Resources).find(
+          (resource) =>
+            resource.Type === 'AWS::Lambda::Version' &&
+            resource.Properties.FunctionName.Ref === functionCfLogicalId
+        ).Properties;
+
+        expect(functionCfConfig.Code.ImageUri).to.deep.equal(`${repositoryUri}@sha256:${imageSha}`);
+        expect(versionCfConfig.CodeSha256).to.equal(imageSha);
+        expect(describeRepositoriesStub).to.be.calledOnce;
+        expect(createRepositoryStub.notCalled).to.be.true;
+        expect(spawnExtStub).to.be.calledWith('docker', [
+          'build',
+          '-t',
+          `${awsNaming.getEcrRepositoryName()}:baseimage`,
+          '-f',
+          path.join(serviceDir, 'Dockerfile.dev'),
+          '--build-arg',
+          'TESTKEY=TESTVAL',
           './',
         ]);
       });
@@ -1457,7 +1620,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         };
         const { awsNaming, cfTemplate } = await runServerless({
           fixture: 'ecr',
-          cliArgs: ['package'],
+          command: 'package',
           awsRequestStubMap,
           modulesCacheStub,
           configExt: {
@@ -1489,7 +1652,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         await expect(
           runServerless({
             fixture: 'ecr',
-            cliArgs: ['package'],
+            command: 'package',
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
               'child-process-ext/spawn': sinon.stub().throws(),
@@ -1502,9 +1665,10 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         await expect(
           runServerless({
             fixture: 'ecr',
-            cliArgs: ['package'],
+            command: 'package',
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
+              ...modulesCacheStub,
               'child-process-ext/spawn': sinon.stub().returns({}).onSecondCall().throws(),
             },
           })
@@ -1515,9 +1679,10 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         await expect(
           runServerless({
             fixture: 'ecr',
-            cliArgs: ['package'],
+            command: 'package',
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
+              ...modulesCacheStub,
               'child-process-ext/spawn': sinon.stub().returns({}).onCall(2).throws(),
             },
           })
@@ -1528,9 +1693,10 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         await expect(
           runServerless({
             fixture: 'ecr',
-            cliArgs: ['package'],
+            command: 'package',
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
+              ...modulesCacheStub,
               'child-process-ext/spawn': sinon.stub().returns({}).onCall(3).throws(),
             },
           })
@@ -1541,9 +1707,10 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         await expect(
           runServerless({
             fixture: 'ecr',
-            cliArgs: ['package'],
+            command: 'package',
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
+              ...modulesCacheStub,
               'child-process-ext/spawn': sinon
                 .stub()
                 .returns({})

@@ -9,14 +9,18 @@ chai.use(require('chai-as-promised'));
 describe('#compileRequestValidators()', () => {
   let cfResources;
   let naming;
+  let serviceName;
+  let stage;
 
   before(async () => {
-    const { cfTemplate, awsNaming } = await runServerless({
+    const { cfTemplate, awsNaming, serverless } = await runServerless({
       fixture: 'requestSchema',
-      cliArgs: ['package'],
+      command: 'package',
     });
     cfResources = cfTemplate.Resources;
     naming = awsNaming;
+    serviceName = serverless.service.service;
+    stage = serverless.getProvider('aws').getStage();
   });
 
   describe(' reusable schemas ', () => {
@@ -94,7 +98,7 @@ describe('#compileRequestValidators()', () => {
      **/
     it('should reference model from provider:apiGateway:requestSchemas', () => {
       const modelLogicalId = naming.getModelLogicalId('test-model');
-      const validatorLogicalId = naming.getValidatorLogicalId(modelLogicalId);
+      const validatorLogicalId = naming.getValidatorLogicalId();
       const methodLogicalId = naming.getMethodLogicalId('TestDashmodelDashfull', 'get');
       const methodResource = cfResources[methodLogicalId];
 
@@ -116,9 +120,7 @@ describe('#compileRequestValidators()', () => {
         'get',
         'application/json'
       );
-      const validatorLogicalId = naming.getValidatorLogicalId(
-        naming.getModelLogicalId('TestDashdirectDashsimple')
-      );
+      const validatorLogicalId = naming.getValidatorLogicalId();
       const methodLogicalId = naming.getMethodLogicalId('TestDashdirectDashsimple', 'get');
       const methodResource = cfResources[methodLogicalId];
 
@@ -168,9 +170,7 @@ describe('#compileRequestValidators()', () => {
         'get',
         'application/json'
       );
-      const validatorLogicalId = naming.getValidatorLogicalId(
-        naming.getModelLogicalId('TestDashdirectDashfull')
-      );
+      const validatorLogicalId = naming.getValidatorLogicalId();
       const methodLogicalId = naming.getMethodLogicalId('TestDashdirectDashfull', 'get');
       const methodResource = cfResources[methodLogicalId];
 
@@ -225,9 +225,7 @@ describe('#compileRequestValidators()', () => {
         'get',
         'text/plain'
       );
-      const validatorLogicalId = naming.getValidatorLogicalId(
-        naming.getModelLogicalId('TestDashmultiple')
-      );
+      const validatorLogicalId = naming.getValidatorLogicalId();
       const methodLogicalId = naming.getMethodLogicalId('TestDashmultiple', 'get');
       const methodResource = cfResources[methodLogicalId];
 
@@ -295,9 +293,7 @@ describe('#compileRequestValidators()', () => {
         'get',
         'application/json'
       );
-      const validatorLogicalId = naming.getValidatorLogicalId(
-        naming.getModelLogicalId('TestDashdeprecatedDashsimple')
-      );
+      const validatorLogicalId = naming.getValidatorLogicalId();
       const methodLogicalId = naming.getMethodLogicalId('TestDashdeprecatedDashsimple', 'get');
       const methodResource = cfResources[methodLogicalId];
 
@@ -339,6 +335,15 @@ describe('#compileRequestValidators()', () => {
       });
     });
 
+    it('should create validator with that includes `service` and `stage`', () => {
+      const validatorLogicalId = naming.getValidatorLogicalId();
+      const validatorResource = cfResources[validatorLogicalId];
+
+      expect(validatorResource.Properties.Name).to.equal(
+        `${serviceName}-${stage} | Validate request body and querystring parameters`
+      );
+    });
+
     it('should support multiple request:schema property for regression', () => {
       const modelJsonLogicalId = naming.getEndpointModelLogicalId(
         'TestDashdeprecatedDashmultiple',
@@ -350,9 +355,7 @@ describe('#compileRequestValidators()', () => {
         'get',
         'text/plain'
       );
-      const validatorLogicalId = naming.getValidatorLogicalId(
-        naming.getModelLogicalId('TestDashdeprecatedDashmultiple')
-      );
+      const validatorLogicalId = naming.getValidatorLogicalId();
       const methodLogicalId = naming.getMethodLogicalId('TestDashdeprecatedDashmultiple', 'get');
       const methodResource = cfResources[methodLogicalId];
 

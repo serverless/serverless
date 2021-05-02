@@ -51,7 +51,7 @@ describe('#logDeprecation()', () => {
     return runServerless({
       fixture: 'function',
       configExt: { disabledDeprecations: ['CODE1'] },
-      cliArgs: ['package'],
+      command: 'package',
     }).then(({ serverless }) => {
       const serviceConfig = serverless.service;
       let stdoutData = '';
@@ -79,7 +79,7 @@ describe('#logDeprecation()', () => {
     return runServerless({
       fixture: 'function',
       configExt: { disabledDeprecations: '*' },
-      cliArgs: ['package'],
+      command: 'package',
     }).then(({ serverless }) => {
       const serviceConfig = serverless.service;
       let stdoutData = '';

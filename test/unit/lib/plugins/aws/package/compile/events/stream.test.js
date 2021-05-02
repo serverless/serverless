@@ -1598,7 +1598,7 @@ describe('AwsCompileStreamEvents #2', () => {
             },
           },
         },
-        cliArgs: ['package'],
+        command: 'package',
       });
       naming = awsNaming;
       const streamLogicalId = awsNaming.getStreamLogicalId('foo', 'kinesis', 'myStream');
@@ -1644,7 +1644,7 @@ describe('AwsCompileStreamEvents #2', () => {
             },
           },
         },
-        cliArgs: ['package'],
+        command: 'package',
       });
       const streamLogicalId = awsNaming.getStreamLogicalId('foo', 'kinesis', 'myStream');
       eventSourceMappingResource = cfTemplate.Resources[streamLogicalId];

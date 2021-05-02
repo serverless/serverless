@@ -69,11 +69,11 @@ $ cd your-service-name
 
 The `serverless` command will guide you through creating a new Node or Python Service, [configuring your AWS Account](https://serverless.com/framework/docs/providers/aws/guide/credentials/) to work with the Serverless Framework, and setting up a free Serverless Framework Dashboard account so you can monitor, troubleshoot, and test your new service.
 
-Looking to get started with something other than Node or Python? No problem. You can use the[`create` command](https://serverless.com/framework/docs/providers/aws/cli-reference/create/) to get started with a variety of other languages.
+Looking to get started with something other than Node or Python? No problem. You can use the [`create`](https://serverless.com/framework/docs/providers/aws/cli-reference/create/) command to get started with a variety of other languages.
 
 ### Set up an endpoint
 
-An Event is anything that can trigger your serverless functions. In this case, you need to define a endpoint in your `serverless.yml` that will trigger your serverless function.
+An Event is anything that can trigger your serverless functions. In this case, you need to define an endpoint in your `serverless.yml` that will trigger your serverless function.
 
 ```yaml
 functions:
@@ -146,7 +146,7 @@ Now you are ready to leverage the hundreds of Service Examples available to you 
 
 ### Create a new Service from an Example
 
-The `serverless` introduced above guided you through creating a new service for a simple Node.js project. However, if you want to create a project for a more advanced use case and you don’t want to start from scratch, check out the list of available examples.
+The `serverless` introduction above guided you through creating a new service for a simple Node.js project. However, if you want to create a project for a more advanced use case and you don’t want to start from scratch, check out the list of available examples.
 
 Clone a Service from the Serverless Inc. repository of [Examples](https://serverless.com/examples/)
 

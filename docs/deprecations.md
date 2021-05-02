@@ -17,6 +17,14 @@ disabledDeprecations:
   - '*' # To disable all deprecation messages
 ```
 
+<a name="AWS_API_GATEWAY_NON_APPLICABLE_SETTINGS"><div>&nbsp;</div></a>
+
+## AWS API Gateway non-applicable settings configured
+
+Deprecation code: `AWS_API_GATEWAY_NON_APPLICABLE_SETTINGS`
+
+When external API Gateway resource is used and imported via `provider.apiGateway.restApiId` setting, both `provider.logs.restApi` and `provider.tracing.apiGateway` will be ignored. These settings are applicable only if API Gateway resource is provisioned by Serverless Framework.
+
 <a name="CLI_OPTIONS_SCHEMA'"><div>&nbsp;</div></a>
 
 ## CLI Options extensions, `type` requirement
@@ -125,13 +133,19 @@ _Note: Applies only to eventual programmatic usage of the Framework_
 
 <a name="MISSING_SERVICE_CONFIGURATION"><div>&nbsp;</div></a>
 
-## `Serverless` constructor `config.configuration` requirement
+## `Serverless` constructor service configuration dependency
 
 Deprecation code: `MISSING_SERVICE_CONFIGURATION`
 
 _Note: Applies only to eventual programmatic usage of the Framework_
 
-`Serverless` constructor was refactored to depend on service configuration being resolved externally and passed to its constructor with `config.configuration`. Starting from v3.0.0 configuration will not be resolved internally.
+`Serverless` constructor was refactored to depend on service configuration being resolved externally and passed to its constructor with following options:
+
+- `configuration` - Service configuration (JSON serializable plain object)
+- `serviceDir` - Directory in which service is placed (All path references in service configuration will be resolved against this path)
+- `configurationFilename` - Name of configuration file (e.g. `serverless.yml`).
+
+Starting from v3.0.0 configuration data will not be resolved internally, and if `Serverless` is invoked in service context, all three options will have to be provided
 
 <a name="NESTED_CUSTOM_CONFIGURATION_PATH"><div>&nbsp;</div></a>
 
@@ -148,13 +162,19 @@ To avoid confusing behavior starting with v3.0.0 Framework will no longer permit
 
 <a name="MISSING_SERVICE_CONFIGURATION_PATH"><div>&nbsp;</div></a>
 
-## `Serverless` constructor `config.configurationPath` requirement
+## `Serverless` constructor service configuration dependency
 
 Deprecation code: `MISSING_SERVICE_CONFIGURATION_PATH`
 
 _Note: Applies only to eventual programmatic usage of the Framework_
 
-`Serverless` constructor was refactored to depend on service configuration path being resolved externally and passed to its constructor with `config.configurationPath`. Starting from v3.0.0 this path will not be resolved internally.
+`Serverless` constructor was refactored to depend on service configuration being resolved externally and passed to its constructor with following options:
+
+- `configuration` - Service configuration (JSON serializable plain object)
+- `serviceDir` - Directory in which service is placed (All path references in service configuration will be resolved against this path)
+- `configurationFilename` - Name of configuration file (e.g. `serverless.yml`).
+
+Starting from v3.0.0 configuration data will not be resolved internally, and if `Serverless` is invoked in service context, all three options will have to be provided
 
 <a name="VARIABLES_ERROR_ON_UNRESOLVED"><div>&nbsp;</div></a>
 
@@ -175,10 +195,13 @@ Deprecation code: `PROVIDER_IAM_SETTINGS`
 Staring with v3.0.0, all IAM-related settings of _provider_ including `iamRoleStatements`, `iamManagedPolicies`, `role` and `cfnRole` will be grouped under `iam` property. Refer to the[IAM Guide](/framework/docs/providers/aws/guide/iam.md).
 
 - `provider.role` -> `provider.iam.role`
-- `provider.rolePermissionsBoundary` -> `provider.iam.role.permissionBoundary`
+- `provider.rolePermissionsBoundary` -> `provider.iam.role.permissionsBoundary`
 - `provider.iamRoleStatements` -> `provider.iam.role.statements`
 - `provider.iamManagedPolicies` -> `provider.iam.role.managedPolicies`
 - `provider.cfnRole` -> `provider.iam.deploymentRole`
+
+In addition, a prior update had documented the new Permissions Boundary property as `iam.role.permissionBoundary`. This
+has now been deprecated in favor of `iam.role.permissionsBoundary` to match the CloudFormation property.
 
 <a name="AWS_API_GATEWAY_SPECIFIC_KEYS"><div>&nbsp;</div></a>
 
@@ -258,7 +281,7 @@ Starting with v3.0.0, API Gateway naming will be changed from `${stage}-${servic
 
 Adapt to this convention now by setting `provider.apiGateway.shouldStartNameWithService` to `true`.
 
-Eventually if you have a strong reason to stick to current convention, you may ensure it's kept after upgrading by setting: `provider.apiName: ${opt:stage, self:provider.stage, 'dev'}`
+Eventually if you have a strong reason to stick to current convention, you may ensure it's kept after upgrading by setting: `provider.apiName: ${sls:stage}`
 
 <a name="ALEXA_SKILL_EVENT_WITHOUT_APP_ID"><div>&nbsp;</div></a>
 

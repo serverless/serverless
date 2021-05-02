@@ -33,7 +33,7 @@ describe('createStack', () => {
     const serverless = new Serverless();
     serverless.setProvider('aws', new AwsProvider(serverless, {}));
     serverless.utils.writeFileSync(serverlessYmlPath, serverlessYml);
-    serverless.config.servicePath = tmpDirPath;
+    serverless.serviceDir = tmpDirPath;
     const options = {
       stage: 'dev',
       region: 'us-east-1',
@@ -258,7 +258,7 @@ describe('createStack #2', () => {
   it('should use iam.deploymentRole service role if set', async () => {
     await runServerless({
       fixture: 'function',
-      cliArgs: ['deploy'],
+      command: 'deploy',
       configExt: {
         provider: {
           iam: {
@@ -279,7 +279,7 @@ describe('createStack #2', () => {
   it('should use CloudFormation service role ARN if it is specified', async () => {
     await runServerless({
       fixture: 'function',
-      cliArgs: ['deploy'],
+      command: 'deploy',
       configExt: {
         provider: {
           cfnRole: 'arn:aws:iam::123456789012:role/role-b',

@@ -13,7 +13,7 @@ describe('#setBucketName()', () => {
 
   beforeEach(() => {
     serverless = new Serverless();
-    serverless.config.servicePath = 'foo';
+    serverless.serviceDir = 'foo';
     const options = {
       stage: 'dev',
       region: 'us-east-1',

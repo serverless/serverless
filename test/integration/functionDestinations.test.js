@@ -2,7 +2,7 @@
 
 const { expect } = require('chai');
 const awsRequest = require('@serverless/test/aws-request');
-const fixtures = require('../fixtures');
+const fixtures = require('../fixtures/programmatic');
 const { confirmCloudWatchLogs } = require('../utils/misc');
 
 const { deployService, removeService } = require('../utils/integration');
@@ -10,20 +10,20 @@ const { deployService, removeService } = require('../utils/integration');
 describe('Function destinations Integration Test', function () {
   this.timeout(1000 * 60 * 20); // Involves time-taking deploys
   let stackName;
-  let servicePath;
+  let serviceDir;
   const stage = 'dev';
 
   before(async () => {
     const serviceData = await fixtures.setup('functionDestinations');
-    ({ servicePath } = serviceData);
+    ({ servicePath: serviceDir } = serviceData);
     const serviceName = serviceData.serviceConfig.service;
     stackName = `${serviceName}-${stage}`;
-    await deployService(servicePath);
+    await deployService(serviceDir);
   });
 
   after(async () => {
-    if (!servicePath) return;
-    await removeService(servicePath);
+    if (!serviceDir) return;
+    await removeService(serviceDir);
   });
 
   it('on async invoke should invoke destination target', async () =>

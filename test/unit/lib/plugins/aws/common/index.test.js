@@ -15,7 +15,7 @@ describe('AwsCommon', () => {
       region: 'us-east-1',
     };
     serverless.setProvider('aws', new AwsProvider(serverless, options));
-    serverless.config.servicePath = 'foo';
+    serverless.serviceDir = 'foo';
     awsCommon = new AwsCommon(serverless, options);
     awsCommon.serverless.cli = new serverless.classes.CLI();
   });

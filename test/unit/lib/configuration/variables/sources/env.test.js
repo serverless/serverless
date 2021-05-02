@@ -21,7 +21,7 @@ describe('test/unit/lib/configuration/variables/sources/env.test.js', () => {
     };
     variablesMeta = resolveMeta(configuration);
     await resolve({
-      servicePath: process.cwd(),
+      serviceDir: process.cwd(),
       configuration,
       variablesMeta,
       sources: { env: envSource, self: selfSource },

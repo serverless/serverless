@@ -18,6 +18,8 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       varAddress: 'foo${sourceAddress:${sourceDirect:}}',
       direct: '${sourceDirect:}',
       property: '${sourceProperty(direct)}',
+      escape:
+        'e\\${sourceDirect:}n\\$${sourceProperty(address)}qe\\\\\\${sourceProperty(direct)}qn\\\\${sourceProperty(address)}',
       otherProperty: '${sourceProperty(varAddress)}',
       deepProperty: '${sourceProperty(foo)}',
       deepPropertyUnrecognized: '${sourceProperty(nestUnrecognized)}',
@@ -32,10 +34,14 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       propertyDeepCircularC: '${sourceProperty(propertyDeepCircularA)}',
       propertyRoot: '${sourceProperty:}',
       withString: 'foo${sourceDirect:}',
-      resolvesVariablesObject: '${sourceVariables(object)}',
-      resolvesVariablesArray: '${sourceVariables(array)}',
-      resolvesVariablesString: '${sourceVariables(string)}',
-      resolvesVariablesStringInvalid: '${sourceVariables(stringInvalid)}',
+      resolvesResultVariablesObject: '${sourceResultVariables(object)}',
+      resolvesResultVariablesArray: '${sourceResultVariables(array)}',
+      resolvesResultVariablesString: '${sourceResultVariables(string)}',
+      resolvesResultVariablesStringInvalid: '${sourceResultVariables(stringInvalid)}',
+      resolvesVariables: '${sourceResolveVariable("sourceParam(${sourceDirect:})")}',
+      resolvesVariablesFallback: '${sourceResolveVariable("sourceMissing:, null"), null}',
+      resolvesVariablesInvalid1: '${sourceResolveVariable("sourceDirect(")}',
+      resolvesVariablesInvalid2: '${sourceResolveVariable("sourceDirect")}',
       incomplete: '${sourceDirect:}elo${sourceIncomplete:}',
       missing: '${sourceDirect:}elo${sourceMissing:}other${sourceMissing:}',
       missingFallback: '${sourceDirect:}elo${sourceMissing:, "foo"}',
@@ -81,7 +87,12 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
           return { value: result == null ? null : result };
         },
       },
-      sourceVariables: {
+      sourceResolveVariable: {
+        resolve: async ({ params, resolveVariable }) => {
+          return { value: await resolveVariable(params[0]) };
+        },
+      },
+      sourceResultVariables: {
         resolve: ({ params: [type] }) => {
           switch (type) {
             case 'object':
@@ -155,7 +166,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     before(async () => {
       variablesMeta = resolveMeta(configuration);
       await resolve({
-        servicePath: process.cwd(),
+        serviceDir: process.cwd(),
         configuration,
         variablesMeta,
         sources,
@@ -198,6 +209,12 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       });
     });
 
+    it('should clear escapes', () => {
+      expect(configuration.escape).to.equal(
+        'e${sourceDirect:}n\\$fooaddress-resultqe\\${sourceProperty(direct)}qn\\fooaddress-result'
+      );
+    });
+
     it('should support incomplete sources', () => {
       expect(variablesMeta.get('incomplete')).to.have.property('variables');
     });
@@ -221,9 +238,9 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     });
 
     it('should resolve variables in returned results', () => {
-      expect(configuration.resolvesVariablesObject).to.deep.equal({ foo: 234 });
-      expect(configuration.resolvesVariablesArray).to.deep.equal([1, 234]);
-      expect(configuration.resolvesVariablesString).to.equal(234);
+      expect(configuration.resolvesResultVariablesObject).to.deep.equal({ foo: 234 });
+      expect(configuration.resolvesResultVariablesArray).to.deep.equal([1, 234]);
+      expect(configuration.resolvesResultVariablesString).to.equal(234);
     });
 
     // https://github.com/serverless/serverless/issues/9016
@@ -332,7 +349,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     });
 
     it('should error on invalid variable notation in returned result', () => {
-      const valueMeta = variablesMeta.get('resolvesVariablesStringInvalid');
+      const valueMeta = variablesMeta.get('resolvesResultVariablesStringInvalid');
       expect(valueMeta).to.not.have.property('variables');
       expect(valueMeta.error.code).to.equal('UNTERMINATED_VARIABLE');
     });
@@ -345,7 +362,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
 
     it('should allow to re-resolve fulfilled sources', async () => {
       await resolve({
-        servicePath: process.cwd(),
+        serviceDir: process.cwd(),
         configuration,
         variablesMeta,
         sources: { ...sources, sourceIncomplete: { resolve: () => ({ value: 'complete' }) } },
@@ -367,7 +384,9 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         'propertyDeepCircularB',
         'propertyDeepCircularC',
         'propertyRoot',
-        'resolvesVariablesStringInvalid',
+        'resolvesResultVariablesStringInvalid',
+        'resolvesVariablesInvalid1',
+        'resolvesVariablesInvalid2',
         'missing',
         'nonStringStringPart',
         'nestUnrecognized\0unrecognized',
@@ -382,6 +401,25 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         'invalidResultValue',
         `infiniteResolutionRecursion${'\0nest'.repeat(10)}`,
       ]);
+    });
+
+    describe('"resolveVariable" source util', () => {
+      it('should resolve variable', () => {
+        expect(configuration.resolvesVariables).to.equal('234');
+      });
+      it('should support multiple sources', () => {
+        expect(configuration.resolvesVariablesFallback).to.equal(null);
+      });
+
+      it('should error on invalid input', () => {
+        let valueMeta = variablesMeta.get('resolvesVariablesInvalid1');
+        expect(valueMeta).to.not.have.property('variables');
+        expect(valueMeta.error.code).to.equal('VARIABLE_RESOLUTION_ERROR');
+
+        valueMeta = variablesMeta.get('resolvesVariablesInvalid2');
+        expect(valueMeta).to.not.have.property('variables');
+        expect(valueMeta.error.code).to.equal('VARIABLE_RESOLUTION_ERROR');
+      });
     });
   });
 
@@ -414,7 +452,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     before(async () => {
       variablesMeta = resolveMeta(configuration);
       await resolve({
-        servicePath: process.cwd(),
+        serviceDir: process.cwd(),
         configuration,
         variablesMeta,
         sources,

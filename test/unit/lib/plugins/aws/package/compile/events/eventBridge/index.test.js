@@ -139,7 +139,7 @@ describe('EventBridgeEvents', () => {
       const { cfTemplate, awsNaming } = await runServerless({
         fixture: 'function',
         configExt: serverlessConfigurationExtension,
-        cliArgs: ['package'],
+        command: 'package',
       });
       cfResources = cfTemplate.Resources;
       naming = awsNaming;
@@ -252,7 +252,7 @@ describe('EventBridgeEvents', () => {
               },
             },
           },
-          cliArgs: ['package'],
+          command: 'package',
         })
       ).to.be.eventually.rejected.and.have.property(
         'code',
@@ -329,7 +329,7 @@ describe('EventBridgeEvents', () => {
               },
             },
           },
-          cliArgs: ['package'],
+          command: 'package',
         });
         cfResources = cfTemplate.Resources;
         naming = awsNaming;
@@ -405,7 +405,7 @@ describe('EventBridgeEvents', () => {
       before(async () => {
         const { cfTemplate, awsNaming } = await runServerless({
           fixture: 'function',
-          cliArgs: ['package'],
+          command: 'package',
           configExt: {
             provider: {
               eventBridge: {
