@@ -76,11 +76,11 @@ describe('test/unit/lib/utils/resolve-error-location.test.js', () => {
     it('should correctly handle paths not enclosed in parentheses', () => {
       const err = new Error('test');
       err.stack =
-        'Error: spawn E2BIG\n' +
-        '    at ChildProcess.spawn (node:internal/child_process:403:11)\n' +
-        '    at Object.spawn (node:child_process:573:9)\n' +
-        '    at C:\\home\\xxx\\api\\node_modules\\bestzip\\lib\\bestzip.js:75:29\n' +
-        '    at C:\\home\\xxx\\api\\node_modules\\async\\dist\\async.js:1802:20\n';
+        'Error: spawn E2BIG\r\n' +
+        '    at ChildProcess.spawn (node:internal/child_process:403:11)\r\n' +
+        '    at Object.spawn (node:child_process:573:9)\r\n' +
+        '    at C:\\home\\xxx\\api\\node_modules\\bestzip\\lib\\bestzip.js:75:29\r\n' +
+        '    at C:\\home\\xxx\\api\\node_modules\\async\\dist\\async.js:1802:20\r\n';
 
       const result = resolveErrorLocation(tokenizeException(err));
       expect(result).to.equal(
@@ -97,12 +97,12 @@ describe('test/unit/lib/utils/resolve-error-location.test.js', () => {
       const err = new Error('test');
       err.stack =
         'Error:\n' +
-        '    at Context.it (C:\\home\\xxx\\serverless\\test\\unit\\lib\\utils\\resolve-error-location.test.js:10:17)\n' +
-        '    at callFn (C:\\home\\xxx\\serverless\\node_modules\\mocha\\lib\\runnable.js:366:21)\n' +
-        '    at Test.Runnable.run (C:\\home\\xxx\\serverless\\node_modules\\mocha\\lib\\runnable.js:354:5)\n' +
-        '    at Runner.runTest (C:\\home\\xxx\\serverless\\node_modules\\mocha\\lib\\runner.js:677:10)\n' +
-        '    at next (C:\\home\\xxx\\serverless\\node_modules\\mocha\\lib\\runner.js:801:12)\n' +
-        '    at next (C:\\home\\xxx\\serverless\\node_modules\\mocha\\lib\\runner.js:594:14)\n';
+        '    at Context.it (C:\\home\\xxx\\serverless\\test\\unit\\lib\\utils\\resolve-error-location.test.js:10:17)\r\n' +
+        '    at callFn (C:\\home\\xxx\\serverless\\node_modules\\mocha\\lib\\runnable.js:366:21)\r\n' +
+        '    at Test.Runnable.run (C:\\home\\xxx\\serverless\\node_modules\\mocha\\lib\\runnable.js:354:5)\r\n' +
+        '    at Runner.runTest (C:\\home\\xxx\\serverless\\node_modules\\mocha\\lib\\runner.js:677:10)\r\n' +
+        '    at next (C:\\home\\xxx\\serverless\\node_modules\\mocha\\lib\\runner.js:801:12)\r\n' +
+        '    at next (C:\\home\\xxx\\serverless\\node_modules\\mocha\\lib\\runner.js:594:14)\r\n';
       const result = resolveErrorLocation(tokenizeException(err));
       expect(result).to.equal(
         [
