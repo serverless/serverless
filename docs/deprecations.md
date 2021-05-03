@@ -393,4 +393,4 @@ Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2
 
 Deprecation code: `DEFAULT_NODEJS12X_RUNTIME_DEPRECATED`
 
-Please use `nodejs14.x` as the runtime as it will be configure as the default runtime in the next major release (3.0.0).
+Starting with `v3.0.0`, the default runtime will change from `nodejs12.x` to `nodejs14.x`. In order to hide the deprecation message and ensure seamless upgrade, please set the runtime explicitly.
