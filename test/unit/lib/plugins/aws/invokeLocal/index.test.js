@@ -1464,8 +1464,8 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
             env: 'PARAM_ENV_VAR=-Dblart=snort',
           },
           configExt: {
-            disabledDeprecations: ['DEFAULT_NODEJS12X_RUNTIME_DEPRECATED'],
             provider: {
+              runtime: 'nodejs14.x',
               environment: {
                 PROVIDER_LEVEL_VAR: 'PROVIDER_LEVEL_VAR_VALUE',
                 NULL_VAR: null,
