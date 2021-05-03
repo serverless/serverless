@@ -206,6 +206,10 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
       const { Tags } = cfApi.Properties;
       expect(Tags).to.be.a('object');
       expect(Tags).to.deep.equal(expectedTags);
+
+      const { Tags: stageTags } = cfStage.Properties;
+      expect(stageTags).to.be.a('object');
+      expect(stageTags).to.deep.equal(expectedTags);
     });
 
     it('should set payload format version', () => {
