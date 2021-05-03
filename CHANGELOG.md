@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.39.1](https://github.com/serverless/serverless/compare/v2.39.0...v2.39.1) (2021-05-03)
+
+### Bug Fixes
+
+- **AWS HTTP API:** Ensure to apply tags to stage ([#9407](https://github.com/serverless/serverless/issues/9407)) ([80511a4](https://github.com/serverless/serverless/commit/80511a4b17e77e22cf8b20d1ce50eef7506d4f7f)) ([Filip Golonka](https://github.com/filipgolonka))
+
+### Maintenance Improvements
+
+- **Telemetry:**
+  - Handle error locations not enclosed in parens ([#9419](https://github.com/serverless/serverless/pull/9419)) ([3ab0628](https://github.com/serverless/serverless/commit/3ab06282fdc9455f364fd73bd14761bae0c8d289)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Properly resolve location when for only relative paths ([#9418](https://github.com/serverless/serverless/issues/9418)) ([3ccf6a3](https://github.com/serverless/serverless/commit/3ccf6a3af3de093fabfa33a966b7a0a922712845)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Split stack lines properly on all OS-es ([#9419](https://github.com/serverless/serverless/pull/9419)) ([bdbf154](https://github.com/serverless/serverless/commit/bdbf154c97abde6ad2ff807dbea3ad1110ee5fec)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [2.39.0](https://github.com/serverless/serverless/compare/v2.38.0...v2.39.0) (2021-04-30)
 
 ### Features
