@@ -91,7 +91,7 @@ describe('lib/utils/telemetry/generatePayload', () => {
       isAutoUpdateEnabled: false,
       isTabAutocompletionInstalled: false,
       npmDependencies: ['fooDep', 'barDep', 'fooOpt', 'someDev', 'otherDev'],
-      triggeredDeprecations: [],
+      triggeredDeprecations: ['DEFAULT_NODEJS12X_RUNTIME_DEPRECATED'],
       installationType: 'global:other',
       versions,
     });
