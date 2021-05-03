@@ -1509,27 +1509,8 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
         // Replaces
         // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L365-L368
       });
-
-      it('should expose `--env` vars in environment variables', async () => {
-        expect(responseBody.env.PARAM_ENV_VAR).to.equal('-Dblart=snort');
-        const response = await runServerless({
-          fixture: 'invocation',
-          configExt: { disabledDeprecations: ['DEFAULT_NODEJS12X_RUNTIME_DEPRECATED'] },
-          cliArgs: [
-            'invoke',
-            'local',
-            '--function',
-            'async',
-            '-e',
-            'NAME=-Dname1=value1 -Dname2=value2',
-          ],
-        });
-        const stdoutAsJson = JSON.parse(response.stdoutData);
-        const stdoutBodyAsJson = JSON.parse(stdoutAsJson.body);
-        expect(stdoutBodyAsJson.env).to.include({
-          NAME: '-Dname1=value1 -Dname2=value2',
-        });
-      });
+      it('should expose `--env` vars in environment variables', async () =>
+        expect(responseBody.env.PARAM_ENV_VAR).to.equal('-Dblart=snort'));
 
       xit('TODO: should expose default lambda environment variables', () => {
         // Replaces
