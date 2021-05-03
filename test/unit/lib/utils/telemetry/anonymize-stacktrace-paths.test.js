@@ -68,6 +68,13 @@ describe('test/unit/lib/utils/anonymize-stacktrace-paths.test.js', () => {
     });
   }
 
+  it('Should handle stacktrace with only relative paths', () => {
+    const stacktracePaths = ['somefile.js:100:10', 'another.js:100:10'];
+
+    const result = anonymizeStacktracePaths(stacktracePaths);
+    expect(result).to.deep.equal(['somefile.js:100:10', 'another.js:100:10']);
+  });
+
   if (process.platform === 'win32') {
     it('Should remove common prefix up to last `serverless` occurence for windows-style paths', () => {
       const stacktracePaths = [
