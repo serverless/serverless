@@ -1232,10 +1232,23 @@ aws_secret_access_key = CUSTOMSECRET
         };
 
         const { awsNaming, cfTemplate } = await runServerless({
-          fixture: 'ecrWithOptions',
+          fixture: 'ecr',
           command: 'package',
           awsRequestStubMap,
           modulesCacheStub,
+          configExt: {
+            provider: {
+              ecr: {
+                scanOnPush: true,
+                images: {
+                  baseimage: {
+                    path: './',
+                    file: 'Dockerfile.dev',
+                  },
+                },
+              },
+            },
+          },
         });
 
         const functionCfLogicalId = awsNaming.getLambdaLogicalId('foo');

@@ -152,23 +152,6 @@ describe('#request', () => {
     return expect(res).to.eql({ region: 'ap-northeast-1' });
   });
 
-  it('should invoke expected ECR methods', async () => {
-    class FakeECR {
-      createRepository() {
-        return {
-          promise: async () => {
-            return { called: true };
-          },
-        };
-      }
-    }
-    const awsRequest = proxyquire('../../../../lib/aws/request', {
-      'aws-sdk': { ECR: FakeECR },
-    });
-    const res = await awsRequest({ name: 'ECR' }, 'createRepository');
-    expect(res.called).to.equal(true);
-  });
-
   describe('Retries', () => {
     it('should retry on retryable errors (429)', async () => {
       const error = {
