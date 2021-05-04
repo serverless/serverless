@@ -10,17 +10,14 @@ chai.use(require('chai-as-promised'));
 const configureInquirerStub = require('@serverless/test/configure-inquirer-stub');
 
 const os = require('os');
-const fs = require('fs');
+const fsp = require('fs').promises;
 const path = require('path');
-const BbPromise = require('bluebird');
 const configUtils = require('@serverless/utils/config');
 const promptDisabledConfigPropertyName = require('../../../../../lib/utils/tabCompletion/promptDisabledConfigPropertyName');
 const isTabCompletionSupported = require('../../../../../lib/utils/tabCompletion/isSupported');
 const step = require('../../../../../lib/cli/interactive-setup/tab-completion');
 
 const inquirer = require('@serverless/utils/inquirer');
-
-BbPromise.promisifyAll(fs);
 
 describe('test/unit/lib/cli/interactive-setup/tab-completion.test.js', () => {
   before(() => {
@@ -51,7 +48,7 @@ describe('test/unit/lib/cli/interactive-setup/tab-completion.test.js', () => {
       list: { shell: 'bash' },
     });
     await step.run({});
-    await expect(fs.readFileAsync('.bashrc')).to.eventually.be.rejected.and.have.property(
+    await expect(fsp.readFile('.bashrc')).to.eventually.be.rejected.and.have.property(
       'code',
       'ENOENT'
     );
@@ -64,13 +61,13 @@ describe('test/unit/lib/cli/interactive-setup/tab-completion.test.js', () => {
     });
     await step.run({});
     await Promise.all([
-      fs
-        .readFileAsync(path.resolve(os.homedir(), '.bashrc'), 'utf8')
+      fsp
+        .readFile(path.resolve(os.homedir(), '.bashrc'), 'utf8')
         .then((bashRcContent) =>
           expect(bashRcContent).to.include(' ~/.config/tabtab/__tabtab.bash')
         ),
-      fs.readFileAsync(path.resolve(os.homedir(), '.config/tabtab/serverless.bash'), 'utf8'),
-      fs.readFileAsync(path.resolve(os.homedir(), '.config/tabtab/sls.bash'), 'utf8'),
+      fsp.readFile(path.resolve(os.homedir(), '.config/tabtab/serverless.bash'), 'utf8'),
+      fsp.readFile(path.resolve(os.homedir(), '.config/tabtab/sls.bash'), 'utf8'),
     ]);
   });
 });
