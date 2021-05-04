@@ -1737,6 +1737,32 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       });
     });
 
+    it('should support `vpc` defined with `Fn::Split`', async () => {
+      const { awsNaming, cfTemplate, fixtureData } = await runServerless({
+        fixture: 'function',
+        command: 'package',
+        configExt: {
+          provider: {
+            vpc: {
+              subnetIds: {
+                'Fn::Split': [',', 'subnet-01010101,subnet-21212121'],
+              },
+              securityGroupIds: {
+                'Fn::Split': [',', 'sg-0a0a0a0a,sg-0b0b0b0b'],
+              },
+            },
+          },
+        },
+      });
+
+      const providerConfig = fixtureData.serviceConfig.provider;
+
+      const { VpcConfig } = cfTemplate.Resources[awsNaming.getLambdaLogicalId('foo')].Properties;
+
+      expect(VpcConfig.SecurityGroupIds).to.deep.equal(providerConfig.vpc.securityGroupIds);
+      expect(VpcConfig.SubnetIds).to.deep.equal(providerConfig.vpc.subnetIds);
+    });
+
     describe('when custom IAM role is used', () => {
       let customRoleServiceConfig;
       let fooFunctionRole;
