@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.39.2](https://github.com/serverless/serverless/compare/v2.39.1...v2.39.2) (2021-05-04)
+
+### Bug Fixes
+
+- **CLI:**
+  - Fix internal command resolution in case of a fallback to local version from older global version ([#9429](https://github.com/serverless/serverless/pull/9429)) ([b7a113d](https://github.com/serverless/serverless/commit/b7a113d48d634f89a91a31cd05b8d2e57f540c77)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Ensure to support `disableDeprecations` setting when validating not supported options ([#9429](https://github.com/serverless/serverless/pull/9429)) ([da476ad](https://github.com/serverless/serverless/commit/da476ad7ac52b331ae47102e01a9270a18b40833)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Telemetry:**
+  - Do not attempt to report unrecognized commands ([#9427](https://github.com/serverless/serverless/pull/9427)) ([2c2c77f](https://github.com/serverless/serverless/commit/2c2c77f90518e73921b0f4dd02767b5ad4476db4)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Do not share telemetry cache folder with old versions ([#9429](https://github.com/serverless/serverless/pull/9429)) ([ae9442e](https://github.com/serverless/serverless/commit/ae9442e53b04648ff5b9c436ef86765d2ad9d872)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Deploy:** Fix changes detection when VPC with intrinsic CF functions is involved ([#9425](https://github.com/serverless/serverless/pull/9425)) ([2c7f024](https://github.com/serverless/serverless/commit/2c7f024a57dd70c0e05d6ab7f40e530c96f2351a)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Fix `provider.vpc` configuration schema ([#9425](https://github.com/serverless/serverless/pull/9)) ([7338358](https://github.com/serverless/serverless/commit/7338358126ac249374e341b7b19ce83582ecff1d)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ### [2.39.1](https://github.com/serverless/serverless/compare/v2.39.0...v2.39.1) (2021-05-03)
 
 ### Bug Fixes
