@@ -11,16 +11,14 @@ const { expect } = chai;
 chai.use(require('chai-as-promised'));
 
 const { join, resolve } = require('path');
-const BbPromise = require('bluebird');
 const fsp = require('fs').promises;
 const { remove: rmDir, outputFile: writeFile } = require('fs-extra');
 const { resolveFileProfiles } = require('../../../../../lib/plugins/aws/utils/credentials');
 
 const step = proxyquire('../../../../../lib/cli/interactive-setup/aws-credentials', {
-  '../../utils/openBrowser': (url) =>
-    BbPromise.try(() => {
-      openBrowserUrls.push(url);
-    }),
+  '../../utils/openBrowser': async (url) => {
+    openBrowserUrls.push(url);
+  },
 });
 const inquirer = require('@serverless/utils/inquirer');
 const configureInquirerStub = require('@serverless/test/configure-inquirer-stub');
