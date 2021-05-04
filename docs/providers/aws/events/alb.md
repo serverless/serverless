@@ -198,7 +198,7 @@ functions:
 
 ## Specifying explicitly the target group names
 
-If you want full control over the name used for the target group you can specify it using the `targetGroupName` property. Note that the name must be unique accross the entire region and is limited to 32 characters with only alphanumerics and hyphens allowed.
+If you want full control over the name used for the target group you can specify it using the `targetGroupName` property. Note that the name must be unique across the entire region and is limited to 32 characters with only alphanumerics and hyphens allowed.
 
 This setting is exclusive with the `provider.alb.targetGroupPrefix` setting.
 
