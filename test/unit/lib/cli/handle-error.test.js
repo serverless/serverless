@@ -105,8 +105,10 @@ describe('test/unit/lib/cli/handle-error.test.js', () => {
     const generateTelemetryPayloadStub = sinon.stub().resolves({});
     const storeTelemetryLocallyStub = sinon.stub();
     const sendTelemetryStub = sinon.stub();
+    const resolveInputStub = sinon.stub().returns({ commandSchema: {} });
 
     const handleErrorWithMocks = proxyquire('../../../../lib/cli/handle-error', {
+      './resolve-input': resolveInputStub,
       '../utils/telemetry/areDisabled': false,
       '../utils/telemetry/generatePayload': generateTelemetryPayloadStub,
       '../utils/telemetry/index': {
@@ -193,6 +195,23 @@ describe('test/unit/lib/cli/handle-error.test.js', () => {
       await overrideStdoutWrite(
         () => {},
         () => handleErrorWithMocks(new ServerlessError('Test error'))
+      );
+      expect(generateTelemetryPayloadStub).not.to.be.called;
+      expect(storeTelemetryLocallyStub).not.to.be.called;
+      expect(sendTelemetryStub).not.to.be.called;
+    });
+
+    it('should not record telemetry if `commandSchema` was not resolved', async () => {
+      // Ensure that `commandSchema` is not included in result of `resolveInput`
+      resolveInputStub.returns({});
+
+      // Override to avoid printing to stdout in tests
+      await overrideStdoutWrite(
+        () => {},
+        () =>
+          handleErrorWithMocks(new ServerlessError('Test error'), {
+            hasTelemetryBeenReported: false,
+          })
       );
       expect(generateTelemetryPayloadStub).not.to.be.called;
       expect(storeTelemetryLocallyStub).not.to.be.called;
