@@ -4,6 +4,7 @@ const chai = require('chai');
 const AwsCompileApigEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/apiGateway/index');
 const Serverless = require('../../../../../../../../../../lib/Serverless');
 const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
+const runServerless = require('../../../../../../../../../utils/run-serverless');
 
 const expect = chai.expect;
 chai.use(require('chai-as-promised'));
@@ -162,22 +163,44 @@ describe('#compileRestApi()', () => {
     expect(() => awsCompileApigEvents.compileRestApi()).to.throw(Error);
   });
 
-  it('should not disable default execute-api endpoint', () => {
-    awsCompileApigEvents.compileRestApi();
-    const resources =
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+  describe('Basic configuration', () => {
+    let cfResources;
 
-    expect(resources.ApiGatewayRestApi.Properties.DisableExecuteApiEndpoint).to.equal(undefined);
+    before(async () => {
+      const { cfTemplate } = await runServerless({
+        fixture: 'apiGateway',
+        command: 'package',
+      });
+      cfResources = cfTemplate.Resources;
+    });
+
+    it('should not disable default execute-api endpoint', () => {
+      expect(cfResources.ApiGatewayRestApi.Properties.DisableExecuteApiEndpoint).to.equal(
+        undefined
+      );
+    });
   });
 
-  it('should support `provider.apiGateway.disableDefaultEndpoint`', () => {
-    awsCompileApigEvents.serverless.service.provider.apiGateway = {
-      disableDefaultEndpoint: true,
-    };
-    awsCompileApigEvents.compileRestApi();
-    const resources =
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+  describe('Extended configuration', () => {
+    let cfResources;
 
-    expect(resources.ApiGatewayRestApi.Properties.DisableExecuteApiEndpoint).to.equal(true);
+    before(async () => {
+      const { cfTemplate } = await runServerless({
+        fixture: 'apiGateway',
+        command: 'package',
+        configExt: {
+          provider: {
+            apiGateway: {
+              disableDefaultEndpoint: true,
+            },
+          },
+        },
+      });
+      cfResources = cfTemplate.Resources;
+    });
+
+    it('should support `provider.apiGateway.disableDefaultEndpoint`', () => {
+      expect(cfResources.ApiGatewayRestApi.Properties.DisableExecuteApiEndpoint).to.equal(true);
+    });
   });
 });
