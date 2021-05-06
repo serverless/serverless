@@ -23,13 +23,13 @@
   },
   "dependencies": {
     "@serverless/cli": "^1.5.2",
-    "@serverless/components": "^3.9.1",
+    "@serverless/components": "^3.9.2",
     "@serverless/enterprise-plugin": "^4.5.3",
     "@serverless/utils": "^4.1.0",
     "ajv": "^6.12.6",
     "ajv-keywords": "^3.5.2",
     "archiver": "^5.3.0",
-    "aws-sdk": "^2.900.0",
+    "aws-sdk": "^2.901.0",
     "bluebird": "^3.7.2",
     "boxen": "^5.0.1",
     "cachedir": "^2.3.0",
@@ -39,7 +39,7 @@
     "d": "^1.0.1",
     "dayjs": "^1.10.4",
     "decompress": "^4.2.1",
-    "dotenv": "^8.2.0",
+    "dotenv": "^8.6.0",
     "download": "^8.0.0",
     "essentials": "^1.1.1",
     "fastest-levenshtein": "^1.0.12",
@@ -74,7 +74,7 @@
     "yaml-ast-parser": "0.0.43"
   },
   "devDependencies": {
-    "@commitlint/cli": "^12.1.1",
+    "@commitlint/cli": "^12.1.2",
     "@serverless/eslint-config": "^3.0.0",
     "@serverless/test": "^8.1.0",
     "chai": "^4.3.4",
