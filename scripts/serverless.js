@@ -402,7 +402,7 @@ const processSpanPromise = (async () => {
       // IIFE for maintanance convenience
       await (async () => {
         if (!configuration) return;
-        let hasFinalCommandSchema = false;
+        let hasFinalCommandSchema = null;
         if (configuration.plugins) {
           // After plugins are loaded, re-resolve CLI command and options schema as plugin
           // might have defined extra commands and options
@@ -423,9 +423,12 @@ const processSpanPromise = (async () => {
               hasFinalCommandSchema = true;
             }
           } else {
-            // Invocation fallen back to old Framework version. As we do not have easily
-            // accessible info on loaded plugins, skip further variables resolution
+            // Invocation fallen back to old Framework version, where we do not have easily
+            // accessible info on loaded plugins
+            // 1. Skip further variables resolution
             variablesMeta = null;
+            // 2. Avoid command validation
+            hasFinalCommandSchema = false;
           }
         }
         if (!providerName && !hasFinalCommandSchema) {
@@ -435,9 +438,10 @@ const processSpanPromise = (async () => {
             require('../lib/cli/commands-schema/aws-service')
           ));
         }
+        if (hasFinalCommandSchema == null) hasFinalCommandSchema = true;
 
         // Validate result command and options
-        require('../lib/cli/ensure-supported-command')(configuration);
+        if (hasFinalCommandSchema) require('../lib/cli/ensure-supported-command')(configuration);
         if (isHelpRequest) return;
         if (!_.get(variablesMeta, 'size')) return;
 
