@@ -13,9 +13,9 @@
 [![license](https://img.shields.io/npm/l/serverless.svg)](https://www.npmjs.com/package/serverless)
 
 <p align="center">
-  <span>English</span> |
+  <span>한국어</span> |
   <a href="./README_CN.md">简体中文</a> |
-  <a href="./README_KR.md">한국어</a>
+  <a href="./README.md">English</a>
 </p>
 
 [홈페이지](http://www.serverless.com) • [문서](https://serverless.com/framework/docs/) • [뉴스](https://serverless.com/subscribe/) • [Swag](https://teespring.com/stores/serverless) • [Gitter](https://gitter.im/serverless/serverless) • [포럼](http://forum.serverless.com) • [Meetup](https://www.meetup.com/pro/serverless/) • [트위터](https://twitter.com/goserverless) • [채용](https://serverless.com/company/jobs/)

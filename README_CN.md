@@ -10,7 +10,8 @@
 
 <p align="center">
   <span>简体中文</span> |
-  <a href="./README.md">English</a>
+  <a href="./README.md">English</a> |
+  <a href="./README_KR.md">한국어</a>
 </p>
 
 [官网](http://www.serverless.com) • [文档](https://serverless.com/framework/docs/) • [中文社区](https://serverlesscloud.cn/) • [思否](https://segmentfault.com/t/serverlessframework) • [中文论坛(即将上线)](http://forum.serverless.com) • [体验 Pro 版本](https://dashboard.serverless.com)
