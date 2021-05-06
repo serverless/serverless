@@ -4,6 +4,7 @@ const chai = require('chai');
 const AwsCompileApigEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/apiGateway/index');
 const Serverless = require('../../../../../../../../../../lib/Serverless');
 const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
+const runServerless = require('../../../../../../../../../utils/run-serverless');
 
 const expect = chai.expect;
 chai.use(require('chai-as-promised'));
@@ -45,6 +46,7 @@ describe('#compileRestApi()', () => {
       Type: 'AWS::ApiGateway::RestApi',
       Properties: {
         BinaryMediaTypes: undefined,
+        DisableExecuteApiEndpoint: undefined,
         Name: 'dev-new-service',
         EndpointConfiguration: {
           Types: ['EDGE'],
@@ -79,6 +81,7 @@ describe('#compileRestApi()', () => {
       Properties: {
         Name: 'dev-new-service',
         BinaryMediaTypes: undefined,
+        DisableExecuteApiEndpoint: undefined,
         EndpointConfiguration: {
           Types: ['EDGE'],
         },
@@ -112,6 +115,7 @@ describe('#compileRestApi()', () => {
       Properties: {
         Name: 'dev-new-service',
         BinaryMediaTypes: undefined,
+        DisableExecuteApiEndpoint: undefined,
         EndpointConfiguration: {
           Types: ['EDGE'],
         },
@@ -143,6 +147,7 @@ describe('#compileRestApi()', () => {
       Type: 'AWS::ApiGateway::RestApi',
       Properties: {
         BinaryMediaTypes: ['*/*'],
+        DisableExecuteApiEndpoint: undefined,
         EndpointConfiguration: {
           Types: ['EDGE'],
         },
@@ -156,5 +161,34 @@ describe('#compileRestApi()', () => {
     awsCompileApigEvents.serverless.service.provider.endpointType = 'Testing';
     awsCompileApigEvents.serverless.service.provider.vpcEndpointIds = ['id1'];
     expect(() => awsCompileApigEvents.compileRestApi()).to.throw(Error);
+  });
+});
+
+describe('lib/plugins/aws/package/compile/events/apiGateway/lib/restApi.test.js', () => {
+  it('should not disable the default execute-api endpoint by default', async () => {
+    const { cfTemplate } = await runServerless({
+      fixture: 'apiGateway',
+      command: 'package',
+    });
+    const resource = cfTemplate.Resources.ApiGatewayRestApi;
+
+    expect(resource.Properties.DisableExecuteApiEndpoint).to.equal(undefined);
+  });
+
+  it('should support `provider.apiGateway.disableDefaultEndpoint`', async () => {
+    const { cfTemplate } = await runServerless({
+      fixture: 'apiGateway',
+      command: 'package',
+      configExt: {
+        provider: {
+          apiGateway: {
+            disableDefaultEndpoint: true,
+          },
+        },
+      },
+    });
+    const resource = cfTemplate.Resources.ApiGatewayRestApi;
+
+    expect(resource.Properties.DisableExecuteApiEndpoint).to.equal(true);
   });
 });

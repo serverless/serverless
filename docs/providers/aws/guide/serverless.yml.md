@@ -116,6 +116,7 @@ provider:
       - ${env:MY_API_KEY} # you can hide it in a serverless variable
     minimumCompressionSize: 1024 # Compress response when larger than specified size in bytes (must be between 0 and 10485760)
     description: Some Description # Optional description for the API Gateway stage deployment
+    disableDefaultEndpoint: true # Optional disable the default 'execute-api' endpoint
     binaryMediaTypes: # Optional binary media types the API might return
       - '*/*'
     metrics:  false # Optional detailed Cloud Watch Metrics
