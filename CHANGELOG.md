@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.40.0](https://github.com/serverless/serverless/compare/v2.39.2...v2.40.0) (2021-05-06)
+
+### Features
+
+- **AWS Lambda:** Add `ecr.scanOnPush` configuration option ([#9379](https://github.com/serverless/serverless/issues/9379)) ([078ec59](https://github.com/serverless/serverless/commit/078ec59058e1c37bd81388c7e81087b48fc2ba24)) ([Nicholas Wehr](https://github.com/wwwehr))
+
+### Bug Fixes
+
+- **CLI:** Do not validate command when falling back to old version ([#9437](https://github.com/serverless/serverless/pull/9437)) ([9624338](https://github.com/serverless/serverless/commit/962433864ff4f52bf178b7afc1b6e54e58e58702)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [2.39.2](https://github.com/serverless/serverless/compare/v2.39.1...v2.39.2) (2021-05-04)
 
 ### Bug Fixes
