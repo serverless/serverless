@@ -62,6 +62,7 @@ provider:
   deploymentPrefix: serverless # The S3 prefix under which deployed artifacts should be stored. Default is serverless
   lambdaHashingVersion: 20201221 # optional, version of hashing algorithm that should be used by the framework
   ecr:
+    scanOnPush: true
     images: # Definitions of images that later can be referenced by key in `function.image`
       baseimage:
         uri: 000000000000.dkr.ecr.us-east-1.amazonaws.com/test-image@sha256:6bb600b4d6e1d7cf521097177d111111ea373edb91984a505333be8ac9455d38 # Image uri of existing Docker image in ECR

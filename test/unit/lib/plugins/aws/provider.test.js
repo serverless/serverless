@@ -1124,6 +1124,7 @@ aws_secret_access_key = CUSTOMSECRET
       const proxyEndpoint = `https://${repositoryUri}`;
       const describeRepositoriesStub = sinon.stub();
       const createRepositoryStub = sinon.stub();
+      const createRepositoryStubScanOnPush = sinon.stub();
       const baseAwsRequestStubMap = {
         STS: {
           getCallerIdentity: {
@@ -1214,6 +1215,53 @@ aws_secret_access_key = CUSTOMSECRET
           `${repositoryUri}:baseimage`,
         ]);
         expect(spawnExtStub).to.be.calledWith('docker', ['push', `${repositoryUri}:baseimage`]);
+      });
+
+      it('should work correctly when repository does not exist beforehand and scanOnPush is set', async () => {
+        const awsRequestStubMap = {
+          ...baseAwsRequestStubMap,
+          ECR: {
+            ...baseAwsRequestStubMap.ECR,
+            describeRepositories: describeRepositoriesStub.throws({
+              providerError: { code: 'RepositoryNotFoundException' },
+            }),
+            createRepository: createRepositoryStubScanOnPush.resolves({
+              repository: { repositoryUri },
+            }),
+          },
+        };
+
+        const { awsNaming, cfTemplate } = await runServerless({
+          fixture: 'ecr',
+          command: 'package',
+          awsRequestStubMap,
+          modulesCacheStub,
+          configExt: {
+            provider: {
+              ecr: {
+                scanOnPush: true,
+                images: {
+                  baseimage: {
+                    path: './',
+                    file: 'Dockerfile.dev',
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        const functionCfLogicalId = awsNaming.getLambdaLogicalId('foo');
+        const functionCfConfig = cfTemplate.Resources[functionCfLogicalId].Properties;
+        const versionCfConfig = findVersionCfConfig(cfTemplate.Resources, functionCfLogicalId);
+
+        expect(functionCfConfig.Code.ImageUri).to.deep.equal(`${repositoryUri}@sha256:${imageSha}`);
+        expect(versionCfConfig.CodeSha256).to.equal(imageSha);
+        expect(describeRepositoriesStub).to.be.calledOnce;
+        expect(createRepositoryStubScanOnPush).to.be.calledOnce;
+        expect(createRepositoryStubScanOnPush.args[0][0].imageScanningConfiguration).to.deep.equal({
+          scanOnPush: true,
+        });
       });
 
       it('should work correctly when repository does not exist beforehand', async () => {
