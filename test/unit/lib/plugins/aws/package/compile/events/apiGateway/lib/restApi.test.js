@@ -162,45 +162,33 @@ describe('#compileRestApi()', () => {
     awsCompileApigEvents.serverless.service.provider.vpcEndpointIds = ['id1'];
     expect(() => awsCompileApigEvents.compileRestApi()).to.throw(Error);
   });
+});
 
-  describe('Basic configuration', () => {
-    let cfResources;
-
-    before(async () => {
-      const { cfTemplate } = await runServerless({
-        fixture: 'apiGateway',
-        command: 'package',
-      });
-      cfResources = cfTemplate.Resources;
+describe('lib/plugins/aws/package/compile/events/apiGateway/lib/restApi.test.js', () => {
+  it('should not disable the default execute-api endpoint by default', async () => {
+    const { cfTemplate } = await runServerless({
+      fixture: 'apiGateway',
+      command: 'package',
     });
+    const resource = cfTemplate.Resources.ApiGatewayRestApi;
 
-    it('should not disable default execute-api endpoint', () => {
-      expect(cfResources.ApiGatewayRestApi.Properties.DisableExecuteApiEndpoint).to.equal(
-        undefined
-      );
-    });
+    expect(resource.Properties.DisableExecuteApiEndpoint).to.equal(undefined);
   });
 
-  describe('Extended configuration', () => {
-    let cfResources;
-
-    before(async () => {
-      const { cfTemplate } = await runServerless({
-        fixture: 'apiGateway',
-        command: 'package',
-        configExt: {
-          provider: {
-            apiGateway: {
-              disableDefaultEndpoint: true,
-            },
+  it('should support `provider.apiGateway.disableDefaultEndpoint`', async () => {
+    const { cfTemplate } = await runServerless({
+      fixture: 'apiGateway',
+      command: 'package',
+      configExt: {
+        provider: {
+          apiGateway: {
+            disableDefaultEndpoint: true,
           },
         },
-      });
-      cfResources = cfTemplate.Resources;
+      },
     });
+    const resource = cfTemplate.Resources.ApiGatewayRestApi;
 
-    it('should support `provider.apiGateway.disableDefaultEndpoint`', () => {
-      expect(cfResources.ApiGatewayRestApi.Properties.DisableExecuteApiEndpoint).to.equal(true);
-    });
+    expect(resource.Properties.DisableExecuteApiEndpoint).to.equal(true);
   });
 });
