@@ -19,7 +19,7 @@ disabledDeprecations:
 
 <a name="CHANGE_OF_DEFAULT_RUNTIME_TO_NODEJS14X"><div>&nbsp;</div></a>
 
-## Default runtime nodejs12.x deprecated
+## Change of default runtime to `nodejs14.x`
 
 Deprecation code: `CHANGE_OF_DEFAULT_RUNTIME_TO_NODEJS14X`
 
