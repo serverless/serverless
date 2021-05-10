@@ -16,8 +16,10 @@ const versions = {
 };
 
 describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
-  // In order for tests below to return `commandDurationMs`
-  EvalError.$serverlessCommandStartTime = process.hrtime();
+  before(() => {
+    // In order for tests below to return `commandDurationMs`
+    EvalError.$serverlessCommandStartTime = process.hrtime();
+  });
 
   it('Should resolve payload for AWS service', async () => {
     const { servicePath: serviceDir } = await fixtures.setup('httpApi', {
