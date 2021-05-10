@@ -22,6 +22,9 @@ describe('lib/utils/telemetry/generatePayload', () => {
   it('Should resolve payload for AWS service', async () => {
     const { servicePath: serviceDir } = await fixtures.setup('httpApi', {
       configExt: {
+        provider: {
+          runtime: 'nodejs14.x',
+        },
         functions: {
           withContainer: {
             image:
@@ -75,16 +78,16 @@ describe('lib/utils/telemetry/generatePayload', () => {
       config: {
         provider: {
           name: 'aws',
-          runtime: 'nodejs12.x',
+          runtime: 'nodejs14.x',
           stage: 'dev',
           region: 'us-east-1',
         },
         plugins: [],
         functions: [
-          { runtime: 'nodejs12.x', events: [{ type: 'httpApi' }, { type: 'httpApi' }] },
-          { runtime: 'nodejs12.x', events: [{ type: 'httpApi' }] },
-          { runtime: 'nodejs12.x', events: [] },
-          { runtime: 'nodejs12.x', events: [] },
+          { runtime: 'nodejs14.x', events: [{ type: 'httpApi' }, { type: 'httpApi' }] },
+          { runtime: 'nodejs14.x', events: [{ type: 'httpApi' }] },
+          { runtime: 'nodejs14.x', events: [] },
+          { runtime: 'nodejs14.x', events: [] },
           { runtime: '$containerimage', events: [] },
         ],
       },

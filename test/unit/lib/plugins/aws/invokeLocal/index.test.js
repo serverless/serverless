@@ -1465,6 +1465,7 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
           },
           configExt: {
             provider: {
+              runtime: 'nodejs14.x',
               environment: {
                 PROVIDER_LEVEL_VAR: 'PROVIDER_LEVEL_VAR_VALUE',
                 NULL_VAR: null,
