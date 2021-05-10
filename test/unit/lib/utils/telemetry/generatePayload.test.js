@@ -15,7 +15,7 @@ const versions = {
   '@serverless/enterprise-plugin': require('@serverless/enterprise-plugin/package').version,
 };
 
-describe('lib/utils/telemetry/generatePayload', () => {
+describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   // In order for tests below to return `commandDurationMs`
   EvalError.$serverlessCommandStartTime = process.hrtime();
 
