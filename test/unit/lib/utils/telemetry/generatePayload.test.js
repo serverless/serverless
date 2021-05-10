@@ -5,7 +5,9 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const overrideEnv = require('process-utils/override-env');
+const overrideCwd = require('process-utils/override-cwd');
 
+const resolveLocalServerless = require('../../../../../lib/cli/resolve-local-serverless-path');
 const generatePayload = require('../../../../../lib/utils/telemetry/generatePayload');
 const runServerless = require('../../../../utils/run-serverless');
 const fixtures = require('../../../../fixtures/programmatic');
@@ -19,6 +21,10 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   before(() => {
     // In order for tests below to return `commandDurationMs`
     EvalError.$serverlessCommandStartTime = process.hrtime();
+  });
+
+  beforeEach(() => {
+    resolveLocalServerless.clear();
   });
 
   it('Should resolve payload for AWS service', async () => {
@@ -150,12 +156,15 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should recognize local fallback', async () => {
-    const { serverless } = await runServerless({
+    const {
+      serverless,
+      fixtureData: { servicePath: serviceDir },
+    } = await runServerless({
       fixture: 'locallyInstalledServerless',
       command: 'print',
       modulesCacheStub: {},
     });
-    const payload = await generatePayload(serverless);
+    const payload = await overrideCwd(serviceDir, async () => generatePayload(serverless));
 
     expect(payload).to.have.property('frameworkLocalUserId');
     delete payload.frameworkLocalUserId;
@@ -190,7 +199,10 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       npmDependencies: [],
       triggeredDeprecations: [],
       installationType: 'local:fallback',
-      versions,
+      versions: {
+        'serverless': '2.0.0-local',
+        '@serverless/enterprise-plugin': '4.0.0-local',
+      },
     });
   });
 
