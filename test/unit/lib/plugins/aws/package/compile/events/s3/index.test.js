@@ -373,9 +373,8 @@ describe('AwsCompileS3Events', () => {
       };
 
       return expect(awsCompileS3Events.existingS3Buckets()).to.be.fulfilled.then(() => {
-        const {
-          Resources,
-        } = awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate;
+        const { Resources } =
+          awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate;
 
         expect(addCustomResourceToServiceStub).to.have.been.calledOnce;
         expect(addCustomResourceToServiceStub.args[0][1]).to.equal('s3');
@@ -458,9 +457,8 @@ describe('AwsCompileS3Events', () => {
       };
 
       return expect(awsCompileS3Events.existingS3Buckets()).to.be.fulfilled.then(() => {
-        const {
-          Resources,
-        } = awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate;
+        const { Resources } =
+          awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate;
 
         expect(addCustomResourceToServiceStub).to.have.been.calledOnce;
         expect(addCustomResourceToServiceStub.args[0][1]).to.equal('s3');
@@ -564,9 +562,8 @@ describe('AwsCompileS3Events', () => {
       };
 
       return expect(awsCompileS3Events.existingS3Buckets()).to.be.fulfilled.then(() => {
-        const {
-          Resources,
-        } = awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate;
+        const { Resources } =
+          awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate;
 
         expect(addCustomResourceToServiceStub).to.have.been.calledOnce;
         expect(addCustomResourceToServiceStub.args[0][1]).to.equal('s3');
@@ -745,9 +742,8 @@ describe('AwsCompileS3Events', () => {
       };
 
       return expect(awsCompileS3Events.existingS3Buckets()).to.be.fulfilled.then(() => {
-        const {
-          Resources,
-        } = awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate;
+        const { Resources } =
+          awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate;
 
         expect(Object.keys(Resources)).to.have.length(2);
         expect(Resources.FirstCustomS31).to.deep.equal({
@@ -872,9 +868,10 @@ describe('AwsCompileS3Events', () => {
         '*',
       ];
 
-      const lambdaPermissionsPolicies = cfTemplate.Resources.IamRoleCustomResourcesLambdaExecution.Properties.Policies[
-        '0'
-      ].PolicyDocument.Statement.filter((x) => x.Action[0].includes('AddPermission'));
+      const lambdaPermissionsPolicies =
+        cfTemplate.Resources.IamRoleCustomResourcesLambdaExecution.Properties.Policies[
+          '0'
+        ].PolicyDocument.Statement.filter((x) => x.Action[0].includes('AddPermission'));
 
       expect(lambdaPermissionsPolicies).to.have.length(1);
 

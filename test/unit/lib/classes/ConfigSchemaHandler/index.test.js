@@ -131,11 +131,12 @@ describe('ConfigSchemaHandler', () => {
         command: 'info',
       });
 
-      const existingEventDefinition = serverless.serverless.configSchemaHandler.schema.properties.functions.patternProperties[
-        FUNCTION_NAME_PATTERN
-      ].properties.events.items.anyOf.find(
-        (definition) => definition.required[0] === 'existingEvent'
-      ).properties.existingEvent;
+      const existingEventDefinition =
+        serverless.serverless.configSchemaHandler.schema.properties.functions.patternProperties[
+          FUNCTION_NAME_PATTERN
+        ].properties.events.items.anyOf.find(
+          (definition) => definition.required[0] === 'existingEvent'
+        ).properties.existingEvent;
 
       expect(existingEventDefinition.properties).to.have.deep.property(
         'somePluginAdditionalEventProp',
@@ -152,11 +153,12 @@ describe('ConfigSchemaHandler', () => {
         command: 'info',
       });
 
-      const existingEventDefinition = serverless.serverless.configSchemaHandler.schema.properties.functions.patternProperties[
-        FUNCTION_NAME_PATTERN
-      ].properties.events.items.anyOf.find(
-        (definition) => definition.required[0] === 'existingComplexEvent'
-      ).properties.existingComplexEvent;
+      const existingEventDefinition =
+        serverless.serverless.configSchemaHandler.schema.properties.functions.patternProperties[
+          FUNCTION_NAME_PATTERN
+        ].properties.events.items.anyOf.find(
+          (definition) => definition.required[0] === 'existingComplexEvent'
+        ).properties.existingComplexEvent;
 
       expect(existingEventDefinition).to.deep.equal({
         anyOf: [

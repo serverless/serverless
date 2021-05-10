@@ -295,9 +295,9 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
       return expect(
         awsCompileCognitoUserPoolEvents.existingCognitoUserPools()
       ).to.be.fulfilled.then(() => {
-        const {
-          Resources,
-        } = awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate;
+        const { Resources } =
+          awsCompileCognitoUserPoolEvents.serverless.service.provider
+            .compiledCloudFormationTemplate;
 
         expect(addCustomResourceToServiceStub).to.have.been.calledOnce;
         expect(addCustomResourceToServiceStub.args[0][1]).to.equal('cognitoUserPool');
@@ -377,9 +377,9 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
       return expect(
         awsCompileCognitoUserPoolEvents.existingCognitoUserPools()
       ).to.be.fulfilled.then(() => {
-        const {
-          Resources,
-        } = awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate;
+        const { Resources } =
+          awsCompileCognitoUserPoolEvents.serverless.service.provider
+            .compiledCloudFormationTemplate;
 
         expect(addCustomResourceToServiceStub).to.have.been.calledOnce;
         expect(addCustomResourceToServiceStub.args[0][1]).to.equal('cognitoUserPool');
@@ -491,9 +491,9 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
       return expect(
         awsCompileCognitoUserPoolEvents.existingCognitoUserPools()
       ).to.be.fulfilled.then(() => {
-        const {
-          Resources,
-        } = awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate;
+        const { Resources } =
+          awsCompileCognitoUserPoolEvents.serverless.service.provider
+            .compiledCloudFormationTemplate;
 
         expect(addCustomResourceToServiceStub).to.have.been.calledOnce;
         expect(addCustomResourceToServiceStub.args[0][1]).to.equal('cognitoUserPool');

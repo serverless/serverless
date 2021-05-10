@@ -15,7 +15,8 @@ describe('#compileIntegrations()', () => {
 
     awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless);
 
-    awsCompileWebsocketsEvents.websocketsApiLogicalId = awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
+    awsCompileWebsocketsEvents.websocketsApiLogicalId =
+      awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
   });
 
   it('should create an integration resource for every event', () => {

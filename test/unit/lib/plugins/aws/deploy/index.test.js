@@ -400,16 +400,14 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
     const listObjectsV2Stub = sinon.stub().resolves({
       Contents: [
         {
-          Key:
-            'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json',
+          Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json',
           LastModified: new Date(),
           ETag: '"5102a4cf710cae6497dba9e61b85d0a4"',
           Size: 356,
           StorageClass: 'STANDARD',
         },
         {
-          Key:
-            'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/my-own.zip',
+          Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/my-own.zip',
           LastModified: new Date(),
           ETag: '"5102a4cf710cae6497dba9e61b85d0a4"',
           Size: 356,
@@ -421,8 +419,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
     s3HeadObjectStub
       .withArgs({
         Bucket: 's3-bucket-resource',
-        Key:
-          'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json',
+        Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json',
       })
       .returns({
         Metadata: { filesha256: 'qxp+iwSTMhcRUfHzka4AE4XAWawS8GnEyBh1WpGb7Vw=' },
@@ -430,8 +427,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
     s3HeadObjectStub
       .withArgs({
         Bucket: 's3-bucket-resource',
-        Key:
-          'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/my-own.zip',
+        Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/my-own.zip',
       })
       .returns({
         Metadata: { filesha256: 'T0qEYHOE4Xv2E8Ar03xGogAlElcdf/dQh/lh9ao7Glo=' },

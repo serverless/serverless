@@ -97,7 +97,8 @@ describe('AwsCompileStreamEvents', () => {
       };
 
       // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution = null;
+      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+        null;
 
       expect(() => {
         awsCompileStreamEvents.compileStreamEvents();
@@ -122,7 +123,8 @@ describe('AwsCompileStreamEvents', () => {
       };
 
       // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution = null;
+      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+        null;
 
       expect(() => {
         awsCompileStreamEvents.compileStreamEvents();
@@ -156,7 +158,8 @@ describe('AwsCompileStreamEvents', () => {
       };
 
       // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution = null;
+      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+        null;
 
       expect(() => {
         awsCompileStreamEvents.compileStreamEvents();
@@ -186,7 +189,8 @@ describe('AwsCompileStreamEvents', () => {
       };
 
       // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution = null;
+      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+        null;
 
       expect(() => {
         awsCompileStreamEvents.compileStreamEvents();
@@ -214,7 +218,8 @@ describe('AwsCompileStreamEvents', () => {
       };
 
       // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution = null;
+      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+        null;
 
       awsCompileStreamEvents.serverless.service.provider.role = 'arn:aws:iam::account:role/foo';
 
@@ -249,7 +254,8 @@ describe('AwsCompileStreamEvents', () => {
       };
 
       // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution = null;
+      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+        null;
 
       expect(() => {
         awsCompileStreamEvents.compileStreamEvents();
@@ -278,7 +284,8 @@ describe('AwsCompileStreamEvents', () => {
       };
 
       // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution = null;
+      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+        null;
 
       expect(() => {
         awsCompileStreamEvents.compileStreamEvents();
@@ -307,7 +314,8 @@ describe('AwsCompileStreamEvents', () => {
       };
 
       // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution = null;
+      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+        null;
 
       awsCompileStreamEvents.serverless.service.provider.role = {
         'Fn::GetAtt': [roleLogicalId, 'Arn'],
@@ -340,7 +348,8 @@ describe('AwsCompileStreamEvents', () => {
       };
 
       // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution = null;
+      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+        null;
 
       awsCompileStreamEvents.serverless.service.provider.role = roleLogicalId;
 

@@ -18,19 +18,20 @@ describe('#compileApi()', () => {
     awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless);
 
     roleLogicalId = awsCompileWebsocketsEvents.provider.naming.getRoleLogicalId();
-    awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources = {
-      [roleLogicalId]: {
-        Properties: {
-          Policies: [
-            {
-              PolicyDocument: {
-                Statement: [],
+    awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources =
+      {
+        [roleLogicalId]: {
+          Properties: {
+            Policies: [
+              {
+                PolicyDocument: {
+                  Statement: [],
+                },
               },
-            },
-          ],
+            ],
+          },
         },
-      },
-    };
+      };
   });
 
   it('should create a websocket api resource', () => {
@@ -90,7 +91,8 @@ describe('#compileApi()', () => {
   });
 
   it('should NOT add the websockets policy if role resource does not exist', () => {
-    awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources = {};
+    awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources =
+      {};
 
     awsCompileWebsocketsEvents.compileApi();
     const resources =

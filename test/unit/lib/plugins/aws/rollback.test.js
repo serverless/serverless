@@ -91,8 +91,7 @@ describe('AwsRollback', () => {
       const s3Objects = [
         {
           // eslint-disable-next-line max-len
-          Key:
-            'serverless/rollback/dev/1476779096930-2016-10-18T08:24:56.930Z/compiled-cloudformation-template.json',
+          Key: 'serverless/rollback/dev/1476779096930-2016-10-18T08:24:56.930Z/compiled-cloudformation-template.json',
         },
         {
           Key: 'serverless/rollback/dev/1476779096930-2016-10-18T08:24:56.930Z/test.zip',
@@ -141,8 +140,7 @@ describe('AwsRollback', () => {
       const s3Objects = [
         {
           // eslint-disable-next-line max-len
-          Key:
-            'serverless/rollback/dev/2000000000000-2016-10-18T08:24:56.930Z/compiled-cloudformation-template.json',
+          Key: 'serverless/rollback/dev/2000000000000-2016-10-18T08:24:56.930Z/compiled-cloudformation-template.json',
         },
         {
           Key: 'serverless/rollback/dev/2000000000000-2016-10-18T08:24:56.930Z/test.zip',
@@ -176,8 +174,7 @@ describe('AwsRollback', () => {
       const s3Objects = [
         {
           // eslint-disable-next-line max-len
-          Key:
-            'serverless/rollback/dev/1476779096930-2016-10-18T08:24:56.930Z/compiled-cloudformation-template.json',
+          Key: 'serverless/rollback/dev/1476779096930-2016-10-18T08:24:56.930Z/compiled-cloudformation-template.json',
         },
         {
           Key: 'serverless/rollback/dev/1476779096930-2016-10-18T08:24:56.930Z/test.zip',

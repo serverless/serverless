@@ -22,7 +22,8 @@ describe('#compileDeployment()', () => {
 
     awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless, options);
 
-    awsCompileWebsocketsEvents.websocketsApiLogicalId = awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
+    awsCompileWebsocketsEvents.websocketsApiLogicalId =
+      awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
   });
 
   it('should create a deployment resource and output', () => {

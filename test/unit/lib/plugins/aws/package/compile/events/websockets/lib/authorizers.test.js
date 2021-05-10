@@ -16,7 +16,8 @@ describe('#compileAuthorizers()', () => {
 
       awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless);
 
-      awsCompileWebsocketsEvents.websocketsApiLogicalId = awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
+      awsCompileWebsocketsEvents.websocketsApiLogicalId =
+        awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
 
       awsCompileWebsocketsEvents.validated = {
         events: [
@@ -111,7 +112,8 @@ describe('#compileAuthorizers()', () => {
 
       awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless);
 
-      awsCompileWebsocketsEvents.websocketsApiLogicalId = awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
+      awsCompileWebsocketsEvents.websocketsApiLogicalId =
+        awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
 
       awsCompileWebsocketsEvents.validated = {
         events: [
