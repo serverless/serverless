@@ -387,10 +387,6 @@ const processSpanPromise = (async () => {
     try {
       serverless.onExitPromise = processSpanPromise;
       serverless.invocationId = uuid.v4();
-      // TODO: REMOVE WITH NEXT MAJOR
-      // The purpose of below logic is to ensure that locally resolved `serverless` instance
-      // that might be in lower version will not attempt to handle telemetry on its own
-      process.env.SLS_TRACKING_DISABLED = '1';
       await serverless.init();
       if (serverless.invokedInstance) {
         // Local (in service) installation was found and initialized internally,
@@ -653,8 +649,8 @@ const processSpanPromise = (async () => {
         await serverless.run();
       }
 
-      if (!isTelemetryDisabled && !isHelpRequest) {
-        hasTelemetryBeenReported = true;
+      hasTelemetryBeenReported = true;
+      if (!isTelemetryDisabled && !isHelpRequest && serverless.isTelemetryReportedExternally) {
         const telemetryPayload = await generateTelemetryPayload(serverless);
         await storeTelemetryLocally({ ...telemetryPayload, outcome: 'success' });
         let backendNotificationRequest;
