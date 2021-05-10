@@ -581,7 +581,6 @@ const processSpanPromise = (async () => {
         const unresolvedSources =
           require('../lib/configuration/variables/resolve-unresolved-source-types')(variablesMeta);
         if (!(configuration.variablesResolutionMode >= 20210326)) {
-          unresolvedSources.delete('opt');
           const legacyCfVarPropertyPaths = new Set();
           const legacySsmVarPropertyPaths = new Set();
           for (const [sourceType, propertyPaths] of unresolvedSources) {
@@ -620,12 +619,16 @@ const processSpanPromise = (async () => {
               { serviceConfig: configuration }
             );
           }
-          if (unresolvedSources.size) {
+          const recognizedSourceNames = new Set(Object.keys(resolverConfiguration.sources));
+          const unrecognizedSourceNames = Array.from(unresolvedSources.keys()).filter(
+            (sourceName) => !recognizedSourceNames.has(sourceName)
+          );
+          if (unrecognizedSourceNames.length) {
             logDeprecation(
               'NEW_VARIABLES_RESOLVER',
-              `Approached unrecognized configuration variable sources: "${Array.from(
-                unresolvedSources.keys()
-              ).join('", "')}".\n` +
+              `Approached unrecognized configuration variable sources: "${unrecognizedSourceNames.join(
+                '", "'
+              )}".\n` +
                 'From a next major this will be communicated with a thrown error.\n' +
                 'Set "variablesResolutionMode: 20210326" in your service config, ' +
                 'to adapt to new behavior now',
