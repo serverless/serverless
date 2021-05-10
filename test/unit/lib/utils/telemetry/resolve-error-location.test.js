@@ -28,6 +28,14 @@ describe('test/unit/lib/utils/resolve-error-location.test.js', () => {
     expect(result).to.equal('<not reflected in stack>');
   });
 
+  it('should not capture non-stacktrace paths', () => {
+    const err = new Error('test');
+    err.stack =
+      'Could not find a version that satisfies the requirement flask (from versions: none) No matching distribution found for flask.';
+    const result = resolveErrorLocation(tokenizeException(err));
+    expect(result).to.equal('<not reflected in stack>');
+  });
+
   if (process.platform !== 'win32') {
     it('should correctly handle paths not enclosed in parentheses', () => {
       const err = new Error('test');
