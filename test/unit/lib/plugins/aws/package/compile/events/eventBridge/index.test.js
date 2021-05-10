@@ -156,9 +156,8 @@ describe('EventBridgeEvents', () => {
     it('should create the correct policy Statement', () => {
       const roleId = naming.getCustomResourcesRoleLogicalId('default', '12345');
 
-      const [firstStatement, secondStatement, thirdStatment] = cfResources[
-        roleId
-      ].Properties.Policies[0].PolicyDocument.Statement;
+      const [firstStatement, secondStatement, thirdStatment] =
+        cfResources[roleId].Properties.Policies[0].PolicyDocument.Statement;
       expect(firstStatement.Effect).to.be.eq('Allow');
       expect(firstStatement.Resource['Fn::Join'][1]).to.deep.include('arn');
       expect(firstStatement.Resource['Fn::Join'][1]).to.deep.include('events');

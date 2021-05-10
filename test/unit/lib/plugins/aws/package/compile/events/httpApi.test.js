@@ -462,9 +462,8 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     });
 
     it('should create permission resource when authorizer references function from service', () => {
-      const authorizerPermissionLogicalId = naming.getLambdaAuthorizerHttpApiPermissionLogicalId(
-        'someAuthorizer'
-      );
+      const authorizerPermissionLogicalId =
+        naming.getLambdaAuthorizerHttpApiPermissionLogicalId('someAuthorizer');
       expect(cfResources[authorizerPermissionLogicalId]).to.deep.equal({
         Type: 'AWS::Lambda::Permission',
         Properties: {

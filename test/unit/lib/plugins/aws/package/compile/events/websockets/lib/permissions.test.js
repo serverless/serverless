@@ -15,7 +15,8 @@ describe('#compilePermissions()', () => {
 
     awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless);
 
-    awsCompileWebsocketsEvents.websocketsApiLogicalId = awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
+    awsCompileWebsocketsEvents.websocketsApiLogicalId =
+      awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
   });
 
   it('should create a permission resource for every event', () => {

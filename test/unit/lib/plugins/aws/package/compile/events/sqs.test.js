@@ -50,7 +50,8 @@ describe('AwsCompileSQSEvents', () => {
       };
 
       // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution = null;
+      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+        null;
 
       expect(() => {
         awsCompileSQSEvents.compileSQSEvents();
@@ -74,7 +75,8 @@ describe('AwsCompileSQSEvents', () => {
       };
 
       // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution = null;
+      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+        null;
 
       expect(() => {
         awsCompileSQSEvents.compileSQSEvents();
@@ -107,7 +109,8 @@ describe('AwsCompileSQSEvents', () => {
       };
 
       // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution = null;
+      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+        null;
 
       expect(() => {
         awsCompileSQSEvents.compileSQSEvents();
@@ -140,7 +143,8 @@ describe('AwsCompileSQSEvents', () => {
       };
 
       // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution = null;
+      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+        null;
 
       expect(() => {
         awsCompileSQSEvents.compileSQSEvents();
@@ -171,7 +175,8 @@ describe('AwsCompileSQSEvents', () => {
       };
 
       // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution = null;
+      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+        null;
 
       awsCompileSQSEvents.serverless.service.provider.role = 'arn:aws:iam::account:role/foo';
 
@@ -205,7 +210,8 @@ describe('AwsCompileSQSEvents', () => {
       };
 
       // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution = null;
+      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+        null;
 
       expect(() => {
         awsCompileSQSEvents.compileSQSEvents();
@@ -233,7 +239,8 @@ describe('AwsCompileSQSEvents', () => {
       };
 
       // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution = null;
+      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+        null;
 
       awsCompileSQSEvents.serverless.service.provider.role = {
         'Fn::GetAtt': [roleLogicalId, 'Arn'],
@@ -269,7 +276,8 @@ describe('AwsCompileSQSEvents', () => {
       };
 
       // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution = null;
+      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+        null;
 
       awsCompileSQSEvents.serverless.service.provider.role = roleLogicalId;
 

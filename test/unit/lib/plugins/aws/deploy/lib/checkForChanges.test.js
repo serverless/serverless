@@ -601,8 +601,7 @@ describe('checkForChanges #2', () => {
           listObjectsV2: {
             Contents: [
               {
-                Key:
-                  'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/artifact.zip',
+                Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/artifact.zip',
                 LastModified: new Date(),
                 ETag: '"5102a4cf710cae6497dba9e61b85d0a4"',
                 Size: 356,
@@ -1041,8 +1040,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
             headObjectStub
               .withArgs({
                 Bucket: 'deployment-bucket',
-                Key:
-                  'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json',
+                Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json',
               })
               .returns({
                 Metadata: { filesha256: 'pZOdrt6qijT7ITsLQjPP9QwgMAfKA2RuUUSTW+l8wWs=' },
@@ -1051,8 +1049,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
             headObjectStub
               .withArgs({
                 Bucket: 'deployment-bucket',
-                Key:
-                  'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/my-own.zip',
+                Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/my-own.zip',
               })
               .returns({
                 Metadata: { filesha256: 'T0qEYHOE4Xv2E8Ar03xGogAlElcdf/dQh/lh9ao7Glo=' },
@@ -1063,16 +1060,14 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           listObjectsV2: {
             Contents: [
               {
-                Key:
-                  'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json',
+                Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json',
                 LastModified: new Date(),
                 ETag: '"5102a4cf710cae6497dba9e61b85d0a4"',
                 Size: 356,
                 StorageClass: 'STANDARD',
               },
               {
-                Key:
-                  'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/my-own.zip',
+                Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/my-own.zip',
                 LastModified: new Date(),
                 ETag: '"5102a4cf710cae6497dba9e61b85d0a4"',
                 Size: 356,

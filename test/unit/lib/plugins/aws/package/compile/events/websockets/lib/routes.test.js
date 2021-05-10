@@ -15,7 +15,8 @@ describe('#compileRoutes()', () => {
 
     awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless);
 
-    awsCompileWebsocketsEvents.websocketsApiLogicalId = awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
+    awsCompileWebsocketsEvents.websocketsApiLogicalId =
+      awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
   });
 
   it('should create a route resource for every event', () => {

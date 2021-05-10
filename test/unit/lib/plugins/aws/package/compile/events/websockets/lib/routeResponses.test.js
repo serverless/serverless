@@ -15,7 +15,8 @@ describe('#compileRouteResponses()', () => {
 
     awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless);
 
-    awsCompileWebsocketsEvents.websocketsApiLogicalId = awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
+    awsCompileWebsocketsEvents.websocketsApiLogicalId =
+      awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
   });
 
   it('should create a RouteResponse resource for events with selection expression', () => {

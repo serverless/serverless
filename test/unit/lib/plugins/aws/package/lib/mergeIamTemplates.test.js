@@ -431,7 +431,11 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       let serverless;
       const customFunctionName = 'foo-bar';
       before(async () => {
-        const { awsNaming, cfTemplate, serverless: serverlessInstance } = await runServerless({
+        const {
+          awsNaming,
+          cfTemplate,
+          serverless: serverlessInstance,
+        } = await runServerless({
           fixture: 'function',
           command: 'package',
           configExt: {

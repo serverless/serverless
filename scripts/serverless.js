@@ -415,9 +415,8 @@ const processSpanPromise = (async () => {
                 { providerName: providerName || 'aws', configuration }
               );
               resolveInput.clear();
-              ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
-                commandsSchema
-              ));
+              ({ command, commands, options, isHelpRequest, commandSchema } =
+                resolveInput(commandsSchema));
               serverless.processedInput.commands = serverless.pluginManager.cliCommands = commands;
               serverless.processedInput.options = serverless.pluginManager.cliOptions = options;
               hasFinalCommandSchema = true;
@@ -479,9 +478,8 @@ const processSpanPromise = (async () => {
         }
 
         // Register serverless instance and AWS provider specific variable sources
-        resolverConfiguration.sources.sls = require('../lib/configuration/variables/sources/instance-dependent/get-sls')(
-          serverless
-        );
+        resolverConfiguration.sources.sls =
+          require('../lib/configuration/variables/sources/instance-dependent/get-sls')(serverless);
         resolverConfiguration.fulfilledSources.add('sls');
 
         if (providerName === 'aws') {
@@ -580,9 +578,8 @@ const processSpanPromise = (async () => {
         }
 
         // Report unrecognized variable sources found in variables configured in service config
-        const unresolvedSources = require('../lib/configuration/variables/resolve-unresolved-source-types')(
-          variablesMeta
-        );
+        const unresolvedSources =
+          require('../lib/configuration/variables/resolve-unresolved-source-types')(variablesMeta);
         if (!(configuration.variablesResolutionMode >= 20210326)) {
           unresolvedSources.delete('opt');
           const legacyCfVarPropertyPaths = new Set();

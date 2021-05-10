@@ -21,7 +21,8 @@ describe('mergeCustomProviderResources', () => {
       )
     );
 
-    awsPackage.serverless.service.provider.compiledCloudFormationTemplate = coreCloudFormationTemplate;
+    awsPackage.serverless.service.provider.compiledCloudFormationTemplate =
+      coreCloudFormationTemplate;
   });
 
   describe('#mergeCustomProviderResources()', () => {

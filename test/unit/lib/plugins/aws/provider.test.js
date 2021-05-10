@@ -813,8 +813,7 @@ aws_secret_access_key = CUSTOMSECRET
                 images: {
                   invalidimage: {
                     path: './',
-                    uri:
-                      '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38',
+                    uri: '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38',
                   },
                 },
               },
@@ -909,8 +908,7 @@ aws_secret_access_key = CUSTOMSECRET
               foo: {
                 image: {
                   name: 'baseimage',
-                  uri:
-                    '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38',
+                  uri: '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38',
                 },
               },
             },
