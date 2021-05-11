@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.41.0](https://github.com/serverless/serverless/compare/v2.40.0...v2.41.0) (2021-05-11)
+
+### Features
+
+- **AWS API Gateway:** Support disabling default endpoint ([#9404](https://github.com/serverless/serverless/issues/9404)) ([ec90945](https://github.com/serverless/serverless/commit/ec909452b5167e05d892d2c44bc46b4ff7d7470a)) ([lyndoh](https://github.com/lyndoh))
+- **AWS Lambda:** Deprecate `nodejs12.x` as default runtime ([#9416](https://github.com/serverless/serverless/issues/9416)) ([9e558ee](https://github.com/serverless/serverless/commit/9e558eefd66e9dafcb16b3636b934d753ade001e)) ([Jaakko Lappalainen](https://github.com/jkklapp))
+
+### Bug Fixes
+
+- **AWS API Gateway:** Support `Fn::Split` for `vpcEndpointIds` schema ([#9455](https://github.com/serverless/serverless/pull/9455)) ([56f8587](https://github.com/serverless/serverless/commit/56f85874c6b9da44b8fbc326dfe3bce33bf8c41e)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS Lambda:** Ensure that docker image is build and pushed only once ([#9446](https://github.com/serverless/serverless/pull/9446)) ([277f4e8](https://github.com/serverless/serverless/commit/277f4e8e9c53c0572981407eb45cecba050462a7)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:**
+  - Ensure to report only unrecognized sources as unrecognized ([#9449](https://github.com/serverless/serverless/pull/9449)) ([27e21e8](https://github.com/serverless/serverless/commit/27e21e8fca560732df3fa5c36c56682ef89b53c5)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Fix local installation fallback ([#9454](https://github.com/serverless/serverless/pull/9454)) ([fa8c076](https://github.com/serverless/serverless/commit/fa8c076c564377ec632992a6a156bc4937ec08e1)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Packaging:** Fix support of the artifact S3 uri with region ([#9411](https://github.com/serverless/serverless/issues/9411)) ([40e56fc](https://github.com/serverless/serverless/commit/40e56fc0e9f71f06068d7d4c30178db8b2260357)) ([Zach Whaley](https://github.com/zachwhaley))
+
+### Maintenance Improvements
+
+- **Telemetry:**
+  - Ensure telemetry only matches js stacktrace paths ([#9447](https://github.com/serverless/serverless/pull/9447)) ([7361e04](https://github.com/serverless/serverless/commit/7361e049608d40e4199c797abbad552ea831f5a5)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - For local fallback ensure to report locally used version ([#9454](https://github.com/serverless/serverless/pull/9454)) ([096ed96](https://github.com/serverless/serverless/commit/096ed9652bff399965c81c9aedb93b42c2b8caf5)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Let old versions report telemetry old way ([#9454](https://github.com/serverless/serverless/pull/9454)) ([4d077d1](https://github.com/serverless/serverless/commit/4d077d1653fcc41e362587e5d13dfa8dd43d3bc3)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.40.0](https://github.com/serverless/serverless/compare/v2.39.2...v2.40.0) (2021-05-06)
 
 ### Features
