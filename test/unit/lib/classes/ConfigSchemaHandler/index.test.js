@@ -8,7 +8,7 @@ chai.use(require('chai-as-promised'));
 const expect = chai.expect;
 const FUNCTION_NAME_PATTERN = '^[a-zA-Z0-9-_]+$';
 
-describe('ConfigSchemaHandler', () => {
+describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
   describe('#constructor', () => {
     it('should freeze parts of schema for service', () => {
       return runServerless({
