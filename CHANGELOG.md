@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.41.1](https://github.com/serverless/serverless/compare/v2.41.0...v2.41.1) (2021-05-11)
+
+### Bug Fixes
+
+- **CLI:** Correctly resolve version during local fallback ([#9463](https://github.com/serverless/serverless/pull/9463)) ([bbfe742](https://github.com/serverless/serverless/commit/bbfe742b2458f31254b11128b8ed506a47293abe)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [2.41.0](https://github.com/serverless/serverless/compare/v2.40.0...v2.41.0) (2021-05-11)
 
 ### Features
