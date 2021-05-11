@@ -5,6 +5,7 @@ frameworkVersion: '*'
 
 provider:
   name: aws
+  runtime: nodejs12.x
   ecr:
     images:
       baseimage:
