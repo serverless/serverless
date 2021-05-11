@@ -15,7 +15,7 @@ const fixtures = require('../../../../fixtures/programmatic');
 
 const versions = {
   'serverless': require('../../../../../package').version,
-  '@serverless/enterprise-plugin': require('@serverless/enterprise-plugin/package').version,
+  '@serverless/dashboard-plugin': require('@serverless/dashboard-plugin/package').version,
 };
 
 describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
@@ -224,7 +224,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       installationType: 'local:fallback',
       versions: {
         'serverless': '2.0.0-local',
-        '@serverless/enterprise-plugin': '4.0.0-local',
+        '@serverless/dashboard-plugin': '4.0.0-local',
+        '@serverless/enterprise-plugin': undefined,
       },
     });
   });

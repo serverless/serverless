@@ -11,6 +11,6 @@ const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 
 packageJson.version = `${packageJson.version}-${process.env.GITHUB_SHA.slice(0, 8)}`;
 packageJson.dependencies['@serverless/components'] = 'canary';
-packageJson.dependencies['@serverless/enterprise-plugin'] = 'canary';
+packageJson.dependencies['@serverless/dashboard-plugin'] = 'canary';
 
 fs.writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`);
