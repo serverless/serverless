@@ -32,6 +32,19 @@ describe('test/unit/lib/cli/interactive-setup/index.test.js', () => {
         input: 'interactive-setup-test',
       },
 
+      // dashboard-login
+      {
+        instructionString: 'Would you like to enable this?',
+        input: 'Y',
+      },
+      {
+        instructionString: 'login or register?',
+        input: 'j',
+      },
+
+      // dashboard-set-org
+      // Skipped, as internally depends on remote state of data and cannot be easily tested offline
+
       // aws-credentials
       { instructionString: 'Do you want to set them up now?', input: 'Y' },
       { instructionString: 'AWS account', input: 'Y' },
