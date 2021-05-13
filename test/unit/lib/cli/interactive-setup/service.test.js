@@ -22,9 +22,9 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
   afterEach(() => sinon.restore());
 
   it('Should be not applied, when at service path', () =>
-    expect(step.isApplicable({ serviceDir: '/foo' })).to.equal(false));
+    expect(step.isApplicable({ serviceDir: '/foo', options: {} })).to.equal(false));
   it('Should be applied, when not at service path', () =>
-    expect(step.isApplicable({})).to.equal(true));
+    expect(step.isApplicable({ options: {} })).to.equal(true));
 
   it("Should abort if user doesn't want setup", async () => {
     configureInquirerStub(inquirer, {
@@ -57,7 +57,6 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
     it('Should create project at not existing directory from a provided `template-path`', async () => {
       configureInquirerStub(inquirer, {
-        confirm: { shouldCreateNewProject: true },
         input: { projectName: 'test-project-from-local-template' },
       });
       await step.run({ options: { 'template-path': path.join(templatesPath, 'aws-nodejs') } });
@@ -67,7 +66,6 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
     it('Should create project at not existing directory with provided `name`', async () => {
       configureInquirerStub(inquirer, {
-        confirm: { shouldCreateNewProject: true },
         list: { projectType: 'aws-nodejs' },
       });
       await step.run({ options: { name: 'test-project-from-cli-option' } });
@@ -93,7 +91,6 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
   it('Should not allow project creation in a directory in which already service is configured when `name` flag provided', async () => {
     configureInquirerStub(inquirer, {
-      confirm: { shouldCreateNewProject: true },
       list: { projectType: 'aws-nodejs' },
     });
 
@@ -118,7 +115,6 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
   it('Should not allow project creation using an invalid project name when `name` flag provided', async () => {
     configureInquirerStub(inquirer, {
-      confirm: { shouldCreateNewProject: true },
       list: { projectType: 'aws-nodejs' },
     });
     await expect(
