@@ -1,9 +1,12 @@
 'use strict';
 
 const chai = require('chai');
+const path = require('path');
 const sinon = require('sinon');
 const configureInquirerStub = require('@serverless/test/configure-inquirer-stub');
 const step = require('../../../../../lib/cli/interactive-setup/service');
+
+const templatesPath = path.resolve(__dirname, '../../../../../lib/plugins/create/templates');
 
 const { expect } = chai;
 
@@ -49,6 +52,16 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       });
       await step.run({});
       const stats = await fsp.lstat('test-project/serverless.yml');
+      expect(stats.isFile()).to.be.true;
+    });
+
+    it('Should create project at not existing directory from a provided `template-path`', async () => {
+      configureInquirerStub(inquirer, {
+        confirm: { shouldCreateNewProject: true },
+        input: { projectName: 'test-project-from-local-template' },
+      });
+      await step.run({ options: { 'template-path': path.join(templatesPath, 'aws-nodejs') } });
+      const stats = await fsp.lstat('test-project-from-local-template/serverless.yml');
       expect(stats.isFile()).to.be.true;
     });
   });
