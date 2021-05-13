@@ -81,7 +81,7 @@ describe('AwsInvoke', () => {
   });
 });
 
-describe.only('test/unit/lib/plugins/aws/invoke.test.js', () => {
+describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
   describe('Common', () => {
     let lambdaInvokeStub;
     let result;
