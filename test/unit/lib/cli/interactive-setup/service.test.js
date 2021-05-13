@@ -26,6 +26,14 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
   it('Should be applied, when not at service path', () =>
     expect(step.isApplicable({ options: {} })).to.equal(true));
 
+  it('Should result in an error when at service path with `template-path` options provided', () => {
+    expect(() =>
+      step.isApplicable({ serviceDir: '/foo', options: { 'template-path': 'path/to/template' } })
+    )
+      .to.throw()
+      .and.have.property('code', 'NOT_APPLICABLE_SERVICE_OPTIONS');
+  });
+
   it("Should abort if user doesn't want setup", async () => {
     configureInquirerStub(inquirer, {
       confirm: { shouldCreateNewProject: false },
