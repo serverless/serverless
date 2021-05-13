@@ -17,7 +17,7 @@ describe('test/unit/lib/utils/create-from-local-template.test.js', () => {
   describe('Without `projectName` provided', () => {
     it('should create from template referenced locally', async () => {
       const tmpDirPath = path.join(getTmpDirPath(), 'some-service');
-      createFromLocalTemplate({
+      await createFromLocalTemplate({
         templatePath: path.join(templatesPath, 'aws-nodejs'),
         projectDir: tmpDirPath,
       });
@@ -29,23 +29,21 @@ describe('test/unit/lib/utils/create-from-local-template.test.js', () => {
   describe('When `templatePath` does not exist', () => {
     it('should result in an error', async () => {
       const tmpDirPath = path.join(getTmpDirPath(), 'some-service');
-      expect(() =>
+      await expect(
         createFromLocalTemplate({
           templatePath: path.join(templatesPath, 'nonexistent'),
           projectDir: tmpDirPath,
         })
-      )
-        .to.throw()
-        .and.have.property('code', 'INVALID_TEMPLATE_PATH');
+      ).to.eventually.be.rejected.and.have.property('code', 'INVALID_TEMPLATE_PATH');
     });
   });
 
   describe('With `projectName` provided', () => {
     let tmpDirPath;
 
-    before(() => {
+    before(async () => {
       tmpDirPath = path.join(getTmpDirPath(), 'some-service');
-      createFromLocalTemplate({
+      await createFromLocalTemplate({
         templatePath: path.join(templatesPath, 'fn-nodejs'),
         projectDir: tmpDirPath,
         projectName: 'testproj',
