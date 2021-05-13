@@ -30,7 +30,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
     configureInquirerStub(inquirer, {
       confirm: { shouldCreateNewProject: false },
     });
-    await step.run({});
+    await step.run({ options: {} });
     return confirmEmptyWorkingDir();
   });
 
@@ -39,7 +39,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       confirm: { shouldCreateNewProject: true },
       list: { projectType: 'other' },
     });
-    await step.run({});
+    await step.run({ options: {} });
     return confirmEmptyWorkingDir();
   });
 
@@ -50,7 +50,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
         list: { projectType: 'aws-nodejs' },
         input: { projectName: 'test-project' },
       });
-      await step.run({});
+      await step.run({ options: {} });
       const stats = await fsp.lstat('test-project/serverless.yml');
       expect(stats.isFile()).to.be.true;
     });
@@ -64,6 +64,16 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       const stats = await fsp.lstat('test-project-from-local-template/serverless.yml');
       expect(stats.isFile()).to.be.true;
     });
+
+    it('Should create project at not existing directory with provided `name`', async () => {
+      configureInquirerStub(inquirer, {
+        confirm: { shouldCreateNewProject: true },
+        list: { projectType: 'aws-nodejs' },
+      });
+      await step.run({ options: { name: 'test-project-from-cli-option' } });
+      const stats = await fsp.lstat('test-project-from-cli-option/serverless.yml');
+      expect(stats.isFile()).to.be.true;
+    });
   });
 
   it('Should not allow project creation in a directory in which already service is configured', async () => {
@@ -75,10 +85,23 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
     await fsp.mkdir('existing');
 
-    await expect(step.run({})).to.eventually.be.rejected.and.have.property(
+    await expect(step.run({ options: {} })).to.eventually.be.rejected.and.have.property(
       'code',
       'INVALID_ANSWER'
     );
+  });
+
+  it('Should not allow project creation in a directory in which already service is configured when `name` flag provided', async () => {
+    configureInquirerStub(inquirer, {
+      confirm: { shouldCreateNewProject: true },
+      list: { projectType: 'aws-nodejs' },
+    });
+
+    await fsp.mkdir('anotherexisting');
+
+    await expect(
+      step.run({ options: { name: 'anotherexisting' } })
+    ).to.eventually.be.rejected.and.have.property('code', 'TARGET_FOLDER_ALREADY_EXISTS');
   });
 
   it('Should not allow project creation using an invalid project name', async () => {
@@ -87,9 +110,19 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       list: { projectType: 'aws-nodejs' },
       input: { projectName: 'elo grzegżółka' },
     });
-    await expect(step.run({})).to.eventually.be.rejected.and.have.property(
+    await expect(step.run({ options: {} })).to.eventually.be.rejected.and.have.property(
       'code',
       'INVALID_ANSWER'
     );
+  });
+
+  it('Should not allow project creation using an invalid project name when `name` flag provided', async () => {
+    configureInquirerStub(inquirer, {
+      confirm: { shouldCreateNewProject: true },
+      list: { projectType: 'aws-nodejs' },
+    });
+    await expect(
+      step.run({ options: { name: 'elo grzegżółka' } })
+    ).to.eventually.be.rejected.and.have.property('code', 'INVALID_PROJECT_NAME');
   });
 });
