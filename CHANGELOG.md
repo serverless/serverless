@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.41.2](https://github.com/serverless/serverless/compare/v2.41.1...v2.41.2) (2021-05-13)
+
+### Bug Fixes
+
+- **CLI:**
+  - In error handler fallback to local version only if we're not in its context (fix infinite recursion issue which put `serverless` process on stall) ([#9472](https://github.com/serverless/serverless/pull/9472)) ([7047c34](https://github.com/serverless/serverless/commit/7047c349299ea829b0d43efedd191782dad10219)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Ensure resolved CLI params are correct in local fallback ([#9472](https://github.com/serverless/serverless/pull/9472)) ([65a1f38](https://github.com/serverless/serverless/commit/65a1f3875cda7f06d3ab47f21362a630d7d0415f)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Telemetry:** If global & local fallback versions are recent enough to report outcome, report with global ([#9472](https://github.com/serverless/serverless/pull/9472)) ([eeddf9f](https://github.com/serverless/serverless/commit/eeddf9f518612f6f7ef805eb3ed9b13fb3036114)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Templates
+
+- **Templates:** Add `google-nodejs-typescript` template ([#9445](https://github.com/serverless/serverless/issues/9445)) ([9cc05ad](https://github.com/serverless/serverless/commit/9cc05ad2f659709746d1df9811b95118c583db27)) ([Corentin Doue](https://github.com/CorentinDoue))
+
+### Maintenance Improvements
+
+- **CLI Onboarding:**
+  - Seclude from internal Framework logic ([#9410](https://github.com/serverless/serverless/pull/9410)) ([7864f4d](https://github.com/serverless/serverless/commit/7864f4d28d4c4ed8325e64c8dfca891845edf392)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Integrate steps from dashboard plugin ([#9410](https://github.com/serverless/serverless/pull/9410)) ([105807a](https://github.com/serverless/serverless/commit/105807a674820f2d8501f3b8539c3725fceab215)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Refactor to async/await ([#9410](https://github.com/serverless/serverless/pull/9410)) ([1060d14](https://github.com/serverless/serverless/commit/1060d1468ba587519df482e95a54bbc8d199cad8)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Simplify tabcompletion support check ([#9410](https://github.com/serverless/serverless/pull/9410)) ([c13586e](https://github.com/serverless/serverless/commit/c13586ee23614da75d71f40ff24037b9aad46c2c)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Telemetry:** Make `generatePayload` `serverless` independent ([#9410](https://github.com/serverless/serverless/pull/9410)) ([4f6a50a](https://github.com/serverless/serverless/commit/4f6a50a2e145e664405b00661d801b6ad094f418)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI:** Rely internally on `@serverless/utils/log` ([#9410](https://github.com/serverless/serverless/pull/9410)) ([05588f7](https://github.com/serverless/serverless/commit/05588f77c0bbc900198ce458099ea2db066f3601)) ([Mariusz Nowak](https://github.com/medikoo))
+- Refactor `isNpmPackageWritable` to not depend on `serverless` ([b915cc4](https://github.com/serverless/serverless/commit/b915cc467183d146785466965abbe318c349f0c9)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [2.41.1](https://github.com/serverless/serverless/compare/v2.41.0...v2.41.1) (2021-05-11)
 
 ### Bug Fixes
