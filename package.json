@@ -211,7 +211,7 @@
     "prettify:updated": "pipe-git-updated --ext=css --ext=html --ext=js --ext=json --ext=md --ext=yaml --ext=yml -- prettier --write",
     "test": "mocha \"test/unit/**/*.test.js\"",
     "test:ci": "npm run prettier-check:updated && npm run lint:updated && npm run test:isolated",
-    "test:isolated": "mocha-isolated \"test/unit/**/aws/invoke.test.js\""
+    "test:isolated": "mocha-isolated \"test/unit/**/*.test.js\""
   },
   "engines": {
     "node": ">=10.0"
