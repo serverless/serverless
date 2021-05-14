@@ -3,9 +3,6 @@
 const chai = require('chai');
 const sinon = require('sinon');
 const path = require('path');
-const proxyquire = require('proxyquire');
-const AwsProvider = require('../../../../../lib/plugins/aws/provider');
-const Serverless = require('../../../../../lib/Serverless');
 const { getTmpDirPath } = require('../../../../utils/fs');
 const runServerless = require('../../../../utils/run-serverless');
 const ServerlessError = require('../../../../../lib/serverless-error');
@@ -15,71 +12,6 @@ chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
 
 const expect = chai.expect;
-
-describe('AwsInvoke', () => {
-  let AwsInvoke;
-  let awsInvoke;
-  let serverless;
-  let stdinStub;
-  const options = {
-    stage: 'dev',
-    region: 'us-east-1',
-    function: 'first',
-  };
-
-  beforeEach(() => {
-    stdinStub = sinon.stub().resolves('');
-    AwsInvoke = proxyquire('../../../../../lib/plugins/aws/invoke', {
-      'get-stdin': stdinStub,
-    });
-    serverless = new Serverless();
-    serverless.setProvider('aws', new AwsProvider(serverless, options));
-    serverless.processedInput = { commands: ['invoke'] };
-    awsInvoke = new AwsInvoke(serverless, options);
-  });
-
-  describe('#extendedValidate()', () => {
-    let backupIsTTY;
-    beforeEach(() => {
-      serverless.serviceDir = true;
-      serverless.service.environment = {
-        vars: {},
-        stages: {
-          dev: {
-            vars: {},
-            regions: {
-              'us-east-1': {
-                vars: {},
-              },
-            },
-          },
-        },
-      };
-      serverless.service.functions = {
-        first: {
-          handler: true,
-        },
-      };
-      awsInvoke.options.data = null;
-      awsInvoke.options.path = false;
-      awsInvoke.provider.cachedCredentials = { accessKeyId: 'foo', secretAccessKey: 'bar' };
-
-      // Ensure there's no attempt to read path from stdin
-      backupIsTTY = process.stdin.isTTY;
-      process.stdin.isTTY = true;
-    });
-
-    afterEach(() => {
-      if (backupIsTTY) process.stdin.isTTY = backupIsTTY;
-      else delete process.stdin.isTTY;
-    });
-
-    it('should resolve if path is not given', () => {
-      awsInvoke.options.path = false;
-      return expect(awsInvoke.extendedValidate()).to.be.fulfilled;
-    });
-  });
-});
 
 describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
   describe('Common', () => {
@@ -523,5 +455,27 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
         },
       })
     ).to.be.eventually.rejectedWith(Error, 'Invoked function failed');
+  });
+
+  it('should resolve if path is not given', async () => {
+    const lambdaInvokeStub = sinon.stub();
+    await expect(
+      runServerless({
+        fixture: 'invocation',
+        command: 'invoke',
+        options: {
+          function: 'callback',
+          path: false,
+        },
+        awsRequestStubMap: {
+          Lambda: {
+            invoke: (args) => {
+              lambdaInvokeStub.returns('payload');
+              return lambdaInvokeStub(args);
+            },
+          },
+        },
+      })
+    ).to.be.eventually.fulfilled;
   });
 });
