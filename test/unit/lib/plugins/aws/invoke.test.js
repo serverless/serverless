@@ -6,8 +6,7 @@ const path = require('path');
 const { getTmpDirPath } = require('../../../../utils/fs');
 const runServerless = require('../../../../utils/run-serverless');
 const ServerlessError = require('../../../../../lib/serverless-error');
-const Utils = require('../../../../../lib/classes/Utils');
-
+const fixtures = require('../../../../fixtures/programmatic');
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
 
@@ -175,16 +174,14 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
 
   it('should support absolute file path as data', async () => {
     const lambdaInvokeStub = sinon.stub();
-    const utils = new Utils();
-    const dataFilePath = path.join(getTmpDirPath(), 'data.json');
-    const data = { testProp: 'testValue' };
-    utils.writeFile(dataFilePath, JSON.stringify(data));
+    const { servicePath: serviceDir } = await fixtures.setup('invocation');
+    const pathToPayload = path.join(serviceDir, 'payload.json');
     const result = await runServerless({
-      fixture: 'invocation',
+      cwd: serviceDir,
       command: 'invoke',
       options: {
         function: 'callback',
-        path: dataFilePath,
+        path: pathToPayload,
       },
       awsRequestStubMap: {
         Lambda: {
@@ -199,7 +196,7 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
       FunctionName: result.serverless.service.getFunction('callback').name,
       InvocationType: 'RequestResponse',
       LogType: 'None',
-      Payload: Buffer.from(JSON.stringify({ testProp: 'testValue' })),
+      Payload: Buffer.from(JSON.stringify({ dataInputKey: 'dataInputValue' })),
     });
   });
 
