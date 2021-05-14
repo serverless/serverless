@@ -5,6 +5,7 @@ const path = require('path');
 const sinon = require('sinon');
 const configureInquirerStub = require('@serverless/test/configure-inquirer-stub');
 const step = require('../../../../../lib/cli/interactive-setup/service');
+const proxyquire = require('proxyquire');
 
 const templatesPath = path.resolve(__dirname, '../../../../../lib/plugins/create/templates');
 
@@ -53,14 +54,37 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
   describe('Create new project', () => {
     it('Should create project at not existing directory', async () => {
+      const downloadTemplateFromRepoStub = sinon.stub();
+      const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
+        '../../utils/downloadTemplateFromRepo': {
+          downloadTemplateFromRepo: downloadTemplateFromRepoStub.callsFake(
+            async (templateUrl, projectType, projectName) => {
+              await fsp.mkdir(projectName);
+              const serverlessYmlContent = `
+            service: service
+            provider:
+              name: aws
+           `;
+
+              await fsp.writeFile(path.join(projectName, 'serverless.yml'), serverlessYmlContent);
+            }
+          ),
+        },
+      });
+
       configureInquirerStub(inquirer, {
         confirm: { shouldCreateNewProject: true },
         list: { projectType: 'aws-nodejs' },
         input: { projectName: 'test-project' },
       });
-      await step.run({ options: {} });
+      await mockedStep.run({ options: {} });
       const stats = await fsp.lstat('test-project/serverless.yml');
       expect(stats.isFile()).to.be.true;
+      expect(downloadTemplateFromRepoStub).to.have.been.calledWith(
+        'https://github.com/serverless/examples/tree/master/aws-nodejs',
+        'aws-nodejs',
+        'test-project'
+      );
     });
 
     it('Should create project at not existing directory from a provided `template-path`', async () => {
@@ -73,12 +97,45 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
     });
 
     it('Should create project at not existing directory with provided `name`', async () => {
+      const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
+        '../../utils/downloadTemplateFromRepo': {
+          downloadTemplateFromRepo: sinon
+            .stub()
+            .callsFake(async (templateUrl, projectType, projectName) => {
+              await fsp.mkdir(projectName);
+              const serverlessYmlContent = `
+            service: service
+            provider:
+              name: aws
+           `;
+
+              await fsp.writeFile(path.join(projectName, 'serverless.yml'), serverlessYmlContent);
+            }),
+        },
+      });
       configureInquirerStub(inquirer, {
         list: { projectType: 'aws-nodejs' },
       });
-      await step.run({ options: { name: 'test-project-from-cli-option' } });
+      await mockedStep.run({ options: { name: 'test-project-from-cli-option' } });
       const stats = await fsp.lstat('test-project-from-cli-option/serverless.yml');
       expect(stats.isFile()).to.be.true;
+    });
+
+    it('Should throw an error when template cannot be downloaded', async () => {
+      const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
+        '../../utils/downloadTemplateFromRepo': {
+          downloadTemplateFromRepo: sinon.stub().rejects(),
+        },
+      });
+      configureInquirerStub(inquirer, {
+        confirm: { shouldCreateNewProject: true },
+        list: { projectType: 'aws-nodejs' },
+        input: { projectName: 'test-error-during-download' },
+      });
+      await expect(mockedStep.run({ options: {} })).to.be.eventually.rejected.and.have.property(
+        'code',
+        'TEMPLATE_DOWNLOAD_FAILED'
+      );
     });
   });
 
