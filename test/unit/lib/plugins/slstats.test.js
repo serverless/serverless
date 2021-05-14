@@ -63,26 +63,5 @@ describe('SlStats', () => {
       slStats.toggleStats();
       expect(setStub.calledOnce).to.equal(false);
     });
-
-    it('should catch the error if enabling fails', () => {
-      // here we assume that the tracking fails
-      setStub.throws();
-
-      slStats.options = { enable: true };
-
-      expect(() => slStats.toggleStats()).to.throw(/of statistics failed/);
-      expect(setStub.calledOnce).to.equal(true);
-      expect(setStub.calledWithExactly('trackingDisabled', false)).to.be.true;
-    });
-
-    it('should catch the error if enabling fails', () => {
-      // here we assume that the config setting fails
-      setStub.throws('error while updating config file');
-      slStats.options = { disable: true };
-
-      expect(() => slStats.toggleStats()).to.throw(/of statistics failed/);
-      expect(setStub.calledOnce).to.equal(true);
-      expect(setStub.calledWithExactly('trackingDisabled', true)).to.be.true;
-    });
   });
 });
