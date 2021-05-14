@@ -24,7 +24,10 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
       jsPropertyFunctionProperty: '${file(file-property-function.js):property.result}',
       addressSupport: '${file(file.json):result}',
       jsFunctionResolveVariable: '${file(file-function-variable.js)}',
+      jsFunctionResolveVariableMissingSource: '${file(file-function-variable-missing-source.js)}',
       jsPropertyFunctionResolveVariable: '${file(file-property-function-variable.js):property}',
+      jsPropertyFunctionResolveVariableMissingSource:
+        '${file(file-property-function-variable-missing-source.js):property}',
       nonExistingYaml: '${file(not-existing.yaml), null}',
       nonExistingJson: '${file(not-existing.json), null}',
       nonExistingJs: '${file(not-existing.js), null}',
@@ -184,6 +187,16 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
     expect(variablesMeta.get('invalidJs').error.code).to.equal('VARIABLE_RESOLUTION_ERROR');
     expect(variablesMeta.get('invalidJs2').error.code).to.equal('VARIABLE_RESOLUTION_ERROR');
   });
+
+  it('should report with an error if JS function attempts to resolve missing source', () =>
+    expect(variablesMeta.get('jsFunctionResolveVariableMissingSource').error.code).to.equal(
+      'MISSING_VARIABLE_RESULT'
+    ));
+
+  it('should report with an error if JS function property attempts to resolve missing source', () =>
+    expect(variablesMeta.get('jsPropertyFunctionResolveVariableMissingSource').error.code).to.equal(
+      'MISSING_VARIABLE_RESULT'
+    ));
 
   it('should not support function resolvers in "js" file sources not confirmed to work with new resolver', async () => {
     configuration = {
