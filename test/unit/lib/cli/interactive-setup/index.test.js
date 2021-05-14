@@ -7,26 +7,26 @@ const path = require('path');
 const isTabCompletionSupported = require('../../../../../lib/utils/tabCompletion/isSupported');
 
 const serverlessPath = path.resolve(__dirname, '../../../../../scripts/serverless.js');
+const templatesPath = path.resolve(__dirname, '../../../../../lib/plugins/create/templates');
 
 describe('test/unit/lib/cli/interactive-setup/index.test.js', () => {
   it('should configure interactive setup flow', async () => {
-    const slsProcessPromise = spawn('node', [serverlessPath], {
-      env: {
-        ...process.env,
-        SLS_INTERACTIVE_SETUP_ENABLE: '1',
-        SLS_INTERACTIVE_SETUP_TEST: '1',
-        BROWSER: 'none',
-      },
-    });
+    const slsProcessPromise = spawn(
+      'node',
+      [serverlessPath, '--template-path', path.join(templatesPath, 'aws-nodejs')],
+      {
+        env: {
+          ...process.env,
+          SLS_INTERACTIVE_SETUP_ENABLE: '1',
+          SLS_INTERACTIVE_SETUP_TEST: '1',
+          BROWSER: 'none',
+        },
+      }
+    );
     const slsProcess = slsProcessPromise.child;
     let output = '';
     const program = [
       // service
-      {
-        instructionString: 'No project detected. Do you want to create a new one?',
-        input: 'Y',
-      },
-      { instructionString: 'AWS Node.js' },
       {
         instructionString: 'What do you want to call this project?',
         input: 'interactive-setup-test',
