@@ -376,7 +376,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         );
       });
 
-      it('should support `provider.iam.role.permissionBoundary` defined with CF intrinsic functions', async () => {
+      it('should support `provider.iam.role.permissionsBoundary` defined with CF intrinsic functions', async () => {
         const { cfTemplate, awsNaming } = await runServerless({
           fixture: 'function',
           command: 'package',
