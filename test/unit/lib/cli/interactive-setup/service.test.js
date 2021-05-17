@@ -89,6 +89,44 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       );
     });
 
+    it('Should remove `serverless.template.yml` if its a part of the template', async () => {
+      const downloadTemplateFromRepoStub = sinon.stub();
+      const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
+        '../../utils/downloadTemplateFromRepo': {
+          downloadTemplateFromRepo: downloadTemplateFromRepoStub.callsFake(
+            async (templateUrl, projectType, projectName) => {
+              await fsp.mkdir(projectName);
+              const serverlessYmlContent = `
+            service: service
+            provider:
+              name: aws
+           `;
+
+              await fsp.writeFile(path.join(projectName, 'serverless.yml'), serverlessYmlContent);
+              await fsp.writeFile(path.join(projectName, 'serverless.template.yml'), '');
+            }
+          ),
+        },
+      });
+
+      configureInquirerStub(inquirer, {
+        confirm: { shouldCreateNewProject: true },
+        list: { projectType: 'aws-nodejs' },
+        input: { projectName: 'test-project-template' },
+      });
+      await mockedStep.run({ options: {} });
+      const stats = await fsp.lstat('test-project-template/serverless.yml');
+      expect(stats.isFile()).to.be.true;
+      expect(downloadTemplateFromRepoStub).to.have.been.calledWith(
+        'https://github.com/serverless/examples/tree/master/aws-nodejs',
+        'aws-nodejs',
+        'test-project-template'
+      );
+      await expect(
+        fsp.lstat('test-proejct-template/serverless.template.yml')
+      ).to.eventually.be.rejected.and.have.property('code', 'ENOENT');
+    });
+
     it('Should run `npm install` if `package.json` present', async () => {
       const downloadTemplateFromRepoStub = sinon.stub();
       const spawnStub = sinon.stub();
@@ -194,7 +232,10 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
         input: { projectName: 'test-project-failed-install' },
       });
 
-      await expect(mockedStep.run({ options: {} })).to.be.eventually.rejected.and.have.property('code', 'DEPENDENCIES_INSTALL_FAILED')
+      await expect(mockedStep.run({ options: {} })).to.be.eventually.rejected.and.have.property(
+        'code',
+        'DEPENDENCIES_INSTALL_FAILED'
+      );
     });
 
     it('Should create project at not existing directory from a provided `template-path`', async () => {
