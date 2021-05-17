@@ -34,12 +34,7 @@ describe('test/unit/lib/cli/interactive-setup/index.test.js', () => {
 
       // dashboard-login
       {
-        instructionString: 'Would you like to enable this?',
-        input: 'Y',
-      },
-      {
-        instructionString: 'login or register?',
-        input: 'j',
+        instructionString: 'Do you want to login/register to Serverless Dashboard?',
       },
 
       // dashboard-set-org
