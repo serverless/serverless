@@ -16,7 +16,7 @@ const skipWithNotice = require('@serverless/test/skip-with-notice');
 const log = require('log').get('serverless:test');
 const runServerless = require('../../../../../utils/run-serverless');
 
-const tmpServicePath = path.resolve(__dirname, '../../../../../../lib/plugins/aws/invokeLocal');
+const tmpServicePath = __dirname;
 
 chai.use(require('chai-as-promised'));
 
