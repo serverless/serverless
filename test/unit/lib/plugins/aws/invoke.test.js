@@ -3,243 +3,15 @@
 const chai = require('chai');
 const sinon = require('sinon');
 const path = require('path');
-const proxyquire = require('proxyquire');
-const AwsProvider = require('../../../../../lib/plugins/aws/provider');
-const Serverless = require('../../../../../lib/Serverless');
 const { getTmpDirPath } = require('../../../../utils/fs');
 const runServerless = require('../../../../utils/run-serverless');
 const ServerlessError = require('../../../../../lib/serverless-error');
+const fixtures = require('../../../../fixtures/programmatic');
 
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
 
 const expect = chai.expect;
-
-describe('AwsInvoke', () => {
-  let AwsInvoke;
-  let awsInvoke;
-  let serverless;
-  let stdinStub;
-  const options = {
-    stage: 'dev',
-    region: 'us-east-1',
-    function: 'first',
-  };
-
-  beforeEach(() => {
-    stdinStub = sinon.stub().resolves('');
-    AwsInvoke = proxyquire('../../../../../lib/plugins/aws/invoke', {
-      'get-stdin': stdinStub,
-    });
-    serverless = new Serverless();
-    serverless.setProvider('aws', new AwsProvider(serverless, options));
-    serverless.processedInput = { commands: ['invoke'] };
-    awsInvoke = new AwsInvoke(serverless, options);
-  });
-
-  describe('#extendedValidate()', () => {
-    let backupIsTTY;
-    beforeEach(() => {
-      serverless.serviceDir = true;
-      serverless.service.environment = {
-        vars: {},
-        stages: {
-          dev: {
-            vars: {},
-            regions: {
-              'us-east-1': {
-                vars: {},
-              },
-            },
-          },
-        },
-      };
-      serverless.service.functions = {
-        first: {
-          handler: true,
-        },
-      };
-      awsInvoke.options.data = null;
-      awsInvoke.options.path = false;
-      awsInvoke.provider.cachedCredentials = { accessKeyId: 'foo', secretAccessKey: 'bar' };
-
-      // Ensure there's no attempt to read path from stdin
-      backupIsTTY = process.stdin.isTTY;
-      process.stdin.isTTY = true;
-    });
-
-    afterEach(() => {
-      if (backupIsTTY) process.stdin.isTTY = backupIsTTY;
-      else delete process.stdin.isTTY;
-    });
-
-    it('it should throw error if function is not provided', () => {
-      serverless.service.functions = null;
-      return expect(awsInvoke.extendedValidate()).to.be.rejected;
-    });
-
-    it('should not throw error when there is no input data', async () => {
-      awsInvoke.options.data = undefined;
-
-      await expect(awsInvoke.extendedValidate()).to.be.fulfilled;
-
-      expect(awsInvoke.options.data).to.equal('');
-    });
-
-    it('should keep data if it is a simple string', async () => {
-      awsInvoke.options.data = 'simple-string';
-
-      await expect(awsInvoke.extendedValidate()).to.be.fulfilled;
-
-      expect(awsInvoke.options.data).to.equal('simple-string');
-    });
-
-    it('should parse data if it is a json string', async () => {
-      awsInvoke.options.data = '{"key": "value"}';
-
-      await expect(awsInvoke.extendedValidate()).to.be.fulfilled;
-
-      expect(awsInvoke.options.data).to.deep.equal({ key: 'value' });
-    });
-
-    it('should skip parsing data if "raw" requested', async () => {
-      awsInvoke.options.data = '{"key": "value"}';
-      awsInvoke.options.raw = true;
-
-      await expect(awsInvoke.extendedValidate()).to.be.fulfilled;
-
-      expect(awsInvoke.options.data).to.deep.equal('{"key": "value"}');
-    });
-
-    it('it should parse file if relative file path is provided', async () => {
-      serverless.serviceDir = getTmpDirPath();
-      const data = {
-        testProp: 'testValue',
-      };
-      serverless.utils.writeFileSync(
-        path.join(serverless.serviceDir, 'data.json'),
-        JSON.stringify(data)
-      );
-      awsInvoke.options.path = 'data.json';
-
-      await expect(awsInvoke.extendedValidate()).to.be.fulfilled;
-
-      expect(awsInvoke.options.data).to.deep.equal(data);
-    });
-
-    it('it should parse file if absolute file path is provided', async () => {
-      serverless.serviceDir = getTmpDirPath();
-      const data = {
-        testProp: 'testValue',
-      };
-      const dataFile = path.join(serverless.serviceDir, 'data.json');
-      serverless.utils.writeFileSync(dataFile, JSON.stringify(data));
-      awsInvoke.options.path = dataFile;
-
-      await expect(awsInvoke.extendedValidate()).to.be.fulfilled;
-
-      expect(awsInvoke.options.data).to.deep.equal(data);
-    });
-
-    it('it should parse a yaml file if file path is provided', async () => {
-      serverless.serviceDir = getTmpDirPath();
-      const yamlContent = 'testProp: testValue';
-
-      serverless.utils.writeFileSync(path.join(serverless.serviceDir, 'data.yml'), yamlContent);
-      awsInvoke.options.path = 'data.yml';
-
-      await expect(awsInvoke.extendedValidate()).to.be.fulfilled;
-
-      expect(awsInvoke.options.data).to.deep.equal({
-        testProp: 'testValue',
-      });
-    });
-
-    it('it should throw error if file path does not exist', () => {
-      serverless.serviceDir = getTmpDirPath();
-      awsInvoke.options.path = 'some/path';
-
-      return expect(awsInvoke.extendedValidate()).to.be.rejectedWith(
-        'The file you provided does not exist.'
-      );
-    });
-
-    it('should resolve if path is not given', () => {
-      awsInvoke.options.path = false;
-      return expect(awsInvoke.extendedValidate()).to.be.fulfilled;
-    });
-  });
-
-  describe('#invoke()', () => {
-    let invokeStub;
-    beforeEach(() => {
-      invokeStub = sinon.stub(awsInvoke.provider, 'request').resolves();
-      awsInvoke.serverless.service.service = 'new-service';
-      awsInvoke.options = {
-        stage: 'dev',
-        function: 'first',
-        functionObj: {
-          name: 'customName',
-        },
-      };
-    });
-
-    it('should invoke with other invocation type', async () => {
-      awsInvoke.options.type = 'OtherType';
-
-      await awsInvoke.invoke();
-      expect(invokeStub.calledOnce).to.be.equal(true);
-      expect(
-        invokeStub.calledWithExactly('Lambda', 'invoke', {
-          FunctionName: 'customName',
-          InvocationType: 'OtherType',
-          LogType: 'None',
-          Payload: Buffer.from(JSON.stringify({})),
-        })
-      ).to.be.equal(true);
-      awsInvoke.provider.request.restore();
-    });
-
-    it('should be able to invoke with a qualifier', async () => {
-      awsInvoke.options.qualifier = 'somelongqualifier';
-
-      await awsInvoke.invoke();
-
-      expect(invokeStub.calledOnce).to.be.equal(true);
-
-      expect(
-        invokeStub.calledWithExactly('Lambda', 'invoke', {
-          FunctionName: 'customName',
-          InvocationType: 'RequestResponse',
-          LogType: 'None',
-          Payload: Buffer.from(JSON.stringify({})),
-          Qualifier: 'somelongqualifier',
-        })
-      ).to.be.equal(true);
-
-      awsInvoke.provider.request.restore();
-    });
-  });
-
-  describe('#log()', () => {
-    it('rejects the promise for failed invocations', () => {
-      const invocationReplyMock = {
-        Payload: `
-        {
-         "testProp": "testValue"
-        }
-        `,
-        LogResult: 'test',
-        FunctionError: true,
-      };
-
-      return expect(() => awsInvoke.log(invocationReplyMock)).to.throw(
-        Error,
-        'Invoked function failed'
-      );
-    });
-  });
-});
 
 describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
   describe('Common', () => {
@@ -281,9 +53,13 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
       });
     });
 
-    xit('TODO: should support JSON string data', async () => {
-      // Replaces
-      // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L123-L129
+    it('should support JSON string data', async () => {
+      expect(lambdaInvokeStub).to.be.calledWith({
+        FunctionName: result.serverless.service.getFunction('callback').name,
+        InvocationType: 'RequestResponse',
+        LogType: 'Tail',
+        Payload: Buffer.from(JSON.stringify({ inputKey: 'inputValue' })),
+      });
     });
 
     it('should log payload', () => {
@@ -293,37 +69,60 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
     });
   });
 
-  xit('TODO: should accept no data', async () => {
-    await runServerless({
-      fixture: 'invocation',
-      command: 'invoke',
-      options: { function: 'callback' },
-      awsRequestStubMap: {
-        // Stub AWS SDK invocation, and confirm `Payload` param
-      },
-    });
-    // Replaces
-    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L107-L113
-  });
-
-  xit('TODO: should support plain string data', async () => {
-    await runServerless({
+  it('should accept no data', async () => {
+    const lambdaInvokeStub = sinon.stub();
+    const result = await runServerless({
       fixture: 'invocation',
       command: 'invoke',
       options: {
         function: 'callback',
-        data: 'inputData',
       },
       awsRequestStubMap: {
-        // Stub AWS SDK invocation, and confirm `Payload` param
+        Lambda: {
+          invoke: (args) => {
+            lambdaInvokeStub.returns('payload');
+            return lambdaInvokeStub(args);
+          },
+        },
       },
     });
-    // Replaces
-    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L115-L121
+    expect(lambdaInvokeStub.args[0][0]).to.deep.equal({
+      FunctionName: result.serverless.service.getFunction('callback').name,
+      InvocationType: 'RequestResponse',
+      LogType: 'None',
+      Payload: Buffer.from('{}'),
+    });
   });
 
-  xit('TODO: should should not attempt to parse data with raw option', async () => {
-    await runServerless({
+  it('should support plain string data', async () => {
+    const lambdaInvokeStub = sinon.stub();
+    const result = await runServerless({
+      fixture: 'invocation',
+      command: 'invoke',
+      options: {
+        function: 'callback',
+        data: 'simple-string',
+      },
+      awsRequestStubMap: {
+        Lambda: {
+          invoke: (args) => {
+            lambdaInvokeStub.returns('payload');
+            return lambdaInvokeStub(args);
+          },
+        },
+      },
+    });
+    expect(lambdaInvokeStub.args[0][0]).to.deep.equal({
+      FunctionName: result.serverless.service.getFunction('callback').name,
+      InvocationType: 'RequestResponse',
+      LogType: 'None',
+      Payload: Buffer.from(JSON.stringify('simple-string')),
+    });
+  });
+
+  it('should should not attempt to parse data with raw option', async () => {
+    const lambdaInvokeStub = sinon.stub();
+    const result = await runServerless({
       fixture: 'invocation',
       command: 'invoke',
       options: {
@@ -332,15 +131,25 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
         raw: true,
       },
       awsRequestStubMap: {
-        // Stub AWS SDK invocation, and confirm `Payload` param
+        Lambda: {
+          invoke: (args) => {
+            lambdaInvokeStub.returns('payload');
+            return lambdaInvokeStub(args);
+          },
+        },
       },
     });
-    // Replaces
-    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L131-L138
+    expect(lambdaInvokeStub.args[0][0]).to.deep.equal({
+      FunctionName: result.serverless.service.getFunction('callback').name,
+      InvocationType: 'RequestResponse',
+      LogType: 'None',
+      Payload: Buffer.from(JSON.stringify('{"inputKey":"inputValue"}')),
+    });
   });
 
-  xit('TODO: should support JSON file path as data', async () => {
-    await runServerless({
+  it('should support JSON file path as data', async () => {
+    const lambdaInvokeStub = sinon.stub();
+    const result = await runServerless({
       fixture: 'invocation',
       command: 'invoke',
       options: {
@@ -348,31 +157,53 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
         path: 'payload.json',
       },
       awsRequestStubMap: {
-        // Stub AWS SDK invocation, and confirm `Payload` param
+        Lambda: {
+          invoke: (args) => {
+            lambdaInvokeStub.returns('payload');
+            return lambdaInvokeStub(args);
+          },
+        },
       },
     });
-    // Replaces
-    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L140-L154
+    expect(lambdaInvokeStub.args[0][0]).to.deep.equal({
+      FunctionName: result.serverless.service.getFunction('callback').name,
+      InvocationType: 'RequestResponse',
+      LogType: 'None',
+      Payload: Buffer.from(JSON.stringify({ dataInputKey: 'dataInputValue' })),
+    });
   });
 
-  xit('TODO: should support absolute file path as data', async () => {
-    await runServerless({
-      fixture: 'invocation',
+  it('should support absolute file path as data', async () => {
+    const lambdaInvokeStub = sinon.stub();
+    const { servicePath: serviceDir } = await fixtures.setup('invocation');
+    const pathToPayload = path.join(serviceDir, 'payload.json');
+    const result = await runServerless({
+      cwd: serviceDir,
       command: 'invoke',
       options: {
         function: 'callback',
-        path: '' /* TODO: Pass absolute path to payload.json in fixture */,
+        path: pathToPayload,
       },
       awsRequestStubMap: {
-        // Stub AWS SDK invocation, and confirm `Payload` param
+        Lambda: {
+          invoke: (args) => {
+            lambdaInvokeStub.returns('payload');
+            return lambdaInvokeStub(args);
+          },
+        },
       },
     });
-    // Replaces
-    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L156-L168
+    expect(lambdaInvokeStub.args[0][0]).to.deep.equal({
+      FunctionName: result.serverless.service.getFunction('callback').name,
+      InvocationType: 'RequestResponse',
+      LogType: 'None',
+      Payload: Buffer.from(JSON.stringify({ dataInputKey: 'dataInputValue' })),
+    });
   });
 
-  xit('TODO: should support YAML file path as data', async () => {
-    await runServerless({
+  it('should support YAML file path as data', async () => {
+    const lambdaInvokeStub = sinon.stub();
+    const result = await runServerless({
       fixture: 'invocation',
       command: 'invoke',
       options: {
@@ -380,14 +211,23 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
         path: 'payload.yaml',
       },
       awsRequestStubMap: {
-        // Stub AWS SDK invocation, and confirm `Payload` param
+        Lambda: {
+          invoke: (args) => {
+            lambdaInvokeStub.returns('payload');
+            return lambdaInvokeStub(args);
+          },
+        },
       },
     });
-    // Replaces
-    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L170-L185
+    expect(lambdaInvokeStub.args[0][0]).to.deep.equal({
+      FunctionName: result.serverless.service.getFunction('callback').name,
+      InvocationType: 'RequestResponse',
+      LogType: 'None',
+      Payload: Buffer.from(JSON.stringify({ dataInputKey: 'dataInputValue' })),
+    });
   });
 
-  xit('TODO: should throw error if data file path does not exist', async () => {
+  it('should throw error if data file path does not exist', async () => {
     await expect(
       runServerless({
         fixture: 'invocation',
@@ -397,25 +237,22 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
           path: 'not-existing.yaml',
         },
       })
-    ).to.eventually.be.rejected.and.have.property('code', 'TODO');
-    // Replaces
-    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L192-L199
+    ).to.eventually.be.rejected.and.have.property('code', 'FILE_NOT_FOUND');
   });
 
-  xit('TODO: should throw error if function is not provided', async () => {
+  it('should throw error if function is not provided', async () => {
     await expect(
       runServerless({
         fixture: 'invocation',
         command: 'invoke',
         options: { function: 'notExisting' },
       })
-    ).to.eventually.be.rejected.and.have.property('code', 'TODO');
-    // Replaces
-    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L102-L105
+    ).to.eventually.be.rejected.and.have.property('code', 'FUNCTION_MISSING_IN_SERVICE');
   });
 
-  xit('TODO: should support --type option', async () => {
-    await runServerless({
+  it('should support --type option', async () => {
+    const lambdaInvokeStub = sinon.stub();
+    const result = await runServerless({
       fixture: 'invocation',
       command: 'invoke',
       options: {
@@ -423,15 +260,25 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
         type: 'Event',
       },
       awsRequestStubMap: {
-        // Stub AWS SDK invocation, and confirm `InvocationType` param
+        Lambda: {
+          invoke: (args) => {
+            lambdaInvokeStub.returns('payload');
+            return lambdaInvokeStub(args);
+          },
+        },
       },
     });
-    // Replaces
-    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L253-L267
+    expect(lambdaInvokeStub.args[0][0]).to.deep.equal({
+      FunctionName: result.serverless.service.getFunction('callback').name,
+      InvocationType: 'Event',
+      LogType: 'None',
+      Payload: Buffer.from('{}'),
+    });
   });
 
-  xit('TODO: should support --qualifier option', async () => {
-    await runServerless({
+  it('should support --qualifier option', async () => {
+    const lambdaInvokeStub = sinon.stub();
+    const result = await runServerless({
       fixture: 'invocation',
       command: 'invoke',
       options: {
@@ -439,11 +286,21 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
         qualifier: 'foo',
       },
       awsRequestStubMap: {
-        // Stub AWS SDK invocation, and confirm `Qualifier` param
+        Lambda: {
+          invoke: (args) => {
+            lambdaInvokeStub.returns('payload');
+            return lambdaInvokeStub(args);
+          },
+        },
       },
     });
-    // Replaces
-    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L269-L287
+    expect(lambdaInvokeStub.args[0][0]).to.deep.equal({
+      FunctionName: result.serverless.service.getFunction('callback').name,
+      InvocationType: 'RequestResponse',
+      LogType: 'None',
+      Qualifier: 'foo',
+      Payload: Buffer.from('{}'),
+    });
   });
 
   it('should support `--context` param', async () => {
@@ -573,18 +430,50 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
     expect(lambdaInvokeStub).to.have.been.callCount(0);
   });
 
-  xit('TODO: should fail the process for failed invocations', async () => {
+  it('should fail the process for failed invocations', async () => {
+    const lambdaInvokeStub = sinon.stub();
     await expect(
       runServerless({
         fixture: 'invocation',
         command: 'invoke',
         options: {
           function: 'callback',
-          path: 'not-existing.yaml',
+        },
+        awsRequestStubMap: {
+          Lambda: {
+            invoke: (args) => {
+              lambdaInvokeStub.returns({
+                Payload: args.Payload,
+                LogResult: Buffer.from('test').toString('base64'),
+                FunctionError: true,
+              });
+              return lambdaInvokeStub(args);
+            },
+          },
         },
       })
-    ).to.eventually.be.rejected.and.have.property('code', 'TODO');
-    // Replace
-    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L317-L332
+    ).to.be.eventually.rejectedWith(Error, 'Invoked function failed');
+  });
+
+  it('should resolve if path is not given', async () => {
+    const lambdaInvokeStub = sinon.stub();
+    await expect(
+      runServerless({
+        fixture: 'invocation',
+        command: 'invoke',
+        options: {
+          function: 'callback',
+          path: false,
+        },
+        awsRequestStubMap: {
+          Lambda: {
+            invoke: (args) => {
+              lambdaInvokeStub.returns('payload');
+              return lambdaInvokeStub(args);
+            },
+          },
+        },
+      })
+    ).to.be.eventually.fulfilled;
   });
 });
