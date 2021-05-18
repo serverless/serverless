@@ -4,6 +4,7 @@ const expect = require('chai').expect;
 const AwsCompileApigEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/apiGateway/index');
 const Serverless = require('../../../../../../../../../../lib/Serverless');
 const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
+const runServerless = require('../../../../../../../../../utils/run-serverless');
 
 describe('#compileApiKeys()', () => {
   let serverless;
@@ -135,101 +136,79 @@ describe('#compileApiKeys()', () => {
       ).to.equal('ApiGatewayDeploymentTest');
     });
   });
+});
 
-  describe('when using usage plan notation', () => {
-    it('should support usage plan notation', () => {
-      awsCompileApigEvents.serverless.service.provider.apiGateway = {
-        apiKeys: [
-          {
-            free: [
-              '1234567890',
-              { name: '2345678901' },
-              {
-                value: 'valueForKeyWithoutName',
-                description: 'Api key description',
-              },
-              { name: '3456789012', value: 'valueForKey3456789012' },
-            ],
-          },
-          { paid: ['0987654321', 'jihgfedcba'] },
-        ],
-        usagePlan: [{ free: [] }, { paid: [] }],
-      };
+describe('lib/plugins/aws/package/compile/events/apiGateway/lib/apiKeys.test.js', () => {
+  it('should support usage plan notation', async () => {
+    const apiGatewayExt = {
+      apiKeys: [
+        {
+          free: [
+            '1234567890',
+            { name: '2345678901' },
+            {
+              value: 'valueForKeyWithoutName',
+              description: 'Api key description',
+            },
+            { name: '3456789012', value: 'valueForKey3456789012' },
+            { description: 'descriptionForKeyWithoutNameOrValue' },
+          ],
+        },
+        { paid: ['0987654321', 'jihgfedcba'] },
+      ],
+      usagePlan: [{ free: {} }, { paid: {} }],
+    };
+    const { awsNaming, cfTemplate, serverless } = await runServerless({
+      fixture: 'apiGateway',
+      command: 'package',
+      configExt: {
+        provider: {
+          apiGateway: apiGatewayExt,
+        },
+      },
+    });
+    const resources = cfTemplate.Resources;
 
-      awsCompileApigEvents.compileApiKeys();
-      const expectedApiKeys = {
-        free: [
-          { name: '1234567890', value: undefined, description: undefined },
-          { name: '2345678901', value: undefined, description: undefined },
-          {
-            name: undefined,
-            value: 'valueForKeyWithoutName',
-            description: 'Api key description',
-          },
-          {
-            name: '3456789012',
-            value: 'valueForKey3456789012',
-            description: undefined,
-          },
-        ],
-        paid: [
-          { name: '0987654321', value: undefined, description: undefined },
-          { name: 'jihgfedcba', value: undefined, description: undefined },
-        ],
-      };
-      awsCompileApigEvents.serverless.service.provider.apiGateway.apiKeys.forEach((plan) => {
-        const planName = Object.keys(plan)[0]; // free || paid
-        const apiKeys = expectedApiKeys[planName];
-        apiKeys.forEach((apiKey, index) => {
-          expect(
-            awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate
-              .Resources[
-              awsCompileApigEvents.provider.naming.getApiKeyLogicalId(index + 1, planName)
-            ].Type
-          ).to.equal('AWS::ApiGateway::ApiKey');
-          expect(
-            awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate
-              .Resources[
-              awsCompileApigEvents.provider.naming.getApiKeyLogicalId(index + 1, planName)
-            ].Properties.Enabled
-          ).to.equal(true);
-          expect(
-            awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate
-              .Resources[
-              awsCompileApigEvents.provider.naming.getApiKeyLogicalId(index + 1, planName)
-            ].Properties.Name
-          ).to.equal(apiKey.name);
-          expect(
-            awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate
-              .Resources[
-              awsCompileApigEvents.provider.naming.getApiKeyLogicalId(index + 1, planName)
-            ].Properties.Description
-          ).to.equal(apiKey.description);
-          expect(
-            awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate
-              .Resources[
-              awsCompileApigEvents.provider.naming.getApiKeyLogicalId(index + 1, planName)
-            ].Properties.Value
-          ).to.equal(apiKey.value);
-          expect(
-            awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate
-              .Resources[
-              awsCompileApigEvents.provider.naming.getApiKeyLogicalId(index + 1, planName)
-            ].Properties.StageKeys[0].RestApiId.Ref
-          ).to.equal('ApiGatewayRestApi');
-          expect(
-            awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate
-              .Resources[
-              awsCompileApigEvents.provider.naming.getApiKeyLogicalId(index + 1, planName)
-            ].Properties.StageKeys[0].StageName
-          ).to.equal('dev');
-          expect(
-            awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate
-              .Resources[
-              awsCompileApigEvents.provider.naming.getApiKeyLogicalId(index + 1, planName)
-            ].DependsOn
-          ).to.equal('ApiGatewayDeploymentTest');
-        });
+    const expectedApiKeys = {
+      free: [
+        { name: '1234567890', value: undefined, description: undefined },
+        { name: '2345678901', value: undefined, description: undefined },
+        {
+          name: undefined,
+          value: 'valueForKeyWithoutName',
+          description: 'Api key description',
+        },
+        {
+          name: '3456789012',
+          value: 'valueForKey3456789012',
+          description: undefined,
+        },
+        {
+          name: undefined,
+          value: undefined,
+          description: 'descriptionForKeyWithoutNameOrValue',
+        },
+      ],
+      paid: [
+        { name: '0987654321', value: undefined, description: undefined },
+        { name: 'jihgfedcba', value: undefined, description: undefined },
+      ],
+    };
+    apiGatewayExt.apiKeys.forEach((plan) => {
+      const planName = Object.keys(plan)[0]; // free || paid
+      const apiKeys = expectedApiKeys[planName];
+      apiKeys.forEach((apiKey, index) => {
+        const resource = resources[awsNaming.getApiKeyLogicalId(index + 1, planName)];
+        expect(resource.Type).to.equal('AWS::ApiGateway::ApiKey');
+        expect(resource.Properties.Enabled).to.equal(true);
+        expect(resource.Properties.Name).to.equal(apiKey.name);
+        expect(resource.Properties.Description).to.equal(apiKey.description);
+        expect(resource.Properties.Value).to.equal(apiKey.value);
+        expect(resource.Properties.StageKeys[0].RestApiId.Ref).to.equal('ApiGatewayRestApi');
+        expect(resource.Properties.StageKeys[0].StageName).to.equal('dev');
+        expect(resource.DependsOn).to.equal(
+          awsNaming.generateApiGatewayDeploymentLogicalId(serverless.instanceId)
+        );
       });
     });
   });

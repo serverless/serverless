@@ -376,6 +376,32 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         );
       });
 
+      it('should support `provider.iam.role.permissionsBoundary` defined with CF intrinsic functions', async () => {
+        const { cfTemplate, awsNaming } = await runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            provider: {
+              iam: {
+                role: {
+                  permissionsBoundary: {
+                    'Fn::Sub': 'arn:aws:iam::${AWS::AccountId}:policy/XCompanyBoundaries',
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        const IamRoleLambdaExecution = awsNaming.getRoleLogicalId();
+        const {
+          Properties: { PermissionsBoundary },
+        } = cfTemplate.Resources[IamRoleLambdaExecution];
+        expect(PermissionsBoundary).to.deep.includes({
+          'Fn::Sub': 'arn:aws:iam::${AWS::AccountId}:policy/XCompanyBoundaries',
+        });
+      });
+
       it('should ensure needed IAM configuration when `provider.vpc` is configured', () => {
         const IamRoleLambdaExecution = naming.getRoleLogicalId();
         const iamResource = cfResources[IamRoleLambdaExecution];
