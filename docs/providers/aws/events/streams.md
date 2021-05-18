@@ -69,7 +69,12 @@ functions:
       - stream:
           type: kinesis
           arn: arn:aws:kinesis:region:XXXXXX:stream/foobar
-          consumer: preExistingName
+          consumer: arn:aws:kinesis:us-west-2:xxx:stream/my-kinesis-stream/consumer/my-consumer
+      - stream:
+        type: kinesis
+        arn: arn:aws:kinesis:region:XXXXXX:stream/foobar
+        consumer: true
+        consumerName: 'my-consumer'
 ```
 
 ## Setting the BatchSize and StartingPosition
@@ -291,7 +296,7 @@ This configuration controls the optional usage of Kinesis data streams enhanced 
 
 The `consumer` property can be used to put a [stream consumer](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kinesis-streamconsumer.html) between your function's [event source mapping](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventsourcemapping.html) and the stream it consumes.
 
-The configuration below creates a new stream consumer.
+The configuration below creates a new stream consumer. The default name of the consumer can be overridden with the optional `consumerName` property.
 
 ```yml
 functions:
@@ -301,6 +306,7 @@ functions:
       - stream:
           arn: arn:aws:kinesis:region:XXXXXX:stream/foo
           consumer: true
+          consumerName: optional-consumer-name
 ```
 
 The configuration below uses the pre-existing stream consumer with the given ARN.

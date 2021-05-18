@@ -1159,6 +1159,13 @@ describe('AwsCompileStreamEvents', () => {
                   consumer: false,
                 },
               },
+              {
+                stream: {
+                  arn: 'arn:aws:kinesis:region:account:stream/ghi',
+                  consumer: true,
+                  consumerName: 'MyConsumerName',
+                },
+              },
             ],
           },
         };
@@ -1431,6 +1438,40 @@ describe('AwsCompileStreamEvents', () => {
         expect(
           awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
             .Resources.FirstEventSourceMappingKinesisDef.Properties.MaximumRecordAgeInSeconds
+        ).to.equal(undefined);
+
+        // event 9
+        expect(
+          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources.FirstEventSourceMappingKinesisGhi.Type
+        ).to.equal('AWS::Lambda::EventSourceMapping');
+        expect(
+          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources.FirstEventSourceMappingKinesisGhi.DependsOn
+        ).to.include('IamRoleLambdaExecution');
+        expect(
+          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources.FirstEventSourceMappingKinesisGhi.Properties.EventSourceArn
+        ).to.eql({ Ref: 'MyConsumerNameStreamConsumer' });
+        expect(
+          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources.FirstEventSourceMappingKinesisGhi.Properties.BatchSize
+        ).to.equal(10);
+        expect(
+          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources.FirstEventSourceMappingKinesisGhi.Properties.StartingPosition
+        ).to.equal('TRIM_HORIZON');
+        expect(
+          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources.FirstEventSourceMappingKinesisGhi.Properties.Enabled
+        ).to.equal(true);
+        expect(
+          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources.FirstEventSourceMappingKinesisGhi.Properties.BisectBatchOnFunctionError
+        ).to.equal(undefined);
+        expect(
+          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources.FirstEventSourceMappingKinesisGhi.Properties.MaximumRecordAgeInSeconds
         ).to.equal(undefined);
       });
 
