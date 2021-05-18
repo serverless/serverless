@@ -7,6 +7,7 @@ const configureInquirerStub = require('@serverless/test/configure-inquirer-stub'
 const step = require('../../../../../lib/cli/interactive-setup/service');
 const proxyquire = require('proxyquire');
 const overrideStdoutWrite = require('process-utils/override-stdout-write');
+const ServerlessError = require('../../../../../lib/serverless-error');
 
 const templatesPath = path.resolve(__dirname, '../../../../../lib/plugins/create/templates');
 
@@ -32,6 +33,20 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
   it('Should result in an error when at service path with `template-path` options provided', () => {
     expect(() =>
       step.isApplicable({ serviceDir: '/foo', options: { 'template-path': 'path/to/template' } })
+    )
+      .to.throw()
+      .and.have.property('code', 'NOT_APPLICABLE_SERVICE_OPTIONS');
+  });
+
+  it('Should result in an error when at service path with `template` option provided', () => {
+    expect(() => step.isApplicable({ serviceDir: '/foo', options: { template: 'test-template' } }))
+      .to.throw()
+      .and.have.property('code', 'NOT_APPLICABLE_SERVICE_OPTIONS');
+  });
+
+  it('Should result in an error when at service path with `template-url` option provided', () => {
+    expect(() =>
+      step.isApplicable({ serviceDir: '/foo', options: { 'template-url': 'test-template' } })
     )
       .to.throw()
       .and.have.property('code', 'NOT_APPLICABLE_SERVICE_OPTIONS');
@@ -272,10 +287,76 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       expect(stats.isFile()).to.be.true;
     });
 
+    it('Should create project at not existing directory with provided template', async () => {
+      const downloadTemplateFromRepoStub = sinon.stub();
+      const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
+        '../../utils/downloadTemplateFromRepo': {
+          downloadTemplateFromRepo: downloadTemplateFromRepoStub.callsFake(
+            async (templateUrl, projectType, projectName) => {
+              const serverlessYmlContent = `
+            service: service
+            provider:
+              name: aws
+           `;
+
+              await fsp.mkdir(projectName);
+              await fsp.writeFile(path.join(projectName, 'serverless.yml'), serverlessYmlContent);
+            }
+          ),
+        },
+      });
+      configureInquirerStub(inquirer, {
+        input: { projectName: 'test-project-from-provided-template' },
+      });
+      await mockedStep.run({ options: { template: 'test-template' } });
+      const stats = await fsp.lstat('test-project-from-provided-template/serverless.yml');
+      expect(stats.isFile()).to.be.true;
+      expect(downloadTemplateFromRepoStub).to.have.been.calledWith(
+        'https://github.com/serverless/examples/tree/master/test-template',
+        'test-template',
+        'test-project-from-provided-template'
+      );
+    });
+
+    it('Should create project at not existing directory with provided `template-url`', async () => {
+      const providedTemplateUrl =
+        'https://github.com/serverless/examples/tree/master/test-template';
+      const downloadTemplateFromRepoStub = sinon.stub();
+      const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
+        '../../utils/downloadTemplateFromRepo': {
+          downloadTemplateFromRepo: downloadTemplateFromRepoStub.callsFake(
+            async (templateUrl, projectType, projectName) => {
+              const serverlessYmlContent = `
+            service: service
+            provider:
+              name: aws
+           `;
+
+              await fsp.mkdir(projectName);
+              await fsp.writeFile(path.join(projectName, 'serverless.yml'), serverlessYmlContent);
+            }
+          ),
+        },
+      });
+      configureInquirerStub(inquirer, {
+        input: { projectName: 'test-project-from-provided-template-url' },
+      });
+      await mockedStep.run({ options: { 'template-url': providedTemplateUrl } });
+      const stats = await fsp.lstat('test-project-from-provided-template-url/serverless.yml');
+      expect(stats.isFile()).to.be.true;
+      expect(downloadTemplateFromRepoStub).to.have.been.calledWith(
+        providedTemplateUrl,
+        null,
+        'test-project-from-provided-template-url'
+      );
+    });
+
     it('Should throw an error when template cannot be downloaded', async () => {
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
         '../../utils/downloadTemplateFromRepo': {
-          downloadTemplateFromRepo: sinon.stub().rejects(),
+          downloadTemplateFromRepo: sinon.stub().callsFake(async () => {
+            throw new ServerlessError();
+          }),
         },
       });
       configureInquirerStub(inquirer, {
@@ -287,6 +368,36 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
         'code',
         'TEMPLATE_DOWNLOAD_FAILED'
       );
+    });
+
+    it('Should throw an error when provided template cannot be found', async () => {
+      const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
+        '../../utils/downloadTemplateFromRepo': {
+          downloadTemplateFromRepo: sinon.stub().rejects({ code: 'ENOENT' }),
+        },
+      });
+      configureInquirerStub(inquirer, {
+        input: { projectName: 'test-error-during-download' },
+      });
+      await expect(
+        mockedStep.run({ options: { template: 'test-template' } })
+      ).to.be.eventually.rejected.and.have.property('code', 'INVALID_TEMPLATE');
+    });
+
+    it('Should throw an error when template provided with url cannot be found', async () => {
+      const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
+        '../../utils/downloadTemplateFromRepo': {
+          downloadTemplateFromRepo: sinon.stub().callsFake(async () => {
+            throw new ServerlessError();
+          }),
+        },
+      });
+      configureInquirerStub(inquirer, {
+        input: { projectName: 'test-error-during-download-custom-template' },
+      });
+      await expect(
+        mockedStep.run({ options: { 'template-url': 'test-template-url' } })
+      ).to.be.eventually.rejected.and.have.property('code', 'INVALID_TEMPLATE_URL');
     });
   });
 
@@ -336,5 +447,11 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
     await expect(
       step.run({ options: { name: 'elo grzegżółka' } })
     ).to.eventually.be.rejected.and.have.property('code', 'INVALID_PROJECT_NAME');
+  });
+
+  it('Should not allow project creation if multiple template-related options are provided', async () => {
+    await expect(
+      step.run({ options: { 'template': 'some-template', 'template-url': 'https://template.com' } })
+    ).to.eventually.be.rejected.and.have.property('code', 'MULTIPLE_TEMPLATE_OPTIONS_PROVIDED');
   });
 });
