@@ -40,6 +40,35 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
               '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38',
           },
         },
+        resources: {
+          Resources: {
+            ExtraLogGroup: {
+              Type: 'AWS::Logs::LogGroup',
+              Properties: {
+                LogGroupName: '/aws/lambda/extra-log',
+              },
+            },
+            AnotherExtraLogGroup: {
+              Type: 'AWS::Logs::LogGroup',
+              Properties: {
+                LogGroupName: '/aws/lambda/extra-log-2',
+              },
+            },
+            ExtraBucket: {
+              Type: 'AWS::S3::Bucket',
+            },
+            ExtraCustom: {
+              Type: 'Custom::Matthieu',
+            },
+          },
+          extensions: {
+            FunctionLambdaFunction: {
+              Properties: {
+                Runtime: 'nodejs14.x',
+              },
+            },
+          },
+        },
       },
     });
     await fs.promises.writeFile(
@@ -105,6 +134,9 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
           { runtime: 'nodejs14.x', events: [] },
           { runtime: '$containerimage', events: [] },
         ],
+        resources: {
+          general: ['AWS::Logs::LogGroup', 'AWS::S3::Bucket', 'Custom'],
+        },
       },
       isAutoUpdateEnabled: false,
       isTabAutocompletionInstalled: false,
@@ -159,6 +191,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
           { runtime: 'foo', events: [{ type: 'someEvent' }] },
           { runtime: 'bar', events: [] },
         ],
+        resources: undefined,
       },
       isAutoUpdateEnabled: false,
       isTabAutocompletionInstalled: false,
@@ -216,6 +249,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         },
         plugins: [],
         functions: [],
+        resources: { general: [] },
       },
       isAutoUpdateEnabled: false,
       isTabAutocompletionInstalled: false,
@@ -314,6 +348,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
           { runtime: 'nodejs12.x', events: [] },
           { runtime: 'nodejs12.x', events: [] },
         ],
+        resources: { general: [] },
       },
       isAutoUpdateEnabled: false,
       isTabAutocompletionInstalled: false,
