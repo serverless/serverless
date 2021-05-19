@@ -407,7 +407,7 @@ describe('monitorStack', () => {
             EventId: '1e2f3g4h',
             StackName: 'new-service-dev',
             LogicalResourceId: 'mochaS3',
-            ResourceType: 'S3::Bucket',
+            ResourceType: 'AWS::S3::Bucket',
             Timestamp: new Date(),
             ResourceStatus: 'CREATE_FAILED',
             ResourceStatusReason: 'Bucket already exists',
