@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.42.0](https://github.com/serverless/serverless/compare/v2.41.2...v2.42.0) (2021-05-19)
+
+### Features
+
+- **CLI Onboarding:**
+  - Switch to templates hosted at [`serverless/examples`](https://github.com/serverless/examples/) ([#9484](https://github.com/serverless/serverless/pull/9484)) ([e4ea50d](https://github.com/serverless/serverless/commit/e4ea50d401628cb22612196b7e9b50c4344dab8a)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Support `--name` CLI option for `service` step ([#9471](https://github.com/serverless/serverless/pull/9471)) ([53575dc](https://github.com/serverless/serverless/commit/53575dc36017ded5ff60e5edf18fb7a9fd9d30e9)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Support `template-path` CLI option for `service` step ([#9471](https://github.com/serverless/serverless/pull/9471)) ([98c9700](https://github.com/serverless/serverless/commit/98c9700bcda328552f04116a51549f66e3d7b026)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Support `template` and `template-url` options for `service` step ([#9495](https://github.com/serverless/serverless/pull/9495)) ([f1a288c](https://github.com/serverless/serverless/commit/f1a288ce2c30e1377d8b411a90db3b1b2857d4fb)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **AWS API Gateway:** Fix schema for `apiKeys` and `permissionsBoundary` ([#9489](https://github.com/serverless/serverless/pull/9489)) ([5601025](https://github.com/serverless/serverless/commit/5601025dd8a4075cb463e2dcfb67d6c52984582a)) ([lyndoh](https://github.com/lyndoh))
+- **AWS Local Invocation:** Report invalid handler path meaningfully ([#9499](https://github.com/serverless/serverless/pull/9499)) ([a2297ee](https://github.com/serverless/serverless/commit/a2297ee916dd79463d4efcfd6f7fe1f8e0e50d87)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:**
+  - Fix reporting of variable resolution errors trigger by variable resolution made in JS function resolvers ([#9482](https://github.com/serverless/serverless/pull/9482)) ([f6b7cfa](https://github.com/serverless/serverless/commit/f6b7cfaaaff81b84011f0f6168a651979089e1c9)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Ensure report user error as user error ([#9499](https://github.com/serverless/serverless/pull/9499)) ([a8f4aeb](https://github.com/serverless/serverless/commit/a8f4aebe5d482a491d86d3427b259db00674cc72)) ([Mariusz Nowak](https://github.com/medikoo))
+- Expose remote lambda invocation failure as user error (([#9499](https://github.com/serverless/serverless/pull/9499)) [8f3d4e4](https://github.com/serverless/serverless/commit/8f3d4e4bdb1df1e107c5113d013164a2396f0f64)) ([Mariusz Nowak](https://github.com/medikoo))
+- Expose template error with user error ([#9499](https://github.com/serverless/serverless/pull/9499)) ([07b60a6](https://github.com/serverless/serverless/commit/07b60a6bb42796e6f060730ce4bf22762942b0b8)) ([Mariusz Nowak](https://github.com/medikoo))
+- Construct user errors with `ServerlessError` ([#9499](https://github.com/serverless/serverless/pull/9499)) ([c563581](https://github.com/serverless/serverless/commit/c563581ac98764edf653c1a5337d1b7d2b61ea63)) ([Mariusz Nowak](https://github.com/medikoo))
+- Do not stumble on missing resource properties ([#9499](https://github.com/serverless/serverless/pull/9499)) ([f87aee2](https://github.com/serverless/serverless/commit/f87aee268dd19f9b90a7018032c77454d2084f12)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Telemetry:**
+  - Report resource types for user configured resources at `resources.Resources` ([#9501](https://github.com/serverless/serverless/pull/9501)) ([8d0ff07](https://github.com/serverless/serverless/commit/8d0ff078f7f0b565c1d35af1319f76a407afeb4b)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Normalize AWS request error codes ([#9499](https://github.com/serverless/serverless/pull/9499)) ([5a23931](https://github.com/serverless/serverless/commit/5a23931734ee80b80182008197c92985975f1646)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Report error location for non-normative error codes ([#9499](https://github.com/serverless/serverless/pull/9499)) ([07d5b9c](https://github.com/serverless/serverless/commit/07d5b9c19e9f5365af322a4862b03ccdca05655c)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Remove dead path error handling ([#9499](https://github.com/serverless/serverless/pull/9499)) ([91b10ed](https://github.com/serverless/serverless/commit/91b10ed208f2dee4b690df633f4275f658355044)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Improve granularity of stack deployment error codes ([#9499](https://github.com/serverless/serverless/pull/9499)) ([a6f4dc3](https://github.com/serverless/serverless/commit/a6f4dc3b2be2aa9ba2255d57cf9a9d23eae02994)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI Onboarding:** Add `history` and `stepHistory` to `context` ([#9481](https://github.com/serverless/serverless/pull/9481)) ([9eea885](https://github.com/serverless/serverless/commit/9eea885b390fc88bb62c1e2a5c3d108444139703)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Add `create-from-local-template` util ([#9471](https://github.com/serverless/serverless/pull/9471)) ([03011ba](https://github.com/serverless/serverless/commit/03011baf07d262a5b9702b34b75a997e3f525d28)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Ensure to propagate as is stack monitoring error ([#9499](https://github.com/serverless/serverless/pull/9499)) ([a46abe3](https://github.com/serverless/serverless/commit/a46abe3d56cd667ad436fbceb283dd9e0f747d7b)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.41.2](https://github.com/serverless/serverless/compare/v2.41.1...v2.41.2) (2021-05-13)
 
 ### Bug Fixes
