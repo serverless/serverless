@@ -392,7 +392,7 @@ describe('PluginInstall', () => {
         });
     });
 
-    it('should not modify serverless .js file', () => {
+    it('should not modify serverless .js file', async () => {
       const serverlessJsFilePath = path.join(serviceDir, 'serverless.js');
       pluginInstall.serverless.configurationFilename = 'serverless.js';
       const serverlessJson = {
@@ -405,11 +405,10 @@ describe('PluginInstall', () => {
         `module.exports = ${JSON.stringify(serverlessJson)};`
       );
       pluginInstall.options.pluginName = 'serverless-plugin-1';
-      return expect(pluginInstall.addPluginToServerlessFile()).to.be.fulfilled.then(() => {
-        // use require to load serverless.js
-        // eslint-disable-next-line global-require
-        expect(require(serverlessJsFilePath).plugins).to.be.deep.equal([]);
-      });
+      await pluginInstall.addPluginToServerlessFile();
+      // use require to load serverless.js
+      // eslint-disable-next-line global-require
+      expect(require(serverlessJsFilePath).plugins).to.be.deep.equal([]);
     });
 
     it('should not modify serverless .ts file', () => {
