@@ -71,7 +71,8 @@ const processSpanPromise = (async () => {
     // Abort if command is not supported in this environment
     if (commandSchema && commandSchema.isHidden && commandSchema.noSupportNotice) {
       throw new ServerlessError(
-        `Cannot run \`${command}\` command: ${commandSchema.noSupportNotice}`
+        `Cannot run \`${command}\` command: ${commandSchema.noSupportNotice}`,
+        'NOT_SUPPORTED_COMMAND'
       );
     }
 
@@ -101,7 +102,8 @@ const processSpanPromise = (async () => {
           `Cannot resolve ${path.basename(
             configurationPath
           )}: "${humanizedPropertyPath}" property is not accessible ` +
-            '(configured behind variables which cannot be resolved at this stage)'
+            '(configured behind variables which cannot be resolved at this stage)',
+          'INACCESSIBLE_CONFIGURATION_PROPERTY'
         );
       }
       logDeprecation(
@@ -165,7 +167,8 @@ const processSpanPromise = (async () => {
                 `Cannot resolve ${path.basename(
                   configurationPath
                 )}: "variableSyntax" is not supported with new variables resolver. ` +
-                  'Please drop this setting'
+                  'Please drop this setting',
+                'UNSUPPORTED_VARIABLE_SYNTAX_CONFIGURATION'
               );
             }
             logDeprecation(
@@ -563,6 +566,7 @@ const processSpanPromise = (async () => {
                 'Invalid "configurationVariablesSources" ' +
                 `configuration on "${pluginName}", expected object, got: %v"`,
               Error: ServerlessError,
+              errorCode: 'INVALID_VARIABLE_SOURCES_CONFIGURATION',
             });
 
             for (const [sourceName, sourceConfig] of Object.entries(
@@ -572,7 +576,8 @@ const processSpanPromise = (async () => {
                 throw new ServerlessError(
                   `Cannot add "${sourceName}" configuration variable source ` +
                     `(through "${pluginName}" plugin) as resolution rules ` +
-                    'for this source name are already configured'
+                    'for this source name are already configured',
+                  'DUPLICATE_VARIABLE_SOURCE_CONFIGURATION'
                 );
               }
               ensurePlainFunction(
@@ -581,12 +586,14 @@ const processSpanPromise = (async () => {
                     `Invalid "configurationVariablesSources.${sourceName}" ` +
                     `configuration on "${pluginName}", expected object, got: %v"`,
                   Error: ServerlessError,
+                  errorCode: 'INVALID_VARIABLE_SOURCE_CONFIGURATION',
                 }).resolve,
                 {
                   errorMessage:
                     `Invalid "configurationVariablesSources.${sourceName}.resolve" ` +
                     `value on "${pluginName}", expected function, got: %v"`,
                   Error: ServerlessError,
+                  errorCode: 'INVALID_VARIABLE_SOURCE_RESOLVER_CONFIGURATION',
                 }
               );
 
