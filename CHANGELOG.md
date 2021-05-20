@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.43.0](https://github.com/serverless/serverless/compare/v2.42.0...v2.43.0) (2021-05-20)
+
+### Features
+
+- **CLI Onboarding:** In `service` step, if possible propose a default project name ([#9503](https://github.com/serverless/serverless/pull/9503)) ([dee54ed](https://github.com/serverless/serverless/commit/dee54ed55c0a0697eefdde99d5ec8aee321ce041)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **AWS Deploy:** Fix stack errors processing ([#9505](https://github.com/serverless/serverless/pull/9505)) ([18a9b2b](https://github.com/serverless/serverless/commit/18a9b2b6f5734083de751cf182c6be61736be11f)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS IAM:** Do not depend on default execution role when custom role provided ([29f0e9c](https://github.com/serverless/serverless/commit/29f0e9c840e4b1ae9949925bc5a2a9d2de742271)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- Do not recognize YAML Exception as user error ([#9505](https://github.com/serverless/serverless/pull/9505)) ([db16df2](https://github.com/serverless/serverless/commit/db16df2faad9cc63eb8e98ce90829642707546fb)) ([Mariusz Nowak](https://github.com/medikoo))
+- Do not rely on `serverless.yamlParser` ([#9505](https://github.com/serverless/serverless/pull/9505)) ([aa8f7be](https://github.com/serverless/serverless/commit/aa8f7bec1caed4211adcb87ad0a73cd796f065d5)) ([Mariusz Nowak](https://github.com/medikoo))
+- Ensure codes for user errors ([#9505](https://github.com/serverless/serverless/pull/9505)) ([6adaa9f](https://github.com/serverless/serverless/commit/6adaa9f56ed6e9708065767be602f484d0091679)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.42.0](https://github.com/serverless/serverless/compare/v2.41.2...v2.42.0) (2021-05-19)
 
 ### Features
