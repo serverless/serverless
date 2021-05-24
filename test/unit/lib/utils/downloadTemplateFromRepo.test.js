@@ -57,7 +57,7 @@ describe('downloadTemplateFromRepo', () => {
 
           return BbPromise.reject(Error('unknown server type'));
         },
-        'download': downloadStub,
+        '@serverless/utils/download': downloadStub,
         'child-process-ext/spawn': spawnStub,
       }
     );
@@ -262,7 +262,8 @@ describe('downloadTemplateFromRepo', () => {
             downloadUrl: 'https://github.com/serverless/serverless/archive/master.zip',
             isSubdirectory: false,
             pathToDirectory: '',
-            auth: '',
+            username: '',
+            password: '',
           });
         }
       );
@@ -279,7 +280,8 @@ describe('downloadTemplateFromRepo', () => {
           downloadUrl: 'https://github.com/serverless/serverless/archive/master.zip',
           isSubdirectory: true,
           pathToDirectory: 'assets',
-          auth: '',
+          username: '',
+          password: '',
         });
       });
     });
@@ -295,7 +297,8 @@ describe('downloadTemplateFromRepo', () => {
           downloadUrl: 'https://github.mydomain.com/serverless/serverless/archive/master.zip',
           isSubdirectory: false,
           pathToDirectory: '',
-          auth: '',
+          username: '',
+          password: '',
         });
       });
     });
@@ -311,7 +314,8 @@ describe('downloadTemplateFromRepo', () => {
           downloadUrl: 'https://github.mydomain.com/serverless/serverless/archive/master.zip',
           isSubdirectory: true,
           pathToDirectory: 'assets',
-          auth: '',
+          username: '',
+          password: '',
         });
       });
     });
@@ -326,7 +330,8 @@ describe('downloadTemplateFromRepo', () => {
           branch: 'master',
           downloadUrl: 'https://github.com/serverless/serverless/archive/master.zip',
           isSubdirectory: false,
-          auth: 'username:password',
+          username: 'username',
+          password: 'password',
           pathToDirectory: '',
         });
       });
@@ -341,7 +346,8 @@ describe('downloadTemplateFromRepo', () => {
           downloadUrl: 'https://bitbucket.org/atlassian/localstack/get/master.zip',
           isSubdirectory: false,
           pathToDirectory: '',
-          auth: '',
+          username: '',
+          password: '',
         });
       });
     });
@@ -357,7 +363,8 @@ describe('downloadTemplateFromRepo', () => {
           downloadUrl: 'https://bitbucket.org/atlassian/localstack/get/mvn.zip',
           isSubdirectory: true,
           pathToDirectory: `localstack${path.sep}dashboard`,
-          auth: '',
+          username: '',
+          password: '',
         });
       });
     });
@@ -374,7 +381,8 @@ describe('downloadTemplateFromRepo', () => {
             'https://mybitbucket.server.ltd/rest/api/latest/projects/myproject/repos/myrepo/archive?at=refs%2Fheads%2Fdevelop&format=zip',
           isSubdirectory: false,
           pathToDirectory: '',
-          auth: 'user:pass',
+          username: 'user',
+          password: 'pass',
         });
       });
     });
@@ -389,7 +397,8 @@ describe('downloadTemplateFromRepo', () => {
             'https://gitlab.com/serverless/serverless/-/archive/master/serverless-master.zip',
           isSubdirectory: false,
           pathToDirectory: '',
-          auth: '',
+          username: '',
+          password: '',
         });
       });
     });
@@ -405,7 +414,8 @@ describe('downloadTemplateFromRepo', () => {
               'https://gitlab.com/serverless/serverless/-/archive/dev/serverless-dev.zip',
             isSubdirectory: true,
             pathToDirectory: 'subdir',
-            auth: '',
+            username: '',
+            password: '',
           });
         }
       );
