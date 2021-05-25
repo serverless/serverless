@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.43.1](https://github.com/serverless/serverless/compare/v2.43.0...v2.43.1) (2021-05-25)
+
+### Bug Fixes
+
+- **AWS Local Invocation:** Fix invalid result handling ([#9507](https://github.com/serverless/serverless/pull/9507)) ([bbff029](https://github.com/serverless/serverless/commit/bbff0290db8a56cf599522c5ec0abc901359a0f9)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Telemetry:** Ensure to pass proper config for local fallback error handler ([#9519](https://github.com/serverless/serverless/pull/9519)) ([9b2a111](https://github.com/serverless/serverless/commit/9b2a1114850914a4ac96b19c7fcb0bf031822ea4)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Variables:** Ensure proper resolution of AWS-related variables in case of errors ([#9518](https://github.com/serverless/serverless/pull/9518)) ([ee66585](https://github.com/serverless/serverless/commit/ee66585fdcfc32d135ed0cdc6bad8d440c7e9e38)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- Use `download` from `@serverless/utils` ([#9513](https://github.com/serverless/serverless/pull/9513)) ([716b312](https://github.com/serverless/serverless/commit/716b31216e4873bbb986c5a2a54fda708a591cd1)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI Onboarding:** Use "Starter" not "Empty" for templates ([#9514](https://github.com/serverless/serverless/pull/9514)) ([2984adb](https://github.com/serverless/serverless/commit/2984adb0456f7d6e93b0c778a1c588ee20459928)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Telemetry:** Improve AWS stack error codes ([#9510](https://github.com/serverless/serverless/issues/9510)) ([c265905](https://github.com/serverless/serverless/commit/c265905f518f8cbea170c5a2774670c60de0e36c)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.43.0](https://github.com/serverless/serverless/compare/v2.42.0...v2.43.0) (2021-05-20)
 
 ### Features
