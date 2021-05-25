@@ -56,7 +56,7 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
                     '(ParameterNotFound) when referencing Secrets Manager'
                 ),
                 {
-                  code: 'ParameterNotFound',
+                  code: 'AWS_S_S_M_GET_PARAMETER_PARAMETER_NOT_FOUND',
                 }
               );
             }

@@ -41,7 +41,7 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-c
           }
           if (StackName === 'notExisting') {
             throw Object.assign(new Error('Stack with id not-existing does not exist'), {
-              code: 'ValidationError',
+              code: 'AWS_CLOUD_FORMATION_DESCRIBE_STACKS_VALIDATION_ERROR',
             });
           }
           throw new Error('Unexpected call');
