@@ -34,7 +34,7 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
           if (Bucket === 'existing') {
             if (Key === 'someKey') return { Body: 'foo' };
             throw Object.assign(new Error('The specified key does not exist.'), {
-              code: 'NoSuchKey',
+              code: 'AWS_S3_GET_OBJECT_NO_SUCH_KEY',
             });
           }
           throw Object.assign(new Error('The specified bucket does not exist.'), {
