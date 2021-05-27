@@ -52,17 +52,9 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       .and.have.property('code', 'NOT_APPLICABLE_SERVICE_OPTIONS');
   });
 
-  it("Should abort if user doesn't want setup", async () => {
-    configureInquirerStub(inquirer, {
-      list: { shouldCreateNewProject: 'No' },
-    });
-    await step.run({ options: {} });
-    return confirmEmptyWorkingDir();
-  });
-
   it("Should abort if user choses 'other' template", async () => {
     configureInquirerStub(inquirer, {
-      list: { projectType: 'other', shouldCreateNewProject: 'Yes' },
+      list: { projectType: 'other' },
     });
     await step.run({ options: {} });
     return confirmEmptyWorkingDir();
@@ -89,7 +81,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       });
 
       configureInquirerStub(inquirer, {
-        list: { projectType: 'aws-nodejs', shouldCreateNewProject: 'Yes' },
+        list: { projectType: 'aws-nodejs' },
         input: { projectName: 'test-project' },
       });
       await mockedStep.run({ options: {} });
@@ -123,7 +115,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       });
 
       configureInquirerStub(inquirer, {
-        list: { projectType: 'aws-nodejs', shouldCreateNewProject: 'Yes' },
+        list: { projectType: 'aws-nodejs' },
         input: { projectName: 'test-project-template' },
       });
       await mockedStep.run({ options: {} });
@@ -162,7 +154,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       });
 
       configureInquirerStub(inquirer, {
-        list: { shouldCreateNewProject: 'Yes', projectType: 'aws-nodejs' },
+        list: { projectType: 'aws-nodejs' },
         input: { projectName: 'test-project-package-json' },
       });
       await mockedStep.run({ options: {} });
@@ -200,7 +192,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       });
 
       configureInquirerStub(inquirer, {
-        list: { projectType: 'aws-nodejs', shouldCreateNewProject: 'Yes' },
+        list: { projectType: 'aws-nodejs' },
         input: { projectName: 'test-project-missing-npm' },
       });
 
@@ -237,7 +229,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       });
 
       configureInquirerStub(inquirer, {
-        list: { projectType: 'aws-nodejs', shouldCreateNewProject: 'Yes' },
+        list: { projectType: 'aws-nodejs' },
         input: { projectName: 'test-project-failed-install' },
       });
 
@@ -354,7 +346,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
         },
       });
       configureInquirerStub(inquirer, {
-        list: { projectType: 'aws-nodejs', shouldCreateNewProject: 'Yes' },
+        list: { projectType: 'aws-nodejs' },
         input: { projectName: 'test-error-during-download' },
       });
       await expect(mockedStep.run({ options: {} })).to.be.eventually.rejected.and.have.property(
@@ -396,7 +388,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
   it('Should not allow project creation in a directory in which already service is configured', async () => {
     configureInquirerStub(inquirer, {
-      list: { projectType: 'aws-nodejs', shouldCreateNewProject: 'Yes' },
+      list: { projectType: 'aws-nodejs' },
       input: { projectName: 'existing' },
     });
 
@@ -422,7 +414,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
   it('Should not allow project creation using an invalid project name', async () => {
     configureInquirerStub(inquirer, {
-      list: { projectType: 'aws-nodejs', shouldCreateNewProject: 'Yes' },
+      list: { projectType: 'aws-nodejs' },
       input: { projectName: 'elo grzegżółka' },
     });
     await expect(step.run({ options: {} })).to.eventually.be.rejected.and.have.property(

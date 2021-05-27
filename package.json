@@ -24,7 +24,7 @@
   "dependencies": {
     "@serverless/cli": "^1.5.2",
     "@serverless/components": "^3.10.0",
-    "@serverless/dashboard-plugin": "^5.1.3",
+    "@serverless/dashboard-plugin": "^5.1.4",
     "@serverless/utils": "^5.1.0",
     "ajv": "^6.12.6",
     "ajv-keywords": "^3.5.2",
