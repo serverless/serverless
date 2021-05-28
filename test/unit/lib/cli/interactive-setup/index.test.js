@@ -4,7 +4,6 @@
 
 const spawn = require('child-process-ext/spawn');
 const path = require('path');
-const isTabCompletionSupported = require('../../../../../lib/utils/tabCompletion/isSupported');
 
 const serverlessPath = path.resolve(__dirname, '../../../../../scripts/serverless.js');
 const templatesPath = path.resolve(__dirname, '../../../../../lib/plugins/create/templates');
@@ -55,15 +54,6 @@ describe('test/unit/lib/cli/interactive-setup/index.test.js', () => {
 
       // auto-update
       { instructionString: 'to update automatically?', input: 'Y' },
-
-      // tab-completion
-      ...(isTabCompletionSupported
-        ? [
-            { instructionString: 'command line <tab> completion', input: 'Y' },
-            { instructionString: 'bash' },
-            { instructionString: 'to ~/.bashrc' },
-          ]
-        : []),
     ];
     slsProcess.stdout.on('data', (data) => {
       output += data;
