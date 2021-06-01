@@ -233,9 +233,10 @@ describe('#request', () => {
       const error = {
         statusCode: 500,
         message: 'Some error message',
+        code: 'SomeError',
       };
       class FakeS3 {
-        error() {
+        test() {
           return {
             promise: async () => {
               throw error;
@@ -246,7 +247,10 @@ describe('#request', () => {
       const awsRequest = proxyquire('../../../../lib/aws/request', {
         'aws-sdk': { S3: FakeS3 },
       });
-      return expect(awsRequest({ name: 'S3' }, 'error')).to.be.rejected;
+      return expect(awsRequest({ name: 'S3' }, 'test')).to.eventually.be.rejected.and.have.property(
+        'code',
+        'AWS_S3_TEST_SOME_ERROR'
+      );
     });
   });
 
