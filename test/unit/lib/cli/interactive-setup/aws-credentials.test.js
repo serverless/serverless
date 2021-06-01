@@ -452,19 +452,20 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
       });
 
       let stdoutData = '';
+      const context = {
+        serviceDir: process.cwd(),
+        configuration: {
+          service: 'someservice',
+          provider: { name: 'aws' },
+          org: 'someorg',
+          app: 'someapp',
+        },
+        stepHistory: [],
+        configurationFilename: 'serverless.yml',
+      };
       await overrideStdoutWrite(
         (data) => (stdoutData += data),
-        async () =>
-          await mockedStep.run({
-            serviceDir: process.cwd(),
-            configuration: {
-              service: 'someservice',
-              provider: { name: 'aws' },
-              org: 'someorg',
-              app: 'someapp',
-            },
-            configurationFilename: 'serverless.yml',
-          })
+        async () => await mockedStep.run(context)
       );
 
       expect(stdoutData).to.include('AWS Access Role provider was successfully created');
@@ -473,6 +474,13 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
       );
       expect(mockedDisconnect).to.have.been.called;
       expect(mockedCreateProviderLink).not.to.have.been.called;
+      expect(context.stepHistory).to.deep.equal([
+        {
+          type: 'event',
+          name: 'providerCreated',
+          hasExplicitLink: false,
+        },
+      ]);
     });
 
     it('Should correctly setup with newly created provider when previous providers exist', async () => {
@@ -523,20 +531,21 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         list: { credentialsSetupChoice: '_create_provider_' },
       });
 
+      const context = {
+        serviceDir: process.cwd(),
+        configuration: {
+          service: 'someservice',
+          provider: { name: 'aws' },
+          org: 'someorg',
+          app: 'someapp',
+        },
+        stepHistory: [],
+        configurationFilename: 'serverless.yml',
+      };
       let stdoutData = '';
       await overrideStdoutWrite(
         (data) => (stdoutData += data),
-        async () =>
-          await mockedStep.run({
-            serviceDir: process.cwd(),
-            configuration: {
-              service: 'someservice',
-              provider: { name: 'aws' },
-              org: 'someorg',
-              app: 'someapp',
-            },
-            configurationFilename: 'serverless.yml',
-          })
+        async () => await mockedStep.run(context)
       );
 
       expect(stdoutData).to.include('AWS Access Role provider was successfully created');
@@ -550,6 +559,13 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         'appName|someapp|serviceName|someservice',
         providerUid
       );
+      expect(context.stepHistory).to.deep.equal([
+        {
+          type: 'event',
+          name: 'providerCreated',
+          hasExplicitLink: true,
+        },
+      ]);
     });
 
     it('Should emit warning when dashboard unavailable when connecting to it', async () => {
@@ -627,20 +643,21 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         list: { credentialsSetupChoice: providerUid },
       });
 
+      const context = {
+        serviceDir: process.cwd(),
+        configuration: {
+          service: 'someservice',
+          provider: { name: 'aws' },
+          org: 'someorg',
+          app: 'someapp',
+        },
+        stepHistory: [],
+        configurationFilename: 'serverless.yml',
+      };
       let stdoutData = '';
       await overrideStdoutWrite(
         (data) => (stdoutData += data),
-        async () =>
-          await mockedStep.run({
-            serviceDir: process.cwd(),
-            configuration: {
-              service: 'someservice',
-              provider: { name: 'aws' },
-              org: 'someorg',
-              app: 'someapp',
-            },
-            configurationFilename: 'serverless.yml',
-          })
+        async () => await mockedStep.run(context)
       );
 
       expect(mockedCreateProviderLink).to.have.been.calledWith(
@@ -650,6 +667,12 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         'provideruid'
       );
       expect(stdoutData).to.include('Selected provider was successfully linked');
+      expect(context.stepHistory).to.deep.equal([
+        {
+          name: 'existingProviderLinked',
+          type: 'event',
+        },
+      ]);
     });
 
     it('Should emit a warning when dashboard is not available and link cannot be created', async () => {

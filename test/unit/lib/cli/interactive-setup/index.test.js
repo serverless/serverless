@@ -57,6 +57,9 @@ describe('test/unit/lib/cli/interactive-setup/index.test.js', () => {
 
       // auto-update
       { instructionString: 'to update automatically?', input: 'Y' },
+
+      // deploy
+      { instructionString: 'Do you want to deploy your project?', input: 'n' },
     ];
     slsProcess.stdout.on('data', (data) => {
       output += data;
