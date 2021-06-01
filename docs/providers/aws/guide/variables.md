@@ -48,8 +48,8 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 - [Variables from AWS Secrets Manager](#reference-variables-using-aws-secrets-manager)
 - [CloudFormation stack outputs](#reference-cloudformation-outputs)
 - [Properties exported from Javascript files (sync or async)](#reference-variables-in-javascript-files)
-- [Pseudo Parameters Reference](#pseudo-parameters-reference)
 - [Read String Variable Values as Boolean Values](#read-string-variable-values-as-boolean-values)
+- [Pseudo Parameters Reference](#aws-cloudformation-pseudo-parameters-and-intrinsic-functions)
 
 ## Casting string variables to boolean values
 
@@ -310,6 +310,8 @@ For that please ensure to add `variablesResolutionMode: 20210326` to your servic
 #### Auto decrypting of `SecureString` type parameters.
 
 All `SecureString` type parameters are automatically decrypted, and automatically parsed if they export stringified JSON content (Note: you can turn off parsing by passing `raw` instruction into variable as: `${ssm(raw):/path/to/secureparam}`, if you need to also pass custom region, put it first as: `${ssm(eu-west-1, raw):/path/to/secureparam}`)
+
+## Reference Variables using AWS Secrets Manager
 
 Variables in [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) can be referenced [using SSM](https://docs.aws.amazon.com/systems-manager/latest/userguide/integration-ps-secretsmanager.html), just use the `ssm:/aws/reference/secretsmanager/secret_ID_in_Secrets_Manager` syntax. For example:
 
