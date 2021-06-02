@@ -318,7 +318,6 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
           properties: {
             name: { const: 'someProvider' },
             stage: { type: 'string' },
-            variableSyntax: { type: 'string' },
           },
           required: ['name'],
           additionalProperties: false,
