@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.44.0](https://github.com/serverless/serverless/compare/v2.43.1...v2.44.0) (2021-06-02)
+
+### Features
+
+- **CLI Onboarding:** Make it service setup specific:
+  - If not in service context, immediately go into project setup questions (skip "Do you want to create a new project" question) ([#9524](https://github.com/serverless/serverless/pull/9524)) ([d5e2baf](https://github.com/serverless/serverless/commit/d5e2baf714958c5718610659887f485f9bd161e4)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Remove `tab-completion` from interactive flow ([#9531](https://github.com/serverless/serverless/pull/9531)) ([3bac0f3](https://github.com/serverless/serverless/commit/3bac0f37f0f23abed387f0952772e3cdf5d47320)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **Variables:**
+  - Unify error messaging for function resolvers ([#9545](https://github.com/serverless/serverless/pull/9545)) ([bb3b766](https://github.com/serverless/serverless/commit/bb3b766946311848c707abc0fc7e749393f4527c)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Ensure to apply a resolution with a new resolver in case of a fallback to a local version ([#9544](https://github.com/serverless/serverless/pull/9544)) ([14a5275](https://github.com/serverless/serverless/commit/14a5275c0d6a127e211935b8b8f57a949e1ffad6)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI:**
+  - Ensure to gently handle missing data from global installation in case of local fallback ([#9539](https://github.com/serverless/serverless/pull/9539)) ([1b90dfb](https://github.com/serverless/serverless/commit/1b90dfb0659dab3852ace330fd7c497321b80710)) ([Mariusz Nowak](https://github.com/medikoo))
+- Fix handling of numeric error codes coming from AWS SDK requests ([#9538](https://github.com/serverless/serverless/pull/9538)) ([f2cdbae](https://github.com/serverless/serverless/commit/f2cdbae1eb6d327935336a38deda099b8f5ffee2)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Variables:**
+  - Cleanup handling of `variableSyntax` default ([#9544](https://github.com/serverless/serverless/pull/9544)) ([582d150](https://github.com/serverless/serverless/commit/582d150ceb01d3f597a30fcc82201ffa325c4617)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Seclude resolution of sources from external plugins ([#9544](https://github.com/serverless/serverless/pull/9544)) ([6efc161](https://github.com/serverless/serverless/commit/6efc161e5f7892275c798f6003ea5ee557bf3b26)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [2.43.1](https://github.com/serverless/serverless/compare/v2.43.0...v2.43.1) (2021-05-25)
 
 ### Bug Fixes
