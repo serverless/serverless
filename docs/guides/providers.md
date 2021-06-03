@@ -91,7 +91,7 @@ If the providers are not found, then the Serverless Framework will look for cred
 
 Creating a provider with an IAM Role and default policy using the provided Cloud Formation template is the easiest and most secure way to enable Serverless Framework to deploy from CI/CD, monitor your services, and deploy a range of resources to your AWS account using short-lived credentials. However, advanced IAM users may want to create a custom IAM Role and Policy with more restrictive permissions.
 
-Please be aware that this policy is used to *provision* your Serverless applications to your AWS account(s). The lambda function will also require a role, which is created by the Serverless Framework during deployments, hence why `iam:CreateRole` is required.
+Please be aware that this policy is used to _provision_ your Serverless applications to your AWS account(s). The lambda function will also require a role, which is created by the Serverless Framework during deployments, hence why `iam:CreateRole` is required.
 
 Using a custom policy provides additional control and granularity, but it will require your organization to manage and maintain the policy and role to ensure it provides both minimal and sufficient access for Serverless Framework deployments to work correctly.
 
