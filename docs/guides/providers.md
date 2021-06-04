@@ -86,3 +86,99 @@ Now if you deploy to a preview stage, like `feature-x` it will automatically use
 To use providers with serverless.yml you do not need to do anything. Upon deployment the Serverless Framework will retrieve the necessary credentials from the provider associate with the instance or service, and it will use those credentials to deploy.
 
 If the providers are not found, then the Serverless Framework will look for credentials locally.
+
+# Using a Custom IAM Role and Policy
+
+Creating a provider with an IAM Role and default policy using the provided Cloud Formation template is the easiest and most secure way to enable Serverless Framework to deploy from CI/CD, monitor your services, and deploy a range of resources to your AWS account using short-lived credentials. However, advanced IAM users may want to create a custom IAM Role and Policy with more restrictive permissions.
+
+Please be aware that this policy is used to _provision_ your Serverless applications to your AWS account(s). The lambda function will also require a role, which is created by the Serverless Framework during deployments, hence why `iam:CreateRole` is required.
+
+Using a custom policy provides additional control and granularity, but it will require your organization to manage and maintain the policy and role to ensure it provides both minimal and sufficient access for Serverless Framework deployments to work correctly.
+
+Below is a sample IAM Policy you can use to get started. This policy works with the Serverless Framework dashboard to enable all the functionality, and deploy a basic Node.js Lambda function.
+
+If you are create a custom IAM Role with this policy, you will need to add a Trust relationship to the AWS Account with ID 377024778620 (arn:aws:iam::377024778620:root) in order for the Serverless Framework to Assume the Role with the provided policy.
+
+**Sample IAM Policy**
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "lambda:CreateFunction",
+                "logs:DeleteSubscriptionFilter",
+                "s3:CreateBucket",
+                "iam:CreateRole",
+                "lambda:GetFunctionConfiguration",
+                "cloudformation:DescribeStackResource",
+                "iam:PutRolePolicy",
+                "s3:GetObject*",
+                "cloudformation:DescribeStackEvents",
+                "s3:DeleteBucketWebsite",
+                "logs:GetLogEvents",
+                "cloudformation:UpdateStack",
+                "lambda:ListLayerVersions",
+                "lambda:ListLayers",
+                "lambda:DeleteFunction",
+                "events:RemoveTargets",
+                "logs:FilterLogEvents",
+                "lambda:GetAlias",
+                "s3:DeleteObject",
+                "s3:ListBucket",
+                "apigateway:GET",
+                "cloudformation:ListStackResources",
+                "iam:GetRole",
+                "events:DescribeRule",
+                "lambda:ListFunctions",
+                "lambda:InvokeFunction",
+                "lambda:GetEventSourceMapping",
+                "lambda:ListAliases",
+                "iam:DeleteRole",
+                "iam:UpdateAssumeRolePolicy",
+                "s3:DeleteBucketPolicy",
+                "logs:CreateLogGroup",
+                "cloudformation:DescribeStacks",
+                "lambda:UpdateFunctionCode",
+                "s3:PutObject",
+                "cloudformation:DeleteStack",
+                "lambda:ListEventSourceMappings",
+                "lambda:PublishVersion",
+                "logs:PutSubscriptionFilter",
+                "apigateway:POST",
+                "cloudformation:ValidateTemplate",
+                "lambda:ListVersionsByFunction",
+                "lambda:GetLayerVersion",
+                "s3:DeleteObjectVersion",
+                "events:PutRule",
+                "lambda:GetAccountSettings",
+                "s3:ListBucket",
+                "lambda:GetLayerVersionPolicy",
+                "s3:PutEncryptionConfiguration",
+                "apigateway:DELETE",
+                "iam:PassRole",
+                "lambda:ListTags",
+                "iam:DeleteRolePolicy",
+                "apigateway:PATCH",
+                "s3:DeleteBucket",
+                "logs:DescribeLogGroups",
+                "logs:DeleteLogGroup",
+                "apigateway:PUT",
+                "lambda:GetFunction",
+                "lambda:UpdateFunctionConfiguration",
+                "events:PutTargets",
+                "lambda:AddPermission",
+                "cloudformation:CreateStack",
+                "s3:PutBucketPolicy",
+                "sts:GetCallerIdentity",
+                "lambda:RemovePermission",
+                "s3:GetBucketLocation",
+                "lambda:GetPolicy"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
