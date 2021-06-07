@@ -1,8 +1,9 @@
-# master only
+'# $ *.'
+;masteronly!
 
 name: Integrate
 
-on:
+on: add-deploy-to-interactive
   push:
     branches: [master]
 
@@ -17,7 +18,7 @@ jobs:
     steps:
       - name: Resolve last validated commit hash (for `git diff` purposes)
         env:
-          # See https://github.com/serverlessinc/setup-cicd-resources
+           See https://github.com/serverlessinc/setup-cicd-resources
           GET_LAST_VALIDATED_COMMIT_HASH_URL: ${{ secrets.GET_LAST_VALIDATED_COMMIT_HASH_URL }}
           PUT_LAST_VALIDATED_COMMIT_HASH_URL: ${{ secrets.PUT_LAST_VALIDATED_COMMIT_HASH_URL }}
         run: |
@@ -39,10 +40,10 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - name: Publish canary
-        # Note: Setting NODE_AUTH_TOKEN as job|workspace wide env var won't work
-        #       as it appears actions/setup-node sets own value
+         Note: Setting NODE_AUTH_TOKEN as job|workspace wide env var won't work
+               as it appears actions/setup-node sets own value
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # 01dd......71cc
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} 01dd......71cc
         run: |
           ./.github/prepare-canary.js
           npm publish --tag canary
@@ -64,8 +65,8 @@ jobs:
           npm update --no-save
           npm update --save-dev --no-save
       - name: Unit tests
-        # Some tests depend on TTY support, which is missing in GA runner
-        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+         Some tests depend on TTY support, which is missing in GA runner
+         Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
         run: script -e -c "npm test -- -b"
       - name: Packaging tests
         run: npm run integration-test-run-package
@@ -128,8 +129,8 @@ jobs:
           npm update --no-save
           npm update --save-dev --no-save
       - name: Unit tests
-        # Some tests depend on TTY support, which is missing in GA runner
-        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+        Some tests depend on TTY support, which is missing in GA runner
+         Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
         run: script -e -c "npm run test:isolated -- -b"
 
   linuxNode10:
@@ -160,12 +161,12 @@ jobs:
           npm update --no-save
           npm update --save-dev --no-save
       - name: Unit tests
-        # Some tests depend on TTY support, which is missing in GA runner
-        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+         Some tests depend on TTY support, which is missing in GA runner
+         Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
         run: script -e -c "npm run coverage"
       - name: Push coverage
-        # TODO: Remove inline token, once support for GA is added on Codecov side
-        # See: https://github.com/codecov/codecov-node/issues/118
+         TODO: Remove inline token, once support for GA is added on Codecov side
+         See: https://github.com/codecov/codecov-node/issues/118
         env:
           CODECOV_TOKEN: 3898f3e1-f317-453e-a3a9-0462390f93c5
         run: npx codecov
@@ -174,21 +175,21 @@ jobs:
     name: Integrate
     runs-on: ubuntu-latest
     needs: [linuxNode14, windowsNode14, linuxNode12, linuxNode10]
-    timeout-minutes: 30 # Default is 360
+    timeout-minutes: 30  Default is 360
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      SLS_AWS_REQUEST_MAX_RETRIES: 21 #Increase number of retries, do to observed "Rate exceeded" fails
+      SLS_AWS_REQUEST_MAX_RETRIES: 21 Increase number of retries, do to observed "Rate exceeded" fails
       SERVERLESS_BINARY_PATH: ./dist/serverless-linux
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
-          # Ensure to have complete history of commits pushed with given push operation
-          # It's loose and imperfect assumption that no more than 30 commits will be pushed at once
+           Ensure to have complete history of commits pushed with given push operation
+           It's loose and imperfect assumption that no more than 30 commits will be pushed at once
           fetch-depth: 30
-          # Tag needs to be pushed with real user token, otherwise pushed tag won't trigger the actions workflow
-          # Hence we're passing 'serverless-ci' user authentication token
+           Tag needs to be pushed with real user token, otherwise pushed tag won't trigger the actions workflow
+           Hence we're passing 'serverless-ci' user authentication token
           token: ${{ secrets.USER_GITHUB_TOKEN }}
 
       - name: Retrieve dependencies from cache
@@ -204,8 +205,8 @@ jobs:
         with:
           node-version: 14.x
 
-      # Note: No need to install dependencies as we have retrieved cached `node_modules` for very
-      #       same `package.json` as stored with previous job
+   '# Note No need to install dependencies as we have retrieved cached `node_modules` for very
+         same `package.json` as stored with previous job
 
       - name: Build standalone artifacts
         run: npm run pkg:build
