@@ -229,13 +229,14 @@ describe('#request', () => {
       return expect(sendFake.promise).to.have.been.calledOnce;
     });
 
-    it('should expose non-retryable errors', () => {
+    it('should expose non-retryable errors', async () => {
       const error = {
         statusCode: 500,
         message: 'Some error message',
+        code: 'SomeError',
       };
       class FakeS3 {
-        error() {
+        test() {
           return {
             promise: async () => {
               throw error;
@@ -246,7 +247,34 @@ describe('#request', () => {
       const awsRequest = proxyquire('../../../../lib/aws/request', {
         'aws-sdk': { S3: FakeS3 },
       });
-      return expect(awsRequest({ name: 'S3' }, 'error')).to.be.rejected;
+      await expect(awsRequest({ name: 'S3' }, 'test')).to.eventually.be.rejected.and.have.property(
+        'code',
+        'AWS_S3_TEST_SOME_ERROR'
+      );
+    });
+
+    it('should handle numeric error codes', async () => {
+      const error = {
+        statusCode: 500,
+        message: 'Some error message',
+        code: 500,
+      };
+      class FakeS3 {
+        test() {
+          return {
+            promise: async () => {
+              throw error;
+            },
+          };
+        }
+      }
+      const awsRequest = proxyquire('../../../../lib/aws/request', {
+        'aws-sdk': { S3: FakeS3 },
+      });
+      await expect(awsRequest({ name: 'S3' }, 'test')).to.eventually.be.rejected.and.have.property(
+        'code',
+        'AWS_S3_TEST_HTTP_500_ERROR'
+      );
     });
   });
 

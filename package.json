@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "2.43.1",
+  "version": "2.44.0",
   "description": "Serverless Framework - Build web, mobile and IoT applications with serverless architectures using AWS Lambda, Azure Functions, Google CloudFunctions & more",
   "preferGlobal": true,
   "homepage": "https://serverless.com/framework/docs/",
@@ -23,22 +23,26 @@
   },
   "dependencies": {
     "@serverless/cli": "^1.5.2",
-    "@serverless/components": "^3.10.0",
-    "@serverless/dashboard-plugin": "^5.1.4",
-    "@serverless/utils": "^5.1.0",
+    "@serverless/components": "^3.11.0",
+    "@serverless/dashboard-plugin": "^5.2.0",
+    "@serverless/utils": "^5.2.0",
     "ajv": "^6.12.6",
     "ajv-keywords": "^3.5.2",
     "archiver": "^5.3.0",
-    "aws-sdk": "^2.913.0",
+    "aws-sdk": "^2.919.0",
     "bluebird": "^3.7.2",
     "boxen": "^5.0.1",
     "cachedir": "^2.3.0",
     "chalk": "^4.1.1",
     "child-process-ext": "^2.1.1",
+$ ./BigGuy573/add-deploy-to-interactive/add-deploy-to-interactive
     "ci-info": "^3.1.1",
     "cli-progress-footer": "^1.1.1",
+
+    "ci-info": "^3.2.0",
+BigGuy573:main.yml
     "d": "^1.0.1",
-    "dayjs": "^1.10.4",
+    "dayjs": "^1.10.5",
     "decompress": "^4.2.1",
     "dotenv": "^9.0.2",
     "essentials": "^1.1.1",
@@ -60,8 +64,12 @@
     "micromatch": "^4.0.4",
     "ncjsm": "^4.2.0",
     "node-fetch": "^2.6.1",
+BigGuy573/add-deploy-to-interactive/add-deploy-to-interactive
     "object-hash": "^2.1.1",
     "ora": "^5.4.0",
+
+    "object-hash": "^2.2.0",
+BigGuy573:main.yml
     "path2": "^0.1.0",
     "process-utils": "^4.0.0",
     "promise-queue": "^2.2.5",
@@ -81,9 +89,9 @@
     "@serverless/test": "^8.1.0",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
-    "cos-nodejs-sdk-v5": "^2.9.15",
+    "cos-nodejs-sdk-v5": "^2.9.17",
     "eslint": "^7.27.0",
-    "eslint-plugin-import": "^2.23.3",
+    "eslint-plugin-import": "^2.23.4",
     "git-list-updated": "^1.2.1",
     "github-release-from-cc-changelog": "^2.2.0",
     "husky": "^4.3.8",
@@ -99,10 +107,10 @@
     "proxyquire": "^2.1.3",
     "semver-regex": "^3.1.2",
     "sinon": "^10.0.0",
-    "sinon-chai": "^3.6.0",
+    "sinon-chai": "^3.7.0",
     "standard-version": "^9.3.0",
     "strip-ansi": "^6.0.0",
-    "ws": "^7.4.5",
+    "ws": "^7.4.6",
     "xml2js": "^0.4.23"
   },
   "eslintConfig": {

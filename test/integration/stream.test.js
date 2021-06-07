@@ -50,7 +50,7 @@ describe('AWS - Stream Integration Test', function () {
         () => putKinesisRecord(streamName, message),
         {
           checkIsComplete: (events) =>
-            events.reduce((data, event) => data + event.message, '').includes(functionName),
+            events.reduce((data, event) => data + event.message, '').includes(message),
         }
       ).then((events) => {
         const logs = events.reduce((data, event) => data + event.message, '');

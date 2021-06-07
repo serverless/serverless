@@ -9,6 +9,7 @@ const AwsCompileApigEvents = require('../../../../../../../../../../../lib/plugi
 const Serverless = require('../../../../../../../../../../../lib/Serverless');
 const AwsProvider = require('../../../../../../../../../../../lib/plugins/aws/provider');
 const { createTmpDir } = require('../../../../../../../../../../utils/fs');
+const runServerless = require('../../../../../../../../../../utils/run-serverless');
 
 describe('#compileStage()', () => {
   let serverless;
@@ -312,6 +313,70 @@ describe('#compileStage()', () => {
           )
         ).to.equal(false);
       });
+    });
+  });
+});
+
+describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/stage/index.test.js', () => {
+  it('should not create LogGroup if `accessLogging` set to false', async () => {
+    const { cfTemplate, awsNaming } = await runServerless({
+      fixture: 'apiGateway',
+      command: 'package',
+      configExt: {
+        provider: {
+          logs: {
+            restApi: {
+              accessLogging: false,
+            },
+          },
+        },
+      },
+    });
+
+    expect(cfTemplate.Resources[awsNaming.getApiGatewayLogGroupLogicalId()]).to.be.undefined;
+  });
+
+  it('should create LogGroup with `logs.restApi` set to `true`', async () => {
+    const { cfTemplate, awsNaming, serverless } = await runServerless({
+      fixture: 'apiGateway',
+      command: 'package',
+      configExt: {
+        provider: {
+          logs: {
+            restApi: true,
+          },
+        },
+      },
+    });
+
+    expect(cfTemplate.Resources[awsNaming.getApiGatewayLogGroupLogicalId()]).to.deep.equal({
+      Type: 'AWS::Logs::LogGroup',
+      Properties: {
+        LogGroupName: `/aws/api-gateway/${serverless.service.service}-dev`,
+      },
+    });
+  });
+
+  it('should create LogGroup with default setting for `accessLogging`', async () => {
+    const { cfTemplate, awsNaming, serverless } = await runServerless({
+      fixture: 'apiGateway',
+      command: 'package',
+      configExt: {
+        provider: {
+          logs: {
+            restApi: {
+              executionLogging: false,
+            },
+          },
+        },
+      },
+    });
+
+    expect(cfTemplate.Resources[awsNaming.getApiGatewayLogGroupLogicalId()]).to.deep.equal({
+      Type: 'AWS::Logs::LogGroup',
+      Properties: {
+        LogGroupName: `/aws/api-gateway/${serverless.service.service}-dev`,
+      },
     });
   });
 });

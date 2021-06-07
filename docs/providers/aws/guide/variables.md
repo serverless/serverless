@@ -474,13 +474,19 @@ functions:
 
 ### Exporting a function
 
-With a new variables resolver (_which will be the only used resolver in v3 of a Framework, and which can be turned on now by setting `variablesResolutionMode: 20210326` in service config_) functions receives an object, with two properties:
+#### With a new variables resolver
+
+_Note: works only with `variablesResolutionMode: 20210326` set in service configuration_
+
+With a new variables resolver (_which will be the only used resolver in v3 of a Framework_) functions receives an object, with following properties:
 
 - `options` - An object referencing resolved CLI params as passed to the command
-- `resolveConfigurationProperty([key1, key2, ...keyN])` - Async function which resolves specific service configuration property. It returns a fully resolved value of configuration property. If circular reference is detected resolution will be rejected.
 - `resolveVariable(variableString)` - Async function which resolves provided variable string. String should be passed without wrapping (`${` and `}`) braces. Example valid values:
   - `file(./config.js):SOME_VALUE`
   - `env:SOME_ENV_VAR, null` (end with `, null`, if missing value at the variable source should be resolved with `null`, and not with a thrown error)
+- `resolveConfigurationProperty([key1, key2, ...keyN])` - Async function which resolves specific service configuration property. It returns a fully resolved value of configuration property. If circular reference is detected resolution will be rejected.
+
+Resolver function can be either _sync_ or _async_. Still both `resolveConfigurationProperty` and `resolveVariable` utils provided to it are _async_, so if there's an intention to rely on it naturally resolver function should be _async_.
 
 Example on how to obtain some Serverless Framework configuration values:
 
@@ -490,10 +496,18 @@ module.exports = async ({ options, resolveVariable }) => {
   const stage = await resolveVariable('sls:stage');
   const region = await resolveVariable('opt:region, self:provider.region, "us-east-1"');
   ...
+
+  // Resolver may return any JSON value (null, boolean, string, number, array or plain object)
+  return {
+    prop1: someValue // if we want to directly access this value, variable should be constructed as ${file(./config):prop1}
+    prop2: someOther value
+  }
 }
 ```
 
-In the old legacy resolver (which is deprecated, but stays as default in v2) function receives a reference to the Serverless object containing your configuration.
+#### With a legacy (depracated) resolver
+
+In old legacy resolver (deprecated, but still default in v2) function receives a reference to the Serverless object containing your configuration.
 
 _**Notice:** Configuration is yet in unresolved state, so any properties configured with variables may still be presented with variables in it_
 
