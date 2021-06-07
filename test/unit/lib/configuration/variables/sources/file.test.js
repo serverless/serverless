@@ -217,4 +217,21 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
       'VARIABLE_RESOLUTION_ERROR'
     );
   });
+
+  it('should support "projectDir"', async () => {
+    configuration = {
+      projectDir: '..',
+      yml: '${file(../file.yml)}',
+    };
+    variablesMeta = resolveMeta(configuration);
+    await resolve({
+      serviceDir: path.resolve(serviceDir, 'foo'),
+      configuration,
+      variablesMeta,
+      sources: { file: fileSource },
+      options: {},
+      fulfilledSources: new Set(['file']),
+    });
+    expect(configuration.yml).to.deep.equal({ result: 'yml' });
+  });
 });

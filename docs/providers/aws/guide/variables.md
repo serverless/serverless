@@ -449,6 +449,8 @@ functions:
 
 You can reference JavaScript modules to add dynamic data into your variables.
 
+Modules need to be referenced by relative paths, which should not reach out beyond project directory (by default service directory). If you work with multi-service project, you can change project directory boundary with `projectDir` setting (e.g. set `projectDir: ../` if you're service is nested in top level _service-x_ directory)
+
 ### Exporting an object
 
 To rely on exported `someModule` property in `myFile.js` you'd use the following code `${file(./myFile.js):someModule}`)
