@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.45.1](https://github.com/serverless/serverless/compare/v2.45.0...v2.45.1) (2021-06-08)
+
+### Bug Fixes
+
+- Fix `projectDir` pattern in config schema ([#9574](https://github.com/serverless/serverless/pull/9574)) ([8954b5f](https://github.com/serverless/serverless/commit/8954b5f9cc3e2431036ccb876c46fb8cc99dc0d9)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.45.0](https://github.com/serverless/serverless/compare/v2.44.0...v2.45.0) (2021-06-08)
 
 ### Features
