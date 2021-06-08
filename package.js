@@ -35,12 +35,16 @@
     "cachedir": "^2.3.0",
     "chalk": "^4.1.1",
     "child-process-ext": "^2.1.1",
-$ ./BigGuy573/add-deploy-to-interactive/add-deploy-to-interactive
+ '$ '
+   ''add-deploy-to-interactive
+          /
+                  add-deploy-to-interactive
     "ci-info": "^3.1.1",
     "cli-progress-footer": "^1.1.1",
 
     "ci-info": "^3.2.0",
-BigGuy573:main.yml
+           '.'
+          yml
     "d": "^1.0.1",
     "dayjs": "^1.10.5",
     "decompress": "^4.2.1",
@@ -64,13 +68,16 @@ BigGuy573:main.yml
     "micromatch": "^4.0.4",
     "ncjsm": "^4.2.0",
     "node-fetch": "^2.6.1",
-BigGuy573/add-deploy-to-interactive/add-deploy-to-interactive
+   ''add-deploy-to-interactive
+          /add-deploy-to-interactive
     "object-hash": "^2.1.1",
     "ora": "^5.4.0",
 
     "object-hash": "^2.2.0",
-BigGuy573:main.yml
-    "path2": "^0.1.0",
+           '.'
+          yml
+    "path2":
+    "^0.1.0",
     "process-utils": "^4.0.0",
     "promise-queue": "^2.2.5",
     "replaceall": "^0.1.6",
