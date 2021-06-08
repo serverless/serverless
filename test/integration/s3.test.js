@@ -54,8 +54,15 @@ describe('AWS - S3 Integration Test', function () {
       const functionName = 'minimal';
       const expectedMessage = `Hello from S3! - (${functionName})`;
 
-      return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
-        createAndRemoveInBucket(bucketMinimalSetup)
+      return confirmCloudWatchLogs(
+        `/aws/lambda/${stackName}-${functionName}`,
+        () => createAndRemoveInBucket(bucketMinimalSetup),
+        {
+          checkIsComplete: (soFarEvents) => {
+            const logs = soFarEvents.reduce((data, event) => data + event.message, '');
+            return logs.includes('ObjectCreated:Put');
+          },
+        }
       ).then((events) => {
         const logs = events.reduce((data, event) => data + event.message, '');
         expect(/aws:s3/g.test(logs)).to.equal(true);
@@ -70,8 +77,15 @@ describe('AWS - S3 Integration Test', function () {
       const functionName = 'extended';
       const expectedMessage = `Hello from S3! - (${functionName})`;
 
-      return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
-        createAndRemoveInBucket(bucketExtendedSetup, { prefix: 'photos/', suffix: '.jpg' })
+      return confirmCloudWatchLogs(
+        `/aws/lambda/${stackName}-${functionName}`,
+        () => createAndRemoveInBucket(bucketExtendedSetup, { prefix: 'photos/', suffix: '.jpg' }),
+        {
+          checkIsComplete: (soFarEvents) => {
+            const logs = soFarEvents.reduce((data, event) => data + event.message, '');
+            return logs.includes('ObjectRemoved:Delete');
+          },
+        }
       ).then((events) => {
         const logs = events.reduce((data, event) => data + event.message, '');
         expect(/aws:s3/g.test(logs)).to.equal(true);
@@ -86,8 +100,15 @@ describe('AWS - S3 Integration Test', function () {
       const functionName = 'custom';
       const expectedMessage = `Hello from S3! - (${functionName})`;
 
-      return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
-        createAndRemoveInBucket(bucketCustomName)
+      return confirmCloudWatchLogs(
+        `/aws/lambda/${stackName}-${functionName}`,
+        () => createAndRemoveInBucket(bucketCustomName),
+        {
+          checkIsComplete: (soFarEvents) => {
+            const logs = soFarEvents.reduce((data, event) => data + event.message, '');
+            return logs.includes('ObjectCreated:Put');
+          },
+        }
       ).then((events) => {
         const logs = events.reduce((data, event) => data + event.message, '');
         expect(/aws:s3/g.test(logs)).to.equal(true);
@@ -103,11 +124,19 @@ describe('AWS - S3 Integration Test', function () {
         const functionName = 'existing';
         const expectedMessage = `Hello from S3! - (${functionName})`;
 
-        return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
-          createAndRemoveInBucket(bucketExistingSimpleSetup, {
-            prefix: 'Files/',
-            suffix: '.TXT',
-          })
+        return confirmCloudWatchLogs(
+          `/aws/lambda/${stackName}-${functionName}`,
+          () =>
+            createAndRemoveInBucket(bucketExistingSimpleSetup, {
+              prefix: 'Files/',
+              suffix: '.TXT',
+            }),
+          {
+            checkIsComplete: (soFarEvents) => {
+              const logs = soFarEvents.reduce((data, event) => data + event.message, '');
+              return logs.includes('ObjectCreated:Put');
+            },
+          }
         ).then((events) => {
           const logs = events.reduce((data, event) => data + event.message, '');
           expect(/aws:s3/g.test(logs)).to.equal(true);
@@ -122,11 +151,19 @@ describe('AWS - S3 Integration Test', function () {
         const functionName = 'existingCreated';
         const expectedMessage = `Hello from S3! - (${functionName})`;
 
-        return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
-          createAndRemoveInBucket(bucketExistingComplexSetup, {
-            prefix: 'photos',
-            suffix: '.jpg',
-          })
+        return confirmCloudWatchLogs(
+          `/aws/lambda/${stackName}-${functionName}`,
+          () =>
+            createAndRemoveInBucket(bucketExistingComplexSetup, {
+              prefix: 'photos',
+              suffix: '.jpg',
+            }),
+          {
+            checkIsComplete: (soFarEvents) => {
+              const logs = soFarEvents.reduce((data, event) => data + event.message, '');
+              return logs.includes('ObjectCreated:Put');
+            },
+          }
         ).then((events) => {
           const logs = events.reduce((data, event) => data + event.message, '');
           expect(/aws:s3/g.test(logs)).to.equal(true);
@@ -138,11 +175,19 @@ describe('AWS - S3 Integration Test', function () {
         const functionName = 'existingRemoved';
         const expectedMessage = `Hello from S3! - (${functionName})`;
 
-        return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
-          createAndRemoveInBucket(bucketExistingComplexSetup, {
-            prefix: 'photos',
-            suffix: '.jpg',
-          })
+        return confirmCloudWatchLogs(
+          `/aws/lambda/${stackName}-${functionName}`,
+          () =>
+            createAndRemoveInBucket(bucketExistingComplexSetup, {
+              prefix: 'photos',
+              suffix: '.jpg',
+            }),
+          {
+            checkIsComplete: (soFarEvents) => {
+              const logs = soFarEvents.reduce((data, event) => data + event.message, '');
+              return logs.includes('ObjectRemoved:Delete');
+            },
+          }
         ).then((events) => {
           const logs = events.reduce((data, event) => data + event.message, '');
           expect(/aws:s3/g.test(logs)).to.equal(true);
@@ -154,11 +199,19 @@ describe('AWS - S3 Integration Test', function () {
         const functionName = 'existingCreated';
         const expectedMessage = `Hello from S3! - (${functionName})`;
 
-        return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
-          createAndRemoveInBucket(bucketExistingComplexSetup, {
-            prefix: 'photos',
-            suffix: '.png',
-          })
+        return confirmCloudWatchLogs(
+          `/aws/lambda/${stackName}-${functionName}`,
+          () =>
+            createAndRemoveInBucket(bucketExistingComplexSetup, {
+              prefix: 'photos',
+              suffix: '.png',
+            }),
+          {
+            checkIsComplete: (soFarEvents) => {
+              const logs = soFarEvents.reduce((data, event) => data + event.message, '');
+              return logs.includes('ObjectCreated:Put');
+            },
+          }
         ).then((events) => {
           const logs = events.reduce((data, event) => data + event.message, '');
           expect(/aws:s3/g.test(logs)).to.equal(true);
@@ -170,11 +223,19 @@ describe('AWS - S3 Integration Test', function () {
         const functionName = 'existingRemoved';
         const expectedMessage = `Hello from S3! - (${functionName})`;
 
-        return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
-          createAndRemoveInBucket(bucketExistingComplexSetup, {
-            prefix: 'photos',
-            suffix: '.png',
-          })
+        return confirmCloudWatchLogs(
+          `/aws/lambda/${stackName}-${functionName}`,
+          () =>
+            createAndRemoveInBucket(bucketExistingComplexSetup, {
+              prefix: 'photos',
+              suffix: '.png',
+            }),
+          {
+            checkIsComplete: (soFarEvents) => {
+              const logs = soFarEvents.reduce((data, event) => data + event.message, '');
+              return logs.includes('ObjectRemoved:Delete');
+            },
+          }
         ).then((events) => {
           const logs = events.reduce((data, event) => data + event.message, '');
           expect(/aws:s3/g.test(logs)).to.equal(true);
