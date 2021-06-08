@@ -42,7 +42,7 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 - [Environment variables](#referencing-environment-variables)
 - [CLI options](#referencing-cli-options)
 - [Other properties defined in `serverless.yml`](#reference-properties-in-serverlessyml)
-- [External YAML/JSON files](#reference-variables-in-other-files)
+- [External YAML/JSON files](#reference-properties-in-other-files)
 - [Variables from S3](#referencing-s3-objects)
 - [Variables from AWS SSM Parameter Store](#reference-variables-using-the-ssm-parameter-store)
 - [Variables from AWS Secrets Manager](#reference-variables-using-aws-secrets-manager)
@@ -378,9 +378,15 @@ custom:
   myArrayVar: ${ssm:/path/to/stringlistparam}
 ```
 
-## Reference Variables in Other Files
+## Reference Properties in Other Files
 
-You can reference variables in other YAML or JSON files. To reference variables in other YAML files use the `${file(./myFile.yml):someProperty}` syntax in your `serverless.yml` configuration file. To reference variables in other JSON files use the `${file(./myFile.json):someProperty}` syntax. It is important that the file you are referencing has the correct suffix, or file extension, for its file type (`.yml` for YAML or `.json` for JSON) in order for it to be interpreted correctly. Here's an example:
+You can reference properties in other YAML or JSON files. To reference properties in other YAML files use the `${file(./myFile.yml):someProperty}` syntax in your `serverless.yml` configuration file.
+
+Files need to be referenced by relative paths, which should not reach out beyond project directory (by default service directory). If you work with multi-service project, you can change project directory boundary with `projectDir` setting (e.g. set `projectDir: ../` if you're service is nested in top level _service-x_ directory)
+
+To reference properties in other JSON files use the `${file(./myFile.json):someProperty}` syntax. It is important that the file you are referencing has the correct suffix, or file extension, for its file type (`.yml` for YAML or `.json` for JSON) in order for it to be interpreted correctly.
+
+Here's an example:
 
 ```yml
 # myCustomFile.yml
@@ -448,8 +454,6 @@ functions:
 ## Reference Variables in Javascript Files
 
 You can reference JavaScript modules to add dynamic data into your variables.
-
-Modules need to be referenced by relative paths, which should not reach out beyond project directory (by default service directory). If you work with multi-service project, you can change project directory boundary with `projectDir` setting (e.g. set `projectDir: ../` if you're service is nested in top level _service-x_ directory)
 
 ### Exporting an object
 
