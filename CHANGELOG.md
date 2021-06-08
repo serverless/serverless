@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.45.0](https://github.com/serverless/serverless/compare/v2.44.0...v2.45.0) (2021-06-08)
+
+### Features
+
+- **Variables:** Allow to reference files in scope of a project directory ([#9561](https://github.com/serverless/serverless/pull/9561)) ([8dbb56e](https://github.com/serverless/serverless/commit/8dbb56ecbda2c6b8e8eaccbba7c7842ba8382847)) ([Mariusz Nowak](https://github.com/medikoo))
+- Introduce project directory setting, configurable via `projectDir` ([#9561](https://github.com/serverless/serverless/pull/9561)) ([d6e4b49](https://github.com/serverless/serverless/commit/d6e4b49ae28d5898d92b913a0d2c100bd29f4303)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **AWS API Gateway:** Don't create log group resource if access logs are disabled ([#9560](https://github.com/serverless/serverless/pull/9560)) ([a116dfe](https://github.com/serverless/serverless/commit/a116dfec22697dd0511623c6a1e6d2d829d4ba10)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Templates:** Allow usage of `google-nodejs-typescript` template ([#9557](https://github.com/serverless/serverless/pull/9557)) ([accf5bd](https://github.com/serverless/serverless/commit/accf5bd082400f654eba5e7d322bcb205c9ae709)) ([Corentin Doue](https://github.com/CorentinDoue))
+
+### Maintenance Improvements
+
+- Upgrade `dotenv` to v10 ([#9569](https://github.com/serverless/serverless/pull/9569)) ([99d1697](https://github.com/serverless/serverless/commit/99d1697050ac2b2ca675794501c08230f2cc3f7b)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.44.0](https://github.com/serverless/serverless/compare/v2.43.1...v2.44.0) (2021-06-02)
 
 ### Features
