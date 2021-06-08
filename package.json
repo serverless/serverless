@@ -24,7 +24,7 @@
   "dependencies": {
     "@serverless/cli": "^1.5.2",
     "@serverless/components": "^3.11.0",
-    "@serverless/dashboard-plugin": "^5.2.0",
+    "@serverless/dashboard-plugin": "^5.3.0",
     "@serverless/utils": "^5.2.0",
     "ajv": "^6.12.6",
     "ajv-keywords": "^3.5.2",
@@ -75,7 +75,7 @@
   "devDependencies": {
     "@commitlint/cli": "^12.1.4",
     "@serverless/eslint-config": "^3.0.0",
-    "@serverless/test": "^8.1.0",
+    "@serverless/test": "^8.1.1",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
     "cos-nodejs-sdk-v5": "^2.9.18",
