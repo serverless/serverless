@@ -100,6 +100,18 @@ describe('test/unit/scripts/serverless.test.js', () => {
     ).to.include('nestedInPrototype: bar-in-prototype');
   });
 
+  it('should support multi service project', async () => {
+    expect(
+      String(
+        (
+          await spawn('node', [serverlessPath, 'print'], {
+            cwd: path.resolve(programmaticFixturesPath, 'multiService/serviceA'),
+          })
+        ).stdoutBuffer
+      )
+    ).to.include('self: bar');
+  });
+
   it('should rejected unresolved "provider" section', async () => {
     try {
       await spawn('node', [serverlessPath, 'print'], {
