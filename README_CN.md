@@ -21,7 +21,7 @@ Serverless Framework 是一个命令行工具，它使用基于事件触发的�
 
 Serverless 是一个遵循 MIT 协议的开源项目，并且由全职的，有投资者支持的创业团队积极的维护。
 
-<!--
+<--
 <a href="https://www.youtube.com/watch?v=-Nf0ui3qP2E" target="_blank">Serverless Framework 入门视频</a>
 -->
 
@@ -47,60 +47,60 @@ Serverless 是一个遵循 MIT 协议的开源项目，并且由全职的，有�
 
 1. **npm 安装：**
 
-```bash
+bash
 npm install -g serverless
-```
+
 
 2. **创建一个服务：**
 
 你可以创建一个新的服务，或者根据模板[创建已有服务](#how-to-install-a-service)。
 
-```bash
+bash
 # 创建一个新的 Serverless 服务/项目
 serverless create --template tencent-nodejs --path my-service
 # 进入到创建好的项目目录
 cd my-service
-```
+
 
 3. **部署服务：**
 
-当你修改了 `serverless.yml` 文件中关于函数、事件或者其他资源的配置时，或者你只是希望把服务的更改都更新到云端时，可以使用以下命令进行部署：
+当你修改了 serverless.yml 文件中关于函数、事件或者其他资源的配置时，或者你只是希望把服务的更改都更新到云端时，可以使用以下命令进行部署：
 
-```bash
+bash
 serverless deploy -v
-```
+
 
 4. **部署函数：**
 
 通过如下命令快速部署并且覆盖云端的 SCF 云函数，并且部署单个函数的速度更快。
 
-```bash
+bash
 serverless deploy function -f hello_world
-```
+
 
 5. **云端触发函数：**
 
 触发腾讯云云函数 SCF 并且获取实时日志返回：
 
-```bash
+bash
 serverless invoke -f hello_world -l
-```
+
 
 6. **获取函数日志：**
 
 单独打开一个命令行，通过如下命令可以实时展示对某个函数的调用日志：
 
-```bash
+bash
 serverless logs -f hello_world -t
-```
+
 
 7. **移除服务：**
 
 从云端账号中移除所有的函数、事件以及资源。
 
-```bash
+bash
 serverless remove
-```
+
 
 8. **账号配置（可选）：**
 
@@ -110,13 +110,13 @@ serverless remove
 
 当前支持通过下列命令方便、快速的将您所需的 Serverless 服务模板从 Github 上下载到本地并解压，目前支持如下的一些案例：
 
-```bash
+bash
 serverless install -u https://github.com/your-url-to-the-serverless-service
-```
+
 
 ## <a name="services"></a>服务 (V1.0)
 
-通过 `serverless install --url <service-github-url>` 你可以立即部署并使用如下几个服务：
+通过 serverless install --url <service-github-url>` 你可以立即部署并使用如下几个服务：
 
 - [自动文本摘要](https://github.com/serverless-tencent/Plugin-Example/tree/master/TextSummarization) - 通过该例子实现自动文本摘要
 - [建立 Serverless 网站](https://github.com/serverless-tencent/Plugin-Example/tree/master/WebsitePage) - 通过云函数和网关实现 Serverless 网站
