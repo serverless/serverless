@@ -2,17 +2,17 @@
 
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
-const fixtures = require('../fixtures/programmatic');
+const fixtures = require('../../fixtures/programmatic');
 
-const { confirmCloudWatchLogs } = require('../utils/misc');
+const { confirmCloudWatchLogs } = require('../../utils/misc');
 const {
   createEventBus,
   putEvents,
   deleteEventBus,
   describeEventBus,
-} = require('../utils/eventBridge');
+} = require('../../utils/eventBridge');
 
-const { deployService, removeService, getMarkers } = require('../utils/integration');
+const { deployService, removeService, getMarkers } = require('../../utils/integration');
 
 describe('AWS - Event Bridge Integration Test', () => {
   describe('Using deprecated CustomResource deployment pattern', function () {

@@ -511,7 +511,7 @@ module.exports = async ({ options, resolveVariable }) => {
 }
 ```
 
-#### With a legacy (depracated) resolver
+#### With a legacy (deprecated) resolver
 
 In old legacy resolver (deprecated, but still default in v2) function receives a reference to the Serverless object containing your configuration.
 

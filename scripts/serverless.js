@@ -574,9 +574,13 @@ const processSpanPromise = (async () => {
           return;
         }
 
+        // Do not confirm on unresolved sources with partially resolved configuration
+        if (resolverConfiguration.propertyPathsToResolve) return;
+
         // Report unrecognized variable sources found in variables configured in service config
         const unresolvedSources =
           require('../lib/configuration/variables/resolve-unresolved-source-types')(variablesMeta);
+        const recognizedSourceNames = new Set(Object.keys(resolverConfiguration.sources));
         if (!(configuration.variablesResolutionMode >= 20210326)) {
           const legacyCfVarPropertyPaths = new Set();
           const legacySsmVarPropertyPaths = new Set();
@@ -616,7 +620,7 @@ const processSpanPromise = (async () => {
               { serviceConfig: configuration }
             );
           }
-          const recognizedSourceNames = new Set(Object.keys(resolverConfiguration.sources));
+
           const unrecognizedSourceNames = Array.from(unresolvedSources.keys()).filter(
             (sourceName) => !recognizedSourceNames.has(sourceName)
           );
@@ -633,10 +637,13 @@ const processSpanPromise = (async () => {
             );
           }
         } else {
+          const unrecognizedSourceNames = Array.from(unresolvedSources.keys()).filter(
+            (sourceName) => !recognizedSourceNames.has(sourceName)
+          );
           throw new ServerlessError(
-            `Approached unrecognized configuration variable sources: "${Array.from(
-              unresolvedSources.keys()
-            ).join('", "')}"`,
+            `Approached unrecognized configuration variable sources: "${unrecognizedSourceNames.join(
+              '", "'
+            )}"`,
             'UNRECOGNIZED_VARIABLE_SOURCES'
           );
         }
