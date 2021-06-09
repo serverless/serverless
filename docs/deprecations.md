@@ -82,7 +82,7 @@ Ensure to always format CLI command as `sls [command..] [options...]`
 
 <a name="CONFIG_VALIDATION_MODE_DEFAULT"><div>&nbsp;</div></a>
 
-## `configValidationMode: error` will be new default`
+## `configValidationMode: error` will be new default
 
 Deprecation code: `CONFIG_VALIDATION_MODE_DEFAULT`
 
