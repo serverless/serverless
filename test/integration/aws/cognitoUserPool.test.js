@@ -4,7 +4,7 @@ const BbPromise = require('bluebird');
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 const hasFailed = require('@serverless/test/has-failed');
-const fixtures = require('../fixtures/programmatic');
+const fixtures = require('../../fixtures/programmatic');
 
 const {
   createUserPool,
@@ -15,9 +15,9 @@ const {
   createUserPoolClient,
   setUserPassword,
   initiateAuth,
-} = require('../utils/cognito');
-const { deployService, removeService } = require('../utils/integration');
-const { confirmCloudWatchLogs } = require('../utils/misc');
+} = require('../../utils/cognito');
+const { deployService, removeService } = require('../../utils/integration');
+const { confirmCloudWatchLogs } = require('../../utils/misc');
 
 describe('AWS - Cognito User Pool Integration Test', function () {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys

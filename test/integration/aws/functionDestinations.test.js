@@ -2,10 +2,10 @@
 
 const { expect } = require('chai');
 const awsRequest = require('@serverless/test/aws-request');
-const fixtures = require('../fixtures/programmatic');
-const { confirmCloudWatchLogs } = require('../utils/misc');
+const fixtures = require('../../fixtures/programmatic');
+const { confirmCloudWatchLogs } = require('../../utils/misc');
 
-const { deployService, removeService } = require('../utils/integration');
+const { deployService, removeService } = require('../../utils/integration');
 
 describe('Function destinations Integration Test', function () {
   this.timeout(1000 * 60 * 20); // Involves time-taking deploys
