@@ -61,9 +61,9 @@ describe('test/unit/lib/utils/anonymize-stacktrace-paths.test.js', () => {
 
       const result = anonymizeStacktracePaths(stacktracePaths);
       expect(result).to.deep.equal([
-        '/node_modules/lib/plugins/aws/package/lib/getHashForFilePath.js:23:13',
-        '/node_modules/lib/plugins/otherfile.js:100:10',
-        '/node_modules/lib/plugins/another.js:100:10',
+        '/lib/plugins/aws/package/lib/getHashForFilePath.js:23:13',
+        '/lib/plugins/otherfile.js:100:10',
+        '/lib/plugins/another.js:100:10',
       ]);
     });
   }
@@ -130,9 +130,9 @@ describe('test/unit/lib/utils/anonymize-stacktrace-paths.test.js', () => {
 
       const result = anonymizeStacktracePaths(stacktracePaths);
       expect(result).to.deep.equal([
-        '\\node_modules\\lib\\plugins\\aws\\package\\lib\\getHashForFilePath.js:23:13',
-        '\\node_modules\\lib\\plugins\\otherfile.js:100:10',
-        '\\node_modules\\lib\\plugins\\another.js:100:10',
+        '\\lib\\plugins\\aws\\package\\lib\\getHashForFilePath.js:23:13',
+        '\\lib\\plugins\\otherfile.js:100:10',
+        '\\lib\\plugins\\another.js:100:10',
       ]);
     });
   }
