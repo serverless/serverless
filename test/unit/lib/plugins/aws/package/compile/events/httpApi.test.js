@@ -125,6 +125,32 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
       const apiResource = cfResources[naming.getHttpApiLogicalId()];
       expect(apiResource.Properties.DisableExecuteApiEndpoint).to.equal(undefined);
     });
+
+    it('should support payload format version per function', async () => {
+      const { awsNaming, cfTemplate } = await runServerless({
+        fixture: 'httpApi',
+        command: 'package',
+        configExt: {
+          functions: {
+            foo: {
+              handler: 'index.handler',
+              httpApi: { payloadVersion: '1.0' },
+              events: [{ httpApi: { path: '/foo', method: 'get' } }],
+            },
+            other: {
+              handler: 'index.handler',
+              events: [{ httpApi: { path: '/other', method: 'get' } }],
+            },
+          },
+        },
+      });
+
+      const resources = cfTemplate.Resources;
+      const integrationFoo = resources[awsNaming.getHttpApiIntegrationLogicalId('foo')];
+      const integrationOther = resources[awsNaming.getHttpApiIntegrationLogicalId('other')];
+      expect(integrationFoo.Properties.PayloadFormatVersion).to.equal('1.0');
+      expect(integrationOther.Properties.PayloadFormatVersion).to.equal('2.0');
+    });
   });
 
   describe('Provider properties', () => {

@@ -351,36 +351,4 @@ describe('HTTP API Integration Test', function () {
       expect(response.status).to.equal(404);
     });
   });
-
-  describe('Payload version per function', () => {
-    before(async () => {
-      const serviceData = await fixtures.setup('httpApiPayload');
-      ({ servicePath: serviceDir } = serviceData);
-      const serviceName = serviceData.serviceConfig.service;
-      stackName = `${serviceName}-${stage}`;
-      await deployService(serviceDir);
-      return resolveEndpoint();
-    });
-
-    after(async () => {
-      log.notice('Removing service...');
-      await removeService(serviceDir);
-    });
-
-    it('should return payload version 1.0', async () => {
-      const testEndpoint = `${endpoint}/foo`;
-
-      const response = await fetch(testEndpoint, { method: 'GET' });
-      const json = await response.json();
-      expect('1.0').to.equal(json.version);
-    });
-
-    it('should return payload version 2.0', async () => {
-      const testEndpoint = `${endpoint}/other`;
-
-      const response = await fetch(testEndpoint, { method: 'GET' });
-      const json = await response.json();
-      expect('2.0').to.equal(json.version);
-    });
-  });
 });
