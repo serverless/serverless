@@ -2,10 +2,10 @@
 
 const uuid = require('uuid');
 const { expect } = require('chai');
-const fixtures = require('../fixtures/programmatic');
+const fixtures = require('../../fixtures/programmatic');
 const awsRequest = require('@serverless/test/aws-request');
-const { deployService, removeService } = require('../utils/integration');
-const { createBucket, deleteBucket } = require('../utils/s3');
+const { deployService, removeService } = require('../../utils/integration');
+const { createBucket, deleteBucket } = require('../../utils/s3');
 
 describe('Base AWS provider test', function () {
   this.timeout(1000 * 60 * 10);

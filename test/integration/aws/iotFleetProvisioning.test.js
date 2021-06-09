@@ -2,9 +2,9 @@
 
 const awsRequest = require('@serverless/test/aws-request');
 const { expect } = require('chai');
-const fixtures = require('../fixtures/programmatic');
-const { deployService, removeService } = require('../utils/integration');
-const { resolveIotEndpoint } = require('../utils/iot');
+const fixtures = require('../../fixtures/programmatic');
+const { deployService, removeService } = require('../../utils/integration');
+const { resolveIotEndpoint } = require('../../utils/iot');
 
 describe('test/integration/iotFleetProvisioning.test.js', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
