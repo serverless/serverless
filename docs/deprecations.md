@@ -61,14 +61,23 @@ Please use `package.patterns`. `package.include` and `package.exclude` will be r
 
 Deprecation code: `UNSUPPORTED_CLI_OPTIONS`
 
-So far Framework ignored any not recognized CLI options as passed with a CLI command. Still such handling
-is error prone, as due to e.g. accidental typos, important information may not be passed to the command and lead to unwanted results.
+Framework was upgraded with extensive CLI options validation and that required dropping support for _free form_ CLI options (keeping that in will make not possible to reliably detect accidental typos in option names).
+
+For _free form_ process configuration options it is adviced to rely on environment variables instead, as e.g.:
+
+```yaml
+provider:
+  stackName: ${env:STACK_NAME, 'T001'}
+```
+
+```bash
+STACK_NAME=test sls deploy
+```
+
+_Note that setup of environment variables is way more
+convenient since we've added support for [`.env`](/framework/docs/environment-variables#support-for-env-files) files._
 
 Starting with v3.0.0, Serverless will report unrecognized options with a thrown error.
-
-_Note: If you've used such options to aid dynamic resolution of service configuration (passing custom values to `${opt:..}` resolvers)._
-_We suggest to rely on environment variables instead. Setup of environment variables is also way more
-convenient since we've added support for [`.env`](/framework/docs/environment-variables#support-for-env-files) files._
 
 <a name="CLI_OPTIONS_BEFORE_COMMAND"><div>&nbsp;</div></a>
 
