@@ -58,6 +58,19 @@ describe('#normalizeAjvErrors', () => {
               },
             ],
           },
+          someString: {
+            anyOf: [
+              {
+                type: 'string',
+                pattern: 'foo',
+              },
+              {
+                type: 'string',
+                pattern: 'bar',
+              },
+              { type: 'object' },
+            ],
+          },
         },
       },
       package: {
@@ -165,6 +178,7 @@ describe('#normalizeAjvErrors', () => {
       },
       custom: {
         someCustom: { name: 'third' },
+        someString: 'other',
       },
       package: { incclude: ['./folder'] },
       functions: {
@@ -336,6 +350,21 @@ describe('#normalizeAjvErrors', () => {
           })
         ).to.be.true
     );
+    it(
+      'should report in anyOf case, where two values of same (string) type are possible ' +
+        'and for all variants errors relate to paths of same depth',
+      () =>
+        expect(
+          errors.some((error) => {
+            if (error.dataPath !== '.custom.someString') {
+              return false;
+            }
+            if (error.keyword !== 'anyOf') return false;
+            error.isExpected = true;
+            return true;
+          })
+        ).to.be.true
+    );
     it('should report the duplicated erorr message if more than one dependency is missing only once', () => {
       const depsErrors = errors.filter((item) => item.keyword === 'dependencies');
       expect(depsErrors).to.have.lengthOf(1);
@@ -370,5 +399,21 @@ describe('#normalizeAjvErrors', () => {
           return true;
         }).message
       ).to.include('unsupported function event'));
+    it('should report value which do not match multiple constants with a meaningful message', () =>
+      expect(
+        errors.find((error) => {
+          if (error.dataPath !== '.custom.someCustom') return false;
+          if (error.keyword !== 'anyOf') return false;
+          return true;
+        }).message
+      ).to.include('unsupported value'));
+    it('should report value which do not match multiple string formats with a meaningful message', () =>
+      expect(
+        errors.find((error) => {
+          if (error.dataPath !== '.custom.someString') return false;
+          if (error.keyword !== 'anyOf') return false;
+          return true;
+        }).message
+      ).to.include('unsupported string format'));
   });
 });
