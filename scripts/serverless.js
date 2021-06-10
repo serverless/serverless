@@ -364,11 +364,12 @@ const processSpanPromise = (async () => {
           if (!variablesMeta.size) return; // All properties successuflly resolved
 
           if (!ensureResolvedProperty('plugins')) return;
+          if (!ensureResolvedProperty('package\0path')) return;
 
           if (!ensureResolvedProperty('frameworkVersion')) return;
-          if (!ensureResolvedProperty('configValidationMode')) return;
           if (!ensureResolvedProperty('app')) return;
           if (!ensureResolvedProperty('org')) return;
+          if (!ensureResolvedProperty('tenant')) return;
           if (!ensureResolvedProperty('service', { shouldSilentlyReturnIfLegacyMode: true })) {
             return;
           }
