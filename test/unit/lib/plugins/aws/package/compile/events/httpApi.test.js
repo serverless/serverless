@@ -134,7 +134,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
           functions: {
             foo: {
               handler: 'index.handler',
-              httpApi: { payloadVersion: '1.0' },
+              httpApi: { payload: '1.0' },
               events: [{ httpApi: { path: '/foo', method: 'get' } }],
             },
             other: {
