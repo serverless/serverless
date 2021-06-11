@@ -546,7 +546,11 @@ const processSpanPromise = (async () => {
         }
 
         // Register dashboard specific variable source resolvers
-        if (configuration.org && serverless.pluginManager.dashboardPlugin) {
+        if (
+          // TODO: Remove "tenant" support with next major
+          (configuration.org || configuration.tenant) &&
+          serverless.pluginManager.dashboardPlugin
+        ) {
           for (const [sourceName, sourceConfig] of Object.entries(
             serverless.pluginManager.dashboardPlugin.configurationVariablesSources
           )) {
