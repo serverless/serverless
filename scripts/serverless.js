@@ -403,12 +403,13 @@ const processSpanPromise = (async () => {
           'INTERACTIVE_SETUP_IN_NON_TTY'
         );
       }
-      await require('../lib/cli/interactive-setup')({
-        configuration,
-        serviceDir,
-        configurationFilename,
-        options,
-      });
+      const { commandUsage, configuration: configurationFromInteractive } =
+        await require('../lib/cli/interactive-setup')({
+          configuration,
+          serviceDir,
+          configurationFilename,
+          options,
+        });
       hasTelemetryBeenReported = true;
       if (!isTelemetryDisabled) {
         await storeTelemetryLocally(
@@ -417,7 +418,8 @@ const processSpanPromise = (async () => {
             options,
             commandSchema,
             serviceDir,
-            configuration,
+            configuration: configurationFromInteractive,
+            commandUsage,
           })
         );
         await sendTelemetry({ serverlessExecutionSpan: processSpanPromise });

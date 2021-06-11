@@ -6,6 +6,7 @@ const fs = require('fs');
 const os = require('os');
 const overrideEnv = require('process-utils/override-env');
 const overrideCwd = require('process-utils/override-cwd');
+const sinon = require('sinon');
 
 const resolveLocalServerless = require('../../../../../lib/cli/resolve-local-serverless-path');
 const commandsSchema = require('../../../../../lib/cli/commands-schema');
