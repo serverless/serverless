@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.46.0](https://github.com/serverless/serverless/compare/v2.45.2...v2.46.0) (2021-06-11)
+
+### Features
+
+- **CLI Onboarding:** Make it service setup specific, remove `auto-update` step ([#9582](https://github.com/serverless/serverless/pull/9582)) ([519f77e](https://github.com/serverless/serverless/commit/519f77e1a876cea62843a99e58bab1e011e62fa3)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Config Schema:** Improve error messaging for same type variants ([#9588](https://github.com/serverless/serverless/pull/9588)) ([8ac249b](https://github.com/serverless/serverless/commit/8ac249b1eadf3173359e02886e71bb89234ebd51)) ([Mariusz Nowak](https://github.com/medikoo))
+- Show information on how to turn on auto updates in postinstall step ([#9582](https://github.com/serverless/serverless/pull/9582)) ([93c88c0](https://github.com/serverless/serverless/commit/93c88c0b8d1eea6455ca6ecb9a022f814f8e79b3)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **Variables:**
+  - Fix resolution visibility of top level properties (as `outputs`) ([#9591](https://github.com/serverless/serverless/pull/9591)) ([004c6e2](https://github.com/serverless/serverless/commit/004c6e26beec98fbfb757aab05f18a623a03cf76)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Improve required properties resolution validation order ([#9591](https://github.com/serverless/serverless/pull/9591)) ([727d7f4](https://github.com/serverless/serverless/commit/727d7f4f089051223db88ceb85a62adabf07dc9e)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Meaningfully report misuse of dashboard sources ([#9591](https://github.com/serverless/serverless/pull/9591)) ([cc09c62](https://github.com/serverless/serverless/commit/cc09c62301f15f89febc50120a7a398640935470)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Recognize `tenant` setting (while deprecated it's still recognized by plugin) ([#9591](https://github.com/serverless/serverless/pull/9591)) ([aa45876](https://github.com/serverless/serverless/commit/aa4587604476314485a8094bdae04e0148b9e53c)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- Reorganize and document service configuration dependencies ([#9591](https://github.com/serverless/serverless/pull/9591)) ([c86a76c](https://github.com/serverless/serverless/commit/c86a76cb60038765404c988da13dfc6ffde28fe6)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Telemetry:** Optimise reported error location length:
+  - Remove eventual `/node_modules` prefix ([#9587](https://github.com/serverless/serverless/pull/9587)) ([f3ff6d2](https://github.com/serverless/serverless/commit/f3ff6d21758b61116c748746cefe8c1a3d6ab776)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Replace repeated paths with `^` ([#9587](https://github.com/serverless/serverless/pull/9587)) ([f6a7d03](https://github.com/serverless/serverless/commit/f6a7d03b04bd13f91bc247e518a1ad12496ead8c)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [2.45.2](https://github.com/serverless/serverless/compare/v2.45.1...v2.45.2) (2021-06-09)
 
 ### Bug Fixes
