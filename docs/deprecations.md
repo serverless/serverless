@@ -384,9 +384,9 @@ Configure `httpApi.payload` explicitly to ensure seamless migration.
 
 Deprecation code: `OUTDATED_NODEJS`
 
-Support for Node.js v6 and v8 will be dropped with v2.0.0 release
+Support for Node.js v8 was dropped with v2 release, while support for Node.js v10 will be dropped with v3 release
 
-Ensure to rely on at least Node.js v10 (It's recommended to use LTS version, as listed at https://nodejs.org/en/)
+Ensure to rely on at least Node.js v12 (It's recommended to use LTS version, as listed at https://nodejs.org/en/)
 
 <a name="AWS_ALB_ALLOW_UNAUTHENTICATED"><div>&nbsp;</div></a>
 
