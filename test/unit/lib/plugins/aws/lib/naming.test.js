@@ -707,7 +707,9 @@ describe('#naming()', () => {
           'Pool1',
           'PreSignUp_ExternalProvider'
         )
-      ).to.equal('FunctionNameLambdaPermissionCognitoUserPoolPool1TriggerSourcePreSignUpExternalProvider');
+      ).to.equal(
+        'FunctionNameLambdaPermissionCognitoUserPoolPool1TriggerSourcePreSignUpExternalProvider'
+      );
     });
 
     describe('#getLambdaAlbPermissionLogicalId()', () => {
