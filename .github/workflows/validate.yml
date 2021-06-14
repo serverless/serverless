@@ -2,9 +2,7 @@
 
 name: Validate
 
-on:
-  pull_request:
-    branches: [master]
+on: push
 
 env:
   SLS_IGNORE_WARNING: '*'
