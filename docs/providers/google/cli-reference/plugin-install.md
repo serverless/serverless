@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Google Cloud Functions - Plugin Install
 menuText: Plugin Install
-menuOrder: 12
+menuOrder: 13
 description: Install a Serverless plugin
 layout: Doc
 -->
