@@ -705,7 +705,7 @@ describe('#naming()', () => {
         sdk.naming.getLambdaCognitoUserPoolPermissionLogicalId(
           'functionName',
           'Pool1',
-          'CustomMessage'
+          'Custom-Message'
         )
       ).to.equal('FunctionNameLambdaPermissionCognitoUserPoolPool1TriggerSourceCustomMessage');
     });
