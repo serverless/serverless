@@ -2,15 +2,15 @@
 
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
-const fixtures = require('../../fixtures/programmatic');
+const fixtures = require('../../../fixtures/programmatic');
 
 const awsRequest = require('@serverless/test/aws-request');
 const crypto = require('crypto');
-const { deployService, removeService } = require('../../utils/integration');
+const { deployService, removeService } = require('../../../utils/integration');
 const {
   isDependencyStackAvailable,
   getDependencyStackOutputMap,
-} = require('../../utils/cloudformation');
+} = require('../../../utils/cloudformation');
 
 const EFS_MAX_PROPAGATION_TIME = 1000 * 60 * 5;
 

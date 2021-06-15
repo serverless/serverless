@@ -72,9 +72,9 @@ describe('test/unit/lib/utils/resolve-error-location.test.js', () => {
         [
           '/test/unit/lib/utils/resolve-error-location.test.js:10:17',
           '/node_modules/mocha/lib/runnable.js:366:21',
-          '/node_modules/mocha/lib/runnable.js:354:5',
+          '^:354:5',
           '/node_modules/mocha/lib/runner.js:677:10',
-          '/node_modules/mocha/lib/runner.js:801:12',
+          '^:801:12',
         ].join('\n')
       );
     });
@@ -116,9 +116,9 @@ describe('test/unit/lib/utils/resolve-error-location.test.js', () => {
         [
           '/test/unit/lib/utils/resolve-error-location.test.js:10:17',
           '/node_modules/mocha/lib/runnable.js:366:21',
-          '/node_modules/mocha/lib/runnable.js:354:5',
+          '^:354:5',
           '/node_modules/mocha/lib/runner.js:677:10',
-          '/node_modules/mocha/lib/runner.js:801:12',
+          '^:801:12',
         ].join('\n')
       );
     });

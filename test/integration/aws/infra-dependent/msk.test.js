@@ -2,16 +2,16 @@
 
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
-const fixtures = require('../../fixtures/programmatic');
-const { confirmCloudWatchLogs } = require('../../utils/misc');
+const fixtures = require('../../../fixtures/programmatic');
+const { confirmCloudWatchLogs } = require('../../../utils/misc');
 const {
   isDependencyStackAvailable,
   getDependencyStackOutputMap,
-} = require('../../utils/cloudformation');
+} = require('../../../utils/cloudformation');
 
 const awsRequest = require('@serverless/test/aws-request');
 const crypto = require('crypto');
-const { deployService, removeService } = require('../../utils/integration');
+const { deployService, removeService } = require('../../../utils/integration');
 
 describe('AWS - MSK Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys

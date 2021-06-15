@@ -364,11 +364,12 @@ const processSpanPromise = (async () => {
           if (!variablesMeta.size) return; // All properties successuflly resolved
 
           if (!ensureResolvedProperty('plugins')) return;
+          if (!ensureResolvedProperty('package\0path')) return;
 
           if (!ensureResolvedProperty('frameworkVersion')) return;
-          if (!ensureResolvedProperty('configValidationMode')) return;
           if (!ensureResolvedProperty('app')) return;
           if (!ensureResolvedProperty('org')) return;
+          if (!ensureResolvedProperty('tenant')) return;
           if (!ensureResolvedProperty('service', { shouldSilentlyReturnIfLegacyMode: true })) {
             return;
           }
@@ -545,7 +546,11 @@ const processSpanPromise = (async () => {
         }
 
         // Register dashboard specific variable source resolvers
-        if (configuration.org && serverless.pluginManager.dashboardPlugin) {
+        if (
+          // TODO: Remove "tenant" support with next major
+          (configuration.org || configuration.tenant) &&
+          serverless.pluginManager.dashboardPlugin
+        ) {
           for (const [sourceName, sourceConfig] of Object.entries(
             serverless.pluginManager.dashboardPlugin.configurationVariablesSources
           )) {
@@ -574,9 +579,13 @@ const processSpanPromise = (async () => {
           return;
         }
 
+        // Do not confirm on unresolved sources with partially resolved configuration
+        if (resolverConfiguration.propertyPathsToResolve) return;
+
         // Report unrecognized variable sources found in variables configured in service config
         const unresolvedSources =
           require('../lib/configuration/variables/resolve-unresolved-source-types')(variablesMeta);
+        const recognizedSourceNames = new Set(Object.keys(resolverConfiguration.sources));
         if (!(configuration.variablesResolutionMode >= 20210326)) {
           const legacyCfVarPropertyPaths = new Set();
           const legacySsmVarPropertyPaths = new Set();
@@ -587,6 +596,17 @@ const processSpanPromise = (async () => {
             }
             if (sourceType.startsWith('ssm.')) {
               for (const propertyPath of propertyPaths) legacySsmVarPropertyPaths.add(propertyPath);
+              unresolvedSources.delete(sourceType);
+            }
+            if (sourceType === 'param' || sourceType === 'output') {
+              logDeprecation(
+                'NEW_VARIABLES_RESOLVER',
+                '"param" and "output" variable sources can be resolved only in context of ' +
+                  'services deployed to Serverless Dashboard (with "org" setting configured).\n' +
+                  'Starting with next major release, ' +
+                  'this will be communicated with a thrown error.\n',
+                { serviceConfig: configuration }
+              );
               unresolvedSources.delete(sourceType);
             }
           }
@@ -616,7 +636,7 @@ const processSpanPromise = (async () => {
               { serviceConfig: configuration }
             );
           }
-          const recognizedSourceNames = new Set(Object.keys(resolverConfiguration.sources));
+
           const unrecognizedSourceNames = Array.from(unresolvedSources.keys()).filter(
             (sourceName) => !recognizedSourceNames.has(sourceName)
           );
@@ -633,10 +653,25 @@ const processSpanPromise = (async () => {
             );
           }
         } else {
+          const unrecognizedSourceNames = Array.from(unresolvedSources.keys()).filter(
+            (sourceName) => !recognizedSourceNames.has(sourceName)
+          );
+
+          if (
+            unrecognizedSourceNames.includes('param') ||
+            unrecognizedSourceNames.includes('output')
+          ) {
+            throw new ServerlessError(
+              '"Cannot resolve configuration: ' +
+                '"param" and "output" variable sources can be resolved only in context of ' +
+                'services deployed to Serverless Dashboard (with "org" setting configured)',
+              'DASHBOARD_VARIABLE_SOURCES_MISUSE'
+            );
+          }
           throw new ServerlessError(
-            `Approached unrecognized configuration variable sources: "${Array.from(
-              unresolvedSources.keys()
-            ).join('", "')}"`,
+            `Approached unrecognized configuration variable sources: "${unrecognizedSourceNames.join(
+              '", "'
+            )}"`,
             'UNRECOGNIZED_VARIABLE_SOURCES'
           );
         }

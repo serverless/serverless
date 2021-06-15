@@ -3,10 +3,10 @@
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 const awsRequest = require('@serverless/test/aws-request');
-const fixtures = require('../fixtures/programmatic');
+const fixtures = require('../../fixtures/programmatic');
 
-const { deployService, removeService, fetch } = require('../utils/integration');
-const { createRestApi, deleteRestApi, getResources } = require('../utils/apiGateway');
+const { deployService, removeService, fetch } = require('../../utils/integration');
+const { createRestApi, deleteRestApi, getResources } = require('../../utils/apiGateway');
 
 describe('AWS - API Gateway with External REST API Integration Test', function () {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys

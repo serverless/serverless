@@ -2,12 +2,16 @@
 
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
-const fixtures = require('../fixtures/programmatic');
+const fixtures = require('../../fixtures/programmatic');
 
-const { createKinesisStream, deleteKinesisStream, putKinesisRecord } = require('../utils/kinesis');
-const { putDynamoDbItem } = require('../utils/dynamodb');
-const { confirmCloudWatchLogs } = require('../utils/misc');
-const { deployService, removeService } = require('../utils/integration');
+const {
+  createKinesisStream,
+  deleteKinesisStream,
+  putKinesisRecord,
+} = require('../../utils/kinesis');
+const { putDynamoDbItem } = require('../../utils/dynamodb');
+const { confirmCloudWatchLogs } = require('../../utils/misc');
+const { deployService, removeService } = require('../../utils/integration');
 
 describe('AWS - Stream Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys

@@ -705,9 +705,11 @@ describe('#naming()', () => {
         sdk.naming.getLambdaCognitoUserPoolPermissionLogicalId(
           'functionName',
           'Pool1',
-          'CustomMessage'
+          'PreSignUp_ExternalProvider'
         )
-      ).to.equal('FunctionNameLambdaPermissionCognitoUserPoolPool1TriggerSourceCustomMessage');
+      ).to.equal(
+        'FunctionNameLambdaPermissionCognitoUserPoolPool1TriggerSourcePreSignUpExternalProvider'
+      );
     });
 
     describe('#getLambdaAlbPermissionLogicalId()', () => {
