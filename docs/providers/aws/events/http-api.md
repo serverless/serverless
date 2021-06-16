@@ -392,7 +392,7 @@ provider:
     payload: '1.0'
 ```
 
-Also, the payload version could be configured in function level as follows:
+The payload version can also be specified at the function level with httpApi.payload property and it will take precedence over the payload version configured at the provider level. It can be configured as:
 
 ```yaml
 functions:
@@ -400,8 +400,10 @@ functions:
     handler: index.handler
     httpApi:
       payload: '1.0'
-    method: GET
-    path: /hello
+    events:
+      - httpApi:
+          path: /hello
+          method: GET
 ```
 
 ### Detailed Metrics
