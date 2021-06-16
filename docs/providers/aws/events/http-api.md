@@ -392,6 +392,20 @@ provider:
     payload: '1.0'
 ```
 
+The payload version can also be specified at the function level with httpApi.payload property and it will take precedence over the payload version configured at the provider level. It can be configured as:
+
+```yaml
+functions:
+  hello:
+    handler: index.handler
+    httpApi:
+      payload: '1.0'
+    events:
+      - httpApi:
+          path: /hello
+          method: GET
+```
+
 ### Detailed Metrics
 
 With HTTP API we may configure detailed metrics that can be used setup monitoring and alerting in Cloudwatch.
