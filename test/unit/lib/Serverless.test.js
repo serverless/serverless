@@ -329,12 +329,16 @@ describe('test/unit/lib/Serverless.test.js', () => {
             custom: {
               fromDefaultEnv: '${env:DEFAULT_ENV_VARIABLE}',
               fromStageEnv: "${env:STAGE_ENV_VARIABLE, 'not-found'}",
+              fromDefaultExpandedEnv: '${env:DEFAULT_ENV_VARIABLE_EXPANDED}',
             },
           },
         })
       ).servicePath;
 
-      const defaultFileContent = 'DEFAULT_ENV_VARIABLE=valuefromdefault';
+      const defaultFileContent = `
+        DEFAULT_ENV_VARIABLE=valuefromdefault
+        DEFAULT_ENV_VARIABLE_EXPANDED=$DEFAULT_ENV_VARIABLE/expanded
+      `;
       await fs.promises.writeFile(path.join(serviceDir, '.env'), defaultFileContent);
       conditionallyLoadDotenv.clear();
     });
@@ -347,6 +351,9 @@ describe('test/unit/lib/Serverless.test.js', () => {
       });
 
       expect(result.serverless.service.custom.fromDefaultEnv).to.equal('valuefromdefault');
+      expect(result.serverless.service.custom.fromDefaultExpandedEnv).to.equal(
+        'valuefromdefault/expanded'
+      );
       expect(result.serverless.service.custom.fromStageEnv).to.equal('not-found');
     });
   });
