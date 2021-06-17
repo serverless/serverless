@@ -3,7 +3,7 @@
 const runServerless = require('../../utils/run-serverless');
 const expect = require('chai').expect;
 
-describe('#configSchema', () => {
+describe('test/unit/lib/configSchema.test.js', () => {
   const cases = [
     {
       isValid: true,
