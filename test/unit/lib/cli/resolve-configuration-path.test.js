@@ -13,7 +13,7 @@ const resolveServerlessConfigPath = require('../../../../lib/cli/resolve-configu
 const resolveInput = require('../../../../lib/cli/resolve-input');
 const { triggeredDeprecations } = require('../../../../lib/utils/logDeprecation');
 
-describe('test/unit/lib/cli/resolve-service-config-path.test.js', () => {
+describe('test/unit/lib/cli/resolve-configuration-path.test.js', () => {
   let configurationPath;
   afterEach(async () => {
     if (!configurationPath) return;
