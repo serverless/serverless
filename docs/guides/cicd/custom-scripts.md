@@ -85,7 +85,7 @@ plugins:
 custom:
   scripts:
     hooks:
-      ‘before:deploy:deploy': <your script>
+      'before:deploy:deploy': <your script>
 ```
 
 **After serverless deploy**
@@ -98,7 +98,7 @@ plugins:
 custom:
   scripts:
     hooks:
-      ‘deploy:finalize’: <your script>
+      'deploy:finalize': <your script>
 ```
 
 ## Additional lifecycle hooks
