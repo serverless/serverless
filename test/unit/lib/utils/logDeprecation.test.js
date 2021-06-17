@@ -2,7 +2,6 @@
 
 const sandbox = require('sinon');
 const expect = require('chai').expect;
-const mockRequire = require('mock-require');
 const overrideEnv = require('process-utils/override-env');
 const overrideStdoutWrite = require('process-utils/override-stdout-write');
 const runServerless = require('../../../utils/run-serverless');
@@ -11,10 +10,9 @@ const ServerlessError = require('../../../../lib/serverless-error');
 describe('#logDeprecation()', () => {
   let restoreEnv;
   let originalEnv;
-  let logDeprecation;
 
   beforeEach(() => {
-    logDeprecation = mockRequire.reRequire('../../../../lib/utils/logDeprecation');
+    delete require.cache[require.resolve('../../../../lib/utils/logDeprecation')];
     ({ originalEnv, restoreEnv } = overrideEnv());
   });
 
@@ -24,6 +22,7 @@ describe('#logDeprecation()', () => {
   });
 
   it('Should log deprecation message if not disabled and first time', () => {
+    const logDeprecation = require('../../../../lib/utils/logDeprecation');
     let stdoutData = '';
     overrideStdoutWrite(
       (data) => (stdoutData += data),
@@ -37,7 +36,8 @@ describe('#logDeprecation()', () => {
 
   it('Should not log deprecation if disabled in env.SLS_DEPRECATION_DISABLE', () => {
     process.env.SLS_DEPRECATION_DISABLE = 'CODE1';
-    logDeprecation = mockRequire.reRequire('../../../../lib/utils/logDeprecation');
+    const logDeprecation = require('../../../../lib/utils/logDeprecation');
+
     let stdoutData = '';
     overrideStdoutWrite(
       (data) => (stdoutData += data),
@@ -49,6 +49,7 @@ describe('#logDeprecation()', () => {
   it('Should not log deprecation if disabled in serviceConfig', () => {
     // We need original process env variables for npm-conf
     Object.assign(process.env, originalEnv);
+    const logDeprecation = require('../../../../lib/utils/logDeprecation');
     return runServerless({
       fixture: 'function',
       configExt: { disabledDeprecations: ['CODE1'] },
@@ -66,7 +67,7 @@ describe('#logDeprecation()', () => {
 
   it('Should not log deprecation if disabled by wildcard in env', () => {
     process.env.SLS_DEPRECATION_DISABLE = '*';
-    logDeprecation = mockRequire.reRequire('../../../../lib/utils/logDeprecation');
+    const logDeprecation = require('../../../../lib/utils/logDeprecation');
     let stdoutData = '';
     overrideStdoutWrite(
       (data) => (stdoutData += data),
@@ -77,6 +78,7 @@ describe('#logDeprecation()', () => {
 
   it('Should not log deprecation if disabled by wildcard in service config', () => {
     Object.assign(process.env, originalEnv);
+    const logDeprecation = require('../../../../lib/utils/logDeprecation');
     return runServerless({
       fixture: 'function',
       configExt: { disabledDeprecations: '*' },
@@ -94,14 +96,14 @@ describe('#logDeprecation()', () => {
 
   it('Should throw on deprecation if env.SLS_DEPRECATION_NOTIFICATION_MODE=error', () => {
     process.env.SLS_DEPRECATION_NOTIFICATION_MODE = 'error';
-    logDeprecation = mockRequire.reRequire('../../../../lib/utils/logDeprecation');
+    const logDeprecation = require('../../../../lib/utils/logDeprecation');
     expect(() => logDeprecation('CODE1', 'Start using deprecation log'))
       .to.throw(ServerlessError)
       .with.property('code', 'REJECTED_DEPRECATION_CODE1');
   });
 
   it('Should throw on deprecation if error notifications mode set in service config', () => {
-    logDeprecation = mockRequire.reRequire('../../../../lib/utils/logDeprecation');
+    const logDeprecation = require('../../../../lib/utils/logDeprecation');
     expect(() =>
       logDeprecation('CODE1', 'Start using deprecation log', {
         serviceConfig: { deprecationNotificationMode: 'error' },
@@ -116,6 +118,7 @@ describe('#logDeprecation()', () => {
     overrideStdoutWrite(
       (data) => (stdoutData += data),
       () => {
+        const logDeprecation = require('../../../../lib/utils/logDeprecation');
         logDeprecation('CODE1', 'Start using deprecation log');
         expect(stdoutData).to.include('Start using deprecation log');
         stdoutData = '';
