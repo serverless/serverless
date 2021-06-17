@@ -17,6 +17,21 @@ disabledDeprecations:
   - '*' # To disable all deprecation messages
 ```
 
+## Notifications mode
+
+By default deprecations are logged as warnings. If there's an intention to work with _deprecation_ free service, reporting mode can be switched so approached deprecation is reported with a thrown error.
+
+Mode can be set via environment variable: `SLS_DEPRECATION_NOTIFICATION_MODE=error` or via top level service configuration setting:
+
+```yaml
+deprecationNotificationMode: error
+```
+
+Note:
+
+- Configuration setting is ineffective for deprecations reported before service configuration is read.
+- `SLS_DEPRECATION_DISABLE` env var and `disabledDeprecations` configuration setting remain respected, and no errors will be thrown for mentioned deprecation coodes.
+
 <a name="CHANGE_OF_DEFAULT_RUNTIME_TO_NODEJS14X"><div>&nbsp;</div></a>
 
 ## Change of default runtime to `nodejs14.x`

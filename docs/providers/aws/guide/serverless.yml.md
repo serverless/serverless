@@ -29,6 +29,7 @@ enableLocalInstallationFallback: false # If set to 'true', guarantees that it's 
 useDotenv: false # If set to 'true', environment variables will be automatically loaded from .env files
 variablesResolutionMode: null # To crash on variable resolution errors (as coming from new resolver), set this value to "20210326"
 unresolvedVariablesNotificationMode: warn # If set to 'error', references to variables that cannot be resolved will result in an error being thrown (applies to legacy resolver)
+deprecationNotificationMode: warn # If set to 'error' any reported deprection will result in an error being thrown
 
 disabledDeprecations: # Disable deprecation logs by their codes. Default is empty.
   - DEP_CODE_1 # Deprecation code to disable
