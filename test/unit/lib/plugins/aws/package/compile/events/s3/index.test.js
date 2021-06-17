@@ -830,9 +830,98 @@ describe('AwsCompileS3Events', () => {
 
       return expect(() => awsCompileS3Events.existingS3Buckets()).to.throw('Only one S3 Bucket');
     });
+  });
+});
 
-    it('should create lambda permissions policy with wild card', async () => {
-      const { cfTemplate } = await runServerless({
+describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', () => {
+  let cfResources;
+  let naming;
+  let serverlessInstance;
+
+  before(async () => {
+    const { cfTemplate, awsNaming, serverless } = await runServerless({
+      fixture: 'function',
+      configExt: {
+        functions: {
+          foo: {
+            events: [
+              {
+                s3: {
+                  bucket: 'foo',
+                  event: 's3:ObjectCreated:*',
+                  existing: true,
+                },
+              },
+            ],
+          },
+          other: {
+            events: [
+              {
+                s3: {
+                  bucket: { Ref: 'SomeBucket' },
+                  event: 's3:ObjectCreated:*',
+                  existing: true,
+                },
+              },
+            ],
+          },
+        },
+      },
+      command: 'package',
+    });
+    cfResources = cfTemplate.Resources;
+    naming = awsNaming;
+    serverlessInstance = serverless;
+  });
+
+  it('should create lambda permissions policy with wild card', async () => {
+    const expectedResource = [
+      'arn',
+      {
+        Ref: 'AWS::Partition',
+      },
+      'lambda',
+      {
+        Ref: 'AWS::Region',
+      },
+      {
+        Ref: 'AWS::AccountId',
+      },
+      'function',
+      '*',
+    ];
+
+    const lambdaPermissionsPolicies =
+      cfResources.IamRoleCustomResourcesLambdaExecution.Properties.Policies[
+        '0'
+      ].PolicyDocument.Statement.filter((x) => x.Action[0].includes('AddPermission'));
+
+    expect(lambdaPermissionsPolicies).to.have.length(1);
+
+    const actualResource = lambdaPermissionsPolicies[0].Resource['Fn::Join'][1];
+
+    expect(actualResource).to.deep.equal(expectedResource);
+  });
+
+  it('should support `bucket` provided as CF function', () => {
+    expect(cfResources[naming.getCustomResourceS3ResourceLogicalId('other')]).to.deep.equal({
+      Type: 'Custom::S3',
+      Version: 1,
+      DependsOn: ['OtherLambdaFunction', 'CustomDashresourceDashexistingDashs3LambdaFunction'],
+      Properties: {
+        ServiceToken: {
+          'Fn::GetAtt': ['CustomDashresourceDashexistingDashs3LambdaFunction', 'Arn'],
+        },
+        FunctionName: `${serverlessInstance.service.service}-dev-other`,
+        BucketName: { Ref: 'SomeBucket' },
+        BucketConfigs: [{ Event: 's3:ObjectCreated:*', Rules: [] }],
+      },
+    });
+  });
+
+  it('should disallow referencing multiple buckets in context of single function with CF references', async () => {
+    await expect(
+      runServerless({
         fixture: 'function',
         configExt: {
           functions: {
@@ -840,7 +929,14 @@ describe('AwsCompileS3Events', () => {
               events: [
                 {
                   s3: {
-                    bucket: 'foo',
+                    bucket: { Ref: 'SomeBucket' },
+                    event: 's3:ObjectCreated:*',
+                    existing: true,
+                  },
+                },
+                {
+                  s3: {
+                    bucket: { Ref: 'AnotherBucket' },
                     event: 's3:ObjectCreated:*',
                     existing: true,
                   },
@@ -850,34 +946,30 @@ describe('AwsCompileS3Events', () => {
           },
         },
         command: 'package',
-      });
+      })
+    ).to.be.eventually.rejected.and.have.property('code', 'S3_MULTIPLE_BUCKETS_PER_FUNCTION');
+  });
 
-      const expectedResource = [
-        'arn',
-        {
-          Ref: 'AWS::Partition',
+  it('should throw when `bucket` is specified as CF function but without setting `existing: true`', async () => {
+    await expect(
+      runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            foo: {
+              events: [
+                {
+                  s3: {
+                    bucket: { Ref: 'SomeBucket' },
+                    event: 's3:ObjectCreated:*',
+                  },
+                },
+              ],
+            },
+          },
         },
-        'lambda',
-        {
-          Ref: 'AWS::Region',
-        },
-        {
-          Ref: 'AWS::AccountId',
-        },
-        'function',
-        '*',
-      ];
-
-      const lambdaPermissionsPolicies =
-        cfTemplate.Resources.IamRoleCustomResourcesLambdaExecution.Properties.Policies[
-          '0'
-        ].PolicyDocument.Statement.filter((x) => x.Action[0].includes('AddPermission'));
-
-      expect(lambdaPermissionsPolicies).to.have.length(1);
-
-      const actualResource = lambdaPermissionsPolicies[0].Resource['Fn::Join'][1];
-
-      expect(actualResource).to.deep.equal(expectedResource);
-    });
+        command: 'package',
+      })
+    ).to.be.eventually.rejected.and.have.property('code', 'S3_INVALID_NEW_BUCKET_FORMAT');
   });
 });
