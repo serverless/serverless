@@ -6,6 +6,7 @@ const mockRequire = require('mock-require');
 const overrideEnv = require('process-utils/override-env');
 const overrideStdoutWrite = require('process-utils/override-stdout-write');
 const runServerless = require('../../../utils/run-serverless');
+const ServerlessError = require('../../../../lib/serverless-error');
 
 describe('#logDeprecation()', () => {
   let restoreEnv;
@@ -89,6 +90,25 @@ describe('#logDeprecation()', () => {
       );
       expect(stdoutData).to.equal('');
     });
+  });
+
+  it('Should throw on deprecation if env.SLS_DEPRECATION_NOTIFICATION_MODE=error', () => {
+    process.env.SLS_DEPRECATION_NOTIFICATION_MODE = 'error';
+    logDeprecation = mockRequire.reRequire('../../../../lib/utils/logDeprecation');
+    expect(() => logDeprecation('CODE1', 'Start using deprecation log'))
+      .to.throw(ServerlessError)
+      .with.property('code', 'REJECTED_DEPRECATION_CODE1');
+  });
+
+  it('Should throw on deprecation if error notifications mode set in service config', () => {
+    logDeprecation = mockRequire.reRequire('../../../../lib/utils/logDeprecation');
+    expect(() =>
+      logDeprecation('CODE1', 'Start using deprecation log', {
+        serviceConfig: { deprecationNotificationMode: 'error' },
+      })
+    )
+      .to.throw(ServerlessError)
+      .with.property('code', 'REJECTED_DEPRECATION_CODE1');
   });
 
   it('Should not log deprecation twice', () => {

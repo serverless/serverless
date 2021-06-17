@@ -203,6 +203,7 @@ const processSpanPromise = (async () => {
           // variable resolution choices
           if (!ensureResolvedProperty('variablesResolutionMode')) return;
           if (!ensureResolvedProperty('disabledDeprecations')) return;
+          if (!ensureResolvedProperty('deprecationNotificationMode')) return;
 
           if (isPropertyResolved(variablesMeta, 'provider\0name')) {
             providerName = resolveProviderName(configuration);
