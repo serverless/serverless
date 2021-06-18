@@ -603,16 +603,13 @@ describe('Variables', () => {
           })
         ).to.be.fulfilled;
       });
-      it('should do nothing useful on * when not wrapped in quotes', () => {
+      it('should do nothing useful on * when not wrapped in quotes', async () => {
         service.custom = {
           val0: '${self:custom.*}',
         };
         const expected = { val0: undefined };
-        return expect(
-          serverless.variables.populateObject(service.custom).then((result) => {
-            expect(result).to.eql(expected);
-          })
-        ).to.be.fulfilled;
+        const result = await serverless.variables.populateObject(service.custom);
+        expect(result).to.eql(expected);
       });
       it('should properly populate overwrites where the middle value is valid', () => {
         service.custom = {
