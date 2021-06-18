@@ -1207,19 +1207,16 @@ module.exports = {
         .should.eventually.eql('my stage is prod');
     });
 
-    it('should not allow partially double-quoted string', () => {
+    it('should not allow partially double-quoted string', async () => {
       const property = '${opt:stage, prefix"prod"suffix}';
       serverless.variables.options = {};
       const handleUnresolvedSpy = sinon.spy(serverless.variables, 'handleUnresolved');
-      return serverless.variables
-        .populateProperty(property)
-        .should.become(undefined)
-        .then(() => {
-          expect(handleUnresolvedSpy.callCount).to.equal(1);
-        })
-        .finally(() => {
-          handleUnresolvedSpy.restore();
-        });
+      try {
+        expect(await serverless.variables.populateProperty(property)).to.equal(undefined);
+        expect(handleUnresolvedSpy.callCount).to.equal(1);
+      } finally {
+        handleUnresolvedSpy.restore();
+      }
     });
 
     it('should allow a boolean with value true if overwrite syntax provided', () => {
