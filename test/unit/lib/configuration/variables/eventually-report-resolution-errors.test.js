@@ -43,18 +43,15 @@ describe('test/unit/lib/configuration/variables/eventually-report-resolution-err
     it('should log deprecation with no "variablesResolutionMode" set', () => {
       const configuration = { foo: '${foo:raz' };
       const variablesMeta = resolveMeta(configuration);
-      let stdoutData = '';
-      overrideArgv({ args: ['serverless', 'foo'] }, () =>
-        overrideStdoutWrite(
-          (data) => (stdoutData += data),
-          () =>
-            expect(
-              eventuallyReportResolutionErrors(process.cwd(), configuration, variablesMeta)
-            ).to.equal(true)
-        )
+      overrideArgv(
+        { args: ['serverless', 'foo'] },
+        () => () =>
+          expect(() =>
+            eventuallyReportResolutionErrors(process.cwd(), configuration, variablesMeta)
+          )
+            .to.throw(ServerlessError)
+            .with.property('code', 'REJECTED_DEPRECATION_VARIABLES_RESOLUTION_ERROR')
       );
-
-      expect(stdoutData).to.include('NEW_VARIABLES_RESOLVER');
     });
     it('should throw with no "variablesResolutionMode" set', () => {
       const configuration = { foo: '${foo:raz', variablesResolutionMode: 20210326 };

@@ -1,6 +1,11 @@
 'use strict';
 
-const expect = require('chai').expect;
+const chai = require('chai');
+
+chai.use(require('chai-as-promised'));
+
+const { expect } = chai;
+
 const Serverless = require('../../../lib/Serverless');
 const semverRegex = require('semver-regex');
 const path = require('path');
@@ -237,20 +242,18 @@ describe('test/unit/lib/Serverless.test.js', () => {
           expect(serverless.isLocalStub).to.be.true;
         }));
 
-      it('Should report deprecation notice when "enableLocalInstallationFallback" is set', () =>
-        runServerless({
-          fixture: 'locallyInstalledServerless',
-          configExt: { enableLocalInstallationFallback: false },
-          command: 'print',
-          modulesCacheStub: {},
-        }).then(({ serverless }) => {
-          expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([
-            'DISABLE_LOCAL_INSTALLATION_FALLBACK_SETTING',
-          ]);
-          expect(serverless._isInvokedByGlobalInstallation).to.be.false;
-          expect(serverless.isLocallyInstalled).to.be.false;
-          expect(serverless.isLocalStub).to.not.exist;
-        }));
+      it('Should report deprecation notice when "enableLocalInstallationFallback" is set', async () =>
+        expect(
+          runServerless({
+            fixture: 'locallyInstalledServerless',
+            configExt: { enableLocalInstallationFallback: false },
+            command: 'print',
+            modulesCacheStub: {},
+          })
+        ).to.eventually.be.rejected.and.have.property(
+          'code',
+          'REJECTED_DEPRECATION_DISABLE_LOCAL_INSTALLATION_FALLBACK_SETTING'
+        ));
 
       it('Should not fallback to local when "enableLocalInstallationFallback" set to false', async () => {
         const { serverless } = await runServerless({
