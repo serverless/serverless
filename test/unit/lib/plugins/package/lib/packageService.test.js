@@ -13,7 +13,7 @@ chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
 const { expect } = require('chai');
 
-describe('lib/plugins/package/lib/packageService.test.js', () => {
+describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
   const mockedDescribeStacksResponse = {
     CloudFormation: {
       describeStacks: {
