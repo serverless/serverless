@@ -1792,6 +1792,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
           fixture: 'function',
           command: 'package',
           configExt: {
+            disabledDeprecations: ['CLOUDFRONT_CACHE_BEHAVIOR_FORWARDED_VALUES_AND_TTL'],
             functions: {
               foo: {
                 handler: 'myLambdaAtEdge.handler',

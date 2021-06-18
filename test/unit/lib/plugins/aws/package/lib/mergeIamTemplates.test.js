@@ -18,11 +18,12 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       expect(cfTemplate.Resources).to.not.have.property(iamRoleLambdaExecution);
     });
 
-    it('should not create role resource with `provider.role`', async () => {
+    it('should not create role resource with deprecated `provider.role`', async () => {
       const { cfTemplate, awsNaming } = await runServerless({
         fixture: 'function',
         command: 'package',
         configExt: {
+          disabledDeprecations: ['PROVIDER_IAM_SETTINGS'],
           provider: {
             name: 'aws',
             role: 'arn:aws:iam::YourAccountNumber:role/YourIamRole',
@@ -179,6 +180,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
           fixture: 'function',
           command: 'package',
           configExt: {
+            disabledDeprecations: ['PROVIDER_IAM_SETTINGS'],
             provider: {
               iamRoleStatements: [
                 {
@@ -245,6 +247,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
           fixture: 'function',
           command: 'package',
           configExt: {
+            disabledDeprecations: ['PROVIDER_IAM_SETTINGS'],
             provider: {
               iam: {
                 role: {

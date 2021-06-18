@@ -204,14 +204,16 @@ describe('#addCustomResourceToService()', () => {
       ]);
     }));
 
-  it('should use custom role when cfnRole is provided', async () => {
+  it('should use custom role when deployment role is provided', async () => {
     const role = 'arn:aws:iam::999999999999:role/my-role';
     const { cfTemplate } = await runServerless({
       fixture: 'function',
       command: 'package',
       configExt: {
         provider: {
-          cfnRole: role,
+          iam: {
+            deploymentRole: role,
+          },
         },
         functions: {
           foo: {
@@ -219,12 +221,6 @@ describe('#addCustomResourceToService()', () => {
             events: [
               { s3: { bucket: 'my-bucket', existing: true } },
               { cognitoUserPool: { pool: 'my-user-pool', trigger: 'PreSignUp', existing: true } },
-              {
-                eventBridge: {
-                  eventBus: 'arn:aws:events:us-east-1:12345:event-bus/default',
-                  schedule: 'rate(10 minutes)',
-                },
-              },
             ],
           },
         },
@@ -235,8 +231,7 @@ describe('#addCustomResourceToService()', () => {
     expect([
       Resources.CustomDashresourceDashexistingDashs3LambdaFunction.Properties.Role, // S3
       Resources.CustomDashresourceDashexistingDashcupLambdaFunction.Properties.Role, // Cognito User Pool
-      Resources.CustomDashresourceDasheventDashbridgeLambdaFunction.Properties.Role, // Event Bridge
-    ]).to.eql([role, role, role]);
+    ]).to.eql([role, role]);
   });
 
   it('should setup CloudWatch Logs when logs.frameworkLambda is true', () => {

@@ -23,7 +23,7 @@ describe('renameService', () => {
 
     serviceDir = tmpDir;
 
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: ['print'], options: {}, serviceDir: null });
     return serverless.init();
   });
 

@@ -2,6 +2,7 @@ service: service
 
 configValidationMode: error
 frameworkVersion: '*'
+disabledDeprecations: LOAD_VARIABLES_FROM_ENV_FILES
 
 provider:
   name: aws

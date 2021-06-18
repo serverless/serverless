@@ -23,7 +23,7 @@ describe('Serverless', () => {
   let serverless;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: ['print'], options: {}, serviceDir: null });
   });
 
   describe('#constructor()', () => {
@@ -237,7 +237,6 @@ describe('test/unit/lib/Serverless.test.js', () => {
           expect(serverless.isLocalStub).to.be.true;
         }));
 
-      let serverlessWithDisabledLocalInstallationFallback;
       it('Should report deprecation notice when "enableLocalInstallationFallback" is set', () =>
         runServerless({
           fixture: 'locallyInstalledServerless',
@@ -245,7 +244,6 @@ describe('test/unit/lib/Serverless.test.js', () => {
           command: 'print',
           modulesCacheStub: {},
         }).then(({ serverless }) => {
-          serverlessWithDisabledLocalInstallationFallback = serverless;
           expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([
             'DISABLE_LOCAL_INSTALLATION_FALLBACK_SETTING',
           ]);
@@ -254,13 +252,26 @@ describe('test/unit/lib/Serverless.test.js', () => {
           expect(serverless.isLocalStub).to.not.exist;
         }));
 
-      it('Should not fallback to local when "enableLocalInstallationFallback" set to false', () =>
-        expect(serverlessWithDisabledLocalInstallationFallback.invokedInstance).to.not.exist);
+      it('Should not fallback to local when "enableLocalInstallationFallback" set to false', async () => {
+        const { serverless } = await runServerless({
+          fixture: 'locallyInstalledServerless',
+          configExt: {
+            disabledDeprecations: 'DISABLE_LOCAL_INSTALLATION_FALLBACK_SETTING',
+            enableLocalInstallationFallback: false,
+          },
+          command: 'print',
+          modulesCacheStub: {},
+        });
+        expect(serverless.invokedInstance).to.not.exist;
+      });
 
       it('Should fallback to local version when "enableLocalInstallationFallback" set to true', () =>
         runServerless({
           fixture: 'locallyInstalledServerless',
-          configExt: { enableLocalInstallationFallback: true },
+          configExt: {
+            disabledDeprecations: 'DISABLE_LOCAL_INSTALLATION_FALLBACK_SETTING',
+            enableLocalInstallationFallback: true,
+          },
           command: 'print',
           modulesCacheStub: {},
         }).then(({ serverless }) => {
@@ -314,7 +325,7 @@ describe('test/unit/lib/Serverless.test.js', () => {
             useDotenv: true,
             custom: {
               fromDefaultEnv: '${env:DEFAULT_ENV_VARIABLE}',
-              fromStageEnv: '${env:STAGE_ENV_VARIABLE}',
+              fromStageEnv: "${env:STAGE_ENV_VARIABLE, 'not-found'}",
             },
           },
         })
@@ -333,7 +344,7 @@ describe('test/unit/lib/Serverless.test.js', () => {
       });
 
       expect(result.serverless.service.custom.fromDefaultEnv).to.equal('valuefromdefault');
-      expect(result.serverless.service.custom.fromStageEnv).to.be.undefined;
+      expect(result.serverless.service.custom.fromStageEnv).to.equal('not-found');
     });
   });
 

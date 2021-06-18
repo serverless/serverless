@@ -49,12 +49,16 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
         awsRequestStubMap: mockedDescribeStacksResponse,
         configExt: {
           package: {
-            exclude: ['dir1/**', '!dir1/subdir3/**'],
-            include: ['dir1/subdir2/**', '!dir1/subdir2/subsubdir1'],
+            patterns: [
+              '!dir1/**',
+              'dir1/subdir3/**',
+              'dir1/subdir2/**',
+              '!dir1/subdir2/subsubdir1',
+            ],
           },
           functions: {
             fnIndividual: {
-              package: { include: 'dir1/subdir4/**', exclude: 'dir3/**' },
+              package: { patterns: ['dir1/subdir4/**', '!dir3/**'] },
             },
           },
         },
@@ -170,12 +174,16 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
         configExt: {
           package: {
             individually: true,
-            exclude: ['dir1/**', '!dir1/subdir3/**'],
-            include: ['dir1/subdir2/**', '!dir1/subdir2/subsubdir1'],
+            patterns: [
+              '!dir1/**',
+              'dir1/subdir3/**',
+              'dir1/subdir2/**',
+              '!dir1/subdir2/subsubdir1',
+            ],
           },
           functions: {
             fnIndividual: {
-              package: { include: 'dir1/subdir4/**', exclude: 'dir3/**' },
+              package: { patterns: ['dir1/subdir4/**', '!dir3/**'] },
             },
           },
           plugins: {
@@ -228,13 +236,12 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
         configExt: {
           package: {
             artifact: 'artifact.zip',
-            exclude: ['dir1', '!dir1/subdir3/**'],
-            include: ['dir1/subdir2/**', '!dir1/subdir2/subsubdir1'],
+            patterns: ['!dir1', 'dir1/subdir3/**', 'dir1/subdir2/**', '!dir1/subdir2/subsubdir1'],
           },
           functions: {
             fnIndividual: {
               handler: 'index.handler',
-              package: { individually: true, include: 'dir1/subdir3/**', exclude: 'dir1/subdir2' },
+              package: { individually: true, patterns: ['dir1/subdir3/**', '!dir1/subdir2'] },
             },
             fnArtifact: {
               handler: 'index.handler',

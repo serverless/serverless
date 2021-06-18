@@ -22,7 +22,7 @@ describe('AwsDeployFunction', () => {
   let cryptoStub;
 
   beforeEach(async () => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: ['print'], options: {}, serviceDir: null });
     serverless.servicePath = true;
     serverless.service.environment = {
       vars: {},
@@ -588,7 +588,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
         },
         functions: {
           foo: {
-            awsKmsKeyArn: kmsKeyArn,
+            kmsKeyArn,
             description,
             handler,
             environment: {
@@ -708,7 +708,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
             VARIABLE: 'value',
           },
           memorySize,
-          role,
+          iam: { role },
           timeout,
           vpc: {
             securityGroupIds: ['sg-111', 'sg-222'],
@@ -790,7 +790,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
         },
         functions: {
           foo: {
-            awsKmsKeyArn: kmsKeyArn,
+            kmsKeyArn,
             description,
             handler,
             environment: {
@@ -825,6 +825,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       lastLifecycleHookName: 'deploy:function:deploy',
       awsRequestStubMap,
       configExt: {
+        disabledDeprecations: ['AWS_KMS_KEY_ARN'],
         functions: {
           foo: {
             handler: 'index.handler',
@@ -853,6 +854,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       lastLifecycleHookName: 'deploy:function:deploy',
       awsRequestStubMap,
       configExt: {
+        disabledDeprecations: ['AWS_KMS_KEY_ARN', 'SERVICE_OBJECT_NOTATION'],
         functions: {
           foo: {
             handler: 'index.handler',
@@ -882,6 +884,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       lastLifecycleHookName: 'deploy:function:deploy',
       awsRequestStubMap,
       configExt: {
+        disabledDeprecations: ['AWS_KMS_KEY_ARN', 'SERVICE_OBJECT_NOTATION'],
         functions: {
           foo: {
             handler: 'index.handler',
@@ -910,6 +913,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       lastLifecycleHookName: 'deploy:function:deploy',
       awsRequestStubMap,
       configExt: {
+        disabledDeprecations: ['AWS_KMS_KEY_ARN'],
         functions: {
           foo: {
             handler: 'index.handler',

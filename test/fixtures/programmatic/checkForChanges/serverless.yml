@@ -16,4 +16,4 @@ functions:
   fnIndividually:
     handler: fnIndividually.handler
     package:
-      exclude: fn.js
+      patterns: '!fn.js'

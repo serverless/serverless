@@ -62,7 +62,7 @@ describe('Integration test - Packaging - Lambda Files', function () {
     await spawn('npm', ['init', '--yes'], { cwd });
     await fs.appendFile(
       path.resolve(cwd, 'serverless.yml'),
-      '\npackage: {exclude: ["package*.json"]}\n'
+      '\npackage: {patterns: ["!package*.json"]}\n'
     );
     await spawn('npm', ['i', 'lodash'], { cwd });
     await spawn(serverlessExec, ['package'], { cwd });
@@ -75,7 +75,7 @@ describe('Integration test - Packaging - Lambda Files', function () {
     expect(nonNodeModulesFiles).to.deep.equal(['handler.js']);
   });
 
-  it('handles package individually with include/excludes correctly', async () => {
+  it('handles package individually with patterns correctly', async () => {
     await fse.copy(fixturePaths.individually, cwd);
     await spawn(serverlessExec, ['package'], { cwd });
     expect(await listZipFiles(path.join(cwd, '.serverless/hello.zip'))).to.deep.equal([
@@ -86,7 +86,7 @@ describe('Integration test - Packaging - Lambda Files', function () {
     ]);
   });
 
-  it('handles package individually on function level with include/excludes correctly', async () => {
+  it('handles package individually on function level with patterns correctly', async () => {
     await fse.copy(fixturePaths.individuallyFunction, cwd);
     await spawn(serverlessExec, ['package'], { cwd });
     expect(await listZipFiles(path.join(cwd, '.serverless/hello.zip'))).to.deep.equal([

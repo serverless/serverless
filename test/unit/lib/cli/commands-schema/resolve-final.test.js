@@ -20,6 +20,7 @@ describe('test/unit/lib/cli/commands-schema/resolve-final.test.js', () => {
                       resourceGroup: {
                         usage: 'Resource group for the service',
                         shortcut: 'g',
+                        type: 'string',
                       },
                     },
                   },
@@ -32,6 +33,7 @@ describe('test/unit/lib/cli/commands-schema/resolve-final.test.js', () => {
                   dryrun: {
                     usage: 'Get a summary for what the deployment would look like',
                     shortcut: 'd',
+                    type: 'boolean',
                   },
                 },
               },
@@ -91,6 +93,7 @@ describe('test/unit/lib/cli/commands-schema/resolve-final.test.js', () => {
                       resourceGroup: {
                         usage: 'Resource group for the service',
                         shortcut: 'g',
+                        type: 'string',
                       },
                     },
                   },
@@ -103,6 +106,7 @@ describe('test/unit/lib/cli/commands-schema/resolve-final.test.js', () => {
                   dryrun: {
                     usage: 'Get a summary for what the deployment would look like',
                     shortcut: 'd',
+                    type: 'boolean',
                   },
                 },
               },

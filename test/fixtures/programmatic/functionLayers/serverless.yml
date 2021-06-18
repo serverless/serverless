@@ -18,8 +18,8 @@ layers:
     path: testLayer
 
 package:
-  exclude:
-    - extra_layers/**
+  patterns:
+    - '!extra_layers/**'
 
 functions:
   layerFunc:

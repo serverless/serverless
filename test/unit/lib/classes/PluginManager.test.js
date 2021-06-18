@@ -31,7 +31,6 @@ chai.use(require('sinon-chai'));
 const expect = chai.expect;
 
 describe('PluginManager', () => {
-  const env = resolveAwsEnv();
   let pluginManager;
   let serverless;
 
@@ -159,9 +158,11 @@ describe('PluginManager', () => {
           options: {
             resource: {
               usage: 'The resource you want to deploy (e.g. --resource db)',
+              type: 'string',
             },
             function: {
               usage: 'The function you want to deploy (e.g. --function create)',
+              type: 'string',
             },
           },
           commands: {
@@ -171,9 +172,11 @@ describe('PluginManager', () => {
               options: {
                 resource: {
                   usage: 'The resource you want to deploy (e.g. --resource db)',
+                  type: 'string',
                 },
                 function: {
                   usage: 'The function you want to deploy (e.g. --function create)',
+                  type: 'string',
                 },
               },
             },
@@ -209,9 +212,11 @@ describe('PluginManager', () => {
           options: {
             resource: {
               usage: 'The resource you want to deploy (e.g. --resource db)',
+              type: 'string',
             },
             function: {
               usage: 'The function you want to deploy (e.g. --function create)',
+              type: 'string',
             },
           },
           commands: {
@@ -222,9 +227,11 @@ describe('PluginManager', () => {
               options: {
                 resource: {
                   usage: 'The resource you want to deploy (e.g. --resource db)',
+                  type: 'string',
                 },
                 function: {
                   usage: 'The function you want to deploy (e.g. --function create)',
+                  type: 'string',
                 },
               },
             },
@@ -1997,10 +2004,17 @@ describe('PluginManager', () => {
     this.timeout(1000 * 60 * 10);
 
     let serverlessInstance;
+    let env;
     const serverlessExec = require('../../../serverlessBinary');
 
+    before(() => {
+      env = resolveAwsEnv();
+      // Test may be run against deprecated Node.js versions
+      env.SLS_DEPRECATION_DISABLE = 'OUTDATED_NODEJS';
+    });
+
     beforeEach(() => {
-      serverlessInstance = new Serverless();
+      serverlessInstance = new Serverless({ commands: ['print'], options: {}, serviceDir: null });
       return serverlessInstance.init().then(() => {
         // Cannot rely on shebang in severless.js to invoke script using NodeJS on Windows.
         const tmpDir = getTmpDirPath();

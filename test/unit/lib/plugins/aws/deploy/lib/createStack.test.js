@@ -260,6 +260,7 @@ describe('createStack #2', () => {
       fixture: 'function',
       command: 'deploy',
       configExt: {
+        disabledDeprecations: ['PROVIDER_IAM_SETTINGS'],
         provider: {
           iam: {
             deploymentRole: 'arn:aws:iam::123456789012:role/role-a',
@@ -281,6 +282,7 @@ describe('createStack #2', () => {
       fixture: 'function',
       command: 'deploy',
       configExt: {
+        disabledDeprecations: ['PROVIDER_IAM_SETTINGS'],
         provider: {
           cfnRole: 'arn:aws:iam::123456789012:role/role-b',
         },
