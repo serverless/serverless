@@ -1,0 +1,23 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  lambdaHashingVersion: 20201221
+
+functions:
+  function:
+    handler: index.handler
+    events:
+      - http:
+          path: foo
+          method: GET
+      - http:
+          path: foo
+          method: POST
+
+plugins:
+  - serverless-offline
