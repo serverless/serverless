@@ -1,4 +1,5 @@
 service: service
+disabledDeprecations: AWS_API_GATEWAY_SCHEMAS
 
 provider:
   name: aws

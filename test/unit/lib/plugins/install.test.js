@@ -29,7 +29,7 @@ describe('Install', () => {
 
     serviceDir = tmpDir;
 
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: ['print'], options: {}, serviceDir: null });
     install = new Install(serverless);
     return serverless.init().then(() => {
       install.serverless.cli = new serverless.classes.CLI();

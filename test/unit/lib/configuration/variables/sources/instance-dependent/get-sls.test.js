@@ -35,7 +35,8 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
     variablesMeta = resolveMeta(configuration);
     serverlessInstance = new Serverless({
       configuration,
-      configurationPath: process.cwd(),
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
       isConfigurationResolved: true,
       hasResolvedCommandsExternally: true,
       commands: ['package'],

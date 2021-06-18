@@ -236,6 +236,7 @@ describe('AwsCompileFunctions', () => {
       const { cfTemplate } = await runServerless({
         fixture: 'function',
         configExt: {
+          disabledDeprecations: ['PROVIDER_IAM_SETTINGS'],
           provider: {
             role: 'role-a',
             iam: { role: 'role-b' },
@@ -1478,6 +1479,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
             name: 'service',
             awsKmsKeyArn: 'arn:aws:kms:region:accountid:pro/vider',
           },
+          disabledDeprecations: ['SERVICE_OBJECT_NOTATION', 'AWS_KMS_KEY_ARN'],
           provider: {
             vpc: {
               subnetIds: ['subnet-01010101'],

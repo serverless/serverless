@@ -11,7 +11,7 @@ describe('SlStats', () => {
   let serverless;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: ['print'], options: {}, serviceDir: null });
     return serverless.init().then(() => {
       slStats = new SlStats(serverless);
     });

@@ -8,7 +8,7 @@ describe('#getCommandSuggestion', () => {
   let serverless;
 
   before(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: ['print'], options: {}, serviceDir: null });
     return serverless.init();
   });
 

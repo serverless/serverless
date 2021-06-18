@@ -50,6 +50,7 @@ describe('AWS - Event Bridge Integration Test', () => {
       arnEventBusArn = (await createEventBus(arnEventBusName)).EventBusArn;
       // update the YAML file with the arn
       await serviceData.updateConfig({
+        disabledDeprecations: ['AWS_EVENT_BRIDGE_CUSTOM_RESOURCE'],
         functions: {
           eventBusDefaultArn: {
             events: [

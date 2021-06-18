@@ -138,7 +138,10 @@ describe('EventBridgeEvents', () => {
     before(async () => {
       const { cfTemplate, awsNaming } = await runServerless({
         fixture: 'function',
-        configExt: serverlessConfigurationExtension,
+        configExt: {
+          disabledDeprecations: ['AWS_EVENT_BRIDGE_CUSTOM_RESOURCE'],
+          ...serverlessConfigurationExtension,
+        },
         command: 'package',
       });
       cfResources = cfTemplate.Resources;
@@ -238,6 +241,7 @@ describe('EventBridgeEvents', () => {
         runServerless({
           fixture: 'function',
           configExt: {
+            disabledDeprecations: ['AWS_EVENT_BRIDGE_CUSTOM_RESOURCE'],
             functions: {
               foo: {
                 events: [

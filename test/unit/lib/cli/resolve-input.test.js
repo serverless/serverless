@@ -10,6 +10,8 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
     let data;
     before(() => {
       resolveInput.clear();
+      delete require.cache[require.resolve('../../../../lib/utils/logDeprecation')];
+      process.env.SLS_DEPRECATION_DISABLE = 'CLI_OPTIONS_BEFORE_COMMAND';
       data = overrideArgv(
         {
           args: [

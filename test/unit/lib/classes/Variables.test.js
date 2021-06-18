@@ -39,7 +39,13 @@ describe('Variables', () => {
 
   beforeEach(() => {
     ({ restoreEnv } = overrideEnv());
-    serverless = new Serverless();
+    serverless = new Serverless({
+      commands: ['print'],
+      options: {},
+      serviceDir: process.cwd(),
+      configuration: {},
+      configurationFilename: 'serverless.yml',
+    });
   });
 
   const afterCallback = () => restoreEnv();
@@ -508,7 +514,7 @@ describe('Variables', () => {
         service = makeDefault();
         // eslint-disable-next-line no-template-curly-in-string
         service.provider.variableSyntax = '\\${([ ~:a-zA-Z0-9._@\'",\\-\\/\\(\\)*?]+?)}'; // default
-        serverless.variables.service = service;
+        serverless.service = serverless.variables.service = service;
         serverless.variables.loadVariableSyntax();
         delete service.provider.variableSyntax;
       });
@@ -603,11 +609,11 @@ describe('Variables', () => {
           })
         ).to.be.fulfilled;
       });
-      it('should do nothing useful on * when not wrapped in quotes', async () => {
+      it("should treat '*' literally when not wrapped in quotes", async () => {
         service.custom = {
-          val0: '${self:custom.*}',
+          val0: "${self:custom.*, 'fallback'}",
         };
-        const expected = { val0: undefined };
+        const expected = { val0: 'fallback' };
         const result = await serverless.variables.populateObject(service.custom);
         expect(result).to.eql(expected);
       });
@@ -1210,6 +1216,7 @@ module.exports = {
     it('should not allow partially double-quoted string', async () => {
       const property = '${opt:stage, prefix"prod"suffix}';
       serverless.variables.options = {};
+      serverless.configurationInput.disabledDeprecations = ['VARIABLES_ERROR_ON_UNRESOLVED'];
       const handleUnresolvedSpy = sinon.spy(serverless.variables, 'handleUnresolved');
       try {
         expect(await serverless.variables.populateProperty(property)).to.equal(undefined);
@@ -2893,6 +2900,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
           fixture: 'variables-legacy',
           command: 'print',
           configExt: {
+            disabledDeprecations: ['VARIABLES_ERROR_ON_UNRESOLVED'],
             custom: {
               myVariable1: '${env:missingEnvVar}',
               myVariable2: '${opt:missingOpt}',

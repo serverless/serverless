@@ -12,15 +12,13 @@ functions:
     handler: handler.hello
     package:
       individually: true
-      include:
+      patterns:
         - handler.js
-      exclude:
-        - handler2.js
+        - '!handler2.js'
   hello2:
     handler: handler2.hello
     package:
       individually: true
-      include:
+      patterns:
         - handler2.js
-      exclude:
-        - handler.js
+        - '!handler.js'

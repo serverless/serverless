@@ -312,7 +312,6 @@ describe('UsagePlan', () => {
   const serverlessConfigurationExtension = {
     provider: {
       name: 'aws',
-      usagePlan: {},
     },
     functions: {
       foo: {
