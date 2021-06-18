@@ -1,12 +1,23 @@
 'use strict';
 
 const expect = require('chai').expect;
-const report = require('../../../../lib/utils/report-deprecated-properties');
-const { triggeredDeprecations } = require('../../../../lib/utils/logDeprecation');
+const requireUncached = require('ncjsm/require-uncached');
+
 const overrideStdoutWrite = require('process-utils/override-stdout-write');
 
 describe('report-deprecated-properties', () => {
   let stdoutData = '';
+  let report;
+  let triggeredDeprecations;
+
+  before(() => {
+    process.env.SLS_DEPRECATION_NOTIFICATION_MODE = 'warn';
+    requireUncached(() => {
+      report = require('../../../../lib/utils/report-deprecated-properties');
+      ({ triggeredDeprecations } = require('../../../../lib/utils/logDeprecation'));
+    });
+  });
+
   afterEach(() => {
     stdoutData = '';
     triggeredDeprecations.clear();

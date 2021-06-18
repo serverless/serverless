@@ -57,8 +57,9 @@ describe('test/unit/lib/cli/ensure-supported-command.test.js', () => {
       },
       () => resolveInput()
     );
-    ensureSupportedCommand();
-    expect(triggeredDeprecations.has('UNSUPPORTED_CLI_OPTIONS')).to.be.true;
+    expect(() => ensureSupportedCommand())
+      .to.throw(ServerlessError)
+      .with.property('code', 'REJECTED_DEPRECATION_UNSUPPORTED_CLI_OPTIONS');
   });
 
   it('should reject missing options', async () => {
