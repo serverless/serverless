@@ -518,4 +518,44 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       new Set(['region', 'format', 'path'])
     );
   });
+
+  it('Should correctly resolve `constructs` property', async () => {
+    const { serverless } = await runServerless({
+      fixture: 'httpApi',
+      command: 'print',
+    });
+    const payload = await generatePayload({
+      command: 'print',
+      commandSchema: commandsSchema.get('print'),
+      options: {},
+      serviceDir: serverless.serviceDir,
+      configuration: {
+        ...serverless.configurationInput,
+        constructs: {
+          jobs: {
+            type: 'queue',
+            worker: {
+              handler: 'some.handler',
+            },
+          },
+          another: {
+            type: 'queue',
+            worker: {
+              handler: 'other.handler',
+            },
+          },
+        },
+        plugins: ['serverless-lift'],
+      },
+    });
+
+    expect(payload.config.constructs).to.deep.equal([
+      {
+        type: 'queue',
+      },
+      {
+        type: 'queue',
+      },
+    ]);
+  });
 });
