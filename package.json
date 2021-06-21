@@ -79,7 +79,7 @@
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
     "cos-nodejs-sdk-v5": "^2.9.20",
-    "eslint": "^7.28.0",
+    "eslint": "^7.29.0",
     "eslint-plugin-import": "^2.23.4",
     "git-list-updated": "^1.2.1",
     "github-release-from-cc-changelog": "^2.2.0",
