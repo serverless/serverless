@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.48.0](https://github.com/serverless/serverless/compare/v2.47.0...v2.48.0) (2021-06-21)
+
+### Features
+
+- Introduce an opt-in "error" deprecation notification mode ([#9623](https://github.com/serverless/serverless/pull/9623)) ([c22a8b9](https://github.com/serverless/serverless/commit/c22a8b99f2f64a76c592e800a8cf698dbff75b9c)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **Packaging:** Do not report hashing deprecations for container lambdas ([#9623](https://github.com/serverless/serverless/pull/9623)) ([68c2a08](https://github.com/serverless/serverless/commit/68c2a084f91b58832bd5417efaaa3fd6a6178d53)) ([Mariusz Nowak](https://github.com/medikoo))
+- Ensure to support deprecation settings at early stage of processing ([#9623](https://github.com/serverless/serverless/pull/9623))([011e0ce](https://github.com/serverless/serverless/commit/011e0ce45cec4b1273268fcab4f99e377fae092e)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Telemetry:** Recognize `constructs` ([#9628](https://github.com/serverless/serverless/pull/9628)) ([9e10cea](https://github.com/serverless/serverless/commit/9e10ceaf81e8b9d13867937fedc9502a1ff4e320)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Ensure early access to configuration in logDeprecation method ([#9623](https://github.com/serverless/serverless/pull/9623)) ([53b9762](https://github.com/serverless/serverless/commit/53b97621dccdef8f9f2e15e2f4f31045b46970e2)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.47.0](https://github.com/serverless/serverless/compare/v2.46.0...v2.47.0) (2021-06-18)
 
 ### Features
