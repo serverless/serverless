@@ -52,9 +52,6 @@ BbPromise.config({
   longStackTraces: true,
 });
 
-// In order to ensure that telemetry is not mistakenly emitted during test runs
-process.env.SLS_TELEMETRY_DISABLED = '1';
-
 const { runnerEmitter } = require('@serverless/test/setup/patch');
 
 runnerEmitter.on('runner', (runner) => {
