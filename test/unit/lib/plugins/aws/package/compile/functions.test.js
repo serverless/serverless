@@ -1,8 +1,8 @@
 'use strict';
 
 const AWS = require('aws-sdk');
-const fs = require('fs');
 const fse = require('fs-extra');
+const fsp = require('fs').promises;
 const _ = require('lodash');
 const path = require('path');
 const chai = require('chai');
@@ -2527,14 +2527,14 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
             sourceChangeLayer = path.join(serviceDir, 'extra_layers', 'testLayerSourceChange');
             backupLayer = path.join(serviceDir, 'extra_layers', 'testLayerBackup');
 
-            await fs.promises.rename(originalLayer, backupLayer);
-            await fs.promises.rename(sourceChangeLayer, originalLayer);
+            await fsp.rename(originalLayer, backupLayer);
+            await fsp.rename(sourceChangeLayer, originalLayer);
             getHashForFilePath.clear();
           });
 
           afterEach(async () => {
-            await fs.promises.rename(originalLayer, sourceChangeLayer);
-            await fs.promises.rename(backupLayer, originalLayer);
+            await fsp.rename(originalLayer, sourceChangeLayer);
+            await fsp.rename(backupLayer, originalLayer);
           });
 
           it('should create different lambda version id', async () => {
