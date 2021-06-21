@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.47.0](https://github.com/serverless/serverless/compare/v2.46.0...v2.47.0) (2021-06-18)
+
+### Features
+
+- Deprecate Node.js v10 ([#9600](https://github.com/serverless/serverless/issues/9600)) ([e24fdc9](https://github.com/serverless/serverless/commit/e24fdc9f08f9849aad4136261695e44476484b0d)) ([Milind Vaidya](https://github.com/vaidyamilind))
+- **AWS HTTP API:** Support `payload` version per function ([#9551](https://github.com/serverless/serverless/issues/9551)) ([87ce28e](https://github.com/serverless/serverless/commit/87ce28ee4ea0e975859b8d32be8f2edd824b4cda)) ([Nyambayar Turbat](https://github.com/nyamba))
+- **AWS S3:** Support CloudFormation instrinsic functions at `functions[].events[].s3.bucket` property ([#9617](https://github.com/serverless/serverless/issues/9617)) ([42690a7](https://github.com/serverless/serverless/commit/42690a7352751581a8dbd44a4f776af17ab20da8)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **AWS Cognito:** Fix user pool premission resource logical id normalization ([#9592](https://github.com/serverless/serverless/issues/9592)) ([f4c9b58](https://github.com/serverless/serverless/commit/f4c9b58b10a45ae342934e9a61dcdea0c2ef11e2)) ([arunkc](https://github.com/Arun-kc))
+- **AWS Invocation:** Fix resolution of options with non-AWS provider ([#9602](https://github.com/serverless/serverless/issues/9602)) ([54da80e](https://github.com/serverless/serverless/commit/54da80e26497b8f1dbcd3027775628d11e1c6814)) ([Corentin Doue](https://github.com/CorentinDoue))
+- **Variables:** Ensure to strip unrecognized legacy `ssm` resolver instructions ([#9601](https://github.com/serverless/serverless/issues/9601)) ([f61859f](https://github.com/serverless/serverless/commit/f61859fd25908b13b6d9638c550e88ef4a08392e)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Variables:** Improve error message ([#9601](https://github.com/serverless/serverless/issues/9601)) ([4a732e2](https://github.com/serverless/serverless/commit/4a732e2ebf6c7d81f5e0fbdc2e9bcb4715e4cadf)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [2.46.0](https://github.com/serverless/serverless/compare/v2.45.2...v2.46.0) (2021-06-11)
 
 ### Features

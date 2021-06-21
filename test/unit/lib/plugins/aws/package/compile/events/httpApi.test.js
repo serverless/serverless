@@ -36,6 +36,11 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
               handler: 'index.handler',
               events: [{ httpApi: { method: '*', path: '/method-catch-all' } }],
             },
+            payload: {
+              handler: 'index.handler',
+              httpApi: { payload: '1.0' },
+              events: [{ httpApi: { method: 'get', path: '/payload' } }],
+            },
           },
         },
       }).then(({ awsNaming, cfTemplate }) => {
@@ -124,6 +129,11 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     it('should not disable default execute-api endpoint', () => {
       const apiResource = cfResources[naming.getHttpApiLogicalId()];
       expect(apiResource.Properties.DisableExecuteApiEndpoint).to.equal(undefined);
+    });
+
+    it('should support payload format version per function', async () => {
+      const resource = cfResources[naming.getHttpApiIntegrationLogicalId('payload')];
+      expect(resource.Properties.PayloadFormatVersion).to.equal('1.0');
     });
   });
 
