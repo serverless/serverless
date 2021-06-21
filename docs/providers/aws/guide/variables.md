@@ -275,10 +275,13 @@ Buckets from all regions can be used without any additional specification due to
 
 ## Reference Variables using the SSM Parameter Store
 
+_Note: Ensure to add `variablesResolutionMode: 20210326` to your service configuration, to enable complete support for "ssm" variables resolution._
+
 You can reference SSM Parameters as the source of your variables with the `ssm:/path/to/param` syntax. For example:
 
 ```yml
 service: ${ssm:/path/to/service/id}-service
+variablesResolutionMode: 20210326
 provider:
   name: aws
 functions:
@@ -293,6 +296,7 @@ You can also reference SSM Parameters in another region with the `ssm(REGION):/p
 
 ```yml
 service: ${ssm(us-west-2):/path/to/service/id}-service
+variablesResolutionMode: 20210326
 provider:
   name: aws
 functions:
@@ -304,8 +308,6 @@ functions:
 ### Resolution of non plain string types
 
 New variable resolver, ensures that automatically other types as `SecureString` and `StringList` are resolved into expected forms.
-
-For that please ensure to add `variablesResolutionMode: 20210326` to your service configuration.
 
 #### Auto decrypting of `SecureString` type parameters.
 
