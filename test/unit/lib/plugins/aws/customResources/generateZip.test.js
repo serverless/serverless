@@ -16,16 +16,9 @@ chai.use(sinonChai);
 // Stub out functions that generateZip calls to force error conditions
 const ensureArtifactStub = sinon.stub();
 const getTmpDirPathStub = sinon.stub();
-const renameStub = sinon.stub(fsp, 'rename');
-const safeMoveFile = proxyquire('../../../../../../lib/utils/fs/safeMoveFile', {
-  fs: {
-    promises: fsp,
-  },
-});
 const generateZip = proxyquire('../../../../../../lib/plugins/aws/customResources/generateZip.js', {
   '../../../utils/ensureArtifact': ensureArtifactStub,
   '../../../utils/fs/getTmpDirPath': getTmpDirPathStub,
-  '../../../utils/fs/safeMoveFile': safeMoveFile,
 });
 
 /**
@@ -76,6 +69,8 @@ const sourcePath = getTmpDirPath();
 const cachedFile = join(cachePath, artefactName);
 
 describe('#generateZip()', () => {
+  let renameStub;
+
   beforeEach(() => {
     // Set up differently by different tests
     ensureArtifactStub.reset();
@@ -87,7 +82,7 @@ describe('#generateZip()', () => {
     // Normally we just want this to work like usual
     // The source and cache path are on the same device (/tmp) for these tests
     // so there should not be any cross device renaming during unit tests
-    renameStub.reset();
+    renameStub = sinon.stub(fsp, 'rename');
     renameStub.callThrough();
 
     // Ensure the cache directory exists so that the rename doesn't fail
@@ -98,6 +93,7 @@ describe('#generateZip()', () => {
     // Clean up test directories after each test so they don't interfere with each other
     fse.removeSync(cachePath);
     fse.removeSync(sourcePath);
+    fsp.rename.restore();
   });
 
   describe('when the temporary directory is not on a different device to the cache directory', () => {
