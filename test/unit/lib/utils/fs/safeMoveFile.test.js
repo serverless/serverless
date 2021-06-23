@@ -3,7 +3,6 @@
 const fse = require('fs-extra');
 const sinon = require('sinon');
 const chai = require('chai');
-const fs = require('fs');
 const { getTmpDirPath } = require('../../../../utils/fs');
 const { join } = require('path');
 const { expect } = require('chai');
@@ -119,22 +118,6 @@ describe('#safeMoveFile()', () => {
         // Create an existing file that is at the destination
         fse.ensureFileSync(destinationFile);
         fse.writeFileSync(destinationFile, 'existing destination data');
-      });
-
-      describe('when the cached file is open for writing', () => {
-        it('should overwrite the cached file', async () => {
-          const fd = fs.openSync(destinationFile, 'r+');
-
-          try {
-            await safeMoveFile(sourceFile, destinationFile);
-
-            const cachedData = fse.readFileSync(destinationFile).toString();
-            expect(cachedData).not.to.eq('existing destination data');
-            postAssertion();
-          } finally {
-            fs.closeSync(fd);
-          }
-        });
       });
 
       describe('when the cached file is not open', () => {
