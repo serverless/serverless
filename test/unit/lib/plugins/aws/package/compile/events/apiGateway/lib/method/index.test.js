@@ -1816,4 +1816,23 @@ describe('#compileMethods v2()', () => {
       expect(apiGatewayTokenMethodConfig.Properties.AuthorizerId).to.deep.equal('another-id');
     });
   });
+
+  it('should depends on permission resource', async () => {
+    const {
+      awsNaming,
+      cfTemplate: { Resources: cfResources },
+    } = await runServerless({
+      command: 'package',
+      fixture: 'apiGateway',
+    });
+    const FooApiGatewayMethodConfig = cfResources[awsNaming.getMethodLogicalId('Foo', 'GET')];
+    const OtherApiGatewayMethodConfig =
+      cfResources[awsNaming.getMethodLogicalId('BarMarkoVar', 'GET')];
+
+    const permNameFoo = awsNaming.getLambdaApiGatewayPermissionLogicalId('Foo');
+    const permNameOther = awsNaming.getLambdaApiGatewayPermissionLogicalId('Other');
+
+    expect(FooApiGatewayMethodConfig.DependsOn).to.include(permNameFoo);
+    expect(OtherApiGatewayMethodConfig.DependsOn).to.include(permNameOther);
+  });
 });
