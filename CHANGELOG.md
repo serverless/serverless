@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.48.1](https://github.com/serverless/serverless/compare/v2.48.0...v2.48.1) (2021-06-25)
+
+### Bug Fixes
+
+- **AWS API Gateway:** Ensure that `Method` resource depends on `Permission` resource ([#9609](https://github.com/serverless/serverless/pull/9609)) ([93b9027](https://github.com/serverless/serverless/commit/93b9027f0d48650df50d0a8352d0edaf2bd2e0da)) ([Nyambayar Turbat](https://github.com/nyamba))
+- **CLI:**
+  - Ensure to list version in case of fallback from some versions ([#9641](https://github.com/serverless/serverless/pull/9641)) ([989cb82](https://github.com/serverless/serverless/commit/989cb82db313177a64e062cc800eb85ba501fab5)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Fix standalone detection (case of a fallback from standalone) ([#9641](https://github.com/serverless/serverless/pull/9641)) ([1681af4](https://github.com/serverless/serverless/commit/1681af4897eeec20c1d1af292f9bfde5b1e9ffc3)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Config Schema:** Improve error message and documentation ([#9639](https://github.com/serverless/serverless/pull/9639)) ([a36247b](https://github.com/serverless/serverless/commit/a36247b7ac1212a27f5e8d671ba39ba4c7e4de18)) ([Mariusz Nowak](https://github.com/medikoo))
+- Replace `fse.rename` with `fs.promises.rename` ([#9605](https://github.com/serverless/serverless/issues/9605)) ([e6ff228](https://github.com/serverless/serverless/commit/e6ff2286a55d8cb8f82e58d8173b0a386a4b1767)) ([Sudipto Das](https://github.com/sdas13))
+
 ## [2.48.0](https://github.com/serverless/serverless/compare/v2.47.0...v2.48.0) (2021-06-21)
 
 ### Features
