@@ -1739,36 +1739,6 @@ describe('#compileMethods()', () => {
         .ApiGatewayMethodUsersCreatePost.Properties
     ).to.not.have.key('OperationName');
   });
-
-  it('should depends on permission resource', async () => {
-    const {
-      awsNaming,
-      cfTemplate: { Resources: cfResources },
-    } = await runServerless({
-      command: 'package',
-      fixture: 'apiGateway',
-      configExt: {
-        functions: {
-          foo: {
-            handler: 'handler.index',
-            events: [{ http: 'GET /foo' }],
-          },
-          other: {
-            handler: 'handler.index',
-            events: [{ http: 'GET /other' }],
-          },
-        },
-      },
-    });
-    const FooApiGatewayMethodConfig = cfResources[awsNaming.getMethodLogicalId('Foo', 'GET')];
-    const OtherApiGatewayMethodConfig = cfResources[awsNaming.getMethodLogicalId('Other', 'GET')];
-
-    const permNameFoo = awsNaming.getLambdaApiGatewayPermissionLogicalId('Foo');
-    const permNameOther = awsNaming.getLambdaApiGatewayPermissionLogicalId('Other');
-
-    expect(FooApiGatewayMethodConfig.DependsOn).to.include(permNameFoo);
-    expect(OtherApiGatewayMethodConfig.DependsOn).to.include(permNameOther);
-  });
 });
 
 describe('#compileMethods v2()', () => {
@@ -1845,5 +1815,24 @@ describe('#compileMethods v2()', () => {
       expect(apiGatewayTokenMethodConfig.Properties.AuthorizationType).to.equal('CUSTOM');
       expect(apiGatewayTokenMethodConfig.Properties.AuthorizerId).to.deep.equal('another-id');
     });
+  });
+
+  it('should depends on permission resource', async () => {
+    const {
+      awsNaming,
+      cfTemplate: { Resources: cfResources },
+    } = await runServerless({
+      command: 'package',
+      fixture: 'apiGateway',
+    });
+    const FooApiGatewayMethodConfig = cfResources[awsNaming.getMethodLogicalId('Foo', 'GET')];
+    const OtherApiGatewayMethodConfig =
+      cfResources[awsNaming.getMethodLogicalId('BarMarkoVar', 'GET')];
+
+    const permNameFoo = awsNaming.getLambdaApiGatewayPermissionLogicalId('Foo');
+    const permNameOther = awsNaming.getLambdaApiGatewayPermissionLogicalId('Other');
+
+    expect(FooApiGatewayMethodConfig.DependsOn).to.include(permNameFoo);
+    expect(OtherApiGatewayMethodConfig.DependsOn).to.include(permNameOther);
   });
 });
