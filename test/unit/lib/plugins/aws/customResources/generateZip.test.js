@@ -20,12 +20,8 @@ describe('test/unit/lib/plugins/aws/customResources/generateZip.test.js', () => 
       // List the files in the zip to make sure it is valid
       const filesInZip = await listZipFiles(zipFilePath);
 
-      const filesInResourceDirAbsolute = await globby(path.join(resourcesDir, '**'));
-      // Globby returns absolute paths to CWD so we need to convert them to relative to compare with the zip file
-      const filesInResourceDirRelative = filesInResourceDirAbsolute.map((p) =>
-        path.relative(resourcesDir, p)
-      );
-      expect(filesInZip).to.have.all.members(filesInResourceDirRelative);
+      const filesInResourceDir = await globby('**', { cwd: resourcesDir });
+      expect(filesInZip).to.have.all.members(filesInResourceDir);
     });
   });
 });
