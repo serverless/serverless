@@ -3,10 +3,11 @@
 const fse = require('fs-extra');
 const sinon = require('sinon');
 const chai = require('chai');
-const { getTmpDirPath } = require('../../../../utils/fs');
+const provisionTempDir = require('@serverless/test/provision-tmp-dir');
 const { join } = require('path');
 const { expect } = require('chai');
 const fsp = require('fs').promises;
+const fs = require('fs');
 const sinonChai = require('sinon-chai');
 const safeMoveFile = require('../../../../../lib/utils/fs/safeMoveFile');
 
@@ -38,61 +39,36 @@ const createFakeExDevError = () => {
 /**
  * The name of the file that will be moved
  */
-const artefactName = 'foo-bar.zip';
+const artifactName = 'foo-bar.zip';
 
-// Generate temporary directories once per test run
-// They will be cleaned up when the tests are done
+describe('test/unit/lib/utils/fs/safeMoveFile.test.js', () => {
+  let sourceDir;
+  let destinationDir;
+  let sourceFile;
+  let destinationFile;
 
-/**
- * The folder that the test file will be moved to
- */
-const destinationPath = getTmpDirPath();
-
-/**
- * The folder that the test file will come from
- */
-const sourcePath = getTmpDirPath();
-
-/**
- * The full path to destination where the file is being moved to
- */
-const destinationFile = join(destinationPath, artefactName);
-
-/**
- * The full path to the file that is being moved
- */
-const sourceFile = join(sourcePath, artefactName);
-
-describe('#safeMoveFile()', () => {
   let renameStub;
-  let copyFileStub;
-  let unlinkStub;
 
   beforeEach(async () => {
+    sourceDir = await provisionTempDir();
+    destinationDir = await provisionTempDir();
+    sourceFile = join(sourceDir, artifactName);
+    destinationFile = join(destinationDir, artifactName);
+
     renameStub = sinon.stub(fsp, 'rename');
-    copyFileStub = sinon.stub(fsp, 'copyFile');
-    unlinkStub = sinon.stub(fsp, 'unlink');
     // Allow the fs calls to act as normal until we want to force the rename to fail
     renameStub.callThrough();
-    copyFileStub.callThrough();
-    unlinkStub.callThrough();
-
-    // Ensure the cache directory exists so that the rename doesn't fail
-    fse.ensureDirSync(sourcePath);
-    fse.ensureDirSync(destinationPath);
 
     // Write a test file to rename
     await fse.writeFile(sourceFile, 'source data');
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     // Clean up test directories after each test so they don't interfere with each other
-    fse.removeSync(destinationPath);
-    fse.removeSync(sourcePath);
+    await fse.remove(destinationDir);
+    await fse.remove(sourceDir);
     // Reset stubbed methods
     fsp.rename.restore();
-    fsp.copyFile.restore();
-    fsp.unlink.restore();
   });
 
   /**
@@ -103,47 +79,50 @@ describe('#safeMoveFile()', () => {
    * @param {*} postAssertion the function that is called after every test scenario
    */
   const runTestScenariosWithPostAssertion = (postAssertion) => {
-    describe('when the file does not exist by the time the zip is generated', () => {
-      it('should write a file', async () => {
+    describe('when file at target path does not exist', () => {
+      it('should move file to target destination', async () => {
         await safeMoveFile(sourceFile, destinationFile);
 
-        const exists = fse.existsSync(destinationFile);
-        expect(exists).to.be.true;
+        const sourceExists = fs.existsSync(sourceFile);
+        const destinationExists = fs.existsSync(destinationFile);
+
+        expect(sourceExists).to.be.false;
+        expect(destinationExists).to.be.true;
+
         postAssertion();
       });
     });
 
-    describe('when the file already exists by the time the zip is generated', () => {
+    describe('when file at target path already exists', () => {
       beforeEach(async () => {
         // Create an existing file that is at the destination
         fse.ensureFileSync(destinationFile);
         fse.writeFileSync(destinationFile, 'existing destination data');
       });
 
-      describe('when the cached file is not open', () => {
-        it('should overwrite the cached file with a valid zip file', async () => {
-          await safeMoveFile(sourceFile, destinationFile);
+      it('should overwrite the file at the target destination', async () => {
+        await safeMoveFile(sourceFile, destinationFile);
 
-          // Check that the file was actually overwritten
-          const cachedData = fse.readFileSync(destinationFile).toString();
-          expect(cachedData).not.to.eq('existing destination data');
+        // Check that the file was actually overwritten
+        const cachedData = fse.readFileSync(destinationFile).toString();
+        expect(cachedData).not.to.eq('existing destination data');
 
-          postAssertion();
-        });
+        const sourceExists = await fs.existsSync(sourceFile);
+        expect(sourceExists).to.be.false;
+
+        postAssertion();
       });
     });
   };
 
-  describe('when the temporary directory is not on a different device to the cache directory', () => {
+  describe('when file is moved in context of same device', () => {
     runTestScenariosWithPostAssertion(() => {
       // Happy path: Only rename is called
       expect(renameStub).to.have.be.calledOnce;
-      expect(copyFileStub).to.not.have.been.called;
-      expect(unlinkStub).to.not.have.been.called;
     });
   });
 
-  describe('when the temporary directory is on a different device to the cache directory', () => {
+  describe('when file is moved to different device', () => {
     beforeEach(async () => {
       const error = createFakeExDevError();
       renameStub.onFirstCall().rejects(error);
@@ -153,8 +132,6 @@ describe('#safeMoveFile()', () => {
       // Rename is called twice because the first call will fail due to the cross device rename
       // The second call is across the same device
       expect(renameStub).to.have.been.calledTwice;
-      expect(copyFileStub).to.have.been.calledOnce;
-      expect(unlinkStub).to.have.been.calledOnce;
     });
   });
 });
