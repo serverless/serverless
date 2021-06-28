@@ -90,7 +90,7 @@ provider:
         EnableAcceptEncodingBrotli: true # optional
         EnableAcceptEncodingGzip: true
         HeadersConfig:
-          HeadersBehavior: whitelist # Possible values are 'none' and 'whitelist'
+          HeaderBehavior: whitelist # Possible values are 'none' and 'whitelist'
           Headers:
             - authorization
             - content-type
