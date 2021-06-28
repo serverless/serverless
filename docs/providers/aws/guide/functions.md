@@ -465,7 +465,7 @@ By default, the framework creates function versions for every deploy. This behav
 
 Versions are not cleaned up by serverless, so make sure you use a plugin or other tool to prune sufficiently old versions. The framework can't clean up versions because it doesn't have information about whether older versions are invoked or not. This feature adds to the number of total stack outputs and resources because a function version is a separate resource from the function it refers to.
 
-To turn off this feature, set the provider-level option `versionFunctions`.
+To turn off function versioning, set the provider-level option `versionFunctions`.
 
 ```yml
 provider:
