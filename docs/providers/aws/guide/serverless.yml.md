@@ -77,27 +77,28 @@ provider:
         cacheFrom:
           - my-image:latest
   cloudFront:
-    myCachePolicy1: # used as a reference in function.events[].cloudfront.cachePolicy.name
-      DefaultTTL: 60
-      MinTTL: 30
-      MaxTTL: 3600
-      Comment: my brand new cloudfront cache policy # optional
-      ParametersInCacheKeyAndForwardedToOrigin:
-        CookiesConfig:
-          CookieBehavior: whitelist # Possible values are 'none', 'whitelist', 'allExcept' and 'all'
-          Cookies:
-            - my-public-cookie
-        EnableAcceptEncodingBrotli: true # optional
-        EnableAcceptEncodingGzip: true
-        HeadersConfig:
-          HeaderBehavior: whitelist # Possible values are 'none' and 'whitelist'
-          Headers:
-            - authorization
-            - content-type
-        QueryStringsConfig:
-          QueryStringBehavior: allExcept # Possible values are 'none', 'whitelist', 'allExcept' and 'all'
-          QueryStrings:
-            - not-cached-query-string
+    cachePolicies:
+      myCachePolicy1: # used as a reference in function.events[].cloudfront.cachePolicy.name
+        DefaultTTL: 60
+        MinTTL: 30
+        MaxTTL: 3600
+        Comment: my brand new cloudfront cache policy # optional
+        ParametersInCacheKeyAndForwardedToOrigin:
+          CookiesConfig:
+            CookieBehavior: whitelist # Possible values are 'none', 'whitelist', 'allExcept' and 'all'
+            Cookies:
+              - my-public-cookie
+          EnableAcceptEncodingBrotli: true # optional
+          EnableAcceptEncodingGzip: true
+          HeadersConfig:
+            HeaderBehavior: whitelist # Possible values are 'none' and 'whitelist'
+            Headers:
+              - authorization
+              - content-type
+          QueryStringsConfig:
+            QueryStringBehavior: allExcept # Possible values are 'none', 'whitelist', 'allExcept' and 'all'
+            QueryStrings:
+              - not-cached-query-string
   versionFunctions: false # Optional function versioning
   environment: # Service wide environment variables
     serviceEnvVar: 123456789
