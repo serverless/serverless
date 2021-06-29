@@ -544,6 +544,9 @@ const processSpanPromise = (async () => {
             ssm: require('../lib/configuration/variables/sources/instance-dependent/get-ssm')(
               serverless
             ),
+            aws: require('../lib/configuration/variables/sources/instance-dependent/get-aws')(
+              serverless
+            ),
           });
           resolverConfiguration.fulfilledSources.add('cf').add('s3').add('ssm');
         }
