@@ -38,6 +38,8 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       resolvesResultVariablesArray: '${sourceResultVariables(array)}',
       resolvesResultVariablesString: '${sourceResultVariables(string)}',
       resolvesResultVariablesStringInvalid: '${sourceResultVariables(stringInvalid)}',
+      resolveDeepVariablesConcat:
+        '${sourceResultVariables(string)}foo${sourceResultVariables(string)}',
       resolvesVariables: '${sourceResolveVariable("sourceParam(${sourceDirect:})")}',
       resolvesVariablesFallback: '${sourceResolveVariable("sourceMissing:, null"), null}',
       resolvesVariablesInvalid1: '${sourceResolveVariable("sourceDirect(")}',
@@ -241,6 +243,10 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       expect(configuration.resolvesResultVariablesObject).to.deep.equal({ foo: 234 });
       expect(configuration.resolvesResultVariablesArray).to.deep.equal([1, 234]);
       expect(configuration.resolvesResultVariablesString).to.equal(234);
+    });
+
+    it('should resolve variables in resolved strings which are subject to concatenation', () => {
+      expect(configuration.resolveDeepVariablesConcat).to.equal('234foo234');
     });
 
     // https://github.com/serverless/serverless/issues/9016
