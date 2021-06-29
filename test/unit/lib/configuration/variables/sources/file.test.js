@@ -28,6 +28,7 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
       jsPropertyFunctionResolveVariable: '${file(file-property-function-variable.js):property}',
       jsPropertyFunctionResolveVariableMissingSource:
         '${file(file-property-function-variable-missing-source.js):property}',
+      nestedVariablesAddressResolution: '${file(file-variables-nest-1.yaml):n1.n2.n3}',
       nonExistingYaml: '${file(not-existing.yaml), null}',
       nonExistingJson: '${file(not-existing.json), null}',
       nonExistingJs: '${file(not-existing.js), null}',
@@ -103,6 +104,9 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
     });
   });
 
+  it('should resolve variables across address resolution', () => {
+    expect(configuration.nestedVariablesAddressResolution).to.deep.equal('result');
+  });
   it('should uncoditionally split "address" property keys by "."', () =>
     expect(configuration.ambiguousAddress).to.equal('object'));
 

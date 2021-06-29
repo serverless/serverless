@@ -1,0 +1,1 @@
+n1: ${file(./file-variables-nest-2.yaml):root}
