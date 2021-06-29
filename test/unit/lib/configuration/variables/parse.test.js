@@ -543,8 +543,8 @@ describe('test/unit/lib/configuration/variables/parse.test.js', () => {
       expect(parse('e\\${s:}n\\$${s:}qe\\\\\\${s:}qn\\\\${s:}')).to.deep.equal([
         {
           start: 1,
-          end: 2,
-          value: '',
+          end: 3,
+          value: '$',
         },
         {
           start: 10,
@@ -553,8 +553,8 @@ describe('test/unit/lib/configuration/variables/parse.test.js', () => {
         },
         {
           start: 17,
-          end: 20,
-          value: '\\',
+          end: 21,
+          value: '\\$',
         },
         {
           start: 27,
