@@ -32,6 +32,14 @@ Note:
 - Configuration setting is ineffective for deprecations reported before service configuration is read.
 - `SLS_DEPRECATION_DISABLE` env var and `disabledDeprecations` configuration setting remain respected, and no errors will be thrown for mentioned deprecation coodes.
 
+<a name="CLI_DEPLOY_FUNCTION_OPTION"><div>&nbsp;</div></a>
+
+## CLI `--function`/`-f` option for `deploy` command
+
+Deprecation code: `CLI_DEPLOY_FUNCTION_OPTION'`
+
+Starting with v3.0.0, `--function` or `-f` option for `deploy` command will be removed. In order to deploy a single function, please use `deploy function` command instead.
+
 <a name="CHANGE_OF_DEFAULT_RUNTIME_TO_NODEJS14X"><div>&nbsp;</div></a>
 
 ## Change of default runtime to `nodejs14.x`
