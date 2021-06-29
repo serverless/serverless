@@ -40,6 +40,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       resolvesResultVariablesStringInvalid: '${sourceResultVariables(stringInvalid)}',
       resolveDeepVariablesConcat:
         '${sourceResultVariables(string)}foo${sourceResultVariables(string)}',
+      resolveVariablesInString: "${sourceResolveVariablesInString('${sourceProperty(foo)}')}",
       resolvesVariables: '${sourceResolveVariable("sourceParam(${sourceDirect:})")}',
       resolvesVariablesFallback: '${sourceResolveVariable("sourceMissing:, null"), null}',
       resolvesVariablesInvalid1: '${sourceResolveVariable("sourceDirect(")}',
@@ -92,6 +93,11 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       sourceResolveVariable: {
         resolve: async ({ params, resolveVariable }) => {
           return { value: await resolveVariable(params[0]) };
+        },
+      },
+      sourceResolveVariablesInString: {
+        resolve: async ({ params, resolveVariablesInString }) => {
+          return { value: await resolveVariablesInString(params[0]) };
         },
       },
       sourceResultVariables: {
@@ -247,6 +253,13 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
 
     it('should resolve variables in resolved strings which are subject to concatenation', () => {
       expect(configuration.resolveDeepVariablesConcat).to.equal('234foo234');
+    });
+
+    it('should provide working resolveVariablesInString util', () => {
+      expect(configuration.resolveVariablesInString).to.deep.equal({
+        params: 'param1|param2',
+        varParam: '234',
+      });
     });
 
     // https://github.com/serverless/serverless/issues/9016
