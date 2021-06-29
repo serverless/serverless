@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.49.0](https://github.com/serverless/serverless/compare/v2.48.1...v2.49.0) (2021-06-29)
+
+### Features
+
+- **AWS Lambda:** Support `Fn::FindInMap` for `vpc` config ([#9653](https://github.com/serverless/serverless/pull/9653)) ([34a9d91](https://github.com/serverless/serverless/commit/34a9d91870c36d154427830d3555425b5fd2d14c)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI Onboarding:**
+  - Add deploy step ([#9536](https://github.com/serverless/serverless/pull/9536)) ([28a06a0](https://github.com/serverless/serverless/commit/28a06a05aba4306d2f28d26652067b44ed105151)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Allow to setup Dashboard Provider credentials during onboarding ([#9509](https://github.com/serverless/serverless/pull/9509)) ([feb0421](https://github.com/serverless/serverless/commit/feb04219f6be186cc54462906394bbd82f9747b5)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **CLI:** Fix standalone detection on Windows ([#9648](https://github.com/serverless/serverless/pull/9648)) ([4bc8e2e](https://github.com/serverless/serverless/commit/4bc8e2e1944364e2c218cbfc05039c43afa9ab01)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Packaging:** Fix artifact generation with temp path on other device ([#9616](https://github.com/serverless/serverless/issues/9616)) ([70fb8b9](https://github.com/serverless/serverless/commit/70fb8b986133789b38fad93c0abab01eaf9dc0c7)) ([Sean Dawson](https://github.com/NoxHarmonium))
+
+### Maintenance Improvements
+
+- Replace `fse.chmod` with `fs.promises.chmod` ([#9647](https://github.com/serverless/serverless/issues/9647)) ([83c7726](https://github.com/serverless/serverless/commit/83c772684d655b233522d1e75128476c29339c83)) ([Sudipto Das](https://github.com/sdas13))
+- Add `resolveRegion` util ([#9509](https://github.com/serverless/serverless/pull/9509)) ([98e3668](https://github.com/serverless/serverless/commit/98e3668a2cbb701c109e1ff8dd70a0ece1770f7b)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Add `resolveStage` util ([#9509](https://github.com/serverless/serverless/pull/9509)) ([09bb4fa](https://github.com/serverless/serverless/commit/09bb4fa12270807702dcc26483dbcb94cf733342)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Telemetry:**
+  - Add `hasLocalCredentials` ([#9594](https://github.com/serverless/serverless/pull/9594)) ([5e0d805](https://github.com/serverless/serverless/commit/5e0d80579e857d016fb4db13288b9d81a3859ee1)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Add interactive flow support ([#9594](https://github.com/serverless/serverless/pull/9594)) ([0eba2dc](https://github.com/serverless/serverless/commit/0eba2dcdfeabba58920462ac2cd54d86e3101e05)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Templates
+
+- Use `amd64` arch for `aws-go` template ([#9646](https://github.com/serverless/serverless/issues/9646)) ([cb9f7e2](https://github.com/serverless/serverless/commit/cb9f7e20eedc1db7bb31671c97449e269e992ded)) ([Andrey Kabylin](https://github.com/sysint64))
+
 ### [2.48.1](https://github.com/serverless/serverless/compare/v2.48.0...v2.48.1) (2021-06-25)
 
 ### Bug Fixes
