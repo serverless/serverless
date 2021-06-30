@@ -191,4 +191,34 @@ describe('lib/plugins/aws/package/compile/events/apiGateway/lib/restApi.test.js'
 
     expect(resource.Properties.DisableExecuteApiEndpoint).to.equal(true);
   });
+
+  it('should support `provider.apiGateway.resourcePolicy[].Principal.AWS with Fn::If`', async () => {
+    const { cfTemplate } = await runServerless({
+      fixture: 'apiGateway',
+      command: 'package',
+      configExt: {
+        provider: {
+          apiGateway: {
+            resourcePolicy: [
+              {
+                Effect: 'Allow',
+                Principal: {
+                  AWS: {
+                    'Fn::If': ['Condition', 'FirstVal', 'SecondVal'],
+                  },
+                },
+                Action: 'execute-api:Invoke',
+                Resource: ['execute-api:/*/*/*'],
+              },
+            ],
+          },
+        },
+      },
+    });
+    const resource = cfTemplate.Resources.ApiGatewayRestApi;
+
+    expect(resource.Properties.Policy.Statement[0].Principal.AWS).to.deep.equal({
+      'Fn::If': ['Condition', 'FirstVal', 'SecondVal'],
+    });
+  });
 });
