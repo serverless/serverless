@@ -17,7 +17,7 @@ service: openwhisk-python # NOTE: update this with your service name
 # $ npm install
 provider:
   name: openwhisk
-  runtime: python
+  runtime: python:3
 
 functions:
   hello:
