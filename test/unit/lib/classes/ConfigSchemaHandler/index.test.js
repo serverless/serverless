@@ -2,6 +2,9 @@
 
 const chai = require('chai');
 const runServerless = require('../../../../utils/run-serverless');
+const {
+  getConfigurationValidationResult,
+} = require('../../../../../lib/classes/ConfigSchemaHandler');
 
 chai.use(require('chai-as-promised'));
 
@@ -69,11 +72,12 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
   });
 
   describe('#validateConfig', () => {
-    it('should run without errors for valid config', () => {
-      return runServerless({
+    it('should run without errors for valid config', async () => {
+      const { serverless } = await runServerless({
         fixture: 'configSchemaExtensions',
         command: 'info',
       });
+      expect(getConfigurationValidationResult(serverless.configurationInput)).to.be.true;
     });
   });
 
