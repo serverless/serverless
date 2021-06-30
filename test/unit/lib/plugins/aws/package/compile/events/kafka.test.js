@@ -241,6 +241,40 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
       await runCompileEventSourceMappingTest(eventConfig);
     });
 
+    it('should correctly compile EventSourceMapping resource properties for SASL_PLAIN_AUTH', async () => {
+      const eventConfig = {
+        event: {
+          topic,
+          bootstrapServers: ['abc.xyz:9092'],
+          accessConfigurations: {
+            saslPlainAuth:
+              'arn:aws:secretsmanager:us-east-1:01234567890:secret:SaslPlainSecretName',
+          },
+        },
+        resource: (awsNaming) => {
+          return {
+            SelfManagedEventSource: {
+              Endpoints: {
+                KafkaBootstrapServers: ['abc.xyz:9092'],
+              },
+            },
+            SourceAccessConfigurations: [
+              {
+                Type: 'BASIC_AUTH',
+                URI: 'arn:aws:secretsmanager:us-east-1:01234567890:secret:SaslPlainSecretName',
+              },
+            ],
+            StartingPosition: 'TRIM_HORIZON',
+            Topics: [topic],
+            FunctionName: {
+              'Fn::GetAtt': [awsNaming.getLambdaLogicalId('foo'), 'Arn'],
+            },
+          };
+        },
+      };
+      await runCompileEventSourceMappingTest(eventConfig);
+    });
+
     it('should correctly compile EventSourceMapping resource properties for SASL_SCRAM_256_AUTH', async () => {
       const eventConfig = {
         event: {

@@ -21,7 +21,7 @@ In the following example, we specify that the `compute` function should be trigg
 
 In order to configure `kafka` event, you have to provide three required properties:
 
-- `accessConfigurations`, which is either secret credentials required to do [SASL_SCRAM auth](https://docs.confluent.io/platform/current/kafka/authentication_sasl/authentication_sasl_scram.html), or this is VPC configuration to allow Lambda to connect to your cluster
+- `accessConfigurations`, which is either secret credentials required to do [SASL_SCRAM auth](https://docs.confluent.io/platform/current/kafka/authentication_sasl/authentication_sasl_scram.html),[SASL_PLAIN auth](https://docs.confluent.io/platform/current/kafka/authentication_sasl/authentication_sasl_plain.html) or this is VPC configuration to allow Lambda to connect to your cluster. Valid options are: `saslPlainAuth`, `saslScram256Auth`, or `saslScram512Auth`
 - `topic` to consume messages from.
 - `bootstrapServers` an array of bootstrap server addresses for your Kafka cluster
 
