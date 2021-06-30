@@ -119,6 +119,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       cliName: 'serverless',
       command: 'print',
       commandOptionNames: [],
+      isConfigValid: true,
       config: {
         configValidationMode: 'error',
         provider: {
@@ -181,6 +182,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       cliName: 'serverless',
       command: 'print',
       commandOptionNames: [],
+      isConfigValid: false, // No schema for custom provider
       config: {
         configValidationMode: 'warn',
         provider: {
@@ -244,6 +246,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       cliName: 'serverless',
       command: 'print',
       commandOptionNames: [],
+      isConfigValid: null,
       config: {
         configValidationMode: 'error',
         provider: {
@@ -332,6 +335,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       command: '',
       commandOptionNames: [],
       cliName: 'serverless',
+      isConfigValid: null,
       config: {
         configValidationMode: 'warn',
         provider: {
