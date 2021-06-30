@@ -164,10 +164,6 @@ jobs:
         # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
         run: script -e -c "npm run coverage"
       - name: Push coverage
-        # TODO: Remove inline token, once support for GA is added on Codecov side
-        # See: https://github.com/codecov/codecov-node/issues/118
-        env:
-          CODECOV_TOKEN: 3898f3e1-f317-453e-a3a9-0462390f93c5
         run: npx codecov
 
   linuxNode10:
