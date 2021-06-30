@@ -120,6 +120,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       command: 'print',
       commandOptionNames: [],
       config: {
+        configValidationMode: 'error',
         provider: {
           name: 'aws',
           runtime: 'nodejs14.x',
@@ -181,6 +182,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       command: 'print',
       commandOptionNames: [],
       config: {
+        configValidationMode: 'warn',
         provider: {
           name: 'customProvider',
           runtime: 'foo',
@@ -243,6 +245,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       command: 'print',
       commandOptionNames: [],
       config: {
+        configValidationMode: 'error',
         provider: {
           name: 'aws',
           runtime: 'nodejs12.x',
@@ -330,6 +333,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       commandOptionNames: [],
       cliName: 'serverless',
       config: {
+        configValidationMode: 'warn',
         provider: {
           name: 'aws',
           runtime: 'nodejs12.x',
@@ -513,6 +517,21 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         type: 'queue',
       },
     ]);
+  });
+
+  it('Should correctly resolve `configValidationMode` property', async () => {
+    const payload = await generatePayload({
+      command: 'print',
+      commandSchema: commandsSchema.get('print'),
+      options: {},
+      serviceDir: process.cwd(),
+      configuration: {
+        service: 'foo',
+        provider: 'aws',
+        configValidationMode: 'off',
+      },
+    });
+    expect(payload.config.configValidationMode).to.equal('off');
   });
 
   it('Should correctly resolve `hasLocalCredentials` property for AWS provider', async () => {
