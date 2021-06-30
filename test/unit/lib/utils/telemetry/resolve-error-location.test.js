@@ -5,7 +5,7 @@ const expect = require('chai').expect;
 const resolveErrorLocation = require('../../../../../lib/utils/telemetry/resolve-error-location');
 const tokenizeException = require('../../../../../lib/utils/tokenize-exception');
 
-describe('test/unit/lib/utils/resolve-error-location.test.js', () => {
+describe('test/unit/lib/utils/telemetry/resolve-error-location.test.js', () => {
   it('should be null when stack missing', () => {
     const err = new Error('test');
     delete err.stack;
