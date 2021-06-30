@@ -57,7 +57,7 @@ describe('test/unit/lib/utils/resolve-error-location.test.js', () => {
       );
     });
 
-    it('should return at most 5 lines', () => {
+    it('should return at most 7 lines', () => {
       const err = new Error('test');
       err.stack =
         'Error:\n' +
@@ -66,6 +66,10 @@ describe('test/unit/lib/utils/resolve-error-location.test.js', () => {
         '    at Test.Runnable.run (/home/xxx/serverless/node_modules/mocha/lib/runnable.js:354:5)\n' +
         '    at Runner.runTest (/home/xxx/serverless/node_modules/mocha/lib/runner.js:677:10)\n' +
         '    at next (/home/xxx/serverless/node_modules/mocha/lib/runner.js:801:12)\n' +
+        '    at next (/home/xxx/serverless/node_modules/mocha/lib/runner.js:802:12)\n' +
+        '    at next (/home/xxx/serverless/node_modules/mocha/lib/runner.js:803:12)\n' +
+        '    at next (/home/xxx/serverless/node_modules/mocha/lib/runner.js:804:12)\n' +
+        '    at next (/home/xxx/serverless/node_modules/mocha/lib/runner.js:805:12)\n' +
         '    at next (/home/xxx/serverless/node_modules/mocha/lib/runner.js:594:14)\n';
       const result = resolveErrorLocation(tokenizeException(err));
       expect(result).to.equal(
@@ -75,6 +79,8 @@ describe('test/unit/lib/utils/resolve-error-location.test.js', () => {
           '^:354:5',
           '/node_modules/mocha/lib/runner.js:677:10',
           '^:801:12',
+          '^:802:12',
+          '^:803:12',
         ].join('\n')
       );
     });
@@ -101,7 +107,7 @@ describe('test/unit/lib/utils/resolve-error-location.test.js', () => {
       );
     });
 
-    it('should return at most 5 lines and use `/` path separator', () => {
+    it('should return at most 7 lines and use `/` path separator', () => {
       const err = new Error('test');
       err.stack =
         'Error:\n' +
@@ -110,6 +116,10 @@ describe('test/unit/lib/utils/resolve-error-location.test.js', () => {
         '    at Test.Runnable.run (C:\\home\\xxx\\serverless\\node_modules\\mocha\\lib\\runnable.js:354:5)\r\n' +
         '    at Runner.runTest (C:\\home\\xxx\\serverless\\node_modules\\mocha\\lib\\runner.js:677:10)\r\n' +
         '    at next (C:\\home\\xxx\\serverless\\node_modules\\mocha\\lib\\runner.js:801:12)\r\n' +
+        '    at next (C:\\home\\xxx\\serverless\\node_modules\\mocha\\lib\\runner.js:802:12)\r\n' +
+        '    at next (C:\\home\\xxx\\serverless\\node_modules\\mocha\\lib\\runner.js:803:12)\r\n' +
+        '    at next (C:\\home\\xxx\\serverless\\node_modules\\mocha\\lib\\runner.js:804:12)\r\n' +
+        '    at next (C:\\home\\xxx\\serverless\\node_modules\\mocha\\lib\\runner.js:805:12)\r\n' +
         '    at next (C:\\home\\xxx\\serverless\\node_modules\\mocha\\lib\\runner.js:594:14)\r\n';
       const result = resolveErrorLocation(tokenizeException(err));
       expect(result).to.equal(
@@ -119,6 +129,8 @@ describe('test/unit/lib/utils/resolve-error-location.test.js', () => {
           '^:354:5',
           '/node_modules/mocha/lib/runner.js:677:10',
           '^:801:12',
+          '^:802:12',
+          '^:803:12',
         ].join('\n')
       );
     });
