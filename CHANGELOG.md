@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.50.0](https://github.com/serverless/serverless/compare/v2.49.0...v2.50.0) (2021-07-01)
+
+### Features
+
+- **AWS Lambda:** Support `Fn::If` for `Principal.AWS` ([#9664](https://github.com/serverless/serverless/pull/9664)) ([894ac5b](https://github.com/serverless/serverless/commit/894ac5b6b67eb384dbc29b927161121679afce2d)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS Deploy:** Deprecate `function` option in `deploy` command ([#9364](https://github.com/serverless/serverless/pull/9364)) ([d861d11](https://github.com/serverless/serverless/commit/d861d119ef94baaaa266934783e00a50182d7434)) ([Jaakko Lappalainen](https://github.com/jkklapp) & [Piotr Grzesik](https://github.com/pgrzesik))
+- **Variables:**
+  - Resolve vars in strings which are subject to be joined ([#9657](https://github.com/serverless/serverless/pull/9657)) ([0e3db01](https://github.com/serverless/serverless/commit/0e3db01db8aeb08b03a98dd7f58a09b66ec8c49e)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Support `aws:region` and `aws:accountId` variables ([#9662](https://github.com/serverless/serverless/pull/9662)) ([33794ea](https://github.com/serverless/serverless/commit/33794ea504e714912137796009c29c802f2e24f0)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Support variables across file address resolution ([#9657](https://github.com/serverless/serverless/pull/9657)) ([80b7640](https://github.com/serverless/serverless/commit/80b76406ac305ccb7e55cabd0bd39be6ac7c67c6)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **AWS Deploy:** Meaningfully report inaccessible file artifacts ([#9668](https://github.com/serverless/serverless/pull/9668)) ([23c290e](https://github.com/serverless/serverless/commit/23c290e4b4049242d62cfb57f4be6aadff6aecf8)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Local Invocation:** Fix error handling of invalid file content ([#9667](https://github.com/serverless/serverless/pull/9667)) ([e836722](https://github.com/serverless/serverless/commit/e836722f976af98eb69fc6d3a85781bb7434dfac)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI Onboarding:**
+  - Do not attempt local fallback during onboarding ([#9660](https://github.com/serverless/serverless/pull/9660)) ([ae5be0f](https://github.com/serverless/serverless/commit/ae5be0f5dafaad933000e98142fcb1ec60e04555)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Only call `handleError` if plugin defined ([#9659](https://github.com/serverless/serverless/pull/9659)) ([a80681f](https://github.com/serverless/serverless/commit/a80681ffbf23391cb31d34b8eecaef310d9599a3)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **Telemetry:**
+  - Include `commandUsage` in case of error ([#9671](https://github.com/serverless/serverless/pull/9671)) ([ac03d83](https://github.com/serverless/serverless/commit/ac03d832896eec26773e5ce06c22c249d240a9ed)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Increase error location coverage ([#9669](https://github.com/serverless/serverless/pull/9669)) ([7264d16](https://github.com/serverless/serverless/commit/7264d1672e93fdb1046cf7ebe859b607c80e31ca)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Report `configValidationMode` ([#9669](https://github.com/serverless/serverless/pull/9669)) ([8e2d48f](https://github.com/serverless/serverless/commit/8e2d48fee5a471a960b6a7b55cbd12edc5eb07e6)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Report configuration validation result ([#9669](https://github.com/serverless/serverless/pull/9669)) ([01f1586](https://github.com/serverless/serverless/commit/01f158695b22d721320a77a9a0b68b166c63dc3f)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Templates
+
+- Adjust `runtime` for `openwhisk-python` template ([#9670](https://github.com/serverless/serverless/pull/9670)) ([6a020d1](https://github.com/serverless/serverless/commit/6a020d121ff2dacd6ad62a824964944ae391a662)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [2.49.0](https://github.com/serverless/serverless/compare/v2.48.1...v2.49.0) (2021-06-29)
 
 ### Features
