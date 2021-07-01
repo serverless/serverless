@@ -1,5 +1,7 @@
 {
   "devDependencies": {
-    "serverless-offline": "7.0.0"
+    "serverless-offline": "7.0.0",
+    "webpack": "5.41.1",
+    "serverless-webpack": "5.5.1"
   }
 }
