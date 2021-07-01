@@ -11,11 +11,15 @@ describe('test/integration/curated-plugins.test.js', function () {
   this.timeout(1000 * 60 * 10); // Involves time-taking npm install
 
   let serviceDir;
+  let updateConfig;
   before(async () => {
-    serviceDir = (await fixturesEngine.setup('curated-plugins')).servicePath;
+    ({ servicePath: serviceDir, updateConfig } = await fixturesEngine.setup('curated-plugins'));
   });
 
+  afterEach(async () => updateConfig({ plugins: null }));
+
   it('should be extended by "serverless-offline"', async () => {
+    await updateConfig({ plugins: ['serverless-offline'] });
     const slsProcessPromise = spawn(serverlessExec, ['offline'], {
       cwd: serviceDir,
     });
