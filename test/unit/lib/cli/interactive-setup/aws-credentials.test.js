@@ -57,7 +57,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
   it('Should be ineffective, when not at service path', async () => {
     const context = {};
     expect(await step.isApplicable(context)).to.equal(false);
-    expect(context.inapplicabilityReasonCode).to.equal('NON_AWS_PROVIDER');
+    expect(context.inapplicabilityReasonCode).to.equal('NOT_IN_SERVICE_DIRECTORY');
   });
 
   it('Should be ineffective, when not at AWS service', async () => {
