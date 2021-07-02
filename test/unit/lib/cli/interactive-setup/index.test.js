@@ -4,6 +4,12 @@
 
 const spawn = require('child-process-ext/spawn');
 const path = require('path');
+const proxyquire = require('proxyquire');
+const chai = require('chai');
+
+const { expect } = chai;
+
+chai.use(require('chai-as-promised'));
 
 const serverlessPath = path.resolve(__dirname, '../../../../../scripts/serverless.js');
 const templatesPath = path.resolve(__dirname, '../../../../../lib/plugins/create/templates');
@@ -34,13 +40,16 @@ describe('test/unit/lib/cli/interactive-setup/index.test.js', () => {
       // dashboard-login
       {
         instructionString: 'Do you want to login/register to Serverless Dashboard?',
+        input: '\u001b[B', // Move cursor down by one line
       },
 
       // dashboard-set-org
       // Skipped, as internally depends on remote state of data and cannot be easily tested offline
 
       // aws-credentials
-      { instructionString: 'Do you want to set them up now?', input: 'Y' },
+      {
+        instructionString: 'No AWS credentials found, what credentials do you want to use?',
+      },
       { instructionString: 'AWS account', input: 'Y' },
       { instructionString: 'Press Enter to continue' },
       {
@@ -52,8 +61,8 @@ describe('test/unit/lib/cli/interactive-setup/index.test.js', () => {
         input: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
       },
 
-      // auto-update
-      { instructionString: 'to update automatically?', input: 'Y' },
+      // deploy
+      { instructionString: 'Do you want to deploy your project?', input: 'n' },
     ];
     slsProcess.stdout.on('data', (data) => {
       output += data;
@@ -69,5 +78,19 @@ describe('test/unit/lib/cli/interactive-setup/index.test.js', () => {
     slsProcess.stderr.pipe(process.stderr);
 
     await slsProcessPromise;
+  });
+
+  it('should attach `commandUsage` to thrown error', async () => {
+    const mockedInteractiveSetup = proxyquire('../../../../../lib/cli/interactive-setup', {
+      './service': {
+        isApplicable: () => {
+          throw new Error('Error during processing');
+        },
+      },
+    });
+
+    await expect(mockedInteractiveSetup({})).to.be.eventually.rejected.and.have.property(
+      'commandUsage'
+    );
   });
 });

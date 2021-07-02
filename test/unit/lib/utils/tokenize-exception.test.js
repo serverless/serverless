@@ -31,4 +31,11 @@ describe('test/unit/lib/utils/tokenize-exception.test.js', () => {
     expect(errorTokens.message).to.equal('null');
     expect(errorTokens.isUserError).to.equal(false);
   });
+
+  it('Should tokenize error with `commandUsage`', () => {
+    const err = new ServerlessError('Some error', 'ERR_CODE');
+    err.commandUsage = [];
+    const errorTokens = tokenizeError(err);
+    expect(errorTokens.commandUsage).to.deep.equal([]);
+  });
 });

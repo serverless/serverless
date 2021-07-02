@@ -119,7 +119,9 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       cliName: 'serverless',
       command: 'print',
       commandOptionNames: [],
+      isConfigValid: true,
       config: {
+        configValidationMode: 'error',
         provider: {
           name: 'aws',
           runtime: 'nodejs14.x',
@@ -143,6 +145,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       npmDependencies: ['fooDep', 'barDep', 'fooOpt', 'someDev', 'otherDev'],
       triggeredDeprecations: [],
       installationType: 'global:other',
+      hasLocalCredentials: false,
       versions,
     });
   });
@@ -179,7 +182,9 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       cliName: 'serverless',
       command: 'print',
       commandOptionNames: [],
+      isConfigValid: false, // No schema for custom provider
       config: {
+        configValidationMode: 'warn',
         provider: {
           name: 'customProvider',
           runtime: 'foo',
@@ -197,6 +202,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       isTabAutocompletionInstalled: false,
       npmDependencies: [],
       triggeredDeprecations: [],
+      hasLocalCredentials: false,
       installationType: 'global:other',
       versions,
     });
@@ -240,7 +246,9 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       cliName: 'serverless',
       command: 'print',
       commandOptionNames: [],
+      isConfigValid: null,
       config: {
+        configValidationMode: 'error',
         provider: {
           name: 'aws',
           runtime: 'nodejs12.x',
@@ -256,6 +264,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       npmDependencies: [],
       triggeredDeprecations: [],
       installationType: 'local:fallback',
+      hasLocalCredentials: false,
       versions: {
         'serverless': '2.0.0-local',
         '@serverless/dashboard-plugin': '4.0.0-local',
@@ -265,16 +274,12 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should resolve service-agnostic payload', async () => {
-    const { serverless } = await runServerless({
-      fixture: 'aws',
-      command: 'config',
-    });
     const payload = await generatePayload({
       command: 'config',
       options: {},
       commandSchema: commandsSchema.get('config'),
-      serviceDir: serverless.serviceDir,
-      configuration: serverless.configurationInput,
+      serviceDir: process.cwd(),
+      configuration: { service: 'foo', provider: 'aws' },
     });
 
     expect(payload).to.have.property('frameworkLocalUserId');
@@ -304,16 +309,12 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should resolve service-agnostic payload for command with `serviceDependencyMode: "optional"`', async () => {
-    const { serverless } = await runServerless({
-      fixture: 'httpApi',
-      command: 'print',
-    });
     const payload = await generatePayload({
       command: '',
       options: {},
       commandSchema: commandsSchema.get(''),
-      serviceDir: serverless.serviceDir,
-      configuration: serverless.configurationInput,
+      serviceDir: process.cwd(),
+      configuration: { service: 'foo', provider: 'aws' },
     });
 
     expect(payload).to.have.property('frameworkLocalUserId');
@@ -334,7 +335,9 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       command: '',
       commandOptionNames: [],
       cliName: 'serverless',
+      isConfigValid: null,
       config: {
+        configValidationMode: 'warn',
         provider: {
           name: 'aws',
           runtime: 'nodejs12.x',
@@ -342,12 +345,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
           region: 'us-east-1',
         },
         plugins: [],
-        functions: [
-          { runtime: 'nodejs12.x', events: [{ type: 'httpApi' }, { type: 'httpApi' }] },
-          { runtime: 'nodejs12.x', events: [{ type: 'httpApi' }] },
-          { runtime: 'nodejs12.x', events: [] },
-          { runtime: 'nodejs12.x', events: [] },
-        ],
+        functions: [],
         resources: { general: [] },
       },
       isAutoUpdateEnabled: false,
@@ -355,11 +353,12 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       triggeredDeprecations: [],
       installationType: 'global:other',
       npmDependencies: [],
+      hasLocalCredentials: false,
       versions,
     });
   });
 
-  it('Should correctly resolve payload with missing `serverless` instance', async () => {
+  it('Should correctly resolve payload with missing service configuration', async () => {
     const payload = await generatePayload({
       command: 'plugin list',
       options: {},
@@ -393,11 +392,6 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should resolve payload with predefined local config', async () => {
-    const { serverless } = await runServerless({
-      fixture: 'customProvider',
-      command: 'config',
-    });
-
     await fs.promises.writeFile(
       path.resolve(os.homedir(), '.serverlessrc'),
       JSON.stringify({
@@ -413,8 +407,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       command: 'config',
       options: {},
       commandSchema: commandsSchema.get('config'),
-      serviceDir: serverless.serviceDir,
-      configuration: serverless.configurationInput,
+      serviceDir: process.cwd(),
+      configuration: { service: 'foo', provider: 'aws' },
     });
     expect(payload.dashboard.userId).to.equal('some-user-id');
     expect(payload.frameworkLocalUserId).to.equal('123');
@@ -422,12 +416,6 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should not include userId from local config if SERVERLESS_ACCESS_KEY used', async () => {
-    const { serverless } = await runServerless({
-      fixture: 'customProvider',
-      command: 'config',
-      commandOptionNames: [],
-    });
-
     await fs.promises.writeFile(
       path.resolve(os.homedir(), '.serverlessrc'),
       JSON.stringify({
@@ -443,8 +431,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         command: 'config',
         options: {},
         commandSchema: commandsSchema.get('config'),
-        serviceDir: serverless.serviceDir,
-        configuration: serverless.configurationInput,
+        serviceDir: process.cwd(),
+        configuration: { service: 'foo', provider: 'aws' },
       });
     });
     expect(payload.dashboard.userId).to.be.null;
@@ -452,11 +440,6 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should correctly detect Serverless CI/CD', async () => {
-    const { serverless } = await runServerless({
-      fixture: 'customProvider',
-      command: 'config',
-    });
-
     let payload;
 
     await overrideEnv({ variables: { SERVERLESS_CI_CD: 'true' } }, async () => {
@@ -464,20 +447,14 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         command: 'config',
         options: {},
         commandSchema: commandsSchema.get('config'),
-        serviceDir: serverless.serviceDir,
-        configuration: serverless.configurationInput,
+        serviceDir: process.cwd(),
+        configuration: { service: 'foo', provider: 'aws' },
       });
     });
     expect(payload.ciName).to.equal('Serverless CI/CD');
   });
 
   it('Should correctly detect Seed CI/CD', async () => {
-    const { serverless } = await runServerless({
-      fixture: 'customProvider',
-      command: 'config',
-      commandOptionNames: [],
-    });
-
     let payload;
 
     await overrideEnv({ variables: { SEED_APP_NAME: 'some-app' } }, async () => {
@@ -485,23 +462,14 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         command: 'config',
         options: {},
         commandSchema: commandsSchema.get('config'),
-        serviceDir: serverless.serviceDir,
-        configuration: serverless.configurationInput,
+        serviceDir: process.cwd(),
+        configuration: { service: 'foo', provider: 'aws' },
       });
     });
     expect(payload.ciName).to.equal('Seed');
   });
 
   it('Should correctly resolve `commandOptionNames` property', async () => {
-    const { serverless } = await runServerless({
-      fixture: 'httpApi',
-      command: 'print',
-      options: {
-        region: 'eu-west-1',
-        format: 'json',
-        path: 'provider.name',
-      },
-    });
     const payload = await generatePayload({
       command: 'print',
       options: {
@@ -510,8 +478,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         path: 'provider.name',
       },
       commandSchema: commandsSchema.get('print'),
-      serviceDir: serverless.serviceDir,
-      configuration: serverless.configurationInput,
+      serviceDir: process.cwd(),
+      configuration: { service: 'foo', provider: 'aws' },
     });
 
     expect(new Set(payload.commandOptionNames)).to.deep.equal(
@@ -520,17 +488,14 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should correctly resolve `constructs` property', async () => {
-    const { serverless } = await runServerless({
-      fixture: 'httpApi',
-      command: 'print',
-    });
     const payload = await generatePayload({
       command: 'print',
       commandSchema: commandsSchema.get('print'),
       options: {},
-      serviceDir: serverless.serviceDir,
+      serviceDir: process.cwd(),
       configuration: {
-        ...serverless.configurationInput,
+        service: 'foo',
+        provider: 'aws',
         constructs: {
           jobs: {
             type: 'queue',
@@ -548,13 +513,108 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         plugins: ['serverless-lift'],
       },
     });
-
     expect(payload.config.constructs).to.deep.equal([
       {
         type: 'queue',
       },
       {
         type: 'queue',
+      },
+    ]);
+  });
+
+  it('Should correctly resolve `configValidationMode` property', async () => {
+    const payload = await generatePayload({
+      command: 'print',
+      commandSchema: commandsSchema.get('print'),
+      options: {},
+      serviceDir: process.cwd(),
+      configuration: {
+        service: 'foo',
+        provider: 'aws',
+        configValidationMode: 'off',
+      },
+    });
+    expect(payload.config.configValidationMode).to.equal('off');
+  });
+
+  it('Should correctly resolve `hasLocalCredentials` property for AWS provider', async () => {
+    let payload;
+    await overrideEnv(
+      { variables: { AWS_ACCESS_KEY_ID: 'someaccesskey', AWS_SECRET_ACCESS_KEY: 'secretkey' } },
+      async () => {
+        payload = await generatePayload({
+          command: 'print',
+          options: {},
+          commandSchema: commandsSchema.get('print'),
+          serviceDir: process.cwd(),
+          configuration: { service: 'foo', provider: 'aws' },
+        });
+      }
+    );
+
+    expect(payload.hasLocalCredentials).to.equal(true);
+  });
+
+  it('Should correctly resolve `hasLocalCredentials` property for non-AWS provider', async () => {
+    let payload;
+    await overrideEnv(
+      { variables: { AWS_ACCESS_KEY_ID: 'someaccesskey', AWS_SECRET_ACCESS_KEY: 'secretkey' } },
+      async () => {
+        payload = await generatePayload({
+          command: 'print',
+          options: {},
+          commandSchema: commandsSchema.get('print'),
+          serviceDir: process.cwd(),
+          configuration: { service: 'foo', provider: 'other' },
+        });
+      }
+    );
+
+    expect(payload.hasLocalCredentials).to.equal(false);
+  });
+
+  it('Should correctly resolve `commandUsage` property', async () => {
+    const payload = await generatePayload({
+      command: 'print',
+      options: {},
+      commandSchema: commandsSchema.get('print'),
+      serviceDir: process.cwd(),
+      configuration: { service: 'foo', provider: 'aws' },
+      commandUsage: [
+        {
+          name: 'firstStep',
+          history: [
+            {
+              key: 'firstQuestion',
+              value: 'answer',
+              timestamp: 1626220800000,
+            },
+            {
+              key: 'otherQuestion',
+              value: 'otherAnswer',
+              timestamp: 1626220800000,
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(payload.commandUsage).to.deep.equal([
+      {
+        name: 'firstStep',
+        history: [
+          {
+            key: 'firstQuestion',
+            value: 'answer',
+            timestamp: 1626220800000,
+          },
+          {
+            key: 'otherQuestion',
+            value: 'otherAnswer',
+            timestamp: 1626220800000,
+          },
+        ],
       },
     ]);
   });

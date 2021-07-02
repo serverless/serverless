@@ -104,8 +104,42 @@ jobs:
       - name: Unit tests
         run: npm test -- -b
 
+  linuxNode16:
+    name: '[Linux] Node.js 16: Isolated unit tests'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve dependencies from cache
+        id: cacheNpm
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: npm-v16-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            npm-v16-${{ runner.os }}-${{ github.ref }}-
+            npm-v16-${{ runner.os }}-refs/heads/master-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+
+      - name: Install dependencies
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+      - name: Unit tests
+        # Some tests depend on TTY support, which is missing in GA runner
+        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+        run: script -e -c "npm run test:isolated -- -b"
+
   linuxNode12:
-    name: '[Linux] Node.js 12: Isolated unit tests'
+    name: '[Linux] Node.js 12: Unit tests with coverage'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -136,10 +170,12 @@ jobs:
       - name: Unit tests
         # Some tests depend on TTY support, which is missing in GA runner
         # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
-        run: script -e -c "npm run test:isolated -- -b"
+        run: script -e -c "npm run coverage"
+      - name: Push coverage
+        run: npx codecov
 
   linuxNode10:
-    name: '[Linux] Node.js v10: Unit tests with coverage'
+    name: '[Linux] Node.js v10: Unit tests'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -170,10 +206,4 @@ jobs:
       - name: Unit tests
         # Some tests depend on TTY support, which is missing in GA runner
         # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
-        run: script -e -c "npm run coverage"
-      - name: Push coverage
-        # TODO: Remove inline token, once support for GA is added on Codecov side
-        # See: https://github.com/codecov/codecov-node/issues/118
-        env:
-          CODECOV_TOKEN: 3898f3e1-f317-453e-a3a9-0462390f93c5
-        run: npx codecov
+        run: script -e -c "npm test -- -b"
