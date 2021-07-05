@@ -71,4 +71,12 @@ describe('test/integration/curated-plugins.test.js', function () {
     const { stdoutBuffer } = await spawn(serverlessExec, ['info'], { cwd: serviceDir });
     expect(String(stdoutBuffer)).to.include('Serverless Domain Manager:');
   });
+
+  it('should be extended by "serverless-prune-plugin"', async () => {
+    await updateConfig({ plugins: ['serverless-prune-plugin'] });
+    const { stdoutBuffer } = await spawn(serverlessExec, ['prune', '-n', '10'], {
+      cwd: serviceDir,
+    });
+    expect(String(stdoutBuffer)).to.include('Prune: Pruning complete.');
+  });
 });
