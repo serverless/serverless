@@ -3,6 +3,7 @@
     "serverless-offline": "7.0.0",
     "webpack": "5.41.1",
     "serverless-webpack": "5.5.1",
-    "serverless-domain-manager": "5.1.0"
+    "serverless-domain-manager": "5.1.0",
+    "serverless-prune-plugin": "1.5.0"
   }
 }
