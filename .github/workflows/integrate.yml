@@ -227,6 +227,12 @@ jobs:
             node_modules
           key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
 
+      # Potentially needed for test/integration/curated-plugins-python.test.js
+      # (current GA runtime comes with Python 3.8 preinstalled, but that might be subject to changes)
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
         with:
