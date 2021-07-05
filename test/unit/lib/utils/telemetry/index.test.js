@@ -62,7 +62,7 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
 
   it('`storeLocally` should persist an event in cacheDir', async () => {
     const payload = { test: 'payloadvalue' };
-    await storeLocally(payload);
+    storeLocally(payload);
     const dirFilenames = await fse.readdir(cacheDirPath);
     expect(dirFilenames.length).to.equal(1);
     const persistedEvent = await fse.readJson(path.join(cacheDirPath, dirFilenames[0]));

@@ -1151,7 +1151,7 @@ aws_secret_access_key = CUSTOMSECRET
       });
       const modulesCacheStub = {
         'child-process-ext/spawn': spawnExtStub,
-        './lib/utils/telemetry/generatePayload.js': async () => ({}),
+        './lib/utils/telemetry/generatePayload.js': () => ({}),
       };
 
       beforeEach(() => {

@@ -419,8 +419,8 @@ const processSpanPromise = (async () => {
 
       hasTelemetryBeenReported = true;
       if (!isTelemetryDisabled) {
-        await storeTelemetryLocally(
-          await generateTelemetryPayload({
+        storeTelemetryLocally(
+          generateTelemetryPayload({
             command,
             options,
             commandSchema,
@@ -702,15 +702,15 @@ const processSpanPromise = (async () => {
 
       hasTelemetryBeenReported = true;
       if (!isTelemetryDisabled && !isHelpRequest && serverless.isTelemetryReportedExternally) {
-        await storeTelemetryLocally({
-          ...(await generateTelemetryPayload({
+        storeTelemetryLocally({
+          ...generateTelemetryPayload({
             command,
             options,
             commandSchema,
             serviceDir,
             configuration,
             serverless,
-          })),
+          }),
           outcome: 'success',
         });
         let backendNotificationRequest;

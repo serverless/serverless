@@ -102,7 +102,7 @@ describe('test/unit/lib/cli/handle-error.test.js', () => {
   });
 
   describe('with mocked telemetry', () => {
-    const generateTelemetryPayloadStub = sinon.stub().resolves({});
+    const generateTelemetryPayloadStub = sinon.stub().returns({});
     const storeTelemetryLocallyStub = sinon.stub();
     const sendTelemetryStub = sinon.stub();
     const resolveInputStub = sinon.stub().returns({ commandSchema: {} });
