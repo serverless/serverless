@@ -19,7 +19,11 @@ disabledDeprecations:
 
 ## Notifications mode
 
-By default deprecations are logged as warnings. If there's an intention to work with _deprecation_ free service, reporting mode can be switched so approached deprecation is reported with a thrown error.
+By default deprecations are logged, after command finalizes with a warning summary (`warn:summary` mode)
+
+Alternatively deprecation warnings can be displayed as they're discovered, on the go, that can be turned on with `warn` mode (this mode is automatically pursued on in case we fallback to locally installed Serverless Framework installation)
+
+If there's an intention to work with _deprecation_ free service, reporting mode can be switched to `error`, so approached deprecation is reported with a thrown error.
 
 Mode can be set via environment variable: `SLS_DEPRECATION_NOTIFICATION_MODE=error` or via top level service configuration setting:
 
@@ -29,7 +33,7 @@ deprecationNotificationMode: error
 
 Note:
 
-- Configuration setting is ineffective for deprecations reported before service configuration is read.
+- In service configuration setting is ineffective for deprecations reported before service configuration is read.
 - `SLS_DEPRECATION_DISABLE` env var and `disabledDeprecations` configuration setting remain respected, and no errors will be thrown for mentioned deprecation coodes.
 
 <a name="CLI_DEPLOY_FUNCTION_OPTION"><div>&nbsp;</div></a>

@@ -23,6 +23,7 @@ describe('test/unit/lib/utils/logDeprecation.test.js', () => {
 
   it('should log deprecation message if not disabled and first time', () => {
     const logDeprecation = require('../../../../lib/utils/logDeprecation');
+    logDeprecation.defaultMode = 'warn';
     let stdoutData = '';
     overrideStdoutWrite(
       (data) => (stdoutData += data),
@@ -119,6 +120,7 @@ describe('test/unit/lib/utils/logDeprecation.test.js', () => {
       (data) => (stdoutData += data),
       () => {
         const logDeprecation = require('../../../../lib/utils/logDeprecation');
+        logDeprecation.defaultMode = 'warn';
         logDeprecation('CODE1', 'Start using deprecation log');
         expect(stdoutData).to.include('Start using deprecation log');
         stdoutData = '';
@@ -126,5 +128,39 @@ describe('test/unit/lib/utils/logDeprecation.test.js', () => {
       }
     );
     expect(stdoutData).to.equal('');
+  });
+
+  it('should expose working `flushBuffered` method', () => {
+    let stdoutData = '';
+    overrideStdoutWrite(
+      (data) => (stdoutData += data),
+      () => {
+        const logDeprecation = require('../../../../lib/utils/logDeprecation');
+        logDeprecation('CODE1', 'First deprecation');
+        expect(stdoutData).to.not.include('First deprecation');
+        logDeprecation('CODE2', 'Second deprecation');
+        expect(stdoutData).to.not.include('Second deprecation');
+        logDeprecation.flushBuffered();
+      }
+    );
+    expect(stdoutData).to.include('First deprecation');
+    expect(stdoutData).to.include('Second deprecation');
+  });
+
+  it('should expose working `printSummary` method', () => {
+    let stdoutData = '';
+    overrideStdoutWrite(
+      (data) => (stdoutData += data),
+      () => {
+        const logDeprecation = require('../../../../lib/utils/logDeprecation');
+        logDeprecation('CODE1', 'First deprecation');
+        expect(stdoutData).to.not.include('First deprecation');
+        logDeprecation('CODE2', 'Second deprecation');
+        expect(stdoutData).to.not.include('Second deprecation');
+        logDeprecation.printSummary();
+      }
+    );
+    expect(stdoutData).to.include('First deprecation');
+    expect(stdoutData).to.include('Second deprecation');
   });
 });

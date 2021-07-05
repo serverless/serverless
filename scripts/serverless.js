@@ -23,6 +23,7 @@ const {
 const generateTelemetryPayload = require('../lib/utils/telemetry/generatePayload');
 const processBackendNotificationRequest = require('../lib/utils/processBackendNotificationRequest');
 const isTelemetryDisabled = require('../lib/utils/telemetry/areDisabled');
+const logDeprecation = require('../lib/utils/logDeprecation');
 
 let command;
 let options;
@@ -65,6 +66,7 @@ const processSpanPromise = (async () => {
     // If version number request, show it and abort
     if (options.version) {
       await require('../lib/cli/render-version')();
+      logDeprecation.printSummary();
       return;
     }
 
@@ -86,7 +88,6 @@ const processSpanPromise = (async () => {
     const isPropertyResolved = require('../lib/configuration/variables/is-property-resolved');
     const eventuallyReportVariableResolutionErrors = require('../lib/configuration/variables/eventually-report-resolution-errors');
     const filterSupportedOptions = require('../lib/cli/filter-supported-options');
-    const logDeprecation = require('../lib/utils/logDeprecation');
 
     let configurationPath = null;
     let providerName;
@@ -413,6 +414,9 @@ const processSpanPromise = (async () => {
           options,
           commandUsage,
         });
+
+      logDeprecation.printSummary();
+
       hasTelemetryBeenReported = true;
       if (!isTelemetryDisabled) {
         await storeTelemetryLocally(
@@ -693,6 +697,8 @@ const processSpanPromise = (async () => {
         // Run command
         await serverless.run();
       }
+
+      logDeprecation.printSummary();
 
       hasTelemetryBeenReported = true;
       if (!isTelemetryDisabled && !isHelpRequest && serverless.isTelemetryReportedExternally) {
