@@ -30,6 +30,7 @@ let commandSchema;
 let serviceDir = null;
 let configuration = null;
 let serverless;
+const commandUsage = {};
 
 let hasTelemetryBeenReported = false;
 
@@ -43,6 +44,7 @@ process.once('uncaughtException', (error) =>
     configuration,
     serverless,
     hasTelemetryBeenReported,
+    commandUsage,
   })
 );
 
@@ -403,12 +405,13 @@ const processSpanPromise = (async () => {
           'INTERACTIVE_SETUP_IN_NON_TTY'
         );
       }
-      const { commandUsage, configuration: configurationFromInteractive } =
+      const { configuration: configurationFromInteractive } =
         await require('../lib/cli/interactive-setup')({
           configuration,
           serviceDir,
           configurationFilename,
           options,
+          commandUsage,
         });
       hasTelemetryBeenReported = true;
       if (!isTelemetryDisabled) {
@@ -747,6 +750,7 @@ const processSpanPromise = (async () => {
       configuration,
       serverless,
       hasTelemetryBeenReported,
+      commandUsage,
     });
   }
 })();
