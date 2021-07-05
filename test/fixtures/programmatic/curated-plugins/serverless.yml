@@ -3,6 +3,10 @@ service: service
 configValidationMode: error
 frameworkVersion: '*'
 
+custom:
+  customDomain:
+    domainName: api.example.com
+
 provider:
   name: aws
   runtime: nodejs14.x

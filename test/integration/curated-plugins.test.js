@@ -5,6 +5,7 @@ const path = require('path');
 const fsp = require('fs').promises;
 const spawn = require('child-process-ext/spawn');
 const got = require('got');
+const { deployService, removeService } = require('../utils/integration');
 const fixturesEngine = require('../fixtures/programmatic');
 
 const serverlessExec = require('../serverlessBinary');
@@ -15,12 +16,20 @@ describe('test/integration/curated-plugins.test.js', function () {
   let serviceDir;
   let updateConfig;
   let serviceConfig;
+  let isDeployed = false;
   before(async () => {
     ({
       servicePath: serviceDir,
       updateConfig,
       serviceConfig,
     } = await fixturesEngine.setup('curated-plugins'));
+    // Needed to test "serverless-domain-manager"
+    await deployService(serviceDir);
+    isDeployed = true;
+  });
+  after(async () => {
+    if (!isDeployed) return;
+    await removeService(serviceDir);
   });
 
   afterEach(async () => updateConfig({ plugins: null }));
@@ -55,5 +64,11 @@ describe('test/integration/curated-plugins.test.js', function () {
     await spawn(serverlessExec, ['package'], { cwd: serviceDir });
     const bundledPackageSize = (await fsp.stat(packagePath)).size;
     expect(originalPackageSize / 10).to.be.above(bundledPackageSize);
+  });
+
+  it('should be extended by "serverless-domain-manager"', async () => {
+    await updateConfig({ plugins: ['serverless-domain-manager'] });
+    const { stdoutBuffer } = await spawn(serverlessExec, ['info'], { cwd: serviceDir });
+    expect(String(stdoutBuffer)).to.include('Serverless Domain Manager:');
   });
 });
