@@ -297,8 +297,6 @@ const processSpanPromise = (async () => {
             if (
               !ensureResolvedProperty('provider\0stage', { shouldSilentlyReturnIfLegacyMode: true })
             ) {
-              // Hack to not duplicate the warning with similar deprecation
-              logDeprecation.triggeredDeprecations.add('VARIABLES_ERROR_ON_UNRESOLVED');
               return;
             }
 
