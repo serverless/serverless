@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.51.0](https://github.com/serverless/serverless/compare/v2.50.0...v2.51.0) (2021-07-06)
+
+### Features
+
+- **AWS Kafka:** Add support for `SASL/PLAIN` auth to `kafka` event ([#9666](https://github.com/serverless/serverless/pull/9666)) ([3e14f06](https://github.com/serverless/serverless/commit/3e14f063052385026425021379bfc883dac5ff74)) ([Daniele Iasella](https://github.com/overbit))
+- **CLI:** New `warn:summary` (default) deprecations logging mode ([#9693](https://github.com/serverless/serverless/pull/9693)) ([9b624a5](https://github.com/serverless/serverless/commit/9b624a50677a0363c052b4ea567c050af7863073)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **CLI:** Recognize `--verbose` option in `info` command ([#9695](https://github.com/serverless/serverless/pull/9695)) ([b124152](https://github.com/serverless/serverless/commit/b1241522ec378f7b7b431050ddc861fef040efc4)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **CLI:** Fix typo in error message ([#9682](https://github.com/serverless/serverless/issues/9682)) ([f16c45f](https://github.com/serverless/serverless/commit/f16c45f84b8be1e469bfdd92191fc760b8f1631e)) ([KIDANI Akito](https://github.com/kdnakt))
+- **Telemetry:**
+  - Properly handle situation when not in service dir in credentials step ([#9678](https://github.com/serverless/serverless/pull/9678)) ([b21c1e4](https://github.com/serverless/serverless/commit/b21c1e415b67cdc8f1fb0ab14152eaf3c6550894))
+  - Ensure to pass all steps with configured questions ([#9701](https://github.com/serverless/serverless/pull/9701)) ([b5d3167](https://github.com/serverless/serverless/commit/b5d3167e9fdd5f08af1389b975322f2146b22507)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Correctly report `outcome` for interactive setup ([#9699](https://github.com/serverless/serverless/pull/9699)) ([0c5b8dd](https://github.com/serverless/serverless/commit/0c5b8dd831bcde80628c2ac548172ffaa9ce9ca6)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Ensure telemetry generation and related utils are sync ([#9692](https://github.com/serverless/serverless/pull/9692)) ([e65199c](https://github.com/serverless/serverless/commit/e65199c05213e1bac17acedc84cdd6dfd26ff00a)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Report `commandUsage` as object ([#9690](https://github.com/serverless/serverless/pull/9690)) ([cc24bc2](https://github.com/serverless/serverless/commit/cc24bc2ae280237b3d439e1934ab75710e0f259f)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Handle interruptions and persist telemetry data ([#9699](https://github.com/serverless/serverless/pull/9699)) ([502f7e7](https://github.com/serverless/serverless/commit/502f7e711f0954c2960fb790b749002aeb1789fc)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Drop old variables engine related deprecation ([#9698](https://github.com/serverless/serverless/pull/9698)) ([5b54ed2](https://github.com/serverless/serverless/commit/5b54ed2e2685c24439c0f835b50a024dbf9d39a9)) ([Mariusz Nowak](https://github.com/medikoo))
+- Make deprecations default mode internally modifyable ([#9693](https://github.com/serverless/serverless/pull/9693)) ([07a69a8](https://github.com/serverless/serverless/commit/07a69a836c506e3ab8ab976ef27d4f3b672722f7)) ([Mariusz Nowak](https://github.com/medikoo))
+- Replace `fse.createWriteStream` with `fs.createWriteStream` ([#9687](https://github.com/serverless/serverless/pull/9687)) ([3500f64](https://github.com/serverless/serverless/commit/3500f641f5212f196f75081e67d1d1518ac3bb6b)) ([Sudipto Das](https://github.com/sdas13))
+- Use `async` in `lib/plugins/package` ([#9644](https://github.com/serverless/serverless/issues/9644)) ([db67b35](https://github.com/serverless/serverless/commit/db67b353c9ed578d7dd334d162efa1ec11fbfa18)) ([Nyambayar Turbat](https://github.com/nyamba))
+
 ## [2.50.0](https://github.com/serverless/serverless/compare/v2.49.0...v2.50.0) (2021-07-01)
 
 ### Features
