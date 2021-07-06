@@ -1216,7 +1216,6 @@ module.exports = {
     it('should not allow partially double-quoted string', async () => {
       const property = '${opt:stage, prefix"prod"suffix}';
       serverless.variables.options = {};
-      serverless.configurationInput.disabledDeprecations = ['VARIABLES_ERROR_ON_UNRESOLVED'];
       const handleUnresolvedSpy = sinon.spy(serverless.variables, 'handleUnresolved');
       try {
         expect(await serverless.variables.populateProperty(property)).to.equal(undefined);
@@ -2866,8 +2865,8 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
     });
 
     describe('when unresolvedVariablesNotificationMode is set to "warn"', () => {
-      it('prints warnings to the console but no deprecation message', async () => {
-        const { serverless, stdoutData } = await runServerless({
+      it('should warn', async () => {
+        const { stdoutData } = await runServerless({
           fixture: 'variables-legacy',
           command: 'print',
           configExt: {
@@ -2881,11 +2880,6 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
           },
           shouldUseLegacyVariablesResolver: true,
         });
-
-        expect(Array.from(serverless.triggeredDeprecations)).not.to.contain(
-          'VARIABLES_ERROR_ON_UNRESOLVED'
-        );
-
         expect(stdoutData).to.include('Serverless Warning');
         expect(stdoutData).to.include('A valid environment variable to satisfy the declaration');
         expect(stdoutData).to.include('A valid option to satisfy the declaration');
@@ -2895,12 +2889,11 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
     });
 
     describe('when unresolvedVariablesNotificationMode is not set', () => {
-      it('should warn and print a deprecation message', async () => {
-        const { serverless } = await runServerless({
+      it('should warn', async () => {
+        const { stdoutData } = await runServerless({
           fixture: 'variables-legacy',
           command: 'print',
           configExt: {
-            disabledDeprecations: ['VARIABLES_ERROR_ON_UNRESOLVED'],
             custom: {
               myVariable1: '${env:missingEnvVar}',
               myVariable2: '${opt:missingOpt}',
@@ -2911,9 +2904,11 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
           shouldUseLegacyVariablesResolver: true,
         });
 
-        expect(Array.from(serverless.triggeredDeprecations)).to.contain(
-          'VARIABLES_ERROR_ON_UNRESOLVED'
-        );
+        expect(stdoutData).to.include('Serverless Warning');
+        expect(stdoutData).to.include('A valid environment variable to satisfy the declaration');
+        expect(stdoutData).to.include('A valid option to satisfy the declaration');
+        expect(stdoutData).to.include('A valid service attribute to satisfy the declaration');
+        expect(stdoutData).to.include('A valid file to satisfy the declaration');
       });
     });
   });
