@@ -35,7 +35,13 @@ const commandUsage = {};
 
 let hasTelemetryBeenReported = false;
 
-process.once('uncaughtException', (error) =>
+// Inquirer async operations do not keep node process alive
+// We need to issue a keep alive timer so process does not die
+// to propery handle e.g. `SIGINT` interrupt
+const keepAliveTimer = setTimeout(() => {}, 60 * 60 * 1000);
+
+process.once('uncaughtException', (error) => {
+  clearTimeout(keepAliveTimer);
   handleError(error, {
     isUncaughtException: true,
     command,
@@ -46,8 +52,30 @@ process.once('uncaughtException', (error) =>
     serverless,
     hasTelemetryBeenReported,
     commandUsage,
-  })
-);
+  });
+});
+
+process.on('SIGINT', () => {
+  clearTimeout(keepAliveTimer);
+  if (
+    commandSchema &&
+    !hasTelemetryBeenReported &&
+    !isTelemetryDisabled &&
+    (serverless ? serverless.isTelemetryReportedExternally : true)
+  ) {
+    const telemetryPayload = generateTelemetryPayload({
+      command,
+      options,
+      commandSchema,
+      serviceDir,
+      configuration,
+      serverless,
+      commandUsage,
+    });
+    storeTelemetryLocally({ ...telemetryPayload, outcome: 'interrupted' });
+  }
+  process.exit(1);
+});
 
 const processSpanPromise = (async () => {
   try {
@@ -756,5 +784,7 @@ const processSpanPromise = (async () => {
       hasTelemetryBeenReported,
       commandUsage,
     });
+  } finally {
+    clearTimeout(keepAliveTimer);
   }
 })();
