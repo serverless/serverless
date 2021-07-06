@@ -72,7 +72,7 @@ process.on('SIGINT', () => {
       serverless,
       commandUsage,
     });
-    storeTelemetryLocally({ ...telemetryPayload, outcome: 'interrupted' });
+    storeTelemetryLocally({ ...telemetryPayload, outcome: 'interrupt' });
   }
   process.exit(1);
 });
@@ -445,16 +445,17 @@ const processSpanPromise = (async () => {
 
       hasTelemetryBeenReported = true;
       if (!isTelemetryDisabled) {
-        storeTelemetryLocally(
-          generateTelemetryPayload({
+        storeTelemetryLocally({
+          ...generateTelemetryPayload({
             command,
             options,
             commandSchema,
             serviceDir,
             configuration: configurationFromInteractive,
             commandUsage,
-          })
-        );
+          }),
+          outcome: 'success',
+        });
         await sendTelemetry({ serverlessExecutionSpan: processSpanPromise });
       }
       return;
