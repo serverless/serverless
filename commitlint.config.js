@@ -25,6 +25,7 @@ module.exports = {
         'AWS Info',
         'AWS Invocation',
         'AWS IOT',
+        'AWS Kafka',
         'AWS Kinesis',
         'AWS Lambda',
         'AWS Local Invocation',
