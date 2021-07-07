@@ -66,6 +66,7 @@
     "promise-queue": "^2.2.5",
     "replaceall": "^0.1.6",
     "semver": "^7.3.5",
+    "signal-exit": "^3.0.3",
     "tabtab": "^3.0.2",
     "tar": "^6.1.0",
     "timers-ext": "^0.1.7",
