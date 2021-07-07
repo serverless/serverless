@@ -38,6 +38,8 @@ const keepAliveTimer = setTimeout(() => {}, 60 * 60 * 1000);
 
 process.once('uncaughtException', (error) => {
   clearTimeout(keepAliveTimer);
+  const cachedHasTelemetryBeenReported = hasTelemetryBeenReported;
+  hasTelemetryBeenReported = true;
   handleError(error, {
     isUncaughtException: true,
     command,
@@ -46,7 +48,7 @@ process.once('uncaughtException', (error) => {
     serviceDir,
     configuration,
     serverless,
-    hasTelemetryBeenReported,
+    hasTelemetryBeenReported: cachedHasTelemetryBeenReported,
     commandUsage,
   });
 });
@@ -57,22 +59,28 @@ require('signal-exit/signals').forEach((signal) => {
     // If there's another listener (e.g. we're in deamon context or reading stdin input)
     // then let the other listener decide how process will exit
     const isOtherSigintListener = Boolean(process.listenerCount(signal));
-    if (
-      commandSchema &&
-      !hasTelemetryBeenReported &&
-      !isTelemetryDisabled &&
-      (serverless ? serverless.isTelemetryReportedExternally : true)
-    ) {
-      const telemetryPayload = generateTelemetryPayload({
-        command,
-        options,
-        commandSchema,
-        serviceDir,
-        configuration,
-        serverless,
-        commandUsage,
-      });
-      storeTelemetryLocally({ ...telemetryPayload, outcome: 'interrupt', interruptSignal: signal });
+    if (!hasTelemetryBeenReported) {
+      hasTelemetryBeenReported = true;
+      if (
+        commandSchema &&
+        !isTelemetryDisabled &&
+        (serverless ? serverless.isTelemetryReportedExternally : true)
+      ) {
+        const telemetryPayload = generateTelemetryPayload({
+          command,
+          options,
+          commandSchema,
+          serviceDir,
+          configuration,
+          serverless,
+          commandUsage,
+        });
+        storeTelemetryLocally({
+          ...telemetryPayload,
+          outcome: 'interrupt',
+          interruptSignal: signal,
+        });
+      }
     }
 
     if (isOtherSigintListener) return;
@@ -453,20 +461,22 @@ const processSpanPromise = (async () => {
 
       logDeprecation.printSummary();
 
-      hasTelemetryBeenReported = true;
-      if (!isTelemetryDisabled) {
-        storeTelemetryLocally({
-          ...generateTelemetryPayload({
-            command,
-            options,
-            commandSchema,
-            serviceDir,
-            configuration: configurationFromInteractive,
-            commandUsage,
-          }),
-          outcome: 'success',
-        });
-        await sendTelemetry({ serverlessExecutionSpan: processSpanPromise });
+      if (!hasTelemetryBeenReported) {
+        hasTelemetryBeenReported = true;
+        if (!isTelemetryDisabled) {
+          storeTelemetryLocally({
+            ...generateTelemetryPayload({
+              command,
+              options,
+              commandSchema,
+              serviceDir,
+              configuration: configurationFromInteractive,
+              commandUsage,
+            }),
+            outcome: 'success',
+          });
+          await sendTelemetry({ serverlessExecutionSpan: processSpanPromise });
+        }
       }
       return;
     }
@@ -737,27 +747,30 @@ const processSpanPromise = (async () => {
 
       logDeprecation.printSummary();
 
-      hasTelemetryBeenReported = true;
-      if (!isTelemetryDisabled && !isHelpRequest && serverless.isTelemetryReportedExternally) {
-        storeTelemetryLocally({
-          ...generateTelemetryPayload({
-            command,
-            options,
-            commandSchema,
-            serviceDir,
-            configuration,
-            serverless,
-          }),
-          outcome: 'success',
-        });
-        let backendNotificationRequest;
-        if (commands.join(' ') === 'deploy') {
-          backendNotificationRequest = await sendTelemetry({
-            serverlessExecutionSpan: processSpanPromise,
+      if (!hasTelemetryBeenReported) {
+        hasTelemetryBeenReported = true;
+
+        if (!isTelemetryDisabled && !isHelpRequest && serverless.isTelemetryReportedExternally) {
+          storeTelemetryLocally({
+            ...generateTelemetryPayload({
+              command,
+              options,
+              commandSchema,
+              serviceDir,
+              configuration,
+              serverless,
+            }),
+            outcome: 'success',
           });
-        }
-        if (backendNotificationRequest) {
-          await processBackendNotificationRequest(backendNotificationRequest);
+          let backendNotificationRequest;
+          if (commands.join(' ') === 'deploy') {
+            backendNotificationRequest = await sendTelemetry({
+              serverlessExecutionSpan: processSpanPromise,
+            });
+          }
+          if (backendNotificationRequest) {
+            await processBackendNotificationRequest(backendNotificationRequest);
+          }
         }
       }
     } catch (error) {
@@ -785,6 +798,8 @@ const processSpanPromise = (async () => {
       throw error;
     }
   } catch (error) {
+    const cachedHasTelemetryBeenReported = hasTelemetryBeenReported;
+    hasTelemetryBeenReported = true;
     handleError(error, {
       command,
       options,
@@ -792,7 +807,7 @@ const processSpanPromise = (async () => {
       serviceDir,
       configuration,
       serverless,
-      hasTelemetryBeenReported,
+      hasTelemetryBeenReported: cachedHasTelemetryBeenReported,
       commandUsage,
     });
   } finally {
