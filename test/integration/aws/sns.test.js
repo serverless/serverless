@@ -1,6 +1,5 @@
 'use strict';
 
-const BbPromise = require('bluebird');
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 const fixtures = require('../../fixtures/programmatic');
@@ -75,7 +74,7 @@ describe('AWS - SNS Integration Test', function () {
       const middleAttributes = { side: { DataType: 'String', StringValue: 'middle' } };
       const rightAttributes = { side: { DataType: 'String', StringValue: 'right' } };
 
-      return BbPromise.all([
+      return Promise.all([
         confirmCloudWatchLogs(`/aws/lambda/${stackName}-${leftFunctionName}`, async () => {
           await publishSnsMessage(filteredTopicName, middleMessage, middleAttributes);
           await publishSnsMessage(filteredTopicName, leftMessage, leftAttributes);
