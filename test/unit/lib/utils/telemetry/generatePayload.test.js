@@ -19,9 +19,16 @@ const versions = {
 };
 
 describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
+  let isTTYCache;
   before(() => {
     // In order for tests below to return `commandDurationMs`
     EvalError.$serverlessCommandStartTime = process.hrtime();
+    isTTYCache = process.stdin.isTTY;
+    process.stdin.isTTY = true;
+  });
+
+  after(() => {
+    process.stdin.isTTY = isTTYCache;
   });
 
   beforeEach(() => {
@@ -117,6 +124,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.commandDurationMs;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
+      isTtyTerminal: true,
       command: 'print',
       commandOptionNames: [],
       isConfigValid: true,
@@ -180,6 +188,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.commandDurationMs;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
+      isTtyTerminal: true,
       command: 'print',
       commandOptionNames: [],
       isConfigValid: false, // No schema for custom provider
@@ -244,6 +253,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.commandDurationMs;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
+      isTtyTerminal: true,
       command: 'print',
       commandOptionNames: [],
       isConfigValid: null,
@@ -298,6 +308,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.commandDurationMs;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
+      isTtyTerminal: true,
       command: 'config',
       commandOptionNames: [],
       isAutoUpdateEnabled: false,
@@ -335,6 +346,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       command: '',
       commandOptionNames: [],
       cliName: 'serverless',
+      isTtyTerminal: true,
       isConfigValid: null,
       config: {
         configValidationMode: 'warn',
@@ -381,6 +393,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.commandDurationMs;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
+      isTtyTerminal: true,
       command: 'plugin list',
       commandOptionNames: [],
       isAutoUpdateEnabled: false,
