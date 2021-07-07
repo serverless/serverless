@@ -30,9 +30,8 @@ describe('AWS - SNS Integration Test', function () {
     // create "existing" SNS topics
     // NOTE: deployment can only be done once the SNS topics are created
     log.notice(`Creating SNS topic "${existingTopicName}"...`);
-    return createSnsTopic(existingTopicName).then(() => {
-      return deployService(serviceDir);
-    });
+    await createSnsTopic(existingTopicName);
+    return deployService(serviceDir);
   });
 
   after(async () => {
@@ -42,11 +41,11 @@ describe('AWS - SNS Integration Test', function () {
   });
 
   describe('Minimal Setup', () => {
-    it('should invoke on a topic message', () => {
+    it('should invoke on a topic message', async () => {
       const functionName = 'snsMinimal';
       const message = 'Hello from SNS!';
 
-      return confirmCloudWatchLogs(
+      const events = await confirmCloudWatchLogs(
         `/aws/lambda/${stackName}-${functionName}`,
         () => publishSnsMessage(minimalTopicName, message),
         {
@@ -55,15 +54,14 @@ describe('AWS - SNS Integration Test', function () {
             return logs.includes(message);
           },
         }
-      ).then((events) => {
-        const logs = events.reduce((data, event) => data + event.message, '');
-        expect(logs).to.include(functionName);
-        expect(logs).to.include(message);
-      });
+      );
+      const logs = events.reduce((data, event) => data + event.message, '');
+      expect(logs).to.include(functionName);
+      expect(logs).to.include(message);
     });
   });
 
-  describe('Multiple and Filtered Setup', () => {
+  describe('Multiple and Filtered Setup', async () => {
     it('should invoke on a topic message that matches filter', () => {
       const leftFunctionName = 'snsMultipleFilteredLeft';
       const rightFunctionName = 'snsMultipleFilteredRight';
@@ -100,17 +98,16 @@ describe('AWS - SNS Integration Test', function () {
   });
 
   describe('Existing Setup', () => {
-    it('should invoke on an existing topic message', () => {
+    it('should invoke on an existing topic message', async () => {
       const functionName = 'snsExisting';
       const message = 'Hello from an existing SNS!';
 
-      return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
+      const events = await confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
         publishSnsMessage(existingTopicName, message)
-      ).then((events) => {
-        const logs = events.reduce((data, event) => data + event.message, '');
-        expect(logs).to.include(functionName);
-        expect(logs).to.include(message);
-      });
+      );
+      const logs = events.reduce((data, event) => data + event.message, '');
+      expect(logs).to.include(functionName);
+      expect(logs).to.include(message);
     });
   });
 });
