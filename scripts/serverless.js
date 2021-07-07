@@ -51,29 +51,36 @@ process.once('uncaughtException', (error) => {
   });
 });
 
-process.once('SIGINT', () => {
-  clearTimeout(keepAliveTimer);
-  // If there's another SIGINT listener (command that works as deamon or reads stdin input)
-  // then let the other listener decide how process will exit
-  const isOtherSigintListener = Boolean(process.listenerCount('SIGINT'));
-  if (
-    commandSchema &&
-    !hasTelemetryBeenReported &&
-    !isTelemetryDisabled &&
-    (serverless ? serverless.isTelemetryReportedExternally : true)
-  ) {
-    const telemetryPayload = generateTelemetryPayload({
-      command,
-      options,
-      commandSchema,
-      serviceDir,
-      configuration,
-      serverless,
-      commandUsage,
-    });
-    storeTelemetryLocally({ ...telemetryPayload, outcome: 'interrupt' });
-  }
-  if (!isOtherSigintListener) process.exit(130);
+require('signal-exit/signals').forEach((signal) => {
+  process.once(signal, () => {
+    clearTimeout(keepAliveTimer);
+    // If there's another listener (e.g. we're in deamon context or reading stdin input)
+    // then let the other listener decide how process will exit
+    const isOtherSigintListener = Boolean(process.listenerCount(signal));
+    if (
+      commandSchema &&
+      !hasTelemetryBeenReported &&
+      !isTelemetryDisabled &&
+      (serverless ? serverless.isTelemetryReportedExternally : true)
+    ) {
+      const telemetryPayload = generateTelemetryPayload({
+        command,
+        options,
+        commandSchema,
+        serviceDir,
+        configuration,
+        serverless,
+        commandUsage,
+      });
+      storeTelemetryLocally({ ...telemetryPayload, outcome: 'interrupt', interruptSignal: signal });
+    }
+
+    if (isOtherSigintListener) return;
+    // Follow recommendation from signal-exit:
+    // https://github.com/tapjs/signal-exit/blob/654117d6c9035ff6a805db4d4acf1f0c820fcb21/index.js#L97-L98
+    if (process.platform === 'win32' && signal === 'SIGHUP') signal = 'SIGINT';
+    process.kill(process.pid, signal);
+  });
 });
 
 const humanizePropertyPathKeys = require('../lib/configuration/variables/humanize-property-path-keys');
