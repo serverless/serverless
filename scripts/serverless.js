@@ -14,16 +14,12 @@ if (require('../lib/utils/tabCompletion/isSupported') && process.argv[2] === 'co
 }
 
 const handleError = require('../lib/cli/handle-error');
-const humanizePropertyPathKeys = require('../lib/configuration/variables/humanize-property-path-keys');
-
 const {
   storeLocally: storeTelemetryLocally,
   send: sendTelemetry,
 } = require('../lib/utils/telemetry');
 const generateTelemetryPayload = require('../lib/utils/telemetry/generatePayload');
-const processBackendNotificationRequest = require('../lib/utils/processBackendNotificationRequest');
 const isTelemetryDisabled = require('../lib/utils/telemetry/areDisabled');
-const logDeprecation = require('../lib/utils/logDeprecation');
 
 let command;
 let options;
@@ -79,6 +75,10 @@ process.once('SIGINT', () => {
   }
   if (!isOtherSigintListener) process.exit(130);
 });
+
+const humanizePropertyPathKeys = require('../lib/configuration/variables/humanize-property-path-keys');
+const processBackendNotificationRequest = require('../lib/utils/processBackendNotificationRequest');
+const logDeprecation = require('../lib/utils/logDeprecation');
 
 const processSpanPromise = (async () => {
   try {
