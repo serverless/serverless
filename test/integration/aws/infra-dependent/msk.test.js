@@ -86,7 +86,10 @@ describe('AWS - MSK Integration Test', function () {
           FunctionName: `${stackName}-producer`,
           InvocationType: 'RequestResponse',
         }),
-      { timeout: 120 * 1000 }
+      {
+        checkIsComplete: (soFarEvents) =>
+          soFarEvents.reduce((data, event) => data + event.message, '').includes(message),
+      }
     );
 
     const logs = events.reduce((data, event) => data + event.message, '');
