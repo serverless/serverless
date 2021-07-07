@@ -73,20 +73,34 @@ describe('AWS - SNS Integration Test', function () {
       const rightAttributes = { side: { DataType: 'String', StringValue: 'right' } };
 
       return Promise.all([
-        confirmCloudWatchLogs(`/aws/lambda/${stackName}-${leftFunctionName}`, async () => {
-          await publishSnsMessage(filteredTopicName, middleMessage, middleAttributes);
-          await publishSnsMessage(filteredTopicName, leftMessage, leftAttributes);
-        }).then((events) => {
+        confirmCloudWatchLogs(
+          `/aws/lambda/${stackName}-${leftFunctionName}`,
+          async () => {
+            await publishSnsMessage(filteredTopicName, middleMessage, middleAttributes);
+            await publishSnsMessage(filteredTopicName, leftMessage, leftAttributes);
+          },
+          {
+            checkIsComplete: (events) =>
+              events.reduce((data, event) => data + event.message, '').includes(leftMessage),
+          }
+        ).then((events) => {
           const logs = events.reduce((data, event) => data + event.message, '');
           expect(logs).to.include(leftFunctionName);
           expect(logs).to.include(leftMessage);
           expect(logs).not.to.include(middleMessage);
           expect(logs).not.to.include(rightMessage);
         }),
-        confirmCloudWatchLogs(`/aws/lambda/${stackName}-${rightFunctionName}`, async () => {
-          await publishSnsMessage(filteredTopicName, middleMessage, middleAttributes);
-          await publishSnsMessage(filteredTopicName, rightMessage, rightAttributes);
-        }).then((events) => {
+        confirmCloudWatchLogs(
+          `/aws/lambda/${stackName}-${rightFunctionName}`,
+          async () => {
+            await publishSnsMessage(filteredTopicName, middleMessage, middleAttributes);
+            await publishSnsMessage(filteredTopicName, rightMessage, rightAttributes);
+          },
+          {
+            checkIsComplete: (events) =>
+              events.reduce((data, event) => data + event.message, '').includes(rightMessage),
+          }
+        ).then((events) => {
           const logs = events.reduce((data, event) => data + event.message, '');
           expect(logs).to.include(rightFunctionName);
           expect(logs).not.to.include(leftMessage);
@@ -102,8 +116,13 @@ describe('AWS - SNS Integration Test', function () {
       const functionName = 'snsExisting';
       const message = 'Hello from an existing SNS!';
 
-      const events = await confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
-        publishSnsMessage(existingTopicName, message)
+      const events = await confirmCloudWatchLogs(
+        `/aws/lambda/${stackName}-${functionName}`,
+        () => publishSnsMessage(existingTopicName, message),
+        {
+          checkIsComplete: (soFarEvents) =>
+            soFarEvents.reduce((data, event) => data + event.message, '').includes(message),
+        }
       );
       const logs = events.reduce((data, event) => data + event.message, '');
       expect(logs).to.include(functionName);
