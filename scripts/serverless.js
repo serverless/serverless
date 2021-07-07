@@ -55,8 +55,11 @@ process.once('uncaughtException', (error) => {
   });
 });
 
-process.on('SIGINT', () => {
+process.once('SIGINT', () => {
   clearTimeout(keepAliveTimer);
+  // If there's another SIGINT listener (command that works as deamon or reads stdin input)
+  // then let the other listener decide how process will exit
+  const isOtherSigintListener = Boolean(process.listenerCount('SIGINT'));
   if (
     commandSchema &&
     !hasTelemetryBeenReported &&
@@ -74,7 +77,7 @@ process.on('SIGINT', () => {
     });
     storeTelemetryLocally({ ...telemetryPayload, outcome: 'interrupt' });
   }
-  process.exit(1);
+  if (!isOtherSigintListener) process.exit(130);
 });
 
 const processSpanPromise = (async () => {
