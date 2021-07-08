@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.51.1](https://github.com/serverless/serverless/compare/v2.51.0...v2.51.1) (2021-07-08)
+
+### Bug Fixes
+
+- **CLI:** Fix `SIGINT` signal handling ([#9712](https://github.com/serverless/serverless/issues/9712)) ([c5a3f69](https://github.com/serverless/serverless/commit/c5a3f6907a115ea2d511b0aa9905a2e762514867)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Packaging:** Validate `package.artifact` paths ([#9721](https://github.com/serverless/serverless/issues/9721)) ([21c0fed](https://github.com/serverless/serverless/commit/21c0fedc507651bb98687acc4145ed667d853589)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Local Invocation:** Bump AWS Java pom version to pull in fix ([#9714](https://github.com/serverless/serverless/issues/9714)) ([504b42a](https://github.com/serverless/serverless/commit/504b42ae0fefd04ccfa013746371c49a02d8a4d3)) ([tlloyd-synalogik](https://github.com/tlloyd-synalogik))
+
+### Maintenance Improvements
+
+- **Telemetry:**
+  - Report all interruption signals ([#9712](https://github.com/serverless/serverless/issues/9712)) ([7354c20](https://github.com/serverless/serverless/commit/7354c2000f25d526f8c3fd97c6d4d22054388755)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Report whether we're in context of TTY terminal ([#9712](https://github.com/serverless/serverless/issues/9712)) ([9cea555](https://github.com/serverless/serverless/commit/9cea555e88bdaadf717def21b5298a64c7ce79b9)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Ensure no doubled telemetry in edge cases ([#9716](https://github.com/serverless/serverless/issues/9716)) ([fd5005e](https://github.com/serverless/serverless/commit/fd5005e404debe103ca54974ca9aee431554ceb8)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI:** Improve module imports order ([#9712](https://github.com/serverless/serverless/issues/9712)) ([dff2799](https://github.com/serverless/serverless/commit/dff2799941a1da8c2d5fe76144393db241a7637c)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.51.0](https://github.com/serverless/serverless/compare/v2.50.0...v2.51.0) (2021-07-06)
 
 ### Features
