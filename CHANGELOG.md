@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.51.2](https://github.com/serverless/serverless/compare/v2.51.1...v2.51.2) (2021-07-08)
+
+### Bug Fixes
+
+- **Packaging:** Fix `package.artifact` validation for S3 urls ([#9725](https://github.com/serverless/serverless/issues/9725)) ([ab3c543](https://github.com/serverless/serverless/commit/ab3c543089b0fde4107fc0e579c19f85e0a4ee79)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [2.51.1](https://github.com/serverless/serverless/compare/v2.51.0...v2.51.1) (2021-07-08)
 
 ### Bug Fixes
