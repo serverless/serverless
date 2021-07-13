@@ -27,11 +27,11 @@ provider:
       name: custom-role-name
       path: /custom-role-path/
       statements:
-        - Effect: 'Allow',
-          Resource: '*',
-          NotAction: 'iam:DeleteUser',
+        - Effect: 'Allow'
+          Resource: '*'
+          Action: 'iam:DeleteUser'
       managedPolicies:
-        - 'arn:aws:iam::123456789012:user/*',
+        - 'arn:aws:iam::123456789012:user/*'
       permissionsBoundary: arn:aws:iam::123456789012:policy/boundaries
       tags:
         key: value
