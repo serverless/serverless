@@ -61,4 +61,46 @@ describe('test/unit/lib/cli/interactive-setup/utils.test.js', () => {
       ).to.eventually.be.rejected.and.have.property('code', 'DASHBOARD_UNAVAILABLE');
     });
   });
+
+  describe('resolveInitialContext', () => {
+    it('correctly resolves for service context and dashboard enabled', async () => {
+      const configuration = {
+        app: 'someapp',
+        service: 'someservice',
+        org: 'someorg',
+      };
+      const serviceDir = '/path/to/service/dir';
+      const { resolveInitialContext } = proxyquire(
+        '../../../../../lib/cli/interactive-setup/utils',
+        {
+          '@serverless/dashboard-plugin/lib/isAuthenticated': () => true,
+          '../../aws/has-local-credentials': () => true,
+        }
+      );
+      expect(resolveInitialContext({ configuration, serviceDir })).to.deep.equal({
+        hasLocalAwsCredentials: true,
+        isLoggedIntoDashboard: true,
+        isDashboardEnabled: true,
+        isInServiceContext: true,
+      });
+    });
+
+    it('correctly resolves without service context', async () => {
+      const configuration = null;
+      const serviceDir = null;
+      const { resolveInitialContext } = proxyquire(
+        '../../../../../lib/cli/interactive-setup/utils',
+        {
+          '@serverless/dashboard-plugin/lib/isAuthenticated': () => true,
+          '../../aws/has-local-credentials': () => true,
+        }
+      );
+      expect(resolveInitialContext({ configuration, serviceDir })).to.deep.equal({
+        hasLocalAwsCredentials: true,
+        isLoggedIntoDashboard: true,
+        isDashboardEnabled: false,
+        isInServiceContext: false,
+      });
+    });
+  });
 });
