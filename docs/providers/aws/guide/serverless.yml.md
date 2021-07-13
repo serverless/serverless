@@ -287,7 +287,8 @@ provider:
     frameworkLambda: true # Optional, whether to write CloudWatch logs for custom resource lambdas as added by the framework
   s3: # If you need to configure the bucket itself, you'll need to add s3 resources to the provider configuration: 
     bucketOne: # Eventual additional properties in camel case
-      name: my-custom-bucket-name
+    # Supported properties are the same ones as supported by CF resource for S3 bucket: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html
+      name: my-custom-bucket-name 
       versioningConfiguration:
         Status: Enabled
 
