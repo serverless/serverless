@@ -285,6 +285,11 @@ provider:
       format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
 
     frameworkLambda: true # Optional, whether to write CloudWatch logs for custom resource lambdas as added by the framework
+  s3: # If you need to configure the bucket itself, you'll need to add s3 resources to the provider configuration: 
+    bucketOne: # Eventual additional properties in camel case
+      name: my-custom-bucket-name
+      versioningConfiguration:
+        Status: Enabled
 
 package: # Optional deployment packaging configuration
   patterns: # Specify the directories and files which should be included in the deployment package
@@ -573,6 +578,7 @@ functions:
             OriginPath: /framework
             CustomOriginConfig:
               OriginProtocolPolicy: match-viewer
+      - s3: bucketOne
 
 layers:
   hello: # A Lambda layer
