@@ -2,6 +2,7 @@ service: service
 
 configValidationMode: error
 frameworkVersion: '*'
+useDotenv: true
 
 custom:
   customDomain:
