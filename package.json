@@ -43,7 +43,7 @@
     "dotenv": "^10.0.0",
     "essentials": "^1.1.1",
     "fastest-levenshtein": "^1.0.12",
-    "filesize": "^6.4.0",
+    "filesize": "^7.0.0",
     "fs-extra": "^9.1.0",
     "get-stdin": "^8.0.0",
     "globby": "^11.0.4",
