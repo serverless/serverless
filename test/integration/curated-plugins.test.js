@@ -79,4 +79,21 @@ describe('test/integration/curated-plugins.test.js', function () {
     });
     expect(String(stdoutBuffer)).to.include('Prune: Pruning complete.');
   });
+
+  it('should be extended by "serverless-dotenv-plugin"', async () => {
+    await updateConfig({ plugins: ['serverless-dotenv-plugin'] });
+    const { stdoutBuffer } = await spawn(serverlessExec, ['package'], {
+      cwd: serviceDir,
+    });
+    expect(String(stdoutBuffer)).to.include('DOTENV: Loading environment variables');
+    const cfTemplate = JSON.parse(
+      await fsp.readFile(
+        path.resolve(serviceDir, '.serverless/cloudformation-template-update-stack.json')
+      )
+    );
+    expect(
+      cfTemplate.Resources.FunctionLambdaFunction.Properties.Environment.Variables
+        .DOTENV_PLUGIN_TEST
+    ).to.equal('passed');
+  });
 });
