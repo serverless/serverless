@@ -23,6 +23,8 @@ PROTOCOL=https
 URL=$PROTOCOL/$BASE_URL
 ```
 
+> This is supported through [dotenv-expand](https://github.com/motdotla/dotenv-expand)
+
 ### Differences against `serverless-dotenv-plugin`
 
 There are a few differences between above functionality and [serverless-dotenv-plugin](https://github.com/colynb/serverless-dotenv-plugin):
