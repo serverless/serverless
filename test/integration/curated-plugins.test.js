@@ -96,4 +96,39 @@ describe('test/integration/curated-plugins.test.js', function () {
         .DOTENV_PLUGIN_TEST
     ).to.equal('passed');
   });
+
+  it('should be extended by "serverless-iam-roles-per-function"', async () => {
+    await updateConfig({
+      plugins: ['serverless-iam-roles-per-function'],
+      functions: {
+        function: {
+          iamRoleStatementsName: 'fn-plugin-role-name',
+          iamRoleStatements: [
+            {
+              Effect: 'Allow',
+              Action: ['dynamodb:GetItem'],
+              Resource: 'arn:aws:dynamodb:${aws:region}:*:table/mytable',
+            },
+          ],
+        },
+      },
+    });
+    try {
+      await spawn(serverlessExec, ['package'], { cwd: serviceDir });
+      const cfTemplate = JSON.parse(
+        await fsp.readFile(
+          path.resolve(serviceDir, '.serverless/cloudformation-template-update-stack.json')
+        )
+      );
+      expect(cfTemplate.Resources.FunctionIamRoleLambdaExecution.Properties.RoleName).to.equal(
+        'fn-plugin-role-name'
+      );
+    } finally {
+      await updateConfig({
+        functions: {
+          function: { iamRoleStatementsName: null, iamRoleStatements: null },
+        },
+      });
+    }
+  });
 });
