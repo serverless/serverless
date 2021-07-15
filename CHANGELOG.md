@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.52.0](https://github.com/serverless/serverless/compare/v2.51.2...v2.52.0) (2021-07-15)
+
+### Features
+
+- **AWS CloudFormation:** Allow to disable default export names ([#9748](https://github.com/serverless/serverless/pull/9748)) ([6f49488](https://github.com/serverless/serverless/commit/6f494888cc01853894ec33859edbd77a06dc9d76)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:** Automatically expand loaded env variables from `.env` files ([#9615](https://github.com/serverless/serverless/issues/9615)) ([1864969](https://github.com/serverless/serverless/commit/186496922a0c4d69f3101dde0a9f4a0d89995ad0)) ([David Asensio Cañas](https://github.com/d-asensio))
+
+### Bug Fixes
+
+- **CLI:** Do not validate configuration with `plugin ..` commands ([#9741](https://github.com/serverless/serverless/pull/9741)) ([040036d](https://github.com/serverless/serverless/commit/040036d1869ceb207da6dad53f17e1ee1b6ee20a)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:** In `ssm` source auto parse only object JSON notation ([#9747](https://github.com/serverless/serverless/pull/9747)) ([8c741d1](https://github.com/serverless/serverless/commit/8c741d1d97f021995f37a61d7340ddfa749cdab9)) ([Mariusz Nowak](https://github.com/medikoo))
+- Improve `functions` validation ([#9741](https://github.com/serverless/serverless/pull/9741)) ([3e58d62](https://github.com/serverless/serverless/commit/3e58d628e7b8f4dbc8e14adf94dd98546099f3be)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Telemetry:** Record initial context for interactive setup ([#9736](https://github.com/serverless/serverless/pull/9736)) ([560aee5](https://github.com/serverless/serverless/commit/560aee5feb9f143e93933f6536e76edc9a3e56bb)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:** Reuse already imported module ([#9741](https://github.com/serverless/serverless/pull/9741)) ([be441cc](https://github.com/serverless/serverless/commit/be441ccd9157b351fffe6ea21664624aeeeb4b29)) ([Mariusz Nowak](https://github.com/medikoo))
+- Add `has-local-credentials` util ([#9736](https://github.com/serverless/serverless/pull/9736)) ([82a35b3](https://github.com/serverless/serverless/commit/82a35b3903ad5d8f761612105036fc11a37e9e55)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ### [2.51.2](https://github.com/serverless/serverless/compare/v2.51.1...v2.51.2) (2021-07-08)
 
 ### Bug Fixes
