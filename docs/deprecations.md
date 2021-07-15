@@ -36,6 +36,14 @@ Note:
 - In service configuration setting is ineffective for deprecations reported before service configuration is read.
 - `SLS_DEPRECATION_DISABLE` env var and `disabledDeprecations` configuration setting remain respected, and no errors will be thrown for mentioned deprecation coodes.
 
+<a name="DISABLE_DEFAULT_OUTPUT_EXPORT_NAMES"><div>&nbsp;</div></a>
+
+## Disable default Output Export names
+
+Deprecation code: `DISABLE_DEFAULT_OUTPUT_EXPORT_NAMES`
+
+Starting with `v3.0.0`, it will not be possible to disable default export names for outputs. To hide this deprecation message and ensure seamless upgrade, please remove this flag.
+
 <a name="CLI_DEPLOY_FUNCTION_OPTION"><div>&nbsp;</div></a>
 
 ## CLI `--function`/`-f` option for `deploy` command

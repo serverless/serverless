@@ -63,6 +63,7 @@ provider:
       key1: value1
       key2: value2
   deploymentPrefix: serverless # The S3 prefix under which deployed artifacts should be stored. Default is serverless
+  disableDefaultOutputExportNames: false # optional, if set to 'true', disables default behavior of generating export names for CloudFormation outputs
   lambdaHashingVersion: 20201221 # optional, version of hashing algorithm that should be used by the framework
   ecr:
     scanOnPush: true
