@@ -80,6 +80,7 @@
     "@commitlint/cli": "^12.1.4",
     "@serverless/eslint-config": "^3.0.0",
     "@serverless/test": "^8.3.0",
+    "adm-zip": "^0.5.5",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
     "cos-nodejs-sdk-v5": "^2.9.21",
