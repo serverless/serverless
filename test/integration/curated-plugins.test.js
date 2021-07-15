@@ -5,6 +5,7 @@ const path = require('path');
 const fsp = require('fs').promises;
 const spawn = require('child-process-ext/spawn');
 const got = require('got');
+const AdmZip = require('adm-zip');
 const { deployService, removeService } = require('../utils/integration');
 const fixturesEngine = require('../fixtures/programmatic');
 
@@ -128,6 +129,29 @@ describe('test/integration/curated-plugins.test.js', function () {
         functions: {
           function: { iamRoleStatementsName: null, iamRoleStatements: null },
         },
+      });
+    }
+  });
+
+  it('should be extended by "serverless-plugin-typescript"', async () => {
+    await updateConfig({
+      plugins: ['serverless-plugin-typescript'],
+      functions: {
+        functionTs: {
+          handler: 'index-ts.handler',
+        },
+      },
+    });
+    try {
+      await spawn(serverlessExec, ['package'], { cwd: serviceDir });
+      const zip = new AdmZip(path.resolve(serviceDir, `.serverless/${serviceConfig.service}.zip`));
+      const zipEntry = zip.getEntries().find(({ entryName }) => entryName === 'index-ts.js');
+      const tmpModulePath = path.resolve(serviceDir, '.serverless/test-ts.js');
+      await fsp.writeFile(tmpModulePath, zipEntry.getData());
+      expect(require(tmpModulePath).testData).to.deep.equal({ value: 'test-ts-compilation' });
+    } finally {
+      await updateConfig({
+        functions: { functionTs: null },
       });
     }
   });
