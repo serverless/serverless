@@ -8,6 +8,7 @@
     "serverless-dotenv-plugin": "3.9.0",
     "serverless-iam-roles-per-function": "3.2.0",
     "serverless-plugin-typescript": "1.1.9",
-    "typescript": "4.3.5"
+    "typescript": "4.3.5",
+    "serverless-step-functions": "2.32.0"
   }
 }

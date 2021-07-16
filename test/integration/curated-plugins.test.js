@@ -155,4 +155,60 @@ describe('test/integration/curated-plugins.test.js', function () {
       });
     }
   });
+
+  it('should be extended by "serverless-step-functions"', async () => {
+    await updateConfig({
+      plugins: ['serverless-step-functions'],
+      stepFunctions: {
+        stateMachines: {
+          testMachine: {
+            definition: {
+              StartAt: 'FirstState',
+              States: {
+                FirstState: {
+                  Type: 'Task',
+                  Resource: {
+                    'Fn::GetAtt': ['entry', 'Arn'],
+                  },
+                  Next: 'mapped_task',
+                },
+                mapped_task: {
+                  Type: 'Map',
+                  Iterator: {
+                    StartAt: 'FirstMapTask',
+                    States: {
+                      FirstMapTask: {
+                        Type: 'Task',
+                        Resource: {
+                          'Fn::GetAtt': ['mapTask', 'Arn'],
+                        },
+                        End: true,
+                      },
+                    },
+                  },
+                  End: true,
+                },
+              },
+            },
+          },
+        },
+        validate: true,
+      },
+    });
+    try {
+      await spawn(serverlessExec, ['package'], { cwd: serviceDir });
+      const cfTemplate = JSON.parse(
+        await fsp.readFile(
+          path.resolve(serviceDir, '.serverless/cloudformation-template-update-stack.json')
+        )
+      );
+      expect(cfTemplate.Resources.TestMachineStepFunctionsStateMachine.Type).to.equal(
+        'AWS::StepFunctions::StateMachine'
+      );
+    } finally {
+      await updateConfig({
+        stepFunctions: null,
+      });
+    }
+  });
 });
