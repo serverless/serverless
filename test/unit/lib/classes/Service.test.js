@@ -135,7 +135,7 @@ describe('Service', () => {
           command: 'package',
           configExt: {
             functions: {
-              bar: null,
+              bar: true,
             },
           },
         })
