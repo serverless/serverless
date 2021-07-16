@@ -5,7 +5,7 @@ chai.use(require('chai-as-promised'));
 
 const { expect } = chai;
 
-const fs = require('fs').promises;
+const fsp = require('fs').promises;
 const fse = require('fs-extra');
 const proxyquire = require('proxyquire');
 const readConfiguration = require('../../../../lib/configuration/read');
@@ -14,13 +14,13 @@ describe('test/unit/lib/configuration/read.test.js', () => {
   let configurationPath;
 
   afterEach(async () => {
-    if (configurationPath) await fs.unlink(configurationPath);
+    if (configurationPath) await fsp.unlink(configurationPath);
     configurationPath = null;
   });
 
   it('should read "serverless.yml"', async () => {
     configurationPath = 'serverless.yml';
-    await fs.writeFile(configurationPath, 'service: test-yml\nprovider:\n  name: aws\n');
+    await fsp.writeFile(configurationPath, 'service: test-yml\nprovider:\n  name: aws\n');
     expect(await readConfiguration(configurationPath)).to.deep.equal({
       service: 'test-yml',
       provider: { name: 'aws' },
@@ -29,7 +29,7 @@ describe('test/unit/lib/configuration/read.test.js', () => {
 
   it('should read "serverless.yaml"', async () => {
     configurationPath = 'serverless.yaml';
-    await fs.writeFile(configurationPath, 'service: test-yaml\nprovider:\n  name: aws\n');
+    await fsp.writeFile(configurationPath, 'service: test-yaml\nprovider:\n  name: aws\n');
     expect(await readConfiguration(configurationPath)).to.deep.equal({
       service: 'test-yaml',
       provider: { name: 'aws' },
@@ -38,7 +38,7 @@ describe('test/unit/lib/configuration/read.test.js', () => {
 
   it('should support AWS CloudFormation shortcut syntax', async () => {
     configurationPath = 'serverless.yml';
-    await fs.writeFile(
+    await fsp.writeFile(
       configurationPath,
       'service: test-cf-shortcut\nprovider:\n  name: aws\n  cfProperty: !GetAtt MyResource.Arn'
     );
@@ -54,7 +54,7 @@ describe('test/unit/lib/configuration/read.test.js', () => {
       service: 'test-json',
       provider: { name: 'aws' },
     };
-    await fs.writeFile(configurationPath, JSON.stringify(configuration));
+    await fsp.writeFile(configurationPath, JSON.stringify(configuration));
     expect(await readConfiguration(configurationPath)).to.deep.equal(configuration);
   });
 
@@ -64,7 +64,7 @@ describe('test/unit/lib/configuration/read.test.js', () => {
       service: 'test-js',
       provider: { name: 'aws' },
     };
-    await fs.writeFile(configurationPath, `module.exports = ${JSON.stringify(configuration)}`);
+    await fsp.writeFile(configurationPath, `module.exports = ${JSON.stringify(configuration)}`);
     expect(await readConfiguration(configurationPath)).to.deep.equal(configuration);
   });
 
@@ -77,7 +77,7 @@ describe('test/unit/lib/configuration/read.test.js', () => {
         service: 'test-ts',
         provider: { name: 'aws' },
       };
-      await fs.writeFile(configurationPath, `module.exports = ${JSON.stringify(configuration)}`);
+      await fsp.writeFile(configurationPath, `module.exports = ${JSON.stringify(configuration)}`);
       expect(await readConfiguration(configurationPath)).to.deep.equal(configuration);
     } finally {
       await fse.remove('node_modules');
@@ -93,7 +93,7 @@ describe('test/unit/lib/configuration/read.test.js', () => {
         service: 'test-ts',
         provider: { name: 'aws' },
       };
-      await fs.writeFile(configurationPath, `module.exports = ${JSON.stringify(configuration)}`);
+      await fsp.writeFile(configurationPath, `module.exports = ${JSON.stringify(configuration)}`);
       expect(await readConfiguration(configurationPath)).to.deep.equal(configuration);
     } finally {
       delete process[Symbol.for('ts-node.register.instance')];
@@ -108,7 +108,7 @@ describe('test/unit/lib/configuration/read.test.js', () => {
       service: 'test-deferred',
       provider: { name: 'aws' },
     };
-    await fs.writeFile(
+    await fsp.writeFile(
       configurationPath,
       `module.exports = Promise.resolve(${JSON.stringify(configuration)})`
     );
@@ -134,7 +134,7 @@ describe('test/unit/lib/configuration/read.test.js', () => {
 
   it('should reject YAML syntax error', async () => {
     configurationPath = 'serverless.yaml';
-    await fs.writeFile(configurationPath, 'service: test-yaml\np [\nr\novider:\n  name: aws\n');
+    await fsp.writeFile(configurationPath, 'service: test-yaml\np [\nr\novider:\n  name: aws\n');
     await expect(readConfiguration(configurationPath)).to.eventually.be.rejected.and.have.property(
       'code',
       'CONFIGURATION_PARSE_ERROR'
@@ -143,7 +143,7 @@ describe('test/unit/lib/configuration/read.test.js', () => {
 
   it('should reject JSON syntax error', async () => {
     configurationPath = 'serverless.json';
-    await fs.writeFile(configurationPath, '{foom,sdfs}');
+    await fsp.writeFile(configurationPath, '{foom,sdfs}');
     await expect(readConfiguration(configurationPath)).to.eventually.be.rejected.and.have.property(
       'code',
       'CONFIGURATION_PARSE_ERROR'
@@ -152,7 +152,7 @@ describe('test/unit/lib/configuration/read.test.js', () => {
 
   it('should reject JS intialization error', async () => {
     configurationPath = 'serverless-errored.js';
-    await fs.writeFile(configurationPath, 'throw new Error("Stop!")');
+    await fsp.writeFile(configurationPath, 'throw new Error("Stop!")');
     await expect(readConfiguration(configurationPath)).to.eventually.be.rejected.and.have.property(
       'code',
       'CONFIGURATION_INITIALIZATION_ERROR'
@@ -165,7 +165,7 @@ describe('test/unit/lib/configuration/read.test.js', () => {
       service: 'test-ts',
       provider: { name: 'aws' },
     };
-    await fs.writeFile(configurationPath, `module.exports = ${JSON.stringify(configuration)}`);
+    await fsp.writeFile(configurationPath, `module.exports = ${JSON.stringify(configuration)}`);
     await expect(
       proxyquire('../../../../lib/configuration/read', {
         'child-process-ext/spawn': async () => {
@@ -177,7 +177,7 @@ describe('test/unit/lib/configuration/read.test.js', () => {
 
   it('should reject non object configuration', async () => {
     configurationPath = 'serverless.json';
-    await fs.writeFile(configurationPath, JSON.stringify([]));
+    await fsp.writeFile(configurationPath, JSON.stringify([]));
     await expect(readConfiguration(configurationPath)).to.eventually.be.rejected.and.have.property(
       'code',
       'INVALID_CONFIGURATION_EXPORT'
@@ -185,7 +185,7 @@ describe('test/unit/lib/configuration/read.test.js', () => {
   });
   it('should reject non JSON like structures', async () => {
     configurationPath = 'serverless-custom.js';
-    await fs.writeFile(configurationPath, 'exports.foo = exports');
+    await fsp.writeFile(configurationPath, 'exports.foo = exports');
     await expect(readConfiguration(configurationPath)).to.eventually.be.rejected.and.have.property(
       'code',
       'INVALID_CONFIGURATION_STRUCTURE'

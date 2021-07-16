@@ -6,7 +6,7 @@ chai.use(require('chai-as-promised'));
 const { expect } = chai;
 
 const path = require('path');
-const fs = require('fs').promises;
+const fsp = require('fs').promises;
 const fse = require('fs-extra');
 const overrideArgv = require('process-utils/override-argv');
 const overrideEnv = require('process-utils/override-env');
@@ -19,7 +19,7 @@ describe('test/unit/lib/cli/resolve-configuration-path.test.js', () => {
   afterEach(async () => {
     if (!configurationPath) return;
     try {
-      await fs.unlink(configurationPath);
+      await fsp.unlink(configurationPath);
     } catch {
       // Ignore any error
     }
