@@ -1025,4 +1025,28 @@ describe('#naming()', () => {
       );
     });
   });
+
+  describe('#getHttpApiName()', () => {
+    it('should return the composition of service & stage name if custom name not provided and shouldStartNameWithService is true', () => {
+      serverless.service.service = 'myService';
+      serverless.service.provider.httpApi = { shouldStartNameWithService: true };
+      expect(sdk.naming.getHttpApiName()).to.equal(
+        `${serverless.service.service}-${sdk.naming.provider.getStage()}`
+      );
+    });
+
+    it('should return the composition of stage & service name if custom name not provided', () => {
+      serverless.service.service = 'myService';
+      expect(sdk.naming.getHttpApiName()).to.equal(
+        `${sdk.naming.provider.getStage()}-${serverless.service.service}`
+      );
+    });
+
+    it('should return the custom api name if provided', () => {
+      serverless.service.provider.httpApi = { name: 'app-dev-testApi' };
+      serverless.service.service = 'myService';
+      serverless.service.provider.stage = sdk.naming.provider.getStage();
+      expect(sdk.naming.getHttpApiName()).to.equal('app-dev-testApi');
+    });
+  });
 });
