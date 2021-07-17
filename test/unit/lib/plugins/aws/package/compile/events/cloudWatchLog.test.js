@@ -72,6 +72,63 @@ describe('AwsCompileCloudWatchLogEvents', () => {
       ).to.equal('AWS::Lambda::Permission');
     });
 
+    it('should respect 2 cloudwatchLog events for log group', () => {
+      awsCompileCloudWatchLogEvents.serverless.service.functions = {
+        first: {
+          events: [
+            {
+              cloudwatchLog: {
+                logGroup: '/aws/lambda/hello1',
+              },
+            },
+          ],
+        },
+        second: {
+          events: [
+            {
+              cloudwatchLog: {
+                logGroup: '/aws/lambda/hello1',
+              },
+            },
+          ],
+        },
+      };
+
+      awsCompileCloudWatchLogEvents.compileCloudWatchLogEvents();
+      expect(
+        awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources.FirstLogsSubscriptionFilterCloudWatchLog1.Type
+      ).to.equal('AWS::Logs::SubscriptionFilter');
+      expect(
+        awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources.FirstLogsSubscriptionFilterCloudWatchLog1.Properties.LogGroupName
+      ).to.equal('/aws/lambda/hello1');
+      expect(
+        awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources.FirstLogsSubscriptionFilterCloudWatchLog1.Properties.FilterPattern
+      ).to.equal('');
+      expect(
+        awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources.FirstLambdaPermissionLogsSubscriptionFilterCloudWatchLog.Type
+      ).to.equal('AWS::Lambda::Permission');
+      expect(
+        awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources.SecondLogsSubscriptionFilterCloudWatchLog1.Type
+      ).to.equal('AWS::Logs::SubscriptionFilter');
+      expect(
+        awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources.SecondLogsSubscriptionFilterCloudWatchLog1.Properties.LogGroupName
+      ).to.equal('/aws/lambda/hello1');
+      expect(
+        awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources.SecondLogsSubscriptionFilterCloudWatchLog1.Properties.FilterPattern
+      ).to.equal('');
+      expect(
+        awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources.SecondLambdaPermissionLogsSubscriptionFilterCloudWatchLog.Type
+      ).to.equal('AWS::Lambda::Permission');
+    });
+
     it('should respect "filter" variable', () => {
       awsCompileCloudWatchLogEvents.serverless.service.functions = {
         first: {
@@ -250,7 +307,7 @@ describe('AwsCompileCloudWatchLogEvents', () => {
       ).to.equal('/aws/lambda/yada-dev-dummy*');
     });
 
-    it('should throw an error if "logGroup" is duplicated in one CloudFormation stack', () => {
+    it('should throw an error if "logGroup" is configured more than twice in one CloudFormation stack', () => {
       awsCompileCloudWatchLogEvents.serverless.service.functions = {
         first: {
           events: [
@@ -259,6 +316,9 @@ describe('AwsCompileCloudWatchLogEvents', () => {
             },
             {
               cloudwatchLog: '/aws/lambda/hello2',
+            },
+            {
+              cloudwatchLog: '/aws/lambda/hello1',
             },
             {
               cloudwatchLog: '/aws/lambda/hello1',
@@ -273,19 +333,20 @@ describe('AwsCompileCloudWatchLogEvents', () => {
         first: {
           events: [
             {
-              cloudwatchLog: {
-                logGroup: '/aws/lambda/hello1',
-              },
+              cloudwatchLog: '/aws/lambda/hello1',
             },
             {
-              cloudwatchLog: {
-                logGroup: '/aws/lambda/hello2',
-              },
+              cloudwatchLog: '/aws/lambda/hello2',
             },
             {
-              cloudwatchLog: {
-                logGroup: '/aws/lambda/hello1',
-              },
+              cloudwatchLog: '/aws/lambda/hello1',
+            },
+          ],
+        },
+        second: {
+          events: [
+            {
+              cloudwatchLog: '/aws/lambda/hello1',
             },
           ],
         },
