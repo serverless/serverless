@@ -1330,6 +1330,85 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
       });
     });
 
+    it('should attempt to delete multiple filters', async () => {
+      const deleteStub = sandbox.stub();
+      let serverless;
+      const { awsNaming } = await runServerless({
+        fixture: 'checkForChanges',
+        command: 'deploy',
+        configExt: {
+          functions: {
+            fn1: {
+              events: [
+                { cloudwatchLog: 'someLogGroupName' },
+                { cloudwatchLog: 'someLogGroupName' },
+              ],
+            },
+          },
+        },
+        lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+        env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+        hooks: {
+          beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+        },
+        awsRequestStubMap: {
+          ...commonAwsSdkMock,
+          Lambda: {
+            getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+          },
+          S3: {
+            listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+            headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+          },
+          CloudWatchLogs: {
+            deleteSubscriptionFilter: deleteStub,
+            describeSubscriptionFilters: sandbox
+              .stub()
+              .onFirstCall()
+              .callsFake(async () => {
+                const naming = serverless.getProvider('aws').naming;
+                return {
+                  subscriptionFilters: [
+                    {
+                      filterName: `${naming.getStackName()}-${naming.getCloudWatchLogLogicalId(
+                        'Fn1',
+                        1
+                      )}-xxxxx`,
+                      destinationArn:
+                        'arn:aws:lambda:us-east-1:999999999999:function:test-checkForChanges-cdr3ogg-dev-fn1',
+                    },
+                    {
+                      filterName: `${naming.getStackName()}-${naming.getCloudWatchLogLogicalId(
+                        'Fn1',
+                        2
+                      )}-xxxxx`,
+                      destinationArn:
+                        'arn:aws:lambda:us-east-1:999999999999:function:test-checkForChanges-cdr3ogg-dev-fn1',
+                    },
+                  ],
+                };
+              }),
+          },
+        },
+      });
+
+      expect(deleteStub).to.have.been.calledTwice;
+      expect(deleteStub).to.have.been.calledWith({
+        logGroupName: 'someLogGroupName',
+        filterName: `${awsNaming.getStackName()}-${awsNaming.getCloudWatchLogLogicalId(
+          'Fn1',
+          1
+        )}-xxxxx`,
+      });
+      expect(deleteStub).to.have.been.calledWith({
+        logGroupName: 'someLogGroupName',
+        filterName: `${awsNaming.getStackName()}-${awsNaming.getCloudWatchLogLogicalId(
+          'Fn1',
+          2
+        )}-xxxxx`,
+      });
+    });
+
     it('should recognize custom partition', async () => {
       const deleteStub = sandbox.stub();
       let serverless;
