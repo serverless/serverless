@@ -79,7 +79,7 @@ module.exports.handler = async (event, context) => {
 };
 ```
 
-Example from context with an sync function:
+Example from context with a sync function:
 
 ```javascript
 module.exports.handler = async (event, context) => {
