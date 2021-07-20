@@ -1,0 +1,10 @@
+service: 'some-aws-service'
+provider: 'aws'
+
+functions:
+  app:
+    handler: index.handler
+    foo: bar
+  org:
+    handler: index.handler
+    foo: bar
