@@ -25,6 +25,7 @@
     "@serverless/cli": "^1.5.2",
     "@serverless/components": "^3.13.4",
     "@serverless/dashboard-plugin": "^5.4.3",
+    "@serverless/platform-client": "^4.2.5",
     "@serverless/utils": "^5.3.0",
     "ajv": "^6.12.6",
     "ajv-keywords": "^3.5.2",
