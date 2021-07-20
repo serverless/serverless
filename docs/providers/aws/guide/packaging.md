@@ -112,9 +112,7 @@ functions:
   package:
     artifact: hello.jar
   events:
-    - http:
-        path: hello
-        method: get
+    - httpApi: 'GET /hello'
 ```
 
 #### Artifacts hosted on S3
