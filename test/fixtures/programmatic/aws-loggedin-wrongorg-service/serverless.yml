@@ -1,0 +1,5 @@
+service: 'some-aws-service'
+provider: 'aws'
+
+org: 'some-other'
+app: 'some-aws-service-app'
