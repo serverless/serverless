@@ -245,8 +245,9 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
     ).to.eventually.be.rejected.and.have.property('code', 'INVALID_ANSWER');
     expect(context.stepHistory.valuesMap()).to.deep.equal(
       new Map([
-        ['orgName', '_user_provided_'],
+        ['orgName', '_user_choice_'],
         ['appName', '_create_'],
+        ['newAppName', undefined],
       ])
     );
   });
@@ -278,7 +279,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
 
   it('Should recognize an invalid app and allow to opt out', async () => {
     configureInquirerStub(inquirer, {
-      list: { appUpdateType: 'skip' },
+      list: { appUpdateType: '_skip_' },
     });
     const { servicePath: serviceDir, serviceConfig: configuration } = await fixtures.setup(
       'aws-loggedin-wrongapp-service'
@@ -298,7 +299,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
     });
     expect(context.configuration.org).to.equal('testinteractivecli');
     expect(context.configuration.app).to.equal('not-created-app');
-    expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['appUpdateType', 'skip']]));
+    expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['appUpdateType', '_skip_']]));
   });
 
   describe('Monitoring setup', () => {
@@ -340,8 +341,8 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
-          ['orgName', '_user_provided_'],
-          ['appName', '_user_provided_'],
+          ['orgName', '_user_choice_'],
+          ['appName', '_user_choice_'],
         ])
       );
     });
@@ -386,8 +387,8 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
-          ['orgName', '_user_provided_'],
-          ['appName', '_user_provided_'],
+          ['orgName', '_user_choice_'],
+          ['appName', '_user_choice_'],
         ])
       );
     });
@@ -759,8 +760,8 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
-          ['orgName', '_user_provided_'],
-          ['appName', '_user_provided_'],
+          ['orgName', '_user_choice_'],
+          ['appName', '_user_choice_'],
         ])
       );
     });
@@ -807,8 +808,8 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
-          ['orgName', '_user_provided_'],
-          ['appName', '_user_provided_'],
+          ['orgName', '_user_choice_'],
+          ['appName', '_user_choice_'],
           ['shouldOverrideDashboardConfig', true],
         ])
       );
@@ -854,8 +855,8 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
-          ['orgName', '_user_provided_'],
-          ['appName', '_user_provided_'],
+          ['orgName', '_user_choice_'],
+          ['appName', '_user_choice_'],
           ['shouldOverrideDashboardConfig', true],
         ])
       );
@@ -900,7 +901,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         'Your project has been setup with org testinteractivecli and app other-app'
       );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
-        new Map([['appName', '_user_provided_']])
+        new Map([['appName', '_user_choice_']])
       );
     });
 
@@ -944,9 +945,9 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
-          ['orgName', '_user_provided_'],
+          ['orgName', '_user_choice_'],
           ['appName', '_create_'],
-          ['newAppName', '_user_provided_'],
+          ['newAppName', '_user_input_'],
         ])
       );
     });
@@ -994,8 +995,8 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
           ['shouldUpdateOrg', true],
-          ['orgName', '_user_provided_'],
-          ['appName', '_user_provided_'],
+          ['orgName', '_user_choice_'],
+          ['appName', '_user_choice_'],
         ])
       );
     });
@@ -1041,7 +1042,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         'Your project has been setup with org testinteractivecli and app other-app'
       );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
-        new Map([['appName', '_user_provided_']])
+        new Map([['appName', '_user_choice_']])
       );
     });
   });
@@ -1163,7 +1164,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         'Your project has been setup with org testinteractivecli and app other-app'
       );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
-        new Map([['appName', '_user_provided_']])
+        new Map([['appName', '_user_choice_']])
       );
     });
   });
@@ -1171,7 +1172,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
   describe('Monitoring setup when invalid app', () => {
     it('Should recognize an invalid app and allow to create it', async () => {
       configureInquirerStub(inquirer, {
-        list: { appUpdateType: 'create' },
+        list: { appUpdateType: '_create_' },
       });
       const { servicePath: serviceDir, serviceConfig: configuration } = await fixtures.setup(
         'aws-loggedin-service',
@@ -1213,12 +1214,14 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       expect(stripAnsi(stdoutData)).to.include(
         'Your project has been setup with org testinteractivecli and app not-created-app'
       );
-      expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['appUpdateType', 'create']]));
+      expect(context.stepHistory.valuesMap()).to.deep.equal(
+        new Map([['appUpdateType', '_create_']])
+      );
     });
 
     it('Should recognize an invalid app and allow to replace it with existing one', async () => {
       configureInquirerStub(inquirer, {
-        list: { appUpdateType: 'chooseExisting', appName: 'other-app' },
+        list: { appUpdateType: '_choose_existing_', appName: 'other-app' },
       });
       const { servicePath: serviceDir, serviceConfig: configuration } = await fixtures.setup(
         'aws-loggedin-service',
@@ -1262,8 +1265,8 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
-          ['appUpdateType', 'chooseExisting'],
-          ['appName', '_user_provided_'],
+          ['appUpdateType', '_choose_existing_'],
+          ['appName', '_user_choice_'],
         ])
       );
     });
