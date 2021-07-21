@@ -348,10 +348,10 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
           ['credentialsSetupChoice', '_local_'],
-          ['createAwsAccountPrompt', true],
-          ['generateAwsCredsPrompt', true],
-          ['accessKeyId', '_user_provided_'],
-          ['secretAccessKey', '_user_provided_'],
+          ['createAwsAccountPrompt', '_continuation_'],
+          ['generateAwsCredsPrompt', '_continuation_'],
+          ['accessKeyId', '_user_input_'],
+          ['secretAccessKey', '_user_input_'],
         ])
       );
     });
@@ -373,9 +373,9 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
           ['credentialsSetupChoice', '_local_'],
-          ['generateAwsCredsPrompt', true],
-          ['accessKeyId', '_user_provided_'],
-          ['secretAccessKey', '_user_provided_'],
+          ['generateAwsCredsPrompt', '_continuation_'],
+          ['accessKeyId', '_user_input_'],
+          ['secretAccessKey', '_user_input_'],
         ])
       );
       return resolveFileProfiles().then((profiles) => {
@@ -401,7 +401,8 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
           ['credentialsSetupChoice', '_local_'],
-          ['generateAwsCredsPrompt', true],
+          ['generateAwsCredsPrompt', '_continuation_'],
+          ['accessKeyId', undefined],
         ])
       );
     });
@@ -424,8 +425,9 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
           ['credentialsSetupChoice', '_local_'],
-          ['generateAwsCredsPrompt', true],
-          ['accessKeyId', '_user_provided_'],
+          ['generateAwsCredsPrompt', '_continuation_'],
+          ['accessKeyId', '_user_input_'],
+          ['secretAccessKey', undefined],
         ])
       );
     });
@@ -683,7 +685,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
       );
       expect(stdoutData).to.include('Selected provider was successfully linked');
       expect(context.stepHistory.valuesMap()).to.deep.equal(
-        new Map([['credentialsSetupChoice', '_user_provided_']])
+        new Map([['credentialsSetupChoice', '_user_choice_']])
       );
     });
 
@@ -753,7 +755,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
       );
 
       expect(context.stepHistory.valuesMap()).to.deep.equal(
-        new Map([['credentialsSetupChoice', '_user_provided_']])
+        new Map([['credentialsSetupChoice', '_user_choice_']])
       );
     });
 
