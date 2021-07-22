@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.52.1](https://github.com/serverless/serverless/compare/v2.52.0...v2.52.1) (2021-07-22)
+
+### Bug Fixes
+
+- **CLI Onboarding:** Ensure credentials resolution is always performed before deploy step ([#9761](https://github.com/serverless/serverless/pull/9761)) ([b85f393](https://github.com/serverless/serverless/commit/b85f3934ed87e9c78494e9ad26163ee1d041599e)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:**
+  - Ensure `processedInput` is properly resolved in local fallback ([#9769](https://github.com/serverless/serverless/pull/9769)) ([464467e](https://github.com/serverless/serverless/commit/464467e2bece1bf3f35fe60041fa170f412087d3)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Fix validation of `deprecationNotificationMode` config option ([#9762](https://github.com/serverless/serverless/issues/9762)) ([916c76f](https://github.com/serverless/serverless/commit/916c76f48ca86c3e31b719d2bb655c34d0287cec)) ([frozenbonito](https://github.com/frozenbonito))
+- Fix `functions[]` validation (ignore `null` values) ([#9756](https://github.com/serverless/serverless/pull/9756)) ([922ec00](https://github.com/serverless/serverless/commit/922ec0093f0d4ab6f2b2055c6e6f2d5ec1f9d06e)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **CLI Onboarding:**
+  - Move `dashboard-login` step from `@serverless/dashboard-plugin` ([#9766](https://github.com/serverless/serverless/pull/9766)) ([adef710](https://github.com/serverless/serverless/commit/adef7102df2958e976445f0c247895f82decebf9)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Move `dashboard-set-org` from `@serverless/dashboard-plugin` ([#9766](https://github.com/serverless/serverless/pull/9766)) ([afdf77c](https://github.com/serverless/serverless/commit/afdf77c960c990f7daa445532789aebb9dc15a53)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Telemetry:** Use `prompt-with-history` for onboarding telemetry ([#9768](https://github.com/serverless/serverless/pull/9768)) ([4d56be5](https://github.com/serverless/serverless/commit/4d56be562a4bdaf2588bdc42227a451d098d1420)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Replace `fse.unlink` with `fs.promises.unlink` ([#9754](https://github.com/serverless/serverless/issues/9754)) ([daee1d5](https://github.com/serverless/serverless/commit/daee1d5375efdb748b85b85a2a4675ac3277001f)) ([Sudipto Das](https://github.com/sdas13))
+
 ## [2.52.0](https://github.com/serverless/serverless/compare/v2.51.2...v2.52.0) (2021-07-15)
 
 ### Features
