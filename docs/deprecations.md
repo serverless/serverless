@@ -246,7 +246,9 @@ Adapt to this behaviour now by adding `unresolvedVariablesNotificationMode: erro
 
 Deprecation code: `PROVIDER_IAM_SETTINGS`
 
-Staring with v3.0.0, all IAM-related settings of _provider_ including `iamRoleStatements`, `iamManagedPolicies`, `role` and `cfnRole` will be grouped under `iam` property. Refer to the[IAM Guide](/framework/docs/providers/aws/guide/iam.md).
+_Note: Originally support for old IAM settings was scheduled to be dropped with new major release. It's no longer the case. If you see this deprecation notice please upgrade to latest version of Serverless Framework_
+
+All IAM-related settings of _provider_ including `iamRoleStatements`, `iamManagedPolicies`, `role` and `cfnRole` are also now supported at `iam` property. Refer to the [IAM Guide](/framework/docs/providers/aws/guide/iam.md).
 
 - `provider.role` -> `provider.iam.role`
 - `provider.rolePermissionsBoundary` -> `provider.iam.role.permissionsBoundary`
@@ -254,8 +256,7 @@ Staring with v3.0.0, all IAM-related settings of _provider_ including `iamRoleSt
 - `provider.iamManagedPolicies` -> `provider.iam.role.managedPolicies`
 - `provider.cfnRole` -> `provider.iam.deploymentRole`
 
-In addition, a prior update had documented the new Permissions Boundary property as `iam.role.permissionBoundary`. This
-has now been deprecated in favor of `iam.role.permissionsBoundary` to match the CloudFormation property.
+In addition `iam.role.permissionBoundary` can also be set at `iam.role.permissionsBoundary` (which matches CloudFormation property name).
 
 <a name="AWS_API_GATEWAY_SPECIFIC_KEYS"><div>&nbsp;</div></a>
 
