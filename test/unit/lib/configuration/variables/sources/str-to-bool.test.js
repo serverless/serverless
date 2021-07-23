@@ -14,7 +14,7 @@ describe('test/unit/lib/configuration/variables/sources/str-to-bool.test.js', ()
       truthy: "${strToBool('true')}",
       falsy: "${strToBool('false')}",
       truthyUppercase: "${strToBool('TRUE')}",
-      falsyMixedcase: "${strToBool('False')}",
+      falsyMixedCase: "${strToBool('False')}",
       noParam: '${strToBool:}',
       invalid: '${strToBool(foo)}',
     };
@@ -31,8 +31,8 @@ describe('test/unit/lib/configuration/variables/sources/str-to-bool.test.js', ()
 
   it('should resolve truthy input', () => expect(configuration.truthy).to.equal(true));
   it('should resolve falsy input', () => expect(configuration.falsy).to.equal(false));
-  it('should resolve truthy input (uppercase)', () => expect(configuration.truthyUppercase).to.equal(true));
-  it('should resolve falsy input (mixedcase)', () => expect(configuration.falsyMixedcase).to.equal(false));
+  it('should resolve uppercase truthy input', () => expect(configuration.truthyUppercase).to.equal(true));
+  it('should resolve mixed case falsy input', () => expect(configuration.falsyMixedCase).to.equal(false));
 
   it('should report with an error missing input', () =>
     expect(variablesMeta.get('noParam').error.code).to.equal('VARIABLE_RESOLUTION_ERROR'));
