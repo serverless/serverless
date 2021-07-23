@@ -236,9 +236,9 @@ Starting from v3.0.0 configuration data will not be resolved internally, and if 
 
 Deprecation code: `VARIABLES_ERROR_ON_UNRESOLVED`
 
-Starting with v3.0.0, references to variables that cannot be resolved will result in an error being thrown.
+_Note: Starting with v3.0.0, Serverless Framework will switch exclusively to a new variables resolver. If you see this deprecation please upgrade to latest v2 release of Serverless Framework, as that will provide a more accurate insight on planned changes._
 
-Adapt to this behaviour now by adding `unresolvedVariablesNotificationMode: error` to service configuration.
+In context of v2 you may adapt old variables resolver so errors on unresolved variables are thrown by adding `unresolvedVariablesNotificationMode: error` to service configuration.
 
 <a name="PROVIDER_IAM_SETTINGS"><div>&nbsp;</div></a>
 
