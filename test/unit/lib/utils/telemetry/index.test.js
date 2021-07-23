@@ -55,7 +55,7 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
   afterEach(async () => {
     usedOptions = null;
     usedUrl = null;
-    const dirFilenames = await fse.readdir(cacheDirPath);
+    const dirFilenames = await fsp.readdir(cacheDirPath);
     await Promise.all(
       dirFilenames.map(async (filename) => fsp.unlink(path.join(cacheDirPath, filename)))
     );
@@ -64,7 +64,7 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
   it('`storeLocally` should persist an event in cacheDir', async () => {
     const payload = { test: 'payloadvalue' };
     storeLocally(payload);
-    const dirFilenames = await fse.readdir(cacheDirPath);
+    const dirFilenames = await fsp.readdir(cacheDirPath);
     expect(dirFilenames.length).to.equal(1);
     const persistedEvent = await fse.readJson(path.join(cacheDirPath, dirFilenames[0]));
     expect(persistedEvent.payload).to.deep.equal(payload);
@@ -76,12 +76,12 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
     await cacheEvent();
     await send();
     expect(usedUrl).to.equal(telemetryUrl);
-    const dirFilenames = await fse.readdir(cacheDirPath);
+    const dirFilenames = await fsp.readdir(cacheDirPath);
     expect(dirFilenames.filter(isFilename).length).to.equal(1);
 
     expectedState = 'success';
     await send();
-    const dirFilenamesAfterSend = await fse.readdir(cacheDirPath);
+    const dirFilenamesAfterSend = await fsp.readdir(cacheDirPath);
     expect(dirFilenamesAfterSend.filter(isFilename).length).to.equal(0);
 
     // Check that one event was send with request
@@ -91,10 +91,10 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
   it('Should ditch stale events at `send`', async () => {
     await Promise.all([cacheEvent(0), cacheEvent(0), cacheEvent(), cacheEvent(), cacheEvent(0)]);
     expectedState = 'success';
-    const dirFilenames = await fse.readdir(cacheDirPath);
+    const dirFilenames = await fsp.readdir(cacheDirPath);
     expect(dirFilenames.filter(isFilename).length).to.equal(5);
     await send();
-    const dirFilenamesAfterSend = await fse.readdir(cacheDirPath);
+    const dirFilenamesAfterSend = await fsp.readdir(cacheDirPath);
     expect(dirFilenamesAfterSend.filter(isFilename).length).to.equal(0);
     // Check if only two events were send with request
     expect(JSON.parse(usedOptions.body)).to.have.lengthOf(2);
@@ -104,7 +104,7 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
     expectedState = 'responseBodyError';
     await cacheEvent();
     await send();
-    const dirFilenames = await fse.readdir(cacheDirPath);
+    const dirFilenames = await fsp.readdir(cacheDirPath);
     expect(dirFilenames.filter(isFilename).length).to.equal(0);
   });
 
