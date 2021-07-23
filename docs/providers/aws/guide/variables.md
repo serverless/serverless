@@ -726,11 +726,15 @@ provider:
     apiGateway: ${strToBool(${ssm:API_GW_DEBUG_ENABLED})}
 ```
 
-These are examples that explain how the conversion works:
+These are examples that explain how the conversion works after first lowercasing the passed string value:
 
 ```plaintext
 ${strToBool(true)} => true
 ${strToBool(false)} => false
+${strToBool(True)} => true
+${strToBool(False)} => false
+${strToBool(TRUE)} => true
+${strToBool(FALSE)} => false
 ${strToBool(0)} => false
 ${strToBool(1)} => true
 ${strToBool(2)} => Error
