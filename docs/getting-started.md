@@ -37,7 +37,7 @@ To install an specific version you may set a VERSION variable, for example:
 curl -o- -L https://slss.io/install | VERSION=2.21.1 bash
 ```
 
-Then open another terminal window to run `serverless` program.
+Then, open another terminal window to run the `serverless` program.
 
 ### Windows
 
@@ -59,13 +59,15 @@ npm install -g serverless
 
 ## Initial setup
 
-Run below command and follow the prompts
+Run the command below and follow the prompts:
 
 ```bash
 serverless
 ```
 
-_Note: Users in China are presented with setup centered around chinese [Tencent](https://intl.cloud.tencent.com/) provider. If you're based in China and prefer to be presented with steps as outside of China ensure `SERVERLESS_PLATFORM_VENDOR=aws` in your environment_
+The command will guide you to create a new serverless project.
+
+_Note: Users in China are presented with a setup centered around the chinese [Tencent](https://intl.cloud.tencent.com/) provider. If you're based in China and prefer to be presented with steps as outside of China, set the following environment variable: `SERVERLESS_PLATFORM_VENDOR=aws`_
 
 ## Upgrade
 

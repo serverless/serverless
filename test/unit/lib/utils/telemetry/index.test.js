@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('path');
+const fsp = require('fs').promises;
 const fse = require('fs-extra');
 const proxyquire = require('proxyquire');
 const { expect } = require('chai');
@@ -56,13 +57,13 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
     usedUrl = null;
     const dirFilenames = await fse.readdir(cacheDirPath);
     await Promise.all(
-      dirFilenames.map(async (filename) => fse.unlink(path.join(cacheDirPath, filename)))
+      dirFilenames.map(async (filename) => fsp.unlink(path.join(cacheDirPath, filename)))
     );
   });
 
   it('`storeLocally` should persist an event in cacheDir', async () => {
     const payload = { test: 'payloadvalue' };
-    await storeLocally(payload);
+    storeLocally(payload);
     const dirFilenames = await fse.readdir(cacheDirPath);
     expect(dirFilenames.length).to.equal(1);
     const persistedEvent = await fse.readJson(path.join(cacheDirPath, dirFilenames[0]));

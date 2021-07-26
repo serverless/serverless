@@ -12,6 +12,19 @@ With `useDotenv: true` set in your `serverless.yml` file, framework automaticall
 
 The framework looks for `.env` and `.env.{stage}` files in service directory and then tries to load them using `dotenv`. If `.env.{stage}` is found, `.env` will not be loaded. If stage is not explicitly defined, it defaults to `dev`.
 
+### Variable expansion
+
+It is possible to define environment variables as a combination of existing ones:
+
+```env
+BASE_URL=my.api.com
+PROTOCOL=https
+
+URL=$PROTOCOL/$BASE_URL
+```
+
+> This is supported through [dotenv-expand](https://github.com/motdotla/dotenv-expand)
+
 ### Differences against `serverless-dotenv-plugin`
 
 There are a few differences between above functionality and [serverless-dotenv-plugin](https://github.com/colynb/serverless-dotenv-plugin):

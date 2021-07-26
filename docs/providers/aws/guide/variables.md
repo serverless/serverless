@@ -317,7 +317,8 @@ Account ID of you AWS Account, based on the AWS Credentials that you have config
 
 ```yml
 service: new-service
-provider: aws
+provider:
+  name: aws
 
 functions:
   func1:

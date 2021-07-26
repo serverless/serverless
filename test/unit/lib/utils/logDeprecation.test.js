@@ -7,7 +7,7 @@ const overrideStdoutWrite = require('process-utils/override-stdout-write');
 const runServerless = require('../../../utils/run-serverless');
 const ServerlessError = require('../../../../lib/serverless-error');
 
-describe('#logDeprecation()', () => {
+describe('test/unit/lib/utils/logDeprecation.test.js', () => {
   let restoreEnv;
   let originalEnv;
 
@@ -21,8 +21,9 @@ describe('#logDeprecation()', () => {
     restoreEnv();
   });
 
-  it('Should log deprecation message if not disabled and first time', () => {
+  it('should log deprecation message if not disabled and first time', () => {
     const logDeprecation = require('../../../../lib/utils/logDeprecation');
+    logDeprecation.defaultMode = 'warn';
     let stdoutData = '';
     overrideStdoutWrite(
       (data) => (stdoutData += data),
@@ -34,7 +35,7 @@ describe('#logDeprecation()', () => {
     expect(stdoutData).to.include('https://www.serverless.com/framework/docs/deprecations/#CODE1');
   });
 
-  it('Should not log deprecation if disabled in env.SLS_DEPRECATION_DISABLE', () => {
+  it('should not log deprecation if disabled in env.SLS_DEPRECATION_DISABLE', () => {
     process.env.SLS_DEPRECATION_DISABLE = 'CODE1';
     const logDeprecation = require('../../../../lib/utils/logDeprecation');
 
@@ -46,7 +47,7 @@ describe('#logDeprecation()', () => {
     expect(stdoutData).to.equal('');
   });
 
-  it('Should not log deprecation if disabled in serviceConfig', () => {
+  it('should not log deprecation if disabled in serviceConfig', () => {
     // We need original process env variables for npm-conf
     Object.assign(process.env, originalEnv);
     const logDeprecation = require('../../../../lib/utils/logDeprecation');
@@ -65,7 +66,7 @@ describe('#logDeprecation()', () => {
     });
   });
 
-  it('Should not log deprecation if disabled by wildcard in env', () => {
+  it('should not log deprecation if disabled by wildcard in env', () => {
     process.env.SLS_DEPRECATION_DISABLE = '*';
     const logDeprecation = require('../../../../lib/utils/logDeprecation');
     let stdoutData = '';
@@ -76,7 +77,7 @@ describe('#logDeprecation()', () => {
     expect(stdoutData).to.equal('');
   });
 
-  it('Should not log deprecation if disabled by wildcard in service config', () => {
+  it('should not log deprecation if disabled by wildcard in service config', () => {
     Object.assign(process.env, originalEnv);
     const logDeprecation = require('../../../../lib/utils/logDeprecation');
     return runServerless({
@@ -94,7 +95,7 @@ describe('#logDeprecation()', () => {
     });
   });
 
-  it('Should throw on deprecation if env.SLS_DEPRECATION_NOTIFICATION_MODE=error', () => {
+  it('should throw on deprecation if env.SLS_DEPRECATION_NOTIFICATION_MODE=error', () => {
     process.env.SLS_DEPRECATION_NOTIFICATION_MODE = 'error';
     const logDeprecation = require('../../../../lib/utils/logDeprecation');
     expect(() => logDeprecation('CODE1', 'Start using deprecation log'))
@@ -102,7 +103,7 @@ describe('#logDeprecation()', () => {
       .with.property('code', 'REJECTED_DEPRECATION_CODE1');
   });
 
-  it('Should throw on deprecation if error notifications mode set in service config', () => {
+  it('should throw on deprecation if error notifications mode set in service config', () => {
     const logDeprecation = require('../../../../lib/utils/logDeprecation');
     expect(() =>
       logDeprecation('CODE1', 'Start using deprecation log', {
@@ -113,12 +114,13 @@ describe('#logDeprecation()', () => {
       .with.property('code', 'REJECTED_DEPRECATION_CODE1');
   });
 
-  it('Should not log deprecation twice', () => {
+  it('should not log deprecation twice', () => {
     let stdoutData = '';
     overrideStdoutWrite(
       (data) => (stdoutData += data),
       () => {
         const logDeprecation = require('../../../../lib/utils/logDeprecation');
+        logDeprecation.defaultMode = 'warn';
         logDeprecation('CODE1', 'Start using deprecation log');
         expect(stdoutData).to.include('Start using deprecation log');
         stdoutData = '';
@@ -126,5 +128,39 @@ describe('#logDeprecation()', () => {
       }
     );
     expect(stdoutData).to.equal('');
+  });
+
+  it('should expose working `flushBuffered` method', () => {
+    let stdoutData = '';
+    overrideStdoutWrite(
+      (data) => (stdoutData += data),
+      () => {
+        const logDeprecation = require('../../../../lib/utils/logDeprecation');
+        logDeprecation('CODE1', 'First deprecation');
+        expect(stdoutData).to.not.include('First deprecation');
+        logDeprecation('CODE2', 'Second deprecation');
+        expect(stdoutData).to.not.include('Second deprecation');
+        logDeprecation.flushBuffered();
+      }
+    );
+    expect(stdoutData).to.include('First deprecation');
+    expect(stdoutData).to.include('Second deprecation');
+  });
+
+  it('should expose working `printSummary` method', () => {
+    let stdoutData = '';
+    overrideStdoutWrite(
+      (data) => (stdoutData += data),
+      () => {
+        const logDeprecation = require('../../../../lib/utils/logDeprecation');
+        logDeprecation('CODE1', 'First deprecation');
+        expect(stdoutData).to.not.include('First deprecation');
+        logDeprecation('CODE2', 'Second deprecation');
+        expect(stdoutData).to.not.include('Second deprecation');
+        logDeprecation.printSummary();
+      }
+    );
+    expect(stdoutData).to.include('First deprecation');
+    expect(stdoutData).to.include('Second deprecation');
   });
 });

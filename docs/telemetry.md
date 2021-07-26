@@ -38,16 +38,17 @@ In addition to telemetry, Serverless Framework occasionally informs you about ne
 
 ### Adjusting/disabling notifications
 
-Notifications can be configured by `SLS_NOTIFICATIONS_MODE` environment variable. If accepts three distinct values:
+Notifications can be configured by `SLS_NOTIFICATIONS_MODE` environment variable. If accepts following distinct values:
 
-- `0` - in this mode all notifications will be disabled
-- `1` - in this mode only notifications about minor and major version upgrades will be visible
-- `2` - in this mode all notifications will be visible
+- `off` (in older versions `0`) - No notifications will be shown
+- `upgrades-only` (in older versions `1`) - Only notifications about minor and major version upgrades will be visible
+- `on` (in older versions `2`) - All notifications will be visible
+- `force` (in older versions `3`) - All notifications will be visible and will be presented constantly ignoring the visibility threshold setting
 
-By default, the notifications are turned on (use mode `'2'`), with the exception of CI environments where the default mode is set to `'1'`.
+By default, the notifications are turned on (mode `'on'`), with the exception of CI environments where the default mode is set to `'upgrades-only'`.
 
 To adjust the notifications, set the `SLS_NOTIFICATIONS_MODE` to one of the values above, e.g.:
 
 ```
-SLS_NOTIFICATIONS_MODE=0 sls deploy
+SLS_NOTIFICATIONS_MODE=upgrades-only sls deploy
 ```

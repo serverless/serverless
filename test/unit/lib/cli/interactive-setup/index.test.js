@@ -4,12 +4,6 @@
 
 const spawn = require('child-process-ext/spawn');
 const path = require('path');
-const proxyquire = require('proxyquire');
-const chai = require('chai');
-
-const { expect } = chai;
-
-chai.use(require('chai-as-promised'));
 
 const serverlessPath = path.resolve(__dirname, '../../../../../scripts/serverless.js');
 const templatesPath = path.resolve(__dirname, '../../../../../lib/plugins/create/templates');
@@ -78,19 +72,5 @@ describe('test/unit/lib/cli/interactive-setup/index.test.js', () => {
     slsProcess.stderr.pipe(process.stderr);
 
     await slsProcessPromise;
-  });
-
-  it('should attach `commandUsage` to thrown error', async () => {
-    const mockedInteractiveSetup = proxyquire('../../../../../lib/cli/interactive-setup', {
-      './service': {
-        isApplicable: () => {
-          throw new Error('Error during processing');
-        },
-      },
-    });
-
-    await expect(mockedInteractiveSetup({})).to.be.eventually.rejected.and.have.property(
-      'commandUsage'
-    );
   });
 });

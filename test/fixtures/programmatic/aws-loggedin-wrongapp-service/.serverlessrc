@@ -1,0 +1,31 @@
+{
+  "frameworkId": "00000000-0000-0000-0000-000000000000",
+  "meta": {
+    "created_at": 1560000000,
+    "updated_at": 1560000000
+  },
+  "userId": "testinteractivecli",
+  "users": {
+    "testinteractivecli": {
+      "userId": "testinteractivecli",
+      "name": "Testing Interactive Cli",
+      "email": "test-interactive-cli@interactive.cli",
+      "username": "testinteractivecli",
+      "dashboard": {
+        "refreshToken": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "accessToken": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "idToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik56azVNREl5TVRnNFJqWTBORGswT0VJM1JrRXpORGN4UmtVMU1FWXdNemczT1VKQlFqRTBNZyJ9.eyJuaWNrbmFtZSI6InRlc3QtaW50ZXJhY3RpdmUtY2xpIiwibmFtZSI6IlRlc3RpbmcgSW50ZXJhY3RpdmUgQ2xpIiwicGljdHVyZSI6Imh0dHBzOi8vaW50ZXJhdGNpdmUuY2xpL3Rlc3RpbmcucG5nIiwidXBkYXRlZF9hdCI6IjIwMTktMDktMTZUMTU6MTg6NDMuOTk5WiIsImVtYWlsIjoidGVzdGluZ0BpbnRlcmFjdGl2ZS5jbGkiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6Ly9zZXJ2ZXJsZXNzaW5jLmF1dGgwLmNvbS8iLCJzdWIiOiJ0ZXN0LWludGVyYWN0aXZlLWNsaSIsImF1ZCI6IlhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYIiwiaWF0IjoxNTYwMDAwMDAwLCJleHAiOjMwMDAwMDAwMDB9.GcNQtWSxv9CHTABw-HIjYSvRxTEapDUDqIIWRGmz01XmShQxRGOHRuUg1NKU4w9MpOlB6txHKs8UWd2eZkzw_Z4QmIuLyAVhVklpWP2-xeysPLUyqVTgqAg8kgIUAwdKjmrdpQqHhGd-Q1BIX62-E-qKKx8prmADSw_hgmuvlMuSCa1ajCnfyUXycQxDmbFrvjd24lJER0FSpB2nWWW3KxZ_UBX-TuVmiEtRXg9GYeSv6oIU78PrIhYgJ0QjERRF1yAYamIXNRs-KZ7Z4YiFNC4uKzFH1524pZkS4Q0-pweIvBrrsjekz-vEYcbaVG1zAxDu_yNrYPk5phCy8MHTrQ",
+        "expiresAt": 3000000000000,
+        "username": "testinteractivecli",
+        "accessKeys": {
+          "testinteractivecli": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        }
+      },
+      "enterprise": {
+        "versionSDK": "2.1.1",
+        "timeLastLogin": 1560000000,
+        "timeLastLogout": 1560000000
+      }
+    }
+  }
+}

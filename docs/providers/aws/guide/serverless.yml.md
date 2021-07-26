@@ -29,7 +29,7 @@ enableLocalInstallationFallback: false # If set to 'true', guarantees that it's 
 useDotenv: false # If set to 'true', environment variables will be automatically loaded from .env files
 variablesResolutionMode: null # To crash on variable resolution errors (as coming from new resolver), set this value to "20210326"
 unresolvedVariablesNotificationMode: warn # If set to 'error', references to variables that cannot be resolved will result in an error being thrown (applies to legacy resolver)
-deprecationNotificationMode: warn # If set to 'error' any reported deprection will result in an error being thrown
+deprecationNotificationMode: warn:summary # 'warn' reports deprecations on the go, 'error' will result with an exception being thrown on first approached deprecation
 
 disabledDeprecations: # Disable deprecation logs by their codes. Default is empty.
   - DEP_CODE_1 # Deprecation code to disable
@@ -63,6 +63,7 @@ provider:
       key1: value1
       key2: value2
   deploymentPrefix: serverless # The S3 prefix under which deployed artifacts should be stored. Default is serverless
+  disableDefaultOutputExportNames: false # optional, if set to 'true', disables default behavior of generating export names for CloudFormation outputs
   lambdaHashingVersion: 20201221 # optional, version of hashing algorithm that should be used by the framework
   ecr:
     scanOnPush: true
@@ -285,6 +286,12 @@ provider:
       format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
 
     frameworkLambda: true # Optional, whether to write CloudWatch logs for custom resource lambdas as added by the framework
+  s3: # If you need to configure the bucket itself, you'll need to add s3 resources to the provider configuration
+    bucketOne: # Eventual additional properties in camel case
+    # Supported properties are the same ones as supported by CF resource for S3 bucket: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html
+      name: my-custom-bucket-name
+      versioningConfiguration:
+        Status: Enabled
 
 package: # Optional deployment packaging configuration
   patterns: # Specify the directories and files which should be included in the deployment package
@@ -573,6 +580,7 @@ functions:
             OriginPath: /framework
             CustomOriginConfig:
               OriginProtocolPolicy: match-viewer
+      - s3: bucketOne
 
 layers:
   hello: # A Lambda layer

@@ -206,7 +206,7 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      SLS_AWS_REQUEST_MAX_RETRIES: 21 #Increase number of retries, do to observed "Rate exceeded" fails
+      SLS_AWS_REQUEST_MAX_RETRIES: 50 #Increase number of retries, due to observed "Rate exceeded" fails
       SERVERLESS_BINARY_PATH: ./dist/serverless-linux
     steps:
       - name: Checkout repository
@@ -226,6 +226,12 @@ jobs:
             ~/.npm
             node_modules
           key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+
+      # Potentially needed for test/integration/curated-plugins-python.test.js
+      # (current GA runtime comes with Python 3.8 preinstalled, but that might be subject to changes)
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1

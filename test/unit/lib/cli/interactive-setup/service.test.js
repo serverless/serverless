@@ -111,7 +111,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
           ['projectType', 'aws-nodejs'],
-          ['projectName', '_user_provided_'],
+          ['projectName', '_user_input_'],
         ])
       );
     });
@@ -156,7 +156,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
           ['projectType', 'aws-nodejs'],
-          ['projectName', '_user_provided_'],
+          ['projectName', '_user_input_'],
         ])
       );
     });
@@ -203,7 +203,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
           ['projectType', 'aws-nodejs'],
-          ['projectName', '_user_provided_'],
+          ['projectName', '_user_input_'],
         ])
       );
     });
@@ -248,7 +248,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
           ['projectType', 'aws-nodejs'],
-          ['projectName', '_user_provided_'],
+          ['projectName', '_user_input_'],
         ])
       );
     });
@@ -288,7 +288,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
           ['projectType', 'aws-nodejs'],
-          ['projectName', '_user_provided_'],
+          ['projectName', '_user_input_'],
         ])
       );
     });
@@ -306,7 +306,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       expect(stats.isFile()).to.be.true;
 
       expect(context.stepHistory.valuesMap()).to.deep.equal(
-        new Map([['projectName', '_user_provided_']])
+        new Map([['projectName', '_user_input_']])
       );
     });
 
@@ -374,7 +374,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       );
 
       expect(context.stepHistory.valuesMap()).to.deep.equal(
-        new Map([['projectName', '_user_provided_']])
+        new Map([['projectName', '_user_input_']])
       );
     });
 
@@ -415,7 +415,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       );
 
       expect(context.stepHistory.valuesMap()).to.deep.equal(
-        new Map([['projectName', '_user_provided_']])
+        new Map([['projectName', '_user_input_']])
       );
     });
 
@@ -440,7 +440,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
           ['projectType', 'aws-nodejs'],
-          ['projectName', '_user_provided_'],
+          ['projectName', '_user_input_'],
         ])
       );
     });
@@ -460,7 +460,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
         'INVALID_TEMPLATE'
       );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
-        new Map([['projectName', '_user_provided_']])
+        new Map([['projectName', '_user_input_']])
       );
     });
 
@@ -485,7 +485,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       );
 
       expect(context.stepHistory.valuesMap()).to.deep.equal(
-        new Map([['projectName', '_user_provided_']])
+        new Map([['projectName', '_user_input_']])
       );
     });
   });
@@ -504,7 +504,12 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       'INVALID_ANSWER'
     );
 
-    expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['projectType', 'aws-nodejs']]));
+    expect(context.stepHistory.valuesMap()).to.deep.equal(
+      new Map([
+        ['projectType', 'aws-nodejs'],
+        ['projectName', undefined],
+      ])
+    );
   });
 
   it('Should not allow project creation in a directory in which already service is configured when `name` flag provided', async () => {
@@ -534,7 +539,12 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       'INVALID_ANSWER'
     );
 
-    expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['projectType', 'aws-nodejs']]));
+    expect(context.stepHistory.valuesMap()).to.deep.equal(
+      new Map([
+        ['projectType', 'aws-nodejs'],
+        ['projectName', undefined],
+      ])
+    );
   });
 
   it('Should not allow project creation using an invalid project name when `name` flag provided', async () => {
