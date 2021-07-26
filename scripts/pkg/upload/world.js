@@ -2,6 +2,7 @@
 
 const path = require('path');
 const fs = require('fs');
+const fsp = require('fs').promises;
 const fetch = require('node-fetch');
 const chalk = require('chalk');
 
@@ -37,7 +38,7 @@ module.exports = async (versionTag, { isLegacyVersion }) => {
     request(`${API_URL}${releaseId}/assets`, requestOptions)
   );
 
-  const distFileBasenames = await fs.promises.readdir(distPath);
+  const distFileBasenames = await fsp.readdir(distPath);
   await Promise.all(
     distFileBasenames
       .map(async (distFileBasename) => {
