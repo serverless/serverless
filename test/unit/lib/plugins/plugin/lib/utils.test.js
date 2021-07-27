@@ -8,7 +8,6 @@ const chalk = require('chalk');
 const PluginInstall = require('../../../../../../lib/plugins/plugin/install');
 const Serverless = require('../../../../../../lib/Serverless');
 const CLI = require('../../../../../../lib/classes/CLI');
-const runServerless = require('../../../../../utils/run-serverless');
 const { expect } = require('chai');
 
 chai.use(require('chai-as-promised'));
@@ -45,24 +44,6 @@ describe('PluginUtils', () => {
 
   afterEach(() => {
     serverless.cli.consoleLog.restore();
-  });
-
-  describe('#validate()', () => {
-    it('should throw an error if the the cwd is not a Serverless service', async () => {
-      await runServerless({
-        noService: true,
-        command: 'plugin install',
-        options: { name: 'serverless-webpack' },
-      }).catch((err) => {
-        expect(err.code).to.equal('MISSING_SERVICE_DIRECTORY');
-      });
-    });
-
-    it('should resolve if the cwd is a Serverless service', (done) => {
-      pluginUtils.serverless.serviceDir = true;
-
-      pluginUtils.validate().then(() => done());
-    });
   });
 
   describe('#getServerlessFilePath()', () => {
