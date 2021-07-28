@@ -28,6 +28,7 @@ let serviceDir = null;
 let configuration = null;
 let serverless;
 const commandUsage = {};
+const variableSourcesInConfig = new Set();
 
 let hasTelemetryBeenReported = false;
 
@@ -50,6 +51,7 @@ process.once('uncaughtException', (error) => {
     serverless,
     hasTelemetryBeenReported: cachedHasTelemetryBeenReported,
     commandUsage,
+    variableSourcesInConfig,
   });
 });
 
@@ -74,6 +76,7 @@ require('signal-exit/signals').forEach((signal) => {
           configuration,
           serverless,
           commandUsage,
+          variableSources: variableSourcesInConfig,
         });
         storeTelemetryLocally({
           ...telemetryPayload,
@@ -289,6 +292,7 @@ const processSpanPromise = (async () => {
               options: filterSupportedOptions(options, { commandSchema, providerName }),
               fulfilledSources: new Set(['file', 'self', 'strToBool']),
               propertyPathsToResolve: new Set(['provider\0name', 'provider\0stage', 'useDotenv']),
+              variableSourcesInConfig,
             };
             if (isInteractiveSetup) resolverConfiguration.fulfilledSources.add('opt');
             await resolveVariables(resolverConfiguration);
@@ -472,6 +476,7 @@ const processSpanPromise = (async () => {
               serviceDir,
               configuration: configurationFromInteractive,
               commandUsage,
+              variableSources: variableSourcesInConfig,
             }),
             outcome: 'success',
           });
@@ -759,6 +764,7 @@ const processSpanPromise = (async () => {
               serviceDir,
               configuration,
               serverless,
+              variableSources: variableSourcesInConfig,
             }),
             outcome: 'success',
           });
@@ -809,6 +815,7 @@ const processSpanPromise = (async () => {
       serverless,
       hasTelemetryBeenReported: cachedHasTelemetryBeenReported,
       commandUsage,
+      variableSources: variableSourcesInConfig,
     });
   } finally {
     clearTimeout(keepAliveTimer);
