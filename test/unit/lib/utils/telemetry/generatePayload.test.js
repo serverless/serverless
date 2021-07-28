@@ -147,6 +147,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         resources: {
           general: ['AWS::Logs::LogGroup', 'AWS::S3::Bucket', 'Custom'],
         },
+        variableSources: [],
       },
       isAutoUpdateEnabled: false,
       isTabAutocompletionInstalled: false,
@@ -206,6 +207,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
           { runtime: 'bar', events: [] },
         ],
         resources: undefined,
+        variableSources: [],
       },
       isAutoUpdateEnabled: false,
       isTabAutocompletionInstalled: false,
@@ -268,6 +270,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         plugins: [],
         functions: [],
         resources: { general: [] },
+        variableSources: [],
       },
       isAutoUpdateEnabled: false,
       isTabAutocompletionInstalled: false,
@@ -350,6 +353,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       isConfigValid: null,
       config: {
         configValidationMode: 'warn',
+        variableSources: [],
         provider: {
           name: 'aws',
           runtime: 'nodejs12.x',
@@ -630,5 +634,19 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         ],
       },
     ]);
+  });
+
+  it('Should correctly resolve `variableSources` property', () => {
+    const payload = generatePayload({
+      command: 'print',
+      options: {},
+      commandSchema: commandsSchema.get('print'),
+      serviceDir: process.cwd(),
+      configuration: { service: 'foo', provider: 'aws' },
+      commandUsage: [],
+      variableSources: new Set(['ssm', 'opt']),
+    });
+
+    expect(payload.config.variableSources).to.deep.equal(['ssm', 'opt']);
   });
 });
