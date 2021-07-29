@@ -14,4 +14,4 @@ layout: Doc
 
 # Azure - Deploy Function
 
-The `serverless deploy function` command is not supported within the `serverless-azure-functions` plugin. Functions within a Function App are deployed as a unit and cannot be separated.
+The `serverless deploy function` command is not supported within the `serverless-azure-functions` plugin. Functions within a Service are deployed as a unit and cannot be separated.

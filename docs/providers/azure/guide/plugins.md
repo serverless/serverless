@@ -21,15 +21,15 @@ A Plugin is custom JavaScript code that creates new or extends existing commands
 
 ## Installing Plugins
 
-External Plugins are added on a per function app basis and are not applied globally.
-Make sure you are in your function app's root directory, then install the
+External Plugins are added on a per service basis and are not applied globally.
+Make sure you are in your service's root directory, then install the
 corresponding Plugin with the help of npm:
 
 ```
 npm i --save custom-serverless-plugin
 ```
 
-We need to tell Serverless that we want to use the plugin inside our function app. We do this by adding the name of the Plugin to the `plugins` section in the `serverless.yml` file.
+We need to tell Serverless that we want to use the plugin inside our service. We do this by adding the name of the Plugin to the `plugins` section in the `serverless.yml` file.
 
 ```yml
 # serverless.yml file

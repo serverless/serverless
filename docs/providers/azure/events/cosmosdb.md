@@ -22,7 +22,7 @@ Full documentation can be found on
 # Events
 
 This setup describe how to write the data received, when someone
-accesses the Function App at `api/cosmos` via a `POST` request
+accesses the Service at `api/cosmos` via a `POST` request
 , to [Cosmos DB](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-cosmosdb-v2#output---javascript-examples)
 
 ## Serverless.yml

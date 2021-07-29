@@ -16,10 +16,10 @@ We try to keep this page up to date, but the **most** up to date documentation c
 2. Serverless CLI `v1.9.0+`. You can run `npm i -g serverless` if you don't already have it.
 3. An Azure account. If you don't already have one, you can sign up for a [free trial](https://azure.microsoft.com/en-us/free/) that includes \$200 of free credit.
 
-### Create a new Azure Function App
+### Create a new Azure Service
 
 ```bash
-# Create Azure Function App from template
+# Create Azure Service from template
 # Templates include: azure-nodejs, azure-python, azure-dotnet
 $ sls create -t azure-nodejs -p <appName>
 # Move into project directory
@@ -30,26 +30,26 @@ $ npm install
 
 The `serverless.yml` file contains the configuration for your service. For more details on its configuration, see [the docs](https://github.com/serverless/serverless-azure-functions/blob/master/docs/CONFIG.md).
 
-### Running Function App Locally (`offline` plugin)
+### Running Service Locally (`offline` plugin)
 
 At the root of your project directory, run:
 
 ```bash
-# Builds necessary function bindings files and starts the function app
+# Builds necessary function bindings files and starts the service
 $ sls offline
 ```
 
 The `offline` process will generate a directory for each of your functions, which will contain a file titled `function.json`. This will contain a relative reference to your handler file & exported function from that file as long as they are referenced correctly in `serverless.yml`.
 
-After the necessary files are generated, it will start the function app from within the same shell. For HTTP functions, the local URLs will be displayed in the console when the function app is initialized.
+After the necessary files are generated, it will start the service from within the same shell. For HTTP functions, the local URLs will be displayed in the console when the service is initialized.
 
-To build the files _without_ spawning the process to start the function app, run:
+To build the files _without_ spawning the process to start the service, run:
 
 ```bash
 $ sls offline build
 ```
 
-To simply start the function app _without_ building the files, run:
+To simply start the service _without_ building the files, run:
 
 ```bash
 $ sls offline start
@@ -71,7 +71,7 @@ This works for `sls offline` or `sls offline start`
 
 ### Dry-Run Deployment
 
-Before you deploy your new function app, you may want to double check the resources that will be created, their generated names and other basic configuration info. You can run:
+Before you deploy your new service, you may want to double check the resources that will be created, their generated names and other basic configuration info. You can run:
 
 ```bash
 # -d is short for --dryrun
@@ -86,7 +86,7 @@ For a more detailed look into the generated ARM template for your resource group
 $ sls deploy --dryrun --arm
 ```
 
-### Deploy Your Function App
+### Deploy Your Service
 
 Deploy your new service to Azure! The first time you do this, you will be asked to authenticate with your Azure account, so the `serverless` CLI can manage Functions on your behalf. Simply follow the provided instructions, and the deployment will continue as soon as the authentication process is completed.
 
@@ -96,7 +96,7 @@ $ sls deploy
 
 For more advanced deployment scenarios, see our [deployment docs](https://github.com/serverless/serverless-azure-functions/blob/master/docs/DEPLOY.md)
 
-### Get a Summary of Your Deployed Function App
+### Get a Summary of Your Deployed Service
 
 To see a basic summary of your application (same format as the dry-run summary above), run:
 
@@ -116,7 +116,7 @@ You can also get information services with different stages, regions or resource
 $ sls info --stage prod --region westus2
 ```
 
-### Test Your Function App
+### Test Your Service
 
 Invoke your HTTP functions without ever leaving the CLI using:
 
@@ -133,7 +133,7 @@ $ sls invoke -f <functionName>
 
 ##### Example
 
-After deploying template function app, run
+After deploying template service, run
 
 ```bash
 $ sls invoke -f hello -d '{"name": "Azure"}'
@@ -151,15 +151,15 @@ If you have your service running locally (in another terminal), you can run:
 $ sls invoke local -f hello -p data.json
 ```
 
-If you configured your function app to [run with APIM](./docs/examples/apim.md), you can run:
+If you configured your service to [run with APIM](./docs/examples/apim.md), you can run:
 
 ```bash
 $ sls invoke apim -f hello -p data.json
 ```
 
-### Roll Back Your Function App
+### Roll Back Your Service
 
-To roll back your function app to a previous deployment, simply select a timestamp of a previous deployment and use `rollback` command.
+To roll back your service to a previous deployment, simply select a timestamp of a previous deployment and use `rollback` command.
 
 ```bash
 # List all deployments to know the timestamp for rollback
@@ -179,7 +179,7 @@ Timestamp: 1561479444
 Datetime: 2019-06-25T16:17:24+00:00
 -----------
 
-# Rollback Function App to timestamp
+# Rollback Service to timestamp
 $ sls rollback -t 1561479506
 ```
 
@@ -187,9 +187,9 @@ This will update the app code and infrastructure to the selected previous deploy
 
 For more details, check out our [rollback docs](https://github.com/serverless/serverless-azure-functions/blob/master/docs/ROLLBACK.md).
 
-### Deleting Your Function App
+### Deleting Your Service
 
-If at any point you no longer need your service, you can run the following command to delete the resource group containing your Azure Function App and other depoloyed resources using:
+If at any point you no longer need your service, you can run the following command to delete the resource group containing your Azure Service and other depoloyed resources using:
 
 ```bash
 $ sls remove
@@ -205,7 +205,7 @@ $ sls remove --force
 
 ### Creating or removing Azure Functions
 
-To create a new Azure Function within your function app, run the following command from within your app's directory:
+To create a new Azure Function within your service, run the following command from within your app's directory:
 
 ```bash
 # -n or --name for name of new function
@@ -214,7 +214,7 @@ $ sls func add -n {functionName}
 
 This will create a new handler file at the root of your project with the title `{functionName}.js`. It will also update `serverless.yml` to contain the new function.
 
-To remove an existing Azure Function from your function app, run the following command from within your app's directory:
+To remove an existing Azure Function from your service, run the following command from within your app's directory:
 
 ```bash
 # -n or --name for name of function to remove
@@ -277,8 +277,8 @@ The getting started walkthrough illustrates the interactive login experience, wh
 ### Example Usage
 
 - **[Visit our sample repos](https://github.com/serverless/serverless-azure-functions/blob/master/docs/examples/samples.md) for full projects with different use cases**
-- Check out our [integration test configurations](https://github.com/serverless/serverless-azure-functions/tree/master/integrationTests/configurations). We use these to validate that we can package, deploy, invoke and remove function apps of all the major runtime configurations that we support, so these are a pretty good example of things that should work
-- [Configuring API Management](https://github.com/serverless/serverless-azure-functions/blob/master/docs/examples/apim.md) that sits in front of function app
+- Check out our [integration test configurations](https://github.com/serverless/serverless-azure-functions/tree/master/integrationTests/configurations). We use these to validate that we can package, deploy, invoke and remove services of all the major runtime configurations that we support, so these are a pretty good example of things that should work
+- [Configuring API Management](https://github.com/serverless/serverless-azure-functions/blob/master/docs/examples/apim.md) that sits in front of service
 
 ### Logging Verbosity
 

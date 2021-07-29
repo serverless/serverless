@@ -31,7 +31,7 @@ serverless invoke --function functionName
 - `--path` or `-p` The path to a json file with input data to be passed to the invoked function. This path is relative to the root directory of the service.
 - `--data` or `-d` Stringified JSON data to be used as input to the function
 
-You can also run `invoke local` to invoke a locally running function app or `invoke apim` to invoke a function via the configured APIM endpoint.
+You can also run `invoke local` to invoke a locally running service or `invoke apim` to invoke a function via the configured APIM endpoint.
 
 ## Provided lifecycle events
 

@@ -14,7 +14,7 @@ layout: Doc
 
 # HTTP Trigger
 
-Azure Functions has an API endpoint created for each Function App. This service
+Azure Functions has an API endpoint created for each Service. This service
 allows you to define public HTTP endpoints for your serverless functions.
 
 To create HTTP endpoints as Event sources for your Azure Functions, use the
@@ -29,7 +29,7 @@ to learn the full functionality.
 ### Simple HTTP Endpoint
 
 This setup specifies that the `hello` function should be run when someone
-accesses the Function App at `api/example/hello` via a `GET` request.
+accesses the Service at `api/example/hello` via a `GET` request.
 
 Here's an example:
 
@@ -112,4 +112,4 @@ on the context object (i.e. `context.req`)
 ### CORS Support
 
 You can set up CORS following the instructions on
-[azure.com](https://docs.microsoft.com/en-us/azure/azure-functions/functions-how-to-use-azure-function-app-settings#manage-cors).
+[azure.com](https://docs.microsoft.com/en-us/azure/azure-functions/functions-how-to-use-azure-service-settings#manage-cors).

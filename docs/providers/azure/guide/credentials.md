@@ -89,7 +89,7 @@ Save this somewhere secure.
 
 ##### 5. Set up environment variables
 
-Add the following environment variables to the shell session or CI/CD tool that will be used for deployment of your Azure Function App:
+Add the following environment variables to the shell session or CI/CD tool that will be used for deployment of your Azure Service:
 
 ```sh
 # bash

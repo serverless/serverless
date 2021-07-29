@@ -14,7 +14,7 @@ layout: Doc
 
 # Azure - Deploying
 
-The `serverless-azure-functions` plugin can deploy a Function App as well as other resources (storage account, App Insights, API Management, etc.). Here is some guidance on using the `deploy` command.
+The `serverless-azure-functions` plugin can deploy a Service as well as other resources (storage account, App Insights, API Management, etc.). Here is some guidance on using the `deploy` command.
 
 ### How It Works
 

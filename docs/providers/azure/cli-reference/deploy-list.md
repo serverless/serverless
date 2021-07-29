@@ -16,7 +16,7 @@ layout: Doc
 
 The `sls deploy list` command will list information about your deployments.
 
-You can see all deployments to your Azure Function App with the timestamp of deployment.
+You can see all deployments to your Azure Service with the timestamp of deployment.
 
 The displayed information is useful when rolling back a deployment or function via `serverless rollback`.
 

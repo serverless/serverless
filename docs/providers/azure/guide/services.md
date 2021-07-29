@@ -112,7 +112,7 @@ When you deploy a service, all of the Functions, and Events in your `serverless.
 To deploy a service, first `cd` into the relevant service directory:
 
 ```bash
-cd my-function-app
+cd my-service
 ```
 
 Then use the `deploy` command:

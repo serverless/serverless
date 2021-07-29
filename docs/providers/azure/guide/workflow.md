@@ -19,21 +19,21 @@ Intro. Quick recommendations and tips for various processes.
 ### Development Workflow
 
 1. Write your functions
-2. Run function app locally by using `sls offline` and `npm start` (or `func host start`). See [quickstart](./quick-start).
-3. Use `serverless deploy` to deploy your function app (preferably in a CI/CD environment)
+2. Run service locally by using `sls offline` and `npm start` (or `func host start`). See [quickstart](./quick-start).
+3. Use `serverless deploy` to deploy your service (preferably in a CI/CD environment)
 4. Use `serverless invoke -f myFunction` to test your Azure Functions.
 
 ### Larger Projects
 
-- Break your application/project into multiple Function Apps.
-- Model your Function Apps around Data Models or Workflows.
-- Keep the Functions and Resources in your Function Apps to a minimum.
+- Break your application/project into multiple Services.
+- Model your Services around Data Models or Workflows.
+- Keep the Functions and Resources in your Services to a minimum.
 
 ## Cheat Sheet
 
 A handy list of commands to use when developing with the Serverless Framework.
 
-##### Create A Function App:
+##### Create A Service:
 
 Install the boilerplate application:
 
@@ -59,7 +59,7 @@ serverless install -u [GITHUB URL OF SERVICE]
 
 ##### Deploy
 
-Use this when you have made changes to your Function App
+Use this when you have made changes to your Service
 
 ```
 sls deploy
