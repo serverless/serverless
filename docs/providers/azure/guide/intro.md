@@ -43,9 +43,9 @@ Anything that triggers an Azure Function to execute is regarded by the Framework
 
 When you define an event for your Azure Function in the Serverless Framework, the Framework will automatically translate this into [bindings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-triggers-bindings) needed for that event and configure your functions to listen to it.
 
-### Function App
+### Services
 
-A **Function App** is the Framework's unit of organization. You can think of it as a project file, though you can have multiple services for a single application. It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file by default entitled `serverless.yml` (or `serverless.json` or `serverless.js`). It looks like this:
+A **Service** is the Framework's unit of organization. You can think of it as a project file, though you can have multiple services for a single application. It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file by default entitled `serverless.yml` (or `serverless.json` or `serverless.js`). It looks like this:
 
 ```yml
 # serverless.yml
