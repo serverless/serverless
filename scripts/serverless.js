@@ -14,14 +14,11 @@ if (require('../lib/utils/tabCompletion/isSupported') && process.argv[2] === 'co
 }
 
 const handleError = require('../lib/cli/handle-error');
-const humanizePropertyPathKeys = require('../lib/configuration/variables/humanize-property-path-keys');
-
 const {
   storeLocally: storeTelemetryLocally,
   send: sendTelemetry,
 } = require('../lib/utils/telemetry');
 const generateTelemetryPayload = require('../lib/utils/telemetry/generatePayload');
-const processBackendNotificationRequest = require('../lib/utils/processBackendNotificationRequest');
 const isTelemetryDisabled = require('../lib/utils/telemetry/areDisabled');
 
 let command;
@@ -30,10 +27,20 @@ let commandSchema;
 let serviceDir = null;
 let configuration = null;
 let serverless;
+const commandUsage = {};
+const variableSourcesInConfig = new Set();
 
 let hasTelemetryBeenReported = false;
 
-process.once('uncaughtException', (error) =>
+// Inquirer async operations do not keep node process alive
+// We need to issue a keep alive timer so process does not die
+// to propery handle e.g. `SIGINT` interrupt
+const keepAliveTimer = setTimeout(() => {}, 60 * 60 * 1000);
+
+process.once('uncaughtException', (error) => {
+  clearTimeout(keepAliveTimer);
+  const cachedHasTelemetryBeenReported = hasTelemetryBeenReported;
+  hasTelemetryBeenReported = true;
   handleError(error, {
     isUncaughtException: true,
     command,
@@ -42,9 +49,54 @@ process.once('uncaughtException', (error) =>
     serviceDir,
     configuration,
     serverless,
-    hasTelemetryBeenReported,
-  })
-);
+    hasTelemetryBeenReported: cachedHasTelemetryBeenReported,
+    commandUsage,
+    variableSourcesInConfig,
+  });
+});
+
+require('signal-exit/signals').forEach((signal) => {
+  process.once(signal, () => {
+    clearTimeout(keepAliveTimer);
+    // If there's another listener (e.g. we're in deamon context or reading stdin input)
+    // then let the other listener decide how process will exit
+    const isOtherSigintListener = Boolean(process.listenerCount(signal));
+    if (!hasTelemetryBeenReported) {
+      hasTelemetryBeenReported = true;
+      if (
+        commandSchema &&
+        !isTelemetryDisabled &&
+        (serverless ? serverless.isTelemetryReportedExternally : true)
+      ) {
+        const telemetryPayload = generateTelemetryPayload({
+          command,
+          options,
+          commandSchema,
+          serviceDir,
+          configuration,
+          serverless,
+          commandUsage,
+          variableSources: variableSourcesInConfig,
+        });
+        storeTelemetryLocally({
+          ...telemetryPayload,
+          outcome: 'interrupt',
+          interruptSignal: signal,
+        });
+      }
+    }
+
+    if (isOtherSigintListener) return;
+    // Follow recommendation from signal-exit:
+    // https://github.com/tapjs/signal-exit/blob/654117d6c9035ff6a805db4d4acf1f0c820fcb21/index.js#L97-L98
+    if (process.platform === 'win32' && signal === 'SIGHUP') signal = 'SIGINT';
+    process.kill(process.pid, signal);
+  });
+});
+
+const humanizePropertyPathKeys = require('../lib/configuration/variables/humanize-property-path-keys');
+const processBackendNotificationRequest = require('../lib/utils/processBackendNotificationRequest');
+const logDeprecation = require('../lib/utils/logDeprecation');
 
 const processSpanPromise = (async () => {
   try {
@@ -63,6 +115,7 @@ const processSpanPromise = (async () => {
     // If version number request, show it and abort
     if (options.version) {
       await require('../lib/cli/render-version')();
+      logDeprecation.printSummary();
       return;
     }
 
@@ -84,7 +137,6 @@ const processSpanPromise = (async () => {
     const isPropertyResolved = require('../lib/configuration/variables/is-property-resolved');
     const eventuallyReportVariableResolutionErrors = require('../lib/configuration/variables/eventually-report-resolution-errors');
     const filterSupportedOptions = require('../lib/cli/filter-supported-options');
-    const logDeprecation = require('../lib/utils/logDeprecation');
 
     let configurationPath = null;
     let providerName;
@@ -240,6 +292,7 @@ const processSpanPromise = (async () => {
               options: filterSupportedOptions(options, { commandSchema, providerName }),
               fulfilledSources: new Set(['file', 'self', 'strToBool']),
               propertyPathsToResolve: new Set(['provider\0name', 'provider\0stage', 'useDotenv']),
+              variableSourcesInConfig,
             };
             if (isInteractiveSetup) resolverConfiguration.fulfilledSources.add('opt');
             await resolveVariables(resolverConfiguration);
@@ -294,8 +347,6 @@ const processSpanPromise = (async () => {
             if (
               !ensureResolvedProperty('provider\0stage', { shouldSilentlyReturnIfLegacyMode: true })
             ) {
-              // Hack to not duplicate the warning with similar deprecation
-              logDeprecation.triggeredDeprecations.add('VARIABLES_ERROR_ON_UNRESOLVED');
               return;
             }
 
@@ -403,26 +454,34 @@ const processSpanPromise = (async () => {
           'INTERACTIVE_SETUP_IN_NON_TTY'
         );
       }
-      const { commandUsage, configuration: configurationFromInteractive } =
+      const { configuration: configurationFromInteractive } =
         await require('../lib/cli/interactive-setup')({
           configuration,
           serviceDir,
           configurationFilename,
           options,
+          commandUsage,
         });
-      hasTelemetryBeenReported = true;
-      if (!isTelemetryDisabled) {
-        await storeTelemetryLocally(
-          await generateTelemetryPayload({
-            command,
-            options,
-            commandSchema,
-            serviceDir,
-            configuration: configurationFromInteractive,
-            commandUsage,
-          })
-        );
-        await sendTelemetry({ serverlessExecutionSpan: processSpanPromise });
+
+      logDeprecation.printSummary();
+
+      if (!hasTelemetryBeenReported) {
+        hasTelemetryBeenReported = true;
+        if (!isTelemetryDisabled) {
+          storeTelemetryLocally({
+            ...generateTelemetryPayload({
+              command,
+              options,
+              commandSchema,
+              serviceDir,
+              configuration: configurationFromInteractive,
+              commandUsage,
+              variableSources: variableSourcesInConfig,
+            }),
+            outcome: 'success',
+          });
+          await sendTelemetry({ serverlessExecutionSpan: processSpanPromise });
+        }
       }
       return;
     }
@@ -691,27 +750,33 @@ const processSpanPromise = (async () => {
         await serverless.run();
       }
 
-      hasTelemetryBeenReported = true;
-      if (!isTelemetryDisabled && !isHelpRequest && serverless.isTelemetryReportedExternally) {
-        await storeTelemetryLocally({
-          ...(await generateTelemetryPayload({
-            command,
-            options,
-            commandSchema,
-            serviceDir,
-            configuration,
-            serverless,
-          })),
-          outcome: 'success',
-        });
-        let backendNotificationRequest;
-        if (commands.join(' ') === 'deploy') {
-          backendNotificationRequest = await sendTelemetry({
-            serverlessExecutionSpan: processSpanPromise,
+      logDeprecation.printSummary();
+
+      if (!hasTelemetryBeenReported) {
+        hasTelemetryBeenReported = true;
+
+        if (!isTelemetryDisabled && !isHelpRequest && serverless.isTelemetryReportedExternally) {
+          storeTelemetryLocally({
+            ...generateTelemetryPayload({
+              command,
+              options,
+              commandSchema,
+              serviceDir,
+              configuration,
+              serverless,
+              variableSources: variableSourcesInConfig,
+            }),
+            outcome: 'success',
           });
-        }
-        if (backendNotificationRequest) {
-          await processBackendNotificationRequest(backendNotificationRequest);
+          let backendNotificationRequest;
+          if (commands.join(' ') === 'deploy') {
+            backendNotificationRequest = await sendTelemetry({
+              serverlessExecutionSpan: processSpanPromise,
+            });
+          }
+          if (backendNotificationRequest) {
+            await processBackendNotificationRequest(backendNotificationRequest);
+          }
         }
       }
     } catch (error) {
@@ -739,6 +804,8 @@ const processSpanPromise = (async () => {
       throw error;
     }
   } catch (error) {
+    const cachedHasTelemetryBeenReported = hasTelemetryBeenReported;
+    hasTelemetryBeenReported = true;
     handleError(error, {
       command,
       options,
@@ -746,7 +813,11 @@ const processSpanPromise = (async () => {
       serviceDir,
       configuration,
       serverless,
-      hasTelemetryBeenReported,
+      hasTelemetryBeenReported: cachedHasTelemetryBeenReported,
+      commandUsage,
+      variableSources: variableSourcesInConfig,
     });
+  } finally {
+    clearTimeout(keepAliveTimer);
   }
 })();

@@ -171,6 +171,9 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         }),
       },
     };
+
+    const variableSourcesInConfig = new Set();
+
     before(async () => {
       variablesMeta = resolveMeta(configuration);
       await resolve({
@@ -180,6 +183,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         sources,
         options: {},
         fulfilledSources: new Set(),
+        variableSourcesInConfig,
       });
     });
 
@@ -420,6 +424,27 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         'invalidResultValue',
         `infiniteResolutionRecursion${'\0nest'.repeat(10)}`,
       ]);
+    });
+
+    it('should correctly record encountered variable sources', () => {
+      expect(variableSourcesInConfig).to.deep.equal(
+        new Set([
+          'sourceParam',
+          'sourceDirect',
+          'sourceAddress',
+          'sourceProperty',
+          'sourceResultVariables',
+          'sourceResolveVariablesInString',
+          'sourceResolveVariable',
+          'sourceIncomplete',
+          'sourceMissing',
+          'sourceUnrecognized',
+          'sourceError',
+          'sourceInfinite',
+          'sourceShared',
+          'sourceSharedProperty',
+        ])
+      );
     });
 
     describe('"resolveVariable" source util', () => {

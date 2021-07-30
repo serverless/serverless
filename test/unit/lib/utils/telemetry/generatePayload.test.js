@@ -19,9 +19,16 @@ const versions = {
 };
 
 describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
+  let isTTYCache;
   before(() => {
     // In order for tests below to return `commandDurationMs`
     EvalError.$serverlessCommandStartTime = process.hrtime();
+    isTTYCache = process.stdin.isTTY;
+    process.stdin.isTTY = true;
+  });
+
+  after(() => {
+    process.stdin.isTTY = isTTYCache;
   });
 
   beforeEach(() => {
@@ -93,7 +100,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       cwd: serviceDir,
       command: 'print',
     });
-    const payload = await generatePayload({
+    const payload = generatePayload({
       command: 'print',
       options: {},
       commandSchema: commandsSchema.get('print'),
@@ -117,6 +124,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.commandDurationMs;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
+      isTtyTerminal: true,
       command: 'print',
       commandOptionNames: [],
       isConfigValid: true,
@@ -139,6 +147,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         resources: {
           general: ['AWS::Logs::LogGroup', 'AWS::S3::Bucket', 'Custom'],
         },
+        variableSources: [],
       },
       isAutoUpdateEnabled: false,
       isTabAutocompletionInstalled: false,
@@ -155,7 +164,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       fixture: 'customProvider',
       command: 'print',
     });
-    const payload = await generatePayload({
+    const payload = generatePayload({
       command: 'print',
       options: {},
       commandSchema: commandsSchema.get('print'),
@@ -180,6 +189,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.commandDurationMs;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
+      isTtyTerminal: true,
       command: 'print',
       commandOptionNames: [],
       isConfigValid: false, // No schema for custom provider
@@ -197,6 +207,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
           { runtime: 'bar', events: [] },
         ],
         resources: undefined,
+        variableSources: [],
       },
       isAutoUpdateEnabled: false,
       isTabAutocompletionInstalled: false,
@@ -217,7 +228,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       command: 'print',
       modulesCacheStub: {},
     });
-    const payload = await overrideCwd(serviceDir, async () =>
+    const payload = overrideCwd(serviceDir, () =>
       generatePayload({
         command: 'print',
         options: {},
@@ -244,6 +255,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.commandDurationMs;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
+      isTtyTerminal: true,
       command: 'print',
       commandOptionNames: [],
       isConfigValid: null,
@@ -258,6 +270,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         plugins: [],
         functions: [],
         resources: { general: [] },
+        variableSources: [],
       },
       isAutoUpdateEnabled: false,
       isTabAutocompletionInstalled: false,
@@ -274,7 +287,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should resolve service-agnostic payload', async () => {
-    const payload = await generatePayload({
+    const payload = generatePayload({
       command: 'config',
       options: {},
       commandSchema: commandsSchema.get('config'),
@@ -298,6 +311,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.commandDurationMs;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
+      isTtyTerminal: true,
       command: 'config',
       commandOptionNames: [],
       isAutoUpdateEnabled: false,
@@ -308,8 +322,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     });
   });
 
-  it('Should resolve service-agnostic payload for command with `serviceDependencyMode: "optional"`', async () => {
-    const payload = await generatePayload({
+  it('Should resolve service-agnostic payload for command with `serviceDependencyMode: "optional"`', () => {
+    const payload = generatePayload({
       command: '',
       options: {},
       commandSchema: commandsSchema.get(''),
@@ -335,9 +349,11 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       command: '',
       commandOptionNames: [],
       cliName: 'serverless',
+      isTtyTerminal: true,
       isConfigValid: null,
       config: {
         configValidationMode: 'warn',
+        variableSources: [],
         provider: {
           name: 'aws',
           runtime: 'nodejs12.x',
@@ -358,8 +374,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     });
   });
 
-  it('Should correctly resolve payload with missing service configuration', async () => {
-    const payload = await generatePayload({
+  it('Should correctly resolve payload with missing service configuration', () => {
+    const payload = generatePayload({
       command: 'plugin list',
       options: {},
       commandSchema: commandsSchema.get('plugin list'),
@@ -381,6 +397,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.commandDurationMs;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
+      isTtyTerminal: true,
       command: 'plugin list',
       commandOptionNames: [],
       isAutoUpdateEnabled: false,
@@ -403,7 +420,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       })
     );
 
-    const payload = await generatePayload({
+    const payload = generatePayload({
       command: 'config',
       options: {},
       commandSchema: commandsSchema.get('config'),
@@ -426,8 +443,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
 
     let payload;
 
-    await overrideEnv({ variables: { SERVERLESS_ACCESS_KEY: 'some-key' } }, async () => {
-      payload = await generatePayload({
+    overrideEnv({ variables: { SERVERLESS_ACCESS_KEY: 'some-key' } }, () => {
+      payload = generatePayload({
         command: 'config',
         options: {},
         commandSchema: commandsSchema.get('config'),
@@ -439,11 +456,11 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     expect(payload.frameworkLocalUserId).to.equal('123');
   });
 
-  it('Should correctly detect Serverless CI/CD', async () => {
+  it('Should correctly detect Serverless CI/CD', () => {
     let payload;
 
-    await overrideEnv({ variables: { SERVERLESS_CI_CD: 'true' } }, async () => {
-      payload = await generatePayload({
+    overrideEnv({ variables: { SERVERLESS_CI_CD: 'true' } }, () => {
+      payload = generatePayload({
         command: 'config',
         options: {},
         commandSchema: commandsSchema.get('config'),
@@ -454,11 +471,11 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     expect(payload.ciName).to.equal('Serverless CI/CD');
   });
 
-  it('Should correctly detect Seed CI/CD', async () => {
+  it('Should correctly detect Seed CI/CD', () => {
     let payload;
 
-    await overrideEnv({ variables: { SEED_APP_NAME: 'some-app' } }, async () => {
-      payload = await generatePayload({
+    overrideEnv({ variables: { SEED_APP_NAME: 'some-app' } }, () => {
+      payload = generatePayload({
         command: 'config',
         options: {},
         commandSchema: commandsSchema.get('config'),
@@ -469,8 +486,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     expect(payload.ciName).to.equal('Seed');
   });
 
-  it('Should correctly resolve `commandOptionNames` property', async () => {
-    const payload = await generatePayload({
+  it('Should correctly resolve `commandOptionNames` property', () => {
+    const payload = generatePayload({
       command: 'print',
       options: {
         region: 'eu-west-1',
@@ -487,8 +504,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     );
   });
 
-  it('Should correctly resolve `constructs` property', async () => {
-    const payload = await generatePayload({
+  it('Should correctly resolve `constructs` property', () => {
+    const payload = generatePayload({
       command: 'print',
       commandSchema: commandsSchema.get('print'),
       options: {},
@@ -523,8 +540,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     ]);
   });
 
-  it('Should correctly resolve `configValidationMode` property', async () => {
-    const payload = await generatePayload({
+  it('Should correctly resolve `configValidationMode` property', () => {
+    const payload = generatePayload({
       command: 'print',
       commandSchema: commandsSchema.get('print'),
       options: {},
@@ -538,12 +555,12 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     expect(payload.config.configValidationMode).to.equal('off');
   });
 
-  it('Should correctly resolve `hasLocalCredentials` property for AWS provider', async () => {
+  it('Should correctly resolve `hasLocalCredentials` property for AWS provider', () => {
     let payload;
-    await overrideEnv(
+    overrideEnv(
       { variables: { AWS_ACCESS_KEY_ID: 'someaccesskey', AWS_SECRET_ACCESS_KEY: 'secretkey' } },
-      async () => {
-        payload = await generatePayload({
+      () => {
+        payload = generatePayload({
           command: 'print',
           options: {},
           commandSchema: commandsSchema.get('print'),
@@ -556,12 +573,12 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     expect(payload.hasLocalCredentials).to.equal(true);
   });
 
-  it('Should correctly resolve `hasLocalCredentials` property for non-AWS provider', async () => {
+  it('Should correctly resolve `hasLocalCredentials` property for non-AWS provider', () => {
     let payload;
-    await overrideEnv(
+    overrideEnv(
       { variables: { AWS_ACCESS_KEY_ID: 'someaccesskey', AWS_SECRET_ACCESS_KEY: 'secretkey' } },
-      async () => {
-        payload = await generatePayload({
+      () => {
+        payload = generatePayload({
           command: 'print',
           options: {},
           commandSchema: commandsSchema.get('print'),
@@ -574,8 +591,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     expect(payload.hasLocalCredentials).to.equal(false);
   });
 
-  it('Should correctly resolve `commandUsage` property', async () => {
-    const payload = await generatePayload({
+  it('Should correctly resolve `commandUsage` property', () => {
+    const payload = generatePayload({
       command: 'print',
       options: {},
       commandSchema: commandsSchema.get('print'),
@@ -617,5 +634,19 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         ],
       },
     ]);
+  });
+
+  it('Should correctly resolve `variableSources` property', () => {
+    const payload = generatePayload({
+      command: 'print',
+      options: {},
+      commandSchema: commandsSchema.get('print'),
+      serviceDir: process.cwd(),
+      configuration: { service: 'foo', provider: 'aws' },
+      commandUsage: [],
+      variableSources: new Set(['ssm', 'opt']),
+    });
+
+    expect(payload.config.variableSources).to.deep.equal(['ssm', 'opt']);
   });
 });

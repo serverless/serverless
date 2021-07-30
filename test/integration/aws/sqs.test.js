@@ -43,8 +43,13 @@ describe('AWS - SQS Integration Test', function () {
       const functionName = 'sqsBasic';
       const message = 'Hello from SQS!';
 
-      return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
-        sendSqsMessage(queueName, message)
+      return confirmCloudWatchLogs(
+        `/aws/lambda/${stackName}-${functionName}`,
+        () => sendSqsMessage(queueName, message),
+        {
+          checkIsComplete: (events) =>
+            events.reduce((data, event) => data + event.message, '').includes(message),
+        }
       ).then((events) => {
         const logs = events.reduce((data, event) => data + event.message, '');
         expect(logs).to.include(functionName);

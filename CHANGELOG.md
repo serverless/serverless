@@ -2,6 +2,91 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.52.1](https://github.com/serverless/serverless/compare/v2.52.0...v2.52.1) (2021-07-22)
+
+### Bug Fixes
+
+- **CLI Onboarding:** Ensure credentials resolution is always performed before deploy step ([#9761](https://github.com/serverless/serverless/pull/9761)) ([b85f393](https://github.com/serverless/serverless/commit/b85f3934ed87e9c78494e9ad26163ee1d041599e)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:**
+  - Ensure `processedInput` is properly resolved in local fallback ([#9769](https://github.com/serverless/serverless/pull/9769)) ([464467e](https://github.com/serverless/serverless/commit/464467e2bece1bf3f35fe60041fa170f412087d3)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Fix validation of `deprecationNotificationMode` config option ([#9762](https://github.com/serverless/serverless/issues/9762)) ([916c76f](https://github.com/serverless/serverless/commit/916c76f48ca86c3e31b719d2bb655c34d0287cec)) ([frozenbonito](https://github.com/frozenbonito))
+- Fix `functions[]` validation (ignore `null` values) ([#9756](https://github.com/serverless/serverless/pull/9756)) ([922ec00](https://github.com/serverless/serverless/commit/922ec0093f0d4ab6f2b2055c6e6f2d5ec1f9d06e)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **CLI Onboarding:**
+  - Move `dashboard-login` step from `@serverless/dashboard-plugin` ([#9766](https://github.com/serverless/serverless/pull/9766)) ([adef710](https://github.com/serverless/serverless/commit/adef7102df2958e976445f0c247895f82decebf9)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Move `dashboard-set-org` from `@serverless/dashboard-plugin` ([#9766](https://github.com/serverless/serverless/pull/9766)) ([afdf77c](https://github.com/serverless/serverless/commit/afdf77c960c990f7daa445532789aebb9dc15a53)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Telemetry:** Use `prompt-with-history` for onboarding telemetry ([#9768](https://github.com/serverless/serverless/pull/9768)) ([4d56be5](https://github.com/serverless/serverless/commit/4d56be562a4bdaf2588bdc42227a451d098d1420)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Replace `fse.unlink` with `fs.promises.unlink` ([#9754](https://github.com/serverless/serverless/issues/9754)) ([daee1d5](https://github.com/serverless/serverless/commit/daee1d5375efdb748b85b85a2a4675ac3277001f)) ([Sudipto Das](https://github.com/sdas13))
+
+## [2.52.0](https://github.com/serverless/serverless/compare/v2.51.2...v2.52.0) (2021-07-15)
+
+### Features
+
+- **AWS CloudFormation:** Allow to disable default export names ([#9748](https://github.com/serverless/serverless/pull/9748)) ([6f49488](https://github.com/serverless/serverless/commit/6f494888cc01853894ec33859edbd77a06dc9d76)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:** Automatically expand loaded env variables from `.env` files ([#9615](https://github.com/serverless/serverless/issues/9615)) ([1864969](https://github.com/serverless/serverless/commit/186496922a0c4d69f3101dde0a9f4a0d89995ad0)) ([David Asensio Cañas](https://github.com/d-asensio))
+
+### Bug Fixes
+
+- **CLI:** Do not validate configuration with `plugin ..` commands ([#9741](https://github.com/serverless/serverless/pull/9741)) ([040036d](https://github.com/serverless/serverless/commit/040036d1869ceb207da6dad53f17e1ee1b6ee20a)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:** In `ssm` source auto parse only object JSON notation ([#9747](https://github.com/serverless/serverless/pull/9747)) ([8c741d1](https://github.com/serverless/serverless/commit/8c741d1d97f021995f37a61d7340ddfa749cdab9)) ([Mariusz Nowak](https://github.com/medikoo))
+- Improve `functions` validation ([#9741](https://github.com/serverless/serverless/pull/9741)) ([3e58d62](https://github.com/serverless/serverless/commit/3e58d628e7b8f4dbc8e14adf94dd98546099f3be)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Telemetry:** Record initial context for interactive setup ([#9736](https://github.com/serverless/serverless/pull/9736)) ([560aee5](https://github.com/serverless/serverless/commit/560aee5feb9f143e93933f6536e76edc9a3e56bb)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:** Reuse already imported module ([#9741](https://github.com/serverless/serverless/pull/9741)) ([be441cc](https://github.com/serverless/serverless/commit/be441ccd9157b351fffe6ea21664624aeeeb4b29)) ([Mariusz Nowak](https://github.com/medikoo))
+- Add `has-local-credentials` util ([#9736](https://github.com/serverless/serverless/pull/9736)) ([82a35b3](https://github.com/serverless/serverless/commit/82a35b3903ad5d8f761612105036fc11a37e9e55)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### [2.51.2](https://github.com/serverless/serverless/compare/v2.51.1...v2.51.2) (2021-07-08)
+
+### Bug Fixes
+
+- **Packaging:** Fix `package.artifact` validation for S3 urls ([#9725](https://github.com/serverless/serverless/issues/9725)) ([ab3c543](https://github.com/serverless/serverless/commit/ab3c543089b0fde4107fc0e579c19f85e0a4ee79)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### [2.51.1](https://github.com/serverless/serverless/compare/v2.51.0...v2.51.1) (2021-07-08)
+
+### Bug Fixes
+
+- **CLI:** Fix `SIGINT` signal handling ([#9712](https://github.com/serverless/serverless/issues/9712)) ([c5a3f69](https://github.com/serverless/serverless/commit/c5a3f6907a115ea2d511b0aa9905a2e762514867)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Packaging:** Validate `package.artifact` paths ([#9721](https://github.com/serverless/serverless/issues/9721)) ([21c0fed](https://github.com/serverless/serverless/commit/21c0fedc507651bb98687acc4145ed667d853589)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Local Invocation:** Bump AWS Java pom version to pull in fix ([#9714](https://github.com/serverless/serverless/issues/9714)) ([504b42a](https://github.com/serverless/serverless/commit/504b42ae0fefd04ccfa013746371c49a02d8a4d3)) ([tlloyd-synalogik](https://github.com/tlloyd-synalogik))
+
+### Maintenance Improvements
+
+- **Telemetry:**
+  - Report all interruption signals ([#9712](https://github.com/serverless/serverless/issues/9712)) ([7354c20](https://github.com/serverless/serverless/commit/7354c2000f25d526f8c3fd97c6d4d22054388755)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Report whether we're in context of TTY terminal ([#9712](https://github.com/serverless/serverless/issues/9712)) ([9cea555](https://github.com/serverless/serverless/commit/9cea555e88bdaadf717def21b5298a64c7ce79b9)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Ensure no doubled telemetry in edge cases ([#9716](https://github.com/serverless/serverless/issues/9716)) ([fd5005e](https://github.com/serverless/serverless/commit/fd5005e404debe103ca54974ca9aee431554ceb8)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI:** Improve module imports order ([#9712](https://github.com/serverless/serverless/issues/9712)) ([dff2799](https://github.com/serverless/serverless/commit/dff2799941a1da8c2d5fe76144393db241a7637c)) ([Mariusz Nowak](https://github.com/medikoo))
+
+## [2.51.0](https://github.com/serverless/serverless/compare/v2.50.0...v2.51.0) (2021-07-06)
+
+### Features
+
+- **AWS Kafka:** Add support for `SASL/PLAIN` auth to `kafka` event ([#9666](https://github.com/serverless/serverless/pull/9666)) ([3e14f06](https://github.com/serverless/serverless/commit/3e14f063052385026425021379bfc883dac5ff74)) ([Daniele Iasella](https://github.com/overbit))
+- **CLI:** New `warn:summary` (default) deprecations logging mode ([#9693](https://github.com/serverless/serverless/pull/9693)) ([9b624a5](https://github.com/serverless/serverless/commit/9b624a50677a0363c052b4ea567c050af7863073)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **CLI:** Recognize `--verbose` option in `info` command ([#9695](https://github.com/serverless/serverless/pull/9695)) ([b124152](https://github.com/serverless/serverless/commit/b1241522ec378f7b7b431050ddc861fef040efc4)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **CLI:** Fix typo in error message ([#9682](https://github.com/serverless/serverless/issues/9682)) ([f16c45f](https://github.com/serverless/serverless/commit/f16c45f84b8be1e469bfdd92191fc760b8f1631e)) ([KIDANI Akito](https://github.com/kdnakt))
+- **Telemetry:**
+  - Properly handle situation when not in service dir in credentials step ([#9678](https://github.com/serverless/serverless/pull/9678)) ([b21c1e4](https://github.com/serverless/serverless/commit/b21c1e415b67cdc8f1fb0ab14152eaf3c6550894))
+  - Ensure to pass all steps with configured questions ([#9701](https://github.com/serverless/serverless/pull/9701)) ([b5d3167](https://github.com/serverless/serverless/commit/b5d3167e9fdd5f08af1389b975322f2146b22507)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Correctly report `outcome` for interactive setup ([#9699](https://github.com/serverless/serverless/pull/9699)) ([0c5b8dd](https://github.com/serverless/serverless/commit/0c5b8dd831bcde80628c2ac548172ffaa9ce9ca6)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Ensure telemetry generation and related utils are sync ([#9692](https://github.com/serverless/serverless/pull/9692)) ([e65199c](https://github.com/serverless/serverless/commit/e65199c05213e1bac17acedc84cdd6dfd26ff00a)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Report `commandUsage` as object ([#9690](https://github.com/serverless/serverless/pull/9690)) ([cc24bc2](https://github.com/serverless/serverless/commit/cc24bc2ae280237b3d439e1934ab75710e0f259f)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Handle interruptions and persist telemetry data ([#9699](https://github.com/serverless/serverless/pull/9699)) ([502f7e7](https://github.com/serverless/serverless/commit/502f7e711f0954c2960fb790b749002aeb1789fc)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Drop old variables engine related deprecation ([#9698](https://github.com/serverless/serverless/pull/9698)) ([5b54ed2](https://github.com/serverless/serverless/commit/5b54ed2e2685c24439c0f835b50a024dbf9d39a9)) ([Mariusz Nowak](https://github.com/medikoo))
+- Make deprecations default mode internally modifyable ([#9693](https://github.com/serverless/serverless/pull/9693)) ([07a69a8](https://github.com/serverless/serverless/commit/07a69a836c506e3ab8ab976ef27d4f3b672722f7)) ([Mariusz Nowak](https://github.com/medikoo))
+- Replace `fse.createWriteStream` with `fs.createWriteStream` ([#9687](https://github.com/serverless/serverless/pull/9687)) ([3500f64](https://github.com/serverless/serverless/commit/3500f641f5212f196f75081e67d1d1518ac3bb6b)) ([Sudipto Das](https://github.com/sdas13))
+- Use `async` in `lib/plugins/package` ([#9644](https://github.com/serverless/serverless/issues/9644)) ([db67b35](https://github.com/serverless/serverless/commit/db67b353c9ed578d7dd334d162efa1ec11fbfa18)) ([Nyambayar Turbat](https://github.com/nyamba))
+
 ## [2.50.0](https://github.com/serverless/serverless/compare/v2.49.0...v2.50.0) (2021-07-01)
 
 ### Features

@@ -30,7 +30,7 @@ Commands
 ## 1. Create a service
 
 ```
-sls create --template aws-python --path myService
+sls create --template aws-python3 --path myService
 ```
 
 Using the `create` command we can specify one of the available [templates](https://serverless.com/framework/docs/providers/aws/cli-reference/create#available-templates). For this example use aws-python with the `--template` or shorthand `-t` flag.

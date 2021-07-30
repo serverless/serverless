@@ -46,22 +46,6 @@ describe('PluginUtils', () => {
     serverless.cli.consoleLog.restore();
   });
 
-  describe('#validate()', () => {
-    it('should throw an error if the the cwd is not a Serverless service', () => {
-      pluginUtils.serverless.serviceDir = false;
-
-      expect(() => {
-        pluginUtils.validate();
-      }).to.throw(Error);
-    });
-
-    it('should resolve if the cwd is a Serverless service', (done) => {
-      pluginUtils.serverless.serviceDir = true;
-
-      pluginUtils.validate().then(() => done());
-    });
-  });
-
   describe('#getServerlessFilePath()', () => {
     it('should reject if no configuration file exists', () =>
       expect(pluginUtils.getServerlessFilePath.bind(pluginUtils)).to.throw(

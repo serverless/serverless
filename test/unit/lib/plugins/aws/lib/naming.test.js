@@ -794,7 +794,7 @@ describe('#naming()', () => {
       );
     });
 
-    it('should return a prefixed unique identifer of not longer than 32 characters if alb.targetGroupPrefix is set', () => {
+    it('should return a prefixed unique identifier of not longer than 32 characters if alb.targetGroupPrefix is set', () => {
       serverless.service.service = 'myService';
       serverless.service.provider.alb = {};
       serverless.service.provider.alb.targetGroupPrefix = 'myPrefix-';

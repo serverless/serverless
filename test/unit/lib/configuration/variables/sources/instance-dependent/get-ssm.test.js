@@ -27,6 +27,7 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
           existingListRaw: '${ssm(raw):existingList}',
           secretManager: '${ssm:/aws/reference/secretsmanager/existing}',
           existingEncrypted: '${ssm:/secret/existing}',
+          existingEncryptedDirect: '${ssm:/secret/direct}',
           existingEncryptedRaw: '${ssm(raw):/aws/reference/secretsmanager/existing}',
           notExisting: '${ssm:notExisting, null}',
           missingAddress: '${ssm:}',
@@ -48,6 +49,9 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
             }
             if (Name === '/secret/existing' || Name === '/aws/reference/secretsmanager/existing') {
               return { Parameter: { Type: 'SecureString', Value: '{"someSecret":"someValue"}' } };
+            }
+            if (Name === '/secret/direct') {
+              return { Parameter: { Type: 'SecureString', Value: '12345678901234567890' } };
             }
             if (Name === 'notExisting') {
               throw Object.assign(
@@ -104,7 +108,11 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
       if (variablesMeta.get('custom\0existingEncrypted')) {
         throw variablesMeta.get('custom\0existingEncrypted').error;
       }
+      if (variablesMeta.get('custom\0existingDirect')) {
+        throw variablesMeta.get('custom\0existingDirect').error;
+      }
       expect(configuration.custom.existingEncrypted).to.deep.equal({ someSecret: 'someValue' });
+      expect(configuration.custom.existingEncryptedDirect).to.equal('12345678901234567890');
     });
 
     it('should support "raw" output for decrypted data', () => {
