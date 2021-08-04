@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.53.0](https://github.com/serverless/serverless/compare/v2.52.1...v2.53.0) (2021-08-04)
+
+### Features
+
+- **Variables:** Accept case-insensitive strings in `strToBool` ([#9770](https://github.com/serverless/serverless/issues/9770)) ([612f668](https://github.com/serverless/serverless/commit/612f668c931013bea21b91f47d9cbfd1c7dbb888)) ([Shane R. Spencer](https://github.com/whardier))
+
+### Bug Fixes
+
+- **AWS API Gateway:** Ensure to attach validator when required parameters are defined ([#9793](https://github.com/serverless/serverless/issues/9793)) ([d275459](https://github.com/serverless/serverless/commit/d2754594c462afd39e1576312e361ca57d4f13f2)) ([Karim Kanso](https://github.com/kazkansouh))
+- **Plugins:** Improve error message when a plugin is missing ([#9798](https://github.com/serverless/serverless/issues/9798)) ([5c9df56](https://github.com/serverless/serverless/commit/5c9df56f1bc89af1fd929519f3cf8dac967e514d)) ([Matthieu Napoli](https://github.com/mnapoli))
+
+### Maintenance Improvements
+
+- **Telemetry:** Recognize used variable sources ([#9790](https://github.com/serverless/serverless/pull/9790)) ([60d729b](https://github.com/serverless/serverless/commit/60d729b5d42ae32cc418b9578582da3dc8492754)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Replace `fse.readdir` with `fs.promises.readdir` ([#9780](https://github.com/serverless/serverless/issues/9780)) ([1e00f9e](https://github.com/serverless/serverless/commit/1e00f9edfb5f7618759f9f03d0dad58701a5a27a)) ([Sudipto Das](https://github.com/sdas13))
+- Use `async` in `lib/plugins/create` ([#9683](https://github.com/serverless/serverless/issues/9683)) ([4b87497](https://github.com/serverless/serverless/commit/4b87497875a19348e444763eea85671ed2c4f0b7)) ([Nyambayar Turbat](https://github.com/nyamba))
+- Use `async` in `lib/plugins/plugin` ([#9680](https://github.com/serverless/serverless/issues/9680)) ([377da09](https://github.com/serverless/serverless/commit/377da097c564778c8d2c42ffe49e38000c520106)) ([Nyambayar Turbat](https://github.com/nyamba))
+
 ### [2.52.1](https://github.com/serverless/serverless/compare/v2.52.0...v2.52.1) (2021-07-22)
 
 ### Bug Fixes
