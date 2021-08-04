@@ -6,7 +6,7 @@ const runServerless = require('../../../../../../../../../utils/run-serverless')
 const expect = chai.expect;
 chai.use(require('chai-as-promised'));
 
-describe('#compileRequestValidators()', () => {
+describe('#compileRequestValidators() - schemas', () => {
   let cfResources;
   let naming;
   let serviceName;
@@ -410,6 +410,65 @@ describe('#compileRequestValidators()', () => {
           },
           Schema: 'foo',
         },
+      });
+    });
+  });
+});
+
+describe('#compileRequestValidators() - parameters', () => {
+  let cfResources;
+  let naming;
+  let validatorLogicalId;
+
+  before(async () => {
+    const { cfTemplate, awsNaming } = await runServerless({
+      fixture: 'requestParameters',
+      command: 'package',
+    });
+    cfResources = cfTemplate.Resources;
+    naming = awsNaming;
+    validatorLogicalId = naming.getValidatorLogicalId();
+  });
+
+  const noValidator = [
+    'no-params',
+    'querystrings-not-required',
+    'headers-not-required',
+    'paths-not-required',
+  ];
+
+  const withValidator = [
+    'querystrings-required',
+    'headers-required',
+    'paths-required',
+    'no-params-with-schema',
+    'params-with-schema',
+  ];
+
+  noValidator.forEach((name) => {
+    it(`no validator: ${name}`, () => {
+      const methodLogicalId = naming.getMethodLogicalId(
+        naming.getNormalizedResourceName(name),
+        'get'
+      );
+      const methodResource = cfResources[methodLogicalId];
+
+      expect(methodResource).to.exist;
+      expect(methodResource.Properties).to.not.have.property('RequestValidatorId');
+    });
+  });
+
+  withValidator.forEach((name) => {
+    it(`with validator: ${name}`, () => {
+      const methodLogicalId = naming.getMethodLogicalId(
+        naming.getNormalizedResourceName(name),
+        'get'
+      );
+      const methodResource = cfResources[methodLogicalId];
+
+      expect(methodResource).to.exist;
+      expect(methodResource.Properties).to.have.deep.property('RequestValidatorId', {
+        Ref: validatorLogicalId,
       });
     });
   });
