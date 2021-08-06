@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.53.1](https://github.com/serverless/serverless/compare/v2.53.0...v2.53.1) (2021-08-06)
+
+### Bug Fixes
+
+- **AWS API Gateway:** Ensure `MinimumCompressionSize` can be set to 0 ([#9806](https://github.com/serverless/serverless/issues/9806)) ([f0ae032](https://github.com/serverless/serverless/commit/f0ae032252f88d4d864c2bfe526d70064168231a)) ([Lewis Putz](https://github.com/Putzy))
+
+### Maintenance Improvements
+
+- **CLI:** Change formatting of notifications ([#9807](https://github.com/serverless/serverless/issues/9807)) ([7c51f55](https://github.com/serverless/serverless/commit/7c51f55f5b8af6f853560ba5d757c65b1068a7ab)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Use `async` in `lib/utils` ([#9809](https://github.com/serverless/serverless/issues/9809)) ([48c3d99](https://github.com/serverless/serverless/commit/48c3d990beccef7dc3f4b5d29ec5bc4238fd9cf6)) ([Nyambayar Turbat](https://github.com/nyamba))
+
 ## [2.53.0](https://github.com/serverless/serverless/compare/v2.52.1...v2.53.0) (2021-08-04)
 
 ### Features
