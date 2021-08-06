@@ -50,6 +50,7 @@ describe('test/unit/lib/cli/filter-supported-options.test.js', () => {
     ).to.deep.equal({
       'region': 'elo',
       'aws-profile': null,
+      'aws-s3-accelerate': null,
       'help': null,
       'version': null,
       'config': null,
