@@ -268,6 +268,7 @@ const processSpanPromise = (async () => {
             // If command was not recognized in previous resolution phases
             // parse args again also against schemas commands which require AWS service context
             resolveInput.clear();
+
             ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
               require('../lib/cli/commands-schema/aws-service')
             ));

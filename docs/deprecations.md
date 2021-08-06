@@ -36,6 +36,14 @@ Note:
 - In service configuration setting is ineffective for deprecations reported before service configuration is read.
 - `SLS_DEPRECATION_DISABLE` env var and `disabledDeprecations` configuration setting remain respected, and no errors will be thrown for mentioned deprecation coodes.
 
+<a name="CLI_VERBOSE_OPTION_ALIAS"><div>&nbsp;</div></a>
+
+## CLI `-v` alias for `--verbose` option
+
+Deprecation code: `CLI_VERBOSE_OPTION_ALIAS`
+
+Starting with `v3.0.0`, `-v` will no longer be supported as alias for `--verbose` option. Please use `--verbose` flag instead.
+
 <a name="AWS_API_GATEWAY_DEFAULT_IDENTITY_SOURCE"><div>&nbsp;</div></a>
 
 ## Default `identitySource` for `http.authorizer`
@@ -58,7 +66,7 @@ Starting with `v3.0.0`, it will not be possible to disable default export names 
 
 Deprecation code: `CLI_DEPLOY_FUNCTION_OPTION'`
 
-Starting with v3.0.0, `--function` or `-f` option for `deploy` command will be removed. In order to deploy a single function, please use `deploy function` command instead.
+Starting with `v3.0.0`, `--function` or `-f` option for `deploy` command will be removed. In order to deploy a single function, please use `deploy function` command instead.
 
 <a name="CHANGE_OF_DEFAULT_RUNTIME_TO_NODEJS14X"><div>&nbsp;</div></a>
 
