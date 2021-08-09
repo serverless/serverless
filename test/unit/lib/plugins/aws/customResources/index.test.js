@@ -46,7 +46,8 @@ describe('#addCustomResourceToService()', () => {
       Resources: {},
     };
     serverless.serviceDir = tmpDirPath;
-    serverless.service.package.artifactDirectoryName = 'artifact-dir-name';
+    serverless.service.package.deploysDirectoryPrefix = 'artifact-dir-name';
+    serverless.service.package.timestamp = 'some-timestamp';
   });
 
   it('should add one IAM role and the custom resources to the service', () =>
@@ -101,7 +102,7 @@ describe('#addCustomResourceToService()', () => {
         Properties: {
           Code: {
             S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-            S3Key: 'artifact-dir-name/custom-resources.zip',
+            S3Key: 'artifact-dir-name/some-timestamp/custom-resources.zip',
           },
           FunctionName: `${serviceName}-dev-custom-resource-existing-s3`,
           Handler: 's3/handler.handler',
@@ -120,7 +121,7 @@ describe('#addCustomResourceToService()', () => {
         Properties: {
           Code: {
             S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-            S3Key: 'artifact-dir-name/custom-resources.zip',
+            S3Key: 'artifact-dir-name/some-timestamp/custom-resources.zip',
           },
           FunctionName: `${serviceName}-dev-custom-resource-existing-cup`,
           Handler: 'cognitoUserPool/handler.handler',
@@ -139,7 +140,7 @@ describe('#addCustomResourceToService()', () => {
         Properties: {
           Code: {
             S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-            S3Key: 'artifact-dir-name/custom-resources.zip',
+            S3Key: 'artifact-dir-name/some-timestamp/custom-resources.zip',
           },
           FunctionName: `${serviceName}-dev-custom-resource-event-bridge`,
           Handler: 'eventBridge/handler.handler',

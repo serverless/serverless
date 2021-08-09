@@ -815,9 +815,9 @@ describe('#naming()', () => {
     });
   });
 
-  describe('#getCustomResourcesArtifactName()', () => {
+  describe('#getCustomResourcesArtifactBasename()', () => {
     it('should return the custom resources artifact directory name', () => {
-      expect(sdk.naming.getCustomResourcesArtifactName()).to.equal('custom-resources.zip');
+      expect(sdk.naming.getCustomResourcesArtifactBasename()).to.equal('custom-resources');
     });
   });
 

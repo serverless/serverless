@@ -12,7 +12,7 @@ const AwsCompileFunctions = require('../../../../../../../lib/plugins/aws/packag
 const Serverless = require('../../../../../../../lib/Serverless');
 const runServerless = require('../../../../../../utils/run-serverless');
 const fixtures = require('../../../../../../fixtures/programmatic');
-const getHashForFilePath = require('../../../../../../../lib/plugins/aws/package/lib/getHashForFilePath');
+const getHashForFilePath = require('../../../../../../../lib/plugins/aws/utils/getHashForFilePath');
 
 const { getTmpDirPath, createTmpFile } = require('../../../../../../utils/fs');
 
@@ -58,7 +58,8 @@ describe('AwsCompileFunctions', () => {
     );
 
     awsCompileFunctions.serverless.service.service = 'new-service';
-    awsCompileFunctions.serverless.service.package.artifactDirectoryName = 'somedir';
+    awsCompileFunctions.serverless.service.package.deploysDirectoryPrefix = 'somedir';
+    awsCompileFunctions.serverless.service.package.timestamp = 'time-stamp';
     awsCompileFunctions.serverless.service.package.artifact = path.join(
       awsCompileFunctions.packagePath,
       serviceArtifact
@@ -152,7 +153,7 @@ describe('AwsCompileFunctions', () => {
             compiledFunctionName
           ];
 
-        const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
+        const s3Folder = `${awsCompileFunctions.serverless.service.package.deploysDirectoryPrefix}/${awsCompileFunctions.serverless.service.package.timestamp}`;
         const s3FileName = awsCompileFunctions.serverless.service.functions[
           functionName
         ].package.artifact
@@ -360,7 +361,7 @@ describe('AwsCompileFunctions', () => {
     });
 
     it('should create a simple function resource', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
+      const s3Folder = `${awsCompileFunctions.serverless.service.package.deploysDirectoryPrefix}/${awsCompileFunctions.serverless.service.package.timestamp}`;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
         .pop();
@@ -396,7 +397,7 @@ describe('AwsCompileFunctions', () => {
     });
 
     it('should create a function resource with function level tags', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
+      const s3Folder = `${awsCompileFunctions.serverless.service.package.deploysDirectoryPrefix}/${awsCompileFunctions.serverless.service.package.timestamp}`;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
         .pop();
@@ -445,7 +446,7 @@ describe('AwsCompileFunctions', () => {
       let s3FileName;
 
       beforeEach(() => {
-        s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
+        s3Folder = `${awsCompileFunctions.serverless.service.package.deploysDirectoryPrefix}/${awsCompileFunctions.serverless.service.package.timestamp}`;
         s3FileName = awsCompileFunctions.serverless.service.package.artifact.split(path.sep).pop();
       });
 
@@ -689,7 +690,7 @@ describe('AwsCompileFunctions', () => {
       let s3FileName;
 
       beforeEach(() => {
-        s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
+        s3Folder = `${awsCompileFunctions.serverless.service.package.deploysDirectoryPrefix}/${awsCompileFunctions.serverless.service.package.timestamp}`;
         s3FileName = awsCompileFunctions.serverless.service.package.artifact.split(path.sep).pop();
       });
 
@@ -709,7 +710,7 @@ describe('AwsCompileFunctions', () => {
           Properties: {
             Code: {
               S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-              S3Key: 'somedir/new-service.zip',
+              S3Key: 'somedir/time-stamp/new-service.zip',
             },
             FunctionName: 'new-service-dev-func',
             Handler: 'func.function.handler',
@@ -746,7 +747,7 @@ describe('AwsCompileFunctions', () => {
           Properties: {
             Code: {
               S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-              S3Key: 'somedir/new-service.zip',
+              S3Key: 'somedir/time-stamp/new-service.zip',
             },
             FunctionName: 'new-service-dev-func',
             Handler: 'func.function.handler',
@@ -783,7 +784,7 @@ describe('AwsCompileFunctions', () => {
           Properties: {
             Code: {
               S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-              S3Key: 'somedir/new-service.zip',
+              S3Key: 'somedir/time-stamp/new-service.zip',
             },
             FunctionName: 'new-service-dev-func',
             Handler: 'func.function.handler',
@@ -875,7 +876,8 @@ describe('AwsCompileFunctions', () => {
       let s3FileName;
 
       beforeEach(() => {
-        s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
+        s3Folder = `${awsCompileFunctions.serverless.service.package.deploysDirectoryPrefix}/${awsCompileFunctions.serverless.service.package.timestamp}`;
+
         s3FileName = awsCompileFunctions.serverless.service.package.artifact.split(path.sep).pop();
       });
 
@@ -948,7 +950,7 @@ describe('AwsCompileFunctions', () => {
     });
 
     it('should create a function resource with function level environment config', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
+      const s3Folder = `${awsCompileFunctions.serverless.service.package.deploysDirectoryPrefix}/${awsCompileFunctions.serverless.service.package.timestamp}`;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
         .pop();
@@ -1017,7 +1019,8 @@ describe('AwsCompileFunctions', () => {
     });
 
     it('should consider function based config when creating a function resource', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
+      const s3Folder = `${awsCompileFunctions.serverless.service.package.deploysDirectoryPrefix}/${awsCompileFunctions.serverless.service.package.timestamp}`;
+
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
         .pop();
@@ -1055,7 +1058,8 @@ describe('AwsCompileFunctions', () => {
     });
 
     it('should default to the nodejs12.x runtime when no provider runtime is given', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
+      const s3Folder = `${awsCompileFunctions.serverless.service.package.deploysDirectoryPrefix}/${awsCompileFunctions.serverless.service.package.timestamp}`;
+
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
         .pop();
@@ -1188,7 +1192,7 @@ describe('AwsCompileFunctions', () => {
     });
 
     it('should set function declared reserved concurrency limit', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
+      const s3Folder = `${awsCompileFunctions.serverless.service.package.deploysDirectoryPrefix}/${awsCompileFunctions.serverless.service.package.timestamp}`;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
         .pop();
@@ -1244,7 +1248,7 @@ describe('AwsCompileFunctions', () => {
     });
 
     it('should set function declared reserved concurrency limit even if it is zero', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
+      const s3Folder = `${awsCompileFunctions.serverless.service.package.deploysDirectoryPrefix}/${awsCompileFunctions.serverless.service.package.timestamp}`;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
         .pop();
@@ -1350,7 +1354,7 @@ describe('AwsCompileFunctions', () => {
     });
 
     it('should not set unset properties when not specified in yml (layers, vpc, etc)', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
+      const s3Folder = `${awsCompileFunctions.serverless.service.package.deploysDirectoryPrefix}/${awsCompileFunctions.serverless.service.package.timestamp}`;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
         .pop();
@@ -1387,7 +1391,7 @@ describe('AwsCompileFunctions', () => {
     });
 
     it('should set Layers when specified', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
+      const s3Folder = `${awsCompileFunctions.serverless.service.package.deploysDirectoryPrefix}/${awsCompileFunctions.serverless.service.package.timestamp}`;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
         .pop();
@@ -2429,7 +2433,6 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
             command: 'package',
             awsRequestStubMap: mockDescribeStackResponse,
           });
-
           expect(firstS3Key).to.not.equal(
             data.cfTemplate.Resources.TestLayerLambdaLayer.Properties.Content.S3Key
           );
