@@ -36,6 +36,14 @@ Note:
 - In service configuration setting is ineffective for deprecations reported before service configuration is read.
 - `SLS_DEPRECATION_DISABLE` env var and `disabledDeprecations` configuration setting remain respected, and no errors will be thrown for mentioned deprecation coodes.
 
+<a name="AWS_API_GATEWAY_DEFAULT_IDENTITY_SOURCE"><div>&nbsp;</div></a>
+
+## Default `identitySource` for `http.authorizer`
+
+Deprecation code: `AWS_API_GATEWAY_DEFAULT_IDENTITY_SOURCE`
+
+Starting with `v3.0.0`, `functions[].events[].http.authorizer.identitySource` will no longer be set to "method.request.header.Authorization" by default. If you want to keep this setting, please set it explicitly in your configuration. If you do not want this to be set, please set it explicitly to `null`.
+
 <a name="DISABLE_DEFAULT_OUTPUT_EXPORT_NAMES"><div>&nbsp;</div></a>
 
 ## Disable default Output Export names
