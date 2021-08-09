@@ -231,7 +231,18 @@ describe('#compileAuthorizers() #2', () => {
           },
           authorized: {
             handler: 'index.handler',
-            events: [{ http: { method: 'get', path: '/authorized', authorizer: 'foo' } }],
+            events: [
+              {
+                http: {
+                  method: 'get',
+                  path: '/authorized',
+                  authorizer: {
+                    name: 'foo',
+                    identitySource: 'method.request.header.Authorization',
+                  },
+                },
+              },
+            ],
           },
         },
       },
