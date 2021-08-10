@@ -54,7 +54,9 @@ functions:
       - http:
           path: custom-auth
           method: GET
-          authorizer: authorizer
+          authorizer:
+            name: authorizer
+            identitySource: null
   apiKeys:
     handler: core.apiKeys
     events:
