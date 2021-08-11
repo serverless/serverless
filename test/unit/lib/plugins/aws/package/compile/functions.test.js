@@ -2134,21 +2134,37 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L2325-L2362
     });
 
-    it('should throw an error when nonexistent layer is referenced', async () => {
-      await expect(
-        runServerless({
-          fixture: 'functionDestinations',
-          command: 'package',
-          configExt: {
-            functions: {
-              fnInvalidLayer: {
-                handler: 'target.handler',
-                layers: [{ Ref: 'NonexistentLambdaLayer' }],
+    it('should support `Ref` references to external layers (not defined as a part of `layers` top-level property in configuration)', async () => {
+      const { cfTemplate, awsNaming } = await runServerless({
+        fixture: 'functionDestinations',
+        command: 'package',
+        configExt: {
+          functions: {
+            fnExternalLayer: {
+              handler: 'target.handler',
+              layers: [{ Ref: 'ExternalLambdaLayer' }],
+            },
+          },
+          resources: {
+            Resources: {
+              ExternalLambdaLayer: {
+                Type: 'AWS::Lambda::LayerVersion',
+                Properties: {
+                  CompatibleRuntimes: ['nodejs12.x'],
+                  Content: {
+                    S3Bucket: 'bucket',
+                    S3Key: 'key',
+                  },
+                  LayerName: 'externalLayer',
+                },
               },
             },
           },
-        })
-      ).to.be.eventually.rejected.and.have.property('code', 'LAMBDA_LAYER_REFERENCE_NOT_FOUND');
+        },
+      });
+      expect(
+        cfTemplate.Resources[awsNaming.getLambdaLogicalId('fnExternalLayer')].Properties.Layers
+      ).to.deep.equal([{ Ref: 'ExternalLambdaLayer' }]);
     });
 
     it.skip('TODO: should support `functions[].conditions`', () => {
