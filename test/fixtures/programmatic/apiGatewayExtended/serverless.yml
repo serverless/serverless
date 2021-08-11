@@ -56,7 +56,6 @@ functions:
           method: GET
           authorizer:
             name: authorizer
-            identitySource: null
   apiKeys:
     handler: core.apiKeys
     events:
