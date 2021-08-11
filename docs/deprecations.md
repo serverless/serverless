@@ -50,7 +50,7 @@ Starting with `v3.0.0`, `-v` will no longer be supported as alias for `--verbose
 
 Deprecation code: `AWS_API_GATEWAY_DEFAULT_IDENTITY_SOURCE`
 
-Starting with `v3.0.0`, `functions[].events[].http.authorizer.identitySource` will no longer be set to "method.request.header.Authorization" by default. If you want to keep this setting, please set it explicitly in your configuration. If you do not want this to be set, please set it explicitly to `null`.
+Starting with v3.0.0, `functions[].events[].http.authorizer.identitySource` will no longer be set to "method.request.header.Authorization" by default for authorizers of "request" type with caching disabled ("resultTtlInSeconds" set to "0"). If you want to keep this setting, please set it explicitly in your configuration. If you do not want this to be set, please set it explicitly to "null".
 
 <a name="DISABLE_DEFAULT_OUTPUT_EXPORT_NAMES"><div>&nbsp;</div></a>
 
