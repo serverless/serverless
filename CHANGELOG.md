@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.54.0](https://github.com/serverless/serverless/compare/v2.53.1...v2.54.0) (2021-08-12)
+
+### Features
+
+- **AWS IAM:** Resign from deprecating old format of IAM settings ([#9778](https://github.com/serverless/serverless/pull/9778)) ([847dd8f](https://github.com/serverless/serverless/commit/847dd8f47503ddf03971122e5700110aa3ff77d1)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Lambda:** Add support for multiple subscription filters ([#9760](https://github.com/serverless/serverless/issues/9760)) ([5c9ca56](https://github.com/serverless/serverless/commit/5c9ca56d14a90dfd9aa5c064bd15137504336ed7)) ([Han Sang Hoon (한상훈)](https://github.com/poerty))
+- **AWS API Gateway:** Deprecate default for `identitySource` for `request` authorizers with disabled caching ([#9825](https://github.com/serverless/serverless/pull/9825)) ([0e01d9e](https://github.com/serverless/serverless/commit/0e01d9e337860b9d1136586fbfaf0c43ac21cde0)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:** Deprecate `-v` as alias for `--verbose` ([#9811](https://github.com/serverless/serverless/commit/53b41eb53aeefe22dc29b785a428f3b184906d2c)) ([53b41eb](https://github.com/serverless/serverless/commit/53b41eb53aeefe22dc29b785a428f3b184906d2c)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **AWS Deploy:** Ensure right code for `deploy -f` deprecation ([#9833](https://github.com/serverless/serverless/pull/9833)) ([90877d5](https://github.com/serverless/serverless/commit/90877d575ec9436db30a3a16fc90e5190ea30018)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Layers:** Support references to external layers ([#9826](https://github.com/serverless/serverless/pull/9826)) ([dc74f41](https://github.com/serverless/serverless/commit/dc74f41470447c1fab0a646c15284a4eb212ecb6)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Variables:** Unconditionally deprecate old vars engine extensions ([#9827](https://github.com/serverless/serverless/pull/9827)) ([b7f4e08](https://github.com/serverless/serverless/commit/b7f4e08661cd149a29ae7107241a16928dc606eb)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [2.53.1](https://github.com/serverless/serverless/compare/v2.53.0...v2.53.1) (2021-08-06)
 
 ### Bug Fixes
