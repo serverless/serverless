@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Print
 menuText: print
-menuOrder: 21
+menuOrder: 22
 description: Print your config with all variables resolved for debugging
 layout: Doc
 -->
