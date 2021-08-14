@@ -443,3 +443,13 @@ provider:
   httpApi:
     disableDefaultEndpoint: true
 ```
+
+### Service Naming
+
+You can use the `${service}-${stage}` naming for HTTP Gateway instead the default option `${stage}-${service}`.
+
+```yml
+provider:
+  httpApi:
+    shouldStartNameWithService: true
+```
