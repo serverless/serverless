@@ -6,10 +6,10 @@ const fs = require('fs');
 const os = require('os');
 const overrideEnv = require('process-utils/override-env');
 const overrideCwd = require('process-utils/override-cwd');
+const proxyquire = require('proxyquire');
 
 const resolveLocalServerless = require('../../../../../lib/cli/resolve-local-serverless-path');
 const commandsSchema = require('../../../../../lib/cli/commands-schema');
-const generatePayload = require('../../../../../lib/utils/telemetry/generatePayload');
 const runServerless = require('../../../../utils/run-serverless');
 const fixtures = require('../../../../fixtures/programmatic');
 
@@ -17,6 +17,10 @@ const versions = {
   'serverless': require('../../../../../package').version,
   '@serverless/dashboard-plugin': require('@serverless/dashboard-plugin/package').version,
 };
+
+const generatePayload = proxyquire('../../../../../lib/utils/telemetry/generatePayload', {
+  '@serverless/utils/get-notifications-mode': () => 'on',
+});
 
 describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   let isTTYCache;
@@ -151,6 +155,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       },
       isAutoUpdateEnabled: false,
       isTabAutocompletionInstalled: false,
+      notificationsMode: 'on',
       npmDependencies: ['fooDep', 'barDep', 'fooOpt', 'someDev', 'otherDev'],
       triggeredDeprecations: [],
       installationType: 'global:other',
@@ -211,6 +216,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       },
       isAutoUpdateEnabled: false,
       isTabAutocompletionInstalled: false,
+      notificationsMode: 'on',
       npmDependencies: [],
       triggeredDeprecations: [],
       hasLocalCredentials: false,
@@ -274,6 +280,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       },
       isAutoUpdateEnabled: false,
       isTabAutocompletionInstalled: false,
+      notificationsMode: 'on',
       npmDependencies: [],
       triggeredDeprecations: [],
       installationType: 'local:fallback',
@@ -316,6 +323,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       commandOptionNames: [],
       isAutoUpdateEnabled: false,
       isTabAutocompletionInstalled: false,
+      notificationsMode: 'on',
       triggeredDeprecations: [],
       installationType: 'global:other',
       versions,
@@ -368,6 +376,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       isTabAutocompletionInstalled: false,
       triggeredDeprecations: [],
       installationType: 'global:other',
+      notificationsMode: 'on',
       npmDependencies: [],
       hasLocalCredentials: false,
       versions,
@@ -402,6 +411,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       commandOptionNames: [],
       isAutoUpdateEnabled: false,
       isTabAutocompletionInstalled: false,
+      notificationsMode: 'on',
       triggeredDeprecations: [],
       installationType: 'global:other',
       versions,
