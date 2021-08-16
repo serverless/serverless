@@ -550,6 +550,82 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
       expect(cfResources[authorizerPermissionLogicalId]).to.be.undefined;
     });
 
+    it('should correctly set `DependsOn` property on permission resource for functions with provisioned concurrency', async () => {
+      const { awsNaming, cfTemplate } = await runServerless({
+        fixture: 'httpApi',
+        configExt: {
+          provider: {
+            httpApi: {
+              authorizers: {
+                someAuthorizer: {
+                  type: 'request',
+                  identitySource: '$request.header.Authorization',
+                  functionName: 'other',
+                  resultTtlInSeconds: 300,
+                  enableSimpleResponses: true,
+                  payloadVersion: '2.0',
+                },
+              },
+            },
+          },
+          functions: {
+            other: {
+              provisionedConcurrency: 1,
+            },
+            foo: {
+              events: [
+                {
+                  httpApi: {
+                    authorizer: {
+                      name: 'someAuthorizer',
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+        command: 'package',
+      });
+      const authorizerPermissionLogicalId =
+        awsNaming.getLambdaAuthorizerHttpApiPermissionLogicalId('someAuthorizer');
+      expect(cfTemplate.Resources[authorizerPermissionLogicalId]).to.deep.equal({
+        Type: 'AWS::Lambda::Permission',
+        Properties: {
+          FunctionName: {
+            'Fn::Join': [
+              ':',
+              [
+                {
+                  'Fn::GetAtt': ['OtherLambdaFunction', 'Arn'],
+                },
+                'provisioned',
+              ],
+            ],
+          },
+          Action: 'lambda:InvokeFunction',
+          Principal: 'apigateway.amazonaws.com',
+          SourceArn: {
+            'Fn::Join': [
+              '',
+              [
+                'arn:',
+                { Ref: 'AWS::Partition' },
+                ':execute-api:',
+                { Ref: 'AWS::Region' },
+                ':',
+                { Ref: 'AWS::AccountId' },
+                ':',
+                { Ref: naming.getHttpApiLogicalId() },
+                '/*',
+              ],
+            ],
+          },
+        },
+        DependsOn: 'OtherProvConcLambdaAlias',
+      });
+    });
+
     it('should throw when request authorizer does not have "functionName" and "functionArn" defined', async () => {
       await expect(
         runServerless({
