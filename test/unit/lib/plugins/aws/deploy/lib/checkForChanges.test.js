@@ -1222,6 +1222,71 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
       expect(deleteStub).to.not.have.been.called;
     });
 
+    it('should not attempt to delete filter for 2 subscription filter per log group include externals', async () => {
+      const deleteStub = sandbox.stub();
+      let serverless;
+      await runServerless({
+        fixture: 'checkForChanges',
+        command: 'deploy',
+        configExt: {
+          functions: { fn1: { events: [{ cloudwatchLog: 'someLogGroupName' }] } },
+        },
+        lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+        env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+        hooks: {
+          beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+        },
+        awsRequestStubMap: {
+          ...commonAwsSdkMock,
+          Lambda: {
+            getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+          },
+          S3: {
+            listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+            headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+          },
+          CloudFormation: {
+            ...commonAwsSdkMock.CloudFormation,
+            describeStackResource: sandbox
+              .stub()
+              .onFirstCall()
+              .resolves({
+                StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
+              })
+              .callsFake(async (params) => {
+                const naming = serverless.getProvider('aws').naming;
+                throw new Error(
+                  `Resource ${
+                    params.LogicalResourceId
+                  } does not exist for stack ${naming.getStackName()}`
+                );
+              }),
+          },
+          CloudWatchLogs: {
+            deleteSubscriptionFilter: deleteStub,
+            describeSubscriptionFilters: async () => {
+              const naming = serverless.getProvider('aws').naming;
+              return {
+                subscriptionFilters: [
+                  {
+                    // destinationArn `arn:{partition}:lambda:{region}:{accountId}:function:{functionName}`
+                    // filterName {stack name}-{logical id}-{random alphanumeric characters}
+                    filterName: `external-stack-dev-${naming.getCloudWatchLogLogicalId(
+                      'Fn1',
+                      1
+                    )}-xxxxx`,
+                    destinationArn:
+                      'arn:aws:lambda:us-east-1:999999999999:function:test-checkForChanges-cdr3ogg-dev-fn1',
+                  },
+                ],
+              };
+            },
+          },
+        },
+      });
+      expect(deleteStub).to.not.have.been.called;
+    });
+
     it('should throw an error if external defined subscription filter cause over 2 subscription filter per log group.', async () => {
       const deleteStub = sandbox.stub();
       let serverless;
