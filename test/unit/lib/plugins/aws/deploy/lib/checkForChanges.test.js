@@ -1178,17 +1178,24 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           },
           CloudFormation: {
             ...commonAwsSdkMock.CloudFormation,
-            describeStackResources: async (params) => {
-              const naming = serverless.getProvider('aws').naming;
-              return {
-                StackResources: [
-                  {
+            describeStackResource: sandbox
+              .stub()
+              .onFirstCall()
+              .resolves({
+                StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
+              })
+              .callsFake(async (params) => {
+                const naming = serverless.getProvider('aws').naming;
+                return {
+                  StackResourceDetail: {
                     StackName: naming.getStackName(),
-                    PhysicalResourceId: params.PhysicalResourceId,
+                    LogicalResourceId: params.LogicalResourceId,
+                    PhysicalResourceId: `${naming.getStackName()}-${
+                      params.LogicalResourceId
+                    }-xxxxx`,
                   },
-                ],
-              };
-            },
+                };
+              }),
           },
           CloudWatchLogs: {
             deleteSubscriptionFilter: deleteStub,
@@ -1247,16 +1254,20 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           },
           CloudFormation: {
             ...commonAwsSdkMock.CloudFormation,
-            describeStackResources: async (params) => {
-              return {
-                StackResources: [
-                  {
-                    StackName: 'external-stack-dev',
-                    PhysicalResourceId: params.PhysicalResourceId,
-                  },
-                ],
-              };
-            },
+            describeStackResource: sandbox
+              .stub()
+              .onFirstCall()
+              .resolves({
+                StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
+              })
+              .callsFake(async (params) => {
+                const naming = serverless.getProvider('aws').naming;
+                throw new Error(
+                  `Resource ${
+                    params.LogicalResourceId
+                  } does not exist for stack ${naming.getStackName()}`
+                );
+              }),
           },
           CloudWatchLogs: {
             deleteSubscriptionFilter: deleteStub,
@@ -1312,17 +1323,24 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           },
           CloudFormation: {
             ...commonAwsSdkMock.CloudFormation,
-            describeStackResources: async (params) => {
-              const naming = serverless.getProvider('aws').naming;
-              return {
-                StackResources: [
-                  {
+            describeStackResource: sandbox
+              .stub()
+              .onFirstCall()
+              .resolves({
+                StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
+              })
+              .callsFake(async (params) => {
+                const naming = serverless.getProvider('aws').naming;
+                return {
+                  StackResourceDetail: {
                     StackName: naming.getStackName(),
-                    PhysicalResourceId: params.PhysicalResourceId,
+                    LogicalResourceId: params.LogicalResourceId,
+                    PhysicalResourceId: `${naming.getStackName()}-${
+                      params.LogicalResourceId
+                    }-xxxxx`,
                   },
-                ],
-              };
-            },
+                };
+              }),
           },
           CloudWatchLogs: {
             deleteSubscriptionFilter: deleteStub,
@@ -1387,17 +1405,24 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           },
           CloudFormation: {
             ...commonAwsSdkMock.CloudFormation,
-            describeStackResources: async (params) => {
-              const naming = serverless.getProvider('aws').naming;
-              return {
-                StackResources: [
-                  {
+            describeStackResource: sandbox
+              .stub()
+              .onFirstCall()
+              .resolves({
+                StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
+              })
+              .callsFake(async (params) => {
+                const naming = serverless.getProvider('aws').naming;
+                return {
+                  StackResourceDetail: {
                     StackName: naming.getStackName(),
-                    PhysicalResourceId: params.PhysicalResourceId,
+                    LogicalResourceId: params.LogicalResourceId,
+                    PhysicalResourceId: `${naming.getStackName()}-${
+                      params.LogicalResourceId
+                    }-xxxxx`,
                   },
-                ],
-              };
-            },
+                };
+              }),
           },
           CloudWatchLogs: {
             deleteSubscriptionFilter: deleteStub,
@@ -1480,17 +1505,24 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           },
           CloudFormation: {
             ...commonAwsSdkMock.CloudFormation,
-            describeStackResources: async (params) => {
-              const naming = serverless.getProvider('aws').naming;
-              return {
-                StackResources: [
-                  {
+            describeStackResource: sandbox
+              .stub()
+              .onFirstCall()
+              .resolves({
+                StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
+              })
+              .callsFake(async (params) => {
+                const naming = serverless.getProvider('aws').naming;
+                return {
+                  StackResourceDetail: {
                     StackName: naming.getStackName(),
-                    PhysicalResourceId: params.PhysicalResourceId,
+                    LogicalResourceId: params.LogicalResourceId,
+                    PhysicalResourceId: `${naming.getStackName()}-${
+                      params.LogicalResourceId
+                    }-xxxxx`,
                   },
-                ],
-              };
-            },
+                };
+              }),
           },
           CloudWatchLogs: {
             deleteSubscriptionFilter: deleteStub,
