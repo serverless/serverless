@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.55.0](https://github.com/serverless/serverless/compare/v2.54.0...v2.55.0) (2021-08-18)
+
+### Features
+
+- **AWS Lambda:** Recognize `python3.9` as valid runtime ([#9854](https://github.com/serverless/serverless/pull/9854)) ([1aa24b8](https://github.com/serverless/serverless/commit/1aa24b8991032ba3fe6f2c4b65bf0e70bc4171dd)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **AWS HTTP API:** Properly handle authorizer function with alias (e.g. with `provisionedConcurrency`) ([#9850](https://github.com/serverless/serverless/pull/9850)) ([0ca6aaa](https://github.com/serverless/serverless/commit/0ca6aaae526b16df2039edff5db166a39bb1de10)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **CLI Onboarding:** Adjust summary messages in deploy step ([#9835](https://github.com/serverless/serverless/pull/9835)) ([b751c50](https://github.com/serverless/serverless/commit/b751c505c8050e229edb77d44016925c4e52a05e)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Replace `fse.stat` with `fs.promises.stat` ([#9845](https://github.com/serverless/serverless/issues/9845)) ([bb0484e](https://github.com/serverless/serverless/commit/bb0484e6b54a3cc6aed46ff23100e08c90c995ce)) ([Sudipto Das](https://github.com/sdas13))
+- **Telemetry:** Recognize `notificationsMode` ([#9851](https://github.com/serverless/serverless/pull/9851)) ([00fdba1](https://github.com/serverless/serverless/commit/00fdba154655b15b5b2de4b9ceca08f8bfce599e)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [2.54.0](https://github.com/serverless/serverless/compare/v2.53.1...v2.54.0) (2021-08-12)
 
 ### Features
