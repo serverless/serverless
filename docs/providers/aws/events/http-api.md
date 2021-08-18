@@ -446,7 +446,7 @@ provider:
 
 ### Service Naming
 
-You can use the `${service}-${stage}` naming for HTTP Gateway instead the default option `${stage}-${service}`.
+You can use the `shouldStartNameWithService` option to change the naming scheme for HTTP API from the default `${stage}-${service}` to `${service}-${stage}`.
 
 ```yml
 provider:
