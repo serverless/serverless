@@ -158,7 +158,7 @@ $ sls --debug
   DEBUG ─ Deployment successful for the api named restApi in the ap-shanghai region.
   DEBUG ─ Start unbind all exist domain for service service-lqhc88sr
   DEBUG ─ Start bind custom domain for service service-lqhc88sr
-  DEBUG ─ Custom domain for service service-lqhc88sr created successfullly.
+  DEBUG ─ Custom domain for service service-lqhc88sr created successfully.
   DEBUG ─ Please add CNAME record service-lqhc88sr-1250000000.sh.apigw.tencentcs.com for www.example.com.
 
   restApi:

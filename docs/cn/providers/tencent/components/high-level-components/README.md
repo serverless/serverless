@@ -23,7 +23,7 @@ $ npm i -g serverless
 
 **确保你使用的是 Serverless Framework 1.49 及以上的版本**。更早的版本无法支持 Serverless Components Beta。
 
-之后，通过 `create --template-url` 命令安装一个 [Serverless Components 模板](./templates)，模板中会包含了 Componenets 及示例代码，可以让你更快的了解 Component。
+之后，通过 `create --template-url` 命令安装一个 [Serverless Components 模板](./templates)，模板中会包含了 Components 及示例代码，可以让你更快的了解 Component。
 
 以下是一些常用的用例模板：
 

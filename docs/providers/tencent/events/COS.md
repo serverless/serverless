@@ -69,7 +69,7 @@ When an object creation or deletion event occurs in the specified COS bucket, ev
           "name": "testpic",
           "appid": "1253970026"
         },
-        "cosNotificationId": "unkown"
+        "cosNotificationId": "unknown"
       },
       "event": {
         "eventName": "cos:ObjectCreated:*",
