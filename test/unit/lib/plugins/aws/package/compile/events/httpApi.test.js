@@ -39,7 +39,11 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
             payload: {
               handler: 'index.handler',
               httpApi: { payload: '1.0' },
-              events: [{ httpApi: { method: 'get', path: '/payload' } }],
+              events: [{ httpApi: { method: 'options', path: '/payload' } }],
+            },
+            payloadCatchAll: {
+              handler: 'index.handler',
+              events: [{ httpApi: 'ANY /payload' }],
             },
           },
         },
@@ -96,6 +100,20 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
 
     it('should configure method catch all endpoint', () => {
       const routeKey = 'ANY /method-catch-all';
+      const resource = cfResources[naming.getHttpApiRouteLogicalId(routeKey)];
+      expect(resource.Type).to.equal('AWS::ApiGatewayV2::Route');
+      expect(resource.Properties.RouteKey).to.equal(routeKey);
+    });
+
+    it('should configure endpoint with specific method and path', () => {
+      const routeKey = 'OPTIONS /payload';
+      const resource = cfResources[naming.getHttpApiRouteLogicalId(routeKey)];
+      expect(resource.Type).to.equal('AWS::ApiGatewayV2::Route');
+      expect(resource.Properties.RouteKey).to.equal(routeKey);
+    });
+
+    it('should configure method catch all endpoint with same path as a specific method endpoint', () => {
+      const routeKey = 'ANY /payload';
       const resource = cfResources[naming.getHttpApiRouteLogicalId(routeKey)];
       expect(resource.Type).to.equal('AWS::ApiGatewayV2::Route');
       expect(resource.Properties.RouteKey).to.equal(routeKey);
