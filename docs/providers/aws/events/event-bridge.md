@@ -31,6 +31,22 @@ functions:
             key1: value1
 ```
 
+## Enabling / Disabling
+
+**Note:** `eventBridge` events are enabled by default. Use `enabled: false` to disable the rule.
+
+```yml
+functions:
+  myFunction:
+    handler: index.handler
+    events:
+      - eventBridge:
+          enabled: false
+          schedule: rate(10 minutes)
+          input:
+            key1: value1
+```
+
 ## Setting up event pattern matching
 
 ```yml
