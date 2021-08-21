@@ -127,6 +127,30 @@ const serverlessConfigurationExtension = {
         },
       ],
     },
+    disabled: {
+      handler: 'index.handler',
+      events: [
+        {
+          eventBridge: {
+            eventBus: 'arn:aws:events:us-east-1:12345:event-bus/default',
+            schedule: 'rate(10 minutes)',
+            enabled: false,
+          },
+        },
+      ],
+    },
+    enabled: {
+      handler: 'index.handler',
+      events: [
+        {
+          eventBridge: {
+            eventBus: 'arn:aws:events:us-east-1:12345:event-bus/default',
+            schedule: 'rate(10 minutes)',
+            enabled: true,
+          },
+        },
+      ],
+    },
   },
 };
 
@@ -191,6 +215,21 @@ describe('EventBridgeEvents', () => {
     it('should create the necessary resource', () => {
       const eventBridgeConfig = getEventBridgeConfigById('default');
       expect(eventBridgeConfig.RuleName).to.include('dev-default-rule-1');
+    });
+
+    it('should ensure state is enabled by default', () => {
+      const eventBridgeConfig = getEventBridgeConfigById('default');
+      expect(eventBridgeConfig.State).to.be.eq('ENABLED');
+    });
+
+    it('should ensure state is enabled when explicity set', () => {
+      const eventBridgeConfig = getEventBridgeConfigById('enabled');
+      expect(eventBridgeConfig.State).to.be.eq('ENABLED');
+    });
+
+    it('should ensure state is disabled when explicity set', () => {
+      const eventBridgeConfig = getEventBridgeConfigById('disabled');
+      expect(eventBridgeConfig.State).to.be.eq('DISABLED');
     });
 
     it("should ensure rule name doesn't exceed 64 chars", () => {
@@ -273,6 +312,8 @@ describe('EventBridgeEvents', () => {
       let ruleTarget;
       let inputPathRuleTarget;
       let inputTransformerRuleTarget;
+      let disabledRuleResource;
+      let enabledRuleResource;
       const schedule = 'rate(10 minutes)';
       const eventBusName = 'nondefault';
       const pattern = {
@@ -328,6 +369,22 @@ describe('EventBridgeEvents', () => {
                       inputTransformer,
                     },
                   },
+                  {
+                    eventBridge: {
+                      eventBus: eventBusName,
+                      schedule,
+                      enabled: false,
+                      pattern,
+                    },
+                  },
+                  {
+                    eventBridge: {
+                      eventBus: eventBusName,
+                      schedule,
+                      enabled: true,
+                      pattern,
+                    },
+                  },
                 ],
               },
             },
@@ -352,6 +409,16 @@ describe('EventBridgeEvents', () => {
             resource.Type === 'AWS::Events::Rule' && resource.Properties.Name.endsWith('3')
         );
         inputTransformerRuleTarget = inputTransformerRuleResource.Properties.Targets[0];
+
+        disabledRuleResource = Object.values(cfResources).find(
+          (resource) =>
+            resource.Type === 'AWS::Events::Rule' && resource.Properties.Name.endsWith('4')
+        );
+
+        enabledRuleResource = Object.values(cfResources).find(
+          (resource) =>
+            resource.Type === 'AWS::Events::Rule' && resource.Properties.Name.endsWith('5')
+        );
       });
 
       it('should create an EventBus resource', () => {
@@ -360,6 +427,18 @@ describe('EventBridgeEvents', () => {
 
       it('should correctly set ScheduleExpression on a created rule', () => {
         expect(ruleResource.Properties.ScheduleExpression).to.equal('rate(10 minutes)');
+      });
+
+      it('should correctly set State by default on a created rule', () => {
+        expect(ruleResource.Properties.State).to.equal('ENABLED');
+      });
+
+      it('should correctly set State when disabled on a created rule', () => {
+        expect(disabledRuleResource.Properties.State).to.equal('DISABLED');
+      });
+
+      it('should correctly set State when enabled on a created rule', () => {
+        expect(enabledRuleResource.Properties.State).to.equal('ENABLED');
       });
 
       it('should correctly set EventPattern on a created rule', () => {
