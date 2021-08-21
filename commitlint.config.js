@@ -28,6 +28,7 @@ module.exports = {
         'AWS Kafka',
         'AWS Kinesis',
         'AWS Lambda',
+        'AWS Layers',
         'AWS Local Invocation',
         'AWS MSK',
         'AWS S3',

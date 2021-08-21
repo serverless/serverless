@@ -64,7 +64,7 @@ module.exports = async (versionTag, { isLegacyVersion }) => {
             body: fs.createReadStream(filePath),
             headers: {
               ...requestOptions.headers,
-              'content-length': (await fs.promises.stat(filePath)).size,
+              'content-length': (await fsp.stat(filePath)).size,
               'content-type': 'application/octet-stream',
             },
           }

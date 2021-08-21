@@ -443,3 +443,13 @@ provider:
   httpApi:
     disableDefaultEndpoint: true
 ```
+
+### Service Naming
+
+You can use the `shouldStartNameWithService` option to change the naming scheme for HTTP API from the default `${stage}-${service}` to `${service}-${stage}`.
+
+```yml
+provider:
+  httpApi:
+    shouldStartNameWithService: true
+```

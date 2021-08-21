@@ -4,6 +4,7 @@ const expect = require('chai').expect;
 const sandbox = require('sinon');
 const { constants } = require('fs');
 const fs = require('fs');
+const fsp = require('fs').promises;
 const fse = require('fs-extra');
 const os = require('os');
 const path = require('path');
@@ -25,7 +26,7 @@ describe('AwsConfigCredentials', () => {
   before(() => {
     // Abort if credentials are found in home directory
     // (it should not be the case, as home directory is mocked to point temp dir)
-    return fse.lstat(awsDirectoryPath).then(
+    return fsp.lstat(awsDirectoryPath).then(
       () => {
         throw new Error('Unexpected ~/.aws directory, related tests aborted');
       },

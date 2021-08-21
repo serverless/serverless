@@ -2,6 +2,66 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.55.0](https://github.com/serverless/serverless/compare/v2.54.0...v2.55.0) (2021-08-18)
+
+### Features
+
+- **AWS Lambda:** Recognize `python3.9` as valid runtime ([#9854](https://github.com/serverless/serverless/pull/9854)) ([1aa24b8](https://github.com/serverless/serverless/commit/1aa24b8991032ba3fe6f2c4b65bf0e70bc4171dd)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **AWS HTTP API:** Properly handle authorizer function with alias (e.g. with `provisionedConcurrency`) ([#9850](https://github.com/serverless/serverless/pull/9850)) ([0ca6aaa](https://github.com/serverless/serverless/commit/0ca6aaae526b16df2039edff5db166a39bb1de10)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **CLI Onboarding:** Adjust summary messages in deploy step ([#9835](https://github.com/serverless/serverless/pull/9835)) ([b751c50](https://github.com/serverless/serverless/commit/b751c505c8050e229edb77d44016925c4e52a05e)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Replace `fse.stat` with `fs.promises.stat` ([#9845](https://github.com/serverless/serverless/issues/9845)) ([bb0484e](https://github.com/serverless/serverless/commit/bb0484e6b54a3cc6aed46ff23100e08c90c995ce)) ([Sudipto Das](https://github.com/sdas13))
+- **Telemetry:** Recognize `notificationsMode` ([#9851](https://github.com/serverless/serverless/pull/9851)) ([00fdba1](https://github.com/serverless/serverless/commit/00fdba154655b15b5b2de4b9ceca08f8bfce599e)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+## [2.54.0](https://github.com/serverless/serverless/compare/v2.53.1...v2.54.0) (2021-08-12)
+
+### Features
+
+- **AWS IAM:** Resign from deprecating old format of IAM settings ([#9778](https://github.com/serverless/serverless/pull/9778)) ([847dd8f](https://github.com/serverless/serverless/commit/847dd8f47503ddf03971122e5700110aa3ff77d1)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Lambda:** Add support for multiple subscription filters ([#9760](https://github.com/serverless/serverless/issues/9760)) ([5c9ca56](https://github.com/serverless/serverless/commit/5c9ca56d14a90dfd9aa5c064bd15137504336ed7)) ([Han Sang Hoon (한상훈)](https://github.com/poerty))
+- **AWS API Gateway:** Deprecate default for `identitySource` for `request` authorizers with disabled caching ([#9825](https://github.com/serverless/serverless/pull/9825)) ([0e01d9e](https://github.com/serverless/serverless/commit/0e01d9e337860b9d1136586fbfaf0c43ac21cde0)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:** Deprecate `-v` as alias for `--verbose` ([#9811](https://github.com/serverless/serverless/commit/53b41eb53aeefe22dc29b785a428f3b184906d2c)) ([53b41eb](https://github.com/serverless/serverless/commit/53b41eb53aeefe22dc29b785a428f3b184906d2c)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **AWS Deploy:** Ensure right code for `deploy -f` deprecation ([#9833](https://github.com/serverless/serverless/pull/9833)) ([90877d5](https://github.com/serverless/serverless/commit/90877d575ec9436db30a3a16fc90e5190ea30018)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Layers:** Support references to external layers ([#9826](https://github.com/serverless/serverless/pull/9826)) ([dc74f41](https://github.com/serverless/serverless/commit/dc74f41470447c1fab0a646c15284a4eb212ecb6)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Variables:** Unconditionally deprecate old vars engine extensions ([#9827](https://github.com/serverless/serverless/pull/9827)) ([b7f4e08](https://github.com/serverless/serverless/commit/b7f4e08661cd149a29ae7107241a16928dc606eb)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### [2.53.1](https://github.com/serverless/serverless/compare/v2.53.0...v2.53.1) (2021-08-06)
+
+### Bug Fixes
+
+- **AWS API Gateway:** Ensure `MinimumCompressionSize` can be set to 0 ([#9806](https://github.com/serverless/serverless/issues/9806)) ([f0ae032](https://github.com/serverless/serverless/commit/f0ae032252f88d4d864c2bfe526d70064168231a)) ([Lewis Putz](https://github.com/Putzy))
+
+### Maintenance Improvements
+
+- **CLI:** Change formatting of notifications ([#9807](https://github.com/serverless/serverless/issues/9807)) ([7c51f55](https://github.com/serverless/serverless/commit/7c51f55f5b8af6f853560ba5d757c65b1068a7ab)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Use `async` in `lib/utils` ([#9809](https://github.com/serverless/serverless/issues/9809)) ([48c3d99](https://github.com/serverless/serverless/commit/48c3d990beccef7dc3f4b5d29ec5bc4238fd9cf6)) ([Nyambayar Turbat](https://github.com/nyamba))
+
+## [2.53.0](https://github.com/serverless/serverless/compare/v2.52.1...v2.53.0) (2021-08-04)
+
+### Features
+
+- **Variables:** Accept case-insensitive strings in `strToBool` ([#9770](https://github.com/serverless/serverless/issues/9770)) ([612f668](https://github.com/serverless/serverless/commit/612f668c931013bea21b91f47d9cbfd1c7dbb888)) ([Shane R. Spencer](https://github.com/whardier))
+
+### Bug Fixes
+
+- **AWS API Gateway:** Ensure to attach validator when required parameters are defined ([#9793](https://github.com/serverless/serverless/issues/9793)) ([d275459](https://github.com/serverless/serverless/commit/d2754594c462afd39e1576312e361ca57d4f13f2)) ([Karim Kanso](https://github.com/kazkansouh))
+- **Plugins:** Improve error message when a plugin is missing ([#9798](https://github.com/serverless/serverless/issues/9798)) ([5c9df56](https://github.com/serverless/serverless/commit/5c9df56f1bc89af1fd929519f3cf8dac967e514d)) ([Matthieu Napoli](https://github.com/mnapoli))
+
+### Maintenance Improvements
+
+- **Telemetry:** Recognize used variable sources ([#9790](https://github.com/serverless/serverless/pull/9790)) ([60d729b](https://github.com/serverless/serverless/commit/60d729b5d42ae32cc418b9578582da3dc8492754)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Replace `fse.readdir` with `fs.promises.readdir` ([#9780](https://github.com/serverless/serverless/issues/9780)) ([1e00f9e](https://github.com/serverless/serverless/commit/1e00f9edfb5f7618759f9f03d0dad58701a5a27a)) ([Sudipto Das](https://github.com/sdas13))
+- Use `async` in `lib/plugins/create` ([#9683](https://github.com/serverless/serverless/issues/9683)) ([4b87497](https://github.com/serverless/serverless/commit/4b87497875a19348e444763eea85671ed2c4f0b7)) ([Nyambayar Turbat](https://github.com/nyamba))
+- Use `async` in `lib/plugins/plugin` ([#9680](https://github.com/serverless/serverless/issues/9680)) ([377da09](https://github.com/serverless/serverless/commit/377da097c564778c8d2c42ffe49e38000c520106)) ([Nyambayar Turbat](https://github.com/nyamba))
+
 ### [2.52.1](https://github.com/serverless/serverless/compare/v2.52.0...v2.52.1) (2021-07-22)
 
 ### Bug Fixes

@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Serverless Stats
 menuText: serverless stats
-menuOrder: 22
+menuOrder: 23
 description: Enables or disables Serverless Statistic logging within the Serverless Framework.
 layout: Doc
 -->

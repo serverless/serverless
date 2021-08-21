@@ -221,4 +221,21 @@ describe('lib/plugins/aws/package/compile/events/apiGateway/lib/restApi.test.js'
       'Fn::If': ['Condition', 'FirstVal', 'SecondVal'],
     });
   });
+
+  it('should support `provider.apiGateway.minimumCompressionSize to be set to 0`', async () => {
+    const { cfTemplate } = await runServerless({
+      fixture: 'apiGateway',
+      command: 'package',
+      configExt: {
+        provider: {
+          apiGateway: {
+            minimumCompressionSize: 0,
+          },
+        },
+      },
+    });
+    const resource = cfTemplate.Resources.ApiGatewayRestApi;
+
+    expect(resource.Properties.MinimumCompressionSize).to.equal(0);
+  });
 });

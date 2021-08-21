@@ -40,6 +40,7 @@ describe('AwsCompileApigEvents', () => {
     let compileRestApiStub;
     let compileResourcesStub;
     let compileMethodsStub;
+    let compileRequestValidatorsStub;
     let compileDeploymentStub;
     let compileUsagePlanStub;
     let compilePermissionsStub;
@@ -51,6 +52,9 @@ describe('AwsCompileApigEvents', () => {
       compileRestApiStub = sinon.stub(awsCompileApigEvents, 'compileRestApi').resolves();
       compileResourcesStub = sinon.stub(awsCompileApigEvents, 'compileResources').resolves();
       compileMethodsStub = sinon.stub(awsCompileApigEvents, 'compileMethods').resolves();
+      compileRequestValidatorsStub = sinon
+        .stub(awsCompileApigEvents, 'compileRequestValidators')
+        .resolves();
       compileDeploymentStub = sinon.stub(awsCompileApigEvents, 'compileDeployment').resolves();
       compileUsagePlanStub = sinon.stub(awsCompileApigEvents, 'compileUsagePlan').resolves();
       compilePermissionsStub = sinon.stub(awsCompileApigEvents, 'compilePermissions').resolves();
@@ -65,6 +69,7 @@ describe('AwsCompileApigEvents', () => {
       awsCompileApigEvents.compileRestApi.restore();
       awsCompileApigEvents.compileResources.restore();
       awsCompileApigEvents.compileMethods.restore();
+      awsCompileApigEvents.compileRequestValidators.restore();
       awsCompileApigEvents.compileDeployment.restore();
       awsCompileApigEvents.compileUsagePlan.restore();
       awsCompileApigEvents.compilePermissions.restore();
@@ -99,7 +104,8 @@ describe('AwsCompileApigEvents', () => {
         expect(compileRestApiStub.calledAfter(validateStub)).to.be.equal(true);
         expect(compileResourcesStub.calledAfter(compileRestApiStub)).to.be.equal(true);
         expect(compileMethodsStub.calledAfter(compileResourcesStub)).to.be.equal(true);
-        expect(compileDeploymentStub.calledAfter(compileMethodsStub)).to.be.equal(true);
+        expect(compileRequestValidatorsStub.calledAfter(compileMethodsStub)).to.be.equal(true);
+        expect(compileDeploymentStub.calledAfter(compileRequestValidatorsStub)).to.be.equal(true);
         expect(compileUsagePlanStub.calledAfter(compileDeploymentStub)).to.be.equal(true);
         expect(compilePermissionsStub.calledAfter(compileUsagePlanStub)).to.be.equal(true);
         expect(compileStageStub.calledAfter(compilePermissionsStub)).to.be.equal(true);

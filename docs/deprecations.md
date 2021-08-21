@@ -36,6 +36,22 @@ Note:
 - In service configuration setting is ineffective for deprecations reported before service configuration is read.
 - `SLS_DEPRECATION_DISABLE` env var and `disabledDeprecations` configuration setting remain respected, and no errors will be thrown for mentioned deprecation coodes.
 
+<a name="CLI_VERBOSE_OPTION_ALIAS"><div>&nbsp;</div></a>
+
+## CLI `-v` alias for `--verbose` option
+
+Deprecation code: `CLI_VERBOSE_OPTION_ALIAS`
+
+Starting with `v3.0.0`, `-v` will no longer be supported as alias for `--verbose` option. Please use `--verbose` flag instead.
+
+<a name="AWS_API_GATEWAY_DEFAULT_IDENTITY_SOURCE"><div>&nbsp;</div></a>
+
+## Default `identitySource` for `http.authorizer`
+
+Deprecation code: `AWS_API_GATEWAY_DEFAULT_IDENTITY_SOURCE`
+
+Starting with v3.0.0, `functions[].events[].http.authorizer.identitySource` will no longer be set to "method.request.header.Authorization" by default for authorizers of "request" type with caching disabled ("resultTtlInSeconds" set to "0"). If you want to keep this setting, please set it explicitly in your configuration. If you do not want this to be set, please set it explicitly to "null".
+
 <a name="DISABLE_DEFAULT_OUTPUT_EXPORT_NAMES"><div>&nbsp;</div></a>
 
 ## Disable default Output Export names
@@ -50,7 +66,7 @@ Starting with `v3.0.0`, it will not be possible to disable default export names 
 
 Deprecation code: `CLI_DEPLOY_FUNCTION_OPTION'`
 
-Starting with v3.0.0, `--function` or `-f` option for `deploy` command will be removed. In order to deploy a single function, please use `deploy function` command instead.
+Starting with `v3.0.0`, `--function` or `-f` option for `deploy` command will be removed. In order to deploy a single function, please use `deploy function` command instead.
 
 <a name="CHANGE_OF_DEFAULT_RUNTIME_TO_NODEJS14X"><div>&nbsp;</div></a>
 
@@ -100,7 +116,7 @@ Deprecation code: `UNSUPPORTED_CLI_OPTIONS`
 
 Framework was upgraded with extensive CLI options validation and that required dropping support for _free form_ CLI options (keeping that in will make not possible to reliably detect accidental typos in option names).
 
-For _free form_ process configuration options it is adviced to rely on environment variables instead, as e.g.:
+For _free form_ process configuration options it is advised to rely on environment variables instead, as e.g.:
 
 ```yaml
 provider:
@@ -236,9 +252,9 @@ Starting from v3.0.0 configuration data will not be resolved internally, and if 
 
 Deprecation code: `VARIABLES_ERROR_ON_UNRESOLVED`
 
-Starting with v3.0.0, references to variables that cannot be resolved will result in an error being thrown.
+_Note: Starting with v3.0.0, Serverless Framework will switch exclusively to a new variables resolver. If you see this deprecation please upgrade to latest v2 release of Serverless Framework, as that will provide a more accurate insight on planned changes._
 
-Adapt to this behaviour now by adding `unresolvedVariablesNotificationMode: error` to service configuration.
+In context of v2 you may adapt old variables resolver so errors on unresolved variables are thrown by adding `unresolvedVariablesNotificationMode: error` to service configuration.
 
 <a name="PROVIDER_IAM_SETTINGS"><div>&nbsp;</div></a>
 
@@ -246,7 +262,9 @@ Adapt to this behaviour now by adding `unresolvedVariablesNotificationMode: erro
 
 Deprecation code: `PROVIDER_IAM_SETTINGS`
 
-Staring with v3.0.0, all IAM-related settings of _provider_ including `iamRoleStatements`, `iamManagedPolicies`, `role` and `cfnRole` will be grouped under `iam` property. Refer to the[IAM Guide](/framework/docs/providers/aws/guide/iam.md).
+_Note: Originally support for old IAM settings was scheduled to be dropped with new major release. It's no longer the case. If you see this deprecation notice please upgrade to latest version of Serverless Framework_
+
+All IAM-related settings of _provider_ including `iamRoleStatements`, `iamManagedPolicies`, `role` and `cfnRole` are also now supported at `iam` property. Refer to the [IAM Guide](/framework/docs/providers/aws/guide/iam.md).
 
 - `provider.role` -> `provider.iam.role`
 - `provider.rolePermissionsBoundary` -> `provider.iam.role.permissionsBoundary`
@@ -254,8 +272,7 @@ Staring with v3.0.0, all IAM-related settings of _provider_ including `iamRoleSt
 - `provider.iamManagedPolicies` -> `provider.iam.role.managedPolicies`
 - `provider.cfnRole` -> `provider.iam.deploymentRole`
 
-In addition, a prior update had documented the new Permissions Boundary property as `iam.role.permissionBoundary`. This
-has now been deprecated in favor of `iam.role.permissionsBoundary` to match the CloudFormation property.
+In addition `iam.role.permissionBoundary` can also be set at `iam.role.permissionsBoundary` (which matches CloudFormation property name).
 
 <a name="AWS_API_GATEWAY_SPECIFIC_KEYS"><div>&nbsp;</div></a>
 

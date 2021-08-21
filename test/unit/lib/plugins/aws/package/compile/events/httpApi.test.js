@@ -39,7 +39,11 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
             payload: {
               handler: 'index.handler',
               httpApi: { payload: '1.0' },
-              events: [{ httpApi: { method: 'get', path: '/payload' } }],
+              events: [{ httpApi: { method: 'options', path: '/payload' } }],
+            },
+            payloadCatchAll: {
+              handler: 'index.handler',
+              events: [{ httpApi: 'ANY /payload' }],
             },
           },
         },
@@ -96,6 +100,20 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
 
     it('should configure method catch all endpoint', () => {
       const routeKey = 'ANY /method-catch-all';
+      const resource = cfResources[naming.getHttpApiRouteLogicalId(routeKey)];
+      expect(resource.Type).to.equal('AWS::ApiGatewayV2::Route');
+      expect(resource.Properties.RouteKey).to.equal(routeKey);
+    });
+
+    it('should configure endpoint with specific method and path', () => {
+      const routeKey = 'OPTIONS /payload';
+      const resource = cfResources[naming.getHttpApiRouteLogicalId(routeKey)];
+      expect(resource.Type).to.equal('AWS::ApiGatewayV2::Route');
+      expect(resource.Properties.RouteKey).to.equal(routeKey);
+    });
+
+    it('should configure method catch all endpoint with same path as a specific method endpoint', () => {
+      const routeKey = 'ANY /payload';
       const resource = cfResources[naming.getHttpApiRouteLogicalId(routeKey)];
       expect(resource.Type).to.equal('AWS::ApiGatewayV2::Route');
       expect(resource.Properties.RouteKey).to.equal(routeKey);
@@ -548,6 +566,82 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
         'authorizerWithExternalFunction'
       );
       expect(cfResources[authorizerPermissionLogicalId]).to.be.undefined;
+    });
+
+    it('should correctly set `DependsOn` property on permission resource for functions with provisioned concurrency', async () => {
+      const { awsNaming, cfTemplate } = await runServerless({
+        fixture: 'httpApi',
+        configExt: {
+          provider: {
+            httpApi: {
+              authorizers: {
+                someAuthorizer: {
+                  type: 'request',
+                  identitySource: '$request.header.Authorization',
+                  functionName: 'other',
+                  resultTtlInSeconds: 300,
+                  enableSimpleResponses: true,
+                  payloadVersion: '2.0',
+                },
+              },
+            },
+          },
+          functions: {
+            other: {
+              provisionedConcurrency: 1,
+            },
+            foo: {
+              events: [
+                {
+                  httpApi: {
+                    authorizer: {
+                      name: 'someAuthorizer',
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+        command: 'package',
+      });
+      const authorizerPermissionLogicalId =
+        awsNaming.getLambdaAuthorizerHttpApiPermissionLogicalId('someAuthorizer');
+      expect(cfTemplate.Resources[authorizerPermissionLogicalId]).to.deep.equal({
+        Type: 'AWS::Lambda::Permission',
+        Properties: {
+          FunctionName: {
+            'Fn::Join': [
+              ':',
+              [
+                {
+                  'Fn::GetAtt': ['OtherLambdaFunction', 'Arn'],
+                },
+                'provisioned',
+              ],
+            ],
+          },
+          Action: 'lambda:InvokeFunction',
+          Principal: 'apigateway.amazonaws.com',
+          SourceArn: {
+            'Fn::Join': [
+              '',
+              [
+                'arn:',
+                { Ref: 'AWS::Partition' },
+                ':execute-api:',
+                { Ref: 'AWS::Region' },
+                ':',
+                { Ref: 'AWS::AccountId' },
+                ':',
+                { Ref: naming.getHttpApiLogicalId() },
+                '/*',
+              ],
+            ],
+          },
+        },
+        DependsOn: 'OtherProvConcLambdaAlias',
+      });
     });
 
     it('should throw when request authorizer does not have "functionName" and "functionArn" defined', async () => {
