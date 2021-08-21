@@ -3,7 +3,7 @@
 const chai = require('chai');
 const path = require('path');
 const overrideEnv = require('process-utils/override-env');
-const fs = require('fs');
+const fsp = require('fs').promises;
 const conditionallyLoadDotenv = require('../../../../lib/cli/conditionally-load-dotenv');
 
 chai.use(require('chai-as-promised'));
@@ -14,11 +14,11 @@ describe('test/unit/lib/cli/conditionally-load-dotenv.test.js', () => {
 
   before(async () => {
     const defaultFileContent = 'DEFAULT_ENV_VARIABLE=valuefromdefault';
-    await fs.promises.writeFile(path.resolve('.env'), defaultFileContent);
+    await fsp.writeFile(path.resolve('.env'), defaultFileContent);
 
     const stage = 'testing';
     const stageFileContent = 'STAGE_ENV_VARIABLE=valuefromstage';
-    await fs.promises.writeFile(path.resolve(`.env.${stage}`), stageFileContent);
+    await fsp.writeFile(path.resolve(`.env.${stage}`), stageFileContent);
   });
 
   beforeEach(() => {

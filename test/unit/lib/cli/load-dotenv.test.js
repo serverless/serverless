@@ -4,7 +4,7 @@ const chai = require('chai');
 const path = require('path');
 const sinon = require('sinon');
 const overrideEnv = require('process-utils/override-env');
-const fs = require('fs');
+const fsp = require('fs').promises;
 const loadEnv = require('../../../../lib/cli/load-dotenv');
 const dotenv = require('dotenv');
 const ServerlessError = require('../../../../lib/serverless-error');
@@ -18,10 +18,10 @@ describe('test/unit/lib/cli/load-dotenv.test.js', () => {
   before(async () => {
     const stage = 'testing';
     const stageFileContent = 'FROM_STAGE=valuefromstage';
-    await fs.promises.writeFile(path.join(process.cwd(), `.env.${stage}`), stageFileContent);
+    await fsp.writeFile(path.join(process.cwd(), `.env.${stage}`), stageFileContent);
 
     const defaultFileContent = 'FROM_DEFAULT=valuefromdefault';
-    await fs.promises.writeFile(path.join(process.cwd(), '.env'), defaultFileContent);
+    await fsp.writeFile(path.join(process.cwd(), '.env'), defaultFileContent);
   });
 
   beforeEach(() => {
