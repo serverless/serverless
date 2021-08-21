@@ -163,54 +163,6 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should add a logical role name provider role', () => {
-      awsCompileFunctions.serverless.service.provider.name = 'aws';
-      awsCompileFunctions.serverless.service.provider.role = 'LogicalNameRole';
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func',
-        },
-      };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction.DependsOn
-        ).to.deep.equal(['FuncLogGroup', 'LogicalNameRole']);
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction.Properties.Role
-        ).to.deep.equal({
-          'Fn::GetAtt': [awsCompileFunctions.serverless.service.provider.role, 'Arn'],
-        });
-      });
-    });
-
-    it('should add a "Fn::GetAtt" Object provider role', () => {
-      awsCompileFunctions.serverless.service.provider.name = 'aws';
-      awsCompileFunctions.serverless.service.provider.role = {
-        'Fn::GetAtt': ['LogicalRoleName', 'Arn'],
-      };
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func',
-        },
-      };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction.DependsOn
-        ).to.deep.equal(['FuncLogGroup', 'LogicalRoleName']);
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction.Properties.Role
-        ).to.deep.equal(awsCompileFunctions.serverless.service.provider.role);
-      });
-    });
-
     it('should add an ARN function role', () => {
       awsCompileFunctions.serverless.service.provider.name = 'aws';
       awsCompileFunctions.serverless.service.functions = {
@@ -1283,72 +1235,6 @@ describe('AwsCompileFunctions', () => {
   });
 
   describe('#compileRole()', () => {
-    it('adds the default role without DependsOn values', () => {
-      const role = 'IamRoleLambdaExecution';
-      const resource = { Properties: {} };
-      awsCompileFunctions.compileRole(resource, role);
-
-      expect(resource).to.deep.equal({
-        Properties: {
-          Role: {
-            'Fn::GetAtt': [role, 'Arn'],
-          },
-        },
-      });
-    });
-
-    it('adds a role based on a logical name with DependsOn values', () => {
-      const role = 'LogicalRoleName';
-      const resource = { Properties: {} };
-      awsCompileFunctions.compileRole(resource, role);
-
-      expect(resource).to.deep.equal({
-        DependsOn: [role],
-        Properties: {
-          Role: {
-            'Fn::GetAtt': [role, 'Arn'],
-          },
-        },
-      });
-    });
-
-    it('adds a role based on a Fn::GetAtt with DependsOn values', () => {
-      const role = { 'Fn::GetAtt': ['Foo', 'Arn'] };
-      const resource = { Properties: {} };
-      awsCompileFunctions.compileRole(resource, role);
-
-      expect(resource).to.deep.equal({
-        DependsOn: ['Foo'],
-        Properties: {
-          Role: role,
-        },
-      });
-    });
-
-    it('adds a role based on a Fn::ImportValue', () => {
-      const role = { 'Fn::ImportValue': 'Foo' };
-      const resource = { Properties: {} };
-      awsCompileFunctions.compileRole(resource, role);
-
-      expect(resource).to.deep.equal({
-        Properties: {
-          Role: role,
-        },
-      });
-    });
-
-    it('adds a role based on a predefined arn string', () => {
-      const role = 'arn:aws:xxx:*:*';
-      const resource = { Properties: {} };
-      awsCompileFunctions.compileRole(resource, role);
-
-      expect(resource).to.deep.equal({
-        Properties: {
-          Role: role,
-        },
-      });
-    });
-
     it('should not set unset properties when not specified in yml (layers, vpc, etc)', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
@@ -1830,26 +1716,47 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
     });
   });
 
-  describe.skip('TODO: `provider.role` variants', () => {
-    // After addressing remove also:
-    // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L2222-L2286
-
+  describe('`provider.role` variants', () => {
     it('should support resource name', async () => {
-      await runServerless({ fixture: 'function', configExt: {}, command: 'package' });
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L235-L257
-      //
-      // Confirm that provider.role is refereenced at Function.Properties.Role
-      // and that it's added to function DependsOn
+      const { awsNaming, cfTemplate, fixtureData } = await runServerless({
+        fixture: 'function',
+        configExt: {
+          provider: {
+            iam: {
+              role: 'LogicalNameRole',
+            },
+          },
+        },
+        command: 'package',
+      });
+
+      const funcResource = cfTemplate.Resources[awsNaming.getLambdaLogicalId('foo')];
+      expect(funcResource.DependsOn).to.deep.equal(['FooLogGroup', 'LogicalNameRole']);
+      expect(funcResource.Properties.Role).to.deep.equal({
+        'Fn::GetAtt': [fixtureData.serviceConfig.provider.iam.role, 'Arn'],
+      });
     });
 
     it('should support Fn::GetAtt function', async () => {
-      await runServerless({ fixture: 'function', configExt: {}, command: 'package' });
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L259-L281
-      //
-      // Confirm that provider.role is refereenced at Function.Properties.Role
-      // and that it's added to function DependsOn
+      const { awsNaming, cfTemplate, fixtureData } = await runServerless({
+        fixture: 'function',
+        configExt: {
+          provider: {
+            iam: {
+              role: {
+                'Fn::GetAtt': ['LogicalNameRole', 'Arn'],
+              },
+            },
+          },
+        },
+        command: 'package',
+      });
+
+      const funcResource = cfTemplate.Resources[awsNaming.getLambdaLogicalId('foo')];
+      expect(funcResource.DependsOn).to.deep.equal(['FooLogGroup', 'LogicalNameRole']);
+      expect(funcResource.Properties.Role).to.deep.equal(
+        fixtureData.serviceConfig.provider.iam.role
+      );
     });
   });
 
