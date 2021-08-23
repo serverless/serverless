@@ -359,12 +359,15 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
           this.secretAccessKey = 'secret';
         }
       }
+      class FakeMetadataService {}
+
       const modulesCacheStub = {
         'aws-sdk': {
           SharedIniFileCredentials,
           EnvironmentCredentials,
           CloudFormation: FakeCloudFormation,
         },
+        'aws-sdk/lib/metadata_service': FakeMetadataService,
       };
       const { serverless } = await runServerless({
         fixture: 'aws',
