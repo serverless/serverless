@@ -2,6 +2,7 @@
 
 const expect = require('chai').expect;
 const sinon = require('sinon');
+const _ = require('lodash');
 const findDeployments = require('../../../../../../lib/plugins/aws/lib/findDeployments');
 const Serverless = require('../../../../../../lib/Serverless');
 const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
@@ -16,11 +17,10 @@ describe('#findDeployments()', () => {
     const stub = sinon.stub(awsPlugin.provider, 'request');
 
     const serviceObjects = {
-      Contents: fixtures
-        .flatMap(({ timestamp, artifacts }) => [
-          `${s3Key}/${timestamp}/compiled-cloudformation-template.json`,
-          ...Object.values(artifacts),
-        ])
+      Contents: _.flatMap(fixtures, ({ timestamp, artifacts }) => [
+        `${s3Key}/${timestamp}/compiled-cloudformation-template.json`,
+        ...Object.values(artifacts),
+      ])
         .sort() // listObjectsV2() provides entries in the ascending order
         .filter((value, index, all) => all.indexOf(value) === index)
         .map((item) => ({ Key: item })),

@@ -4,6 +4,7 @@
 
 const sinon = require('sinon');
 const chai = require('chai');
+const _ = require('lodash');
 const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 const AwsDeploy = require('../../../../../../../lib/plugins/aws/deploy/index');
 const Serverless = require('../../../../../../../lib/Serverless');
@@ -23,11 +24,10 @@ describe('cleanupS3Bucket', () => {
     const stub = sinon.stub(awsDeploy.provider, 'request');
 
     const serviceObjects = {
-      Contents: fixtures
-        .flatMap(({ timestamp, artifacts }) => [
-          `${s3Key}/${timestamp}/compiled-cloudformation-template.json`,
-          ...Object.values(artifacts),
-        ])
+      Contents: _.flatMap(fixtures, ({ timestamp, artifacts }) => [
+        `${s3Key}/${timestamp}/compiled-cloudformation-template.json`,
+        ...Object.values(artifacts),
+      ])
         .sort() // listObjectsV2() provides entries in the ascending order
         .filter((value, index, all) => all.indexOf(value) === index)
         .map((item) => ({ Key: item })),

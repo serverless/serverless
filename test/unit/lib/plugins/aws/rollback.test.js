@@ -6,6 +6,7 @@ const Serverless = require('../../../../../lib/Serverless');
 const expect = require('chai').expect;
 const assert = require('chai').assert;
 const sinon = require('sinon');
+const _ = require('lodash');
 
 describe('AwsRollback', () => {
   let awsRollback;
@@ -86,11 +87,10 @@ describe('AwsRollback', () => {
       const stub = sinon.stub(awsRollback.provider, 'request');
 
       const serviceObjects = {
-        Contents: fixtures
-          .flatMap(({ timestamp, artifacts }) => [
-            `${s3Key}/${timestamp}/compiled-cloudformation-template.json`,
-            ...Object.values(artifacts),
-          ])
+        Contents: _.flatMap(fixtures, ({ timestamp, artifacts }) => [
+          `${s3Key}/${timestamp}/compiled-cloudformation-template.json`,
+          ...Object.values(artifacts),
+        ])
           .sort() // listObjectsV2() provides entries in the ascending order
           .filter((value, index, all) => all.indexOf(value) === index)
           .map((item) => ({ Key: item })),
