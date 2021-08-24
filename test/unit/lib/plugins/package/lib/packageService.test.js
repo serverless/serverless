@@ -272,6 +272,7 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
   describe('pre-prepared artifact with absolute artifact path', () => {
     describe('while deploying whole service', () => {
       const s3UploadStub = sinon.stub();
+      const headObjectStub = sinon.stub().rejects({ code: 'AWS_S3_HEAD_OBJECT_NOT_FOUND' });
       const awsRequestStubMap = {
         Lambda: {
           getFunction: {
@@ -283,6 +284,7 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
         S3: {
           upload: s3UploadStub,
           listObjectsV2: {},
+          headObject: headObjectStub,
         },
         CloudFormation: {
           describeStacks: {},

@@ -206,6 +206,7 @@ describe('createStack #2', () => {
     .throws('error', 'stack does not exist')
     .onSecondCall()
     .resolves({ Stacks: [{}] });
+  const headObjectStub = sandbox.stub().rejects({ code: 'AWS_S3_HEAD_OBJECT_NOT_FOUND' });
 
   afterEach(() => {
     createStackStub.resetHistory();
@@ -229,6 +230,7 @@ describe('createStack #2', () => {
     S3: {
       deleteObjects: {},
       listObjectsV2: { Contents: [] },
+      headObject: headObjectStub,
       upload: {},
     },
     CloudFormation: {
