@@ -124,7 +124,7 @@ describe('AwsRollback', () => {
           assert.isNotOk(true, 'setStackToUpdate should not resolve');
         })
         .catch((error) => {
-          expect(error.code).to.equal('ROLLBACK_IMPOSSIBLE_NO_DEPLOYMENTS');
+          expect(error.code).to.equal('ROLLBACK_DEPLOYMENTS_NOT_FOUND');
           expect(listObjectsStub.calledOnce).to.be.equal(true);
           expect(
             listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
@@ -158,7 +158,7 @@ describe('AwsRollback', () => {
           assert.isNotOk(true, 'setStackToUpdate should not resolve');
         })
         .catch((error) => {
-          expect(error.code).to.equal('ROLLBACK_IMPOSSIBLE_NO_DEPLOYMENT');
+          expect(error.code).to.equal('ROLLBACK_DEPLOYMENT_NOT_FOUND');
           expect(listObjectsStub.calledOnce).to.be.equal(true);
           expect(
             listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
