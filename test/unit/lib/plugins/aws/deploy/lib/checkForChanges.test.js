@@ -620,8 +620,9 @@ describe('checkForChanges #2', () => {
         },
       },
     }).then(({ cfTemplate }) => {
-      expect(cfTemplate.Resources.FooLambdaFunction.Properties.Code.S3Key.endsWith('/artifact.zip'))
-        .to.be.true;
+      expect(cfTemplate.Resources.FooLambdaFunction.Properties.Code.S3Key).to.match(
+        /(.+)\/code-artifacts\/([a-z0-9]+)\.zip$/
+      );
     }));
 });
 

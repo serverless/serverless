@@ -29,6 +29,55 @@ describe('#addCustomResourceToService()', () => {
       Action: ['lambda:AddPermission', 'lambda:RemovePermission'],
     },
   ];
+  const customResourcesSetup = [
+    [
+      's3',
+      [
+        ...iamRoleStatements,
+        {
+          Effect: 'Allow',
+          Resource: 'arn:aws:s3:::some-bucket',
+          Action: ['s3:PutBucketNotification', 's3:GetBucketNotification'],
+        },
+      ],
+    ],
+    [
+      'cognitoUserPool',
+      [
+        ...iamRoleStatements,
+        {
+          Effect: 'Allow',
+          Resource: '*',
+          Action: [
+            'cognito-idp:ListUserPools',
+            'cognito-idp:DescribeUserPool',
+            'cognito-idp:UpdateUserPool',
+          ],
+        },
+      ],
+    ],
+    [
+      'eventBridge',
+      [
+        ...iamRoleStatements,
+        {
+          Effect: 'Allow',
+          Resource: 'arn:aws:events:*:*:rule/some-rule',
+          Action: [
+            'events:PutRule',
+            'events:RemoveTargets',
+            'events:PutTargets',
+            'events:DeleteRule',
+          ],
+        },
+        {
+          Action: ['events:CreateEventBus', 'events:DeleteEventBus'],
+          Effect: 'Allow',
+          Resource: 'arn:aws:events:*:*:event-bus/some-event-bus',
+        },
+      ],
+    ],
+  ];
 
   beforeEach(() => {
     const options = {
@@ -46,53 +95,15 @@ describe('#addCustomResourceToService()', () => {
       Resources: {},
     };
     serverless.serviceDir = tmpDirPath;
-    serverless.service.package.artifactDirectoryName = 'artifact-dir-name';
+    serverless.service.package.deploymentDirectoryPrefix = 'artifact-dir-name';
+    serverless.service.package.timestamp = 'some-timestamp';
   });
 
   it('should add one IAM role and the custom resources to the service', () =>
-    BbPromise.all([
-      // add the custom S3 resource
-      addCustomResourceToService(provider, 's3', [
-        ...iamRoleStatements,
-        {
-          Effect: 'Allow',
-          Resource: 'arn:aws:s3:::some-bucket',
-          Action: ['s3:PutBucketNotification', 's3:GetBucketNotification'],
-        },
-      ]),
-      // add the custom Cognito User Pool resource
-      addCustomResourceToService(provider, 'cognitoUserPool', [
-        ...iamRoleStatements,
-        {
-          Effect: 'Allow',
-          Resource: '*',
-          Action: [
-            'cognito-idp:ListUserPools',
-            'cognito-idp:DescribeUserPool',
-            'cognito-idp:UpdateUserPool',
-          ],
-        },
-      ]),
-      // add the custom Event Bridge resource
-      addCustomResourceToService(provider, 'eventBridge', [
-        ...iamRoleStatements,
-        {
-          Effect: 'Allow',
-          Resource: 'arn:aws:events:*:*:rule/some-rule',
-          Action: [
-            'events:PutRule',
-            'events:RemoveTargets',
-            'events:PutTargets',
-            'events:DeleteRule',
-          ],
-        },
-        {
-          Action: ['events:CreateEventBus', 'events:DeleteEventBus'],
-          Effect: 'Allow',
-          Resource: 'arn:aws:events:*:*:event-bus/some-event-bus',
-        },
-      ]),
-    ]).then(() => {
+    BbPromise.all(
+      customResourcesSetup.map((item) => addCustomResourceToService(provider, ...item))
+    ).then(() => {
+      const expectedHash = '4c5e62684328d13eea8e12cd733bcf1c67c6230d78b9ea7408fc7d824f9b556b';
       const { Resources } = serverless.service.provider.compiledCloudFormationTemplate;
 
       // S3 Lambda Function
@@ -101,7 +112,7 @@ describe('#addCustomResourceToService()', () => {
         Properties: {
           Code: {
             S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-            S3Key: 'artifact-dir-name/custom-resources.zip',
+            S3Key: `artifact-dir-name/code-artifacts/${expectedHash}.zip`,
           },
           FunctionName: `${serviceName}-dev-custom-resource-existing-s3`,
           Handler: 's3/handler.handler',
@@ -120,7 +131,7 @@ describe('#addCustomResourceToService()', () => {
         Properties: {
           Code: {
             S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-            S3Key: 'artifact-dir-name/custom-resources.zip',
+            S3Key: `artifact-dir-name/code-artifacts/${expectedHash}.zip`,
           },
           FunctionName: `${serviceName}-dev-custom-resource-existing-cup`,
           Handler: 'cognitoUserPool/handler.handler',
@@ -139,7 +150,7 @@ describe('#addCustomResourceToService()', () => {
         Properties: {
           Code: {
             S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-            S3Key: 'artifact-dir-name/custom-resources.zip',
+            S3Key: `artifact-dir-name/code-artifacts/${expectedHash}.zip`,
           },
           FunctionName: `${serviceName}-dev-custom-resource-event-bridge`,
           Handler: 'eventBridge/handler.handler',

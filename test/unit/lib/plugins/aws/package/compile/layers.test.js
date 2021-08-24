@@ -1,6 +1,5 @@
 'use strict';
 
-const path = require('path');
 const chai = require('chai');
 const runServerless = require('../../../../../../utils/run-serverless');
 
@@ -31,6 +30,7 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
   let serviceDir;
   let service;
   let cfOutputs;
+  const expectedHash = '1e5b3639e741fb32f299674f84d0f25270651ca586c618b54822c9b2261d6410';
 
   before(async () => {
     const { awsNaming, cfTemplate, fixtureData, serverless } = await runServerless({
@@ -71,8 +71,8 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
   it('should support `layers[].package.artifact` with `package.individually`', () => {
     const resourceName = 'layer';
     const layerResource = cfResources[naming.getLambdaLayerLogicalId(resourceName)];
-    const s3Folder = service.package.artifactDirectoryName;
-    const s3FileName = service.layers[resourceName].package.artifact.split(path.sep).pop();
+    const s3Folder = `${service.package.deploymentDirectoryPrefix}/code-artifacts`;
+    const s3FileName = `${expectedHash}.zip`;
 
     expect(layerResource.Properties.Content.S3Key).to.equal(`${s3Folder}/${s3FileName}`);
   });
@@ -80,8 +80,8 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
   it('should generate expected layer version resource', () => {
     const resourceName = 'layer';
     const layerResource = cfResources[naming.getLambdaLayerLogicalId(resourceName)];
-    const s3Folder = service.package.artifactDirectoryName;
-    const s3FileName = service.layers[resourceName].package.artifact.split(path.sep).pop();
+    const s3Folder = `${service.package.deploymentDirectoryPrefix}/code-artifacts`;
+    const s3FileName = `${expectedHash}.zip`;
 
     expect(layerResource.Type).to.equals('AWS::Lambda::LayerVersion');
     expect(layerResource.Properties.Content.S3Key).to.equal(`${s3Folder}/${s3FileName}`);
