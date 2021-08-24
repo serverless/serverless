@@ -27,7 +27,7 @@ describe('Integration test - Packaging - CloudFormation', () => {
       fs.readFileSync(path.join(cwd, '.serverless/cloudformation-template-update-stack.json'))
     );
     expect(cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key).to.match(
-      /serverless\/aws-nodejs\/dev\/[^]*\/artifact.zip/
+      /serverless\/aws-nodejs\/dev\/code-artifacts\/[0-9a-f]+.zip/
     );
     delete cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key;
     expect(cfnTemplate.Resources.HelloLambdaFunction).to.deep.equal({
@@ -58,7 +58,7 @@ describe('Integration test - Packaging - CloudFormation', () => {
       fs.readFileSync(path.join(cwd, '.serverless/cloudformation-template-update-stack.json'))
     );
     expect(cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key).to.match(
-      /serverless\/aws-nodejs\/dev\/[^]*\/aws-nodejs.zip/
+      /serverless\/aws-nodejs\/dev\/code-artifacts\/[0-9a-f]+.zip/
     );
     delete cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key;
     expect(cfnTemplate.Resources.HelloLambdaFunction).to.deep.equal({
@@ -89,10 +89,10 @@ describe('Integration test - Packaging - CloudFormation', () => {
       fs.readFileSync(path.join(cwd, '.serverless/cloudformation-template-update-stack.json'))
     );
     expect(cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key).to.match(
-      /serverless\/aws-nodejs\/dev\/[^]*\/hello.zip/
+      /serverless\/aws-nodejs\/dev\/code-artifacts\/[0-9a-f]+.zip/
     );
     expect(cfnTemplate.Resources.Hello2LambdaFunction.Properties.Code.S3Key).to.match(
-      /serverless\/aws-nodejs\/dev\/[^]*\/hello2.zip/
+      /serverless\/aws-nodejs\/dev\/code-artifacts\/[0-9a-f]+.zip/
     );
     delete cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key;
     expect(cfnTemplate.Resources.HelloLambdaFunction).to.deep.equal({
