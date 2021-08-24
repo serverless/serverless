@@ -79,7 +79,7 @@ describe('AwsPackage', () => {
     let spawnStub;
     let generateCoreTemplateStub;
     let mergeIamTemplatesStub;
-    let generateArtifactDirectoryNameStub;
+    let generatePackageRuntimeMetadataStub;
     let mergeCustomProviderResourcesStub;
     let saveCompiledTemplateStub;
     let saveServiceStateStub;
@@ -88,8 +88,8 @@ describe('AwsPackage', () => {
       spawnStub = sinon.stub(serverless.pluginManager, 'spawn');
       generateCoreTemplateStub = sinon.stub(awsPackage, 'generateCoreTemplate').resolves();
       mergeIamTemplatesStub = sinon.stub(awsPackage, 'mergeIamTemplates').returns();
-      generateArtifactDirectoryNameStub = sinon
-        .stub(awsPackage, 'generateArtifactDirectoryName')
+      generatePackageRuntimeMetadataStub = sinon
+        .stub(awsPackage, 'generatePackageRuntimeMetadata')
         .resolves();
       mergeCustomProviderResourcesStub = sinon
         .stub(awsPackage, 'mergeCustomProviderResources')
@@ -102,7 +102,7 @@ describe('AwsPackage', () => {
       serverless.pluginManager.spawn.restore();
       awsPackage.generateCoreTemplate.restore();
       awsPackage.mergeIamTemplates.restore();
-      awsPackage.generateArtifactDirectoryName.restore();
+      awsPackage.generatePackageRuntimeMetadata.restore();
       awsPackage.mergeCustomProviderResources.restore();
       awsPackage.saveCompiledTemplate.restore();
       awsPackage.saveServiceState.restore();
@@ -134,7 +134,7 @@ describe('AwsPackage', () => {
 
     it('should run "before:package:compileFunctions" hook', () =>
       awsPackage.hooks['before:package:compileFunctions']().then(() => {
-        expect(generateArtifactDirectoryNameStub.calledOnce).to.equal(true);
+        expect(generatePackageRuntimeMetadataStub.calledOnce).to.equal(true);
       }));
 
     it('should run "package:finalize" hook', () => {

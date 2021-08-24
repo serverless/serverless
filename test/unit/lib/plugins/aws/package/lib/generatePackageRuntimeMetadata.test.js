@@ -5,7 +5,7 @@ const AwsPackage = require('../../../../../../../lib/plugins/aws/package/index')
 const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 const Serverless = require('../../../../../../../lib/Serverless');
 
-describe('#generateArtifactDirectoryName()', () => {
+describe('#generatePackageRuntimeMetadata()', () => {
   let serverless;
   let awsPackage;
 
@@ -20,8 +20,13 @@ describe('#generateArtifactDirectoryName()', () => {
     awsPackage.serverless.cli = new serverless.classes.CLI();
   });
 
-  it('should generate a name for the artifact directory based on the current time', () => {
-    awsPackage.generateArtifactDirectoryName();
-    expect(awsPackage.serverless.service.package.artifactDirectoryName).to.match(/[0-9]+-.+/);
+  it('should generate a static name for the artifact directory', () => {
+    awsPackage.generatePackageRuntimeMetadata();
+    expect(awsPackage.serverless.service.package.deploymentDirectoryPrefix).to.match(/dev$/);
+  });
+
+  it('should generate a timestamp based on the current time', () => {
+    awsPackage.generatePackageRuntimeMetadata();
+    expect(awsPackage.serverless.service.package.timestamp).to.match(/[0-9]+-.+/);
   });
 });

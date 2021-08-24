@@ -25,7 +25,8 @@ describe('#saveServiceState()', () => {
       },
       package: {
         individually: false,
-        artifactDirectoryName: 'artifact-directory',
+        deploymentDirectoryPrefix: 'artifact-directory',
+        timestamp: 'time-stamp',
         artifact: 'service.zip',
       },
     };
@@ -56,7 +57,8 @@ describe('#saveServiceState()', () => {
       },
       package: {
         individually: false,
-        artifactDirectoryName: 'artifact-directory',
+        deploymentDirectoryPrefix: 'artifact-directory',
+        timestamp: 'time-stamp',
         artifact: 'service.zip',
       },
     };
@@ -90,7 +92,8 @@ describe('#saveServiceState()', () => {
       },
       package: {
         individually: false,
-        artifactDirectoryName: 'artifact-directory',
+        deploymentDirectoryPrefix: 'artifact-directory',
+        timestamp: 'time-stamp',
         artifact: 'service.zip',
       },
     };

@@ -26,7 +26,8 @@ describe('updateStack', () => {
     awsDeploy.bucketName = 'deployment-bucket';
     serverless.service.service = `service-${new Date().getTime().toString()}`;
     serverless.serviceDir = tmpDirPath;
-    awsDeploy.serverless.service.package.artifactDirectoryName = 'somedir';
+    awsDeploy.serverless.service.package.deploymentDirectoryPrefix = 'somedir';
+    awsDeploy.serverless.service.package.timestamp = 'time-stamp';
     awsDeploy.serverless.cli = new serverless.classes.CLI();
   });
 
@@ -45,7 +46,7 @@ describe('updateStack', () => {
 
     it('should create a stack with the CF template URL', () => {
       const compiledTemplateFileName = 'compiled-cloudformation-template.json';
-
+      const expectedTemplateUrl = `https://s3.amazonaws.com/${awsDeploy.bucketName}/${awsDeploy.serverless.service.package.deploymentDirectoryPrefix}/${awsDeploy.serverless.service.package.timestamp}/${compiledTemplateFileName}`;
       return awsDeploy.createFallback().then(() => {
         expect(createStackStub.calledOnce).to.be.equal(true);
         expect(
@@ -54,7 +55,7 @@ describe('updateStack', () => {
             OnFailure: 'DELETE',
             Capabilities: ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM'],
             Parameters: [],
-            TemplateURL: `https://s3.amazonaws.com/${awsDeploy.bucketName}/${awsDeploy.serverless.service.package.artifactDirectoryName}/${compiledTemplateFileName}`,
+            TemplateURL: expectedTemplateUrl,
             Tags: [{ Key: 'STAGE', Value: awsDeploy.provider.getStage() }],
           })
         ).to.be.equal(true);
@@ -141,13 +142,14 @@ describe('updateStack', () => {
     it('should update the stack', () =>
       awsDeploy.update().then(() => {
         const compiledTemplateFileName = 'compiled-cloudformation-template.json';
+        const expectedTemplateUrl = `https://s3.amazonaws.com/${awsDeploy.bucketName}/${awsDeploy.serverless.service.package.deploymentDirectoryPrefix}/${awsDeploy.serverless.service.package.timestamp}/${compiledTemplateFileName}`;
         expect(updateStackStub.calledOnce).to.be.equal(true);
         expect(
           updateStackStub.calledWithExactly('CloudFormation', 'updateStack', {
             StackName: awsDeploy.provider.naming.getStackName(),
             Capabilities: ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM'],
             Parameters: [],
-            TemplateURL: `https://s3.amazonaws.com/${awsDeploy.bucketName}/${awsDeploy.serverless.service.package.artifactDirectoryName}/${compiledTemplateFileName}`,
+            TemplateURL: expectedTemplateUrl,
             Tags: [{ Key: 'STAGE', Value: awsDeploy.provider.getStage() }],
           })
         ).to.be.equal(true);

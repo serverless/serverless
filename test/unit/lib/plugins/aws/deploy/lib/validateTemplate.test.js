@@ -28,7 +28,8 @@ describe('validateTemplate', () => {
     serverless.setProvider('aws', new AwsProvider(serverless, options));
     awsDeploy = new AwsDeploy(serverless, options);
     awsDeploy.bucketName = 'deployment-bucket';
-    awsDeploy.serverless.service.package.artifactDirectoryName = 'somedir';
+    awsDeploy.serverless.service.package.deploymentDirectoryPrefix = 'somedir';
+    awsDeploy.serverless.service.package.timestamp = 'time-stamp';
     awsDeploy.serverless.service.functions = {
       first: {
         handler: 'foo',
@@ -56,7 +57,7 @@ describe('validateTemplate', () => {
         'validateTemplate',
         {
           TemplateURL:
-            'https://s3.amazonaws.com/deployment-bucket/somedir/compiled-cloudformation-template.json',
+            'https://s3.amazonaws.com/deployment-bucket/somedir/time-stamp/compiled-cloudformation-template.json',
         }
       );
     });
@@ -72,7 +73,7 @@ describe('validateTemplate', () => {
           'validateTemplate',
           {
             TemplateURL:
-              'https://s3.amazonaws.com/deployment-bucket/somedir/compiled-cloudformation-template.json',
+              'https://s3.amazonaws.com/deployment-bucket/somedir/time-stamp/compiled-cloudformation-template.json',
           }
         );
         expect(error.message).to.match(/is invalid: Some error while validating/);

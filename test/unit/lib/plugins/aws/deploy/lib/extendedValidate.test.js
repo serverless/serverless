@@ -31,7 +31,8 @@ describe('extendedValidate', () => {
     service: serverlessYml,
     package: {
       individually: true,
-      artifactDirectoryName: 'some/path',
+      deploymentDirectoryPrefix: 'some/path',
+      timestamp: 'time-stamp',
       artifact: '',
     },
   };
