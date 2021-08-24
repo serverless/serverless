@@ -103,7 +103,7 @@ describe('#addCustomResourceToService()', () => {
     BbPromise.all(
       customResourcesSetup.map((item) => addCustomResourceToService(provider, ...item))
     ).then(() => {
-      const expectedHash = '4c5e62684328d13eea8e12cd733bcf1c67c6230d78b9ea7408fc7d824f9b556b';
+      const expectedHash = '336fb9ecd70f00118f67d2be150b4fd924f5d8cf5cc517ab5c03d476f350fb31';
       const { Resources } = serverless.service.provider.compiledCloudFormationTemplate;
 
       // S3 Lambda Function
