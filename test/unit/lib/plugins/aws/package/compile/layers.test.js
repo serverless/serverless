@@ -30,7 +30,6 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
   let serviceDir;
   let service;
   let cfOutputs;
-  const expectedHash = '1e5b3639e741fb32f299674f84d0f25270651ca586c618b54822c9b2261d6410';
 
   before(async () => {
     const { awsNaming, cfTemplate, fixtureData, serverless } = await runServerless({
@@ -71,20 +70,20 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
   it('should support `layers[].package.artifact` with `package.individually`', () => {
     const resourceName = 'layer';
     const layerResource = cfResources[naming.getLambdaLayerLogicalId(resourceName)];
-    const s3Folder = `${service.package.deploymentDirectoryPrefix}/code-artifacts`;
-    const s3FileName = `${expectedHash}.zip`;
 
-    expect(layerResource.Properties.Content.S3Key).to.equal(`${s3Folder}/${s3FileName}`);
+    expect(layerResource.Properties.Content.S3Key).to.match(
+      new RegExp(`${service.package.deploymentDirectoryPrefix}/code-artifacts/[0-9a-f]+.zip`)
+    );
   });
 
   it('should generate expected layer version resource', () => {
     const resourceName = 'layer';
     const layerResource = cfResources[naming.getLambdaLayerLogicalId(resourceName)];
-    const s3Folder = `${service.package.deploymentDirectoryPrefix}/code-artifacts`;
-    const s3FileName = `${expectedHash}.zip`;
 
     expect(layerResource.Type).to.equals('AWS::Lambda::LayerVersion');
-    expect(layerResource.Properties.Content.S3Key).to.equal(`${s3Folder}/${s3FileName}`);
+    expect(layerResource.Properties.Content.S3Key).to.match(
+      new RegExp(`${service.package.deploymentDirectoryPrefix}/code-artifacts/[0-9a-f]+.zip`)
+    );
     expect(layerResource.Properties.LayerName).to.equal('layer');
     expect(layerResource.Properties.Content.S3Bucket.Ref).to.equal('ServerlessDeploymentBucket');
 

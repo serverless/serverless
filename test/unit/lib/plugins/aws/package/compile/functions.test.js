@@ -144,8 +144,6 @@ describe('AwsCompileFunctions', () => {
   });
 
   describe('#compileFunctions()', () => {
-    const expectedHash = 'c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2';
-
     it('should use function artifact if individually', () => {
       awsCompileFunctions.serverless.service.package.individually = true;
 
@@ -155,10 +153,8 @@ describe('AwsCompileFunctions', () => {
             compiledFunctionName
           ];
 
-        const s3Folder = `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts`;
-
         expect(functionResource.Properties.Code.S3Key).to.match(
-          new RegExp(`${s3Folder}/([a-f0-9]+).zip`)
+          /somedir\/code-artifacts\/[0-9a-f]+.zip/
         );
       });
     });
@@ -360,8 +356,6 @@ describe('AwsCompileFunctions', () => {
     });
 
     it('should create a simple function resource', () => {
-      const s3Folder = `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts`;
-      const s3FileName = `${expectedHash}.zip`;
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -373,7 +367,6 @@ describe('AwsCompileFunctions', () => {
         DependsOn: ['FuncLogGroup'],
         Properties: {
           Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
             S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
           },
           FunctionName: 'new-service-dev-func',
@@ -386,17 +379,18 @@ describe('AwsCompileFunctions', () => {
       };
 
       return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
+        const functionResource =
           awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
+            .FuncLambdaFunction;
+        expect(functionResource.Properties.Code.S3Key).to.match(
+          /somedir\/code-artifacts\/[0-9a-f]+.zip/
+        );
+        delete functionResource.Properties.Code.S3Key;
+        expect(functionResource).to.deep.equal(compiledFunction);
       });
     });
 
     it('should create a function resource with function level tags', () => {
-      const s3Folder = `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts`;
-      const s3FileName = `${expectedHash}.zip`;
-
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -413,7 +407,6 @@ describe('AwsCompileFunctions', () => {
         DependsOn: ['FuncLogGroup'],
         Properties: {
           Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
             S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
           },
           FunctionName: 'new-service-dev-func',
@@ -430,22 +423,19 @@ describe('AwsCompileFunctions', () => {
       };
 
       return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
+        const functionResource =
           awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
+            .FuncLambdaFunction;
+        expect(functionResource.Properties.Code.S3Key).to.match(
+          /somedir\/code-artifacts\/[0-9a-f]+.zip/
+        );
+        delete functionResource.Properties.Code.S3Key;
+
+        expect(functionResource).to.deep.equal(compiledFunction);
       });
     });
 
     describe('when using onError config', () => {
-      let s3Folder;
-      let s3FileName;
-
-      beforeEach(() => {
-        s3Folder = `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts`;
-        s3FileName = `${expectedHash}.zip`;
-      });
-
       describe('when IamRoleLambdaExecution is used', () => {
         beforeEach(() => {
           // pretend that the IamRoleLambdaExecution is used
@@ -477,7 +467,6 @@ describe('AwsCompileFunctions', () => {
             DependsOn: ['FuncLogGroup'],
             Properties: {
               Code: {
-                S3Key: `${s3Folder}/${s3FileName}`,
                 S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
               },
               FunctionName: 'new-service-dev-func',
@@ -507,6 +496,13 @@ describe('AwsCompileFunctions', () => {
               compiledCfTemplate.Resources.IamRoleLambdaExecution.Properties.Policies[0]
                 .PolicyDocument.Statement[0];
 
+            expect(functionResource.Properties.Code.S3Key).to.match(
+              new RegExp(
+                `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts/[0-9a-f]+.zip`
+              )
+            );
+            delete functionResource.Properties.Code.S3Key;
+
             expect(functionResource).to.deep.equal(compiledFunction);
             expect(dlqStatement).to.deep.equal(compiledDlqStatement);
           });
@@ -528,7 +524,6 @@ describe('AwsCompileFunctions', () => {
             DependsOn: ['FuncLogGroup'],
             Properties: {
               Code: {
-                S3Key: `${s3Folder}/${s3FileName}`,
                 S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
               },
               FunctionName: 'new-service-dev-func',
@@ -550,6 +545,13 @@ describe('AwsCompileFunctions', () => {
               awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate;
 
             const functionResource = compiledCfTemplate.Resources.FuncLambdaFunction;
+            expect(functionResource.Properties.Code.S3Key).to.match(
+              new RegExp(
+                `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts/[0-9a-f]+.zip`
+              )
+            );
+            delete functionResource.Properties.Code.S3Key;
+
             expect(functionResource).to.deep.equal(compiledFunction);
           });
         });
@@ -570,7 +572,6 @@ describe('AwsCompileFunctions', () => {
             DependsOn: ['FuncLogGroup'],
             Properties: {
               Code: {
-                S3Key: `${s3Folder}/${s3FileName}`,
                 S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
               },
               FunctionName: 'new-service-dev-func',
@@ -592,6 +593,12 @@ describe('AwsCompileFunctions', () => {
               awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate;
 
             const functionResource = compiledCfTemplate.Resources.FuncLambdaFunction;
+            expect(functionResource.Properties.Code.S3Key).to.match(
+              new RegExp(
+                `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts/[0-9a-f]+.zip`
+              )
+            );
+            delete functionResource.Properties.Code.S3Key;
             expect(functionResource).to.deep.equal(compiledFunction);
           });
         });
@@ -612,7 +619,6 @@ describe('AwsCompileFunctions', () => {
             DependsOn: ['FuncLogGroup'],
             Properties: {
               Code: {
-                S3Key: `${s3Folder}/${s3FileName}`,
                 S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
               },
               FunctionName: 'new-service-dev-func',
@@ -634,6 +640,12 @@ describe('AwsCompileFunctions', () => {
               awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate;
 
             const functionResource = compiledCfTemplate.Resources.FuncLambdaFunction;
+            expect(functionResource.Properties.Code.S3Key).to.match(
+              new RegExp(
+                `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts/[0-9a-f]+.zip`
+              )
+            );
+            delete functionResource.Properties.Code.S3Key;
             expect(functionResource).to.deep.equal(compiledFunction);
           });
         });
@@ -654,7 +666,6 @@ describe('AwsCompileFunctions', () => {
             DependsOn: ['FuncLogGroup'],
             Properties: {
               Code: {
-                S3Key: `${s3Folder}/${s3FileName}`,
                 S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
               },
               FunctionName: 'new-service-dev-func',
@@ -674,7 +685,12 @@ describe('AwsCompileFunctions', () => {
               awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate;
 
             const functionResource = compiledCfTemplate.Resources.FuncLambdaFunction;
-
+            expect(functionResource.Properties.Code.S3Key).to.match(
+              new RegExp(
+                `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts/[0-9a-f]+.zip`
+              )
+            );
+            delete functionResource.Properties.Code.S3Key;
             expect(functionResource).to.deep.equal(compiledFunction);
           });
         });
@@ -682,14 +698,6 @@ describe('AwsCompileFunctions', () => {
     });
 
     describe('when using awsKmsKeyArn config', () => {
-      let s3Folder;
-      let s3FileName;
-
-      beforeEach(() => {
-        s3Folder = `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts`;
-        s3FileName = `${expectedHash}.zip`;
-      });
-
       it('should allow if config is provided as a Fn::GetAtt', () => {
         awsCompileFunctions.serverless.service.functions = {
           func: {
@@ -706,7 +714,6 @@ describe('AwsCompileFunctions', () => {
           Properties: {
             Code: {
               S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-              S3Key: `${s3Folder}/${s3FileName}`,
             },
             FunctionName: 'new-service-dev-func',
             Handler: 'func.function.handler',
@@ -723,6 +730,13 @@ describe('AwsCompileFunctions', () => {
           const compiledCfTemplate =
             awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate;
           const functionResource = compiledCfTemplate.Resources.FuncLambdaFunction;
+          expect(functionResource.Properties.Code.S3Key).to.match(
+            new RegExp(
+              `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts/[0-9a-f]+.zip`
+            )
+          );
+          delete functionResource.Properties.Code.S3Key;
+
           expect(functionResource).to.deep.equal(compiledFunction);
         });
       });
@@ -743,7 +757,6 @@ describe('AwsCompileFunctions', () => {
           Properties: {
             Code: {
               S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-              S3Key: `${s3Folder}/${s3FileName}`,
             },
             FunctionName: 'new-service-dev-func',
             Handler: 'func.function.handler',
@@ -760,6 +773,13 @@ describe('AwsCompileFunctions', () => {
           const compiledCfTemplate =
             awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate;
           const functionResource = compiledCfTemplate.Resources.FuncLambdaFunction;
+          expect(functionResource.Properties.Code.S3Key).to.match(
+            new RegExp(
+              `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts/[0-9a-f]+.zip`
+            )
+          );
+          delete functionResource.Properties.Code.S3Key;
+
           expect(functionResource).to.deep.equal(compiledFunction);
         });
       });
@@ -780,7 +800,6 @@ describe('AwsCompileFunctions', () => {
           Properties: {
             Code: {
               S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-              S3Key: `${s3Folder}/${s3FileName}`,
             },
             FunctionName: 'new-service-dev-func',
             Handler: 'func.function.handler',
@@ -797,6 +816,12 @@ describe('AwsCompileFunctions', () => {
           const compiledCfTemplate =
             awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate;
           const functionResource = compiledCfTemplate.Resources.FuncLambdaFunction;
+          expect(functionResource.Properties.Code.S3Key).to.match(
+            new RegExp(
+              `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts/[0-9a-f]+.zip`
+            )
+          );
+          delete functionResource.Properties.Code.S3Key;
           expect(functionResource).to.deep.equal(compiledFunction);
         });
       });
@@ -832,7 +857,6 @@ describe('AwsCompileFunctions', () => {
             DependsOn: ['FuncLogGroup'],
             Properties: {
               Code: {
-                S3Key: `${s3Folder}/${s3FileName}`,
                 S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
               },
               FunctionName: 'new-service-dev-func',
@@ -860,6 +884,12 @@ describe('AwsCompileFunctions', () => {
               compiledCfTemplate.Resources.IamRoleLambdaExecution.Properties.Policies[0]
                 .PolicyDocument.Statement[0];
 
+            expect(functionResource.Properties.Code.S3Key).to.match(
+              new RegExp(
+                `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts/[0-9a-f]+.zip`
+              )
+            );
+            delete functionResource.Properties.Code.S3Key;
             expect(functionResource).to.deep.equal(compiledFunction);
             expect(dlqStatement).to.deep.equal(compiledKmsStatement);
           });
@@ -868,14 +898,6 @@ describe('AwsCompileFunctions', () => {
     });
 
     describe('when using tracing config', () => {
-      let s3Folder;
-      let s3FileName;
-
-      beforeEach(() => {
-        s3Folder = `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts`;
-        s3FileName = `${expectedHash}.zip`;
-      });
-
       describe('when IamRoleLambdaExecution is used', () => {
         beforeEach(() => {
           // pretend that the IamRoleLambdaExecution is used
@@ -907,7 +929,6 @@ describe('AwsCompileFunctions', () => {
             DependsOn: ['FuncLogGroup'],
             Properties: {
               Code: {
-                S3Key: `${s3Folder}/${s3FileName}`,
                 S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
               },
               FunctionName: 'new-service-dev-func',
@@ -937,6 +958,12 @@ describe('AwsCompileFunctions', () => {
               compiledCfTemplate.Resources.IamRoleLambdaExecution.Properties.Policies[0]
                 .PolicyDocument.Statement[0];
 
+            expect(functionResource.Properties.Code.S3Key).to.match(
+              new RegExp(
+                `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts/[0-9a-f]+.zip`
+              )
+            );
+            delete functionResource.Properties.Code.S3Key;
             expect(functionResource).to.deep.equal(compiledFunction);
             expect(xrayStatement).to.deep.equal(compiledXrayStatement);
           });
@@ -945,9 +972,6 @@ describe('AwsCompileFunctions', () => {
     });
 
     it('should create a function resource with function level environment config', () => {
-      const s3Folder = `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts`;
-      const s3FileName = `${expectedHash}.zip`;
-
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -963,7 +987,6 @@ describe('AwsCompileFunctions', () => {
         DependsOn: ['FuncLogGroup'],
         Properties: {
           Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
             S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
           },
           FunctionName: 'new-service-dev-func',
@@ -981,10 +1004,14 @@ describe('AwsCompileFunctions', () => {
       };
 
       return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
+        const functionResource =
           awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
+            .FuncLambdaFunction;
+        expect(functionResource.Properties.Code.S3Key).to.match(
+          /somedir\/code-artifacts\/[0-9a-f]+.zip/
+        );
+        delete functionResource.Properties.Code.S3Key;
+        expect(functionResource).to.deep.equal(compiledFunction);
       });
     });
 
@@ -1013,9 +1040,6 @@ describe('AwsCompileFunctions', () => {
     });
 
     it('should consider function based config when creating a function resource', () => {
-      const s3Folder = `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts`;
-      const s3FileName = `${expectedHash}.zip`;
-
       awsCompileFunctions.serverless.service.functions = {
         func: {
           name: 'customized-func-function',
@@ -1029,7 +1053,6 @@ describe('AwsCompileFunctions', () => {
         DependsOn: ['FuncLogGroup'],
         Properties: {
           Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
             S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
           },
           FunctionName: 'customized-func-function',
@@ -1042,17 +1065,19 @@ describe('AwsCompileFunctions', () => {
       };
 
       return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
+        const functionResource =
           awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
+            .FuncLambdaFunction;
+        expect(functionResource.Properties.Code.S3Key).to.match(
+          /somedir\/code-artifacts\/[0-9a-f]+.zip/
+        );
+        delete functionResource.Properties.Code.S3Key;
+
+        expect(functionResource).to.deep.equal(compiledFunction);
       });
     });
 
     it('should default to the nodejs12.x runtime when no provider runtime is given', () => {
-      const s3Folder = `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts`;
-      const s3FileName = `${expectedHash}.zip`;
-
       awsCompileFunctions.serverless.service.provider.runtime = null;
       awsCompileFunctions.serverless.service.functions = {
         func: {
@@ -1065,7 +1090,6 @@ describe('AwsCompileFunctions', () => {
         DependsOn: ['FuncLogGroup'],
         Properties: {
           Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
             S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
           },
           FunctionName: 'new-service-dev-func',
@@ -1078,10 +1102,14 @@ describe('AwsCompileFunctions', () => {
       };
 
       return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
+        const functionResource =
           awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
+            .FuncLambdaFunction;
+        expect(functionResource.Properties.Code.S3Key).to.match(
+          /somedir\/code-artifacts\/[0-9a-f]+.zip/
+        );
+        delete functionResource.Properties.Code.S3Key;
+        expect(functionResource).to.deep.equal(compiledFunction);
       });
     });
 
@@ -1182,9 +1210,6 @@ describe('AwsCompileFunctions', () => {
     });
 
     it('should set function declared reserved concurrency limit', () => {
-      const s3Folder = `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts`;
-      const s3FileName = `${expectedHash}.zip`;
-
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -1197,7 +1222,6 @@ describe('AwsCompileFunctions', () => {
         DependsOn: ['FuncLogGroup'],
         Properties: {
           Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
             S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
           },
           FunctionName: 'new-service-dev-func',
@@ -1211,10 +1235,14 @@ describe('AwsCompileFunctions', () => {
       };
 
       return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
+        const functionResource =
           awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
+            .FuncLambdaFunction;
+        expect(functionResource.Properties.Code.S3Key).to.match(
+          /somedir\/code-artifacts\/[0-9a-f]+.zip/
+        );
+        delete functionResource.Properties.Code.S3Key;
+        expect(functionResource).to.deep.equal(compiledFunction);
       });
     });
 
@@ -1237,9 +1265,6 @@ describe('AwsCompileFunctions', () => {
     });
 
     it('should set function declared reserved concurrency limit even if it is zero', () => {
-      const s3Folder = `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts`;
-      const s3FileName = `${expectedHash}.zip`;
-
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -1252,7 +1277,6 @@ describe('AwsCompileFunctions', () => {
         DependsOn: ['FuncLogGroup'],
         Properties: {
           Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
             S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
           },
           FunctionName: 'new-service-dev-func',
@@ -1266,17 +1290,19 @@ describe('AwsCompileFunctions', () => {
       };
 
       return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
+        const functionResource =
           awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
+            .FuncLambdaFunction;
+        expect(functionResource.Properties.Code.S3Key).to.match(
+          /somedir\/code-artifacts\/[0-9a-f]+.zip/
+        );
+        delete functionResource.Properties.Code.S3Key;
+        expect(functionResource).to.deep.equal(compiledFunction);
       });
     });
   });
 
   describe('#compileRole()', () => {
-    const expectedHash = 'c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2';
-
     it('adds the default role without DependsOn values', () => {
       const role = 'IamRoleLambdaExecution';
       const resource = { Properties: {} };
@@ -1344,9 +1370,6 @@ describe('AwsCompileFunctions', () => {
     });
 
     it('should not set unset properties when not specified in yml (layers, vpc, etc)', () => {
-      const s3Folder = `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts`;
-      const s3FileName = `${expectedHash}.zip`;
-
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -1358,7 +1381,6 @@ describe('AwsCompileFunctions', () => {
         DependsOn: ['FuncLogGroup'],
         Properties: {
           Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
             S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
           },
           FunctionName: 'new-service-dev-func',
@@ -1371,17 +1393,19 @@ describe('AwsCompileFunctions', () => {
       };
 
       return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
+        const functionResource =
           awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
+            .FuncLambdaFunction;
+        expect(functionResource.Properties.Code.S3Key).to.match(
+          /somedir\/code-artifacts\/[0-9a-f]+.zip/
+        );
+        delete functionResource.Properties.Code.S3Key;
+
+        expect(functionResource).to.deep.equal(compiledFunction);
       });
     });
 
     it('should set Layers when specified', () => {
-      const s3Folder = `${awsCompileFunctions.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts`;
-      const s3FileName = `${expectedHash}.zip`;
-
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -1394,7 +1418,6 @@ describe('AwsCompileFunctions', () => {
         DependsOn: ['FuncLogGroup'],
         Properties: {
           Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
             S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
           },
           FunctionName: 'new-service-dev-func',
@@ -1408,10 +1431,14 @@ describe('AwsCompileFunctions', () => {
       };
 
       return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
+        const functionResource =
           awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
+            .FuncLambdaFunction;
+        expect(functionResource.Properties.Code.S3Key).to.match(
+          /somedir\/code-artifacts\/[0-9a-f]+.zip/
+        );
+        delete functionResource.Properties.Code.S3Key;
+        expect(functionResource).to.deep.equal(compiledFunction);
       });
     });
 

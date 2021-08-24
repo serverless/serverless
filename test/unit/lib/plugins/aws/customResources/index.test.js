@@ -103,16 +103,18 @@ describe('#addCustomResourceToService()', () => {
     BbPromise.all(
       customResourcesSetup.map((item) => addCustomResourceToService(provider, ...item))
     ).then(() => {
-      const expectedHash = '336fb9ecd70f00118f67d2be150b4fd924f5d8cf5cc517ab5c03d476f350fb31';
       const { Resources } = serverless.service.provider.compiledCloudFormationTemplate;
 
       // S3 Lambda Function
+      expect(
+        Resources.CustomDashresourceDashexistingDashs3LambdaFunction.Properties.Code.S3Key
+      ).to.match(/artifact-dir-name\/code-artifacts\/[0-9a-f]+.zip/);
+      delete Resources.CustomDashresourceDashexistingDashs3LambdaFunction.Properties.Code.S3Key;
       expect(Resources.CustomDashresourceDashexistingDashs3LambdaFunction).to.deep.equal({
         Type: 'AWS::Lambda::Function',
         Properties: {
           Code: {
             S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-            S3Key: `artifact-dir-name/code-artifacts/${expectedHash}.zip`,
           },
           FunctionName: `${serviceName}-dev-custom-resource-existing-s3`,
           Handler: 's3/handler.handler',
@@ -125,13 +127,17 @@ describe('#addCustomResourceToService()', () => {
         },
         DependsOn: ['IamRoleCustomResourcesLambdaExecution'],
       });
+
       // Cognito User Pool Lambda Function
+      expect(
+        Resources.CustomDashresourceDashexistingDashcupLambdaFunction.Properties.Code.S3Key
+      ).to.match(/artifact-dir-name\/code-artifacts\/[0-9a-f]+.zip/);
+      delete Resources.CustomDashresourceDashexistingDashcupLambdaFunction.Properties.Code.S3Key;
       expect(Resources.CustomDashresourceDashexistingDashcupLambdaFunction).to.deep.equal({
         Type: 'AWS::Lambda::Function',
         Properties: {
           Code: {
             S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-            S3Key: `artifact-dir-name/code-artifacts/${expectedHash}.zip`,
           },
           FunctionName: `${serviceName}-dev-custom-resource-existing-cup`,
           Handler: 'cognitoUserPool/handler.handler',
@@ -144,13 +150,17 @@ describe('#addCustomResourceToService()', () => {
         },
         DependsOn: ['IamRoleCustomResourcesLambdaExecution'],
       });
+
       // Event Bridge Lambda Function
+      expect(
+        Resources.CustomDashresourceDasheventDashbridgeLambdaFunction.Properties.Code.S3Key
+      ).to.match(/artifact-dir-name\/code-artifacts\/[0-9a-f]+.zip/);
+      delete Resources.CustomDashresourceDasheventDashbridgeLambdaFunction.Properties.Code.S3Key;
       expect(Resources.CustomDashresourceDasheventDashbridgeLambdaFunction).to.deep.equal({
         Type: 'AWS::Lambda::Function',
         Properties: {
           Code: {
             S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-            S3Key: `artifact-dir-name/code-artifacts/${expectedHash}.zip`,
           },
           FunctionName: `${serviceName}-dev-custom-resource-event-bridge`,
           Handler: 'eventBridge/handler.handler',
@@ -163,6 +173,7 @@ describe('#addCustomResourceToService()', () => {
         },
         DependsOn: ['IamRoleCustomResourcesLambdaExecution'],
       });
+
       // Iam Role
       const RoleProps = Resources.IamRoleCustomResourcesLambdaExecution.Properties;
       expect(RoleProps.AssumeRolePolicyDocument).to.deep.equal({

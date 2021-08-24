@@ -110,7 +110,7 @@ describe('uploadArtifacts', () => {
         expect(awsRequestStub).to.have.been.calledOnce;
         expect(awsRequestStub).to.have.been.calledWithExactly('S3', 'upload', {
           Bucket: awsDeploy.bucketName,
-          Key: `${awsDeploy.serverless.service.package.deploymentDirectoryPrefix}/${awsDeploy.serverless.service.package.timestamp}/compiled-cloudformation-template.json`,
+          Key: 'somedir/sometimestamp/compiled-cloudformation-template.json',
           Body: JSON.stringify({ foo: 'bar' }),
           ContentType: 'application/json',
           Metadata: {
@@ -134,7 +134,7 @@ describe('uploadArtifacts', () => {
         expect(awsRequestStub).to.have.been.calledOnce;
         expect(awsRequestStub).to.have.been.calledWithExactly('S3', 'upload', {
           Bucket: awsDeploy.bucketName,
-          Key: `${awsDeploy.serverless.service.package.deploymentDirectoryPrefix}/${awsDeploy.serverless.service.package.timestamp}/compiled-cloudformation-template.json`,
+          Key: 'somedir/sometimestamp/compiled-cloudformation-template.json',
           Body: JSON.stringify({ foo: 'bar' }),
           ContentType: 'application/json',
           ServerSideEncryption: 'AES256',
@@ -187,18 +187,16 @@ describe('uploadArtifacts', () => {
         const tmpDirPath = getTmpDirPath();
         const artifactFilePath = path.join(tmpDirPath, 'artifact.zip');
         serverless.utils.writeFileSync(artifactFilePath, 'artifact.zip file content');
-        const expectedHash = '25bac5b4e9f289a006f6fa297f6dca830f1094134be543ea4161484ed2ea9531';
-        const expectedKey = `${awsDeploy.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts/${expectedHash}.zip`;
 
         return awsDeploy.uploadZipFile(artifactFilePath).then(() => {
           expect(awsRequestStub).to.have.been.calledTwice;
           expect(awsRequestStub).to.have.been.calledWithExactly('S3', 'headObject', {
             Bucket: awsDeploy.bucketName,
-            Key: expectedKey,
+            Key: sinon.match(/somedir\/code-artifacts\/[0-9a-f]+.zip/),
           });
           expect(awsRequestStub).to.have.been.calledWithExactly('S3', 'upload', {
             Bucket: awsDeploy.bucketName,
-            Key: expectedKey,
+            Key: sinon.match(/somedir\/code-artifacts\/[0-9a-f]+.zip/),
             Body: sinon.match.object.and(sinon.match.has('path', artifactFilePath)),
             ContentType: 'application/zip',
             Metadata: {
@@ -215,8 +213,6 @@ describe('uploadArtifacts', () => {
         const tmpDirPath = getTmpDirPath();
         const artifactFilePath = path.join(tmpDirPath, 'artifact.zip');
         serverless.utils.writeFileSync(artifactFilePath, 'artifact.zip file content');
-        const expectedHash = '25bac5b4e9f289a006f6fa297f6dca830f1094134be543ea4161484ed2ea9531';
-        const expectedKey = `${awsDeploy.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts/${expectedHash}.zip`;
 
         awsDeploy.serverless.service.provider.deploymentBucketObject = {
           serverSideEncryption: 'AES256',
@@ -227,7 +223,7 @@ describe('uploadArtifacts', () => {
           expect(readFileSyncStub).to.have.been.calledOnce;
           expect(awsRequestStub).to.have.been.calledWithExactly('S3', 'upload', {
             Bucket: awsDeploy.bucketName,
-            Key: expectedKey,
+            Key: sinon.match(/somedir\/code-artifacts\/[0-9a-f]+.zip/),
             Body: sinon.match.object.and(sinon.match.has('path', artifactFilePath)),
             ContentType: 'application/zip',
             ServerSideEncryption: 'AES256',
@@ -256,7 +252,6 @@ describe('uploadArtifacts', () => {
 
     describe('when file already exists on the S3', () => {
       let artifactFilePath;
-      const expectedHash = '25bac5b4e9f289a006f6fa297f6dca830f1094134be543ea4161484ed2ea9531';
 
       beforeEach(() => {
         awsRequestStub.withArgs('S3', 'headObject').resolves({});
@@ -266,21 +261,21 @@ describe('uploadArtifacts', () => {
       });
 
       it('should just check the file existence on S3', () => {
-        const expectedKey = `${awsDeploy.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts/${expectedHash}.zip`;
         return awsDeploy.uploadZipFile(artifactFilePath).then(() => {
           expect(awsRequestStub).to.have.been.calledOnce;
           expect(awsRequestStub).to.have.been.calledWithExactly('S3', 'headObject', {
             Bucket: awsDeploy.bucketName,
-            Key: expectedKey,
+            Key: sinon.match(/somedir\/code-artifacts\/[0-9a-f]+.zip/),
           });
         });
       });
 
       it('should log information about upload already done', () => {
-        const expectedKey = `${awsDeploy.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts/${expectedHash}.zip`;
         sinon.spy(awsDeploy.serverless.cli, 'log');
         return awsDeploy.uploadZipFile(artifactFilePath).then(() => {
-          const expected = `Artifact artifact already uploaded to ${expectedKey}`;
+          const expected = sinon.match(
+            /Artifact artifact already uploaded to somedir\/code-artifacts\/[0-9a-f]+.zip/
+          );
           expect(awsDeploy.serverless.cli.log.calledWithExactly(expected)).to.be.equal(true);
         });
       });
@@ -415,14 +410,12 @@ describe('uploadArtifacts', () => {
     it('should upload the custom resources .zip file to the S3 bucket', () => {
       fse.ensureFileSync(customResourcesFilePath);
       cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-zip-file');
-      const expectedHash = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
-      const expectedKey = `${awsDeploy.serverless.service.package.deploymentDirectoryPrefix}/code-artifacts/${expectedHash}.zip`;
 
       return expect(awsDeploy.uploadCustomResources()).to.eventually.be.fulfilled.then(() => {
         expect(awsRequestStub).to.have.been.calledTwice;
         expect(awsRequestStub).to.have.been.calledWithExactly('S3', 'upload', {
           Bucket: awsDeploy.bucketName,
-          Key: expectedKey,
+          Key: sinon.match(/somedir\/code-artifacts\/[0-9a-f]+.zip/),
           Body: sinon.match.object.and(sinon.match.has('path', customResourcesFilePath)),
           ContentType: 'application/zip',
           Metadata: {
