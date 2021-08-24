@@ -19,6 +19,42 @@ describe('cleanupS3Bucket', () => {
   let awsDeploy;
   let s3Key;
 
+  const createS3RequestsStub = (fixtures) => {
+    const stub = sinon.stub(awsDeploy.provider, 'request');
+
+    const serviceObjects = {
+      Contents: fixtures
+        .flatMap(({ timestamp, artifacts }) => [
+          `${s3Key}/${timestamp}/compiled-cloudformation-template.json`,
+          ...Object.values(artifacts),
+        ])
+        .sort() // listObjectsV2() provides entries in the ascending order
+        .filter((value, index, all) => all.indexOf(value) === index)
+        .map((item) => ({ Key: item })),
+    };
+    stub.withArgs('S3', 'listObjectsV2').resolves(serviceObjects);
+
+    fixtures.forEach(({ timestamp, artifacts }) => {
+      stub
+        .withArgs('S3', 'getObject', {
+          Bucket: awsDeploy.bucketName,
+          Key: `${s3Key}/${timestamp}/compiled-cloudformation-template.json`,
+        })
+        .resolves({
+          Body: JSON.stringify({
+            Resources: Object.entries(artifacts)
+              .map(([name, key]) => [name, { Properties: { Code: { S3Key: key } } }])
+              .reduce((acc, [key, value]) => {
+                acc[key] = value;
+                return acc;
+              }, {}),
+          }),
+        });
+    });
+
+    return stub;
+  };
+
   beforeEach(() => {
     const options = {
       stage: 'dev',
@@ -54,78 +90,71 @@ describe('cleanupS3Bucket', () => {
       });
     });
 
-    it('should return all to be removed service objects (except the last 4)', () => {
-      const serviceObjects = {
-        Contents: [
-          { Key: `${s3Key}/151224711231-2016-08-18T15:42:00/artifact.zip` },
-          { Key: `${s3Key}/151224711231-2016-08-18T15:42:00/cloudformation.json` },
-          { Key: `${s3Key}/141264711231-2016-08-18T15:43:00/artifact.zip` },
-          { Key: `${s3Key}/141264711231-2016-08-18T15:43:00/cloudformation.json` },
-          { Key: `${s3Key}/141321321541-2016-08-18T11:23:02/artifact.zip` },
-          { Key: `${s3Key}/141321321541-2016-08-18T11:23:02/cloudformation.json` },
-          { Key: `${s3Key}/142003031341-2016-08-18T12:46:04/artifact.zip` },
-          { Key: `${s3Key}/142003031341-2016-08-18T12:46:04/cloudformation.json` },
-          { Key: `${s3Key}/113304333331-2016-08-18T13:40:06/artifact.zip` },
-          { Key: `${s3Key}/113304333331-2016-08-18T13:40:06/cloudformation.json` },
-          { Key: `${s3Key}/903940390431-2016-08-18T23:42:08/artifact.zip` },
-          { Key: `${s3Key}/903940390431-2016-08-18T23:42:08/cloudformation.json` },
-        ],
-      };
+    it('should return all to be removed service objects (except the last 5)', async () => {
+      const deployFixtures = [
+        {
+          timestamp: '151224711231-2016-08-18T15:42:00',
+          artifacts: { Foobar: `${s3Key}/151224711231-2016-08-18T15:42:00/artifact.zip` },
+        },
+        {
+          timestamp: '141264711231-2016-08-18T15:43:00',
+          artifacts: { Foobar: `${s3Key}/141264711231-2016-08-18T15:43:00/foobar.zip` },
+        },
+        {
+          timestamp: '141321321541-2016-08-18T11:23:02',
+          artifacts: { Foobar: `${s3Key}/foobar/cafebabecafebabecafebabe00000.zip` },
+        },
+        {
+          timestamp: '142003031341-2016-08-18T12:46:04',
+          artifacts: { Foobar: `${s3Key}/142003031341-2016-08-18T12:46:04/artifact.zip` },
+        },
+        {
+          timestamp: '113304333331-2016-08-18T13:40:06',
+          artifacts: { Foobar: `${s3Key}/foobar/cafebabecafebabecafebabe00012.zip` },
+        },
+        {
+          timestamp: '903940390431-2016-08-18T23:42:08',
+          artifacts: { Foobar: `${s3Key}/903940390431-2016-08-18T23:42:08/artifact.zip` },
+        },
+      ];
+      const awsRequestsStub = createS3RequestsStub(deployFixtures);
 
-      const listObjectsStub = sinon.stub(awsDeploy.provider, 'request').resolves(serviceObjects);
-
-      return awsDeploy.getObjectsToRemove().then((objectsToRemove) => {
-        expect(objectsToRemove).to.not.include({
-          Key: `${s3Key}${s3Key}/141321321541-2016-08-18T11:23:02/artifact.zip`,
-        });
-        expect(objectsToRemove).to.not.include({
-          Key: `${s3Key}${s3Key}/141321321541-2016-08-18T11:23:02/cloudformation.json`,
-        });
-        expect(objectsToRemove).to.not.include({
-          Key: `${s3Key}${s3Key}/142003031341-2016-08-18T12:46:04/artifact.zip`,
-        });
-        expect(objectsToRemove).to.not.include({
-          Key: `${s3Key}${s3Key}/142003031341-2016-08-18T12:46:04/cloudformation.json`,
-        });
-        expect(objectsToRemove).to.not.include({
-          Key: `${s3Key}${s3Key}/151224711231-2016-08-18T15:42:00/artifact.zip`,
-        });
-        expect(objectsToRemove).to.not.include({
-          Key: `${s3Key}${s3Key}/151224711231-2016-08-18T15:42:00/cloudformation.json`,
-        });
-        expect(objectsToRemove).to.not.include({
-          Key: `${s3Key}${s3Key}/903940390431-2016-08-18T23:42:08/artifact.zip`,
-        });
-        expect(objectsToRemove).to.not.include({
-          Key: `${s3Key}${s3Key}/903940390431-2016-08-18T23:42:08/cloudformation.json`,
-        });
-        expect(listObjectsStub.calledOnce).to.be.equal(true);
-        expect(listObjectsStub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
-          Bucket: awsDeploy.bucketName,
-          Prefix: `${s3Key}`,
-        });
-        awsDeploy.provider.request.restore();
+      const objectsToRemove = await awsDeploy.getObjectsToRemove();
+      expect(objectsToRemove).to.have.same.deep.members([
+        {
+          Key: 'serverless/cleanupS3Bucket/dev/113304333331-2016-08-18T13:40:06/compiled-cloudformation-template.json',
+        },
+        { Key: 'serverless/cleanupS3Bucket/dev/foobar/cafebabecafebabecafebabe00012.zip' },
+      ]);
+      expect(awsRequestsStub.called).to.be.equal(true);
+      expect(awsRequestsStub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
+        Bucket: awsDeploy.bucketName,
+        Prefix: `${s3Key}`,
       });
+      awsRequestsStub.restore();
     });
 
-    it('should return an empty array if there are less than 4 directories available', () => {
-      const serviceObjects = {
-        Contents: [
-          { Key: `${s3Key}151224711231-2016-08-18T15:42:00/artifact.zip` },
-          { Key: `${s3Key}151224711231-2016-08-18T15:42:00/cloudformation.json` },
-          { Key: `${s3Key}141264711231-2016-08-18T15:42:00/artifact.zip` },
-          { Key: `${s3Key}141264711231-2016-08-18T15:42:00/cloudformation.json` },
-          { Key: `${s3Key}141321321541-2016-08-18T11:23:02/artifact.zip` },
-          { Key: `${s3Key}141321321541-2016-08-18T11:23:02/cloudformation.json` },
-        ],
-      };
-
-      const listObjectsStub = sinon.stub(awsDeploy.provider, 'request').resolves(serviceObjects);
+    it('should return an empty array if there are less than 5 directories available', () => {
+      const deployFixtures = [
+        {
+          timestamp: '151224711231-2016-08-18T15:42:00',
+          artifacts: { Foobar: `${s3Key}/151224711231-2016-08-18T15:42:00/artifact.zip` },
+        },
+        {
+          timestamp: '141264711231-2016-08-18T15:43:00',
+          artifacts: { Foobar: `${s3Key}/141264711231-2016-08-18T15:43:00/foobar.zip` },
+        },
+        {
+          timestamp: '141321321541-2016-08-18T11:23:02',
+          artifacts: { Foobar: `${s3Key}/foobar/cafebabecafebabecafebabe00000.zip` },
+        },
+      ];
+      const awsRequestsStub = createS3RequestsStub(deployFixtures);
 
       return awsDeploy.getObjectsToRemove().then((objectsToRemove) => {
         expect(objectsToRemove.length).to.equal(0);
-        expect(listObjectsStub.calledOnce).to.be.equal(true);
-        expect(listObjectsStub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
+        expect(awsRequestsStub.called).to.be.equal(true);
+        expect(awsRequestsStub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
           Bucket: awsDeploy.bucketName,
           Prefix: `${s3Key}`,
         });
@@ -133,26 +162,36 @@ describe('cleanupS3Bucket', () => {
       });
     });
 
-    it('should return an empty array if there are exactly 4 directories available', () => {
-      const serviceObjects = {
-        Contents: [
-          { Key: `${s3Key}151224711231-2016-08-18T15:42:00/artifact.zip` },
-          { Key: `${s3Key}151224711231-2016-08-18T15:42:00/cloudformation.json` },
-          { Key: `${s3Key}141264711231-2016-08-18T15:42:00/artifact.zip` },
-          { Key: `${s3Key}141264711231-2016-08-18T15:42:00/cloudformation.json` },
-          { Key: `${s3Key}141321321541-2016-08-18T11:23:02/artifact.zip` },
-          { Key: `${s3Key}141321321541-2016-08-18T11:23:02/cloudformation.json` },
-          { Key: `${s3Key}142003031341-2016-08-18T12:46:04/artifact.zip` },
-          { Key: `${s3Key}142003031341-2016-08-18T12:46:04/cloudformation.json` },
-        ],
-      };
+    it('should return an empty array if there are exactly 5 directories available', () => {
+      const deployFixtures = [
+        {
+          timestamp: '151224711231-2016-08-18T15:42:00',
+          artifacts: { Foobar: `${s3Key}/151224711231-2016-08-18T15:42:00/artifact.zip` },
+        },
+        {
+          timestamp: '141264711231-2016-08-18T15:43:00',
+          artifacts: { Foobar: `${s3Key}/141264711231-2016-08-18T15:43:00/foobar.zip` },
+        },
+        {
+          timestamp: '141321321541-2016-08-18T11:23:02',
+          artifacts: { Foobar: `${s3Key}/foobar/cafebabecafebabecafebabe00000.zip` },
+        },
+        {
+          timestamp: '142003031341-2016-08-18T12:46:04',
+          artifacts: { Foobar: `${s3Key}/142003031341-2016-08-18T12:46:04/artifact.zip` },
+        },
+        {
+          timestamp: '113304333331-2016-08-18T13:40:06',
+          artifacts: { Foobar: `${s3Key}/foobar/cafebabecafebabecafebabe00012.zip` },
+        },
+      ];
 
-      const listObjectsStub = sinon.stub(awsDeploy.provider, 'request').resolves(serviceObjects);
+      const awsRequestsStub = createS3RequestsStub(deployFixtures);
 
       return awsDeploy.getObjectsToRemove().then((objectsToRemove) => {
         expect(objectsToRemove).to.have.lengthOf(0);
-        expect(listObjectsStub).to.have.been.calledOnce;
-        expect(listObjectsStub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
+        expect(awsRequestsStub).to.have.been.called;
+        expect(awsRequestsStub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
           Bucket: awsDeploy.bucketName,
           Prefix: `${s3Key}`,
         });
@@ -171,38 +210,37 @@ describe('cleanupS3Bucket', () => {
         serverless.service.provider.deploymentBucketObject = {
           maxPreviousDeploymentArtifacts: 1,
         };
+        const deployFixtures = [
+          {
+            timestamp: '151224711231-2016-08-18T15:42:00',
+            artifacts: { Foobar: `${s3Key}/151224711231-2016-08-18T15:42:00/artifact.zip` },
+          },
+          {
+            timestamp: '141264711231-2016-08-18T15:43:00',
+            artifacts: { Foobar: `${s3Key}/141264711231-2016-08-18T15:43:00/foobar.zip` },
+          },
+          {
+            timestamp: '141321321541-2016-08-18T11:23:02',
+            artifacts: { Foobar: `${s3Key}/foobar/cafebabecafebabecafebabe00000.zip` },
+          },
+        ];
 
-        const serviceObjects = {
-          Contents: [
-            { Key: `${s3Key}/141321321541-2016-08-18T11:23:02/artifact.zip` },
-            { Key: `${s3Key}/141321321541-2016-08-18T11:23:02/cloudformation.json` },
-            { Key: `${s3Key}/151224711231-2016-08-18T15:42:00/artifact.zip` },
-            { Key: `${s3Key}/151224711231-2016-08-18T15:42:00/cloudformation.json` },
-            { Key: `${s3Key}/141264711231-2016-08-18T15:43:00/artifact.zip` },
-            { Key: `${s3Key}/141264711231-2016-08-18T15:43:00/cloudformation.json` },
-          ],
-        };
-
-        const listObjectsStub = sinon.stub(awsDeploy.provider, 'request').resolves(serviceObjects);
+        const awsRequestsStub = createS3RequestsStub(deployFixtures);
 
         return awsDeploy.getObjectsToRemove().then((objectsToRemove) => {
-          expect(objectsToRemove).to.deep.include.members([
-            { Key: `${s3Key}/141321321541-2016-08-18T11:23:02/artifact.zip` },
-            { Key: `${s3Key}/141321321541-2016-08-18T11:23:02/cloudformation.json` },
-            { Key: `${s3Key}/151224711231-2016-08-18T15:42:00/artifact.zip` },
-            { Key: `${s3Key}/151224711231-2016-08-18T15:42:00/cloudformation.json` },
+          expect(objectsToRemove).to.have.same.deep.members([
+            { Key: `${s3Key}/foobar/cafebabecafebabecafebabe00000.zip` },
+            {
+              Key: `${s3Key}/141321321541-2016-08-18T11:23:02/compiled-cloudformation-template.json`,
+            },
+            { Key: `${s3Key}/141264711231-2016-08-18T15:43:00/foobar.zip` },
+            {
+              Key: `${s3Key}/141264711231-2016-08-18T15:43:00/compiled-cloudformation-template.json`,
+            },
           ]);
 
-          expect(objectsToRemove).to.not.deep.include({
-            Key: `${s3Key}/141264711231-2016-08-18T15:43:00/artifact.zip`,
-          });
-
-          expect(objectsToRemove).to.not.deep.include({
-            Key: `${s3Key}/141264711231-2016-08-18T15:43:00/cloudformation.json`,
-          });
-
-          expect(listObjectsStub.calledOnce).to.be.equal(true);
-          expect(listObjectsStub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
+          expect(awsRequestsStub.called).to.be.equal(true);
+          expect(awsRequestsStub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
             Bucket: awsDeploy.bucketName,
             Prefix: `${s3Key}`,
           });
@@ -227,10 +265,10 @@ describe('cleanupS3Bucket', () => {
 
     it('should remove all old service files from the S3 bucket if available', () => {
       const objectsToRemove = [
-        { Key: `${s3Key}113304333331-2016-08-18T13:40:06/artifact.zip` },
-        { Key: `${s3Key}113304333331-2016-08-18T13:40:06/cloudformation.json` },
-        { Key: `${s3Key}141264711231-2016-08-18T15:42:00/artifact.zip` },
-        { Key: `${s3Key}141264711231-2016-08-18T15:42:00/cloudformation.json` },
+        { Key: `${s3Key}/113304333331-2016-08-18T13:40:06/artifact.zip` },
+        { Key: `${s3Key}/113304333331-2016-08-18T13:40:06/compiled-cloudformation-template.json` },
+        { Key: `${s3Key}/141264711231-2016-08-18T15:42:00/artifact.zip` },
+        { Key: `${s3Key}/141264711231-2016-08-18T15:42:00/compiled-cloudformation-template.json` },
       ];
 
       return awsDeploy.removeObjects(objectsToRemove).then(() => {

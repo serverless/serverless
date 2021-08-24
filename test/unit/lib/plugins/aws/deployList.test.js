@@ -12,6 +12,42 @@ describe('AwsDeployList', () => {
   let awsDeployList;
   let s3Key;
 
+  const createS3RequestsStub = (fixtures) => {
+    const stub = sinon.stub(awsDeployList.provider, 'request');
+
+    const serviceObjects = {
+      Contents: fixtures
+        .flatMap(({ timestamp, artifacts }) => [
+          `${s3Key}/${timestamp}/compiled-cloudformation-template.json`,
+          ...Object.values(artifacts),
+        ])
+        .sort() // listObjectsV2() provides entries in the ascending order
+        .filter((value, index, all) => all.indexOf(value) === index)
+        .map((item) => ({ Key: item })),
+    };
+    stub.withArgs('S3', 'listObjectsV2').resolves(serviceObjects);
+
+    fixtures.forEach(({ timestamp, artifacts }) => {
+      stub
+        .withArgs('S3', 'getObject', {
+          Bucket: awsDeployList.bucketName,
+          Key: `${s3Key}/${timestamp}/compiled-cloudformation-template.json`,
+        })
+        .resolves({
+          Body: JSON.stringify({
+            Resources: Object.entries(artifacts)
+              .map(([name, key]) => [name, { Properties: { Code: { S3Key: key } } }])
+              .reduce((acc, [key, value]) => {
+                acc[key] = value;
+                return acc;
+              }, {}),
+          }),
+        });
+    });
+
+    return stub;
+  };
+
   beforeEach(() => {
     const options = {
       stage: 'dev',
@@ -53,36 +89,50 @@ describe('AwsDeployList', () => {
     });
 
     it('should display all available deployments', async () => {
-      const s3Response = {
-        Contents: [
-          { Key: `${s3Key}/113304333331-2016-08-18T13:40:06/artifact.zip` },
-          { Key: `${s3Key}/113304333331-2016-08-18T13:40:06/cloudformation.json` },
-          { Key: `${s3Key}/903940390431-2016-08-18T23:42:08/artifact.zip` },
-          { Key: `${s3Key}/903940390431-2016-08-18T23:42:08/cloudformation.json` },
-        ],
-      };
+      const fixtures = [
+        {
+          timestamp: '113304333331-2016-08-18T13:40:06',
+          artifacts: {
+            FoobarFunction: `${s3Key}/113304333331-2016-08-18T13:40:06/artifact.zip`,
+            RabarbarFunction: `${s3Key}/113304333331-2016-08-18T13:40:06/artifact.zip`,
+          },
+        },
+        {
+          timestamp: '903940390431-2016-08-18T23:42:08',
+          artifacts: {
+            FoobarFunction: `${s3Key}/foobar/cafebabecafebabecafebabe00000.zip`,
+            RabarbarFunction: `${s3Key}/barbaz/deadeadeadeadeadeadeadea00000.zip`,
+          },
+        },
+      ];
 
-      const listObjectsStub = sinon.stub(awsDeployList.provider, 'request').resolves(s3Response);
+      const awsRequestsStub = createS3RequestsStub(fixtures);
 
       await awsDeployList.listDeployments();
-      expect(listObjectsStub.calledOnce).to.be.equal(true);
+      expect(awsRequestsStub.called).to.be.equal(true);
       expect(
-        listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
+        awsRequestsStub.calledWithExactly('S3', 'listObjectsV2', {
           Bucket: awsDeployList.bucketName,
           Prefix: `${s3Key}`,
         })
       ).to.be.equal(true);
-      const infoText = 'Listing deployments:';
-      expect(awsDeployList.serverless.cli.log.calledWithExactly(infoText)).to.be.equal(true);
-      const timestampOne = 'Timestamp: 113304333331';
-      const datetimeOne = 'Datetime: 2016-08-18T13:40:06';
-      expect(awsDeployList.serverless.cli.log.calledWithExactly(timestampOne)).to.be.equal(true);
-      expect(awsDeployList.serverless.cli.log.calledWithExactly(datetimeOne)).to.be.equal(true);
-      const timestampTow = 'Timestamp: 903940390431';
-      const datetimeTwo = 'Datetime: 2016-08-18T23:42:08';
-      expect(awsDeployList.serverless.cli.log.calledWithExactly(timestampTow)).to.be.equal(true);
-      expect(awsDeployList.serverless.cli.log.calledWithExactly(datetimeTwo)).to.be.equal(true);
-      awsDeployList.provider.request.restore();
+
+      const crucialLinesOne = [
+        'Timestamp: 113304333331',
+        'Datetime: 2016-08-18T13:40:06',
+        '- serverless/listDeployments/dev/113304333331-2016-08-18T13:40:06/artifact.zip',
+      ];
+      const crucialLinesTwo = [
+        'Timestamp: 903940390431',
+        'Datetime: 2016-08-18T23:42:08',
+        '- serverless/listDeployments/dev/foobar/cafebabecafebabecafebabe00000.zip',
+        '- serverless/listDeployments/dev/barbaz/deadeadeadeadeadeadeadea00000.zip',
+      ];
+
+      ['Listing deployments:', ...crucialLinesOne, ...crucialLinesTwo].forEach((line) =>
+        expect(awsDeployList.serverless.cli.log.calledWithExactly(line)).to.be.equal(true)
+      );
+      awsRequestsStub.restore();
     });
   });
 
