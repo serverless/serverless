@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.56.0](https://github.com/serverless/serverless/compare/v2.55.0...v2.56.0) (2021-08-25)
+
+### Features
+
+- **AWS EventBridge:** Support disabling a rule ([#9865](https://github.com/serverless/serverless/issues/9865)) ([6193d38](https://github.com/serverless/serverless/commit/6193d3867ec826898d4effbd641e49a35d9efbbc)) ([Jake Scott](https://github.com/jakejscott))
+- **AWS HTTP API:** Support `shouldStartNameWithService` option ([#9758](https://github.com/serverless/serverless/issues/9758)) ([ef5a8fa](https://github.com/serverless/serverless/commit/ef5a8faf13a8fbf8564e7c0621e88d1ea5357ea5)) ([Thiago Moraes](https://github.com/thiagomr))
+- **CLI Onboarding:** Improve onboarding messaging ([#9877](https://github.com/serverless/serverless/pull/9877)) ([f69a19c](https://github.com/serverless/serverless/commit/f69a19c6804366a34324e7cfcbbdb3f247a12b85)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **AWS HTTP API:** Always allow to define catch-all route ([#9840](https://github.com/serverless/serverless/issues/9840)) ([7e9bfd6](https://github.com/serverless/serverless/commit/7e9bfd63fce56f880a3ad0379fd97fdfce89d91b)) ([Karim Kanso](https://github.com/kazkansouh))
+- **CLI:** Mark `dashboard` command with optional service dependency ([#9874](https://github.com/serverless/serverless/pull/9874)) ([9a8e7e4](https://github.com/serverless/serverless/commit/9a8e7e44b44fdcf4c43d6e11c5eefa5051782506)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS Local Invocation:** Support `python3.9` runtime ([#9879](https://github.com/serverless/serverless/issues/9879)) ([ee17ee5](https://github.com/serverless/serverless/commit/ee17ee5aca25af152c2720a55199d92dfab3216d)) ([Shane R. Spencer](https://github.com/whardier))
+- **AWS Lambda:** Prevent external subscription filter removal for CloudWatch ([#9839](https://github.com/serverless/serverless/issues/9839)) ([afc9a13](https://github.com/serverless/serverless/commit/afc9a13386479f79b4c9ef64b65af5bbcdfaa68b)) ([Han Sang Hoon (한상훈)](https://github.com/poerty))
+
+### Maintenance Improvements
+
+- Convert `upload` and `rollback` to `async/await` ([#9866](https://github.com/serverless/serverless/issues/9866)) ([0682ba8](https://github.com/serverless/serverless/commit/0682ba8b6a70d27e74c478d6e5fa5de71b9e0070)) ([Remigiusz Orłowski](https://github.com/remi00))
+
 ## [2.55.0](https://github.com/serverless/serverless/compare/v2.54.0...v2.55.0) (2021-08-18)
 
 ### Features
