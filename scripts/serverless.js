@@ -289,6 +289,7 @@ const processSpanPromise = (async () => {
                 opt: require('../lib/configuration/variables/sources/opt'),
                 self: require('../lib/configuration/variables/sources/self'),
                 strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
+                sls: require('../lib/configuration/variables/sources/instance-dependent/get-sls')(),
               },
               options: filterSupportedOptions(options, { commandSchema, providerName }),
               fulfilledSources: new Set(['file', 'self', 'strToBool']),
