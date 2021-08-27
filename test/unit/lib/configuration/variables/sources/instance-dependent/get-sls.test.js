@@ -14,7 +14,7 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
   let variablesMeta;
   let serverlessInstance;
 
-  const initializeServerless = async (configExt, options) => {
+  const initializeServerless = async ({ configExt, options } = {}) => {
     configuration = {
       service: 'foo',
       provider: {
@@ -66,22 +66,24 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
     expect(configuration.custom.stage).to.equal('dev');
     // Resolves to provider.stage if it exists
     await initializeServerless({
-      provider: {
-        stage: 'prod',
-      },
-    });
-    expect(configuration.custom.stage).to.equal('prod');
-    // Resolves to `--stage=` if the option is set
-    await initializeServerless(
-      {
+      configExt: {
         provider: {
           stage: 'prod',
         },
       },
-      {
+    });
+    expect(configuration.custom.stage).to.equal('prod');
+    // Resolves to `--stage=` if the option is set
+    await initializeServerless({
+      configExt: {
+        provider: {
+          stage: 'prod',
+        },
+      },
+      options: {
         stage: 'staging',
-      }
-    );
+      },
+    });
     expect(configuration.custom.stage).to.equal('staging');
   });
 
