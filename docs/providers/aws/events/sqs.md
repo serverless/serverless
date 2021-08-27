@@ -67,3 +67,34 @@ functions:
 ## IAM Permissions
 
 The Serverless Framework will automatically configure the most minimal set of IAM permissions for you. However you can still add additional permissions if you need to. Read the official [AWS documentation](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-configure-lambda-function-trigger.html) for more information about IAM Permissions for SQS events.
+
+## Lift "Queue" construct
+
+The examples above show how to consume messages from an existing SQS queue. To create an SQS queue in `serverless.yml`, you can either write custom CloudFormation, or you can use Lift.
+
+[Lift](https://github.com/getlift/lift) is a Serverless Framework plugin that simplifies deploying pieces of applications via "[constructs](https://github.com/getlift/lift#constructs)". Lift can be installed via:
+
+```
+serverless plugin install -n serverless-lift
+```
+
+We can use the [`queue` construct](https://github.com/getlift/lift/blob/master/docs/queue.md) to deploy an SQS queue with its Lambda consumer:
+
+```yaml
+constructs:
+  my-queue:
+    type: queue
+    worker:
+      handler: handler.compute
+
+plugins:
+  - serverless-lift
+```
+
+The `queue` construct deploys:
+
+- An SQS queue
+- A `worker` Lambda function: this function processes messages sent to the queue.
+- An SQS "[dead letter queue](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html)": this queue stores all the messages that failed to be processed.
+
+Read the [`queue` construct documentation](https://github.com/getlift/lift/blob/master/docs/queue.md) to find a complete example with code, and to learn how to configure the batch size, retries and other options.
