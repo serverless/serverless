@@ -23,6 +23,15 @@ describe('uploadArtifacts', () => {
   let serverless;
   let awsDeploy;
   let cryptoStub;
+  let tmpDirPath;
+  let artifactFilePath;
+
+  before(() => {
+    tmpDirPath = getTmpDirPath();
+    artifactFilePath = path.join(tmpDirPath, 'artifact.zip');
+    serverless = new Serverless();
+    serverless.utils.writeFileSync(artifactFilePath, 'artifact.zip file content');
+  });
 
   beforeEach(() => {
     serverless = new Serverless();
@@ -37,6 +46,9 @@ describe('uploadArtifacts', () => {
     awsDeploy.bucketName = 'deployment-bucket';
     awsDeploy.serverless.service.package.deploymentDirectoryPrefix = 'somedir';
     awsDeploy.serverless.service.package.timestamp = 'sometimestamp';
+    awsDeploy.serverless.service.package.artifactsMap = {
+      [artifactFilePath]: 'somedir/code-artifacts/cafebabe.zip',
+    };
     awsDeploy.serverless.service.functions = {
       first: {
         handler: 'foo',
@@ -184,10 +196,6 @@ describe('uploadArtifacts', () => {
       it('should upload the .zip file to the S3 bucket', () => {
         cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-zip-file');
 
-        const tmpDirPath = getTmpDirPath();
-        const artifactFilePath = path.join(tmpDirPath, 'artifact.zip');
-        serverless.utils.writeFileSync(artifactFilePath, 'artifact.zip file content');
-
         return awsDeploy.uploadZipFile(artifactFilePath).then(() => {
           expect(awsRequestStub).to.have.been.calledTwice;
           expect(awsRequestStub).to.have.been.calledWithExactly('S3', 'headObject', {
@@ -209,10 +217,6 @@ describe('uploadArtifacts', () => {
 
       it('should upload the .zip file to a bucket with SSE bucket policy', () => {
         cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-zip-file');
-
-        const tmpDirPath = getTmpDirPath();
-        const artifactFilePath = path.join(tmpDirPath, 'artifact.zip');
-        serverless.utils.writeFileSync(artifactFilePath, 'artifact.zip file content');
 
         awsDeploy.serverless.service.provider.deploymentBucketObject = {
           serverSideEncryption: 'AES256',
@@ -239,10 +243,6 @@ describe('uploadArtifacts', () => {
         sinon.spy(awsDeploy.serverless.cli, 'log');
         cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-zip-file');
 
-        const tmpDirPath = getTmpDirPath();
-        const artifactFilePath = path.join(tmpDirPath, 'artifact.zip');
-        serverless.utils.writeFileSync(artifactFilePath, 'artifact.zip file content');
-
         return awsDeploy.uploadZipFile(artifactFilePath).then(() => {
           const expected = 'Uploading service artifact ZIP file to S3 (25 B)...';
           expect(awsDeploy.serverless.cli.log.calledWithExactly(expected)).to.be.equal(true);
@@ -251,13 +251,8 @@ describe('uploadArtifacts', () => {
     });
 
     describe('when file already exists on the S3', () => {
-      let artifactFilePath;
-
       beforeEach(() => {
         awsRequestStub.withArgs('S3', 'headObject').resolves({});
-        const tmpDirPath = getTmpDirPath();
-        artifactFilePath = path.join(tmpDirPath, 'artifact.zip');
-        serverless.utils.writeFileSync(artifactFilePath, 'artifact.zip file content');
       });
 
       it('should just check the file existence on S3', () => {
@@ -395,6 +390,9 @@ describe('uploadArtifacts', () => {
       serviceDirPath = createTmpDir();
       customResourcesFilePath = path.join(serviceDirPath, '.serverless', 'custom-resources.zip');
       serverless.serviceDir = serviceDirPath;
+      serverless.service.package.artifactsMap = {
+        [customResourcesFilePath]: 'somedir/code-artifacts/deadcafe.zip',
+      };
     });
 
     afterEach(() => {
