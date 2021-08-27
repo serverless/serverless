@@ -48,6 +48,14 @@ functions:
               paths:
                 bar: false
       - http:
+          path: paths-not-required-object
+          method: get
+          request:
+            parameters:
+              paths:
+                bar:
+                  required: false
+      - http:
           path: paths-required
           method: get
           request:
