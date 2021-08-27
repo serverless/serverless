@@ -28,6 +28,9 @@ describe('#saveServiceState()', () => {
         deploymentDirectoryPrefix: 'artifact-directory',
         timestamp: 'time-stamp',
         artifact: 'service.zip',
+        artifactsMap: {
+          '.serverless/foobar.zip': 'somedir/code-artifacts/cafebabe.zip',
+        },
       },
     };
     getServiceStateFileNameStub = sinon
@@ -60,6 +63,9 @@ describe('#saveServiceState()', () => {
         deploymentDirectoryPrefix: 'artifact-directory',
         timestamp: 'time-stamp',
         artifact: 'service.zip',
+        artifactsMap: {
+          '.serverless/foobar.zip': 'somedir/code-artifacts/cafebabe.zip',
+        },
       },
     };
 
@@ -95,6 +101,9 @@ describe('#saveServiceState()', () => {
         deploymentDirectoryPrefix: 'artifact-directory',
         timestamp: 'time-stamp',
         artifact: 'service.zip',
+        artifactsMap: {
+          '.serverless/foobar.zip': 'somedir/code-artifacts/cafebabe.zip',
+        },
       },
     };
 
