@@ -238,6 +238,20 @@ functions:
             id: 658327ea-f89d-4fab-a63d-7e88639e58f6 # references AWS Managed Policy named Managed-CachingOptimized
 ```
 
+You also can do the same thing with below configuration. But the `cloudFront.behavior.CachePolicyId` will be overwritten by `cloudFront.cachePolicy`
+
+```yml
+functions:
+  myLambdaAtEdge:
+    handler: myLambdaAtEdge.handler
+    events:
+      - cloudFront:
+          eventType: viewer-response
+          origin: s3://bucketname.s3.amazonaws.com/files
+          behavior:
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # references AWS Managed Policy named Managed-CachingOptimized
+```
+
 ### CloudFront Distribution configurations
 
 Amazon CloudFront distribution configurations can be set in the resources block of the serverless.yml, by defining `CloudFrontDistribution`.

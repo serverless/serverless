@@ -1891,6 +1891,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
     const stage = 'custom-stage';
     const cachePolicyName = 'allInCache';
     const cachePolicyId = '08627262-05a9-4f76-9ded-b50ca2e3a84f';
+    const cachePolicyId2 = '4135ea2d-6df8-44a3-9df3-4b5a84be39ad';
     const cachePolicyConfig = {
       DefaultTTL: 60,
       MinTTL: 30,
@@ -1991,6 +1992,39 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
                     pathPattern: 'managedPolicy',
                     cachePolicy: {
                       id: cachePolicyId,
+                    },
+                  },
+                },
+              ],
+            },
+            fnCachePolicyManagedAlternativeWay: {
+              handler: 'myLambdaAtEdge.handler',
+              events: [
+                {
+                  cloudFront: {
+                    origin: 's3://bucketname.s3.amazonaws.com',
+                    eventType: 'viewer-response',
+                    pathPattern: 'managedPolicyInAlternativeWay',
+                    behavior: {
+                      CachePolicyId: cachePolicyId,
+                    },
+                  },
+                },
+              ],
+            },
+            fnCachePolicyManagedBothWays: {
+              handler: 'myLambdaAtEdge.handler',
+              events: [
+                {
+                  cloudFront: {
+                    origin: 's3://bucketname.s3.amazonaws.com',
+                    eventType: 'viewer-response',
+                    pathPattern: 'managedPolicyInBothWays',
+                    cachePolicy: {
+                      id: cachePolicyId,
+                    },
+                    behavior: {
+                      CachePolicyId: cachePolicyId2,
                     },
                   },
                 },
@@ -2111,6 +2145,18 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
 
     it('Should attach a cache policy to a cloudfront behavior when specified by id in lambda config', () => {
       expect(getAssociatedCacheBehavior('managedPolicy').CachePolicyId).to.eq(cachePolicyId);
+    });
+
+    it('Should attach a cache policy to a cloudfront behavior when specified by id in alternative way of lambda config', () => {
+      expect(getAssociatedCacheBehavior('managedPolicyInAlternativeWay').CachePolicyId).to.eq(
+        cachePolicyId
+      );
+    });
+
+    it('Should attach a cache policy specified in major way to a cloudfront behavior when specified by id in both ways of lambda config', () => {
+      expect(getAssociatedCacheBehavior('managedPolicyInBothWays').CachePolicyId).to.eq(
+        cachePolicyId
+      );
     });
 
     it('Should attach a default cache policy when none are provided, and no deprecated behavior values are used', () => {
