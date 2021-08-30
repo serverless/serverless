@@ -238,7 +238,7 @@ functions:
             id: 658327ea-f89d-4fab-a63d-7e88639e58f6 # references AWS Managed Policy named Managed-CachingOptimized
 ```
 
-You also can do the same thing with below configuration. But the `cloudFront.behavior.CachePolicyId` will be overwritten by `cloudFront.cachePolicy`
+It is also possible to reference policies with `behavior.CachePolicyId` property. When both `cachePolicy.id` and `behavior.CachePolicyId` are specified, setting from `cachePolicy.id` will be used.
 
 ```yml
 functions:
