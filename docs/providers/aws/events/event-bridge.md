@@ -186,3 +186,38 @@ functions:
               eventTime: '$.time'
             inputTemplate: '{"time": <eventTime>, "key1": "value1"}'
 ```
+
+## Adding a DLQ to an event rule
+
+```yml
+functions:
+  myFunction:
+    handler: index.handler
+    events:
+      - eventBridge:
+          eventBus: custom-saas-events
+          pattern:
+            source:
+              - saas.external
+          deadLetterConfig:
+            arn: 'arn:aws:sqs:us-east-1:12345:test'
+```
+
+## Adding a retry policy to an event rule
+
+```yml
+functions:
+  myFunction:
+    handler: index.handler
+    events:
+      - eventBridge:
+          eventBus: custom-saas-events
+          pattern:
+            source:
+              - saas.external
+          deadLetterConfig:
+            arn: 'arn:aws:sqs:us-east-1:12345:test'
+          retryPolicy:
+            maximumEventAge: 3600
+            maximumRetryAttempts: 3
+```
