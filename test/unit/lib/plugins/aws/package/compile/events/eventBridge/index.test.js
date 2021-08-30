@@ -151,6 +151,28 @@ const serverlessConfigurationExtension = {
         },
       ],
     },
+    retryPolicyConfiguration: {
+      handler: 'index.handler',
+      events: [
+        {
+          eventBridge: {
+            deadLetterConfig: {
+              arn: 'arn:aws:sqs:us-east-1:12345:test',
+            },
+            retryPolicy: {
+              maximumEventAge: 3600,
+              maximumRetryAttempts: 3,
+            },
+            eventBus: 'custom-saas-events',
+            pattern: {
+              detail: {
+                eventSource: ['saas.external'],
+              },
+            },
+          },
+        },
+      ],
+    },
   },
 };
 
@@ -265,6 +287,19 @@ describe('EventBridgeEvents', () => {
       } = eventBridgeConfig.InputTransformer;
       expect(InputTemplate).be.eq('{"time": <eventTime>, "key1": "value1"}');
       expect(eventTime).be.eq('$.time');
+    });
+
+    it('should support retryPolicy configuration', () => {
+      const eventBridgeConfig = getEventBridgeConfigById('retryPolicyConfiguration');
+      const { MaximumEventAgeInSeconds, MaximumRetryAttempts } = eventBridgeConfig.RetryPolicy;
+      expect(MaximumEventAgeInSeconds).to.be.eq(3600);
+      expect(MaximumRetryAttempts).to.be.eq(3);
+    });
+
+    it('should support deadLetterConfig configuration', () => {
+      const eventBridgeConfig = getEventBridgeConfigById('deadLetterConfiguration');
+      const { Arn } = eventBridgeConfig.DeadLetterConfig;
+      expect(Arn).to.be.eq('arn:aws:sqs:us-east-1:12345:test');
     });
 
     it('should register created and delete event bus permissions for non default event bus', () => {
