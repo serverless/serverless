@@ -435,6 +435,7 @@ describe('#compileRequestValidators() - parameters', () => {
     'querystrings-not-required',
     'headers-not-required',
     'paths-not-required',
+    'paths-not-required-object',
   ];
 
   const withValidator = [
