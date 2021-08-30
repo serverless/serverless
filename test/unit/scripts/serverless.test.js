@@ -159,6 +159,45 @@ describe('test/unit/scripts/serverless.test.js', () => {
     ).to.include('fromDefaultEnv: valuefromdefault');
   });
 
+  it('should allow not defined environment variables in provider.stage`', async () => {
+    const { servicePath: serviceDir } = await programmaticFixturesEngine.setup('aws', {
+      configExt: {
+        useDotenv: true,
+        provider: {
+          stage: "${env:FOO, 'dev'}",
+        },
+        custom: {
+          fromDefaultEnv: '${env:DEFAULT_ENV_VARIABLE}',
+        },
+      },
+    });
+    await fsp.writeFile(path.resolve(serviceDir, '.env'), 'DEFAULT_ENV_VARIABLE=valuefromdefault');
+    const printOut = String(
+      (await spawn('node', [serverlessPath, 'print'], { cwd: serviceDir })).stdoutBuffer
+    );
+    expect(printOut).to.include('fromDefaultEnv: valuefromdefault');
+    expect(printOut).to.include('stage: dev');
+  });
+
+  it('should report "env" variables resolution conflicts with exception', async () => {
+    const { servicePath: serviceDir } = await programmaticFixturesEngine.setup('aws', {
+      configExt: {
+        useDotenv: true,
+        provider: {
+          stage: "${env:FOO, 'dev'}",
+        },
+      },
+    });
+    await fsp.writeFile(path.resolve(serviceDir, '.env'), 'FOO=test');
+    try {
+      await spawn('node', [serverlessPath, 'print'], { cwd: serviceDir });
+      throw new Error('Unexpected');
+    } catch (error) {
+      expect(error.code).to.equal(1);
+      expect(String(error.stdoutBuffer)).to.include('Environment variable "FOO" which');
+    }
+  });
+
   it('should reject unresolved "plugins" property', async () => {
     try {
       await spawn('node', [serverlessPath, 'print'], {
