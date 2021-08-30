@@ -274,6 +274,7 @@ const processSpanPromise = (async () => {
             ));
           }
 
+          let envVarNamesNeededForDotenvResolution;
           if (variablesMeta.size) {
             // Some properties are configured with variables
 
@@ -346,21 +347,63 @@ const processSpanPromise = (async () => {
               }
             }
 
+            resolverConfiguration.fulfilledSources.add('env');
             if (
-              !ensureResolvedProperty('provider\0stage', { shouldSilentlyReturnIfLegacyMode: true })
+              !isPropertyResolved(variablesMeta, 'provider\0stage') ||
+              !isPropertyResolved(variablesMeta, 'useDotenv')
             ) {
-              return;
-            }
+              // Assume "env" source fulfilled for `provider.stage` and `useDotenv` resolution.
+              // To pick eventual resolution conflict, track what env variables were reported
+              // misssing when applying this resolution
+              const envSource = require('../lib/configuration/variables/sources/env');
+              envSource.missingEnvVariables.clear();
+              await resolveVariables({
+                ...resolverConfiguration,
+                propertyPathsToResolve: new Set(['provider\0stage', 'useDotenv']),
+              });
+              if (
+                eventuallyReportVariableResolutionErrors(
+                  configurationPath,
+                  configuration,
+                  variablesMeta
+                )
+              ) {
+                // Unrecoverable resolution errors, abort
+                variablesMeta = null;
+                return;
+              }
 
-            if (!ensureResolvedProperty('useDotenv')) return;
+              if (
+                !ensureResolvedProperty('provider\0stage', {
+                  shouldSilentlyReturnIfLegacyMode: true,
+                })
+              ) {
+                return;
+              }
+
+              if (!ensureResolvedProperty('useDotenv')) return;
+
+              envVarNamesNeededForDotenvResolution = envSource.missingEnvVariables;
+            }
           }
 
           // Load eventual environment variables from .env files
           await require('../lib/cli/conditionally-load-dotenv')(options, configuration);
 
-          if (!variablesMeta.size) return; // No properties configured with variables
+          if (envVarNamesNeededForDotenvResolution) {
+            for (const envVarName of envVarNamesNeededForDotenvResolution) {
+              if (process.env[envVarName]) {
+                throw new ServerlessError(
+                  'Cannot reliably resolve "env" variables due to resolution conflict.\n' +
+                    `Environment variable "${envVarName}" which influences resolution of ` +
+                    '".env" file were found to be defined in resolved ".env" file.' +
+                    'DOTENV_ENV_VAR_RESOLUTION_CONFLICT'
+                );
+              }
+            }
+          }
 
-          resolverConfiguration.fulfilledSources.add('env');
+          if (!variablesMeta.size) return; // No properties configured with variables
 
           if (isHelpRequest || commands[0] === 'plugin') {
             // We do not need full config resolved, we just need to know what
