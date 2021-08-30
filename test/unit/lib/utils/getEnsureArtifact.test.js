@@ -5,7 +5,7 @@ const { expect } = require('chai');
 const ensureArtifact = require('../../../../lib/utils/ensureArtifact');
 
 const path = require('path');
-const fs = require('fs');
+const fsp = require('fs').promises;
 const fse = require('fs-extra');
 const crypto = require('crypto');
 
@@ -18,7 +18,7 @@ describe('#ensureArtifact', () => {
   const generateFunc = async (cachePath) => {
     testArtifactPath = path.resolve(cachePath, testArtifactName);
     ++invokedCount;
-    await fs.promises.writeFile(testArtifactPath, '');
+    await fsp.writeFile(testArtifactPath, '');
   };
 
   it('Should generate artifact if missing', async () => {

@@ -71,7 +71,7 @@ describe('test/unit/lib/configuration/read.test.js', () => {
   it('should read "serverless.ts"', async () => {
     await fse.ensureDir('node_modules');
     try {
-      await fse.writeFile('node_modules/ts-node.js', 'module.exports.register = () => null;');
+      await fsp.writeFile('node_modules/ts-node.js', 'module.exports.register = () => null;');
       configurationPath = 'serverless.ts';
       const configuration = {
         service: 'test-ts',

@@ -60,7 +60,7 @@ describe('test/unit/lib/utils/fs/safeMoveFile.test.js', () => {
     renameStub.callThrough();
 
     // Write a test file to rename
-    await fse.writeFile(sourceFile, 'source data');
+    await fsp.writeFile(sourceFile, 'source data');
   });
 
   afterEach(async () => {

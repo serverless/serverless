@@ -3,7 +3,7 @@
 const { expect } = require('chai');
 
 const path = require('path');
-const fs = require('fs').promises;
+const fsp = require('fs').promises;
 const spawn = require('child-process-ext/spawn');
 const stripAnsi = require('strip-ansi');
 const { version } = require('../../../package');
@@ -153,7 +153,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
         },
       },
     });
-    await fs.writeFile(path.resolve(serviceDir, '.env'), 'DEFAULT_ENV_VARIABLE=valuefromdefault');
+    await fsp.writeFile(path.resolve(serviceDir, '.env'), 'DEFAULT_ENV_VARIABLE=valuefromdefault');
     expect(
       String((await spawn('node', [serverlessPath, 'print'], { cwd: serviceDir })).stdoutBuffer)
     ).to.include('fromDefaultEnv: valuefromdefault');
