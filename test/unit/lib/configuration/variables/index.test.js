@@ -2,14 +2,14 @@
 
 const { expect } = require('chai');
 
-const fs = require('fs').promises;
+const fsp = require('fs').promises;
 const resolve = require('../../../../../lib/configuration/variables');
 
 describe('test/unit/lib/configuration/variables/index.test.js', () => {
   let configuration;
   before(async () => {
     process.env.ENV_SOURCE_TEST = 'foobar';
-    await fs.writeFile('foo.json', JSON.stringify({ json: 'content' }));
+    await fsp.writeFile('foo.json', JSON.stringify({ json: 'content' }));
     configuration = {
       env: '${env:ENV_SOURCE_TEST}',
       file: '${file(foo.json)}',

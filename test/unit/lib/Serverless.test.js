@@ -22,7 +22,7 @@ const ServerlessError = require('../../../lib/serverless-error');
 const conditionallyLoadDotenv = require('../../../lib/cli/conditionally-load-dotenv');
 const runServerless = require('../../utils/run-serverless');
 const fixtures = require('../../fixtures/programmatic');
-const fs = require('fs');
+const fsp = require('fs').promises;
 
 describe('Serverless', () => {
   let serverless;
@@ -339,7 +339,7 @@ describe('test/unit/lib/Serverless.test.js', () => {
         DEFAULT_ENV_VARIABLE=valuefromdefault
         DEFAULT_ENV_VARIABLE_EXPANDED=$DEFAULT_ENV_VARIABLE/expanded
       `;
-      await fs.promises.writeFile(path.join(serviceDir, '.env'), defaultFileContent);
+      await fsp.writeFile(path.join(serviceDir, '.env'), defaultFileContent);
       conditionallyLoadDotenv.clear();
     });
 

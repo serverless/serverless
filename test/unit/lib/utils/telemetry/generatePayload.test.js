@@ -2,7 +2,7 @@
 
 const { expect } = require('chai');
 const path = require('path');
-const fs = require('fs');
+const fsp = require('fs').promises;
 const os = require('os');
 const overrideEnv = require('process-utils/override-env');
 const overrideCwd = require('process-utils/override-cwd');
@@ -82,7 +82,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         },
       },
     });
-    await fs.promises.writeFile(
+    await fsp.writeFile(
       path.resolve(serviceDir, 'package.json'),
       JSON.stringify({
         dependencies: {
@@ -419,7 +419,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should resolve payload with predefined local config', async () => {
-    await fs.promises.writeFile(
+    await fsp.writeFile(
       path.resolve(os.homedir(), '.serverlessrc'),
       JSON.stringify({
         frameworkId: '123',
@@ -443,7 +443,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should not include userId from local config if SERVERLESS_ACCESS_KEY used', async () => {
-    await fs.promises.writeFile(
+    await fsp.writeFile(
       path.resolve(os.homedir(), '.serverlessrc'),
       JSON.stringify({
         frameworkId: '123',
