@@ -238,7 +238,7 @@ functions:
             id: 658327ea-f89d-4fab-a63d-7e88639e58f6 # references AWS Managed Policy named Managed-CachingOptimized
 ```
 
-It is also possible to reference policies with `behavior.CachePolicyId` property. When both `cachePolicy.id` and `behavior.CachePolicyId` are specified, setting from `cachePolicy.id` will be used.
+It is also possible to reference policies with `behavior.CachePolicyId` property. When both `cachePolicy.(id|name)` and `behavior.CachePolicyId` are specified, setting from `cachePolicy.(id|name)` will be used.
 
 ```yml
 functions:
