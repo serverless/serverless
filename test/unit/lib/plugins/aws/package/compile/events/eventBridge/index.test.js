@@ -373,10 +373,6 @@ describe('EventBridgeEvents', () => {
       let eventBusLogicalId;
       let ruleResource;
       let ruleTarget;
-      let inputPathRuleTarget;
-      let inputTransformerRuleTarget;
-      let disabledRuleResource;
-      let enabledRuleResource;
       const schedule = 'rate(10 minutes)';
       const eventBusName = 'nondefault';
       const pattern = {
@@ -395,6 +391,20 @@ describe('EventBridgeEvents', () => {
           eventTime: '$.time',
         },
       };
+      const retryPolicy = {
+        maximumEventAge: 7200,
+        maximumRetryAttempts: 9,
+      };
+      const deadLetterConfig = {
+        arn: 'arn:aws:sqs:us-east-1:12345:test',
+      };
+
+      const getRuleResourceEndingWith = (resources, ending) => (
+        Object.values(resources).find(
+          (resource) =>
+            resource.Type === 'AWS::Events::Rule' && resource.Properties.Name.endsWith(ending)
+        )
+      );
 
       before(async () => {
         const { cfTemplate, awsNaming } = await runServerless({
@@ -448,6 +458,22 @@ describe('EventBridgeEvents', () => {
                       pattern,
                     },
                   },
+                  {
+                    eventBridge: {
+                      eventBus: eventBusName,
+                      schedule,
+                      pattern,
+                      retryPolicy,
+                    },
+                  },
+                  {
+                    eventBridge: {
+                      eventBus: eventBusName,
+                      schedule,
+                      pattern,
+                      deadLetterConfig,
+                    },
+                  },
                 ],
               },
             },
@@ -457,31 +483,8 @@ describe('EventBridgeEvents', () => {
         cfResources = cfTemplate.Resources;
         naming = awsNaming;
         eventBusLogicalId = naming.getEventBridgeEventBusLogicalId(eventBusName);
-        ruleResource = Object.values(cfResources).find(
-          (resource) =>
-            resource.Type === 'AWS::Events::Rule' && resource.Properties.Name.endsWith('1')
-        );
+        ruleResource = getRuleResourceEndingWith(cfResources, '1');
         ruleTarget = ruleResource.Properties.Targets[0];
-        const inputPathRuleResource = Object.values(cfResources).find(
-          (resource) =>
-            resource.Type === 'AWS::Events::Rule' && resource.Properties.Name.endsWith('2')
-        );
-        inputPathRuleTarget = inputPathRuleResource.Properties.Targets[0];
-        const inputTransformerRuleResource = Object.values(cfResources).find(
-          (resource) =>
-            resource.Type === 'AWS::Events::Rule' && resource.Properties.Name.endsWith('3')
-        );
-        inputTransformerRuleTarget = inputTransformerRuleResource.Properties.Targets[0];
-
-        disabledRuleResource = Object.values(cfResources).find(
-          (resource) =>
-            resource.Type === 'AWS::Events::Rule' && resource.Properties.Name.endsWith('4')
-        );
-
-        enabledRuleResource = Object.values(cfResources).find(
-          (resource) =>
-            resource.Type === 'AWS::Events::Rule' && resource.Properties.Name.endsWith('5')
-        );
       });
 
       it('should create an EventBus resource', () => {
@@ -497,10 +500,12 @@ describe('EventBridgeEvents', () => {
       });
 
       it('should correctly set State when disabled on a created rule', () => {
+        const disabledRuleResource = getRuleResourceEndingWith(cfResources, '4');
         expect(disabledRuleResource.Properties.State).to.equal('DISABLED');
       });
 
       it('should correctly set State when enabled on a created rule', () => {
+        const enabledRuleResource = getRuleResourceEndingWith(cfResources, '5');
         expect(enabledRuleResource.Properties.State).to.equal('ENABLED');
       });
 
@@ -513,16 +518,35 @@ describe('EventBridgeEvents', () => {
       });
 
       it('should correctly set InputPath on the target for the created rule', () => {
+        const inputPathRuleResource = getRuleResourceEndingWith(cfResources, '2');
+        const inputPathRuleTarget = inputPathRuleResource.Properties.Targets[0];
         expect(inputPathRuleTarget.InputPath).to.deep.equal(inputPath);
       });
 
       it('should correctly set InputTransformer on the target for the created rule', () => {
+        const inputTransformerRuleResource = getRuleResourceEndingWith(cfResources, '3');
+        const inputTransformerRuleTarget = inputTransformerRuleResource.Properties.Targets[0];
         expect(inputTransformerRuleTarget.InputTransformer.InputPathsMap).to.deep.equal(
           inputTransformer.inputPathsMap
         );
         expect(inputTransformerRuleTarget.InputTransformer.InputTemplate).to.deep.equal(
           inputTransformer.inputTemplate
         );
+      });
+
+      it('should support retryPolicy configuration', () => {
+        const retryPolicyRuleTarget = getRuleResourceEndingWith(cfResources, '6').Properties.Targets[0];
+        expect(retryPolicyRuleTarget .RetryPolicy).to.deep.equal({
+          MaximumEventAge: 7200,
+          MaximumRetryAttempts: 9,
+        });
+      });
+
+      it('should support deadLetterConfig configuration', () => {
+        const deadLetterConfigRuleTarget = getRuleResourceEndingWith(cfResources, '7').Properties.Targets[0];
+        expect(deadLetterConfigRuleTarget.DeadLetterConfig).to.deep.equal({
+          Arn: 'arn:aws:sqs:us-east-1:12345:test'
+        });
       });
 
       it('should create a rule that depends on created EventBus', () => {
