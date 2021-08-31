@@ -314,7 +314,7 @@ describe('uploadArtifacts', () => {
       sinon.spy(awsDeploy.serverless.cli, 'log');
 
       return awsDeploy.uploadFunctionsAndLayers().then(() => {
-        const expected = 'Uploading service new-service.zip file to S3 (1 KB)...';
+        const expected = 'Uploading service new-service.zip file to S3 (1.02 kB)...';
         expect(awsDeploy.serverless.cli.log.calledWithExactly(expected)).to.be.equal(true);
       });
     });
