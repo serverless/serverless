@@ -291,8 +291,8 @@ describe('EventBridgeEvents', () => {
                         maximumRetryAttempts: 9000,
                       },
                       pattern: {
-                        source: ['aws.something']
-                      }
+                        source: ['aws.something'],
+                      },
                     },
                   },
                 ],
@@ -322,8 +322,8 @@ describe('EventBridgeEvents', () => {
                         arn: 'arn:aws:sqs:us-east-1:12345:not-supported',
                       },
                       pattern: {
-                        source: ['aws.something']
-                      }
+                        source: ['aws.something'],
+                      },
                     },
                   },
                 ],
@@ -399,12 +399,11 @@ describe('EventBridgeEvents', () => {
         arn: 'arn:aws:sqs:us-east-1:12345:test',
       };
 
-      const getRuleResourceEndingWith = (resources, ending) => (
+      const getRuleResourceEndingWith = (resources, ending) =>
         Object.values(resources).find(
           (resource) =>
             resource.Type === 'AWS::Events::Rule' && resource.Properties.Name.endsWith(ending)
-        )
-      );
+        );
 
       before(async () => {
         const { cfTemplate, awsNaming } = await runServerless({
@@ -535,17 +534,19 @@ describe('EventBridgeEvents', () => {
       });
 
       it('should support retryPolicy configuration', () => {
-        const retryPolicyRuleTarget = getRuleResourceEndingWith(cfResources, '6').Properties.Targets[0];
-        expect(retryPolicyRuleTarget .RetryPolicy).to.deep.equal({
+        const retryPolicyRuleTarget = getRuleResourceEndingWith(cfResources, '6').Properties
+          .Targets[0];
+        expect(retryPolicyRuleTarget.RetryPolicy).to.deep.equal({
           MaximumEventAge: 7200,
           MaximumRetryAttempts: 9,
         });
       });
 
       it('should support deadLetterConfig configuration', () => {
-        const deadLetterConfigRuleTarget = getRuleResourceEndingWith(cfResources, '7').Properties.Targets[0];
+        const deadLetterConfigRuleTarget = getRuleResourceEndingWith(cfResources, '7').Properties
+          .Targets[0];
         expect(deadLetterConfigRuleTarget.DeadLetterConfig).to.deep.equal({
-          Arn: 'arn:aws:sqs:us-east-1:12345:test'
+          Arn: 'arn:aws:sqs:us-east-1:12345:test',
         });
       });
 
