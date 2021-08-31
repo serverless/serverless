@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.57.0](https://github.com/serverless/serverless/compare/v2.56.0...v2.57.0) (2021-08-31)
+
+### Features
+
+- **Variables:** Enable `env` variables in `provider.stage` property ([#9896](https://github.com/serverless/serverless/issues/9896)) ([bbb6c6c](https://github.com/serverless/serverless/commit/bbb6c6cd7dea9100af3ff84dd490b2cac1e2971e)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **AWS API Gateway:**
+  - Recognize CF functions at `functions[].events[].http.connectionId` ([#9894](https://github.com/serverless/serverless/issues/9894)) ([3e8858b](https://github.com/serverless/serverless/commit/3e8858b1a8cde32a3659498c6dbdc7d8637e86c6)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Recognize CF functions at `functions[].events[].http.request.headers[].mappedValue` ([#9894](https://github.com/serverless/serverless/issues/9894)) ([868ac02](https://github.com/serverless/serverless/commit/868ac02fd4d41a893d23a3f29101e3a3b952597b)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Recognize CF functions at `functions[].events[].http.request.uri` ([#9894](https://github.com/serverless/serverless/issues/9894)) ([13ce56a](https://github.com/serverless/serverless/commit/13ce56ae314dff1c157fc8351fc702bf15573fce)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Fix request validator triage ([#9887](https://github.com/serverless/serverless/issues/9887)) ([cb109dd](https://github.com/serverless/serverless/commit/cb109dd835ec358bfb1af10fe8f82aa283ffbafe)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:** Fix new sources resolution error message at old resolver ([#9888](https://github.com/serverless/serverless/issues/9888)) ([8dece7f](https://github.com/serverless/serverless/commit/8dece7f6c6544f91366a2c8f70389be8b4b659c8)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Variables:** Enable early `sls:stage` resolution ([#9890](https://github.com/serverless/serverless/issues/9890)) ([56e9423](https://github.com/serverless/serverless/commit/56e9423cd74dc05cc85b176bb1f0502f7ce05139)) ([Mariusz Nowak](https://github.com/medikoo))
+- Replace `fse.writeFile` with `fs.promises.writeFile` ([#9870](https://github.com/serverless/serverless/issues/9870)) ([05fff98](https://github.com/serverless/serverless/commit/05fff98a0003b22a66e8932c622c0e10c57bf06b)) ([Sudipto Das](https://github.com/sdas13))
+- Upgrade `filesize` to v8 ([#9901](https://github.com/serverless/serverless/issues/9901)) ([9a2511c](https://github.com/serverless/serverless/commit/9a2511cf90c60ba5b67ecea81121328c8dd93702)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.56.0](https://github.com/serverless/serverless/compare/v2.55.0...v2.56.0) (2021-08-25)
 
 ### Features
