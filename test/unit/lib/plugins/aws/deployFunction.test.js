@@ -266,7 +266,7 @@ describe('AwsDeployFunction', () => {
 
       await awsDeployFunction.deployFunction();
 
-      const expected = 'Uploading function: first (1 KB)...';
+      const expected = 'Uploading function: first (1.02 kB)...';
       expect(readFileSyncStub.calledOnce).to.equal(true);
       expect(statSyncStub.calledOnce).to.equal(true);
       expect(awsDeployFunction.serverless.cli.log.calledWithExactly(expected)).to.be.equal(true);
