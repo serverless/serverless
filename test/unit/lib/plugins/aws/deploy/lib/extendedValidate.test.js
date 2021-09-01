@@ -29,9 +29,11 @@ describe('extendedValidate', () => {
   };
   const stateFileMock = {
     service: serverlessYml,
+    provider: {
+      s3DeploymentDirectoryPath: 'some/path',
+    },
     package: {
       individually: true,
-      artifactDirectoryName: 'some/path',
       artifact: '',
     },
   };

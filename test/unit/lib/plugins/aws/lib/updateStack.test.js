@@ -26,7 +26,7 @@ describe('updateStack', () => {
     awsDeploy.bucketName = 'deployment-bucket';
     serverless.service.service = `service-${new Date().getTime().toString()}`;
     serverless.serviceDir = tmpDirPath;
-    awsDeploy.serverless.service.package.artifactDirectoryName = 'somedir';
+    awsDeploy.serverless.service.provider.s3DeploymentDirectoryPath = 'somedir';
     awsDeploy.serverless.cli = new serverless.classes.CLI();
   });
 
@@ -54,7 +54,7 @@ describe('updateStack', () => {
             OnFailure: 'DELETE',
             Capabilities: ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM'],
             Parameters: [],
-            TemplateURL: `https://s3.amazonaws.com/${awsDeploy.bucketName}/${awsDeploy.serverless.service.package.artifactDirectoryName}/${compiledTemplateFileName}`,
+            TemplateURL: `https://s3.amazonaws.com/${awsDeploy.bucketName}/${awsDeploy.serverless.service.provider.s3DeploymentDirectoryPath}/${compiledTemplateFileName}`,
             Tags: [{ Key: 'STAGE', Value: awsDeploy.provider.getStage() }],
           })
         ).to.be.equal(true);
@@ -147,7 +147,7 @@ describe('updateStack', () => {
             StackName: awsDeploy.provider.naming.getStackName(),
             Capabilities: ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM'],
             Parameters: [],
-            TemplateURL: `https://s3.amazonaws.com/${awsDeploy.bucketName}/${awsDeploy.serverless.service.package.artifactDirectoryName}/${compiledTemplateFileName}`,
+            TemplateURL: `https://s3.amazonaws.com/${awsDeploy.bucketName}/${awsDeploy.serverless.service.provider.s3DeploymentDirectoryPath}/${compiledTemplateFileName}`,
             Tags: [{ Key: 'STAGE', Value: awsDeploy.provider.getStage() }],
           })
         ).to.be.equal(true);
