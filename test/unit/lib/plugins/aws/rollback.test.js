@@ -104,7 +104,7 @@ describe('AwsRollback', () => {
       sinon.stub(awsRollback.provider, 'request').resolves(s3Response);
 
       return awsRollback.setStackToUpdate().then(() => {
-        expect(awsRollback.serverless.service.package.artifactDirectoryName).to.be.equal(
+        expect(awsRollback.provider.s3DeploymentDirectoryPath).to.be.equal(
           'serverless/rollback/dev/1476779096930-2016-10-18T08:24:56.930Z'
         );
 
@@ -170,7 +170,7 @@ describe('AwsRollback', () => {
         });
     });
 
-    it('should resolve set the artifactDirectoryName and resolve', () => {
+    it('should resolve set the provider s3DeploymentDirectoryPath and resolve', () => {
       const s3Objects = [
         {
           // eslint-disable-next-line max-len
@@ -187,7 +187,7 @@ describe('AwsRollback', () => {
       const listObjectsStub = sinon.stub(awsRollback.provider, 'request').resolves(s3Response);
 
       return awsRollback.setStackToUpdate().then(() => {
-        expect(awsRollback.serverless.service.package.artifactDirectoryName).to.be.equal(
+        expect(awsRollback.provider.s3DeploymentDirectoryPath).to.be.equal(
           'serverless/rollback/dev/1476779096930-2016-10-18T08:24:56.930Z'
         );
         expect(listObjectsStub.calledOnce).to.be.equal(true);
