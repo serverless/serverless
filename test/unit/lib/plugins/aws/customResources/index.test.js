@@ -46,7 +46,7 @@ describe('#addCustomResourceToService()', () => {
       Resources: {},
     };
     serverless.serviceDir = tmpDirPath;
-    serverless.service.package.artifactDirectoryName = 'artifact-dir-name';
+    serverless.service.provider.s3DeploymentDirectoryPath = 'artifact-dir-name';
   });
 
   it('should add one IAM role and the custom resources to the service', () =>

@@ -28,7 +28,7 @@ describe('validateTemplate', () => {
     serverless.setProvider('aws', new AwsProvider(serverless, options));
     awsDeploy = new AwsDeploy(serverless, options);
     awsDeploy.bucketName = 'deployment-bucket';
-    awsDeploy.serverless.service.package.artifactDirectoryName = 'somedir';
+    awsDeploy.serverless.service.provider.s3DeploymentDirectoryPath = 'somedir';
     awsDeploy.serverless.service.functions = {
       first: {
         handler: 'foo',
