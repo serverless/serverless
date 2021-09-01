@@ -32,6 +32,7 @@ describe('AwsProvider', () => {
   beforeEach(() => {
     ({ restoreEnv } = overrideEnv());
     serverless = new Serverless(options);
+    serverless.service.service = 'my-service';
     serverless.cli = new serverless.classes.CLI();
     awsProvider = new AwsProvider(serverless, options);
   });
@@ -324,6 +325,28 @@ describe('AwsProvider', () => {
       awsProvider.options['aws-s3-accelerate'] = true;
       awsProvider.disableTransferAccelerationForCurrentDeploy();
       return expect(awsProvider.options['aws-s3-accelerate']).to.be.undefined;
+    });
+  });
+
+  describe('#s3CodeArtifactsDirectoryPath', () => {
+    beforeEach(() => {
+      awsProvider.hooks.initialize();
+    });
+    it('should provide proper code artifacts S3 directory path', () => {
+      expect(awsProvider.s3CodeArtifactsDirectoryPath).to.equal(
+        'serverless/my-service/dev/code-artifacts'
+      );
+    });
+  });
+
+  describe('#s3DeploymentDirectoryPath', () => {
+    beforeEach(() => {
+      awsProvider.hooks.initialize();
+    });
+    it('should provide proper deployment S3 directory path', () => {
+      expect(awsProvider.s3DeploymentDirectoryPath).to.match(
+        /serverless\/my-service\/dev\/([\d]+)-([\d]+)-([\d]+)-([\dTZ:.]+)/
+      );
     });
   });
 });
