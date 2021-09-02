@@ -68,7 +68,7 @@ functions:
 
 The Serverless Framework will automatically configure the most minimal set of IAM permissions for you. However you can still add additional permissions if you need to. Read the official [AWS documentation](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-configure-lambda-function-trigger.html) for more information about IAM Permissions for SQS events.
 
-## Lift "Queue" construct
+## Deploying SQS queues
 
 The examples above show how to consume messages from an existing SQS queue. To create an SQS queue in `serverless.yml`, you can either write custom CloudFormation, or you can use Lift.
 
