@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - MQ
-menuText: MQ
-description:  Setting up AWS MQ Events with AWS Lambda via the Serverless Framework
+menuText: ActiveMQ
+description:  Setting up AWS Active MQ Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
 
@@ -13,13 +13,13 @@ layout: Doc
 
 # MQ
 
-An Apache MQ message broker can be used as an event source for AWS Lambda.
+An Active MQ message broker can be used as an event source for AWS Lambda.
 
 ## Simple event definition
 
-In the following example, we specify that the `compute` function should be triggered whenever there are new messages available to consume from defined MQ `queue`.
+In the following example, we specify that the `compute` function should be triggered whenever there are new messages available to consume from defined ActiveMQ `queue`.
 
-In order to configure `mq` event, you have to provide three required properties:
+In order to configure `activemq` event, you have to provide three required properties:
 
 - `basicAuthArn`, which is a [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) ARN for credentials required to do basic auth to allow Lambda to connect to your message broker
 - `queue` to consume messages from.
@@ -30,24 +30,24 @@ functions:
   compute:
     handler: handler.compute
     events:
-      - mq:
+      - activemq:
           arn: arn:aws:mq:us-east-1:0000:broker:ExampleMQBroker:b-xxx-xxx
           queue: queue-name
           basicAuthArn: arn:aws:secretsmanager:us-east-1:01234567890:secret:MySecret
 ```
 
-## Enabling and disabling MQ event
+## Enabling and disabling ActiveMQ event
 
-The `mq` event also supports `enabled` parameter, which is used to control if the event source mapping is active. Setting it to `false` will pause polling for and processing new messages.
+The `activemq` event also supports `enabled` parameter, which is used to control if the event source mapping is active. Setting it to `false` will pause polling for and processing new messages.
 
-In the following example, we specify that the `compute` function's `mq` event should be disabled.
+In the following example, we specify that the `compute` function's `activemq` event should be disabled.
 
 ```yml
 functions:
   compute:
     handler: handler.compute
     events:
-      - mq:
+      - activemq:
           arn: arn:aws:mq:us-east-1:0000:broker:ExampleMQBroker:b-xxx-xxx
           queue: queue-name
           enabled: false
@@ -63,7 +63,7 @@ functions:
   compute:
     handler: handler.compute
     events:
-      - mq:
+      - activemq:
           arn: arn:aws:mq:us-east-1:0000:broker:ExampleMQBroker:b-xxx-xxx
           queue: queue-name
           batchSize: 5000

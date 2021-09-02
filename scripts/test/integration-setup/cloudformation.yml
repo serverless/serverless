@@ -4,13 +4,13 @@ Parameters:
   ClusterName:
     Type: String
     Description: Name of MSK Cluster
-  MQBrokerName:
+  ActiveMQBrokerName:
     Type: String
     Description: Name of Active MQ Broker
-  MQUser:
+  ActiveMQUser:
     Type: String
     Description: Name of Active MQ User
-  MQPassword:
+  ActiveMQPassword:
     Type: String
     Description: Password of Active MQ User
     NoEcho: true
@@ -129,7 +129,7 @@ Resources:
       SubnetId: !Ref PrivateSubnetB
       RouteTableId: !Ref PrivateRouteTable
 
-  MQSecurityGroup:
+  ActiveMQSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Security Group for ApacheMQ
@@ -144,24 +144,24 @@ Resources:
           ToPort: 61614
           CidrIp: 0.0.0.0/0
 
-  MQBroker:
+  ActiveMQBroker:
     Type: 'AWS::AmazonMQ::Broker'
     Properties:
       AutoMinorVersionUpgrade: 'false'
-      BrokerName: !Ref MQBrokerName
+      BrokerName: !Ref ActiveMQBrokerName
       DeploymentMode: SINGLE_INSTANCE
       EngineType: ActiveMQ
       EngineVersion: '5.15.0'
       HostInstanceType: mq.t2.micro
       PubliclyAccessible: 'false'
       SecurityGroups:
-        - !Ref MQSecurityGroup
+        - !Ref ActiveMQSecurityGroup
       SubnetIds:
         - !Ref PrivateSubnetA
       Users:
         - ConsoleAccess: 'true'
-          Password: !Ref MQPassword
-          Username: !Ref MQUser
+          Password: !Ref ActiveMQPassword
+          Username: !Ref ActiveMQUser
 
   MSKCluster:
     Type: 'AWS::MSK::Cluster'
@@ -220,26 +220,21 @@ Outputs:
     Description: Private Subnet A ID
     Value: !Ref PrivateSubnetA
 
-  # TODO: CHANGE TO PRIVATE
-  PublicSubnet:
-    Description: Public Subnet ID
-    Value: !Ref PublicSubnet
-
   SecurityGroup:
     Description: Default security for Lambda VPC
     Value: !GetAtt VPC.DefaultSecurityGroup
 
-  MQBrokerArn:
+  ActiveMQBrokerArn:
     Description: Created Active MQ Broker ARN
-    Value: !GetAtt MQBroker.Arn
+    Value: !GetAtt ActiveMQBroker.Arn
 
-  MQBrokerId:
+  ActiveMQBrokerId:
     Description: Created Active MQ Broker Id
-    Value: !Ref MQBroker
+    Value: !Ref ActiveMQBroker
 
-  MQSecurityGroup:
+  ActiveMQSecurityGroup:
     Description: Security Group for Active MQ
-    Value: !Ref MQSecurityGroup
+    Value: !Ref ActiveMQSecurityGroup
 
   MSKCluster:
     Description: Created MSK Cluster

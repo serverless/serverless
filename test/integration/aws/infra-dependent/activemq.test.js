@@ -7,7 +7,7 @@ const { confirmCloudWatchLogs } = require('../../../utils/misc');
 const {
   isDependencyStackAvailable,
   getDependencyStackOutputMap,
-  SHARED_INFRA_TESTS_MQ_CREDENTIALS_NAME,
+  SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME,
 } = require('../../../utils/cloudformation');
 
 const awsRequest = require('@serverless/test/aws-request');
@@ -30,28 +30,28 @@ describe('AWS - Active MQ Integration Test', function () {
 
     const outputMap = await getDependencyStackOutputMap();
 
-    log.notice('Getting MQ Credentials ARN');
+    log.notice('Getting Active MQ Credentials ARN');
     const getSecretValueResponse = await awsRequest('SecretsManager', 'getSecretValue', {
-      SecretId: SHARED_INFRA_TESTS_MQ_CREDENTIALS_NAME,
+      SecretId: SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME,
     });
     const { username: mqUsername, password: mqPassword } = JSON.parse(
       getSecretValueResponse.SecretString
     );
 
-    const describeBrokerResponse = await awsRequest('MQ', 'describeBroker', {
-      BrokerId: outputMap.get('MQBrokerId'),
+    const describeBrokerResponse = await awsRequest('ActiveMQ', 'describeBroker', {
+      BrokerId: outputMap.get('ActiveMQBrokerId'),
     });
     const stompEndpoint = describeBrokerResponse.BrokerInstances[0].Endpoints.find((endpoint) =>
       endpoint.startsWith('stomp')
     );
 
-    const serviceData = await fixtures.setup('functionMq', {
+    const serviceData = await fixtures.setup('functionActivemq', {
       configExt: {
         functions: {
           producer: {
             vpc: {
               subnetIds: [outputMap.get('PrivateSubnetA')],
-              securityGroupIds: [outputMap.get('MQSecurityGroup')],
+              securityGroupIds: [outputMap.get('ActiveMQSecurityGroup')],
             },
             environment: {
               QUEUE_NAME: queueName,
@@ -63,8 +63,8 @@ describe('AWS - Active MQ Integration Test', function () {
           consumer: {
             events: [
               {
-                mq: {
-                  arn: outputMap.get('MQBrokerArn'),
+                activemq: {
+                  arn: outputMap.get('ActiveMQBrokerArn'),
                   queue: queueName,
                   basicAuthArn: getSecretValueResponse.ARN,
                 },

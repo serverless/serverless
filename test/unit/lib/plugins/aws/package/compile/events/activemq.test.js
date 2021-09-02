@@ -7,14 +7,14 @@ const { expect } = chai;
 
 chai.use(require('chai-as-promised'));
 
-describe('test/unit/lib/plugins/aws/package/compile/events/mq.test.js', () => {
+describe('test/unit/lib/plugins/aws/package/compile/events/activemq.test.js', () => {
   const brokerArn = 'arn:aws:mq:us-east-1:0000:broker:ExampleMQBroker:b-xxx-xxx';
   const basicAuthArn = 'arn:aws:secretsmanager:us-east-1:01234567890:secret:MyBrokerSecretName';
   const queue = 'TestingQueue';
   const enabled = false;
   const batchSize = 5000;
 
-  describe('when there are mq events defined', () => {
+  describe('when there are activemq events defined', () => {
     let minimalEventSourceMappingResource;
     let allParamsEventSourceMappingResource;
     let defaultIamRole;
@@ -28,7 +28,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/mq.test.js', () => {
             foo: {
               events: [
                 {
-                  mq: {
+                  activemq: {
                     queue,
                     arn: brokerArn,
                     basicAuthArn,
@@ -39,7 +39,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/mq.test.js', () => {
             other: {
               events: [
                 {
-                  mq: {
+                  activemq: {
                     queue,
                     arn: brokerArn,
                     basicAuthArn,
@@ -51,13 +51,13 @@ describe('test/unit/lib/plugins/aws/package/compile/events/mq.test.js', () => {
             },
           },
         },
-        cliArgs: ['package'],
+        command: 'package',
       });
       naming = awsNaming;
       minimalEventSourceMappingResource =
-        cfTemplate.Resources[naming.getMQEventLogicalId('foo', queue)];
+        cfTemplate.Resources[naming.getActiveMQEventLogicalId('foo', queue)];
       allParamsEventSourceMappingResource =
-        cfTemplate.Resources[naming.getMQEventLogicalId('other', queue)];
+        cfTemplate.Resources[naming.getActiveMQEventLogicalId('other', queue)];
       defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution;
     });
 
@@ -132,7 +132,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/mq.test.js', () => {
     });
   });
 
-  describe('configuring mq events', () => {
+  describe('configuring activemq events', () => {
     it('should not add dependsOn for imported role', async () => {
       const { awsNaming, cfTemplate } = await runServerless({
         fixture: 'function',
@@ -142,7 +142,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/mq.test.js', () => {
               role: { 'Fn::ImportValue': 'MyImportedRole' },
               events: [
                 {
-                  mq: {
+                  activemq: {
                     queue,
                     arn: brokerArn,
                     basicAuthArn,
@@ -152,20 +152,20 @@ describe('test/unit/lib/plugins/aws/package/compile/events/mq.test.js', () => {
             },
           },
         },
-        cliArgs: ['package'],
+        command: 'package',
       });
 
       const eventSourceMappingResource =
-        cfTemplate.Resources[awsNaming.getMQEventLogicalId('foo', queue)];
+        cfTemplate.Resources[awsNaming.getActiveMQEventLogicalId('foo', queue)];
       expect(eventSourceMappingResource.DependsOn).to.deep.equal([]);
     });
   });
 
-  describe('when no mq events are defined', () => {
+  describe('when no activemq events are defined', () => {
     it('should not modify the default IAM role', async () => {
       const { cfTemplate } = await runServerless({
         fixture: 'function',
-        cliArgs: ['package'],
+        command: 'package',
       });
 
       const defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution;

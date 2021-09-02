@@ -11,7 +11,7 @@ const fsPromises = require('fs').promises;
 const path = require('path');
 const {
   SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
-  SHARED_INFRA_TESTS_MQ_CREDENTIALS_NAME,
+  SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME,
 } = require('../../../test/utils/cloudformation');
 
 const ensureMQCredentialsSecret = async () => {
@@ -19,10 +19,10 @@ const ensureMQCredentialsSecret = async () => {
     username: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_USER,
     password: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_PASSWORD,
   };
-  log.notice('Creating SecretsManager MQ Credentials secret...');
+  log.notice('Creating SecretsManager Active MQ Credentials secret...');
   try {
     await awsRequest('SecretsManager', 'createSecret', {
-      Name: SHARED_INFRA_TESTS_MQ_CREDENTIALS_NAME,
+      Name: SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME,
       SecretString: JSON.stringify(ssmMqCredentials),
     });
   } catch (e) {
@@ -32,7 +32,7 @@ const ensureMQCredentialsSecret = async () => {
   }
 };
 
-const mqBrokerName = 'integration-tests-active-mq-broker';
+const activeMqBrokerName = 'integration-tests-active-mq-broker';
 
 async function handleInfrastructureCreation() {
   const [cfnTemplate, kafkaServerProperties] = await Promise.all([
@@ -61,10 +61,13 @@ async function handleInfrastructureCreation() {
     TemplateBody: cfnTemplate,
     Parameters: [
       { ParameterKey: 'ClusterName', ParameterValue: clusterName },
-      { ParameterKey: 'MQBrokerName', ParameterValue: mqBrokerName },
-      { ParameterKey: 'MQUser', ParameterValue: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_USER },
+      { ParameterKey: 'ActiveMQBrokerName', ParameterValue: activeMqBrokerName },
       {
-        ParameterKey: 'MQPassword',
+        ParameterKey: 'ActiveMQUser',
+        ParameterValue: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_USER,
+      },
+      {
+        ParameterKey: 'ActiveMQPassword',
         ParameterValue: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_PASSWORD,
       },
       { ParameterKey: 'ClusterConfigurationArn', ParameterValue: clusterConfigurationArn },
@@ -94,13 +97,13 @@ async function handleInfrastructureUpdate() {
       TemplateBody: cfnTemplate,
       Parameters: [
         { ParameterKey: 'ClusterName', UsePreviousValue: true },
-        { ParameterKey: 'MQBrokerName', ParameterValue: mqBrokerName },
+        { ParameterKey: 'ActiveMQBrokerName', ParameterValue: activeMqBrokerName },
         {
-          ParameterKey: 'MQUser',
+          ParameterKey: 'ActiveMQUser',
           ParameterValue: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_USER,
         },
         {
-          ParameterKey: 'MQPassword',
+          ParameterKey: 'ActiveMQPassword',
           ParameterValue: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_PASSWORD,
         },
         { ParameterKey: 'ClusterConfigurationArn', UsePreviousValue: true },
