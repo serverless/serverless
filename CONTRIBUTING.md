@@ -101,7 +101,7 @@ Log should be written only if deprecated functionality is used. If applicable (t
 
 ### Service configuration validation
 
-All newly introduced configuration properties should be covered by proper changes to configuration schema. For more details about configuration validation, please see [docs/configuration-validation](./configuration-validation.md).
+All newly introduced configuration properties should be covered by proper changes to configuration schema. For more details about configuration validation, please see [docs/configuration-validation](./docs/configuration-validation.md).
 
 # Testing
 

@@ -14,7 +14,7 @@ type DefineEvent struct {
 func hello(ctx context.Context, event DefineEvent) (string, error) {
 	fmt.Println("key1:", event.Key1)
 	fmt.Println("key2:", event.Key2)
-	return fmt.Sprintf("Hello World"), nil
+	return "Hello World", nil
 }
 
 func main() {

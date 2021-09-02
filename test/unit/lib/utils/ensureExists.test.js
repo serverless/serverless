@@ -7,7 +7,7 @@ const ensureExists = require('../../../../lib/utils/ensureExists');
 const { getTmpDirPath } = require('../../../utils/fs');
 
 const path = require('path');
-const fs = require('fs');
+const fsp = require('fs').promises;
 const crypto = require('crypto');
 
 const expect = chai.expect;
@@ -26,7 +26,7 @@ describe('test/unit/lib/utils/ensureExists.test.js', () => {
 
   it('Should not call generate if file exists', async () => {
     const testFileName = `test-${crypto.randomBytes(2).toString('hex')}`;
-    await fs.promises.writeFile(path.resolve(testCacheDir, testFileName), '');
+    await fsp.writeFile(path.resolve(testCacheDir, testFileName), '');
     const generateStub = sinon.stub().resolves();
     await ensureExists(path.resolve(testCacheDir, testFileName), generateStub);
     expect(generateStub.calledOnce).to.be.false;
