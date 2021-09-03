@@ -288,7 +288,7 @@ describe('EventBridgeEvents', () => {
                     eventBridge: {
                       retryPolicy: {
                         maximumEventAge: 4200,
-                        maximumRetryAttempts: 9000,
+                        maximumRetryAttempts: 180,
                       },
                       pattern: {
                         source: ['aws.something'],
@@ -319,7 +319,7 @@ describe('EventBridgeEvents', () => {
                   {
                     eventBridge: {
                       deadLetterConfig: {
-                        arn: 'arn:aws:sqs:us-east-1:12345:not-supported',
+                        'Fn::GetAtt': ['not-supported', 'Arn'],
                       },
                       pattern: {
                         source: ['aws.something'],
@@ -395,8 +395,9 @@ describe('EventBridgeEvents', () => {
         maximumEventAge: 7200,
         maximumRetryAttempts: 9,
       };
+
       const deadLetterConfig = {
-        arn: 'arn:aws:sqs:us-east-1:12345:test',
+        'Fn::GetAtt': ['test', 'Arn'],
       };
 
       const getRuleResourceEndingWith = (resources, ending) =>
@@ -545,9 +546,7 @@ describe('EventBridgeEvents', () => {
       it('should support deadLetterConfig configuration', () => {
         const deadLetterConfigRuleTarget = getRuleResourceEndingWith(cfResources, '7').Properties
           .Targets[0];
-        expect(deadLetterConfigRuleTarget.DeadLetterConfig).to.deep.equal({
-          Arn: 'arn:aws:sqs:us-east-1:12345:test',
-        });
+        expect(deadLetterConfigRuleTarget.DeadLetterConfig).to.have.property('TargetArn');
       });
 
       it('should create a rule that depends on created EventBus', () => {

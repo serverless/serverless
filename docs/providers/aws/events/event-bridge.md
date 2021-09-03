@@ -202,9 +202,10 @@ functions:
             source:
               - saas.external
           deadLetterConfig:
-            Fn::GetAtt:
-              - QueueName
-              - Arn
+            targetArn:
+              Fn::GetAtt:
+                - QueueName
+                - Arn
 ```
 
 ## Adding a retry policy to an event rule
