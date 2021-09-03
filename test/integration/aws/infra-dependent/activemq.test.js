@@ -38,7 +38,7 @@ describe('AWS - Active MQ Integration Test', function () {
       getSecretValueResponse.SecretString
     );
 
-    const describeBrokerResponse = await awsRequest('ActiveMQ', 'describeBroker', {
+    const describeBrokerResponse = await awsRequest('MQ', 'describeBroker', {
       BrokerId: outputMap.get('ActiveMQBrokerId'),
     });
     const stompEndpoint = describeBrokerResponse.BrokerInstances[0].Endpoints.find((endpoint) =>
