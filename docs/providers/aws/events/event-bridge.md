@@ -189,6 +189,8 @@ functions:
 
 ## Adding a DLQ to an event rule
 
+DeadLetterConfig is not available for custom resources, only for native CloudFormation.
+
 ```yml
 functions:
   myFunction:
@@ -204,6 +206,8 @@ functions:
 ```
 
 ## Adding a retry policy to an event rule
+
+RetryPolicy is not available for custom resources, only for native CloudFormation.
 
 ```yml
 functions:
