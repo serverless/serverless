@@ -9,13 +9,38 @@ const log = require('log').get('serverless');
 const awsRequest = require('@serverless/test/aws-request');
 const fsPromises = require('fs').promises;
 const path = require('path');
-const { SHARED_INFRA_TESTS_CLOUDFORMATION_STACK } = require('../../../test/utils/cloudformation');
+const {
+  SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
+  SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME,
+} = require('../../../test/utils/cloudformation');
+
+const ensureMQCredentialsSecret = async () => {
+  const ssmMqCredentials = {
+    username: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_USER,
+    password: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_PASSWORD,
+  };
+  log.notice('Creating SecretsManager Active MQ Credentials secret...');
+  try {
+    await awsRequest('SecretsManager', 'createSecret', {
+      Name: SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME,
+      SecretString: JSON.stringify(ssmMqCredentials),
+    });
+  } catch (e) {
+    if (!e.code === 'ResourceExistsException') {
+      throw e;
+    }
+  }
+};
+
+const activeMqBrokerName = 'integration-tests-active-mq-broker';
 
 async function handleInfrastructureCreation() {
   const [cfnTemplate, kafkaServerProperties] = await Promise.all([
     fsPromises.readFile(path.join(__dirname, 'cloudformation.yml'), 'utf8'),
     fsPromises.readFile(path.join(__dirname, 'kafka.server.properties')),
   ]);
+
+  await ensureMQCredentialsSecret();
 
   const clusterName = 'integration-tests-msk-cluster';
   const clusterConfName = 'integration-tests-msk-cluster-configuration';
@@ -36,6 +61,15 @@ async function handleInfrastructureCreation() {
     TemplateBody: cfnTemplate,
     Parameters: [
       { ParameterKey: 'ClusterName', ParameterValue: clusterName },
+      { ParameterKey: 'ActiveMQBrokerName', ParameterValue: activeMqBrokerName },
+      {
+        ParameterKey: 'ActiveMQUser',
+        ParameterValue: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_USER,
+      },
+      {
+        ParameterKey: 'ActiveMQPassword',
+        ParameterValue: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_PASSWORD,
+      },
       { ParameterKey: 'ClusterConfigurationArn', ParameterValue: clusterConfigurationArn },
       {
         ParameterKey: 'ClusterConfigurationRevision',
@@ -53,6 +87,8 @@ async function handleInfrastructureCreation() {
 async function handleInfrastructureUpdate() {
   log.notice('Updating integration tests CloudFormation stack...');
 
+  await ensureMQCredentialsSecret();
+
   const cfnTemplate = await fsPromises.readFile(path.join(__dirname, 'cloudformation.yml'), 'utf8');
 
   try {
@@ -61,6 +97,15 @@ async function handleInfrastructureUpdate() {
       TemplateBody: cfnTemplate,
       Parameters: [
         { ParameterKey: 'ClusterName', UsePreviousValue: true },
+        { ParameterKey: 'ActiveMQBrokerName', ParameterValue: activeMqBrokerName },
+        {
+          ParameterKey: 'ActiveMQUser',
+          ParameterValue: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_USER,
+        },
+        {
+          ParameterKey: 'ActiveMQPassword',
+          ParameterValue: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_PASSWORD,
+        },
         { ParameterKey: 'ClusterConfigurationArn', UsePreviousValue: true },
         {
           ParameterKey: 'ClusterConfigurationRevision',
@@ -85,6 +130,22 @@ async function handleInfrastructureUpdate() {
 (async () => {
   log.notice('Starting setup of integration infrastructure...');
 
+  if (!process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_USER) {
+    log.error(
+      '"SLS_INTEGRATION_TESTS_ACTIVE_MQ_USER" env variable has to be set when provisioning integration infrastructure'
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  if (!process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_PASSWORD) {
+    log.error(
+      '"SLS_INTEGRATION_TESTS_ACTIVE_MQ_PASSWORD" env variable has to be set when provisioning integration infrastructure'
+    );
+    process.exitCode = 1;
+    return;
+  }
+
   let describeResponse;
 
   log.notice('Checking if integration tests CloudFormation stack already exists...');
@@ -103,10 +164,10 @@ async function handleInfrastructureUpdate() {
   if (describeResponse) {
     const stackStatus = describeResponse.Stacks[0].StackStatus;
 
-    if (['CREATE_COMPLETE', 'UPDATE_COMPLETE'].includes(stackStatus)) {
+    if (['CREATE_COMPLETE', 'UPDATE_COMPLETE', 'UPDATE_ROLLBACK_COMPLETE'].includes(stackStatus)) {
       await handleInfrastructureUpdate();
     } else {
-      log.error('Existing stack has status: {stackStatus} and it cannot be updated.');
+      log.error(`Existing stack has status: ${stackStatus} and it cannot be updated.`);
       process.exitCode = 1;
     }
   } else {
