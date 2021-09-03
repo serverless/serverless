@@ -413,6 +413,20 @@ describe('#validate()', () => {
   });
 
   it('should process cors defaults', () => {
+    const expectedCors = {
+      headers: [
+        'Content-Type',
+        'X-Amz-Date',
+        'Authorization',
+        'X-Api-Key',
+        'X-Amz-Security-Token',
+        'X-Amz-User-Agent',
+      ],
+      methods: ['OPTIONS', 'POST'],
+      origin: '*',
+      allowCredentials: false,
+    };
+
     awsCompileApigEvents.serverless.service.functions = {
       first: {
         events: [
@@ -429,20 +443,25 @@ describe('#validate()', () => {
 
     const validated = awsCompileApigEvents.validate();
     expect(validated.events).to.be.an('Array').with.length(1);
-    expect(validated.events[0].http.cors).to.deep.equal({
-      headers: [
-        'Content-Type',
-        'X-Amz-Date',
-        'Authorization',
-        'X-Api-Key',
-        'X-Amz-Security-Token',
-        'X-Amz-User-Agent',
-      ],
-      methods: ['OPTIONS', 'POST'],
-      origin: '*',
-      origins: ['*'],
-      allowCredentials: false,
-    });
+    expect(validated.events[0].http.cors).to.deep.equal(expectedCors);
+
+    awsCompileApigEvents.serverless.service.functions = {
+      first: {
+        events: [
+          {
+            http: {
+              method: 'POST',
+              path: '/foo/bar',
+              cors: {},
+            },
+          },
+        ],
+      },
+    };
+
+    const validated2 = awsCompileApigEvents.validate();
+    expect(validated2.events).to.be.an('Array').with.length(1);
+    expect(validated2.events[0].http.cors).to.deep.equal(expectedCors);
   });
 
   it('should accept cors headers as a single string value', () => {
