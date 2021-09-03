@@ -202,7 +202,9 @@ functions:
             source:
               - saas.external
           deadLetterConfig:
-            arn: 'arn:aws:sqs:us-east-1:12345:test'
+            Fn::GetAtt:
+              - QueueName
+              - Arn
 ```
 
 ## Adding a retry policy to an event rule
@@ -220,7 +222,9 @@ functions:
             source:
               - saas.external
           deadLetterConfig:
-            arn: 'arn:aws:sqs:us-east-1:12345:test'
+            Fn::GetAtt:
+              - QueueName
+              - Arn
           retryPolicy:
             maximumEventAge: 3600
             maximumRetryAttempts: 3
