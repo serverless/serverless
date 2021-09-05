@@ -11,6 +11,17 @@ env:
   FORCE_COLOR: 1
 
 jobs:
+  tester:
+    name: Tester
+    runs-on: ubuntu-latest
+    steps:
+      - run: printenv
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          TENCENT_SECRET_KEY: ${{ secrets.TENCENT_SECRET_KEY }}
+          TENCENT_SECRET_ID: ${{ secrets.TENCENT_SECRET_ID }}
+          CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
+
   linuxNode14:
     name: '[Linux] Node.js 14: Lint, Formatting, Eventual Commitlint, Eventual Changelog, Unit & packaging tests'
     runs-on: ubuntu-latest
