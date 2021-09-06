@@ -3,10 +3,10 @@
 const awsRequest = require('@serverless/test/aws-request');
 
 const SHARED_INFRA_TESTS_CLOUDFORMATION_STACK = 'integration-tests-deps-stack';
-const SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME =
-  'integration-tests-active-mq-broker-credentials';
+const SHARED_INFRA_TESTS_ACTIVEMQ_CREDENTIALS_NAME =
+  'integration-tests-activemq-broker-credentials';
 const SHARED_INFRA_TESTS_RABBITMQ_CREDENTIALS_NAME =
-  'integration-tests-rabbit-mq-broker-credentials';
+  'integration-tests-rabbitmq-broker-credentials';
 
 function findStacks(name, status) {
   const params = {};
@@ -105,7 +105,7 @@ module.exports = {
   listStacks,
   getStackOutputMap,
   SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
-  SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME,
+  SHARED_INFRA_TESTS_ACTIVEMQ_CREDENTIALS_NAME,
   SHARED_INFRA_TESTS_RABBITMQ_CREDENTIALS_NAME,
   isDependencyStackAvailable,
   getDependencyStackOutputMap,

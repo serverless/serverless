@@ -6,13 +6,13 @@ Parameters:
     Description: Name of MSK Cluster
   ActiveMQBrokerName:
     Type: String
-    Description: Name of Active MQ Broker
+    Description: Name of ActiveMQ Broker
   ActiveMQUser:
     Type: String
-    Description: Name of Active MQ User
+    Description: Name of ActiveMQ User
   ActiveMQPassword:
     Type: String
-    Description: Password of Active MQ User
+    Description: Password of ActiveMQ User
     NoEcho: true
   RabbitMQBrokerName:
     Type: String
@@ -265,15 +265,15 @@ Outputs:
     Value: !GetAtt VPC.DefaultSecurityGroup
 
   ActiveMQBrokerArn:
-    Description: Created Active MQ Broker ARN
+    Description: Created ActiveMQ Broker ARN
     Value: !GetAtt ActiveMQBroker.Arn
 
   ActiveMQBrokerId:
-    Description: Created Active MQ Broker Id
+    Description: Created ActiveMQ Broker Id
     Value: !Ref ActiveMQBroker
 
   ActiveMQSecurityGroup:
-    Description: Security Group for Active MQ
+    Description: Security Group for ActiveMQ
     Value: !Ref ActiveMQSecurityGroup
 
   RabbitMQBrokerArn:

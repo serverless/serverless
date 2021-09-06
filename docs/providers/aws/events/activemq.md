@@ -1,7 +1,7 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - Active MQ
+title: Serverless Framework - AWS Lambda Events - ActiveMQ
 menuText: ActiveMQ
-description:  Setting up AWS Active MQ Events with AWS Lambda via the Serverless Framework
+description:  Setting up AWS ActiveMQ Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
 
@@ -11,9 +11,9 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Active MQ
+# ActiveMQ
 
-An Active MQ message broker can be used as an event source for AWS Lambda.
+An ActiveMQ message broker can be used as an event source for AWS Lambda.
 
 ## Simple event definition
 
