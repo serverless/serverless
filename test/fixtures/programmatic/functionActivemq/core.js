@@ -14,12 +14,12 @@ function consumer(event, context, callback) {
 
 async function producer() {
   const connectOptions = {
-    host: process.env.MQ_HOST,
+    host: process.env.ACTIVE_MQ_HOST,
     port: 61614,
     ssl: true,
     connectHeaders: {
-      login: process.env.MQ_USERNAME,
-      passcode: process.env.MQ_PASSWORD,
+      login: process.env.ACTIVE_MQ_USERNAME,
+      passcode: process.env.ACTIVE_MQ_PASSWORD,
     },
   };
   const queueName = process.env.QUEUE_NAME;

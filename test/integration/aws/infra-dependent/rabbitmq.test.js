@@ -7,14 +7,14 @@ const { confirmCloudWatchLogs } = require('../../../utils/misc');
 const {
   isDependencyStackAvailable,
   getDependencyStackOutputMap,
-  SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME,
+  SHARED_INFRA_TESTS_RABBITMQ_CREDENTIALS_NAME,
 } = require('../../../utils/cloudformation');
 
 const awsRequest = require('@serverless/test/aws-request');
 const crypto = require('crypto');
 const { deployService, removeService } = require('../../../utils/integration');
 
-describe('AWS - Active MQ Integration Test', function () {
+describe('AWS - RabbitMQ Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let stackName;
   let serviceDir;
@@ -30,41 +30,41 @@ describe('AWS - Active MQ Integration Test', function () {
 
     const outputMap = await getDependencyStackOutputMap();
 
-    log.notice('Getting Active MQ Credentials ARN');
+    log.notice('Getting RabbitMQ Credentials ARN');
     const getSecretValueResponse = await awsRequest('SecretsManager', 'getSecretValue', {
-      SecretId: SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME,
+      SecretId: SHARED_INFRA_TESTS_RABBITMQ_CREDENTIALS_NAME,
     });
     const { username: mqUsername, password: mqPassword } = JSON.parse(
       getSecretValueResponse.SecretString
     );
 
     const describeBrokerResponse = await awsRequest('MQ', 'describeBroker', {
-      BrokerId: outputMap.get('ActiveMQBrokerId'),
+      BrokerId: outputMap.get('RabbitMQBrokerId'),
     });
-    const stompEndpoint = describeBrokerResponse.BrokerInstances[0].Endpoints.find((endpoint) =>
-      endpoint.startsWith('stomp')
+    const amqpEndpoint = describeBrokerResponse.BrokerInstances[0].Endpoints.find((endpoint) =>
+      endpoint.startsWith('amqp')
     );
 
-    const serviceData = await fixtures.setup('functionActivemq', {
+    const serviceData = await fixtures.setup('functionRabbitmq', {
       configExt: {
         functions: {
           producer: {
             vpc: {
               subnetIds: [outputMap.get('PrivateSubnetA')],
-              securityGroupIds: [outputMap.get('ActiveMQSecurityGroup')],
+              securityGroupIds: [outputMap.get('RabbitMQSecurityGroup')],
             },
             environment: {
               QUEUE_NAME: queueName,
-              ACTIVE_MQ_PASSWORD: mqPassword,
-              ACTIVE_MQ_USERNAME: mqUsername,
-              ACTIVE_MQ_HOST: stompEndpoint.split(':')[1].slice(2),
+              RABBITMQ_PASSWORD: mqPassword,
+              RABBITMQ_USERNAME: mqUsername,
+              RABBIRMQ_HOST: amqpEndpoint.split(':')[1].slice(2),
             },
           },
           consumer: {
             events: [
               {
-                activemq: {
-                  arn: outputMap.get('ActiveMQBrokerArn'),
+                rabbitmq: {
+                  arn: outputMap.get('RabbitMQBrokerArn'),
                   queue: queueName,
                   basicAuthArn: getSecretValueResponse.ARN,
                 },
@@ -88,9 +88,9 @@ describe('AWS - Active MQ Integration Test', function () {
     }
   });
 
-  it('correctly processes messages from Active MQ queue', async () => {
+  it('correctly processes messages from RabbitMQ queue', async () => {
     const functionName = 'consumer';
-    const message = 'Hello from Apache MQ Integration test!';
+    const message = 'Hello from RabbitMQ Integration test!';
 
     const events = await confirmCloudWatchLogs(
       `/aws/lambda/${stackName}-${functionName}`,
