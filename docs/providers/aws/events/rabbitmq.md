@@ -1,5 +1,5 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - MQ
+title: Serverless Framework - AWS Lambda Events - RabbitMQ
 menuText: RabbitMQ
 description:  Setting up AWS RabbitMQ Events with AWS Lambda via the Serverless Framework
 layout: Doc
@@ -7,11 +7,11 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/mq)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/rabbitmq)
 
 <!-- DOCS-SITE-LINK:END -->
 
-# MQ
+# RabbitMQ
 
 A RabbitMQ message broker can be used as an event source for AWS Lambda.
 
