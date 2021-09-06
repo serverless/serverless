@@ -90,7 +90,7 @@ describe('AWS - ActiveMQ Integration Test', function () {
 
   it('correctly processes messages from ActiveMQ queue', async () => {
     const functionName = 'consumer';
-    const message = 'Hello from Apache MQ Integration test!';
+    const message = 'Hello from ActiveMQ Integration test!';
 
     const events = await confirmCloudWatchLogs(
       `/aws/lambda/${stackName}-${functionName}`,

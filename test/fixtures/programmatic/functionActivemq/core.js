@@ -35,7 +35,7 @@ async function producer() {
         'destination': queueName,
         'content-type': 'text/plain',
       });
-      frame.write('Hello from Apache MQ Integration test!');
+      frame.write('Hello from ActiveMQ Integration test!');
       frame.end();
 
       client.disconnect();

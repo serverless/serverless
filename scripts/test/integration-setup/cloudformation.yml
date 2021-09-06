@@ -142,7 +142,7 @@ Resources:
   ActiveMQSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Security Group for ApacheMQ
+      GroupDescription: Security Group for ActiveMQ
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
