@@ -32,7 +32,12 @@ describe('test/unit/lib/plugins/aws/remove/index.test.js', () => {
     },
     S3: {
       deleteObjects: deleteObjectsStub,
-      listObjectsV2: { Contents: [{ Key: 'first' }, { Key: 'second' }] },
+      listObjectVersions: {
+        Versions: [
+          { Key: 'first', VersionId: 'v1' },
+          { Key: 'second', VersionId: 'v2' },
+        ],
+      },
     },
     CloudFormation: {
       describeStackEvents: describeStackEventsStub,
@@ -69,7 +74,10 @@ describe('test/unit/lib/plugins/aws/remove/index.test.js', () => {
     expect(deleteObjectsStub).to.be.calledWithExactly({
       Bucket: 'resource-id',
       Delete: {
-        Objects: [{ Key: 'first' }, { Key: 'second' }],
+        Objects: [
+          { Key: 'first', VersionId: 'v1' },
+          { Key: 'second', VersionId: 'v2' },
+        ],
       },
     });
     expect(deleteStackStub).to.be.calledWithExactly({ StackName: awsNaming.getStackName() });
@@ -93,7 +101,10 @@ describe('test/unit/lib/plugins/aws/remove/index.test.js', () => {
     expect(deleteObjectsStub).to.be.calledWithExactly({
       Bucket: 'resource-id',
       Delete: {
-        Objects: [{ Key: 'first' }, { Key: 'second' }],
+        Objects: [
+          { Key: 'first', VersionId: 'v1' },
+          { Key: 'second', VersionId: 'v2' },
+        ],
       },
     });
     expect(deleteStackStub).to.be.calledWithExactly({ StackName: awsNaming.getStackName() });

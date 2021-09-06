@@ -37,17 +37,17 @@ describe('emptyS3Bucket', () => {
     });
   });
 
-  describe('#listObjects()', () => {
-    it('should resolve if no objects are present', () => {
-      const listObjectsStub = sinon.stub(awsRemove.provider, 'request').resolves();
+  describe('#listObjectVersions()', () => {
+    it('should resolve if no object versions are present', () => {
+      const listObjectVersionsStub = sinon.stub(awsRemove.provider, 'request').resolves();
 
       const stage = awsRemove.provider.getStage();
       const prefix = awsRemove.provider.getDeploymentPrefix();
 
       return awsRemove.listObjects().then(() => {
-        expect(listObjectsStub.calledOnce).to.be.equal(true);
+        expect(listObjectVersionsStub.calledOnce).to.be.equal(true);
         expect(
-          listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
+          listObjectVersionsStub.calledWithExactly('S3', 'listObjectVersions', {
             Bucket: awsRemove.bucketName,
             Prefix: `${prefix}/${serverless.service.service}/${stage}`,
           })
@@ -58,23 +58,28 @@ describe('emptyS3Bucket', () => {
     });
 
     it('should push objects to the array if present', () => {
-      const listObjectsStub = sinon.stub(awsRemove.provider, 'request').resolves({
-        Contents: [{ Key: 'object1' }, { Key: 'object2' }],
+      const listObjectVersionsStub = sinon.stub(awsRemove.provider, 'request').resolves({
+        Versions: [
+          { Key: 'object1', VersionId: null },
+          { Key: 'object2', VersionId: 'v1' },
+        ],
+        DeleteMarkers: [{ Key: 'object3', VersionId: 'v2' }],
       });
 
       const stage = awsRemove.provider.getStage();
       const prefix = awsRemove.provider.getDeploymentPrefix();
 
       return awsRemove.listObjects().then(() => {
-        expect(listObjectsStub.calledOnce).to.be.equal(true);
+        expect(listObjectVersionsStub.calledOnce).to.be.equal(true);
         expect(
-          listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
+          listObjectVersionsStub.calledWithExactly('S3', 'listObjectVersions', {
             Bucket: awsRemove.bucketName,
             Prefix: `${prefix}/${serverless.service.service}/${stage}`,
           })
         ).to.be.equal(true);
-        expect(awsRemove.objectsInBucket[0]).to.deep.equal({ Key: 'object1' });
-        expect(awsRemove.objectsInBucket[1]).to.deep.equal({ Key: 'object2' });
+        expect(awsRemove.objectsInBucket[0]).to.deep.equal({ Key: 'object1', VersionId: null });
+        expect(awsRemove.objectsInBucket[1]).to.deep.equal({ Key: 'object2', VersionId: 'v1' });
+        expect(awsRemove.objectsInBucket[2]).to.deep.equal({ Key: 'object3', VersionId: 'v2' });
         awsRemove.provider.request.restore();
       });
     });
