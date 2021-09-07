@@ -13,6 +13,9 @@ if (require('../lib/utils/tabCompletion/isSupported') && process.argv[2] === 'co
   return;
 }
 
+// Setup log writing
+require('@serverless/utils/log-reporters/node');
+
 const handleError = require('../lib/cli/handle-error');
 const {
   storeLocally: storeTelemetryLocally,
