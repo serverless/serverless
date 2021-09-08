@@ -26,7 +26,7 @@
     "@serverless/components": "^3.16.0",
     "@serverless/dashboard-plugin": "^5.4.4",
     "@serverless/platform-client": "^4.3.0",
-    "@serverless/utils": "^5.8.1",
+    "@serverless/utils": "^5.9.0",
     "ajv": "^6.12.6",
     "ajv-keywords": "^3.5.2",
     "archiver": "^5.3.0",
