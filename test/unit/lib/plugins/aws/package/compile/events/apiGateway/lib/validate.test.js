@@ -22,9 +22,7 @@ describe('#validate()', () => {
     });
 
     serverless = result.serverless;
-    awsCompileApigEvents = serverless.pluginManager.plugins.find(
-      (plugin) => plugin instanceof AwsCompileApigEvents
-    );
+    awsCompileApigEvents = serverless.pluginManager.getPluginByClass(AwsCompileApigEvents);
     if (runValidate) {
       validated = awsCompileApigEvents.validate();
     }
