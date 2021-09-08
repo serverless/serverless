@@ -412,7 +412,7 @@ functions:
       - schedule:
           name: my scheduled event
           description: a description of my scheduled event's purpose
-          rate: rate(10 minutes)
+          rate: rate(10 minutes) # Can also be an array of rate/cron expressions
           enabled: false
           # Note, you can use only one of input, inputPath, or inputTransformer
           input:
