@@ -319,7 +319,9 @@ describe('EventBridgeEvents', () => {
                   {
                     eventBridge: {
                       deadLetterConfig: {
-                        'Fn::GetAtt': ['not-supported', 'Arn'],
+                        targetArn: {
+                          'Fn::GetAtt': ['not-supported', 'Arn'],
+                        },
                       },
                       pattern: {
                         source: ['aws.something'],
@@ -397,7 +399,9 @@ describe('EventBridgeEvents', () => {
       };
 
       const deadLetterConfig = {
-        'Fn::GetAtt': ['test', 'Arn'],
+        targetArn: {
+          'Fn::GetAtt': ['test', 'Arn'],
+        },
       };
 
       const getRuleResourceEndingWith = (resources, ending) =>
