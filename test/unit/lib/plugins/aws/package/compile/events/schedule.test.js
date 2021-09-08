@@ -48,19 +48,31 @@ async function run(events) {
   return scheduleCfResources;
 }
 
-describe('ScheduleEvents', () => {
-  it('should create corresponding resources when schedule events are given', async () => {
+describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', () => {
+  let scheduleCfResources;
+
+  before(async () => {
     const events = [
       {
         schedule: {
           rate: 'rate(10 minutes)',
           enabled: false,
+          name: 'your-scheduled-event-name',
+          description: 'your scheduled event description',
+        },
+      },
+      {
+        schedule: {
+          rate: ['rate(1 hour)'],
+          name: 'your-scheduled-event-name-array',
+          inputPath: '$.stageVariables',
         },
       },
       {
         schedule: {
           rate: 'rate(10 minutes)',
           enabled: true,
+          input: '{"key":"array"}',
         },
       },
       {
@@ -72,82 +84,73 @@ describe('ScheduleEvents', () => {
       {
         schedule: {
           rate: ['cron(0 0/4 ? * MON-FRI *)', 'rate(1 hour)'],
+          enabled: false,
+          description: 'your scheduled event description (array)',
+          input: {
+            key: 'array',
+          },
+        },
+      },
+      {
+        schedule: {
+          rate: 'rate(1 hour)',
+          inputTransformer: {
+            inputPathsMap: {
+              eventTime: '$.time',
+            },
+            inputTemplate: '{"time": <eventTime>, "key": "value"}',
+          },
         },
       },
     ];
 
-    const scheduleCfResources = await run(events);
+    scheduleCfResources = await run(events);
+  });
 
-    for (let i = 0; i < events.length; i += 1) {
-      expect(scheduleCfResources[i].Type).to.equal('AWS::Events::Rule');
+  it('should create the corresponding schedule resources when schedule events are given', () => {
+    for (const scheduleCfResource of scheduleCfResources) {
+      expect(scheduleCfResource.Type).to.equal('AWS::Events::Rule');
     }
   });
 
-  it('should respect enabled variable, defaulting to true', async () => {
-    const events = [
-      {
-        schedule: {
-          rate: 'rate(10 minutes)',
-          enabled: false,
-        },
-      },
-      {
-        schedule: {
-          rate: 'rate(10 minutes)',
-          enabled: true,
-        },
-      },
-      {
-        schedule: {
-          rate: 'rate(10 minutes)',
-        },
-      },
-      {
-        schedule: 'rate(10 minutes)',
-      },
-      {
-        schedule: {
-          rate: ['cron(0 0/4 ? * MON-FRI *)', 'rate(1 hour)'],
-          enabled: false,
-        },
-      },
-    ];
+  it('should respect the given rate expressions', () => {
+    expect(scheduleCfResources[0].Properties.ScheduleExpression).to.equal('rate(10 minutes)');
+    expect(scheduleCfResources[1].Properties.ScheduleExpression).to.equal('rate(1 hour)');
+    expect(scheduleCfResources[2].Properties.ScheduleExpression).to.equal('rate(10 minutes)');
+    expect(scheduleCfResources[3].Properties.ScheduleExpression).to.equal('rate(10 minutes)');
+    expect(scheduleCfResources[4].Properties.ScheduleExpression).to.equal(
+      'cron(5,35 12 ? * 6l 2002-2005)'
+    );
+    expect(scheduleCfResources[5].Properties.ScheduleExpression).to.equal(
+      'cron(0 0/4 ? * MON-FRI *)'
+    );
+    expect(scheduleCfResources[6].Properties.ScheduleExpression).to.equal('rate(1 hour)');
+    expect(scheduleCfResources[7].Properties.ScheduleExpression).to.equal('rate(1 hour)');
+  });
 
-    const scheduleCfResources = await run(events);
-
+  it('should respect the "enabled" variable, defaulting to true', () => {
     expect(scheduleCfResources[0].Properties.State).to.equal('DISABLED');
     expect(scheduleCfResources[1].Properties.State).to.equal('ENABLED');
     expect(scheduleCfResources[2].Properties.State).to.equal('ENABLED');
     expect(scheduleCfResources[3].Properties.State).to.equal('ENABLED');
-    expect(scheduleCfResources[4].Properties.State).to.equal('DISABLED');
+    expect(scheduleCfResources[4].Properties.State).to.equal('ENABLED');
     expect(scheduleCfResources[5].Properties.State).to.equal('DISABLED');
+    expect(scheduleCfResources[6].Properties.State).to.equal('DISABLED');
+    expect(scheduleCfResources[7].Properties.State).to.equal('ENABLED');
   });
 
-  it('should respect name variable', async () => {
-    const events = [
-      {
-        schedule: {
-          rate: 'rate(10 minutes)',
-          enabled: false,
-          name: 'your-scheduled-event-name',
-        },
-      },
-      {
-        schedule: {
-          rate: ['rate(1 hour)'],
-          enabled: false,
-          name: 'your-scheduled-event-name-array',
-        },
-      },
-    ];
-
-    const scheduleCfResources = await run(events);
-
+  it('should respect the "name" variable', () => {
     expect(scheduleCfResources[0].Properties.Name).to.equal('your-scheduled-event-name');
     expect(scheduleCfResources[1].Properties.Name).to.equal('your-scheduled-event-name-array');
+    expect(scheduleCfResources[2].Properties.Name).to.be.undefined;
+    expect(scheduleCfResources[3].Properties.Name).to.be.undefined;
+    expect(scheduleCfResources[4].Properties.Name).to.be.undefined;
+    expect(scheduleCfResources[5].Properties.Name).to.be.undefined;
+    expect(scheduleCfResources[6].Properties.Name).to.be.undefined;
+    expect(scheduleCfResources[7].Properties.Name).to.be.undefined;
   });
 
-  it('should throw an error if a name is specified when defining more than one rate expression', async () => {
+  it('should throw an error if a "name" variable is specified when defining more than one rate expression', async () => {
     const events = [
       {
         schedule: {
@@ -164,160 +167,60 @@ describe('ScheduleEvents', () => {
     );
   });
 
-  it('should respect description variable', async () => {
-    const events = [
-      {
-        schedule: {
-          rate: 'rate(10 minutes)',
-          enabled: false,
-          description: 'your scheduled event description',
-        },
-      },
-      {
-        schedule: {
-          rate: ['cron(0 0/4 ? * MON-FRI *)', 'rate(1 hour)'],
-          description: 'your scheduled event description (array)',
-        },
-      },
-    ];
-
-    const scheduleCfResources = await run(events);
-
+  it('should respect the "description" variable', () => {
     expect(scheduleCfResources[0].Properties.Description).to.equal(
       'your scheduled event description'
     );
-    expect(scheduleCfResources[1].Properties.Description).to.equal(
+    expect(scheduleCfResources[1].Properties.Description).to.be.undefined;
+    expect(scheduleCfResources[2].Properties.Description).to.be.undefined;
+    expect(scheduleCfResources[3].Properties.Description).to.be.undefined;
+    expect(scheduleCfResources[4].Properties.Description).to.be.undefined;
+    expect(scheduleCfResources[5].Properties.Description).to.equal(
       'your scheduled event description (array)'
     );
-    expect(scheduleCfResources[2].Properties.Description).to.equal(
+    expect(scheduleCfResources[6].Properties.Description).to.equal(
       'your scheduled event description (array)'
     );
+    expect(scheduleCfResources[7].Properties.Description).to.be.undefined;
   });
 
-  it('should respect inputPath variable', async () => {
-    const events = [
-      {
-        schedule: {
-          rate: 'rate(10 minutes)',
-          enabled: false,
-          inputPath: '$.stageVariables',
-        },
-      },
-      {
-        schedule: {
-          rate: ['cron(0 0/4 ? * MON-FRI *)', 'rate(1 hour)'],
-          inputPath: '$.stageVariables',
-        },
-      },
-    ];
-
-    const scheduleCfResources = await run(events);
-
-    expect(scheduleCfResources[0].Properties.Targets[0].InputPath).to.equal('$.stageVariables');
+  it('should respect the "inputPath" variable', () => {
+    expect(scheduleCfResources[0].Properties.Targets[0].InputPath).to.be.undefined;
     expect(scheduleCfResources[1].Properties.Targets[0].InputPath).to.equal('$.stageVariables');
-    expect(scheduleCfResources[2].Properties.Targets[0].InputPath).to.equal('$.stageVariables');
+    expect(scheduleCfResources[2].Properties.Targets[0].InputPath).to.be.undefined;
+    expect(scheduleCfResources[3].Properties.Targets[0].InputPath).to.be.undefined;
+    expect(scheduleCfResources[4].Properties.Targets[0].InputPath).to.be.undefined;
+    expect(scheduleCfResources[5].Properties.Targets[0].InputPath).to.be.undefined;
+    expect(scheduleCfResources[6].Properties.Targets[0].InputPath).to.be.undefined;
+    expect(scheduleCfResources[7].Properties.Targets[0].InputPath).to.be.undefined;
   });
 
-  it('should respect input variable', async () => {
-    const events = [
-      {
-        schedule: {
-          rate: 'rate(10 minutes)',
-          enabled: false,
-          input: '{"key":"value"}',
-        },
-      },
-      {
-        schedule: {
-          rate: ['cron(0 0/4 ? * MON-FRI *)', 'rate(1 hour)'],
-          input: '{"key":"array"}',
-        },
-      },
-    ];
-
-    const scheduleCfResources = await run(events);
-
-    expect(scheduleCfResources[0].Properties.Targets[0].Input).to.equal('{"key":"value"}');
-    expect(scheduleCfResources[1].Properties.Targets[0].Input).to.equal('{"key":"array"}');
+  it('should respect the "input" variable', () => {
+    expect(scheduleCfResources[0].Properties.Targets[0].Input).to.be.undefined;
+    expect(scheduleCfResources[1].Properties.Targets[0].Input).to.be.undefined;
     expect(scheduleCfResources[2].Properties.Targets[0].Input).to.equal('{"key":"array"}');
+    expect(scheduleCfResources[3].Properties.Targets[0].Input).to.be.undefined;
+    expect(scheduleCfResources[4].Properties.Targets[0].Input).to.be.undefined;
+    expect(scheduleCfResources[5].Properties.Targets[0].Input).to.equal('{"key":"array"}');
+    expect(scheduleCfResources[6].Properties.Targets[0].Input).to.equal('{"key":"array"}');
+    expect(scheduleCfResources[7].Properties.Targets[0].Input).to.be.undefined;
   });
 
-  it('should respect input variable as an object', async () => {
-    const events = [
-      {
-        schedule: {
-          rate: 'rate(10 minutes)',
-          enabled: false,
-          input: {
-            key: 'value',
-          },
-        },
-      },
-      {
-        schedule: {
-          rate: ['cron(0 0/4 ? * MON-FRI *)', 'rate(1 hour)'],
-          input: {
-            key: 'array',
-          },
-        },
-      },
-    ];
-
-    const scheduleCfResources = await run(events);
-
-    expect(scheduleCfResources[0].Properties.Targets[0].Input).to.equal('{"key":"value"}');
-    expect(scheduleCfResources[1].Properties.Targets[0].Input).to.equal('{"key":"array"}');
-    expect(scheduleCfResources[2].Properties.Targets[0].Input).to.equal('{"key":"array"}');
-  });
-
-  it('should respect inputTransformer variable', async () => {
-    const events = [
-      {
-        schedule: {
-          rate: 'rate(10 minutes)',
-          enabled: false,
-          inputTransformer: {
-            inputPathsMap: {
-              eventTime: '$.time',
-            },
-            inputTemplate: '{"time": <eventTime>, "key": "value"}',
-          },
-        },
-      },
-      {
-        schedule: {
-          rate: ['cron(0 0/4 ? * MON-FRI *)', 'rate(1 hour)'],
-          inputTransformer: {
-            inputPathsMap: {
-              eventTime: '$.time',
-            },
-            inputTemplate: '{"time": <eventTime>, "key": "array"}',
-          },
-        },
-      },
-    ];
-
-    const scheduleCfResources = await run(events);
-
-    expect(scheduleCfResources[0].Properties.Targets[0].InputTransformer).to.deep.equal({
+  it('should respect the "inputTransformer" variable', () => {
+    expect(scheduleCfResources[0].Properties.Targets[0].InputTransformer).to.be.undefined;
+    expect(scheduleCfResources[1].Properties.Targets[0].InputTransformer).to.be.undefined;
+    expect(scheduleCfResources[2].Properties.Targets[0].InputTransformer).to.be.undefined;
+    expect(scheduleCfResources[3].Properties.Targets[0].InputTransformer).to.be.undefined;
+    expect(scheduleCfResources[4].Properties.Targets[0].InputTransformer).to.be.undefined;
+    expect(scheduleCfResources[5].Properties.Targets[0].InputTransformer).to.be.undefined;
+    expect(scheduleCfResources[6].Properties.Targets[0].InputTransformer).to.be.undefined;
+    expect(scheduleCfResources[7].Properties.Targets[0].InputTransformer).to.deep.equal({
       InputTemplate: '{"time": <eventTime>, "key": "value"}',
       InputPathsMap: { eventTime: '$.time' },
     });
-    expect(scheduleCfResources[1].Properties.Targets[0].InputTransformer).to.deep.equal({
-      InputTemplate: '{"time": <eventTime>, "key": "array"}',
-      InputPathsMap: { eventTime: '$.time' },
-    });
-    expect(scheduleCfResources[2].Properties.Targets[0].InputTransformer).to.deep.equal({
-      InputTemplate: '{"time": <eventTime>, "key": "array"}',
-      InputPathsMap: { eventTime: '$.time' },
-    });
   });
 
-  it('should not create corresponding resources when scheduled events are not given', async () => {
-    const events = [];
-
-    const scheduleCfResources = await run(events);
-
-    expect(scheduleCfResources).to.be.empty;
+  it('should not create schedule resources when no scheduled event is given', async () => {
+    expect(run([])).to.be.eventually.empty;
   });
 });
