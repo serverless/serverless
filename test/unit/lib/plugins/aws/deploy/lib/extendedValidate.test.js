@@ -163,32 +163,6 @@ describe('extendedValidate', () => {
       awsDeploy.extendedValidate();
       delete awsDeploy.serverless.service.package.artifact;
     });
-
-    it("should warn if function's timeout is greater than 30 and it's attached to APIGW", () => {
-      stateFileMock.service.functions = {
-        first: {
-          timeout: 31,
-          package: {
-            artifact: 'artifact.zip',
-          },
-          events: [
-            {
-              http: {},
-            },
-          ],
-        },
-      };
-      awsDeploy.serverless.service.package.individually = true;
-      fileExistsSyncStub.returns(true);
-      readFileSyncStub.returns(stateFileMock);
-
-      awsDeploy.extendedValidate();
-      const msg = [
-        "WARNING: Function first has timeout of 31 seconds, however, it's ",
-        "attached to API Gateway so it's automatically limited to 30 seconds.",
-      ].join('');
-      expect(awsDeploy.serverless.cli.log.firstCall.calledWithExactly(msg)).to.be.equal(true);
-    });
   });
 });
 
