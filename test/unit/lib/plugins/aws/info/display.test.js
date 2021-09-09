@@ -7,6 +7,7 @@ const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
 const Serverless = require('../../../../../../lib/Serverless');
 const CLI = require('../../../../../../lib/classes/CLI');
 const chalk = require('chalk');
+const runServerless = require('../../../../../utils/run-serverless');
 
 describe('#display()', () => {
   let serverless;
@@ -19,6 +20,7 @@ describe('#display()', () => {
       region: 'us-east-1',
     };
     serverless = new Serverless();
+    serverless.serviceOutputs = new Map();
     serverless.setProvider('aws', new AwsProvider(serverless, options));
     serverless.cli = new CLI(serverless);
     serverless.service.service = 'my-service';
@@ -351,5 +353,108 @@ describe('#display()', () => {
     awsInfo.options.verbose = false;
     const nonVerboseMessage = awsInfo.displayStackOutputs();
     expect(nonVerboseMessage).to.equal('');
+  });
+});
+
+describe('test/unit/lib/plugins/aws/info/display.test.js', () => {
+  let serverless;
+  let serviceName;
+
+  before(async () => {
+    ({
+      serverless,
+      fixtureData: {
+        serviceConfig: { service: serviceName },
+      },
+    } = await runServerless({
+      fixture: 'apiGateway',
+      command: 'info',
+      awsRequestStubMap: {
+        APIGateway: {
+          getApiKey: {
+            value: 'test-key-value',
+            name: 'test-key-name',
+          },
+        },
+        CloudFormation: {
+          describeStacks: {
+            Stacks: [
+              {
+                Outputs: [
+                  {
+                    OutputKey: 'ServiceEndpoint',
+                    OutputValue: 'https://xxxxx.execute-api.us-east-1.amazonaws.com/dev',
+                    Description: 'URL of the service endpoint',
+                    ExportName: 'sls-test-api-gw',
+                  },
+                  {
+                    OutputKey: 'ServerlessDeploymentBucketName',
+                    OutputValue: 'test-api-gw-dev-serverlessdeploymentbucket-xxxxx',
+                    ExportName: 'sls-test-api-gw-ServerlessDeploymentBucketName',
+                  },
+                  {
+                    OutputKey: 'LayerLambdaLayerQualifiedArn',
+                    OutputValue: 'arn:aws:lambda:us-east-1:00000000:layer:layer:1',
+                  },
+                ],
+              },
+            ],
+          },
+          describeStackResources: {
+            StackResources: [
+              {
+                PhysicalResourceId: 'test',
+                ResourceType: 'AWS::ApiGateway::ApiKey',
+              },
+            ],
+          },
+          listStackResources: {},
+        },
+      },
+      configExt: {
+        provider: {
+          apiGateway: {
+            apiKeys: [
+              { name: 'full-key', value: 'full-key-asdf-asdf-asdf-adfafdadfadfadfadfafafdafadf' },
+              'no-value-key',
+              { value: 'no-name-key-asdf-asdf-asdf-adfafdadfadfadfadfafafdafadf' },
+            ],
+          },
+        },
+        layers: {
+          layer: {
+            path: 'layer',
+          },
+        },
+      },
+    }));
+  });
+
+  it('should register api gateway api keys section', () => {
+    expect(serverless.serviceOutputs.get('api keys')).to.deep.equal([
+      'test-key-name: test-key-value',
+    ]);
+  });
+
+  it('should register endpoints section', () => {
+    expect(serverless.serviceOutputs.get('endpoints')).to.deep.equal([
+      'GET - https://xxxxx.execute-api.us-east-1.amazonaws.com/dev',
+      'POST - https://xxxxx.execute-api.us-east-1.amazonaws.com/dev/minimal-1',
+      'GET - https://xxxxx.execute-api.us-east-1.amazonaws.com/dev/foo',
+      'POST - https://xxxxx.execute-api.us-east-1.amazonaws.com/dev/some-post',
+      'GET - https://xxxxx.execute-api.us-east-1.amazonaws.com/dev/bar/{marko}',
+    ]);
+  });
+  it('should register functions section', () => {
+    expect(serverless.serviceOutputs.get('functions')).to.deep.equal([
+      `minimal: ${serviceName}-dev-minimal`,
+      `foo: ${serviceName}-dev-foo`,
+      `other: ${serviceName}-dev-other`,
+    ]);
+  });
+  it('should register layers section', () => {
+    expect(serverless.serviceOutputs.get('layers')).to.deep.equal([
+      'layer: arn:aws:lambda:us-east-1:00000000:layer:layer:1',
+    ]);
   });
 });
