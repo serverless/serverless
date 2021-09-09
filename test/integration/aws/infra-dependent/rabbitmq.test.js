@@ -57,7 +57,7 @@ describe('AWS - RabbitMQ Integration Test', function () {
               QUEUE_NAME: queueName,
               RABBITMQ_PASSWORD: mqPassword,
               RABBITMQ_USERNAME: mqUsername,
-              RABBIRMQ_HOST: amqpEndpoint.split(':')[1].slice(2),
+              RABBITMQ_HOST: amqpEndpoint.split(':')[1].slice(2),
             },
           },
           consumer: {

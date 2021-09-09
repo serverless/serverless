@@ -31,9 +31,17 @@ async function producer() {
 
   const queueName = process.env.QUEUE_NAME;
   const connection = await amqp.connect(connectOptions);
-  const channel = await connection.createChannel();
-  await channel.assertQueue(queueName);
-  await channel.sendToQueue(queueName, Buffer.from('Hello from RabbitMQ Integration test!'));
+
+  try {
+    const channel = await connection.createChannel();
+    await channel.assertQueue(queueName);
+    await channel.sendToQueue(queueName, Buffer.from('Hello from RabbitMQ Integration test!'));
+  } catch (err) {
+    await connection.close()
+    throw err
+  }
+
+  await connection.close()
 
   return {
     statusCode: 200,
