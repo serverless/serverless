@@ -1,0 +1,92 @@
+'use strict';
+
+const path = require('path');
+const fetch = require('node-fetch');
+const BbPromise = require('bluebird');
+const HttpsProxyAgent = require('https-proxy-agent');
+const url = require('url');
+const chalk = require('chalk');
+const _ = require('lodash');
+const ServerlessError = require('../../../lib/serverless-error');
+
+module.exports = {
+  async validate() {
+    if (!this.serviceDir) {
+      throw new ServerlessError(
+        'This command can only be run inside a service directory',
+        'MISSING_SERVICE_DIRECTORY'
+      );
+    }
+
+    return BbPromise.resolve();
+  },
+
+  getServerlessFilePath() {
+    if (this.configurationFilename) {
+      return path.resolve(this.serviceDir, this.configurationFilename);
+    }
+    throw new ServerlessError(
+      'Could not find any serverless service definition file.',
+      'MISSING_SERVICE_CONFIGURATION_FILE'
+    );
+  },
+
+  async getPlugins() {
+    const endpoint = 'https://raw.githubusercontent.com/serverless/plugins/master/plugins.json';
+
+    // Use HTTPS Proxy (Optional)
+    const proxy =
+      process.env.proxy ||
+      process.env.HTTP_PROXY ||
+      process.env.http_proxy ||
+      process.env.HTTPS_PROXY ||
+      process.env.https_proxy;
+
+    const options = {};
+    if (proxy) {
+      // not relying on recommended WHATWG URL
+      // due to missing support for it in https-proxy-agent
+      // https://github.com/TooTallNate/node-https-proxy-agent/issues/117
+      options.agent = new HttpsProxyAgent(url.parse(proxy));
+    }
+
+    return fetch(endpoint, options)
+      .then((result) => result.json())
+      .then((json) => json);
+  },
+
+  getPluginInfo(name) {
+    let pluginInfo;
+    if (name.startsWith('@')) {
+      pluginInfo = name.slice(1).split('@', 2);
+      pluginInfo[0] = `@${pluginInfo[0]}`;
+    } else {
+      pluginInfo = name.split('@', 2);
+    }
+    return pluginInfo;
+  },
+
+  async display(plugins) {
+    let message = '';
+    if (plugins && plugins.length) {
+      // order plugins by name
+      const orderedPlugins = _.orderBy(plugins, ['name'], ['asc']);
+      orderedPlugins.forEach((plugin) => {
+        message += `${chalk.yellow.underline(plugin.name)} - ${plugin.description}\n`;
+      });
+      // remove last two newlines for a prettier output
+      message = message.slice(0, -2);
+      this.cli.consoleLog(message);
+      this.cli.consoleLog(`
+To install a plugin run 'serverless plugin install --name plugin-name-here'
+
+It will be automatically downloaded and added to your package.json and serverless.yml file
+      `);
+    } else {
+      message = 'There are no plugins available to display';
+      this.cli.consoleLog(message);
+    }
+
+    return BbPromise.resolve(message);
+  },
+};
