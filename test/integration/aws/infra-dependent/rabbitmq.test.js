@@ -61,6 +61,10 @@ describe('AWS - RabbitMQ Integration Test', function () {
             },
           },
           consumer: {
+            vpc: {
+              subnetIds: [outputMap.get('PrivateSubnetA')],
+              securityGroupIds: [outputMap.get('RabbitMQSecurityGroup')],
+            },
             events: [
               {
                 rabbitmq: {

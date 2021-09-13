@@ -192,7 +192,7 @@ Resources:
       DeploymentMode: SINGLE_INSTANCE
       EngineType: RABBITMQ
       EngineVersion: '3.8.11'
-      HostInstanceType: mq.t2.micro
+      HostInstanceType: mq.t3.micro
       PubliclyAccessible: 'false'
       SecurityGroups:
         - !Ref RabbitMQSecurityGroup

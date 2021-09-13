@@ -21,27 +21,32 @@ function consumer(event, context, callback) {
 }
 
 async function producer() {
-  const connectOptions = {
-    protocol: 'amqp',
-    hostname: process.env.RABBITMQ_HOST,
-    port: 5671,
-    username: process.env.RABBITMQ_USERNAME,
-    password: process.env.RABBITMQ_PASSWORD,
-  };
+  await new Promise((resolve) => {
+    const connectOptions = {
+      protocol: 'amqps',
+      hostname: process.env.RABBITMQ_HOST,
+      port: 5671,
+      username: process.env.RABBITMQ_USERNAME,
+      password: process.env.RABBITMQ_PASSWORD,
+    };
 
-  const queueName = process.env.QUEUE_NAME;
-  const connection = await amqp.connect(connectOptions);
-
-  try {
-    const channel = await connection.createChannel();
-    await channel.assertQueue(queueName);
-    await channel.sendToQueue(queueName, Buffer.from('Hello from RabbitMQ Integration test!'));
-  } catch (err) {
-    await connection.close()
-    throw err
-  }
-
-  await connection.close()
+    amqp
+      .connect(connectOptions)
+      .then((connection) => {
+        return connection.createChannel();
+      })
+      .then((channel) => {
+        const queueName = process.env.QUEUE_NAME;
+        return channel.assertQueue(queueName).then(() => {
+          channel.sendToQueue(queueName, Buffer.from('Hello from RabbitMQ Integration test!'));
+          resolve();
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        resolve();
+      });
+  });
 
   return {
     statusCode: 200,
