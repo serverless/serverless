@@ -12,46 +12,6 @@ describe('#validate()', () => {
   let serverless;
   let awsCompileApigEvents;
 
-  let cfTemplate;
-  let cfResources;
-  let naming;
-
-  const getApiGatewayMethod = (path, method) =>
-    cfResources[naming.getMethodLogicalId(naming.normalizePath(path), method)];
-
-  before(async () => {
-    const result = await runServerless({
-      fixture: 'function',
-      command: 'package',
-      configExt: {
-        functions: {
-          corsDefault: {
-            handler: 'index.handler',
-            events: [
-              {
-                http: {
-                  method: 'POST',
-                  path: '/cors-default-set-by-boolean',
-                  cors: true,
-                },
-              },
-              {
-                http: {
-                  method: 'POST',
-                  path: '/cors-default-set-by-object',
-                  cors: {},
-                },
-              },
-            ],
-          },
-        },
-      },
-    });
-    cfTemplate = result.cfTemplate;
-    cfResources = cfTemplate.Resources;
-    naming = result.awsNaming;
-  });
-
   beforeEach(() => {
     const options = {
       stage: 'dev',
@@ -451,30 +411,6 @@ describe('#validate()', () => {
     expect(authorizer.resultTtlInSeconds).to.equal(0);
     expect(authorizer.identitySource).to.equal('method.request.header.Custom');
     expect(authorizer.identityValidationExpression).to.equal('foo');
-  });
-
-  it('should process cors defaults', async () => {
-    const expected = {
-      'method.response.header.Access-Control-Allow-Headers': `'${[
-        'Content-Type',
-        'X-Amz-Date',
-        'Authorization',
-        'X-Api-Key',
-        'X-Amz-Security-Token',
-        'X-Amz-User-Agent',
-      ].join(',')}'`,
-      'method.response.header.Access-Control-Allow-Methods': `'${['OPTIONS', 'POST'].join(',')}'`,
-      'method.response.header.Access-Control-Allow-Origin': "'*'",
-    };
-
-    expect(
-      getApiGatewayMethod('/cors-default-set-by-boolean', 'OPTIONS').Properties.Integration
-        .IntegrationResponses[0].ResponseParameters
-    ).to.deep.eq(expected);
-    expect(
-      getApiGatewayMethod('/cors-default-set-by-object', 'OPTIONS').Properties.Integration
-        .IntegrationResponses[0].ResponseParameters
-    ).to.deep.eq(expected);
   });
 
   it('should accept cors headers as a single string value', () => {
@@ -1619,5 +1555,71 @@ describe('#validate()', () => {
         pattern: '([\\s\\S]*\\[504\\][\\s\\S]*)|(.*Task timed out after \\d+\\.\\d+ seconds$)',
       },
     });
+  });
+});
+
+describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/validate.test.js', () => {
+  let cfTemplate;
+  let cfResources;
+  let naming;
+
+  const getApiGatewayMethod = (path, method) =>
+    cfResources[naming.getMethodLogicalId(naming.normalizePath(path), method)];
+
+  before(async () => {
+    const result = await runServerless({
+      fixture: 'function',
+      command: 'package',
+      configExt: {
+        functions: {
+          corsDefault: {
+            handler: 'index.handler',
+            events: [
+              {
+                http: {
+                  method: 'POST',
+                  path: '/cors-default-set-by-boolean',
+                  cors: true,
+                },
+              },
+              {
+                http: {
+                  method: 'POST',
+                  path: '/cors-default-set-by-object',
+                  cors: {},
+                },
+              },
+            ],
+          },
+        },
+      },
+    });
+    cfTemplate = result.cfTemplate;
+    cfResources = cfTemplate.Resources;
+    naming = result.awsNaming;
+  });
+
+  it('should process cors defaults', async () => {
+    const expected = {
+      'method.response.header.Access-Control-Allow-Headers': `'${[
+        'Content-Type',
+        'X-Amz-Date',
+        'Authorization',
+        'X-Api-Key',
+        'X-Amz-Security-Token',
+        'X-Amz-User-Agent',
+      ].join(',')}'`,
+      'method.response.header.Access-Control-Allow-Methods': `'${['OPTIONS', 'POST'].join(',')}'`,
+      'method.response.header.Access-Control-Allow-Origin': "'*'",
+    };
+
+    expect(
+      getApiGatewayMethod('/cors-default-set-by-boolean', 'OPTIONS').Properties.Integration
+        .IntegrationResponses[0].ResponseParameters
+    ).to.deep.eq(expected);
+    expect(
+      getApiGatewayMethod('/cors-default-set-by-object', 'OPTIONS').Properties.Integration
+        .IntegrationResponses[0].ResponseParameters
+    ).to.deep.eq(expected);
   });
 });
