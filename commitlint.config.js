@@ -11,6 +11,7 @@ module.exports = {
       [
         '',
         'API',
+        'AWS ActiveMQ',
         'AWS ALB',
         'AWS Alexa',
         'AWS API Gateway',
