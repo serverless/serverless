@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.58.0](https://github.com/serverless/serverless/compare/v2.57.0...v2.58.0) (2021-09-13)
+
+### Features
+
+- **AWS API Gateway:** Support `enabled` for `apiKeys` config ([#9918](https://github.com/serverless/serverless/pull/9918)) ([1107763](https://github.com/serverless/serverless/commit/1107763df8fb07a40ec45529f77d99e5a0f6d4d6)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS CloudFront:** Support `behavior.CachePolicyId` ([#9895](https://github.com/serverless/serverless/issues/9895)) ([3abc2f0](https://github.com/serverless/serverless/commit/3abc2f06428b72d964aa8683c34cdcf1d761d140)) ([Seungchan Ahn](https://github.com/issea1015))
+- **AWS EventBridge:** Support `deadLetterQueue` and `retryPolicy` ([#9903](https://github.com/serverless/serverless/pull/9903)) ([130fb38](https://github.com/serverless/serverless/commit/130fb3838fd3ea382caabffad74fde8a4041d4fc)) ([Eve](https://github.com/evemontalvao) & [JP Bochi](https://github.com/jpbochi))
+- **AWS ActiveMQ:** Add support for `activemq` event ([#8840](https://github.com/serverless/serverless/issues/8840)) ([cacb529](https://github.com/serverless/serverless/commit/cacb529925ed2b2c591984f48bc52cf31f88e698)) ([lewgordon](https://github.com/lewgordon) & [Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS Schedule:** Allow multiple `rate` expressions in single event ([#9892](https://github.com/serverless/serverless/pull/9892)) ([9f0bc68](https://github.com/serverless/serverless/commit/9f0bc689cc2ac3e53b4db665b899e1446ac37456)) ([Federico Jasson](https://github.com/federicojasson))
+- **CLI:**
+  - Configure log writing with new (experimental) log engine ([#9923](https://github.com/serverless/serverless/pull/9923)) ([ec93174](https://github.com/serverless/serverless/commit/ec93174b8ccfe1715ce3615dcb2223b145ad0f31)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Introduce first iteration of modern logs for `deploy` ([#9934](https://github.com/serverless/serverless/issues/9934)) ([171897d](https://github.com/serverless/serverless/commit/171897d60e5adaa590be1f08c99ab2cc76e89ee4)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Do not retry AWS requests if the token has expired ([#9914](https://github.com/serverless/serverless/issues/9914)) ([b0ca237](https://github.com/serverless/serverless/commit/b0ca2376bbfb543d98db1585c3a20a391e1791c6)) ([Mars Lan](https://github.com/mars-lan))
+- Support `error` hook to be triggered on command error ([#9936](https://github.com/serverless/serverless/pull/9936)) ([5c9766c](https://github.com/serverless/serverless/commit/5c9766c085531b04e169aa36a552159755029cca)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **AWS API Gateway:** Ensure proper `RequestValidator` name ([#9910](https://github.com/serverless/serverless/pull/9910)) ([510b1d1](https://github.com/serverless/serverless/commit/510b1d165924d000aa8e81e74e27c69ac1a2e0b6)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS CloudFront:** Recognize `behavior.TrustedKeyGroups` in schema ([#9884](https://github.com/serverless/serverless/pull/9884)) ([da71df6](https://github.com/serverless/serverless/commit/da71df603295397229589c88dd8366426e06e982)) ([Petr Reshetin](https://github.com/preshetin))
+- **AWS Lambda:** Recognize `Fn::If` function for `environment` ([#9905](https://github.com/serverless/serverless/pull/9905)) ([63743ad](https://github.com/serverless/serverless/commit/63743ade31207049eee1811203db5622bc510f1a)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **CLI:**
+  - Ensure no monkey patching by progress override ([#9923](https://github.com/serverless/serverless/pull/9923)) ([e46ce80](https://github.com/serverless/serverless/commit/e46ce80d99414ff730355efd1636bab71bb1771c)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Ensure to clear progress in expected time points ([#9928](https://github.com/serverless/serverless/pull/9928)) ([29aec52](https://github.com/serverless/serverless/commit/29aec529b53d7dd10f4ec61db7c0dc3859995d27)) ([Mariusz Nowak](https://github.com/medikoo))
+- Replace `fse.access` with `fs.promises.access` ([#9915](https://github.com/serverless/serverless/issues/9915)) ([5155e01](https://github.com/serverless/serverless/commit/5155e0180e0cd5e3130bc74e308a97c0ea1a5c2b)) ([Sudipto Das](https://github.com/sdas13))
+- Replace `fse.readFile` with `fs.promises.readFile` ([#9935](https://github.com/serverless/serverless/issues/9935)) ([f431218](https://github.com/serverless/serverless/commit/f431218790ae31efdc4e0a65a5b17a32605ede3e)) ([Sudipto Das](https://github.com/sdas13))
+- Use `getCompiledTemplateS3Suffix` from `provider.naming` ([#9926](https://github.com/serverless/serverless/pull/9926)) ([95d3024](https://github.com/serverless/serverless/commit/95d3024ef55ce80edf20fe27d9c72ffd15bba2bb)) ([Andreas Kohn](https://github.com/ankon))
+- Internal API to register service outputs ([#9933](https://github.com/serverless/serverless/pull/9933)) ([b425cf1](https://github.com/serverless/serverless/commit/b425cf1582623c1e796ae9f3d33dc060a9492cb5)) ([Mariusz Nowak](https://github.com/medikoo))
+- Register service outputs ([#9933](https://github.com/serverless/serverless/pull/9933)) ([312266e](https://github.com/serverless/serverless/commit/312266e90819866199354183641954636bd5a076)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Templates
+
+- Remove unnecessary `fmt.Sprintf` in `tencent-go` ([#9847](https://github.com/serverless/serverless/pull/9847)) ([e798c26](https://github.com/serverless/serverless/commit/e798c269df6f456bccf6a1e755015ea1e7631117)) ([kou](https://github.com/kou-pg-0131))
+
 ## [2.57.0](https://github.com/serverless/serverless/compare/v2.56.0...v2.57.0) (2021-08-31)
 
 ### Features

@@ -1891,6 +1891,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
     const stage = 'custom-stage';
     const cachePolicyName = 'allInCache';
     const cachePolicyId = '08627262-05a9-4f76-9ded-b50ca2e3a84f';
+    const cachePolicyId2 = '4135ea2d-6df8-44a3-9df3-4b5a84be39ad';
     const cachePolicyConfig = {
       DefaultTTL: 60,
       MinTTL: 30,
@@ -1991,6 +1992,57 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
                     pathPattern: 'managedPolicy',
                     cachePolicy: {
                       id: cachePolicyId,
+                    },
+                  },
+                },
+              ],
+            },
+            fnCachePolicyManagedSetViaBehavior: {
+              handler: 'myLambdaAtEdge.handler',
+              events: [
+                {
+                  cloudFront: {
+                    origin: 's3://bucketname.s3.amazonaws.com',
+                    eventType: 'viewer-response',
+                    pathPattern: 'managedPolicySetViaBehavior',
+                    behavior: {
+                      CachePolicyId: cachePolicyId,
+                    },
+                  },
+                },
+              ],
+            },
+            fnCachePolicySetViaCachePolicyIdAndBehavior: {
+              handler: 'myLambdaAtEdge.handler',
+              events: [
+                {
+                  cloudFront: {
+                    origin: 's3://bucketname.s3.amazonaws.com',
+                    eventType: 'viewer-response',
+                    pathPattern: 'policySetViaCachePolicyIdAndBehavior',
+                    cachePolicy: {
+                      id: cachePolicyId,
+                    },
+                    behavior: {
+                      CachePolicyId: cachePolicyId2,
+                    },
+                  },
+                },
+              ],
+            },
+            fnCachePolicySetViaCachePolicyNameAndBehavior: {
+              handler: 'myLambdaAtEdge.handler',
+              events: [
+                {
+                  cloudFront: {
+                    origin: 's3://bucketname.s3.amazonaws.com',
+                    eventType: 'viewer-response',
+                    pathPattern: 'policySetViaCachePolicyNameAndBehavior',
+                    cachePolicy: {
+                      name: cachePolicyName,
+                    },
+                    behavior: {
+                      CachePolicyId: cachePolicyId2,
                     },
                   },
                 },
@@ -2111,6 +2163,27 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
 
     it('Should attach a cache policy to a cloudfront behavior when specified by id in lambda config', () => {
       expect(getAssociatedCacheBehavior('managedPolicy').CachePolicyId).to.eq(cachePolicyId);
+    });
+
+    it('Should attach a cache policy to a cloudfront behavior when specified by id via `behavior.CachePolicyId` in lambda config', () => {
+      expect(getAssociatedCacheBehavior('managedPolicySetViaBehavior').CachePolicyId).to.eq(
+        cachePolicyId
+      );
+    });
+
+    it('Should attach a cache policy specified via `cachePolicy.id` to a cloudfront behavior when specified via both of `cachePolicy.id` and `behavior.CachePolicyId` in lambda config', () => {
+      expect(
+        getAssociatedCacheBehavior('policySetViaCachePolicyIdAndBehavior').CachePolicyId
+      ).to.eq(cachePolicyId);
+    });
+
+    it('Should attach a cache policy specified via `cachePolicy.name` to a cloudfront behavior when specified via both of `cachePolicy.name` and `behavior.CachePolicyId` in lambda config', () => {
+      const cachePolicyLogicalId = naming.getCloudFrontCachePolicyLogicalId(cachePolicyName);
+      expect(
+        getAssociatedCacheBehavior('policySetViaCachePolicyNameAndBehavior').CachePolicyId
+      ).to.deep.eq({
+        Ref: cachePolicyLogicalId,
+      });
     });
 
     it('Should attach a default cache policy when none are provided, and no deprecated behavior values are used', () => {

@@ -62,28 +62,6 @@ describe('uploadArtifacts', () => {
     Object.assign(awsDeploy, uploadArtifacts);
   });
 
-  describe('#uploadArtifacts()', () => {
-    it('should run promise chain in order', () => {
-      const uploadCloudFormationFileStub = sinon
-        .stub(awsDeploy, 'uploadCloudFormationFile')
-        .resolves();
-      const uploadFunctionsAndLayersStub = sinon
-        .stub(awsDeploy, 'uploadFunctionsAndLayers')
-        .resolves();
-
-      return awsDeploy.uploadArtifacts().then(() => {
-        expect(uploadCloudFormationFileStub.calledOnce).to.be.equal(true);
-
-        expect(uploadFunctionsAndLayersStub.calledAfter(uploadCloudFormationFileStub)).to.be.equal(
-          true
-        );
-
-        awsDeploy.uploadCloudFormationFile.restore();
-        awsDeploy.uploadFunctionsAndLayers.restore();
-      });
-    });
-  });
-
   describe('#uploadCloudFormationFile()', () => {
     let normalizeCloudFormationTemplateStub;
     let uploadStub;
@@ -215,12 +193,12 @@ describe('uploadArtifacts', () => {
     let uploadZipFileStub;
 
     beforeEach(() => {
-      sinon.stub(fs, 'statSync').returns({ size: 1024 });
+      sinon.stub(fs.promises, 'stat').resolves({ size: 1024 });
       uploadZipFileStub = sinon.stub(awsDeploy, 'uploadZipFile').resolves();
     });
 
     afterEach(() => {
-      fs.statSync.restore();
+      fs.promises.stat.restore();
       uploadZipFileStub.restore();
     });
 
@@ -304,18 +282,6 @@ describe('uploadArtifacts', () => {
         expect(uploadZipFileStub.args[1][0]).to.be.equal(
           awsDeploy.serverless.service.package.artifact
         );
-      });
-    });
-
-    it('should log artifact size', () => {
-      awsDeploy.serverless.serviceDir = 'some/path';
-      awsDeploy.serverless.service.service = 'new-service';
-
-      sinon.spy(awsDeploy.serverless.cli, 'log');
-
-      return awsDeploy.uploadFunctionsAndLayers().then(() => {
-        const expected = 'Uploading service new-service.zip file to S3 (1.02 kB)...';
-        expect(awsDeploy.serverless.cli.log.calledWithExactly(expected)).to.be.equal(true);
       });
     });
   });

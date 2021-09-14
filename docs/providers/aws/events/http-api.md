@@ -12,11 +12,18 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# HTTP API
+# API Gateway HTTP API
 
-HTTP APIs are a special flavored [API Gateway](https://aws.amazon.com/api-gateway/) implementation which offer more features and improved performance. They have some benefits and drawbacks compared to the traditional API Gateway REST APIs. Read the differences in the [AWS Documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html).
+API Gateway lets you deploy HTTP APIs. It comes [in two versions](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html):
 
-The Serverless Framework makes it possible to setup [API Gateway](https://aws.amazon.com/api-gateway/) HTTP APIs via the `httpApi` event.
+- v1, also called **REST API**
+- v2, also called **HTTP API**, which is faster and cheaper than v1
+
+Despite their confusing name, both versions allow deploying any HTTP API (like REST, GraphQL, etc.). Read the full comparison [in the AWS documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html).
+
+This guide documents using API Gateway **v2 HTTP API** via the `httpApi` event.
+
+To use API Gateway **v1 REST API** instead, follow the [API Gateway REST API guide](apigateway.md).
 
 ## Event Definition
 

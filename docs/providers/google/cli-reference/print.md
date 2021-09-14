@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Google Cloud Functions - Print
 menuText: Print
-menuOrder: 13
+menuOrder: 15
 description: Print your config with all variables resolved for debugging
 layout: Doc
 -->

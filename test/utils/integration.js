@@ -3,7 +3,7 @@
 'use strict';
 
 const path = require('path');
-const fse = require('fs-extra');
+const fsp = require('fs').promises;
 const spawn = require('child-process-ext/spawn');
 const nodeFetch = require('node-fetch');
 const log = require('log').get('serverless:test');
@@ -19,7 +19,7 @@ env.SLS_DEBUG = '1';
 async function resolveServiceName(cwd) {
   const configContent = await (async () => {
     try {
-      return await fse.readFile(path.join(cwd, 'serverless.yml'));
+      return await fsp.readFile(path.join(cwd, 'serverless.yml'));
     } catch (error) {
       if (error.code === 'ENOENT') return null;
       throw error;

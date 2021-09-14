@@ -450,7 +450,6 @@ describe('checkForChanges', () => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
         expect(readFileStub).to.have.been.calledOnce;
-        expect(awsDeploy.serverless.cli.log).to.have.been.calledOnce;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -484,7 +483,6 @@ describe('checkForChanges', () => {
           expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
           expect(globbySyncStub).to.have.been.calledOnce;
           expect(readFileStub).to.have.been.calledOnce;
-          expect(awsDeploy.serverless.cli.log).to.have.been.calledOnce;
           expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
             awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
           );
@@ -518,7 +516,6 @@ describe('checkForChanges', () => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
         expect(readFileStub).to.have.been.calledTwice;
-        expect(awsDeploy.serverless.cli.log).to.have.been.calledOnce;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );

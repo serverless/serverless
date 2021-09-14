@@ -1385,6 +1385,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               providerEnvVarA: 'providerEnvVarAValue',
               providerEnvVarB: 'providerEnvVarBValue',
               sharedEnvVar: 'valueFromProvider',
+              providerCfIfEnvVar: { 'Fn::If': ['cond', 'first', 'second'] },
             },
             memorySize: 4096,
             runtime: 'nodejs10.x',

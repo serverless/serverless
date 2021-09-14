@@ -68,6 +68,8 @@ describe('#getApiKeyValues()', () => {
       info: {
         apiKeys: [
           {
+            customerId: undefined,
+            description: undefined,
             name: 'foo',
             value: 'valueForKeyFoo',
           },

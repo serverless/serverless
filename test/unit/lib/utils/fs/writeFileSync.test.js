@@ -1,6 +1,6 @@
 'use strict';
 
-const fse = require('fs-extra');
+const fsp = require('fs').promises;
 const Serverless = require('../../../../../lib/Serverless');
 const writeFileSync = require('../../../../../lib/utils/fs/writeFileSync');
 const readFileSync = require('../../../../../lib/utils/fs/readFileSync');
@@ -57,7 +57,7 @@ describe('#writeFileSync()', () => {
 
     writeFileSync(tmpFilePath, bar, true);
 
-    return fse.readFile(tmpFilePath, 'utf8').then((contents) => {
+    return fsp.readFile(tmpFilePath, 'utf8').then((contents) => {
       expect(contents).to.equal(expected);
     });
   });

@@ -16,4 +16,10 @@ function scheduleExtended(event, context, callback) {
   return callback(null, event);
 }
 
-module.exports = { scheduleMinimal, scheduleExtended };
+function scheduleExtendedArray(event, context, callback) {
+  const functionName = 'scheduleExtendedArray';
+  log(functionName, JSON.stringify(event));
+  return callback(null, event);
+}
+
+module.exports = { scheduleMinimal, scheduleExtended, scheduleExtendedArray };

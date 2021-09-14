@@ -1,6 +1,6 @@
 'use strict';
 
-const fse = require('fs-extra');
+const fsp = require('fs').promises;
 const Serverless = require('../../../../../lib/Serverless');
 const chai = require('chai');
 const writeFile = require('../../../../../lib/utils/fs/writeFile');
@@ -50,7 +50,7 @@ describe('#writeFile()', function () {
     const expected = '{\n  "foo": {\n    "$ref": "$"\n  }\n}';
 
     return writeFile(tmpFilePath, bar, true).then(() =>
-      expect(fse.readFile(tmpFilePath, 'utf8')).to.eventually.equal(expected)
+      expect(fsp.readFile(tmpFilePath, 'utf8')).to.eventually.equal(expected)
     );
   });
 });
