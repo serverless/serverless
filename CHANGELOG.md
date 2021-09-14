@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.59.0](https://github.com/serverless/serverless/compare/v2.58.0...v2.59.0) (2021-09-14)
+
+### Features
+
+- **CLI Onboarding:** Switch to `httpApi`-based templates ([#9954](https://github.com/serverless/serverless/pull/9954)) ([12216db](https://github.com/serverless/serverless/commit/12216db579f7f2d055410f1ea9449825628631b7)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:** First iteration of support for `verbose` mode in `deploy` with modern logs ([#9952](https://github.com/serverless/serverless/pull/9952)) ([fbdd124](https://github.com/serverless/serverless/commit/fbdd124029d10ef029ee5446777db44f907e026c)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **AWS API Gateway:** Ensure consistent default for `cors` conf ([#9909](https://github.com/serverless/serverless/issues/9909)) ([7cd3966](https://github.com/serverless/serverless/commit/7cd3966897fa4432caf3f2bda0037df0c76e382b)) ([Seungchan Ahn](https://github.com/issea1015))
+
+### Maintenance Improvements
+
+- Replace `_.pick` with native property assignment ([#9937](https://github.com/serverless/serverless/issues/9937)) ([6087fa3](https://github.com/serverless/serverless/commit/6087fa3400b508092a5113d40e4b2c4fd8ec22a7)) ([Jonas Matos](https://github.com/JonasMatos0))
+
 ## [2.58.0](https://github.com/serverless/serverless/compare/v2.57.0...v2.58.0) (2021-09-13)
 
 ### Features
