@@ -18,7 +18,7 @@ describe('#request', () => {
       proxyquire('../../../../lib/aws/request', {
         'aws-sdk': { config: configStub },
       });
-      expect(typeof configStub.logger).to.equal('function');
+      expect(typeof configStub.logger.log).to.equal('function');
     });
   });
 

@@ -366,6 +366,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
           SharedIniFileCredentials,
           EnvironmentCredentials,
           CloudFormation: FakeCloudFormation,
+          config: {},
         },
         'aws-sdk/lib/metadata_service': FakeMetadataService,
       };
