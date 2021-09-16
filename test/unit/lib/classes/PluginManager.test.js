@@ -1520,27 +1520,6 @@ describe('PluginManager', () => {
       return expect(pluginManager.run(commandsArray)).to.be.rejectedWith(Error);
     });
 
-    it('should show warning if in debug mode and the given command has no hooks', () => {
-      const consoleLogStub = sinon.stub(pluginManager.serverless.cli, 'log').returns();
-      process.env.SLS_DEBUG = '*';
-      class HooklessPlugin {
-        constructor() {
-          this.commands = {
-            foo: {},
-          };
-        }
-      }
-
-      pluginManager.addPlugin(HooklessPlugin);
-
-      const commandsArray = ['foo'];
-
-      return pluginManager.run(commandsArray).then(() => {
-        expect(consoleLogStub.called).is.equal(true);
-        pluginManager.serverless.cli.log.restore();
-      });
-    });
-
     it('should run the hooks in the correct order', () => {
       class CorrectHookOrderPluginMock {
         constructor() {
@@ -1796,29 +1775,6 @@ describe('PluginManager', () => {
       const commandsArray = ['foo'];
 
       return expect(pluginManager.spawn(commandsArray)).to.eventually.be.rejectedWith(Error);
-    });
-
-    it('should show warning in debug mode and when the given command has no hooks', () => {
-      const consoleLogStub = sinon.stub(pluginManager.serverless.cli, 'log').returns();
-
-      process.env.SLS_DEBUG = '*';
-
-      class HooklessPlugin {
-        constructor() {
-          this.commands = {
-            foo: {},
-          };
-        }
-      }
-
-      pluginManager.addPlugin(HooklessPlugin);
-
-      const commandsArray = ['foo'];
-
-      return pluginManager.run(commandsArray).then(() => {
-        expect(consoleLogStub.called).is.equal(true);
-        pluginManager.serverless.cli.log.restore();
-      });
     });
 
     describe('when invoking a command', () => {
