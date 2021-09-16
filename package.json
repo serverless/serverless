@@ -70,6 +70,7 @@
     "replaceall": "^0.1.6",
     "semver": "^7.3.5",
     "signal-exit": "^3.0.3",
+    "strip-ansi": "^6.0.0",
     "tabtab": "^3.0.2",
     "tar": "^6.1.11",
     "timers-ext": "^0.1.7",
@@ -105,7 +106,6 @@
     "sinon": "^11.1.2",
     "sinon-chai": "^3.7.0",
     "standard-version": "^9.3.1",
-    "strip-ansi": "^6.0.0",
     "ws": "^7.5.5",
     "xml2js": "^0.4.23"
   },
