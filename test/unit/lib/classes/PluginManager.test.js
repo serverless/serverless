@@ -1168,64 +1168,6 @@ describe('PluginManager', () => {
     });
   });
 
-  describe('#getEvents()', () => {
-    beforeEach(() => {
-      pluginManager.addPlugin(SynchronousPluginMock);
-    });
-
-    it('should get all the matching events for a root level command in the correct order', () => {
-      const command = pluginManager.getCommand(['deploy']);
-      const events = pluginManager.getEvents(command);
-
-      expect(events[0]).to.equal('before:deploy:resources');
-      expect(events[1]).to.equal('deploy:resources');
-      expect(events[2]).to.equal('after:deploy:resources');
-      expect(events[3]).to.equal('before:deploy:functions');
-      expect(events[4]).to.equal('deploy:functions');
-      expect(events[5]).to.equal('after:deploy:functions');
-    });
-
-    it('should get all the matching events for a nested level command in the correct order', () => {
-      const command = pluginManager.getCommand(['deploy', 'onpremises']);
-      const events = pluginManager.getEvents(command);
-
-      expect(events[0]).to.equal('before:deploy:onpremises:resources');
-      expect(events[1]).to.equal('deploy:onpremises:resources');
-      expect(events[2]).to.equal('after:deploy:onpremises:resources');
-      expect(events[3]).to.equal('before:deploy:onpremises:functions');
-      expect(events[4]).to.equal('deploy:onpremises:functions');
-      expect(events[5]).to.equal('after:deploy:onpremises:functions');
-    });
-  });
-
-  describe('#getHooks()', () => {
-    beforeEach(() => {
-      pluginManager.addPlugin(SynchronousPluginMock);
-    });
-
-    it('should get hooks for an event with some registered', () => {
-      expect(pluginManager.getHooks(['deploy:functions']))
-        .to.be.an('Array')
-        .with.length(1);
-    });
-
-    it('should have the plugin name and function on the hook', () => {
-      const hooks = pluginManager.getHooks(['deploy:functions']);
-      expect(hooks[0].pluginName).to.equal('SynchronousPluginMock');
-      expect(hooks[0].hook).to.be.a('Function');
-    });
-
-    it('should not get hooks for an event that does not have any', () => {
-      expect(pluginManager.getHooks(['deploy:resources']))
-        .to.be.an('Array')
-        .with.length(0);
-    });
-
-    it('should accept a single event in place of an array', () => {
-      expect(pluginManager.getHooks('deploy:functions')).to.be.an('Array').with.length(1);
-    });
-  });
-
   describe('#getPlugins()', () => {
     beforeEach(() => {
       mockRequire('ServicePluginMock1', ServicePluginMock1);
