@@ -13,7 +13,7 @@ const log = require('@serverless/utils/log');
 const ServerlessError = require('../../lib/serverless-error');
 const yamlAstParser = require('../../lib/utils/yamlAstParser');
 const fileExists = require('../../lib/utils/fs/fileExists');
-const pluginUtils = require('./lib/utils');
+const pluginUtils = require('../../lib/commands/plugin-management');
 const npmCommandDeferred = require('../../lib/utils/npm-command-deferred');
 const CLI = require('../../lib/classes/CLI');
 
