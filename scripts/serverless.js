@@ -41,7 +41,7 @@ let hasTelemetryBeenReported = false;
 // to propery handle e.g. `SIGINT` interrupt
 const keepAliveTimer = setTimeout(() => {}, 60 * 60 * 1000);
 
-const externalCommands = ['plugin install'];
+const standaloneCommands = ['plugin install'];
 
 process.once('uncaughtException', (error) => {
   clearTimeout(keepAliveTimer);
@@ -497,7 +497,7 @@ const processSpanPromise = (async () => {
 
     const configurationFilename = configuration && configurationPath.slice(serviceDir.length + 1);
 
-    if (externalCommands.includes(command)) {
+    if (standaloneCommands.includes(command)) {
       require('../lib/cli/ensure-supported-command')(configuration);
       await require(`../commands/${commands.join('/')}`)({
         configuration,
