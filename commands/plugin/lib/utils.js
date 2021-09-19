@@ -2,7 +2,6 @@
 
 const path = require('path');
 const fetch = require('node-fetch');
-const BbPromise = require('bluebird');
 const HttpsProxyAgent = require('https-proxy-agent');
 const url = require('url');
 const chalk = require('chalk');
@@ -18,7 +17,7 @@ module.exports = {
       );
     }
 
-    return BbPromise.resolve();
+    return Promise.resolve();
   },
 
   getServerlessFilePath() {
@@ -87,6 +86,6 @@ It will be automatically downloaded and added to your package.json and serverles
       this.cli.consoleLog(message);
     }
 
-    return BbPromise.resolve(message);
+    return Promise.resolve(message);
   },
 };

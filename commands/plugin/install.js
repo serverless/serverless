@@ -1,13 +1,13 @@
 'use strict';
 
-const BbPromise = require('bluebird');
-const childProcess = BbPromise.promisifyAll(require('child_process'));
+const childProcess = require('child_process');
 const fsp = require('fs').promises;
 const fse = require('fs-extra');
 const path = require('path');
 const _ = require('lodash');
 const isPlainObject = require('type/plain-object/is');
 const yaml = require('js-yaml');
+const { promisify } = require('util');
 const cloudformationSchema = require('@serverless/utils/cloudformation-schema');
 const log = require('@serverless/utils/log');
 const ServerlessError = require('../../lib/serverless-error');
@@ -16,6 +16,8 @@ const fileExists = require('../../lib/utils/fs/fileExists');
 const pluginUtils = require('./lib/utils');
 const npmCommandDeferred = require('../../lib/utils/npm-command-deferred');
 const CLI = require('../../lib/classes/CLI');
+
+const execAsync = promisify(childProcess.exec);
 
 module.exports = async ({ configuration, serviceDir, configurationFilename, options }) => {
   await new PluginInstall({
@@ -49,26 +51,22 @@ class PluginInstall {
     this.options.pluginName = pluginInfo[0];
     this.options.pluginVersion = pluginInfo[1] || 'latest';
 
-    return BbPromise.bind(this)
-      .then(this.validate)
-      .then(this.getPlugins)
-      .then((plugins) => {
-        const plugin = plugins.find((item) => item.name === this.options.pluginName);
-        if (!plugin) {
-          this.cli.log('Plugin not found in serverless registry, continuing to install');
-        }
-        return BbPromise.bind(this)
-          .then(this.pluginInstall)
-          .then(this.addPluginToServerlessFile)
-          .then(this.installPeerDependencies)
-          .then(() => {
-            const message = [
-              'Successfully installed',
-              ` "${this.options.pluginName}@${this.options.pluginVersion}"`,
-            ].join('');
-            this.cli.log(message);
-          });
-      });
+    await this.validate();
+    const plugins = await this.getPlugins();
+    const plugin = plugins.find((item) => item.name === this.options.pluginName);
+    if (!plugin) {
+      this.cli.log('Plugin not found in serverless registry, continuing to install');
+    }
+
+    await this.pluginInstall();
+    await this.addPluginToServerlessFile();
+    await this.installPeerDependencies();
+
+    const message = [
+      'Successfully installed',
+      ` "${this.options.pluginName}@${this.options.pluginVersion}"`,
+    ].join('');
+    this.cli.log(message);
   }
 
   async pluginInstall() {
@@ -90,7 +88,7 @@ class PluginInstall {
           };
           return fse.writeJson(packageJsonFilePath, packageJsonFileContent);
         }
-        return BbPromise.resolve();
+        return Promise.resolve();
       })
       .then(() => {
         // install the package through npm
@@ -183,15 +181,15 @@ class PluginInstall {
         Object.entries(pluginPackageJson.peerDependencies).forEach(([k, v]) => {
           pluginsArray.push(`${k}@"${v}"`);
         });
-        return BbPromise.map(pluginsArray, this.npmInstall);
+        return Promise.all(pluginsArray.map((plugin) => this.npmInstall(plugin)));
       }
-      return BbPromise.resolve();
+      return Promise.resolve();
     });
   }
 
   async npmInstall(name) {
     return npmCommandDeferred.then((npmCommand) =>
-      childProcess.execAsync(`${npmCommand} install --save-dev ${name}`, {
+      execAsync(`${npmCommand} install --save-dev ${name}`, {
         stdio: 'ignore',
       })
     );
