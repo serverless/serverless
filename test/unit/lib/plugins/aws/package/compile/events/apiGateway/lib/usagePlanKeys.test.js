@@ -1,6 +1,5 @@
 'use strict';
 
-const _ = require('lodash');
 const expect = require('chai').expect;
 const AwsCompileApigEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/apiGateway/index');
 const Serverless = require('../../../../../../../../../../lib/Serverless');
@@ -112,7 +111,11 @@ describe('#compileUsagePlanKeys()', () => {
               .Resources[
               awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(index + 1, planName)
             ].Properties.KeyId.Ref
-          ).to.equal(`ApiGatewayApiKey${_.capitalize(planName)}${index + 1}`);
+          ).to.equal(
+            `ApiGatewayApiKey${
+              planName ? planName.charAt(0).toUpperCase() + planName.slice(1).toLowerCase() : ''
+            }${index + 1}`
+          );
           expect(
             awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate
               .Resources[
