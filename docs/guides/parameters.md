@@ -43,7 +43,14 @@ Parameters can also be accessed on the CLI. You can use this at development time
 
 ### List parameters
 
-`sls param list [--org <org>] [--app <app>] [--service <service>] [--stage <stage>] [--region <region>]`
+```
+sls param list
+  [--org <org>]
+  [--app <app>]
+  [--service <service>]
+  [--stage <stage>]
+  [--region <region>]
+```
 
 If you are in a working directory with a `serverless.yml` then the parameters will be listed for the org, app, and service specified in the `serverless.yml` file.
 
@@ -51,6 +58,14 @@ If you are not in a working directory, without a `serverless.yml`, or if you wan
 
 ### Get a parameter
 
-`sls param get --name <name> [--org <org>] [--app <app>] [--service <service>] [--stage <stage>] [--region <region>]`
+```
+sls param get
+  --name <name>
+  [--org <org>]
+  [--app <app>]
+  [--service <service>]
+  [--stage <stage>]
+  [--region <region>]
+```
 
 Individual parameters can also be accessed from the CLI using the `param get` sub-command. This command requires the `--name <name>` flag to identify the parameter name. Like the `sls param list`, you can optionally specify a different org, app, service, stage, ore region using flags.
