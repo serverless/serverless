@@ -223,7 +223,6 @@ describe('Create', () => {
         expect(dirContent).to.include(path.join('src', 'libs', 'lambda.ts'));
         expect(dirContent).to.include('tsconfig.json');
         expect(dirContent).to.include('tsconfig.paths.json');
-        expect(dirContent).to.include('webpack.config.js');
       });
     });
 

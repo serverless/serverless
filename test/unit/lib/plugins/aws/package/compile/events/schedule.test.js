@@ -221,6 +221,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
   });
 
   it('should not create schedule resources when no scheduled event is given', async () => {
-    expect(run([])).to.be.eventually.empty;
+    expect(await run([])).to.be.empty;
   });
 });

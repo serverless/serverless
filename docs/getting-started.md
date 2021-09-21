@@ -89,11 +89,11 @@ choco upgrade serverless
 npm update -g serverless
 ```
 
-## Set up your free Pro account
+## Set up your free Dashboard account
 
-Learn more about [Serverless Framework Pro](https://serverless.com/pro/) and [sign up for free](https://app.serverless.com).
+Learn more about the [Serverless Framework Dashboard](https://serverless.com/framework/) and [sign up for free](https://app.serverless.com).
 
-Once you’ve signed up for Pro, login to your Pro dashboard from the CLI:
+Once you’ve signed up, login to your dashboard from the CLI:
 
 ```bash
 serverless login

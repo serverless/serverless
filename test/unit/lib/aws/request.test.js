@@ -18,7 +18,7 @@ describe('#request', () => {
       proxyquire('../../../../lib/aws/request', {
         'aws-sdk': { config: configStub },
       });
-      expect(typeof configStub.logger).to.equal('function');
+      expect(typeof configStub.logger.log).to.equal('function');
     });
   });
 
@@ -70,9 +70,7 @@ describe('#request', () => {
             Key: 'test-key',
           }
         )
-      ).to.be.rejectedWith(
-        'AWS provider credentials not found. Learn how to set up AWS provider credentials in our docs here: <\u001b[32mhttp://slss.io/aws-creds-setup\u001b[39m>.'
-      );
+      ).to.be.rejectedWith('AWS provider credentials not found.');
     });
   });
 

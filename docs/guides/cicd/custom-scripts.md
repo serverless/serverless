@@ -13,7 +13,7 @@ layout: Doc
 
 # Custom scripts
 
-Serverless Framework Pro runs three primary operations on your repository when you have CI/CD configured: (1) install NPM packages via `npm install`, (2) run tests, if present, with `npm test`, and (3) deploy your service using `sls deploy`. You can run custom scripts before or after each of these steps if you need to customize the pipeline further.
+Serverless Framework runs three primary operations on your repository when you have CI/CD configured: (1) install NPM packages via `npm install`, (2) run tests, if present, with `npm test`, and (3) deploy your service using `sls deploy`. You can run custom scripts before or after each of these steps if you need to customize the pipeline further.
 
 To run custom scripts before & after NPM install and running tests, use the lifecycle hooks built into `scripts` of your `package.json` file. The `preinstall`, `postinstall`, `pretest`, and `posttest`, scripts are run automatically at each of these steps.
 
