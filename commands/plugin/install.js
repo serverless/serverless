@@ -73,33 +73,29 @@ class PluginInstall {
     const serviceDir = this.serviceDir;
     const packageJsonFilePath = path.join(serviceDir, 'package.json');
 
-    return fileExists(packageJsonFilePath)
-      .then((exists) => {
-        // check if package.json is already present. Otherwise create one
-        if (!exists) {
-          this.cli.log('Creating an empty package.json file in your service directory');
+    // check if package.json is already present. Otherwise create one
+    const exists = await fileExists(packageJsonFilePath);
+    if (!exists) {
+      this.cli.log('Creating an empty package.json file in your service directory');
 
-          const packageJsonFileContent = {
-            name: this.configuration.service,
-            description: '',
-            version: '0.1.0',
-            dependencies: {},
-            devDependencies: {},
-          };
-          return fse.writeJson(packageJsonFilePath, packageJsonFileContent);
-        }
-        return Promise.resolve();
-      })
-      .then(() => {
-        // install the package through npm
-        const pluginFullName = `${this.options.pluginName}@${this.options.pluginVersion}`;
-        const message = [
-          `Installing plugin "${pluginFullName}"`,
-          ' (this might take a few seconds...)',
-        ].join('');
-        this.cli.log(message);
-        return this.npmInstall(pluginFullName);
-      });
+      const packageJsonFileContent = {
+        name: this.configuration.service,
+        description: '',
+        version: '0.1.0',
+        dependencies: {},
+        devDependencies: {},
+      };
+      await fse.writeJson(packageJsonFilePath, packageJsonFileContent);
+    }
+
+    // install the package through npm
+    const pluginFullName = `${this.options.pluginName}@${this.options.pluginVersion}`;
+    const message = [
+      `Installing plugin "${pluginFullName}"`,
+      ' (this might take a few seconds...)',
+    ].join('');
+    this.cli.log(message);
+    await this.npmInstall(pluginFullName);
   }
 
   async addPluginToServerlessFile() {
