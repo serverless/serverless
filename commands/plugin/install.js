@@ -24,29 +24,27 @@ const {
 const cli = new CLI(undefined);
 
 module.exports = async ({ configuration, serviceDir, configurationFilename, options }) => {
-  const { name, version } = getPluginInfo(options.name);
-  options.pluginName = name;
-  options.pluginVersion = version || 'latest';
+  const pluginInfo = getPluginInfo(options.name);
+  const pluginName = pluginInfo.name;
+  const pluginVersion = pluginInfo.version || 'latest';
 
   validate({ serviceDir });
   const plugins = await getPlugins();
-  const plugin = plugins.find((item) => item.name === options.pluginName);
+  const plugin = plugins.find((item) => item.name === pluginName);
   if (!plugin) {
     cli.log('Plugin not found in serverless registry, continuing to install');
   }
 
-  await pluginInstall({ configuration, serviceDir, options });
-  await addPluginToServerlessFile({ serviceDir, configurationFilename, options });
-  await installPeerDependencies({ serviceDir, options });
+  const context = { configuration, serviceDir, configurationFilename, pluginName, pluginVersion };
+  await pluginInstall(context);
+  await addPluginToServerlessFile(context);
+  await installPeerDependencies(context);
 
-  const message = [
-    'Successfully installed',
-    ` "${options.pluginName}@${options.pluginVersion}"`,
-  ].join('');
+  const message = ['Successfully installed', ` "${pluginName}@${pluginVersion}"`].join('');
   cli.log(message);
 };
 
-const pluginInstall = async ({ configuration, serviceDir, options }) => {
+const pluginInstall = async ({ configuration, serviceDir, pluginName, pluginVersion }) => {
   const packageJsonFilePath = path.join(serviceDir, 'package.json');
 
   // check if package.json is already present. Otherwise create one
@@ -65,7 +63,7 @@ const pluginInstall = async ({ configuration, serviceDir, options }) => {
   }
 
   // install the package through npm
-  const pluginFullName = `${options.pluginName}@${options.pluginVersion}`;
+  const pluginFullName = `${pluginName}@${pluginVersion}`;
   const message = [
     `Installing plugin "${pluginFullName}"`,
     ' (this might take a few seconds...)',
@@ -74,7 +72,7 @@ const pluginInstall = async ({ configuration, serviceDir, options }) => {
   await npmInstall(pluginFullName, { serviceDir });
 };
 
-const addPluginToServerlessFile = async ({ serviceDir, configurationFilename, options }) => {
+const addPluginToServerlessFile = async ({ serviceDir, configurationFilename, pluginName }) => {
   const serverlessFilePath = getServerlessFilePath({ serviceDir, configurationFilename });
   const fileExtension = path.extname(serverlessFilePath);
   if (fileExtension === '.js' || fileExtension === '.ts') {
@@ -101,7 +99,7 @@ const addPluginToServerlessFile = async ({ serviceDir, configurationFilename, op
       );
     }
 
-    plugins.push(options.pluginName);
+    plugins.push(pluginName);
     plugins = _.sortedUniq(plugins);
 
     if (isArrayPluginsObject) {
@@ -136,15 +134,15 @@ const addPluginToServerlessFile = async ({ serviceDir, configurationFilename, op
   await yamlAstParser.addNewArrayItem(
     serverlessFilePath,
     checkIsArrayPluginsObject(serverlessFileObj.plugins) ? 'plugins' : 'plugins.modules',
-    options.pluginName
+    pluginName
   );
 };
 
-const installPeerDependencies = async ({ serviceDir, options }) => {
+const installPeerDependencies = async ({ serviceDir, pluginName }) => {
   const pluginPackageJsonFilePath = path.join(
     serviceDir,
     'node_modules',
-    options.pluginName,
+    pluginName,
     'package.json'
   );
   const pluginPackageJson = await fse.readJson(pluginPackageJsonFilePath);
