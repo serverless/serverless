@@ -162,6 +162,9 @@ const npmInstall = async (name, { serviceDir }) => {
   await spawn(npmCommand, ['install', '--save-dev', name], {
     cwd: serviceDir,
     stdio: 'ignore',
+    // To parse quotes used in module versions. E.g. 'serverless@"^1.60.0 || 2"'
+    // https://stackoverflow.com/a/48015470
+    shell: true,
   });
 };
 
