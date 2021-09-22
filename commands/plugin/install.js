@@ -11,7 +11,6 @@ const cloudformationSchema = require('@serverless/utils/cloudformation-schema');
 const log = require('@serverless/utils/log');
 const ServerlessError = require('../../lib/serverless-error');
 const yamlAstParser = require('../../lib/utils/yamlAstParser');
-const fileExists = require('../../lib/utils/fs/fileExists');
 const npmCommandDeferred = require('../../lib/utils/npm-command-deferred');
 const CLI = require('../../lib/classes/CLI');
 const {
@@ -38,25 +37,7 @@ module.exports = async ({ configuration, serviceDir, configurationFilename, opti
   cli.log(message);
 };
 
-const pluginInstall = async ({ configuration, serviceDir, pluginName, pluginVersion }) => {
-  const packageJsonFilePath = path.join(serviceDir, 'package.json');
-
-  // check if package.json is already present. Otherwise create one
-  const exists = await fileExists(packageJsonFilePath);
-  if (!exists) {
-    cli.log('Creating an empty package.json file in your service directory');
-
-    const packageJsonFileContent = {
-      name: configuration.service,
-      description: '',
-      version: '0.1.0',
-      dependencies: {},
-      devDependencies: {},
-    };
-    await fse.writeJson(packageJsonFilePath, packageJsonFileContent);
-  }
-
-  // install the package through npm
+const pluginInstall = async ({ serviceDir, pluginName, pluginVersion }) => {
   const pluginFullName = `${pluginName}@${pluginVersion}`;
   const message = [
     `Installing plugin "${pluginFullName}"`,
