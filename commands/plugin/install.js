@@ -15,7 +15,6 @@ const fileExists = require('../../lib/utils/fs/fileExists');
 const npmCommandDeferred = require('../../lib/utils/npm-command-deferred');
 const CLI = require('../../lib/classes/CLI');
 const {
-  getPlugins,
   getPluginInfo,
   getServerlessFilePath,
   validate,
@@ -24,16 +23,11 @@ const {
 const cli = new CLI(undefined);
 
 module.exports = async ({ configuration, serviceDir, configurationFilename, options }) => {
+  validate({ serviceDir });
+
   const pluginInfo = getPluginInfo(options.name);
   const pluginName = pluginInfo.name;
   const pluginVersion = pluginInfo.version || 'latest';
-
-  validate({ serviceDir });
-  const plugins = await getPlugins();
-  const plugin = plugins.find((item) => item.name === pluginName);
-  if (!plugin) {
-    cli.log('Plugin not found in serverless registry, continuing to install');
-  }
 
   const context = { configuration, serviceDir, configurationFilename, pluginName, pluginVersion };
   await pluginInstall(context);
