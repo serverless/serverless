@@ -7,7 +7,7 @@ require('log-node')();
 
 const log = require('log').get('serverless');
 const awsRequest = require('@serverless/test/aws-request');
-const fsPromises = require('fs').promises;
+const fsp = require('fs').promises;
 const path = require('path');
 const {
   SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
@@ -56,8 +56,8 @@ const rabbitMqBrokerName = 'integration-tests-rabbitmq-broker';
 
 async function handleInfrastructureCreation() {
   const [cfnTemplate, kafkaServerProperties] = await Promise.all([
-    fsPromises.readFile(path.join(__dirname, 'cloudformation.yml'), 'utf8'),
-    fsPromises.readFile(path.join(__dirname, 'kafka.server.properties')),
+    fsp.readFile(path.join(__dirname, 'cloudformation.yml'), 'utf8'),
+    fsp.readFile(path.join(__dirname, 'kafka.server.properties')),
   ]);
 
   await ensureActiveMQCredentialsSecret();
@@ -120,7 +120,7 @@ async function handleInfrastructureUpdate() {
   await ensureActiveMQCredentialsSecret();
   await ensureRabbitMQCredentialsSecret();
 
-  const cfnTemplate = await fsPromises.readFile(path.join(__dirname, 'cloudformation.yml'), 'utf8');
+  const cfnTemplate = await fsp.readFile(path.join(__dirname, 'cloudformation.yml'), 'utf8');
 
   try {
     await awsRequest('CloudFormation', 'updateStack', {

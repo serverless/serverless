@@ -18,7 +18,7 @@ describe('#request', () => {
       proxyquire('../../../../lib/aws/request', {
         'aws-sdk': { config: configStub },
       });
-      expect(typeof configStub.logger).to.equal('function');
+      expect(typeof configStub.logger.log).to.equal('function');
     });
   });
 
@@ -70,9 +70,7 @@ describe('#request', () => {
             Key: 'test-key',
           }
         )
-      ).to.be.rejectedWith(
-        'AWS provider credentials not found. Learn how to set up AWS provider credentials in our docs here: <\u001b[32mhttp://slss.io/aws-creds-setup\u001b[39m>.'
-      );
+      ).to.be.rejectedWith('AWS provider credentials not found.');
     });
   });
 
@@ -203,12 +201,38 @@ describe('#request', () => {
       expect(sendFake.promise).to.have.been.calledTwice;
     });
 
-    it('should not retry if error code is 403 and retryable is set to true', async () => {
+    it('should not retry if status code is 403 and retryable is set to true', async () => {
       const error = {
         providerError: {
           statusCode: 403,
           retryable: true,
           code: 'retry',
+          message: 'Testing retry',
+        },
+      };
+      const sendFake = {
+        promise: sinon.stub(),
+      };
+      sendFake.promise.onFirstCall().rejects(error);
+      sendFake.promise.onSecondCall().resolves({});
+      class FakeS3 {
+        error() {
+          return sendFake;
+        }
+      }
+      const awsRequest = proxyquire('../../../../lib/aws/request', {
+        'aws-sdk': { S3: FakeS3 },
+      });
+      expect(awsRequest({ name: 'S3' }, 'error')).to.be.rejected;
+      return expect(sendFake.promise).to.have.been.calledOnce;
+    });
+
+    it('should not retry if error code is ExpiredTokenException and retryable is set to true', async () => {
+      const error = {
+        providerError: {
+          statusCode: 400,
+          retryable: true,
+          code: 'ExpiredTokenException',
           message: 'Testing retry',
         },
       };

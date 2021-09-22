@@ -21,3 +21,13 @@ functions:
             inputPathsMap:
               eventTime: '$.time'
             inputTemplate: '{"time": <eventTime>, "name": "transformedInput"}'
+  scheduleExtendedArray:
+    handler: core.scheduleExtendedArray
+    events:
+      - schedule:
+          rate:
+            - cron(* * * * ? *)
+          inputTransformer:
+            inputPathsMap:
+              eventTime: '$.time'
+            inputTemplate: '{"time": <eventTime>, "name": "transformedInput"}'

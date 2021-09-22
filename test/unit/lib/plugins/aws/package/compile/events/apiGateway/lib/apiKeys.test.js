@@ -139,25 +139,32 @@ describe('#compileApiKeys()', () => {
 });
 
 describe('lib/plugins/aws/package/compile/events/apiGateway/lib/apiKeys.test.js', () => {
-  it('should support usage plan notation', async () => {
-    const apiGatewayExt = {
-      apiKeys: [
-        {
-          free: [
-            '1234567890',
-            { name: '2345678901' },
-            {
-              value: 'valueForKeyWithoutName',
-              description: 'Api key description',
-            },
-            { name: '3456789012', value: 'valueForKey3456789012' },
-            { description: 'descriptionForKeyWithoutNameOrValue' },
-          ],
-        },
-        { paid: ['0987654321', 'jihgfedcba'] },
-      ],
-      usagePlan: [{ free: {} }, { paid: {} }],
-    };
+  let cfResources;
+  let naming;
+  let serverlessInstance;
+  const apiGatewayExt = {
+    apiKeys: [
+      {
+        free: [
+          '1234567890',
+          { name: '2345678901' },
+          {
+            value: 'valueForKeyWithoutName',
+            description: 'Api key description',
+          },
+          { name: '3456789012', value: 'valueForKey3456789012' },
+          { description: 'descriptionForKeyWithoutNameOrValue' },
+        ],
+      },
+      { paid: ['0987654321', 'jihgfedcba'] },
+      {
+        disabled: [{ name: '1111111111', enabled: false }],
+      },
+    ],
+    usagePlan: [{ free: {} }, { paid: {} }, { disabled: {} }],
+  };
+
+  before(async () => {
     const { awsNaming, cfTemplate, serverless } = await runServerless({
       fixture: 'apiGateway',
       command: 'package',
@@ -167,8 +174,17 @@ describe('lib/plugins/aws/package/compile/events/apiGateway/lib/apiKeys.test.js'
         },
       },
     });
-    const resources = cfTemplate.Resources;
+    naming = awsNaming;
+    cfResources = cfTemplate.Resources;
+    serverlessInstance = serverless;
+  });
 
+  it('should disable keys when enabled: false', () => {
+    const resource = cfResources[naming.getApiKeyLogicalId(1, 'disabled')];
+    expect(resource.Properties.Enabled).to.be.false;
+  });
+
+  it('should support usage plan notation', () => {
     const expectedApiKeys = {
       free: [
         { name: '1234567890', value: undefined, description: undefined },
@@ -194,11 +210,12 @@ describe('lib/plugins/aws/package/compile/events/apiGateway/lib/apiKeys.test.js'
         { name: 'jihgfedcba', value: undefined, description: undefined },
       ],
     };
-    apiGatewayExt.apiKeys.forEach((plan) => {
+
+    apiGatewayExt.apiKeys.slice(0, 2).forEach((plan) => {
       const planName = Object.keys(plan)[0]; // free || paid
       const apiKeys = expectedApiKeys[planName];
       apiKeys.forEach((apiKey, index) => {
-        const resource = resources[awsNaming.getApiKeyLogicalId(index + 1, planName)];
+        const resource = cfResources[naming.getApiKeyLogicalId(index + 1, planName)];
         expect(resource.Type).to.equal('AWS::ApiGateway::ApiKey');
         expect(resource.Properties.Enabled).to.equal(true);
         expect(resource.Properties.Name).to.equal(apiKey.name);
@@ -207,7 +224,7 @@ describe('lib/plugins/aws/package/compile/events/apiGateway/lib/apiKeys.test.js'
         expect(resource.Properties.StageKeys[0].RestApiId.Ref).to.equal('ApiGatewayRestApi');
         expect(resource.Properties.StageKeys[0].StageName).to.equal('dev');
         expect(resource.DependsOn).to.equal(
-          awsNaming.generateApiGatewayDeploymentLogicalId(serverless.instanceId)
+          naming.generateApiGatewayDeploymentLogicalId(serverlessInstance.instanceId)
         );
       });
     });

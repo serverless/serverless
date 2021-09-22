@@ -13,6 +13,10 @@ if (require('../lib/utils/tabCompletion/isSupported') && process.argv[2] === 'co
   return;
 }
 
+// Setup log writing
+require('@serverless/utils/log-reporters/node');
+const { progress } = require('@serverless/utils/log');
+
 const handleError = require('../lib/cli/handle-error');
 const {
   storeLocally: storeTelemetryLocally,
@@ -39,6 +43,7 @@ const keepAliveTimer = setTimeout(() => {}, 60 * 60 * 1000);
 
 process.once('uncaughtException', (error) => {
   clearTimeout(keepAliveTimer);
+  progress.clear();
   const cachedHasTelemetryBeenReported = hasTelemetryBeenReported;
   hasTelemetryBeenReported = true;
   handleError(error, {
@@ -58,6 +63,7 @@ process.once('uncaughtException', (error) => {
 require('signal-exit/signals').forEach((signal) => {
   process.once(signal, () => {
     clearTimeout(keepAliveTimer);
+    progress.clear();
     // If there's another listener (e.g. we're in deamon context or reading stdin input)
     // then let the other listener decide how process will exit
     const isOtherSigintListener = Boolean(process.listenerCount(signal));
@@ -508,6 +514,8 @@ const processSpanPromise = (async () => {
           commandUsage,
         });
 
+      progress.clear();
+
       logDeprecation.printSummary();
 
       if (!hasTelemetryBeenReported) {
@@ -794,6 +802,7 @@ const processSpanPromise = (async () => {
         // Run command
         await serverless.run();
       }
+      progress.clear();
 
       logDeprecation.printSummary();
 
@@ -849,6 +858,7 @@ const processSpanPromise = (async () => {
       throw error;
     }
   } catch (error) {
+    progress.clear();
     const cachedHasTelemetryBeenReported = hasTelemetryBeenReported;
     hasTelemetryBeenReported = true;
     handleError(error, {

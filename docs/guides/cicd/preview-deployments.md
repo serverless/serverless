@@ -37,7 +37,7 @@ Branch names may also include characters such as `/` which are invalid character
 
 ## Automatically deleting preview deployments (recommended)
 
-The recommended method for deleting preview service instances is to select "Destroy stage and resources when branch is deleted". If the changes in the PR are accepted then they will be merged and then the branch is deleted. If the changes are rejected the branch is also deleted. Whenever the branch is deleted, Serverless Framework Pro will automatically run `sls remove` on this service instance.
+The recommended method for deleting preview service instances is to select "Destroy stage and resources when branch is deleted". If the changes in the PR are accepted then they will be merged and then the branch is deleted. If the changes are rejected the branch is also deleted. Whenever the branch is deleted, Serverless Framework will automatically run `sls remove` on this service instance.
 
 ## Manually deleting preview deployments
 
