@@ -168,16 +168,14 @@ class PluginInstall {
       this.options.pluginName,
       'package.json'
     );
-    return fse.readJson(pluginPackageJsonFilePath).then((pluginPackageJson) => {
-      if (pluginPackageJson.peerDependencies) {
-        const pluginsArray = [];
-        Object.entries(pluginPackageJson.peerDependencies).forEach(([k, v]) => {
-          pluginsArray.push(`${k}@"${v}"`);
-        });
-        return Promise.all(pluginsArray.map((plugin) => this.npmInstall(plugin)));
-      }
-      return Promise.resolve();
-    });
+    const pluginPackageJson = await fse.readJson(pluginPackageJsonFilePath);
+    if (pluginPackageJson.peerDependencies) {
+      const pluginsArray = [];
+      Object.entries(pluginPackageJson.peerDependencies).forEach(([k, v]) => {
+        pluginsArray.push(`${k}@"${v}"`);
+      });
+      await Promise.all(pluginsArray.map((plugin) => this.npmInstall(plugin)));
+    }
   }
 
   async npmInstall(name) {
