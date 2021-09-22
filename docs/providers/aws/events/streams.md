@@ -320,3 +320,26 @@ functions:
 ```
 
 For more information, read this [AWS blog post](https://aws.amazon.com/blogs/compute/increasing-real-time-stream-processing-performance-with-amazon-kinesis-data-streams-enhanced-fan-out-and-aws-lambda/) or this [AWS documentation](https://docs.aws.amazon.com/streams/latest/dev/introduction-to-enhanced-consumers.html).
+
+## Setting TumblingWindowInSeconds
+
+This configuration allows customers to aggregate values in near-realtime, allowing state to by passed forward by Lambda invocations. A event source created with this property adds several new attributes to the events delivered to the Lambda function.
+
+- **window**: beginning and ending timestamps of the tumbling window;
+- **state**: an object containing state of a previous execution. Initially empty can contain up to **1mb** of data;
+- **isFinalInvokeForWindow**: indicates if this is the last execution for the tumbling window;
+- **isWindowTerminatedEarly**: happens only when the state object exceeds maximum allowed size of 1mb.
+
+For more information and examples, read the [AWS release announcement](https://aws.amazon.com/blogs/compute/using-aws-lambda-for-streaming-analytics/)
+
+Note: Serverless only sets this property if you explicitly add it to the stream configuration (see example below).
+
+```yml
+functions:
+  preprocess:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+          tumblingWindowInSeconds: 30
+```
