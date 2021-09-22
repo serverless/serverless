@@ -24,9 +24,9 @@ const {
 const cli = new CLI(undefined);
 
 module.exports = async ({ configuration, serviceDir, configurationFilename, options }) => {
-  const pluginInfo = getPluginInfo(options.name);
-  options.pluginName = pluginInfo[0];
-  options.pluginVersion = pluginInfo[1] || 'latest';
+  const { name, version } = getPluginInfo(options.name);
+  options.pluginName = name;
+  options.pluginVersion = version || 'latest';
 
   validate({ serviceDir });
   const plugins = await getPlugins();
