@@ -15,16 +15,16 @@ chai.use(require('chai-as-promised'));
 const npmCommand = 'npm';
 
 describe('test/unit/commands/plugin/install.test.js', async () => {
-  let execFake;
+  let spawnFake;
   let serviceDir;
   let configurationFilePath;
 
   const pluginName = 'serverless-plugin-1';
 
   before(async () => {
-    execFake = sinon.fake(async (command, ...args) => {
-      if (command.startsWith(`${npmCommand} install --save-dev`)) {
-        const _pluginName = command.split(' ')[3];
+    spawnFake = sinon.fake(async (command, args) => {
+      if (command === npmCommand && args[0] === 'install' && args[1] === '--save-dev') {
+        const _pluginName = args[2];
         const pluginNameWithoutVersion = _pluginName.split('@')[0];
 
         if (pluginNameWithoutVersion) {
@@ -39,13 +39,9 @@ describe('test/unit/commands/plugin/install.test.js', async () => {
           await fse.writeJson(pluginPackageJsonFilePath, packageJsonFileContent);
         }
       }
-      const callback = args[args.length - 1];
-      callback();
     });
     const installPlugin = proxyquire('../../../../commands/plugin/install', {
-      child_process: {
-        exec: execFake,
-      },
+      'child-process-ext/spawn': spawnFake,
     });
 
     const fixture = await fixturesEngine.setup('function');
@@ -69,7 +65,8 @@ describe('test/unit/commands/plugin/install.test.js', async () => {
   });
 
   it('should install plugin', () => {
-    const command = execFake.firstArg;
+    const firstCall = spawnFake.firstCall;
+    const command = [firstCall.args[0], ...firstCall.args[1]].join(' ');
     const expectedCommand = `${npmCommand} install --save-dev ${pluginName}`;
     expect(command).to.have.string(expectedCommand);
   });

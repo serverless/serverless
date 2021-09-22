@@ -1,13 +1,12 @@
 'use strict';
 
-const childProcess = require('child_process');
+const spawn = require('child-process-ext/spawn');
 const fsp = require('fs').promises;
 const fse = require('fs-extra');
 const path = require('path');
 const _ = require('lodash');
 const isPlainObject = require('type/plain-object/is');
 const yaml = require('js-yaml');
-const { promisify } = require('util');
 const cloudformationSchema = require('@serverless/utils/cloudformation-schema');
 const log = require('@serverless/utils/log');
 const ServerlessError = require('../../lib/serverless-error');
@@ -16,8 +15,6 @@ const fileExists = require('../../lib/utils/fs/fileExists');
 const pluginUtils = require('../../lib/commands/plugin-management');
 const npmCommandDeferred = require('../../lib/utils/npm-command-deferred');
 const CLI = require('../../lib/classes/CLI');
-
-const execAsync = promisify(childProcess.exec);
 
 module.exports = async ({ configuration, serviceDir, configurationFilename, options }) => {
   await new PluginInstall({
@@ -185,7 +182,7 @@ class PluginInstall {
 
   async npmInstall(name) {
     const npmCommand = await npmCommandDeferred;
-    return execAsync(`${npmCommand} install --save-dev ${name}`, {
+    await spawn(npmCommand, ['install', '--save-dev', name], {
       cwd: this.serviceDir,
       stdio: 'ignore',
     });
