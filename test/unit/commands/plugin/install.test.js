@@ -14,7 +14,7 @@ chai.use(require('chai-as-promised'));
 
 const npmCommand = 'npm';
 
-describe.only('test/unit/commands/plugin/install.test.js', async () => {
+describe('test/unit/commands/plugin/install.test.js', async () => {
   let execFake;
   let serviceDir;
   let configurationFilePath;
