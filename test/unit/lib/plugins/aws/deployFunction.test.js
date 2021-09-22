@@ -197,7 +197,6 @@ describe('AwsDeployFunction', () => {
       serverless.utils.writeFileSync(artifactFilePath, 'first.zip file content');
       updateFunctionCodeStub = sinon.stub(awsDeployFunction.provider, 'request').resolves();
       statSyncStub = sinon.stub(fs, 'statSync').returns({ size: 1024 });
-      sinon.spy(awsDeployFunction.serverless.cli, 'log');
       readFileSyncStub = sinon.stub(fs, 'readFileSync').returns();
       awsDeployFunction.serverless.service.provider.remoteFunctionData = {
         Configuration: {
@@ -252,11 +251,8 @@ describe('AwsDeployFunction', () => {
 
       await awsDeployFunction.deployFunction();
 
-      const expected = 'Code not changed. Skipping function deployment.';
-
       expect(updateFunctionCodeStub.calledOnce).to.be.equal(false);
       expect(readFileSyncStub.calledOnce).to.equal(true);
-      expect(awsDeployFunction.serverless.cli.log.calledWithExactly(expected)).to.equal(true);
       expect(readFileSyncStub.calledWithExactly(artifactFilePath)).to.equal(true);
     });
 
@@ -266,10 +262,8 @@ describe('AwsDeployFunction', () => {
 
       await awsDeployFunction.deployFunction();
 
-      const expected = 'Uploading function: first (1.02 kB)...';
       expect(readFileSyncStub.calledOnce).to.equal(true);
       expect(statSyncStub.calledOnce).to.equal(true);
-      expect(awsDeployFunction.serverless.cli.log.calledWithExactly(expected)).to.be.equal(true);
       expect(readFileSyncStub.calledWithExactly(artifactFilePath)).to.equal(true);
     });
 
