@@ -185,7 +185,7 @@ class PluginInstall {
 
   async npmInstall(name) {
     const npmCommand = await npmCommandDeferred;
-    execAsync(`${npmCommand} install --save-dev ${name}`, {
+    return execAsync(`${npmCommand} install --save-dev ${name}`, {
       stdio: 'ignore',
     });
   }
