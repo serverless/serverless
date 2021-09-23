@@ -16,7 +16,7 @@ layout: Doc
 
 Simply put, events are the things that trigger your functions to run.
 
-If you are using Alibaba Cloud as your provider, all `events` in the service are anything in Alibaba Cloud that can trigger your Functions, like HTTP endpoints, OSS events, etc..
+If you are using Alibaba Cloud as your provider, `events` in the service are limited to the Alibaba Cloud triggers HTTP and OSS.
 
 [View the Alibaba Cloud Function Compute events section for a list of supported events](../events)
 
@@ -40,7 +40,7 @@ functions:
 
 ## Types
 
-The Serverless Framework supports all of Alibaba Cloud Function Compute events. Instead of listing them here, we've put them in a separate section. [Check out the events section for more information.](../events)
+The Serverless Framework supports the Alibaba Cloud Function Compute events `oss` and `http`. Instead of listing them here, we've put them in a separate section. [Check out the events section for more information.](../events)
 
 ## Deploying
 
