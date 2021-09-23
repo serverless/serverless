@@ -184,6 +184,7 @@ const processSpanPromise = (async () => {
 
       const resolveConfigurationPath = require('../lib/cli/resolve-configuration-path');
       const readConfiguration = require('../lib/configuration/read');
+      const resolveProviderName = require('../lib/configuration/resolve-provider-name');
 
       // Resolve eventual service configuration path
       configurationPath = await resolveConfigurationPath();
@@ -241,7 +242,6 @@ const processSpanPromise = (async () => {
           }
 
           const resolveVariablesMeta = require('../lib/configuration/variables/resolve-meta');
-          const resolveProviderName = require('../lib/configuration/resolve-provider-name');
 
           variablesMeta = resolveVariablesMeta(configuration);
 
@@ -481,6 +481,15 @@ const processSpanPromise = (async () => {
             ensureResolvedProperty('provider\0region', { shouldSilentlyReturnIfLegacyMode: true });
           }
         })();
+
+        // Ensure to have full AWS commands schema loaded if we're in context of AWS provider
+        // It's not the case if not AWS service specific command was resolved
+        if (configuration && resolveProviderName(configuration) === 'aws') {
+          resolveInput.clear();
+          ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
+            require('../lib/cli/commands-schema/aws-service')
+          ));
+        }
       } else {
         // In non-service context we recognize all AWS service commands
         resolveInput.clear();
