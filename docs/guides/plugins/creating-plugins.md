@@ -1,137 +1,51 @@
 <!--
-title: Serverless Framework - AWS Lambda Guide - Plugins
+title: Serverless Framework - Creating plugins
 menuText: Plugins
 menuOrder: 14
-description: How to install and create Plugins to extend or overwrite the functionality of the Serverless Framework
+description: How to create custom plugins to customize the Serverless Framework
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/plugins)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/plugins/creating-plugins)
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Plugins
+# Creating custom plugins
 
-A Plugin is custom Javascript code that creates new or extends existing commands within the Serverless Framework. The Serverless Framework is merely a group of Plugins that are provided in the core. If you or your organization have a specific workflow, install a pre-written Plugin or write a plugin to customize the Framework to your needs. External Plugins are written exactly the same way as the core Plugins.
+A plugin is custom Javascript code that adds new features to the Serverless Framework. The Serverless Framework is merely a group of Plugins that are provided in the core. If you or your organization have a specific workflow, install a pre-written Plugin or write a plugin to customize the Framework to your needs. External Plugins are written exactly the same way as the core Plugins.
 
 - [How to create serverless plugins - Part 1](https://serverless.com/blog/writing-serverless-plugins/)
 - [How to create serverless plugins - Part 2](https://serverless.com/blog/writing-serverless-plugins-2/)
 
-## Installing Plugins
+Plugins can:
 
-External Plugins are added on a per service basis and are not applied globally. Make sure you are in your Service's root directory, then install the corresponding Plugin with the help of NPM:
+- Define new CLI commands
+- Hook into core and custom _lifecycle events_
+- Define new variable sources
+- Extend the `serverless.yml` syntax
+- Write extra information to the CLI output
+- Add support for new cloud providers
 
-```
-npm install --save custom-serverless-plugin
-```
-
-We need to tell Serverless that we want to use the plugin inside our service. We do this by adding the name of the Plugin to the `plugins` section in the `serverless.yml` file.
-
-```yml
-# serverless.yml file
-
-plugins:
-  - custom-serverless-plugin
-```
-
-The `plugins` section supports two formats:
-
-Array object:
-
-```yml
-plugins:
-  - plugin1
-  - plugin2
-```
-
-Enhanced plugins object:
-
-```yml
-plugins:
-  localPath: './custom_serverless_plugins'
-  modules:
-    - plugin1
-    - plugin2
-```
-
-Plugins might want to add extra information which should be accessible to Serverless. The `custom` section in the `serverless.yml` file is the place where you can add necessary configurations for your plugins (the plugins author / documentation will tell you if you need to add anything there):
-
-```yml
-plugins:
-  - custom-serverless-plugin
-
-custom:
-  customkey: customvalue
-```
-
-## Service local plugin
-
-If you are working on a plugin or have a plugin that is just designed for one project, it can be loaded from the local `.serverless_plugins` folder at the root of your service. Local plugins can be added in the `plugins` array in `serverless.yml`.
-
-```yml
-plugins:
-  - custom-serverless-plugin
-```
-
-Local plugins folder can be changed by enhancing `plugins` object:
-
-```yml
-plugins:
-  localPath: './custom_serverless_plugins'
-  modules:
-    - custom-serverless-plugin
-```
-
-The `custom-serverless-plugin` will be loaded from the `custom_serverless_plugins` directory at the root of your service. If the `localPath` is not provided or empty, the `.serverless_plugins` directory will be used.
-
-The plugin will be loaded based on being named `custom-serverless-plugin.js` or `custom-serverless-plugin\index.js` in the root of `localPath` folder (`.serverless_plugins` by default).
-
-If you want to load a plugin from a specific directory without affecting other plugins, you can also specify a path relative to the root of your service:
-
-```yaml
-plugins:
-  # This plugin will be loaded from the `.serverless_plugins/` or `node_modules/` directories
-  - custom-serverless-plugin
-  # This plugin will be loaded from the `sub/directory/` directory
-  - ./sub/directory/another-custom-plugin
-```
-
-### Load Order
-
-Keep in mind that the order you define your plugins matters. When Serverless loads all the core plugins and then the custom plugins in the order you've defined them.
-
-```yml
-# serverless.yml
-
-plugins:
-  - plugin1
-  - plugin2
-```
-
-In this case `plugin1` is loaded before `plugin2`.
-
-## Writing Plugins
-
-**Note:** In order to ensure that your plugin works correctly with Framework in `v2.x`, keep the following things in mind:
+**Note:** To ensure that your plugin works correctly with Serverless Framework `v2.x` and `v3.x`, keep the following things in mind:
 
 - Do not depend on `Bluebird` API for Promises returned by Framework internals - we are actively migrating away from `Bluebird` at this point
 - If your plugin adds new properties, ensure to define corresponding schema definitions, please refer to: [Extending validation schema](#extending-validation-schema)
 - Avoid using `subcommands` as the support for them might become deprecated or removed in next major version of the Framework
 - Add `serverless` to `peerDependencies` in order to ensure officially supported Framework version(s)
 
-### Concepts
+## Concepts
 
-#### Plugin
+### Plugin
 
-Code which defines _Commands_, any _Events_ within a _Command_, and any _Hooks_ assigned to a _Lifecycle Event_.
+Code which defines _Commands_, any _Lifecycle Events_ within a _Command_, and any _Hooks_ assigned to a _Lifecycle Event_.
 
 - Command // CLI configuration, commands, options
   - LifecycleEvent(s) // Events that happen sequentially when the command is run
     - Hook(s) // Code that runs when a Lifecycle Event happens during a Command
 
-#### Command
+### Command
 
 A CLI _Command_ that can be called by a user, e.g. `serverless foo`. A Command has no logic, but simply defines the CLI configuration (e.g. command, parameters) and the _Lifecycle Events_ for the command. Every command defines its own lifecycle events.
 
@@ -151,9 +65,9 @@ class MyPlugin {
 module.exports = MyPlugin;
 ```
 
-#### Lifecycle Events
+### Lifecycle Events
 
-Events that fire sequentially during a Command. The above example lists two Events. However, for each Event, an additional `before` and `after` event is created. Therefore, six Events exist in the above example:
+Lifecycle Events are events that fire sequentially during a Command. The above example lists two Events. However, for each Event, an additional `before` and `after` event is created. Therefore, six Events exist in the above example:
 
 - `before:foo:resources`
 - `foo:resources`
@@ -164,7 +78,7 @@ Events that fire sequentially during a Command. The above example lists two Even
 
 The name of the command in front of lifecycle events when they are used for Hooks.
 
-#### Hooks
+### Hooks
 
 A Hook binds code to any lifecycle event from any command.
 
@@ -202,12 +116,11 @@ class MyPlugin {
 module.exports = MyPlugin;
 ```
 
-### Custom Variable Types
+## Custom variables
 
-Plugins may register its own configuration variables resolution sources.
+Plugins can register custom configuration variables sources, for example `${my-variable-source:some-variable}`.
 
-Resolvers should be configured at `configurationVariablesSources` in form of a plain object that exposes `resolve` function.
-Check below example
+Custom sources can be registered via `configurationVariablesSources` as a plain object that exposes a `resolve` function:
 
 ```javascript
 'use strict';
@@ -217,7 +130,7 @@ class SomePlugin {
 
     this.configurationVariablesSources = {
       foo: {
-        async resolve({ address, params, resolveConfigurationProperty, options  }) {
+        async resolve({address, params, resolveConfigurationProperty, options}) {
           // `address` and `params` reflect values configured with a variable:
           // ${foo(param1, param2):address}
           // Note: they're passed if they're configured into variable
@@ -225,21 +138,22 @@ class SomePlugin {
           // `options` is CLI options
           // `resolveConfigurationProperty` allows to access other configuration properties,
           // and guarantees to return a fully resolved form (even if property is configured with variables)
-          const stage = options.stage || await  resolveConfigurationProperty(["provider", "stage"]) || "dev";
+          const stage = options.stage || await resolveConfigurationProperty(["provider", "stage"]) || "dev";
 
           // Resolver is expected to return plain object, with resolved value set on `value` property.
           // Resolve value can be any JSON value
           return {
             //
-            value: `Resolution of "foo" source for "${stage}" stage at "${address || ""}" addresss with "${(params || []).join(", ")}" params`
+            value: `Resolution of "foo" source for "${stage}" stage at "${address || ""}" address with "${(params || []).join(", ")}" params`
           }
         }
       }
-
+    }
+  }
 }
 ```
 
-Having an above source resolver (as provided with a plugin), we may use new variable source in configuration as follows:
+The variable source defined above (registered via a plugin) can be used as follows:
 
 ```yaml
 service: test
@@ -247,10 +161,10 @@ provider: aws
 custom:
   value1: ${foo(one, two):whatever}
 plugins:
-  - ./some-plugin
+  - ./my-plugin
 ```
 
-Configuration will be resolved into following form:
+The configuration will be resolved into the following:
 
 ```yaml
 service: test
@@ -258,7 +172,7 @@ provider: aws
 custom:
   value1: Resolution of "foo" source for "dev" stage at "whatever" address with "one, two" params
 plugins:
-  - ./some-plugin
+  - ./my-plugin
 ```
 
 ### Defining Options
