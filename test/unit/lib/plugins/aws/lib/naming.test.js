@@ -561,6 +561,15 @@ describe('#naming()', () => {
         'functionNamestreamNameConsumer'
       );
     });
+
+    it('should return service specific stream consumer name', () => {
+      serverless.service.serviceObject = { name: 'myService' };
+      serverless.service.provider.stage = sdk.naming.provider.getStage();
+      serverless.service.provider.kinesis = { consumerNamingMode: 'serviceSpecific' };
+      expect(sdk.naming.getStreamConsumerName('functionName', 'streamName')).to.equal(
+        'functionNamestreamNamemyServicedevConsumer'
+      );
+    });
   });
 
   describe('#getStreamConsumerLogicalId()', () => {
