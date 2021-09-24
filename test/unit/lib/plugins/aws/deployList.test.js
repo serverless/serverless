@@ -25,9 +25,6 @@ describe('AwsDeployList', () => {
     s3Key = `${prefix}/${serverless.service.service}/${provider.getStage()}`;
     awsDeployList = new AwsDeployList(serverless, options);
     awsDeployList.bucketName = 'deployment-bucket';
-    awsDeployList.serverless.cli = {
-      log: sinon.spy(),
-    };
   });
 
   describe('#listDeployments()', () => {
@@ -207,37 +204,6 @@ describe('AwsDeployList', () => {
 
       expect(listVersionsByFunctionStub.calledTwice).to.equal(true);
       expect(result).to.deep.equal(expectedResult);
-    });
-  });
-
-  describe('#displayFunctions()', () => {
-    const funcs = [
-      {
-        Versions: [{ FunctionName: 'listDeployments-dev-func-1', Version: '1337' }],
-      },
-      {
-        Versions: [
-          { FunctionName: 'listDeployments-dev-func-2', Version: '2' },
-          { FunctionName: 'listDeployments-dev-func-2', Version: '3' },
-          { FunctionName: 'listDeployments-dev-func-2', Version: '4' },
-          { FunctionName: 'listDeployments-dev-func-2', Version: '5' },
-          { FunctionName: 'listDeployments-dev-func-2', Version: '6' },
-          { FunctionName: 'listDeployments-dev-func-2', Version: '7' },
-        ],
-      },
-    ];
-
-    it('should display all the functions in the service together with their versions', () => {
-      const log = awsDeployList.serverless.cli.log;
-
-      awsDeployList.displayFunctions(funcs);
-      expect(log.calledWithExactly('Listing functions and their last 5 versions:')).to.be.equal(
-        true
-      );
-      expect(log.calledWithExactly('-------------')).to.be.equal(true);
-
-      expect(log.calledWithExactly('func-1: 1337')).to.be.equal(true);
-      expect(log.calledWithExactly('func-2: 3, 4, 5, 6, 7')).to.be.equal(true);
     });
   });
 });
