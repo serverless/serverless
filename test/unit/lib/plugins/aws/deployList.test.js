@@ -45,10 +45,6 @@ describe('AwsDeployList', () => {
           Prefix: `${s3Key}`,
         })
       ).to.be.equal(true);
-      const infoText = "Couldn't find any existing deployments.";
-      expect(awsDeployList.serverless.cli.log.calledWithExactly(infoText)).to.be.equal(true);
-      const verifyText = 'Please verify that stage and region are correct.';
-      expect(awsDeployList.serverless.cli.log.calledWithExactly(verifyText)).to.be.equal(true);
       awsDeployList.provider.request.restore();
     });
 
@@ -72,16 +68,6 @@ describe('AwsDeployList', () => {
           Prefix: `${s3Key}`,
         })
       ).to.be.equal(true);
-      const infoText = 'Listing deployments:';
-      expect(awsDeployList.serverless.cli.log.calledWithExactly(infoText)).to.be.equal(true);
-      const timestampOne = 'Timestamp: 113304333331';
-      const datetimeOne = 'Datetime: 2016-08-18T13:40:06';
-      expect(awsDeployList.serverless.cli.log.calledWithExactly(timestampOne)).to.be.equal(true);
-      expect(awsDeployList.serverless.cli.log.calledWithExactly(datetimeOne)).to.be.equal(true);
-      const timestampTow = 'Timestamp: 903940390431';
-      const datetimeTwo = 'Datetime: 2016-08-18T23:42:08';
-      expect(awsDeployList.serverless.cli.log.calledWithExactly(timestampTow)).to.be.equal(true);
-      expect(awsDeployList.serverless.cli.log.calledWithExactly(datetimeTwo)).to.be.equal(true);
       awsDeployList.provider.request.restore();
     });
   });
