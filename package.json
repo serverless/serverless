@@ -44,7 +44,7 @@
     "dotenv": "^10.0.0",
     "dotenv-expand": "^5.1.0",
     "essentials": "^1.1.1",
-    "ext": "^1.5.0",
+    "ext": "^1.6.0",
     "fastest-levenshtein": "^1.0.12",
     "filesize": "^8.0.3",
     "fs-extra": "^9.1.0",

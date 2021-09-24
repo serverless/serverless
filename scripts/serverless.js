@@ -138,6 +138,7 @@ const processSpanPromise = (async () => {
     const path = require('path');
     const uuid = require('uuid');
     const _ = require('lodash');
+    const clear = require('ext/object/clear');
     const Serverless = require('../lib/Serverless');
     const resolveVariables = require('../lib/configuration/variables/resolve');
     const isPropertyResolved = require('../lib/configuration/variables/is-property-resolved');
@@ -590,7 +591,8 @@ const processSpanPromise = (async () => {
               ({ command, commands, options, isHelpRequest, commandSchema } =
                 resolveInput(commandsSchema));
               serverless.processedInput.commands = serverless.pluginManager.cliCommands = commands;
-              serverless.processedInput.options = serverless.pluginManager.cliOptions = options;
+              serverless.processedInput.options = options;
+              Object.assign(clear(serverless.pluginManager.cliOptions), options);
               hasFinalCommandSchema = true;
             }
           } else {
