@@ -2,6 +2,53 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.60.0](https://github.com/serverless/serverless/compare/v2.59.0...v2.60.0) (2021-09-24)
+
+### Features
+
+- **CLI:**
+  - Remove missing CLI options schema deprecation ([#10001](https://github.com/serverless/serverless/issues/10001)) ([5b38232](https://github.com/serverless/serverless/commit/5b38232e631e1fb6d944d5f323f533d7dd7b701f)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Revert from unconditional `.env` support announcement ([#10003](https://github.com/serverless/serverless/issues/10003)) ([40cdb4f](https://github.com/serverless/serverless/commit/40cdb4f1a191d330e31ddadc4caaa4b314229e3d)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Stream:** Support `tumblingWindowInSeconds` ([#9979](https://github.com/serverless/serverless/issues/9979)) ([af39fc0](https://github.com/serverless/serverless/commit/af39fc016bd6386ea7d5d1ff71a26553a25b7ec5)) ([Guilherme Martins Crocetti](https://github.com/gmcrocetti))
+- Support `finalize` hook, triggered on command finalization ([#9956](https://github.com/serverless/serverless/issues/9956)) ([cb4f08a](https://github.com/serverless/serverless/commit/cb4f08ad7dd8eed3da69d61d51c6d5379a486bd0)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **AWS S3:** Recognize `BucketKeyEnabled` setting ([#9985](https://github.com/serverless/serverless/issues/9985)) ([54bb13b](https://github.com/serverless/serverless/commit/54bb13b6a6d3fd41548615fc23f4ae4d6d663dcc)) ([John Armstrong](https://github.com/jlarmstrongiv))
+- **CLI:** Fix general help output when in context of AWS service ([#9994](https://github.com/serverless/serverless/issues/9994)) ([0833fd0](https://github.com/serverless/serverless/commit/0833fd03d17d292bd4393ecec9569328daae68d2)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Plugins:** Ensure to keep `options` as passed to plugins up to date ([#9999](https://github.com/serverless/serverless/issues/9999)) ([e3af1f3](https://github.com/serverless/serverless/commit/e3af1f3a94253a7900de104afaa1c49aa436965c)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Telemetry:** Ensure to not show backend notification on error ([#9999](https://github.com/serverless/serverless/issues/9999)) ([dce0ff1](https://github.com/serverless/serverless/commit/dce0ff1a892959b12414f1bff3915fe50b900ba2)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Templates
+
+- Improve source maps handling in `aws-nodejs-typescript` ([#9961](https://github.com/serverless/serverless/issues/9961)) ([28d230f](https://github.com/serverless/serverless/commit/28d230f946df6cbcc8173822494b50cd056ef63c)) ([Adrien Cacciaguerra](https://github.com/adriencaccia))
+- Switch to esbuild in `aws-nodejs-typescript` ([#9962](https://github.com/serverless/serverless/issues/9962)) ([aaabb50](https://github.com/serverless/serverless/commit/aaabb50f1beb12683506ca7ab9e93ded75294694)) ([Adrien Cacciaguerra](https://github.com/adriencaccia))
+
+### Maintenance Improvements
+
+- Reorganize hooks resolution ([#9976](https://github.com/serverless/serverless/issues/9976)) ([76006ec](https://github.com/serverless/serverless/commit/76006ec1e80f51e194b51d4c0f2a11c64434158e)) ([Mariusz Nowak](https://github.com/medikoo))
+- Simplify lifecycle event hooks resolution ([#9976](https://github.com/serverless/serverless/issues/9976)) ([8b4498c](https://github.com/serverless/serverless/commit/8b4498c911e24ef7a46daf66380f1c122f988af3)) ([Mariusz Nowak](https://github.com/medikoo))
+- Replace `_.flatMap` usage ([#9948](https://github.com/serverless/serverless/issues/9948)) ([26b8bd5](https://github.com/serverless/serverless/commit/26b8bd5c5fd2154f47fa12804f1aee140000155f)) ([Jonas Matos](https://github.com/JonasMatos0))
+- **CLI: New logs (experimental):**
+  - Fix final `deploy` statuses timing ([#9967](https://github.com/serverless/serverless/issues/9967)) ([084a995](https://github.com/serverless/serverless/commit/084a9955f440ee18847df8a3087aba38405883b7)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Fix CloudFormation update resources status log in _verbose_ mode ([#9967](https://github.com/serverless/serverless/issues/9967)) ([bcd8a02](https://github.com/serverless/serverless/commit/bcd8a022a1e2e50a5d2708c374f4d5bcc30c80b5)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Ensure to strip colors from error messages ([#9967](https://github.com/serverless/serverless/issues/9967)) ([80005aa](https://github.com/serverless/serverless/commit/80005aaf6b57aa8d013fe4cda0be52d494cd4d78)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Ensure to write outputs on `info` ([#9991](https://github.com/serverless/serverless/issues/9991)) ([43d17de](https://github.com/serverless/serverless/commit/43d17debee20bfc7ee535fd643df0538f8bee9f8)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Present deprecations with single summary log ([#9960](https://github.com/serverless/serverless/issues/9960)) ([7eba95f](https://github.com/serverless/serverless/commit/7eba95fcb7f9b09a8a2aebd50c433f92e15cac97)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Add timer to final `deploy` statuses ([#9959](https://github.com/serverless/serverless/issues/9959)) ([7828cc7](https://github.com/serverless/serverless/commit/7828cc77f1fcea8f901887c12b07f5e18b34dcc8)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - _debug_ (previously _verbose_) `deploy` logs ([#9967](https://github.com/serverless/serverless/issues/9967)) ([655140b](https://github.com/serverless/serverless/commit/655140b764c8f2998188c3d47110494cbd742688)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Help output ([#9998](https://github.com/serverless/serverless/issues/9998)) ([b2df3cc](https://github.com/serverless/serverless/commit/b2df3cc0c8cba17c1995d3038e4a2caaca2f47f5)) ([Mariusz Nowak](https://github.com/medikoo))
+  - `deploy function` command ([#9990](https://github.com/serverless/serverless/issues/9990)) ([4d42ce3](https://github.com/serverless/serverless/commit/4d42ce3fa4f44f63d68a3841752746021500fe4f)) ([Mariusz Nowak](https://github.com/medikoo))
+  - `deploy list functions` command ([#10000](https://github.com/serverless/serverless/issues/10000)) ([ffbdfed](https://github.com/serverless/serverless/commit/ffbdfed292fdc379040052e6ec73107e5fdae5a8)) ([Mariusz Nowak](https://github.com/medikoo))
+  - `deploy list` command ([#10000](https://github.com/serverless/serverless/issues/10000)) ([9d6482c](https://github.com/serverless/serverless/commit/9d6482c6710cb2d05c8c03a29e207881efcc0138)) ([Mariusz Nowak](https://github.com/medikoo))
+  - `package` command ([#9956](https://github.com/serverless/serverless/issues/9956)) ([fa2507d](https://github.com/serverless/serverless/commit/fa2507dad06b037aa5a24b3392432cefc810a972)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - `deploy function` command ([#9990](https://github.com/serverless/serverless/issues/9990)) ([10df2e5](https://github.com/serverless/serverless/commit/10df2e5300e04ec9d00ebd343d9d8fe30c96afa7)) ([Mariusz Nowak](https://github.com/medikoo))
+  - _verbose_ logs for `deploy` operation ([#9967](https://github.com/serverless/serverless/issues/9967)) ([e423404](https://github.com/serverless/serverless/commit/e423404290a757a8adfc97d45e9aef7aa93f1404)) ([Mariusz Nowak](https://github.com/medikoo))
+  - dapt pre-created log style generators ([#9998](https://github.com/serverless/serverless/issues/9998)) ([8c9bd4a](https://github.com/serverless/serverless/commit/8c9bd4a6eda58d2ed6da08cc3bb806d970df4d17)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Convert custom resource packaging related log ([#9989](https://github.com/serverless/serverless/issues/9989)) ([0f0b85a](https://github.com/serverless/serverless/commit/0f0b85a6373dfcd9d21f1668e7fb3e0d20a3b393)) ([Mariusz Nowak](https://github.com/medikoo))
+  - `logs` command ([#9991](https://github.com/serverless/serverless/issues/9991)) ([cbd2e64](https://github.com/serverless/serverless/commit/cbd2e64f705e54e37dd9116d0931a3a96bceaa88)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Refactor main progress event with `isMainEvent` option ([#9981](https://github.com/serverless/serverless/issues/9981)) ([a6553f8](https://github.com/serverless/serverless/commit/a6553f8668b66e2281626e7e79a3a2042279f92d)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.59.0](https://github.com/serverless/serverless/compare/v2.58.0...v2.59.0) (2021-09-14)
 
 ### Features
