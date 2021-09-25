@@ -77,8 +77,6 @@ functions:
 This configuration sets up a disabled Kinesis stream event for the `preprocess` function which has a batch size of `100`. The starting position is
 `LATEST`.
 
-**Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
-
 ```yml
 functions:
   preprocess:
@@ -106,8 +104,6 @@ The `batchWindow` property specifies a maximum amount of time to wait before tri
 
 For more information, read the [AWS release announcement](https://aws.amazon.com/about-aws/whats-new/2019/09/aws-lambda-now-supports-custom-batch-window-for-kinesis-and-dynamodb-event-sources/) for this property.
 
-**Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
-
 ```yml
 functions:
   preprocess:
@@ -126,8 +122,6 @@ This configuration provides the ability to recursively split a failed batch and 
 
 [Related AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-bisectbatchonfunctionerror)
 
-**Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
-
 ```yml
 functions:
   preprocess:
@@ -145,8 +139,6 @@ This configuration sets up the maximum number of times to retry when the functio
 **Note:** Serverless only sets this property if you explicitly add it to the stream configuration (see example below).
 
 [Related AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-maximumretryattempts)
-
-**Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
 
 ```yml
 functions:
@@ -168,8 +160,6 @@ This configuration sets up the maximum age of a record that Lambda sends to a fu
 **Note:** Serverless only sets this property if you explicitly add it to the stream configuration (see example below).
 
 [Related AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-maximumrecordageinseconds)
-
-**Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
 
 ```yml
 functions:
@@ -255,8 +245,6 @@ The `parallelizationFactor` property specifies the number of concurrent Lambda i
 
 For more information, read the [AWS release announcement](https://aws.amazon.com/blogs/compute/new-aws-lambda-scaling-controls-for-kinesis-and-dynamodb-event-sources/) for this property.
 
-**Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
-
 ```yml
 functions:
   preprocess:
@@ -272,8 +260,6 @@ functions:
 This configuration allows customers to automatically checkpoint records that have been successfully processed for Amazon Kinesis and Amazon DynamoDB Streams.
 
 For more information, read the [AWS release announcement](https://aws.amazon.com/about-aws/whats-new/2020/12/aws-lambda-launches-checkpointing-for-amazon-kinesis-and-amazon-dynamodb-streams/)
-
-Note: Serverless only sets this property if you explicitly add it to the stream configuration (see example below).
 
 ```yml
 functions:
