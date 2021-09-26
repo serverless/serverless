@@ -5,6 +5,7 @@ const fsp = require('fs').promises;
 const fse = require('fs-extra');
 const path = require('path');
 const _ = require('lodash');
+const cjsResolve = require('ncjsm/resolve/sync');
 const isPlainObject = require('type/plain-object/is');
 const yaml = require('js-yaml');
 const cloudformationSchema = require('@serverless/utils/cloudformation-schema');
@@ -27,13 +28,32 @@ module.exports = async ({ configuration, serviceDir, configurationFilename, opti
   const pluginInfo = getPluginInfo(options.name);
   const pluginName = pluginInfo.name;
   const pluginVersion = pluginInfo.version || 'latest';
+  const configurationFilePath = getServerlessFilePath({ serviceDir, configurationFilename });
 
-  const context = { configuration, serviceDir, configurationFilename, pluginName, pluginVersion };
+  const context = { configuration, serviceDir, configurationFilePath, pluginName, pluginVersion };
+  if (await isInstalled(context)) {
+    cli.log(`"${options.name}" has already been installed`);
+    return;
+  }
   await pluginInstall(context);
   await addPluginToServerlessFile(context);
 
   const message = ['Successfully installed', ` "${pluginName}@${pluginVersion}"`].join('');
   cli.log(message);
+};
+
+const isInstalled = async ({ serviceDir, configurationFilePath, pluginName }) => {
+  try {
+    cjsResolve(serviceDir, pluginName);
+  } catch {
+    return false;
+  }
+
+  const serverlessFileObj = yaml.load(await fse.readFile(configurationFilePath, 'utf8'), {
+    filename: configurationFilePath,
+  });
+  const installedPlugins = serverlessFileObj.plugins || [];
+  return installedPlugins.includes(pluginName);
 };
 
 const pluginInstall = async ({ serviceDir, pluginName, pluginVersion }) => {
@@ -46,19 +66,18 @@ const pluginInstall = async ({ serviceDir, pluginName, pluginVersion }) => {
   await npmInstall(pluginFullName, { serviceDir });
 };
 
-const addPluginToServerlessFile = async ({ serviceDir, configurationFilename, pluginName }) => {
-  const serverlessFilePath = getServerlessFilePath({ serviceDir, configurationFilename });
-  const fileExtension = path.extname(serverlessFilePath);
+const addPluginToServerlessFile = async ({ configurationFilePath, pluginName }) => {
+  const fileExtension = path.extname(configurationFilePath);
   if (fileExtension === '.js' || fileExtension === '.ts') {
-    requestManualUpdate(serverlessFilePath);
+    requestManualUpdate(configurationFilePath);
     return;
   }
 
   const checkIsArrayPluginsObject = (pluginsObject) =>
     pluginsObject == null || Array.isArray(pluginsObject);
   // pluginsObject type determined based on the value loaded during the serverless init.
-  if (_.last(serverlessFilePath.split('.')) === 'json') {
-    const serverlessFileObj = await fse.readJson(serverlessFilePath);
+  if (_.last(configurationFilePath.split('.')) === 'json') {
+    const serverlessFileObj = await fse.readJson(configurationFilePath);
     const newServerlessFileObj = serverlessFileObj;
     const isArrayPluginsObject = checkIsArrayPluginsObject(newServerlessFileObj.plugins);
     // null modules property is not supported
@@ -82,12 +101,12 @@ const addPluginToServerlessFile = async ({ serviceDir, configurationFilename, pl
       newServerlessFileObj.plugins.modules = plugins;
     }
 
-    await fse.writeJson(serverlessFilePath, newServerlessFileObj);
+    await fse.writeJson(configurationFilePath, newServerlessFileObj);
     return;
   }
 
-  const serverlessFileObj = yaml.load(await fsp.readFile(serverlessFilePath, 'utf8'), {
-    filename: serverlessFilePath,
+  const serverlessFileObj = yaml.load(await fsp.readFile(configurationFilePath, 'utf8'), {
+    filename: configurationFilePath,
     schema: cloudformationSchema,
   });
   if (serverlessFileObj.plugins != null) {
@@ -97,16 +116,16 @@ const addPluginToServerlessFile = async ({ serviceDir, configurationFilename, pl
         serverlessFileObj.plugins.modules != null &&
         !Array.isArray(serverlessFileObj.plugins.modules)
       ) {
-        requestManualUpdate(serverlessFilePath);
+        requestManualUpdate(configurationFilePath);
         return;
       }
     } else if (!Array.isArray(serverlessFileObj.plugins)) {
-      requestManualUpdate(serverlessFilePath);
+      requestManualUpdate(configurationFilePath);
       return;
     }
   }
   await yamlAstParser.addNewArrayItem(
-    serverlessFilePath,
+    configurationFilePath,
     checkIsArrayPluginsObject(serverlessFileObj.plugins) ? 'plugins' : 'plugins.modules',
     pluginName
   );
@@ -123,8 +142,8 @@ const npmInstall = async (name, { serviceDir }) => {
   });
 };
 
-const requestManualUpdate = (serverlessFilePath) =>
+const requestManualUpdate = (configurationFilePath) =>
   log(`
-  Can't automatically add plugin into "${path.basename(serverlessFilePath)}" file.
+  Can't automatically add plugin into "${path.basename(configurationFilePath)}" file.
   Please make it manually.
 `);
