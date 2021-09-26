@@ -31,7 +31,6 @@ module.exports = async ({ configuration, serviceDir, configurationFilename, opti
   const context = { configuration, serviceDir, configurationFilename, pluginName, pluginVersion };
   await pluginInstall(context);
   await addPluginToServerlessFile(context);
-  await installPeerDependencies(context);
 
   const message = ['Successfully installed', ` "${pluginName}@${pluginVersion}"`].join('');
   cli.log(message);
@@ -111,23 +110,6 @@ const addPluginToServerlessFile = async ({ serviceDir, configurationFilename, pl
     checkIsArrayPluginsObject(serverlessFileObj.plugins) ? 'plugins' : 'plugins.modules',
     pluginName
   );
-};
-
-const installPeerDependencies = async ({ serviceDir, pluginName }) => {
-  const pluginPackageJsonFilePath = path.join(
-    serviceDir,
-    'node_modules',
-    pluginName,
-    'package.json'
-  );
-  const pluginPackageJson = await fse.readJson(pluginPackageJsonFilePath);
-  if (pluginPackageJson.peerDependencies) {
-    const pluginsArray = [];
-    Object.entries(pluginPackageJson.peerDependencies).forEach(([k, v]) => {
-      pluginsArray.push(`${k}@"${v}"`);
-    });
-    await Promise.all(pluginsArray.map((plugin) => npmInstall(plugin, { serviceDir })));
-  }
 };
 
 const npmInstall = async (name, { serviceDir }) => {

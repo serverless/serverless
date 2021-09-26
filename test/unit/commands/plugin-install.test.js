@@ -3,7 +3,6 @@
 const chai = require('chai');
 const sinon = require('sinon');
 const yaml = require('js-yaml');
-const path = require('path');
 const fse = require('fs-extra');
 const proxyquire = require('proxyquire');
 const fixturesEngine = require('../../fixtures/programmatic');
@@ -22,24 +21,7 @@ describe.only('test/unit/commands/plugin-install.test.js', async () => {
   const pluginName = 'serverless-plugin-1';
 
   before(async () => {
-    spawnFake = sinon.fake(async (command, args) => {
-      if (command === npmCommand && args[0] === 'install' && args[1] === '--save-dev') {
-        const _pluginName = args[2];
-        const pluginNameWithoutVersion = _pluginName.split('@')[0];
-
-        if (pluginNameWithoutVersion) {
-          const pluginPackageJsonFilePath = path.join(
-            serviceDir,
-            'node_modules',
-            pluginName,
-            'package.json'
-          );
-          const packageJsonFileContent = {};
-          await fse.ensureFile(pluginPackageJsonFilePath);
-          await fse.writeJson(pluginPackageJsonFilePath, packageJsonFileContent);
-        }
-      }
-    });
+    spawnFake = sinon.fake();
     const installPlugin = proxyquire('../../../commands/plugin-install', {
       'child-process-ext/spawn': spawnFake,
     });
