@@ -6,15 +6,15 @@ const yaml = require('js-yaml');
 const path = require('path');
 const fse = require('fs-extra');
 const proxyquire = require('proxyquire');
-const fixturesEngine = require('../../../fixtures/programmatic');
-const resolveConfigurationPath = require('../../../../lib/cli/resolve-configuration-path');
+const fixturesEngine = require('../../fixtures/programmatic');
+const resolveConfigurationPath = require('../../../lib/cli/resolve-configuration-path');
 const { expect } = require('chai');
 
 chai.use(require('chai-as-promised'));
 
 const npmCommand = 'npm';
 
-describe('test/unit/commands/plugin/install.test.js', async () => {
+describe.only('test/unit/commands/plugin-install.test.js', async () => {
   let spawnFake;
   let serviceDir;
   let configurationFilePath;
@@ -40,7 +40,7 @@ describe('test/unit/commands/plugin/install.test.js', async () => {
         }
       }
     });
-    const installPlugin = proxyquire('../../../../commands/plugin/install', {
+    const installPlugin = proxyquire('../../../commands/plugin-install', {
       'child-process-ext/spawn': spawnFake,
     });
 

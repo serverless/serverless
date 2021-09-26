@@ -9,15 +9,15 @@ const isPlainObject = require('type/plain-object/is');
 const yaml = require('js-yaml');
 const cloudformationSchema = require('@serverless/utils/cloudformation-schema');
 const log = require('@serverless/utils/log');
-const ServerlessError = require('../../lib/serverless-error');
-const yamlAstParser = require('../../lib/utils/yamlAstParser');
-const npmCommandDeferred = require('../../lib/utils/npm-command-deferred');
-const CLI = require('../../lib/classes/CLI');
+const ServerlessError = require('../lib/serverless-error');
+const yamlAstParser = require('../lib/utils/yamlAstParser');
+const npmCommandDeferred = require('../lib/utils/npm-command-deferred');
+const CLI = require('../lib/classes/CLI');
 const {
   getPluginInfo,
   getServerlessFilePath,
   validate,
-} = require('../../lib/commands/plugin-management');
+} = require('../lib/commands/plugin-management');
 
 const cli = new CLI(undefined);
 

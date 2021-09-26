@@ -499,7 +499,7 @@ const processSpanPromise = (async () => {
 
     if (standaloneCommands.includes(command)) {
       require('../lib/cli/ensure-supported-command')(configuration);
-      await require(`../commands/${commands.join('/')}`)({
+      await require(`../commands/${commands.join('-')}`)({
         configuration,
         serviceDir,
         configurationFilename,
