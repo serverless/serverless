@@ -497,35 +497,38 @@ const processSpanPromise = (async () => {
 
     const configurationFilename = configuration && configurationPath.slice(serviceDir.length + 1);
 
-    if (standaloneCommands.includes(command)) {
-      require('../lib/cli/ensure-supported-command')(configuration);
-      await require(`../commands/${commands.join('-')}`)({
-        configuration,
-        serviceDir,
-        configurationFilename,
-        options,
-      });
-      return;
-    }
+    const isStandaloneCommand = standaloneCommands.includes(command);
 
-    if (isInteractiveSetup) {
-      require('../lib/cli/ensure-supported-command')(configuration);
+    if (isInteractiveSetup || isStandaloneCommand) {
+      let configurationFromInteractive;
 
-      if (!process.stdin.isTTY && !process.env.SLS_INTERACTIVE_SETUP_ENABLE) {
-        throw new ServerlessError(
-          'Attempted to run an interactive setup in non TTY environment.\n' +
-            "If that's intentended enforce with SLS_INTERACTIVE_SETUP_ENABLE=1 environment variable",
-          'INTERACTIVE_SETUP_IN_NON_TTY'
-        );
-      }
-      const { configuration: configurationFromInteractive } =
-        await require('../lib/cli/interactive-setup')({
+      if (isInteractiveSetup) {
+        require('../lib/cli/ensure-supported-command')(configuration);
+
+        if (!process.stdin.isTTY && !process.env.SLS_INTERACTIVE_SETUP_ENABLE) {
+          throw new ServerlessError(
+            'Attempted to run an interactive setup in non TTY environment.\n' +
+              "If that's intentended enforce with SLS_INTERACTIVE_SETUP_ENABLE=1 environment variable",
+            'INTERACTIVE_SETUP_IN_NON_TTY'
+          );
+        }
+        const result = await require('../lib/cli/interactive-setup')({
           configuration,
           serviceDir,
           configurationFilename,
           options,
           commandUsage,
         });
+        configurationFromInteractive = result.configuration;
+      } else if (isStandaloneCommand) {
+        require('../lib/cli/ensure-supported-command')(configuration);
+        await require(`../commands/${commands.join('-')}`)({
+          configuration,
+          serviceDir,
+          configurationFilename,
+          options,
+        });
+      }
 
       progress.clear();
 
@@ -540,7 +543,7 @@ const processSpanPromise = (async () => {
               options,
               commandSchema,
               serviceDir,
-              configuration: configurationFromInteractive,
+              configuration: isInteractiveSetup ? configurationFromInteractive : configuration,
               commandUsage,
               variableSources: variableSourcesInConfig,
             }),
