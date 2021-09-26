@@ -13,14 +13,11 @@ const log = require('@serverless/utils/log');
 const ServerlessError = require('../lib/serverless-error');
 const yamlAstParser = require('../lib/utils/yamlAstParser');
 const npmCommandDeferred = require('../lib/utils/npm-command-deferred');
-const CLI = require('../lib/classes/CLI');
 const {
   getPluginInfo,
   getServerlessFilePath,
   validate,
 } = require('../lib/commands/plugin-management');
-
-const cli = new CLI(undefined);
 
 module.exports = async ({ configuration, serviceDir, configurationFilename, options }) => {
   validate({ serviceDir });
@@ -32,14 +29,14 @@ module.exports = async ({ configuration, serviceDir, configurationFilename, opti
 
   const context = { configuration, serviceDir, configurationFilePath, pluginName, pluginVersion };
   if (await isInstalled(context)) {
-    cli.log(`"${options.name}" has already been installed`);
+    log(`"${options.name}" has already been installed`);
     return;
   }
   await pluginInstall(context);
   await addPluginToServerlessFile(context);
 
   const message = ['Successfully installed', ` "${pluginName}@${pluginVersion}"`].join('');
-  cli.log(message);
+  log(message);
 };
 
 const isInstalled = async ({ configuration, serviceDir, pluginName }) => {
@@ -59,7 +56,7 @@ const pluginInstall = async ({ serviceDir, pluginName, pluginVersion }) => {
     `Installing plugin "${pluginFullName}"`,
     ' (this might take a few seconds...)',
   ].join('');
-  cli.log(message);
+  log(message);
   await npmInstall(pluginFullName, { serviceDir });
 };
 
