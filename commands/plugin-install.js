@@ -42,17 +42,14 @@ module.exports = async ({ configuration, serviceDir, configurationFilename, opti
   cli.log(message);
 };
 
-const isInstalled = async ({ serviceDir, configurationFilePath, pluginName }) => {
+const isInstalled = async ({ configuration, serviceDir, pluginName }) => {
   try {
     cjsResolve(serviceDir, pluginName);
   } catch {
     return false;
   }
 
-  const serverlessFileObj = yaml.load(await fse.readFile(configurationFilePath, 'utf8'), {
-    filename: configurationFilePath,
-  });
-  const installedPlugins = serverlessFileObj.plugins || [];
+  const installedPlugins = configuration.plugins || [];
   return installedPlugins.includes(pluginName);
 };
 
