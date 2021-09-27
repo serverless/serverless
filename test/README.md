@@ -61,7 +61,7 @@ Check existing set of AWS integration tests at [test/integration](./integration)
 Pass test file to Mocha directly as follows
 
 ```
-AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=xxx npx mocha tests/integration/{chosen}.test.js
+AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=xxx npx mocha test/integration/{chosen}.test.js
 ```
 
 ### Tests that depend on shared infrastructure stack
@@ -90,13 +90,13 @@ To run all integration tests run:
 To run only a specific integration test run:
 
 ```
-tests/templates/integration-test-template TEMPLATE_NAME BUILD_COMMAND
+test/templates/integration-test-template TEMPLATE_NAME BUILD_COMMAND
 ```
 
 so for example:
 
 ```
-tests/templates/integration-test-template aws-java-maven mvn package
+test/templates/integration-test-template aws-java-maven mvn package
 ```
 
 If you add a new template make sure to add it to the `test-all-templates` file and configure the `docker-compose.yml` file for your template.
