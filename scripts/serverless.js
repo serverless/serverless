@@ -41,7 +41,7 @@ let hasTelemetryBeenReported = false;
 // to propery handle e.g. `SIGINT` interrupt
 const keepAliveTimer = setTimeout(() => {}, 60 * 60 * 1000);
 
-const standaloneCommands = ['plugin install'];
+const standaloneCommands = new Set(['plugin install']);
 
 process.once('uncaughtException', (error) => {
   clearTimeout(keepAliveTimer);
@@ -507,7 +507,7 @@ const processSpanPromise = (async () => {
 
     const configurationFilename = configuration && configurationPath.slice(serviceDir.length + 1);
 
-    const isStandaloneCommand = standaloneCommands.includes(command);
+    const isStandaloneCommand = standaloneCommands.has(command);
 
     if (isInteractiveSetup || isStandaloneCommand) {
       if (isInteractiveSetup) {
