@@ -32,7 +32,7 @@ module.exports = async ({ configuration, serviceDir, configurationFilename, opti
     log(`"${options.name}" has already been installed`);
     return;
   }
-  await pluginInstall(context);
+  await installPlugin(context);
   await addPluginToServerlessFile(context);
 
   const message = ['Successfully installed', ` "${pluginName}@${pluginVersion}"`].join('');
@@ -50,7 +50,7 @@ const isInstalled = async ({ configuration, serviceDir, pluginName }) => {
   return installedPlugins.includes(pluginName);
 };
 
-const pluginInstall = async ({ serviceDir, pluginName, pluginVersion }) => {
+const installPlugin = async ({ serviceDir, pluginName, pluginVersion }) => {
   const pluginFullName = `${pluginName}@${pluginVersion}`;
   const message = [
     `Installing plugin "${pluginFullName}"`,
