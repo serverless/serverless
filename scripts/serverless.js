@@ -500,8 +500,6 @@ const processSpanPromise = (async () => {
     const isStandaloneCommand = standaloneCommands.includes(command);
 
     if (isInteractiveSetup || isStandaloneCommand) {
-      let configurationFromInteractive;
-
       if (isInteractiveSetup) {
         require('../lib/cli/ensure-supported-command')(configuration);
 
@@ -519,7 +517,9 @@ const processSpanPromise = (async () => {
           options,
           commandUsage,
         });
-        configurationFromInteractive = result.configuration;
+        if (result.configuration) {
+          configuration = result.configuration;
+        }
       } else {
         require('../lib/cli/ensure-supported-command')(configuration);
         await require(`../commands/${commands.join('-')}`)({
@@ -543,7 +543,7 @@ const processSpanPromise = (async () => {
               options,
               commandSchema,
               serviceDir,
-              configuration: isInteractiveSetup ? configurationFromInteractive : configuration,
+              configuration,
               commandUsage,
               variableSources: variableSourcesInConfig,
             }),
