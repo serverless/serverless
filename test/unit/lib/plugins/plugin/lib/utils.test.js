@@ -5,7 +5,7 @@ const sinon = require('sinon');
 const BbPromise = require('bluebird');
 const proxyquire = require('proxyquire');
 const chalk = require('chalk');
-const PluginUninstall = require('../../../../../../lib/plugins/plugin/uninstall');
+const PluginInstall = require('../../../../../../lib/plugins/plugin/install');
 const Serverless = require('../../../../../../lib/Serverless');
 const CLI = require('../../../../../../lib/classes/CLI');
 const { expect } = require('chai');
@@ -38,7 +38,7 @@ describe('PluginUtils', () => {
     serverless = new Serverless();
     serverless.cli = new CLI(serverless);
     const options = {};
-    pluginUtils = new PluginUninstall(serverless, options);
+    pluginUtils = new PluginInstall(serverless, options);
     consoleLogStub = sinon.stub(serverless.cli, 'consoleLog').returns();
   });
 
