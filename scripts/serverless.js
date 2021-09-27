@@ -520,7 +520,7 @@ const processSpanPromise = (async () => {
           commandUsage,
         });
         configurationFromInteractive = result.configuration;
-      } else if (isStandaloneCommand) {
+      } else {
         require('../lib/cli/ensure-supported-command')(configuration);
         await require(`../commands/${commands.join('-')}`)({
           configuration,
