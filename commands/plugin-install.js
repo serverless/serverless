@@ -5,7 +5,6 @@ const fsp = require('fs').promises;
 const fse = require('fs-extra');
 const path = require('path');
 const _ = require('lodash');
-const cjsResolve = require('ncjsm/resolve/sync');
 const isPlainObject = require('type/plain-object/is');
 const yaml = require('js-yaml');
 const cloudformationSchema = require('@serverless/utils/cloudformation-schema');
@@ -28,26 +27,11 @@ module.exports = async ({ configuration, serviceDir, configurationFilename, opti
   const configurationFilePath = getServerlessFilePath({ serviceDir, configurationFilename });
 
   const context = { configuration, serviceDir, configurationFilePath, pluginName, pluginVersion };
-  if (await isInstalled(context)) {
-    log(`"${options.name}" has already been installed`);
-    return;
-  }
   await installPlugin(context);
   await addPluginToServerlessFile(context);
 
   const message = ['Successfully installed', ` "${pluginName}@${pluginVersion}"`].join('');
   log(message);
-};
-
-const isInstalled = async ({ configuration, serviceDir, pluginName }) => {
-  try {
-    cjsResolve(serviceDir, pluginName);
-  } catch {
-    return false;
-  }
-
-  const installedPlugins = configuration.plugins || [];
-  return installedPlugins.includes(pluginName);
 };
 
 const installPlugin = async ({ serviceDir, pluginName, pluginVersion }) => {
