@@ -264,7 +264,7 @@ describe('PluginInstall', () => {
       process.chdir(savedCwd);
     });
 
-    it('should install the plugin if it has not been installed yet', () => {
+    it('npmI', () => {
       const packageJson = {
         name: 'test-service',
         description: '',
@@ -278,7 +278,7 @@ describe('PluginInstall', () => {
       return expect(pluginInstall.pluginInstall()).to.be.fulfilled.then(() =>
         Promise.all([
           expect(
-            npmInstallStub.calledWithExactly('npm install --save-dev serverless-plugin-1@latest', {
+            npmInstallStub.calledWithExactly('npm  install --save-dev serverless-plugin-1@latest', {
               stdio: 'ignore',
             })
           ).to.equal(true),
@@ -290,7 +290,7 @@ describe('PluginInstall', () => {
     it('should generate a package.json file in the service directory if not present', () =>
       expect(pluginInstall.pluginInstall()).to.be.fulfilled.then(() => {
         expect(
-          npmInstallStub.calledWithExactly('npm install --save-dev serverless-plugin-1@latest', {
+          npmInstallStub.calledWithExactly('npm  install --save-dev serverless-plugin-1@latest', {
             stdio: 'ignore',
           })
         ).to.equal(true);
@@ -539,7 +539,7 @@ describe('PluginInstall', () => {
       });
       return expect(pluginInstall.installPeerDependencies()).to.be.fulfilled.then(() => {
         expect(
-          npmInstallStub.calledWithExactly('npm install --save-dev some-package@"*"', {
+          npmInstallStub.calledWithExactly('npm  install --save-dev some-package@"*"', {
             stdio: 'ignore',
           })
         ).to.equal(true);
@@ -552,7 +552,7 @@ describe('PluginInstall', () => {
         expect(fse.readJsonSync(servicePackageJsonFilePath)).to.be.deep.equal({
           devDependencies: {},
         });
-        expect(npmInstallStub.calledWithExactly('npm install', { stdio: 'ignore' })).to.equal(
+        expect(npmInstallStub.calledWithExactly('npm  install', { stdio: 'ignore' })).to.equal(
           false
         );
       });
