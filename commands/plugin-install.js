@@ -110,9 +110,9 @@ const addPluginToServerlessFile = async ({ configurationFilePath, pluginName }) 
 };
 
 const npmInstall = async (name, { serviceDir }) => {
-  const npmCommand = await npmCommandDeferred;
+  const { command, args } = await npmCommandDeferred;
   try {
-    await spawn(npmCommand, ['install', '--save-dev', name], {
+    await spawn(command, [...args, 'install', '--save-dev', name], {
       cwd: serviceDir,
       stdio: 'pipe',
       // To parse quotes used in module versions. E.g. 'serverless@"^1.60.0 || 2"'
