@@ -22,14 +22,15 @@ describe('test/unit/commands/plugin-uninstall.test.js', async () => {
 
   before(async () => {
     spawnFake = sinon.fake();
-    const installPlugin = proxyquire('../../../commands/plugin-install', {
-      'child-process-ext/spawn': () => {},
-    });
     const uninstallPlugin = proxyquire('../../../commands/plugin-uninstall', {
       'child-process-ext/spawn': spawnFake,
     });
 
-    const fixture = await fixturesEngine.setup('function');
+    const fixture = await fixturesEngine.setup('function', {
+      configExt: {
+        plugins: [pluginName],
+      },
+    });
 
     const configuration = fixture.serviceConfig;
     serviceDir = fixture.servicePath;
@@ -40,13 +41,6 @@ describe('test/unit/commands/plugin-uninstall.test.js', async () => {
     const options = {
       name: pluginName,
     };
-
-    await installPlugin({
-      configuration,
-      serviceDir,
-      configurationFilename,
-      options,
-    });
 
     await uninstallPlugin({
       configuration,
