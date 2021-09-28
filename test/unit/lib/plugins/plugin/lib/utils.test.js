@@ -15,7 +15,6 @@ chai.use(require('chai-as-promised'));
 describe('PluginUtils', () => {
   let pluginUtils;
   let serverless;
-  let consoleLogStub;
   const plugins = [
     {
       name: 'serverless-plugin-1',
@@ -39,11 +38,6 @@ describe('PluginUtils', () => {
     serverless.cli = new CLI(serverless);
     const options = {};
     pluginUtils = new PluginInstall(serverless, options);
-    consoleLogStub = sinon.stub(serverless.cli, 'consoleLog').returns();
-  });
-
-  afterEach(() => {
-    serverless.cli.consoleLog.restore();
   });
 
   describe('#getServerlessFilePath()', () => {
@@ -107,7 +101,6 @@ describe('PluginUtils', () => {
       expectedMessage += ' - Serverless Plugin 2\n';
       expectedMessage = expectedMessage.slice(0, -2);
       return expect(pluginUtils.display(plugins)).to.be.fulfilled.then((message) => {
-        expect(consoleLogStub.calledTwice).to.equal(true);
         expect(message).to.equal(expectedMessage);
       });
     });
@@ -116,7 +109,6 @@ describe('PluginUtils', () => {
       const expectedMessage = 'There are no plugins available to display';
 
       return pluginUtils.display([]).then((message) => {
-        expect(consoleLogStub.calledOnce).to.equal(true);
         expect(message).to.equal(expectedMessage);
       });
     });
