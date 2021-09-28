@@ -8,7 +8,7 @@ const _ = require('lodash');
 const isPlainObject = require('type/plain-object/is');
 const yaml = require('js-yaml');
 const cloudformationSchema = require('@serverless/utils/cloudformation-schema');
-const log = require('@serverless/utils/log');
+const { legacy, log, progress, style } = require('@serverless/utils/log');
 const yamlAstParser = require('../lib/utils/yamlAstParser');
 const npmCommandDeferred = require('../lib/utils/npm-command-deferred');
 const {
@@ -17,7 +17,10 @@ const {
   validate,
 } = require('../lib/commands/plugin-management');
 
+const mainProgress = progress.get('main');
+
 module.exports = async ({ configuration, serviceDir, configurationFilename, options }) => {
+  const commandRunStartTime = Date.now();
   validate({ serviceDir });
 
   const pluginInfo = getPluginInfo(options.name);
@@ -25,14 +28,20 @@ module.exports = async ({ configuration, serviceDir, configurationFilename, opti
   const configurationFilePath = getServerlessFilePath({ serviceDir, configurationFilename });
 
   const context = { configuration, serviceDir, configurationFilePath, pluginName };
+  mainProgress.notice(`Uninstalling plugin "${pluginName}"`, { isMainEvent: true });
   await uninstallPlugin(context);
   await removePluginFromServerlessFile(context);
 
-  log(`Successfully uninstalled "${pluginName}"`);
+  legacy.log(`Successfully uninstalled "${pluginName}"`);
+  log.notice.success(
+    `Plugin "${pluginName}" uninstalled ${style.aside(
+      `(${Math.floor((Date.now() - commandRunStartTime) / 1000)}s)`
+    )}`
+  );
 };
 
 const uninstallPlugin = async ({ serviceDir, pluginName }) => {
-  log(`Uninstalling plugin "${pluginName}" (this might take a few seconds...)`);
+  legacy.log(`Uninstalling plugin "${pluginName}" (this might take a few seconds...)`);
   await npmUninstall(pluginName, { serviceDir });
 };
 
@@ -98,13 +107,20 @@ const npmUninstall = async (name, { serviceDir }) => {
       stdio: 'pipe',
     });
   } catch (error) {
-    process.stdout.write(error.stderrBuffer);
+    legacy.write(error.stderrBuffer);
+    log.error(String(error.stderrBuffer));
     throw error;
   }
 };
 
-const requestManualUpdate = (configurationFilePath) =>
-  log(`
+const requestManualUpdate = (configurationFilePath) => {
+  legacy.log(`
   Can't automatically remove plugin from "${path.basename(configurationFilePath)}" file.
   Please do it manually.
 `);
+  log.notice.skip(
+    `Can't automatically remove plugin from "${path.basename(
+      configurationFilePath
+    )}" file. Please make it manually.`
+  );
+};
