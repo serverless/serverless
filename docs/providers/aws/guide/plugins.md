@@ -171,7 +171,7 @@ A Hook binds code to any lifecycle event from any command.
 ```javascript
 'use strict';
 
-class MyPugin {
+class MyPlugin {
   constructor() {
     this.commands = {
       foo: {
