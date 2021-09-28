@@ -111,13 +111,18 @@ const addPluginToServerlessFile = async ({ configurationFilePath, pluginName }) 
 
 const npmInstall = async (name, { serviceDir }) => {
   const npmCommand = await npmCommandDeferred;
-  await spawn(npmCommand, ['install', '--save-dev', name], {
-    cwd: serviceDir,
-    stdio: 'ignore',
-    // To parse quotes used in module versions. E.g. 'serverless@"^1.60.0 || 2"'
-    // https://stackoverflow.com/a/48015470
-    shell: true,
-  });
+  try {
+    await spawn(npmCommand, ['install', '--save-dev', name], {
+      cwd: serviceDir,
+      stdio: 'pipe',
+      // To parse quotes used in module versions. E.g. 'serverless@"^1.60.0 || 2"'
+      // https://stackoverflow.com/a/48015470
+      shell: true,
+    });
+  } catch (error) {
+    process.stdout.write(error.stdBuffer);
+    throw error;
+  }
 };
 
 const requestManualUpdate = (configurationFilePath) =>
