@@ -8,7 +8,7 @@ const _ = require('lodash');
 const isPlainObject = require('type/plain-object/is');
 const yaml = require('js-yaml');
 const cloudformationSchema = require('@serverless/utils/cloudformation-schema');
-const log = require('@serverless/utils/log');
+const { legacy, log, progress, style } = require('@serverless/utils/log');
 const ServerlessError = require('../lib/serverless-error');
 const yamlAstParser = require('../lib/utils/yamlAstParser');
 const npmCommandDeferred = require('../lib/utils/npm-command-deferred');
@@ -18,7 +18,10 @@ const {
   validate,
 } = require('../lib/commands/plugin-management');
 
+const mainProgress = progress.get('main');
+
 module.exports = async ({ configuration, serviceDir, configurationFilename, options }) => {
+  const commandRunStartTime = Date.now();
   validate({ serviceDir });
 
   const pluginInfo = getPluginInfo(options.name);
@@ -27,15 +30,24 @@ module.exports = async ({ configuration, serviceDir, configurationFilename, opti
   const configurationFilePath = getServerlessFilePath({ serviceDir, configurationFilename });
 
   const context = { configuration, serviceDir, configurationFilePath, pluginName, pluginVersion };
+  mainProgress.notice(
+    `Installing plugin "${pluginName}${pluginVersion === 'latest' ? '' : `@${pluginVersion}`}"`,
+    { isMainEvent: true }
+  );
   await installPlugin(context);
   await addPluginToServerlessFile(context);
 
-  log(`Successfully installed "${pluginName}@${pluginVersion}"`);
+  legacy.log(`Successfully installed "${pluginName}@${pluginVersion}"`);
+  log.notice.success(
+    `Plugin "${pluginName}${
+      pluginVersion === 'latest' ? '' : `@${pluginVersion}`
+    }" installed  ${style.aside(`(${Math.floor((Date.now() - commandRunStartTime) / 1000)}s)`)}`
+  );
 };
 
 const installPlugin = async ({ serviceDir, pluginName, pluginVersion }) => {
   const pluginFullName = `${pluginName}@${pluginVersion}`;
-  log(`Installing plugin "${pluginFullName}" (this might take a few seconds...)`);
+  legacy.log(`Installing plugin "${pluginFullName}" (this might take a few seconds...)`);
   await npmInstall(pluginFullName, { serviceDir });
 };
 
@@ -115,13 +127,20 @@ const npmInstall = async (name, { serviceDir }) => {
       shell: true,
     });
   } catch (error) {
-    process.stdout.write(error.stderrBuffer);
+    legacy.write(error.stderrBuffer);
+    log.error(String(error.stderrBuffer));
     throw error;
   }
 };
 
-const requestManualUpdate = (configurationFilePath) =>
-  log(`
+const requestManualUpdate = (configurationFilePath) => {
+  legacy.log(`
   Can't automatically add plugin into "${path.basename(configurationFilePath)}" file.
   Please make it manually.
 `);
+  log.notice.skip(
+    `Can't automatically add plugin into "${path.basename(
+      configurationFilePath
+    )}" file. Please add it manually.`
+  );
+};
