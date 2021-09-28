@@ -9,7 +9,6 @@ const isPlainObject = require('type/plain-object/is');
 const yaml = require('js-yaml');
 const cloudformationSchema = require('@serverless/utils/cloudformation-schema');
 const log = require('@serverless/utils/log');
-const ServerlessError = require('../lib/serverless-error');
 const yamlAstParser = require('../lib/utils/yamlAstParser');
 const npmCommandDeferred = require('../lib/utils/npm-command-deferred');
 const {
@@ -23,58 +22,45 @@ module.exports = async ({ configuration, serviceDir, configurationFilename, opti
 
   const pluginInfo = getPluginInfo(options.name);
   const pluginName = pluginInfo.name;
-  const pluginVersion = pluginInfo.version || 'latest';
   const configurationFilePath = getServerlessFilePath({ serviceDir, configurationFilename });
 
-  const context = { configuration, serviceDir, configurationFilePath, pluginName, pluginVersion };
-  await installPlugin(context);
-  await addPluginToServerlessFile(context);
+  const context = { configuration, serviceDir, configurationFilePath, pluginName };
+  await uninstallPlugin(context);
+  await removePluginFromServerlessFile(context);
 
-  log(`Successfully installed "${pluginName}@${pluginVersion}"`);
+  log(`Successfully uninstalled "${pluginName}"`);
 };
 
-const installPlugin = async ({ serviceDir, pluginName, pluginVersion }) => {
-  const pluginFullName = `${pluginName}@${pluginVersion}`;
-  log(`Installing plugin "${pluginFullName}" (this might take a few seconds...)`);
-  await npmInstall(pluginFullName, { serviceDir });
+const uninstallPlugin = async ({ serviceDir, pluginName }) => {
+  log(`Uninstalling plugin "${pluginName}" (this might take a few seconds...)`);
+  await npmUninstall(pluginName, { serviceDir });
 };
 
-const addPluginToServerlessFile = async ({ configurationFilePath, pluginName }) => {
+const removePluginFromServerlessFile = async ({ configurationFilePath, pluginName }) => {
   const fileExtension = path.extname(configurationFilePath);
   if (fileExtension === '.js' || fileExtension === '.ts') {
     requestManualUpdate(configurationFilePath);
     return;
   }
 
-  const checkIsArrayPluginsObject = (pluginsObject) =>
-    pluginsObject == null || Array.isArray(pluginsObject);
-  // pluginsObject type determined based on the value loaded during the serverless init.
   if (fileExtension === '.json') {
     const serverlessFileObj = await fse.readJson(configurationFilePath);
-    const newServerlessFileObj = serverlessFileObj;
-    const isArrayPluginsObject = checkIsArrayPluginsObject(newServerlessFileObj.plugins);
-    // null modules property is not supported
-    let plugins = isArrayPluginsObject
-      ? newServerlessFileObj.plugins || []
-      : newServerlessFileObj.plugins.modules;
+    const isArrayPluginsObject = Array.isArray(serverlessFileObj.plugins);
+    const plugins = isArrayPluginsObject
+      ? serverlessFileObj.plugins
+      : serverlessFileObj.plugins && serverlessFileObj.plugins.modules;
 
-    if (plugins == null) {
-      throw new ServerlessError(
-        'plugins modules property must be present',
-        'PLUGINS_MODULES_MISSING'
-      );
+    if (plugins) {
+      _.pull(plugins, pluginName);
+      if (!plugins.length) {
+        if (isArrayPluginsObject) {
+          delete serverlessFileObj.plugins;
+        } else {
+          delete serverlessFileObj.plugins.modules;
+        }
+      }
+      await fse.writeJson(configurationFilePath, serverlessFileObj);
     }
-
-    plugins.push(pluginName);
-    plugins = _.sortedUniq(plugins);
-
-    if (isArrayPluginsObject) {
-      newServerlessFileObj.plugins = plugins;
-    } else {
-      newServerlessFileObj.plugins.modules = plugins;
-    }
-
-    await fse.writeJson(configurationFilePath, newServerlessFileObj);
     return;
   }
 
@@ -97,22 +83,19 @@ const addPluginToServerlessFile = async ({ configurationFilePath, pluginName }) 
       return;
     }
   }
-  await yamlAstParser.addNewArrayItem(
+  await yamlAstParser.removeExistingArrayItem(
     configurationFilePath,
-    checkIsArrayPluginsObject(serverlessFileObj.plugins) ? 'plugins' : 'plugins.modules',
+    Array.isArray(serverlessFileObj.plugins) ? 'plugins' : 'plugins.modules',
     pluginName
   );
 };
 
-const npmInstall = async (name, { serviceDir }) => {
+const npmUninstall = async (name, { serviceDir }) => {
   const { command, args } = await npmCommandDeferred;
   try {
-    await spawn(command, [...args, 'install', '--save-dev', name], {
+    await spawn(command, [...args, 'uninstall', '--save-dev', name], {
       cwd: serviceDir,
       stdio: 'pipe',
-      // To parse quotes used in module versions. E.g. 'serverless@"^1.60.0 || 2"'
-      // https://stackoverflow.com/a/48015470
-      shell: true,
     });
   } catch (error) {
     process.stdout.write(error.stderrBuffer);
@@ -122,6 +105,6 @@ const npmInstall = async (name, { serviceDir }) => {
 
 const requestManualUpdate = (configurationFilePath) =>
   log(`
-  Can't automatically add plugin into "${path.basename(configurationFilePath)}" file.
-  Please make it manually.
+  Can't automatically remove plugin from "${path.basename(configurationFilePath)}" file.
+  Please do it manually.
 `);
