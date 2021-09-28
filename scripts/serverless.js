@@ -41,7 +41,7 @@ let hasTelemetryBeenReported = false;
 // to propery handle e.g. `SIGINT` interrupt
 const keepAliveTimer = setTimeout(() => {}, 60 * 60 * 1000);
 
-const standaloneCommands = new Set(['plugin install']);
+const standaloneCommands = new Set(['plugin install', 'plugin uninstall']);
 
 process.once('uncaughtException', (error) => {
   clearTimeout(keepAliveTimer);
