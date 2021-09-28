@@ -120,7 +120,7 @@ const npmInstall = async (name, { serviceDir }) => {
       shell: true,
     });
   } catch (error) {
-    process.stdout.write(error.stdBuffer);
+    process.stdout.write(error.stderrBuffer);
     throw error;
   }
 };
