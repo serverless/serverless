@@ -49,7 +49,7 @@ const addPluginToServerlessFile = async ({ configurationFilePath, pluginName }) 
   const checkIsArrayPluginsObject = (pluginsObject) =>
     pluginsObject == null || Array.isArray(pluginsObject);
   // pluginsObject type determined based on the value loaded during the serverless init.
-  if (_.last(configurationFilePath.split('.')) === 'json') {
+  if (fileExtension === '.json') {
     const serverlessFileObj = await fse.readJson(configurationFilePath);
     const newServerlessFileObj = serverlessFileObj;
     const isArrayPluginsObject = checkIsArrayPluginsObject(newServerlessFileObj.plugins);

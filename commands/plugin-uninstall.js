@@ -43,7 +43,7 @@ const removePluginFromServerlessFile = async ({ configurationFilePath, pluginNam
     return;
   }
 
-  if (_.last(configurationFilePath.split('.')) === 'json') {
+  if (fileExtension === '.json') {
     const serverlessFileObj = await fse.readJson(configurationFilePath);
     const isArrayPluginsObject = Array.isArray(serverlessFileObj.plugins);
     const plugins = isArrayPluginsObject
