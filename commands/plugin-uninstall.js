@@ -22,14 +22,13 @@ module.exports = async ({ configuration, serviceDir, configurationFilename, opti
 
   const pluginInfo = getPluginInfo(options.name);
   const pluginName = pluginInfo.name;
-  const pluginVersion = pluginInfo.version || 'latest';
   const configurationFilePath = getServerlessFilePath({ serviceDir, configurationFilename });
 
-  const context = { configuration, serviceDir, configurationFilePath, pluginName, pluginVersion };
+  const context = { configuration, serviceDir, configurationFilePath, pluginName };
   await uninstallPlugin(context);
   await removePluginFromServerlessFile(context);
 
-  log(`Successfully uninstalled "${pluginName}@${pluginVersion}"`);
+  log(`Successfully uninstalled "${pluginName}"`);
 };
 
 const uninstallPlugin = async ({ serviceDir, pluginName }) => {
@@ -97,9 +96,6 @@ const npmUninstall = async (name, { serviceDir }) => {
     await spawn(command, [...args, 'uninstall', '--save-dev', name], {
       cwd: serviceDir,
       stdio: 'pipe',
-      // To parse quotes used in module versions. E.g. 'serverless@"^1.60.0 || 2"'
-      // https://stackoverflow.com/a/48015470
-      shell: true,
     });
   } catch (error) {
     process.stdout.write(error.stderrBuffer);
