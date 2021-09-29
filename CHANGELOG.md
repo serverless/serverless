@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.60.1](https://github.com/serverless/serverless/compare/v2.60.0...v2.60.1) (2021-09-29)
+
+### Bug Fixes
+
+- **AWS EventBridge:** Fix `MaximumEventAgeInSecond` template reference ([#10023](https://github.com/serverless/serverless/issues/10023)) ([cd03f55](https://github.com/serverless/serverless/commit/cd03f550ae5307ca44e1e27d4d0822bef6cc9dcf)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Standalone:**
+  - Fix internal npm installation handling ([#10014](https://github.com/serverless/serverless/issues/10014)) ([5a583a9](https://github.com/serverless/serverless/commit/5a583a97980117209a614bfd40630b1bb714b744)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Upgrade `npm` version to one that supports Node.js v14 ([#10014](https://github.com/serverless/serverless/issues/10014)) ([62d697c](https://github.com/serverless/serverless/commit/62d697c8615e8103aa07401eef2ebae559cc4a17)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI:** Fix handling when local `serverless` is removed in command run ([#10016](https://github.com/serverless/serverless/issues/10016)) ([1a3ccdb](https://github.com/serverless/serverless/commit/1a3ccdbef8cd9c41b87f7fe440ca300970f3e138)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Plugins:**
+  - Seclude `plugin install` standalone command ([#9942](https://github.com/serverless/serverless/issues/9942)) ([713ac1e](https://github.com/serverless/serverless/commit/713ac1e2a111426fb501b5fa29588a53efcba9bc)) ([Seungchan Ahn](https://github.com/issea1015))
+  - Seclude `plugin uninstall` standalone command ([#10015](https://github.com/serverless/serverless/issues/10015)) ([26ce1c6](https://github.com/serverless/serverless/commit/26ce1c636be7754584cf47a87f1b92d3b7d98122)) ([Seungchan Ahn](https://github.com/issea1015))
+  - Fix manual update notice ([#10016](https://github.com/serverless/serverless/issues/10016)) ([0d5884e](https://github.com/serverless/serverless/commit/0d5884ebbf015332c08cedea7a4359d66c3a2761)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI: New logs (experimental):**
+  - `plugin install` command ([#10016](https://github.com/serverless/serverless/issues/10016)) ([8c5f22c](https://github.com/serverless/serverless/commit/8c5f22ceb67c3a2f4ace3adf8e19cf5e69d4c7b3)) ([Mariusz Nowak](https://github.com/medikoo))
+  - `plugin list` command ([#10016](https://github.com/serverless/serverless/issues/10016)) ([00e016c](https://github.com/serverless/serverless/commit/00e016c4bba86095744129d24683343f0cc5129f)) ([Mariusz Nowak](https://github.com/medikoo))
+  - `plugin search` command ([#10016](https://github.com/serverless/serverless/issues/10016)) ([1463171](https://github.com/serverless/serverless/commit/1463171cae93e9e050350f6eb272e35cfade0204)) ([Mariusz Nowak](https://github.com/medikoo))
+  - `plugin uninstall` command ([#10016](https://github.com/serverless/serverless/issues/10016)) ([3094be0](https://github.com/serverless/serverless/commit/3094be0cf06f916d8cf180036433677ecd73e013)) ([Mariusz Nowak](https://github.com/medikoo))
+  - interactive setup ([#10024](https://github.com/serverless/serverless/issues/10024)) ([07aed34](https://github.com/serverless/serverless/commit/07aed3429c63ed13ad9ca6262c641a907170f4f9)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Local version fallback ([#10024](https://github.com/serverless/serverless/issues/10024)) ([231095d](https://github.com/serverless/serverless/commit/231095d28d4e3f137ef0a456692dd5d6a770a5db)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Rely on newly introduced log style functions ([#10024](https://github.com/serverless/serverless/issues/10024)) ([e070110](https://github.com/serverless/serverless/commit/e070110eee0e679694aefd4e6b5f25ecc90793d4)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Move variables resolution log to debug level ([#10016](https://github.com/serverless/serverless/issues/10016)) ([b0d854a](https://github.com/serverless/serverless/commit/b0d854af20d46ef9e07e5d4bce26b88e84f4c4f1)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.60.0](https://github.com/serverless/serverless/compare/v2.59.0...v2.60.0) (2021-09-24)
 
 ### Features
