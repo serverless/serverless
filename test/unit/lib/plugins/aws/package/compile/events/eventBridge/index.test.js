@@ -542,7 +542,7 @@ describe('EventBridgeEvents', () => {
         const retryPolicyRuleTarget = getRuleResourceEndingWith(cfResources, '6').Properties
           .Targets[0];
         expect(retryPolicyRuleTarget.RetryPolicy).to.deep.equal({
-          MaximumEventAge: 7200,
+          MaximumEventAgeInSeconds: 7200,
           MaximumRetryAttempts: 9,
         });
       });
