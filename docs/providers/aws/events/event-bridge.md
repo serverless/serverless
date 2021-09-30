@@ -189,7 +189,7 @@ functions:
 
 ## Adding a DLQ to an event rule
 
-DeadLetterConfig is not available for custom resources, only for native CloudFormation.
+DeadLetterQueueArn is not available for custom resources, only for native CloudFormation.
 
 ```yml
 functions:
@@ -201,11 +201,10 @@ functions:
           pattern:
             source:
               - saas.external
-          deadLetterConfig:
-            targetArn:
-              Fn::GetAtt:
-                - QueueName
-                - Arn
+          deadLetterQueueArn:
+            Fn::GetAtt:
+              - QueueName
+              - Arn
 ```
 
 ## Adding a retry policy to an event rule
@@ -222,7 +221,7 @@ functions:
           pattern:
             source:
               - saas.external
-          deadLetterConfig:
+          deadLetterQueueArn:
             Fn::GetAtt:
               - QueueName
               - Arn

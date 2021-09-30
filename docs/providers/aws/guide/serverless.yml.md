@@ -568,6 +568,13 @@ functions:
             inputPathsMap:
               eventTime: '$.time'
             inputTemplate: '{"time": <eventTime>, "key1": "value1"}'
+          retryPolicy:
+            maximumEventAge: 3600
+            maximumRetryAttempts: 3
+          deadLetterQueueArn:
+            Fn::GetAtt:
+              - QueueName
+              - Arn
       - cloudFront:
           eventType: viewer-response
           includeBody: true

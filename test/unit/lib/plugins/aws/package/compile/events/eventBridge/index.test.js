@@ -307,7 +307,7 @@ describe('EventBridgeEvents', () => {
       );
     });
 
-    it('should fail when trying to set DeadLetterConfig', async () => {
+    it('should fail when trying to set DeadLetterQueueArn', async () => {
       await expect(
         runServerless({
           fixture: 'function',
@@ -318,10 +318,8 @@ describe('EventBridgeEvents', () => {
                 events: [
                   {
                     eventBridge: {
-                      deadLetterConfig: {
-                        targetArn: {
-                          'Fn::GetAtt': ['not-supported', 'Arn'],
-                        },
+                      deadLetterQueueArn: {
+                        'Fn::GetAtt': ['not-supported', 'Arn'],
                       },
                       pattern: {
                         source: ['aws.something'],
@@ -398,10 +396,8 @@ describe('EventBridgeEvents', () => {
         maximumRetryAttempts: 9,
       };
 
-      const deadLetterConfig = {
-        targetArn: {
-          'Fn::GetAtt': ['test', 'Arn'],
-        },
+      const deadLetterQueueArn = {
+        'Fn::GetAtt': ['test', 'Arn'],
       };
 
       const getRuleResourceEndingWith = (resources, ending) =>
@@ -475,7 +471,7 @@ describe('EventBridgeEvents', () => {
                       eventBus: eventBusName,
                       schedule,
                       pattern,
-                      deadLetterConfig,
+                      deadLetterQueueArn,
                     },
                   },
                 ],
@@ -547,10 +543,10 @@ describe('EventBridgeEvents', () => {
         });
       });
 
-      it('should support deadLetterConfig configuration', () => {
+      it('should support deadLetterQueueArn configuration', () => {
         const deadLetterConfigRuleTarget = getRuleResourceEndingWith(cfResources, '7').Properties
           .Targets[0];
-        expect(deadLetterConfigRuleTarget.DeadLetterConfig).to.have.property('TargetArn');
+        expect(deadLetterConfigRuleTarget.DeadLetterConfig).to.have.property('Arn');
       });
 
       it('should create a rule that depends on created EventBus', () => {
