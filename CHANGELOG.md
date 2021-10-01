@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.60.3](https://github.com/serverless/serverless/compare/v2.60.2...v2.60.3) (2021-10-01)
+
+### Bug Fixes
+
+- **CLI:** Fix resolution of handler in case of local fallback ([#10042](https://github.com/serverless/serverless/pull/10042)) ([7d31410](https://github.com/serverless/serverless/commit/7d31410b74efb4c48c1c1b18ca33733a564268f2)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **CLI:**
+  - Improve modern `info` output ([#10037](https://github.com/serverless/serverless/pull/10037)) ([2828a2c](https://github.com/serverless/serverless/commit/2828a2c44388d731d4396e0ea11ae48953f20b0a)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Improve modern error reporting ([#10037](https://github.com/serverless/serverless/pull/10037)) ([a205f88](https://github.com/serverless/serverless/commit/a205f88310653331c96f51402d148c576dd79db8)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Improve modern logs for `logs` command ([#10037](https://github.com/serverless/serverless/pull/10037)) ([d1701bf](https://github.com/serverless/serverless/commit/d1701bf13a7155cce388424964e35ca536b2ce8a)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Modern logs for `install` command ([#10040](https://github.com/serverless/serverless/pull/10040)) ([bd4d215](https://github.com/serverless/serverless/commit/bd4d215266b16793c26d06a34af8482f00e47844)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Modern logs for `print` command ([#10035](https://github.com/serverless/serverless/pull/10035)) ([4ed34c3](https://github.com/serverless/serverless/commit/4ed34c3e5e21903a3fe9e512621739ef5bf0bd84)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Generalize `writeServiceOutputs` ([#10037](https://github.com/serverless/serverless/pull/10037)) ([8aa700d](https://github.com/serverless/serverless/commit/8aa700dc7947d36aa46bba4b0e475f21fd19ac89)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [2.60.2](https://github.com/serverless/serverless/compare/v2.60.1...v2.60.2) (2021-09-30)
 
 ### Bug Fixes
