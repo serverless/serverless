@@ -37,9 +37,56 @@ describe('emptyS3Bucket', () => {
     });
   });
 
+  describe('#listObjectsV2()', () => {
+    it('should resolve if no objects are present', () => {
+      const listObjectsStub = sinon.stub(awsRemove.provider, 'request').resolves();
+
+      const stage = awsRemove.provider.getStage();
+      const prefix = awsRemove.provider.getDeploymentPrefix();
+
+      return awsRemove.listObjects().then(() => {
+        expect(listObjectsStub.calledOnce).to.be.equal(true);
+        expect(
+          listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
+            Bucket: awsRemove.bucketName,
+            Prefix: `${prefix}/${serverless.service.service}/${stage}`,
+          })
+        ).to.be.equal(true);
+        expect(awsRemove.objectsInBucket.length).to.equal(0);
+        awsRemove.provider.request.restore();
+      });
+    });
+
+    it('should push objects to the array if present', () => {
+      const listObjectsStub = sinon.stub(awsRemove.provider, 'request').resolves({
+        Contents: [{ Key: 'object1' }, { Key: 'object2' }],
+      });
+
+      const stage = awsRemove.provider.getStage();
+      const prefix = awsRemove.provider.getDeploymentPrefix();
+
+      return awsRemove.listObjects().then(() => {
+        expect(listObjectsStub.calledOnce).to.be.equal(true);
+        expect(
+          listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
+            Bucket: awsRemove.bucketName,
+            Prefix: `${prefix}/${serverless.service.service}/${stage}`,
+          })
+        ).to.be.equal(true);
+        expect(awsRemove.objectsInBucket[0]).to.deep.equal({ Key: 'object1' });
+        expect(awsRemove.objectsInBucket[1]).to.deep.equal({ Key: 'object2' });
+        awsRemove.provider.request.restore();
+      });
+    });
+  });
+
   describe('#listObjectVersions()', () => {
     it('should resolve if no object versions are present', () => {
       const listObjectVersionsStub = sinon.stub(awsRemove.provider, 'request').resolves();
+
+      const isDeploymentBucketVersioningEnabledStub = sinon
+        .stub(awsRemove.provider, 'isDeploymentBucketVersioningEnabled')
+        .resolves(true);
 
       const stage = awsRemove.provider.getStage();
       const prefix = awsRemove.provider.getDeploymentPrefix();
@@ -52,8 +99,10 @@ describe('emptyS3Bucket', () => {
             Prefix: `${prefix}/${serverless.service.service}/${stage}`,
           })
         ).to.be.equal(true);
+        expect(isDeploymentBucketVersioningEnabledStub.calledOnce).to.be.equal(true);
         expect(awsRemove.objectsInBucket.length).to.equal(0);
         awsRemove.provider.request.restore();
+        awsRemove.provider.isDeploymentBucketVersioningEnabled.restore();
       });
     });
 
@@ -66,6 +115,10 @@ describe('emptyS3Bucket', () => {
         DeleteMarkers: [{ Key: 'object3', VersionId: 'v2' }],
       });
 
+      const isDeploymentBucketVersioningEnabledStub = sinon
+        .stub(awsRemove.provider, 'isDeploymentBucketVersioningEnabled')
+        .resolves(true);
+
       const stage = awsRemove.provider.getStage();
       const prefix = awsRemove.provider.getDeploymentPrefix();
 
@@ -77,10 +130,12 @@ describe('emptyS3Bucket', () => {
             Prefix: `${prefix}/${serverless.service.service}/${stage}`,
           })
         ).to.be.equal(true);
+        expect(isDeploymentBucketVersioningEnabledStub.calledOnce).to.be.equal(true);
         expect(awsRemove.objectsInBucket[0]).to.deep.equal({ Key: 'object1', VersionId: null });
         expect(awsRemove.objectsInBucket[1]).to.deep.equal({ Key: 'object2', VersionId: 'v1' });
         expect(awsRemove.objectsInBucket[2]).to.deep.equal({ Key: 'object3', VersionId: 'v2' });
         awsRemove.provider.request.restore();
+        awsRemove.provider.isDeploymentBucketVersioningEnabled.restore();
       });
     });
   });
