@@ -1356,6 +1356,8 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
     let iamRolePolicyStatements;
 
     before(async () => {
+      const imageSha = '6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38';
+      const imageWithSha = `000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:${imageSha}`;
       const { awsNaming, cfTemplate, fixtureData } = await runServerless({
         fixture: 'packageArtifact',
         command: 'package',
@@ -1393,6 +1395,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
             versionFunctions: false,
           },
           functions: {
+            fnImage: { image: imageWithSha },
             foo: {
               vpc: {
                 subnetIds: ['subnet-02020202'],
@@ -1629,6 +1632,35 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       });
     });
 
+    it('should support `provider.architecture`', async () => {
+      const imageSha = '6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38';
+      const imageWithSha = `000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:${imageSha}`;
+      const {
+        awsNaming: localNaming,
+        cfTemplate: { Resources: localResources },
+      } = await runServerless({
+        fixture: 'function',
+        command: 'package',
+        configExt: {
+          functions: { fnImage: { image: imageWithSha } },
+          provider: { architecture: 'arm64' },
+        },
+      });
+
+      expect(
+        localResources[localNaming.getLambdaLogicalId('basic')].Properties.Architectures
+      ).to.deep.equal(['arm64']);
+      expect(
+        localResources[localNaming.getLambdaLogicalId('fnImage')].Properties.Architectures
+      ).to.deep.equal(['arm64']);
+      expect(cfResources[naming.getLambdaLogicalId('fnImage')].Properties).to.not.have.property(
+        'Architectures'
+      );
+      expect(cfResources[naming.getLambdaLogicalId('foo')].Properties).to.not.have.property(
+        'Architectures'
+      );
+    });
+
     it('should support `vpc` defined with `Fn::Split`', async () => {
       const { awsNaming, cfTemplate, fixtureData } = await runServerless({
         fixture: 'function',
@@ -1831,6 +1863,10 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               handler: 'trigger.handler',
               destinations: { onSuccess: 'target' },
             },
+            fnArch: {
+              handler: 'target.handler',
+              architecture: 'arm64',
+            },
             fnTargetFailure: {
               handler: 'target.handler',
             },
@@ -1858,6 +1894,10 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
             },
             fnImage: {
               image: imageWithSha,
+            },
+            fnImageArch: {
+              image: imageWithSha,
+              architecture: 'arm64',
             },
             fnImageWithConfig: {
               image: {
@@ -2083,6 +2123,21 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
     it.skip('TODO: should support `functions[].dependsOn`', () => {
       // Replacement for
       // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L2381-L2397
+    });
+
+    it('should support `functions[].architecture`', () => {
+      expect(
+        cfResources[naming.getLambdaLogicalId('fnArch')].Properties.Architectures
+      ).to.deep.equal(['arm64']);
+      expect(
+        cfResources[naming.getLambdaLogicalId('fnImageArch')].Properties.Architectures
+      ).to.deep.equal(['arm64']);
+      expect(cfResources[naming.getLambdaLogicalId('fnImage')].Properties).to.not.have.property(
+        'Architectures'
+      );
+      expect(cfResources[naming.getLambdaLogicalId('target')].Properties).to.not.have.property(
+        'Architectures'
+      );
     });
 
     it('should support `functions[].destinations.onSuccess` referencing function in same stack', () => {

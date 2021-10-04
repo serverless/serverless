@@ -17,6 +17,10 @@ describe('test/integration/aws/function.test.js', function () {
     const serviceData = await fixtures.setup('function', {
       configExt: {
         functions: {
+          arch: {
+            handler: 'basic.handler',
+            architecture: 'arm64',
+          },
           target: {
             handler: 'target.handler',
           },
@@ -44,6 +48,20 @@ describe('test/integration/aws/function.test.js', function () {
       async () => {
         await awsRequest('Lambda', 'invoke', {
           FunctionName: `${stackName}-trigger`,
+          InvocationType: 'Event',
+        });
+      },
+      { checkIsComplete: (soFarEvents) => soFarEvents.length }
+    );
+    expect(events.length > 0).to.equal(true);
+  });
+
+  it('should run lambda in `arm64` architecture', async () => {
+    const events = await confirmCloudWatchLogs(
+      `/aws/lambda/${stackName}-arch`,
+      async () => {
+        await awsRequest('Lambda', 'invoke', {
+          FunctionName: `${stackName}-arch`,
           InvocationType: 'Event',
         });
       },
