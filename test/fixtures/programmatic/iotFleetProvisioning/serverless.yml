@@ -11,6 +11,7 @@ provider:
 functions:
   registerDevice:
     handler: registerDevice.main
+    timeout: 30
     environment:
       TEMPLATE_NAME:
         Ref: IotFleetProvisioningBasicIotProvisioningTemplate
