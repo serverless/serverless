@@ -177,7 +177,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/extendedValidate.test.js', () => 
       fixture: 'function',
       configExt: {
         functions: {
-          foo: {
+          basic: {
             timeout: 31,
             events: [
               {

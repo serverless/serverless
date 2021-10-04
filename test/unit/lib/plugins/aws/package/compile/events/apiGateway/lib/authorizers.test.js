@@ -226,7 +226,7 @@ describe('#compileAuthorizers() #2', () => {
       fixture: 'function',
       configExt: {
         functions: {
-          foo: {
+          basic: {
             provisionedConcurrency: 1,
           },
           authorized: {
@@ -237,7 +237,7 @@ describe('#compileAuthorizers() #2', () => {
                   method: 'get',
                   path: '/authorized',
                   authorizer: {
-                    name: 'foo',
+                    name: 'basic',
                     identitySource: 'method.request.header.Authorization',
                   },
                 },
@@ -249,13 +249,14 @@ describe('#compileAuthorizers() #2', () => {
       command: 'package',
     }).then(({ awsNaming, cfTemplate }) => {
       // console.log(cfTemplate.Resources);
-      const authorizerLogicalId = awsNaming.getAuthorizerLogicalId('foo');
-      const authorizerPermissionLogicalId = awsNaming.getLambdaApiGatewayPermissionLogicalId('foo');
+      const authorizerLogicalId = awsNaming.getAuthorizerLogicalId('basic');
+      const authorizerPermissionLogicalId =
+        awsNaming.getLambdaApiGatewayPermissionLogicalId('basic');
       expect(
         JSON.stringify(cfTemplate.Resources[authorizerLogicalId].Properties.AuthorizerUri)
       ).to.include('provisioned');
       expect(
         cfTemplate.Resources[authorizerPermissionLogicalId].Properties.FunctionName
-      ).to.deep.equal({ Ref: awsNaming.getLambdaProvisionedConcurrencyAliasLogicalId('foo') });
+      ).to.deep.equal({ Ref: awsNaming.getLambdaProvisionedConcurrencyAliasLogicalId('basic') });
     }));
 });

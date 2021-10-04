@@ -198,7 +198,7 @@ describe('AwsCompileFunctions', () => {
         command: 'package',
       });
 
-      expect(cfTemplate.Resources.FooLambdaFunction.Properties.Role).to.eql({
+      expect(cfTemplate.Resources.BasicLambdaFunction.Properties.Role).to.eql({
         'Fn::GetAtt': ['role-b', 'Arn'],
       });
     });
@@ -1649,7 +1649,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
 
       const providerConfig = fixtureData.serviceConfig.provider;
 
-      const { VpcConfig } = cfTemplate.Resources[awsNaming.getLambdaLogicalId('foo')].Properties;
+      const { VpcConfig } = cfTemplate.Resources[awsNaming.getLambdaLogicalId('basic')].Properties;
 
       expect(VpcConfig.SecurityGroupIds).to.deep.equal(providerConfig.vpc.securityGroupIds);
       expect(VpcConfig.SubnetIds).to.deep.equal(providerConfig.vpc.subnetIds);
@@ -1657,7 +1657,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
 
     describe('when custom IAM role is used', () => {
       let customRoleServiceConfig;
-      let fooFunctionRole;
+      let basicFunctionRole;
       let otherFunctionRole;
 
       before(async () => {
@@ -1671,13 +1671,14 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               },
             },
             functions: {
-              foo: {
+              basic: {
                 role: 'arn:aws:iam::123456789012:role/fromFunction',
               },
             },
           },
         });
-        fooFunctionRole = cfTemplate.Resources[awsNaming.getLambdaLogicalId('foo')].Properties.Role;
+        basicFunctionRole =
+          cfTemplate.Resources[awsNaming.getLambdaLogicalId('basic')].Properties.Role;
         otherFunctionRole =
           cfTemplate.Resources[awsNaming.getLambdaLogicalId('other')].Properties.Role;
         customRoleServiceConfig = fixtureData.serviceConfig;
@@ -1690,9 +1691,9 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       });
 
       it('should prefer `functions[].role` over `provider.iam.role`', () => {
-        const fooFunctionConfig = customRoleServiceConfig.functions.foo;
+        const basicFunctionConfig = customRoleServiceConfig.functions.basic;
 
-        expect(fooFunctionRole).to.equal(fooFunctionConfig.role);
+        expect(basicFunctionRole).to.equal(basicFunctionConfig.role);
       });
 
       it('should support `provider.iam.role` defined as CF function', async () => {
@@ -1711,7 +1712,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         });
 
         const functionRole =
-          cfTemplate.Resources[awsNaming.getLambdaLogicalId('foo')].Properties.Role;
+          cfTemplate.Resources[awsNaming.getLambdaLogicalId('basic')].Properties.Role;
         expect(functionRole).to.deep.equal(fixtureData.serviceConfig.provider.iam.role);
       });
     });
@@ -1731,8 +1732,8 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         command: 'package',
       });
 
-      const funcResource = cfTemplate.Resources[awsNaming.getLambdaLogicalId('foo')];
-      expect(funcResource.DependsOn).to.deep.equal(['FooLogGroup', 'LogicalNameRole']);
+      const funcResource = cfTemplate.Resources[awsNaming.getLambdaLogicalId('basic')];
+      expect(funcResource.DependsOn).to.deep.equal(['BasicLogGroup', 'LogicalNameRole']);
       expect(funcResource.Properties.Role).to.deep.equal({
         'Fn::GetAtt': [fixtureData.serviceConfig.provider.iam.role, 'Arn'],
       });
@@ -1753,8 +1754,8 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         command: 'package',
       });
 
-      const funcResource = cfTemplate.Resources[awsNaming.getLambdaLogicalId('foo')];
-      expect(funcResource.DependsOn).to.deep.equal(['FooLogGroup', 'LogicalNameRole']);
+      const funcResource = cfTemplate.Resources[awsNaming.getLambdaLogicalId('basic')];
+      expect(funcResource.DependsOn).to.deep.equal(['BasicLogGroup', 'LogicalNameRole']);
       expect(funcResource.Properties.Role).to.deep.equal(
         fixtureData.serviceConfig.provider.iam.role
       );
@@ -1776,7 +1777,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         command: 'package',
       });
 
-      const functionCfLogicalId = awsNaming.getLambdaLogicalId('foo');
+      const functionCfLogicalId = awsNaming.getLambdaLogicalId('basic');
 
       const originalVersionCfConfig = Object.values(originalTemplate.Resources).find(
         (resource) =>
@@ -2234,7 +2235,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               fileSystemConfig: {
                 localMountPath: '/mnt/path',
                 arn: 'arn:aws:elasticfilesystem:us-east-1:111111111111:access-point/fsap-a1a1a1a1a1a1a1a1a',
@@ -2269,13 +2270,14 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           cwd: serviceDir,
           command: 'package',
         });
-        const originalVersionArn = originalTemplate.Outputs.FooLambdaFunctionQualifiedArn.Value.Ref;
+        const originalVersionArn =
+          originalTemplate.Outputs.BasicLambdaFunctionQualifiedArn.Value.Ref;
 
         await updateConfig({
           functions: {
-            foo: {
+            basic: {
               tags: {
-                foo: 'bar',
+                basic: 'bar',
               },
               reservedConcurrency: 1,
             },
@@ -2285,10 +2287,10 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           cwd: serviceDir,
           command: 'package',
         });
-        const updatedVersionArn = updatedTemplate.Outputs.FooLambdaFunctionQualifiedArn.Value.Ref;
+        const updatedVersionArn = updatedTemplate.Outputs.BasicLambdaFunctionQualifiedArn.Value.Ref;
 
         expect(
-          updatedTemplate.Resources.FooLambdaFunction.Properties.ReservedConcurrentExecutions
+          updatedTemplate.Resources.BasicLambdaFunction.Properties.ReservedConcurrentExecutions
         ).to.equal(1);
 
         expect(originalVersionArn).to.equal(updatedVersionArn);
@@ -2496,7 +2498,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         command: 'deploy',
         configExt: {
           package: { artifact: 'some s3 url' },
-          functions: { foo: { package: { individually: true, artifact: 'other s3 url' } } },
+          functions: { basic: { package: { individually: true, artifact: 'other s3 url' } } },
         },
       });
     });

@@ -1765,7 +1765,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
           command: 'package',
           configExt: {
             functions: {
-              foo: {
+              basic: {
                 handler: 'myLambdaAtEdge.handler',
                 events: [
                   {
@@ -1794,7 +1794,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
           configExt: {
             disabledDeprecations: ['CLOUDFRONT_CACHE_BEHAVIOR_FORWARDED_VALUES_AND_TTL'],
             functions: {
-              foo: {
+              basic: {
                 handler: 'myLambdaAtEdge.handler',
                 events: [
                   {
@@ -1829,7 +1829,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
         command: 'package',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               handler: 'myLambdaAtEdge.handler',
               events: [
                 {
@@ -2139,7 +2139,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
     });
     it('should ignore provider VPC config', () => {
       const edgeResolvedName = naming.getLambdaLogicalId('fnOriginResponse');
-      const otherResolvedName = naming.getLambdaLogicalId('foo');
+      const otherResolvedName = naming.getLambdaLogicalId('basic');
       expect(cfResources[edgeResolvedName].Properties).not.to.contain.keys('VpcConfig');
       expect(cfResources[otherResolvedName].Properties).to.contain.keys('VpcConfig');
     });
