@@ -1,6 +1,6 @@
 'use strict';
 
-const expect = require('chai').expect;
+const chai = require('chai');
 const sandbox = require('sinon');
 const { constants } = require('fs');
 const fs = require('fs');
@@ -10,6 +10,10 @@ const os = require('os');
 const path = require('path');
 const AwsConfigCredentials = require('../../../../../lib/plugins/aws/configCredentials');
 const Serverless = require('../../../../../lib/Serverless');
+const runServerless = require('../../../../utils/run-serverless');
+
+const { expect } = chai;
+chai.use(require('chai-as-promised'));
 
 describe('AwsConfigCredentials', () => {
   let awsConfigCredentials;
@@ -137,16 +141,6 @@ describe('AwsConfigCredentials', () => {
       );
     });
 
-    it('should not update the profile if the overwrite flag is not set', () => {
-      awsConfigCredentials.options.profile = 'my-profile';
-      awsConfigCredentials.options.key = 'my-new-profile-key';
-      awsConfigCredentials.options.secret = 'my-new-profile-secret';
-
-      fse.outputFileSync(credentialsFilePath, credentialsFileContent);
-
-      return awsConfigCredentials.configureCredentials();
-    });
-
     it('should update the profile', () => {
       awsConfigCredentials.options.profile = 'my-profile';
       awsConfigCredentials.options.key = 'my-new-profile-key';
@@ -243,5 +237,26 @@ describe('AwsConfigCredentials', () => {
           expect(filePermissions).to.equal(expectedFilePermissions);
         }));
     }
+  });
+});
+
+describe('test/unit/lib/plugins/aws/configCredentials.test.js', () => {
+  it('should fail if profile is already set and overwrite is not set', async () => {
+    const credentialsFilePath = path.join(os.homedir(), '.aws', 'credentials');
+    const credentialsFileContent = [
+      '[default]',
+      'aws_access_key_id = my-old-profile-key',
+      'aws_secret_access_key = my-old-profile-secret',
+    ].join('\n');
+
+    await fse.outputFile(credentialsFilePath, credentialsFileContent);
+
+    await expect(
+      runServerless({
+        noService: true,
+        command: 'config credentials',
+        options: { provider: 'aws', key: 'key', secret: 'secret' },
+      })
+    ).to.be.eventually.rejected.and.have.property('code', 'CREDENTIALS_PROFILE_ALREADY_CONFIGURED');
   });
 });
