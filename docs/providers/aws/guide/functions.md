@@ -284,6 +284,27 @@ functions:
 
 During the first deployment when locally built images are used, Framework will automatically create a dedicated ECR repository to store these images, with name `serverless-<service>-<stage>`. Currently, the Framework will not remove older versions of images uploaded to ECR as they still might be in use by versioned functions. During `sls remove`, the created ECR repository will be removed. During deployment, Framework will attempt to `docker login` to ECR if needed. Depending on your local configuration, docker authorization token might be stored unencrypted. Please refer to documentation for more details: https://docs.docker.com/engine/reference/commandline/login/#credentials-store
 
+## Instruction set architecture
+
+By default, Lambda functions are run by 64-bit x86 architecture CPUs. However, [using arm64 architecture](https://docs.aws.amazon.com/lambda/latest/dg/foundation-arch.html) (AWS Graviton2 processor) may result in better pricing and performance.
+
+To switch all functions to AWS Graviton2 processor, configure `architecture` at `provider` level as follows:
+
+```yml
+provider:
+  ...
+  architecture: arm64
+```
+
+To toggle instruction set architecture per function individually, set it directly at `functions[]` context:
+
+```yaml
+functions:
+  hello:
+    ...
+    architecture: arm64
+```
+
 ## VPC Configuration
 
 You can add VPC configuration to a specific function in `serverless.yml` by adding a `vpc` object property in the function configuration. This object should contain the `securityGroupIds` and `subnetIds` array properties needed to construct VPC for this function. Here's an example configuration:
