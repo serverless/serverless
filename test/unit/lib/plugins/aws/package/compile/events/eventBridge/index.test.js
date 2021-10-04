@@ -282,7 +282,7 @@ describe('EventBridgeEvents', () => {
           configExt: {
             disabledDeprecations: ['AWS_EVENT_BRIDGE_CUSTOM_RESOURCE'],
             functions: {
-              foo: {
+              basic: {
                 events: [
                   {
                     eventBridge: {
@@ -314,7 +314,7 @@ describe('EventBridgeEvents', () => {
           configExt: {
             disabledDeprecations: ['AWS_EVENT_BRIDGE_CUSTOM_RESOURCE'],
             functions: {
-              foo: {
+              basic: {
                 events: [
                   {
                     eventBridge: {
@@ -345,7 +345,7 @@ describe('EventBridgeEvents', () => {
           configExt: {
             disabledDeprecations: ['AWS_EVENT_BRIDGE_CUSTOM_RESOURCE'],
             functions: {
-              foo: {
+              basic: {
                 events: [
                   {
                     eventBridge: {
@@ -416,7 +416,7 @@ describe('EventBridgeEvents', () => {
               },
             },
             functions: {
-              foo: {
+              basic: {
                 events: [
                   {
                     eventBridge: {
@@ -554,12 +554,12 @@ describe('EventBridgeEvents', () => {
       });
 
       it('should create a rule that references correct function in target', () => {
-        expect(ruleTarget.Arn['Fn::GetAtt'][0]).to.equal(naming.getLambdaLogicalId('foo'));
+        expect(ruleTarget.Arn['Fn::GetAtt'][0]).to.equal(naming.getLambdaLogicalId('basic'));
       });
 
       it('should create a lambda permission resource that correctly references event bus in SourceArn', () => {
         const lambdaPermissionResource =
-          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('foo', 1)];
+          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('basic', 1)];
 
         expect(
           lambdaPermissionResource.Properties.SourceArn['Fn::Join'][1][5]['Fn::Join'][1][1]
@@ -582,7 +582,7 @@ describe('EventBridgeEvents', () => {
               },
             },
             functions: {
-              foo: {
+              basic: {
                 events: [
                   {
                     eventBridge: {
@@ -623,7 +623,7 @@ describe('EventBridgeEvents', () => {
 
       it('should create a lambda permission resource that correctly references arn event bus in SourceArn', () => {
         const lambdaPermissionResource =
-          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('foo', 1)];
+          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('basic', 1)];
 
         expect(
           lambdaPermissionResource.Properties.SourceArn['Fn::Join'][1][5]['Fn::Join'][1][1]
@@ -632,7 +632,7 @@ describe('EventBridgeEvents', () => {
 
       it('should create a lambda permission resource that correctly references CF event bus in SourceArn', () => {
         const lambdaPermissionResource =
-          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('foo', 2)];
+          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('basic', 2)];
 
         expect(
           lambdaPermissionResource.Properties.SourceArn['Fn::Join'][1][5]['Fn::Join'][1][1]
@@ -641,7 +641,7 @@ describe('EventBridgeEvents', () => {
 
       it('should create a lambda permission resource that correctly references explicit default event bus in SourceArn', () => {
         const lambdaPermissionResource =
-          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('foo', 3)];
+          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('basic', 3)];
 
         expect(
           lambdaPermissionResource.Properties.SourceArn['Fn::Join'][1][5]['Fn::Join'][1][1]
@@ -650,7 +650,7 @@ describe('EventBridgeEvents', () => {
 
       it('should create a lambda permission resource that correctly references implicit default event bus in SourceArn', () => {
         const lambdaPermissionResource =
-          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('foo', 4)];
+          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('basic', 4)];
 
         expect(
           lambdaPermissionResource.Properties.SourceArn['Fn::Join'][1][5]['Fn::Join'][1]

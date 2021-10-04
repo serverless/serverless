@@ -25,7 +25,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/activemq.test.js', ()
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               events: [
                 {
                   activemq: {
@@ -55,7 +55,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/activemq.test.js', ()
       });
       naming = awsNaming;
       minimalEventSourceMappingResource =
-        cfTemplate.Resources[naming.getActiveMQEventLogicalId('foo', queue)];
+        cfTemplate.Resources[naming.getActiveMQEventLogicalId('basic', queue)];
       allParamsEventSourceMappingResource =
         cfTemplate.Resources[naming.getActiveMQEventLogicalId('other', queue)];
       defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution;
@@ -72,7 +72,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/activemq.test.js', ()
         ],
         Queues: [queue],
         FunctionName: {
-          'Fn::GetAtt': [naming.getLambdaLogicalId('foo'), 'Arn'],
+          'Fn::GetAtt': [naming.getLambdaLogicalId('basic'), 'Arn'],
         },
       });
     });
@@ -138,7 +138,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/activemq.test.js', ()
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               role: { 'Fn::ImportValue': 'MyImportedRole' },
               events: [
                 {
@@ -156,7 +156,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/activemq.test.js', ()
       });
 
       const eventSourceMappingResource =
-        cfTemplate.Resources[awsNaming.getActiveMQEventLogicalId('foo', queue)];
+        cfTemplate.Resources[awsNaming.getActiveMQEventLogicalId('basic', queue)];
       expect(eventSourceMappingResource.DependsOn).to.deep.equal([]);
     });
   });

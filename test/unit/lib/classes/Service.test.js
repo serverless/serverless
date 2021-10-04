@@ -124,8 +124,8 @@ describe('Service', () => {
         command: 'package',
       });
       expect(
-        cfTemplate.Resources[awsNaming.getLambdaLogicalId('foo')].Properties.FunctionName
-      ).to.include('dev-foo');
+        cfTemplate.Resources[awsNaming.getLambdaLogicalId('basic')].Properties.FunctionName
+      ).to.include('dev-basic');
     });
 
     it('should throw when receives function with non-object configuration', async () => {
