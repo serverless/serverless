@@ -1,10 +1,13 @@
 'use strict';
 
 const expect = require('chai').expect;
+
 const sinon = require('sinon');
 const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 const AwsRemove = require('../../../../../../../lib/plugins/aws/remove/index');
 const Serverless = require('../../../../../../../lib/Serverless');
+
+const runServerless = require('../../../../../../utils/run-serverless');
 
 describe('emptyS3Bucket', () => {
   const options = {
@@ -81,33 +84,77 @@ describe('emptyS3Bucket', () => {
   });
 
   describe('#listObjectVersions()', () => {
-    it('should resolve if no object versions are present', () => {
-      const listObjectVersionsStub = sinon.stub(awsRemove.provider, 'request').resolves();
+    const baseAwsRequestStubMap = {
+      STS: {
+        getCallerIdentity: {
+          ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+          UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+          Account: '999999999999',
+          Arn: 'arn:aws:iam::999999999999:user/test',
+        },
+      },
+      ECR: {
+        describeRepositories: sinon.stub().throws({
+          providerError: { code: 'RepositoryNotFoundException' },
+        }),
+      },
+      CloudFormation: {
+        describeStacks: {},
+        describeStackEvents: {
+          StackEvents: [
+            {
+              EventId: '1e2f3g4h',
+              StackName: 'new-service-dev',
+              LogicalResourceId: 'new-service-dev',
+              ResourceType: 'AWS::CloudFormation::Stack',
+              Timestamp: new Date(),
+              ResourceStatus: 'DELETE_COMPLETE',
+            },
+          ],
+        },
+        describeStackResource: {
+          StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
+        },
+        deleteStack: {},
+      },
+    };
 
-      const isDeploymentBucketVersioningEnabledStub = sinon
-        .stub(awsRemove.provider, 'isDeploymentBucketVersioningEnabled')
-        .resolves(true);
+    it('should resolve if no object versions are present', async () => {
+      const listObjectVersionsStub = sinon.stub().resolves();
 
-      const stage = awsRemove.provider.getStage();
-      const prefix = awsRemove.provider.getDeploymentPrefix();
-
-      return awsRemove.listObjects().then(() => {
-        expect(listObjectVersionsStub.calledOnce).to.be.equal(true);
+      return runServerless({
+        command: 'remove',
+        config: {
+          service: 'test-service',
+          provider: {
+            name: 'aws',
+            stage: 'dev',
+            region: 'us-east-1',
+            deploymentPrefix: 'serverless',
+            deploymentBucket: {
+              name: 'bucket',
+              versioning: true,
+            },
+          },
+        },
+        awsRequestStubMap: {
+          ...baseAwsRequestStubMap,
+          S3: {
+            listObjectVersions: listObjectVersionsStub,
+          },
+        },
+      }).then(() => {
         expect(
-          listObjectVersionsStub.calledWithExactly('S3', 'listObjectVersions', {
-            Bucket: awsRemove.bucketName,
-            Prefix: `${prefix}/${serverless.service.service}/${stage}`,
+          listObjectVersionsStub.calledWithExactly({
+            Bucket: 'bucket',
+            Prefix: 'serverless/test-service/dev',
           })
         ).to.be.equal(true);
-        expect(isDeploymentBucketVersioningEnabledStub.calledOnce).to.be.equal(true);
-        expect(awsRemove.objectsInBucket.length).to.equal(0);
-        awsRemove.provider.request.restore();
-        awsRemove.provider.isDeploymentBucketVersioningEnabled.restore();
       });
     });
 
-    it('should push objects to the array if present', () => {
-      const listObjectVersionsStub = sinon.stub(awsRemove.provider, 'request').resolves({
+    it('should push objects to the array if present', async () => {
+      const listObjectVersionsStub = sinon.stub().resolves({
         Versions: [
           { Key: 'object1', VersionId: null },
           { Key: 'object2', VersionId: 'v1' },
@@ -115,27 +162,57 @@ describe('emptyS3Bucket', () => {
         DeleteMarkers: [{ Key: 'object3', VersionId: 'v2' }],
       });
 
-      const isDeploymentBucketVersioningEnabledStub = sinon
-        .stub(awsRemove.provider, 'isDeploymentBucketVersioningEnabled')
-        .resolves(true);
+      const deleteObjectsStub = sinon.stub().resolves({
+        Deleted: [
+          { Key: 'object1', VersionId: null },
+          { Key: 'object2', VersionId: 'v1' },
+          { Key: 'object3', VersionId: 'v2' },
+        ],
+      });
 
-      const stage = awsRemove.provider.getStage();
-      const prefix = awsRemove.provider.getDeploymentPrefix();
-
-      return awsRemove.listObjects().then(() => {
+      return runServerless({
+        command: 'remove',
+        config: {
+          service: 'test-service',
+          provider: {
+            name: 'aws',
+            stage: 'dev',
+            region: 'us-east-1',
+            deploymentPrefix: 'serverless',
+            deploymentBucket: {
+              name: 'bucket',
+              versioning: true,
+            },
+          },
+        },
+        awsRequestStubMap: {
+          ...baseAwsRequestStubMap,
+          S3: {
+            listObjectVersions: listObjectVersionsStub,
+            deleteObjects: deleteObjectsStub,
+          },
+        },
+      }).then(() => {
         expect(listObjectVersionsStub.calledOnce).to.be.equal(true);
         expect(
-          listObjectVersionsStub.calledWithExactly('S3', 'listObjectVersions', {
-            Bucket: awsRemove.bucketName,
-            Prefix: `${prefix}/${serverless.service.service}/${stage}`,
+          listObjectVersionsStub.calledWithExactly({
+            Bucket: 'bucket',
+            Prefix: 'serverless/test-service/dev',
           })
         ).to.be.equal(true);
-        expect(isDeploymentBucketVersioningEnabledStub.calledOnce).to.be.equal(true);
-        expect(awsRemove.objectsInBucket[0]).to.deep.equal({ Key: 'object1', VersionId: null });
-        expect(awsRemove.objectsInBucket[1]).to.deep.equal({ Key: 'object2', VersionId: 'v1' });
-        expect(awsRemove.objectsInBucket[2]).to.deep.equal({ Key: 'object3', VersionId: 'v2' });
-        awsRemove.provider.request.restore();
-        awsRemove.provider.isDeploymentBucketVersioningEnabled.restore();
+
+        expect(
+          deleteObjectsStub.calledWithExactly({
+            Bucket: 'bucket',
+            Delete: {
+              Objects: [
+                { Key: 'object1', VersionId: null },
+                { Key: 'object2', VersionId: 'v1' },
+                { Key: 'object3', VersionId: 'v2' },
+              ],
+            },
+          })
+        ).to.be.equal(true);
       });
     });
   });
