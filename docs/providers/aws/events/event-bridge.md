@@ -186,3 +186,46 @@ functions:
               eventTime: '$.time'
             inputTemplate: '{"time": <eventTime>, "key1": "value1"}'
 ```
+
+## Adding a DLQ to an event rule
+
+DeadLetterQueueArn is not available for custom resources, only for native CloudFormation.
+
+```yml
+functions:
+  myFunction:
+    handler: index.handler
+    events:
+      - eventBridge:
+          eventBus: custom-saas-events
+          pattern:
+            source:
+              - saas.external
+          deadLetterQueueArn:
+            Fn::GetAtt:
+              - QueueName
+              - Arn
+```
+
+## Adding a retry policy to an event rule
+
+RetryPolicy is not available for custom resources, only for native CloudFormation.
+
+```yml
+functions:
+  myFunction:
+    handler: index.handler
+    events:
+      - eventBridge:
+          eventBus: custom-saas-events
+          pattern:
+            source:
+              - saas.external
+          deadLetterQueueArn:
+            Fn::GetAtt:
+              - QueueName
+              - Arn
+          retryPolicy:
+            maximumEventAge: 3600
+            maximumRetryAttempts: 3
+```

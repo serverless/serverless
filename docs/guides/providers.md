@@ -182,3 +182,26 @@ If you are create a custom IAM Role with this policy, you will need to add a Tru
     ]
 }
 ```
+
+## Migration from Deployment Profile
+
+Prior to the January 11th, 2021 release, deployment profiles supported setting AWS Access Role ARNs and managing parameters. Support for using AWS Access Roles for deployments has moved from deployment profiles to Providers. Support for managing Parameters has moved from deployment profiles to services and instances.
+
+**Deployment profiles will be deprecated on February 28th, 2021**. Migration from deployment profiles to providers and parameters will be automatic; however, there are two required action items to use the new features.
+
+### Action Items
+
+- You **MUST** upgrade to use the Enterprise Plugin version 4.4.1 or higher.
+- You **MUST** relink your AWS Account via the providers UI by no later than February 28th, 2021.
+
+### Automatic Migration
+
+Parameters and Providers were migrated automatically from deployment profiles on January 31st, 2021.
+
+The automatic migration replaced deployment profiles with providers by performing the following:
+
+- **A new provider will be created for each deployment profile using the same AWS Access Role ARN**. If the deployment profile doesn’t contain an AWS Access Role ARN, it will be skipped.
+- **A provider will be added to each service for the corresponding default stage in the app**. The provider will be the provider corresponding to the deployment profile which was associated with the default stage of the parent app. For example, if `app1` has `service1` and the _`default`_ stage of `app1` links to the `dev` deployment profile, then the `dev` provider will be added to `service1`. This is repeated for all services in all apps.
+- **A provider will be added to each instance for the corresponding stage in the app**. The provider will be the provider corresponding to the deployment profile which was associated with the stage of the instance. For example, if `app1` has `service1` and `app1` has a stage `prod` linked to the `prod` deployment profile, then the `prod` provider will be added to the `service1` instances deployed to the `prod` stage.
+- **Parameters from the deployment profile associated with the default stage in the app will be copied to the service**.
+- **Parameters from the deployment profile associated with a stage in an app will be copied to the instance**.

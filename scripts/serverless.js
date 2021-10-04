@@ -13,6 +13,10 @@ if (require('../lib/utils/tabCompletion/isSupported') && process.argv[2] === 'co
   return;
 }
 
+// Setup log writing
+require('@serverless/utils/log-reporters/node');
+const { progress } = require('@serverless/utils/log');
+
 const handleError = require('../lib/cli/handle-error');
 const {
   storeLocally: storeTelemetryLocally,
@@ -37,8 +41,11 @@ let hasTelemetryBeenReported = false;
 // to propery handle e.g. `SIGINT` interrupt
 const keepAliveTimer = setTimeout(() => {}, 60 * 60 * 1000);
 
+const standaloneCommands = new Set(['plugin install', 'plugin uninstall']);
+
 process.once('uncaughtException', (error) => {
   clearTimeout(keepAliveTimer);
+  progress.clear();
   const cachedHasTelemetryBeenReported = hasTelemetryBeenReported;
   hasTelemetryBeenReported = true;
   handleError(error, {
@@ -58,6 +65,7 @@ process.once('uncaughtException', (error) => {
 require('signal-exit/signals').forEach((signal) => {
   process.once(signal, () => {
     clearTimeout(keepAliveTimer);
+    progress.clear();
     // If there's another listener (e.g. we're in deamon context or reading stdin input)
     // then let the other listener decide how process will exit
     const isOtherSigintListener = Boolean(process.listenerCount(signal));
@@ -132,6 +140,7 @@ const processSpanPromise = (async () => {
     const path = require('path');
     const uuid = require('uuid');
     const _ = require('lodash');
+    const clear = require('ext/object/clear');
     const Serverless = require('../lib/Serverless');
     const resolveVariables = require('../lib/configuration/variables/resolve');
     const isPropertyResolved = require('../lib/configuration/variables/is-property-resolved');
@@ -178,6 +187,7 @@ const processSpanPromise = (async () => {
 
       const resolveConfigurationPath = require('../lib/cli/resolve-configuration-path');
       const readConfiguration = require('../lib/configuration/read');
+      const resolveProviderName = require('../lib/configuration/resolve-provider-name');
 
       // Resolve eventual service configuration path
       configurationPath = await resolveConfigurationPath();
@@ -235,7 +245,6 @@ const processSpanPromise = (async () => {
           }
 
           const resolveVariablesMeta = require('../lib/configuration/variables/resolve-meta');
-          const resolveProviderName = require('../lib/configuration/resolve-provider-name');
 
           variablesMeta = resolveVariablesMeta(configuration);
 
@@ -475,6 +484,15 @@ const processSpanPromise = (async () => {
             ensureResolvedProperty('provider\0region', { shouldSilentlyReturnIfLegacyMode: true });
           }
         })();
+
+        // Ensure to have full AWS commands schema loaded if we're in context of AWS provider
+        // It's not the case if not AWS service specific command was resolved
+        if (configuration && resolveProviderName(configuration) === 'aws') {
+          resolveInput.clear();
+          ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
+            require('../lib/cli/commands-schema/aws-service')
+          ));
+        }
       } else {
         // In non-service context we recognize all AWS service commands
         resolveInput.clear();
@@ -489,24 +507,40 @@ const processSpanPromise = (async () => {
 
     const configurationFilename = configuration && configurationPath.slice(serviceDir.length + 1);
 
-    if (isInteractiveSetup) {
-      require('../lib/cli/ensure-supported-command')(configuration);
+    const isStandaloneCommand = standaloneCommands.has(command);
 
-      if (!process.stdin.isTTY && !process.env.SLS_INTERACTIVE_SETUP_ENABLE) {
-        throw new ServerlessError(
-          'Attempted to run an interactive setup in non TTY environment.\n' +
-            "If that's intentended enforce with SLS_INTERACTIVE_SETUP_ENABLE=1 environment variable",
-          'INTERACTIVE_SETUP_IN_NON_TTY'
-        );
-      }
-      const { configuration: configurationFromInteractive } =
-        await require('../lib/cli/interactive-setup')({
+    if (isInteractiveSetup || isStandaloneCommand) {
+      if (isInteractiveSetup) {
+        require('../lib/cli/ensure-supported-command')(configuration);
+
+        if (!process.stdin.isTTY && !process.env.SLS_INTERACTIVE_SETUP_ENABLE) {
+          throw new ServerlessError(
+            'Attempted to run an interactive setup in non TTY environment.\n' +
+              "If that's intentended enforce with SLS_INTERACTIVE_SETUP_ENABLE=1 environment variable",
+            'INTERACTIVE_SETUP_IN_NON_TTY'
+          );
+        }
+        const result = await require('../lib/cli/interactive-setup')({
           configuration,
           serviceDir,
           configurationFilename,
           options,
           commandUsage,
         });
+        if (result.configuration) {
+          configuration = result.configuration;
+        }
+      } else {
+        require('../lib/cli/ensure-supported-command')(configuration);
+        await require(`../commands/${commands.join('-')}`)({
+          configuration,
+          serviceDir,
+          configurationFilename,
+          options,
+        });
+      }
+
+      progress.clear();
 
       logDeprecation.printSummary();
 
@@ -519,7 +553,7 @@ const processSpanPromise = (async () => {
               options,
               commandSchema,
               serviceDir,
-              configuration: configurationFromInteractive,
+              configuration,
               commandUsage,
               variableSources: variableSourcesInConfig,
             }),
@@ -573,7 +607,8 @@ const processSpanPromise = (async () => {
               ({ command, commands, options, isHelpRequest, commandSchema } =
                 resolveInput(commandsSchema));
               serverless.processedInput.commands = serverless.pluginManager.cliCommands = commands;
-              serverless.processedInput.options = serverless.pluginManager.cliOptions = options;
+              serverless.processedInput.options = options;
+              Object.assign(clear(serverless.pluginManager.cliOptions), options);
               hasFinalCommandSchema = true;
             }
           } else {
@@ -794,6 +829,7 @@ const processSpanPromise = (async () => {
         // Run command
         await serverless.run();
       }
+      progress.clear();
 
       logDeprecation.printSummary();
 
@@ -849,6 +885,7 @@ const processSpanPromise = (async () => {
       throw error;
     }
   } catch (error) {
+    progress.clear();
     const cachedHasTelemetryBeenReported = hasTelemetryBeenReported;
     hasTelemetryBeenReported = true;
     handleError(error, {

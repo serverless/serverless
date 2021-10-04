@@ -118,6 +118,7 @@ provider:
         value: myFirstKeyValue
         description: myFirstKeyDescription
         customerId: myFirstKeyCustomerId
+        enabled: true # Optional, true by default, can be used to disable API key without deleting the resource
       - ${opt:stage}-myFirstKey
       - ${env:MY_API_KEY} # you can hide it in a serverless variable
     minimumCompressionSize: 1024 # Compress response when larger than specified size in bytes (must be between 0 and 10485760)
@@ -413,7 +414,7 @@ functions:
       - schedule:
           name: my scheduled event
           description: a description of my scheduled event's purpose
-          rate: rate(10 minutes)
+          rate: rate(10 minutes) # Can also be an array of rate/cron expressions
           enabled: false
           # Note, you can use only one of input, inputPath, or inputTransformer
           input:
@@ -568,6 +569,13 @@ functions:
             inputPathsMap:
               eventTime: '$.time'
             inputTemplate: '{"time": <eventTime>, "key1": "value1"}'
+          retryPolicy:
+            maximumEventAge: 3600
+            maximumRetryAttempts: 3
+          deadLetterQueueArn:
+            Fn::GetAtt:
+              - QueueName
+              - Arn
       - cloudFront:
           eventType: viewer-response
           includeBody: true

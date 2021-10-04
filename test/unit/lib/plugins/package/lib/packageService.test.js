@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const fs = require('fs');
+const fsp = require('fs').promises;
 const chai = require('chai');
 const sinon = require('sinon');
 const { listFileProperties, listZipFiles } = require('../../../../../utils/fs');
@@ -373,7 +373,7 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
       it('for function', async () => {
         const { servicePath: serviceDir, updateConfig } = await fixtures.setup('packageArtifact');
         const absoluteArtifactFilePath = path.join(serviceDir, 'absoluteArtifact.zip');
-        const zipContent = await fs.promises.readFile(absoluteArtifactFilePath);
+        const zipContent = await fsp.readFile(absoluteArtifactFilePath);
 
         await updateConfig({
           functions: {
@@ -397,7 +397,7 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
       it('service-wide', async () => {
         const { servicePath: serviceDir, updateConfig } = await fixtures.setup('packageArtifact');
         const absoluteArtifactFilePath = path.join(serviceDir, 'absoluteArtifact.zip');
-        const zipContent = await fs.promises.readFile(absoluteArtifactFilePath);
+        const zipContent = await fsp.readFile(absoluteArtifactFilePath);
 
         await updateConfig({
           package: {

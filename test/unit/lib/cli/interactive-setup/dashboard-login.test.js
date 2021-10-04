@@ -66,6 +66,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configuration: {},
       configurationFilename: 'serverless.yml',
       options: {},
+      initial: {},
       inquirer,
     };
     expect(await step.isApplicable(context)).to.equal(false);
@@ -78,6 +79,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configuration: { provider: { name: 'aws', runtime: 'java8' } },
       configurationFilename: 'serverless.yml',
       options: {},
+      initial: {},
       inquirer,
     };
     expect(await step.isApplicable(context)).to.equal(false);
@@ -93,6 +95,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configuration,
       configurationFilename: 'serverless.yml',
       options: {},
+      initial: {},
       inquirer,
     };
     expect(await overrideCwd(serviceDir, async () => await step.isApplicable(context))).to.equal(
@@ -116,6 +119,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configuration: { provider: { name: 'aws', runtime: 'nodejs12.x' } },
       configurationFilename: 'serverless.yml',
       options: {},
+      initial: {},
       inquirer,
       stepHistory: new StepHistory(),
     };
@@ -150,6 +154,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configuration: { provider: { name: 'aws', runtime: 'nodejs12.x' } },
       configurationFilename: 'serverless.yml',
       options: {},
+      initial: {},
       inquirer,
       stepHistory: new StepHistory(),
     };

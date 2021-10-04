@@ -12,7 +12,6 @@ const expect = require('chai').expect;
 describe('PluginSearch', () => {
   let pluginSearch;
   let serverless;
-  let consoleLogStub;
 
   const plugins = [
     {
@@ -37,11 +36,6 @@ describe('PluginSearch', () => {
     serverless.cli = new CLI(serverless);
     const options = {};
     pluginSearch = new PluginSearch(serverless, options);
-    consoleLogStub = sinon.stub(serverless.cli, 'consoleLog').returns();
-  });
-
-  afterEach(() => {
-    serverless.cli.consoleLog.restore();
   });
 
   describe('#constructor()', () => {
@@ -98,7 +92,6 @@ describe('PluginSearch', () => {
       pluginSearch.options.query = 'serverless-plugin-1';
 
       return expect(pluginSearch.search()).to.be.fulfilled.then(() => {
-        expect(consoleLogStub.calledOnce).to.equal(true);
         expect(getPluginsStub.calledOnce).to.equal(true);
         expect(displayStub.calledOnce).to.equal(true);
       });
