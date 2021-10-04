@@ -38,44 +38,45 @@ describe('test/integration/aws/iotFleetProvisioning.test.js', function () {
 
   after(async () => {
     if (!isDeployed) return;
-    const [
-      {
-        certificateDescription: { certificateArn },
-      },
-      policyName,
-    ] = await Promise.all([
-      awsRequest('Iot', 'describeCertificate', {
-        certificateId,
-      }),
-      resolveIoTPolicyName(),
-    ]);
-    await Promise.all([
-      awsRequest('Iot', 'detachThingPrincipal', {
-        thingName,
-        principal: certificateArn,
-      }),
-      awsRequest('Iot', 'detachPolicy', {
+    if (certificateId) {
+      const [
+        {
+          certificateDescription: { certificateArn },
+        },
         policyName,
-        target: certificateArn,
-      }),
-      awsRequest('Iot', 'updateCertificate', {
-        certificateId,
-        newStatus: 'INACTIVE',
-      }),
-    ]);
-    await Promise.all([
-      awsRequest('Iot', 'deleteThing', {
-        thingName,
-      }),
-      awsRequest('Iot', 'deleteCertificate', {
-        certificateId,
-      }),
-    ]);
+      ] = await Promise.all([
+        awsRequest('Iot', 'describeCertificate', {
+          certificateId,
+        }),
+        resolveIoTPolicyName(),
+      ]);
+      await Promise.all([
+        awsRequest('Iot', 'detachThingPrincipal', {
+          thingName,
+          principal: certificateArn,
+        }),
+        awsRequest('Iot', 'detachPolicy', {
+          policyName,
+          target: certificateArn,
+        }),
+        awsRequest('Iot', 'updateCertificate', {
+          certificateId,
+          newStatus: 'INACTIVE',
+        }),
+      ]);
+      await Promise.all([
+        awsRequest('Iot', 'deleteThing', {
+          thingName,
+        }),
+        awsRequest('Iot', 'deleteCertificate', {
+          certificateId,
+        }),
+      ]);
+    }
     await removeService(serviceDir);
   });
 
   it('setup a new IoT Thing with the provisioning template', async () => {
-    let provisionnedThingName;
     const [{ certificatePem, keyPair }, iotEndpoint] = await Promise.all([
       awsRequest('Iot', 'createProvisioningClaim', {
         templateName: await resolveTemplateName(),
@@ -92,7 +93,11 @@ describe('test/integration/aws/iotFleetProvisioning.test.js', function () {
         privateKey: keyPair.PrivateKey,
       }),
     });
-    ({ thingName: provisionnedThingName, certificateId } = JSON.parse(Payload));
+
+    const payload = JSON.parse(Payload);
+    ({ certificateId } = payload);
+    const { thingName: provisionnedThingName, errorMessage } = payload;
+    if (errorMessage) throw new Error(`Invocation errored with: ${errorMessage}`);
 
     expect(provisionnedThingName).to.equal(thingName);
   });
