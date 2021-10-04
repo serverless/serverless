@@ -38,8 +38,8 @@ describe('test/integration/aws/function.test.js', function () {
     await removeService(serviceDir);
   });
 
-  it('on async invoke should invoke destination target', async () =>
-    confirmCloudWatchLogs(
+  it('on async invoke should invoke destination target', async () => {
+    const events = await confirmCloudWatchLogs(
       `/aws/lambda/${stackName}-target`,
       async () => {
         await awsRequest('Lambda', 'invoke', {
@@ -47,8 +47,8 @@ describe('test/integration/aws/function.test.js', function () {
           InvocationType: 'Event',
         });
       },
-      { checkIsComplete: (events) => events.length }
-    ).then((events) => {
-      expect(events.length > 0).to.equal(true);
-    }));
+      { checkIsComplete: (soFarEvents) => soFarEvents.length }
+    );
+    expect(events.length > 0).to.equal(true);
+  });
 });
