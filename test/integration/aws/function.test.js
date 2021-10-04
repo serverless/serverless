@@ -7,14 +7,26 @@ const { confirmCloudWatchLogs } = require('../../utils/misc');
 
 const { deployService, removeService } = require('../../utils/integration');
 
-describe('Function destinations Integration Test', function () {
+describe('test/integration/aws/function.test.js', function () {
   this.timeout(1000 * 60 * 20); // Involves time-taking deploys
   let stackName;
   let serviceDir;
   const stage = 'dev';
 
   before(async () => {
-    const serviceData = await fixtures.setup('functionDestinations');
+    const serviceData = await fixtures.setup('function', {
+      configExt: {
+        functions: {
+          target: {
+            handler: 'target.handler',
+          },
+          trigger: {
+            handler: 'trigger.handler',
+            destinations: { onSuccess: 'target' },
+          },
+        },
+      },
+    });
     ({ servicePath: serviceDir } = serviceData);
     const serviceName = serviceData.serviceConfig.service;
     stackName = `${serviceName}-${stage}`;

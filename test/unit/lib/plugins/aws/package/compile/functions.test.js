@@ -1820,10 +1820,17 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         serverless: serverlessInstance,
         fixtureData,
       } = await runServerless({
-        fixture: 'functionDestinations',
+        fixture: 'function',
         command: 'package',
         configExt: {
           functions: {
+            target: {
+              handler: 'target.handler',
+            },
+            trigger: {
+              handler: 'trigger.handler',
+              destinations: { onSuccess: 'target' },
+            },
             fnTargetFailure: {
               handler: 'target.handler',
             },
@@ -1858,6 +1865,25 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
                 workingDirectory: './workdir',
                 entryPoint: ['executable', 'param1'],
                 command: ['anotherexecutable'],
+              },
+            },
+            fnExternalLayer: {
+              handler: 'target.handler',
+              layers: [{ Ref: 'ExternalLambdaLayer' }],
+            },
+          },
+          resources: {
+            Resources: {
+              ExternalLambdaLayer: {
+                Type: 'AWS::Lambda::LayerVersion',
+                Properties: {
+                  CompatibleRuntimes: ['nodejs12.x'],
+                  Content: {
+                    S3Bucket: 'bucket',
+                    S3Key: 'key',
+                  },
+                  LayerName: 'externalLayer',
+                },
               },
             },
           },
@@ -2044,35 +2070,8 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
     });
 
     it('should support `Ref` references to external layers (not defined as a part of `layers` top-level property in configuration)', async () => {
-      const { cfTemplate, awsNaming } = await runServerless({
-        fixture: 'functionDestinations',
-        command: 'package',
-        configExt: {
-          functions: {
-            fnExternalLayer: {
-              handler: 'target.handler',
-              layers: [{ Ref: 'ExternalLambdaLayer' }],
-            },
-          },
-          resources: {
-            Resources: {
-              ExternalLambdaLayer: {
-                Type: 'AWS::Lambda::LayerVersion',
-                Properties: {
-                  CompatibleRuntimes: ['nodejs12.x'],
-                  Content: {
-                    S3Bucket: 'bucket',
-                    S3Key: 'key',
-                  },
-                  LayerName: 'externalLayer',
-                },
-              },
-            },
-          },
-        },
-      });
       expect(
-        cfTemplate.Resources[awsNaming.getLambdaLogicalId('fnExternalLayer')].Properties.Layers
+        cfResources[naming.getLambdaLogicalId('fnExternalLayer')].Properties.Layers
       ).to.deep.equal([{ Ref: 'ExternalLambdaLayer' }]);
     });
 
