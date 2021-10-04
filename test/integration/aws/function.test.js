@@ -38,7 +38,7 @@ describe('test/integration/aws/function.test.js', function () {
     await removeService(serviceDir);
   });
 
-  it('on async invoke should invoke destination target', async () => {
+  it('should invoke destination target on async invocation', async () => {
     const events = await confirmCloudWatchLogs(
       `/aws/lambda/${stackName}-target`,
       async () => {
