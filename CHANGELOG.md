@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.61.0](https://github.com/serverless/serverless/compare/v2.60.3...v2.61.0) (2021-10-04)
+
+### Features
+
+- **AWS Lambda:** Support 64-bit ARM architecture ([#10049](https://github.com/serverless/serverless/pull/10049)) ([fe655d4](https://github.com/serverless/serverless/commit/fe655d4f15ca789a1e3a46ce49dc7d23ca806c00)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **AWS Credentials:** Fail when profile is already configured ([#10038](https://github.com/serverless/serverless/pull/10038)) ([f8ad7bc](https://github.com/serverless/serverless/commit/f8ad7bca6a26e39864d139fec4aadddd24b34a5b)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **CLI: New logs (experimental):**
+  - `config credentials` command ([#10038](https://github.com/serverless/serverless/pull/10038)) ([bcb2408](https://github.com/serverless/serverless/commit/bcb240893d89127cc1eada7255864b7bfeb88a61)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - `config tabcompletion install` command ([#10038](https://github.com/serverless/serverless/pull/10038)) ([16a7739](https://github.com/serverless/serverless/commit/16a7739411141487fa33f8a72f88d82db712bfc9)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - `config tabcompletion uninstall` command ([#10038](https://github.com/serverless/serverless/pull/10038)) ([02eebb4](https://github.com/serverless/serverless/commit/02eebb4643435341235340f5da8c7db903cb12e6)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - `config` command ([#10038](https://github.com/serverless/serverless/pull/10038)) ([7926570](https://github.com/serverless/serverless/commit/7926570557e5c0a4dd661c069eecc1d4a0cf9b5d)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - `slstats` command ([#10036](https://github.com/serverless/serverless/pull/10036)) ([0c9dae1](https://github.com/serverless/serverless/commit/0c9dae1210b9456ec96bc38a717a901beaa45a7b)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ### [2.60.3](https://github.com/serverless/serverless/compare/v2.60.2...v2.60.3) (2021-10-01)
 
 ### Bug Fixes
