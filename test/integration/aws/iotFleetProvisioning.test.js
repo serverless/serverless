@@ -6,7 +6,7 @@ const fixtures = require('../../fixtures/programmatic');
 const { deployService, removeService } = require('../../utils/integration');
 const { resolveIotEndpoint } = require('../../utils/iot');
 
-describe('test/integration/iotFleetProvisioning.test.js', function () {
+describe('test/integration/aws/iotFleetProvisioning.test.js', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   const thingName = 'IotDevice';
   const stage = 'dev';
