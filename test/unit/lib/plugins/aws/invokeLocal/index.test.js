@@ -6,15 +6,14 @@ const path = require('path');
 const EventEmitter = require('events');
 const fse = require('fs-extra');
 const proxyquire = require('proxyquire');
-const stripAnsi = require('strip-ansi');
 const overrideEnv = require('process-utils/override-env');
 const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
 const Serverless = require('../../../../../../lib/Serverless');
 const CLI = require('../../../../../../lib/classes/CLI');
 const { getTmpDirPath } = require('../../../../../utils/fs');
 const skipWithNotice = require('@serverless/test/skip-with-notice');
-const log = require('log').get('serverless:test');
 const runServerless = require('../../../../../utils/run-serverless');
+const spawnExt = require('child-process-ext/spawn');
 
 const tmpServicePath = __dirname;
 
@@ -478,24 +477,6 @@ describe('AwsInvokeLocal', () => {
       ).to.be.equal(true);
     });
 
-    it('should call invokeLocalRuby with class/module info when used', async () => {
-      awsInvokeLocal.options.functionObj.runtime = 'ruby2.5';
-      awsInvokeLocal.options.functionObj.handler = 'handler.MyModule::MyClass.hello';
-      await awsInvokeLocal.invokeLocal();
-      // NOTE: this is important so that tests on Windows won't fail
-      const runtime = process.platform === 'win32' ? 'ruby.exe' : 'ruby';
-      expect(invokeLocalRubyStub.calledOnce).to.be.equal(true);
-      expect(
-        invokeLocalRubyStub.calledWithExactly(
-          runtime,
-          'handler',
-          'MyModule::MyClass.hello',
-          {},
-          undefined
-        )
-      ).to.be.equal(true);
-    });
-
     it('should call invokeLocalDocker if using runtime provided', async () => {
       awsInvokeLocal.options.functionObj.runtime = 'provided';
       awsInvokeLocal.options.functionObj.handler = 'handler.foobar';
@@ -511,466 +492,6 @@ describe('AwsInvokeLocal', () => {
       await awsInvokeLocal.invokeLocal();
       expect(invokeLocalDockerStub.calledOnce).to.be.equal(true);
       expect(invokeLocalDockerStub.calledWithExactly()).to.be.equal(true);
-    });
-  });
-
-  describe('#invokeLocalNodeJs', () => {
-    beforeEach(() => {
-      awsInvokeLocal.options = {
-        functionObj: {
-          name: '',
-        },
-      };
-
-      sinon.stub(serverless.cli, 'consoleLog');
-    });
-
-    afterEach(() => {
-      serverless.cli.consoleLog.restore();
-    });
-
-    describe('with done method', () => {
-      it('should exit with error exit code', () => {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-        awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithSuccess', 'withErrorByDone');
-
-        expect(process.exitCode).to.be.equal(1);
-      });
-
-      it('should succeed if succeed', () => {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-        awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithSuccess', 'withMessageByDone');
-
-        expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain('"Succeed"');
-      });
-    });
-
-    describe('with Lambda Proxy with application/json response', () => {
-      it('should succeed if succeed', () => {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-        awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithSuccess', 'withMessageByLambdaProxy');
-
-        expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain(
-          '{\n    "statusCode": 200,\n    "headers": {\n        "Content-Type": "application/json"\n    },\n    "body": {\n        "result": true,\n        "message": "Whatever"\n    }\n}'
-        );
-      });
-    });
-
-    describe('context.remainingTimeInMillis', () => {
-      it('should become lower over time', () => {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-        awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithSuccess', 'withRemainingTime');
-
-        const remainingTimes = JSON.parse(serverless.cli.consoleLog.lastCall.args[0]);
-        expect(remainingTimes.start).to.be.above(remainingTimes.stop);
-      });
-
-      it('should start with the timeout value', () => {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-        awsInvokeLocal.serverless.service.provider.timeout = 5;
-
-        awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithSuccess', 'withRemainingTime');
-
-        const remainingTimes = JSON.parse(serverless.cli.consoleLog.lastCall.args[0]);
-        expect(remainingTimes.start).to.match(/\d+/);
-      });
-
-      it('should never become negative', () => {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-        awsInvokeLocal.serverless.service.provider.timeout = 0.00001;
-
-        awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithSuccess', 'withRemainingTime');
-
-        const remainingTimes = JSON.parse(serverless.cli.consoleLog.lastCall.args[0]);
-        expect(remainingTimes.stop).to.eql(0);
-      });
-    });
-
-    describe('with extraServicePath', () => {
-      it('should succeed if succeed', () => {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-        awsInvokeLocal.options.extraServicePath = 'fixture';
-
-        awsInvokeLocal.invokeLocalNodeJs('handlerWithSuccess', 'withMessageByLambdaProxy');
-
-        expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain(
-          '{\n    "statusCode": 200,\n    "headers": {\n        "Content-Type": "application/json"\n    },\n    "body": {\n        "result": true,\n        "message": "Whatever"\n    }\n}'
-        );
-      });
-    });
-
-    it('should exit with error exit code', () => {
-      awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-      awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithError', 'withError');
-
-      expect(process.exitCode).to.be.equal(1);
-    });
-
-    it('should log Error instance when called back', () => {
-      awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-      awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithError', 'withError');
-      const logMessageContent = JSON.parse(stripAnsi(serverless.cli.consoleLog.lastCall.args[0]));
-
-      expect(logMessageContent.errorMessage).to.equal('failed');
-      expect(logMessageContent.errorType).to.equal('Error');
-      expect(logMessageContent.stackTrace[0]).to.equal('Error: failed');
-    });
-
-    it('should log Error object if handler crashes at initialization', async () => {
-      awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-      try {
-        await awsInvokeLocal.invokeLocalNodeJs(
-          'fixture/handlerWithInitializationError',
-          'withError'
-        );
-      } catch (error) {
-        if (!error.message.startsWith('Exception encountered when loading')) {
-          throw error;
-        }
-      }
-
-      expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain('Initialization failed');
-    });
-
-    it('should log error when called back', () => {
-      awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-      awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithError', 'withMessage');
-
-      expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain('"errorMessage": "failed"');
-    });
-
-    it('should throw when module loading error', async () => {
-      awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-      try {
-        await awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithLoadingError', 'anyMethod');
-      } catch (error) {
-        if (!error.message.startsWith('Exception encountered when loading')) {
-          throw error;
-        }
-      }
-    });
-  });
-
-  describe('#invokeLocalNodeJs promise', () => {
-    beforeEach(() => {
-      awsInvokeLocal.options = {
-        functionObj: {
-          name: '',
-        },
-      };
-
-      sinon.stub(serverless.cli, 'consoleLog');
-    });
-
-    afterEach(() => {
-      serverless.cli.consoleLog.restore();
-    });
-
-    describe('with return', () => {
-      it('should exit with error exit code', async () => {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-        await awsInvokeLocal.invokeLocalNodeJs('fixture/asyncHandlerWithSuccess', 'withError');
-        expect(process.exitCode).to.be.equal(1);
-      });
-
-      it('should succeed if succeed', async () => {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-        await awsInvokeLocal.invokeLocalNodeJs('fixture/asyncHandlerWithSuccess', 'withMessage');
-        expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain('"Succeed"');
-      });
-    });
-
-    describe('by context.done', () => {
-      it('success should trigger one response', async () => {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-        await awsInvokeLocal.invokeLocalNodeJs(
-          'fixture/asyncHandlerWithSuccess',
-          'withMessageByDone'
-        );
-        expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain('"Succeed"');
-        const calls = serverless.cli.consoleLog.getCalls().reduce((acc, call) => {
-          return call.args[0].includes('Succeed') ? [call].concat(acc) : acc;
-        }, []);
-        expect(calls.length).to.equal(1);
-      });
-
-      it('error should trigger one response', async () => {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-        await awsInvokeLocal.invokeLocalNodeJs(
-          'fixture/asyncHandlerWithSuccess',
-          'withErrorByDone'
-        );
-        expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain('"failed"');
-        expect(process.exitCode).to.be.equal(1);
-      });
-    });
-
-    describe('by callback method', () => {
-      it('should succeed once if succeed if by callback', async () => {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-        await awsInvokeLocal.invokeLocalNodeJs(
-          'fixture/asyncHandlerWithSuccess',
-          'withMessageByCallback'
-        );
-        expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain('"Succeed"');
-        const calls = serverless.cli.consoleLog.getCalls().reduce((acc, call) => {
-          return call.args[0].includes('Succeed') ? [call].concat(acc) : acc;
-        }, []);
-        expect(calls.length).to.equal(1);
-      });
-    });
-
-    describe("by callback method even if callback isn't called syncronously", () => {
-      it('should succeed once if succeed if by callback', async () => {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-        await awsInvokeLocal.invokeLocalNodeJs(
-          'fixture/asyncHandlerWithSuccess',
-          'withMessageAndDelayByCallback'
-        );
-        expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain('"Succeed"');
-        const calls = serverless.cli.consoleLog.getCalls().reduce((acc, call) => {
-          return call.args[0].includes('Succeed') ? [call].concat(acc) : acc;
-        }, []);
-        expect(calls.length).to.equal(1);
-      });
-    });
-
-    describe('with Lambda Proxy with application/json response', () => {
-      it('should succeed if succeed', async () => {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-        await awsInvokeLocal.invokeLocalNodeJs(
-          'fixture/asyncHandlerWithSuccess',
-          'withMessageByLambdaProxy'
-        );
-        expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain(
-          '{\n    "statusCode": 200,\n    "headers": {\n        "Content-Type": "application/json"\n    },\n    "body": {\n        "result": true,\n        "message": "Whatever"\n    }\n}'
-        );
-      });
-    });
-
-    describe('context.remainingTimeInMillis', () => {
-      it('should become lower over time', async () => {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-        await awsInvokeLocal.invokeLocalNodeJs(
-          'fixture/asyncHandlerWithSuccess',
-          'withRemainingTime'
-        );
-        const remainingTimes = JSON.parse(serverless.cli.consoleLog.lastCall.args[0]);
-        expect(remainingTimes.start).to.be.above(remainingTimes.stop);
-      });
-
-      it('should start with the timeout value', async () => {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-        awsInvokeLocal.serverless.service.provider.timeout = 5;
-
-        await awsInvokeLocal.invokeLocalNodeJs(
-          'fixture/asyncHandlerWithSuccess',
-          'withRemainingTime'
-        );
-        const remainingTimes = JSON.parse(serverless.cli.consoleLog.lastCall.args[0]);
-        expect(remainingTimes.start).to.match(/\d+/);
-      });
-
-      it('should never become negative', async () => {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-        awsInvokeLocal.serverless.service.provider.timeout = 0.00001;
-
-        await awsInvokeLocal.invokeLocalNodeJs(
-          'fixture/asyncHandlerWithSuccess',
-          'withRemainingTime'
-        );
-        const remainingTimes = JSON.parse(serverless.cli.consoleLog.lastCall.args[0]);
-        expect(remainingTimes.stop).to.eql(0);
-      });
-    });
-
-    describe('with extraServicePath', () => {
-      it('should succeed if succeed', async () => {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-        awsInvokeLocal.options.extraServicePath = 'fixture';
-
-        await awsInvokeLocal.invokeLocalNodeJs(
-          'asyncHandlerWithSuccess',
-          'withMessageByLambdaProxy'
-        );
-        expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain(
-          '{\n    "statusCode": 200,\n    "headers": {\n        "Content-Type": "application/json"\n    },\n    "body": {\n        "result": true,\n        "message": "Whatever"\n    }\n}'
-        );
-      });
-    });
-
-    it('should exit with error exit code', async () => {
-      awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-      await awsInvokeLocal.invokeLocalNodeJs('fixture/asyncHandlerWithError', 'withError');
-      expect(process.exitCode).to.be.equal(1);
-    });
-
-    it('should log Error instance when called back', async () => {
-      awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-      await awsInvokeLocal.invokeLocalNodeJs('fixture/asyncHandlerWithError', 'withError');
-      expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain('"errorMessage": "failed"');
-      expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain('"errorType": "Error"');
-    });
-
-    it('should log error', async () => {
-      awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-      await awsInvokeLocal.invokeLocalNodeJs('fixture/asyncHandlerWithError', 'withMessage');
-      expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain('"errorMessage": "failed"');
-    });
-
-    it('should log error when error is returned', async () => {
-      awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-      await awsInvokeLocal.invokeLocalNodeJs('fixture/asyncHandlerWithError', 'returnsError');
-      expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain('"errorMessage": "failed"');
-    });
-  });
-
-  describe('#invokeLocalPython', () => {
-    beforeEach(() => {
-      awsInvokeLocal.options = {
-        functionObj: {
-          name: '',
-        },
-      };
-
-      sinon.stub(serverless.cli, 'consoleLog');
-    });
-
-    const afterEachCallback = () => {
-      serverless.cli.consoleLog.restore();
-    };
-    afterEach(afterEachCallback);
-
-    describe('context.remainingTimeInMillis', () => {
-      it('should become lower over time', async function () {
-        // skipping in CI for now due to handler loading issues
-        // in the Windows machine on Travis CI
-        if (process.env.CI) {
-          this.skip();
-        }
-
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-        process.chdir(tmpServicePath);
-
-        try {
-          await awsInvokeLocal.invokeLocalPython(
-            'python2.7',
-            'fixture/handler',
-            'withRemainingTime'
-          );
-
-          log.debug('test target %o', serverless.cli.consoleLog.lastCall.args);
-          const remainingTimes = JSON.parse(serverless.cli.consoleLog.lastCall.args[0]);
-          expect(remainingTimes.start).to.be.above(remainingTimes.stop);
-        } catch (error) {
-          if (error.code === 'ENOENT' && error.path === 'python2') {
-            skipWithNotice(this, 'Python runtime is not installed', afterEachCallback);
-          }
-          throw error;
-        }
-      });
-    });
-  });
-
-  describe('#invokeLocalRuby', () => {
-    let curdir;
-
-    beforeEach(() => {
-      curdir = process.cwd();
-      process.chdir(tmpServicePath);
-      awsInvokeLocal.options = {
-        functionObj: {
-          name: '',
-        },
-      };
-
-      sinon.stub(serverless.cli, 'consoleLog');
-    });
-
-    const afterEachCallback = () => {
-      serverless.cli.consoleLog.restore();
-      process.chdir(curdir);
-    };
-    afterEach(afterEachCallback);
-
-    describe('context.remainingTimeInMillis', () => {
-      it('should become lower over time', async function () {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-        try {
-          await awsInvokeLocal.invokeLocalRuby('ruby', 'fixture/handler', 'withRemainingTime');
-
-          log.debug('test target %o', serverless.cli.consoleLog.lastCall.args);
-          const remainingTimes = JSON.parse(serverless.cli.consoleLog.lastCall.args[0]);
-          expect(remainingTimes.start).to.be.above(remainingTimes.stop);
-        } catch (error) {
-          if (error.code === 'ENOENT' && error.path === 'ruby') {
-            skipWithNotice(this, 'Ruby runtime is not installed', afterEachCallback);
-          }
-          throw error;
-        }
-      });
-    });
-
-    describe('calling a class method', () => {
-      it('should execute', async function () {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-        try {
-          await awsInvokeLocal.invokeLocalRuby(
-            'ruby',
-            'fixture/handler',
-            'MyModule::MyClass.my_class_method'
-          );
-          log.debug('test target %o', serverless.cli.consoleLog.lastCall.args);
-          const result = JSON.parse(serverless.cli.consoleLog.lastCall.args[0]);
-          expect(result.foo).to.eq('bar');
-        } catch (error) {
-          if (error.code === 'ENOENT' && error.path === 'ruby') {
-            skipWithNotice(this, 'Ruby runtime is not installed', afterEachCallback);
-          }
-          throw error;
-        }
-      });
-    });
-
-    describe('context.deadlineMs', () => {
-      it('should return deadline', async function () {
-        awsInvokeLocal.serverless.serviceDir = tmpServicePath;
-
-        try {
-          await awsInvokeLocal.invokeLocalRuby('ruby', 'fixture/handler', 'withDeadlineMs');
-
-          log.debug('test target %o', serverless.cli.consoleLog.lastCall.args);
-          const result = JSON.parse(serverless.cli.consoleLog.lastCall.args[0]);
-          expect(result.deadlineMs).to.be.closeTo(Date.now() + 6000, 2000);
-        } catch (error) {
-          if (error.code === 'ENOENT' && error.path === 'ruby') {
-            skipWithNotice(this, 'Ruby runtime is not installed', afterEachCallback);
-          }
-          throw error;
-        }
-      });
     });
   });
 
@@ -1529,203 +1050,197 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
   describe('Node.js', () => {
     testRuntime('callback');
 
-    // All tested with individual runServerless run
-    xit('TODO: should support success resolution via async function', async () => {
-      // Confirm outcome on { stdout }
-      await runServerless({
+    it('should support success resolution via async function', async () => {
+      const { stdoutData } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
         options: { function: 'async' },
       });
 
-      // Replaces
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L762-L767
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L830-L840
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L881-L892
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L917-L922
+      expect(stdoutData).to.include('Invoked');
     });
-    xit('TODO: should support success resolution via context.done', async () => {
-      // Confirm outcome on { stdout }
-      await runServerless({
+
+    it('should support success resolution via context.done', async () => {
+      const { stdoutData } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
         options: { function: 'contextDone' },
       });
 
-      // Replaces
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L609-L625
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L771-L783
+      expect(stdoutData).to.include('Invoked');
     });
-    xit('TODO: should support success resolution via context.succeed', async () => {
-      // Confirm outcome on { stdout }
-      await runServerless({
+
+    it('should support success resolution via context.succeed', async () => {
+      const { stdoutData } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
         options: { function: 'contextSucceed' },
       });
+
+      expect(stdoutData).to.include('Invoked');
     });
-    xit('TODO: should support immediate failure at initialization', async () => {
+
+    it('should support immediate failure at initialization', async () => {
       await expect(
         runServerless({
           fixture: 'invocation',
           command: 'invoke local',
           options: { function: 'initFail' },
         })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
-
-      // Replaces
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L702-L717
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L727-L737
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'INVOKE_LOCAL_LAMBDA_INITIALIZATION_FAILED'
+      );
     });
-    xit('TODO: should support immediate failure at invocation', async () => {
+
+    it('should support immediate failure at invocation', async () => {
       await expect(
         runServerless({
           fixture: 'invocation',
           command: 'invoke local',
           options: { function: 'invocationFail' },
         })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+      ).to.eventually.be.rejectedWith('Invocation fail');
     });
-    xit('TODO: should support failure resolution via async function', async () => {
-      await expect(
-        runServerless({
-          fixture: 'invocation',
-          command: 'invoke local',
-          options: { function: 'async', data: '{"shouldFail":true}' },
-        })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
 
-      // Replaces
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L683-L689
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L719-L725
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L756-L760
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L895-L915
-    });
-    xit('TODO: should support failure resolution via callback', async () => {
-      await expect(
-        runServerless({
-          fixture: 'invocation',
-          command: 'invoke local',
-          options: { function: 'callback', data: '{"shouldFail":true}' },
-        })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+    it('should support failure resolution via async function', async () => {
+      const { stdoutData } = await runServerless({
+        fixture: 'invocation',
+        command: 'invoke local',
+        options: { function: 'async', data: '{"shouldFail":true}' },
+      });
 
-      // Replaces
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L691-L700
+      expect(stdoutData).to.include('Failed on request');
     });
-    xit('TODO: should support failure resolution via context.done', async () => {
-      await expect(
-        runServerless({
-          fixture: 'invocation',
-          command: 'invoke local',
-          options: { function: 'contextDone', data: '{"shouldFail":true}' },
-        })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
 
-      // Replaces
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L785-L794
+    it('should support failure resolution via callback', async () => {
+      const { stdoutData } = await runServerless({
+        fixture: 'invocation',
+        command: 'invoke local',
+        options: { function: 'callback', data: '{"shouldFail":true}' },
+      });
+
+      expect(stdoutData).to.include('Failed on request');
     });
-    xit('TODO: should support failure resolution via context.fail', async () => {
-      await expect(
-        runServerless({
-          fixture: 'invocation',
-          command: 'invoke local',
-          options: { function: 'contextSucceed', data: '{"shouldFail":true}' },
-        })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+
+    it('should support failure resolution via context.done', async () => {
+      const { stdoutData } = await runServerless({
+        fixture: 'invocation',
+        command: 'invoke local',
+        options: { function: 'contextDone', data: '{"shouldFail":true}' },
+      });
+
+      expect(stdoutData).to.include('Failed on request');
     });
-    xit('TODO: should recognize first resolution', async () => {
-      // Confirm outcome on { stdout }
-      await runServerless({
+
+    it('should support failure resolution via context.fail', async () => {
+      const { stdoutData } = await runServerless({
+        fixture: 'invocation',
+        command: 'invoke local',
+        options: { function: 'contextSucceed', data: '{"shouldFail":true}' },
+      });
+
+      expect(stdoutData).to.include('Failed on request');
+    });
+
+    it('should recognize first resolution', async () => {
+      const { stdoutData: firstRunStdout } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
         options: { function: 'doubledResolutionCallbackFirst' },
       });
-      // Confirm outcome on { stdout }
-      await runServerless({
+      const { stdoutData: secondRunStdout } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
         options: { function: 'doubledResolutionPromiseFirst' },
       });
 
-      // Replaces
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L798-L810
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L814-L826
+      expect(firstRunStdout).to.include('callback');
+      expect(secondRunStdout).to.include('promise');
     });
-    xit('TODO: should support context.remainingTimeInMillis()', async () => {
-      // Confirm outcome on { stdout }
-      await runServerless({
+
+    it('should support context.remainingTimeInMillis()', async () => {
+      const { stdoutData } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
         options: { function: 'remainingTime' },
       });
 
-      // Replaces
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L639-L668
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L843-L878
+      const body = JSON.parse(stdoutData).body;
+      const [firstRemainingMs, secondRemainingMs, thirdRemainingMs] = JSON.parse(body).data;
+      expect(firstRemainingMs).to.be.lte(3000);
+      expect(secondRemainingMs).to.be.lte(2900);
+      expect(thirdRemainingMs).to.be.lt(secondRemainingMs);
     });
   });
 
-  describe.skip('Python', () => {
-    // If Python runtime is not installed, skip below tests by:
-    // - Invoke skip with notice as here;
-    // https://github.com/serverless/serverless/blob/2d6824cde531ba56758f441b39b5ab018702e866/lib/plugins/aws/invokeLocal/index.test.js#L1001-L1003
-    // - Ensure all other tests are skipped
-    testRuntime('python'); // TODO: Configure python handler
+  describe('Python', () => {
+    before(async function () {
+      const executable = process.platform === 'win32' ? 'python.exe' : 'python';
+      try {
+        await spawnExt(executable, ['--version']);
+      } catch (err) {
+        skipWithNotice(this, 'Python runtime is not installed');
+      }
+    });
+
+    testRuntime('python');
     describe('context.remainingTimeInMillis', () => {
-      it('TODO: should support context.get_remaining_time_in_millis()', async () => {
-        // Confirm outcome on { stdout }
-        await runServerless({
+      it('should support context.get_remaining_time_in_millis()', async () => {
+        const { stdoutData } = await runServerless({
           fixture: 'invocation',
           command: 'invoke local',
-          options: { function: 'pythonRemainingTime' }, // TODO: Configure python handler
+          options: { function: 'pythonRemainingTime' },
         });
 
-        // Replaces
-        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L941-L969
+        const { start, stop } = JSON.parse(stdoutData);
+        expect(start).to.lte(3000);
+        expect(stop).to.lte(2900);
       });
     });
   });
 
-  describe.skip('Ruby', () => {
-    // If Ruby runtime is not installed, skip below tests by:
-    // - Invoke skip with notice as here;
-    // https://github.com/serverless/serverless/blob/2d6824cde531ba56758f441b39b5ab018702e866/lib/plugins/aws/invokeLocal/index.test.js#L1043-L1045
-    // - Ensure all other tests are skipped
-    testRuntime('ruby'); // TODO: Configure ruby handler
-    it('TODO: should suppurt class/module address in handler for "ruby*" runtime', async () => {
-      // Confirm outcome on { stdout }
-      await runServerless({
-        fixture: 'invocation',
-        command: 'invoke local',
-        options: { function: 'rubyClass' }, // TODO: Configure ruby handler
-      });
-
-      // Replaces
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L549-L565
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L1012-L1032
+  describe('Ruby', () => {
+    before(async function () {
+      const executable = process.platform === 'win32' ? 'ruby.exe' : 'ruby';
+      try {
+        await spawnExt(executable, ['--version']);
+      } catch (err) {
+        skipWithNotice(this, 'Ruby runtime is not installed');
+      }
     });
-    it('TODO: should support context.get_remaining_time_in_millis()', async () => {
-      // Confirm outcome on { stdout }
-      await runServerless({
+
+    testRuntime('ruby');
+
+    it('should support class/module address in handler for "ruby*" runtime', async () => {
+      const { stdoutData } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
-        options: { function: 'rubyRemainingTime' }, // TODO: Configure ruby handler
+        options: { function: 'rubyClass' },
       });
 
-      // Replaces
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L993-L1010
+      expect(stdoutData).to.include('rubyclass');
     });
-    it('TODO: should support context.deadline_ms', async () => {
-      // Confirm outcome on { stdout }
-      await runServerless({
+    it('should support context.get_remaining_time_in_millis()', async () => {
+      const { stdoutData } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
-        options: { function: 'rubyDeadline' }, // TODO: Configure ruby handler
+        options: { function: 'rubyRemainingTime' },
       });
 
-      // Replaces
-      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L1034-L1051
+      const { start, stop } = JSON.parse(stdoutData);
+      expect(start).to.lte(6000);
+      expect(stop).to.lte(5900);
+    });
+    it('should support context.deadline_ms', async () => {
+      const { stdoutData } = await runServerless({
+        fixture: 'invocation',
+        command: 'invoke local',
+        options: { function: 'rubyDeadline' },
+      });
+
+      const { deadlineMs } = JSON.parse(stdoutData);
+      expect(deadlineMs).to.be.gt(Date.now());
     });
   });
 
