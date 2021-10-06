@@ -1170,7 +1170,7 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       const [firstRemainingMs, secondRemainingMs, thirdRemainingMs] = JSON.parse(body).data;
       expect(firstRemainingMs).to.be.lte(3000);
       expect(secondRemainingMs).to.be.lte(2900);
-      expect(thirdRemainingMs).to.be.lt(secondRemainingMs);
+      expect(thirdRemainingMs).to.be.lte(secondRemainingMs);
     });
   });
 
