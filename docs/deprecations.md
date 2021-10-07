@@ -382,6 +382,8 @@ Please use `provider.kmsKeyArn` and `functions[].kmsKeyArn`. `service.awsKmsKeyA
 
 Deprecation code: `RESOURCES_EXTENSIONS_REFERENCE_TO_NONEXISTENT_RESOURCE`
 
+_Note: This deprecation was replaced with a thrown error (adding a deprecation here, was a logical error). Please upgrade to latest version of the Framework_
+
 Starting with v3.0.0, extensions to nonexistent resources in `resources.extensions` will throw an error instead of passing silently.
 
 <a name="DISABLE_LOCAL_INSTALLATION_FALLBACK_SETTING"><div>&nbsp;</div></a>
