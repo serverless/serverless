@@ -66,6 +66,8 @@ Starting with `v3.0.0`, it will not be possible to disable default export names 
 
 Deprecation code: `CLI_DEPLOY_FUNCTION_OPTION'`
 
+_Note: We've resigned from this deprecation in the context of v2 (it'll be re-added in the context of v3). We continue to advise using `deploy function -f` command instead of `deploy -f`._
+
 Starting with `v3.0.0`, `--function` or `-f` option for `deploy` command will be removed. In order to deploy a single function, please use `deploy function` command instead.
 
 <a name="CHANGE_OF_DEFAULT_RUNTIME_TO_NODEJS14X"><div>&nbsp;</div></a>
