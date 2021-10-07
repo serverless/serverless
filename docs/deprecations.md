@@ -150,6 +150,8 @@ Ensure to always format CLI command as `sls [command..] [options...]`
 
 Deprecation code: `CONFIG_VALIDATION_MODE_DEFAULT`
 
+_Note: We've resigned from this deprecation in the context of v2 (it'll be re-added in the context of v3). We continue to advise configuring services with `configValidationMode: error` setting._
+
 Starting with v3.0.0, Serverless will throw on configuration errors by default. This is changing from the previous default, `configValidationMode: warn`
 
 Learn more about configuration validation here: http://slss.io/configuration-validation
