@@ -1376,7 +1376,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
     before(async () => {
       const imageSha = '6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38';
       const imageWithSha = `000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:${imageSha}`;
-      const result = await runServerless({
+      const { awsNaming, cfTemplate, fixtureData } = await runServerless({
         fixture: 'packageArtifact',
         command: 'package',
         configExt: {
@@ -1440,10 +1440,10 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           },
         },
       });
-      cfResources = result.cfTemplate.Resources;
-      cfOutputs = result.cfTemplate.Outputs;
-      naming = result.awsNaming;
-      serviceConfig = result.fixtureData.serviceConfig;
+      cfResources = cfTemplate.Resources;
+      cfOutputs = cfTemplate.Outputs;
+      naming = awsNaming;
+      serviceConfig = fixtureData.serviceConfig;
     });
 
     it('should support `package.artifact`', async () => {
@@ -1864,7 +1864,12 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       _expectToIncludeStatement(statement, { cfResources });
 
     before(async () => {
-      const result = await runServerless({
+      const {
+        awsNaming,
+        cfTemplate,
+        serverless: serverlessInstance,
+        fixtureData,
+      } = await runServerless({
         fixture: 'function',
         command: 'package',
         configExt: {
@@ -1942,10 +1947,10 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           },
         },
       });
-      cfResources = result.cfTemplate.Resources;
-      naming = result.awsNaming;
-      serverless = result.serverless;
-      serviceConfig = result.fixtureData.serviceConfig;
+      cfResources = cfTemplate.Resources;
+      naming = awsNaming;
+      serverless = serverlessInstance;
+      serviceConfig = fixtureData.serviceConfig;
     });
 
     it.skip('TODO: should support `functions[].package.artifact`, referencing local file', () => {
