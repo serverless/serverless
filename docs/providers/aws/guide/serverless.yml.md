@@ -325,7 +325,7 @@ functions:
       functionEnvVar: 12345678
     tags: # Function specific tags
       foo: bar
-    vpc: # Optional VPC. But if you use VPC then both subproperties (securityGroupIds and subnetIds) are required
+    vpc: # Optional VPC. If you use VPC then both subproperties (securityGroupIds and subnetIds) are required. Can be set to ~ to specify no VPC.
       securityGroupIds:
         - securityGroupId1
         - securityGroupId2
