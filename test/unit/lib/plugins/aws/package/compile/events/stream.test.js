@@ -1601,7 +1601,7 @@ describe('AwsCompileStreamEvents #2', () => {
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               provisionedConcurrency: 1,
               events: [{ stream: 'arn:aws:kinesis:us-east-1:123456789012:stream/myStream' }],
             },
@@ -1610,7 +1610,7 @@ describe('AwsCompileStreamEvents #2', () => {
         command: 'package',
       });
       naming = awsNaming;
-      const streamLogicalId = awsNaming.getStreamLogicalId('foo', 'kinesis', 'myStream');
+      const streamLogicalId = awsNaming.getStreamLogicalId('basic', 'kinesis', 'myStream');
       eventSourceMappingResource = cfTemplate.Resources[streamLogicalId];
     });
 
@@ -1620,7 +1620,7 @@ describe('AwsCompileStreamEvents #2', () => {
           ':',
           [
             {
-              'Fn::GetAtt': ['FooLambdaFunction', 'Arn'],
+              'Fn::GetAtt': ['BasicLambdaFunction', 'Arn'],
             },
             'provisioned',
           ],
@@ -1629,7 +1629,7 @@ describe('AwsCompileStreamEvents #2', () => {
     });
 
     it('should depend on provisioned alias', () => {
-      const aliasLogicalId = naming.getLambdaProvisionedConcurrencyAliasLogicalId('foo');
+      const aliasLogicalId = naming.getLambdaProvisionedConcurrencyAliasLogicalId('basic');
       expect(eventSourceMappingResource.DependsOn).to.include(aliasLogicalId);
     });
   });
@@ -1641,7 +1641,7 @@ describe('AwsCompileStreamEvents #2', () => {
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               events: [
                 {
                   stream: {
@@ -1655,7 +1655,7 @@ describe('AwsCompileStreamEvents #2', () => {
         },
         command: 'package',
       });
-      const streamLogicalId = awsNaming.getStreamLogicalId('foo', 'kinesis', 'myStream');
+      const streamLogicalId = awsNaming.getStreamLogicalId('basic', 'kinesis', 'myStream');
       eventSourceMappingResource = cfTemplate.Resources[streamLogicalId];
     });
 
@@ -1675,7 +1675,7 @@ describe('AwsCompileStreamEvents #2', () => {
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               events: [
                 {
                   stream: {
@@ -1700,10 +1700,10 @@ describe('AwsCompileStreamEvents #2', () => {
         },
         command: 'package',
       });
-      const kinesisLogicalId = awsNaming.getStreamLogicalId('foo', 'kinesis', 'myKinesisStream');
-      const dynamoLogicalId = awsNaming.getStreamLogicalId('foo', 'dynamodb', 'myDDBstream');
+      const kinesisLogicalId = awsNaming.getStreamLogicalId('basic', 'kinesis', 'myKinesisStream');
+      const dynamoLogicalId = awsNaming.getStreamLogicalId('basic', 'dynamodb', 'myDDBstream');
       const noTumblingLogicalId = awsNaming.getStreamLogicalId(
-        'foo',
+        'basic',
         'dynamodb',
         'noTumblingStream'
       );

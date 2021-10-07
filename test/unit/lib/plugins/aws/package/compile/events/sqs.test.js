@@ -603,7 +603,7 @@ describe('AwsCompileSQSEvents #2', () => {
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               provisionedConcurrency: 1,
               events: [
                 {
@@ -620,7 +620,7 @@ describe('AwsCompileSQSEvents #2', () => {
         command: 'package',
       });
       naming = awsNaming;
-      const queueLogicalId = awsNaming.getQueueLogicalId('foo', 'MyQueue');
+      const queueLogicalId = awsNaming.getQueueLogicalId('basic', 'MyQueue');
       eventSourceMappingResource = cfTemplate.Resources[queueLogicalId];
     });
 
@@ -631,7 +631,7 @@ describe('AwsCompileSQSEvents #2', () => {
     });
 
     it('should depend on provisioned alias', () => {
-      const aliasLogicalId = naming.getLambdaProvisionedConcurrencyAliasLogicalId('foo');
+      const aliasLogicalId = naming.getLambdaProvisionedConcurrencyAliasLogicalId('basic');
       expect(eventSourceMappingResource.DependsOn).to.include(aliasLogicalId);
     });
 
@@ -656,7 +656,7 @@ describe('AwsCompileSQSEvents #2', () => {
           },
         },
         functions: {
-          foo: {
+          basic: {
             events: [
               {
                 sqs: {
@@ -670,7 +670,7 @@ describe('AwsCompileSQSEvents #2', () => {
       command: 'package',
     });
 
-    const queueLogicalId = awsNaming.getQueueLogicalId('foo', 'MyQueue');
+    const queueLogicalId = awsNaming.getQueueLogicalId('basic', 'MyQueue');
     const eventSourceMappingResource = cfTemplate.Resources[queueLogicalId];
 
     expect(eventSourceMappingResource.DependsOn).to.deep.equal([]);

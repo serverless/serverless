@@ -33,6 +33,7 @@ module.exports = async ({ configuration, serviceDir, configurationFilename, opti
   await removePluginFromServerlessFile(context);
 
   legacy.log(`Successfully uninstalled "${pluginName}"`);
+  log.notice();
   log.notice.success(
     `Plugin "${pluginName}" uninstalled ${style.aside(
       `(${Math.floor((Date.now() - commandRunStartTime) / 1000)}s)`
@@ -118,6 +119,7 @@ const requestManualUpdate = (configurationFilePath) => {
   Can't automatically remove plugin from "${path.basename(configurationFilePath)}" file.
   Please do it manually.
 `);
+  log.notice();
   log.notice.skip(
     `Can't automatically remove plugin from "${path.basename(
       configurationFilePath
