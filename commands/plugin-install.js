@@ -38,6 +38,7 @@ module.exports = async ({ configuration, serviceDir, configurationFilename, opti
   await addPluginToServerlessFile(context);
 
   legacy.log(`Successfully installed "${pluginName}@${pluginVersion}"`);
+  log.notice();
   log.notice.success(
     `Plugin "${pluginName}${
       pluginVersion === 'latest' ? '' : `@${pluginVersion}`
@@ -138,6 +139,7 @@ const requestManualUpdate = (configurationFilePath) => {
   Can't automatically add plugin into "${path.basename(configurationFilePath)}" file.
   Please make it manually.
 `);
+  log.notice();
   log.notice.skip(
     `Can't automatically add plugin into "${path.basename(
       configurationFilePath
