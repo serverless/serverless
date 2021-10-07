@@ -13,6 +13,9 @@ const Serverless = require('../../../../../../../lib/Serverless');
 const runServerless = require('../../../../../../utils/run-serverless');
 const fixtures = require('../../../../../../fixtures/programmatic');
 const getHashForFilePath = require('../../../../../../../lib/plugins/aws/package/lib/getHashForFilePath');
+const {
+  isMergeablePolicyStatement,
+} = require('../../../../../../../lib/plugins/aws/package/lib/utils');
 
 const { getTmpDirPath, createTmpFile } = require('../../../../../../utils/fs');
 
@@ -1348,15 +1351,30 @@ describe('AwsCompileFunctions', () => {
 });
 
 describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
+  const _expectToIncludeStatement = (statement, { cfResources }) => {
+    const iamRolePolicyStatements =
+      cfResources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement;
+    const statement_ =
+      iamRolePolicyStatements.find((el) => isMergeablePolicyStatement(el, statement)) || {};
+
+    const toArray = (value) => {
+      return Array.isArray(value) ? [...value] : [value];
+    };
+
+    expect(toArray(statement_.Resource)).to.deep.include.members(toArray(statement.Resource));
+  };
+
   describe('Provider properties', () => {
     let cfResources;
     let cfOutputs;
     let naming;
     let serviceConfig;
-    let iamRolePolicyStatements;
+
+    const expectToIncludeStatement = (statement) =>
+      _expectToIncludeStatement(statement, { cfResources });
 
     before(async () => {
-      const { awsNaming, cfTemplate, fixtureData } = await runServerless({
+      const result = await runServerless({
         fixture: 'packageArtifact',
         command: 'package',
         configExt: {
@@ -1419,12 +1437,10 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           },
         },
       });
-      cfResources = cfTemplate.Resources;
-      cfOutputs = cfTemplate.Outputs;
-      naming = awsNaming;
-      serviceConfig = fixtureData.serviceConfig;
-      iamRolePolicyStatements =
-        cfResources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement;
+      cfResources = result.cfTemplate.Resources;
+      cfOutputs = result.cfTemplate.Outputs;
+      naming = result.awsNaming;
+      serviceConfig = result.fixtureData.serviceConfig;
     });
 
     it('should support `package.artifact`', async () => {
@@ -1490,7 +1506,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       const { KmsKeyArn } = cfResources[naming.getLambdaLogicalId('other')].Properties;
 
       expect(KmsKeyArn).to.equal(serviceConfig.service.awsKmsKeyArn);
-      expect(iamRolePolicyStatements).to.deep.include({
+      expectToIncludeStatement({
         Effect: 'Allow',
         Action: ['kms:Decrypt'],
         Resource: [serviceConfig.service.awsKmsKeyArn],
@@ -1503,7 +1519,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       const { KmsKeyArn } = cfResources[naming.getLambdaLogicalId('foo')].Properties;
 
       expect(KmsKeyArn).to.equal(fooFunctionConfig.awsKmsKeyArn);
-      expect(iamRolePolicyStatements).to.deep.include({
+      expectToIncludeStatement({
         Effect: 'Allow',
         Action: ['kms:Decrypt'],
         Resource: [fooFunctionConfig.awsKmsKeyArn],
@@ -1516,7 +1532,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       const { TracingConfig } = cfResources[naming.getLambdaLogicalId('other')].Properties;
 
       expect(TracingConfig).to.deep.equal({ Mode: providerConfig.tracing.lambda });
-      expect(iamRolePolicyStatements).to.deep.include({
+      expectToIncludeStatement({
         Effect: 'Allow',
         Action: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords'],
         Resource: ['*'],
@@ -1529,7 +1545,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       const { TracingConfig } = cfResources[naming.getLambdaLogicalId('foo')].Properties;
 
       expect(TracingConfig).to.deep.equal({ Mode: fooFunctionConfig.tracing });
-      expect(iamRolePolicyStatements).to.deep.include({
+      expectToIncludeStatement({
         Effect: 'Allow',
         Action: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords'],
         Resource: ['*'],
@@ -1622,7 +1638,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       expect(fileSystemCfConfig.FileSystemConfigs).to.deep.equal([
         { Arn: arn, LocalMountPath: localMountPath },
       ]);
-      expect(iamRolePolicyStatements).to.deep.include({
+      expectToIncludeStatement({
         Effect: 'Allow',
         Action: ['elasticfilesystem:ClientMount', 'elasticfilesystem:ClientWrite'],
         Resource: [arn],
@@ -1808,17 +1824,14 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
     let naming;
     let serverless;
     let serviceConfig;
-    let iamRolePolicyStatements;
     const imageSha = '6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38';
     const imageWithSha = `000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:${imageSha}`;
 
+    const expectToIncludeStatement = (statement) =>
+      _expectToIncludeStatement(statement, { cfResources });
+
     before(async () => {
-      const {
-        awsNaming,
-        cfTemplate,
-        serverless: serverlessInstance,
-        fixtureData,
-      } = await runServerless({
+      const result = await runServerless({
         fixture: 'functionDestinations',
         command: 'package',
         configExt: {
@@ -1862,12 +1875,10 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           },
         },
       });
-      cfResources = cfTemplate.Resources;
-      naming = awsNaming;
-      serverless = serverlessInstance;
-      serviceConfig = fixtureData.serviceConfig;
-      iamRolePolicyStatements =
-        cfResources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement;
+      cfResources = result.cfTemplate.Resources;
+      naming = result.awsNaming;
+      serverless = result.serverless;
+      serviceConfig = result.fixtureData.serviceConfig;
     });
 
     it.skip('TODO: should support `functions[].package.artifact`, referencing local file', () => {
@@ -2096,7 +2107,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       });
       expect(destinationConfig).to.not.have.property('OnFailure');
 
-      expect(iamRolePolicyStatements).to.deep.include({
+      expectToIncludeStatement({
         Effect: 'Allow',
         Action: 'lambda:InvokeFunction',
         Resource: {
@@ -2119,7 +2130,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         },
       });
 
-      expect(iamRolePolicyStatements).to.deep.include({
+      expectToIncludeStatement({
         Effect: 'Allow',
         Action: 'lambda:InvokeFunction',
         Resource: {
@@ -2141,7 +2152,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         OnSuccess: { Destination: arn },
       });
 
-      expect(iamRolePolicyStatements).to.deep.include({
+      expectToIncludeStatement({
         Effect: 'Allow',
         Action: 'lambda:InvokeFunction',
         Resource: arn,
@@ -2185,10 +2196,10 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       expect(fileSystemCfConfig.FileSystemConfigs).to.deep.equal([
         { Arn: arn, LocalMountPath: localMountPath },
       ]);
-      expect(iamRolePolicyStatements).to.deep.include({
+      expectToIncludeStatement({
         Effect: 'Allow',
         Action: ['elasticfilesystem:ClientMount', 'elasticfilesystem:ClientWrite'],
-        Resource: [arn],
+        Resource: arn,
       });
     });
 
@@ -2486,6 +2497,157 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
 
     describe('lambdaHashingVersion: 20201221', () => {
       testLambdaHashingVersion('20201221');
+    });
+  });
+
+  describe('IAM role config', () => {
+    let naming;
+    let cfResources;
+    let service;
+    let serverless;
+    const arnLogPrefix = 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}';
+    const customFunctionName = 'foo-bar';
+
+    before(async () => {
+      const test = await runServerless({
+        fixture: 'function',
+        command: 'package',
+        configExt: {
+          functions: {
+            myFunction: {
+              handler: 'index.handler',
+            },
+            myFunctionWithRole: {
+              name: 'myCustomName',
+              handler: 'index.handler',
+              role: 'myCustRole0',
+            },
+            fnDisableLogs: {
+              handler: 'index.handler',
+              disableLogs: true,
+            },
+            fnWithVpc: {
+              handler: 'index.handler',
+              vpc: {
+                securityGroupIds: ['xxx'],
+                subnetIds: ['xxx'],
+              },
+            },
+            fnHaveCustomName: {
+              name: customFunctionName,
+              handler: 'index.handler',
+              disableLogs: true,
+            },
+          },
+        },
+      });
+      const { cfTemplate, awsNaming, fixtureData } = test;
+      cfResources = cfTemplate.Resources;
+      naming = awsNaming;
+      service = fixtureData.serviceConfig.service;
+      serverless = test.serverless;
+    });
+
+    it('should add logGroup access policies if there are functions', () => {
+      const IamRoleLambdaExecution = naming.getRoleLogicalId();
+      const { Properties } = cfResources[IamRoleLambdaExecution];
+
+      const createLogStatement = Properties.Policies[0].PolicyDocument.Statement[0];
+      expect(createLogStatement.Effect).to.be.equal('Allow');
+      expect(createLogStatement.Action).to.be.deep.equal([
+        'logs:CreateLogStream',
+        'logs:CreateLogGroup',
+      ]);
+      expect(createLogStatement.Resource).to.deep.includes({
+        'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/${service}-dev*:*`,
+      });
+
+      const putLogStatement = Properties.Policies[0].PolicyDocument.Statement[1];
+      expect(putLogStatement.Effect).to.be.equal('Allow');
+      expect(putLogStatement.Action).to.be.deep.equal(['logs:PutLogEvents']);
+      expect(putLogStatement.Resource).to.deep.includes({
+        'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/${service}-dev*:*:*`,
+      });
+    });
+
+    it('should add logGroup access policies for custom named functions', () => {
+      const IamRoleLambdaExecution = naming.getRoleLogicalId();
+      const { Properties } = cfResources[IamRoleLambdaExecution];
+
+      const createLogStatement = Properties.Policies[0].PolicyDocument.Statement[0];
+      expect(createLogStatement.Effect).to.be.equal('Allow');
+      expect(createLogStatement.Action).to.be.deep.equal([
+        'logs:CreateLogStream',
+        'logs:CreateLogGroup',
+      ]);
+      expect(createLogStatement.Resource).to.deep.includes({
+        'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/myCustomName:*`,
+      });
+
+      const putLogStatement = Properties.Policies[0].PolicyDocument.Statement[1];
+      expect(putLogStatement.Effect).to.be.equal('Allow');
+      expect(putLogStatement.Action).to.be.deep.equal(['logs:PutLogEvents']);
+      expect(putLogStatement.Resource).to.deep.includes({
+        'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/myCustomName:*:*`,
+      });
+    });
+
+    it('should ensure needed IAM configuration when `functions[].vpc` is configured', () => {
+      const IamRoleLambdaExecution = naming.getRoleLogicalId();
+      const { Properties } = cfResources[IamRoleLambdaExecution];
+      expect(Properties.ManagedPolicyArns).to.deep.includes({
+        'Fn::Join': [
+          '',
+          [
+            'arn:',
+            { Ref: 'AWS::Partition' },
+            ':iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole',
+          ],
+        ],
+      });
+    });
+
+    it('should support `functions[].disableLogs`', async () => {
+      const functionName = serverless.service.getFunction('fnDisableLogs').name;
+      const functionLogGroupName = naming.getLogGroupName(functionName);
+
+      expect(cfResources).to.not.have.property(functionLogGroupName);
+    });
+
+    it('should not have allow rights to put logs for custom named function when disableLogs option is enabled', async () => {
+      expect(
+        cfResources[naming.getRoleLogicalId()].Properties.Policies[0].PolicyDocument.Statement[0]
+          .Resource
+      ).to.not.deep.include({
+        'Fn::Sub':
+          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:' +
+          `log-group:/aws/lambda/${customFunctionName}:*`,
+      });
+      expect(
+        cfResources[naming.getRoleLogicalId()].Properties.Policies[0].PolicyDocument.Statement[1]
+          .Resource
+      ).to.not.deep.include({
+        'Fn::Sub':
+          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:' +
+          `log-group:/aws/lambda/${customFunctionName}:*`,
+      });
+    });
+
+    it('should have deny policy when disableLogs option is enabled`', async () => {
+      const functionName = serverless.service.getFunction('fnDisableLogs').name;
+      const functionLogGroupName = naming.getLogGroupName(functionName);
+
+      expect(
+        cfResources[naming.getRoleLogicalId()].Properties.Policies[0].PolicyDocument.Statement
+      ).to.deep.include({
+        Effect: 'Deny',
+        Action: 'logs:PutLogEvents',
+        Resource: {
+          'Fn::Sub':
+            'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+            `:log-group:${functionLogGroupName}:*`,
+        },
+      });
     });
   });
 

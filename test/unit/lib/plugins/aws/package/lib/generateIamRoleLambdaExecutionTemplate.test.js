@@ -7,7 +7,7 @@ chai.use(require('chai-as-promised'));
 
 const expect = chai.expect;
 
-describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
+describe('lib/plugins/aws/package/lib/generateIamRoleLambdaExecutionTemplate.test.js', () => {
   describe('No default role', () => {
     it('should not create role resource if there are no functions', async () => {
       const { cfTemplate, awsNaming } = await runServerless({
@@ -79,7 +79,6 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       let naming;
       let cfResources;
       let service;
-      const arnLogPrefix = 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}';
 
       before(async () => {
         const test = await runServerless({
@@ -108,50 +107,6 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         const IamRoleLambdaExecution = naming.getRoleLogicalId();
         const { Properties } = cfResources[IamRoleLambdaExecution];
         expect(Properties).to.not.have.property('ManagedPolicyArns');
-      });
-
-      it('should add logGroup access policies if there are functions', () => {
-        const IamRoleLambdaExecution = naming.getRoleLogicalId();
-        const { Properties } = cfResources[IamRoleLambdaExecution];
-
-        const createLogStatement = Properties.Policies[0].PolicyDocument.Statement[0];
-        expect(createLogStatement.Effect).to.be.equal('Allow');
-        expect(createLogStatement.Action).to.be.deep.equal([
-          'logs:CreateLogStream',
-          'logs:CreateLogGroup',
-        ]);
-        expect(createLogStatement.Resource).to.deep.includes({
-          'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/${service}-dev*:*`,
-        });
-
-        const putLogStatement = Properties.Policies[0].PolicyDocument.Statement[1];
-        expect(putLogStatement.Effect).to.be.equal('Allow');
-        expect(putLogStatement.Action).to.be.deep.equal(['logs:PutLogEvents']);
-        expect(putLogStatement.Resource).to.deep.includes({
-          'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/${service}-dev*:*:*`,
-        });
-      });
-
-      it('should add logGroup access policies for custom named functions', () => {
-        const IamRoleLambdaExecution = naming.getRoleLogicalId();
-        const { Properties } = cfResources[IamRoleLambdaExecution];
-
-        const createLogStatement = Properties.Policies[0].PolicyDocument.Statement[0];
-        expect(createLogStatement.Effect).to.be.equal('Allow');
-        expect(createLogStatement.Action).to.be.deep.equal([
-          'logs:CreateLogStream',
-          'logs:CreateLogGroup',
-        ]);
-        expect(createLogStatement.Resource).to.deep.includes({
-          'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/myCustomName:*`,
-        });
-
-        const putLogStatement = Properties.Policies[0].PolicyDocument.Statement[1];
-        expect(putLogStatement.Effect).to.be.equal('Allow');
-        expect(putLogStatement.Action).to.be.deep.equal(['logs:PutLogEvents']);
-        expect(putLogStatement.Resource).to.deep.includes({
-          'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/myCustomName:*:*`,
-        });
       });
 
       it('should configure LogGroup resources for functions', () => {
@@ -451,106 +406,6 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         });
 
         expect(cfTemplate.Resources[awsNaming.getRoleLogicalId()]).to.be.undefined;
-      });
-    });
-
-    describe('Function properties', () => {
-      let cfResources;
-      let naming;
-      let serverless;
-      const customFunctionName = 'foo-bar';
-      before(async () => {
-        const {
-          awsNaming,
-          cfTemplate,
-          serverless: serverlessInstance,
-        } = await runServerless({
-          fixture: 'function',
-          command: 'package',
-          configExt: {
-            functions: {
-              fnDisableLogs: {
-                handler: 'index.handler',
-                disableLogs: true,
-              },
-              fnWithVpc: {
-                handler: 'index.handler',
-                vpc: {
-                  securityGroupIds: ['xxx'],
-                  subnetIds: ['xxx'],
-                },
-              },
-              fnHaveCustomName: {
-                name: customFunctionName,
-                handler: 'index.handler',
-                disableLogs: true,
-              },
-            },
-          },
-        });
-        cfResources = cfTemplate.Resources;
-        naming = awsNaming;
-        serverless = serverlessInstance;
-      });
-
-      it('should ensure needed IAM configuration when `functions[].vpc` is configured', () => {
-        const IamRoleLambdaExecution = naming.getRoleLogicalId();
-        const { Properties } = cfResources[IamRoleLambdaExecution];
-        expect(Properties.ManagedPolicyArns).to.deep.includes({
-          'Fn::Join': [
-            '',
-            [
-              'arn:',
-              { Ref: 'AWS::Partition' },
-              ':iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole',
-            ],
-          ],
-        });
-      });
-
-      it('should support `functions[].disableLogs`', async () => {
-        const functionName = serverless.service.getFunction('fnDisableLogs').name;
-        const functionLogGroupName = naming.getLogGroupName(functionName);
-
-        expect(cfResources).to.not.have.property(functionLogGroupName);
-      });
-
-      it('should not have allow rights to put logs for custom named function when disableLogs option is enabled', async () => {
-        expect(
-          cfResources[naming.getRoleLogicalId()].Properties.Policies[0].PolicyDocument.Statement[0]
-            .Resource
-        ).to.not.deep.include({
-          'Fn::Sub':
-            'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:' +
-            `log-group:/aws/lambda/${customFunctionName}:*`,
-        });
-        expect(
-          cfResources[naming.getRoleLogicalId()].Properties.Policies[0].PolicyDocument.Statement[1]
-            .Resource
-        ).to.not.deep.include({
-          'Fn::Sub':
-            'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:' +
-            `log-group:/aws/lambda/${customFunctionName}:*`,
-        });
-      });
-
-      it('should have deny policy when disableLogs option is enabled`', async () => {
-        const functionName = serverless.service.getFunction('fnDisableLogs').name;
-        const functionLogGroupName = naming.getLogGroupName(functionName);
-
-        expect(
-          cfResources[naming.getRoleLogicalId()].Properties.Policies[0].PolicyDocument.Statement
-        ).to.deep.include({
-          Effect: 'Deny',
-          Action: 'logs:PutLogEvents',
-          Resource: [
-            {
-              'Fn::Sub':
-                'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
-                `:log-group:${functionLogGroupName}:*`,
-            },
-          ],
-        });
       });
     });
   });
