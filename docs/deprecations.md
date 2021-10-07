@@ -104,6 +104,8 @@ Starting with v3.0.0 any option extensions which does not have `type` defined wi
 
 Deprecation code: `NEW_PACKAGE_PATTERNS`
 
+_Note: We've resigned from this deprecation in the context of v2 (it'll be re-added in the context of v3). We continue to advise upgrade of services, so they do not rely on `package.include` and `package.exclude` settings._
+
 Support for `package.include` and `package.exclude` will be removed with v3.0.0. Instead please use `package.patterns` with which both _include_ and _exclude_ (prefixed with `!`) rules can be configured.
 
 Check [Packaging Patterns](/framework/docs/providers/aws/guide/packaging/#patterns) documentation for more info.
