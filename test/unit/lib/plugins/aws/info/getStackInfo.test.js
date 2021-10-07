@@ -94,10 +94,12 @@ describe('#getStackInfo()', () => {
           {
             name: 'hello',
             deployedName: 'my-service-dev-hello',
+            artifactSize: undefined,
           },
           {
             name: 'world',
             deployedName: 'customized',
+            artifactSize: undefined,
           },
         ],
         layers: [
