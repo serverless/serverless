@@ -1469,10 +1469,9 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
     });
 
     it('should allow `functions[].vpc` to specify no vpc', () => {
-      const { VpcConfig } = cfResources[naming.getLambdaLogicalId('vpcNullify')].Properties;
+      const Properties = cfResources[naming.getLambdaLogicalId('vpcNullify')].Properties;
 
-      expect(VpcConfig.SecurityGroupIds).to.deep.equal([]);
-      expect(VpcConfig.SubnetIds).to.deep.equal([]);
+      expect(Properties.VpcConfig).to.be.undefined;
     });
 
     it('should support `provider.tags`', () => {
