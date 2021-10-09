@@ -7,7 +7,7 @@ chai.use(require('chai-as-promised'));
 
 const expect = chai.expect;
 
-describe('lib/plugins/aws/package/lib/generateIamRoleLambdaExecutionTemplate.test.js', () => {
+describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
   describe('No default role', () => {
     it('should not create role resource if there are no functions', async () => {
       const { cfTemplate, awsNaming } = await runServerless({
