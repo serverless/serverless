@@ -13,11 +13,9 @@ const Serverless = require('../../../../../../../lib/Serverless');
 const runServerless = require('../../../../../../utils/run-serverless');
 const fixtures = require('../../../../../../fixtures/programmatic');
 const getHashForFilePath = require('../../../../../../../lib/plugins/aws/package/lib/getHashForFilePath');
-const {
-  isMergeablePolicyStatement,
-} = require('../../../../../../../lib/plugins/aws/package/lib/utils');
 
 const { getTmpDirPath, createTmpFile } = require('../../../../../../utils/fs');
+const { expectToIncludeStatement } = require('../../../../../../utils/iam');
 
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
@@ -1351,27 +1349,11 @@ describe('AwsCompileFunctions', () => {
 });
 
 describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
-  const _expectToIncludeStatement = (statement, { cfResources }) => {
-    const iamRolePolicyStatements =
-      cfResources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement;
-    const statement_ =
-      iamRolePolicyStatements.find((el) => isMergeablePolicyStatement(el, statement)) || {};
-
-    const toArray = (value) => {
-      return Array.isArray(value) ? [...value] : [value];
-    };
-
-    expect(toArray(statement_.Resource)).to.deep.include.members(toArray(statement.Resource));
-  };
-
   describe('Provider properties', () => {
     let cfResources;
     let cfOutputs;
     let naming;
     let serviceConfig;
-
-    const expectToIncludeStatement = (statement) =>
-      _expectToIncludeStatement(statement, { cfResources });
 
     before(async () => {
       const imageSha = '6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38';
@@ -1509,11 +1491,14 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       const { KmsKeyArn } = cfResources[naming.getLambdaLogicalId('other')].Properties;
 
       expect(KmsKeyArn).to.equal(serviceConfig.service.awsKmsKeyArn);
-      expectToIncludeStatement({
-        Effect: 'Allow',
-        Action: ['kms:Decrypt'],
-        Resource: [serviceConfig.service.awsKmsKeyArn],
-      });
+      expectToIncludeStatement(
+        cfResources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement,
+        {
+          Effect: 'Allow',
+          Action: ['kms:Decrypt'],
+          Resource: [serviceConfig.service.awsKmsKeyArn],
+        }
+      );
     });
 
     it('should prefer `functions[].awsKmsKeyArn` over `service.awsKmsKeyArn`', () => {
@@ -1522,11 +1507,14 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       const { KmsKeyArn } = cfResources[naming.getLambdaLogicalId('foo')].Properties;
 
       expect(KmsKeyArn).to.equal(fooFunctionConfig.awsKmsKeyArn);
-      expectToIncludeStatement({
-        Effect: 'Allow',
-        Action: ['kms:Decrypt'],
-        Resource: [fooFunctionConfig.awsKmsKeyArn],
-      });
+      expectToIncludeStatement(
+        cfResources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement,
+        {
+          Effect: 'Allow',
+          Action: ['kms:Decrypt'],
+          Resource: [fooFunctionConfig.awsKmsKeyArn],
+        }
+      );
     });
 
     it('should support `provider.tracing.lambda`', () => {
@@ -1535,11 +1523,14 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       const { TracingConfig } = cfResources[naming.getLambdaLogicalId('other')].Properties;
 
       expect(TracingConfig).to.deep.equal({ Mode: providerConfig.tracing.lambda });
-      expectToIncludeStatement({
-        Effect: 'Allow',
-        Action: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords'],
-        Resource: ['*'],
-      });
+      expectToIncludeStatement(
+        cfResources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement,
+        {
+          Effect: 'Allow',
+          Action: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords'],
+          Resource: ['*'],
+        }
+      );
     });
 
     it('should prefer `functions[].tracing` over `provider.tracing.lambda`', () => {
@@ -1548,11 +1539,14 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       const { TracingConfig } = cfResources[naming.getLambdaLogicalId('foo')].Properties;
 
       expect(TracingConfig).to.deep.equal({ Mode: fooFunctionConfig.tracing });
-      expectToIncludeStatement({
-        Effect: 'Allow',
-        Action: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords'],
-        Resource: ['*'],
-      });
+      expectToIncludeStatement(
+        cfResources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement,
+        {
+          Effect: 'Allow',
+          Action: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords'],
+          Resource: ['*'],
+        }
+      );
     });
 
     it('should support `provider.environment`', () => {
@@ -1641,11 +1635,14 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       expect(fileSystemCfConfig.FileSystemConfigs).to.deep.equal([
         { Arn: arn, LocalMountPath: localMountPath },
       ]);
-      expectToIncludeStatement({
-        Effect: 'Allow',
-        Action: ['elasticfilesystem:ClientMount', 'elasticfilesystem:ClientWrite'],
-        Resource: [arn],
-      });
+      expectToIncludeStatement(
+        cfResources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement,
+        {
+          Effect: 'Allow',
+          Action: ['elasticfilesystem:ClientMount', 'elasticfilesystem:ClientWrite'],
+          Resource: [arn],
+        }
+      );
     });
 
     it('should support `provider.architecture`', async () => {
@@ -1859,9 +1856,6 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
     let serviceConfig;
     const imageSha = '6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38';
     const imageWithSha = `000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:${imageSha}`;
-
-    const expectToIncludeStatement = (statement) =>
-      _expectToIncludeStatement(statement, { cfResources });
 
     before(async () => {
       const {
@@ -2167,15 +2161,18 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       });
       expect(destinationConfig).to.not.have.property('OnFailure');
 
-      expectToIncludeStatement({
-        Effect: 'Allow',
-        Action: 'lambda:InvokeFunction',
-        Resource: {
-          'Fn::Sub': `arn:\${AWS::Partition}:lambda:\${AWS::Region}:\${AWS::AccountId}:function:${
-            serverless.service.getFunction('target').name
-          }`,
-        },
-      });
+      expectToIncludeStatement(
+        cfResources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement,
+        {
+          Effect: 'Allow',
+          Action: 'lambda:InvokeFunction',
+          Resource: {
+            'Fn::Sub': `arn:\${AWS::Partition}:lambda:\${AWS::Region}:\${AWS::AccountId}:function:${
+              serverless.service.getFunction('target').name
+            }`,
+          },
+        }
+      );
     });
 
     it('should support `functions[].destinations.onFailure` referencing function in same stack', () => {
@@ -2190,15 +2187,18 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         },
       });
 
-      expectToIncludeStatement({
-        Effect: 'Allow',
-        Action: 'lambda:InvokeFunction',
-        Resource: {
-          'Fn::Sub': `arn:\${AWS::Partition}:lambda:\${AWS::Region}:\${AWS::AccountId}:function:${
-            serverless.service.getFunction('fnTargetFailure').name
-          }`,
-        },
-      });
+      expectToIncludeStatement(
+        cfResources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement,
+        {
+          Effect: 'Allow',
+          Action: 'lambda:InvokeFunction',
+          Resource: {
+            'Fn::Sub': `arn:\${AWS::Partition}:lambda:\${AWS::Region}:\${AWS::AccountId}:function:${
+              serverless.service.getFunction('fnTargetFailure').name
+            }`,
+          },
+        }
+      );
     });
 
     it('should support `functions[].destinations.onSuccess` referencing arn', () => {
@@ -2212,11 +2212,14 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         OnSuccess: { Destination: arn },
       });
 
-      expectToIncludeStatement({
-        Effect: 'Allow',
-        Action: 'lambda:InvokeFunction',
-        Resource: arn,
-      });
+      expectToIncludeStatement(
+        cfResources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement,
+        {
+          Effect: 'Allow',
+          Action: 'lambda:InvokeFunction',
+          Resource: arn,
+        }
+      );
     });
 
     it('should support `functions[].disableLogs`', () => {
@@ -2256,11 +2259,14 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       expect(fileSystemCfConfig.FileSystemConfigs).to.deep.equal([
         { Arn: arn, LocalMountPath: localMountPath },
       ]);
-      expectToIncludeStatement({
-        Effect: 'Allow',
-        Action: ['elasticfilesystem:ClientMount', 'elasticfilesystem:ClientWrite'],
-        Resource: arn,
-      });
+      expectToIncludeStatement(
+        cfResources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement,
+        {
+          Effect: 'Allow',
+          Action: ['elasticfilesystem:ClientMount', 'elasticfilesystem:ClientWrite'],
+          Resource: arn,
+        }
+      );
     });
 
     // This is just a happy-path test of images support. Due to sharing code from `provider.js`
