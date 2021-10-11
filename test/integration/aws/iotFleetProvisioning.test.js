@@ -1,6 +1,7 @@
 'use strict';
 
 const awsRequest = require('@serverless/test/aws-request');
+const hasFailed = require('@serverless/test/has-failed');
 const { expect } = require('chai');
 const fixtures = require('../../fixtures/programmatic');
 const { deployService, removeService } = require('../../utils/integration');
@@ -36,8 +37,9 @@ describe('test/integration/aws/iotFleetProvisioning.test.js', function () {
     isDeployed = true;
   });
 
-  after(async () => {
+  after(async function () {
     if (!isDeployed) return;
+    if (hasFailed(this.test.parent)) return;
     if (certificateId) {
       const [
         {
