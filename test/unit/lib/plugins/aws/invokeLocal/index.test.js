@@ -1169,7 +1169,7 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
       const body = JSON.parse(stdoutData).body;
       const [firstRemainingMs, secondRemainingMs, thirdRemainingMs] = JSON.parse(body).data;
       expect(firstRemainingMs).to.be.lte(3000);
-      expect(secondRemainingMs).to.be.lte(2900);
+      expect(secondRemainingMs).to.be.lte(2910);
       expect(thirdRemainingMs).to.be.lte(secondRemainingMs);
     });
   });
@@ -1195,7 +1195,7 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
 
         const { start, stop } = JSON.parse(stdoutData);
         expect(start).to.lte(3000);
-        expect(stop).to.lte(2900);
+        expect(stop).to.lte(2910);
       });
     });
   });
@@ -1230,7 +1230,7 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
 
       const { start, stop } = JSON.parse(stdoutData);
       expect(start).to.lte(6000);
-      expect(stop).to.lte(5900);
+      expect(stop).to.lte(5910);
     });
     it('should support context.deadline_ms', async () => {
       const { stdoutData } = await runServerless({
