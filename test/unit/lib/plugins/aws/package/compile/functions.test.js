@@ -1419,6 +1419,10 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
                 arn: 'arn:aws:elasticfilesystem:us-east-1:111111111111:access-point/fsap-a1a1a1a1a1a1a1a1a',
               },
             },
+            vpcNullify: {
+              vpc: null,
+              handler: 'index.handler',
+            },
           },
         },
       });
@@ -1462,6 +1466,12 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
 
       expect(VpcConfig.SecurityGroupIds).to.deep.equal(fooFunctionConfig.vpc.securityGroupIds);
       expect(VpcConfig.SubnetIds).to.deep.equal(fooFunctionConfig.vpc.subnetIds);
+    });
+
+    it('should allow `functions[].vpc` to specify no vpc', () => {
+      const Properties = cfResources[naming.getLambdaLogicalId('vpcNullify')].Properties;
+
+      expect(Properties.VpcConfig).to.be.undefined;
     });
 
     it('should support `provider.tags`', () => {
