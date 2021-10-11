@@ -460,3 +460,57 @@ provider:
   httpApi:
     shouldStartNameWithService: true
 ```
+
+## Custom domains
+
+API Gateway generates URLs for HTTP APIs in the following format:
+
+```
+https://<random>.execute-api.<region>.amazonaws.com/
+```
+
+It is possible to replace those URLs by a custom domain.
+
+Step 1, create an HTTPS certificate in AWS ACM:
+
+- Open [AWS ACM](https://console.aws.amazon.com/acm/home) (AWS Certificate Manager)
+- Switch to the region of your application
+- Click "Request a certificate"
+- Select "Request a public certificate" and continue
+- Add your domain and continue
+- Choose the domain validation of your choice:
+  - Email validation will require you to click a link you will receive in an email sent to admin@your-domain.com
+  - Domain validation will require you to add CNAME entries to your DNS configuration
+- Validate the domain via the method chosen above
+
+Step 2, set up the custom domain in API Gateway:
+
+- Open [API Gateway's "Custom Domain" configuration](https://console.aws.amazon.com/apigateway/main/publish/domain-names)
+- Switch to the region of your application
+- Click "Create"
+- Enter your domain name, select the certificate you created above and validate the page
+- After the domain is created, click the "API mappings" tab
+- Click "Configure API mappings" and "Add new mapping"
+- Select your HTTP API and the `$default` stage
+- Click "Save"
+
+Step 3, configure the DNS of the domain:
+
+- If using Route53:
+  - Open the Hosted Zone in the [Route53 console](https://console.aws.amazon.com/route53/v2/hostedzones)
+  - Click "Create record"
+  - Select "Record type" of type "A"
+  - "Route traffic to": select "Alias", and then select your API Gateway
+  - Finish the record creation
+- If using any other domain registrar
+  - Open the "Configurations" tab on the custom domain name you just created
+  - Note the "API Gateway domain name" which should look like this: `d-1234567890.execute-api.us-east-1.amazonaws.com`
+  - Create a CNAME entry to point your domain name to the API Gateway domain
+
+Once a custom domain is set up, you can [disable the default API Gateway endpoint](#disable-default-endpoint):
+
+```yaml
+provider:
+  httpApi:
+    disableDefaultEndpoint: true
+```
