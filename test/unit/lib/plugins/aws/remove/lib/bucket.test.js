@@ -122,7 +122,7 @@ describe('emptyS3Bucket', () => {
     it('should resolve if no object versions are present', async () => {
       const listObjectVersionsStub = sinon.stub().resolves();
 
-      return runServerless({
+      await runServerless({
         command: 'remove',
         config: {
           service: 'test-service',
@@ -143,14 +143,14 @@ describe('emptyS3Bucket', () => {
             listObjectVersions: listObjectVersionsStub,
           },
         },
-      }).then(() => {
-        expect(
-          listObjectVersionsStub.calledWithExactly({
-            Bucket: 'bucket',
-            Prefix: 'serverless/test-service/dev',
-          })
-        ).to.be.equal(true);
       });
+
+      expect(
+        listObjectVersionsStub.calledWithExactly({
+          Bucket: 'bucket',
+          Prefix: 'serverless/test-service/dev',
+        })
+      ).to.be.equal(true);
     });
 
     it('should push objects to the array if present', async () => {
@@ -170,7 +170,7 @@ describe('emptyS3Bucket', () => {
         ],
       });
 
-      return runServerless({
+      await runServerless({
         command: 'remove',
         config: {
           service: 'test-service',
@@ -192,28 +192,28 @@ describe('emptyS3Bucket', () => {
             deleteObjects: deleteObjectsStub,
           },
         },
-      }).then(() => {
-        expect(listObjectVersionsStub.calledOnce).to.be.equal(true);
-        expect(
-          listObjectVersionsStub.calledWithExactly({
-            Bucket: 'bucket',
-            Prefix: 'serverless/test-service/dev',
-          })
-        ).to.be.equal(true);
-
-        expect(
-          deleteObjectsStub.calledWithExactly({
-            Bucket: 'bucket',
-            Delete: {
-              Objects: [
-                { Key: 'object1', VersionId: null },
-                { Key: 'object2', VersionId: 'v1' },
-                { Key: 'object3', VersionId: 'v2' },
-              ],
-            },
-          })
-        ).to.be.equal(true);
       });
+
+      expect(listObjectVersionsStub.calledOnce).to.be.equal(true);
+      expect(
+        listObjectVersionsStub.calledWithExactly({
+          Bucket: 'bucket',
+          Prefix: 'serverless/test-service/dev',
+        })
+      ).to.be.equal(true);
+
+      expect(
+        deleteObjectsStub.calledWithExactly({
+          Bucket: 'bucket',
+          Delete: {
+            Objects: [
+              { Key: 'object1', VersionId: null },
+              { Key: 'object2', VersionId: 'v1' },
+              { Key: 'object3', VersionId: 'v2' },
+            ],
+          },
+        })
+      ).to.be.equal(true);
     });
   });
 
