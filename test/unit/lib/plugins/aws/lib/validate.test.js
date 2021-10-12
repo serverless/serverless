@@ -46,6 +46,12 @@ describe('#validate', () => {
       );
     });
 
+    it('should throw error if the package path includes service', () => {
+      awsPlugin.serverless.serviceDir = '/home/serverless/projects';
+      awsPlugin.options.package = '/home/serverless';
+      expect(() => awsPlugin.validate()).to.throw(ServerlessError);
+    });
+
     // NOTE: starting here, test order is important
 
     it('should default to "dev" if stage is not provided', () => {
