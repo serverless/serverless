@@ -2,6 +2,56 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.62.0](https://github.com/serverless/serverless/compare/v2.61.0...v2.62.0) (2021-10-08)
+
+### Features
+
+- **AWS Deploy:** Remove `deploy -f` deprecation ([#10063](https://github.com/serverless/serverless/pull/10063)) ([1084251](https://github.com/serverless/serverless/commit/10842513f0c5422f8627b652b6483523e0351a3c)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Config Schema:** Remove validation mode related deprecation ([#10063](https://github.com/serverless/serverless/pull/10063)) ([a9bf916](https://github.com/serverless/serverless/commit/a9bf916fbb15140373a54d22c624296b8a1dbe03)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Packaging:** Remove `package[include|exclude]` deprecation ([#10063](https://github.com/serverless/serverless/pull/10063)) ([70e2736](https://github.com/serverless/serverless/commit/70e27362260f97b68bb1dfaf52fa3fe7877a2adc)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **AWS Deploy:** Throw on attempt of extending not existing resource ([#10063](https://github.com/serverless/serverless/pull/10063)) ([02be86c](https://github.com/serverless/serverless/commit/02be86ca4954553388ac70845d8ff3aca205abcd)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **CLI: New logs (experimental):**
+  - Simplify CF deploy progress ([#10068](https://github.com/serverless/serverless/pull/10068)) ([be60ed4](https://github.com/serverless/serverless/commit/be60ed4cee15ec0a47be5c08da9e0ce4a3f54136)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Expose function artifact size in deploy summary ([#10062](https://github.com/serverless/serverless/pull/10062)) ([8746100](https://github.com/serverless/serverless/commit/87461007f809c67a78b7dd722847efef2e4f72b3)) ([Mariusz Nowak](https://github.com/medikoo))
+  - `create` command ([#10066](https://github.com/serverless/serverless/pull/10066)) ([05f937f](https://github.com/serverless/serverless/commit/05f937f2e731e641e93e9db4af4acd58dc117422)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - `invoke local` command ([#10065](https://github.com/serverless/serverless/pull/10065)) ([82dd1e4](https://github.com/serverless/serverless/commit/82dd1e4c70d335cc10485b5ac20467447809941b)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - `invoke` command ([#10052](https://github.com/serverless/serverless/pull/10052)) ([2af95c0](https://github.com/serverless/serverless/commit/2af95c03865b5b59bacba9e080348dddf11d0bb5)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - `metrics` command ([#10051](https://github.com/serverless/serverless/pull/10051)) ([592596c](https://github.com/serverless/serverless/commit/592596c73bfe0a9b6ef6bdff5d898ae9ef5e2788)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - `remove` command ([#10050](https://github.com/serverless/serverless/pull/10050)) ([3934cad](https://github.com/serverless/serverless/commit/3934cadce052b50d76c1dcd49da588cd9f079175)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - `rollback function` command ([#10064](https://github.com/serverless/serverless/pull/10064)) ([4cbc342](https://github.com/serverless/serverless/commit/4cbc3424dabebb3b533d463b3ead523f2daf4a77)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - `rollback` command ([#10064](https://github.com/serverless/serverless/pull/10064)) ([f0970e0](https://github.com/serverless/serverless/commit/f0970e04fa31774aa7400b4c620920dadcb3cfa2)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - `uninstall` command ([#10034](https://github.com/serverless/serverless/pull/10034)) ([2787ea0](https://github.com/serverless/serverless/commit/2787ea07a9a183695e6f7a58bcc0171e086d456b)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - `upgrade` command ([#10034](https://github.com/serverless/serverless/pull/10034)) ([9b5e6b1](https://github.com/serverless/serverless/commit/9b5e6b12371317356d9cb4600a4a574df305f63f)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Ensure empty line prior final status with progress ([#10063](https://github.com/serverless/serverless/pull/10062)) ([#10062](https://github.com/serverless/serverless/pull/10062)) ([c9f2227](https://github.com/serverless/serverless/commit/c9f22278b3a8c5fd4d1400ef948ae6b72f333223)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Reconfigure dashboard related warning ([#10053](https://github.com/serverless/serverless/pull/10053)) ([7c91cde](https://github.com/serverless/serverless/commit/7c91cde7ac5c8bbe983b213de090bde4326af85a)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Deploy:** Improve error message ([#10063](https://github.com/serverless/serverless/pull/10063)) ([d071c5f](https://github.com/serverless/serverless/commit/d071c5f74d2d1deca71edebc53d072a1c90d8bad)) ([Mariusz Nowak](https://github.com/medikoo))
+- Remove _async_ handling from _sync_ function ([#10053](https://github.com/serverless/serverless/pull/10053)) ([5f1a916](https://github.com/serverless/serverless/commit/5f1a916d4d9c8833755833bc064f51e4f89e50e0)) ([Mariusz Nowak](https://github.com/medikoo))
+
+## [2.61.0](https://github.com/serverless/serverless/compare/v2.60.3...v2.61.0) (2021-10-04)
+
+### Features
+
+- **AWS Lambda:** Support 64-bit ARM architecture ([#10049](https://github.com/serverless/serverless/pull/10049)) ([fe655d4](https://github.com/serverless/serverless/commit/fe655d4f15ca789a1e3a46ce49dc7d23ca806c00)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **AWS Credentials:** Fail when profile is already configured ([#10038](https://github.com/serverless/serverless/pull/10038)) ([f8ad7bc](https://github.com/serverless/serverless/commit/f8ad7bca6a26e39864d139fec4aadddd24b34a5b)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **CLI: New logs (experimental):**
+  - `config credentials` command ([#10038](https://github.com/serverless/serverless/pull/10038)) ([bcb2408](https://github.com/serverless/serverless/commit/bcb240893d89127cc1eada7255864b7bfeb88a61)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - `config tabcompletion install` command ([#10038](https://github.com/serverless/serverless/pull/10038)) ([16a7739](https://github.com/serverless/serverless/commit/16a7739411141487fa33f8a72f88d82db712bfc9)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - `config tabcompletion uninstall` command ([#10038](https://github.com/serverless/serverless/pull/10038)) ([02eebb4](https://github.com/serverless/serverless/commit/02eebb4643435341235340f5da8c7db903cb12e6)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - `config` command ([#10038](https://github.com/serverless/serverless/pull/10038)) ([7926570](https://github.com/serverless/serverless/commit/7926570557e5c0a4dd661c069eecc1d4a0cf9b5d)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - `slstats` command ([#10036](https://github.com/serverless/serverless/pull/10036)) ([0c9dae1](https://github.com/serverless/serverless/commit/0c9dae1210b9456ec96bc38a717a901beaa45a7b)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ### [2.60.3](https://github.com/serverless/serverless/compare/v2.60.2...v2.60.3) (2021-10-01)
 
 ### Bug Fixes

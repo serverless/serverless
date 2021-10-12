@@ -59,7 +59,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         command: 'package',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               role: 'some:aws:arn:xx1:*:*',
             },
             other: {
@@ -422,11 +422,11 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       });
 
       it('should support `provider.logRetentionInDays`', () => {
-        const normalizedName = naming.getLogGroupLogicalId('foo');
+        const normalizedName = naming.getLogGroupLogicalId('basic');
         const iamResource = cfResources[normalizedName];
         expect(iamResource.Type).to.be.equal('AWS::Logs::LogGroup');
         expect(iamResource.Properties.RetentionInDays).to.be.equal(5);
-        expect(iamResource.Properties.LogGroupName).to.be.equal(`/aws/lambda/${service}-dev-foo`);
+        expect(iamResource.Properties.LogGroupName).to.be.equal(`/aws/lambda/${service}-dev-basic`);
       });
 
       it('should support `provider.iam.role.tags`', () => {

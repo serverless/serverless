@@ -25,7 +25,7 @@ describe('AwsCompileMSKEvents', () => {
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               events: [
                 {
                   msk: {
@@ -54,7 +54,7 @@ describe('AwsCompileMSKEvents', () => {
       });
       naming = awsNaming;
       minimalEventSourceMappingResource =
-        cfTemplate.Resources[naming.getMSKEventLogicalId('foo', 'ClusterName', 'TestingTopic')];
+        cfTemplate.Resources[naming.getMSKEventLogicalId('basic', 'ClusterName', 'TestingTopic')];
       allParamsEventSourceMappingResource =
         cfTemplate.Resources[naming.getMSKEventLogicalId('other', 'ClusterName', 'TestingTopic')];
       defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution;
@@ -66,7 +66,7 @@ describe('AwsCompileMSKEvents', () => {
         StartingPosition: 'TRIM_HORIZON',
         Topics: [topic],
         FunctionName: {
-          'Fn::GetAtt': [naming.getLambdaLogicalId('foo'), 'Arn'],
+          'Fn::GetAtt': [naming.getLambdaLogicalId('basic'), 'Arn'],
         },
       });
     });

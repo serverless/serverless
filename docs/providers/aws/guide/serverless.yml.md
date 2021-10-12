@@ -102,6 +102,7 @@ provider:
             QueryStrings:
               - not-cached-query-string
   versionFunctions: false # Optional function versioning
+  architecture: x86_64 # Default instruction set architecture for Lambda functions (for ARM, AWS Graviton2 processor based, set it to 'arm64')
   environment: # Service wide environment variables
     serviceEnvVar: 123456789
   endpointType: regional # Optional endpoint configuration for API Gateway REST API. Default is Edge.
@@ -309,6 +310,7 @@ functions:
   usersCreate: # A Function
     handler: users.create # The file and module for this specific function. Cannot be used when `image` is defined.
     image: baseimage # Image to be used by function, cannot be used when `handler` is defined. It can be configured as concrete uri of Docker image in ECR or as a reference to image defined in `provider.ecr.images`
+    architecture: x86_64 # Instruction set architecture of a Lambda function (for ARM, AWS Graviton2 processor based, set it to 'arm64')
     name: ${sls:stage}-lambdaName # optional, Deployed Lambda name
     description: My function # The description of your function.
     memorySize: 512 # memorySize for this specific function.
@@ -324,7 +326,7 @@ functions:
       functionEnvVar: 12345678
     tags: # Function specific tags
       foo: bar
-    vpc: # Optional VPC. But if you use VPC then both subproperties (securityGroupIds and subnetIds) are required
+    vpc: # Optional VPC. If you use VPC then both subproperties (securityGroupIds and subnetIds) are required. Can be set to ~ to specify no VPC.
       securityGroupIds:
         - securityGroupId1
         - securityGroupId2
@@ -598,6 +600,9 @@ layers:
     description: Description of what the lambda layer does # optional, Description to publish to AWS
     compatibleRuntimes: # optional, a list of runtimes this layer is compatible with
       - python3.8
+    compatibleArchitectures: # optional, a list of architectures this layer is compatible with
+      - x86_64
+      - arm64
     licenseInfo: GPLv3 # optional, a string specifying license information
     allowedAccounts: # optional, a list of AWS account IDs allowed to access this layer.
       - '*'

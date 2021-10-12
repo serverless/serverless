@@ -501,7 +501,7 @@ describe('#compileMethods()', () => {
       fixture: 'function',
       configExt: {
         functions: {
-          foo: {
+          basic: {
             events: [
               {
                 http: {

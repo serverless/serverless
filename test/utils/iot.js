@@ -3,7 +3,7 @@
 const awsRequest = require('@serverless/test/aws-request');
 
 function resolveIotEndpoint() {
-  return awsRequest('Iot', 'describeEndpoint').then((data) => {
+  return awsRequest('Iot', 'describeEndpoint', { endpointType: 'iot:Data-ATS' }).then((data) => {
     return data.endpointAddress;
   });
 }

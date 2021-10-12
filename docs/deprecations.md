@@ -66,6 +66,8 @@ Starting with `v3.0.0`, it will not be possible to disable default export names 
 
 Deprecation code: `CLI_DEPLOY_FUNCTION_OPTION'`
 
+_Note: We've resigned from this deprecation in the context of v2 (it'll be re-added in the context of v3). We continue to advise using `deploy function -f` command instead of `deploy -f`._
+
 Starting with `v3.0.0`, `--function` or `-f` option for `deploy` command will be removed. In order to deploy a single function, please use `deploy function` command instead.
 
 <a name="CHANGE_OF_DEFAULT_RUNTIME_TO_NODEJS14X"><div>&nbsp;</div></a>
@@ -103,6 +105,8 @@ Starting with v3.0.0 any option extensions which does not have `type` defined wi
 ## New way to define packaging patterns
 
 Deprecation code: `NEW_PACKAGE_PATTERNS`
+
+_Note: We've resigned from this deprecation in the context of v2 (it'll be re-added in the context of v3). We continue to advise upgrade of services, so they do not rely on `package.include` and `package.exclude` settings._
 
 Support for `package.include` and `package.exclude` will be removed with v3.0.0. Instead please use `package.patterns` with which both _include_ and _exclude_ (prefixed with `!`) rules can be configured.
 
@@ -147,6 +151,8 @@ Ensure to always format CLI command as `sls [command..] [options...]`
 ## `configValidationMode: error` will be new default
 
 Deprecation code: `CONFIG_VALIDATION_MODE_DEFAULT`
+
+_Note: We've resigned from this deprecation in the context of v2 (it'll be re-added in the context of v3). We continue to advise configuring services with `configValidationMode: error` setting._
 
 Starting with v3.0.0, Serverless will throw on configuration errors by default. This is changing from the previous default, `configValidationMode: warn`
 
@@ -375,6 +381,8 @@ Please use `provider.kmsKeyArn` and `functions[].kmsKeyArn`. `service.awsKmsKeyA
 ## Defining extensions to nonexistent resources in `resources.extensions`
 
 Deprecation code: `RESOURCES_EXTENSIONS_REFERENCE_TO_NONEXISTENT_RESOURCE`
+
+_Note: This deprecation was replaced with a thrown error (adding a deprecation here, was a logical error). Please upgrade to latest version of the Framework_
 
 Starting with v3.0.0, extensions to nonexistent resources in `resources.extensions` will throw an error instead of passing silently.
 

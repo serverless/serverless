@@ -843,7 +843,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', ()
       fixture: 'function',
       configExt: {
         functions: {
-          foo: {
+          basic: {
             events: [
               {
                 s3: {
@@ -925,7 +925,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', ()
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               events: [
                 {
                   s3: {
@@ -956,7 +956,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', ()
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               events: [
                 {
                   s3: {

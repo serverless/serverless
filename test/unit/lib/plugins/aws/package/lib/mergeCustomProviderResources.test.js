@@ -4,6 +4,7 @@ const path = require('path');
 const expect = require('chai').expect;
 const AwsPackage = require('../../../../../../../lib/plugins/aws/package/index');
 const Serverless = require('../../../../../../../lib/Serverless');
+const ServerlessError = require('../../../../../../../lib/serverless-error');
 
 describe('mergeCustomProviderResources', () => {
   let serverless;
@@ -299,9 +300,9 @@ describe('mergeCustomProviderResources', () => {
         },
       };
 
-      expect(() => awsPackage.mergeCustomProviderResources()).to.throw(
-        /SampleResource: Sorry, extending the unsupported resource attribute at this point is not supported/
-      );
+      expect(() => awsPackage.mergeCustomProviderResources())
+        .to.throw(ServerlessError)
+        .with.property('code', 'RESOURCE_EXTENSION_UNSUPPORTED_ATTRIBUTE');
     });
   });
 });

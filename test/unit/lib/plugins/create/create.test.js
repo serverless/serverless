@@ -19,14 +19,12 @@ const templatesPath = path.resolve(__dirname, '../../../../../lib/plugins/create
 
 describe('Create', () => {
   let create;
-  let logSpy;
 
   before(() => {
     const serverless = new Serverless();
     const options = {};
     create = new Create(serverless, options);
     create.serverless.cli = new serverless.classes.CLI();
-    logSpy = sinon.spy(create.serverless.cli, 'log');
   });
 
   describe('#constructor()', () => {
@@ -80,35 +78,6 @@ describe('Create', () => {
           expect(downloadStub).to.have.been.calledOnce;
         });
       });
-
-      it('should resolve if download succeeds', () => {
-        downloadStub.resolves('serverless');
-        create.options['template-url'] = 'https://github.com/serverless/serverless';
-
-        return create.create().then(() => {
-          const installationMessage = logSpy.args.filter((arg) =>
-            arg[0].includes('installed "serverless"')
-          );
-
-          expect(downloadStub).to.have.been.calledOnce;
-          expect(installationMessage[0]).to.have.lengthOf(1);
-        });
-      });
-
-      it('should resolve if download succeeds and display the desired service name', () => {
-        downloadStub.resolves('serverless');
-        create.options['template-url'] = 'https://github.com/serverless/serverless';
-        create.options.name = 'sls';
-
-        return create.create().then(() => {
-          const installationMessage = logSpy.args.filter((arg) =>
-            arg[0].includes('installed "serverless" as "sls"')
-          );
-
-          expect(downloadStub).to.have.been.calledOnce;
-          expect(installationMessage[0]).to.have.lengthOf(1);
-        });
-      });
     });
 
     it('should throw error if user passed unsupported template', () => {
@@ -133,15 +102,6 @@ describe('Create', () => {
       create.options.template = 'aws-nodejs';
       return create.create().then(() => {
         expect(create.serverless.serviceDir).to.be.equal(process.cwd());
-      });
-    });
-
-    it('should display ascii greeting', () => {
-      process.chdir(tmpDir);
-
-      const greetingStub = sinon.stub(create.serverless.cli, 'asciiGreeting');
-      return create.create().then(() => {
-        expect(greetingStub.callCount).to.be.equal(1);
       });
     });
 

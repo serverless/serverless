@@ -15,7 +15,7 @@ if (require('../lib/utils/tabCompletion/isSupported') && process.argv[2] === 'co
 
 // Setup log writing
 require('@serverless/utils/log-reporters/node');
-const { progress } = require('@serverless/utils/log');
+const { legacy, log, progress } = require('@serverless/utils/log');
 
 const handleError = require('../lib/cli/handle-error');
 const {
@@ -870,16 +870,22 @@ const processSpanPromise = (async () => {
       try {
         await dashboardErrorHandler(error, serverless.invocationId);
       } catch (dashboardErrorHandlerError) {
-        const log = require('@serverless/utils/log');
         const tokenizeException = require('../lib/utils/tokenize-exception');
         const exceptionTokens = tokenizeException(dashboardErrorHandlerError);
-        log(
+        legacy.log(
           `Publication to Serverless Dashboard errored with:\n${' '.repeat('Serverless: '.length)}${
             exceptionTokens.isUserError || !exceptionTokens.stack
               ? exceptionTokens.message
               : exceptionTokens.stack
           }`,
           { color: 'orange' }
+        );
+        log.warning(
+          `Publication to Serverless Dashboard errored with:\n${' '.repeat('Serverless: '.length)}${
+            exceptionTokens.isUserError || !exceptionTokens.stack
+              ? exceptionTokens.message
+              : exceptionTokens.stack
+          }`
         );
       }
       throw error;
