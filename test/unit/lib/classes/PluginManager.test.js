@@ -989,32 +989,20 @@ describe('PluginManager', () => {
         /Command "deploy" cannot override an existing alias/
       );
     });
-
-    it('should log the alias when SLS_DEBUG is set', () => {
-      const consoleLogStub = sinon.stub(pluginManager.serverless.cli, 'log').returns();
-      const synchronousPluginMockInstance = new SynchronousPluginMock();
-      synchronousPluginMockInstance.commands.deploy.aliases = ['info'];
-      process.env.SLS_DEBUG = '*';
-      pluginManager.loadCommands(synchronousPluginMockInstance);
-      expect(consoleLogStub).to.have.been.calledWith('  -> @info');
-    });
   });
 
   describe('#loadHooks()', () => {
     let deprecatedPluginInstance;
-    let consoleLogStub;
 
     beforeEach(() => {
       deprecatedPluginInstance = new DeprecatedLifecycleEventsPluginMock();
       pluginManager.deprecatedEvents = {
         'deprecated:deprecated': 'new:new',
       };
-      consoleLogStub = sinon.stub(pluginManager.serverless.cli, 'log').returns();
     });
 
     afterEach(() => {
       pluginManager.deprecatedEvents = {};
-      pluginManager.serverless.cli.log.restore();
     });
 
     it('should replace deprecated events with the new ones', () => {
@@ -1027,14 +1015,6 @@ describe('PluginManager', () => {
       expect(pluginManager.hooks['untouched:untouched'][0].pluginName).to.equal(
         'DeprecatedLifecycleEventsPluginMock'
       );
-      expect(consoleLogStub.calledOnce).to.equal(false);
-    });
-
-    it('should log a debug message about deprecated when using SLS_DEBUG', () => {
-      process.env.SLS_DEBUG = '1';
-      pluginManager.loadHooks(deprecatedPluginInstance);
-
-      expect(consoleLogStub.calledOnce).to.equal(true);
     });
   });
 

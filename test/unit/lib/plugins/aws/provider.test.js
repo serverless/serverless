@@ -174,7 +174,14 @@ describe('AwsProvider', () => {
         .noCallThru()
         .load('../../../../../lib/plugins/aws/provider.js', {
           '../../aws/request': awsRequestStub,
-          '@serverless/utils/log': logStub,
+          '@serverless/utils/log': {
+            legacy: {
+              log: logStub,
+            },
+            log: {
+              debug: sinon.stub(),
+            },
+          },
         });
       awsProviderProxied = new AwsProviderProxyquired(serverless, options);
     });

@@ -1096,7 +1096,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
     expect(stdoutData).to.include(
       [
         'WARNING: Not authorized to perform: lambda:GetFunction for at least one of the lambda functions.',
-        ' Deployment will not be skipped even if service files did not change. ',
+        ' Deployment will not be skipped even if service files did not change.',
       ].join('')
     );
   });
