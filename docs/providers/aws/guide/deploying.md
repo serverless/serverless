@@ -83,6 +83,8 @@ The Serverless Framework translates all syntax in `serverless.yml` to a single A
 - You can disable creation of default S3 bucket policy by setting `skipPolicySetup` under `deploymentBucket` config. It only applies to deployment bucket that is automatically created
   by the Serverless Framework.
 
+- You can enable versioning for the deployment bucket by setting `versioning` under `deploymentBucket` config to `true`.
+
 Check out the [deploy command docs](../cli-reference/deploy.md) for all details and options.
 
 - For information on multi-region deployments, [checkout this article](https://serverless.com/blog/build-multiregion-multimaster-application-dynamodb-global-tables).
