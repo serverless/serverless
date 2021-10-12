@@ -95,6 +95,27 @@ describe('#generateCoreTemplate()', () => {
       });
     }));
 
+  it('should enable S3 bucket versioning if specified', async () => {
+    const { cfTemplate } = await runServerless({
+      config: {
+        service: 'irrelevant',
+        provider: {
+          name: 'aws',
+          deploymentBucket: {
+            versioning: true,
+          },
+        },
+      },
+      command: 'package',
+    });
+
+    expect(cfTemplate.Resources.ServerlessDeploymentBucket.Properties).to.deep.include({
+      VersioningConfiguration: {
+        Status: 'Enabled',
+      },
+    });
+  });
+
   it('should add resource tags to the bucket if present', () =>
     runServerless({
       config: {
