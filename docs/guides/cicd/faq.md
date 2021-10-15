@@ -13,7 +13,7 @@ layout: Doc
 
 # Frequently Asked Questions
 
-# Is there a free tier?
+## Is there a free tier?
 
 Yes, up to 1 concurrent build with the Free tier. No credit card required, just sign up.
 

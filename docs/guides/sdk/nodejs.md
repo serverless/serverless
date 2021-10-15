@@ -10,7 +10,9 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# `captureError`
+# Node.js SDK
+
+## `captureError`
 
 Your lambda function may throw an exception, but your function handles it in order to respond to
 the requester without throwing the error. One very common example is functions tied to HTTP
@@ -59,7 +61,7 @@ module.exports.hello = async (event) => {
 };
 ```
 
-# `span`
+## `span`
 
 While the `serverless_sdk` automatically instruments AWS SDK and HTTP spans, you may be interested
 in capturing span data for functions that do numerical computation or functions making database
@@ -102,7 +104,7 @@ module.exports.handler = async (event, context) => {
 };
 ```
 
-# `tagEvent`
+## `tagEvent`
 
 Busy applications can invoke hundreds of thousands of requests per minute! At these rates, finding specific invocations can be like
 searching for a needle in a haystack. We've felt this pain, which is why we've introduced tagged events.
@@ -129,7 +131,7 @@ module.exports.hello = async (event, context) => {
 };
 ```
 
-# Automatic route instrumentation with application middleware
+## Automatic route instrumentation with application middleware
 
 Faced with practical considerations (a big one being CloudFormation stack resource limit), developers often reach for a single function solution with routing being handled by the application layer. This is usually accomplished either by leveraging plugins that extend popular application frameworks to play nicely with the Lambda runtime (e.g. [serverless-express](https://serverless.com/plugins/serverless-express/)), using a purpose-built one (like [lambda-api](https://github.com/jeremydaly/lambda-api)), or even rolling their own (via [lambda-router](https://github.com/trek10inc/lambda-router)).
 
@@ -141,7 +143,7 @@ If your application is using a custom-built router, you can still work around th
 
 Once set, invocations can be explored and inspected by endpoint in the Dashboard.
 
-# `setEndpoint`
+## `setEndpoint`
 
 Allows the application to explicitly set the routed endpoint for an invocation. Like the other SDK methods, `setEndpoint` is available on either the context object: `context.serverlessSdk`, or can be imported manually from the base directory: `const { setEndpoint } = require('./serverless_sdk')`. Example usage:
 
