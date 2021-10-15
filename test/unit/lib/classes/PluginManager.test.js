@@ -568,14 +568,6 @@ describe('PluginManager', () => {
       expect(pluginManager.plugins[0]).to.be.instanceof(SynchronousPluginMock);
     });
 
-    it('should not load plugins twice', () => {
-      pluginManager.addPlugin(SynchronousPluginMock);
-      pluginManager.addPlugin(SynchronousPluginMock);
-
-      expect(pluginManager.plugins[0]).to.be.instanceof(SynchronousPluginMock);
-      expect(pluginManager.plugins.length).to.equal(1);
-    });
-
     it('should load two plugins that happen to have the same class name', () => {
       function getFirst() {
         return class PluginMock {};
