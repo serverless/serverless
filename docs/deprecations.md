@@ -36,6 +36,14 @@ Note:
 - In service configuration setting is ineffective for deprecations reported before service configuration is read.
 - `SLS_DEPRECATION_DISABLE` env var and `disabledDeprecations` configuration setting remain respected, and no errors will be thrown for mentioned deprecation coodes.
 
+<a name="S3_TRANSFER_ACCELERATION_ON_EXISTING_BUCKET"><div>&nbsp;</div></a>
+
+## Attempt to enable S3 Transfer Acceleration on provided S3 buckets
+
+Deprecation code: `S3_TRANSFER_ACCELERATION_ON_EXISTING_BUCKET`
+
+Starting with "v3.0.0", attempt to enable S3 Transfer Acceleration on user provided bucket will result in error instead of a warning. To ensure seamless upgrade, please stop using "--aws-s3-accelerate" flag.
+
 <a name="DUPLICATE_PLUGIN_DEFINITION"><div>&nbsp;</div></a>
 
 ## Duplicate plugin definition in configuration
