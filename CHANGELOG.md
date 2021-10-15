@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.63.0](https://github.com/serverless/serverless/compare/v2.62.0...v2.63.0) (2021-10-15)
+
+### Features
+
+- **AWS Deploy:** Introduce warning about `deploy -f` alias ([#10078](https://github.com/serverless/serverless/pull/10078)) ([40f574f](https://github.com/serverless/serverless/commit/40f574f946e2f40cba13e18b22ee82c7aaa31d3f)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS Lambda:** Allow overriding provider VPC with no VPC on function level ([#10060](https://github.com/serverless/serverless/pull/10060)) ([44a81fc](https://github.com/serverless/serverless/commit/44a81fcc6a229ac6ff59b8c8e51742a9470eef15)) ([Oliver](https://github.com/HowManyOliversAreThere))
+- **AWS S3:** Recognize `ExpirationInDays` property for `s3` events ([#10083](https://github.com/serverless/serverless/pull/10083)) ([8e6dcd1](https://github.com/serverless/serverless/commit/8e6dcd1aaed50007b5b99e18f61dfa849b898cd9)) ([ROSeaboyer](https://github.com/ROSeaboyer))
+- **CLI:**
+  - Introduce deprecation for duplicate plugin definition ([#10080](https://github.com/serverless/serverless/pull/10080)) ([d2a75ea](https://github.com/serverless/serverless/commit/d2a75ea95e814cd5aaba5eca4c5acebd2aad0bb8)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Introduce deprecation instead of warning on S3 Accelerate for user provided bucket ([#10080](https://github.com/serverless/serverless/pull/10080)) ([04b921a](https://github.com/serverless/serverless/commit/04b921acdc5fd486ffd10fe81fcb2243f37329db)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Opt-in support for deployment bucket versioning ([#9912](https://github.com/serverless/serverless/issues/9912)) ([c4cb0f3](https://github.com/serverless/serverless/commit/c4cb0f30f5f565e2fd34877dfc383f6b81d135fd)) ([Mars Lan](https://github.com/mars-lan))
+
+### Maintenance Improvements
+
+- **CLI: New logs (experimental):**
+  - Adapt `logInfo` to modern logs ([#10078](https://github.com/serverless/serverless/pull/10078)) ([771f99b](https://github.com/serverless/serverless/commit/771f99b18d76060f030d36b5fa619dd41a7000c8)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Adapt `logWarning` to modern logs ([#10078](https://github.com/serverless/serverless/pull/10078)) ([d43298d](https://github.com/serverless/serverless/commit/d43298d25bc9fcf5f5724a800b2693321e88e838)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Cover image building with modern logs ([#10070](https://github.com/serverless/serverless/pull/10070)) ([a2be338](https://github.com/serverless/serverless/commit/a2be3387b16fdb7324e1342a5f6ee3974e4e34f5)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Improve handling of service outputs in modern logs ([#10100](https://github.com/serverless/serverless/pull/10100)) ([7d19ca8](https://github.com/serverless/serverless/commit/7d19ca857230a56bbe40bda4d6704edd34019e4e)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Introduce modern warning about resource limit ([#10086](https://github.com/serverless/serverless/pull/10086)) ([ca705b8](https://github.com/serverless/serverless/commit/ca705b8cc2854c302158a56294c2507ba5f2038f)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Minor modern logs updates ([#10071](https://github.com/serverless/serverless/pull/10071)) ([39c09e4](https://github.com/serverless/serverless/commit/39c09e44b6380ec1a13aa50aca9082cffb0aeca1)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Remove empty line in `info` command ([#10086](https://github.com/serverless/serverless/pull/10086)) ([03b4b3d](https://github.com/serverless/serverless/commit/03b4b3d47c25b6f98a46699463288c94b051f42c)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Replace `process.stdout` use with modern logs ([#10087](https://github.com/serverless/serverless/pull/10087)) ([be00a26](https://github.com/serverless/serverless/commit/be00a2672cbc90fb33dee5e4bd44a1f6a127eb7c)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Replace warnings with modern counterparts ([#10080](https://github.com/serverless/serverless/pull/10080)) ([4da0899](https://github.com/serverless/serverless/commit/4da08996736c9a8f2b0a0193f7cca4b24f3fc6f1)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Update link style for modern logs ([#10096](https://github.com/serverless/serverless/pull/10096)) ([6264296](https://github.com/serverless/serverless/commit/62642964bc38eae77b009ea84d05ba741383570f)) ([Mariusz Nowak](https://github.com/medikoo))
+- Fix typo in `lib/classes/Variables.js` ([#10093](https://github.com/serverless/serverless/issues/10093)) ([49f0913](https://github.com/serverless/serverless/commit/49f0913466110ac32d89c7c044fc781e524b9ed9)) ([Chris Poli](https://github.com/chris-poli))
+
+### Templates
+
+- Add `esbuild` to `gitignore` in `aws-nodejs-typescript` ([#10076](https://github.com/serverless/serverless/pull/10076)) ([865f21f](https://github.com/serverless/serverless/commit/865f21f970340b45c6fb341d01647721f0fa5682)) ([ssshun](https://github.com/ssshun))
+
 ## [2.62.0](https://github.com/serverless/serverless/compare/v2.61.0...v2.62.0) (2021-10-08)
 
 ### Features
