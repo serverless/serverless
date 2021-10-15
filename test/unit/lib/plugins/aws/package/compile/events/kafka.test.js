@@ -26,7 +26,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               events: [
                 {
                   kafka: {
@@ -57,7 +57,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
       });
       naming = awsNaming;
       minimalEventSourceMappingResource =
-        cfTemplate.Resources[naming.getKafkaEventLogicalId('foo', 'TestingTopic')];
+        cfTemplate.Resources[naming.getKafkaEventLogicalId('basic', 'TestingTopic')];
       allParamsEventSourceMappingResource =
         cfTemplate.Resources[naming.getKafkaEventLogicalId('other', 'TestingTopic')];
       defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution;
@@ -79,7 +79,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
         StartingPosition: 'TRIM_HORIZON',
         Topics: [topic],
         FunctionName: {
-          'Fn::GetAtt': [naming.getLambdaLogicalId('foo'), 'Arn'],
+          'Fn::GetAtt': [naming.getLambdaLogicalId('basic'), 'Arn'],
         },
       });
     });
@@ -127,7 +127,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               events: [
                 {
                   kafka: eventConfig.event,
@@ -140,7 +140,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
       });
 
       const eventSourceMappingResource =
-        cfTemplate.Resources[awsNaming.getKafkaEventLogicalId('foo', 'TestingTopic')];
+        cfTemplate.Resources[awsNaming.getKafkaEventLogicalId('basic', 'TestingTopic')];
       expect(eventSourceMappingResource.Properties).to.deep.equal(eventConfig.resource(awsNaming));
     };
 
@@ -167,7 +167,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
             StartingPosition: 'TRIM_HORIZON',
             Topics: [topic],
             FunctionName: {
-              'Fn::GetAtt': [awsNaming.getLambdaLogicalId('foo'), 'Arn'],
+              'Fn::GetAtt': [awsNaming.getLambdaLogicalId('basic'), 'Arn'],
             },
           };
         },
@@ -198,7 +198,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
             StartingPosition: 'TRIM_HORIZON',
             Topics: [topic],
             FunctionName: {
-              'Fn::GetAtt': [awsNaming.getLambdaLogicalId('foo'), 'Arn'],
+              'Fn::GetAtt': [awsNaming.getLambdaLogicalId('basic'), 'Arn'],
             },
           };
         },
@@ -233,7 +233,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
             StartingPosition: 'TRIM_HORIZON',
             Topics: [topic],
             FunctionName: {
-              'Fn::GetAtt': [awsNaming.getLambdaLogicalId('foo'), 'Arn'],
+              'Fn::GetAtt': [awsNaming.getLambdaLogicalId('basic'), 'Arn'],
             },
           };
         },
@@ -267,7 +267,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
             StartingPosition: 'TRIM_HORIZON',
             Topics: [topic],
             FunctionName: {
-              'Fn::GetAtt': [awsNaming.getLambdaLogicalId('foo'), 'Arn'],
+              'Fn::GetAtt': [awsNaming.getLambdaLogicalId('basic'), 'Arn'],
             },
           };
         },
@@ -298,7 +298,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
             StartingPosition: 'TRIM_HORIZON',
             Topics: [topic],
             FunctionName: {
-              'Fn::GetAtt': [awsNaming.getLambdaLogicalId('foo'), 'Arn'],
+              'Fn::GetAtt': [awsNaming.getLambdaLogicalId('basic'), 'Arn'],
             },
           };
         },
@@ -332,7 +332,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
             StartingPosition: 'TRIM_HORIZON',
             Topics: [topic],
             FunctionName: {
-              'Fn::GetAtt': [awsNaming.getLambdaLogicalId('foo'), 'Arn'],
+              'Fn::GetAtt': [awsNaming.getLambdaLogicalId('basic'), 'Arn'],
             },
           };
         },
@@ -366,7 +366,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
             StartingPosition: 'TRIM_HORIZON',
             Topics: [topic],
             FunctionName: {
-              'Fn::GetAtt': [awsNaming.getLambdaLogicalId('foo'), 'Arn'],
+              'Fn::GetAtt': [awsNaming.getLambdaLogicalId('basic'), 'Arn'],
             },
           };
         },
@@ -379,7 +379,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               events: [
                 {
                   kafka: {
@@ -414,7 +414,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               role: { 'Fn::ImportValue': 'MyImportedRole' },
               events: [
                 {
@@ -432,7 +432,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
       });
 
       const eventSourceMappingResource =
-        cfTemplate.Resources[awsNaming.getKafkaEventLogicalId('foo', 'TestingTopic')];
+        cfTemplate.Resources[awsNaming.getKafkaEventLogicalId('basic', 'TestingTopic')];
       expect(eventSourceMappingResource.DependsOn).to.deep.equal([]);
     });
   });

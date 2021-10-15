@@ -1,7 +1,6 @@
 'use strict';
 
 const chai = require('chai');
-const sandbox = require('sinon');
 const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
 const AwsCompileCloudFrontEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/cloudFront');
 const Serverless = require('../../../../../../../../lib/Serverless');
@@ -77,42 +76,7 @@ describe('AwsCompileCloudFrontEvents', () => {
       },
     };
     serverless.setProvider('aws', new AwsProvider(serverless, options));
-    serverless.cli = { log: sandbox.spy() };
     awsCompileCloudFrontEvents = new AwsCompileCloudFrontEvents(serverless, options);
-  });
-
-  describe('#constructor()', () => {
-    it('should use "before:remove:remove" hook to log a message before removing the service', () => {
-      serverless.processedInput.commands = ['remove'];
-      serverless.service.functions = {
-        first: {
-          events: [
-            {
-              cloudFront: {
-                eventType: 'viewer-request',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-              },
-            },
-          ],
-        },
-      };
-      const awsCompileCloudFrontEventsRemoval = new AwsCompileCloudFrontEvents(serverless, options);
-
-      awsCompileCloudFrontEventsRemoval.hooks['before:remove:remove']();
-      expect(awsCompileCloudFrontEventsRemoval.serverless.cli.log).to.have.been.calledOnce;
-      expect(awsCompileCloudFrontEventsRemoval.serverless.cli.log.args[0][0]).to.include(
-        'remove your Lambda@Edge functions'
-      );
-    });
-  });
-
-  describe('#logRemoveReminder()', () => {
-    it('should not log an info message if the users wants to remove the stack without a cloudFront event', () => {
-      serverless.processedInput.commands = ['remove'];
-      const awsCompileCloudFrontEventsRemoval = new AwsCompileCloudFrontEvents(serverless, options);
-
-      expect(awsCompileCloudFrontEventsRemoval.serverless.cli.log).not.to.have.been.calledOnce;
-    });
   });
 
   describe('#validate()', () => {
@@ -1765,7 +1729,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
           command: 'package',
           configExt: {
             functions: {
-              foo: {
+              basic: {
                 handler: 'myLambdaAtEdge.handler',
                 events: [
                   {
@@ -1794,7 +1758,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
           configExt: {
             disabledDeprecations: ['CLOUDFRONT_CACHE_BEHAVIOR_FORWARDED_VALUES_AND_TTL'],
             functions: {
-              foo: {
+              basic: {
                 handler: 'myLambdaAtEdge.handler',
                 events: [
                   {
@@ -1829,7 +1793,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
         command: 'package',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               handler: 'myLambdaAtEdge.handler',
               events: [
                 {
@@ -2139,7 +2103,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
     });
     it('should ignore provider VPC config', () => {
       const edgeResolvedName = naming.getLambdaLogicalId('fnOriginResponse');
-      const otherResolvedName = naming.getLambdaLogicalId('foo');
+      const otherResolvedName = naming.getLambdaLogicalId('basic');
       expect(cfResources[edgeResolvedName].Properties).not.to.contain.keys('VpcConfig');
       expect(cfResources[otherResolvedName].Properties).to.contain.keys('VpcConfig');
     });

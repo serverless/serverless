@@ -1601,7 +1601,7 @@ describe('AwsCompileStreamEvents #2', () => {
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               provisionedConcurrency: 1,
               events: [{ stream: 'arn:aws:kinesis:us-east-1:123456789012:stream/myStream' }],
             },
@@ -1610,7 +1610,7 @@ describe('AwsCompileStreamEvents #2', () => {
         command: 'package',
       });
       naming = awsNaming;
-      const streamLogicalId = awsNaming.getStreamLogicalId('foo', 'kinesis', 'myStream');
+      const streamLogicalId = awsNaming.getStreamLogicalId('basic', 'kinesis', 'myStream');
       eventSourceMappingResource = cfTemplate.Resources[streamLogicalId];
     });
 
@@ -1620,7 +1620,7 @@ describe('AwsCompileStreamEvents #2', () => {
           ':',
           [
             {
-              'Fn::GetAtt': ['FooLambdaFunction', 'Arn'],
+              'Fn::GetAtt': ['BasicLambdaFunction', 'Arn'],
             },
             'provisioned',
           ],
@@ -1629,7 +1629,7 @@ describe('AwsCompileStreamEvents #2', () => {
     });
 
     it('should depend on provisioned alias', () => {
-      const aliasLogicalId = naming.getLambdaProvisionedConcurrencyAliasLogicalId('foo');
+      const aliasLogicalId = naming.getLambdaProvisionedConcurrencyAliasLogicalId('basic');
       expect(eventSourceMappingResource.DependsOn).to.include(aliasLogicalId);
     });
   });
@@ -1641,7 +1641,7 @@ describe('AwsCompileStreamEvents #2', () => {
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               events: [
                 {
                   stream: {
@@ -1655,7 +1655,7 @@ describe('AwsCompileStreamEvents #2', () => {
         },
         command: 'package',
       });
-      const streamLogicalId = awsNaming.getStreamLogicalId('foo', 'kinesis', 'myStream');
+      const streamLogicalId = awsNaming.getStreamLogicalId('basic', 'kinesis', 'myStream');
       eventSourceMappingResource = cfTemplate.Resources[streamLogicalId];
     });
 
@@ -1663,6 +1663,65 @@ describe('AwsCompileStreamEvents #2', () => {
       expect(eventSourceMappingResource.Properties.FunctionResponseTypes).to.include.members([
         'ReportBatchItemFailures',
       ]);
+    });
+  });
+  describe('with TumblingWindowInSeconds enabled', () => {
+    let eventSourceMappingKinesisResource;
+    let eventSourceMappingDynamoDBResource;
+    let eventSourceMappingNoTumblingResource;
+
+    before(async () => {
+      const { awsNaming, cfTemplate } = await runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            basic: {
+              events: [
+                {
+                  stream: {
+                    arn: 'arn:aws:kinesis:us-east-1:123456789012:stream/myKinesisStream',
+                    tumblingWindowInSeconds: 30,
+                  },
+                },
+                {
+                  stream: {
+                    arn: 'arn:aws:dynamodb:region:account:table/myDDBstream/stream/1',
+                    tumblingWindowInSeconds: 50,
+                  },
+                },
+                {
+                  stream: {
+                    arn: 'arn:aws:dynamodb:region:account:table/noTumblingStream/stream/1',
+                  },
+                },
+              ],
+            },
+          },
+        },
+        command: 'package',
+      });
+      const kinesisLogicalId = awsNaming.getStreamLogicalId('basic', 'kinesis', 'myKinesisStream');
+      const dynamoLogicalId = awsNaming.getStreamLogicalId('basic', 'dynamodb', 'myDDBstream');
+      const noTumblingLogicalId = awsNaming.getStreamLogicalId(
+        'basic',
+        'dynamodb',
+        'noTumblingStream'
+      );
+
+      eventSourceMappingKinesisResource = cfTemplate.Resources[kinesisLogicalId];
+      eventSourceMappingDynamoDBResource = cfTemplate.Resources[dynamoLogicalId];
+      eventSourceMappingNoTumblingResource = cfTemplate.Resources[noTumblingLogicalId];
+    });
+
+    it('should have TumblingWindowInSeconds property', () => {
+      expect(eventSourceMappingKinesisResource.Properties.TumblingWindowInSeconds).to.equal(30);
+      expect(eventSourceMappingDynamoDBResource.Properties.TumblingWindowInSeconds).to.equal(50);
+    });
+
+    it('should not have TumblingWindowInSeconds property', () => {
+      expect(eventSourceMappingNoTumblingResource.Properties).to.not.have.property(
+        'TumblingWindowInSeconds'
+      );
     });
   });
 });

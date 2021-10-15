@@ -36,6 +36,22 @@ Note:
 - In service configuration setting is ineffective for deprecations reported before service configuration is read.
 - `SLS_DEPRECATION_DISABLE` env var and `disabledDeprecations` configuration setting remain respected, and no errors will be thrown for mentioned deprecation coodes.
 
+<a name="S3_TRANSFER_ACCELERATION_ON_EXISTING_BUCKET"><div>&nbsp;</div></a>
+
+## Attempt to enable S3 Transfer Acceleration on provided S3 buckets
+
+Deprecation code: `S3_TRANSFER_ACCELERATION_ON_EXISTING_BUCKET`
+
+Starting with "v3.0.0", attempt to enable S3 Transfer Acceleration on user provided bucket will result in error instead of a warning. To ensure seamless upgrade, please stop using "--aws-s3-accelerate" flag.
+
+<a name="DUPLICATE_PLUGIN_DEFINITION"><div>&nbsp;</div></a>
+
+## Duplicate plugin definition in configuration
+
+Deprecation code: `DUPLICATE_PLUGIN_DEFINITION`
+
+Starting with "v3.0.0", duplicate plugin definition will result in an error instead of a warning. To ensure seamless upgrade, please remove duplicate plugins from your configuration.
+
 <a name="CLI_VERBOSE_OPTION_ALIAS"><div>&nbsp;</div></a>
 
 ## CLI `-v` alias for `--verbose` option
@@ -65,6 +81,8 @@ Starting with `v3.0.0`, it will not be possible to disable default export names 
 ## CLI `--function`/`-f` option for `deploy` command
 
 Deprecation code: `CLI_DEPLOY_FUNCTION_OPTION'`
+
+_Note: We've resigned from this deprecation in the context of v2 (it'll be re-added in the context of v3). We continue to advise using `deploy function -f` command instead of `deploy -f`._
 
 Starting with `v3.0.0`, `--function` or `-f` option for `deploy` command will be removed. In order to deploy a single function, please use `deploy function` command instead.
 
@@ -103,6 +121,8 @@ Starting with v3.0.0 any option extensions which does not have `type` defined wi
 ## New way to define packaging patterns
 
 Deprecation code: `NEW_PACKAGE_PATTERNS`
+
+_Note: We've resigned from this deprecation in the context of v2 (it'll be re-added in the context of v3). We continue to advise upgrade of services, so they do not rely on `package.include` and `package.exclude` settings._
 
 Support for `package.include` and `package.exclude` will be removed with v3.0.0. Instead please use `package.patterns` with which both _include_ and _exclude_ (prefixed with `!`) rules can be configured.
 
@@ -147,6 +167,8 @@ Ensure to always format CLI command as `sls [command..] [options...]`
 ## `configValidationMode: error` will be new default
 
 Deprecation code: `CONFIG_VALIDATION_MODE_DEFAULT`
+
+_Note: We've resigned from this deprecation in the context of v2 (it'll be re-added in the context of v3). We continue to advise configuring services with `configValidationMode: error` setting._
 
 Starting with v3.0.0, Serverless will throw on configuration errors by default. This is changing from the previous default, `configValidationMode: warn`
 
@@ -375,6 +397,8 @@ Please use `provider.kmsKeyArn` and `functions[].kmsKeyArn`. `service.awsKmsKeyA
 ## Defining extensions to nonexistent resources in `resources.extensions`
 
 Deprecation code: `RESOURCES_EXTENSIONS_REFERENCE_TO_NONEXISTENT_RESOURCE`
+
+_Note: This deprecation was replaced with a thrown error (adding a deprecation here, was a logical error). Please upgrade to latest version of the Framework_
 
 Starting with v3.0.0, extensions to nonexistent resources in `resources.extensions` will throw an error instead of passing silently.
 

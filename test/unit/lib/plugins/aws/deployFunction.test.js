@@ -197,7 +197,6 @@ describe('AwsDeployFunction', () => {
       serverless.utils.writeFileSync(artifactFilePath, 'first.zip file content');
       updateFunctionCodeStub = sinon.stub(awsDeployFunction.provider, 'request').resolves();
       statSyncStub = sinon.stub(fs, 'statSync').returns({ size: 1024 });
-      sinon.spy(awsDeployFunction.serverless.cli, 'log');
       readFileSyncStub = sinon.stub(fs, 'readFileSync').returns();
       awsDeployFunction.serverless.service.provider.remoteFunctionData = {
         Configuration: {
@@ -252,11 +251,8 @@ describe('AwsDeployFunction', () => {
 
       await awsDeployFunction.deployFunction();
 
-      const expected = 'Code not changed. Skipping function deployment.';
-
       expect(updateFunctionCodeStub.calledOnce).to.be.equal(false);
       expect(readFileSyncStub.calledOnce).to.equal(true);
-      expect(awsDeployFunction.serverless.cli.log.calledWithExactly(expected)).to.equal(true);
       expect(readFileSyncStub.calledWithExactly(artifactFilePath)).to.equal(true);
     });
 
@@ -266,10 +262,8 @@ describe('AwsDeployFunction', () => {
 
       await awsDeployFunction.deployFunction();
 
-      const expected = 'Uploading function: first (1.02 kB)...';
       expect(readFileSyncStub.calledOnce).to.equal(true);
       expect(statSyncStub.calledOnce).to.equal(true);
-      expect(awsDeployFunction.serverless.cli.log.calledWithExactly(expected)).to.be.equal(true);
       expect(readFileSyncStub.calledWithExactly(artifactFilePath)).to.equal(true);
     });
 
@@ -403,7 +397,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     const { stdoutData } = await runServerless({
       fixture: 'function',
       command: 'deploy function',
-      options: { function: 'foo' },
+      options: { function: 'basic' },
       awsRequestStubMap: {
         ...awsRequestStubMap,
         Lambda: {
@@ -425,7 +419,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       },
       configExt: {
         functions: {
-          foo: {
+          basic: {
             handler: null,
             image: {
               uri: imageWithSha,
@@ -447,7 +441,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     const { stdoutData } = await runServerless({
       fixture: 'function',
       command: 'deploy function',
-      options: { function: 'foo' },
+      options: { function: 'basic' },
       awsRequestStubMap: {
         ...awsRequestStubMap,
         Lambda: {
@@ -462,7 +456,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       },
       configExt: {
         functions: {
-          foo: {
+          basic: {
             image: imageWithSha,
           },
         },
@@ -477,7 +471,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       runServerless({
         fixture: 'function',
         command: 'deploy function',
-        options: { function: 'foo' },
+        options: { function: 'basic' },
         awsRequestStubMap: {
           ...awsRequestStubMap,
           Lambda: {
@@ -492,7 +486,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
         },
         configExt: {
           functions: {
-            foo: {
+            basic: {
               image: imageWithSha,
             },
           },
@@ -509,7 +503,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       runServerless({
         fixture: 'function',
         command: 'deploy function',
-        options: { function: 'foo' },
+        options: { function: 'basic' },
         awsRequestStubMap: {
           ...awsRequestStubMap,
           Lambda: {
@@ -539,7 +533,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     const { stdoutData } = await runServerless({
       fixture: 'function',
       command: 'deploy function',
-      options: { function: 'foo' },
+      options: { function: 'basic' },
       awsRequestStubMap: {
         ...awsRequestStubMap,
         Lambda: {
@@ -552,7 +546,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       },
       configExt: {
         functions: {
-          foo: {
+          basic: {
             timeout: 50,
           },
         },
@@ -567,7 +561,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     const { stdoutData } = await runServerless({
       fixture: 'function',
       command: 'deploy function',
-      options: { function: 'foo' },
+      options: { function: 'basic' },
       awsRequestStubMap: {
         ...awsRequestStubMap,
         Lambda: {
@@ -587,7 +581,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
           },
         },
         functions: {
-          foo: {
+          basic: {
             kmsKeyArn,
             description,
             handler,
@@ -639,7 +633,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     const { stdoutData } = await runServerless({
       fixture: 'function',
       command: 'deploy function',
-      options: { function: 'foo' },
+      options: { function: 'basic' },
       awsRequestStubMap: {
         ...awsRequestStubMap,
         Lambda: {
@@ -654,7 +648,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       },
       configExt: {
         functions: {
-          foo: {
+          basic: {
             name: functionName,
             role,
             timeout,
@@ -674,7 +668,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
 
     expect(updateFunctionConfigurationStub).to.be.calledWithExactly({
       FunctionName: functionName,
-      Handler: 'index.handler',
+      Handler: 'basic.handler',
       Timeout: timeout,
       VpcConfig: {
         SubnetIds: ['subnet-111', 'subnet-222'],
@@ -688,7 +682,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     const { stdoutData } = await runServerless({
       fixture: 'function',
       command: 'deploy function',
-      options: { function: 'foo' },
+      options: { function: 'basic' },
       awsRequestStubMap: {
         ...awsRequestStubMap,
         Lambda: {
@@ -716,7 +710,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
           },
         },
         functions: {
-          foo: {
+          basic: {
             name: functionName,
           },
         },
@@ -725,7 +719,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
 
     expect(updateFunctionConfigurationStub).to.be.calledWithExactly({
       FunctionName: functionName,
-      Handler: 'index.handler',
+      Handler: 'basic.handler',
       Environment: {
         Variables: {
           ANOTHERVAR: 'anothervalue',
@@ -747,7 +741,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     const { stdoutData } = await runServerless({
       fixture: 'function',
       command: 'deploy function',
-      options: { function: 'foo' },
+      options: { function: 'basic' },
       awsRequestStubMap: {
         ...awsRequestStubMap,
         Lambda: {
@@ -789,7 +783,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
           },
         },
         functions: {
-          foo: {
+          basic: {
             kmsKeyArn,
             description,
             handler,
@@ -821,13 +815,13 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     await runServerless({
       fixture: 'function',
       command: 'deploy function',
-      options: { function: 'foo' },
+      options: { function: 'basic' },
       lastLifecycleHookName: 'deploy:function:deploy',
       awsRequestStubMap,
       configExt: {
         disabledDeprecations: ['AWS_KMS_KEY_ARN'],
         functions: {
-          foo: {
+          basic: {
             handler: 'index.handler',
             name: 'foobar',
             awsKmsKeyArn: 'arn:aws:kms:us-east-1:oldKey',
@@ -850,13 +844,13 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     await runServerless({
       fixture: 'function',
       command: 'deploy function',
-      options: { function: 'foo' },
+      options: { function: 'basic' },
       lastLifecycleHookName: 'deploy:function:deploy',
       awsRequestStubMap,
       configExt: {
         disabledDeprecations: ['AWS_KMS_KEY_ARN', 'SERVICE_OBJECT_NOTATION'],
         functions: {
-          foo: {
+          basic: {
             handler: 'index.handler',
             name: 'foobar',
             kmsKeyArn: 'arn:aws:kms:us-east-1:newKey',
@@ -880,13 +874,13 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     await runServerless({
       fixture: 'function',
       command: 'deploy function',
-      options: { function: 'foo' },
+      options: { function: 'basic' },
       lastLifecycleHookName: 'deploy:function:deploy',
       awsRequestStubMap,
       configExt: {
         disabledDeprecations: ['AWS_KMS_KEY_ARN', 'SERVICE_OBJECT_NOTATION'],
         functions: {
-          foo: {
+          basic: {
             handler: 'index.handler',
             name: 'foobar',
           },
@@ -909,13 +903,13 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     await runServerless({
       fixture: 'function',
       command: 'deploy function',
-      options: { function: 'foo' },
+      options: { function: 'basic' },
       lastLifecycleHookName: 'deploy:function:deploy',
       awsRequestStubMap,
       configExt: {
         disabledDeprecations: ['AWS_KMS_KEY_ARN'],
         functions: {
-          foo: {
+          basic: {
             handler: 'index.handler',
             name: 'foobar',
             awsKmsKeyArn: 'arn:aws:kms:us-east-1:oldKey',
@@ -936,7 +930,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       runServerless({
         fixture: 'function',
         command: 'deploy function',
-        options: { function: 'foo' },
+        options: { function: 'basic' },
         lastLifecycleHookName: 'deploy:function:deploy',
         awsRequestStubMap: {
           ...awsRequestStubMap,
@@ -956,7 +950,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       runServerless({
         fixture: 'function',
         command: 'deploy function',
-        options: { function: 'foo' },
+        options: { function: 'basic' },
         lastLifecycleHookName: 'deploy:function:deploy',
         awsRequestStubMap: {
           ...awsRequestStubMap,
