@@ -7,14 +7,14 @@ const { confirmCloudWatchLogs } = require('../../../utils/misc');
 const {
   isDependencyStackAvailable,
   getDependencyStackOutputMap,
-  SHARED_INFRA_TESTS_ACTIVEMQ_CREDENTIALS_NAME,
+  SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME,
 } = require('../../../utils/cloudformation');
 
 const awsRequest = require('@serverless/test/aws-request');
 const crypto = require('crypto');
 const { deployService, removeService } = require('../../../utils/integration');
 
-describe('AWS - ActiveMQ Integration Test', function () {
+describe('AWS - Active MQ Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let stackName;
   let serviceDir;
@@ -30,9 +30,9 @@ describe('AWS - ActiveMQ Integration Test', function () {
 
     const outputMap = await getDependencyStackOutputMap();
 
-    log.notice('Getting ActiveMQ Credentials ARN');
+    log.notice('Getting Active MQ Credentials ARN');
     const getSecretValueResponse = await awsRequest('SecretsManager', 'getSecretValue', {
-      SecretId: SHARED_INFRA_TESTS_ACTIVEMQ_CREDENTIALS_NAME,
+      SecretId: SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME,
     });
     const { username: mqUsername, password: mqPassword } = JSON.parse(
       getSecretValueResponse.SecretString
@@ -55,9 +55,9 @@ describe('AWS - ActiveMQ Integration Test', function () {
             },
             environment: {
               QUEUE_NAME: queueName,
-              ACTIVEMQ_PASSWORD: mqPassword,
-              ACTIVEMQ_USERNAME: mqUsername,
-              ACTIVEMQ_HOST: stompEndpoint.split(':')[1].slice(2),
+              MQ_PASSWORD: mqPassword,
+              MQ_USERNAME: mqUsername,
+              MQ_HOST: stompEndpoint.split(':')[1].slice(2),
             },
           },
           consumer: {
@@ -88,9 +88,9 @@ describe('AWS - ActiveMQ Integration Test', function () {
     }
   });
 
-  it('correctly processes messages from ActiveMQ queue', async () => {
+  it('correctly processes messages from Active MQ queue', async () => {
     const functionName = 'consumer';
-    const message = 'Hello from ActiveMQ Integration test!';
+    const message = 'Hello from Apache MQ Integration test!';
 
     const events = await confirmCloudWatchLogs(
       `/aws/lambda/${stackName}-${functionName}`,

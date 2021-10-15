@@ -11,7 +11,7 @@ const fsp = require('fs').promises;
 const path = require('path');
 const {
   SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
-  SHARED_INFRA_TESTS_ACTIVEMQ_CREDENTIALS_NAME,
+  SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME,
   SHARED_INFRA_TESTS_RABBITMQ_CREDENTIALS_NAME,
 } = require('../../../test/utils/cloudformation');
 
@@ -23,7 +23,7 @@ const ensureActiveMQCredentialsSecret = async () => {
   log.notice('Creating SecretsManager ActiveMQ Credentials secret...');
   try {
     await awsRequest('SecretsManager', 'createSecret', {
-      Name: SHARED_INFRA_TESTS_ACTIVEMQ_CREDENTIALS_NAME,
+      Name: SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME,
       SecretString: JSON.stringify(ssmMqCredentials),
     });
   } catch (e) {
