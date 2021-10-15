@@ -5,17 +5,6 @@ import hello from '@functions/hello';
 const serverlessConfiguration: AWS = {
   service: 'aws-nodejs-typescript',
   frameworkVersion: '2',
-  custom: {
-    esbuild: {
-      bundle: true,
-      minify: false,
-      sourcemap: true,
-      exclude: ['aws-sdk'],
-      target: 'node14',
-      define: { 'require.resolve': undefined },
-      platform: 'node',
-    },
-  },
   plugins: ['serverless-esbuild'],
   provider: {
     name: 'aws',
@@ -32,6 +21,19 @@ const serverlessConfiguration: AWS = {
   },
   // import the function via paths
   functions: { hello },
+  package: { individually: true },
+  custom: {
+    esbuild: {
+      bundle: true,
+      minify: false,
+      sourcemap: true,
+      exclude: ['aws-sdk'],
+      target: 'node14',
+      define: { 'require.resolve': undefined },
+      platform: 'node',
+      concurrency: 10,
+    },
+  },
 };
 
 module.exports = serverlessConfiguration;
