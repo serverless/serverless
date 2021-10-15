@@ -36,6 +36,14 @@ Note:
 - In service configuration setting is ineffective for deprecations reported before service configuration is read.
 - `SLS_DEPRECATION_DISABLE` env var and `disabledDeprecations` configuration setting remain respected, and no errors will be thrown for mentioned deprecation coodes.
 
+<a name="DUPLICATE_PLUGIN_DEFINITION"><div>&nbsp;</div></a>
+
+## Duplicate plugin definition in configuration
+
+Deprecation code: `DUPLICATE_PLUGIN_DEFINITION`
+
+Starting with "v3.0.0", duplicate plugin definition will result in an error instead of a warning. To ensure seamless upgrade, please remove duplicate plugins from your configuration.
+
 <a name="CLI_VERBOSE_OPTION_ALIAS"><div>&nbsp;</div></a>
 
 ## CLI `-v` alias for `--verbose` option
