@@ -162,6 +162,18 @@ describe('updateStack', () => {
           Action: 'Update:*',
           Resource: '*',
         },
+        {
+          Effect: 'Allow',
+          Principal: '*',
+          Action: 'Update:*',
+          Resource: 'LogicalResourceId/myEC2instance',
+        },
+        {
+          Effect: 'Deny',
+          Principal: '*',
+          Action: ['Update:Replace', 'Update:Delete'],
+          Resource: 'LogicalResourceId/CriticalResource*',
+        },
       ];
 
       return awsDeploy.update().then(() => {
@@ -170,7 +182,9 @@ describe('updateStack', () => {
           { Key: 'tag1', Value: 'value1' },
         ]);
         expect(updateStackStub.args[0][2].StackPolicyBody).to.equal(
-          '{"Statement":[{"Effect":"Allow","Principal":"*","Action":"Update:*","Resource":"*"}]}'
+          '{"Statement":[{"Effect":"Allow","Principal":"*","Action":"Update:*","Resource":"*"},' +
+            '{"Effect":"Allow","Principal":"*","Action":"Update:*","Resource":"LogicalResourceId/myEC2instance"},' +
+            '{"Effect":"Deny","Principal":"*","Action":["Update:Replace","Update:Delete"],"Resource":"LogicalResourceId/CriticalResource*"}]}'
         );
       });
     });
