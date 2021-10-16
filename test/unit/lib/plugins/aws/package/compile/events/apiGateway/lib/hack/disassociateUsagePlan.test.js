@@ -1,5 +1,8 @@
 'use strict';
 
+const chai = require('chai');
+chai.use(require('chai-as-promised'));
+
 const expect = require('chai').expect;
 const sinon = require('sinon');
 const Serverless = require('../../../../../../../../../../../lib/Serverless');
@@ -120,5 +123,27 @@ describe('#disassociateUsagePlan()', () => {
 
     expect(providerRequestStub.calledWith('CloudFormation', 'describeStackResource')).to.be.true;
     expect(providerRequestStub.calledWith('APIGateway', 'updateUsagePlan')).to.be.false;
+  });
+
+  it('should still fail on error', async () => {
+    providerRequestStub.withArgs('CloudFormation', 'describeStackResource').rejects({
+      code: 'SOME_OTHER_ERROR',
+      providerError: {
+        message: 'SomeOtherError',
+        code: 'SomeOtherError',
+        time: '2021-10-16T10:41:09.706Z',
+        requestId: 'afed43d8-c03a-4be8-a15b-a202dda76401',
+        statusCode: 400,
+        retryable: false,
+        retryDelay: 75.03958549651621,
+      },
+      providerErrorCodeExtension: 'SomeOtherError',
+    });
+
+    disassociateUsagePlan.serverless.service.provider.apiGateway = { apiKeys: ['apiKey1'] };
+
+    expect(
+      disassociateUsagePlan.disassociateUsagePlan()
+    ).to.eventually.be.rejected.and.have.property('code', 'SOME_OTHER_ERROR');
   });
 });
