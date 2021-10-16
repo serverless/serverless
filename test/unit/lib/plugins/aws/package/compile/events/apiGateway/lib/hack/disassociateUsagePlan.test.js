@@ -62,43 +62,63 @@ describe('#disassociateUsagePlan()', () => {
     awsProvider.request.restore();
   });
 
-  it('should remove association from the usage plan', () => {
+  it('should remove association from the usage plan', async () => {
     disassociateUsagePlan.serverless.service.provider.apiGateway = { apiKeys: ['apiKey1'] };
 
-    return disassociateUsagePlan.disassociateUsagePlan().then(() => {
-      expect(providerRequestStub.callCount).to.be.equal(3);
+    await disassociateUsagePlan.disassociateUsagePlan();
 
-      expect(
-        providerRequestStub.calledWithExactly('CloudFormation', 'describeStackResource', {
-          StackName: `${awsProvider.naming.getStackName()}`,
-          LogicalResourceId: 'ApiGatewayRestApi',
-        })
-      ).to.be.equal(true);
+    expect(providerRequestStub.callCount).to.be.equal(3);
 
-      expect(providerRequestStub.calledWithExactly('APIGateway', 'getUsagePlans', {})).to.be.equal(
-        true
-      );
+    expect(
+      providerRequestStub.calledWithExactly('CloudFormation', 'describeStackResource', {
+        StackName: `${awsProvider.naming.getStackName()}`,
+        LogicalResourceId: 'ApiGatewayRestApi',
+      })
+    ).to.be.true;
 
-      expect(
-        providerRequestStub.calledWithExactly('APIGateway', 'updateUsagePlan', {
-          usagePlanId: 'usage-plan-id',
-          patchOperations: [
-            {
-              op: 'remove',
-              path: '/apiStages',
-              value: 'resource-id:dev',
-            },
-          ],
-        })
-      ).to.be.equal(true);
-    });
+    expect(providerRequestStub.calledWithExactly('APIGateway', 'getUsagePlans', {})).to.be.true;
+
+    expect(
+      providerRequestStub.calledWithExactly('APIGateway', 'updateUsagePlan', {
+        usagePlanId: 'usage-plan-id',
+        patchOperations: [
+          {
+            op: 'remove',
+            path: '/apiStages',
+            value: 'resource-id:dev',
+          },
+        ],
+      })
+    ).to.be.true;
   });
 
-  it('should resolve if no api keys are given', () => {
+  it('should resolve if no api keys are given', async () => {
     disassociateUsagePlan.serverless.service.provider.apiGateway = { apiKeys: [] };
 
-    return disassociateUsagePlan.disassociateUsagePlan().then(() => {
-      expect(providerRequestStub.callCount).to.be.equal(0);
+    await disassociateUsagePlan.disassociateUsagePlan();
+    expect(providerRequestStub.callCount).to.be.equal(0);
+  });
+
+  it('should resolve if stack is not available', async () => {
+    providerRequestStub.withArgs('CloudFormation', 'describeStackResource').rejects({
+      code: 'AWS_CLOUD_FORMATION_DESCRIBE_STACK_RESOURCE_VALIDATION_ERROR',
+      providerError: {
+        message: "Stack 'my-missing-stackname' does not exist",
+        code: 'ValidationError',
+        time: '2021-10-16T10:41:09.706Z',
+        requestId: 'afed43d8-c03a-4be8-a15b-a202dda76401',
+        statusCode: 400,
+        retryable: false,
+        retryDelay: 75.03958549651621,
+      },
+      providerErrorCodeExtension: 'VALIDATION_ERROR',
     });
+
+    disassociateUsagePlan.serverless.service.provider.apiGateway = { apiKeys: ['apiKey1'] };
+
+    await disassociateUsagePlan.disassociateUsagePlan();
+
+    expect(providerRequestStub.calledWith('CloudFormation', 'describeStackResource')).to.be.true;
+    expect(providerRequestStub.calledWith('APIGateway', 'updateUsagePlan')).to.be.false;
   });
 });
