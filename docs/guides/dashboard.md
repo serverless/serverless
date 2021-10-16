@@ -31,11 +31,11 @@ Currently, the Serverless Framework Dashboard supports the following providers, 
 
 Need unsupported providers, runtimes or regions? [Let us know](https://serverless.com/enterprise/) what you need. We are working hard to quickly expand our supported runtimes and regions.
 
-# Installing
+## Installing
 
 To get started with the Serverless Framework Dashboard, follow the [Getting Started with the Serverless Framework and AWS](/framework/docs/getting-started/) guide. When you run the `serverless` command, you will be asked if you would like to enable dashboard features.
 
-# Enabling the Dashboard on existing Serverless Framework services
+## Enabling the Dashboard on existing Serverless Framework services
 
 If you have an existing Serverless Framework service, it is incredibly easy to enable the Serverless Framework Dashboard features. Just follow the [Getting Started with the Serverless Framework and AWS](/framework/docs/getting-started/) guide to install update the Serverless Framework to the latest release.
 
