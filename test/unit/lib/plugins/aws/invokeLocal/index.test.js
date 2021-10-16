@@ -414,8 +414,90 @@ describe('AwsInvokeLocal', () => {
 
     describe('for different handler paths', () => {
       [
-        { path: 'handler.hello', expected: 'handler' },
-        { path: '.build/handler.hello', expected: '.build/handler' },
+        {
+          path: 'handler.hello',
+          expected: {
+            handlerPath: 'handler',
+            handlerName: 'hello',
+          },
+        },
+        {
+          path: 'handler.namespace.hello',
+          expected: {
+            handlerPath: 'handler',
+            handlerName: 'namespace.hello',
+          },
+        },
+        {
+          path: 'handler.namespace.namespace.hello',
+          expected: {
+            handlerPath: 'handler',
+            handlerName: 'namespace.namespace.hello',
+          },
+        },
+        {
+          path: 'build/handler.hello',
+          expected: {
+            handlerPath: 'build/handler',
+            handlerName: 'hello',
+          },
+        },
+        {
+          path: 'build/handler.namespace.hello',
+          expected: {
+            handlerPath: 'build/handler',
+            handlerName: 'namespace.hello',
+          },
+        },
+        {
+          path: 'build/handler.namespace.namespace.hello',
+          expected: {
+            handlerPath: 'build/handler',
+            handlerName: 'namespace.namespace.hello',
+          },
+        },
+        {
+          path: '.build/handler.hello',
+          expected: {
+            handlerPath: '.build/handler',
+            handlerName: 'hello',
+          },
+        },
+        {
+          path: '.build/handler.namespace.hello',
+          expected: {
+            handlerPath: '.build/handler',
+            handlerName: 'namespace.hello',
+          },
+        },
+        {
+          path: '.build/handler.namespace.namespace.hello',
+          expected: {
+            handlerPath: '.build/handler',
+            handlerName: 'namespace.namespace.hello',
+          },
+        },
+        {
+          path: '.build/.bui.ld./handler.hello',
+          expected: {
+            handlerPath: '.build/.bui.ld./handler',
+            handlerName: 'hello',
+          },
+        },
+        {
+          path: '.build/.bui.ld./handler.namespace.hello',
+          expected: {
+            handlerPath: '.build/.bui.ld./handler',
+            handlerName: 'namespace.hello',
+          },
+        },
+        {
+          path: '.build/.bui.ld./handler.namespace.namespace.hello',
+          expected: {
+            handlerPath: '.build/.bui.ld./handler',
+            handlerName: 'namespace.namespace.hello',
+          },
+        },
       ].forEach((item) => {
         it(`should call invokeLocalNodeJs for any node.js runtime version for ${item.path}`, async () => {
           awsInvokeLocal.options.functionObj.handler = item.path;
@@ -424,7 +506,12 @@ describe('AwsInvokeLocal', () => {
           await awsInvokeLocal.invokeLocal();
           expect(invokeLocalNodeJsStub.calledOnce).to.be.equal(true);
           expect(
-            invokeLocalNodeJsStub.calledWithExactly(item.expected, 'hello', {}, undefined)
+            invokeLocalNodeJsStub.calledWithExactly(
+              item.expected.handlerPath,
+              item.expected.handlerName,
+              {},
+              undefined
+            )
           ).to.be.equal(true);
         });
       });
