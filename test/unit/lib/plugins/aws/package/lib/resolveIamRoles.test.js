@@ -61,6 +61,25 @@ describe.only('lib/plugins/aws/package/lib/resolveIamRoles.test.js', () => {
       expect(result).to.deep.equal(expectedResult);
     });
 
+    it('handles array of object `Resource`', () => {
+      const input = [
+        { Effect: 'a', Action: 'a', Resource: 'a' },
+        { Effect: 'a', Action: 'a', Resource: ['b', 'c'] },
+        { Effect: 'a', Action: 'a', Resource: { d: 'd' } },
+        { Effect: 'a', Action: 'a', Resource: [{ e: 'e' }, 'f', { g: 'g' }] },
+      ];
+      const expectedResult = [
+        {
+          Effect: 'a',
+          Action: 'a',
+          Resource: ['a', 'b', 'c', { d: 'd' }, { e: 'e' }, 'f', { g: 'g' }],
+        },
+      ];
+
+      const result = mergeStatements(input);
+      expect(result).to.deep.equal(expectedResult);
+    });
+
     it('handles array `Action`', () => {
       const input = [
         { Effect: 'a', Action: ['a', 'b'], Resource: 'a' },
