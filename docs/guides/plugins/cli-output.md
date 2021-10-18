@@ -85,6 +85,26 @@ Take, for example, the `serverless invoke` command:
 
 **If unsure, write to `stderr`** (with the `log` object) instead of `stdout`. Why: human users will not see any difference, but the door will stay open to write a parsable output later in the future.
 
+### Colors and formatting
+
+To format and color text output, use the [chalk](https://github.com/chalk/chalk) package. For example:
+
+```js
+log.notice(chalk.gray('Here is a message'));
+```
+
+**Best practices:**
+
+- Write primary information in **white**, secondary information in **gray**.
+  - Primary information is the direct outcome of a command (e.g. deployment result of the `deploy` command, or result of the `invoke` command). Secondary information is everything else.
+- Plugins should generally not use any other color, nor introduce any other custom formatting. Output formatting is meant to be minimalistic.
+- Plugins should use built-in formats documented in this page: success messages (`log.success()`), interactive progress…
+
+The "Serverless red" color (`#fd5750`) is used to grab the user's attention:
+
+- It should be used minimally, and maximum once per command.
+- It should be used only to grab attention to the command's most important information.
+
 ### Multi-line and formatted strings
 
 All log methods accept a string, a formatted string, or a multiline message:
