@@ -1,7 +1,7 @@
 'use strict';
 
+const _ = require('lodash');
 const chai = require('chai');
-const { areMergeablePolicyStatements } = require('../../lib/plugins/aws/package/lib/utils');
 
 const expect = chai.expect;
 
@@ -9,7 +9,7 @@ module.exports = {
   // Confirm that `statement` is reflected in `statements`
   expectToIncludeStatement: (statements, statement) => {
     const matchingStatement =
-      statements.find((el) => areMergeablePolicyStatements(el, statement)) || {};
+      statements.find((el) => _areMergeablePolicyStatements(el, statement)) || {};
 
     const toArray = (value) => {
       return Array.isArray(value) ? [...value] : [value];
@@ -19,4 +19,16 @@ module.exports = {
       toArray(statement.Resource)
     );
   },
+};
+
+const _areMergeablePolicyStatements = (a, b) => {
+  const normalize = (segment) => {
+    const segments = Array.isArray(segment) ? [...segment] : [segment];
+    segments.sort();
+    return new Set(segments);
+  };
+
+  return ['Effect', 'Action', 'NotAction'].every((segment) =>
+    _.isEqual(normalize(a[segment]), normalize(b[segment]))
+  );
 };
