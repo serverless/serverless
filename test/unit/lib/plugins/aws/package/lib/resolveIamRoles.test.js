@@ -5,7 +5,7 @@ const {
   mergeStatements,
 } = require('../../../../../../../lib/plugins/aws/package/lib/resolveIamRoles');
 
-describe.only('lib/plugins/aws/package/lib/resolveIamRoles.test.js', () => {
+describe('lib/plugins/aws/package/lib/resolveIamRoles.test.js', () => {
   describe('mergeStatements()', () => {
     it('handles one group', () => {
       const input = [
