@@ -45,6 +45,11 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
               handler: 'index.handler',
               events: [{ httpApi: 'ANY /payload' }],
             },
+            maxTimeout: {
+              handler: 'index.handler',
+              events: [{ httpApi: 'ANY /timeout' }],
+              timeout: 29,
+            },
           },
         },
       }).then(({ awsNaming, cfTemplate }) => {
@@ -122,6 +127,11 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     it('should ensure higher timeout than function', () => {
       const resource = cfResources[naming.getHttpApiIntegrationLogicalId('foo')];
       expect(resource.Properties.TimeoutInMillis).to.equal(6500);
+    });
+
+    it('should provide 0.5s time margin to function integration max timeout', () => {
+      const resource = cfResources[naming.getHttpApiIntegrationLogicalId('maxTimeout')];
+      expect(resource.Properties.TimeoutInMillis).to.equal(29500);
     });
 
     it('should configure lambda permissions', () => {
