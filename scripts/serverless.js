@@ -41,7 +41,7 @@ let hasTelemetryBeenReported = false;
 // to properly handle e.g. `SIGINT` interrupt
 const keepAliveTimer = setTimeout(() => {}, 60 * 60 * 1000);
 
-const standaloneCommands = new Set(['plugin install', 'plugin uninstall']);
+const standaloneCommands = new Set(['doctor', 'plugin install', 'plugin uninstall']);
 
 process.once('uncaughtException', (error) => {
   clearTimeout(keepAliveTimer);
@@ -123,7 +123,7 @@ const processSpanPromise = (async () => {
     // If version number request, show it and abort
     if (options.version) {
       await require('../lib/cli/render-version')();
-      logDeprecation.printSummary();
+      await logDeprecation.printSummary();
       return;
     }
 
@@ -542,7 +542,7 @@ const processSpanPromise = (async () => {
 
       progress.clear();
 
-      logDeprecation.printSummary();
+      await logDeprecation.printSummary();
 
       if (!hasTelemetryBeenReported) {
         hasTelemetryBeenReported = true;
@@ -831,7 +831,7 @@ const processSpanPromise = (async () => {
       }
       progress.clear();
 
-      logDeprecation.printSummary();
+      await logDeprecation.printSummary();
 
       if (!hasTelemetryBeenReported) {
         hasTelemetryBeenReported = true;
