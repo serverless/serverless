@@ -12,14 +12,15 @@ const path = require('path');
 const {
   SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
   SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME,
+  SHARED_INFRA_TESTS_RABBITMQ_CREDENTIALS_NAME,
 } = require('../../../test/utils/cloudformation');
 
-const ensureMQCredentialsSecret = async () => {
+const ensureActiveMQCredentialsSecret = async () => {
   const ssmMqCredentials = {
     username: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_USER,
     password: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_PASSWORD,
   };
-  log.notice('Creating SecretsManager Active MQ Credentials secret...');
+  log.notice('Creating SecretsManager ActiveMQ Credentials secret...');
   try {
     await awsRequest('SecretsManager', 'createSecret', {
       Name: SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME,
@@ -32,7 +33,26 @@ const ensureMQCredentialsSecret = async () => {
   }
 };
 
-const activeMqBrokerName = 'integration-tests-active-mq-broker';
+const ensureRabbitMQCredentialsSecret = async () => {
+  const ssmMqCredentials = {
+    username: process.env.SLS_INTEGRATION_TESTS_RABBITMQ_USER,
+    password: process.env.SLS_INTEGRATION_TESTS_RABBITMQ_PASSWORD,
+  };
+  log.notice('Creating SecretsManager RabbitMQ Credentials secret...');
+  try {
+    await awsRequest('SecretsManager', 'createSecret', {
+      Name: SHARED_INFRA_TESTS_RABBITMQ_CREDENTIALS_NAME,
+      SecretString: JSON.stringify(ssmMqCredentials),
+    });
+  } catch (e) {
+    if (!e.code === 'ResourceExistsException') {
+      throw e;
+    }
+  }
+};
+
+const activeMqBrokerName = 'integration-tests-activemq-broker';
+const rabbitMqBrokerName = 'integration-tests-rabbitmq-broker';
 
 async function handleInfrastructureCreation() {
   const [cfnTemplate, kafkaServerProperties] = await Promise.all([
@@ -40,7 +60,8 @@ async function handleInfrastructureCreation() {
     fsp.readFile(path.join(__dirname, 'kafka.server.properties')),
   ]);
 
-  await ensureMQCredentialsSecret();
+  await ensureActiveMQCredentialsSecret();
+  await ensureRabbitMQCredentialsSecret();
 
   const clusterName = 'integration-tests-msk-cluster';
   const clusterConfName = 'integration-tests-msk-cluster-configuration';
@@ -70,6 +91,15 @@ async function handleInfrastructureCreation() {
         ParameterKey: 'ActiveMQPassword',
         ParameterValue: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_PASSWORD,
       },
+      { ParameterKey: 'RabbitMQBrokerName', ParameterValue: rabbitMqBrokerName },
+      {
+        ParameterKey: 'RabbitMQUser',
+        ParameterValue: process.env.SLS_INTEGRATION_TESTS_RABBITMQ_USER,
+      },
+      {
+        ParameterKey: 'RabbitMQPassword',
+        ParameterValue: process.env.SLS_INTEGRATION_TESTS_RABBITMQ_PASSWORD,
+      },
       { ParameterKey: 'ClusterConfigurationArn', ParameterValue: clusterConfigurationArn },
       {
         ParameterKey: 'ClusterConfigurationRevision',
@@ -87,7 +117,8 @@ async function handleInfrastructureCreation() {
 async function handleInfrastructureUpdate() {
   log.notice('Updating integration tests CloudFormation stack...');
 
-  await ensureMQCredentialsSecret();
+  await ensureActiveMQCredentialsSecret();
+  await ensureRabbitMQCredentialsSecret();
 
   const cfnTemplate = await fsp.readFile(path.join(__dirname, 'cloudformation.yml'), 'utf8');
 
@@ -105,6 +136,15 @@ async function handleInfrastructureUpdate() {
         {
           ParameterKey: 'ActiveMQPassword',
           ParameterValue: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_PASSWORD,
+        },
+        { ParameterKey: 'RabbitMQBrokerName', ParameterValue: rabbitMqBrokerName },
+        {
+          ParameterKey: 'RabbitMQUser',
+          ParameterValue: process.env.SLS_INTEGRATION_TESTS_RABBITMQ_USER,
+        },
+        {
+          ParameterKey: 'RabbitMQPassword',
+          ParameterValue: process.env.SLS_INTEGRATION_TESTS_RABBITMQ_PASSWORD,
         },
         { ParameterKey: 'ClusterConfigurationArn', UsePreviousValue: true },
         {
@@ -141,6 +181,22 @@ async function handleInfrastructureUpdate() {
   if (!process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_PASSWORD) {
     log.error(
       '"SLS_INTEGRATION_TESTS_ACTIVE_MQ_PASSWORD" env variable has to be set when provisioning integration infrastructure'
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  if (!process.env.SLS_INTEGRATION_TESTS_RABBITMQ_USER) {
+    log.error(
+      '"SLS_INTEGRATION_TESTS_RABBITMQ_USER" env variable has to be set when provisioning integration infrastructure'
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  if (!process.env.SLS_INTEGRATION_TESTS_RABBITMQ_PASSWORD) {
+    log.error(
+      '"SLS_INTEGRATION_TESTS_RABBITMQ_PASSWORD" env variable has to be set when provisioning integration infrastructure'
     );
     process.exitCode = 1;
     return;

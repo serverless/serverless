@@ -1,25 +1,25 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - ActiveMQ
-menuText: ActiveMQ
-description:  Setting up AWS ActiveMQ Events with AWS Lambda via the Serverless Framework
+title: Serverless Framework - AWS Lambda Events - RabbitMQ
+menuText: RabbitMQ
+description:  Setting up AWS RabbitMQ Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/activemq)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/rabbitmq)
 
 <!-- DOCS-SITE-LINK:END -->
 
-# ActiveMQ
+# RabbitMQ
 
-An ActiveMQ message broker can be used as an event source for AWS Lambda.
+A RabbitMQ message broker can be used as an event source for AWS Lambda.
 
 ## Simple event definition
 
-In the following example, we specify that the `compute` function should be triggered whenever there are new messages available to consume from defined ActiveMQ `queue`.
+In the following example, we specify that the `compute` function should be triggered whenever there are new messages available to consume from defined RabbitMQ `queue`.
 
-In order to configure `activemq` event, you have to provide three required properties:
+In order to configure `rabbitmq` event, you have to provide three required properties:
 
 - `basicAuthArn`, which is a [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) ARN for credentials required to do basic auth to allow Lambda to connect to your message broker
 - `queue` to consume messages from.
@@ -30,24 +30,24 @@ functions:
   compute:
     handler: handler.compute
     events:
-      - activemq:
+      - rabbitmq:
           arn: arn:aws:mq:us-east-1:0000:broker:ExampleMQBroker:b-xxx-xxx
           queue: queue-name
           basicAuthArn: arn:aws:secretsmanager:us-east-1:01234567890:secret:MySecret
 ```
 
-## Enabling and disabling ActiveMQ event
+## Enabling and disabling RabbitMQ event
 
-The `activemq` event also supports `enabled` parameter, which is used to control if the event source mapping is active. Setting it to `false` will pause polling for and processing new messages.
+The `rabbitmq` event also supports `enabled` parameter, which is used to control if the event source mapping is active. Setting it to `false` will pause polling for and processing new messages.
 
-In the following example, we specify that the `compute` function's `activemq` event should be disabled.
+In the following example, we specify that the `compute` function's `rabbitmq` event should be disabled.
 
 ```yml
 functions:
   compute:
     handler: handler.compute
     events:
-      - activemq:
+      - rabbitmq:
           arn: arn:aws:mq:us-east-1:0000:broker:ExampleMQBroker:b-xxx-xxx
           queue: queue-name
           enabled: false
@@ -63,7 +63,7 @@ functions:
   compute:
     handler: handler.compute
     events:
-      - activemq:
+      - rabbitmq:
           arn: arn:aws:mq:us-east-1:0000:broker:ExampleMQBroker:b-xxx-xxx
           queue: queue-name
           batchSize: 5000
