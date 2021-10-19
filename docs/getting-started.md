@@ -19,7 +19,7 @@ menuItems:
 
 # Get started with Serverless Framework Open Source & AWS
 
-Getting started with Serverless Framework’s Open Source CLI and AWS takes only a few minutes. Install as a standalone binary, or with npm.
+Getting started with Serverless Framework’s Open Source CLI and AWS only takes a few minutes. Install as a standalone binary, or with npm.
 
 ## Install as a standalone binary
 

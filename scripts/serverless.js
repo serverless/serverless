@@ -38,7 +38,7 @@ let hasTelemetryBeenReported = false;
 
 // Inquirer async operations do not keep node process alive
 // We need to issue a keep alive timer so process does not die
-// to propery handle e.g. `SIGINT` interrupt
+// to properly handle e.g. `SIGINT` interrupt
 const keepAliveTimer = setTimeout(() => {}, 60 * 60 * 1000);
 
 const standaloneCommands = new Set(['plugin install', 'plugin uninstall']);
