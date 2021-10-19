@@ -4,7 +4,7 @@ const awsRequest = require('@serverless/test/aws-request');
 
 const SHARED_INFRA_TESTS_CLOUDFORMATION_STACK = 'integration-tests-deps-stack';
 const SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME =
-  'integration-tests-activemq-broker-credentials';
+  'integration-tests-active-mq-broker-credentials';
 const SHARED_INFRA_TESTS_RABBITMQ_CREDENTIALS_NAME =
   'integration-tests-rabbitmq-broker-credentials';
 

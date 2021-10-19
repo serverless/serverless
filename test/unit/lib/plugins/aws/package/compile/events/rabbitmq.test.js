@@ -25,7 +25,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               events: [
                 {
                   rabbitmq: {
@@ -55,7 +55,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
       });
       naming = awsNaming;
       minimalEventSourceMappingResource =
-        cfTemplate.Resources[naming.getRabbitMQEventLogicalId('foo', queue)];
+        cfTemplate.Resources[naming.getRabbitMQEventLogicalId('basic', queue)];
       allParamsEventSourceMappingResource =
         cfTemplate.Resources[naming.getRabbitMQEventLogicalId('other', queue)];
       defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution;
@@ -72,7 +72,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
         ],
         Queues: [queue],
         FunctionName: {
-          'Fn::GetAtt': [naming.getLambdaLogicalId('foo'), 'Arn'],
+          'Fn::GetAtt': [naming.getLambdaLogicalId('basic'), 'Arn'],
         },
       });
     });
@@ -138,7 +138,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               role: { 'Fn::ImportValue': 'MyImportedRole' },
               events: [
                 {
@@ -156,7 +156,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
       });
 
       const eventSourceMappingResource =
-        cfTemplate.Resources[awsNaming.getRabbitMQEventLogicalId('foo', queue)];
+        cfTemplate.Resources[awsNaming.getRabbitMQEventLogicalId('basic', queue)];
       expect(eventSourceMappingResource.DependsOn).to.deep.equal([]);
     });
   });

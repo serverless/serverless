@@ -17,8 +17,8 @@ const {
 
 const ensureActiveMQCredentialsSecret = async () => {
   const ssmMqCredentials = {
-    username: process.env.SLS_INTEGRATION_TESTS_ACTIVEMQ_USER,
-    password: process.env.SLS_INTEGRATION_TESTS_ACTIVEMQ_PASSWORD,
+    username: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_USER,
+    password: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_PASSWORD,
   };
   log.notice('Creating SecretsManager ActiveMQ Credentials secret...');
   try {
@@ -85,11 +85,11 @@ async function handleInfrastructureCreation() {
       { ParameterKey: 'ActiveMQBrokerName', ParameterValue: activeMqBrokerName },
       {
         ParameterKey: 'ActiveMQUser',
-        ParameterValue: process.env.SLS_INTEGRATION_TESTS_ACTIVEMQ_USER,
+        ParameterValue: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_USER,
       },
       {
         ParameterKey: 'ActiveMQPassword',
-        ParameterValue: process.env.SLS_INTEGRATION_TESTS_ACTIVEMQ_PASSWORD,
+        ParameterValue: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_PASSWORD,
       },
       { ParameterKey: 'RabbitMQBrokerName', ParameterValue: rabbitMqBrokerName },
       {
@@ -131,11 +131,11 @@ async function handleInfrastructureUpdate() {
         { ParameterKey: 'ActiveMQBrokerName', ParameterValue: activeMqBrokerName },
         {
           ParameterKey: 'ActiveMQUser',
-          ParameterValue: process.env.SLS_INTEGRATION_TESTS_ACTIVEMQ_USER,
+          ParameterValue: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_USER,
         },
         {
           ParameterKey: 'ActiveMQPassword',
-          ParameterValue: process.env.SLS_INTEGRATION_TESTS_ACTIVEMQ_PASSWORD,
+          ParameterValue: process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_PASSWORD,
         },
         { ParameterKey: 'RabbitMQBrokerName', ParameterValue: rabbitMqBrokerName },
         {
@@ -170,17 +170,17 @@ async function handleInfrastructureUpdate() {
 (async () => {
   log.notice('Starting setup of integration infrastructure...');
 
-  if (!process.env.SLS_INTEGRATION_TESTS_ACTIVEMQ_USER) {
+  if (!process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_USER) {
     log.error(
-      '"SLS_INTEGRATION_TESTS_ACTIVEMQ_USER" env variable has to be set when provisioning integration infrastructure'
+      '"SLS_INTEGRATION_TESTS_ACTIVE_MQ_USER" env variable has to be set when provisioning integration infrastructure'
     );
     process.exitCode = 1;
     return;
   }
 
-  if (!process.env.SLS_INTEGRATION_TESTS_ACTIVEMQ_PASSWORD) {
+  if (!process.env.SLS_INTEGRATION_TESTS_ACTIVE_MQ_PASSWORD) {
     log.error(
-      '"SLS_INTEGRATION_TESTS_ACTIVEMQ_PASSWORD" env variable has to be set when provisioning integration infrastructure'
+      '"SLS_INTEGRATION_TESTS_ACTIVE_MQ_PASSWORD" env variable has to be set when provisioning integration infrastructure'
     );
     process.exitCode = 1;
     return;
