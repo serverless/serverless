@@ -503,6 +503,8 @@ const processSpanPromise = (async () => {
         // Validate result command and options
         require('../lib/cli/ensure-supported-command')();
       }
+    } else {
+      require('../lib/cli/ensure-supported-command')();
     }
 
     const configurationFilename = configuration && configurationPath.slice(serviceDir.length + 1);
@@ -510,9 +512,8 @@ const processSpanPromise = (async () => {
     const isStandaloneCommand = standaloneCommands.has(command);
 
     if (isInteractiveSetup || isStandaloneCommand) {
+      if (configuration) require('../lib/cli/ensure-supported-command')(configuration);
       if (isInteractiveSetup) {
-        require('../lib/cli/ensure-supported-command')(configuration);
-
         if (!process.stdin.isTTY && !process.env.SLS_INTERACTIVE_SETUP_ENABLE) {
           throw new ServerlessError(
             'Attempted to run an interactive setup in non TTY environment.\n' +
@@ -531,7 +532,6 @@ const processSpanPromise = (async () => {
           configuration = result.configuration;
         }
       } else {
-        require('../lib/cli/ensure-supported-command')(configuration);
         await require(`../commands/${commands.join('-')}`)({
           configuration,
           serviceDir,

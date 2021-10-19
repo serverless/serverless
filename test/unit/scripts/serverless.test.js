@@ -258,7 +258,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       throw new Error('Unexpected');
     } catch (error) {
       expect(error.code).to.equal(1);
-      expect(String(error.stdoutBuffer)).to.include('command requires the');
+      expect(String(error.stdoutBuffer)).to.include('command "config credentials" requires');
     }
   });
 });
