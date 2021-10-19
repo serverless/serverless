@@ -41,7 +41,9 @@ let hasTelemetryBeenReported = false;
 // to properly handle e.g. `SIGINT` interrupt
 const keepAliveTimer = setTimeout(() => {}, 60 * 60 * 1000);
 
-const standaloneCommands = new Set(['doctor', 'plugin install', 'plugin uninstall']);
+// Names of the commands which are configured independently in root `commands` folder
+// and not in Serverless class internals
+const notIntegratedCommands = new Set(['doctor', 'plugin install', 'plugin uninstall']);
 
 process.once('uncaughtException', (error) => {
   clearTimeout(keepAliveTimer);
@@ -509,7 +511,7 @@ const processSpanPromise = (async () => {
 
     const configurationFilename = configuration && configurationPath.slice(serviceDir.length + 1);
 
-    const isStandaloneCommand = standaloneCommands.has(command);
+    const isStandaloneCommand = notIntegratedCommands.has(command);
 
     if (isInteractiveSetup || isStandaloneCommand) {
       if (configuration) require('../lib/cli/ensure-supported-command')(configuration);
