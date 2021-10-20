@@ -8,8 +8,7 @@ const expect = chai.expect;
 module.exports = {
   // Confirm that `statement` is reflected in `statements`
   expectToIncludeStatement: (statements, statement) => {
-    const matchingStatement =
-      statements.find((el) => _areMergeablePolicyStatements(el, statement)) || {};
+    const matchingStatement = statements.find((el) => areDuplicateStatements(el, statement)) || {};
 
     const toArray = (value) => {
       return Array.isArray(value) ? [...value] : [value];
@@ -21,7 +20,7 @@ module.exports = {
   },
 };
 
-const _areMergeablePolicyStatements = (a, b) => {
+const areDuplicateStatements = (a, b) => {
   const normalize = (segment) => {
     const segments = Array.isArray(segment) ? [...segment] : [segment];
     segments.sort();
