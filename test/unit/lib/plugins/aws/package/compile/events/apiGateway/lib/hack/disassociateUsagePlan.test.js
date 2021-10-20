@@ -6,59 +6,62 @@ chai.use(require('chai-as-promised'));
 const expect = require('chai').expect;
 const sinon = require('sinon');
 const Serverless = require('../../../../../../../../../../../lib/Serverless');
+const runServerless = require('../../../../../../../../../../../test/utils/run-serverless');
 const AwsProvider = require('../../../../../../../../../../../lib/plugins/aws/provider');
 const disassociateUsagePlan = require('../../../../../../../../../../../lib/plugins/aws/package/compile/events/apiGateway/lib/hack/disassociateUsagePlan');
 
 describe('#disassociateUsagePlan()', () => {
-  let serverless;
+  // let serverless;
   let options;
   let awsProvider;
   let providerRequestStub;
 
+  const serverless = new Serverless();
+  serverless.service.service = 'emptyS3Bucket';
+  serverless.setProvider('aws', new AwsProvider(serverless, options));
+
   beforeEach(() => {
-    serverless = new Serverless();
-    serverless.service.service = 'my-service';
-    serverless.cli = {
-      log: sinon.spy(),
-    };
-    options = {
-      stage: 'dev',
-      region: 'us-east-1',
-    };
-    awsProvider = new AwsProvider(serverless, options);
-    serverless.setProvider('aws', awsProvider);
-    providerRequestStub = sinon.stub(awsProvider, 'request');
-
-    disassociateUsagePlan.serverless = serverless;
-    disassociateUsagePlan.options = options;
-    disassociateUsagePlan.provider = awsProvider;
-
-    providerRequestStub
-      .withArgs('CloudFormation', 'describeStackResource')
-      .resolves({ StackResourceDetail: { PhysicalResourceId: 'resource-id' } });
-    providerRequestStub.withArgs('APIGateway', 'getUsagePlans').resolves({
-      items: [
-        {
-          apiStages: [
-            {
-              apiId: 'resource-id',
-              stage: 'dev',
-            },
-          ],
-          id: 'usage-plan-id',
-        },
-        {
-          apiStages: [
-            {
-              apiId: 'another-resource-id',
-              stage: 'dev',
-            },
-          ],
-          id: 'another-usage-plan-id',
-        },
-      ],
-    });
-    providerRequestStub.withArgs('APIGateway', 'updateUsagePlan').resolves();
+    // serverless = new Serverless();
+    // serverless.service.service = 'my-service';
+    // serverless.cli = {
+    //   log: sinon.spy(),
+    // };
+    // options = {
+    //   stage: 'dev',
+    //   region: 'us-east-1',
+    // };
+    // awsProvider = new AwsProvider(serverless, options);
+    // serverless.setProvider('aws', awsProvider);
+    // providerRequestStub = sinon.stub(awsProvider, 'request');
+    // disassociateUsagePlan.serverless = serverless;
+    // disassociateUsagePlan.options = options;
+    // disassociateUsagePlan.provider = awsProvider;
+    // providerRequestStub
+    //   .withArgs('CloudFormation', 'describeStackResource')
+    //   .resolves({ StackResourceDetail: { PhysicalResourceId: 'resource-id' } });
+    // providerRequestStub.withArgs('APIGateway', 'getUsagePlans').resolves({
+    //   items: [
+    //     {
+    //       apiStages: [
+    //         {
+    //           apiId: 'resource-id',
+    //           stage: 'dev',
+    //         },
+    //       ],
+    //       id: 'usage-plan-id',
+    //     },
+    //     {
+    //       apiStages: [
+    //         {
+    //           apiId: 'another-resource-id',
+    //           stage: 'dev',
+    //         },
+    //       ],
+    //       id: 'another-usage-plan-id',
+    //     },
+    //   ],
+    // });
+    // providerRequestStub.withArgs('APIGateway', 'updateUsagePlan').resolves();
   });
 
   afterEach(() => {
@@ -125,25 +128,105 @@ describe('#disassociateUsagePlan()', () => {
     expect(providerRequestStub.calledWith('APIGateway', 'updateUsagePlan')).to.be.false;
   });
 
-  it('should still fail on error', async () => {
-    providerRequestStub.withArgs('CloudFormation', 'describeStackResource').rejects({
-      code: 'SOME_OTHER_ERROR',
-      providerError: {
-        message: 'SomeOtherError',
-        code: 'SomeOtherError',
-        time: '2021-10-16T10:41:09.706Z',
-        requestId: 'afed43d8-c03a-4be8-a15b-a202dda76401',
-        statusCode: 400,
-        retryable: false,
-        retryDelay: 75.03958549651621,
+  it.only('should still fail on error', async () => {
+    /**
+     * This call just seem to hang, and it does not log anything.
+     * What am I doing wrong ?
+     *
+     *
+     */
+    await runServerless({
+      command: 'remove',
+      config: {
+        service: 'test-service',
+        provider: {
+          name: 'aws',
+          stage: 'test-dev',
+          apiGateway: {
+            apiKeys: ['api-key-1'],
+          },
+          region: 'us-east-1',
+          // deploymentPrefix: 'serverless',
+          // deploymentBucket: {
+          //   name: 'bucket',
+          //   versioning: true,
+          // },
+        },
       },
-      providerErrorCodeExtension: 'SomeOtherError',
+      awsRequestStubMap: {
+        STS: {
+          getCallerIdentity: {
+            ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+            UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+            Account: '999999999999',
+            Arn: 'arn:aws:iam::999999999999:user/test',
+          },
+        },
+        ECR: {
+          describeRepositories: sinon.stub().throws({
+            providerError: { code: 'RepositoryNotFoundException' },
+          }),
+        },
+        S3: {
+          listObjectVersions: sinon.stub().resolves(),
+        },
+        APIGateway: {
+          getApiKey: {
+            value: 'test-key-value',
+            name: 'test-key-name',
+          },
+          getUsagePlans: sinon.stub().resolves(),
+        },
+        CloudFormation: {
+          describeStacks: {},
+          deleteStack: {},
+          describeStackEvents: {
+            StackEvents: [
+              {
+                EventId: '1e2f3g4h',
+                StackName: 'new-service-dev',
+                LogicalResourceId: 'new-service-dev',
+                ResourceType: 'AWS::CloudFormation::Stack',
+                Timestamp: new Date(),
+                ResourceStatus: 'DELETE_COMPLETE',
+              },
+            ],
+          },
+          describeStackResource: sinon.stub().throws({
+            code: 'SOME_OTHER_ERROR',
+            providerError: {
+              message: 'SomeOtherError',
+              code: 'SomeOtherError',
+              time: '2021-10-16T10:41:09.706Z',
+              requestId: 'afed43d8-c03a-4be8-a15b-a202dda76401',
+              statusCode: 400,
+              retryable: false,
+              retryDelay: 75.03958549651621,
+            },
+            providerErrorCodeExtension: 'SomeOtherError',
+          }),
+        },
+      },
     });
 
-    disassociateUsagePlan.serverless.service.provider.apiGateway = { apiKeys: ['apiKey1'] };
+    // providerRequestStub.withArgs('CloudFormation', 'describeStackResource').rejects({
+    //   code: 'SOME_OTHER_ERROR',
+    //   providerError: {
+    //     message: 'SomeOtherError',
+    //     code: 'SomeOtherError',
+    //     time: '2021-10-16T10:41:09.706Z',
+    //     requestId: 'afed43d8-c03a-4be8-a15b-a202dda76401',
+    //     statusCode: 400,
+    //     retryable: false,
+    //     retryDelay: 75.03958549651621,
+    //   },
+    //   providerErrorCodeExtension: 'SomeOtherError',
+    // });
 
-    expect(
-      disassociateUsagePlan.disassociateUsagePlan()
-    ).to.eventually.be.rejected.and.have.property('code', 'SOME_OTHER_ERROR');
+    // disassociateUsagePlan.serverless.service.provider.apiGateway = { apiKeys: ['apiKey1'] };
+
+    // expect(
+    //   disassociateUsagePlan.disassociateUsagePlan()
+    // ).to.eventually.be.rejected.and.have.property('code', 'SOME_OTHER_ERROR');
   });
 });
