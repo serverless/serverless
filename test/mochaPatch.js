@@ -37,8 +37,10 @@ const patchCallback = (name) => {
     }
   );
 };
+patchPromised('mkdir');
 patchPromised('open');
 patchPromised('readFile');
+patchCallback('mkdir');
 patchCallback('open');
 patchCallback('readFile');
 
