@@ -21,11 +21,7 @@ module.exports = {
 };
 
 const areDuplicateStatements = (a, b) => {
-  const normalize = (segment) => {
-    const segments = Array.isArray(segment) ? [...segment] : [segment];
-    segments.sort();
-    return new Set(segments);
-  };
+  const normalize = (segment) => new Set([].concat(segment).sort());
 
   return ['Effect', 'Action', 'NotAction'].every((segment) =>
     _.isEqual(normalize(a[segment]), normalize(b[segment]))
