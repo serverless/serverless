@@ -27,7 +27,7 @@ class MyPlugin {
     log.warning('Warning');
     log.notice('Message');
     log.info('Verbose message'); // --verbose log
-    log.debug('Debug message');  // --debug log
+    log.debug('Debug message'); // --debug log
   }
 }
 ```
@@ -41,7 +41,7 @@ log.notice('Here is a message');
 
 log.verbose('Here is a verbose message'); // displayed with --verbose
 // is an alias to:
-log.info('Here is a verbose message');    // displayed with --verbose
+log.info('Here is a verbose message'); // displayed with --verbose
 ```
 
 To write a formatted "success" message, use the following helper:
@@ -111,11 +111,8 @@ All log methods accept a string, a formatted string, or a multiline message:
 
 ```js
 log.warning('Here is a log');
-log.warning([
-  'Here is a',
-  'multi-line log',
-]);
 log.warning('Here is a %s log', 'formatted');
+log.warning(['Here is a', 'multi-line log']);
 ```
 
 ## Errors
@@ -174,7 +171,7 @@ const myProgress = progress.create('Working in my-plugin');
 
 // Progress with a unique name
 progress.create('Working in my-plugin', {
-  name: 'my-plugin-progress' // Try to make the name unique across all plugins
+  name: 'my-plugin-progress', // Try to make the name unique across all plugins
 });
 // elsewhere...
 progress.get('my-plugin-progress').update('Almost finished');
@@ -204,10 +201,7 @@ my section: content
 To add a multi-line section:
 
 ```js
-serverless.addServiceOutputSection('my section', [
-    'line 1',
-    'line 2',
-]);
+serverless.addServiceOutputSection('my section', ['line 1', 'line 2']);
 ```
 
 The example above will be displayed as:
@@ -254,5 +248,5 @@ class MyPlugin {
 However, it is also possible to retrieve it from any JavaScript file by requiring the `@serverless/utils` package:
 
 ```js
-const { writeText, log, progress } = require("@serverless/utils/log");
+const { writeText, log, progress } = require('@serverless/utils/log');
 ```

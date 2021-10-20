@@ -14,9 +14,11 @@ layout: Doc
 
 # Plugins
 
-A Plugin is custom Javascript code that creates new or extends existing commands within the Serverless Framework. The Serverless Framework is merely a group of Plugins that are provided in the core. If you or your organization have a specific workflow, install a pre-written Plugin or write a plugin to customize the Framework to your needs. External Plugins are written exactly the same way as the core Plugins.
+A plugin is custom JavaScript code that extends the Serverless Framework with new features.
 
-Learn more about [creating a custom plugin](creating-plugins.md).
+If you or your organization have a specific workflow, install a pre-written plugin or write one to customize the Framework to your needs.
+
+Since the Serverless Framework is a group of "core" plugins, custom plugins are written exactly the same way as core plugins. Learn more about [creating a custom plugin](creating-plugins.md).
 
 ## Installing plugins
 
@@ -28,7 +30,7 @@ To install a plugin, run the following command in a service directory:
 serverless plugin install -n custom-serverless-plugin
 ```
 
-This command will install the plugin via NPM and register it.
+This command will install the plugin via NPM and register it in `serverless.yml`.
 
 You can also install the plugin manually via NPM:
 
@@ -65,7 +67,7 @@ plugins:
     - plugin2
 ```
 
-Plugins might want to add extra information which should be accessible to Serverless. The `custom` section in the `serverless.yml` file is the place where you can add necessary configurations for your plugins (the plugins author / documentation will tell you if you need to add anything there):
+Some plugins require extra configuration. The `custom` section in `serverless.yml` is where you can add extra configuration for plugins (the plugin's documentation will tell you if you need to add anything there):
 
 ```yml
 plugins:
@@ -84,7 +86,7 @@ plugins:
   - custom-serverless-plugin
 ```
 
-Local plugins folder can be changed by enhancing `plugins` object:
+The local plugin folder can be customized:
 
 ```yml
 plugins:
@@ -95,7 +97,7 @@ plugins:
 
 The `custom-serverless-plugin` will be loaded from the `custom_serverless_plugins` directory at the root of your service. If the `localPath` is not provided or empty, the `.serverless_plugins` directory will be used.
 
-The plugin will be loaded based on being named `custom-serverless-plugin.js` or `custom-serverless-plugin\index.js` in the root of `localPath` folder (`.serverless_plugins` by default).
+The plugin will be loaded based on being named `custom-serverless-plugin.js` or `custom-serverless-plugin/index.js` in the root of `localPath` folder (`.serverless_plugins` by default).
 
 If you want to load a plugin from a specific directory without affecting other plugins, you can also specify a path relative to the root of your service:
 
@@ -107,9 +109,9 @@ plugins:
   - ./sub/directory/another-custom-plugin
 ```
 
-### Load Order
+## Load Order
 
-Keep in mind that the order you define your plugins matters. When Serverless loads all the core plugins and then the custom plugins in the order you've defined them.
+Keep in mind that the order you define your plugins matters. Serverless loads all the core plugins, and then the custom plugins in the order you've defined them.
 
 ```yml
 # serverless.yml
