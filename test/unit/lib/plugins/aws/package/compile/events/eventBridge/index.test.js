@@ -510,7 +510,7 @@ describe('EventBridgeEvents', () => {
       });
 
       it('should correctly set EventPattern on a created rule', () => {
-        expect(ruleResource.Properties.EventPattern).to.deep.equal(JSON.stringify(pattern));
+        expect(ruleResource.Properties.EventPattern).to.deep.equal(pattern);
       });
 
       it('should correctly set Input on the target for the created rule', () => {
