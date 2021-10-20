@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.64.1](https://github.com/serverless/serverless/compare/v2.64.0...v2.64.1) (2021-10-20)
+
+### Bug Fixes
+
+- **CLI:** Handle gently case where temp folder is on other device ([#10124](https://github.com/serverless/serverless/issues/10124)) ([a030636](https://github.com/serverless/serverless/commit/a0306365fc2c18c04698640723db2f4efeb34e2f)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.64.0](https://github.com/serverless/serverless/compare/v2.63.0...v2.64.0) (2021-10-20)
 
 ### Features
