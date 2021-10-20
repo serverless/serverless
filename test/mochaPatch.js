@@ -37,10 +37,10 @@ const patchCallback = (name) => {
     }
   );
 };
-patchPromised('readFile');
 patchPromised('open');
-patchCallback('readFile');
+patchPromised('readFile');
 patchCallback('open');
+patchCallback('readFile');
 
 const ensureArtifact = require('../lib/utils/ensureArtifact');
 const resolveLocalServerless = require('../lib/cli/resolve-local-serverless-path');
