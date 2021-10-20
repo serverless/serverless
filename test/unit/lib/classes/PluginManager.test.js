@@ -8,6 +8,7 @@ const cjsResolve = require('ncjsm/resolve/sync');
 const spawn = require('child-process-ext/spawn');
 const overrideArgv = require('process-utils/override-argv');
 const resolveAwsEnv = require('@serverless/test/resolve-env');
+const runServerless = require('../../../utils/run-serverless');
 const Serverless = require('../../../../lib/Serverless');
 const CLI = require('../../../../lib/classes/CLI');
 const resolveInput = require('../../../../lib/cli/resolve-input');
@@ -1936,5 +1937,20 @@ describe('PluginManager', () => {
         // Couldn't delete temporary file
       }
     });
+  });
+});
+
+describe('test/unit/lib/classes/PluginManager.test.js', () => {
+  it('should pass log writers to external plugins', async () => {
+    const { serverless } = await runServerless({
+      fixture: 'plugin',
+      command: 'print',
+    });
+    const plugin = Array.from(serverless.pluginManager.externalPlugins).find(
+      (externalPlugin) => externalPlugin.constructor.name === 'TestPlugin'
+    );
+    expect(typeof plugin.utils.log).to.equal('function');
+    expect(typeof plugin.utils.progress.create).to.equal('function');
+    expect(typeof plugin.utils.writeText).to.equal('function');
   });
 });
