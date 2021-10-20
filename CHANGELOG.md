@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.64.0](https://github.com/serverless/serverless/compare/v2.63.0...v2.64.0) (2021-10-20)
+
+### Features
+
+- **AWS RabbitMQ:** Support for Amazon MQ RabbitMQ events ([#9919](https://github.com/serverless/serverless/issues/9919)) ([a3edecf](https://github.com/serverless/serverless/commit/a3edecf0c6b4e066bde2de8095582432d9fdd635)) ([Michael](https://github.com/liegeandlief))
+
+### Bug Fixes
+
+- **AWS Deploy:** Recognize `LogicalResourceId` in `stackPolicy` ([#10097](https://github.com/serverless/serverless/pull/10097)) ([1a528c2](https://github.com/serverless/serverless/commit/1a528c2cc0746bfe6a692183f96b0831e3dd92f4)) ([Monsma](https://github.com/jmonsma))
+- **AWS EventBridge:** Allow intrinsic functions in `pattern` ([#10120](https://github.com/serverless/serverless/issues/10120)) ([1c105a4](https://github.com/serverless/serverless/commit/1c105a4c16e8bdca9fc66c5eddf12153ebc9a1fb)) ([Benoît Bouré](https://github.com/bboure))
+- **CLI:** Ensure command validation for service independent commands ([#10115](https://github.com/serverless/serverless/pull/10115)) ([6022fb9](https://github.com/serverless/serverless/commit/6022fb98331e8f7d8893a28d3dcb20d91d0a1e20)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Packaging:** Ensure to show deprecation in all cases ([#10111](https://github.com/serverless/serverless/pull/10111)) ([cc71fc9](https://github.com/serverless/serverless/commit/cc71fc99ffe2e1f2fcc764b29dafa197c665cef1)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **CLI:**
+  - Support `decoratedMessage` on `ServerlessError` ([#10112](https://github.com/serverless/serverless/pull/10112)) ([2217158](https://github.com/serverless/serverless/commit/2217158764dde8ceee472292b531836ada20d79a)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Enhanced modern error reporting for CloudFormation ([#10112](https://github.com/serverless/serverless/pull/10112)) ([cfd828e](https://github.com/serverless/serverless/commit/cfd828ece872b572cbb46670437e8196f2200903)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Report `credentials` source in modern error output ([#10114](https://github.com/serverless/serverless/pull/10114)) ([b4ff87d](https://github.com/serverless/serverless/commit/b4ff87dc81286b8123830f20bccfb3aa320e4ccd)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Improve style for local fallback modern notice ([#10111](https://github.com/serverless/serverless/pull/10111)) ([73c071b](https://github.com/serverless/serverless/commit/73c071b060216d330974a2f98917eba315eb634b)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Introduce `doctor` command for modern handling of deprecations ([#10115](https://github.com/serverless/serverless/pull/10115)) ([452e234](https://github.com/serverless/serverless/commit/452e234306a3703e95ad349305e1e211c165bf22)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Do not filter commands by `lifecycleEvents` for help ([#10115](https://github.com/serverless/serverless/pull/10115)) ([6991d66](https://github.com/serverless/serverless/commit/6991d66987d6276665bff07259bf1ca464ffeab7)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.63.0](https://github.com/serverless/serverless/compare/v2.62.0...v2.63.0) (2021-10-15)
 
 ### Features
