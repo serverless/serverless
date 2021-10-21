@@ -513,7 +513,7 @@ const processSpanPromise = (async () => {
 
     const isStandaloneCommand = notIntegratedCommands.has(command);
 
-    if (isInteractiveSetup || isStandaloneCommand) {
+    if (!isHelpRequest && (isInteractiveSetup || isStandaloneCommand)) {
       if (configuration) require('../lib/cli/ensure-supported-command')(configuration);
       if (isInteractiveSetup) {
         if (!process.stdin.isTTY && !process.env.SLS_INTERACTIVE_SETUP_ENABLE) {
