@@ -188,9 +188,11 @@ Starting with v3.0.0, `http.request.schema` property will be replaced by `http.r
 
 Deprecation code: `AWS_EVENT_BRIDGE_CUSTOM_RESOURCE`
 
-Starting with v3.0.0 AWS EventBridge lambda event triggers and all associated EventBridge resources will be deployed using native CloudFormation resources instead of a custom resource that used a lambda to deploy them via the AWS SDK/API.
+Starting with v3.0.0, AWS EventBridge lambda event triggers and all associated EventBridge resources will be, by default, deployed using native CloudFormation resources instead of a custom resource that used a lambda to deploy them via the AWS SDK/API.
 
 Adapt to this behavior now by setting `provider.eventBridge.useCloudFormation: true`.
+
+If you want to keep using the old deployment method for your AWS EventBridge resources, set `provider.eventBridge.useCloudFormation: false` instead.
 
 <a name="NEW_VARIABLES_RESOLVER"><div>&nbsp;</div></a>
 
