@@ -12,7 +12,7 @@
 
 **The Serverless Framework** – Build applications on AWS Lambda and other next-gen cloud services, that auto-scale and only charge you when they run. This lowers the total cost of running and operating your apps, enabling you to build more and manage less.
 
-The Serverless Framework is a command-line tool that uses easy and approachable YAML syntax to deploy both your code and cloud infrastructure needed to make tons of serverless application use-cases.  It's a multi-language framework that supports Node.js, Typescript, Python, Go, Java, and more.  It's also completely extensible via over 1,000 plugins that can add more serverless use-cases and workflows to the Framework.
+The Serverless Framework is a command-line tool that uses easy and approachable YAML syntax to deploy both your code and cloud infrastructure needed to make tons of serverless application use-cases. It's a multi-language framework that supports Node.js, Typescript, Python, Go, Java, and more. It's also completely extensible via over 1,000 plugins that can add more serverless use-cases and workflows to the Framework.
 
 Actively maintained by [Serverless Inc](https://www.serverless.com).
 
@@ -37,11 +37,11 @@ npm install -g serverless
 
 ### Set Up Your AWS Account Credentials.
 
-The Serverless Framework deploys to your own AWS account.  You'll need to enable Serverless Framework to deploy to your AWS account by giving it access. [Here is a guide to help you set up your credentials securely](https://www.serverless.com/framework/docs/providers/aws/guide/credentials)
+The Serverless Framework deploys to your own AWS account. You'll need to enable Serverless Framework to deploy to your AWS account by giving it access. [Here is a guide to help you set up your credentials securely](https://www.serverless.com/framework/docs/providers/aws/guide/credentials)
 
 ### Create A Service:
 
-A "Service" is the Framework's project or app concept.  You can create one from scratch or select an existing template by running...
+A "Service" is the Framework's project or app concept. You can create one from scratch or select an existing template by running...
 
 ```bash
 serverless
