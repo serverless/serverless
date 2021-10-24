@@ -14,7 +14,7 @@ const awsRequest = require('@serverless/test/aws-request');
 const crypto = require('crypto');
 const { deployService, removeService } = require('../../../utils/integration');
 
-describe('AWS - Active MQ Integration Test', function () {
+describe.skip('AWS - Active MQ Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let stackName;
   let serviceDir;

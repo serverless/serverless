@@ -36,6 +36,22 @@ Note:
 - In service configuration setting is ineffective for deprecations reported before service configuration is read.
 - `SLS_DEPRECATION_DISABLE` env var and `disabledDeprecations` configuration setting remain respected, and no errors will be thrown for mentioned deprecation coodes.
 
+<a name="S3_TRANSFER_ACCELERATION_ON_EXISTING_BUCKET"><div>&nbsp;</div></a>
+
+## Attempt to enable S3 Transfer Acceleration on provided S3 buckets
+
+Deprecation code: `S3_TRANSFER_ACCELERATION_ON_EXISTING_BUCKET`
+
+Starting with "v3.0.0", attempt to enable S3 Transfer Acceleration on user provided bucket will result in error instead of a warning. To ensure seamless upgrade, please stop using "--aws-s3-accelerate" flag.
+
+<a name="DUPLICATE_PLUGIN_DEFINITION"><div>&nbsp;</div></a>
+
+## Duplicate plugin definition in configuration
+
+Deprecation code: `DUPLICATE_PLUGIN_DEFINITION`
+
+Starting with "v3.0.0", duplicate plugin definition will result in an error instead of a warning. To ensure seamless upgrade, please remove duplicate plugins from your configuration.
+
 <a name="CLI_VERBOSE_OPTION_ALIAS"><div>&nbsp;</div></a>
 
 ## CLI `-v` alias for `--verbose` option
@@ -172,9 +188,11 @@ Starting with v3.0.0, `http.request.schema` property will be replaced by `http.r
 
 Deprecation code: `AWS_EVENT_BRIDGE_CUSTOM_RESOURCE`
 
-Starting with v3.0.0 AWS EventBridge lambda event triggers and all associated EventBridge resources will be deployed using native CloudFormation resources instead of a custom resource that used a lambda to deploy them via the AWS SDK/API.
+Starting with v3.0.0, AWS EventBridge lambda event triggers and all associated EventBridge resources will be, by default, deployed using native CloudFormation resources instead of a custom resource that used a lambda to deploy them via the AWS SDK/API.
 
 Adapt to this behavior now by setting `provider.eventBridge.useCloudFormation: true`.
+
+If you want to keep using the old deployment method for your AWS EventBridge resources, set `provider.eventBridge.useCloudFormation: false` instead.
 
 <a name="NEW_VARIABLES_RESOLVER"><div>&nbsp;</div></a>
 

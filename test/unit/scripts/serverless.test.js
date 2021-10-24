@@ -236,6 +236,14 @@ describe('test/unit/scripts/serverless.test.js', () => {
     expect(output).to.include('stage');
   });
 
+  it('should print not integrated command --help to stdout', async () => {
+    const output = String(
+      (await spawn('node', [serverlessPath, 'plugin', 'install', '--help'])).stdoutBuffer
+    );
+    expect(output).to.include('plugin install');
+    expect(output).to.include('stage');
+  });
+
   it('should print interactive setup help to stdout', async () => {
     const output = String(
       (await spawn('node', [serverlessPath, '--help-interactive'])).stdoutBuffer
@@ -258,7 +266,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       throw new Error('Unexpected');
     } catch (error) {
       expect(error.code).to.equal(1);
-      expect(String(error.stdoutBuffer)).to.include('command requires the');
+      expect(String(error.stdoutBuffer)).to.include('command "config credentials" requires');
     }
   });
 });

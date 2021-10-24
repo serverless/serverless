@@ -163,8 +163,12 @@ describe('EventBridgeEvents', () => {
       const { cfTemplate, awsNaming } = await runServerless({
         fixture: 'function',
         configExt: {
-          disabledDeprecations: ['AWS_EVENT_BRIDGE_CUSTOM_RESOURCE'],
           ...serverlessConfigurationExtension,
+          provider: {
+            eventBridge: {
+              useCloudFormation: false,
+            },
+          },
         },
         command: 'package',
       });
@@ -364,6 +368,21 @@ describe('EventBridgeEvents', () => {
         'ERROR_INVALID_REFERENCE_TO_EVENT_BUS_CUSTOM_RESOURCE'
       );
     });
+
+    it('should emit deprecation when `eventBridge.useCloudFormation` is not explicitly set', async () => {
+      await expect(
+        runServerless({
+          fixture: 'function',
+          configExt: {
+            ...serverlessConfigurationExtension,
+          },
+          command: 'package',
+        })
+      ).to.be.eventually.rejected.and.have.property(
+        'code',
+        'REJECTED_DEPRECATION_AWS_EVENT_BRIDGE_CUSTOM_RESOURCE'
+      );
+    });
   });
 
   describe('using native CloudFormation', () => {
@@ -510,7 +529,7 @@ describe('EventBridgeEvents', () => {
       });
 
       it('should correctly set EventPattern on a created rule', () => {
-        expect(ruleResource.Properties.EventPattern).to.deep.equal(JSON.stringify(pattern));
+        expect(ruleResource.Properties.EventPattern).to.deep.equal(pattern);
       });
 
       it('should correctly set Input on the target for the created rule', () => {

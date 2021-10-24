@@ -19,7 +19,7 @@ Serverless Monitoring help you monitor, develop and optimize your serverless app
 
 Monitoring is enabled by default when you deploy a Service using the Serverless Framework CLI.
 
-### Configuration
+## Configuration
 
 Serverless Framework, when configured to connect to the dashboard, will automatically collect three pieces of diagnostics:
 
@@ -35,7 +35,7 @@ When deploying, Serverless Framework will also create an IAM role in your accoun
 
 If you have an existing CloudWatch Logs Subscription on your Log Group, please see the section on [pull-based log ingestion](#pull-based-log-ingestion).
 
-# If you wish to disable log collection, set the following options:
+## Disabling log collection
 
 If you wish to disable log collection, set the following option:
 
@@ -104,7 +104,7 @@ package:
     - dist/*.js.map
 ```
 
-## Capturing non-fatal errors
+### Capturing non-fatal errors
 
 Your lambda function may throw an exception, but your function handles it in order to respond to the requestor without throwing the error. One very common example is functions tied to HTTP endpoints. Those usually should still return JSON, even if there is an error since the API Gateway integration will fail rather than returning a meaningful error.
 
@@ -132,13 +132,13 @@ module.exports.hello = async (event, context) => {
 
 [Full Python Documentation](../sdk/python.md#capture_exception)
 
-## AWS SDK spans
+### AWS SDK spans
 
 Serverless automatically instruments `aws-sdk` and `boto3`(`botocore` specifically) in NodeJS and
 Python. Calls(service & operation. eg: S3 putItem) to the SDK are show in the invocation detail
 in the dashboard.
 
-## HTTP spans
+### HTTP spans
 
 Serverless also instruments your lambdas to report the spans for HTTP & HTTPS requests. In NodeJS
 the `http` and `https` modules are instrumented, so any library built upon those will be captured.
@@ -150,7 +150,7 @@ provides more insight into the request.
 
 [Configuration docs](../sdk/#advanced-span-configuration)
 
-## Custom function spans
+### Custom function spans
 
 You can also instrument your own spans for services not covered by AWS SDK & HTTP span
 instrumentation such as databases.
@@ -170,7 +170,7 @@ module.exports.handler = async (event, context) => {
 
 [Full Python Documentation](../sdk/python.md#span)
 
-## Pull-based log ingestion
+### Pull-based log ingestion
 
 The default monitoring path for the Serverless Framework involves setting up a Subscription Filter on your CloudWatch Log Group to send selected logs to the Serverless Framework ingestion system.
 
