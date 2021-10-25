@@ -1,5 +1,4 @@
 service: service
-disabledDeprecations: AWS_API_GATEWAY_SCHEMAS
 
 provider:
   name: aws
@@ -51,22 +50,9 @@ functions:
                 description: 'Test Method Model Desc'
                 schema: '${file(dummySchema.json)}'
       - http:
-          path: test-deprecated-simple
-          method: get
-          request:
-            schema:
-              application/json: '${file(dummySchema.json)}'
-      - http:
           path: test-multiple
           method: get
           request:
             schemas:
-              application/json: '${file(dummySchema.json)}'
-              text/plain: 'foo'
-      - http:
-          path: test-deprecated-multiple
-          method: get
-          request:
-            schema:
               application/json: '${file(dummySchema.json)}'
               text/plain: 'foo'

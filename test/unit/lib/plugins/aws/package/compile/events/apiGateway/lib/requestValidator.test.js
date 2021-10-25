@@ -287,54 +287,6 @@ describe('#compileRequestValidators() - schemas', () => {
       });
     });
 
-    it('should support existing request:schema property for regression', () => {
-      const modelLogicalId = naming.getEndpointModelLogicalId(
-        'TestDashdeprecatedDashsimple',
-        'get',
-        'application/json'
-      );
-      const validatorLogicalId = naming.getValidatorLogicalId();
-      const methodLogicalId = naming.getMethodLogicalId('TestDashdeprecatedDashsimple', 'get');
-      const methodResource = cfResources[methodLogicalId];
-
-      expect(methodResource.Properties).to.have.property('RequestModels');
-      expect(methodResource.Properties).to.have.property('RequestValidatorId');
-
-      expect(methodResource.Properties.RequestModels['application/json']).to.deep.equal({
-        Ref: modelLogicalId,
-      });
-
-      expect(methodResource.Properties.RequestValidatorId).to.deep.equal({
-        Ref: validatorLogicalId,
-      });
-
-      const modelResource = cfResources[modelLogicalId];
-
-      expect(modelResource).to.deep.equal({
-        Type: 'AWS::ApiGateway::Model',
-        Properties: {
-          ContentType: 'application/json',
-          RestApiId: {
-            Ref: 'ApiGatewayRestApi',
-          },
-          Schema: {
-            $schema: 'http://json-schema.org/draft-04/schema#',
-            definitions: {},
-            properties: {
-              id: {
-                pattern: '[0-9]+',
-                title: 'ID for object',
-                type: 'number',
-              },
-            },
-            required: ['id'],
-            title: 'Test Validation Schema',
-            type: 'object',
-          },
-        },
-      });
-    });
-
     it('should create validator with that includes `service` and `stage`', () => {
       const validatorLogicalId = naming.getValidatorLogicalId();
       const validatorResource = cfResources[validatorLogicalId];
@@ -342,75 +294,6 @@ describe('#compileRequestValidators() - schemas', () => {
       expect(validatorResource.Properties.Name).to.equal(
         `${serviceName}-${stage} | Validate request body and querystring parameters`
       );
-    });
-
-    it('should support multiple request:schema property for regression', () => {
-      const modelJsonLogicalId = naming.getEndpointModelLogicalId(
-        'TestDashdeprecatedDashmultiple',
-        'get',
-        'application/json'
-      );
-      const modelPlainTextLogicalId = naming.getEndpointModelLogicalId(
-        'TestDashdeprecatedDashmultiple',
-        'get',
-        'text/plain'
-      );
-      const validatorLogicalId = naming.getValidatorLogicalId();
-      const methodLogicalId = naming.getMethodLogicalId('TestDashdeprecatedDashmultiple', 'get');
-      const methodResource = cfResources[methodLogicalId];
-
-      expect(methodResource.Properties).to.have.property('RequestModels');
-      expect(methodResource.Properties).to.have.property('RequestValidatorId');
-
-      expect(methodResource.Properties.RequestModels['application/json']).to.deep.equal({
-        Ref: modelJsonLogicalId,
-      });
-
-      expect(methodResource.Properties.RequestModels['text/plain']).to.deep.equal({
-        Ref: modelPlainTextLogicalId,
-      });
-
-      expect(methodResource.Properties.RequestValidatorId).to.deep.equal({
-        Ref: validatorLogicalId,
-      });
-
-      const modelJsonResource = cfResources[modelJsonLogicalId];
-      const modelPlainTextResource = cfResources[modelPlainTextLogicalId];
-
-      expect(modelJsonResource).to.deep.equal({
-        Type: 'AWS::ApiGateway::Model',
-        Properties: {
-          ContentType: 'application/json',
-          RestApiId: {
-            Ref: 'ApiGatewayRestApi',
-          },
-          Schema: {
-            $schema: 'http://json-schema.org/draft-04/schema#',
-            definitions: {},
-            properties: {
-              id: {
-                pattern: '[0-9]+',
-                title: 'ID for object',
-                type: 'number',
-              },
-            },
-            required: ['id'],
-            title: 'Test Validation Schema',
-            type: 'object',
-          },
-        },
-      });
-
-      expect(modelPlainTextResource).to.deep.equal({
-        Type: 'AWS::ApiGateway::Model',
-        Properties: {
-          ContentType: 'text/plain',
-          RestApiId: {
-            Ref: 'ApiGatewayRestApi',
-          },
-          Schema: 'foo',
-        },
-      });
     });
   });
 });
