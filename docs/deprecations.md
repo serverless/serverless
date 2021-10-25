@@ -36,6 +36,14 @@ Note:
 - In service configuration setting is ineffective for deprecations reported before service configuration is read.
 - `SLS_DEPRECATION_DISABLE` env var and `disabledDeprecations` configuration setting remain respected, and no errors will be thrown for mentioned deprecation coodes.
 
+<a name="AWS_HTTP_API_USE_PROVIDER_TAGS_PROPERTY"><div>&nbsp;</div></a>
+
+## Ineffective property `provider.httpApi.useProviderTags`
+
+Deprecation code: `AWS_HTTP_API_USE_PROVIDER_TAGS_PROPERTY`
+
+Starting with "v3.0.0", property `provider.httpApi.useProviderTags` is no longer effective as provider tags are applied to Http Api Gateway by default. You can safely remove this property from your configuration.
+
 <a name="S3_TRANSFER_ACCELERATION_ON_EXISTING_BUCKET"><div>&nbsp;</div></a>
 
 ## Attempt to enable S3 Transfer Acceleration on provided S3 buckets
