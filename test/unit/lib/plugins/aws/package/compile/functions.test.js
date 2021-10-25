@@ -334,53 +334,8 @@ describe('AwsCompileFunctions', () => {
           Handler: 'func.function.handler',
           MemorySize: 1024,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
+          Runtime: 'nodejs14.x',
           Timeout: 6,
-        },
-      };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
-      });
-    });
-
-    it('should create a function resource with function level tags', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .pop();
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func',
-          tags: {
-            foo: 'bar',
-            baz: 'qux',
-          },
-        },
-      };
-
-      const compiledFunction = {
-        Type: 'AWS::Lambda::Function',
-        DependsOn: ['FuncLogGroup'],
-        Properties: {
-          Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
-            S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-          },
-          FunctionName: 'new-service-dev-func',
-          Handler: 'func.function.handler',
-          MemorySize: 1024,
-          Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
-          Timeout: 6,
-          Tags: [
-            { Key: 'foo', Value: 'bar' },
-            { Key: 'baz', Value: 'qux' },
-          ],
         },
       };
 
@@ -439,7 +394,7 @@ describe('AwsCompileFunctions', () => {
               Handler: 'func.function.handler',
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-              Runtime: 'nodejs12.x',
+              Runtime: 'nodejs14.x',
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: 'arn:aws:sns:region:accountid:foo',
@@ -490,7 +445,7 @@ describe('AwsCompileFunctions', () => {
               Handler: 'func.function.handler',
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-              Runtime: 'nodejs12.x',
+              Runtime: 'nodejs14.x',
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: {
@@ -532,7 +487,7 @@ describe('AwsCompileFunctions', () => {
               Handler: 'func.function.handler',
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-              Runtime: 'nodejs12.x',
+              Runtime: 'nodejs14.x',
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: {
@@ -574,7 +529,7 @@ describe('AwsCompileFunctions', () => {
               Handler: 'func.function.handler',
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-              Runtime: 'nodejs12.x',
+              Runtime: 'nodejs14.x',
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: {
@@ -616,7 +571,7 @@ describe('AwsCompileFunctions', () => {
               Handler: 'func.function.handler',
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-              Runtime: 'nodejs12.x',
+              Runtime: 'nodejs14.x',
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: 'arn:aws:sns:region:accountid:foo',
@@ -683,7 +638,7 @@ describe('AwsCompileFunctions', () => {
               Handler: 'func.function.handler',
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-              Runtime: 'nodejs12.x',
+              Runtime: 'nodejs14.x',
               Timeout: 6,
               TracingConfig: {
                 Mode: 'Active',
@@ -740,7 +695,7 @@ describe('AwsCompileFunctions', () => {
           Handler: 'func.function.handler',
           MemorySize: 1024,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
+          Runtime: 'nodejs14.x',
           Timeout: 6,
           Environment: {
             Variables: {
@@ -807,45 +762,8 @@ describe('AwsCompileFunctions', () => {
           Handler: 'func.function.handler',
           MemorySize: 128,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
+          Runtime: 'nodejs14.x',
           Timeout: 10,
-        },
-      };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
-      });
-    });
-
-    it('should default to the nodejs12.x runtime when no provider runtime is given', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .pop();
-      awsCompileFunctions.serverless.service.provider.runtime = null;
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func',
-        },
-      };
-      const compiledFunction = {
-        Type: 'AWS::Lambda::Function',
-        DependsOn: ['FuncLogGroup'],
-        Properties: {
-          Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
-            S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-          },
-          FunctionName: 'new-service-dev-func',
-          Handler: 'func.function.handler',
-          MemorySize: 1024,
-          Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
-          Timeout: 6,
         },
       };
 
@@ -978,7 +896,7 @@ describe('AwsCompileFunctions', () => {
           MemorySize: 1024,
           ReservedConcurrentExecutions: 5,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
+          Runtime: 'nodejs14.x',
           Timeout: 6,
         },
       };
@@ -1034,7 +952,7 @@ describe('AwsCompileFunctions', () => {
           MemorySize: 1024,
           ReservedConcurrentExecutions: 0,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
+          Runtime: 'nodejs14.x',
           Timeout: 6,
         },
       };
@@ -1073,7 +991,7 @@ describe('AwsCompileFunctions', () => {
           Handler: 'func.function.handler',
           MemorySize: 1024,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
+          Runtime: 'nodejs14.x',
           Timeout: 6,
         },
       };
@@ -1111,7 +1029,7 @@ describe('AwsCompileFunctions', () => {
           Handler: 'func.function.handler',
           MemorySize: 1024,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
+          Runtime: 'nodejs14.x',
           Timeout: 6,
           Layers: ['arn:aws:xxx:*:*'],
         },
@@ -1863,9 +1781,9 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1784-L1820
     });
 
-    it.skip('TODO: should default to "nodejs12.x" runtime`', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1864-L1899
+    it('should default to "nodejs14.x" runtime`', () => {
+      const funcResource = cfResources[naming.getLambdaLogicalId('target')];
+      expect(funcResource.Properties.Runtime).to.equal('nodejs14.x');
     });
 
     it.skip('TODO: should support `functions[].runtime`', () => {
