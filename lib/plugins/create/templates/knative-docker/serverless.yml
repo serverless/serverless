@@ -1,6 +1,6 @@
 service: knative
 
-frameworkVersion: '2'
+frameworkVersion: '3'
 
 provider:
   name: knative
