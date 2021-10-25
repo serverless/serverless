@@ -1,0 +1,210 @@
+# v3 only
+
+name: Integrate v3
+
+on:
+  push:
+    branches: [v3]
+
+env:
+  SLS_IGNORE_WARNING: '*'
+  FORCE_COLOR: 1
+
+jobs:
+  linuxNode16:
+    name: '[Linux] Node.js 16: Publish pre-3, Unit & packaging tests '
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org
+
+      - name: Publish pre-3
+        # Note: Setting NODE_AUTH_TOKEN as job|workspace wide env var won't work
+        #       as it appears actions/setup-node sets own value
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # 01dd......71cc
+        run: |
+          ./.github/prepare-pre-3.js
+          npm publish --tag pre-3
+          git checkout .
+
+      - name: Retrieve dependencies from cache
+        id: cacheNpm
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: npm-v16-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: npm-v16-${{ runner.os }}-${{ github.ref }}-
+
+      - name: Install dependencies
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+          npm install @serverless/dashboard-plugin @serverless/utils @serverless/test
+      - name: Unit tests
+        # Some tests depend on TTY support, which is missing in GA runner
+        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+        run: script -e -c "npm test -- -b"
+      - name: Packaging tests
+        run: npm run integration-test-run-package
+
+  windowsNode16:
+    name: '[Windows] Node.js v16: Unit tests'
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve dependencies from cache
+        id: cacheNpm
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: npm-v16-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: npm-v16-${{ runner.os }}-${{ github.ref }}-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+
+      - name: Install dependencies
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+          npm install @serverless/dashboard-plugin @serverless/utils @serverless/test
+      - name: Unit tests
+        run: npm test -- -b
+
+  linuxNode14:
+    name: '[Linux] Node.js 14: Isolated unit tests'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve dependencies from cache
+        id: cacheNpm
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: npm-v14-${{ runner.os }}-${{ github.ref }}-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Install dependencies
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+          npm install @serverless/dashboard-plugin @serverless/utils @serverless/test
+      - name: Unit tests
+        # Some tests depend on TTY support, which is missing in GA runner
+        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+        run: script -e -c "npm run test:isolated -- -b"
+
+  linuxNode12:
+    name: '[Linux] Node.js 12: Unit tests with coverage'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve dependencies from cache
+        id: cacheNpm
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: npm-v12-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: npm-v12-${{ runner.os }}-${{ github.ref }}-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
+      - name: Install dependencies
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+          npm install @serverless/dashboard-plugin @serverless/utils @serverless/test
+      - name: Unit tests
+        # Some tests depend on TTY support, which is missing in GA runner
+        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+        run: script -e -c "npm run coverage"
+      - name: Push coverage
+        run: npx codecov
+
+  integrate:
+    name: Integrate
+    runs-on: ubuntu-latest
+    needs: [linuxNode16, windowsNode16, linuxNode14, linuxNode12]
+    timeout-minutes: 30 # Default is 360
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      SLS_AWS_REQUEST_MAX_RETRIES: 50 #Increase number of retries, due to observed "Rate exceeded" fails
+      SERVERLESS_BINARY_PATH: ./dist/serverless-linux
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          # Ensure to have complete history of commits pushed with given push operation
+          # It's loose and imperfect assumption that no more than 30 commits will be pushed at once
+          fetch-depth: 30
+          # Tag needs to be pushed with real user token, otherwise pushed tag won't trigger the actions workflow
+          # Hence we're passing 'serverless-ci' user authentication token
+          token: ${{ secrets.USER_GITHUB_TOKEN }}
+
+      - name: Retrieve dependencies from cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: npm-v16-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+
+      # Potentially needed for test/integration/curated-plugins-python.test.js
+      # (current GA runtime comes with Python 3.8 preinstalled, but that might be subject to changes)
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+
+      # Note: No need to install dependencies as we have retrieved cached `node_modules` for very
+      #       same `package.json` as stored with previous job
+
+      - name: Build standalone artifacts
+        # Start with npm v8 installation, as npm v6 shares bug where in some scenarios
+        # on `npm install x` the other packages are removed from node_modules
+        run: npm run pkg:build
+
+      - name: Basic integration tests against standalone binary
+        run: npm run integration-test-run-basic
+      - name: Full integration tests against standalone binary
+        run: npm run integration-test-run-all
