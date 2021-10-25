@@ -1,6 +1,6 @@
 service: hello-world # NOTE: update this with your service name
 
-frameworkVersion: '2'
+frameworkVersion: '3'
 
 provider:
   name: cloudflare
