@@ -7,7 +7,7 @@
 # The `service` block is the name of the service
 service: serverless-hello-world
 
-frameworkVersion: '2'
+frameworkVersion: '3'
 
 # The `provider` block defines where your service will be deployed
 provider:

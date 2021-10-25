@@ -11,7 +11,7 @@
 
 service: aliyun-nodejs
 
-frameworkVersion: '2'
+frameworkVersion: '3'
 
 provider:
   name: aliyun
