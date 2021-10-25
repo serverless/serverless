@@ -23,7 +23,7 @@ service: myService
 
 projectDir: ./ # Boundary of a project in which service is configured. Influences file resolution
 
-frameworkVersion: '2'
+frameworkVersion: '3'
 configValidationMode: warn # Modes for config validation. `error` throws an exception, `warn` logs error to console, `off` disables validation at all. The default is warn.
 enableLocalInstallationFallback: false # If set to 'true', guarantees that it's a locally (for service, in its node_modules) installed framework which processes the command
 useDotenv: false # If set to 'true', environment variables will be automatically loaded from .env files
