@@ -1953,4 +1953,16 @@ describe('test/unit/lib/classes/PluginManager.test.js', () => {
     expect(typeof plugin.utils.progress.create).to.equal('function');
     expect(typeof plugin.utils.writeText).to.equal('function');
   });
+
+  it('should error out for duplicate plugin definiton', async () => {
+    await expect(
+      runServerless({
+        fixture: 'plugin',
+        command: 'print',
+        configExt: {
+          plugins: ['./plugin', './plugin'],
+        },
+      })
+    ).to.be.eventually.rejected.and.have.property('code', 'DUPLICATE_PLUGIN_DEFINITION');
+  });
 });
