@@ -5,6 +5,7 @@ const runServerless = require('../../../../../../utils/run-serverless');
 const expect = require('chai').expect;
 
 chai.use(require('chai-as-promised'));
+chai.use(require('sinon-chai'));
 
 describe('#generateCoreTemplate()', () => {
   it('should reject non-HTTPS requests to the deployment bucket', () =>
@@ -135,7 +136,7 @@ describe('#generateCoreTemplate()', () => {
       });
     }));
 
-  it('should result in deprecation error for custom bucket and accelerate flag', async () => {
+  it('should result in error for custom bucket and accelerate flag', async () => {
     const bucketName = 'com.serverless.deploys';
 
     await expect(
@@ -164,7 +165,7 @@ describe('#generateCoreTemplate()', () => {
       })
     ).to.eventually.be.rejected.and.have.property(
       'code',
-      'REJECTED_DEPRECATION_S3_TRANSFER_ACCELERATION_ON_EXISTING_BUCKET'
+      'S3_TRANSFER_ACCELERATION_ON_EXISTING_BUCKET'
     );
   });
 
