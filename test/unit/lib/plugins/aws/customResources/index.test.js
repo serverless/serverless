@@ -109,7 +109,7 @@ describe('#addCustomResourceToService()', () => {
           Role: {
             'Fn::GetAtt': ['IamRoleCustomResourcesLambdaExecution', 'Arn'],
           },
-          Runtime: 'nodejs12.x',
+          Runtime: 'nodejs14.x',
           Timeout: 180,
         },
         DependsOn: ['IamRoleCustomResourcesLambdaExecution'],
@@ -128,7 +128,7 @@ describe('#addCustomResourceToService()', () => {
           Role: {
             'Fn::GetAtt': ['IamRoleCustomResourcesLambdaExecution', 'Arn'],
           },
-          Runtime: 'nodejs12.x',
+          Runtime: 'nodejs14.x',
           Timeout: 180,
         },
         DependsOn: ['IamRoleCustomResourcesLambdaExecution'],
@@ -147,7 +147,7 @@ describe('#addCustomResourceToService()', () => {
           Role: {
             'Fn::GetAtt': ['IamRoleCustomResourcesLambdaExecution', 'Arn'],
           },
-          Runtime: 'nodejs12.x',
+          Runtime: 'nodejs14.x',
           Timeout: 180,
         },
         DependsOn: ['IamRoleCustomResourcesLambdaExecution'],
