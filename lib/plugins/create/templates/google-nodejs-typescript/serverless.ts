@@ -2,7 +2,7 @@ import { functions } from '@functions/config';
 
 const serverlessConfiguration = {
   service: 'gcf-nodejs-typescript-template', // NOTE: Don't put the word "google" in here
-  frameworkVersion: '2',
+  frameworkVersion: '3',
   custom: {
     webpack: {
       webpackConfig: './webpack.config.js',
