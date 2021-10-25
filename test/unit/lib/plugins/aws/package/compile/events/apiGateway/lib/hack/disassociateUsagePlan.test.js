@@ -103,19 +103,25 @@ describe('#disassociateUsagePlan()', () => {
 
   it('should resolve if stack is not available', async () => {
     const updateUsagePlan = sinon.stub().resolves();
-    const describeStackResource = sinon.stub().throws({
-      code: 'AWS_CLOUD_FORMATION_DESCRIBE_STACK_RESOURCE_VALIDATION_ERROR',
-      providerError: {
-        message: "Stack 'my-missing-stackname' does not exist",
-        code: 'ValidationError',
-        time: '2021-10-16T10:41:09.706Z',
-        requestId: 'afed43d8-c03a-4be8-a15b-a202dda76401',
-        statusCode: 400,
-        retryable: false,
-        retryDelay: 75.03958549651621,
-      },
-      providerErrorCodeExtension: 'VALIDATION_ERROR',
-    });
+
+    const describeStackResource = sinon
+      .stub()
+      .onFirstCall()
+      .throws({
+        code: 'AWS_CLOUD_FORMATION_DESCRIBE_STACK_RESOURCE_VALIDATION_ERROR',
+        providerError: {
+          message: "Stack 'my-missing-stackname' does not exist",
+          code: 'ValidationError',
+          time: '2021-10-16T10:41:09.706Z',
+          requestId: 'afed43d8-c03a-4be8-a15b-a202dda76401',
+          statusCode: 400,
+          retryable: false,
+          retryDelay: 75.03958549651621,
+        },
+        providerErrorCodeExtension: 'VALIDATION_ERROR',
+      })
+      .returns({ StackResourceDetail: { PhysicalResourceId: 'resource-id' } });
+    const deleteStackStub = sinon.stub().resolves();
 
     await runServerless({
       command: 'remove',
@@ -145,7 +151,10 @@ describe('#disassociateUsagePlan()', () => {
           }),
         },
         S3: {
-          listObjectVersions: sinon.stub().resolves(),
+          deleteStack: deleteStackStub,
+          deleteObjects: {},
+          listObjectsV2: { Contents: [{ Key: 'first' }, { Key: 'second' }] },
+          headObject: {},
         },
         APIGateway: {
           getApiKey: {
@@ -176,6 +185,6 @@ describe('#disassociateUsagePlan()', () => {
     });
 
     expect(updateUsagePlan.notCalled).to.be.true;
-    expect(describeStackResource.calledOnce).to.be.true;
+    expect(describeStackResource.called).to.be.true;
   });
 });
