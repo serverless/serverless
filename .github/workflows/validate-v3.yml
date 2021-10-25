@@ -1,0 +1,172 @@
+# PR's only
+
+name: Validate v3
+
+on:
+  pull_request:
+    branches: [v3]
+
+env:
+  SLS_IGNORE_WARNING: '*'
+  FORCE_COLOR: 1
+
+jobs:
+  linuxNode14:
+    name: '[Linux] Node.js 14: Lint, Formatting, Eventual Commitlint, Unit & packaging tests'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          # For commitlint purpose ensure to have complete list of PR commits
+          # It's loose and imperfect assumption that PR has no more than 30 commits
+          fetch-depth: 30
+
+      - name: Retrieve last v3 commit (for `git diff` purposes)
+        run: |
+          git checkout -b pr
+          git fetch --prune --depth=30 origin +refs/heads/v3:refs/remotes/origin/v3
+          git checkout v3
+          git checkout pr
+
+      - name: Retrieve dependencies from cache
+        id: cacheNpm
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            npm-v14-${{ runner.os }}-${{ github.ref }}-
+            npm-v14-${{ runner.os }}-refs/heads/v3-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Install dependencies
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+          npm install @serverless/dashboard-plugin @serverless/utils @serverless/test
+      - name: Validate formatting
+        run: npm run prettier-check:updated
+      - name: Validate lint rules
+        run: npm run lint:updated
+      - name: Validate commit messages
+        if: github.event.pull_request.base.repo.id == github.event.pull_request.head.repo.id
+        run: npx commitlint -f v3
+      - name: Unit tests
+        # Some tests depend on TTY support, which is missing in GA runner
+        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+        run: script -e -c "npm test -- -b"
+      - name: Packaging tests
+        run: npm run integration-test-run-package
+
+  windowsNode14:
+    name: '[Windows] Node.js v14: Unit tests'
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve dependencies from cache
+        id: cacheNpm
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            npm-v14-${{ runner.os }}-${{ github.ref }}-
+            npm-v14-${{ runner.os }}-refs/heads/v3-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Install dependencies
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+          npm install @serverless/dashboard-plugin @serverless/utils @serverless/test
+      - name: Unit tests
+        run: npm test -- -b
+
+  linuxNode16:
+    name: '[Linux] Node.js 16: Isolated unit tests'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve dependencies from cache
+        id: cacheNpm
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: npm-v16-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            npm-v16-${{ runner.os }}-${{ github.ref }}-
+            npm-v16-${{ runner.os }}-refs/heads/v3-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+
+      - name: Install dependencies
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+          npm install @serverless/dashboard-plugin @serverless/utils @serverless/test
+      - name: Unit tests
+        # Some tests depend on TTY support, which is missing in GA runner
+        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+        run: script -e -c "npm run test:isolated -- -b"
+
+  linuxNode12:
+    name: '[Linux] Node.js 12: Unit tests with coverage'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve dependencies from cache
+        id: cacheNpm
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: npm-v12-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            npm-v12-${{ runner.os }}-${{ github.ref }}-
+            npm-v12-${{ runner.os }}-refs/heads/v3-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
+      - name: Install dependencies
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+          npm install @serverless/dashboard-plugin @serverless/utils @serverless/test
+      - name: Unit tests
+        # Some tests depend on TTY support, which is missing in GA runner
+        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+        run: script -e -c "npm run coverage"
+      - name: Push coverage
+        run: npx codecov
