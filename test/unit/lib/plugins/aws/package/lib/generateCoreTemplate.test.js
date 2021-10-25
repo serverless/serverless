@@ -72,7 +72,7 @@ describe('#generateCoreTemplate()', () => {
     });
   });
 
-  it('should enable S3 Block Public Access if specified', () =>
+  it('should enable S3 Block Public Access & versioning if specified', () =>
     runServerless({
       config: {
         service: 'irrelevant',
@@ -80,6 +80,7 @@ describe('#generateCoreTemplate()', () => {
           name: 'aws',
           deploymentBucket: {
             blockPublicAccess: true,
+            versioning: true,
           },
         },
       },
@@ -92,29 +93,11 @@ describe('#generateCoreTemplate()', () => {
           IgnorePublicAcls: true,
           RestrictPublicBuckets: true,
         },
+        VersioningConfiguration: {
+          Status: 'Enabled',
+        },
       });
     }));
-
-  it('should enable S3 bucket versioning if specified', async () => {
-    const { cfTemplate } = await runServerless({
-      config: {
-        service: 'irrelevant',
-        provider: {
-          name: 'aws',
-          deploymentBucket: {
-            versioning: true,
-          },
-        },
-      },
-      command: 'package',
-    });
-
-    expect(cfTemplate.Resources.ServerlessDeploymentBucket.Properties).to.deep.include({
-      VersioningConfiguration: {
-        Status: 'Enabled',
-      },
-    });
-  });
 
   it('should add resource tags to the bucket if present', () =>
     runServerless({
