@@ -47,18 +47,4 @@ describe('test/unit/lib/plugins/aws/package/lib/addExportNameForOutputs.test.js'
   it('Should not override Export.Name for user configured Outputs', () => {
     expect(outputs.CustomOutput.Export.Name).to.equal('someExportName');
   });
-
-  it('Should not add Export.Name if `provider.disableDefaultOutputExportNames` set to `true`', async () => {
-    const { cfTemplate } = await runServerless({
-      fixture: 'apiGateway',
-      command: 'package',
-      configExt: {
-        disabledDeprecations: ['DISABLE_DEFAULT_OUTPUT_EXPORT_NAMES'],
-        provider: {
-          disableDefaultOutputExportNames: true,
-        },
-      },
-    });
-    expect(Object.values(cfTemplate.Outputs).some((value) => value.Export)).to.be.false;
-  });
 });
