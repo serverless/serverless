@@ -41,7 +41,9 @@ let hasTelemetryBeenReported = false;
 // to properly handle e.g. `SIGINT` interrupt
 const keepAliveTimer = setTimeout(() => {}, 60 * 60 * 1000);
 
-const standaloneCommands = new Set(['plugin install', 'plugin uninstall']);
+// Names of the commands which are configured independently in root `commands` folder
+// and not in Serverless class internals
+const notIntegratedCommands = new Set(['doctor', 'plugin install', 'plugin uninstall']);
 
 process.once('uncaughtException', (error) => {
   clearTimeout(keepAliveTimer);
@@ -123,7 +125,7 @@ const processSpanPromise = (async () => {
     // If version number request, show it and abort
     if (options.version) {
       await require('../lib/cli/render-version')();
-      logDeprecation.printSummary();
+      await logDeprecation.printSummary();
       return;
     }
 
@@ -503,16 +505,17 @@ const processSpanPromise = (async () => {
         // Validate result command and options
         require('../lib/cli/ensure-supported-command')();
       }
+    } else {
+      require('../lib/cli/ensure-supported-command')();
     }
 
     const configurationFilename = configuration && configurationPath.slice(serviceDir.length + 1);
 
-    const isStandaloneCommand = standaloneCommands.has(command);
+    const isStandaloneCommand = notIntegratedCommands.has(command);
 
-    if (isInteractiveSetup || isStandaloneCommand) {
+    if (!isHelpRequest && (isInteractiveSetup || isStandaloneCommand)) {
+      if (configuration) require('../lib/cli/ensure-supported-command')(configuration);
       if (isInteractiveSetup) {
-        require('../lib/cli/ensure-supported-command')(configuration);
-
         if (!process.stdin.isTTY && !process.env.SLS_INTERACTIVE_SETUP_ENABLE) {
           throw new ServerlessError(
             'Attempted to run an interactive setup in non TTY environment.\n' +
@@ -531,7 +534,6 @@ const processSpanPromise = (async () => {
           configuration = result.configuration;
         }
       } else {
-        require('../lib/cli/ensure-supported-command')(configuration);
         await require(`../commands/${commands.join('-')}`)({
           configuration,
           serviceDir,
@@ -542,7 +544,7 @@ const processSpanPromise = (async () => {
 
       progress.clear();
 
-      logDeprecation.printSummary();
+      await logDeprecation.printSummary();
 
       if (!hasTelemetryBeenReported) {
         hasTelemetryBeenReported = true;
@@ -831,7 +833,7 @@ const processSpanPromise = (async () => {
       }
       progress.clear();
 
-      logDeprecation.printSummary();
+      await logDeprecation.printSummary();
 
       if (!hasTelemetryBeenReported) {
         hasTelemetryBeenReported = true;

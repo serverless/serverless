@@ -13,7 +13,9 @@ describe('test/unit/lib/utils/logDeprecation.test.js', () => {
 
   beforeEach(() => {
     delete require.cache[require.resolve('../../../../lib/utils/logDeprecation')];
-    ({ originalEnv, restoreEnv } = overrideEnv());
+    ({ originalEnv, restoreEnv } = overrideEnv({
+      whitelist: ['APPDATA', 'HOME', 'PATH', 'TEMP', 'TMP', 'TMPDIR', 'USERPROFILE'],
+    }));
   });
 
   afterEach(() => {
@@ -147,17 +149,17 @@ describe('test/unit/lib/utils/logDeprecation.test.js', () => {
     expect(stdoutData).to.include('Second deprecation');
   });
 
-  it('should expose working `printSummary` method', () => {
+  it('should expose working `printSummary` method', async () => {
     let stdoutData = '';
-    overrideStdoutWrite(
+    await overrideStdoutWrite(
       (data) => (stdoutData += data),
-      () => {
+      async () => {
         const logDeprecation = require('../../../../lib/utils/logDeprecation');
         logDeprecation('CODE1', 'First deprecation');
         expect(stdoutData).to.not.include('First deprecation');
         logDeprecation('CODE2', 'Second deprecation');
         expect(stdoutData).to.not.include('Second deprecation');
-        logDeprecation.printSummary();
+        await logDeprecation.printSummary();
       }
     );
     expect(stdoutData).to.include('First deprecation');

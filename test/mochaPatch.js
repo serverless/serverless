@@ -37,10 +37,12 @@ const patchCallback = (name) => {
     }
   );
 };
-patchPromised('readFile');
+patchPromised('mkdir');
 patchPromised('open');
-patchCallback('readFile');
+patchPromised('readFile');
+patchCallback('mkdir');
 patchCallback('open');
+patchCallback('readFile');
 
 const ensureArtifact = require('../lib/utils/ensureArtifact');
 const resolveLocalServerless = require('../lib/cli/resolve-local-serverless-path');

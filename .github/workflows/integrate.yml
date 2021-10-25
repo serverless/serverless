@@ -15,20 +15,6 @@ jobs:
     name: '[Linux] Node.js 14: Publish canary, Unit & packaging tests '
     runs-on: ubuntu-latest
     steps:
-      - name: Resolve last validated commit hash (for `git diff` purposes)
-        env:
-          # See https://github.com/serverlessinc/setup-cicd-resources
-          GET_LAST_VALIDATED_COMMIT_HASH_URL: ${{ secrets.GET_LAST_VALIDATED_COMMIT_HASH_URL }}
-          PUT_LAST_VALIDATED_COMMIT_HASH_URL: ${{ secrets.PUT_LAST_VALIDATED_COMMIT_HASH_URL }}
-        run: |
-          curl -f "$GET_LAST_VALIDATED_COMMIT_HASH_URL" -o /home/runner/last-validated-commit-hash || :
-          curl -X PUT -H "User-Agent:" -H "Accept:" -H "Content-Type:" -d "$GITHUB_SHA" "$PUT_LAST_VALIDATED_COMMIT_HASH_URL"
-      - name: Store last validated commit hash (as it's to be used in other job)
-        uses: actions/upload-artifact@v2
-        with:
-          name: last-validated-commit-hash
-          path: /home/runner/last-validated-commit-hash
-
       - name: Checkout repository
         uses: actions/checkout@v2
 
@@ -249,21 +235,11 @@ jobs:
       - name: Full integration tests against standalone binary
         run: npm run integration-test-run-all
 
-      - name: Resolve last validated commit hash (for `git diff` purposes)
-        uses: actions/download-artifact@v2
-        continue-on-error: true
-        with:
-          name: last-validated-commit-hash
-          path: /home/runner
       - name: Tag if new version
         run: |
-          LAST_VALIDATED_COMMIT_HASH=`cat /home/runner/last-validated-commit-hash` || :
-          if [ -n "$LAST_VALIDATED_COMMIT_HASH" ];
+          NEW_VERSION=`git diff -U0 ${{ github.event.before }} package.json | grep '"version": "' | tail -n 1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+"` || :
+          if [ -n "$NEW_VERSION" ];
           then
-            NEW_VERSION=`git diff -U0 $LAST_VALIDATED_COMMIT_HASH package.json | grep '"version": "' | tail -n 1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+"` || :
-            if [ -n "$NEW_VERSION" ];
-            then
-              git tag v$NEW_VERSION
-              git push --tags
-            fi
+            git tag v$NEW_VERSION
+            git push --tags
           fi
