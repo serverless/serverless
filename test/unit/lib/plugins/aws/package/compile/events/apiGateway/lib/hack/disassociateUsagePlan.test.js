@@ -102,10 +102,6 @@ describe('#disassociateUsagePlan()', () => {
   });
 
   it('should resolve if stack is not available', async () => {
-    /**
-     * This call just seem to hang, and it does not log anything.
-     * What am I doing wrong ?
-     */
     const updateUsagePlan = sinon.stub().resolves();
     const describeStackResource = sinon.stub().throws({
       code: 'AWS_CLOUD_FORMATION_DESCRIBE_STACK_RESOURCE_VALIDATION_ERROR',
