@@ -4,7 +4,7 @@ service: aws-alexa-typescript # NOTE: update this with your service name
 #app: your-app-name
 #org: your-org-name
 
-frameworkVersion: '2'
+frameworkVersion: '3'
 
 plugins:
   - serverless-webpack
