@@ -7,7 +7,7 @@
 # The `service` block is the name of the service
 service: hello-world # NOTE: update this with your service name
 
-frameworkVersion: '2'
+frameworkVersion: '3'
 
 # The `provider` block defines where your service will be deployed
 provider:
