@@ -201,7 +201,6 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
                   audience: 'audiencexxx',
                 },
               },
-              useProviderTags: true,
             },
             logs: {
               httpApi: true,
