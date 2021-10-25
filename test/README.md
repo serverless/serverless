@@ -68,8 +68,8 @@ AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=xxx npx mocha test/integration/{chos
 
 Due to the fact that some of the tests require a bit more complex infrastructure setup which might be lengthy, two additional commands has been made available:
 
-- `integration-test-setup-infrastructure` - used for setting up all needed intrastructure dependencies
-- `integration-test-teardown-infrastructure` - used for tearing down the infrastructure setup by the above command
+- `integration-test-setup` - used for setting up all needed intrastructure dependencies
+- `integration-test-teardown` - used for tearing down the infrastructure setup by the above command
 
 Such tests take advantage of `isDependencyStackAvailable` util to check if all needed dependencies are ready. If not, it skips the given test suite.
 
