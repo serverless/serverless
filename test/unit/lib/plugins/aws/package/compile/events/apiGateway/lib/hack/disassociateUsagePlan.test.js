@@ -102,7 +102,12 @@ describe('#disassociateUsagePlan()', () => {
   });
 
   it('should resolve if stack is not available', async () => {
-    providerRequestStub.withArgs('CloudFormation', 'describeStackResource').rejects({
+    /**
+     * This call just seem to hang, and it does not log anything.
+     * What am I doing wrong ?
+     */
+    const updateUsagePlan = sinon.stub().resolves();
+    const describeStackResource = sinon.stub().throws({
       code: 'AWS_CLOUD_FORMATION_DESCRIBE_STACK_RESOURCE_VALIDATION_ERROR',
       providerError: {
         message: "Stack 'my-missing-stackname' does not exist",
@@ -114,34 +119,6 @@ describe('#disassociateUsagePlan()', () => {
         retryDelay: 75.03958549651621,
       },
       providerErrorCodeExtension: 'VALIDATION_ERROR',
-    });
-
-    disassociateUsagePlan.serverless.service.provider.apiGateway = { apiKeys: ['apiKey1'] };
-
-    await disassociateUsagePlan.disassociateUsagePlan();
-
-    expect(providerRequestStub.calledWith('CloudFormation', 'describeStackResource')).to.be.true;
-    expect(providerRequestStub.calledWith('APIGateway', 'updateUsagePlan')).to.be.false;
-  });
-
-  it('should still fail on error', async () => {
-    /**
-     * This call just seem to hang, and it does not log anything.
-     * What am I doing wrong ?
-     */
-    const updateUsagePlan = sinon.stub().resolves();
-    const describeStackResource = sinon.stub().throws({
-      code: 'SOME_OTHER_ERROR',
-      providerError: {
-        message: 'SomeOtherError',
-        code: 'SomeOtherError',
-        time: '2021-10-16T10:41:09.706Z',
-        requestId: 'afed43d8-c03a-4be8-a15b-a202dda76401',
-        statusCode: 400,
-        retryable: false,
-        retryDelay: 75.03958549651621,
-      },
-      providerErrorCodeExtension: 'SomeOtherError',
     });
 
     await runServerless({
@@ -204,6 +181,5 @@ describe('#disassociateUsagePlan()', () => {
 
     expect(updateUsagePlan.notCalled).to.be.true;
     expect(describeStackResource.calledOnce).to.be.true;
-    expect(false).to.be.true;
   });
 });
