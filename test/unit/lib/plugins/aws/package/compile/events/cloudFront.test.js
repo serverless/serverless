@@ -1418,71 +1418,6 @@ describe('AwsCompileCloudFrontEvents', () => {
       ).to.not.have.any.keys('CacheBehaviors');
     });
 
-    it('should create behavior with all values given as an object', () => {
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cloudFront: {
-                eventType: 'viewer-request',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-                behavior: {
-                  ForwardedValues: {
-                    QueryString: true,
-                    Headers: ['*'],
-                  },
-                  ViewerProtocolPolicy: 'https-only',
-                  AllowedMethods: ['GET', 'HEAD', 'OPTIONS'],
-                  CachedMethods: ['GET', 'HEAD', 'OPTIONS'],
-                },
-              },
-            },
-          ],
-        },
-      };
-
-      awsCompileCloudFrontEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources =
-        {
-          FirstLambdaFunction: {
-            Type: 'AWS::Lambda::Function',
-            Properties: {
-              FunctionName: 'first',
-            },
-          },
-          FirstLambdaVersion: {
-            Type: 'AWS::Lambda::Version',
-            Properties: {
-              FunctionName: { Ref: 'FirstLambdaFunction' },
-            },
-          },
-        };
-
-      awsCompileCloudFrontEvents.compileCloudFrontEvents();
-
-      expect(
-        awsCompileCloudFrontEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CloudFrontDistribution.Properties.DistributionConfig.DefaultCacheBehavior
-      ).to.eql({
-        TargetOriginId: 's3/bucketname.s3.amazonaws.com/files',
-        ViewerProtocolPolicy: 'https-only',
-        ForwardedValues: {
-          QueryString: true,
-          Headers: ['*'],
-        },
-        AllowedMethods: ['GET', 'HEAD', 'OPTIONS'],
-        CachedMethods: ['GET', 'HEAD', 'OPTIONS'],
-        LambdaFunctionAssociations: [
-          {
-            EventType: 'viewer-request',
-            LambdaFunctionARN: {
-              Ref: 'FirstLambdaVersion',
-            },
-          },
-        ],
-      });
-    });
-
     it('should throw if more than one behavior with the same PathPattern', () => {
       awsCompileCloudFrontEvents.serverless.service.functions = {
         first: {
@@ -1747,43 +1682,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
           },
         })
       ).to.eventually.be.rejected.and.have.property('code', 'UNRECOGNIZED_CLOUDFRONT_CACHE_POLICY');
-    });
-
-    it('Should throw if lambda config includes both deprecated behavior values and cache policy reference', () => {
-      const cachePolicyId = '08627262-05a9-4f76-9ded-b50ca2e3a84f';
-      return expect(
-        runServerless({
-          fixture: 'function',
-          command: 'package',
-          configExt: {
-            disabledDeprecations: ['CLOUDFRONT_CACHE_BEHAVIOR_FORWARDED_VALUES_AND_TTL'],
-            functions: {
-              basic: {
-                handler: 'myLambdaAtEdge.handler',
-                events: [
-                  {
-                    cloudFront: {
-                      origin: 's3://bucketname.s3.amazonaws.com/files',
-                      eventType: 'viewer-response',
-                      behavior: {
-                        ForwardedValues: {
-                          QueryString: true,
-                        },
-                      },
-                      cachePolicy: {
-                        id: cachePolicyId,
-                      },
-                    },
-                  },
-                ],
-              },
-            },
-          },
-        })
-      ).to.eventually.be.rejected.and.have.property(
-        'code',
-        'CACHE_POLICY_ID_AND_DEPRECATED_FIELDS_USED'
-      );
     });
 
     it('Should not throw if lambda config includes AllowedMethods or CachedMethods behavior values and cache policy reference', async () => {
@@ -2150,7 +2048,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
       });
     });
 
-    it('Should attach a default cache policy when none are provided, and no deprecated behavior values are used', () => {
+    it('Should attach a default cache policy when none are provided', () => {
       // Default Managed-CachingOptimized Cache Policy id
       const defaultCachePolicyId = '658327ea-f89d-4fab-a63d-7e88639e58f6';
       expect(getAssociatedCacheBehavior('noPolicy').CachePolicyId).to.eq(defaultCachePolicyId);
