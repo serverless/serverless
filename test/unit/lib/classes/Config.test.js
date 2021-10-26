@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const Config = require('../../../../lib/classes/Config');
 const Serverless = require('../../../../lib/Serverless');
 
-const serverless = new Serverless();
+const serverless = new Serverless({ commands: [], options: {} });
 
 describe('Config', () => {
   describe('#constructor()', () => {

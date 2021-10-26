@@ -10,7 +10,7 @@ describe('#generateArtifactDirectoryName()', () => {
   let awsPackage;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     const options = {
       stage: 'dev',
       region: 'us-east-1',

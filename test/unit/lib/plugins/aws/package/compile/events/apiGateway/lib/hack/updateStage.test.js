@@ -29,7 +29,7 @@ describe('#updateStage()', () => {
   let context;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.service.service = 'my-service';
     options = { stage: 'dev', region: 'us-east-1' };
     awsProvider = new AwsProvider(serverless, options);
