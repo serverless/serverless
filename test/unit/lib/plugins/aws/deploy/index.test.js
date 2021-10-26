@@ -422,7 +422,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json',
       })
       .returns({
-        Metadata: { filesha256: 'qxp+iwSTMhcRUfHzka4AE4XAWawS8GnEyBh1WpGb7Vw=' },
+        Metadata: { filesha256: 'EpBwJbYct8iN0jajCnu9YUVrjH9230SqiUMYxqnSanQ=' },
       });
     s3HeadObjectStub
       .withArgs({
