@@ -436,6 +436,68 @@ describe('EventBridgeEvents', () => {
             },
             functions: {
               basic: {
+                versionFunction: false,
+                events: [
+                  {
+                    eventBridge: {
+                      eventBus: eventBusName,
+                      schedule,
+                      pattern,
+                      input,
+                    },
+                  },
+                  {
+                    eventBridge: {
+                      eventBus: eventBusName,
+                      schedule,
+                      pattern,
+                      inputPath,
+                    },
+                  },
+                  {
+                    eventBridge: {
+                      eventBus: eventBusName,
+                      schedule,
+                      pattern,
+                      inputTransformer,
+                    },
+                  },
+                  {
+                    eventBridge: {
+                      eventBus: eventBusName,
+                      schedule,
+                      enabled: false,
+                      pattern,
+                    },
+                  },
+                  {
+                    eventBridge: {
+                      eventBus: eventBusName,
+                      schedule,
+                      enabled: true,
+                      pattern,
+                    },
+                  },
+                  {
+                    eventBridge: {
+                      eventBus: eventBusName,
+                      schedule,
+                      pattern,
+                      retryPolicy,
+                    },
+                  },
+                  {
+                    eventBridge: {
+                      eventBus: eventBusName,
+                      schedule,
+                      pattern,
+                      deadLetterQueueArn,
+                    },
+                  },
+                ],
+              },
+              other: {
+                versionFunction: true,
                 events: [
                   {
                     eventBridge: {
@@ -502,7 +564,7 @@ describe('EventBridgeEvents', () => {
         cfResources = cfTemplate.Resources;
         naming = awsNaming;
         eventBusLogicalId = naming.getEventBridgeEventBusLogicalId(eventBusName);
-        ruleResource = getRuleResourceEndingWith(cfResources, '1');
+        ruleResource = getRuleResourceEndingWith(cfResources, '-basic-rule-1');
         ruleTarget = ruleResource.Properties.Targets[0];
       });
 
@@ -574,6 +636,12 @@ describe('EventBridgeEvents', () => {
 
       it('should create a rule that references correct function in target', () => {
         expect(ruleTarget.Arn['Fn::GetAtt'][0]).to.equal(naming.getLambdaLogicalId('basic'));
+      });
+
+      it('should create a rule that references correct function version in target', () => {
+        const otherRuleResource = getRuleResourceEndingWith(cfResources, '-other-rule-1');
+        const otherRuleTarget = otherRuleResource.Properties.Targets[0];
+        expect(otherRuleTarget.Arn.Ref).to.match(naming.getLambdaVersionLogicalIdRegex('other'));
       });
 
       it('should create a lambda permission resource that correctly references event bus in SourceArn', () => {
