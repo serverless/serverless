@@ -11,7 +11,7 @@ describe('#compileAuthorizers()', () => {
   let awsCompileApigEvents;
 
   beforeEach(() => {
-    const serverless = new Serverless();
+    const serverless = new Serverless({ commands: [], options: {} });
     serverless.setProvider('aws', new AwsProvider(serverless));
     serverless.service.service = 'first-service';
     serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
