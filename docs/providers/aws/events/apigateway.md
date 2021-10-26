@@ -1654,16 +1654,17 @@ provider:
   name: aws
   runtime: nodejs12.x
 
-  resourcePolicy:
-    - Effect: Allow
-      Principal: '*'
-      Action: execute-api:Invoke
-      Resource:
-        - execute-api:/*/*/*
-      Condition:
-        IpAddress:
-          aws:SourceIp:
-            - '123.123.123.123'
+  apiGateway:
+    resourcePolicy:
+      - Effect: Allow
+        Principal: '*'
+        Action: execute-api:Invoke
+        Resource:
+          - execute-api:/*/*/*
+        Condition:
+          IpAddress:
+            aws:SourceIp:
+              - '123.123.123.123'
 ```
 
 ## Compression
