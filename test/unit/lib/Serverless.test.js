@@ -33,7 +33,7 @@ describe('Serverless', () => {
 
   describe('#constructor()', () => {
     it('should set the correct config if a config object is passed', () => {
-      const configObj = { some: 'config' };
+      const configObj = { some: 'config', commands: [], options: {} };
       const serverlessWithConfig = new Serverless(configObj);
 
       expect(serverlessWithConfig.config.some).to.equal('config');
