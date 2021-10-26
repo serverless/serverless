@@ -49,7 +49,7 @@ class MyPlugin {
 
     this.hooks = {
       'my-command:run': () => {
-        console.log('My command runs');
+        // Do something
       },
     };
   }
@@ -61,13 +61,13 @@ For each event, an additional `before` and `after` event is created:
 ```js
 this.hooks = {
   'before:my-command:run': () => {
-    console.log('Before');
+    // Before my command runs
   },
   'my-command:run': () => {
-    console.log('My command runs');
+    // My command runs
   },
   'after:my-command:run': () => {
-    console.log('After');
+    // After
   },
 };
 ```
@@ -106,7 +106,7 @@ class MyPlugin {
     };
 
     this.hooks = {
-      'my-command:run': this.run.bind(this),
+      'my-command:run': () => this.run(),
     };
   }
 

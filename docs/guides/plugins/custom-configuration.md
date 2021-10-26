@@ -34,7 +34,7 @@ class MyPlugin {
   constructor(serverless) {
     this.serverless = serverless;
     this.hooks = {
-      'before:deploy': this.beforeDeploy.bind(this),
+      'before:deploy': () => this.beforeDeploy(),
     };
   }
 

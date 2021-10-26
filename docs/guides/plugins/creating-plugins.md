@@ -32,7 +32,7 @@ The simplest way to create a Serverless Framework plugin is to write a JavaScrip
 
 class MyPlugin {
   constructor() {
-    console.log('My plugin is loaded.');
+    // The plugin is loaded
   }
 }
 
@@ -100,22 +100,22 @@ Plugins can "hook" into existing lifecycle events to add behavior to commands li
 class MyPlugin {
   constructor() {
     this.hooks = {
-      'initialize': this.init.bind(this),
-      'before:deploy:deploy': this.beforeDeploy.bind(this),
-      'after:deploy:deploy': this.afterDeploy.bind(this),
+      'initialize': () => this.init(),
+      'before:deploy:deploy': () => this.beforeDeploy(),
+      'after:deploy:deploy': () => this.afterDeploy(),
     };
   }
 
   init() {
-    console.log('Initialization');
+    // Initialization
   }
 
   beforeDeploy() {
-    console.log('Before deploy');
+    // Before deploy
   }
 
   afterDeploy() {
-    console.log('After deploy');
+    // After deploy
   }
 }
 
@@ -135,7 +135,7 @@ class MyPlugin {
   constructor(serverless) {
     this.serverless = serverless;
     this.hooks = {
-      initialize: this.init.bind(this),
+      initialize: () => this.init(),
     };
   }
 
