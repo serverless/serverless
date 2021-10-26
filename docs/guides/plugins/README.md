@@ -57,6 +57,8 @@ custom:
   customkey: customvalue
 ```
 
+Note for plugin authors: read [Extending the configuration](custom-configuration.md) to learn how to enhance `serverless.yml` with configuration validation.
+
 ## Service local plugin
 
 If you are working on a plugin, or have a plugin that is just designed for one project, it can be loaded from local files:
