@@ -15,6 +15,8 @@ describe('#naming()', () => {
     options = {
       stage: 'dev',
       region: 'us-east-1',
+      commands: [],
+      options: {},
     };
     serverless = new Serverless(options);
     sdk = new SDK(serverless, options);

@@ -10,7 +10,7 @@ describe('AwsCompileIoTEvents', () => {
   let awsCompileIoTEvents;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
     serverless.setProvider('aws', new AwsProvider(serverless));
     awsCompileIoTEvents = new AwsCompileIoTEvents(serverless);
