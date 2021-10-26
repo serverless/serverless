@@ -61,6 +61,12 @@ To write a formatted "success" message, use the following helper:
 log.success('The task executed with success');
 ```
 
+Log methods also support the printf format:
+
+```js
+log.warning('Here is a %s log', 'formatted');
+```
+
 **Best practices:**
 
 - **Keep the default CLI output minimal.**
@@ -79,6 +85,7 @@ By default, plugins should write messages to `stderr` via the `log` object. To w
 class MyPlugin {
   constructor(serverless, cliOptions, { writeText }) {
     writeText('Command output');
+    writeText(['Here is a', 'multi-line output']);
   }
 }
 ```
@@ -115,16 +122,6 @@ The "Serverless red" color (`#fd5750`) is used to grab the user's attention:
 
 - It should be used minimally, and maximum once per command.
 - It should be used only to grab attention to the command's most important information.
-
-### Multi-line and formatted strings
-
-All log methods accept a string, a formatted string, or a multiline message:
-
-```js
-log.warning('Here is a log');
-log.warning('Here is a %s log', 'formatted');
-log.warning(['Here is a', 'multi-line log']);
-```
 
 ## Errors
 
