@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Plugins - Custom commands
-menuText: Plugins
-menuOrder: 14
+menuText: Custom commands
+menuOrder: 3
 description: How to create custom Serverless Framework commands via a plugin
 layout: Doc
 -->

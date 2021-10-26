@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Plugins - Extending the configuration
-menuText: Plugins
-menuOrder: 14
+menuText: Extending the configuration
+menuOrder: 5
 description: How to extend the serverless.yml syntax with custom configuration via a plugin
 layout: Doc
 -->
