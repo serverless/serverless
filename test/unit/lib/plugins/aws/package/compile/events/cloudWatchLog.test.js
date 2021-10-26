@@ -10,7 +10,7 @@ describe('AwsCompileCloudWatchLogEvents', () => {
   let awsCompileCloudWatchLogEvents;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
     serverless.setProvider('aws', new AwsProvider(serverless));
     awsCompileCloudWatchLogEvents = new AwsCompileCloudWatchLogEvents(serverless);

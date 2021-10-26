@@ -14,7 +14,7 @@ describe('emptyS3Bucket', () => {
     stage: 'dev',
     region: 'us-east-1',
   };
-  const serverless = new Serverless();
+  const serverless = new Serverless({ commands: [], options: {} });
   serverless.service.service = 'emptyS3Bucket';
   serverless.setProvider('aws', new AwsProvider(serverless, options));
 

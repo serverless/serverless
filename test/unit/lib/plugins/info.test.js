@@ -13,7 +13,7 @@ describe('Info', () => {
   let serverless;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     info = new Info(serverless);
   });
 
