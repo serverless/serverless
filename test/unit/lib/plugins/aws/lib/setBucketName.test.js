@@ -12,7 +12,7 @@ describe('#setBucketName()', () => {
   let getServerlessDeploymentBucketNameStub;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.serviceDir = 'foo';
     const options = {
       stage: 'dev',
