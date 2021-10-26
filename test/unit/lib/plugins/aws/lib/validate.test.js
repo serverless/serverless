@@ -11,7 +11,7 @@ chai.use(require('chai-as-promised'));
 const expect = chai.expect;
 
 describe('#validate', () => {
-  const serverless = new Serverless();
+  const serverless = new Serverless({ commands: [], options: {} });
   let provider;
   const awsPlugin = {};
 
