@@ -81,7 +81,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/activemq.test.js', ()
       expect(defaultIamRole.Properties.Policies[0].PolicyDocument.Statement).to.deep.include({
         Effect: 'Allow',
         Action: ['mq:DescribeBroker'],
-        Resource: [brokerArn],
+        Resource: brokerArn,
       });
     });
 
@@ -89,7 +89,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/activemq.test.js', ()
       expect(defaultIamRole.Properties.Policies[0].PolicyDocument.Statement).to.deep.include({
         Effect: 'Allow',
         Action: ['secretsmanager:GetSecretValue'],
-        Resource: [basicAuthArn],
+        Resource: basicAuthArn,
       });
     });
 
