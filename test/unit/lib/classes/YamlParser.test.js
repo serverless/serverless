@@ -14,7 +14,7 @@ const { getTmpFilePath, getTmpDirPath } = require('../../../utils/fs');
 chai.use(require('chai-as-promised'));
 const expect = require('chai').expect;
 
-const serverless = new Serverless();
+const serverless = new Serverless({ commands: [], options: {} });
 
 describe('YamlParser', () => {
   describe('#parse()', () => {
