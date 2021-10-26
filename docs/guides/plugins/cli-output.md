@@ -38,7 +38,7 @@ class MyPlugin {
     log.warning('Warning');
     log.notice('Message');
     log.info('Verbose message'); // --verbose log
-    log.debug('Debug message'); // --debug log
+    log.debug('[my-plugin] Debug message'); // --debug log
   }
 }
 ```
