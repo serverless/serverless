@@ -21,7 +21,7 @@ Custom sources can be registered via `configurationVariablesSources` as an objec
 ```javascript
 'use strict';
 
-class SomePlugin {
+class MyPlugin {
   constructor() {
     this.configurationVariablesSources = {
       foo: {
@@ -84,7 +84,7 @@ custom:
 Parameters can be retrieved in the `params` argument:
 
 ```javascript
-class SomePlugin {
+class MyPlugin {
   constructor() {
     this.configurationVariablesSources = {
       foo: {
@@ -101,24 +101,24 @@ class SomePlugin {
 }
 ```
 
-## Resolving configuration values and options
+## Resolving variables, configuration values and options
 
-It is possible to retrieve other configuration values and CLI options in the variable resolver:
+It is possible to retrieve other variables, configuration values and CLI options in the variable resolver:
 
 ```javascript
-class SomePlugin {
+class MyPlugin {
   constructor() {
     this.configurationVariablesSources = {
       foo: {
-        async resolve({ resolveConfigurationProperty, options }) {
+        async resolve({ resolveVariable, options }) {
           // `options` is CLI options
-          // `resolveConfigurationProperty` allows to access other configuration properties,
-          // and guarantees to return a fully resolved form (even if property is configured with variables)
-          const stage =
-            options.stage || (await resolveConfigurationProperty(['provider', 'stage'])) || 'dev';
+          // `resolveVariable` resolves other variables (for example here: `${sls:stage}`)
+          const stage = await resolveVariable('sls:stage');
+          // To retrieve a configuration value from serverless.yml, use the `self:xxx` variable source, for example:
+          // await resolveVariable('self:provider.region')
 
           return {
-            value: `Resolving with ${stage}`,
+            value: `The stage is ${stage}`,
           };
         },
       },
