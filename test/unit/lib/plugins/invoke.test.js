@@ -16,7 +16,7 @@ describe('Invoke', () => {
 
   beforeEach(() => {
     ({ restoreEnv } = overrideEnv());
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     invoke = new Invoke(serverless);
   });
 
