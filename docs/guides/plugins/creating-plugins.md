@@ -70,7 +70,7 @@ It is also a good practice to add `serverless` to the `peerDependencies` section
 {
   ...
   "peerDependencies": {
-    "serverless": "^2.60.0"
+    "serverless": "^2.60 || 3"
   }
 }
 ```
