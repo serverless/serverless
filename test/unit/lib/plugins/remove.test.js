@@ -11,7 +11,7 @@ describe('Remove', () => {
   let serverless;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     remove = new Remove(serverless);
   });
 
