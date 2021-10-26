@@ -9,7 +9,7 @@ const sinon = require('sinon');
 describe('AwsCommon', () => {
   let awsCommon;
   beforeEach(() => {
-    const serverless = new Serverless();
+    const serverless = new Serverless({ commands: [], options: {} });
     const options = {
       stage: 'dev',
       region: 'us-east-1',

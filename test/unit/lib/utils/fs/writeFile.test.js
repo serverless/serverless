@@ -17,7 +17,7 @@ describe('#writeFile()', function () {
   this.timeout(0);
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
   });
 
   it('should write a .json file asynchronously', () => {

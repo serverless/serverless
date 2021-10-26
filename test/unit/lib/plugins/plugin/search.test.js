@@ -32,7 +32,7 @@ describe('PluginSearch', () => {
   ];
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.cli = new CLI(serverless);
     const options = {};
     pluginSearch = new PluginSearch(serverless, options);

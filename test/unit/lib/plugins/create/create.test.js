@@ -21,7 +21,7 @@ describe('Create', () => {
   let create;
 
   before(() => {
-    const serverless = new Serverless();
+    const serverless = new Serverless({ commands: [], options: {} });
     const options = {};
     create = new Create(serverless, options);
     create.serverless.cli = new serverless.classes.CLI();
