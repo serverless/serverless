@@ -39,7 +39,7 @@ describe('PluginUninstall', () => {
   ];
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.cli = new CLI(serverless);
     const options = {};
     pluginUninstall = new PluginUninstall(serverless, options);
