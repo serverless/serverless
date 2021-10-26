@@ -47,26 +47,6 @@ plugins:
   - custom-serverless-plugin
 ```
 
-The `plugins` section supports two formats:
-
-Array object:
-
-```yml
-plugins:
-  - plugin1
-  - plugin2
-```
-
-Enhanced plugins object:
-
-```yml
-plugins:
-  localPath: './custom_serverless_plugins'
-  modules:
-    - plugin1
-    - plugin2
-```
-
 Some plugins require extra configuration. The `custom` section in `serverless.yml` is where you can add extra configuration for plugins (the plugin's documentation will tell you if you need to add anything there):
 
 ```yml
@@ -79,35 +59,14 @@ custom:
 
 ## Service local plugin
 
-If you are working on a plugin or have a plugin that is just designed for one project, it can be loaded from the local `.serverless_plugins` folder at the root of your service. Local plugins can be added in the `plugins` array in `serverless.yml`.
+If you are working on a plugin, or have a plugin that is just designed for one project, it can be loaded from local files:
 
 ```yml
 plugins:
-  - custom-serverless-plugin
+  - ./local-directory/custom-serverless-plugin
 ```
 
-The local plugin folder can be customized:
-
-```yml
-plugins:
-  localPath: './custom_serverless_plugins'
-  modules:
-    - custom-serverless-plugin
-```
-
-The `custom-serverless-plugin` will be loaded from the `custom_serverless_plugins` directory at the root of your service. If the `localPath` is not provided or empty, the `.serverless_plugins` directory will be used.
-
-The plugin will be loaded based on being named `custom-serverless-plugin.js` or `custom-serverless-plugin/index.js` in the root of `localPath` folder (`.serverless_plugins` by default).
-
-If you want to load a plugin from a specific directory without affecting other plugins, you can also specify a path relative to the root of your service:
-
-```yaml
-plugins:
-  # This plugin will be loaded from the `.serverless_plugins/` or `node_modules/` directories
-  - custom-serverless-plugin
-  # This plugin will be loaded from the `sub/directory/` directory
-  - ./sub/directory/another-custom-plugin
-```
+The path must start with `./` and is relative to the root of your service.
 
 ## Load Order
 
