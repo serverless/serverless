@@ -14,11 +14,22 @@ layout: Doc
 
 # CLI output in plugins
 
+**Warning:** the API documented on this page is available in Serverless Framework v3, which is not released yet. This documentation is published to help plugins upgrade to v3.
+
 Plugins can integrate and extend the CLI output of the Serverless Framework in different ways.
 
 ## Writing to the output
 
-Plugins can log messages to the CLI output via a standard `log` interface:
+In Serverless Framework v2, plugins could write to the CLI output via `serverless.cli.log()`:
+
+```js
+// This approach is deprecated:
+serverless.cli.log('Message');
+```
+
+The method above is deprecated. It should no longer be used in Serverless Framework v3.
+
+Instead, plugins can log messages to the CLI output via a standard `log` interface:
 
 ```js
 class MyPlugin {
