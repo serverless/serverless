@@ -14,7 +14,7 @@ describe('#moveArtifactsToPackage()', () => {
   const moveServerlessPath = path.join(moveBasePath, '.serverless');
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     awsCommon = new AWSCommon(serverless, {});
 
     serverless.serviceDir = moveBasePath;
@@ -104,7 +104,7 @@ describe('#moveArtifactsToTemp()', () => {
   const moveTargetPath = path.join(moveBasePath, 'target');
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     awsCommon = new AWSCommon(serverless, {});
 
     serverless.serviceDir = moveBasePath;

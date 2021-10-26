@@ -15,7 +15,7 @@ describe('CLI', () => {
   let serverless;
 
   beforeEach(() => {
-    serverless = new Serverless({});
+    serverless = new Serverless({ commands: [], options: {} });
   });
 
   describe('#constructor()', () => {

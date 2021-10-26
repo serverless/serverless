@@ -15,7 +15,7 @@ describe('#saveCompiledTemplate()', () => {
 
   beforeEach(() => {
     const options = {};
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.setProvider('aws', new AwsProvider(serverless, options));
     awsPackage = new AwsPackage(serverless, options);
     serverless.serviceDir = 'my-service';

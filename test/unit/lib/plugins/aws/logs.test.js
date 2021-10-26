@@ -21,7 +21,7 @@ describe('AwsLogs', () => {
       region: 'us-east-1',
       function: 'first',
     };
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     const provider = new AwsProvider(serverless, options);
     provider.cachedCredentials = {
       credentials: { accessKeyId: 'foo', secretAccessKey: 'bar' },
@@ -335,7 +335,7 @@ describe('AwsLogs', () => {
         region: 'us-east-1',
         function: 'first',
       };
-      serverless = new Serverless();
+      serverless = new Serverless({ commands: [], options: {} });
       const provider = new AwsProvider(serverless, options);
       provider.cachedCredentials = {
         credentials: { accessKeyId: 'foo', secretAccessKey: 'bar' },

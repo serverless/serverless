@@ -29,7 +29,7 @@ describe('zipService', () => {
 
   beforeEach(() => {
     tmpDirPath = getTmpDirPath();
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.service.service = 'first-service';
     serverless.serviceDir = tmpDirPath;
     packagePlugin = new Package(serverless, {});

@@ -10,7 +10,7 @@ describe('#compileResources()', () => {
   let awsCompileApigEvents;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.setProvider('aws', new AwsProvider(serverless));
     serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
     awsCompileApigEvents = new AwsCompileApigEvents(serverless);

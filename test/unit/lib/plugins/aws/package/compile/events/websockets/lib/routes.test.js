@@ -9,7 +9,7 @@ describe('#compileRoutes()', () => {
   let awsCompileWebsocketsEvents;
 
   beforeEach(() => {
-    const serverless = new Serverless();
+    const serverless = new Serverless({ commands: [], options: {} });
     serverless.setProvider('aws', new AwsProvider(serverless));
     serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
 

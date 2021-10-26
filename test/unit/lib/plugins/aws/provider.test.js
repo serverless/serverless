@@ -31,7 +31,7 @@ describe('AwsProvider', () => {
 
   beforeEach(() => {
     ({ restoreEnv } = overrideEnv());
-    serverless = new Serverless(options);
+    serverless = new Serverless({ ...options, commands: [], options: {} });
     serverless.cli = new serverless.classes.CLI();
     awsProvider = new AwsProvider(serverless, options);
   });
@@ -53,6 +53,8 @@ describe('AwsProvider', () => {
             even if http event is present and stage is ${stage}`, () => {
           const config = {
             stage,
+            commands: [],
+            options: {},
           };
           serverless = new Serverless(config);
 

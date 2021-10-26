@@ -422,7 +422,7 @@ describe('PluginManager', () => {
 
   beforeEach(() => {
     ({ restoreEnv } = overrideEnv({ whitelist: ['APPDATA', 'PATH'] }));
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.cli = new CLI();
     serverless.processedInput = { commands: ['print'], options: {} };
     pluginManager = new PluginManager(serverless);
@@ -1257,7 +1257,7 @@ describe('PluginManager', () => {
     let pluginManagerInstance;
 
     beforeEach(() => {
-      serverlessInstance = new Serverless();
+      serverlessInstance = new Serverless({ commands: [], options: {} });
       serverlessInstance.configurationInput = null;
       serverlessInstance.serviceDir = 'my-service';
       pluginManagerInstance = new PluginManager(serverlessInstance);

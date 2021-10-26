@@ -11,7 +11,7 @@ describe('#cleanupTempDir()', () => {
   let packageService;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     packageService = new Package(serverless);
 
     serverless.serviceDir = getTmpDirPath();

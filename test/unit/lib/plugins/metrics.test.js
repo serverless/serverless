@@ -9,7 +9,7 @@ describe('Metrics', () => {
   let serverless;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     const options = {};
     metrics = new Metrics(serverless, options);
   });

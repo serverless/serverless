@@ -21,7 +21,7 @@ describe('AwsCompileCloudFrontEvents', () => {
       stage: 'dev',
       region: 'us-east-1',
     };
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.processedInput = {
       commands: [],
     };

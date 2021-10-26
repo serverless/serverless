@@ -33,7 +33,7 @@ describe('checkForChanges', () => {
       stage: 'dev',
       region: 'us-east-1',
     };
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.serviceDir = 'my-service';
     provider = new AwsProvider(serverless, options);
     serverless.setProvider('aws', provider);

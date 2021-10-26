@@ -30,7 +30,7 @@ describe('createStack', () => {
   };
 
   beforeEach(() => {
-    const serverless = new Serverless();
+    const serverless = new Serverless({ commands: [], options: {} });
     serverless.setProvider('aws', new AwsProvider(serverless, {}));
     serverless.utils.writeFileSync(serverlessYmlPath, serverlessYml);
     serverless.serviceDir = tmpDirPath;

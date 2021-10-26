@@ -32,6 +32,8 @@ describe('AwsCompileFunctions', () => {
     const options = {
       stage: 'dev',
       region: 'us-east-1',
+      commands: [],
+      options: {},
     };
     serverless = new Serverless(options);
     awsProvider = new AwsProvider(serverless, options);

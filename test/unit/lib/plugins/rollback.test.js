@@ -9,7 +9,7 @@ describe('Rollback', () => {
   let serverless;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     rollback = new Rollback(serverless);
   });
 

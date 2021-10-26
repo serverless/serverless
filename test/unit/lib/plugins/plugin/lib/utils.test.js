@@ -34,7 +34,7 @@ describe('PluginUtils', () => {
   ];
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.cli = new CLI(serverless);
     const options = {};
     pluginUtils = new PluginInstall(serverless, options);

@@ -24,7 +24,7 @@ describe('#compileStage()', () => {
       stage: 'dev',
       region: 'us-east-1',
     };
-    const serverless = new Serverless();
+    const serverless = new Serverless({ commands: [], options: {} });
     serverless.setProvider('aws', new AwsProvider(serverless));
     serverless.service.service = 'my-service';
     serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };

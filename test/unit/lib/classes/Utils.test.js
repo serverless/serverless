@@ -16,7 +16,7 @@ describe('Utils', () => {
   let serverless;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     utils = new Utils(serverless);
   });
 

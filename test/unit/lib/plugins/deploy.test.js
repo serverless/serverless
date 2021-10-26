@@ -17,7 +17,7 @@ describe('Deploy', () => {
   let options;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     options = {};
     deploy = new Deploy(serverless, options);
     deploy.serverless.providers = { validProvider: true };
