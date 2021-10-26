@@ -10,7 +10,7 @@ describe('AwsCompileAlexaSmartHomeEvents', () => {
   let awsCompileAlexaSmartHomeEvents;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
     serverless.setProvider('aws', new AwsProvider(serverless));
     awsCompileAlexaSmartHomeEvents = new AwsCompileAlexaSmartHomeEvents(serverless);

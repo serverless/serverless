@@ -11,7 +11,7 @@ describe('AwsCompileSQSEvents', () => {
   let awsCompileSQSEvents;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.service.provider.compiledCloudFormationTemplate = {
       Resources: {
         IamRoleLambdaExecution: {
