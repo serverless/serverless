@@ -22,7 +22,7 @@ describe('AwsDeploy', () => {
   let options;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     options = {
       stage: 'dev',
       region: 'us-east-1',
