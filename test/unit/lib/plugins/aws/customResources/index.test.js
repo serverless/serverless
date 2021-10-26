@@ -36,7 +36,7 @@ describe('#addCustomResourceToService()', () => {
       region: 'us-east-1',
     };
     tmpDirPath = createTmpDir();
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.cli = new CLI();
     serverless.pluginManager.cliOptions = options;
     provider = new AwsProvider(serverless, options);
