@@ -12,7 +12,7 @@ chai.use(require('chai-as-promised'));
 const { expect } = chai;
 
 describe('monitorStack', () => {
-  const serverless = new Serverless();
+  const serverless = new Serverless({ commands: [], options: {} });
   const awsPlugin = {};
 
   beforeEach(() => {
