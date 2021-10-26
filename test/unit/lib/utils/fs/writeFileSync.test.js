@@ -11,7 +11,7 @@ describe('#writeFileSync()', () => {
   let serverless;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
   });
 
   it('should write a .json file synchronously', () => {
