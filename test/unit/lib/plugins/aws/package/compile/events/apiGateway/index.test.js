@@ -14,7 +14,7 @@ describe('AwsCompileApigEvents', () => {
   let awsCompileApigEvents;
 
   beforeEach(() => {
-    const serverless = new Serverless();
+    const serverless = new Serverless({ commands: [], options: {} });
     serverless.service.environment = {
       vars: {},
       stages: {
