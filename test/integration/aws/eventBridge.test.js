@@ -50,7 +50,12 @@ describe('AWS - Event Bridge Integration Test', () => {
       arnEventBusArn = (await createEventBus(arnEventBusName)).EventBusArn;
       // update the YAML file with the arn
       await serviceData.updateConfig({
-        disabledDeprecations: ['AWS_EVENT_BRIDGE_CUSTOM_RESOURCE'],
+        disabledDeprecations: ['AWS_EVENT_BRIDGE_CUSTOM_RESOURCE_LEGACY_OPT_IN'],
+        provider: {
+          eventBridge: {
+            useCloudFormation: false,
+          },
+        },
         functions: {
           eventBusDefaultArn: {
             events: [
@@ -183,11 +188,6 @@ describe('AWS - Event Bridge Integration Test', () => {
       // NOTE: deployment can only be done once the Event Bus is created
       arnEventBusArn = (await createEventBus(arnEventBusName)).EventBusArn;
       await serviceData.updateConfig({
-        provider: {
-          eventBridge: {
-            useCloudFormation: true,
-          },
-        },
         functions: {
           eventBusDefaultArn: {
             events: [
