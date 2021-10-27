@@ -151,7 +151,9 @@ Plugins can create an interactive progress:
 ```js
 class MyPlugin {
   constructor(serverless, cliOptions, { progress }) {
-    const myProgress = progress.create('Doing extra work in my-plugin');
+    const myProgress = progress.create({
+      message: 'Doing extra work in my-plugin',
+    });
     // ...
     myProgress.update('Almost finished');
     // ...
@@ -169,16 +171,19 @@ In case of parallel processing (for example compiling multiple files in parallel
   - Bad: "Compiling"
   - Bad: "[Webpack] Compiling" (avoid prefixes)
   - Good: "Compiling with webpack"
-- Displaying multiple progress should be exceptional, and limited to 3-4 progress at a time. It is better to keep the output minimal than too noisy.
+- Displaying multiple progresses should be exceptional, and limited to 3-4 progresses at a time. It is better to keep the output minimal than too noisy.
 
 Note that it is possible to give a unique name to a progress. That name can be used to retrieve the progress without having to pass the instance around:
 
 ```js
 // Progress without any name:
-const myProgress = progress.create('Working in my-plugin');
+const myProgress = progress.create({
+  message: 'Doing extra work in my-plugin',
+});
 
 // Progress with a unique name
-progress.create('Working in my-plugin', {
+progress.create({
+  message: 'Doing extra work in my-plugin',
   name: 'my-plugin-progress', // Try to make the name unique across all plugins
 });
 // elsewhere...
