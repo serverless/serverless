@@ -356,13 +356,13 @@ Eventually if you have a strong reason to stick to current convention, you may e
 
 <a name="KINESIS_CONSUMER_NAME_CONTAINING_SERVICE"><div>&nbsp;</div></a>
 
-## Kinesis consumer name will be changed which will lead downtime during re-deployment
+## Kinesis consumer name will be changed to ensure more uniqueness
 
 Deprecation code: `KINESIS_CONSUMER_NAME_CONTAINING_SERVICE`
 
-Starting with v3.0.0, Kinesis consumer name will be changed from `${functionName}${streamName}Consumer` to `${functionName}${streamName}${serviceName}${stage}Consumer`.
+Starting with v3.0.0, Kinesis consumer name will be changed. This will lead to downtime during re-deployment. Specifically, the naming pattern will be changed from `${functionName}${streamName}Consumer` to `${functionName}${streamName}${serviceName}${stage}Consumer`.
 
-Adapt to this convention now by setting `provider.kinesis.consumerNamingMode` to `serviceSpecific`.
+Adapt to this convention now by setting `provider.kinesis.consumerNamingMode` to `serviceSpecific` in your serverless.yml file.
 
 The consequence for consumer name change is there will be some downtime during deployment between the time the old consumer is deleted and the new consumer is created. While no data is supposed to be lost, there may be a delay in consuming stream data.
 
