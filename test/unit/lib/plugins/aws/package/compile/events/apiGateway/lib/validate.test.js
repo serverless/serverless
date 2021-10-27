@@ -1421,6 +1421,22 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/valida
       command: 'package',
       configExt: {
         functions: {
+          authorized: {
+            handler: 'index.handler',
+            events: [
+              {
+                http: {
+                  method: 'get',
+                  path: '/authorized',
+                  authorizer: {
+                    type: 'REQUEST',
+                    name: 'basic',
+                    resultTtlInSeconds: 0,
+                  },
+                },
+              },
+            ],
+          },
           corsDefault: {
             handler: 'index.handler',
             events: [
@@ -1470,5 +1486,10 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/valida
       getApiGatewayMethod('/cors-default-set-by-object', 'OPTIONS').Properties.Integration
         .IntegrationResponses[0].ResponseParameters
     ).to.deep.eq(expected);
+  });
+
+  it('Should not set default `identitySource` for `request` authorizers with caching disabled', async () => {
+    expect(cfResources[naming.getAuthorizerLogicalId('basic')].Properties.IdentitySource).to.be
+      .undefined;
   });
 });
