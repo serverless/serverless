@@ -127,20 +127,20 @@ The "Serverless red" color (`#fd5750`) is used to grab the user's attention:
 
 The Serverless Framework differentiates between 2 errors:
 
-- user errors (wrong input, etc.)
-- internal errors (aka bugs)
+- user errors (wrong input, invalid configuration, etc.)
+- programmer errors (aka bugs)
 
-To throw a user error and have it properly formatted, use Serverless' error class:
+To throw a **user error** and have it properly formatted, use Serverless' error class:
 
 ```js
 throw new serverless.classes.Error('Invalid configuration in X');
 ```
 
-All other errors are considered internal errors (and are properly formatted in the CLI output as well).
+All other errors are considered programmer errors by default (and are properly formatted in the CLI output as well).
 
 **Best practices:**
 
-- If an error should stop the execution of the command, throw an exception.
+- If an error should stop the execution of the command, use `throw`.
 - If an error should _not_ stop the execution of the command (which should be exceptional), log it via `log.error()`.
   - For example any execution error in `serverless-offline` should not stop the local server.
 
