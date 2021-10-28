@@ -4,6 +4,7 @@ const chai = require('chai');
 const path = require('path');
 const spawn = require('child-process-ext/spawn');
 const { expect } = require('chai');
+const fixturesEngine = require('../../fixtures/programmatic');
 
 chai.use(require('chai-as-promised'));
 
@@ -16,8 +17,17 @@ describe('test/unit/commands/doctor.test.js', async () => {
   });
 
   it('should print health status after command which triggered deprecation', async () => {
+    const { servicePath: serviceDir } = await fixturesEngine.setup('httpApi', {
+      configExt: {
+        provider: {
+          httpApi: {
+            useProviderTags: true,
+          },
+        },
+      },
+    });
     // Trigger deprecation
-    await spawn('node', [serverlessPath, 'config', '--foo']);
+    await spawn('node', [serverlessPath, 'print'], { cwd: serviceDir });
 
     // Gather Health status
     expect(String((await spawn('node', [serverlessPath, 'doctor'])).stdoutBuffer)).to.include(
