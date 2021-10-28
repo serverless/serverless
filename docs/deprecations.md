@@ -322,9 +322,11 @@ Org, app, service, stage, and region are required to resolve variables when logg
 
 Deprecation code: `LAMBDA_HASHING_VERSION_V2`
 
-Resolution of lambda version hashes was improved with better (fixed deterministism issues) algorithm, which will be used starting with v3.0.0
+Lambda version hashes were improved with a better algorithm (that fixed determinism issues). It will be used by default starting with v3.0.0.
 
-You can adapt your services to use it now, by setting `provider.lambdaHashingVersion` to `20201221`.
+You can adapt your services to use it now by setting `provider.lambdaHashingVersion` to `20201221`.
+
+While not recommended, you can keep using the old hashing algorithm by setting `provider.lambdaHashingVersion` to `20200924`. That will silence the deprecation and allow to upgrade to v3.
 
 **Notice:** If you apply this on already deployed service without any changes to lambda code, you might encounter an error similar to the one below:
 
