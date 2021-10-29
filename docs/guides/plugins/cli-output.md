@@ -38,7 +38,7 @@ class MyPlugin {
     log.warning('Warning');
     log.notice('Message');
     log.info('Verbose message'); // --verbose log
-    log.debug('[my-plugin] Debug message'); // --debug log
+    log.debug('Debug message'); // --debug log
   }
 }
 ```
@@ -73,7 +73,7 @@ log.warning('Here is a %s log', 'formatted');
 - Log most information to the `--verbose` output.
 - Warnings should be used exceptionally. Consider whether the plugin should instead throw an exception, log a `--verbose` message or trigger a deprecation (see below).
 - Before using `log.error()`, consider [throwing an exception](#errors): exceptions are automatically caught by the Serverless Framework and formatted with details.
-- Log developer-oriented messages to the `--debug` output, and prefix the messages with the name of the plugin (`[plugin-name] My message`).
+- Debugging logs should be logged to the `--debug` level. Debug logs can be namespaced following the [`debug` convention](https://github.com/visionmedia/debug#usage) via `log.get('my-namespace').debug('Debug message')`. Such logs can then be filtered in the CLI output via `--debug=plugin-name:my-namespace`.
 
 **By default, logs are written to `stderr`**, which displays in terminals (humans cannot tell the difference). This is intentional: plugins can safely log extra messages to any command, even commands meant to be piped or parsed by another program. Read the next section to learn more.
 
