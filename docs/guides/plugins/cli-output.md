@@ -93,7 +93,7 @@ class MyPlugin {
 **Best practices:**
 
 - `stdout` output is usually meant to be piped to/parsed by another program.
-- Plugins should only write to `stdout` in commands they own (to avoid breaking the output of other commands).
+- Plugins should only write to `stdout` in commands they define (to avoid breaking the output of other commands).
 - The only content written to `stdout` should be the main output of the command.
 
 Take, for example, the `serverless invoke` command:
