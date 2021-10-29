@@ -39,9 +39,7 @@ functions:
   createUser: # Function name
     handler: handler.createUser # Reference to file handler.js & exported function 'createUser'
     events: # All events associated with this function
-      - http:
-          path: users/create
-          method: post
+      - httpApi: 'POST /users/create'
 ```
 
 Events are objects, which can contain event-specific information.
@@ -56,15 +54,9 @@ functions:
   createUser: # Function name
     handler: handler.users # Reference to file handler.js & exported function 'users'
     events: # All events associated with this function
-      - http:
-          path: users/create
-          method: post
-      - http:
-          path: users/update
-          method: put
-      - http:
-          path: users/delete
-          method: delete
+      - httpApi: 'POST /users/create'
+      - httpApi: 'PUT /users/update'
+      - httpApi: 'DELETE /users/delete'
 ```
 
 ## Types
@@ -81,9 +73,7 @@ functions:
   createUser: # Function name
     handler: handler.users # Reference to file handler.js & exported function 'users'
     events: # All events associated with this function
-      - http:
-          path: users/{id}
-          method: get
+      - httpApi: 'GET /users/{id}'
 ```
 
 ## Deploying

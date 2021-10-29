@@ -115,10 +115,7 @@ functions:
   write-post:
     handler: handler.writePost
     events:
-      - http:
-          method: post
-          path: ${self:service}/api/posts/new
-          cors: true
+      - httpApi: 'POST /api/posts/new'
 
 resources:
   extensions:

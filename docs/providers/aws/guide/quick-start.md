@@ -73,7 +73,7 @@ Looking to get started with something other than Node or Python? No problem. You
 
 ### Set up an endpoint
 
-An Event is anything that can trigger your serverless functions. In this case, you need to define an endpoint in your `serverless.yml` that will trigger your serverless function.
+An Event is anything that can trigger your serverless functions. You can define an endpoint in your `serverless.yml` that will trigger your serverless function.
 
 ```yaml
 functions:
@@ -81,9 +81,7 @@ functions:
     handler: handler.hello
     # Add the following lines:
     events:
-      - http:
-          path: hello
-          method: post
+      - httpApi: 'POST /hello'
 ```
 
 ### Deploy the Service
@@ -99,7 +97,7 @@ serverless deploy -v
 Replace the URL in the following curl command with your returned endpoint URL, which you can find in the `sls deploy` output, to hit your URL endpoint.
 
 ```bash
-$ curl -X POST https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/dev/hello
+$ curl -X POST https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/hello
 ```
 
 ### Invoke your Service's function
@@ -127,7 +125,7 @@ serverless invoke -f hello -d '{"body": "not a json string"}' # causes a JSON pa
 ```
 
 ```bash
-$ curl https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/dev/hello --data-binary 'not a json string' # causes a JSON parsing error so error Insights will populate
+$ curl https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/hello --data-binary 'not a json string' # causes a JSON parsing error so error Insights will populate
 ```
 
 ## Cleanup
