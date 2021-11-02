@@ -33,6 +33,8 @@ describe('#updateStage()', () => {
     options = { stage: 'dev', region: 'us-east-1' };
     awsProvider = new AwsProvider(serverless, options);
     serverless.setProvider('aws', awsProvider);
+    // Ensure that memoized function will be properly stubbed
+    awsProvider.getAccountInfo;
     providerGetAccountInfoStub = sinon.stub(awsProvider, 'getAccountInfo').resolves({
       accountId: '123456',
       partition: 'aws',
