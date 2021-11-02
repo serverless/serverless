@@ -128,6 +128,8 @@ describe('AwsDeployFunction', () => {
     let getRoleStub;
 
     beforeEach(() => {
+      // Ensure that memoized function will be properly stubbed
+      awsDeployFunction.provider.getAccountInfo;
       getAccountInfoStub = sinon
         .stub(awsDeployFunction.provider, 'getAccountInfo')
         .resolves({ accountId: '123456789012', partition: 'aws' });

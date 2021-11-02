@@ -191,6 +191,16 @@ describe('test/unit/lib/plugins/aws/deploy/lib/extendedValidate.test.js', () => 
           },
         },
       },
+      awsRequestStubMap: {
+        STS: {
+          getCallerIdentity: {
+            ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+            UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+            Account: '1234567890',
+            Arn: 'arn:aws:iam::1234567890:user/test',
+          },
+        },
+      },
       command: 'deploy',
       lastLifecycleHookName: 'before:deploy:deploy',
     });
