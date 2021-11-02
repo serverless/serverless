@@ -13,7 +13,7 @@ layout: Doc
 
 # Frequently Asked Questions
 
-# Is there a free tier?
+## Is there a free tier?
 
 Yes, up to 1 concurrent build with the Free tier. No credit card required, just sign up.
 
@@ -44,10 +44,6 @@ your application.
 Yes! Serverless CI/CD is designed around the Serverless Framework to provide a seamless experience for developers.
 Anything you can deploy with the Serverless Framework you can deploy with Serverless CI/CD. The Serverless Framework is
 extensible with Plugins , so it works with a broad range of services.
-
-## Is Serverless CI/CD also available for Serverless Framework Pro Enterprise tier?
-
-Yes, Serverless CI/CD works with the Serverless Framework Pro Enterprise tier and it is available for self-hosting.
 
 ## Are all runtimes supported?
 

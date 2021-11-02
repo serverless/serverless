@@ -117,7 +117,9 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
   });
 
   it('Should be ineffective, when not at service path', async () => {
-    const context = {};
+    const context = {
+      initial: {},
+    };
     expect(await step.isApplicable(context)).to.be.false;
     expect(context.inapplicabilityReasonCode).to.equal('NOT_IN_SERVICE_DIRECTORY');
   });
@@ -128,6 +130,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       configuration: {},
       configurationFilename: 'serverless.yml',
       options: {},
+      initial: {},
       inquirer,
     };
     expect(await step.isApplicable(context)).to.equal(false);
@@ -140,6 +143,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       configuration: { service: 'some-aws-service', provider: { name: 'aws', runtime: 'java8' } },
       configurationFilename: 'serverless.yml',
       options: {},
+      initial: {},
       inquirer,
     };
     expect(await step.isApplicable(context)).to.equal(false);
@@ -155,6 +159,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       },
       configurationFilename: 'serverless.yml',
       options: {},
+      initial: {},
       inquirer,
     };
     expect(await step.isApplicable(context)).to.equal(false);
@@ -192,6 +197,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       configuration,
       configurationFilename: 'serverless.yml',
       options: {},
+      initial: {},
       inquirer,
     };
     await overrideCwd(serviceDir, async () => {
@@ -209,6 +215,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       configuration,
       configurationFilename: 'serverless.yml',
       options: {},
+      initial: {},
       inquirer,
     };
     await overrideCwd(serviceDir, async () => {
@@ -233,6 +240,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       configuration,
       configurationFilename: 'serverless.yml',
       options: {},
+      initial: {},
       inquirer,
       stepHistory: new StepHistory(),
     };
@@ -264,6 +272,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       configuration,
       configurationFilename: 'serverless.yml',
       options: {},
+      initial: {},
       inquirer,
       stepHistory: new StepHistory(),
     };
@@ -289,6 +298,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       configuration,
       configurationFilename: 'serverless.yml',
       options: {},
+      initial: {},
       inquirer,
       stepHistory: new StepHistory(),
     };
@@ -315,6 +325,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configuration,
         configurationFilename: 'serverless.yml',
         options: {},
+        initial: {},
         inquirer,
         stepHistory: new StepHistory(),
       };
@@ -359,6 +370,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configuration,
         configurationFilename: 'serverless.yml',
         options: {},
+        initial: {},
         inquirer,
         stepHistory: new StepHistory(),
       };
@@ -405,6 +417,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configuration,
         configurationFilename: 'serverless.yml',
         options: {},
+        initial: {},
         inquirer,
         stepHistory: new StepHistory(),
       };
@@ -443,6 +456,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configuration,
         configurationFilename: 'serverless.yml',
         options: {},
+        initial: {},
         inquirer,
         stepHistory: new StepHistory(),
       };
@@ -487,6 +501,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configuration,
         configurationFilename: 'serverless.yml',
         options: {},
+        initial: {},
         inquirer,
         stepHistory: new StepHistory(),
       };
@@ -517,6 +532,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configuration,
         configurationFilename: 'serverless.yml',
         options: {},
+        initial: {},
         inquirer,
         stepHistory: new StepHistory(),
       };
@@ -547,6 +563,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configuration,
         configurationFilename: 'serverless.yml',
         options: {},
+        initial: {},
         inquirer,
         history: new Map([['dashboardLogin', []]]),
         stepHistory: new StepHistory(),
@@ -575,6 +592,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configuration,
         configurationFilename: 'serverless.yml',
         options: {},
+        initial: {},
         inquirer,
         history: new Map([
           ['dashboardLogin', []],
@@ -618,6 +636,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configuration,
         configurationFilename: 'serverless.yml',
         options: { org: 'testinteractivecli', app: 'other-app' },
+        initial: {},
         inquirer,
         history: new Map(),
         stepHistory: new StepHistory(),
@@ -659,6 +678,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configuration,
         configurationFilename: 'serverless.yml',
         options: { org: 'otherorg', app: 'app-from-flag' },
+        initial: {},
         inquirer,
         history: new Map(),
         stepHistory: new StepHistory(),
@@ -703,6 +723,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configuration,
         configurationFilename: 'serverless.yml',
         options: { org: 'otherorg', app: 'app-from-flag' },
+        initial: {},
         inquirer,
         history: new Map(),
         stepHistory: new StepHistory(),
@@ -732,6 +753,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configuration,
         configurationFilename: 'serverless.yml',
         options: { org: 'invalid-testinteractivecli', app: 'irrelevant' },
+        initial: {},
         inquirer,
         history: new Map(),
         stepHistory: new StepHistory(),
@@ -780,6 +802,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configuration,
         configurationFilename: 'serverless.yml',
         options: { org: 'invalid-testinteractivecli', app: 'irrelevant' },
+        initial: {},
         inquirer,
         history: new Map(),
         stepHistory: new StepHistory(),
@@ -828,6 +851,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configuration,
         configurationFilename: 'serverless.yml',
         options: { org: 'invalid-testinteractivecli', app: 'irrelevant' },
+        initial: {},
         inquirer,
         history: new Map(),
         stepHistory: new StepHistory(),
@@ -874,6 +898,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configuration,
         configurationFilename: 'serverless.yml',
         options: { org: 'testinteractivecli', app: 'invalid' },
+        initial: {},
         inquirer,
         history: new Map(),
         stepHistory: new StepHistory(),
@@ -919,6 +944,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         inquirer,
         options: {},
+        initial: {},
         history: new Map(),
         stepHistory: new StepHistory(),
       };
@@ -968,6 +994,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         inquirer,
         options: {},
+        initial: {},
         history: new Map(),
         stepHistory: new StepHistory(),
       };
@@ -1016,6 +1043,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         inquirer,
         options: {},
+        initial: {},
         history: new Map(),
         stepHistory: new StepHistory(),
       };
@@ -1058,6 +1086,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         inquirer,
         options: { app: 'app-from-flag' },
+        initial: {},
         history: new Map(),
         stepHistory: new StepHistory(),
       };
@@ -1097,6 +1126,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         inquirer,
         options: {},
+        initial: {},
         history: new Map(),
         stepHistory: new StepHistory(),
       };
@@ -1138,6 +1168,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         inquirer,
         options: { app: 'invalid-app-from-flag' },
+        initial: {},
         history: new Map(),
         stepHistory: new StepHistory(),
       };
@@ -1189,6 +1220,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         inquirer,
         options: {},
+        initial: {},
         history: new Map(),
         stepHistory: new StepHistory(),
       };
@@ -1238,6 +1270,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         inquirer,
         options: {},
+        initial: {},
         history: new Map(),
         stepHistory: new StepHistory(),
       };

@@ -72,7 +72,7 @@ describe('#generateCoreTemplate()', () => {
     });
   });
 
-  it('should enable S3 Block Public Access if specified', () =>
+  it('should enable S3 Block Public Access & versioning if specified', () =>
     runServerless({
       config: {
         service: 'irrelevant',
@@ -80,6 +80,7 @@ describe('#generateCoreTemplate()', () => {
           name: 'aws',
           deploymentBucket: {
             blockPublicAccess: true,
+            versioning: true,
           },
         },
       },
@@ -91,6 +92,9 @@ describe('#generateCoreTemplate()', () => {
           BlockPublicPolicy: true,
           IgnorePublicAcls: true,
           RestrictPublicBuckets: true,
+        },
+        VersioningConfiguration: {
+          Status: 'Enabled',
         },
       });
     }));
@@ -131,28 +135,27 @@ describe('#generateCoreTemplate()', () => {
       });
     }));
 
-  it('should use a custom bucket if specified, even with S3 transfer acceleration', () => {
+  it('should result in deprecation error for custom bucket and accelerate flag', async () => {
     const bucketName = 'com.serverless.deploys';
 
-    return runServerless({
-      config: {
-        service: 'irrelevant',
-        provider: {
-          name: 'aws',
-          deploymentBucket: bucketName,
+    await expect(
+      runServerless({
+        config: {
+          service: 'irrelevant',
+          provider: {
+            name: 'aws',
+            deploymentBucket: bucketName,
+          },
         },
-      },
-      command: 'deploy',
-      options: { 'aws-s3-accelerate': true },
-      lastLifecycleHookName: 'before:deploy:deploy',
-      awsRequestStubMap: { S3: { getBucketLocation: { LocationConstraint: '' } } },
-    }).then(({ cfTemplate: template }) => {
-      expect(template.Outputs.ServerlessDeploymentBucketName.Value).to.equal(bucketName);
-      // eslint-disable-next-line no-unused-expressions
-      expect(template.Resources.ServerlessDeploymentBucket).to.not.exist;
-      // eslint-disable-next-line no-unused-expressions
-      expect(template.Outputs.ServerlessDeploymentBucketAccelerated).to.not.exist;
-    });
+        command: 'deploy',
+        options: { 'aws-s3-accelerate': true },
+        lastLifecycleHookName: 'before:deploy:deploy',
+        awsRequestStubMap: { S3: { getBucketLocation: { LocationConstraint: '' } } },
+      })
+    ).to.eventually.be.rejected.and.have.property(
+      'code',
+      'REJECTED_DEPRECATION_S3_TRANSFER_ACCELERATION_ON_EXISTING_BUCKET'
+    );
   });
 
   it('should use a auto generated bucket if you does not specify deploymentBucket', () =>

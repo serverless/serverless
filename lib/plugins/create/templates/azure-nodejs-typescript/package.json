@@ -15,7 +15,7 @@
     "@azure/functions": "^1.0.3",
     "@types/node": "^13.1.8",
     "fork-ts-checker-webpack-plugin": "^3.0.1",
-    "serverless-azure-functions": "^1.0.0",
+    "serverless-azure-functions": "^2.1.1",
     "serverless-webpack": "^5.3.1",
     "ts-loader": "^6.2.1",
     "typescript": "^3.7.5",

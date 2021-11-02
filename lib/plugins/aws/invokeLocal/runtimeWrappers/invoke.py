@@ -3,9 +3,17 @@ import argparse
 import json
 import logging
 import sys
+import decimal
 from time import strftime, time
 from importlib import import_module
 
+def decimal_serializer(o):
+    if isinstance(o, decimal.Decimal):
+        f = float(o)
+        if f.is_integer():
+          return int(f)
+        return f
+    
 class FakeLambdaContext(object):
     def __init__(self, name='Fake', version='LATEST', timeout=6, **kwargs):
         self.name = name
@@ -84,4 +92,4 @@ if __name__ == '__main__':
 
     context = FakeLambdaContext(**input.get('context', {}))
     result = handler(input['event'], context)
-    sys.stdout.write(json.dumps(result, indent=4))
+    sys.stdout.write(json.dumps(result, default=decimal_serializer, indent=4))

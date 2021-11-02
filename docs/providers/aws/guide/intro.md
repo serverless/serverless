@@ -71,10 +71,10 @@ service: users
 functions: # Your "Functions"
   usersCreate:
     events: # The "Events" that trigger this function
-      - http: post users/create
+      - httpApi: 'POST /users/create'
   usersDelete:
     events:
-      - http: delete users/delete
+      - httpApi: 'DELETE /users/delete'
 
 resources: # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 ```
@@ -88,14 +88,14 @@ _serverless.json_
     "usersCreate": {
       "events": [
         {
-          "http": "post users/create"
+          "httpApi": "POST /users/create"
         }
       ]
     },
     "usersDelete": {
       "events": [
         {
-          "http": "delete users/delete"
+          "httpApi": "DELETE /users/delete"
         }
       ]
     }
@@ -117,14 +117,14 @@ module.exports = {
     usersCreate: {
       events: [
         {
-          http: 'post users/create',
+          httpApi: 'POST /users/create',
         },
       ],
     },
     usersDelete: {
       events: [
         {
-          http: 'delete users/delete',
+          httpApi: 'DELETE /users/delete',
         },
       ],
     },
@@ -145,14 +145,14 @@ const serverlessConfiguration: Serverless = {
     usersCreate: {
       events: [
         {
-          http: 'post users/create',
+          httpApi: 'POST /users/create',
         },
       ],
     },
     usersDelete: {
       events: [
         {
-          http: 'delete users/delete',
+          httpApi: 'DELETE /users/delete',
         },
       ],
     },

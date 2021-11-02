@@ -22,6 +22,13 @@ If you are using AWS as your provider, all `events` in the service are anything 
 
 Upon deployment, the framework will deploy any infrastructure required for an event (e.g., an API Gateway endpoint) and configure your `function` to listen to it.
 
+Infrastructure which is created to support events in the `events` list may be
+referenced using CloudFormation intrinsic functions like `Fn::GetAtt` or
+`Fn::Ref` (or their shorthand counterparts). For details on referencing created
+resources in AWS, see the [AWS CloudFormation Resource
+Reference](./resources.md#aws-cloudformation-resource-reference) section on the
+[AWS - Resources](./resources.md) page.
+
 ## Configuration
 
 Events belong to each Function and can be found in the `events` property in `serverless.yml`.
@@ -32,9 +39,7 @@ functions:
   createUser: # Function name
     handler: handler.createUser # Reference to file handler.js & exported function 'createUser'
     events: # All events associated with this function
-      - http:
-          path: users/create
-          method: post
+      - httpApi: 'POST /users/create'
 ```
 
 Events are objects, which can contain event-specific information.
@@ -49,15 +54,9 @@ functions:
   createUser: # Function name
     handler: handler.users # Reference to file handler.js & exported function 'users'
     events: # All events associated with this function
-      - http:
-          path: users/create
-          method: post
-      - http:
-          path: users/update
-          method: put
-      - http:
-          path: users/delete
-          method: delete
+      - httpApi: 'POST /users/create'
+      - httpApi: 'PUT /users/update'
+      - httpApi: 'DELETE /users/delete'
 ```
 
 ## Types
@@ -74,9 +73,7 @@ functions:
   createUser: # Function name
     handler: handler.users # Reference to file handler.js & exported function 'users'
     events: # All events associated with this function
-      - http:
-          path: users/{id}
-          method: get
+      - httpApi: 'GET /users/{id}'
 ```
 
 ## Deploying

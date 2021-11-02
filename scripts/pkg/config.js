@@ -5,6 +5,8 @@ module.exports = {
   // which is important for local templates installation
   license: 'MIT',
   files: [
+    // Standalone commands
+    '../../commands',
     // Custom resources
     '../../lib/plugins/aws/customResources/resources',
     // Basic CF templates

@@ -163,8 +163,12 @@ describe('EventBridgeEvents', () => {
       const { cfTemplate, awsNaming } = await runServerless({
         fixture: 'function',
         configExt: {
-          disabledDeprecations: ['AWS_EVENT_BRIDGE_CUSTOM_RESOURCE'],
           ...serverlessConfigurationExtension,
+          provider: {
+            eventBridge: {
+              useCloudFormation: false,
+            },
+          },
         },
         command: 'package',
       });
@@ -282,7 +286,7 @@ describe('EventBridgeEvents', () => {
           configExt: {
             disabledDeprecations: ['AWS_EVENT_BRIDGE_CUSTOM_RESOURCE'],
             functions: {
-              foo: {
+              basic: {
                 events: [
                   {
                     eventBridge: {
@@ -307,21 +311,19 @@ describe('EventBridgeEvents', () => {
       );
     });
 
-    it('should fail when trying to set DeadLetterConfig', async () => {
+    it('should fail when trying to set DeadLetterQueueArn', async () => {
       await expect(
         runServerless({
           fixture: 'function',
           configExt: {
             disabledDeprecations: ['AWS_EVENT_BRIDGE_CUSTOM_RESOURCE'],
             functions: {
-              foo: {
+              basic: {
                 events: [
                   {
                     eventBridge: {
-                      deadLetterConfig: {
-                        targetArn: {
-                          'Fn::GetAtt': ['not-supported', 'Arn'],
-                        },
+                      deadLetterQueueArn: {
+                        'Fn::GetAtt': ['not-supported', 'Arn'],
                       },
                       pattern: {
                         source: ['aws.something'],
@@ -347,7 +349,7 @@ describe('EventBridgeEvents', () => {
           configExt: {
             disabledDeprecations: ['AWS_EVENT_BRIDGE_CUSTOM_RESOURCE'],
             functions: {
-              foo: {
+              basic: {
                 events: [
                   {
                     eventBridge: {
@@ -364,6 +366,21 @@ describe('EventBridgeEvents', () => {
       ).to.be.eventually.rejected.and.have.property(
         'code',
         'ERROR_INVALID_REFERENCE_TO_EVENT_BUS_CUSTOM_RESOURCE'
+      );
+    });
+
+    it('should emit deprecation when `eventBridge.useCloudFormation` is not explicitly set', async () => {
+      await expect(
+        runServerless({
+          fixture: 'function',
+          configExt: {
+            ...serverlessConfigurationExtension,
+          },
+          command: 'package',
+        })
+      ).to.be.eventually.rejected.and.have.property(
+        'code',
+        'REJECTED_DEPRECATION_AWS_EVENT_BRIDGE_CUSTOM_RESOURCE'
       );
     });
   });
@@ -398,10 +415,8 @@ describe('EventBridgeEvents', () => {
         maximumRetryAttempts: 9,
       };
 
-      const deadLetterConfig = {
-        targetArn: {
-          'Fn::GetAtt': ['test', 'Arn'],
-        },
+      const deadLetterQueueArn = {
+        'Fn::GetAtt': ['test', 'Arn'],
       };
 
       const getRuleResourceEndingWith = (resources, ending) =>
@@ -420,7 +435,7 @@ describe('EventBridgeEvents', () => {
               },
             },
             functions: {
-              foo: {
+              basic: {
                 events: [
                   {
                     eventBridge: {
@@ -475,7 +490,7 @@ describe('EventBridgeEvents', () => {
                       eventBus: eventBusName,
                       schedule,
                       pattern,
-                      deadLetterConfig,
+                      deadLetterQueueArn,
                     },
                   },
                 ],
@@ -514,7 +529,7 @@ describe('EventBridgeEvents', () => {
       });
 
       it('should correctly set EventPattern on a created rule', () => {
-        expect(ruleResource.Properties.EventPattern).to.deep.equal(JSON.stringify(pattern));
+        expect(ruleResource.Properties.EventPattern).to.deep.equal(pattern);
       });
 
       it('should correctly set Input on the target for the created rule', () => {
@@ -542,15 +557,15 @@ describe('EventBridgeEvents', () => {
         const retryPolicyRuleTarget = getRuleResourceEndingWith(cfResources, '6').Properties
           .Targets[0];
         expect(retryPolicyRuleTarget.RetryPolicy).to.deep.equal({
-          MaximumEventAge: 7200,
+          MaximumEventAgeInSeconds: 7200,
           MaximumRetryAttempts: 9,
         });
       });
 
-      it('should support deadLetterConfig configuration', () => {
+      it('should support deadLetterQueueArn configuration', () => {
         const deadLetterConfigRuleTarget = getRuleResourceEndingWith(cfResources, '7').Properties
           .Targets[0];
-        expect(deadLetterConfigRuleTarget.DeadLetterConfig).to.have.property('TargetArn');
+        expect(deadLetterConfigRuleTarget.DeadLetterConfig).to.have.property('Arn');
       });
 
       it('should create a rule that depends on created EventBus', () => {
@@ -558,12 +573,12 @@ describe('EventBridgeEvents', () => {
       });
 
       it('should create a rule that references correct function in target', () => {
-        expect(ruleTarget.Arn['Fn::GetAtt'][0]).to.equal(naming.getLambdaLogicalId('foo'));
+        expect(ruleTarget.Arn['Fn::GetAtt'][0]).to.equal(naming.getLambdaLogicalId('basic'));
       });
 
       it('should create a lambda permission resource that correctly references event bus in SourceArn', () => {
         const lambdaPermissionResource =
-          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('foo', 1)];
+          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('basic', 1)];
 
         expect(
           lambdaPermissionResource.Properties.SourceArn['Fn::Join'][1][5]['Fn::Join'][1][1]
@@ -586,7 +601,7 @@ describe('EventBridgeEvents', () => {
               },
             },
             functions: {
-              foo: {
+              basic: {
                 events: [
                   {
                     eventBridge: {
@@ -627,7 +642,7 @@ describe('EventBridgeEvents', () => {
 
       it('should create a lambda permission resource that correctly references arn event bus in SourceArn', () => {
         const lambdaPermissionResource =
-          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('foo', 1)];
+          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('basic', 1)];
 
         expect(
           lambdaPermissionResource.Properties.SourceArn['Fn::Join'][1][5]['Fn::Join'][1][1]
@@ -636,7 +651,7 @@ describe('EventBridgeEvents', () => {
 
       it('should create a lambda permission resource that correctly references CF event bus in SourceArn', () => {
         const lambdaPermissionResource =
-          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('foo', 2)];
+          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('basic', 2)];
 
         expect(
           lambdaPermissionResource.Properties.SourceArn['Fn::Join'][1][5]['Fn::Join'][1][1]
@@ -645,7 +660,7 @@ describe('EventBridgeEvents', () => {
 
       it('should create a lambda permission resource that correctly references explicit default event bus in SourceArn', () => {
         const lambdaPermissionResource =
-          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('foo', 3)];
+          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('basic', 3)];
 
         expect(
           lambdaPermissionResource.Properties.SourceArn['Fn::Join'][1][5]['Fn::Join'][1][1]
@@ -654,7 +669,7 @@ describe('EventBridgeEvents', () => {
 
       it('should create a lambda permission resource that correctly references implicit default event bus in SourceArn', () => {
         const lambdaPermissionResource =
-          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('foo', 4)];
+          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('basic', 4)];
 
         expect(
           lambdaPermissionResource.Properties.SourceArn['Fn::Join'][1][5]['Fn::Join'][1]

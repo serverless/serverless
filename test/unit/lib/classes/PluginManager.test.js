@@ -568,14 +568,6 @@ describe('PluginManager', () => {
       expect(pluginManager.plugins[0]).to.be.instanceof(SynchronousPluginMock);
     });
 
-    it('should not load plugins twice', () => {
-      pluginManager.addPlugin(SynchronousPluginMock);
-      pluginManager.addPlugin(SynchronousPluginMock);
-
-      expect(pluginManager.plugins[0]).to.be.instanceof(SynchronousPluginMock);
-      expect(pluginManager.plugins.length).to.equal(1);
-    });
-
     it('should load two plugins that happen to have the same class name', () => {
       function getFirst() {
         return class PluginMock {};
@@ -989,32 +981,20 @@ describe('PluginManager', () => {
         /Command "deploy" cannot override an existing alias/
       );
     });
-
-    it('should log the alias when SLS_DEBUG is set', () => {
-      const consoleLogStub = sinon.stub(pluginManager.serverless.cli, 'log').returns();
-      const synchronousPluginMockInstance = new SynchronousPluginMock();
-      synchronousPluginMockInstance.commands.deploy.aliases = ['info'];
-      process.env.SLS_DEBUG = '*';
-      pluginManager.loadCommands(synchronousPluginMockInstance);
-      expect(consoleLogStub).to.have.been.calledWith('  -> @info');
-    });
   });
 
   describe('#loadHooks()', () => {
     let deprecatedPluginInstance;
-    let consoleLogStub;
 
     beforeEach(() => {
       deprecatedPluginInstance = new DeprecatedLifecycleEventsPluginMock();
       pluginManager.deprecatedEvents = {
         'deprecated:deprecated': 'new:new',
       };
-      consoleLogStub = sinon.stub(pluginManager.serverless.cli, 'log').returns();
     });
 
     afterEach(() => {
       pluginManager.deprecatedEvents = {};
-      pluginManager.serverless.cli.log.restore();
     });
 
     it('should replace deprecated events with the new ones', () => {
@@ -1027,14 +1007,6 @@ describe('PluginManager', () => {
       expect(pluginManager.hooks['untouched:untouched'][0].pluginName).to.equal(
         'DeprecatedLifecycleEventsPluginMock'
       );
-      expect(consoleLogStub.calledOnce).to.equal(false);
-    });
-
-    it('should log a debug message about deprecated when using SLS_DEBUG', () => {
-      process.env.SLS_DEBUG = '1';
-      pluginManager.loadHooks(deprecatedPluginInstance);
-
-      expect(consoleLogStub.calledOnce).to.equal(true);
     });
   });
 
@@ -1165,64 +1137,6 @@ describe('PluginManager', () => {
       expect(() => pluginManager.loadVariableResolvers(pluginInstance)).to.throw(
         /Custom variable resolver for test defined by VariableResolverPlugin specifies isDisabledAtPrepopulation but doesn't provide a string for a name/
       );
-    });
-  });
-
-  describe('#getEvents()', () => {
-    beforeEach(() => {
-      pluginManager.addPlugin(SynchronousPluginMock);
-    });
-
-    it('should get all the matching events for a root level command in the correct order', () => {
-      const command = pluginManager.getCommand(['deploy']);
-      const events = pluginManager.getEvents(command);
-
-      expect(events[0]).to.equal('before:deploy:resources');
-      expect(events[1]).to.equal('deploy:resources');
-      expect(events[2]).to.equal('after:deploy:resources');
-      expect(events[3]).to.equal('before:deploy:functions');
-      expect(events[4]).to.equal('deploy:functions');
-      expect(events[5]).to.equal('after:deploy:functions');
-    });
-
-    it('should get all the matching events for a nested level command in the correct order', () => {
-      const command = pluginManager.getCommand(['deploy', 'onpremises']);
-      const events = pluginManager.getEvents(command);
-
-      expect(events[0]).to.equal('before:deploy:onpremises:resources');
-      expect(events[1]).to.equal('deploy:onpremises:resources');
-      expect(events[2]).to.equal('after:deploy:onpremises:resources');
-      expect(events[3]).to.equal('before:deploy:onpremises:functions');
-      expect(events[4]).to.equal('deploy:onpremises:functions');
-      expect(events[5]).to.equal('after:deploy:onpremises:functions');
-    });
-  });
-
-  describe('#getHooks()', () => {
-    beforeEach(() => {
-      pluginManager.addPlugin(SynchronousPluginMock);
-    });
-
-    it('should get hooks for an event with some registered', () => {
-      expect(pluginManager.getHooks(['deploy:functions']))
-        .to.be.an('Array')
-        .with.length(1);
-    });
-
-    it('should have the plugin name and function on the hook', () => {
-      const hooks = pluginManager.getHooks(['deploy:functions']);
-      expect(hooks[0].pluginName).to.equal('SynchronousPluginMock');
-      expect(hooks[0].hook).to.be.a('Function');
-    });
-
-    it('should not get hooks for an event that does not have any', () => {
-      expect(pluginManager.getHooks(['deploy:resources']))
-        .to.be.an('Array')
-        .with.length(0);
-    });
-
-    it('should accept a single event in place of an array', () => {
-      expect(pluginManager.getHooks('deploy:functions')).to.be.an('Array').with.length(1);
     });
   });
 
@@ -1520,27 +1434,6 @@ describe('PluginManager', () => {
       return expect(pluginManager.run(commandsArray)).to.be.rejectedWith(Error);
     });
 
-    it('should show warning if in debug mode and the given command has no hooks', () => {
-      const consoleLogStub = sinon.stub(pluginManager.serverless.cli, 'log').returns();
-      process.env.SLS_DEBUG = '*';
-      class HooklessPlugin {
-        constructor() {
-          this.commands = {
-            foo: {},
-          };
-        }
-      }
-
-      pluginManager.addPlugin(HooklessPlugin);
-
-      const commandsArray = ['foo'];
-
-      return pluginManager.run(commandsArray).then(() => {
-        expect(consoleLogStub.called).is.equal(true);
-        pluginManager.serverless.cli.log.restore();
-      });
-    });
-
     it('should run the hooks in the correct order', () => {
       class CorrectHookOrderPluginMock {
         constructor() {
@@ -1796,29 +1689,6 @@ describe('PluginManager', () => {
       const commandsArray = ['foo'];
 
       return expect(pluginManager.spawn(commandsArray)).to.eventually.be.rejectedWith(Error);
-    });
-
-    it('should show warning in debug mode and when the given command has no hooks', () => {
-      const consoleLogStub = sinon.stub(pluginManager.serverless.cli, 'log').returns();
-
-      process.env.SLS_DEBUG = '*';
-
-      class HooklessPlugin {
-        constructor() {
-          this.commands = {
-            foo: {},
-          };
-        }
-      }
-
-      pluginManager.addPlugin(HooklessPlugin);
-
-      const commandsArray = ['foo'];
-
-      return pluginManager.run(commandsArray).then(() => {
-        expect(consoleLogStub.called).is.equal(true);
-        pluginManager.serverless.cli.log.restore();
-      });
     });
 
     describe('when invoking a command', () => {

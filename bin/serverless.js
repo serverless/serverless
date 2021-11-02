@@ -31,23 +31,20 @@ if (require('../lib/utils/isStandaloneExecutable')) {
   }
 }
 
-// CLI Triage
-(() => {
-  try {
-    const componentsV1 = require('@serverless/cli');
-    const componentsV2 = require('@serverless/components');
+(async () => {
+  const cliName = await require('../lib/cli/triage')();
 
-    // Serverless Components v1 CLI (deprecated)
-    if (componentsV1.runningComponents()) return () => componentsV1.runComponents();
-
-    // Serverless Components CLI
-    if (componentsV2.runningComponents()) return () => componentsV2.runComponents();
-  } catch (error) {
-    if (process.env.SLS_DEBUG) {
-      require('../lib/classes/Error').logWarning(`CLI triage crashed with: ${error.stack}`);
-    }
+  switch (cliName) {
+    case 'serverless':
+      require('../scripts/serverless');
+      return;
+    case '@serverless/components':
+      require('@serverless/components').runComponents();
+      return;
+    case '@serverless/cli':
+      require('@serverless/cli').runComponents();
+      return;
+    default:
+      throw new Error(`Unrecognized CLI name "${cliName}"`);
   }
-
-  // Serverless Framework CLI
-  return () => require('../scripts/serverless');
-})()();
+})();
