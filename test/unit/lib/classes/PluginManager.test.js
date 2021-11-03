@@ -1879,8 +1879,6 @@ describe('PluginManager', () => {
 
     before(() => {
       env = resolveAwsEnv();
-      // Test may be run against deprecated Node.js versions
-      env.SLS_DEPRECATION_DISABLE = 'OUTDATED_NODEJS';
     });
 
     beforeEach(() => {
