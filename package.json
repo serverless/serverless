@@ -110,7 +110,7 @@
     "xml2js": "^0.4.23"
   },
   "eslintConfig": {
-    "extends": "@serverless/eslint-config/node/10",
+    "extends": "@serverless/eslint-config/node",
     "root": true,
     "overrides": [
       {
@@ -219,7 +219,7 @@
     "test:isolated": "mocha-isolated \"test/unit/**/*.test.js\""
   },
   "engines": {
-    "node": ">=10.0"
+    "node": ">=12.0"
   },
   "license": "MIT"
 }
