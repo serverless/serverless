@@ -170,7 +170,7 @@ jobs:
           node-version: 4.x
 
       - name: Node version validation test
-        run: ./bin/serverless.js | grep -q "Initialization error"
+        run: ./bin/serverless.js 2>&1 | grep -q "does not support"
 
   integrate:
     name: Integrate
