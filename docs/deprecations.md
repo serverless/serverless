@@ -100,7 +100,7 @@ Starting with `v3.0.0`, the default runtime will change from `nodejs12.x` to `no
 
 Deprecation code: `AWS_API_GATEWAY_NON_APPLICABLE_SETTINGS`
 
-When external API Gateway resource is used and imported via `provider.apiGateway.restApiId` setting, both `provider.logs.restApi` and `provider.tracing.apiGateway` will be ignored. These settings are applicable only if API Gateway resource is provisioned by Serverless Framework.
+When external API Gateway resource is used and imported via `provider.apiGateway.restApiId` setting, both `provider.logs.restApi` and `provider.tracing.apiGateway` are ignored. In v3, an error will be thrown if these options are defined. Indeed, these settings are applicable only if API Gateway resource is provisioned by Serverless Framework.
 
 <a name="CLI_OPTIONS_SCHEMA'"><div>&nbsp;</div></a>
 
@@ -212,7 +212,7 @@ It's recommended to expose all errors that eventually new resolver may report (t
 
 Deprecation code: `AWS_HTTP_API_USE_PROVIDER_TAGS`
 
-Starting with v3.0.0, `provider.tags` will be applied to Http Api Gateway by default
+Starting with v3.0.0, `provider.tags` will be applied to HTTP API Gateway stages by default
 Set `provider.httpApi.useProviderTags` to `true` to adapt to the new behavior now.
 
 <a name="MISSING_COMMANDS_OR_OPTIONS_AT_CONSTRUCTION"><div>&nbsp;</div></a>
