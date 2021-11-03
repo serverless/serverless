@@ -81,7 +81,7 @@
   },
   "devDependencies": {
     "@commitlint/cli": "^12.1.4",
-    "@serverless/eslint-config": "^3.0.0",
+    "@serverless/eslint-config": "^4.0.0",
     "@serverless/test": "^8.4.0",
     "adm-zip": "^0.5.9",
     "chai": "^4.3.4",
@@ -110,7 +110,7 @@
     "xml2js": "^0.4.23"
   },
   "eslintConfig": {
-    "extends": "@serverless/eslint-config/node",
+    "extends": "@serverless/eslint-config/node/10",
     "root": true,
     "overrides": [
       {
