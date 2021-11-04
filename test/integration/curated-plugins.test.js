@@ -42,10 +42,10 @@ describe('test/integration/curated-plugins.test.js', function () {
     });
     const slsProcess = slsProcessPromise.child;
     let output = '';
-    slsProcess.stdout.on('data', function self(data) {
+    slsProcess.stderr.on('data', function self(data) {
       output += data;
       if (output.includes('server ready:')) {
-        slsProcess.stdout.off('data', self);
+        slsProcess.stderr.off('data', self);
         got('http://localhost:3000/dev/foo')
           .json()
           .then(async (responseBody) => {
@@ -69,24 +69,24 @@ describe('test/integration/curated-plugins.test.js', function () {
 
   it('should be extended by "serverless-domain-manager"', async () => {
     await updateConfig({ plugins: ['serverless-domain-manager'] });
-    const { stdoutBuffer } = await spawn(serverlessExec, ['info'], { cwd: serviceDir });
-    expect(String(stdoutBuffer)).to.include('Serverless Domain Manager:');
+    const { stderrBuffer } = await spawn(serverlessExec, ['info'], { cwd: serviceDir });
+    expect(String(stderrBuffer)).to.include('Serverless Domain Manager:');
   });
 
   it('should be extended by "serverless-prune-plugin"', async () => {
     await updateConfig({ plugins: ['serverless-prune-plugin'] });
-    const { stdoutBuffer } = await spawn(serverlessExec, ['prune', '-n', '10'], {
+    const { stderrBuffer } = await spawn(serverlessExec, ['prune', '-n', '10'], {
       cwd: serviceDir,
     });
-    expect(String(stdoutBuffer)).to.include('Prune: Pruning complete.');
+    expect(String(stderrBuffer)).to.include('Prune: Pruning complete.');
   });
 
   it('should be extended by "serverless-dotenv-plugin"', async () => {
     await updateConfig({ plugins: ['serverless-dotenv-plugin'] });
-    const { stdoutBuffer } = await spawn(serverlessExec, ['package'], {
+    const { stderrBuffer } = await spawn(serverlessExec, ['package'], {
       cwd: serviceDir,
     });
-    expect(String(stdoutBuffer)).to.include('DOTENV: Loading environment variables');
+    expect(String(stderrBuffer)).to.include('DOTENV: Loading environment variables');
     const cfTemplate = JSON.parse(
       await fsp.readFile(
         path.resolve(serviceDir, '.serverless/cloudformation-template-update-stack.json')
