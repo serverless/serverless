@@ -57,6 +57,7 @@ describe('test/unit/lib/cli/filter-supported-options.test.js', () => {
       'app': null,
       'org': null,
       'use-local-credentials': null,
+      'verbose': null,
     });
   });
 
@@ -77,6 +78,7 @@ describe('test/unit/lib/cli/filter-supported-options.test.js', () => {
       version: null,
       config: null,
       stage: 'marko',
+      verbose: null,
     });
   });
 });
