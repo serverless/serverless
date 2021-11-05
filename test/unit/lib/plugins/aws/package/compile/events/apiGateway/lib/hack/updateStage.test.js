@@ -809,4 +809,66 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/hack/u
     expect(untagResourceStub).to.have.been.calledOnce;
     expect(untagResourceStub.args[0][0].tagKeys).to.deep.equal(['keytoremove']);
   });
+
+  it('should deploys shouldStartNameWithService without apiName', async () => {
+    const getDeploymentsStub = sinon.stub().returns({ items: [{ id: 'deployment-id' }] });
+    const service = 'test-service';
+    const stage = 'dev';
+
+    await runServerless({
+      fixture: 'apiGateway',
+      command: 'deploy',
+      configExt: {
+        service,
+        provider: {
+          apiGateway: {
+            shouldStartNameWithService: true,
+          },
+          stackTags: { key: 'value' },
+        },
+      },
+      options: { stage },
+      lastLifecycleHookName: 'after:deploy:deploy',
+      awsRequestStubMap: {
+        APIGateway: {
+          createStage: {},
+          getDeployments: getDeploymentsStub,
+          getRestApis: { items: [{ id: 'api-id', name: `${service}-${stage}` }] },
+          tagResource: {},
+        },
+        CloudFormation: {
+          describeStacks: { Stacks: [{}] },
+          describeStackEvents: {
+            StackEvents: [
+              {
+                ResourceStatus: 'UPDATE_COMPLETE',
+                ResourceType: 'AWS::CloudFormation::Stack',
+              },
+            ],
+          },
+          describeStackResource: {
+            StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
+          },
+          listStackResources: {},
+          validateTemplate: {},
+          updateStack: {},
+        },
+        S3: {
+          listObjectsV2: {},
+          upload: {},
+        },
+        STS: {
+          getCallerIdentity: {
+            ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+            UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+            Account: '999999999999',
+            Arn: 'arn:aws-us-gov:iam::999999999999:user/test',
+          },
+        },
+      },
+    });
+
+    expect(getDeploymentsStub).to.have.been.calledOnce;
+    expect(getDeploymentsStub.args[0][0].restApiId).to.equal('api-id');
+  });
 });
