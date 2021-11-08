@@ -79,13 +79,17 @@ _Note: Users in China are presented with a setup centered around the chinese [Te
 npm update -g serverless
 ```
 
-### MacOS/Linux
+If you have installed `serverless` as a standalone binary, read the following section instead.
+
+### Standalone binary
+
+#### MacOS/Linux
 
 ```bash
 serverless upgrade
 ```
 
-### Windows
+#### Windows
 
 ```bash
 choco upgrade serverless
