@@ -2553,6 +2553,42 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
     describe('lambdaHashingVersion: 20201221', () => {
       testLambdaHashingVersion('20201221');
     });
+
+    describe('lambdaHashingVersion migration', () => {
+      it('should enforce new description configuration and version with `--enforce-hash-update` flag', async () => {
+        const { servicePath: serviceDir } = await fixtures.setup('function', {
+          configExt: {
+            disabledDeprecations: ['LAMBDA_HASHING_VERSION_V2'],
+            provider: {
+              lambdaHashingVersion: null,
+            },
+          },
+        });
+
+        const { cfTemplate: originalTemplate, awsNaming } = await runServerless({
+          cwd: serviceDir,
+          command: 'package',
+        });
+        const originalVersionArn =
+          originalTemplate.Outputs.BasicLambdaFunctionQualifiedArn.Value.Ref;
+
+        const { cfTemplate: updatedTemplate, stdoutData } = await runServerless({
+          cwd: serviceDir,
+          command: 'deploy',
+          lastLifecycleHookName: 'before:deploy:deploy',
+          options: {
+            'enforce-hash-update': true,
+          },
+        });
+        const updatedVersionArn = updatedTemplate.Outputs.BasicLambdaFunctionQualifiedArn.Value.Ref;
+
+        expect(originalVersionArn).not.to.equal(updatedVersionArn);
+        expect(
+          updatedTemplate.Resources[awsNaming.getLambdaLogicalId('basic')].Properties.Description
+        ).to.equal('temporary-description-to-enforce-hash-update');
+        expect(stdoutData).to.include('Your service has been deployed with new hashing algorithm');
+      });
+    });
   });
 
   describe.skip('TODO: Download package artifact from S3 bucket', () => {
