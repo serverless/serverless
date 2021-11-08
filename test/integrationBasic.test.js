@@ -111,7 +111,7 @@ describe('Service Lifecyle Integration Test', function () {
       spawnOptions
     );
     const output = stripAnsi(listDeploys.toString());
-    const match = output.match(new RegExp('Datetime: (.+)'));
+    const match = output.match(new RegExp('Timestamp: (.+)'));
     if (match) {
       timestamp = match[1];
     }

@@ -27,7 +27,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
         })
       ).stdoutBuffer
     );
-    expect(output).to.include('You can run commands with');
+    expect(output).to.include('serverless <command> <options>');
   });
 
   it('should report with an error invalid configuration', async () => {
@@ -38,7 +38,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       throw new Error('Unexpected');
     } catch (error) {
       expect(error.code).to.equal(1);
-      expect(String(error.stdoutBuffer)).to.include('Your Environment Information');
+      expect(String(error.stdoutBuffer)).to.include('Environment: ');
     }
   });
 
@@ -50,7 +50,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       throw new Error('Unexpected');
     } catch (error) {
       expect(error.code).to.equal(1);
-      expect(String(error.stdoutBuffer)).to.include('Your Environment Information');
+      expect(String(error.stdoutBuffer)).to.include('Environment: ');
     }
   });
 
@@ -62,7 +62,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       throw new Error('Unexpected');
     } catch (error) {
       expect(error.code).to.equal(1);
-      expect(String(error.stdoutBuffer)).to.include('Your Environment Information');
+      expect(String(error.stdoutBuffer)).to.include('Environment: ');
     }
   });
 
@@ -72,9 +72,9 @@ describe('test/unit/scripts/serverless.test.js', () => {
         await spawn('node', [serverlessPath, '--help'], {
           cwd: (await programmaticFixturesEngine.setup('locallyInstalledServerless')).servicePath,
         })
-      ).stdoutBuffer
+      ).stderrBuffer
     );
-    expect(output).to.include('Running "serverless" installed locally');
+    expect(output).to.include('Running "serverless" from node_modules');
   });
 
   it('should handle no service related commands', async () => {
@@ -85,7 +85,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
         })
       ).stdoutBuffer
     );
-    expect(output).to.include('To install a plugin run');
+    expect(output).to.include('Install a plugin by running');
   });
 
   it('should resolve variables', async () => {
@@ -222,12 +222,12 @@ describe('test/unit/scripts/serverless.test.js', () => {
         })
       ).stdoutBuffer
     );
-    expect(output).to.include('Documentation: http://slss.io/docs');
+    expect(output).to.include('serverless <command> <options>');
   });
 
   it('should print general --help to stdout', async () => {
     const output = String((await spawn('node', [serverlessPath, '--help'])).stdoutBuffer);
-    expect(output).to.include('Documentation: http://slss.io/docs');
+    expect(output).to.include('serverless <command> <options>');
   });
 
   it('should print command --help to stdout', async () => {
@@ -249,7 +249,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       (await spawn('node', [serverlessPath, '--help-interactive'])).stdoutBuffer
     );
     expect(output).to.include('Interactive CLI');
-    expect(output).to.not.include('General Commands');
+    expect(output).to.not.include('Main commands');
   });
 
   it('should show help when running container command', async () => {
@@ -257,7 +257,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
     const output = stripAnsi(
       String((await spawn('node', [serverlessPath, 'plugin'])).stdoutBuffer)
     );
-    expect(output).to.include('plugin install .......');
+    expect(output).to.include('plugin install');
   });
 
   it('should crash in required option is missing', async () => {
