@@ -95,6 +95,8 @@ Finally, the `serverless studio` command has been removed: that feature was depr
 
 The default Lambda runtime has changed from NodeJS 12 to NodeJS 14, given this is now the default runtime recommended by AWS.
 
+Additionally, the `nodejs10.x`, `python2.7`, `ruby2.5` and `dotnetcore2.1` runtimes [are no longer supported and accepted by AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/runtime-support-policy.html). As such, these runtimes will no longer be accepted in v3.
+
 In `serverless.yml`, the `service` key no longer accepts a YAML object ([learn more](../deprecations.md#service-property-object-notation)).
 
 ```yaml
