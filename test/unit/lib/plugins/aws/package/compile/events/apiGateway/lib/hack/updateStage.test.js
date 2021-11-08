@@ -811,7 +811,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/hack/u
     expect(untagResourceStub.args[0][0].tagKeys).to.deep.equal(['keytoremove']);
   });
 
-  it.only('should deploys shouldStartNameWithService without apiName', async () => {
+  it('should deploys shouldStartNameWithService without apiName', async () => {
     const { serviceConfig, servicePath, updateConfig } = await fixtures.setup('apiGateway');
     const getDeploymentsStub = sinon.stub().returns({ items: [{ id: 'deployment-id' }] });
     const stage = 'dev';
