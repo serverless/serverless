@@ -13,6 +13,7 @@ const {
   defaultApiGatewayLogLevel,
 } = require('../../../../../../../../../../../lib/plugins/aws/package/compile/events/apiGateway/lib/hack/updateStage');
 const runServerless = require('../../../../../../../../../../utils/run-serverless');
+const fixtures = require('../../../../../../../../../../fixtures/programmatic');
 
 chai.use(require('sinon-chai'));
 chai.use(require('chai-as-promised'));
@@ -810,30 +811,30 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/hack/u
     expect(untagResourceStub.args[0][0].tagKeys).to.deep.equal(['keytoremove']);
   });
 
-  it('should deploys shouldStartNameWithService without apiName', async () => {
+  it.only('should deploys shouldStartNameWithService without apiName', async () => {
+    const { serviceConfig, servicePath, updateConfig } = await fixtures.setup('apiGateway');
     const getDeploymentsStub = sinon.stub().returns({ items: [{ id: 'deployment-id' }] });
-    const service = 'test-service';
     const stage = 'dev';
 
-    await runServerless({
-      fixture: 'apiGateway',
-      command: 'deploy',
-      configExt: {
-        service,
-        provider: {
-          apiGateway: {
-            shouldStartNameWithService: true,
-          },
-          stackTags: { key: 'value' },
+    await updateConfig({
+      provider: {
+        apiGateway: {
+          shouldStartNameWithService: true,
         },
+        stackTags: { key: 'value' },
       },
+    });
+
+    await runServerless({
+      command: 'deploy',
+      cwd: servicePath,
       options: { stage },
       lastLifecycleHookName: 'after:deploy:deploy',
       awsRequestStubMap: {
         APIGateway: {
           createStage: {},
           getDeployments: getDeploymentsStub,
-          getRestApis: { items: [{ id: 'api-id', name: `${service}-${stage}` }] },
+          getRestApis: { items: [{ id: 'api-id', name: `${serviceConfig.service}-${stage}` }] },
           tagResource: {},
         },
         CloudFormation: {
