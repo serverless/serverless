@@ -13,6 +13,7 @@ const {
   defaultApiGatewayLogLevel,
 } = require('../../../../../../../../../../../lib/plugins/aws/package/compile/events/apiGateway/lib/hack/updateStage');
 const runServerless = require('../../../../../../../../../../utils/run-serverless');
+const fixtures = require('../../../../../../../../../../fixtures/programmatic');
 
 chai.use(require('sinon-chai'));
 chai.use(require('chai-as-promised'));
@@ -810,5 +811,67 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/hack/u
     expect(tagResourceStub.args[0][0].tags).to.deep.equal({ key: 'value' });
     expect(untagResourceStub).to.have.been.calledOnce;
     expect(untagResourceStub.args[0][0].tagKeys).to.deep.equal(['keytoremove']);
+  });
+
+  it('should deploys shouldStartNameWithService without apiName', async () => {
+    const { serviceConfig, servicePath, updateConfig } = await fixtures.setup('apiGateway');
+    const getDeploymentsStub = sinon.stub().returns({ items: [{ id: 'deployment-id' }] });
+    const stage = 'dev';
+
+    await updateConfig({
+      provider: {
+        apiGateway: {
+          shouldStartNameWithService: true,
+        },
+        stackTags: { key: 'value' },
+      },
+    });
+
+    await runServerless({
+      command: 'deploy',
+      cwd: servicePath,
+      options: { stage },
+      lastLifecycleHookName: 'after:deploy:deploy',
+      awsRequestStubMap: {
+        APIGateway: {
+          createStage: {},
+          getDeployments: getDeploymentsStub,
+          getRestApis: { items: [{ id: 'api-id', name: `${serviceConfig.service}-${stage}` }] },
+          tagResource: {},
+        },
+        CloudFormation: {
+          describeStacks: { Stacks: [{}] },
+          describeStackEvents: {
+            StackEvents: [
+              {
+                ResourceStatus: 'UPDATE_COMPLETE',
+                ResourceType: 'AWS::CloudFormation::Stack',
+              },
+            ],
+          },
+          describeStackResource: {
+            StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
+          },
+          listStackResources: {},
+          validateTemplate: {},
+          updateStack: {},
+        },
+        S3: {
+          listObjectsV2: {},
+          upload: {},
+        },
+        STS: {
+          getCallerIdentity: {
+            ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+            UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+            Account: '999999999999',
+            Arn: 'arn:aws-us-gov:iam::999999999999:user/test',
+          },
+        },
+      },
+    });
+
+    expect(getDeploymentsStub).to.have.been.calledOnce;
+    expect(getDeploymentsStub.args[0][0].restApiId).to.equal('api-id');
   });
 });
