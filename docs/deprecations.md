@@ -336,7 +336,7 @@ While not recommended, you can keep using the old hashing algorithm by setting `
   An error occurred: FooLambdaVersion3IV5NZ3sE5T2UFimCOai2Tc6eCaW7yIYOP786U0Oc - A version for this Lambda function exists ( 11 ). Modify the function to create a new version..
 ```
 
-It is an expected behavior. AWS complains here that received a different hash for very same lambda configuration. To workaround that, you need to modify your function(s) code and try to redeploy it again. One common approach is to modify an utility function that is used by all/most of your Lambda functions.
+It is an expected behavior. AWS complains here that received a different hash for very same lambda configuration. To workaround that, you need to modify your function(s) code and try to redeploy it again. One common approach is to modify an utility function that is used by all/most of your Lambda functions. There's also a semi-automated migration available and described in [V3 Upgrade docs](./guides/upgrading-v3.md#lambda-hashing-algorithm).
 
 <a name="LOAD_VARIABLES_FROM_ENV_FILES"><div>&nbsp;</div></a>
 
