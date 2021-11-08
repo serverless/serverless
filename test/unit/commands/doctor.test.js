@@ -12,7 +12,6 @@ const serverlessPath = path.resolve(__dirname, '../../../scripts/serverless.js')
 describe('test/unit/commands/doctor.test.js', async () => {
   before(() => {
     process.env.SLS_DEPRECATION_NOTIFICATION_MODE = 'warn:summary';
-    process.env.SLS_DEV_LOG_MODE = '3';
   });
 
   it('should print health status after command which triggered deprecation', async () => {
