@@ -120,6 +120,10 @@ describe('PluginManager', () => {
                 },
               },
             },
+            other: {
+              usage: 'Deploy to other infrastructure',
+              lifecycleEvents: ['resources', 'functions'],
+            },
           },
         },
       };
