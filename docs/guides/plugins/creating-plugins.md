@@ -83,9 +83,9 @@ Lifecycle events are events that fire sequentially during a CLI command.
 
 Additionally, for each event an additional `before` and `after` event is created. For example:
 
-- `before:package:package`
-- `package:package`
-- `after:package:package`
+- `before:package:initialize`
+- `package:createDeploymentArtifacts`
+- `after:package:finalize`
 - `before:deploy:deploy`
 - `deploy:deploy`
 - `after:deploy:deploy`
