@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.66.0](https://github.com/serverless/serverless/compare/v2.65.0...v2.66.0) (2021-11-09)
+
+### Features
+
+- Introduce `enforce-hash-update` flag to help Lambda hashing version migration ([#10209](https://github.com/serverless/serverless/pull/10209)) ([afd0a5b](https://github.com/serverless/serverless/commit/afd0a5bd6f131c9b12148199d4995e055e5963f0)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Variables:** Recognize `:` in variable address to support `output` source ([#10208](https://github.com/serverless/serverless/pull/10208)) ([723927f](https://github.com/serverless/serverless/commit/723927f2dcdcc425025da03ac0be5edd3c203dc7)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **AWS API Gateway:** Ensure `shouldStartNameWithService` support ([#10177](https://github.com/serverless/serverless/pull/10177)) ([e8c8d25](https://github.com/serverless/serverless/commit/e8c8d259fb79ae04e33e01af162c6666f0060189)) ([Vicary A.](https://github.com/vicary))
+- **CLI:** Do not recommend `frameworkVersion` when running pre release ([#10204](https://github.com/serverless/serverless/pull/10204)) ([53490a5](https://github.com/serverless/serverless/commit/53490a55183db5f304d0e3ef69feadd9a20fa815)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- Ensure to use `legacy.log` instead of `cli.log` ([#10206](https://github.com/serverless/serverless/pull/10206)) ([ea05d7c](https://github.com/serverless/serverless/commit/ea05d7c41e84b0f68017804b06d6435062673d26)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.65.0](https://github.com/serverless/serverless/compare/v2.64.1...v2.65.0) (2021-11-03)
 
 ### Features
