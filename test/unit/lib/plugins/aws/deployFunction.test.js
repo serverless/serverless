@@ -396,7 +396,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
   });
 
   it('should skip updating function configuration if image config did not change', async () => {
-    const { stdoutData } = await runServerless({
+    await runServerless({
       fixture: 'function',
       command: 'deploy function',
       options: { function: 'basic' },
@@ -434,13 +434,10 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       },
     });
     expect(updateFunctionConfigurationStub).not.to.be.called;
-    expect(stdoutData).to.include(
-      'Configuration did not change. Skipping function configuration update.'
-    );
   });
 
   it('should skip deployment if image sha did not change', async () => {
-    const { stdoutData } = await runServerless({
+    await runServerless({
       fixture: 'function',
       command: 'deploy function',
       options: { function: 'basic' },
@@ -465,7 +462,6 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       },
     });
     expect(updateFunctionCodeStub).not.to.be.called;
-    expect(stdoutData).to.include('Image did not change. Skipping function deployment.');
   });
 
   it('should fail if function with image was previously defined with handler', async () => {
@@ -532,7 +528,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       .throws({ providerError: { code: 'ResourceConflictException' } })
       .onSecondCall()
       .resolves({});
-    const { stdoutData } = await runServerless({
+    await runServerless({
       fixture: 'function',
       command: 'deploy function',
       options: { function: 'basic' },
@@ -555,12 +551,11 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       },
     });
 
-    expect(stdoutData).to.include('Retrying configuration update for function');
     expect(innerUpdateFunctionConfigurationStub.callCount).to.equal(2);
   });
 
   it('should update function configuration if configuration changed', async () => {
-    const { stdoutData } = await runServerless({
+    await runServerless({
       fixture: 'function',
       command: 'deploy function',
       options: { function: 'basic' },
@@ -628,11 +623,10 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       },
       Layers: [layerArn, secondLayerArn],
     });
-    expect(stdoutData).to.include('Successfully updated function');
   });
 
   it('should skip updating properties that contain references', async () => {
-    const { stdoutData } = await runServerless({
+    await runServerless({
       fixture: 'function',
       command: 'deploy function',
       options: { function: 'basic' },
@@ -677,11 +671,10 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       },
       Role: role,
     });
-    expect(stdoutData).to.include('Successfully updated function');
   });
 
   it('should update function configuration with provider-level properties', async () => {
-    const { stdoutData } = await runServerless({
+    await runServerless({
       fixture: 'function',
       command: 'deploy function',
       options: { function: 'basic' },
@@ -736,11 +729,10 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
         SubnetIds: ['subnet-111', 'subnet-222'],
       },
     });
-    expect(stdoutData).to.include('Successfully updated function');
   });
 
   it('should not update function configuration if configuration did not change', async () => {
-    const { stdoutData } = await runServerless({
+    await runServerless({
       fixture: 'function',
       command: 'deploy function',
       options: { function: 'basic' },
@@ -808,9 +800,6 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     });
 
     expect(updateFunctionConfigurationStub).not.to.be.called;
-    expect(stdoutData).to.include(
-      'Configuration did not change. Skipping function configuration update.'
-    );
   });
 
   it('configuration uses the "kmsKeyArn" instead of functionObj.awsKmsKeyArn', async () => {

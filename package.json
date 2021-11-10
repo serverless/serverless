@@ -82,7 +82,7 @@
   "devDependencies": {
     "@commitlint/cli": "^12.1.4",
     "@serverless/eslint-config": "^4.0.0",
-    "@serverless/test": "^8.5.0",
+    "@serverless/test": "pre-9",
     "adm-zip": "^0.5.9",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
