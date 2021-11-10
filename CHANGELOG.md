@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.66.1](https://github.com/serverless/serverless/compare/v2.66.0...v2.66.1) (2021-11-10)
+
+### Bug Fixes
+
+- **AWS API Gateway:** Ensure proper `apiId` resolution ([#10221](https://github.com/serverless/serverless/pull/10221)) ([95f3a56](https://github.com/serverless/serverless/commit/95f3a5603897ad43ba6e008a7ea2a35d21a4eacf)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **CLI:** Improve timestamp visiblity in `deploy list` output ([#10211](https://github.com/serverless/serverless/pull/10211)) ([55146c4](https://github.com/serverless/serverless/commit/55146c4595024b0e3702dc2023264af784b906e9)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Templates
+
+- Upgrade `middy` in `aws-nodejs-typescript` ([#10215](https://github.com/serverless/serverless/issues/10215)) ([ad95e03](https://github.com/serverless/serverless/commit/ad95e030b3581a65babc8dd175b8bb69f1215534)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+- Use non deprecated API in `aws-nodejs-typescript` ([#10214](https://github.com/serverless/serverless/issues/10214)) ([6671d98](https://github.com/serverless/serverless/commit/6671d98615ab7d003c3c7413c9334b63b2d735e8)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+
 ## [2.66.0](https://github.com/serverless/serverless/compare/v2.65.0...v2.66.0) (2021-11-09)
 
 ### Features
