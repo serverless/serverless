@@ -35,19 +35,19 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 npm install -g serverless
 ```
 
-### Set Up Your AWS Account Credentials.
+### Set Up Your AWS Account Credentials:
 
 The Serverless Framework deploys to your own AWS account. You'll need to enable Serverless Framework to deploy to your AWS account by giving it access. [Here is a guide to help you set up your credentials securely](https://www.serverless.com/framework/docs/providers/aws/guide/credentials)
 
 ### Create A Service:
 
-A "Service" is the Framework's project or app concept. You can create one from scratch or select an existing template by running...
+A "Service" is the Framework's project or app concept. You can create one from scratch or select an existing template by running.
 
 ```bash
 serverless
 ```
 
-Go through the onboarding flow and then navigate into the newly created directory
+Go through the onboarding flow and then navigate into the newly created directory.
 
 ```bash
 cd my-new-service
