@@ -197,7 +197,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
     ).to.be.true;
   });
 
-  it('Should emit warning when dashboard is not available when fetching providers', async () => {
+  it('Should be ineffective dashboard is not available', async () => {
     const internalMockedSdk = {
       ...mockedSdk,
       getProviders: async () => {
@@ -213,20 +213,13 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
       '@serverless/dashboard-plugin/lib/isAuthenticated': () => true,
     });
 
-    let stdoutData = '';
-    await overrideStdoutWrite(
-      (data) => (stdoutData += data),
-      async () =>
-        expect(
-          await mockedStep.isApplicable({
-            serviceDir: process.cwd(),
-            configuration: { provider: { name: 'aws' }, org: 'someorg' },
-            configurationFilename: 'serverless.yml',
-          })
-        ).to.be.false
-    );
-
-    expect(stdoutData).to.include('Serverless Dashboard is currently unavailable');
+    expect(
+      await mockedStep.isApplicable({
+        serviceDir: process.cwd(),
+        configuration: { provider: { name: 'aws' }, org: 'someorg' },
+        configurationFilename: 'serverless.yml',
+      })
+    ).to.be.false;
   });
 
   it('Should be effective, at AWS service and no credentials are set', async () =>
@@ -238,7 +231,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
       })
     ).to.equal(true));
 
-  it('Should emit a message when user decides to skip credentials setup', async () => {
+  it('Should allow to skip credentials setup', async () => {
     configureInquirerStub(inquirer, {
       list: { credentialsSetupChoice: '_skip_' },
     });
@@ -256,7 +249,6 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
       async () => await step.run(context)
     );
 
-    expect(stdoutData).to.include('You can setup your AWS account later');
     expect(context.stepHistory.valuesMap()).to.deep.equal(
       new Map([['credentialsSetupChoice', '_skip_']])
     );
@@ -464,7 +456,6 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         list: { credentialsSetupChoice: '_create_provider_' },
       });
 
-      let stdoutData = '';
       const context = {
         serviceDir: process.cwd(),
         configuration: {
@@ -477,12 +468,8 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
       };
-      await overrideStdoutWrite(
-        (data) => (stdoutData += data),
-        async () => await mockedStep.run(context)
-      );
+      await mockedStep.run(context);
 
-      expect(stdoutData).to.include('AWS Access Role provider was successfully created');
       expect(mockedOpenBrowser).to.have.been.calledWith(
         'https://app.serverless.com/someorg/settings/providers?source=cli&providerId=new&provider=aws'
       );
@@ -551,13 +538,8 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
       };
-      let stdoutData = '';
-      await overrideStdoutWrite(
-        (data) => (stdoutData += data),
-        async () => await mockedStep.run(context)
-      );
+      await mockedStep.run(context);
 
-      expect(stdoutData).to.include('AWS Access Role provider was successfully created');
       expect(mockedOpenBrowser).to.have.been.calledWith(
         'https://app.serverless.com/someorg/settings/providers?source=cli&providerId=new&provider=aws'
       );
@@ -605,13 +587,8 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
       };
-      let stdoutData = '';
-      await overrideStdoutWrite(
-        (data) => (stdoutData += data),
-        async () => await mockedStep.run(context)
-      );
+      await mockedStep.run(context);
 
-      expect(stdoutData).to.include('Serverless Dashboard is currently unavailable');
       expect(mockedOpenBrowser).to.have.been.calledWith(
         'https://app.serverless.com/someorg/settings/providers?source=cli&providerId=new&provider=aws'
       );
@@ -664,11 +641,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
       };
-      let stdoutData = '';
-      await overrideStdoutWrite(
-        (data) => (stdoutData += data),
-        async () => await mockedStep.run(context)
-      );
+      await mockedStep.run(context);
 
       expect(mockedCreateProviderLink).to.have.been.calledWith(
         'org-uid',
@@ -676,13 +649,12 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         'appName|someapp|serviceName|someservice|stage|dev|region|us-east-1',
         'provideruid'
       );
-      expect(stdoutData).to.include('Selected provider was successfully linked');
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([['credentialsSetupChoice', '_user_choice_']])
       );
     });
 
-    it('Should emit a warning when dashboard is not available and link cannot be created', async () => {
+    it('Should handle gently dashboard unavailabiilty when linking provider', async () => {
       const providerUid = 'provideruid';
       const mockedCreateProviderLink = sinon.stub().callsFake(async () => {
         const err = new Error('error');
@@ -730,16 +702,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         stepHistory: new StepHistory(),
         configurationFilename: 'serverless.yml',
       };
-      let stdoutData = '';
-      await overrideStdoutWrite(
-        (data) => (stdoutData += data),
-        async () => await mockedStep.run(context)
-      );
-
-      expect(stdoutData).to.include(
-        'Serverless Dashboard is currently unavailable, please try again later'
-      );
-      expect(stdoutData).not.to.include('Selected provider was successfully linked');
+      await mockedStep.run(context);
       expect(mockedCreateProviderLink).to.have.been.calledWith(
         'org-uid',
         'instance',
@@ -752,7 +715,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
       );
     });
 
-    it('Should emit a warning when dashboard is not available when fetching providers', async () => {
+    it('Should handle gently dashboard unavailabiilty when fetching providers', async () => {
       const internalMockedSdk = {
         ...mockedSdk,
         getProviders: async () => {
@@ -768,19 +731,12 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         '@serverless/dashboard-plugin/lib/isAuthenticated': () => true,
       });
 
-      let stdoutData = '';
-      await overrideStdoutWrite(
-        (data) => (stdoutData += data),
-        async () =>
-          await mockedStep.run({
-            serviceDir: process.cwd(),
-            configuration: { provider: { name: 'aws' }, org: 'someorg' },
-            options: {},
-            configurationFilename: 'serverless.yml',
-          })
-      );
-
-      expect(stdoutData).to.include('Serverless Dashboard is currently unavailable');
+      await mockedStep.run({
+        serviceDir: process.cwd(),
+        configuration: { provider: { name: 'aws' }, org: 'someorg' },
+        options: {},
+        configurationFilename: 'serverless.yml',
+      });
     });
   });
 });
