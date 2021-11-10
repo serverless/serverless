@@ -970,7 +970,7 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
         process.env.AWS_ACCESS_KEY_ID = 'AAKIXXX';
         process.env.AWS_SECRET_ACCESS_KEY = 'ASAKXXX';
 
-        // Confirm outcome on { stdout }
+        // Confirm outcome on { output }
         const response = await runServerless({
           fixture: 'invocation',
           command: 'invoke local',
@@ -997,8 +997,8 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
             },
           },
         });
-        const stdoutAsJson = JSON.parse(response.stdoutData);
-        responseBody = JSON.parse(stdoutAsJson.body);
+        const outputAsJson = JSON.parse(response.output);
+        responseBody = JSON.parse(outputAsJson.body);
       });
 
       after(() => {
@@ -1046,33 +1046,33 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
     testRuntime('callback');
 
     it('should support success resolution via async function', async () => {
-      const { stdoutData } = await runServerless({
+      const { output } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
         options: { function: 'async' },
       });
 
-      expect(stdoutData).to.include('Invoked');
+      expect(output).to.include('Invoked');
     });
 
     it('should support success resolution via context.done', async () => {
-      const { stdoutData } = await runServerless({
+      const { output } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
         options: { function: 'contextDone' },
       });
 
-      expect(stdoutData).to.include('Invoked');
+      expect(output).to.include('Invoked');
     });
 
     it('should support success resolution via context.succeed', async () => {
-      const { stdoutData } = await runServerless({
+      const { output } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
         options: { function: 'contextSucceed' },
       });
 
-      expect(stdoutData).to.include('Invoked');
+      expect(output).to.include('Invoked');
     });
 
     it('should support immediate failure at initialization', async () => {
@@ -1099,69 +1099,69 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
     });
 
     it('should support failure resolution via async function', async () => {
-      const { stdoutData } = await runServerless({
+      const { output } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
         options: { function: 'async', data: '{"shouldFail":true}' },
       });
 
-      expect(stdoutData).to.include('Failed on request');
+      expect(output).to.include('Failed on request');
     });
 
     it('should support failure resolution via callback', async () => {
-      const { stdoutData } = await runServerless({
+      const { output } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
         options: { function: 'callback', data: '{"shouldFail":true}' },
       });
 
-      expect(stdoutData).to.include('Failed on request');
+      expect(output).to.include('Failed on request');
     });
 
     it('should support failure resolution via context.done', async () => {
-      const { stdoutData } = await runServerless({
+      const { output } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
         options: { function: 'contextDone', data: '{"shouldFail":true}' },
       });
 
-      expect(stdoutData).to.include('Failed on request');
+      expect(output).to.include('Failed on request');
     });
 
     it('should support failure resolution via context.fail', async () => {
-      const { stdoutData } = await runServerless({
+      const { output } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
         options: { function: 'contextSucceed', data: '{"shouldFail":true}' },
       });
 
-      expect(stdoutData).to.include('Failed on request');
+      expect(output).to.include('Failed on request');
     });
 
     it('should recognize first resolution', async () => {
-      const { stdoutData: firstRunStdout } = await runServerless({
+      const { output: firstRunOutput } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
         options: { function: 'doubledResolutionCallbackFirst' },
       });
-      const { stdoutData: secondRunStdout } = await runServerless({
+      const { output: secondRunOutput } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
         options: { function: 'doubledResolutionPromiseFirst' },
       });
 
-      expect(firstRunStdout).to.include('callback');
-      expect(secondRunStdout).to.include('promise');
+      expect(firstRunOutput).to.include('callback');
+      expect(secondRunOutput).to.include('promise');
     });
 
     it('should support context.remainingTimeInMillis()', async () => {
-      const { stdoutData } = await runServerless({
+      const { output } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
         options: { function: 'remainingTime' },
       });
 
-      const body = JSON.parse(stdoutData).body;
+      const body = JSON.parse(output).body;
       const [firstRemainingMs, secondRemainingMs, thirdRemainingMs] = JSON.parse(body).data;
       expect(firstRemainingMs).to.be.lte(3000);
       expect(secondRemainingMs).to.be.lte(2910);
@@ -1182,13 +1182,13 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
     testRuntime('python');
     describe('context.remainingTimeInMillis', () => {
       it('should support context.get_remaining_time_in_millis()', async () => {
-        const { stdoutData } = await runServerless({
+        const { output } = await runServerless({
           fixture: 'invocation',
           command: 'invoke local',
           options: { function: 'pythonRemainingTime' },
         });
 
-        const { start, stop } = JSON.parse(stdoutData);
+        const { start, stop } = JSON.parse(output);
         expect(start).to.lte(3000);
         expect(stop).to.lte(2910);
       });
@@ -1208,33 +1208,33 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
     testRuntime('ruby');
 
     it('should support class/module address in handler for "ruby*" runtime', async () => {
-      const { stdoutData } = await runServerless({
+      const { output } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
         options: { function: 'rubyClass' },
       });
 
-      expect(stdoutData).to.include('rubyclass');
+      expect(output).to.include('rubyclass');
     });
     it('should support context.get_remaining_time_in_millis()', async () => {
-      const { stdoutData } = await runServerless({
+      const { output } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
         options: { function: 'rubyRemainingTime' },
       });
 
-      const { start, stop } = JSON.parse(stdoutData);
+      const { start, stop } = JSON.parse(output);
       expect(start).to.lte(6000);
       expect(stop).to.lte(5910);
     });
     it('should support context.deadline_ms', async () => {
-      const { stdoutData } = await runServerless({
+      const { output } = await runServerless({
         fixture: 'invocation',
         command: 'invoke local',
         options: { function: 'rubyDeadline' },
       });
 
-      const { deadlineMs } = JSON.parse(stdoutData);
+      const { deadlineMs } = JSON.parse(output);
       expect(deadlineMs).to.be.gt(Date.now());
     });
   });
