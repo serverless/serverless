@@ -119,19 +119,4 @@ describe('test/unit/lib/plugins/aws/remove/index.test.js', () => {
       force: true,
     });
   });
-
-  it('emits warning when repository cannot be accessed due to denied access but there are images defined', async () => {
-    describeRepositoriesStub.throws({ providerError: { code: 'AccessDeniedException' } });
-
-    const { stdoutData } = await runServerless({
-      fixture: 'ecr',
-      command: 'remove',
-      awsRequestStubMap,
-    });
-
-    expect(stdoutData).to.include('WARNING: Could not access ECR repository due to denied access');
-    expect(stdoutData).to.include('ECR repository removal will be skipped.');
-
-    expect(deleteRepositoryStub).not.to.be.called;
-  });
 });

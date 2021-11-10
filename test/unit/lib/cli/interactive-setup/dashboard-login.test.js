@@ -5,7 +5,6 @@ const sinon = require('sinon');
 const proxyquire = require('proxyquire');
 const overrideCwd = require('process-utils/override-cwd');
 const configureInquirerStub = require('@serverless/test/configure-inquirer-stub');
-const overrideStdoutWrite = require('process-utils/override-stdout-write');
 const { StepHistory } = require('@serverless/utils/telemetry');
 const inquirer = require('@serverless/utils/inquirer');
 
@@ -123,19 +122,10 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       inquirer,
       stepHistory: new StepHistory(),
     };
-    let stdoutData = '';
-    await overrideStdoutWrite(
-      (data) => (stdoutData += data),
-      async () => {
-        await loginStep.run(context);
-      }
-    );
+    await loginStep.run(context);
     expect(loginStub.calledOnce).to.be.true;
     expect(context.stepHistory.valuesMap()).to.deep.equal(
       new Map([['shouldLoginOrRegister', true]])
-    );
-    expect(stdoutData).to.include(
-      'Enable Serverless Dashboard to get enhanced monitoring, logs and secrets management: https://serverless.com/monitoring'
     );
   });
 
@@ -158,19 +148,10 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       inquirer,
       stepHistory: new StepHistory(),
     };
-    let stdoutData = '';
-    await overrideStdoutWrite(
-      (data) => (stdoutData += data),
-      async () => {
-        await loginStep.run(context);
-      }
-    );
+    await loginStep.run(context);
     expect(loginStub.called).to.be.false;
     expect(context.stepHistory.valuesMap()).to.deep.equal(
       new Map([['shouldLoginOrRegister', false]])
-    );
-    expect(stdoutData).to.include(
-      'Enable Serverless Dashboard to get enhanced monitoring, logs and secrets management: https://serverless.com/monitoring'
     );
   });
 });
