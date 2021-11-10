@@ -28,12 +28,27 @@ describe('Serverless', () => {
   let serverless;
 
   beforeEach(() => {
-    serverless = new Serverless({ commands: ['print'], options: {}, serviceDir: null });
+    serverless = new Serverless({
+      commands: ['print'],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
   });
 
   describe('#constructor()', () => {
     it('should set the correct config if a config object is passed', () => {
-      const configObj = { some: 'config', commands: [], options: {} };
+      const configObj = {
+        some: 'config',
+        commands: [],
+        options: {},
+        serviceDir: process.cwd(),
+        configurationFilename: 'serverless.yml',
+        configuration: {},
+        isConfigurationResovled: true,
+      };
       const serverlessWithConfig = new Serverless(configObj);
 
       expect(serverlessWithConfig.config.some).to.equal('config');

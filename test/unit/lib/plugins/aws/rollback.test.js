@@ -15,7 +15,14 @@ describe('AwsRollback', () => {
   let provider;
 
   const createInstance = (options) => {
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     provider = new AwsProvider(serverless, options);
     serverless.setProvider('aws', provider);
     serverless.service.service = 'rollback';

@@ -18,7 +18,14 @@ describe('#compileRestApi()', () => {
       stage: 'dev',
       region: 'us-east-1',
     };
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     serverless.setProvider('aws', new AwsProvider(serverless, options));
     serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
     awsCompileApigEvents = new AwsCompileApigEvents(serverless, options);

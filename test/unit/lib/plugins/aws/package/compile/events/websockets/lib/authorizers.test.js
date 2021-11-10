@@ -10,7 +10,14 @@ describe('#compileAuthorizers()', () => {
 
   describe('for routes with authorizer definition', () => {
     beforeEach(() => {
-      const serverless = new Serverless({ commands: [], options: {} });
+      const serverless = new Serverless({
+        commands: [],
+        options: {},
+        serviceDir: process.cwd(),
+        configurationFilename: 'serverless.yml',
+        configuration: {},
+        isConfigurationResovled: true,
+      });
       serverless.setProvider('aws', new AwsProvider(serverless));
       serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
 
@@ -106,7 +113,14 @@ describe('#compileAuthorizers()', () => {
 
   describe('for routes without authorizer definition', () => {
     beforeEach(() => {
-      const serverless = new Serverless({ commands: [], options: {} });
+      const serverless = new Serverless({
+        commands: [],
+        options: {},
+        serviceDir: process.cwd(),
+        configurationFilename: 'serverless.yml',
+        configuration: {},
+        isConfigurationResovled: true,
+      });
       serverless.setProvider('aws', new AwsProvider(serverless));
       serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
 

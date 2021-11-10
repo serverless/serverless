@@ -28,7 +28,14 @@ describe('Install', () => {
 
     serviceDir = tmpDir;
 
-    serverless = new Serverless({ commands: ['print'], options: {}, serviceDir: null });
+    serverless = new Serverless({
+      commands: ['print'],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     install = new Install(serverless);
     return serverless.init().then(() => {
       install.serverless.cli = new serverless.classes.CLI();

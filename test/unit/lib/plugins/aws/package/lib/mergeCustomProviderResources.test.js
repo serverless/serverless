@@ -12,7 +12,14 @@ describe('mergeCustomProviderResources', () => {
   let coreCloudFormationTemplate;
 
   beforeEach(() => {
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     awsPackage = new AwsPackage(serverless, {});
 
     coreCloudFormationTemplate = awsPackage.serverless.utils.readFileSync(

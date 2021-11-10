@@ -17,7 +17,14 @@ describe('Deploy', () => {
   let options;
 
   beforeEach(() => {
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     options = {};
     deploy = new Deploy(serverless, options);
     deploy.serverless.providers = { validProvider: true };

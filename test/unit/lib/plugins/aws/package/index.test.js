@@ -14,7 +14,14 @@ describe('AwsPackage', () => {
   let options;
 
   beforeEach(() => {
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     options = {
       stage: 'dev',
       region: 'us-east-1',

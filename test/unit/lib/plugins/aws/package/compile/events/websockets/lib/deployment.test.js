@@ -13,7 +13,14 @@ describe('#compileDeployment()', () => {
       stage: 'dev',
       region: 'us-east-1',
     };
-    const serverless = new Serverless({ commands: [], options: {} });
+    const serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     serverless.setProvider('aws', new AwsProvider(serverless));
     serverless.service.provider.compiledCloudFormationTemplate = {
       Resources: {},

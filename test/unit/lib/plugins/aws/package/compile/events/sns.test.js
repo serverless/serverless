@@ -10,7 +10,14 @@ describe('AwsCompileSNSEvents', () => {
   let awsCompileSNSEvents;
 
   beforeEach(() => {
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     const options = {
       region: 'some-region',
     };

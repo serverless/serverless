@@ -25,7 +25,14 @@ describe('uploadArtifacts', () => {
   let cryptoStub;
 
   beforeEach(() => {
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     serverless.serviceDir = 'foo';
     serverless.setProvider('aws', new AwsProvider(serverless, {}));
     const options = {

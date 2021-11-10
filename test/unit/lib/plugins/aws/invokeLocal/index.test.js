@@ -64,7 +64,14 @@ describe('AwsInvokeLocal', () => {
       'get-stdin': stdinStub,
       'child-process-ext/spawn': spawnExtStub,
     });
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     serverless.serviceDir = 'servicePath';
     serverless.cli = new CLI(serverless);
     serverless.processedInput = { commands: ['invoke'] };

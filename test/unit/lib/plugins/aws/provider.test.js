@@ -31,7 +31,15 @@ describe('AwsProvider', () => {
 
   beforeEach(() => {
     ({ restoreEnv } = overrideEnv());
-    serverless = new Serverless({ ...options, commands: [], options: {} });
+    serverless = new Serverless({
+      ...options,
+      commands: ['print'],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     serverless.cli = new serverless.classes.CLI();
     awsProvider = new AwsProvider(serverless, options);
   });

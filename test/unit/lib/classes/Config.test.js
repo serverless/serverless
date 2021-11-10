@@ -4,7 +4,14 @@ const expect = require('chai').expect;
 const Config = require('../../../../lib/classes/Config');
 const Serverless = require('../../../../lib/Serverless');
 
-const serverless = new Serverless({ commands: [], options: {} });
+const serverless = new Serverless({
+  commands: [],
+  options: {},
+  serviceDir: process.cwd(),
+  configurationFilename: 'serverless.yml',
+  configuration: {},
+  isConfigurationResovled: true,
+});
 
 describe('Config', () => {
   describe('#constructor()', () => {

@@ -13,7 +13,14 @@ describe('#disassociateUsagePlan()', () => {
   let providerRequestStub;
 
   beforeEach(() => {
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     serverless.service.service = 'my-service';
     serverless.cli = {
       log: sinon.spy(),

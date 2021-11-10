@@ -15,7 +15,14 @@ describe('#saveCompiledTemplate()', () => {
 
   beforeEach(() => {
     const options = {};
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     serverless.setProvider('aws', new AwsProvider(serverless, options));
     awsPackage = new AwsPackage(serverless, options);
     serverless.serviceDir = 'my-service';

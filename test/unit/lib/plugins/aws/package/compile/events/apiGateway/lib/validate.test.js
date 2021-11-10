@@ -22,7 +22,14 @@ describe('#validate()', () => {
       stage: 'dev',
       region: 'us-east-1',
     };
-    serverless = new Serverless({ commands: ['print'], options: {}, serviceDir: null });
+    serverless = new Serverless({
+      commands: ['print'],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     serverless.setProvider('aws', new AwsProvider(serverless, options));
     awsCompileApigEvents = new AwsCompileApigEvents(serverless, options);
   });

@@ -34,7 +34,14 @@ describe('PluginUtils', () => {
   ];
 
   beforeEach(() => {
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     serverless.cli = new CLI(serverless);
     const options = {};
     pluginUtils = new PluginInstall(serverless, options);

@@ -21,7 +21,14 @@ describe('Create', () => {
   let create;
 
   before(() => {
-    const serverless = new Serverless({ commands: [], options: {} });
+    const serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     const options = {};
     create = new Create(serverless, options);
     create.serverless.cli = new serverless.classes.CLI();

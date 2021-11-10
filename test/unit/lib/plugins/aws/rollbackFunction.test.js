@@ -18,7 +18,14 @@ describe('AwsRollbackFunction', () => {
     AwsRollbackFunction = proxyquire('../../../../../lib/plugins/aws/rollbackFunction.js', {
       'node-fetch': fetchStub,
     });
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     serverless.service.functions = {
       hello: {
         handler: true,

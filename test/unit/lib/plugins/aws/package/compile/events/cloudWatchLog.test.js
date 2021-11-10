@@ -10,7 +10,14 @@ describe('AwsCompileCloudWatchLogEvents', () => {
   let awsCompileCloudWatchLogEvents;
 
   beforeEach(() => {
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
     serverless.setProvider('aws', new AwsProvider(serverless));
     awsCompileCloudWatchLogEvents = new AwsCompileCloudWatchLogEvents(serverless);

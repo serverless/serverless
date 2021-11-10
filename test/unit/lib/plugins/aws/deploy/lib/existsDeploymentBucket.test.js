@@ -18,7 +18,14 @@ describe('#existsDeploymentBucket()', () => {
       stage: 'dev',
       region: 'us-east-1',
     };
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     awsPlugin.serverless = serverless;
     awsPlugin.provider = new AwsProvider(serverless, options);
 

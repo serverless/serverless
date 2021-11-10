@@ -29,7 +29,14 @@ describe('#updateStage()', () => {
   let context;
 
   beforeEach(() => {
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     serverless.service.service = 'my-service';
     options = { stage: 'dev', region: 'us-east-1' };
     awsProvider = new AwsProvider(serverless, options);

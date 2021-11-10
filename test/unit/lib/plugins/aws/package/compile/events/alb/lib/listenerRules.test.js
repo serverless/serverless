@@ -9,7 +9,14 @@ describe('#compileListenerRules()', () => {
   let awsCompileAlbEvents;
 
   beforeEach(() => {
-    const serverless = new Serverless({ commands: [], options: {} });
+    const serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     serverless.setProvider('aws', new AwsProvider(serverless));
     serverless.service.service = 'some-service';
     serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };

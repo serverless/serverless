@@ -14,7 +14,14 @@ const { getTmpFilePath, getTmpDirPath } = require('../../../utils/fs');
 chai.use(require('chai-as-promised'));
 const expect = require('chai').expect;
 
-const serverless = new Serverless({ commands: [], options: {} });
+const serverless = new Serverless({
+  commands: [],
+  options: {},
+  serviceDir: process.cwd(),
+  configurationFilename: 'serverless.yml',
+  configuration: {},
+  isConfigurationResovled: true,
+});
 
 describe('YamlParser', () => {
   describe('#parse()', () => {

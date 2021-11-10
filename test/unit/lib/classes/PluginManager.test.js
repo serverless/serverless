@@ -422,7 +422,14 @@ describe('PluginManager', () => {
 
   beforeEach(() => {
     ({ restoreEnv } = overrideEnv({ whitelist: ['APPDATA', 'PATH'] }));
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     serverless.cli = new CLI();
     serverless.processedInput = { commands: ['print'], options: {} };
     pluginManager = new PluginManager(serverless);
@@ -1257,7 +1264,14 @@ describe('PluginManager', () => {
     let pluginManagerInstance;
 
     beforeEach(() => {
-      serverlessInstance = new Serverless({ commands: [], options: {} });
+      serverlessInstance = new Serverless({
+        commands: [],
+        options: {},
+        serviceDir: process.cwd(),
+        configurationFilename: 'serverless.yml',
+        configuration: {},
+        isConfigurationResovled: true,
+      });
       serverlessInstance.configurationInput = null;
       serverlessInstance.serviceDir = 'my-service';
       pluginManagerInstance = new PluginManager(serverlessInstance);
@@ -1283,34 +1297,6 @@ describe('PluginManager', () => {
       const foo = pluginManagerInstance.commands.foo;
 
       expect(pluginManagerInstance.validateServerlessConfigDependency(foo)).to.be.undefined;
-    });
-
-    it('should throw an error if configDependent is true and no config is found', () => {
-      pluginManagerInstance.commands = {
-        foo: {
-          configDependent: true,
-        },
-      };
-
-      const foo = pluginManagerInstance.commands.foo;
-
-      expect(() => {
-        pluginManager.validateServerlessConfigDependency(foo);
-      }).to.throw(Error);
-    });
-
-    it('should throw an error if configDependent is true and config is an empty string', () => {
-      pluginManagerInstance.commands = {
-        foo: {
-          configDependent: true,
-        },
-      };
-
-      const foo = pluginManagerInstance.commands.foo;
-
-      expect(() => {
-        pluginManager.validateServerlessConfigDependency(foo);
-      }).to.throw(Error);
     });
 
     it('should load if the configDependent property is true and config exists', () => {
@@ -1887,7 +1873,14 @@ describe('PluginManager', () => {
     });
 
     beforeEach(() => {
-      serverlessInstance = new Serverless({ commands: ['print'], options: {}, serviceDir: null });
+      serverlessInstance = new Serverless({
+        commands: ['print'],
+        options: {},
+        serviceDir: process.cwd(),
+        configurationFilename: 'serverless.yml',
+        configuration: {},
+        isConfigurationResovled: true,
+      });
       return serverlessInstance.init().then(() => {
         // Cannot rely on shebang in severless.js to invoke script using NodeJS on Windows.
         const tmpDir = getTmpDirPath();

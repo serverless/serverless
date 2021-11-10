@@ -8,7 +8,14 @@ describe('#getCommandSuggestion', () => {
   let serverless;
 
   before(() => {
-    serverless = new Serverless({ commands: ['print'], options: {}, serviceDir: null });
+    serverless = new Serverless({
+      commands: ['print'],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     return serverless.init();
   });
 

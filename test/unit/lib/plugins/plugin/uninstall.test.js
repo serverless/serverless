@@ -39,7 +39,14 @@ describe('PluginUninstall', () => {
   ];
 
   beforeEach(() => {
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     serverless.cli = new CLI(serverless);
     const options = {};
     pluginUninstall = new PluginUninstall(serverless, options);

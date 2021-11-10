@@ -22,7 +22,14 @@ describe('AwsDeployFunction', () => {
   let cryptoStub;
 
   beforeEach(async () => {
-    serverless = new Serverless({ commands: ['print'], options: {}, serviceDir: null });
+    serverless = new Serverless({
+      commands: ['print'],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     serverless.servicePath = true;
     serverless.service.environment = {
       vars: {},

@@ -17,7 +17,14 @@ describe('#getServiceState()', () => {
   const awsPlugin = {};
 
   beforeEach(() => {
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({
+      commands: [],
+      options: {},
+      serviceDir: process.cwd(),
+      configurationFilename: 'serverless.yml',
+      configuration: {},
+      isConfigurationResovled: true,
+    });
     serverless.serviceDir = 'my-service';
     awsPlugin.serverless = serverless;
     awsPlugin.provider = new AwsProvider(serverless, options);
