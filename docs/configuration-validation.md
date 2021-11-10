@@ -8,6 +8,8 @@ layout: Doc
 
 The framework validates service configuration with the help of [AJV](https://ajv.js.org/) (JSON-schema validation engine).
 
+The supported values are `error`, `warn` and `off`.
+
 If you were presented with configuration error (or a warning, depending on `configValidationMode` setting) it could mean that:
 
 - Service configuration is invalid and you need to correct an issue related to your serverless.yml
