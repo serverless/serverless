@@ -63,9 +63,7 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
     });
 
     it('should log payload', () => {
-      expect(result.stdoutData).to.contain(
-        '{\n    "inputKey": "inputValue"\n}\n\u001b[90m--------------------------------------------------------------------\u001b[39m\ntest\n'
-      );
+      expect(result.output).to.contain('"inputKey": "inputValue"');
     });
   });
 
