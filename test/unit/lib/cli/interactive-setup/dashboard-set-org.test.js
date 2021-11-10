@@ -7,10 +7,8 @@ const proxyquire = require('proxyquire');
 const fsp = require('fs').promises;
 const yaml = require('js-yaml');
 const overrideCwd = require('process-utils/override-cwd');
-const overrideStdoutWrite = require('process-utils/override-stdout-write');
 const overrideEnv = require('process-utils/override-env');
 const configureInquirerStub = require('@serverless/test/configure-inquirer-stub');
-const stripAnsi = require('strip-ansi');
 const { StepHistory } = require('@serverless/utils/telemetry');
 const inquirer = require('@serverless/utils/inquirer');
 
@@ -328,16 +326,11 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         inquirer,
         stepHistory: new StepHistory(),
       };
-      let stdoutData = '';
+
       await overrideCwd(serviceDir, async () => {
-        await overrideStdoutWrite(
-          (data) => (stdoutData += data),
-          async () => {
-            const stepData = await step.isApplicable(context);
-            if (!stepData) throw new Error('Step resolved as not applicable');
-            await step.run(context, stepData);
-          }
-        );
+        const stepData = await step.isApplicable(context);
+        if (!stepData) throw new Error('Step resolved as not applicable');
+        await step.run(context, stepData);
       });
       const serviceConfig = yaml.load(
         String(await fsp.readFile(join(serviceDir, 'serverless.yml')))
@@ -346,9 +339,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       expect(serviceConfig.app).to.equal('other-app');
       expect(context.configuration.org).to.equal('testinteractivecli');
       expect(context.configuration.app).to.equal('other-app');
-      expect(stripAnsi(stdoutData)).to.include(
-        'Your project has been setup with org testinteractivecli and app other-app'
-      );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
           ['orgName', '_user_choice_'],
@@ -373,17 +363,11 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         inquirer,
         stepHistory: new StepHistory(),
       };
-      let stdoutData = '';
       await overrideEnv({ variables: { SERVERLESS_ACCESS_KEY: 'validkey' } }, async () => {
         await overrideCwd(serviceDir, async () => {
-          await overrideStdoutWrite(
-            (data) => (stdoutData += data),
-            async () => {
-              const stepData = await step.isApplicable(context);
-              if (!stepData) throw new Error('Step resolved as not applicable');
-              await step.run(context, stepData);
-            }
-          );
+          const stepData = await step.isApplicable(context);
+          if (!stepData) throw new Error('Step resolved as not applicable');
+          await step.run(context, stepData);
         });
       });
       const serviceConfig = yaml.load(
@@ -393,9 +377,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       expect(serviceConfig.app).to.equal('other-app');
       expect(context.configuration.org).to.equal('fromaccesskey');
       expect(context.configuration.app).to.equal('other-app');
-      expect(stripAnsi(stdoutData)).to.include(
-        'Your project has been setup with org fromaccesskey and app other-app'
-      );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
           ['orgName', '_user_choice_'],
@@ -420,17 +401,11 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         inquirer,
         stepHistory: new StepHistory(),
       };
-      let stdoutData = '';
       await overrideEnv({ variables: { SERVERLESS_ACCESS_KEY: 'validkey' } }, async () => {
         await overrideCwd(serviceDir, async () => {
-          await overrideStdoutWrite(
-            (data) => (stdoutData += data),
-            async () => {
-              const stepData = await step.isApplicable(context);
-              if (!stepData) throw new Error('Step resolved as not applicable');
-              await step.run(context, stepData);
-            }
-          );
+          const stepData = await step.isApplicable(context);
+          if (!stepData) throw new Error('Step resolved as not applicable');
+          await step.run(context, stepData);
         });
       });
       const serviceConfig = yaml.load(
@@ -600,16 +575,10 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         stepHistory: new StepHistory(),
       };
 
-      let stdoutData = '';
       await overrideCwd(serviceDir, async () => {
-        await overrideStdoutWrite(
-          (data) => (stdoutData += data),
-          async () => {
-            const stepData = await step.isApplicable(context);
-            if (!stepData) throw new Error('Step resolved as not applicable');
-            await step.run(context, stepData);
-          }
-        );
+        const stepData = await step.isApplicable(context);
+        if (!stepData) throw new Error('Step resolved as not applicable');
+        await step.run(context, stepData);
       });
       const serviceConfig = yaml.load(
         String(await fsp.readFile(join(serviceDir, 'serverless.yml')))
@@ -618,9 +587,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       expect(serviceConfig.app).to.equal(configuration.service);
       expect(context.configuration.org).to.equal('orgwithoutapps');
       expect(context.configuration.app).to.equal(configuration.service);
-      expect(stripAnsi(stdoutData)).to.include(
-        `Your project has been setup with org orgwithoutapps and app ${configuration.service}`
-      );
       expect(context.stepHistory.valuesMap()).to.deep.equal(new Map());
     });
   });
@@ -641,16 +607,10 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         stepHistory: new StepHistory(),
       };
 
-      let stdoutData = '';
       await overrideCwd(serviceDir, async () => {
-        await overrideStdoutWrite(
-          (data) => (stdoutData += data),
-          async () => {
-            const stepData = await step.isApplicable(context);
-            if (!stepData) throw new Error('Step resolved as not applicable');
-            await step.run(context, stepData);
-          }
-        );
+        const stepData = await step.isApplicable(context);
+        if (!stepData) throw new Error('Step resolved as not applicable');
+        await step.run(context, stepData);
       });
       const serviceConfig = yaml.load(
         String(await fsp.readFile(join(serviceDir, 'serverless.yml')))
@@ -659,9 +619,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       expect(serviceConfig.app).to.equal('other-app');
       expect(context.configuration.org).to.equal('testinteractivecli');
       expect(context.configuration.app).to.equal('other-app');
-      expect(stripAnsi(stdoutData)).to.include(
-        'Your project has been setup with org testinteractivecli and app other-app'
-      );
       expect(context.stepHistory.valuesMap()).to.deep.equal(new Map());
     });
 
@@ -683,16 +640,10 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         stepHistory: new StepHistory(),
       };
 
-      let stdoutData = '';
       await overrideCwd(serviceDir, async () => {
-        await overrideStdoutWrite(
-          (data) => (stdoutData += data),
-          async () => {
-            const stepData = await step.isApplicable(context);
-            if (!stepData) throw new Error('Step resolved as not applicable');
-            await step.run(context, stepData);
-          }
-        );
+        const stepData = await step.isApplicable(context);
+        if (!stepData) throw new Error('Step resolved as not applicable');
+        await step.run(context, stepData);
       });
       const serviceConfig = yaml.load(
         String(await fsp.readFile(join(serviceDir, 'serverless.yml')))
@@ -701,9 +652,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       expect(serviceConfig.app).to.equal('app-from-flag');
       expect(context.configuration.org).to.equal('otherorg');
       expect(context.configuration.app).to.equal('app-from-flag');
-      expect(stripAnsi(stdoutData)).to.include(
-        'Your project has been setup with org otherorg and app app-from-flag'
-      );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([['shouldOverrideDashboardConfig', true]])
       );
@@ -758,16 +706,10 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         stepHistory: new StepHistory(),
       };
 
-      let stdoutData = '';
       await overrideCwd(serviceDir, async () => {
-        await overrideStdoutWrite(
-          (data) => (stdoutData += data),
-          async () => {
-            const stepData = await step.isApplicable(context);
-            if (!stepData) throw new Error('Step resolved as not applicable');
-            await step.run(context, stepData);
-          }
-        );
+        const stepData = await step.isApplicable(context);
+        if (!stepData) throw new Error('Step resolved as not applicable');
+        await step.run(context, stepData);
       });
       const serviceConfig = yaml.load(
         String(await fsp.readFile(join(serviceDir, 'serverless.yml')))
@@ -776,9 +718,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       expect(serviceConfig.app).to.equal('other-app');
       expect(context.configuration.org).to.equal('testinteractivecli');
       expect(context.configuration.app).to.equal('other-app');
-      expect(stripAnsi(stdoutData)).to.include(
-        'Your project has been setup with org testinteractivecli and app other-app'
-      );
+
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
           ['orgName', '_user_choice_'],
@@ -807,16 +747,10 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         stepHistory: new StepHistory(),
       };
 
-      let stdoutData = '';
       await overrideCwd(serviceDir, async () => {
-        await overrideStdoutWrite(
-          (data) => (stdoutData += data),
-          async () => {
-            const stepData = await step.isApplicable(context);
-            if (!stepData) throw new Error('Step resolved as not applicable');
-            await step.run(context, stepData);
-          }
-        );
+        const stepData = await step.isApplicable(context);
+        if (!stepData) throw new Error('Step resolved as not applicable');
+        await step.run(context, stepData);
       });
       const serviceConfig = yaml.load(
         String(await fsp.readFile(join(serviceDir, 'serverless.yml')))
@@ -825,9 +759,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       expect(serviceConfig.app).to.equal('other-app');
       expect(context.configuration.org).to.equal('otherorg');
       expect(context.configuration.app).to.equal('other-app');
-      expect(stripAnsi(stdoutData)).to.include(
-        'Your project has been setup with org otherorg and app other-app'
-      );
+
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
           ['orgName', '_user_choice_'],
@@ -855,16 +787,10 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         history: new Map(),
         stepHistory: new StepHistory(),
       };
-      let stdoutData = '';
       await overrideCwd(serviceDir, async () => {
-        await overrideStdoutWrite(
-          (data) => (stdoutData += data),
-          async () => {
-            const stepData = await step.isApplicable(context);
-            if (!stepData) throw new Error('Step resolved as not applicable');
-            await step.run(context, stepData);
-          }
-        );
+        const stepData = await step.isApplicable(context);
+        if (!stepData) throw new Error('Step resolved as not applicable');
+        await step.run(context, stepData);
       });
       const serviceConfig = yaml.load(
         String(await fsp.readFile(join(serviceDir, 'serverless.yml')))
@@ -873,9 +799,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       expect(serviceConfig.app).to.equal('other-app');
       expect(context.configuration.org).to.equal('testinteractivecli');
       expect(context.configuration.app).to.equal('other-app');
-      expect(stripAnsi(stdoutData)).to.include(
-        'Your project has been setup with org testinteractivecli and app other-app'
-      );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
           ['orgName', '_user_choice_'],
@@ -903,16 +826,10 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         stepHistory: new StepHistory(),
       };
 
-      let stdoutData = '';
       await overrideCwd(serviceDir, async () => {
-        await overrideStdoutWrite(
-          (data) => (stdoutData += data),
-          async () => {
-            const stepData = await step.isApplicable(context);
-            if (!stepData) throw new Error('Step resolved as not applicable');
-            await step.run(context, stepData);
-          }
-        );
+        const stepData = await step.isApplicable(context);
+        if (!stepData) throw new Error('Step resolved as not applicable');
+        await step.run(context, stepData);
       });
       const serviceConfig = yaml.load(
         String(await fsp.readFile(join(serviceDir, 'serverless.yml')))
@@ -921,9 +838,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       expect(serviceConfig.app).to.equal('other-app');
       expect(context.configuration.org).to.equal('testinteractivecli');
       expect(context.configuration.app).to.equal('other-app');
-      expect(stripAnsi(stdoutData)).to.include(
-        'Your project has been setup with org testinteractivecli and app other-app'
-      );
+
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([['appName', '_user_choice_']])
       );
@@ -947,16 +862,10 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         history: new Map(),
         stepHistory: new StepHistory(),
       };
-      let stdoutData = '';
       await overrideCwd(serviceDir, async () => {
-        await overrideStdoutWrite(
-          (data) => (stdoutData += data),
-          async () => {
-            const stepData = await step.isApplicable(context);
-            if (!stepData) throw new Error('Step resolved as not applicable');
-            await step.run(context, stepData);
-          }
-        );
+        const stepData = await step.isApplicable(context);
+        if (!stepData) throw new Error('Step resolved as not applicable');
+        await step.run(context, stepData);
       });
       const serviceConfig = yaml.load(
         String(await fsp.readFile(join(serviceDir, 'serverless.yml')))
@@ -965,9 +874,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       expect(serviceConfig.app).to.equal('frominput');
       expect(context.configuration.org).to.equal('testinteractivecli');
       expect(context.configuration.app).to.equal('frominput');
-      expect(stripAnsi(stdoutData)).to.include(
-        'Your project has been setup with org testinteractivecli and app frominput'
-      );
+
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
           ['orgName', '_user_choice_'],
@@ -997,16 +904,10 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         history: new Map(),
         stepHistory: new StepHistory(),
       };
-      let stdoutData = '';
       await overrideCwd(serviceDir, async () => {
-        await overrideStdoutWrite(
-          (data) => (stdoutData += data),
-          async () => {
-            const stepData = await step.isApplicable(context);
-            if (!stepData) throw new Error('Step resolved as not applicable');
-            await step.run(context, stepData);
-          }
-        );
+        const stepData = await step.isApplicable(context);
+        if (!stepData) throw new Error('Step resolved as not applicable');
+        await step.run(context, stepData);
       });
       const serviceConfig = yaml.load(
         String(await fsp.readFile(join(serviceDir, 'serverless.yml')))
@@ -1015,9 +916,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       expect(serviceConfig.app).to.equal('other-app');
       expect(context.configuration.org).to.equal('testinteractivecli');
       expect(context.configuration.app).to.equal('other-app');
-      expect(stripAnsi(stdoutData)).to.include(
-        'Your project has been setup with org testinteractivecli and app other-app'
-      );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
           ['shouldUpdateOrg', true],
@@ -1047,16 +945,10 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         stepHistory: new StepHistory(),
       };
 
-      let stdoutData = '';
       await overrideCwd(serviceDir, async () => {
-        await overrideStdoutWrite(
-          (data) => (stdoutData += data),
-          async () => {
-            const stepData = await step.isApplicable(context);
-            if (!stepData) throw new Error('Step resolved as not applicable');
-            await step.run(context, stepData);
-          }
-        );
+        const stepData = await step.isApplicable(context);
+        if (!stepData) throw new Error('Step resolved as not applicable');
+        await step.run(context, stepData);
       });
       const serviceConfig = yaml.load(
         String(await fsp.readFile(join(serviceDir, 'serverless.yml')))
@@ -1065,9 +957,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       expect(serviceConfig.app).to.equal('other-app');
       expect(context.configuration.org).to.equal('testinteractivecli');
       expect(context.configuration.app).to.equal('other-app');
-      expect(stripAnsi(stdoutData)).to.include(
-        'Your project has been setup with org testinteractivecli and app other-app'
-      );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([['appName', '_user_choice_']])
       );
@@ -1090,16 +979,10 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         stepHistory: new StepHistory(),
       };
 
-      let stdoutData = '';
       await overrideCwd(serviceDir, async () => {
-        await overrideStdoutWrite(
-          (data) => (stdoutData += data),
-          async () => {
-            const stepData = await step.isApplicable(context);
-            if (!stepData) throw new Error('Step resolved as not applicable');
-            await step.run(context, stepData);
-          }
-        );
+        const stepData = await step.isApplicable(context);
+        if (!stepData) throw new Error('Step resolved as not applicable');
+        await step.run(context, stepData);
       });
       const serviceConfig = yaml.load(
         String(await fsp.readFile(join(serviceDir, 'serverless.yml')))
@@ -1108,9 +991,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       expect(serviceConfig.app).to.equal('app-from-flag');
       expect(context.configuration.org).to.equal('testinteractivecli');
       expect(context.configuration.app).to.equal('app-from-flag');
-      expect(stripAnsi(stdoutData)).to.include(
-        'Your project has been setup with org testinteractivecli and app app-from-flag'
-      );
       expect(context.stepHistory.valuesMap()).to.deep.equal(new Map());
     });
 
@@ -1130,16 +1010,10 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         stepHistory: new StepHistory(),
       };
 
-      let stdoutData = '';
       await overrideCwd(serviceDir, async () => {
-        await overrideStdoutWrite(
-          (data) => (stdoutData += data),
-          async () => {
-            const stepData = await step.isApplicable(context);
-            if (!stepData) throw new Error('Step resolved as not applicable');
-            await step.run(context, stepData);
-          }
-        );
+        const stepData = await step.isApplicable(context);
+        if (!stepData) throw new Error('Step resolved as not applicable');
+        await step.run(context, stepData);
       });
       const serviceConfig = yaml.load(
         String(await fsp.readFile(join(serviceDir, 'serverless.yml')))
@@ -1148,9 +1022,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       expect(serviceConfig.app).to.equal(configuration.service);
       expect(context.configuration.org).to.equal('orgwithoutapps');
       expect(context.configuration.app).to.equal(configuration.service);
-      expect(stripAnsi(stdoutData)).to.include(
-        `Your project has been setup with org orgwithoutapps and app ${configuration.service}`
-      );
       expect(context.stepHistory.valuesMap()).to.deep.equal(new Map());
     });
 
@@ -1172,16 +1043,10 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         stepHistory: new StepHistory(),
       };
 
-      let stdoutData = '';
       await overrideCwd(serviceDir, async () => {
-        await overrideStdoutWrite(
-          (data) => (stdoutData += data),
-          async () => {
-            const stepData = await step.isApplicable(context);
-            if (!stepData) throw new Error('Step resolved as not applicable');
-            await step.run(context, stepData);
-          }
-        );
+        const stepData = await step.isApplicable(context);
+        if (!stepData) throw new Error('Step resolved as not applicable');
+        await step.run(context, stepData);
       });
       const serviceConfig = yaml.load(
         String(await fsp.readFile(join(serviceDir, 'serverless.yml')))
@@ -1190,9 +1055,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       expect(serviceConfig.app).to.equal('other-app');
       expect(context.configuration.org).to.equal('testinteractivecli');
       expect(context.configuration.app).to.equal('other-app');
-      expect(stripAnsi(stdoutData)).to.include(
-        'Your project has been setup with org testinteractivecli and app other-app'
-      );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([['appName', '_user_choice_']])
       );
@@ -1224,16 +1086,10 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         stepHistory: new StepHistory(),
       };
 
-      let stdoutData = '';
       await overrideCwd(serviceDir, async () => {
-        await overrideStdoutWrite(
-          (data) => (stdoutData += data),
-          async () => {
-            const stepData = await step.isApplicable(context);
-            if (!stepData) throw new Error('Step resolved as not applicable');
-            await step.run(context, stepData);
-          }
-        );
+        const stepData = await step.isApplicable(context);
+        if (!stepData) throw new Error('Step resolved as not applicable');
+        await step.run(context, stepData);
       });
       const serviceConfig = yaml.load(
         String(await fsp.readFile(join(serviceDir, 'serverless.yml')))
@@ -1242,9 +1098,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       expect(serviceConfig.app).to.equal('not-created-app');
       expect(context.configuration.org).to.equal('testinteractivecli');
       expect(context.configuration.app).to.equal('not-created-app');
-      expect(stripAnsi(stdoutData)).to.include(
-        'Your project has been setup with org testinteractivecli and app not-created-app'
-      );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([['appUpdateType', '_create_']])
       );
@@ -1274,16 +1127,10 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         stepHistory: new StepHistory(),
       };
 
-      let stdoutData = '';
       await overrideCwd(serviceDir, async () => {
-        await overrideStdoutWrite(
-          (data) => (stdoutData += data),
-          async () => {
-            const stepData = await step.isApplicable(context);
-            if (!stepData) throw new Error('Step resolved as not applicable');
-            await step.run(context, stepData);
-          }
-        );
+        const stepData = await step.isApplicable(context);
+        if (!stepData) throw new Error('Step resolved as not applicable');
+        await step.run(context, stepData);
       });
       const serviceConfig = yaml.load(
         String(await fsp.readFile(join(serviceDir, 'serverless.yml')))
@@ -1292,9 +1139,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       expect(serviceConfig.app).to.equal('other-app');
       expect(context.configuration.org).to.equal('testinteractivecli');
       expect(context.configuration.app).to.equal('other-app');
-      expect(stripAnsi(stdoutData)).to.include(
-        'Your project has been setup with org testinteractivecli and app other-app'
-      );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
           ['appUpdateType', '_choose_existing_'],
