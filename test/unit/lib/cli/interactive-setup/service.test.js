@@ -6,7 +6,6 @@ const sinon = require('sinon');
 const configureInquirerStub = require('@serverless/test/configure-inquirer-stub');
 const step = require('../../../../../lib/cli/interactive-setup/service');
 const proxyquire = require('proxyquire');
-const overrideStdoutWrite = require('process-utils/override-stdout-write');
 const ServerlessError = require('../../../../../lib/serverless-error');
 const { StepHistory } = require('@serverless/utils/telemetry');
 
@@ -199,51 +198,6 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       expect(spawnStub).to.have.been.calledWith('npm', ['install'], {
         cwd: path.join(process.cwd(), 'test-project-package-json'),
       });
-
-      expect(context.stepHistory.valuesMap()).to.deep.equal(
-        new Map([
-          ['projectType', 'aws-nodejs'],
-          ['projectName', '_user_input_'],
-        ])
-      );
-    });
-
-    it('Should emit warning if npm installation not found', async () => {
-      const downloadTemplateFromRepoStub = sinon.stub();
-      const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
-        'child-process-ext/spawn': sinon.stub().rejects({ code: 'ENOENT' }),
-        '../../utils/downloadTemplateFromRepo': {
-          downloadTemplateFromRepo: downloadTemplateFromRepoStub.callsFake(
-            async (templateUrl, projectType, projectName) => {
-              await fsp.mkdir(projectName);
-              const serverlessYmlContent = `
-            service: service
-            provider:
-              name: aws
-           `;
-
-              await fsp.writeFile(path.join(projectName, 'serverless.yml'), serverlessYmlContent);
-              await fsp.writeFile(path.join(projectName, 'package.json'), '{}');
-            }
-          ),
-        },
-      });
-
-      configureInquirerStub(inquirer, {
-        list: { projectType: 'aws-nodejs' },
-        input: { projectName: 'test-project-missing-npm' },
-      });
-
-      const context = { options: {}, stepHistory: new StepHistory() };
-      let stdoutData = '';
-      await overrideStdoutWrite(
-        (data) => (stdoutData += data),
-        async () => mockedStep.run(context)
-      );
-
-      const stats = await fsp.lstat('test-project-missing-npm/serverless.yml');
-      expect(stats.isFile()).to.be.true;
-      expect(stdoutData).to.include('Cannot install dependencies');
 
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([

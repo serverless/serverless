@@ -63,7 +63,6 @@ describe('test/unit/lib/configSchema.test.js', () => {
     },
     {
       isValid: true,
-      logMessage: 'Unrecognized provider',
       description: 'provider not existing name',
       mutation: {
         provider: { name: 'awssss' },
@@ -93,11 +92,10 @@ describe('test/unit/lib/configSchema.test.js', () => {
         configExt: someCase.mutation,
         command: 'info',
       }).then(
-        ({ stdoutData }) => {
+        () => {
           if (!someCase.isValid) {
             expect(false).to.be.true;
           }
-          if (someCase.logMessage) expect(stdoutData).to.include(someCase.logMessage);
           return;
         },
         (err) => {

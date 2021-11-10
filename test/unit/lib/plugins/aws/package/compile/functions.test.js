@@ -2582,7 +2582,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         const originalVersionArn =
           originalTemplate.Outputs.BasicLambdaFunctionQualifiedArn.Value.Ref;
 
-        const { cfTemplate: updatedTemplate, stdoutData } = await runServerless({
+        const { cfTemplate: updatedTemplate } = await runServerless({
           cwd: serviceDir,
           command: 'deploy',
           lastLifecycleHookName: 'before:deploy:deploy',
@@ -2596,7 +2596,6 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         expect(
           updatedTemplate.Resources[awsNaming.getLambdaLogicalId('basic')].Properties.Description
         ).to.equal('temporary-description-to-enforce-hash-update');
-        expect(stdoutData).to.include('Your service has been deployed with new hashing algorithm');
       });
     });
   });

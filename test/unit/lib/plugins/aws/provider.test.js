@@ -1501,41 +1501,6 @@ aws_secret_access_key = CUSTOMSECRET
         ]);
       });
 
-      it('should emit warning if docker login stores unencrypted credentials', async () => {
-        const awsRequestStubMap = {
-          ...baseAwsRequestStubMap,
-          ECR: {
-            ...baseAwsRequestStubMap.ECR,
-            describeRepositories: describeRepositoriesStub.resolves({
-              repositories: [{ repositoryUri }],
-            }),
-            createRepository: createRepositoryStub,
-          },
-        };
-
-        const { stdoutData } = await runServerless({
-          fixture: 'ecr',
-          command: 'package',
-          awsRequestStubMap,
-          modulesCacheStub: {
-            ...modulesCacheStub,
-            'child-process-ext/spawn': sinon
-              .stub()
-              .returns({
-                stdBuffer: `digest: sha256:${imageSha} size: 1787`,
-              })
-              .onCall(3)
-              .throws({ stdBuffer: 'no basic auth credentials' })
-              .onCall(4)
-              .returns({ stdBuffer: 'your password will be stored unencrypted' }),
-          },
-        });
-
-        expect(stdoutData).to.include(
-          'WARNING: Docker authentication token will be stored unencrypted in docker config.'
-        );
-      });
-
       it('should work correctly when image is defined with implicit path in provider', async () => {
         const awsRequestStubMap = {
           ...baseAwsRequestStubMap,

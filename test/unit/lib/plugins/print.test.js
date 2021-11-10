@@ -10,11 +10,11 @@ const expect = chai.expect;
 
 describe('test/unit/lib/plugins/print.test.js', () => {
   it('correctly prints config', async () => {
-    const { stdoutData } = await runServerless({
+    const { output } = await runServerless({
       fixture: 'aws',
       command: 'print',
     });
 
-    expect(stdoutData).to.include('name: aws');
+    expect(output).to.include('name: aws');
   });
 });
