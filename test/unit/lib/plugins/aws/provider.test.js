@@ -1664,6 +1664,64 @@ aws_secret_access_key = CUSTOMSECRET
         ]);
       });
 
+      it('should work correctly when image is defined with `platform` set', async () => {
+        const awsRequestStubMap = {
+          ...baseAwsRequestStubMap,
+          ECR: {
+            ...baseAwsRequestStubMap.ECR,
+            describeRepositories: describeRepositoriesStub.resolves({
+              repositories: [{ repositoryUri }],
+            }),
+            createRepository: createRepositoryStub,
+          },
+        };
+        const {
+          awsNaming,
+          cfTemplate,
+          fixtureData: { servicePath: serviceDir },
+        } = await runServerless({
+          fixture: 'ecr',
+          command: 'package',
+          awsRequestStubMap,
+          modulesCacheStub,
+          configExt: {
+            provider: {
+              ecr: {
+                images: {
+                  baseimage: {
+                    path: './',
+                    file: 'Dockerfile.dev',
+                    platform: 'TESTVAL',
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        const functionCfLogicalId = awsNaming.getLambdaLogicalId('foo');
+        const functionCfConfig = cfTemplate.Resources[functionCfLogicalId].Properties;
+        const versionCfConfig = Object.values(cfTemplate.Resources).find(
+          (resource) =>
+            resource.Type === 'AWS::Lambda::Version' &&
+            resource.Properties.FunctionName.Ref === functionCfLogicalId
+        ).Properties;
+
+        expect(functionCfConfig.Code.ImageUri).to.deep.equal(`${repositoryUri}@sha256:${imageSha}`);
+        expect(versionCfConfig.CodeSha256).to.equal(imageSha);
+        expect(describeRepositoriesStub).to.be.calledOnce;
+        expect(createRepositoryStub.notCalled).to.be.true;
+        expect(spawnExtStub).to.be.calledWith('docker', [
+          'build',
+          '-t',
+          `${awsNaming.getEcrRepositoryName()}:baseimage`,
+          '-f',
+          path.join(serviceDir, 'Dockerfile.dev'),
+          './',
+          '--platform=TESTVAL',
+        ]);
+      });
+
       it('should work correctly when `functions[].image` is defined with explicit name', async () => {
         const awsRequestStubMap = {
           ...baseAwsRequestStubMap,

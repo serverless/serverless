@@ -206,7 +206,7 @@ Alternatively lambda environment can be configured through docker images. Image 
 
 Serverless will create an ECR repository for your image, but it currently does not manage updates to it. An ECR repository is created only for new services or the first time that a function configured with an `image` is deployed. In service configuration, you can configure the ECR repository to scan for CVEs via the `provider.ecr.scanOnPush` property, which is `false` by default. (See [documentation](https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html))
 
-In service configuration, images can be configured via `provider.ecr.images`. To define an image that will be built locally, you need to specify `path` property, which should point to valid docker context directory. Optionally, you can also set `file` to specify Dockerfile that should be used when building an image. It is also possible to define images that already exist in AWS ECR repository. In order to do that, you need to define `uri` property, which should follow `<account>.dkr.ecr.<region>.amazonaws.com/<repository>@<digest>` or `<account>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>` format. Additionally, with `buildArgs` property, you can define arguments that will be passed to `docker build` command with `--build-arg` flag. They might be later referenced via `ARG` within your `Dockerfile`. The `cacheFrom` property can be used to specify which images to use as a source for layer caching in the `docker build` command with `--cache-from` flag. When `uri` is defined for an image, `buildArgs` and `cacheFrom` cannot be defined.
+In service configuration, images can be configured via `provider.ecr.images`. To define an image that will be built locally, you need to specify `path` property, which should point to valid docker context directory. Optionally, you can also set `file` to specify Dockerfile that should be used when building an image. It is also possible to define images that already exist in AWS ECR repository. In order to do that, you need to define `uri` property, which should follow `<account>.dkr.ecr.<region>.amazonaws.com/<repository>@<digest>` or `<account>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>` format. Additionally, with `buildArgs` property, you can define arguments that will be passed to `docker build` command with `--build-arg` flag. They might be later referenced via `ARG` within your `Dockerfile`. The `cacheFrom` property can be used to specify which images to use as a source for layer caching in the `docker build` command with `--cache-from` flag. The `platform` property can be used to specify the architecture target in the `docker build` command with the `--platform` flag. When building with an ARM-based M1 Mac, for example, specify `linux/amd64` as the platform to avoid runtime errors. When `uri` is defined for an image, `buildArgs`, `cacheFrom`, and `platform` cannot be defined.
 
 Example configuration
 
@@ -224,6 +224,7 @@ provider:
           STAGE: ${opt:stage}
         cacheFrom:
           - my-image:latest
+        platform: linux/amd64
       anotherimage:
         uri: 000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38
 ```
