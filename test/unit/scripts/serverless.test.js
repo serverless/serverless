@@ -27,7 +27,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
         })
       ).stdoutBuffer
     );
-    expect(output).to.include('serverless <command> <options>');
+    expect(output).to.include('You can run commands with "serverless"');
   });
 
   it('should report with an error invalid configuration', async () => {
@@ -38,7 +38,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       throw new Error('Unexpected');
     } catch (error) {
       expect(error.code).to.equal(1);
-      expect(String(error.stdoutBuffer)).to.include('Environment: ');
+      expect(String(error.stdoutBuffer)).to.include('Your Environment Information');
     }
   });
 
@@ -50,7 +50,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       throw new Error('Unexpected');
     } catch (error) {
       expect(error.code).to.equal(1);
-      expect(String(error.stdoutBuffer)).to.include('Environment: ');
+      expect(String(error.stdoutBuffer)).to.include('Your Environment Information');
     }
   });
 
@@ -62,19 +62,8 @@ describe('test/unit/scripts/serverless.test.js', () => {
       throw new Error('Unexpected');
     } catch (error) {
       expect(error.code).to.equal(1);
-      expect(String(error.stdoutBuffer)).to.include('Environment: ');
+      expect(String(error.stdoutBuffer)).to.include('Your Environment Information');
     }
-  });
-
-  it('should handle local serverless installation', async () => {
-    const output = String(
-      (
-        await spawn('node', [serverlessPath, '--help'], {
-          cwd: (await programmaticFixturesEngine.setup('locallyInstalledServerless')).servicePath,
-        })
-      ).stderrBuffer
-    );
-    expect(output).to.include('Running "serverless" from node_modules');
   });
 
   it('should handle no service related commands', async () => {
@@ -85,7 +74,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
         })
       ).stdoutBuffer
     );
-    expect(output).to.include('Install a plugin by running');
+    expect(output).to.include('To install a plugin');
   });
 
   it('should resolve variables', async () => {
@@ -222,12 +211,12 @@ describe('test/unit/scripts/serverless.test.js', () => {
         })
       ).stdoutBuffer
     );
-    expect(output).to.include('serverless <command> <options>');
+    expect(output).to.include('You can run commands with "serverless"');
   });
 
   it('should print general --help to stdout', async () => {
     const output = String((await spawn('node', [serverlessPath, '--help'])).stdoutBuffer);
-    expect(output).to.include('serverless <command> <options>');
+    expect(output).to.include('You can run commands with "serverless"');
   });
 
   it('should print command --help to stdout', async () => {

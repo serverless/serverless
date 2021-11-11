@@ -1069,29 +1069,6 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
     expect(serverless.service.provider.shouldNotDeploy).to.equal(true);
   });
 
-  it('should print a warning if missing lambda:GetFunction permission', async () => {
-    const { stdoutData } = await runServerless({
-      fixture: 'checkForChanges',
-      command: 'deploy',
-      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
-      awsRequestStubMap: {
-        ...commonAwsSdkMock,
-        Lambda: {
-          getFunction: sandbox.stub().throws({ providerError: { statusCode: 403 } }),
-        },
-        S3: {
-          listObjectsV2: {},
-        },
-      },
-    });
-    expect(stdoutData).to.include(
-      [
-        'WARNING: Not authorized to perform: lambda:GetFunction for at least one of the lambda functions.',
-        ' Deployment will not be skipped even if service files did not change.',
-      ].join('')
-    );
-  });
-
   it.skip('TODO: should crash meaningfully if bucket does not exist', () => {
     // Replaces:
     // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L137-L149
