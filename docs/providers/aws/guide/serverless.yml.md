@@ -261,6 +261,7 @@ provider:
   stackParameters:
     - ParameterKey: 'Keyname'
       ParameterValue: 'Value'
+  disableRollback: true # To be used for non-production environment
   rollbackConfiguration:
     MonitoringTimeInMinutes: 20
     RollbackTriggers:
