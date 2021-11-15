@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Documentation
-menuText: Docs
+menuText: Overview
 layout: Doc
 menuItems:
   - {menuText: "Get Started", path: /framework/docs/getting-started/}
