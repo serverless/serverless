@@ -1118,7 +1118,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               providerCfIfEnvVar: { 'Fn::If': ['cond', 'first', 'second'] },
             },
             memorySize: 4096,
-            runtime: 'nodejs10.x',
+            runtime: 'nodejs14.x',
             deploymentBucket: 'com.serverless.deploys',
             versionFunctions: false,
           },
