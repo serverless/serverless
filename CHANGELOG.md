@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.66.2](https://github.com/serverless/serverless/compare/v2.66.1...v2.67.0) (2021-11-17)
+
+### Bug Fixes
+
+- **CLI:** Fix component template recognition in triage ([#10252](https://github.com/serverless/serverless/issues/10252)) ([4494f77](https://github.com/serverless/serverless/commit/4494f77f6111249d97295923a706883a8910840d)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **CLI:** Expose dashboard provider name when starting deployment ([#10194](https://github.com/serverless/serverless/issues/10194)) ([6698fa6](https://github.com/serverless/serverless/commit/6698fa657e5a5b35908c2b2de0815525f948064f)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Templates
+
+- Use `iam.role` syntax ([#10227](https://github.com/serverless/serverless/issues/10227)) ([a55d51c](https://github.com/serverless/serverless/commit/a55d51c6a4aa38153f61192d374cb23bf09ff66c)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Update `ts-node` for es2020 and es2021 support in `aws-nodes-typescript` ([#10234](https://github.com/serverless/serverless/issues/10234)) ([e131609](https://github.com/serverless/serverless/commit/e13160902848912a6bb652299d1bc6107cf09eb1)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+
 ### [2.66.1](https://github.com/serverless/serverless/compare/v2.66.0...v2.66.1) (2021-11-10)
 
 ### Bug Fixes
