@@ -651,17 +651,12 @@ describe('AwsInvokeLocal', () => {
 
     it('calls docker with packaged artifact', async () => {
       await awsInvokeLocal.invokeLocalDocker();
-      const dockerfilePath = path.join('.serverless', 'invokeLocal', 'nodejs12.x', 'Dockerfile');
 
       expect(pluginMangerSpawnPackageStub.calledOnce).to.equal(true);
       expect(spawnExtStub.getCall(0).args).to.deep.equal(['docker', ['version']]);
       expect(spawnExtStub.getCall(1).args).to.deep.equal([
         'docker',
         ['images', '-q', 'lambci/lambda:nodejs12.x'],
-      ]);
-      expect(spawnExtStub.getCall(2).args).to.deep.equal([
-        'docker',
-        ['build', '-t', 'sls-docker-nodejs12.x', 'servicePath', '-f', dockerfilePath],
       ]);
       expect(spawnExtStub.getCall(3).args).to.deep.equal([
         'docker',
