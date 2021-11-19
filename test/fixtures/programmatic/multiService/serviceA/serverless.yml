@@ -8,7 +8,6 @@ projectDir: ../
 provider:
   name: aws
   runtime: nodejs12.x
-  lambdaHashingVersion: 20201221
 
 custom:
   env: ${env:ENV_SOURCE_TEST, null}
