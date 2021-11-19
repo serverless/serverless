@@ -27,7 +27,6 @@ provider:
   timeout: 300
   memorySize: 1536
   logRetentionInDays: 30
-  lambdaHashingVersion: 20201221
 
 # you can overwrite defaults here
 #  stage: dev

@@ -22,7 +22,6 @@ frameworkVersion: '3'
 
 provider:
   name: aws
-  lambdaHashingVersion: 20201221
   ecr:
     # In this section you can define images that will be built locally and uploaded to ECR
     images:

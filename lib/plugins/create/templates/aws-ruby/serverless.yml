@@ -23,7 +23,6 @@ frameworkVersion: '3'
 provider:
   name: aws
   runtime: ruby2.7
-  lambdaHashingVersion: 20201221
 
 # you can overwrite defaults here
 #  stage: dev
