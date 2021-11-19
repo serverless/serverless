@@ -3,7 +3,6 @@ service: service
 provider:
   name: aws
   runtime: nodejs12.x
-  lambdaHashingVersion: 20201221
   apiGateway:
     request:
       schemas:
