@@ -91,9 +91,6 @@ describe('Service', () => {
       runServerless({
         fixture: 'aws',
         configExt: {
-          provider: {
-            lambdaHashingVersion: 20201221,
-          },
           functions: [
             {
               a: {},
