@@ -1533,7 +1533,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
   });
 
   describe('`provider.lambdaHashingVersion` support', () => {
-    it('CodeSha256 for functions should be the same for default hashing and for 20201221 version', async () => {
+    it('CodeSha256 for functions should be the same for default hashing and for 20200924 version', async () => {
       const { servicePath: serviceDir, updateConfig } = await fixtures.setup('function', {
         configExt: {
           provider: {
@@ -1556,8 +1556,9 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       ).Properties;
 
       await updateConfig({
+        disabledDeprecations: ['LAMBDA_HASHING_VERSION_PROPERTY'],
         provider: {
-          lambdaHashingVersion: '20201221',
+          lambdaHashingVersion: '20200924',
         },
       });
       const { cfTemplate: updatedTemplate } = await runServerless({
@@ -2029,7 +2030,12 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
 
   describe('Version hash resolution', () => {
     const testLambdaHashingVersion = (lambdaHashingVersion) => {
-      const configExt = lambdaHashingVersion ? { provider: { lambdaHashingVersion } } : {};
+      const configExt = lambdaHashingVersion
+        ? {
+            provider: { lambdaHashingVersion },
+            disabledDeprecations: ['LAMBDA_HASHING_VERSION_PROPERTY'],
+          }
+        : {};
 
       it.skip('TODO: should create a different version if configuration changed', () => {
         // Replacement for
@@ -2263,8 +2269,8 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       testLambdaHashingVersion();
     });
 
-    describe('lambdaHashingVersion: 20201221', () => {
-      testLambdaHashingVersion('20201221');
+    describe('lambdaHashingVersion: 20200924', () => {
+      testLambdaHashingVersion('20200924');
     });
 
     describe('lambdaHashingVersion migration', () => {
