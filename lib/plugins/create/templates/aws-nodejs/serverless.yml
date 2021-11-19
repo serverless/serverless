@@ -23,7 +23,6 @@ frameworkVersion: '3'
 provider:
   name: aws
   runtime: nodejs12.x
-  lambdaHashingVersion: 20201221
 
 # you can overwrite defaults here
 #  stage: dev
