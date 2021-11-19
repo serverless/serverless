@@ -36,6 +36,18 @@ Note:
 - In service configuration setting is ineffective for deprecations reported before service configuration is read.
 - `SLS_DEPRECATION_DISABLE` env var and `disabledDeprecations` configuration setting remain respected, and no errors will be thrown for mentioned deprecation coodes.
 
+<a name="LAMBDA_HASHING_VERSION_PROPERTY"><div>&nbsp;</div></a>
+
+## Property `provider.lambdaHashingVersion`
+
+Deprecation code: `LAMBDA_HASHING_VERSION_PROPERTY`
+
+Lambda version hashes were improved with a better algorithm (that fixed determinism issues), which is used by default, starting with v3.0.0.
+
+If you previously opted-in to use new algorithm by setting `provider.lambdaHashingVersion` to `20201221`, you can safely remove that property from your configuration to silence the deprecation.
+
+The old `20200924` algorithm is deprecated and it is recommended to migrate to the new version. In order to do that, you can follow the guide in [Functions Docs](./providers/aws/guide/functions.md#lambda-hashing-algorithm-migration).
+
 <a name="AwS_EVENT_BRIDGE_CUSTOM_RESOURCE_LEGACY_OPT_IN"><div>&nbsp;</div></a>
 
 ## AWS EventBridge lambda event triggers based on Custom Resources
