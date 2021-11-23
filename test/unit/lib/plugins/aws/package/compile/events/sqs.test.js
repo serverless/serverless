@@ -507,6 +507,107 @@ describe('AwsCompileSQSEvents', () => {
         });
       });
 
+      it('should allow specifying SQS Queues as CFN reference types without the arn property', () => {
+        awsCompileSQSEvents.serverless.service.functions = {
+          first: {
+            events: [
+              {
+                sqs: {
+                  'Fn::GetAtt': ['SomeQueue', 'Arn'],
+                },
+              },
+              {
+                sqs: {
+                  'Fn::ImportValue': 'ForeignQueue',
+                },
+              },
+              {
+                sqs: {
+                  'Fn::Join': [
+                    ':',
+                    [
+                      'arn',
+                      'aws',
+                      'sqs',
+                      {
+                        Ref: 'AWS::Region',
+                      },
+                      {
+                        Ref: 'AWS::AccountId',
+                      },
+                      'MyQueue',
+                    ],
+                  ],
+                },
+              },
+            ],
+          },
+        };
+
+        awsCompileSQSEvents.compileSQSEvents();
+
+        expect(
+          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+            .IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement[0]
+        ).to.deep.equal({
+          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
+          Effect: 'Allow',
+          Resource: [
+            {
+              'Fn::GetAtt': ['SomeQueue', 'Arn'],
+            },
+            {
+              'Fn::ImportValue': 'ForeignQueue',
+            },
+            {
+              'Fn::Join': [
+                ':',
+                [
+                  'arn',
+                  'aws',
+                  'sqs',
+                  {
+                    Ref: 'AWS::Region',
+                  },
+                  {
+                    Ref: 'AWS::AccountId',
+                  },
+                  'MyQueue',
+                ],
+              ],
+            },
+          ],
+        });
+        expect(
+          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingSQSSomeQueue.Properties.EventSourceArn
+        ).to.deep.equal({ 'Fn::GetAtt': ['SomeQueue', 'Arn'] });
+        expect(
+          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingSQSForeignQueue.Properties.EventSourceArn
+        ).to.deep.equal({ 'Fn::ImportValue': 'ForeignQueue' });
+        expect(
+          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingSQSMyQueue.Properties.EventSourceArn
+        ).to.deep.equal({
+          'Fn::Join': [
+            ':',
+            [
+              'arn',
+              'aws',
+              'sqs',
+              {
+                Ref: 'AWS::Region',
+              },
+              {
+                Ref: 'AWS::AccountId',
+              },
+              'MyQueue',
+            ],
+          ],
+        });
+      });
+
       it('should add the necessary IAM role statements', () => {
         awsCompileSQSEvents.serverless.service.functions = {
           first: {
