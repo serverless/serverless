@@ -208,7 +208,7 @@ Serverless will create an ECR repository for your image, but it currently does n
 
 In service configuration, images can be configured via `provider.ecr.images`. To define an image that will be built locally, you need to specify `path` property, which should point to valid docker context directory. Optionally, you can also set `file` to specify Dockerfile that should be used when building an image. It is also possible to define images that already exist in AWS ECR repository. In order to do that, you need to define `uri` property, which should follow `<account>.dkr.ecr.<region>.amazonaws.com/<repository>@<digest>` or `<account>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>` format.
 
-Additionally, you can define arguments that will be passed to the `docker build` command:
+Additionally, you can define arguments that will be passed to the `docker build` command via the following properties:
 
 - `buildArgs`: With the `buildArgs` property, you can define arguments that will be passed to `docker build` command with `--build-arg` flag. They might be later referenced via `ARG` within your `Dockerfile`. (See [Documentation](https://docs.docker.com/engine/reference/builder/#arg))
 - `cacheFrom`: The `cacheFrom` property can be used to specify which images to use as a source for layer caching in the `docker build` command with `--cache-from` flag. (See [Documentation](https://docs.docker.com/engine/reference/builder/#usage))
