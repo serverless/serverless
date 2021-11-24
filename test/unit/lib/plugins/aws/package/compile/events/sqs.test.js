@@ -676,3 +676,39 @@ describe('AwsCompileSQSEvents #2', () => {
     expect(eventSourceMappingResource.DependsOn).to.deep.equal([]);
   });
 });
+
+describe('when functionResponseTypes property is given', () => {
+    let eventSourceMappingResource;
+
+   before(async () => {
+      const { awsNaming, cfTemplate } = await runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            basic: {
+              provisionedConcurrency: 1,
+              events: [
+                {
+                  sqs: {
+                    arn: 'arn:aws:sqs:region:account:MyQueue',
+                    batchSize: 10,
+                    maximumBatchingWindow: 100,
+                    functionResponseTypes: 'ReportBatchItemFailures'
+                  },
+                },
+              ],
+            },
+          },
+        },
+        command: 'package',
+      });
+      const queueLogicalId = awsNaming.getQueueLogicalId('basic', 'MyQueue');
+      eventSourceMappingResource = cfTemplate.Resources[queueLogicalId];
+    });
+
+  it('should use functionResponseTypes', () => {
+    expect(eventSourceMappingResource.Properties.FunctionResponseTypes).to.include.members([
+      'ReportBatchItemFailures',
+    ]);
+  });
+});
