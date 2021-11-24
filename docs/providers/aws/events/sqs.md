@@ -53,7 +53,7 @@ For the SQS event integration, you can set the `batchSize`, which effects how ma
 
 You can also set `maximumBatchingWindow` to standard queues to specify the maximum amount of time in seconds to gather records before invoking the function. The max `maximumBatchingWindow` is `300` seconds.
 
-You can set `functionResponseType` in the event source mapping and include the value `ReportBatchItemFailures` to let your function return a partial success result if one or more messages in the batch have failed.
+You can set `functionResponseType` to `ReportBatchItemFailures` to let your function return a partial success result if one or more messages in the batch have failed.
 
 Check [AWS documentation](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html) for more details.
 

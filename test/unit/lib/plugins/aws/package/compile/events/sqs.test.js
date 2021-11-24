@@ -677,7 +677,7 @@ describe('AwsCompileSQSEvents #2', () => {
   });
 });
 
-describe('when functionResponseTypes property is given', () => {
+describe('regular configuration', () => {
   let eventSourceMappingResource;
 
   before(async () => {
@@ -693,7 +693,7 @@ describe('when functionResponseTypes property is given', () => {
                   arn: 'arn:aws:sqs:region:account:MyQueue',
                   batchSize: 10,
                   maximumBatchingWindow: 100,
-                  functionResponseTypes: 'ReportBatchItemFailures',
+                  functionResponseType: 'ReportBatchItemFailures',
                 },
               },
             ],
@@ -706,7 +706,7 @@ describe('when functionResponseTypes property is given', () => {
     eventSourceMappingResource = cfTemplate.Resources[queueLogicalId];
   });
 
-  it('should use functionResponseTypes', () => {
+  it('should use functionResponseType', () => {
     expect(eventSourceMappingResource.Properties.FunctionResponseTypes).to.include.members([
       'ReportBatchItemFailures',
     ]);
