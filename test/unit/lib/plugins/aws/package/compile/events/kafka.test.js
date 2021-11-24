@@ -9,7 +9,12 @@ chai.use(require('chai-as-promised'));
 
 describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () => {
   const saslScram256AuthArn =
-    'arn:aws:secretsmanager:us-east-1:01234567890:secret:MyBrokerSecretName';
+    'arn:aws:secretsmanager:us-east-1:01234567890:secret:SaslScram256Auth';
+  const clientCertificateTLSAuthArn =
+    'arn:aws:secretsmanager:us-east-1:01234567890:secret:ClientCertificateTLSAuth';
+  const serverRootCaCertificateArn =
+    'arn:aws:secretsmanager:us-east-1:01234567890:secret:ServerRootCaCertificate';
+
   const topic = 'TestingTopic';
   const enabled = false;
   const startingPosition = 'LATEST';
@@ -306,40 +311,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
       await runCompileEventSourceMappingTest(eventConfig);
     });
 
-    it('should correctly compile EventSourceMapping resource properties for SASL_SCRAM_256_AUTH', async () => {
-      const eventConfig = {
-        event: {
-          topic,
-          bootstrapServers: ['abc.xyz:9092'],
-          accessConfigurations: {
-            saslScram256Auth:
-              'arn:aws:secretsmanager:us-east-1:01234567890:secret:SaslScram256SecretName',
-          },
-        },
-        resource: (awsNaming) => {
-          return {
-            SelfManagedEventSource: {
-              Endpoints: {
-                KafkaBootstrapServers: ['abc.xyz:9092'],
-              },
-            },
-            SourceAccessConfigurations: [
-              {
-                Type: 'SASL_SCRAM_256_AUTH',
-                URI: 'arn:aws:secretsmanager:us-east-1:01234567890:secret:SaslScram256SecretName',
-              },
-            ],
-            StartingPosition: 'TRIM_HORIZON',
-            Topics: [topic],
-            FunctionName: {
-              'Fn::GetAtt': [awsNaming.getLambdaLogicalId('basic'), 'Arn'],
-            },
-          };
-        },
-      };
-      await runCompileEventSourceMappingTest(eventConfig);
-    });
-
     it('should correctly compile EventSourceMapping resource properties for SASL_SCRAM_512_AUTH', async () => {
       const eventConfig = {
         event: {
@@ -361,6 +332,72 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
               {
                 Type: 'SASL_SCRAM_512_AUTH',
                 URI: 'arn:aws:secretsmanager:us-east-1:01234567890:secret:SaslScram512SecretName',
+              },
+            ],
+            StartingPosition: 'TRIM_HORIZON',
+            Topics: [topic],
+            FunctionName: {
+              'Fn::GetAtt': [awsNaming.getLambdaLogicalId('basic'), 'Arn'],
+            },
+          };
+        },
+      };
+      await runCompileEventSourceMappingTest(eventConfig);
+    });
+
+    it('should correctly compile EventSourceMapping resource properties for CLIENT_CERTIFICATE_TLS_AUTH', async () => {
+      const eventConfig = {
+        event: {
+          topic,
+          bootstrapServers: ['abc.xyz:9092'],
+          accessConfigurations: {
+            clientCertificateTLSAuth: clientCertificateTLSAuthArn,
+          },
+        },
+        resource: (awsNaming) => {
+          return {
+            SelfManagedEventSource: {
+              Endpoints: {
+                KafkaBootstrapServers: ['abc.xyz:9092'],
+              },
+            },
+            SourceAccessConfigurations: [
+              {
+                Type: 'CLIENT_CERTIFICATE_TLS_AUTH',
+                URI: clientCertificateTLSAuthArn,
+              },
+            ],
+            StartingPosition: 'TRIM_HORIZON',
+            Topics: [topic],
+            FunctionName: {
+              'Fn::GetAtt': [awsNaming.getLambdaLogicalId('basic'), 'Arn'],
+            },
+          };
+        },
+      };
+      await runCompileEventSourceMappingTest(eventConfig);
+    });
+
+    it('should correctly compile EventSourceMapping resource properties for SERVER_ROOT_CA_CERTIFICATE', async () => {
+      const eventConfig = {
+        event: {
+          topic,
+          bootstrapServers: ['abc.xyz:9092'],
+          accessConfigurations: {
+            serverRootCaCertificate: serverRootCaCertificateArn,
+          },
+        },
+        resource: (awsNaming) => {
+          return {
+            SelfManagedEventSource: {
+              Endpoints: {
+                KafkaBootstrapServers: ['abc.xyz:9092'],
+              },
+            },
+            SourceAccessConfigurations: [
+              {
+                Type: 'SERVER_ROOT_CA_CERTIFICATE',
+                URI: serverRootCaCertificateArn,
               },
             ],
             StartingPosition: 'TRIM_HORIZON',
