@@ -66,7 +66,7 @@ functions:
           arn: arn:aws:sqs:region:XXXXXX:myQueue
           batchSize: 10
           maximumBatchingWindow: 60
-          functionResponseType: 'ReportBatchItemFailures'
+          functionResponseType: ReportBatchItemFailures
 ```
 
 ## IAM Permissions
