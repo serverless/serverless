@@ -31,9 +31,10 @@ const spawnOptions = { cwd: serverlessPath, stdio: 'inherit' };
         '-c',
         'scripts/pkg/config.js',
         '--targets',
-        'node14-linux-x64,node14-mac-x64,node14-win-x64',
+        'node16-mac-arm64',
         '--out-path',
         'dist',
+        '--no-bytecode',
         'bin/serverless.js',
       ],
       spawnOptions

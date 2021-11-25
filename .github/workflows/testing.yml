@@ -1,0 +1,51 @@
+name: Build testing
+
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  buildBinaries:
+    name: Build binaries
+    runs-on: ubuntu-latest
+    env:
+      # It'll work with secrets.GITHUB_TOKEN (which is provided by GitHub unconditionally)
+      # Still then release author would be "github-actions". It's better if it's dedicated repo bot
+      GITHUB_TOKEN: ${{ secrets.USER_GITHUB_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v1
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: all
+      - name: Available platforms
+        run: echo ${{ steps.qemu.outputs.platforms }}
+
+      - name: Retrieve dependencies from cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: npm-v14-${{ runner.os }}-refs/heads/master-${{ hashFiles('package.json') }}
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+          registry-url: https://registry.npmjs.org
+
+      # Normally we have a guarantee that deps are already there, still it may not be the case when:
+      # - `master` build for same commit failed (and we still pushed tag manually)
+      # - We've pushed tag manually before `master` build finalized
+      - name: Install dependencies
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+
+      - name: Build standalone artifacts
+        run: npm run pkg:build
