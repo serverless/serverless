@@ -329,3 +329,22 @@ functions:
           arn: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
           tumblingWindowInSeconds: 30
 ```
+
+## Setting FilterCriteria
+
+This configuration allows customers to filter event before lambda invocation. It accepts up to 5 filter criterion. If one event matches at least 1 pattern, lambda will process it.
+
+For more information and examples, read the [AWS event filtering documentation](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventfiltering.html)
+
+Note: Serverless only sets this property if you explicitly add it to the stream configuration (see example below). The following exemple will only process inserted item in the DynamoDB table (not the removed and modified items).
+
+```yml
+functions:
+  handleInsertedDynamoDBItem:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+          patterns:
+            - eventName: [INSERT]
+```
