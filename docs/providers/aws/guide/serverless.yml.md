@@ -458,7 +458,7 @@ functions:
           startingPosition: LATEST
           enabled: true
           functionResponseType: ReportBatchItemFailures
-          patterns:
+          filterPatterns:
             - partitionKey: [ 1 ]
       - msk:
           arn: arn:aws:kafka:us-east-1:111111111111:cluster/ClusterName/a1a1a1a1a1a1a1a1a # ARN of MSK Cluster

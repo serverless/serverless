@@ -1724,7 +1724,7 @@ describe('AwsCompileStreamEvents #2', () => {
       );
     });
   });
-  describe('with patterns', () => {
+  describe('with filterPatterns', () => {
     let eventSourceMappingResource;
 
     before(async () => {
@@ -1737,7 +1737,7 @@ describe('AwsCompileStreamEvents #2', () => {
                 {
                   stream: {
                     arn: 'arn:aws:dynamodb:region:account:table/foo/stream/1',
-                    patterns: [{ eventName: ['INSERT'] }, { eventName: ['MODIFY'] }],
+                    filterPatterns: [{ eventName: ['INSERT'] }, { eventName: ['MODIFY'] }],
                   },
                 },
               ],

@@ -330,7 +330,7 @@ functions:
           tumblingWindowInSeconds: 30
 ```
 
-## Setting FilterCriteria
+## Setting filter patterns
 
 This configuration allows customers to filter event before lambda invocation. It accepts up to 5 filter criterion by default and up to 10 with quota extension. If one event matches at least 1 pattern, lambda will process it.
 
@@ -345,6 +345,6 @@ functions:
     events:
       - stream:
           arn: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
-          patterns:
+          filterPatterns:
             - eventName: [INSERT]
 ```
