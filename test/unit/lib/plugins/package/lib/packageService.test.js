@@ -359,6 +359,8 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
           getFunction: {
             Configuration: {
               LastModified: '2020-05-20T15:34:16.494+0000',
+              State: 'Active',
+              LastUpdateStatus: 'Successful',
             },
           },
           updateFunctionCode: updateFunctionCodeStub,
