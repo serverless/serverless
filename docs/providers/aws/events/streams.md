@@ -334,9 +334,9 @@ functions:
 
 This configuration allows customers to filter event before lambda invocation. It accepts up to 5 filter criterion by default and up to 10 with quota extension. If one event matches at least 1 pattern, lambda will process it.
 
-For more information and examples, read the [AWS event filtering documentation](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventfiltering.html)
+For more details and examples of filter patterns, please see the [AWS event filtering documentation](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventfiltering.html)
 
-Note: Serverless only sets this property if you explicitly add it to the stream configuration (see example below). The following exemple will only process inserted item in the DynamoDB table (not the removed and modified items).
+Note: Serverless only sets this property if you explicitly add it to the stream configuration (see an example below). The following example will only process inserted items in the DynamoDB table (it will skip removed and modified items).
 
 ```yml
 functions:
