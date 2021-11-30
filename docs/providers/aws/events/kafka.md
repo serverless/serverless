@@ -26,7 +26,7 @@ In order to configure lambda to trigger via `kafka` events, you must provide thr
 You must authenticate your Lambda with a self-managed Apache Kafka cluster using one of;
 
 - VPC - subnet(s) and security group
-- SASL/SCRAM - AWS Secrets Manager secret containing credentials
+- SASL SCRAM/PLAIN - AWS Secrets Manager secret containing credentials
 - Mutual TLS (mTLS) - AWS Secrets Manager secret containing client certificate, private key, and optionally a CA certificate
 
 You can provide this configuration via `accessConfigurations`
@@ -39,7 +39,7 @@ Valid options for `accessConfigurations` are:
 saslPlainAuth: arn:aws:secretsmanager:us-east-1:01234567890:secret:SaslPlain
 saslScram256Auth: arn:aws:secretsmanager:us-east-1:01234567890:secret:SaslScram256
 saslScram512Auth: arn:aws:secretsmanager:us-east-1:01234567890:secret:SaslScram512
-clientCertificateTLSAuth: arn:aws:secretsmanager:us-east-1:01234567890:secret:ClientCertificateTLS
+clientCertificateTlsAuth: arn:aws:secretsmanager:us-east-1:01234567890:secret:ClientCertificateTLS
 serverRootCaCertificate: arn:aws:secretsmanager:us-east-1:01234567890:secret:ServerRootCaCertificate
 vpcSubnet:
   - subnet-0011001100
@@ -49,19 +49,19 @@ vpcSecurityGroup: sg-0123456789
 
 For more information see:
 
-https://docs.aws.amazon.com/lambda/latest/dg/with-kafka.html#smaa-authentication
+- [AWS Documentation - Using Lambda with self-managed Apache Kafka](https://docs.aws.amazon.com/lambda/latest/dg/with-kafka.html#smaa-authentication)
 
-https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-eventsourcemapping-sourceaccessconfiguration.html
+- [AWS Documentation - AWS::Lambda::EventSourceMapping SourceAccessConfiguration](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-eventsourcemapping-sourceaccessconfiguration.html)
 
-[SASL_PLAIN auth](https://docs.confluent.io/platform/current/kafka/authentication_sasl/authentication_sasl_plain.html)
+- [Confluent documentation - Authentication with SASL/PLAIN](https://docs.confluent.io/platform/current/kafka/authentication_sasl/authentication_sasl_plain.html)
 
-[SASL_SCRAM auth](https://docs.confluent.io/platform/current/kafka/authentication_sasl/authentication_sasl_scram.html)
+- [Confluent documentation - Authentication with SASL/SCRAM](https://docs.confluent.io/platform/current/kafka/authentication_sasl/authentication_sasl_scram.html)
 
-[mTLS](https://docs.confluent.io/platform/current/kafka/authentication_ssl.html)
+- [Confluent documentation Encryption and Authentication with SSL](https://docs.confluent.io/platform/current/kafka/authentication_ssl.html)
 
 ## Basic Example: SASL/SCRAM
 
-In the following example, we specify that the `compute` function should be triggered whenever there are new messages available to consume from Kafka `topic` "MySelfManagedKafkaTopic"
+In the following example, we specify that the `compute` function should be triggered whenever there are new messages available to consume from Kafka topic `MySelfManagedKafkaTopic` from self-hosted cluster at `xyz.com`. The cluster has been authenticated using SASL/SCRAM, the credentials are stored at secret `MyBrokerSecretName`
 
 ```yml
 functions:
@@ -79,7 +79,7 @@ functions:
 
 ## Example: Using mTLS
 
-In this example, the lambda event source is a self-managed Apache kafka cluster authenticated via mTLS. The value of `clientCertificateTLSAuth` is an arn of a secret containing the client certificate and privatekey required for the mTLS handshake. The value of `serverRootCaCertificate` is an arn of a secret containing the Certificate Authority (CA) Certificate. This is optional, you only need to provide if your cluster requires it.
+In this example, the lambda event source is a self-managed Apache kafka cluster authenticated via mTLS. The value of `clientCertificateTlsAuth` is an arn of a secret containing the client certificate and privatekey required for the mTLS handshake. The value of `serverRootCaCertificate` is an arn of a secret containing the Certificate Authority (CA) Certificate. This is optional, you only need to provide if your cluster requires it.
 
 ```yml
 functions:
@@ -88,7 +88,7 @@ functions:
     events:
       - kafka:
           accessConfigurations:
-            clientCertificateTLSAuth: arn:aws:secretsmanager:us-east-1:01234567890:secret:ClientCertificateTLS
+            clientCertificateTlsAuth: arn:aws:secretsmanager:us-east-1:01234567890:secret:ClientCertificateTLS
             serverRootCaCertificate: arn:aws:secretsmanager:us-east-1:01234567890:secret:ServerRootCaCertificate
           topic: MySelfManagedMTLSKafkaTopic
           bootstrapServers:
@@ -96,7 +96,7 @@ functions:
             - abc2.xyz.com:9092
 ```
 
-## Example: Using VPC configurations
+## Using VPC configurations
 
 You can also specify VPC configurations for your event source. The values will be automatically transformed into their corresponding URI values, so it not required to specify the URI prefix. For example, `subnet-0011001100` will be automatically mapped to the value `subnet:subnet-0011001100`.
 
@@ -117,7 +117,7 @@ functions:
             - abc2.xyz.com:9092
 ```
 
-## Example: Enabling and disabling Kafka event trigger
+## Enabling and disabling Kafka event trigger
 
 The `kafka` event also supports `enabled` parameter, which is used to control if the event source mapping is active. Setting it to `false` will pause polling for and processing new messages.
 

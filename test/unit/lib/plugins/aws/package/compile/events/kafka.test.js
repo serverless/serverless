@@ -10,8 +10,8 @@ chai.use(require('chai-as-promised'));
 describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () => {
   const saslScram256AuthArn =
     'arn:aws:secretsmanager:us-east-1:01234567890:secret:SaslScram256Auth';
-  const clientCertificateTLSAuthArn =
-    'arn:aws:secretsmanager:us-east-1:01234567890:secret:ClientCertificateTLSAuth';
+  const clientCertificateTlsAuthArn =
+    'arn:aws:secretsmanager:us-east-1:01234567890:secret:clientCertificateTlsAuth';
   const serverRootCaCertificateArn =
     'arn:aws:secretsmanager:us-east-1:01234567890:secret:ServerRootCaCertificate';
 
@@ -351,7 +351,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
           topic,
           bootstrapServers: ['abc.xyz:9092'],
           accessConfigurations: {
-            clientCertificateTLSAuth: clientCertificateTLSAuthArn,
+            clientCertificateTlsAuth: clientCertificateTlsAuthArn,
           },
         },
         resource: (awsNaming) => {
@@ -364,7 +364,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
             SourceAccessConfigurations: [
               {
                 Type: 'CLIENT_CERTIFICATE_TLS_AUTH',
-                URI: clientCertificateTLSAuthArn,
+                URI: clientCertificateTlsAuthArn,
               },
             ],
             StartingPosition: 'TRIM_HORIZON',
