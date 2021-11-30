@@ -1724,4 +1724,43 @@ describe('AwsCompileStreamEvents #2', () => {
       );
     });
   });
+  describe('with filterPatterns', () => {
+    let eventSourceMappingResource;
+
+    before(async () => {
+      const { awsNaming, cfTemplate } = await runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            basic: {
+              events: [
+                {
+                  stream: {
+                    arn: 'arn:aws:dynamodb:region:account:table/foo/stream/1',
+                    filterPatterns: [{ eventName: ['INSERT'] }, { eventName: ['MODIFY'] }],
+                  },
+                },
+              ],
+            },
+          },
+        },
+        command: 'package',
+      });
+      const streamLogicalId = awsNaming.getStreamLogicalId('basic', 'dynamodb', 'foo');
+      eventSourceMappingResource = cfTemplate.Resources[streamLogicalId];
+    });
+
+    it('should wrap patterns within FilterCriteria property', () => {
+      expect(eventSourceMappingResource.Properties.FilterCriteria).to.deep.equal({
+        Filters: [
+          {
+            Pattern: JSON.stringify({ eventName: ['INSERT'] }),
+          },
+          {
+            Pattern: JSON.stringify({ eventName: ['MODIFY'] }),
+          },
+        ],
+      });
+    });
+  });
 });

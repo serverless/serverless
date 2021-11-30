@@ -458,6 +458,8 @@ functions:
           startingPosition: LATEST
           enabled: true
           functionResponseType: ReportBatchItemFailures
+          filterPatterns:
+            - partitionKey: [ 1 ]
       - msk:
           arn: arn:aws:kafka:us-east-1:111111111111:cluster/ClusterName/a1a1a1a1a1a1a1a1a # ARN of MSK Cluster
           topic: kafkaTopic # name of Kafka topic to consume from
