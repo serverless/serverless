@@ -11,8 +11,8 @@ env:
   FORCE_COLOR: 1
 
 jobs:
-  linuxNode14:
-    name: '[Linux] Node.js 14: Lint, Formatting, Eventual Commitlint, Eventual Changelog, Unit & packaging tests'
+  linuxNode16:
+    name: '[Linux] Node.js 16: Lint, Formatting, Eventual Commitlint, Eventual Changelog, Unit & packaging tests'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -36,15 +36,15 @@ jobs:
           path: |
             ~/.npm
             node_modules
-          key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          key: npm-v16-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
-            npm-v14-${{ runner.os }}-${{ github.ref }}-
-            npm-v14-${{ runner.os }}-refs/heads/master-
+            npm-v16-${{ runner.os }}-${{ github.ref }}-
+            npm-v16-${{ runner.os }}-refs/heads/master-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
         with:
-          node-version: 14.x
+          node-version: 16.x
 
       - name: Install dependencies
         if: steps.cacheNpm.outputs.cache-hit != 'true'
@@ -72,41 +72,9 @@ jobs:
       - name: Packaging tests
         run: npm run integration-test-run-package
 
-  windowsNode14:
-    name: '[Windows] Node.js v14: Unit tests'
+  windowsNode16:
+    name: '[Windows] Node.js v16: Unit tests'
     runs-on: windows-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Retrieve dependencies from cache
-        id: cacheNpm
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.npm
-            node_modules
-          key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
-          restore-keys: |
-            npm-v14-${{ runner.os }}-${{ github.ref }}-
-            npm-v14-${{ runner.os }}-refs/heads/master-
-
-      - name: Install Node.js and npm
-        uses: actions/setup-node@v1
-        with:
-          node-version: 14.x
-
-      - name: Install dependencies
-        if: steps.cacheNpm.outputs.cache-hit != 'true'
-        run: |
-          npm update --no-save
-          npm update --save-dev --no-save
-      - name: Unit tests
-        run: npm test -- -b
-
-  linuxNode16:
-    name: '[Linux] Node.js 16: Isolated unit tests'
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -127,6 +95,38 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
+
+      - name: Install dependencies
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+      - name: Unit tests
+        run: npm test -- -b
+
+  linuxNode14:
+    name: '[Linux] Node.js 14: Isolated unit tests'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve dependencies from cache
+        id: cacheNpm
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            npm-v14-${{ runner.os }}-${{ github.ref }}-
+            npm-v14-${{ runner.os }}-refs/heads/master-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
 
       - name: Install dependencies
         if: steps.cacheNpm.outputs.cache-hit != 'true'
