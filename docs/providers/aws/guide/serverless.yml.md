@@ -451,6 +451,8 @@ functions:
           batchSize: 10
           maximumBatchingWindow: 10 # optional, minimum is 0 and the maximum is 300 (seconds)
           enabled: true
+          filterPatterns:
+            - a: [ 1, 2 ]
       - stream:
           arn: arn:aws:kinesis:region:XXXXXX:stream/foo
           batchSize: 100
