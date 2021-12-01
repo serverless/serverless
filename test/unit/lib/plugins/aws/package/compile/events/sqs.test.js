@@ -611,6 +611,7 @@ describe('AwsCompileSQSEvents #2', () => {
                     arn: 'arn:aws:sqs:region:account:MyQueue',
                     batchSize: 10,
                     maximumBatchingWindow: 100,
+                    filterPatterns: [{ a: [1, 2] }, { b: [3, 4] }],
                   },
                 },
               ],
@@ -641,6 +642,19 @@ describe('AwsCompileSQSEvents #2', () => {
 
     it('should have correct batching window size', () => {
       expect(eventSourceMappingResource.Properties.MaximumBatchingWindowInSeconds).to.equal(100);
+    });
+
+    it('should have correct filtering patterns', () => {
+      expect(eventSourceMappingResource.Properties.FilterCriteria).to.deep.equal({
+        Filters: [
+          {
+            Pattern: JSON.stringify({ a: [1, 2] }),
+          },
+          {
+            Pattern: JSON.stringify({ b: [3, 4] }),
+          },
+        ],
+      });
     });
   });
 
