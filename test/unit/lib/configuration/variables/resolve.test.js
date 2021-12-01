@@ -429,24 +429,22 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     });
 
     it('should correctly record encountered variable sources', () => {
-      expect(variableSourcesInConfig).to.deep.equal(
-        new Set([
-          'sourceParam',
-          'sourceDirect',
-          'sourceAddress',
-          'sourceProperty',
-          'sourceResultVariables',
-          'sourceResolveVariablesInString',
-          'sourceResolveVariable',
-          'sourceIncomplete',
-          'sourceMissing',
-          'sourceUnrecognized',
-          'sourceError',
-          'sourceInfinite',
-          'sourceShared',
-          'sourceSharedProperty',
-        ])
-      );
+      expect(Array.from(variableSourcesInConfig)).to.deep.equal([
+        'sourceParam',
+        'sourceDirect',
+        'sourceAddress',
+        'sourceProperty',
+        'sourceResultVariables',
+        'sourceResolveVariablesInString',
+        'sourceResolveVariable',
+        'sourceIncomplete',
+        'sourceMissing',
+        'sourceUnrecognized',
+        'sourceError',
+        'sourceInfinite',
+        'sourceShared',
+        'sourceSharedProperty',
+      ]);
     });
 
     describe('"resolveVariable" source util', () => {
