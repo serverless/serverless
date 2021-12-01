@@ -79,7 +79,9 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         resolve: ({ params }) => ({ value: params.join('|') }),
       },
       sourceAddress: {
-        resolve: ({ address }) => ({ value: address }),
+        resolve: ({ address }) => ({
+          value: typeof address === 'string' ? address.split('').reverse().join('') : address,
+        }),
       },
       sourceDirect: {
         resolve: () => ({ value: 234 }),
@@ -200,7 +202,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     });
 
     it('should pass address to source resolvers', () => {
-      expect(configuration.address).to.equal('fooaddress-result');
+      expect(configuration.address).to.equal('footluser-sserdda');
     });
 
     it('should resolve variables in params', () => {
@@ -223,7 +225,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
 
     it('should clear escapes', () => {
       expect(configuration.escape).to.equal(
-        'e${sourceDirect:}n\\$fooaddress-resultqe\\${sourceProperty(direct)}qn\\fooaddress-result'
+        'e${sourceDirect:}n\\$footluser-sserddaqe\\${sourceProperty(direct)}qn\\footluser-sserdda'
       );
     });
 
