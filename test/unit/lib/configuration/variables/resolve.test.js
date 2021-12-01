@@ -40,6 +40,12 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       resolvesResultVariablesStringInvalid: '${sourceResultVariables(stringInvalid)}',
       resolveDeepVariablesConcat:
         '${sourceResultVariables(string)}foo${sourceResultVariables(string)}',
+      resolveDeepVariablesConcatInParam:
+        '${sourceParam(${sourceResultVariables(string)}foo${sourceResultVariables(string)})}',
+      resolveDeepVariablesConcatInAddress:
+        '${sourceAddress:${sourceResultVariables(string)}foo${sourceResultVariables(string)}}',
+      infiniteDeepVariablesConcat:
+        '${sourceAddress:${sourceInfiniteString:}foo${sourceResultVariables(string)}}',
       resolveVariablesInString: "${sourceResolveVariablesInString('${sourceProperty(foo)}')}",
       resolvesVariables: '${sourceResolveVariable("sourceParam(${sourceDirect:})")}',
       resolvesVariablesFallback: '${sourceResolveVariable("sourceMissing:, null"), null}',
@@ -156,6 +162,9 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       sourceInfinite: {
         resolve: () => ({ value: { nest: '${sourceInfinite:}' } }),
       },
+      sourceInfiniteString: {
+        resolve: () => ({ value: '${sourceInfiniteString:}' }),
+      },
       sourceShared: {
         resolve: () => ({
           value: {
@@ -259,6 +268,8 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
 
     it('should resolve variables in resolved strings which are subject to concatenation', () => {
       expect(configuration.resolveDeepVariablesConcat).to.equal('234foo234');
+      expect(configuration.resolveDeepVariablesConcatInParam).to.equal('432oof432');
+      expect(configuration.resolveDeepVariablesConcatInAddress).to.equal('432oof432');
     });
 
     it('should provide working resolveVariablesInString util', () => {
@@ -344,6 +355,12 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       expect(valueMeta.error.code).to.equal('VARIABLE_RESOLUTION_ERROR');
     });
 
+    it('should error on infinite variables resolution recursion', () => {
+      const valueMeta = variablesMeta.get('infiniteDeepVariablesConcat');
+      expect(valueMeta).to.not.have.property('variables');
+      expect(valueMeta.error.code).to.equal('EXCESSIVE_RESOLVED_VARIABLES_NEST_DEPTH');
+    });
+
     it('should mark deep circular dependency among properties with error', () => {
       const valueMeta = variablesMeta.get('propertyDeepCircularA');
       expect(valueMeta).to.not.have.property('variables');
@@ -410,6 +427,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         'propertyDeepCircularC',
         'propertyRoot',
         'resolvesResultVariablesStringInvalid',
+        'infiniteDeepVariablesConcat',
         'resolvesVariablesInvalid1',
         'resolvesVariablesInvalid2',
         'missing',
@@ -435,6 +453,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         'sourceAddress',
         'sourceProperty',
         'sourceResultVariables',
+        'sourceInfiniteString',
         'sourceResolveVariablesInString',
         'sourceResolveVariable',
         'sourceIncomplete',
