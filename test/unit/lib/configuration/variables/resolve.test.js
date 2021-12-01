@@ -76,7 +76,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     let variablesMeta;
     const sources = {
       sourceParam: {
-        resolve: ({ params }) => ({ value: params.join('|') }),
+        resolve: ({ params }) => ({ value: params.join('|').split('').reverse().join('') }),
       },
       sourceAddress: {
         resolve: ({ address }) => ({
@@ -198,7 +198,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     });
 
     it('should pass params to source resolvers', () => {
-      expect(configuration.foo.params).to.equal('param1|param2');
+      expect(configuration.foo.params).to.equal('2marap|1marap');
     });
 
     it('should pass address to source resolvers', () => {
@@ -206,7 +206,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     });
 
     it('should resolve variables in params', () => {
-      expect(configuration.foo.varParam).to.equal('234');
+      expect(configuration.foo.varParam).to.equal('432');
     });
 
     it('should resolve variables in address', () => {
@@ -218,8 +218,8 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       expect(configuration.otherProperty).to.equal('foo234');
       expect(configuration.static).to.equal(true);
       expect(configuration.deepProperty).to.deep.equal({
-        params: 'param1|param2',
-        varParam: '234',
+        params: '2marap|1marap',
+        varParam: '432',
       });
     });
 
@@ -263,8 +263,8 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
 
     it('should provide working resolveVariablesInString util', () => {
       expect(configuration.resolveVariablesInString).to.deep.equal({
-        params: 'param1|param2',
-        varParam: '234',
+        params: '2marap|1marap',
+        varParam: '432',
       });
     });
 
@@ -451,7 +451,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
 
     describe('"resolveVariable" source util', () => {
       it('should resolve variable', () => {
-        expect(configuration.resolvesVariables).to.equal('234');
+        expect(configuration.resolvesVariables).to.equal('432');
       });
       it('should support multiple sources', () => {
         expect(configuration.resolvesVariablesFallback).to.equal(null);
