@@ -33,6 +33,7 @@ describe('test/unit/lib/plugins/aws/remove/index.test.js', () => {
     S3: {
       deleteObjects: deleteObjectsStub,
       listObjectsV2: { Contents: [{ Key: 'first' }, { Key: 'second' }] },
+      headBucket: {},
     },
     CloudFormation: {
       describeStackEvents: describeStackEventsStub,
@@ -105,6 +106,23 @@ describe('test/unit/lib/plugins/aws/remove/index.test.js', () => {
     expect(deleteRepositoryStub).not.to.be.called;
   });
 
+  it('executes expected operations related to files removal when S3 bucket has files', async () => {
+    await runServerless({
+      fixture: 'function',
+      command: 'remove',
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        S3: {
+          deleteObjects: deleteObjectsStub,
+          listObjectsV2: { Contents: [] },
+          headBucket: {},
+        },
+      },
+    });
+
+    expect(deleteObjectsStub).not.to.be.called;
+  });
+
   it('removes ECR repository if it exists', async () => {
     describeRepositoriesStub.resolves();
     const { awsNaming } = await runServerless({
@@ -133,5 +151,91 @@ describe('test/unit/lib/plugins/aws/remove/index.test.js', () => {
     expect(stdoutData).to.include('ECR repository removal will be skipped.');
 
     expect(deleteRepositoryStub).not.to.be.called;
+  });
+
+  it('should execute expected operations with versioning enabled if no object versions are present', async () => {
+    const listObjectVersionsStub = sinon.stub().resolves();
+
+    const { serverless } = await runServerless({
+      command: 'remove',
+      fixture: 'function',
+      configExt: {
+        provider: {
+          deploymentPrefix: 'serverless',
+          deploymentBucket: {
+            name: 'bucket',
+            versioning: true,
+          },
+        },
+      },
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        S3: {
+          listObjectVersions: listObjectVersionsStub,
+          headBucket: {},
+        },
+      },
+    });
+
+    expect(listObjectVersionsStub).to.be.calledWithExactly({
+      Bucket: 'bucket',
+      Prefix: `serverless/${serverless.service.service}/dev`,
+    });
+  });
+
+  it('should execute expected operations with versioning enabled if object versions are present', async () => {
+    const listObjectVersionsStub = sinon.stub().resolves({
+      Versions: [
+        { Key: 'object1', VersionId: null },
+        { Key: 'object2', VersionId: 'v1' },
+      ],
+      DeleteMarkers: [{ Key: 'object3', VersionId: 'v2' }],
+    });
+
+    const innerDeleteObjectsStub = sinon.stub().resolves({
+      Deleted: [
+        { Key: 'object1', VersionId: null },
+        { Key: 'object2', VersionId: 'v1' },
+        { Key: 'object3', VersionId: 'v2' },
+      ],
+    });
+
+    const { serverless } = await runServerless({
+      command: 'remove',
+      fixture: 'function',
+      configExt: {
+        provider: {
+          deploymentPrefix: 'serverless',
+          deploymentBucket: {
+            name: 'bucket',
+            versioning: true,
+          },
+        },
+      },
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        S3: {
+          listObjectVersions: listObjectVersionsStub,
+          deleteObjects: innerDeleteObjectsStub,
+          headBucket: {},
+        },
+      },
+    });
+
+    expect(listObjectVersionsStub).to.be.calledWithExactly({
+      Bucket: 'bucket',
+      Prefix: `serverless/${serverless.service.service}/dev`,
+    });
+
+    expect(innerDeleteObjectsStub).to.be.calledWithExactly({
+      Bucket: 'bucket',
+      Delete: {
+        Objects: [
+          { Key: 'object1', VersionId: null },
+          { Key: 'object2', VersionId: 'v1' },
+          { Key: 'object3', VersionId: 'v2' },
+        ],
+      },
+    });
   });
 });
