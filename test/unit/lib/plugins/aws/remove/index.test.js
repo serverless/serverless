@@ -123,6 +123,80 @@ describe('test/unit/lib/plugins/aws/remove/index.test.js', () => {
     expect(deleteObjectsStub).not.to.be.called;
   });
 
+  it('executes expected operations related to files removal when S3 bucket is empty', async () => {
+    await runServerless({
+      fixture: 'function',
+      command: 'remove',
+      awsRequestStubMap,
+    });
+
+    expect(deleteObjectsStub).to.be.calledWithExactly({
+      Bucket: 'resource-id',
+      Delete: {
+        Objects: [{ Key: 'first' }, { Key: 'second' }],
+      },
+    });
+  });
+
+  it('skips attempts to remove S3 objects if S3 bucket not found', async () => {
+    const { awsNaming } = await runServerless({
+      fixture: 'function',
+      command: 'remove',
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        S3: {
+          deleteObjects: deleteObjectsStub,
+          listObjectsV2: { Contents: [{ Key: 'first' }, { Key: 'second' }] },
+          headBucket: () => {
+            const err = new Error('err');
+            err.code = 'AWS_S3_HEAD_BUCKET_NOT_FOUND';
+            throw err;
+          },
+        },
+      },
+    });
+
+    expect(deleteObjectsStub).not.to.be.called;
+    expect(deleteStackStub).to.be.calledWithExactly({ StackName: awsNaming.getStackName() });
+    expect(describeStackEventsStub).to.be.calledWithExactly({
+      StackName: awsNaming.getStackName(),
+    });
+    expect(describeStackEventsStub.calledAfter(deleteStackStub)).to.be.true;
+  });
+
+  it('skips attempts to remove S3 objects if S3 bucket resource missing from CloudFormation template', async () => {
+    const headBucketStub = sinon.stub();
+    const { awsNaming } = await runServerless({
+      fixture: 'function',
+      command: 'remove',
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        S3: {
+          ...awsRequestStubMap.S3,
+          headBucket: headBucketStub,
+        },
+        CloudFormation: {
+          ...awsRequestStubMap.CloudFormation,
+          describeStackResource: () => {
+            const err = new Error('does not exist for stack');
+            err.providerError = {
+              code: 'ValidationError',
+            };
+            throw err;
+          },
+        },
+      },
+    });
+
+    expect(headBucketStub).not.to.be.called;
+    expect(deleteObjectsStub).not.to.be.called;
+    expect(deleteStackStub).to.be.calledWithExactly({ StackName: awsNaming.getStackName() });
+    expect(describeStackEventsStub).to.be.calledWithExactly({
+      StackName: awsNaming.getStackName(),
+    });
+    expect(describeStackEventsStub.calledAfter(deleteStackStub)).to.be.true;
+  });
+
   it('removes ECR repository if it exists', async () => {
     describeRepositoriesStub.resolves();
     const { awsNaming } = await runServerless({
