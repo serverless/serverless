@@ -149,33 +149,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
       expect(eventSourceMappingResource.Properties).to.deep.equal(eventConfig.resource(awsNaming));
     };
 
-    describe.only('accessConfigurations', () => {
-      it('should throw an error when no accessConfiguration supplied', async () => {
-        await expect(
-          runServerless({
-            fixture: 'function',
-            configExt: {
-              functions: {
-                basic: {
-                  events: [
-                    {
-                      kafka: {
-                        topic,
-                        bootstrapServers: ['abc.xyz:9092'],
-                      },
-                    },
-                  ],
-                },
-              },
-            },
-            command: 'package',
-          })
-        ).to.be.rejected.and.eventually.have.property(
-          'code',
-          'INVALID_NON_SCHEMA_COMPLIANT_CONFIGURATION'
-        );
-      });
-
+    describe('accessConfigurations', () => {
       it('should correctly compile EventSourceMapping resource properties for VPC_SECURITY_GROUP and VPC_SUBNET', async () => {
         const vpcSecurityGroup = 'sg-abc4567890';
         const vpcSubnet = 'subnet-abc4567890';
@@ -212,64 +186,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
           },
         };
         await runCompileEventSourceMappingTest(eventConfig);
-      });
-
-      it('should fail to compile EventSourceMapping resource properties for VPC_SUBNET with no VPC_SECURITY GROUP', async () => {
-        await expect(
-          runServerless({
-            fixture: 'function',
-            configExt: {
-              functions: {
-                noVpcSecurityGroup: {
-                  events: [
-                    {
-                      kafka: {
-                        topic,
-                        bootstrapServers: ['abc.xyz:9092'],
-                        accessConfigurations: { vpcSubnet: 'subnet-abc4567890' },
-                      },
-                    },
-                  ],
-                  handler: 'path.to.handler',
-                },
-              },
-            },
-            command: 'package',
-          })
-        ).to.be.rejected.and.eventually.contain({
-          code: 'FUNCTION_KAFKA_VPC_ACCESS_CONFIGURATION_MISSING_VPCSECURITYGROUP',
-          message:
-            'You must specify at least one vpcSecurityGroup accessConfiguration for function: noVpcSecurityGroup',
-        });
-      });
-
-      it('should fail to compile EventSourceMapping resource properties for VPC_SECURITY GROUP with no VPC_SUBNET', async () => {
-        await expect(
-          runServerless({
-            fixture: 'function',
-            configExt: {
-              functions: {
-                noVpcSubnet: {
-                  events: [
-                    {
-                      kafka: {
-                        topic,
-                        bootstrapServers: ['abc.xyz:9092'],
-                        accessConfigurations: { vpcSecurityGroup: 'sg-abc4567890' },
-                      },
-                    },
-                  ],
-                  handler: 'path.to.handler',
-                },
-              },
-            },
-            command: 'package',
-          })
-        ).to.be.rejected.and.eventually.contain({
-          code: 'FUNCTION_KAFKA_VPC_ACCESS_CONFIGURATION_MISSING_VPCSUBNET',
-          message:
-            'You must specify at least one vpcSubnet accessConfiguration for function: noVpcSubnet',
-        });
       });
 
       it('should correctly compile EventSourceMapping resource properties for multiple VPC_SUBNETS', async () => {
@@ -314,6 +230,58 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
           },
         };
         await runCompileEventSourceMappingTest(eventConfig);
+      });
+
+      it('should fail to compile EventSourceMapping resource properties for VPC_SUBNET with no VPC_SECURITY GROUP', async () => {
+        await expect(
+          runServerless({
+            fixture: 'function',
+            configExt: {
+              functions: {
+                basic: {
+                  events: [
+                    {
+                      kafka: {
+                        topic,
+                        bootstrapServers: ['abc.xyz:9092'],
+                        accessConfigurations: { vpcSubnet: 'subnet-abc4567890' },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+            command: 'package',
+          })
+        ).to.be.rejected.and.eventually.contain({
+          code: 'FUNCTION_KAFKA_VPC_ACCESS_CONFIGURATION_INVALID',
+        });
+      });
+
+      it('should fail to compile EventSourceMapping resource properties for VPC_SECURITY GROUP with no VPC_SUBNET', async () => {
+        await expect(
+          runServerless({
+            fixture: 'function',
+            configExt: {
+              functions: {
+                basic: {
+                  events: [
+                    {
+                      kafka: {
+                        topic,
+                        bootstrapServers: ['abc.xyz:9092'],
+                        accessConfigurations: { vpcSecurityGroup: 'sg-abc4567890' },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+            command: 'package',
+          })
+        ).to.be.rejected.and.eventually.contain({
+          code: 'FUNCTION_KAFKA_VPC_ACCESS_CONFIGURATION_INVALID',
+        });
       });
 
       it('should correctly compile EventSourceMapping resource properties for SASL_PLAIN_AUTH', async () => {
@@ -498,7 +466,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
                       kafka: {
                         topic,
                         bootstrapServers: ['abc.xyz:9092'],
-                        serverRootCaCertificate: serverRootCaCertificateArn,
+                        accessConfigurations: {
+                          serverRootCaCertificate: serverRootCaCertificateArn,
+                        },
                       },
                     },
                   ],
@@ -509,7 +479,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
           })
         ).to.be.rejected.and.eventually.have.property(
           'code',
-          'INVALID_NON_SCHEMA_COMPLIANT_CONFIGURATION'
+          'FUNCTION_KAFKA_CLIENT_CERTIFICATE_TLS_AUTH_CONFIGURATION_MISSING'
         );
       });
 
