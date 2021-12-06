@@ -28,6 +28,24 @@ describe('test/unit/lib/plugins/aws/package/lib/stripNullPropsFromTemplateResour
                 ObjectLockEnabled: false,
               },
             },
+            myLambdaFunction: {
+              Type: 'AWS::Lambda::Function',
+              Properties: {
+                Environment: {
+                  Variables: {
+                    MYNULLVAR: null,
+                  },
+                },
+                Handler: 'index.handler',
+                Role: {
+                  'Fn::GetAtt': ['MyLambdaRole', 'Arn'],
+                },
+                Code: {
+                  S3Bucket: 's3-containing-lambda',
+                },
+                Runtime: 'nodejs12.x',
+              },
+            },
           },
         },
       },
@@ -37,6 +55,12 @@ describe('test/unit/lib/plugins/aws/package/lib/stripNullPropsFromTemplateResour
 
   it('Should remove null properties from the final cloudformation template resources', async () => {
     expect(Object.keys(finalTemplate.Resources.myBucket.Properties).length).to.equal(0);
+  });
+
+  it('Should remove null values within nested objects in resource properties', async () => {
+    expect(
+      Object.keys(finalTemplate.Resources.myLambdaFunction.Properties.Environment.Variables).length
+    ).to.equal(0);
   });
 
   it('Should not affect resources without null props', async () => {
