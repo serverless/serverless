@@ -17,7 +17,7 @@ Serverless Framework v3 contains a few breaking changes that may impact some pro
 
 This guide helps users upgrade from Serverless Framework v2 to v3.
 
-**Note:** Serverless Framework v3 isn't released yet. However, this guide helps to prepare to v3, or upgrade to the v3 beta version.
+**Note:** Serverless Framework v3 isn't released yet. However, this guide helps to prepare to v3, or upgrade to the [v3 beta version](https://www.serverless.com/blog/serverless-framework-v3-beta).
 
 ## Am I impacted by breaking changes?
 
@@ -43,6 +43,8 @@ Then, to upgrade to Serverless Framework v3, run:
 ```bash
 npm update -g serverless
 ```
+
+**Note:** v3 is currently available as beta version. [Read the blog post](https://www.serverless.com/blog/serverless-framework-v3-beta) to upgrade to v3 beta until the stable version is released.
 
 If you [installed `serverless` as a standalone binary](../getting-started.md#install-as-a-standalone-binary), run the following command instead:
 
