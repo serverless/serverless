@@ -344,7 +344,7 @@ All `SecureString` type parameters are automatically decrypted, and automaticall
 
 as mentioned above, by default , `SecureString` type parameters are automatically decrypted.
 
-in order to get the encrypted content , you can pass `noDecrypt` instruction into variable as: `${ssm(noDecrypt):/path/to/secureparam}`, if you need to also pass custom region, put it first as: `${ssm(eu-west-1, noDecrypt):/path/to/secureparam}`
+In order to get the encrypted content, you can pass `noDecrypt` instruction into variable as: `${ssm(noDecrypt):/path/to/secureparam}` (it can be passed aside of region param as e.g.: `${ssm(eu-west-1, noDecrypt):/path/to/secureparam})`
 
 ## Reference Variables using AWS Secrets Manager
 
