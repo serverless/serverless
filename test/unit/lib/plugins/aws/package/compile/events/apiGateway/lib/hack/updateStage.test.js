@@ -790,6 +790,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/hack/u
         S3: {
           listObjectsV2: {},
           headObject: {},
+          headBucket: {},
         },
         APIGateway: {
           getRestApis: () => ({
@@ -859,6 +860,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/hack/u
         S3: {
           listObjectsV2: {},
           upload: {},
+          headBucket: {},
         },
         STS: {
           getCallerIdentity: {
