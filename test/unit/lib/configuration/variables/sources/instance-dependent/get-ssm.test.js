@@ -27,6 +27,8 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
           existingListRaw: '${ssm(raw):existingList}',
           secretManager: '${ssm:/aws/reference/secretsmanager/existing}',
           existingEncrypted: '${ssm:/secret/existing}',
+          encryptedWithSkipDecrypt: '${ssm(noDecrypt):/secret/existing}',
+          encryptedWithSkipDecryptAndRegion: '${ssm(noDecrypt, eu-west-1):/secret/existing}',
           existingEncryptedDirect: '${ssm:/secret/direct}',
           existingEncryptedRaw: '${ssm(raw):/aws/reference/secretsmanager/existing}',
           notExisting: '${ssm:notExisting, null}',
@@ -39,7 +41,7 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
 
       serverlessInstance = {
         getProvider: () => ({
-          request: async (name, method, { Name }, { region }) => {
+          request: async (name, method, { Name, WithDecryption }, { region }) => {
             if (!allowedRegionTypes.has(typeof region)) throw new Error('Invalid region value');
             if (Name === 'existing') {
               return { Parameter: { Type: 'String', Value: region || 'value' } };
@@ -48,10 +50,20 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
               return { Parameter: { Type: 'StringList', Value: 'one,two,three' } };
             }
             if (Name === '/secret/existing' || Name === '/aws/reference/secretsmanager/existing') {
-              return { Parameter: { Type: 'SecureString', Value: '{"someSecret":"someValue"}' } };
+              return {
+                Parameter: {
+                  Type: 'SecureString',
+                  Value: WithDecryption ? '{"someSecret":"someValue"}' : 'ENCRYPTED',
+                },
+              };
             }
             if (Name === '/secret/direct') {
-              return { Parameter: { Type: 'SecureString', Value: '12345678901234567890' } };
+              return {
+                Parameter: {
+                  Type: 'SecureString',
+                  Value: WithDecryption ? '12345678901234567890' : 'ENCRYPTED',
+                },
+              };
             }
             if (Name === 'notExisting') {
               throw Object.assign(
@@ -111,8 +123,16 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
       if (variablesMeta.get('custom\0existingDirect')) {
         throw variablesMeta.get('custom\0existingDirect').error;
       }
+      if (variablesMeta.get('custom\0encryptedWithSkipDecrypt')) {
+        throw variablesMeta.get('custom\0encryptedWithSkipDecrypt').error;
+      }
+      if (variablesMeta.get('custom\0encryptedWithSkipDecryptAndRegion')) {
+        throw variablesMeta.get('custom\0encryptedWithSkipDecrypt').error;
+      }
       expect(configuration.custom.existingEncrypted).to.deep.equal({ someSecret: 'someValue' });
       expect(configuration.custom.existingEncryptedDirect).to.equal('12345678901234567890');
+      expect(configuration.custom.encryptedWithSkipDecrypt).to.equal('ENCRYPTED');
+      expect(configuration.custom.encryptedWithSkipDecryptAndRegion).to.equal('ENCRYPTED');
     });
 
     it('should support "raw" output for decrypted data', () => {
