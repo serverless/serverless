@@ -14,7 +14,10 @@ chai.use(require('sinon-chai'));
 const { expect } = require('chai');
 
 describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
-  const mockedDescribeStacksResponse = {
+  const awsRequestStubMap = {
+    S3: {
+      headBucket: {},
+    },
     CloudFormation: {
       describeStacks: {
         Stacks: [
@@ -46,7 +49,7 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
       } = await runServerless({
         fixture: 'packaging',
         command: 'package',
-        awsRequestStubMap: mockedDescribeStacksResponse,
+        awsRequestStubMap,
         configExt: {
           package: {
             patterns: [
@@ -144,7 +147,7 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
       } = await runServerless({
         fixture: 'packaging',
         command: 'package',
-        awsRequestStubMap: mockedDescribeStacksResponse,
+        awsRequestStubMap,
         configExt: {
           useDotenv: true,
         },
@@ -170,7 +173,7 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
       } = await runServerless({
         fixture: 'packaging',
         command: 'package',
-        awsRequestStubMap: mockedDescribeStacksResponse,
+        awsRequestStubMap,
         configExt: {
           package: {
             individually: true,
@@ -232,7 +235,7 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
       const { serverless: serverlessInstance } = await runServerless({
         fixture: 'packaging',
         command: 'package',
-        awsRequestStubMap: mockedDescribeStacksResponse,
+        awsRequestStubMap,
         configExt: {
           package: {
             artifact: 'artifact.zip',
@@ -272,7 +275,7 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
   describe('pre-prepared artifact with absolute artifact path', () => {
     describe('while deploying whole service', () => {
       const s3UploadStub = sinon.stub();
-      const awsRequestStubMap = {
+      const innerAwsRequestStubMap = {
         Lambda: {
           getFunction: {
             Configuration: {
@@ -283,6 +286,7 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
         S3: {
           upload: s3UploadStub,
           listObjectsV2: {},
+          headBucket: {},
         },
         CloudFormation: {
           describeStacks: {},
@@ -320,7 +324,7 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
           cwd: serviceDir,
           command: 'deploy',
           lastLifecycleHookName: 'aws:deploy:deploy:uploadArtifacts',
-          awsRequestStubMap,
+          awsRequestStubMap: innerAwsRequestStubMap,
         });
 
         const callArgs = s3UploadStub.args.find((item) =>
@@ -342,7 +346,7 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
           cwd: serviceDir,
           command: 'deploy',
           lastLifecycleHookName: 'aws:deploy:deploy:uploadArtifacts',
-          awsRequestStubMap,
+          awsRequestStubMap: innerAwsRequestStubMap,
         });
 
         const callArgs = s3UploadStub.args.find((item) =>
@@ -354,7 +358,7 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
 
     describe('while deploying specific function', () => {
       const updateFunctionCodeStub = sinon.stub();
-      const awsRequestStubMap = {
+      const innerAwsRequestStubMap = {
         Lambda: {
           getFunction: {
             Configuration: {
@@ -390,7 +394,7 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
           cwd: serviceDir,
           command: 'deploy function',
           options: { function: 'other' },
-          awsRequestStubMap,
+          awsRequestStubMap: innerAwsRequestStubMap,
         });
         expect(updateFunctionCodeStub).to.have.been.calledOnce;
         expect(updateFunctionCodeStub.args[0][0].ZipFile).to.deep.equal(Buffer.from(zipContent));
@@ -410,7 +414,7 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
           cwd: serviceDir,
           command: 'deploy function',
           options: { function: 'foo' },
-          awsRequestStubMap,
+          awsRequestStubMap: innerAwsRequestStubMap,
         });
         expect(updateFunctionCodeStub).to.have.been.calledOnce;
         expect(updateFunctionCodeStub.args[0][0].ZipFile).to.deep.equal(Buffer.from(zipContent));

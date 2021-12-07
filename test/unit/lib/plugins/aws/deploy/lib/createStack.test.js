@@ -230,6 +230,7 @@ describe('createStack #2', () => {
       deleteObjects: {},
       listObjectsV2: { Contents: [] },
       upload: {},
+      headBucket: {},
     },
     CloudFormation: {
       describeStacks: describeStacksStub,

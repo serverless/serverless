@@ -597,6 +597,7 @@ describe('checkForChanges #2', () => {
               },
             ],
           },
+          headBucket: {},
         },
         STS: {
           getCallerIdentity: {
@@ -1022,6 +1023,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           },
         },
         S3: {
+          headBucket: {},
           headObject: (() => {
             const headObjectStub = sandbox.stub();
 
@@ -1081,6 +1083,8 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
         },
         S3: {
           listObjectsV2: {},
+          headObjects: {},
+          headBucket: {},
         },
       },
     });
@@ -1163,6 +1167,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           S3: {
             listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
             headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            headBucket: {},
           },
           CloudFormation: {
             ...commonAwsSdkMock.CloudFormation,
@@ -1232,6 +1237,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           S3: {
             listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
             headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            headBucket: {},
           },
           CloudFormation: {
             ...commonAwsSdkMock.CloudFormation,
@@ -1304,6 +1310,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           S3: {
             listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
             headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            headBucket: {},
           },
           CloudFormation: {
             ...commonAwsSdkMock.CloudFormation,
@@ -1373,6 +1380,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           S3: {
             listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
             headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            headBucket: {},
           },
           CloudFormation: {
             ...commonAwsSdkMock.CloudFormation,
@@ -1455,6 +1463,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           S3: {
             listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
             headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            headBucket: {},
           },
           CloudFormation: {
             ...commonAwsSdkMock.CloudFormation,
@@ -1555,6 +1564,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           S3: {
             listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
             headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            headBucket: {},
           },
           CloudFormation: {
             ...commonAwsSdkMock.CloudFormation,
@@ -1656,6 +1666,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           S3: {
             listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
             headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            headBucket: {},
           },
           CloudWatchLogs: {
             describeSubscriptionFilters: sandbox.stub().callsFake(async () => {
