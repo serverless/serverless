@@ -31,6 +31,14 @@ if (require('../lib/utils/isStandaloneExecutable')) {
     case 'serverless':
       require('../scripts/serverless');
       return;
+    case 'serverless-tencent':
+      require('../lib/cli/run-serverless-tencent')().catch((error) => {
+        // Expose eventual resolution error as regular crash, and not unhandled rejection
+        process.nextTick(() => {
+          throw error;
+        });
+      });
+      return;
     case '@serverless/components':
       require('@serverless/components').runComponents();
       return;
