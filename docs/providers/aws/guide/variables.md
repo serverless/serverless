@@ -340,6 +340,8 @@ New variable resolver, ensures that automatically other types as `SecureString` 
 
 All `SecureString` type parameters are automatically decrypted, and automatically parsed if they export stringified JSON content (Note: you can turn off parsing by passing `raw` instruction into variable as: `${ssm(raw):/path/to/secureparam}`, if you need to also pass custom region, put it first as: `${ssm(eu-west-1, raw):/path/to/secureparam}`)
 
+In order to get the encrypted content, you can pass `noDecrypt` instruction into variable as: `${ssm(noDecrypt):/path/to/secureparam}` (it can be passed aside of region param as e.g.: `${ssm(eu-west-1, noDecrypt):/path/to/secureparam})`
+
 ## Reference Variables using AWS Secrets Manager
 
 Variables in [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) can be referenced [using SSM](https://docs.aws.amazon.com/systems-manager/latest/userguide/integration-ps-secretsmanager.html), just use the `ssm:/aws/reference/secretsmanager/secret_ID_in_Secrets_Manager` syntax. For example:
