@@ -38,10 +38,10 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 
 ## Current variable sources:
 
+- [Other properties defined in `serverless.yml`](#reference-properties-in-serverlessyml)
 - [Serverless Core variables](#referencing-serverless-core-variables)
 - [Environment variables](#referencing-environment-variables)
 - [CLI options](#referencing-cli-options)
-- [Other properties defined in `serverless.yml`](#reference-properties-in-serverlessyml)
 - [External YAML/JSON files](#reference-properties-in-other-files)
 - [Variables from S3](#referencing-s3-objects)
 - [Variables from AWS SSM Parameter Store](#reference-variables-using-the-ssm-parameter-store)
@@ -50,8 +50,6 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 - [Properties exported from Javascript files (sync or async)](#reference-variables-in-javascript-files)
 - [Read String Variable Values as Boolean Values](#read-string-variable-values-as-boolean-values)
 - [Pseudo Parameters Reference](#aws-cloudformation-pseudo-parameters-and-intrinsic-functions)
-
-## Casting string variables to boolean values
 
 ## Recursively reference properties
 
