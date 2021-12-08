@@ -14,47 +14,10 @@ describe('test/unit/lib/cli/triage/index.test.js', () => {
   before(() => overrideEnv({ variables: { SLS_GEO_LOCATION: 'us' } }));
 
   describe('CLI params', () => {
-    it('should recognize "registry" as "@serverless/components" command', async () =>
-      overrideArgv({ args: ['sls', 'registry'] }, async () => {
-        expect(await triage()).to.equal('@serverless/components');
-      }));
-    it('should recognize "init" as "@serverless/components" command', async () =>
-      overrideArgv({ args: ['sls', 'init'] }, async () => {
-        expect(await triage()).to.equal('@serverless/components');
-      }));
-    it('should recognize "publish" as "@serverless/components" command', async () =>
-      overrideArgv({ args: ['sls', 'publish'] }, async () => {
-        expect(await triage()).to.equal('@serverless/components');
-      }));
-    it('should recognize "--help-components" as "@serverless/components" exclusive flag', async () => {
-      await overrideArgv({ args: ['sls', '--help-components'] }, async () => {
-        expect(await triage()).to.equal('@serverless/components');
-      });
-      await overrideArgv({ args: ['sls', 'any', '--help-components'] }, async () => {
-        expect(await triage()).to.equal('@serverless/components');
-      });
-    });
-
-    it('should recognize "--target" as "@serverless/components" exclusive flag', async () => {
-      await overrideArgv({ args: ['sls', '--target'] }, async () => {
-        expect(await triage()).to.equal('@serverless/components');
-      });
-      await overrideArgv({ args: ['sls', 'any', '--target'] }, async () => {
-        expect(await triage()).to.equal('@serverless/components');
-      });
-    });
-
-    it('should favor "@serverless/components" for bare "sls" command when tencent platform set explicitly', async () =>
-      overrideEnv({ variables: { SERVERLESS_PLATFORM_VENDOR: 'tencent' } }, async () =>
-        overrideArgv({ args: ['sls'] }, async () => {
-          expect(await triage()).to.equal('@serverless/components');
-        })
-      ));
-
-    it('should recognize bare "sls" command in China as "@serverless/components" command', async () =>
+    it('should recognize "serverless-tencent" unonditionally when in China and not at service context', async () =>
       overrideEnv({ variables: { SLS_GEO_LOCATION: 'cn' } }, async () =>
-        overrideArgv({ args: ['sls'] }, async () => {
-          expect(await triage()).to.equal('@serverless/components');
+        overrideArgv({ args: ['sls any'] }, async () => {
+          expect(await triage()).to.equal('serverless-tencent');
         })
       ));
 
@@ -94,7 +57,7 @@ describe('test/unit/lib/cli/triage/index.test.js', () => {
     });
     after(() => restoreArgv());
 
-    for (const cliName of ['serverless', '@serverless/components', '@serverless/cli']) {
+    for (const cliName of ['serverless', '@serverless/cli']) {
       for (const extension of fs.readdirSync(path.resolve(fixturesDirname, cliName))) {
         for (const fixtureName of fs.readdirSync(
           path.resolve(fixturesDirname, cliName, extension)
@@ -109,6 +72,27 @@ describe('test/unit/lib/cli/triage/index.test.js', () => {
             )
           );
         }
+      }
+    }
+    for (const extension of fs.readdirSync(path.resolve(fixturesDirname, 'platform'))) {
+      for (const fixtureName of fs.readdirSync(
+        path.resolve(fixturesDirname, 'platform', extension)
+      )) {
+        const register = (cliName, geoLocation) => {
+          const testName = `should recognize "${cliName}" at "platform/${extension}/${fixtureName}" for "${geoLocation}" location`;
+          it(testName, async () =>
+            overrideEnv({ variables: { SLS_GEO_LOCATION: geoLocation } }, async () =>
+              overrideCwd(
+                path.resolve(fixturesDirname, 'platform', extension, fixtureName),
+                async () => {
+                  expect(await triage()).to.equal(cliName);
+                }
+              )
+            )
+          );
+        };
+        register('serverless-tencent', 'cn');
+        register('@serverless/components', 'us');
       }
     }
   });
