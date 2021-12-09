@@ -23,7 +23,6 @@
   },
   "dependencies": {
     "@serverless/cli": "^1.6.0",
-    "@serverless/components": "^3.18.2",
     "@serverless/dashboard-plugin": "^6.0.0",
     "@serverless/platform-client": "^4.3.0",
     "@serverless/utils": "^6.0.0",
