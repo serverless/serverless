@@ -32,272 +32,7 @@ describe('AwsCompileSQSEvents', () => {
     awsCompileSQSEvents.serverless.service.service = 'new-service';
   });
 
-  describe('#constructor()', () => {
-    it('should set the provider variable to be an instance of AwsProvider', () =>
-      expect(awsCompileSQSEvents.provider).to.be.instanceof(AwsProvider));
-  });
-
   describe('#compileSQSEvents()', () => {
-    it('should not throw error or merge role statements if default policy is not present', () => {
-      awsCompileSQSEvents.serverless.service.functions = {
-        first: {
-          events: [
-            {
-              sqs: 'arn:aws:sqs:region:account:queueName',
-            },
-          ],
-        },
-      };
-
-      // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
-
-      expect(() => {
-        awsCompileSQSEvents.compileSQSEvents();
-      }).to.not.throw(Error);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
-
-    it('should not throw error if custom IAM role is set in function', () => {
-      awsCompileSQSEvents.serverless.service.functions = {
-        first: {
-          role: 'arn:aws:iam::account:role/foo',
-          events: [
-            {
-              sqs: 'arn:aws:sqs:region:account:MyQueue',
-            },
-          ],
-        },
-      };
-
-      // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
-
-      expect(() => {
-        awsCompileSQSEvents.compileSQSEvents();
-      }).to.not.throw(Error);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingSQSMyQueue.DependsOn
-      ).to.be.instanceof(Array);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingSQSMyQueue.DependsOn.length
-      ).to.equal(0);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
-
-    it('should not throw error if custom IAM role name reference is set in function', () => {
-      const roleLogicalId = 'RoleLogicalId';
-      awsCompileSQSEvents.serverless.service.functions = {
-        first: {
-          role: roleLogicalId,
-          events: [
-            {
-              sqs: 'arn:aws:sqs:region:account:MyQueue',
-            },
-          ],
-        },
-      };
-
-      // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
-
-      expect(() => {
-        awsCompileSQSEvents.compileSQSEvents();
-      }).to.not.throw(Error);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingSQSMyQueue.DependsOn
-      ).to.include(roleLogicalId);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingSQSMyQueue.DependsOn
-      ).to.have.lengthOf(1);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
-
-    it('should not throw error if custom IAM role reference is set in function', () => {
-      const roleLogicalId = 'RoleLogicalId';
-      awsCompileSQSEvents.serverless.service.functions = {
-        first: {
-          role: { 'Fn::GetAtt': [roleLogicalId, 'Arn'] },
-          events: [
-            {
-              sqs: 'arn:aws:sqs:region:account:MyQueue',
-            },
-          ],
-        },
-      };
-
-      // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
-
-      expect(() => {
-        awsCompileSQSEvents.compileSQSEvents();
-      }).to.not.throw(Error);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingSQSMyQueue.DependsOn
-      ).to.include(roleLogicalId);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingSQSMyQueue.DependsOn
-      ).to.have.lengthOf(1);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
-
-    it('should not throw error if custom IAM role is set in provider', () => {
-      awsCompileSQSEvents.serverless.service.functions = {
-        first: {
-          events: [
-            {
-              sqs: 'arn:aws:sqs:region:account:MyQueue',
-            },
-          ],
-        },
-      };
-
-      // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
-
-      awsCompileSQSEvents.serverless.service.provider.role = 'arn:aws:iam::account:role/foo';
-
-      expect(() => {
-        awsCompileSQSEvents.compileSQSEvents();
-      }).to.not.throw(Error);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingSQSMyQueue.DependsOn
-      ).to.be.instanceof(Array);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingSQSMyQueue.DependsOn.length
-      ).to.equal(0);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
-
-    it('should not throw error if IAM role is imported', () => {
-      awsCompileSQSEvents.serverless.service.functions = {
-        first: {
-          role: { 'Fn::ImportValue': 'ExportedRoleId' },
-          events: [
-            {
-              sqs: 'arn:aws:sqs:region:account:MyQueue',
-            },
-          ],
-        },
-      };
-
-      // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
-
-      expect(() => {
-        awsCompileSQSEvents.compileSQSEvents();
-      }).to.not.throw(Error);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingSQSMyQueue.DependsOn.length
-      ).to.equal(0);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
-
-    it('should not throw error if custom IAM role reference is set in provider', () => {
-      const roleLogicalId = 'RoleLogicalId';
-      awsCompileSQSEvents.serverless.service.functions = {
-        first: {
-          events: [
-            {
-              sqs: 'arn:aws:sqs:region:account:MyQueue',
-            },
-          ],
-        },
-      };
-
-      // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
-
-      awsCompileSQSEvents.serverless.service.provider.role = {
-        'Fn::GetAtt': [roleLogicalId, 'Arn'],
-      };
-
-      expect(() => {
-        awsCompileSQSEvents.compileSQSEvents();
-      }).to.not.throw(Error);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingSQSMyQueue.DependsOn
-      ).to.include(roleLogicalId);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingSQSMyQueue.DependsOn
-      ).to.have.lengthOf(1);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
-
-    it('should not throw error if custom IAM role name reference is set in provider', () => {
-      const roleLogicalId = 'RoleLogicalId';
-      awsCompileSQSEvents.serverless.service.functions = {
-        first: {
-          events: [
-            {
-              sqs: 'arn:aws:sqs:region:account:MyQueue',
-            },
-          ],
-        },
-      };
-
-      // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
-
-      awsCompileSQSEvents.serverless.service.provider.role = roleLogicalId;
-
-      expect(() => {
-        awsCompileSQSEvents.compileSQSEvents();
-      }).to.not.throw(Error);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingSQSMyQueue.DependsOn
-      ).to.include(roleLogicalId);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingSQSMyQueue.DependsOn
-      ).to.have.lengthOf(1);
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
-
     describe('when a queue ARN is given', () => {
       it('should create event source mappings when a queue ARN is given', () => {
         awsCompileSQSEvents.serverless.service.functions = {
@@ -541,38 +276,6 @@ describe('AwsCompileSQSEvents', () => {
       });
     });
 
-    it('should not create event source mapping when sqs events are not given', () => {
-      awsCompileSQSEvents.serverless.service.functions = {
-        first: {
-          events: [],
-        },
-      };
-
-      awsCompileSQSEvents.compileSQSEvents();
-
-      // should be 1 because we've mocked the IamRoleLambdaExecution above
-      expect(
-        Object.keys(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        ).length
-      ).to.equal(1);
-    });
-
-    it('should not add the IAM role statements when sqs events are not given', () => {
-      awsCompileSQSEvents.serverless.service.functions = {
-        first: {
-          events: [],
-        },
-      };
-
-      awsCompileSQSEvents.compileSQSEvents();
-
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement.length
-      ).to.equal(0);
-    });
-
     it('should remove all non-alphanumerics from queue names for the resource logical ids', () => {
       awsCompileSQSEvents.serverless.service.functions = {
         first: {
@@ -593,7 +296,129 @@ describe('AwsCompileSQSEvents', () => {
   });
 });
 
-describe('AwsCompileSQSEvents #2', () => {
+describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
+  describe('regular configuration', () => {
+    let eventSourceMappingResource;
+
+    before(async () => {
+      const { awsNaming, cfTemplate } = await runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            basic: {
+              events: [
+                {
+                  sqs: {
+                    arn: 'arn:aws:sqs:region:account:some-queue-name',
+                    batchSize: 10,
+                    maximumBatchingWindow: 100,
+                    functionResponseType: 'ReportBatchItemFailures',
+                  },
+                },
+              ],
+            },
+            directArn: {
+              handler: 'basic.handler',
+              events: [{ sqs: 'arn:aws:sqs:region:account:MyQueue' }],
+            },
+            arnCfGetAtt: {
+              handler: 'basic.handler',
+              events: [{ sqs: { arn: { 'Fn::GetAtt': ['SomeQueue', 'Arn'] } } }],
+            },
+            arnCfImport: {
+              handler: 'basic.handler',
+              events: [{ sqs: { arn: { 'Fn::ImportValue': 'ForeignQueue' } } }],
+            },
+            arnCfJoin: {
+              handler: 'basic.handler',
+              events: [
+                {
+                  sqs: {
+                    arn: {
+                      'Fn::Join': [
+                        ':',
+                        [
+                          'arn',
+                          'aws',
+                          'sqs',
+                          {
+                            Ref: 'AWS::Region',
+                          },
+                          {
+                            Ref: 'AWS::AccountId',
+                          },
+                          'MyQueue',
+                        ],
+                      ],
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+        command: 'package',
+      });
+      const queueLogicalId = awsNaming.getQueueLogicalId('basic', 'some-queue-name');
+      eventSourceMappingResource = cfTemplate.Resources[queueLogicalId];
+    });
+
+    it.skip('TODO: should suport direct ARN string', () => {
+      // Replaces partially
+      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L302-L405
+      //
+      // Confirm effect of functions.directArn.events[0].sqs`
+    });
+
+    it.skip('TODO: should suport `arn` (string)', () => {
+      // Replaces
+      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L302-L405 (partially)
+      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L576-L593
+      // Confirm effect of `functions.basic.events[0].sqs.arn`
+    });
+
+    it.skip('TODO: should suport `arn` (CF Fn::GetAtt)', () => {
+      // Replaces partially
+      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L407-L508
+      //
+      // Confirm effect of `functions.arnCfGetAtt.events[0].sqs.arn`
+    });
+
+    it.skip('TODO: should suport `arn` (CF Fn::ImportValue)', () => {
+      // Replaces partially
+      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L407-L508
+      //
+      // Confirm effect of `functions.arnCfImport.events[0].sqs.arn`
+    });
+
+    it.skip('TODO: should suport `arn` (CF Fn::Join)', () => {
+      // Replaces partially
+      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L407-L508
+      //
+      // Confirm effect of `functions.arnCfJoin.events[0].sqs.arn`
+    });
+
+    it.skip('TODO: should suport `batchSize`', () => {
+      // Replaces partially
+      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L302-L405
+      //
+      // Confirm effect  of`functions.basic.events[0].sqs.batchSize`
+    });
+
+    it('should suport `functionResponseType`', () => {
+      expect(eventSourceMappingResource.Properties.FunctionResponseTypes).to.include.members([
+        'ReportBatchItemFailures',
+      ]);
+    });
+
+    it.skip('TODO: should ensure necessary IAM statememnts', () => {
+      // Replaces
+      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L510-L542
+      //
+      // Confirm expected IAM statements on final role
+    });
+  });
+
   describe('with provisioned concurrency', () => {
     let naming;
     let eventSourceMappingResource;
@@ -688,41 +513,5 @@ describe('AwsCompileSQSEvents #2', () => {
     const eventSourceMappingResource = cfTemplate.Resources[queueLogicalId];
 
     expect(eventSourceMappingResource.DependsOn).to.deep.equal([]);
-  });
-});
-
-describe('regular configuration', () => {
-  let eventSourceMappingResource;
-
-  before(async () => {
-    const { awsNaming, cfTemplate } = await runServerless({
-      fixture: 'function',
-      configExt: {
-        functions: {
-          basic: {
-            provisionedConcurrency: 1,
-            events: [
-              {
-                sqs: {
-                  arn: 'arn:aws:sqs:region:account:MyQueue',
-                  batchSize: 10,
-                  maximumBatchingWindow: 100,
-                  functionResponseType: 'ReportBatchItemFailures',
-                },
-              },
-            ],
-          },
-        },
-      },
-      command: 'package',
-    });
-    const queueLogicalId = awsNaming.getQueueLogicalId('basic', 'MyQueue');
-    eventSourceMappingResource = cfTemplate.Resources[queueLogicalId];
-  });
-
-  it('should use functionResponseType', () => {
-    expect(eventSourceMappingResource.Properties.FunctionResponseTypes).to.include.members([
-      'ReportBatchItemFailures',
-    ]);
   });
 });
