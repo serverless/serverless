@@ -1405,6 +1405,25 @@ describe('#validate()', () => {
       },
     });
   });
+
+  it('should throw an error when restApiRootResourceId is not provided with restApiId', () => {
+    awsCompileApigEvents.serverless.service.provider.apiGateway = {
+      restApiId: 'ivrcdpj7y2',
+    };
+    awsCompileApigEvents.serverless.service.functions = {
+      first: {
+        events: [
+          {
+            http: {
+              path: 'foo/bar',
+              method: 'GET',
+            },
+          },
+        ],
+      },
+    };
+    expect(() => awsCompileApigEvents.validate()).to.throw(Error);
+  });
 });
 
 describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/validate.test.js', () => {
