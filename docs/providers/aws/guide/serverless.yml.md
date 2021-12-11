@@ -261,6 +261,7 @@ provider:
   stackParameters:
     - ParameterKey: 'Keyname'
       ParameterValue: 'Value'
+  disableRollback: true # To be used for non-production environment
   rollbackConfiguration:
     MonitoringTimeInMinutes: 20
     RollbackTriggers:
@@ -355,7 +356,15 @@ functions:
       arn: arn:aws:elasticfilesystem:us-east-1:111111111111:access-point/fsap-a1a1a1a1a1a1a1a1a # ARN of EFS Access Point
       localMountPath: /mnt/example # path under which EFS will be mounted and accessible by Lambda function
     events: # The Events that trigger this Function
-      - http: # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
+      - httpApi: # HTTP API endpoint (API Gateway v2)
+          method: GET
+          path: /some-get-path/{param}
+          authorizer: # Optional
+            name: someJwtAuthorizer # References by name authorizer defined in provider.httpApi.authorizers section
+            scopes: # Optional
+              - user.id
+              - user.email
+      - http: # REST API endpoint (API Gateway v1)
           path: users/create # Path for this endpoint
           method: get # HTTP method for this endpoint
           cors: true # Turn on CORS for this endpoint, but don't forget to return the right header in your response
@@ -389,14 +398,6 @@ functions:
                 name: ModelName  # Optional: Name of the API Gateway model
                 description: "Some description" # Optional: Description of the API Gateway model
                 schema: ${file(model_schema.json)} # Schema for selected content type
-      - httpApi: # HTTP API endpoint
-          method: GET
-          path: /some-get-path/{param}
-          authorizer: # Optional
-            name: someJwtAuthorizer # References by name authorizer defined in provider.httpApi.authorizers section
-            scopes: # Optional
-              - user.id
-              - user.email
       - websocket:
           route: $connect
           routeResponseSelectionExpression: $default # optional, setting this enables callbacks on websocket requests for two-way communication
@@ -450,6 +451,8 @@ functions:
           batchSize: 10
           maximumBatchingWindow: 10 # optional, minimum is 0 and the maximum is 300 (seconds)
           enabled: true
+          filterPatterns:
+            - a: [ 1, 2 ]
       - stream:
           arn: arn:aws:kinesis:region:XXXXXX:stream/foo
           batchSize: 100
@@ -457,6 +460,8 @@ functions:
           startingPosition: LATEST
           enabled: true
           functionResponseType: ReportBatchItemFailures
+          filterPatterns:
+            - partitionKey: [ 1 ]
       - msk:
           arn: arn:aws:kafka:us-east-1:111111111111:cluster/ClusterName/a1a1a1a1a1a1a1a1a # ARN of MSK Cluster
           topic: kafkaTopic # name of Kafka topic to consume from

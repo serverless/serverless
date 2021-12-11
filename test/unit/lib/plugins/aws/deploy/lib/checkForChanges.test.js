@@ -44,7 +44,6 @@ describe('checkForChanges', () => {
       foo: 'bar',
     };
     s3Key = `serverless/${serverless.service.service}/${provider.getStage()}`;
-    awsDeploy.serverless.cli = { log: sandbox.spy() };
     cryptoStub = {
       createHash() {
         return this;
@@ -262,7 +261,6 @@ describe('checkForChanges', () => {
         expect(normalizeCloudFormationTemplateStub).to.not.have.been.called;
         expect(globbySyncStub).to.not.have.been.called;
         expect(readFileStub).to.not.have.been.called;
-        expect(awsDeploy.serverless.cli.log).to.not.have.been.called;
       }));
 
     it('should resolve if no objects are provided as input', () => {
@@ -272,7 +270,6 @@ describe('checkForChanges', () => {
         expect(normalizeCloudFormationTemplateStub).to.not.have.been.called;
         expect(globbySyncStub).to.not.have.been.called;
         expect(readFileStub).to.not.have.been.called;
-        expect(awsDeploy.serverless.cli.log).to.not.have.been.called;
       });
     });
 
@@ -286,7 +283,6 @@ describe('checkForChanges', () => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
         expect(readFileStub).to.have.been.calledOnce;
-        expect(awsDeploy.serverless.cli.log).to.not.have.been.called;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -321,7 +317,6 @@ describe('checkForChanges', () => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
         expect(readFileStub).to.have.been.calledOnce;
-        expect(awsDeploy.serverless.cli.log).to.not.have.been.called;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -351,7 +346,6 @@ describe('checkForChanges', () => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
         expect(readFileStub).to.have.been.calledOnce;
-        expect(awsDeploy.serverless.cli.log).to.not.have.been.called;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -383,7 +377,6 @@ describe('checkForChanges', () => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
         expect(readFileStub).to.have.been.calledTwice;
-        expect(awsDeploy.serverless.cli.log).to.not.have.been.called;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -420,7 +413,6 @@ describe('checkForChanges', () => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
         expect(readFileStub).to.have.been.calledOnce;
-        expect(awsDeploy.serverless.cli.log).to.not.have.been.called;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -552,7 +544,6 @@ describe('checkForChanges', () => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
         expect(readFileStub).to.have.been.calledOnce;
-        expect(awsDeploy.serverless.cli.log).not.to.be.called;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -606,6 +597,7 @@ describe('checkForChanges #2', () => {
               },
             ],
           },
+          headBucket: {},
         },
         STS: {
           getCallerIdentity: {
@@ -1031,6 +1023,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           },
         },
         S3: {
+          headBucket: {},
           headObject: (() => {
             const headObjectStub = sandbox.stub();
 
@@ -1090,6 +1083,8 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
         },
         S3: {
           listObjectsV2: {},
+          headObjects: {},
+          headBucket: {},
         },
       },
     });
@@ -1172,6 +1167,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           S3: {
             listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
             headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            headBucket: {},
           },
           CloudFormation: {
             ...commonAwsSdkMock.CloudFormation,
@@ -1241,6 +1237,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           S3: {
             listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
             headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            headBucket: {},
           },
           CloudFormation: {
             ...commonAwsSdkMock.CloudFormation,
@@ -1313,6 +1310,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           S3: {
             listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
             headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            headBucket: {},
           },
           CloudFormation: {
             ...commonAwsSdkMock.CloudFormation,
@@ -1382,6 +1380,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           S3: {
             listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
             headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            headBucket: {},
           },
           CloudFormation: {
             ...commonAwsSdkMock.CloudFormation,
@@ -1464,6 +1463,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           S3: {
             listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
             headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            headBucket: {},
           },
           CloudFormation: {
             ...commonAwsSdkMock.CloudFormation,
@@ -1564,6 +1564,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           S3: {
             listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
             headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            headBucket: {},
           },
           CloudFormation: {
             ...commonAwsSdkMock.CloudFormation,
@@ -1665,6 +1666,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           S3: {
             listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
             headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            headBucket: {},
           },
           CloudWatchLogs: {
             describeSubscriptionFilters: sandbox.stub().callsFake(async () => {

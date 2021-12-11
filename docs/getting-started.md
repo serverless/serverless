@@ -19,7 +19,19 @@ menuItems:
 
 # Get started with Serverless Framework Open Source & AWS
 
-Getting started with Serverless Framework’s Open Source CLI and AWS only takes a few minutes. Install as a standalone binary, or with npm.
+Getting started with Serverless Framework’s Open Source CLI and AWS only takes a few minutes. Install with NPM, or as a standalone binary if you don't use NPM.
+
+## via NPM
+
+Install the serverless CLI via NPM:
+
+```bash
+npm install -g serverless
+```
+
+_Note: If you don’t already have [Node](https://nodejs.org/en/download/package-manager/) on your machine, install it first. We suggest using the latest LTS version of NodeJS._
+
+If you don't want to install Node or NPM, you can install a standalone binary.
 
 ## Install as a standalone binary
 
@@ -47,16 +59,6 @@ Install with [Chocolatey](https://chocolatey.org/):
 choco install serverless
 ```
 
-### via npm
-
-_Note: If you don’t already have [Node](https://nodejs.org/en/download/package-manager/) on your machine, you’ll need to install it first. We suggest using the latest LTS version of NodeJS._
-
-Install the serverless CLI:
-
-```bash
-npm install -g serverless
-```
-
 ## Initial setup
 
 Run the command below and follow the prompts:
@@ -71,22 +73,26 @@ _Note: Users in China are presented with a setup centered around the chinese [Te
 
 ## Upgrade
 
-### MacOS/Linux
+### via npm
+
+```bash
+npm update -g serverless
+```
+
+If you have installed `serverless` as a standalone binary, read the following section instead.
+
+### Standalone binary
+
+#### MacOS/Linux
 
 ```bash
 serverless upgrade
 ```
 
-### Windows
+#### Windows
 
 ```bash
 choco upgrade serverless
-```
-
-### via npm
-
-```bash
-npm update -g serverless
 ```
 
 ## Set up your free Dashboard account

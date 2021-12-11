@@ -38,8 +38,9 @@ describe('Integration test - Packaging - Lambda Files', function () {
     const nodeModules = new Set(
       zipfiles.filter((f) => f.startsWith('node_modules')).map((f) => f.split(path.sep)[1])
     );
+    nodeModules.delete('.package-lock.json');
     const nonNodeModulesFiles = zipfiles.filter((f) => !f.startsWith('node_modules'));
-    expect(nodeModules).to.deep.equal(new Set(['lodash']));
+    expect(Array.from(nodeModules)).to.deep.equal(['lodash']);
     expect(nonNodeModulesFiles).to.deep.equal(['handler.js', 'package-lock.json', 'package.json']);
   });
 
@@ -52,8 +53,9 @@ describe('Integration test - Packaging - Lambda Files', function () {
     const nodeModules = new Set(
       zipfiles.filter((f) => f.startsWith('node_modules')).map((f) => f.split(path.sep)[1])
     );
+    nodeModules.delete('.package-lock.json');
     const nonNodeModulesFiles = zipfiles.filter((f) => !f.startsWith('node_modules'));
-    expect(nodeModules).to.deep.equal(new Set([]));
+    expect(Array.from(nodeModules)).to.deep.equal([]);
     expect(nonNodeModulesFiles).to.deep.equal(['handler.js', 'package-lock.json', 'package.json']);
   });
 
@@ -70,8 +72,9 @@ describe('Integration test - Packaging - Lambda Files', function () {
     const nodeModules = new Set(
       zipfiles.filter((f) => f.startsWith('node_modules')).map((f) => f.split(path.sep)[1])
     );
+    nodeModules.delete('.package-lock.json');
     const nonNodeModulesFiles = zipfiles.filter((f) => !f.startsWith('node_modules'));
-    expect(nodeModules).to.deep.equal(new Set(['lodash']));
+    expect(Array.from(nodeModules)).to.deep.equal(['lodash']);
     expect(nonNodeModulesFiles).to.deep.equal(['handler.js']);
   });
 

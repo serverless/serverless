@@ -5,6 +5,7 @@ const sinon = require('sinon');
 const AwsProvider = require('../../../../../../../../../lib/plugins/aws/provider');
 const AwsCompileWebsocketsEvents = require('../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/index');
 const Serverless = require('../../../../../../../../../lib/Serverless');
+const runServerless = require('../../../../../../../../utils/run-serverless');
 
 describe('AwsCompileWebsocketsEvents', () => {
   let awsCompileWebsocketsEvents;
@@ -108,6 +109,78 @@ describe('AwsCompileWebsocketsEvents', () => {
       awsCompileWebsocketsEvents.serverless.service.functions = {};
 
       return awsCompileWebsocketsEvents.hooks['package:compileEvents']();
+    });
+  });
+});
+
+describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test.js', () => {
+  describe.skip('TODO: regular configuration', () => {
+    before(async () => {
+      await runServerless({
+        fixture: 'function',
+        command: 'package',
+
+        configExt: {
+          functions: {
+            basic: {
+              events: [
+                {
+                  websocket: '$connect',
+                },
+              ],
+            },
+          },
+        },
+      });
+    });
+
+    it('should create a websocket api resource', () => {
+      // Replaces
+      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/websockets/lib/api.test.js#L37-L52
+    });
+
+    it('should configure expected IAM', () => {
+      // Replaces
+      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/websockets/lib/api.test.js#L66-L91
+    });
+  });
+
+  describe.skip('TODO: external websocket API', () => {
+    before(async () => {
+      await runServerless({
+        fixture: 'function',
+        command: 'package',
+
+        configExt: {
+          provider: {
+            apiGateway: {
+              websocketApiId: '5ezys3sght',
+            },
+            iam: {
+              role: 'arn:aws:iam::123456789012:role/fromProvider',
+            },
+          },
+          functions: {
+            basic: {
+              events: [
+                {
+                  websocket: '$connect',
+                },
+              ],
+            },
+          },
+        },
+      });
+    });
+
+    it('should not create a websocket api resource', () => {
+      // Replaces
+      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/websockets/lib/api.test.js#L54-L64
+    });
+
+    it('should not configure IAM policies with custom roles', () => {
+      // Replaces
+      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/websockets/lib/api.test.js#L93-L103
     });
   });
 });

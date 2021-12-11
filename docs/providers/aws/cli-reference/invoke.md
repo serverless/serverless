@@ -139,7 +139,7 @@ This example will pass the json context in the `lib/context.json` file (relative
 
 ### Limitations
 
-Currently, `invoke local` only supports the NodeJs and Python runtimes.
+Currently, `invoke local` only supports the Node.js, Python, Java and Ruby runtimes.
 
 ## Resource permissions
 

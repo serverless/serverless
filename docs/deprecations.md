@@ -100,7 +100,7 @@ Starting with `v3.0.0`, the default runtime will change from `nodejs12.x` to `no
 
 Deprecation code: `AWS_API_GATEWAY_NON_APPLICABLE_SETTINGS`
 
-When external API Gateway resource is used and imported via `provider.apiGateway.restApiId` setting, both `provider.logs.restApi` and `provider.tracing.apiGateway` will be ignored. These settings are applicable only if API Gateway resource is provisioned by Serverless Framework.
+When external API Gateway resource is used and imported via `provider.apiGateway.restApiId` setting, both `provider.logs.restApi` and `provider.tracing.apiGateway` are ignored. In v3, an error will be thrown if these options are defined. Indeed, these settings are applicable only if API Gateway resource is provisioned by Serverless Framework.
 
 <a name="CLI_OPTIONS_SCHEMA'"><div>&nbsp;</div></a>
 
@@ -212,7 +212,7 @@ It's recommended to expose all errors that eventually new resolver may report (t
 
 Deprecation code: `AWS_HTTP_API_USE_PROVIDER_TAGS`
 
-Starting with v3.0.0, `provider.tags` will be applied to Http Api Gateway by default
+Starting with v3.0.0, `provider.tags` will be applied to HTTP API Gateway stages by default
 Set `provider.httpApi.useProviderTags` to `true` to adapt to the new behavior now.
 
 <a name="MISSING_COMMANDS_OR_OPTIONS_AT_CONSTRUCTION"><div>&nbsp;</div></a>
@@ -322,9 +322,11 @@ Org, app, service, stage, and region are required to resolve variables when logg
 
 Deprecation code: `LAMBDA_HASHING_VERSION_V2`
 
-Resolution of lambda version hashes was improved with better (fixed deterministism issues) algorithm, which will be used starting with v3.0.0
+Lambda version hashes were improved with a better algorithm (that fixed determinism issues). It will be used by default starting with v3.0.0.
 
-You can adapt your services to use it now, by setting `provider.lambdaHashingVersion` to `20201221`.
+You can adapt your services to use it now by setting `provider.lambdaHashingVersion` to `20201221`.
+
+While not recommended, you can keep using the old hashing algorithm by setting `provider.lambdaHashingVersion` to `20200924`. That will silence the deprecation and allow to upgrade to v3.
 
 **Notice:** If you apply this on already deployed service without any changes to lambda code, you might encounter an error similar to the one below:
 
@@ -334,7 +336,7 @@ You can adapt your services to use it now, by setting `provider.lambdaHashingVer
   An error occurred: FooLambdaVersion3IV5NZ3sE5T2UFimCOai2Tc6eCaW7yIYOP786U0Oc - A version for this Lambda function exists ( 11 ). Modify the function to create a new version..
 ```
 
-It is an expected behavior. AWS complains here that received a different hash for very same lambda configuration. To workaround that, you need to modify your function(s) code and try to redeploy it again. One common approach is to modify an utility function that is used by all/most of your Lambda functions.
+It is an expected behavior. AWS complains here that received a different hash for very same lambda configuration. To workaround that, you need to modify your function(s) code and try to redeploy it again. One common approach is to modify an utility function that is used by all/most of your Lambda functions. There's also a semi-automated migration available and described in [V3 Upgrade docs](./guides/upgrading-v3.md#lambda-hashing-algorithm).
 
 <a name="LOAD_VARIABLES_FROM_ENV_FILES"><div>&nbsp;</div></a>
 

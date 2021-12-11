@@ -128,6 +128,8 @@ describe('AwsDeployFunction', () => {
     let getRoleStub;
 
     beforeEach(() => {
+      // Ensure that memoized function will be properly stubbed
+      awsDeployFunction.provider.getAccountInfo;
       getAccountInfoStub = sinon
         .stub(awsDeployFunction.provider, 'getAccountInfo')
         .resolves({ accountId: '123456789012', partition: 'aws' });
@@ -324,6 +326,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       getFunction: {
         Configuration: {
           LastModified: '2020-05-20T15:34:16.494+0000',
+          State: 'Active',
+          LastUpdateStatus: 'Successful',
         },
       },
       updateFunctionCode: updateFunctionCodeStub,
@@ -406,6 +410,9 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
             Configuration: {
               LastModified: '2020-05-20T15:34:16.494+0000',
               CodeSha256: imageSha,
+              State: 'Active',
+              LastUpdateStatus: 'Successful',
+
               ImageConfigResponse: {
                 ImageConfig: {
                   Command: ['anotherexecutable'],
@@ -450,6 +457,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
             Configuration: {
               LastModified: '2020-05-20T15:34:16.494+0000',
               CodeSha256: imageSha,
+              State: 'Active',
+              LastUpdateStatus: 'Successful',
             },
           },
         },
@@ -480,6 +489,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
               Configuration: {
                 LastModified: '2020-05-20T15:34:16.494+0000',
                 PackageType: 'Zip',
+                State: 'Active',
+                LastUpdateStatus: 'Successful',
               },
             },
           },
@@ -512,6 +523,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
               Configuration: {
                 LastModified: '2020-05-20T15:34:16.494+0000',
                 PackageType: 'Image',
+                State: 'Active',
+                LastUpdateStatus: 'Successful',
               },
             },
           },
@@ -570,6 +583,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
             Configuration: {
               LastModified: '2020-05-20T15:34:16.494+0000',
               PackageType: 'Zip',
+              State: 'Active',
+              LastUpdateStatus: 'Successful',
             },
           },
         },
@@ -642,6 +657,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
             Configuration: {
               LastModified: '2020-05-20T15:34:16.494+0000',
               PackageType: 'Zip',
+              State: 'Active',
+              LastUpdateStatus: 'Successful',
             },
           },
         },
@@ -691,6 +708,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
             Configuration: {
               LastModified: '2020-05-20T15:34:16.494+0000',
               PackageType: 'Zip',
+              State: 'Active',
+              LastUpdateStatus: 'Successful',
             },
           },
         },
@@ -753,6 +772,9 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
               KMSKeyArn: kmsKeyArn,
               Description: description,
               Handler: handler,
+              State: 'Active',
+              LastUpdateStatus: 'Successful',
+
               Environment: {
                 Variables: {
                   ANOTHERVAR: 'anothervalue',
@@ -967,5 +989,44 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
         },
       })
     ).to.be.eventually.rejected.and.have.property('code', 'FUNCTION_NOT_YET_DEPLOYED');
+  });
+
+  it('should handle situation where function is not immediately in desired state', async () => {
+    const successResponse = {
+      Configuration: {
+        LastModified: '2020-05-20T15:34:16.494+0000',
+        State: 'Active',
+        LastUpdateStatus: 'Successful',
+      },
+    };
+
+    const getFunctionStub = sinon
+      .stub()
+      .resolves(successResponse)
+      .onCall(1)
+      .resolves({
+        Configuration: {
+          LastModified: '2020-05-20T15:34:16.494+0000',
+          State: 'Active',
+          LastUpdateStatus: 'InProgress',
+        },
+      })
+      .onCall(2)
+      .resolves(successResponse);
+
+    await runServerless({
+      fixture: 'function',
+      command: 'deploy function',
+      options: { function: 'basic' },
+      lastLifecycleHookName: 'deploy:function:deploy',
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        Lambda: {
+          ...awsRequestStubMap.Lambda,
+          getFunction: getFunctionStub,
+        },
+      },
+    });
+    expect(getFunctionStub).to.have.been.calledThrice;
   });
 });

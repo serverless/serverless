@@ -3,6 +3,7 @@
 const path = require('path');
 const expect = require('chai').expect;
 const fse = require('fs-extra');
+const skipOnDisabledSymlinksInWindows = require('@serverless/test/skip-on-disabled-symlinks-in-windows');
 const fileExistsSync = require('../../../../../lib/utils/fs/fileExistsSync');
 
 describe('#fileExistsSync()', () => {
@@ -19,22 +20,37 @@ describe('#fileExistsSync()', () => {
   });
 
   describe('When reading a symlink to a file', () => {
-    it('should detect if the file exists', () => {
-      fse.symlinkSync(__filename, 'sym');
+    it('should detect if the file exists', function () {
+      try {
+        fse.symlinkSync(__filename, 'sym');
+      } catch (error) {
+        skipOnDisabledSymlinksInWindows(error, this);
+        throw error;
+      }
       const found = fileExistsSync('sym');
       expect(found).to.equal(true);
       fse.unlinkSync('sym');
     });
 
-    it("should detect if the file doesn't exist w/ bad symlink", () => {
-      fse.symlinkSync('oops', 'invalid-sym');
+    it("should detect if the file doesn't exist w/ bad symlink", function () {
+      try {
+        fse.symlinkSync('oops', 'invalid-sym');
+      } catch (error) {
+        skipOnDisabledSymlinksInWindows(error, this);
+        throw error;
+      }
       const found = fileExistsSync('invalid-sym');
       expect(found).to.equal(false);
       fse.unlinkSync('invalid-sym');
     });
 
-    it("should detect if the file doesn't exist w/ symlink to dir", () => {
-      fse.symlinkSync(__dirname, 'dir-sym');
+    it("should detect if the file doesn't exist w/ symlink to dir", function () {
+      try {
+        fse.symlinkSync(__dirname, 'dir-sym');
+      } catch (error) {
+        skipOnDisabledSymlinksInWindows(error, this);
+        throw error;
+      }
       const found = fileExistsSync('dir-sym');
       expect(found).to.equal(false);
       fse.unlinkSync('dir-sym');
