@@ -191,7 +191,7 @@ describe('AwsCompileFunctions', () => {
       const { cfTemplate } = await runServerless({
         fixture: 'function',
         configExt: {
-          disabledDeprecations: ['PROVIDER_IAM_SETTINGS'],
+          disabledDeprecations: ['PROVIDER_IAM_SETTINGS_V3'],
           provider: {
             role: 'role-a',
             iam: { role: 'role-b' },
