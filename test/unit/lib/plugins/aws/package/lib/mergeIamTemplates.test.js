@@ -23,7 +23,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         fixture: 'function',
         command: 'package',
         configExt: {
-          disabledDeprecations: ['PROVIDER_IAM_SETTINGS'],
+          disabledDeprecations: ['PROVIDER_IAM_SETTINGS_V3'],
           provider: {
             name: 'aws',
             role: 'arn:aws:iam::YourAccountNumber:role/YourIamRole',
@@ -180,7 +180,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
           fixture: 'function',
           command: 'package',
           configExt: {
-            disabledDeprecations: ['PROVIDER_IAM_SETTINGS'],
+            disabledDeprecations: ['PROVIDER_IAM_SETTINGS_V3'],
             provider: {
               iamRoleStatements: [
                 {
@@ -247,7 +247,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
           fixture: 'function',
           command: 'package',
           configExt: {
-            disabledDeprecations: ['PROVIDER_IAM_SETTINGS'],
+            disabledDeprecations: ['PROVIDER_IAM_SETTINGS_V3'],
             provider: {
               iam: {
                 role: {
