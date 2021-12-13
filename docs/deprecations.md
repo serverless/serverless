@@ -36,6 +36,24 @@ Note:
 - In service configuration setting is ineffective for deprecations reported before service configuration is read.
 - `SLS_DEPRECATION_DISABLE` env var and `disabledDeprecations` configuration setting remain respected, and no errors will be thrown for mentioned deprecation coodes.
 
+<a name="PROVIDER_IAM_SETTINGS_V3"><div>&nbsp;</div></a>
+
+## Grouping IAM settings under `provider.iam`
+
+Deprecation code: `PROVIDER_IAM_SETTINGS_v3`
+
+All IAM-related settings of _provider_ including `iamRoleStatements`, `iamManagedPolicies`, `role` and `cfnRole` are also now supported at `iam` property. Refer to the [IAM Guide](/framework/docs/providers/aws/guide/iam.md).
+
+- `provider.role` -> `provider.iam.role`
+- `provider.rolePermissionsBoundary` -> `provider.iam.role.permissionsBoundary`
+- `provider.iamRoleStatements` -> `provider.iam.role.statements`
+- `provider.iamManagedPolicies` -> `provider.iam.role.managedPolicies`
+- `provider.cfnRole` -> `provider.iam.deploymentRole`
+
+In addition `iam.role.permissionBoundary` can also be set at `iam.role.permissionsBoundary` (which matches CloudFormation property name).
+
+Starting with v4.0.0 old versions of settings will no longer be supported
+
 <a name="CONFIG_VALIDATION_MODE_DEFAULT_V3"><div>&nbsp;</div></a>
 
 ## `configValidationMode: error` will be new default
