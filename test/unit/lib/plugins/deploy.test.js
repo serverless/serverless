@@ -79,22 +79,6 @@ describe('Deploy', () => {
       );
     });
 
-    it('should execute deploy function if a function option is given', () => {
-      deploy.options.package = false;
-      deploy.options.function = 'myfunc';
-      deploy.serverless.service.package.path = false;
-
-      return expect(deploy.hooks['before:deploy:deploy']()).to.be.fulfilled.then(() =>
-        BbPromise.all([
-          expect(spawnPackageStub).to.not.be.called,
-          expect(spawnDeployFunctionStub).to.be.calledOnce,
-          expect(spawnDeployFunctionStub).to.be.calledWithExactly('deploy:function', {
-            terminateLifecycleAfterExecution: true,
-          }),
-        ])
-      );
-    });
-
     it('should throw an error if provider does not exist', () => {
       deploy.serverless.service.provider.name = 'nonExistentProvider';
 
