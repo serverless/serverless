@@ -108,10 +108,27 @@ const humanizePropertyPathKeys = require('../lib/configuration/variables/humaniz
 const processBackendNotificationRequest = require('../lib/utils/processBackendNotificationRequest');
 const logDeprecation = require('../lib/utils/logDeprecation');
 
+const rewriteDeployFunctionParam = () => {
+  const isParamName = RegExp.prototype.test.bind(require('../lib/cli/param-reg-exp'));
+
+  const args = process.argv.slice(2);
+  const firstParamIndex = args.findIndex(isParamName);
+  const commands = args.slice(0, firstParamIndex === -1 ? Infinity : firstParamIndex);
+  if (commands.join(' ') !== 'deploy') return;
+  if (!args.includes('-f') && !args.includes('--function')) return;
+  logDeprecation(
+    'CLI_DEPLOY_FUNCTION_OPTION_V3',
+    'Starting with v4.0.0, `--function` or `-f` option for `deploy` command will no longer be supported. In order to deploy a single function, please use `deploy function` command instead.'
+  );
+  process.argv.splice(3, 0, 'function');
+};
+
 const processSpanPromise = (async () => {
   try {
     const wait = require('timers-ext/promise/sleep');
     await wait(); // Ensure access to "processSpanPromise"
+
+    rewriteDeployFunctionParam();
 
     const resolveInput = require('../lib/cli/resolve-input');
 
