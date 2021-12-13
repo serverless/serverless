@@ -80,7 +80,7 @@ Starting with `v3.0.0`, it will not be possible to disable default export names 
 
 ## CLI `--function`/`-f` option for `deploy` command
 
-Deprecation code: `CLI_DEPLOY_FUNCTION_OPTION'`
+Deprecation code: `CLI_DEPLOY_FUNCTION_OPTION`
 
 _Note: We've resigned from this deprecation in the context of v2 (it'll be re-added in the context of v3). We continue to advise using `deploy function -f` command instead of `deploy -f`._
 
@@ -106,7 +106,7 @@ When external API Gateway resource is used and imported via `provider.apiGateway
 
 ## CLI Options extensions, `type` requirement
 
-Deprecation code: `CLI_OPTIONS_SCHEMA'`
+Deprecation code: `CLI_OPTIONS_SCHEMA`
 
 Internal handling of CLI arguments was improved with type awareness for options. Now each option definition is expected have `type` defined in its settings.
 
