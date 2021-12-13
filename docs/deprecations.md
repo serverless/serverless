@@ -38,6 +38,14 @@ Note:
 - The `serverless.yml` setting is ineffective for deprecations reported before the configuration is read.
 - `SLS_DEPRECATION_DISABLE` and `disabledDeprecations` remain respected, and no errors will be thrown for mentioned deprecation codes.
 
+<a name="CLI_DEPLOY_FUNCTION_OPTION_V3"><div>&nbsp;</div></a>
+
+## CLI `--function`/`-f` option for `deploy` command
+
+Deprecation code: `CLI_DEPLOY_FUNCTION_OPTION_V3`
+
+Starting with `v4.0.0`, `--function` or `-f` option for `deploy` command will no longer be supported. In order to deploy a single function, please use `deploy function` command instead.
+
 <a name="LAMBDA_HASHING_VERSION_PROPERTY"><div>&nbsp;</div></a>
 
 ## Property `provider.lambdaHashingVersion`
