@@ -38,6 +38,16 @@ Note:
 - The `serverless.yml` setting is ineffective for deprecations reported before the configuration is read.
 - `SLS_DEPRECATION_DISABLE` and `disabledDeprecations` remain respected, and no errors will be thrown for mentioned deprecation codes.
 
+<a name="CONFIG_VALIDATION_MODE_DEFAULT_V3"><div>&nbsp;</div></a>
+
+## `configValidationMode: error` will be new default
+
+Deprecation code: `CONFIG_VALIDATION_MODE_DEFAULT_V3`
+
+Starting with v4.0.0, Serverless will throw on configuration errors by default. This is changing from the previous default, `configValidationMode: warn`
+
+Learn more about configuration validation here: http://slss.io/configuration-validation
+
 <a name="PACKAGE_PATTERNS"><div>&nbsp;</div></a>
 
 ## New way to define packaging patterns
