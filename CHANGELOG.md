@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.69.0](https://github.com/serverless/serverless/compare/v2.68.0...v2.69.0) (2021-12-13)
+
+### Features
+
+- **AWS Deploy:** Ensure existence of S3 deployment bucket (if possible) ([#10317](https://github.com/serverless/serverless/pull/10317)) ([f358585](https://github.com/serverless/serverless/commit/f35858599ad749b5417c238f510e726615e221dc)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS Kafka:** Add support for `mTLS` access configuration ([#10273](https://github.com/serverless/serverless/issues/10273)) ([9faf37a](https://github.com/serverless/serverless/commit/9faf37aa153a60784ca783b1e2b7364625e8761f)) ([Misha Bruml](https://github.com/mishabruml))
+- **Standalone:**
+  - Support installation on M1-based Macs ([#10291](https://github.com/serverless/serverless/pull/10291)) ([92ae054](https://github.com/serverless/serverless/commit/92ae054f02dc631c178628492af7049ce2936204)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Use Node 16 as base for binaries ([#10291](https://github.com/serverless/serverless/pull/10291)) ([eb8f474](https://github.com/serverless/serverless/commit/eb8f474940c4cd69f08ec062adfaa15d62d81ee2)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **AWS Deploy:**
+  - Allow removal of stack with bucket missing ([#10306](https://github.com/serverless/serverless/pull/10306)) ([1a85a4a](https://github.com/serverless/serverless/commit/1a85a4a901caf4ca05096bf11bfcad31959c8044)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Ensure to strip all `null` properties from CloudFormation template ([#10304](https://github.com/serverless/serverless/issues/10304)) ([1f58760](https://github.com/serverless/serverless/commit/1f58760f467f2dcb960e23c2eb028f4abef23209)) ([GurmeharS](https://github.com/GurmeharS))
+  - Recognize all boolean values at `provider.disableRollback` ([#10324](https://github.com/serverless/serverless/pull/10324)) ([2485c7e](https://github.com/serverless/serverless/commit/2485c7efcc4f6f5b1d65b56d4d0d71297d113fa5)) ([François Farge](https://github.com/fargito))
+- **Variables:** Provide opt-out from forced decryption at`ssm` source ([#10315](https://github.com/serverless/serverless/issues/10315)) ([503c031](https://github.com/serverless/serverless/commit/503c0319b7e9acc2b674d5d61874dfa3fcfc857e)) ([Omer Shacham](https://github.com/omerinvia))
+
+### Maintenance Improvements
+
+- Configure promise returning functions as async ([#10309](https://github.com/serverless/serverless/issues/10309)) ([4d4f863](https://github.com/serverless/serverless/commit/4d4f8637d830ba9a72806fc127fe3497f7c0f23c)) ([mdanyalkhan](https://github.com/mdanyalkhan))
+- Use `async/await` syntax in `bucket.js` ([#10306](https://github.com/serverless/serverless/pull/10306)) ([39e43b5](https://github.com/serverless/serverless/commit/39e43b51e5e13c708900e0ccc4d4f25ccf0df61c)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [2.68.0](https://github.com/serverless/serverless/compare/v2.67.0...v2.68.0) (2021-12-02)
 
 ### Features
