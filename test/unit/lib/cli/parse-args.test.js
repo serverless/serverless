@@ -139,6 +139,11 @@ describe('test/unit/lib/cli/parse-args.test.js', () => {
     expect(parsedArgs).to.deep.equal({});
   });
 
+  it('should not throw if -h or --help param', () => {
+    parseArgs(['-ab=foo', '--help'], {});
+    parseArgs(['--boolean=value', '-h'], { boolean: new Set(['boolean']) });
+  });
+
   it('should reject value for mutliple boolean properties alias', () =>
     expect(() => parseArgs(['-ab=foo'], {}))
       .to.throw(ServerlessError)
