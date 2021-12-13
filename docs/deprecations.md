@@ -38,6 +38,16 @@ Note:
 - The `serverless.yml` setting is ineffective for deprecations reported before the configuration is read.
 - `SLS_DEPRECATION_DISABLE` and `disabledDeprecations` remain respected, and no errors will be thrown for mentioned deprecation codes.
 
+<a name="PACKAGE_PATTERNS"><div>&nbsp;</div></a>
+
+## New way to define packaging patterns
+
+Deprecation code: `PACKAGE_PATTERNS`
+
+Support for `package.include` and `package.exclude` will be removed with v4.0.0. Instead please use `package.patterns` with which both _include_ and _exclude_ (prefixed with `!`) rules can be configured.
+
+Check [Packaging Patterns](/framework/docs/providers/aws/guide/packaging/#patterns) documentation for more info.
+
 <a name="CLI_DEPLOY_FUNCTION_OPTION_V3"><div>&nbsp;</div></a>
 
 ## CLI `--function`/`-f` option for `deploy` command
