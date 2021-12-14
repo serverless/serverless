@@ -20,6 +20,8 @@ If you or your organization have a specific workflow, install a pre-written plug
 
 Since the Serverless Framework is a group of "core" plugins, custom plugins are written exactly the same way as core plugins. Learn more about [creating a custom plugin](creating-plugins.md).
 
+Explore existing plugins in the [Serverless Framework Plugins repository](https://www.serverless.com/plugins).
+
 ## Installing plugins
 
 Plugins are installed per service. They are not applied globally.

@@ -13,7 +13,7 @@ layout: Doc
 
 # Hello World C# Example
 
-Make sure `serverless` is installed. [See installation guide](../../../guide/installation.md).
+Make sure `serverless` is installed. [See installation guide](https://www.serverless.com/framework/docs/getting-started).
 
 Once installed the Serverless CLI can be called with `serverless` or the shorthand `sls` command.
 

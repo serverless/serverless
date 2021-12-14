@@ -178,3 +178,5 @@ plugins:
   - serverless-offline
   - serverless-secrets
 ```
+
+Read more about plugins in the [Plugin documentation](../../../guides/plugins).
