@@ -4,7 +4,6 @@ menuText: Get Started
 layout: Doc
 menuOrder: 0
 menuItems:
-  - {menuText: AWS Guide, path: /framework/docs/providers/aws/guide/quick-start}
   - {menuText: Azure Functions Guide, path: /framework/docs/providers/azure/guide/quick-start}
   - {menuText: Apache OpenWhisk Guide, path: /framework/docs/providers/openwhisk/guide/quick-start}
   - {menuText: Google Functions Guide, path: /framework/docs/providers/google/guide/quick-start}
@@ -19,9 +18,9 @@ menuItems:
 
 # Get started with Serverless Framework Open Source & AWS
 
-Getting started with Serverless Framework’s Open Source CLI and AWS only takes a few minutes. Install with NPM, or as a standalone binary if you don't use NPM.
+Getting started with Serverless Framework’s Open Source CLI and AWS only takes a few minutes.
 
-## via NPM
+## Installation
 
 Install the serverless CLI via NPM:
 
@@ -29,11 +28,11 @@ Install the serverless CLI via NPM:
 npm install -g serverless
 ```
 
-_Note: If you don’t already have [Node](https://nodejs.org/en/download/package-manager/) on your machine, install it first. We suggest using the latest LTS version of NodeJS._
+_Note: If you don’t already have Node on your machine, [install it first](https://nodejs.org/). We suggest using the latest LTS version of NodeJS._
 
 If you don't want to install Node or NPM, you can install a standalone binary.
 
-## Install as a standalone binary
+### Install as a standalone binary
 
 ### MacOS/Linux
 
@@ -59,54 +58,103 @@ Install with [Chocolatey](https://chocolatey.org/):
 choco install serverless
 ```
 
-## Initial setup
-
-Run the command below and follow the prompts:
-
-```bash
-serverless
-```
-
-The command will guide you to create a new serverless project.
-
-_Note: Users in China are presented with a setup centered around the chinese [Tencent](https://intl.cloud.tencent.com/) provider. If you're based in China and prefer to be presented with steps as outside of China, set the following environment variable: `SERVERLESS_PLATFORM_VENDOR=aws`_
-
 ## Upgrade
 
-### via npm
+If `serverless` was installed via NPM, upgrade it via:
 
 ```bash
 npm update -g serverless
 ```
 
-If you have installed `serverless` as a standalone binary, read the following section instead.
+If you installed `serverless` as a standalone binary, read the following section instead.
 
 ### Standalone binary
 
-#### MacOS/Linux
+On MacOS/Linux, run:
 
 ```bash
 serverless upgrade
 ```
 
-#### Windows
+On Windows, run:
 
 ```bash
 choco upgrade serverless
 ```
 
-## Set up your free Dashboard account
+## Getting started
 
-Learn more about the [Serverless Framework Dashboard](https://serverless.com/framework/) and [sign up for free](https://app.serverless.com).
-
-Once you’ve signed up, login to your dashboard from the CLI:
+Run the command below and follow the prompts:
 
 ```bash
-serverless login
+# Create a new serverless project
+serverless
+
+# Move into the newly created directory
+cd your-service-name
 ```
 
-You can either add a new service in your dashboard, or with the CLI, using the command:
+The `serverless` command will guide you to create a new project, [configure your AWS credentials](https://serverless.com/framework/docs/providers/aws/guide/credentials/), and optionally set up a free [Serverless Dashboard](https://www.serverless.com/monitoring) account to monitor, troubleshoot, and test your new service.
+
+_Note: Users in China are presented with a setup centered around the chinese [Tencent](https://intl.cloud.tencent.com/) provider. If you are based in China and prefer to use AWS, set the following environment variable: `SERVERLESS_PLATFORM_VENDOR=aws`._
+
+The newly created project should contain a `serverless.yml` file. This file defines everything that should be deployed to AWS: functions, events, resources and more. You can learn more about this in the [Core Concepts documentation](./providers/aws/guide/intro.md).
+
+If the templates proposed by the `serverless` command do not fit your needs, you can also explore the [project examples from Serverless Inc. and our community](https://www.serverless.com/examples/). You can install any example with the `create` command:
+
+```sh
+# replace folder-name below with the folder name of the example you want to use
+$ serverless create -u https://github.com/serverless/examples/tree/master/folder-name -n my-project
+```
+
+### Deploying
+
+If you haven't done so already within the `serverless` command, you can deploy the project at any time by running:
+
+```bash
+serverless deploy
+```
+
+The deployed functions, resources and URLs will be displayed in the command output.
+
+### Invoking function
+
+If you deployed an API, query its URL to trigger the associated Lambda function. You can find that URL in the `serverless deploy` output, or retrieve it later via `serverless info`.
+
+If you deployed a function that isn't exposed via a URL, you can invoke it via:
+
+```bash
+serverless invoke -f hello
+
+# Invoke and display logs:
+serverless invoke -f hello --log
+```
+
+### Fetching function logs
+
+All logs generated by a function's invocation are automatically stored in AWS CloudWatch. Retrieve those logs in the CLI via:
+
+```bash
+serverless logs -f hello
+
+# Tail logs
+serverless logs -f hello --tail
+```
+
+### Monitoring
+
+You can monitor and debug Lambda functions and APIs via the [Serverless Dashboard](https://www.serverless.com/monitoring).
+
+To set up Serverless Dashboard, [create a free account](https://www.serverless.com/monitoring) and run the following command in your project:
 
 ```bash
 serverless
+```
+
+## Remove your service
+
+To delete your service, run `serverless remove`. This will delete all the AWS resources created by your project and ensure that you don't incur any unexpected charges. It will also remove the service from Serverless Dashboard.
+
+```bash
+serverless remove
 ```
