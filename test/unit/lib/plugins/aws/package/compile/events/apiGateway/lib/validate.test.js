@@ -1483,7 +1483,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/valida
         configExt: {
           provider: {
             apiGateway: {
-              restApiId: 'ivrcdpj7y2'
+              restApiId: 'ivrcdpj7y2',
             },
           },
           functions: {
