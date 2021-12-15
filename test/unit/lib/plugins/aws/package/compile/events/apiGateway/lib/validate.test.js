@@ -8,6 +8,9 @@ const Serverless = require('../../../../../../../../../../lib/Serverless');
 const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
 const ServerlessError = require('../../../../../../../../../../lib/serverless-error');
 
+const chai = require('chai');
+chai.use(require('chai-as-promised'));
+
 describe('#validate()', () => {
   let serverless;
   let awsCompileApigEvents;
