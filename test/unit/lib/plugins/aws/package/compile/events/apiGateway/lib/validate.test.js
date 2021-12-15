@@ -1406,23 +1406,36 @@ describe('#validate()', () => {
     });
   });
 
-  it('should throw an error when restApiRootResourceId is not provided with restApiId', () => {
-    awsCompileApigEvents.serverless.service.provider.apiGateway = {
-      restApiId: 'ivrcdpj7y2',
-    };
-    awsCompileApigEvents.serverless.service.functions = {
-      first: {
-        events: [
-          {
-            http: {
-              path: 'foo/bar',
-              method: 'GET',
+  it('should throw an error when restApiRootResourceId is not provided with restApiId', async () => {
+    await expect(
+      runServerless({
+        fixture: 'function',
+        command: 'package',
+        configExt: {
+          provider: {
+            apiGateway: {
+              restApiId: 'ivrcdpj7y2',
             },
           },
-        ],
-      },
-    };
-    expect(() => awsCompileApigEvents.validate()).to.throw(Error);
+          functions: {
+            first: {
+              handler: 'index.handler',
+              events: [
+                {
+                  http: {
+                    method: 'GET',
+                    path: 'foo/bar',
+                  },
+                },
+              ],
+            },
+          },
+        },
+      })
+    ).to.be.eventually.rejected.and.have.property(
+      'code',
+      'API_GATEWAY_MISSING_REST_API_ROOT_RESOURCE_ID'
+    );
   });
 });
 
