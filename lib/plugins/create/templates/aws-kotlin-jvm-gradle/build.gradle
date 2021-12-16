@@ -36,8 +36,8 @@ dependencies {
       'org.jetbrains.kotlin:kotlin-stdlib:1.3.72',
       'com.amazonaws:aws-lambda-java-core:1.2.1',
       'com.amazonaws:aws-lambda-java-log4j2:1.2.0',
-      'org.apache.logging.log4j:log4j-api:2.13.3',
-      'org.apache.logging.log4j:log4j-core:2.13.3',
+      'org.apache.logging.log4j:log4j-api:2.16.0',
+      'org.apache.logging.log4j:log4j-core:2.16.0',
       'com.fasterxml.jackson.core:jackson-core:2.11.0',
       'com.fasterxml.jackson.core:jackson-databind:2.11.0',
       'com.fasterxml.jackson.core:jackson-annotations:2.11.0'
