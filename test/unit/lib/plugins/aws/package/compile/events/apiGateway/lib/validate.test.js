@@ -235,6 +235,52 @@ describe('#validate()', () => {
     expect(() => awsCompileApigEvents.validate()).not.to.throw(Error);
   });
 
+  it('should throw when using a CUSTOM authorizer without an authorizer id', () => {
+    awsCompileApigEvents.serverless.service.functions = {
+      first: {
+        events: [
+          {
+            http: {
+              path: '/{proxy+}',
+              method: 'ANY',
+              integration: 'lambda-proxy',
+              authorizer: {
+                type: 'CUSTOM',
+              },
+            },
+          },
+        ],
+      },
+    };
+
+    expect(() => awsCompileApigEvents.validate()).to.throw(Error);
+  });
+
+  it('should not throw when using CUSTOM authorizer with an authorizer id', () => {
+    awsCompileApigEvents.serverless.service.functions = {
+      first: {
+        events: [
+          {
+            http: {
+              path: '/{proxy+}',
+              method: 'ANY',
+              integration: 'lambda-proxy',
+              authorizer: {
+                type: 'CUSTOM',
+                authorizerId: 'MyCustomAuthorizer',
+              },
+            },
+          },
+        ],
+      },
+    };
+
+    const validated = awsCompileApigEvents.validate();
+    expect(() => validated).not.to.throw(Error);
+    expect(validated.events).to.be.an('Array').with.length(1);
+    expect(validated.events[0].http.authorizer.type).to.equal('CUSTOM');
+  });
+
   it('should accept AWS_IAM as authorizer', () => {
     awsCompileApigEvents.serverless.service.functions = {
       foo: {},
