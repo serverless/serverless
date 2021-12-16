@@ -306,6 +306,10 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
                 subnetIds: ['xxx'],
               },
               logRetentionInDays: 5,
+              stackTags: {
+                Project: 'my-project',
+                Environment: 'dev',
+              },
             },
           },
         });
@@ -427,6 +431,22 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         expect(iamResource.Type).to.be.equal('AWS::Logs::LogGroup');
         expect(iamResource.Properties.RetentionInDays).to.be.equal(5);
         expect(iamResource.Properties.LogGroupName).to.be.equal(`/aws/lambda/${service}-dev-basic`);
+      });
+
+      it('should support `provider.stackTags`', () => {
+        const normalizedName = naming.getLogGroupLogicalId('basic');
+        const iamResource = cfResources[normalizedName];
+        expect(iamResource.Type).to.be.equal('AWS::Logs::LogGroup');
+        expect(iamResource.Properties.Tags).to.be.deep.equal([
+          {
+            Key: 'Project',
+            Value: 'my-project',
+          },
+          {
+            Key: 'Environment',
+            Value: 'dev',
+          },
+        ]);
       });
 
       it('should support `provider.iam.role.tags`', () => {
