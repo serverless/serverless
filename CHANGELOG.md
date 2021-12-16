@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [2.69.1](https://github.com/serverless/serverless/compare/v2.69.0...v2.70.0) (2021-12-15)
+## [2.69.1](https://github.com/serverless/serverless/compare/v2.69.0...v2.69.1) (2021-12-15)
 
 ### Bug Fixes
 
