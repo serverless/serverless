@@ -235,50 +235,67 @@ describe('#validate()', () => {
     expect(() => awsCompileApigEvents.validate()).not.to.throw(Error);
   });
 
-  it('should throw when using a CUSTOM authorizer without an authorizer id', () => {
-    awsCompileApigEvents.serverless.service.functions = {
-      first: {
-        events: [
-          {
-            http: {
-              path: '/{proxy+}',
-              method: 'ANY',
-              integration: 'lambda-proxy',
-              authorizer: {
-                type: 'CUSTOM',
-              },
+  it('should throw when using a CUSTOM authorizer without an authorizer id', async () => {
+    await expect(
+      runServerless({
+        fixture: 'function',
+        command: 'package',
+        configExt: {
+          functions: {
+            first: {
+              handler: 'index.handler',
+              events: [
+                {
+                  http: {
+                    method: 'POST',
+                    path: '/custom-authorizer',
+                    integration: 'lambda-proxy',
+                    authorizer: {
+                      type: 'CUSTOM',
+                    },
+                  },
+                },
+              ],
             },
           },
-        ],
-      },
-    };
-
-    expect(() => awsCompileApigEvents.validate()).to.throw(Error);
+        },
+      })
+    ).to.be.eventually.rejected.and.have.property(
+      'code',
+      'API_GATEWAY_MISSING_AUTHORIZER_NAME_OR_ARN'
+    );
   });
 
-  it('should not throw when using CUSTOM authorizer with an authorizer id', () => {
-    awsCompileApigEvents.serverless.service.functions = {
-      first: {
-        events: [
-          {
-            http: {
-              path: '/{proxy+}',
-              method: 'ANY',
-              integration: 'lambda-proxy',
-              authorizer: {
-                type: 'CUSTOM',
-                authorizerId: 'MyCustomAuthorizer',
+  it('should not throw when using CUSTOM authorizer with an authorizer id', async () => {
+    await runServerless({
+      fixture: 'function',
+      command: 'package',
+      configExt: {
+        functions: {
+          first: {
+            handler: 'index.handler',
+            events: [
+              {
+                http: {
+                  method: 'POST',
+                  path: '/custom-authorizer',
+                  integration: 'lambda-proxy',
+                  authorizer: {
+                    type: 'CUSTOM',
+                    authorizerId: 'MyAuthorizerId',
+                  },
+                },
               },
-            },
+            ],
           },
-        ],
+        },
       },
-    };
-
-    const validated = awsCompileApigEvents.validate();
-    expect(() => validated).not.to.throw(Error);
-    expect(validated.events).to.be.an('Array').with.length(1);
-    expect(validated.events[0].http.authorizer.type).to.equal('CUSTOM');
+    }).then(({ awsNaming: naming, cfTemplate }) => {
+      const cfResources = cfTemplate.Resources;
+      const resource =
+        cfResources[naming.getMethodLogicalId(naming.normalizePath('/custom-authorizer'), 'POST')];
+      expect(resource.Properties.AuthorizationType).to.equal('CUSTOM');
+    });
   });
 
   it('should accept AWS_IAM as authorizer', () => {
