@@ -386,25 +386,59 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
       expect(basicEventSourceMappingResource.Properties.EventSourceArn).to.equal(basicSqsArn);
     });
 
-    it.skip('TODO: should suport `arn` (CF Fn::GetAtt)', () => {
+    it('should suport `arn` (CF Fn::GetAtt)', () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L407-L508
       //
       // Confirm effect of `functions.arnCfGetAtt.events[0].sqs.arn`
+      const getAttSqsArn = { 'Fn::GetAtt': ['SomeQueue', 'Arn'] };
+      const arnCfGetAttLogicalId = awsNaming.getQueueLogicalId('arnCfGetAtt', 'SomeQueue');
+      const arnCfGetAttEventSourceMappingResource = cfTemplate.Resources[arnCfGetAttLogicalId];
+      expect(
+        arnCfGetAttEventSourceMappingResource.Properties.EventSourceArn['Fn::GetAtt']
+      ).to.deep.equal(getAttSqsArn['Fn::GetAtt']);
     });
 
-    it.skip('TODO: should suport `arn` (CF Fn::ImportValue)', () => {
+    it('should suport `arn` (CF Fn::ImportValue)', () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L407-L508
       //
       // Confirm effect of `functions.arnCfImport.events[0].sqs.arn`
+      const cfImportArn = { 'Fn::ImportValue': 'ForeignQueue' };
+      const arnCfImportLogicalId = awsNaming.getQueueLogicalId('arnCfImport', 'ForeignQueue');
+      const arnCfImportEventSourceMappingResource = cfTemplate.Resources[arnCfImportLogicalId];
+      expect(
+        arnCfImportEventSourceMappingResource.Properties.EventSourceArn['Fn::ImportValue']
+      ).to.deep.equal(cfImportArn['Fn::ImportValue']);
     });
 
-    it.skip('TODO: should suport `arn` (CF Fn::Join)', () => {
+    it('should suport `arn` (CF Fn::Join)', () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L407-L508
       //
       // Confirm effect of `functions.arnCfJoin.events[0].sqs.arn`
+      const cfJoinArn = {
+        'Fn::Join': [
+          ':',
+          [
+            'arn',
+            'aws',
+            'sqs',
+            {
+              Ref: 'AWS::Region',
+            },
+            {
+              Ref: 'AWS::AccountId',
+            },
+            'MyQueue',
+          ],
+        ],
+      };
+      const arnCfJoinLogicalId = awsNaming.getQueueLogicalId('arnCfJoin', 'MyQueue');
+      const arnCfJoinEventSourceMappingResource = cfTemplate.Resources[arnCfJoinLogicalId];
+      expect(
+        arnCfJoinEventSourceMappingResource.Properties.EventSourceArn['Fn::Join']
+      ).to.deep.equal(cfJoinArn['Fn::Join']);
     });
 
     it.skip('TODO: should suport `batchSize`', () => {
