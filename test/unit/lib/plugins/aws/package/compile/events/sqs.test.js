@@ -298,7 +298,6 @@ describe('AwsCompileSQSEvents', () => {
 
 describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
   describe('regular configuration', () => {
-    let eventSourceMappingResource;
     let awsNaming;
     let cfTemplate;
     before(async () => {
@@ -360,8 +359,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
         },
         command: 'package',
       }));
-      const queueLogicalId = awsNaming.getQueueLogicalId('basic', 'some-queue-name');
-      eventSourceMappingResource = cfTemplate.Resources[queueLogicalId];
     });
 
     it('should suport direct ARN string', () => {
@@ -441,24 +438,79 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
       ).to.deep.equal(cfJoinArn['Fn::Join']);
     });
 
-    it.skip('TODO: should suport `batchSize`', () => {
+    it('should suport `batchSize`', () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L302-L405
       //
       // Confirm effect  of`functions.basic.events[0].sqs.batchSize`
+      const requestedBatchSize = 10;
+      const basicFunctionLogicalId = awsNaming.getQueueLogicalId('basic', 'some-queue-name');
+      const basicEventSourceMappingResource = cfTemplate.Resources[basicFunctionLogicalId];
+      expect(basicEventSourceMappingResource.Properties.BatchSize).to.equal(requestedBatchSize);
     });
 
     it('should suport `functionResponseType`', () => {
-      expect(eventSourceMappingResource.Properties.FunctionResponseTypes).to.include.members([
-        'ReportBatchItemFailures',
+      const requestedFunctionResponseType = 'ReportBatchItemFailures';
+      const basicFunctionLogicalId = awsNaming.getQueueLogicalId('basic', 'some-queue-name');
+      const basicEventSourceMappingResource = cfTemplate.Resources[basicFunctionLogicalId];
+      expect(basicEventSourceMappingResource.Properties.FunctionResponseTypes).to.include.members([
+        requestedFunctionResponseType,
       ]);
     });
 
-    it.skip('TODO: should ensure necessary IAM statememnts', () => {
+    it('should ensure necessary IAM statememnts', () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L510-L542
       //
       // Confirm expected IAM statements on final role
+      const iamRoleStatments = [
+        {
+          Effect: 'Allow',
+          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
+          Resource: ['arn:aws:sqs:region:account:some-queue-name'],
+        },
+        {
+          Effect: 'Allow',
+          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
+          Resource: ['arn:aws:sqs:region:account:MyQueue'],
+        },
+        {
+          Effect: 'Allow',
+          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
+          Resource: [{ 'Fn::GetAtt': ['SomeQueue', 'Arn'] }],
+        },
+        {
+          Effect: 'Allow',
+          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
+          Resource: [{ 'Fn::ImportValue': 'ForeignQueue' }],
+        },
+        {
+          Effect: 'Allow',
+          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
+          Resource: [
+            {
+              'Fn::Join': [
+                ':',
+                [
+                  'arn',
+                  'aws',
+                  'sqs',
+                  {
+                    Ref: 'AWS::Region',
+                  },
+                  {
+                    Ref: 'AWS::AccountId',
+                  },
+                  'MyQueue',
+                ],
+              ],
+            },
+          ],
+        },
+      ];
+      expect(
+        cfTemplate.Resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement
+      ).to.deep.include.members(iamRoleStatments);
     });
   });
 
