@@ -299,9 +299,10 @@ describe('AwsCompileSQSEvents', () => {
 describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
   describe('regular configuration', () => {
     let eventSourceMappingResource;
-
+    let awsNaming;
+    let cfTemplate;
     before(async () => {
-      const { awsNaming, cfTemplate } = await runServerless({
+      ({ awsNaming, cfTemplate } = await runServerless({
         fixture: 'function',
         configExt: {
           functions: {
@@ -358,23 +359,31 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
           },
         },
         command: 'package',
-      });
+      }));
       const queueLogicalId = awsNaming.getQueueLogicalId('basic', 'some-queue-name');
       eventSourceMappingResource = cfTemplate.Resources[queueLogicalId];
     });
 
-    it.skip('TODO: should suport direct ARN string', () => {
+    it('should suport direct ARN string', () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L302-L405
       //
       // Confirm effect of functions.directArn.events[0].sqs`
+      const directSqsArn = 'arn:aws:sqs:region:account:MyQueue';
+      const directArnFunctionLogicalId = awsNaming.getQueueLogicalId('directArn', 'MyQueue');
+      const directArnEventSourceMappingResource = cfTemplate.Resources[directArnFunctionLogicalId];
+      expect(directArnEventSourceMappingResource.Properties.EventSourceArn).to.equal(directSqsArn);
     });
 
-    it.skip('TODO: should suport `arn` (string)', () => {
+    it('should suport `arn` (string)', () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L302-L405 (partially)
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L576-L593
       // Confirm effect of `functions.basic.events[0].sqs.arn`
+      const basicSqsArn = 'arn:aws:sqs:region:account:some-queue-name';
+      const basicFunctionLogicalId = awsNaming.getQueueLogicalId('basic', 'some-queue-name');
+      const basicEventSourceMappingResource = cfTemplate.Resources[basicFunctionLogicalId];
+      expect(basicEventSourceMappingResource.Properties.EventSourceArn).to.equal(basicSqsArn);
     });
 
     it.skip('TODO: should suport `arn` (CF Fn::GetAtt)', () => {
