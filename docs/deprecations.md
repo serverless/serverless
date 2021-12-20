@@ -108,6 +108,8 @@ When external API Gateway resource is used and imported via `provider.apiGateway
 
 Deprecation code: `CLI_OPTIONS_SCHEMA`
 
+_Note: We've resigned from this deprecation in the context of v2 (it'll be re-added in the context of v3). We continue to advise upgrade so schema for CLI options is provided._
+
 Internal handling of CLI arguments was improved with type awareness for options. Now each option definition is expected have `type` defined in its settings.
 
 Possible values are `string`, `boolean` and `multiple`. Check [Defining options](/framework/docs/providers/aws/guide/plugins#defining-options) documentation for more info.
