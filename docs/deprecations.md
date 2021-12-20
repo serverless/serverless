@@ -36,6 +36,20 @@ Note:
 - In service configuration setting is ineffective for deprecations reported before service configuration is read.
 - `SLS_DEPRECATION_DISABLE` env var and `disabledDeprecations` configuration setting remain respected, and no errors will be thrown for mentioned deprecation coodes.
 
+<a name="CLI_OPTIONS_SCHEMA_V3"><div>&nbsp;</div></a>
+
+## CLI Options extensions, `type` requirement
+
+Deprecation code: `CLI_OPTIONS_SCHEMA_V3`
+
+Internal handling of CLI arguments was improved with type awareness for options. Now each option definition is expected have `type` defined in its settings.
+
+Possible values are `string`, `boolean` and `multiple`. Check [Defining options](/framework/docs/providers/aws/guide/plugins#defining-options) documentation for more info.
+
+If you rely on a plugin which does not set types (yet) please report the issue at its issue tracker.
+
+Starting with v4.0.0 any option extensions which does not have `type` defined will be communicated with a thrown error
+
 <a name="PROVIDER_IAM_SETTINGS_V3"><div>&nbsp;</div></a>
 
 ## Grouping IAM settings under `provider.iam`
