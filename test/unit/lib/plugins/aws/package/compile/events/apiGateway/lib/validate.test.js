@@ -235,69 +235,6 @@ describe('#validate()', () => {
     expect(() => awsCompileApigEvents.validate()).not.to.throw(Error);
   });
 
-  it('should throw when using a CUSTOM authorizer without an authorizer id', async () => {
-    await expect(
-      runServerless({
-        fixture: 'function',
-        command: 'package',
-        configExt: {
-          functions: {
-            first: {
-              handler: 'index.handler',
-              events: [
-                {
-                  http: {
-                    method: 'POST',
-                    path: '/custom-authorizer',
-                    integration: 'lambda-proxy',
-                    authorizer: {
-                      type: 'CUSTOM',
-                    },
-                  },
-                },
-              ],
-            },
-          },
-        },
-      })
-    ).to.be.eventually.rejected.and.have.property(
-      'code',
-      'API_GATEWAY_MISSING_AUTHORIZER_NAME_OR_ARN'
-    );
-  });
-
-  it('should not throw when using CUSTOM authorizer with an authorizer id', async () => {
-    await runServerless({
-      fixture: 'function',
-      command: 'package',
-      configExt: {
-        functions: {
-          first: {
-            handler: 'index.handler',
-            events: [
-              {
-                http: {
-                  method: 'POST',
-                  path: '/custom-authorizer',
-                  integration: 'lambda-proxy',
-                  authorizer: {
-                    type: 'CUSTOM',
-                    authorizerId: 'MyAuthorizerId',
-                  },
-                },
-              },
-            ],
-          },
-        },
-      },
-    }).then(({ awsNaming: naming, cfTemplate }) => {
-      const cfResources = cfTemplate.Resources;
-      const resource =
-        cfResources[naming.getMethodLogicalId(naming.normalizePath('/custom-authorizer'), 'POST')];
-      expect(resource.Properties.AuthorizationType).to.equal('CUSTOM');
-    });
-  });
-
   it('should accept AWS_IAM as authorizer', () => {
     awsCompileApigEvents.serverless.service.functions = {
       foo: {},
@@ -1570,5 +1507,68 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/valida
       'code',
       'API_GATEWAY_MISSING_REST_API_ROOT_RESOURCE_ID'
     );
+  });
+
+  it('should throw when using a CUSTOM authorizer without an authorizer id', async () => {
+    await expect(
+      runServerless({
+        fixture: 'function',
+        command: 'package',
+        configExt: {
+          functions: {
+            first: {
+              handler: 'index.handler',
+              events: [
+                {
+                  http: {
+                    method: 'POST',
+                    path: '/custom-authorizer',
+                    integration: 'lambda-proxy',
+                    authorizer: {
+                      type: 'CUSTOM',
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      })
+    ).to.be.eventually.rejected.and.have.property(
+      'code',
+      'API_GATEWAY_MISSING_AUTHORIZER_NAME_OR_ARN'
+    );
+  });
+
+  it('should not throw when using CUSTOM authorizer with an authorizer id', async () => {
+    const result = await runServerless({
+      fixture: 'function',
+      command: 'package',
+      configExt: {
+        functions: {
+          first: {
+            handler: 'index.handler',
+            events: [
+              {
+                http: {
+                  method: 'POST',
+                  path: '/custom-authorizer',
+                  integration: 'lambda-proxy',
+                  authorizer: {
+                    type: 'CUSTOM',
+                    authorizerId: 'MyAuthorizerId',
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    cfResources = result.cfTemplate.Resources;
+    naming = result.awsNaming;
+    const resource = getApiGatewayMethod('/custom-authorizer', 'POST');
+    expect(resource.Properties.AuthorizationType).to.equal('CUSTOM');
   });
 });
