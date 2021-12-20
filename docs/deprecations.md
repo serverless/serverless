@@ -102,7 +102,7 @@ Deprecation code: `AWS_API_GATEWAY_NON_APPLICABLE_SETTINGS`
 
 When external API Gateway resource is used and imported via `provider.apiGateway.restApiId` setting, both `provider.logs.restApi` and `provider.tracing.apiGateway` are ignored. In v3, an error will be thrown if these options are defined. Indeed, these settings are applicable only if API Gateway resource is provisioned by Serverless Framework.
 
-<a name="CLI_OPTIONS_SCHEMA'"><div>&nbsp;</div></a>
+<a name="CLI_OPTIONS_SCHEMA"><div>&nbsp;</div></a>
 
 ## CLI Options extensions, `type` requirement
 
