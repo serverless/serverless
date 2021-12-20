@@ -1,225 +1,13 @@
 'use strict';
 
-/* eslint-disable no-unused-expressions */
-
-const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
-const AwsDeploy = require('../../../../../../lib/plugins/aws/deploy/index');
 const chai = require('chai');
-const Serverless = require('../../../../../../lib/Serverless');
 const sinon = require('sinon');
-const path = require('path');
 
 const runServerless = require('../../../../../utils/run-serverless');
 
-// Configure chai
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
 const expect = require('chai').expect;
-
-describe('AwsDeploy', () => {
-  let awsDeploy;
-  let serverless;
-  let options;
-
-  beforeEach(() => {
-    serverless = new Serverless({ commands: [], options: {} });
-    options = {
-      stage: 'dev',
-      region: 'us-east-1',
-    };
-    serverless.setProvider('aws', new AwsProvider(serverless, options));
-    serverless.serviceDir = 'foo';
-    awsDeploy = new AwsDeploy(serverless, options);
-  });
-
-  describe('#constructor()', () => {
-    it('should set the serverless instance', () => {
-      expect(awsDeploy.serverless).to.equal(serverless);
-    });
-
-    it('should set options', () => {
-      expect(awsDeploy.options).to.equal(options);
-    });
-
-    it('should set the service path if provided', () => {
-      expect(awsDeploy.servicePath).to.equal('foo');
-    });
-
-    it('should default to an empty service path if not provided', () => {
-      serverless.serviceDir = false;
-      awsDeploy = new AwsDeploy(serverless, options);
-
-      expect(awsDeploy.servicePath).to.equal('');
-    });
-
-    it('should use the options package path if provided', () => {
-      options.package = 'package-options';
-      awsDeploy = new AwsDeploy(serverless, options);
-
-      expect(awsDeploy.packagePath).to.equal('package-options');
-    });
-
-    it('should use the services package path if provided', () => {
-      serverless.service = {
-        package: {
-          path: 'package-service',
-        },
-      };
-      awsDeploy = new AwsDeploy(serverless, options);
-
-      expect(awsDeploy.packagePath).to.equal('package-service');
-    });
-
-    it('should default to the .serverless directory as the package path', () => {
-      expect(awsDeploy.packagePath).to.equal(path.join('foo', '.serverless'));
-    });
-
-    it('should set the provider variable to an instance of AwsProvider', () =>
-      expect(awsDeploy.provider).to.be.instanceof(AwsProvider));
-
-    it('should have commands', () => expect(awsDeploy.commands).to.be.not.empty);
-
-    it('should have hooks', () => expect(awsDeploy.hooks).to.be.not.empty);
-  });
-
-  describe('hooks', () => {
-    let spawnStub;
-
-    beforeEach(() => {
-      spawnStub = sinon.stub(serverless.pluginManager, 'spawn');
-    });
-
-    afterEach(() => {
-      serverless.pluginManager.spawn.restore();
-    });
-
-    describe('"before:deploy:deploy" hook', () => {
-      let extendedValidateStub;
-      let spawnPackageStub;
-      let spawnAwsCommonValidateStub;
-      let spawnAwsCommonMoveArtifactsToTemp;
-
-      beforeEach(() => {
-        extendedValidateStub = sinon.stub(awsDeploy, 'extendedValidate').resolves();
-        spawnPackageStub = spawnStub.withArgs('package').resolves();
-        spawnAwsCommonValidateStub = spawnStub.withArgs('aws:common:validate').resolves();
-        spawnAwsCommonMoveArtifactsToTemp = spawnStub
-          .withArgs('aws:common:moveArtifactsToTemp')
-          .resolves();
-      });
-
-      afterEach(() => {
-        awsDeploy.extendedValidate.restore();
-      });
-
-      it('should use the default packaging mechanism if no packaging config is provided', () => {
-        awsDeploy.options.package = false;
-        awsDeploy.serverless.service.package.path = false;
-
-        return awsDeploy.hooks['before:deploy:deploy']().then(() => {
-          expect(spawnAwsCommonValidateStub.calledOnce).to.equal(true);
-          expect(extendedValidateStub.calledAfter(spawnAwsCommonValidateStub)).to.equal(true);
-          expect(spawnAwsCommonMoveArtifactsToTemp.calledOnce).to.equal(false);
-        });
-      });
-
-      it('should move the artifacts to the tmp dir if options based config is provided', () => {
-        awsDeploy.options.package = true;
-        awsDeploy.serverless.service.package.path = false;
-
-        return awsDeploy.hooks['before:deploy:deploy']().then(() => {
-          expect(spawnAwsCommonValidateStub.calledOnce).to.equal(true);
-          expect(
-            spawnAwsCommonMoveArtifactsToTemp.calledAfter(spawnAwsCommonValidateStub)
-          ).to.equal(true);
-          expect(extendedValidateStub.calledAfter(spawnAwsCommonMoveArtifactsToTemp)).to.equal(
-            true
-          );
-          expect(spawnPackageStub.calledOnce).to.equal(false);
-        });
-      });
-
-      it('should move the artifacts to the tmp dir if service based config is provided', () => {
-        awsDeploy.options.package = false;
-        awsDeploy.serverless.service.package.path = true;
-
-        return awsDeploy.hooks['before:deploy:deploy']().then(() => {
-          expect(spawnAwsCommonValidateStub.calledOnce).to.equal(true);
-          expect(
-            spawnAwsCommonMoveArtifactsToTemp.calledAfter(spawnAwsCommonValidateStub)
-          ).to.equal(true);
-          expect(extendedValidateStub.calledAfter(spawnAwsCommonMoveArtifactsToTemp)).to.equal(
-            true
-          );
-          expect(spawnPackageStub.calledOnce).to.equal(false);
-        });
-      });
-    });
-
-    it('should run "deploy:finalize" hook', () => {
-      const spawnAwsDeployFinalizeStub = spawnStub.withArgs('aws:deploy:finalize').resolves();
-
-      return awsDeploy.hooks['deploy:finalize']().then(() => {
-        expect(spawnAwsDeployFinalizeStub.calledOnce).to.equal(true);
-      });
-    });
-
-    describe('"aws:deploy:finalize:cleanup" hook', () => {
-      let cleanupS3BucketStub;
-      let spawnAwsCommonCleanupTempDirStub;
-
-      beforeEach(() => {
-        cleanupS3BucketStub = sinon.stub(awsDeploy, 'cleanupS3Bucket').resolves();
-        spawnAwsCommonCleanupTempDirStub = spawnStub
-          .withArgs('aws:common:cleanupTempDir')
-          .resolves();
-      });
-
-      afterEach(() => {
-        awsDeploy.cleanupS3Bucket.restore();
-      });
-
-      it('should do the default cleanup if no packaging config is used', () => {
-        awsDeploy.options.package = false;
-        awsDeploy.serverless.service.package.path = false;
-
-        return awsDeploy.hooks['aws:deploy:finalize:cleanup']().then(() => {
-          expect(cleanupS3BucketStub.calledOnce).to.equal(true);
-          expect(spawnAwsCommonCleanupTempDirStub.calledOnce).to.equal(false);
-        });
-      });
-
-      it('should cleanup the tmp dir if options based packaging config is used', () => {
-        awsDeploy.options.package = true;
-        awsDeploy.serverless.service.package.path = false;
-
-        return awsDeploy.hooks['aws:deploy:finalize:cleanup']().then(() => {
-          expect(cleanupS3BucketStub.calledOnce).to.equal(true);
-          expect(spawnAwsCommonCleanupTempDirStub.calledAfter(cleanupS3BucketStub)).to.equal(true);
-        });
-      });
-
-      it('should cleanup the tmp dir if service based packaging config is used', () => {
-        awsDeploy.options.package = false;
-        awsDeploy.serverless.service.package.path = true;
-
-        return awsDeploy.hooks['aws:deploy:finalize:cleanup']().then(() => {
-          expect(cleanupS3BucketStub.calledOnce).to.equal(true);
-          expect(spawnAwsCommonCleanupTempDirStub.calledAfter(cleanupS3BucketStub)).to.equal(true);
-        });
-      });
-
-      it('should not cleanup if a deployment was not necessary', () => {
-        awsDeploy.serverless.service.provider.shouldNotDeploy = true;
-
-        return awsDeploy.hooks['aws:deploy:finalize:cleanup']().then(() => {
-          expect(cleanupS3BucketStub.called).to.equal(false);
-          expect(spawnAwsCommonCleanupTempDirStub.called).to.equal(false);
-        });
-      });
-    });
-  });
-});
 
 describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
   const baseAwsRequestStubMap = {
@@ -233,6 +21,84 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
     },
   };
 
+  it('with nonexistent stack - first deploy with custom deployment bucket', async () => {
+    const describeStacksStub = sinon
+      .stub()
+      .onFirstCall()
+      .throws('error', 'stack does not exist')
+      .onSecondCall()
+      .resolves({ Stacks: [{}] });
+    const createChangeSetStub = sinon.stub().resolves({});
+    const executeChangeSetStub = sinon.stub().resolves({});
+    const s3UploadStub = sinon.stub().resolves();
+    const deleteObjectsStub = sinon.stub().resolves({});
+    const awsRequestStubMap = {
+      ...baseAwsRequestStubMap,
+      ECR: {
+        describeRepositories: sinon.stub().throws({
+          providerError: { code: 'RepositoryNotFoundException' },
+        }),
+      },
+      S3: {
+        deleteObjects: deleteObjectsStub,
+        listObjectsV2: { Contents: [] },
+        upload: s3UploadStub,
+        headBucket: {},
+        getBucketLocation: () => {
+          return {
+            LocationConstraint: 'us-east-1',
+          };
+        },
+      },
+      CloudFormation: {
+        describeStacks: describeStacksStub,
+        createChangeSet: createChangeSetStub,
+        executeChangeSet: executeChangeSetStub,
+        deleteChangeSet: {},
+        describeChangeSet: {
+          ChangeSetName: 'new-service-dev-change-set',
+          ChangeSetId: 'some-change-set-id',
+          StackName: 'new-service-dev',
+          Status: 'CREATE_COMPLETE',
+        },
+        describeStackEvents: {
+          StackEvents: [
+            {
+              EventId: '1e2f3g4h',
+              StackName: 'new-service-dev',
+              LogicalResourceId: 'new-service-dev',
+              ResourceType: 'AWS::CloudFormation::Stack',
+              Timestamp: new Date(),
+              ResourceStatus: 'CREATE_COMPLETE',
+            },
+          ],
+        },
+        validateTemplate: {},
+        listStackResources: {},
+      },
+    };
+
+    await runServerless({
+      fixture: 'function',
+      command: 'deploy',
+      awsRequestStubMap,
+      configExt: {
+        provider: {
+          deploymentBucket: 'existing-s3-bucket',
+        },
+      },
+    });
+
+    expect(createChangeSetStub).to.be.calledOnce;
+    expect(createChangeSetStub.getCall(0).args[0].ChangeSetType).to.equal('CREATE');
+    expect(executeChangeSetStub).to.be.calledOnce;
+    const wasCloudFormationTemplateUploadInitiated = s3UploadStub.args.some((call) =>
+      call[0].Key.endsWith('compiled-cloudformation-template.json')
+    );
+    expect(wasCloudFormationTemplateUploadInitiated).to.be.true;
+    expect(deleteObjectsStub).not.to.be.called;
+  });
+
   it('with nonexistent stack - first deploy', async () => {
     const describeStacksStub = sinon
       .stub()
@@ -240,9 +106,9 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       .throws('error', 'stack does not exist')
       .onSecondCall()
       .resolves({ Stacks: [{}] });
-    const createStackStub = sinon.stub().resolves({});
+    const createChangeSetStub = sinon.stub().resolves({});
+    const executeChangeSetStub = sinon.stub().resolves({});
     const s3UploadStub = sinon.stub().resolves();
-    const updateStackStub = sinon.stub().resolves({});
     const deleteObjectsStub = sinon.stub().resolves({});
     const awsRequestStubMap = {
       ...baseAwsRequestStubMap,
@@ -259,7 +125,15 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       },
       CloudFormation: {
         describeStacks: describeStacksStub,
-        createStack: createStackStub,
+        createChangeSet: createChangeSetStub,
+        executeChangeSet: executeChangeSetStub,
+        deleteChangeSet: {},
+        describeChangeSet: {
+          ChangeSetName: 'new-service-dev-change-set',
+          ChangeSetId: 'some-change-set-id',
+          StackName: 'new-service-dev',
+          Status: 'CREATE_COMPLETE',
+        },
         describeStackEvents: {
           StackEvents: [
             {
@@ -276,7 +150,6 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           StackResourceDetail: { PhysicalResourceId: 's3-bucket-resource' },
         },
         validateTemplate: {},
-        updateStack: updateStackStub,
         listStackResources: {},
       },
     };
@@ -287,20 +160,22 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       awsRequestStubMap,
     });
 
-    expect(createStackStub).to.be.calledOnce;
+    expect(createChangeSetStub).to.be.calledTwice;
+    expect(createChangeSetStub.getCall(0).args[0].ChangeSetType).to.equal('CREATE');
+    expect(createChangeSetStub.getCall(1).args[0].ChangeSetType).to.equal('UPDATE');
+    expect(executeChangeSetStub).to.be.calledTwice;
     const wasCloudFormationTemplateUploadInitiated = s3UploadStub.args.some((call) =>
       call[0].Key.endsWith('compiled-cloudformation-template.json')
     );
     expect(wasCloudFormationTemplateUploadInitiated).to.be.true;
-    expect(updateStackStub).to.be.calledOnce;
     expect(deleteObjectsStub).not.to.be.called;
   });
 
   it('with existing stack - subsequent deploy', async () => {
     const s3BucketPrefix = 'serverless/test-aws-deploy-with-existing-stack/dev';
-    const createStackStub = sinon.stub().resolves({});
     const s3UploadStub = sinon.stub().resolves();
-    const updateStackStub = sinon.stub().resolves({});
+    const createChangeSetStub = sinon.stub().resolves({});
+    const executeChangeSetStub = sinon.stub().resolves({});
     const listObjectsV2Stub = sinon
       .stub()
       .onFirstCall()
@@ -338,7 +213,15 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       },
       CloudFormation: {
         describeStacks: { Stacks: [{}] },
-        createStack: createStackStub,
+        deleteChangeSet: {},
+        createChangeSet: createChangeSetStub,
+        executeChangeSet: executeChangeSetStub,
+        describeChangeSet: {
+          ChangeSetName: 'new-service-dev-change-set',
+          ChangeSetId: 'some-change-set-id',
+          StackName: 'new-service-dev',
+          Status: 'CREATE_COMPLETE',
+        },
         describeStackEvents: {
           StackEvents: [
             {
@@ -355,7 +238,6 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           StackResourceDetail: { PhysicalResourceId: 's3-bucket-resource' },
         },
         validateTemplate: {},
-        updateStack: updateStackStub,
         listStackResources: {},
       },
     };
@@ -375,12 +257,13 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       },
     });
 
-    expect(createStackStub).to.not.be.called;
+    expect(createChangeSetStub).to.be.calledOnce;
+    expect(createChangeSetStub.getCall(0).args[0].ChangeSetType).to.equal('UPDATE');
+    expect(executeChangeSetStub).to.be.calledOnce;
     const wasCloudFormationTemplateUploadInitiated = s3UploadStub.args.some((call) =>
       call[0].Key.endsWith('compiled-cloudformation-template.json')
     );
     expect(wasCloudFormationTemplateUploadInitiated).to.be.true;
-    expect(updateStackStub).to.be.calledOnce;
     expect(deleteObjectsStub).to.be.calledWithExactly({
       Bucket: 's3-bucket-resource',
       Delete: {
@@ -394,10 +277,127 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
     });
   });
 
+  it('with existing stack - subsequent deploy with empty changeset', async () => {
+    const createChangeSetStub = sinon.stub().resolves({});
+    const executeChangeSetStub = sinon.stub().resolves({});
+    const deleteChangeSetStub = sinon.stub().resolves();
+    const deleteObjectsStub = sinon.stub().resolves();
+    let objectsToRemove;
+    const listObjectsV2Stub = sinon
+      .stub()
+      .onFirstCall()
+      .resolves({ Contents: [] })
+      .onSecondCall()
+      .callsFake((params) => {
+        objectsToRemove = [
+          {
+            Key: `${params.Prefix}/compiled-cloudformation-template.json`,
+          },
+          {
+            Key: `${params.Prefix}/artifact.zip`,
+          },
+        ];
+        return {
+          Contents: objectsToRemove,
+        };
+      });
+    const awsRequestStubMap = {
+      ...baseAwsRequestStubMap,
+      ECR: {
+        describeRepositories: sinon.stub().throws({
+          providerError: { code: 'RepositoryNotFoundException' },
+        }),
+      },
+      S3: {
+        deleteObjects: deleteObjectsStub,
+        listObjectsV2: listObjectsV2Stub,
+        upload: {},
+        headBucket: {},
+      },
+      CloudFormation: {
+        describeStacks: { Stacks: [{}] },
+        deleteChangeSet: deleteChangeSetStub,
+        createChangeSet: createChangeSetStub,
+        executeChangeSet: executeChangeSetStub,
+        describeChangeSet: {
+          ChangeSetName: 'new-service-dev-change-set',
+          ChangeSetId: 'some-change-set-id',
+          StackName: 'new-service-dev',
+          Status: 'FAILED',
+          StatusReason: 'No updates are to be performed.',
+        },
+        describeStackResource: {
+          StackResourceDetail: { PhysicalResourceId: 's3-bucket-resource' },
+        },
+        validateTemplate: {},
+        listStackResources: {},
+      },
+    };
+
+    await runServerless({
+      fixture: 'function',
+      command: 'deploy',
+      awsRequestStubMap,
+    });
+
+    expect(createChangeSetStub).to.be.calledOnce;
+    expect(createChangeSetStub.getCall(0).args[0].ChangeSetType).to.equal('UPDATE');
+    expect(executeChangeSetStub).not.to.be.called;
+    expect(deleteChangeSetStub).to.be.calledTwice;
+    expect(deleteObjectsStub).to.be.calledWithExactly({
+      Bucket: 's3-bucket-resource',
+      Delete: { Objects: objectsToRemove },
+    });
+  });
+
+  it('should fail if cannot create a change set', async () => {
+    const awsRequestStubMap = {
+      ...baseAwsRequestStubMap,
+      ECR: {
+        describeRepositories: sinon.stub().throws({
+          providerError: { code: 'RepositoryNotFoundException' },
+        }),
+      },
+      S3: {
+        deleteObjects: {},
+        listObjectsV2: {},
+        upload: {},
+        headBucket: {},
+      },
+      CloudFormation: {
+        describeStacks: { Stacks: [{}] },
+        deleteChangeSet: {},
+        createChangeSet: {},
+        executeChangeSet: {},
+        describeChangeSet: {
+          ChangeSetName: 'new-service-dev-change-set',
+          ChangeSetId: 'some-change-set-id',
+          StackName: 'new-service-dev',
+          Status: 'FAILED',
+          StatusReason: 'Some internal reason',
+        },
+        describeStackResource: {
+          StackResourceDetail: { PhysicalResourceId: 's3-bucket-resource' },
+        },
+        validateTemplate: {},
+        listStackResources: {},
+      },
+    };
+
+    await expect(
+      runServerless({
+        fixture: 'function',
+        command: 'deploy',
+        awsRequestStubMap,
+      })
+    ).to.have.been.eventually.rejected.with.property(
+      'code',
+      'AWS_CLOUD_FORMATION_CHANGE_SET_CREATION_FAILED'
+    );
+  });
+
   it('with existing stack - should skip deploy if nothing changed', async () => {
-    const createStackStub = sinon.stub().resolves({});
     const s3UploadStub = sinon.stub().resolves();
-    const updateStackStub = sinon.stub().resolves({});
 
     const listObjectsV2Stub = sinon.stub().resolves({
       Contents: [
@@ -445,7 +445,6 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       },
       CloudFormation: {
         describeStacks: { Stacks: [{}] },
-        createStack: createStackStub,
         describeStackEvents: {
           StackEvents: [
             {
@@ -462,7 +461,6 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           StackResourceDetail: { PhysicalResourceId: 's3-bucket-resource' },
         },
         validateTemplate: {},
-        updateStack: updateStackStub,
         listStackResources: {},
       },
     };
@@ -478,8 +476,6 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
     });
 
     expect(serverless.service.provider.shouldNotDeploy).to.be.true;
-    expect(createStackStub).to.not.be.called;
-    expect(updateStackStub).to.not.be.called;
     expect(s3UploadStub).to.not.be.called;
   });
 
@@ -594,7 +590,8 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
   });
 
   it('with existing stack - with deployment bucket resource missing from CloudFormation template', async () => {
-    const updateStackStub = sinon.stub().resolves({});
+    const createChangeSetStub = sinon.stub().resolves({});
+    const executeChangeSetStub = sinon.stub().resolves({});
     const describeStackResourceStub = sinon
       .stub()
       .onFirstCall()
@@ -628,7 +625,15 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       CloudFormation: {
         describeStacks: { Stacks: [{}] },
         validateTemplate: {},
-        updateStack: updateStackStub,
+        deleteChangeSet: {},
+        createChangeSet: createChangeSetStub,
+        executeChangeSet: executeChangeSetStub,
+        describeChangeSet: {
+          ChangeSetName: 'new-service-dev-change-set',
+          ChangeSetId: 'some-change-set-id',
+          StackName: 'new-service-dev',
+          Status: 'CREATE_COMPLETE',
+        },
         getTemplate: () => {
           return {
             TemplateBody: JSON.stringify({}),
@@ -657,8 +662,10 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
     });
 
-    expect(updateStackStub).to.be.calledWithExactly({
+    expect(createChangeSetStub).to.be.calledWithExactly({
       StackName: awsNaming.getStackName(),
+      ChangeSetName: awsNaming.getStackChangeSetName(),
+      ChangeSetType: 'UPDATE',
       Capabilities: ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM'],
       Parameters: [],
       Tags: [{ Key: 'STAGE', Value: 'dev' }],
@@ -666,6 +673,167 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         Resources: serverless.service.provider.coreCloudFormationTemplate.Resources,
         Outputs: serverless.service.provider.coreCloudFormationTemplate.Outputs,
       }),
+    });
+    expect(executeChangeSetStub).to.be.calledWithExactly({
+      StackName: awsNaming.getStackName(),
+      ChangeSetName: awsNaming.getStackChangeSetName(),
+    });
+  });
+
+  describe('custom deployment-related properties', () => {
+    let createChangeSetStub;
+    let executeChangeSetStub;
+    const deploymentRole = 'arn:xxx';
+    const notificationArns = ['arn:xxx', 'arn:yyy'];
+    const stackParameters = [
+      {
+        ParameterKey: 'key',
+        ParameterValue: 'val',
+      },
+      {
+        ParameterKey: 'key2',
+        ParameterValue: 'val2',
+      },
+    ];
+
+    const stackPolicy = [
+      {
+        Effect: 'Allow',
+        Principal: '*',
+        Action: ['Update:*'],
+        Resource: '*',
+      },
+    ];
+
+    const rollbackConfiguration = {
+      MonitoringTimeInMinutes: 20,
+    };
+
+    const disableRollback = true;
+    const stackTags = {
+      TAG: 'value',
+      ANOTHERTAG: 'anotherval',
+    };
+
+    before(async () => {
+      const describeStacksStub = sinon
+        .stub()
+        .onFirstCall()
+        .throws('error', 'stack does not exist')
+        .onSecondCall()
+        .resolves({ Stacks: [{}] });
+      createChangeSetStub = sinon.stub().resolves({});
+      executeChangeSetStub = sinon.stub().resolves({});
+      const awsRequestStubMap = {
+        ...baseAwsRequestStubMap,
+        ECR: {
+          describeRepositories: sinon.stub().throws({
+            providerError: { code: 'RepositoryNotFoundException' },
+          }),
+        },
+        S3: {
+          deleteObjects: {},
+          listObjectsV2: { Contents: [] },
+          upload: {},
+          headBucket: {},
+        },
+        CloudFormation: {
+          describeStacks: describeStacksStub,
+          createChangeSet: createChangeSetStub,
+          executeChangeSet: executeChangeSetStub,
+          deleteChangeSet: {},
+          describeChangeSet: {
+            ChangeSetName: 'new-service-dev-change-set',
+            ChangeSetId: 'some-change-set-id',
+            StackName: 'new-service-dev',
+            Status: 'CREATE_COMPLETE',
+          },
+          describeStackEvents: {
+            StackEvents: [
+              {
+                EventId: '1e2f3g4h',
+                StackName: 'new-service-dev',
+                LogicalResourceId: 'new-service-dev',
+                ResourceType: 'AWS::CloudFormation::Stack',
+                Timestamp: new Date(),
+                ResourceStatus: 'CREATE_COMPLETE',
+              },
+            ],
+          },
+          describeStackResource: {
+            StackResourceDetail: { PhysicalResourceId: 's3-bucket-resource' },
+          },
+          validateTemplate: {},
+          listStackResources: {},
+        },
+      };
+
+      await runServerless({
+        fixture: 'function',
+        command: 'deploy',
+        awsRequestStubMap,
+        configExt: {
+          provider: {
+            notificationArns,
+            rollbackConfiguration,
+            stackParameters,
+            stackPolicy,
+            stackTags,
+            disableRollback,
+            iam: {
+              deploymentRole,
+            },
+          },
+        },
+      });
+    });
+
+    it('should support custom deployment role', () => {
+      expect(createChangeSetStub.getCall(0).args[0].RoleARN).to.equal(deploymentRole);
+      expect(createChangeSetStub.getCall(1).args[0].RoleARN).to.equal(deploymentRole);
+    });
+
+    it('should support `notificationsArns`', () => {
+      expect(createChangeSetStub.getCall(0).args[0].NotificationARNs).to.deep.equal(
+        notificationArns
+      );
+      expect(createChangeSetStub.getCall(1).args[0].NotificationARNs).to.deep.equal(
+        notificationArns
+      );
+    });
+
+    it('should support `stackParameters`', () => {
+      expect(createChangeSetStub.getCall(1).args[0].Parameters).to.deep.equal(stackParameters);
+    });
+
+    it('should support `stackPolicy`', () => {
+      expect(createChangeSetStub.getCall(1).args[0].StackPolicyBody).to.deep.equal(
+        JSON.stringify({ Statement: stackPolicy })
+      );
+    });
+
+    it('should support `rollbackConfiguration`', () => {
+      expect(createChangeSetStub.getCall(1).args[0].RollbackConfiguration).to.deep.equal(
+        rollbackConfiguration
+      );
+    });
+
+    it('should support `disableRollback`', () => {
+      expect(executeChangeSetStub.getCall(0).args[0].DisableRollback).to.be.true;
+      expect(executeChangeSetStub.getCall(1).args[0].DisableRollback).to.be.true;
+    });
+
+    it('should support `stackTags`', () => {
+      expect(createChangeSetStub.getCall(0).args[0].Tags).to.deep.equal([
+        { Key: 'STAGE', Value: 'dev' },
+        { Key: 'TAG', Value: 'value' },
+        { Key: 'ANOTHERTAG', Value: 'anotherval' },
+      ]);
+      expect(createChangeSetStub.getCall(1).args[0].Tags).to.deep.equal([
+        { Key: 'STAGE', Value: 'dev' },
+        { Key: 'TAG', Value: 'value' },
+        { Key: 'ANOTHERTAG', Value: 'anotherval' },
+      ]);
     });
   });
 });

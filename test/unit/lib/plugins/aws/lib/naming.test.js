@@ -104,6 +104,22 @@ describe('#naming()', () => {
     });
   });
 
+  describe('#getStackChangeSetName()', () => {
+    it('should use the service name & stage if custom stack name not provided', () => {
+      serverless.service.service = 'myService';
+      expect(sdk.naming.getStackChangeSetName()).to.equal(
+        `${serverless.service.service}-${sdk.naming.provider.getStage()}-change-set`
+      );
+    });
+
+    it('should use the custom stack name if provided', () => {
+      serverless.service.provider.stackName = 'app-dev-testApp';
+      serverless.service.service = 'myService';
+      serverless.service.provider.stage = sdk.naming.provider.getStage();
+      expect(sdk.naming.getStackChangeSetName()).to.equal('app-dev-testApp-change-set');
+    });
+  });
+
   describe('#getRolePath()', () => {
     it('should return `/`', () => {
       expect(sdk.naming.getRolePath()).to.equal('/');
