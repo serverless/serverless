@@ -855,7 +855,15 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/hack/u
           },
           listStackResources: {},
           validateTemplate: {},
-          updateStack: {},
+          deleteChangeSet: {},
+          createChangeSet: {},
+          executeChangeSet: {},
+          describeChangeSet: {
+            ChangeSetName: 'new-service-dev-change-set',
+            ChangeSetId: 'some-change-set-id',
+            StackName: 'new-service-dev',
+            Status: 'CREATE_COMPLETE',
+          },
         },
         S3: {
           listObjectsV2: {},
