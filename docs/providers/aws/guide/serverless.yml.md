@@ -296,6 +296,12 @@ provider:
       versioningConfiguration:
         Status: Enabled
 
+params: # Stage parameters
+  prod: # Values for the "prod" stage
+    my-parameter: foo
+  dev: # Values for the "dev" stage
+    my-parameter: bar
+
 package: # Optional deployment packaging configuration
   patterns: # Specify the directories and files which should be included in the deployment package
     - src/**
