@@ -514,6 +514,7 @@ const processSpanPromise = (async () => {
     const isStandaloneCommand = notIntegratedCommands.has(command);
 
     if (!isHelpRequest && (isInteractiveSetup || isStandaloneCommand)) {
+      let interactiveResult;
       if (configuration) require('../lib/cli/ensure-supported-command')(configuration);
       if (isInteractiveSetup) {
         if (!process.stdin.isTTY && !process.env.SLS_INTERACTIVE_SETUP_ENABLE) {
@@ -523,15 +524,15 @@ const processSpanPromise = (async () => {
             'INTERACTIVE_SETUP_IN_NON_TTY'
           );
         }
-        const result = await require('../lib/cli/interactive-setup')({
+        interactiveResult = await require('../lib/cli/interactive-setup')({
           configuration,
           serviceDir,
           configurationFilename,
           options,
           commandUsage,
         });
-        if (result.configuration) {
-          configuration = result.configuration;
+        if (interactiveResult.configuration) {
+          configuration = interactiveResult.configuration;
         }
       } else {
         await require(`../commands/${commands.join('-')}`)({
@@ -558,6 +559,7 @@ const processSpanPromise = (async () => {
               configuration,
               commandUsage,
               variableSources: variableSourcesInConfig,
+              awsAccountId: interactiveResult.awsAccountId,
             }),
             outcome: 'success',
           });
