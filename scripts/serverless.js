@@ -714,16 +714,18 @@ const processSpanPromise = (async () => {
         }
 
         // Register dashboard specific variable source resolvers
-        if (
-          // TODO: Remove "tenant" support with next major
-          (configuration.org || configuration.tenant) &&
-          serverless.pluginManager.dashboardPlugin
-        ) {
-          for (const [sourceName, sourceConfig] of Object.entries(
-            serverless.pluginManager.dashboardPlugin.configurationVariablesSources
-          )) {
-            resolverConfiguration.sources[sourceName] = sourceConfig;
-            resolverConfiguration.fulfilledSources.add(sourceName);
+        if (serverless.pluginManager.dashboardPlugin) {
+          if (configuration.org) {
+            for (const [sourceName, sourceConfig] of Object.entries(
+              serverless.pluginManager.dashboardPlugin.configurationVariablesSources
+            )) {
+              resolverConfiguration.sources[sourceName] = sourceConfig;
+              resolverConfiguration.fulfilledSources.add(sourceName);
+            }
+          } else {
+            resolverConfiguration.sources.param =
+              serverless.pluginManager.dashboardPlugin.configurationVariablesSources.param;
+            resolverConfiguration.fulfilledSources.add('param');
           }
         }
 
@@ -766,7 +768,7 @@ const processSpanPromise = (async () => {
               for (const propertyPath of propertyPaths) legacySsmVarPropertyPaths.add(propertyPath);
               unresolvedSources.delete(sourceType);
             }
-            if (sourceType === 'param' || sourceType === 'output') {
+            if (sourceType === 'output') {
               logDeprecation(
                 'NEW_VARIABLES_RESOLVER',
                 '"param" and "output" variable sources can be resolved only in context of ' +
@@ -825,10 +827,7 @@ const processSpanPromise = (async () => {
             (sourceName) => !recognizedSourceNames.has(sourceName)
           );
 
-          if (
-            unrecognizedSourceNames.includes('param') ||
-            unrecognizedSourceNames.includes('output')
-          ) {
+          if (unrecognizedSourceNames.includes('output')) {
             throw new ServerlessError(
               '"Cannot resolve configuration: ' +
                 '"param" and "output" variable sources can be resolved only in context of ' +
