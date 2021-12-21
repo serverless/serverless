@@ -41,6 +41,7 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 - [Other properties defined in `serverless.yml`](#reference-properties-in-serverlessyml)
 - [Serverless Core variables](#referencing-serverless-core-variables)
 - [Environment variables](#referencing-environment-variables)
+- [Parameters](#referencing-parameters)
 - [CLI options](#referencing-cli-options)
 - [External YAML/JSON files](#reference-properties-in-other-files)
 - [Variables from S3](#referencing-s3-objects)
@@ -157,6 +158,20 @@ functions:
 ```
 
 In the above example you're dynamically adding a prefix to the function names by referencing the `FUNC_PREFIX` env var. So you can easily change that prefix for all functions by changing the `FUNC_PREFIX` env var.
+
+## Referencing Parameters
+
+Parameters can be defined in `serverless.yml` under the `params` key, or in [Serverless Dashboard](https://www.serverless.com/secrets).
+
+To reference parameters, use the `${param:XXX}` syntax in `serverless.yml`.
+
+```yaml
+provider:
+  environment:
+    APP_DOMAIN: ${param:domain}
+```
+
+Read all about parameters in the [Parameters documentation](../../../guides/parameters.md).
 
 ## Referencing CLI Options
 

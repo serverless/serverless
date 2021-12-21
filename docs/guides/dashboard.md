@@ -1,5 +1,5 @@
 <!--
-title: Serverless - Dashboard
+title: Serverless Dashboard
 menuText: Dashboard
 menuOrder: 1
 layout: Doc
