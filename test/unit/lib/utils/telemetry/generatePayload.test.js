@@ -680,4 +680,24 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
 
     expect(payload.projectId).to.deep.equal('35dsFwCaexwLHppAP4uDsjKW4ci54q1AKcN5JTNaDtw=');
   });
+
+  it('Should correctly resolve projectId property when account passed externally', async () => {
+    const { serverless } = await runServerless({
+      fixture: 'httpApi',
+      command: 'print',
+      configExt: {
+        service: 'to-ensure-unique-serivce-name',
+      },
+    });
+    const payload = generatePayload({
+      command: '',
+      options: {},
+      commandSchema: commandsSchema.get('deploy'),
+      serviceDir: serverless.serviceDir,
+      configuration: serverless.configurationInput,
+      awsAccountId: '1234567890',
+    });
+
+    expect(payload.projectId).to.deep.equal('35dsFwCaexwLHppAP4uDsjKW4ci54q1AKcN5JTNaDtw=');
+  });
 });
