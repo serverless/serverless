@@ -1,304 +1,16 @@
 'use strict';
 
 const expect = require('chai').expect;
-const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
-const AwsCompileSQSEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/sqs');
-const Serverless = require('../../../../../../../../lib/Serverless');
 const runServerless = require('../../../../../../../utils/run-serverless');
-
-describe('AwsCompileSQSEvents', () => {
-  let serverless;
-  let awsCompileSQSEvents;
-
-  beforeEach(() => {
-    serverless = new Serverless();
-    serverless.service.provider.compiledCloudFormationTemplate = {
-      Resources: {
-        IamRoleLambdaExecution: {
-          Properties: {
-            Policies: [
-              {
-                PolicyDocument: {
-                  Statement: [],
-                },
-              },
-            ],
-          },
-        },
-      },
-    };
-    serverless.setProvider('aws', new AwsProvider(serverless));
-    awsCompileSQSEvents = new AwsCompileSQSEvents(serverless);
-    awsCompileSQSEvents.serverless.service.service = 'new-service';
-  });
-
-  describe('#compileSQSEvents()', () => {
-    describe('when a queue ARN is given', () => {
-      it('should create event source mappings when a queue ARN is given', () => {
-        awsCompileSQSEvents.serverless.service.functions = {
-          first: {
-            events: [
-              {
-                sqs: {
-                  arn: 'arn:aws:sqs:region:account:MyFirstQueue',
-                  batchSize: 1,
-                  enabled: false,
-                },
-              },
-              {
-                sqs: {
-                  arn: 'arn:aws:sqs:region:account:MySecondQueue',
-                },
-              },
-              {
-                sqs: 'arn:aws:sqs:region:account:MyThirdQueue',
-              },
-            ],
-          },
-        };
-
-        awsCompileSQSEvents.compileSQSEvents();
-
-        // event 1
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSMyFirstQueue.Type
-        ).to.equal('AWS::Lambda::EventSourceMapping');
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSMyFirstQueue.DependsOn
-        ).to.include('IamRoleLambdaExecution');
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSMyFirstQueue.DependsOn
-        ).to.have.lengthOf(1);
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSMyFirstQueue.Properties.EventSourceArn
-        ).to.equal(awsCompileSQSEvents.serverless.service.functions.first.events[0].sqs.arn);
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSMyFirstQueue.Properties.BatchSize
-        ).to.equal(awsCompileSQSEvents.serverless.service.functions.first.events[0].sqs.batchSize);
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSMyFirstQueue.Properties.Enabled
-        ).to.equal(false);
-
-        // event 2
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSMySecondQueue.Type
-        ).to.equal('AWS::Lambda::EventSourceMapping');
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSMySecondQueue.DependsOn
-        ).to.include('IamRoleLambdaExecution');
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSMySecondQueue.DependsOn
-        ).to.have.lengthOf(1);
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSMySecondQueue.Properties.EventSourceArn
-        ).to.equal(awsCompileSQSEvents.serverless.service.functions.first.events[1].sqs.arn);
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSMySecondQueue.Properties.BatchSize
-        ).to.equal(10);
-
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSMySecondQueue.Properties.Enabled
-        ).to.equal(true);
-
-        // event 3
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSMyThirdQueue.Type
-        ).to.equal('AWS::Lambda::EventSourceMapping');
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSMyThirdQueue.DependsOn
-        ).to.include('IamRoleLambdaExecution');
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSMyThirdQueue.DependsOn
-        ).to.have.lengthOf(1);
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSMyThirdQueue.Properties.EventSourceArn
-        ).to.equal(awsCompileSQSEvents.serverless.service.functions.first.events[2].sqs);
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSMyThirdQueue.Properties.BatchSize
-        ).to.equal(10);
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSMyThirdQueue.Properties.Enabled
-        ).to.equal(true);
-      });
-
-      it('should allow specifying SQS Queues as CFN reference types', () => {
-        awsCompileSQSEvents.serverless.service.functions = {
-          first: {
-            events: [
-              {
-                sqs: {
-                  arn: { 'Fn::GetAtt': ['SomeQueue', 'Arn'] },
-                },
-              },
-              {
-                sqs: {
-                  arn: { 'Fn::ImportValue': 'ForeignQueue' },
-                },
-              },
-              {
-                sqs: {
-                  arn: {
-                    'Fn::Join': [
-                      ':',
-                      [
-                        'arn',
-                        'aws',
-                        'sqs',
-                        {
-                          Ref: 'AWS::Region',
-                        },
-                        {
-                          Ref: 'AWS::AccountId',
-                        },
-                        'MyQueue',
-                      ],
-                    ],
-                  },
-                },
-              },
-            ],
-          },
-        };
-
-        awsCompileSQSEvents.compileSQSEvents();
-
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement[0]
-        ).to.deep.equal({
-          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
-          Effect: 'Allow',
-          Resource: [
-            {
-              'Fn::GetAtt': ['SomeQueue', 'Arn'],
-            },
-            {
-              'Fn::ImportValue': 'ForeignQueue',
-            },
-            {
-              'Fn::Join': [
-                ':',
-                [
-                  'arn',
-                  'aws',
-                  'sqs',
-                  {
-                    Ref: 'AWS::Region',
-                  },
-                  {
-                    Ref: 'AWS::AccountId',
-                  },
-                  'MyQueue',
-                ],
-              ],
-            },
-          ],
-        });
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSSomeQueue.Properties.EventSourceArn
-        ).to.deep.equal({ 'Fn::GetAtt': ['SomeQueue', 'Arn'] });
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSForeignQueue.Properties.EventSourceArn
-        ).to.deep.equal({ 'Fn::ImportValue': 'ForeignQueue' });
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FirstEventSourceMappingSQSMyQueue.Properties.EventSourceArn
-        ).to.deep.equal({
-          'Fn::Join': [
-            ':',
-            [
-              'arn',
-              'aws',
-              'sqs',
-              {
-                Ref: 'AWS::Region',
-              },
-              {
-                Ref: 'AWS::AccountId',
-              },
-              'MyQueue',
-            ],
-          ],
-        });
-      });
-
-      it('should add the necessary IAM role statements', () => {
-        awsCompileSQSEvents.serverless.service.functions = {
-          first: {
-            events: [
-              {
-                sqs: 'arn:aws:sqs:region:account:MyFirstQueue',
-              },
-              {
-                sqs: 'arn:aws:sqs:region:account:MySecondQueue',
-              },
-            ],
-          },
-        };
-
-        const iamRoleStatements = [
-          {
-            Effect: 'Allow',
-            Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
-            Resource: [
-              'arn:aws:sqs:region:account:MyFirstQueue',
-              'arn:aws:sqs:region:account:MySecondQueue',
-            ],
-          },
-        ];
-
-        awsCompileSQSEvents.compileSQSEvents();
-
-        expect(
-          awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement
-        ).to.deep.equal(iamRoleStatements);
-      });
-    });
-
-    it('should remove all non-alphanumerics from queue names for the resource logical ids', () => {
-      awsCompileSQSEvents.serverless.service.functions = {
-        first: {
-          events: [
-            {
-              sqs: 'arn:aws:sqs:region:account:some-queue-name',
-            },
-          ],
-        },
-      };
-
-      awsCompileSQSEvents.compileSQSEvents();
-
-      expect(
-        awsCompileSQSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-      ).to.have.any.keys('FirstEventSourceMappingSQSSomequeuename');
-    });
-  });
-});
 
 describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
   describe('regular configuration', () => {
-    let eventSourceMappingResource;
+    let directArnEventSourceMappingResource;
+    let basicEventSourceMappingResource;
+    let arnCfGetAttEventSourceMappingResource;
+    let arnCfImportEventSourceMappingResource;
+    let arnCfJoinEventSourceMappingResource;
+    let iamRoleLambdaExecution;
 
     before(async () => {
       const { awsNaming, cfTemplate } = await runServerless({
@@ -359,63 +71,132 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
         },
         command: 'package',
       });
-      const queueLogicalId = awsNaming.getQueueLogicalId('basic', 'some-queue-name');
-      eventSourceMappingResource = cfTemplate.Resources[queueLogicalId];
+      const directArnFunctionLogicalId = awsNaming.getQueueLogicalId('directArn', 'MyQueue');
+      directArnEventSourceMappingResource = cfTemplate.Resources[directArnFunctionLogicalId];
+
+      const basicFunctionLogicalId = awsNaming.getQueueLogicalId('basic', 'some-queue-name');
+      basicEventSourceMappingResource = cfTemplate.Resources[basicFunctionLogicalId];
+
+      const arnCfGetAttLogicalId = awsNaming.getQueueLogicalId('arnCfGetAtt', 'SomeQueue');
+      arnCfGetAttEventSourceMappingResource = cfTemplate.Resources[arnCfGetAttLogicalId];
+
+      const arnCfImportLogicalId = awsNaming.getQueueLogicalId('arnCfImport', 'ForeignQueue');
+      arnCfImportEventSourceMappingResource = cfTemplate.Resources[arnCfImportLogicalId];
+
+      const arnCfJoinLogicalId = awsNaming.getQueueLogicalId('arnCfJoin', 'MyQueue');
+      arnCfJoinEventSourceMappingResource = cfTemplate.Resources[arnCfJoinLogicalId];
+
+      iamRoleLambdaExecution = cfTemplate.Resources.IamRoleLambdaExecution;
     });
 
-    it.skip('TODO: should suport direct ARN string', () => {
-      // Replaces partially
-      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L302-L405
-      //
-      // Confirm effect of functions.directArn.events[0].sqs`
+    it('should suport direct ARN string', () => {
+      const directSqsArn = 'arn:aws:sqs:region:account:MyQueue';
+      expect(directArnEventSourceMappingResource.Properties.EventSourceArn).to.equal(directSqsArn);
     });
 
-    it.skip('TODO: should suport `arn` (string)', () => {
-      // Replaces
-      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L302-L405 (partially)
-      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L576-L593
-      // Confirm effect of `functions.basic.events[0].sqs.arn`
+    it('should support `arn` (string)', () => {
+      const basicSqsArn = 'arn:aws:sqs:region:account:some-queue-name';
+      expect(basicEventSourceMappingResource.Properties.EventSourceArn).to.equal(basicSqsArn);
     });
 
-    it.skip('TODO: should suport `arn` (CF Fn::GetAtt)', () => {
-      // Replaces partially
-      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L407-L508
-      //
-      // Confirm effect of `functions.arnCfGetAtt.events[0].sqs.arn`
+    it('should suport `arn` (CF Fn::GetAtt)', () => {
+      const getAttSqsArn = { 'Fn::GetAtt': ['SomeQueue', 'Arn'] };
+      expect(
+        arnCfGetAttEventSourceMappingResource.Properties.EventSourceArn['Fn::GetAtt']
+      ).to.deep.equal(getAttSqsArn['Fn::GetAtt']);
     });
 
-    it.skip('TODO: should suport `arn` (CF Fn::ImportValue)', () => {
-      // Replaces partially
-      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L407-L508
-      //
-      // Confirm effect of `functions.arnCfImport.events[0].sqs.arn`
+    it('should suport `arn` (CF Fn::ImportValue)', () => {
+      const cfImportArn = { 'Fn::ImportValue': 'ForeignQueue' };
+      expect(
+        arnCfImportEventSourceMappingResource.Properties.EventSourceArn['Fn::ImportValue']
+      ).to.deep.equal(cfImportArn['Fn::ImportValue']);
     });
 
-    it.skip('TODO: should suport `arn` (CF Fn::Join)', () => {
-      // Replaces partially
-      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L407-L508
-      //
-      // Confirm effect of `functions.arnCfJoin.events[0].sqs.arn`
+    it('should suport `arn` (CF Fn::Join)', () => {
+      const cfJoinArn = {
+        'Fn::Join': [
+          ':',
+          [
+            'arn',
+            'aws',
+            'sqs',
+            {
+              Ref: 'AWS::Region',
+            },
+            {
+              Ref: 'AWS::AccountId',
+            },
+            'MyQueue',
+          ],
+        ],
+      };
+      expect(
+        arnCfJoinEventSourceMappingResource.Properties.EventSourceArn['Fn::Join']
+      ).to.deep.equal(cfJoinArn['Fn::Join']);
     });
 
-    it.skip('TODO: should suport `batchSize`', () => {
-      // Replaces partially
-      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L302-L405
-      //
-      // Confirm effect  of`functions.basic.events[0].sqs.batchSize`
+    it('should suport `batchSize`', () => {
+      const requestedBatchSize = 10;
+      expect(basicEventSourceMappingResource.Properties.BatchSize).to.equal(requestedBatchSize);
     });
 
     it('should suport `functionResponseType`', () => {
-      expect(eventSourceMappingResource.Properties.FunctionResponseTypes).to.include.members([
-        'ReportBatchItemFailures',
+      const requestedFunctionResponseType = 'ReportBatchItemFailures';
+      expect(basicEventSourceMappingResource.Properties.FunctionResponseTypes).to.include.members([
+        requestedFunctionResponseType,
       ]);
     });
 
-    it.skip('TODO: should ensure necessary IAM statememnts', () => {
-      // Replaces
-      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/sqs.test.js#L510-L542
-      //
-      // Confirm expected IAM statements on final role
+    it('should ensure necessary IAM statememnts', () => {
+      const iamRoleStatments = [
+        {
+          Effect: 'Allow',
+          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
+          Resource: ['arn:aws:sqs:region:account:some-queue-name'],
+        },
+        {
+          Effect: 'Allow',
+          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
+          Resource: ['arn:aws:sqs:region:account:MyQueue'],
+        },
+        {
+          Effect: 'Allow',
+          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
+          Resource: [{ 'Fn::GetAtt': ['SomeQueue', 'Arn'] }],
+        },
+        {
+          Effect: 'Allow',
+          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
+          Resource: [{ 'Fn::ImportValue': 'ForeignQueue' }],
+        },
+        {
+          Effect: 'Allow',
+          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
+          Resource: [
+            {
+              'Fn::Join': [
+                ':',
+                [
+                  'arn',
+                  'aws',
+                  'sqs',
+                  {
+                    Ref: 'AWS::Region',
+                  },
+                  {
+                    Ref: 'AWS::AccountId',
+                  },
+                  'MyQueue',
+                ],
+              ],
+            },
+          ],
+        },
+      ];
+      expect(
+        iamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement
+      ).to.deep.include.members(iamRoleStatments);
     });
   });
 

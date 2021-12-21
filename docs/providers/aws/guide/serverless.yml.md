@@ -188,6 +188,8 @@ provider:
     id: 'my-id' # If we want to attach to externally created HTTP API its id should be provided here
     name: 'dev-my-service' # Use custom name for the API Gateway API, default is ${sls:stage}-${self:service}
     payload: '2.0' # Specify payload format version for Lambda integration ('1.0' or '2.0'), default is '2.0'
+    disableDefaultEndpoint: false # Specify whether clients can invoke your API by using the default `execute-api` endpoint
+    metrics: true # Enable detailed metrics
     cors: true # Implies default behavior, can be fine tuned with specific options
     authorizers:
       # JWT authorizer to back HTTP API endpoints
