@@ -792,7 +792,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
               VpcConfig: {
                 VpcId: 'vpc-xxxx',
                 SecurityGroupIds: ['sg-111', 'sg-222'],
-                SubnetIds: ['subnet-111', 'subnet-222'],
+                SubnetIds: ['subnet-222', 'subnet-111'],
               },
             },
           },
