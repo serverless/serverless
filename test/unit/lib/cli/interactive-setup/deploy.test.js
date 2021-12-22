@@ -215,11 +215,6 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
             ],
             dashboardPlugin: {},
           };
-          this.getProvider = () => {
-            return {
-              accountId: '123',
-            };
-          };
         }
       }
 
@@ -281,11 +276,6 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
             ],
             dashboardPlugin: {},
           };
-          this.getProvider = () => {
-            return {
-              accountId: '123',
-            };
-          };
         }
       }
 
@@ -346,11 +336,6 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
               },
             ],
           };
-          this.getProvider = () => {
-            return {
-              accountId: '123',
-            };
-          };
         }
       }
 
@@ -402,11 +387,6 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
                 progress: {},
               },
             ],
-          };
-          this.getProvider = () => {
-            return {
-              accountId: '123',
-            };
           };
         }
       }
