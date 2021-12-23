@@ -22,7 +22,6 @@ const mockRequire = require('mock-require');
 const sinon = require('sinon');
 const proxyquire = require('proxyquire');
 const BbPromise = require('bluebird');
-const getCacheFilePath = require('../../../../lib/utils/getCacheFilePath');
 const { installPlugin } = require('../../../utils/plugins');
 const { getTmpDirPath } = require('../../../utils/fs');
 
@@ -416,7 +415,7 @@ describe('PluginManager', () => {
 
   let restoreEnv;
   let serviceDir;
-  let PluginManager = proxyquire('../../../../lib/classes/PluginManager', {
+  const PluginManager = proxyquire('../../../../lib/classes/PluginManager', {
     'ncjsm/resolve/sync': resolveStub,
   });
 
@@ -468,65 +467,6 @@ describe('PluginManager', () => {
       pluginManager.setCliCommands(commands);
 
       expect(pluginManager.cliCommands).to.equal(commands);
-    });
-  });
-
-  describe('#updateAutocompleteCacheFile()', () => {
-    let writeFileStub;
-    let cacheFilePath;
-    let getCommandsStub;
-
-    beforeEach(() => {
-      writeFileStub = sinon.stub().returns(BbPromise.resolve());
-      PluginManager = proxyquire('../../../../lib/classes/PluginManager.js', {
-        '../utils/fs/writeFile': writeFileStub,
-        'ncjsm/resolve/sync': resolveStub,
-      });
-      pluginManager = new PluginManager(serverless);
-      pluginManager.serverless.config = { servicePath: 'somePath' };
-      serviceDir = pluginManager.serverless.serviceDir;
-      cacheFilePath = getCacheFilePath(serviceDir);
-      getCommandsStub = sinon.stub(pluginManager, 'getCommands');
-    });
-
-    afterEach(() => {
-      pluginManager.getCommands.restore();
-    });
-
-    it('should update autocomplete cache file', () => {
-      const commandsMock = {
-        deploy: {
-          options: {
-            stage: {},
-          },
-          commands: {
-            function: {},
-          },
-        },
-        invoke: {
-          options: {
-            region: {},
-          },
-          commands: {
-            local: {},
-          },
-        },
-        remove: {},
-      };
-      const expectedCommands = {
-        deploy: ['--stage', 'function'],
-        invoke: ['--region', 'local'],
-        remove: [],
-      };
-      getCommandsStub.returns(commandsMock);
-
-      return pluginManager.updateAutocompleteCacheFile().then(() => {
-        expect(getCommandsStub.calledOnce).to.equal(true);
-        expect(writeFileStub.calledOnce).to.equal(true);
-        expect(writeFileStub.getCall(0).args[0]).to.equal(cacheFilePath);
-        expect(writeFileStub.getCall(0).args[1].commands).to.deep.equal(expectedCommands);
-        expect(typeof writeFileStub.getCall(0).args[1].validationHash).to.equal('string');
-      });
     });
   });
 
