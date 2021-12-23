@@ -15,9 +15,9 @@ describe('test/unit/lib/cli/render-help/command.test.js', () => {
     expect(output).to.have.string(commandsSchema.get('deploy function').usage);
   });
   it('should show help for container command', async () => {
-    const output = await observeOutput(() => renderCommandHelp('config tabcompletion'));
-    expect(output).to.have.string('config tabcompletion install');
-    expect(output).to.have.string(commandsSchema.get('config tabcompletion install').usage);
-    expect(output).to.have.string(commandsSchema.get('config tabcompletion uninstall').usage);
+    const output = await observeOutput(() => renderCommandHelp('plugin'));
+    expect(output).to.have.string('plugin install');
+    expect(output).to.have.string(commandsSchema.get('plugin install').usage);
+    expect(output).to.have.string(commandsSchema.get('plugin uninstall').usage);
   });
 });
