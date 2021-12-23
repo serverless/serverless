@@ -8,11 +8,6 @@ require('essentials');
 // https://github.com/isaacs/node-graceful-fs#global-patching
 require('graceful-fs').gracefulify(require('fs'));
 
-if (require('../lib/utils/tabCompletion/isSupported') && process.argv[2] === 'completion') {
-  require('../lib/utils/autocomplete')();
-  return;
-}
-
 // Setup log writing
 require('@serverless/utils/log-reporters/node');
 const { legacy, log, progress } = require('@serverless/utils/log');

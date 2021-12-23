@@ -70,7 +70,6 @@
     "semver": "^7.3.5",
     "signal-exit": "^3.0.6",
     "strip-ansi": "^6.0.1",
-    "tabtab": "^3.0.2",
     "tar": "^6.1.11",
     "timers-ext": "^0.1.7",
     "type": "^2.5.0",
