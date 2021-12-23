@@ -14,7 +14,7 @@ layout: Doc
 
 # AWS - Config
 
-The purpose of `serverless config` is to allow to enable or disable automatic update mechanism of the Framework. Additionally, it supports two subcommands, `config credentials` and `config tabcompletion`. For more details about them, please refer to their corresponding documentation pages. Auto update mechanism is supported for global installations across all operating systems with the exception of standalone binary installation on Windows.
+The purpose of `serverless config` is to allow to enable or disable automatic update mechanism of the Framework. Additionally, it supports `config credentials` subcommand. For more details about them, please refer to their corresponding documentation pages. Auto update mechanism is supported for global installations across all operating systems with the exception of standalone binary installation on Windows.
 
 ## Options
 
