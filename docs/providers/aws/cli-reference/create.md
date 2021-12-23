@@ -16,22 +16,24 @@ layout: Doc
 
 Creates a new service in the current working directory based on the provided template.
 
-**Create service in current working directory:**
+**Create a service in the current working directory:**
 
 ```bash
 serverless create --template aws-nodejs
 ```
 
-**Create service in new folder:**
+**Create a service in a new folder:**
 
 ```bash
 serverless create --template aws-nodejs --path myService
 ```
 
-**Create service in new folder using a custom template:**
+**Create a service in a new folder using a custom template:**
 
 ```bash
-serverless create --template-url https://github.com/serverless/serverless/tree/master/lib/plugins/create/templates/aws-nodejs --path myService
+serverless create \
+  --template-url https://github.com/serverless/serverless/tree/master/lib/plugins/create/templates/aws-nodejs \
+  --path myService
 ```
 
 ## Options
@@ -106,7 +108,10 @@ renamed to `my-new-service`.
 ### Creating a new service using a local template
 
 ```bash
-serverless create --template-path path/to/my/template/folder --path path/to/my/service --name my-new-service
+serverless create \
+  --template-path path/to/my/template/folder \
+  --path path/to/my/service \
+  --name my-new-service
 ```
 
 This will copy the `path/to/my/template/folder` folder into `path/to/my/service` and rename the service to `my-new-service`.

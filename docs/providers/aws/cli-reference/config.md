@@ -29,12 +29,12 @@ The purpose of `serverless config` is to allow to enable or disable automatic up
 
 ### Turn on auto update mechanism
 
-```
+```bash
 serverless config --autoupdate
 ```
 
 ### Turn off auto update mechanism
 
-```
+```bash
 serverless config --no-autoupdate
 ```

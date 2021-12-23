@@ -39,7 +39,7 @@ The Serverless Framework includes starter templates for various languages and pr
 
 `aws-go` fetches dependencies using standard `go get`.
 
-```
+```bash
 sls create --template aws-go --path myService
 ```
 
@@ -47,7 +47,7 @@ sls create --template aws-go --path myService
 
 `aws-go-dep` uses [go dep](https://github.com/golang/dep) and requires your project to be in `$GOPATH/src`.
 
-```
+```bash
 sls create --template aws-go-dep --path myService
 ```
 
@@ -55,7 +55,7 @@ sls create --template aws-go-dep --path myService
 
 `aws-go-mod` uses standard [Go modules] and requires your project to be **outside** `$GOPATH` and to use Go 1.13+.
 
-```
+```bash
 sls create --template aws-go-mod --path myService
 ```
 
@@ -88,7 +88,7 @@ Run `make build` to build both functions. Successful build should generate the f
 
 ## 3. Deploy
 
-```
+```bash
 sls deploy
 ```
 
@@ -96,11 +96,11 @@ This will deploy your function to AWS Lambda based on the settings in `serverles
 
 ## 4. Invoke deployed function
 
-```
+```bash
 sls invoke -f hello
 ```
 
-```
+```bash
 sls invoke -f world
 ```
 

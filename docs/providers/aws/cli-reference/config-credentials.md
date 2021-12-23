@@ -43,7 +43,11 @@ This example will configure the `default` profile with the `aws_access_key_id` o
 ### Configure a custom profile
 
 ```bash
-serverless config credentials --provider aws --key 1234 --secret 5678 --profile custom-profile
+serverless config credentials \
+  --provider aws \
+  --key 1234 \
+  --secret 5678 \
+  --profile custom-profile
 ```
 
 This example create and configure a `custom-profile` profile with the `aws_access_key_id` of `1234` and the `aws_secret_access_key` of `5678`.
@@ -51,7 +55,12 @@ This example create and configure a `custom-profile` profile with the `aws_acces
 ### Update an existing profile
 
 ```bash
-serverless config credentials --provider aws --key 1234 --secret 5678 --profile custom-profile --overwrite
+serverless config credentials \
+  --provider aws \
+  --key 1234 \
+  --secret 5678 \
+  --profile custom-profile \
+  --overwrite
 ```
 
 This example overwrite `custom-profile` profile with the `aws_access_key_id` of `1234` and the `aws_secret_access_key` of `5678`.

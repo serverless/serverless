@@ -91,7 +91,8 @@ export AWS_SECRET_ACCESS_KEY=<your-secret-key-here>
 # AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are now available for serverless to use
 serverless deploy
 
-# 'export' command is valid only for unix shells. In Windows - use 'set' instead of 'export'
+# 'export' command is valid only for unix shells
+# In Windows use 'set' instead of 'export'
 ```
 
 **Please note:** _If you are using a self-signed certificate you'll need to do one of the following:_
@@ -109,8 +110,8 @@ export cafile="/path/to/cafile.pem"
 # or multiple, comma separated
 export cafile="/path/to/cafile1.pem,/path/to/cafile2.pem"
 
-
-# 'export' command is valid only for unix shells. In Windows - use 'set' instead of 'export'
+# 'export' command is valid only for unix shells
+# In Windows use 'set' instead of 'export'
 ```
 
 #### Using AWS Profiles
@@ -124,7 +125,10 @@ Serverless provides a convenient way to configure AWS profiles with the help of 
 Here's an example how you can configure the `default` AWS profile:
 
 ```bash
-serverless config credentials --provider aws --key AKIAIOSFODNN7EXAMPLE --secret wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+serverless config credentials \
+  --provider aws \
+  --key AKIAIOSFODNN7EXAMPLE \
+  --secret wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 ```
 
 Take a look at the [`config` CLI reference](../cli-reference/config-credentials.md) for more information about credential configuration.

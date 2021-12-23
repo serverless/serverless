@@ -98,7 +98,8 @@ serverless invoke local --function functionName --context "hello world"
 ### Local function invocation with context passing
 
 ```bash
-serverless invoke local --function functionName --contextPath lib/context.json
+serverless invoke local --function functionName \
+  --contextPath lib/context.json
 ```
 
 This example will pass the json context in the `lib/context.json` file (relative to the root of the service) while invoking the specified/deployed function.
@@ -110,7 +111,9 @@ serverless invoke local -f functionName -e VAR1=value1
 
 # Or more than one variable
 
-serverless invoke local -f functionName -e VAR1=value1 -e VAR2=value2
+serverless invoke local -f functionName \
+  -e VAR1=value1 \
+  -e VAR2=value2
 ```
 
 When using [AWS CloudFormation intrinsic functions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html) as environment variables value, **only Fn::ImportValue and Ref** will be automatically resolved for function invocation. Other intrinsic functions use will result in the corresponding configuration object passed in the function as environment variable.
