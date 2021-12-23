@@ -1,6 +1,5 @@
 'use strict';
 
-const boxen = require('boxen');
 const chalk = require('chalk');
 const isStandaloneExecutable = require('../lib/utils/isStandaloneExecutable');
 
@@ -29,16 +28,5 @@ if (!truthyStr(CI) && !truthyStr(ADBLOCK) && !truthyStr(SILENT)) {
     messageTokens.push('Uninstall at any time by running “serverless uninstall”.');
   }
 
-  const message = messageTokens.join('\n\n');
-  process.stdout.write(
-    `${
-      isStandaloneExecutable && isWindows
-        ? message
-        : boxen(chalk.yellow(message), {
-            padding: 1,
-            margin: 1,
-            borderColor: 'yellow',
-          })
-    }\n`
-  );
+  process.stdout.write(`${chalk.grey(messageTokens.join('\n\n'))}\n`);
 }
