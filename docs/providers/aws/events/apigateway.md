@@ -1676,31 +1676,35 @@ provider:
 
 API Gateway makes it possible to return binary media such as images or files as responses.
 
-Configuring API Gateway to return binary media can be done via the `binaryMediaTypes` config:
+To return binary media in proxy integration, set the `binaryMediaTypes` config:
 
 ```yml
 provider:
   apiGateway:
     binaryMediaTypes:
       - '*/*'
-```
-
-In your Lambda function you need to ensure that the correct `content-type` header is set. Furthermore you might want to return the response body in base64 format.
-
-To convert the request or response payload, you can set the [contentHandling](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-payload-encodings-workflow.html) property (if set, the response contentHandling property will be passed to integration responses with 2XXs method response statuses).
-
-```yml
 functions:
-  create:
-    handler: posts.create
+  binaryExample:
+    handler: binaryExample.handler
     events:
       - http:
-          path: posts/create
-          method: post
-          request:
-            contentHandling: CONVERT_TO_TEXT
-          response:
-            contentHandling: CONVERT_TO_TEXT
+          path: binary
+          method: GET
+```
+
+Having that in your Lambda function, you need to ensure that the correct `content-type` header is set and provide a base64 encoded string for a body.
+e.g., Assuming that there's an `image.jpg` file located aside of `binaryExample.js` lambda handler, the handler can be set up as follows:
+
+```js
+const fsp = require('fs').promises;
+const path = require('path');
+
+module.exports.handler = async () => ({
+  statusCode: 200,
+  headers: { 'Content-type': 'image/jpeg' },
+  body: (await fsp.readFile(path.resolve(__dirname, 'image.jpg'))).toString('base64'),
+  isBase64Encoded: true,
+});
 ```
 
 ## Detailed CloudWatch Metrics
