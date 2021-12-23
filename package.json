@@ -31,7 +31,6 @@
     "archiver": "^5.3.0",
     "aws-sdk": "^2.1048.0",
     "bluebird": "^3.7.2",
-    "boxen": "^5.1.2",
     "cachedir": "^2.3.0",
     "chalk": "^4.1.2",
     "child-process-ext": "^2.1.1",
