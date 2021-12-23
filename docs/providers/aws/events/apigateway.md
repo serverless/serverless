@@ -339,7 +339,8 @@ functions:
               - X-Amz-Security-Token
               - X-Amz-User-Agent
             allowCredentials: false
-            cacheControl: 'max-age=600, s-maxage=600, proxy-revalidate' # Caches on browser and proxy for 10 minutes and doesnt allow proxy to serve out of date content
+            # Caches on browser and proxy for 10 minutes and doesnt allow proxy to serve out of date content
+            cacheControl: 'max-age=600, s-maxage=600, proxy-revalidate'
 ```
 
 CORS header accepts single value too
@@ -367,8 +368,10 @@ module.exports.hello = function (event, context, callback) {
   const response = {
     statusCode: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*', // Required for CORS support to work
-      'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+      // Required for CORS support to work
+      'Access-Control-Allow-Origin': '*',
+      // Required for cookies, authorization headers with HTTPS
+      'Access-Control-Allow-Credentials': true,
     },
     body: JSON.stringify({ message: 'Hello World!' }),
   };
@@ -636,10 +639,12 @@ provider:
     apiKeys:
       - myFirstKey
       - ${opt:stage}-myFirstKey
-      - ${env:MY_API_KEY} # you can hide it in a serverless variable
+      # you can hide it in a serverless variable
+      - ${env:MY_API_KEY}
       - name: myThirdKey
         value: myThirdKeyValue
-      - value: myFourthKeyValue # let cloudformation name the key (recommended when setting api key value)
+      # let cloudformation name the key (recommended when setting api key value)
+      - value: myFourthKeyValue
         description: Api key description # Optional
         customerId: A string that will be set as the customerID for the key # Optional
     usagePlan:
