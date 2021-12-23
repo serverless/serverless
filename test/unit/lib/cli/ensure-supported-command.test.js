@@ -25,7 +25,7 @@ describe('test/unit/lib/cli/ensure-supported-command.test.js', () => {
     triggeredDeprecations.clear();
     overrideArgv(
       {
-        args: ['serverless', 'config', 'tabcompletion'],
+        args: ['serverless', 'plugin'],
       },
       () => resolveInput()
     );
