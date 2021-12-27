@@ -154,7 +154,6 @@ If you are create a custom IAM Role with this policy, you will need to add a Tru
                 "s3:DeleteObjectVersion",
                 "events:PutRule",
                 "lambda:GetAccountSettings",
-                "s3:ListBucket",
                 "lambda:GetLayerVersionPolicy",
                 "s3:PutEncryptionConfiguration",
                 "apigateway:DELETE",
