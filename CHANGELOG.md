@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.70.0](https://github.com/serverless/serverless/compare/v2.69.1...v2.70.0) (2021-12-27)
+
+### Features
+
+- **AWS API Gateway:** Allow use of custom authorizer with authorizerId ([#10384](https://github.com/serverless/serverless/pull/10384)) ([c0eda27](https://github.com/serverless/serverless/commit/c0eda272901fd91947c6f37589b33f65c804dc9b)) ([Adam Lanners](https://github.com/darksun))
+- **AWS Local Invocation:** Upgrade `log4j` to version 2.17.0 ([#10396](https://github.com/serverless/serverless/issues/10396)) ([2782ed4](https://github.com/serverless/serverless/commit/2782ed4221caa410708cbabbbd09d45a6363be29)) ([Vassili Gorshkov](https://github.com/atlasgurus))
+
+### Bug Fixes
+
+- **AWS API Gateway:** Meaningfully reject missing `restApiRootResourceId` ([#10371](https://github.com/serverless/serverless/issues/10371)) ([2c0a962](https://github.com/serverless/serverless/commit/2c0a962c4fc0ad82ecbc6a266d56bfaa81ad8054)) ([Sudipto Das](https://github.com/sdas13))
+- **AWS Deploy:** Fix reliability of VPC config change detection in `deploy function` ([#10409](https://github.com/serverless/serverless/issues/10409)) ([0190d0d](https://github.com/serverless/serverless/commit/0190d0df05f4e37c8e965913ef1ceaf6b8a9b525)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Templates
+
+- Upgrade `log4j` in `aws-lambda-java-log4j2` ([#10383](https://github.com/serverless/serverless/issues/10383)) ([786f5e4](https://github.com/serverless/serverless/commit/786f5e45d54ae9925649367b0a0e8660eda542e6)) ([Marina](https://github.com/MarinaMeza))
+- Upgrade `log4j` in `aws-kotlin-jvm-gradle` ([#10382](https://github.com/serverless/serverless/issues/10382)) ([7bf8f1b](https://github.com/serverless/serverless/commit/7bf8f1b723cc4f6624df7be3d27f246b3a826140)) ([Varun](https://github.com/varun73))
+- Upgrade `log4j` dependencies ([#10392](https://github.com/serverless/serverless/issues/10392)) ([86fa604](https://github.com/serverless/serverless/commit/86fa60445c83cf35f3411ae49c2a1c4fc7fd82f0)) ([Juan Bermúdez](https://github.com/JuanBermudezN))
+
+### Maintenance Improvements
+
+- **Telemetry:**
+  - Report `didCreateService` property ([#10406](https://github.com/serverless/serverless/pull/10406)) ([4fa20a5](https://github.com/serverless/serverless/commit/4fa20a56eafcab9d8675baa2f0fe6a9c6ee5e184)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Report `projectId` in remove command ([#10415](https://github.com/serverless/serverless/pull/10415)) ([0de3bc3](https://github.com/serverless/serverless/commit/0de3bc3cb9c1685226ea0c610e030f9279e79e4e)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Ensure to report `projectId` for interactive ([#10406](https://github.com/serverless/serverless/pull/10406)) ([08b5acb](https://github.com/serverless/serverless/commit/08b5acbaa901c7ce529064c394151e05bdd43aef)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:** Replace internal old logging utils with modern interface ([#10417](https://github.com/serverless/serverless/pull/10417)) ([5a451ad](https://github.com/serverless/serverless/commit/5a451ad0249b6924cd4105e5c372028402517ecd)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:** Support custom sources in internal resolver ([#10393](https://github.com/serverless/serverless/pull/10393)) ([365a7f1](https://github.com/serverless/serverless/commit/365a7f13afaf40e9e2d573b0668159d6dea7aa02)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.69.1](https://github.com/serverless/serverless/compare/v2.69.0...v2.69.1) (2021-12-15)
 
 ### Bug Fixes
