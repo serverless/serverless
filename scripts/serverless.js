@@ -519,7 +519,7 @@ const processSpanPromise = (async () => {
         if (!process.stdin.isTTY && !process.env.SLS_INTERACTIVE_SETUP_ENABLE) {
           throw new ServerlessError(
             'Attempted to run an interactive setup in non TTY environment.\n' +
-              "If that's intentended enforce with SLS_INTERACTIVE_SETUP_ENABLE=1 environment variable",
+              "If that's intended enforce with SLS_INTERACTIVE_SETUP_ENABLE=1 environment variable",
             'INTERACTIVE_SETUP_IN_NON_TTY'
           );
         }
