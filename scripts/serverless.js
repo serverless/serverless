@@ -173,10 +173,10 @@ const processSpanPromise = (async () => {
         'NEW_VARIABLES_RESOLVER',
         `"${humanizedPropertyPath}" is not accessible ` +
           '(configured behind variables which cannot be resolved at this stage).\n' +
-          'Starting with next major release, ' +
-          'this will be communicated with a thrown error.\n' +
-          'Set "variablesResolutionMode: 20210326" in your service config, ' +
-          'to adapt to this behavior now',
+          'In the next major version ' +
+          'this will result in an error.\n' +
+          'Set "variablesResolutionMode: 20210326" in your service config ' +
+          'to opt in to this behavior now',
         { serviceConfig: configuration }
       );
       return false;
@@ -230,7 +230,7 @@ const processSpanPromise = (async () => {
               throw new ServerlessError(
                 `Cannot resolve ${path.basename(
                   configurationPath
-                )}: "variableSyntax" is not supported with new variables resolver. ` +
+                )}: "variableSyntax" is not supported with the new variables resolver. ` +
                   'Please drop this setting',
                 'UNSUPPORTED_VARIABLE_SYNTAX_CONFIGURATION'
               );
@@ -238,9 +238,9 @@ const processSpanPromise = (async () => {
             logDeprecation(
               'NEW_VARIABLES_RESOLVER',
               'Serverless Framework was enhanced with a new variables resolver ' +
-                'which doesn\'t recognize "provider.variableSyntax" setting.' +
-                "Starting with a new major it will be the only resolver that's used." +
-                '. Drop setting from a configuration to adapt to it',
+                'which ignores the "provider.variableSyntax" setting. ' +
+                "In the next major version it will be the only resolver that's used. " +
+                'Remove the "provider.variableSyntax" setting to prepare to the next major version.',
               { serviceConfig: configuration }
             );
             return;
@@ -519,7 +519,7 @@ const processSpanPromise = (async () => {
         if (!process.stdin.isTTY && !process.env.SLS_INTERACTIVE_SETUP_ENABLE) {
           throw new ServerlessError(
             'Attempted to run an interactive setup in non TTY environment.\n' +
-              "If that's intended enforce with SLS_INTERACTIVE_SETUP_ENABLE=1 environment variable",
+              "If that's intended, run with the SLS_INTERACTIVE_SETUP_ENABLE=1 environment variable",
             'INTERACTIVE_SETUP_IN_NON_TTY'
           );
         }
@@ -752,10 +752,10 @@ const processSpanPromise = (async () => {
             if (sourceType === 'param' || sourceType === 'output') {
               logDeprecation(
                 'NEW_VARIABLES_RESOLVER',
-                '"param" and "output" variable sources can be resolved only in context of ' +
-                  'services deployed to Serverless Dashboard (with "org" setting configured).\n' +
-                  'Starting with next major release, ' +
-                  'this will be communicated with a thrown error.\n',
+                '"param" and "output" variables can only be used in ' +
+                  'services deployed with Serverless Dashboard (with "org" setting configured).\n' +
+                  'In the next major release ' +
+                  'this will result in an error.\n',
                 { serviceConfig: configuration }
               );
               unresolvedSources.delete(sourceType);
@@ -769,8 +769,8 @@ const processSpanPromise = (async () => {
                 '"${cf.<region>:stackName.outputName}" is now deprecated, ' +
                 'as not supported by new variables resolver).\n' +
                 'Please upgrade to use new form instead.' +
-                'Starting with next major release, ' +
-                'this will be communicated with a thrown error.\n',
+                'In the next major release ' +
+                'this will result in an error.\n',
               { serviceConfig: configuration }
             );
           }
@@ -781,9 +781,9 @@ const processSpanPromise = (async () => {
                 '"${ssm(<region>):parameter-path}" (while  ' +
                 '"${ssm.<region>:parameter-path}" is now deprecated, ' +
                 'as not supported by new variables resolver).\n' +
-                'Please upgrade to use new form instead.' +
-                'Starting with next major release, ' +
-                'this will be communicated with a thrown error.\n',
+                'Please upgrade to use the new form instead.' +
+                'In the next major release ' +
+                'this will result in an error.\n',
               { serviceConfig: configuration }
             );
           }
@@ -794,12 +794,12 @@ const processSpanPromise = (async () => {
           if (unrecognizedSourceNames.length) {
             logDeprecation(
               'NEW_VARIABLES_RESOLVER',
-              `Approached unrecognized configuration variable sources: "${unrecognizedSourceNames.join(
+              `Unrecognized configuration variable sources: "${unrecognizedSourceNames.join(
                 '", "'
               )}".\n` +
-                'From a next major this will be communicated with a thrown error.\n' +
-                'Set "variablesResolutionMode: 20210326" in your service config, ' +
-                'to adapt to new behavior now',
+                'In the next major version this will result in an error.\n' +
+                'Set "variablesResolutionMode: 20210326" in your service config ' +
+                'to adapt to the new behavior now',
               { serviceConfig: configuration }
             );
           }
@@ -814,13 +814,13 @@ const processSpanPromise = (async () => {
           ) {
             throw new ServerlessError(
               '"Cannot resolve configuration: ' +
-                '"param" and "output" variable sources can be resolved only in context of ' +
-                'services deployed to Serverless Dashboard (with "org" setting configured)',
+                '"param" and "output" variables can only be used in ' +
+                'services deployed with Serverless Dashboard (with "org" setting configured)',
               'DASHBOARD_VARIABLE_SOURCES_MISUSE'
             );
           }
           throw new ServerlessError(
-            `Approached unrecognized configuration variable sources: "${unrecognizedSourceNames.join(
+            `Unrecognized configuration variable sources: "${unrecognizedSourceNames.join(
               '", "'
             )}"`,
             'UNRECOGNIZED_VARIABLE_SOURCES'

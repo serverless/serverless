@@ -6,9 +6,11 @@ layout: Doc
 
 # Serverless Framework Deprecations
 
-## How to disable specific deprecation logs
+## How to disable a specific deprecation
 
-To disable specific deprecations set `SLS_DEPRECATION_DISABLE` environment variable. Setting `SLS_DEPRECATION_DISABLE=*` will disable all deprecations. If you want to disable specific deprecations set `SLS_DEPRECATION_DISABLE=CODE1,CODE2`. Alternatively, you can also use `disabledDeprecations` in your `serverless.yml` in the following manner:
+To disable a deprecation, use the `SLS_DEPRECATION_DISABLE=CODE` environment variable. You can disable multiple deprecations via `SLS_DEPRECATION_DISABLE=CODE1,CODE2` or disable them all via `SLS_DEPRECATION_DISABLE=*`.
+
+Alternatively, you can set `disabledDeprecations` in `serverless.yml`:
 
 ```yml
 service: myService
@@ -17,24 +19,24 @@ disabledDeprecations:
   - '*' # To disable all deprecation messages
 ```
 
-## Notifications mode
+## Notification mode
 
-By default deprecations are logged, after command finalizes with a warning summary (`warn:summary` mode)
+By default, deprecations are logged after the command finalizes with a warning summary.
 
-Alternatively deprecation warnings can be displayed as they're discovered, on the go, that can be turned on with `warn` mode (this mode is automatically pursued on in case we fallback to locally installed Serverless Framework installation)
-
-If there's an intention to work with _deprecation_ free service, reporting mode can be switched to `error`, so approached deprecation is reported with a thrown error.
-
-Mode can be set via environment variable: `SLS_DEPRECATION_NOTIFICATION_MODE=error` or via top level service configuration setting:
+This notification mode can be changed via the `SLS_DEPRECATION_NOTIFICATION_MODE=error` environment variable or via `serverless.yml`:
 
 ```yaml
 deprecationNotificationMode: error
 ```
 
+The `error` mode turns all deprecations into strict errors.
+
+The `warn` mode displays deprecations as they're discovered (this mode is automatically enabled in case of fallback to a locally installed Serverless Framework installation).
+
 Note:
 
-- In service configuration setting is ineffective for deprecations reported before service configuration is read.
-- `SLS_DEPRECATION_DISABLE` env var and `disabledDeprecations` configuration setting remain respected, and no errors will be thrown for mentioned deprecation coodes.
+- The `serverless.yml` setting is ineffective for deprecations reported before the configuration is read.
+- `SLS_DEPRECATION_DISABLE` and `disabledDeprecations` remain respected, and no errors will be thrown for mentioned deprecation codes.
 
 <a name="S3_TRANSFER_ACCELERATION_ON_EXISTING_BUCKET"><div>&nbsp;</div></a>
 
