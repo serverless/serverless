@@ -104,7 +104,9 @@ If the templates proposed by the `serverless` command do not fit your needs, you
 
 ```sh
 # replace folder-name below with the folder name of the example you want to use
-$ serverless create -u https://github.com/serverless/examples/tree/master/folder-name -n my-project
+$ serverless create \
+  -u https://github.com/serverless/examples/tree/master/folder-name \
+  -n my-project
 ```
 
 ### Deploying

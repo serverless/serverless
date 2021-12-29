@@ -227,7 +227,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         ).to.be.false
     );
 
-    expect(stdoutData).to.include('Dashboard service is currently unavailable');
+    expect(stdoutData).to.include('Serverless Dashboard is currently unavailable');
   });
 
   it('Should be effective, at AWS service and no credentials are set', async () =>
@@ -616,7 +616,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         async () => await mockedStep.run(context)
       );
 
-      expect(stdoutData).to.include('Dashboard service is currently unavailable');
+      expect(stdoutData).to.include('Serverless Dashboard is currently unavailable');
       expect(mockedOpenBrowser).to.have.been.calledWith(
         chalk.bold.white(
           'https://app.serverless.com/someorg/settings/providers?source=cli&providerId=new&provider=aws'
@@ -744,7 +744,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
       );
 
       expect(stdoutData).to.include(
-        'Dashboard service is currently unavailable, please try again later'
+        'Serverless Dashboard is currently unavailable, please try again later'
       );
       expect(stdoutData).not.to.include('Selected provider was successfully linked');
       expect(mockedCreateProviderLink).to.have.been.calledWith(
@@ -787,7 +787,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
           })
       );
 
-      expect(stdoutData).to.include('Dashboard service is currently unavailable');
+      expect(stdoutData).to.include('Serverless Dashboard is currently unavailable');
     });
   });
 });
