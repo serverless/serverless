@@ -34,7 +34,7 @@ If you don't want to install Node or NPM, you can install a standalone binary.
 
 ### Install as a standalone binary
 
-### MacOS/Linux
+#### MacOS/Linux
 
 To install the latest version, run this command in your terminal:
 
@@ -50,7 +50,7 @@ curl -o- -L https://slss.io/install | VERSION=2.21.1 bash
 
 Then, open another terminal window to run the `serverless` program.
 
-### Windows
+#### Windows
 
 Install with [Chocolatey](https://chocolatey.org/):
 
