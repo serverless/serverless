@@ -9,6 +9,7 @@ on:
 env:
   SLS_IGNORE_WARNING: '*'
   FORCE_COLOR: 1
+  SLS_SCHEMA_CACHE_BASE_DIR: '/home/runner'
 
 jobs:
   linuxNode16:
