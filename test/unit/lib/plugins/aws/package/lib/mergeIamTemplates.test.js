@@ -341,7 +341,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
               },
             },
           })
-        ).to.be.eventually.rejectedWith(/'provider.iam.role.path': should match pattern/);
+        ).to.be.eventually.rejectedWith(/'provider.iam.role.path': must match pattern/);
       });
 
       it('should support `provider.iam.role.statements`', async () => {
