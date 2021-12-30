@@ -9,11 +9,14 @@ on:
 env:
   SLS_IGNORE_WARNING: '*'
   FORCE_COLOR: 1
+  SLS_SCHEMA_CACHE_BASE_DIR: '/home/runner'
 
 jobs:
   linuxNode14:
     name: '[Linux] Node.js 14: Lint, Formatting, Eventual Commitlint, Unit & packaging tests'
     runs-on: ubuntu-latest
+    env:
+      SLS_SCHEMA_CACHE_BASE_DIR: '/home/runner'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
