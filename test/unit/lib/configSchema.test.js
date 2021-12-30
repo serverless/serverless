@@ -12,7 +12,7 @@ describe('test/unit/lib/configSchema.test.js', () => {
     },
     {
       isValid: false,
-      errorMessage: "should have required property 'name'",
+      errorMessage: "must have required property 'name'",
       description: 'service required properties',
       mutation: {
         provider: { name: null },
@@ -20,7 +20,7 @@ describe('test/unit/lib/configSchema.test.js', () => {
     },
     {
       isValid: false,
-      errorMessage: 'should match pattern "^[a-zA-Z][0-9a-zA-Z-]+$"',
+      errorMessage: 'must match pattern "^[a-zA-Z][0-9a-zA-Z-]+$"',
       description: 'service name in string typed service',
       mutation: {
         service: '1-first-number-is-not-allowed',
