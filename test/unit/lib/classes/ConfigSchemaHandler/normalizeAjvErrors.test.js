@@ -2,7 +2,7 @@
 
 const { expect } = require('chai');
 
-const Ajv = require('ajv');
+const Ajv = require('ajv').default;
 const memoize = require('memoizee');
 const normalizeAjvErrors = require('../../../../../lib/classes/ConfigSchemaHandler/normalizeAjvErrors');
 
@@ -228,7 +228,7 @@ describe('#normalizeAjvErrors', () => {
     it('should report error for unrecognized deep level property', () =>
       expect(
         errors.some((error) => {
-          if (error.dataPath !== '.package') return false;
+          if (error.dataPath !== '/package') return false;
           if (error.keyword !== 'additionalProperties') return false;
           error.isExpected = true;
           return true;
@@ -237,7 +237,7 @@ describe('#normalizeAjvErrors', () => {
     it('should report error for invalid function name', () =>
       expect(
         errors.some((error) => {
-          if (error.dataPath !== '.functions') return false;
+          if (error.dataPath !== '/functions') return false;
           if (error.keyword !== 'additionalProperties') return false;
           error.isExpected = true;
           return true;
@@ -246,7 +246,7 @@ describe('#normalizeAjvErrors', () => {
     it('should report error for unrecognized event', () =>
       expect(
         errors.some((error) => {
-          if (error.dataPath !== ".functions['foo'].events[0]") return false;
+          if (error.dataPath !== '/functions/foo/events/0') return false;
           if (error.keyword !== 'anyOf') return false;
           error.isExpected = true;
           return true;
@@ -255,7 +255,7 @@ describe('#normalizeAjvErrors', () => {
     it('should report error for unrecognized property at event type configuration level', () =>
       expect(
         errors.some((error) => {
-          if (error.dataPath !== ".functions['foo'].events[1]") return false;
+          if (error.dataPath !== '/functions/foo/events/1') return false;
           if (error.keyword !== 'additionalProperties') return false;
           error.isExpected = true;
           return true;
@@ -274,7 +274,7 @@ describe('#normalizeAjvErrors', () => {
         //         method: GET # Should be additionally indented
         expect(
           errors.some((error) => {
-            if (error.dataPath !== ".functions['foo'].events[2]") return false;
+            if (error.dataPath !== '/functions/foo/events/2') return false;
             if (error.keyword !== 'additionalProperties') return false;
             error.isExpected = true;
             return true;
@@ -287,7 +287,7 @@ describe('#normalizeAjvErrors', () => {
       () =>
         expect(
           errors.some((error) => {
-            if (error.dataPath !== ".functions['foo'].events[3].http") return false;
+            if (error.dataPath !== '/functions/foo/events/3/http') return false;
             if (error.keyword !== 'additionalProperties') return false;
             error.isExpected = true;
             return true;
@@ -300,7 +300,7 @@ describe('#normalizeAjvErrors', () => {
       () =>
         expect(
           errors.some((error) => {
-            if (error.dataPath !== ".functions['foo'].events[4].http") return false;
+            if (error.dataPath !== '/functions/foo/events/4/http') return false;
             if (error.keyword !== 'pattern') return false;
             error.isExpected = true;
             return true;
@@ -313,7 +313,7 @@ describe('#normalizeAjvErrors', () => {
       () =>
         expect(
           errors.some((error) => {
-            if (error.dataPath !== ".functions['foo'].events[5].http") return false;
+            if (error.dataPath !== '/functions/foo/events/5/http') return false;
             if (error.keyword !== 'required') return false;
             error.isExpected = true;
             return true;
@@ -326,7 +326,7 @@ describe('#normalizeAjvErrors', () => {
       () =>
         expect(
           errors.some((error) => {
-            if (error.dataPath !== '.provider.deploymentBucket.maxPreviousDeploymentArtifacts') {
+            if (error.dataPath !== '/provider/deploymentBucket/maxPreviousDeploymentArtifacts') {
               return false;
             }
             if (error.keyword !== 'type') return false;
@@ -341,7 +341,7 @@ describe('#normalizeAjvErrors', () => {
       () =>
         expect(
           errors.some((error) => {
-            if (error.dataPath !== '.custom.someCustom') {
+            if (error.dataPath !== '/custom/someCustom') {
               return false;
             }
             if (error.keyword !== 'anyOf') return false;
@@ -356,7 +356,7 @@ describe('#normalizeAjvErrors', () => {
       () =>
         expect(
           errors.some((error) => {
-            if (error.dataPath !== '.custom.someString') {
+            if (error.dataPath !== '/custom/someString') {
               return false;
             }
             if (error.keyword !== 'anyOf') return false;
@@ -378,7 +378,7 @@ describe('#normalizeAjvErrors', () => {
     it('should report "additionalProperties" error with meaningful message', () =>
       expect(
         errors.find((error) => {
-          if (error.dataPath !== '.package') return false;
+          if (error.dataPath !== '/package') return false;
           if (error.keyword !== 'additionalProperties') return false;
           return true;
         }).message
@@ -386,7 +386,7 @@ describe('#normalizeAjvErrors', () => {
     it('should report invalid function name error with meaningful message', () =>
       expect(
         errors.find((error) => {
-          if (error.dataPath !== '.functions') return false;
+          if (error.dataPath !== '/functions') return false;
           if (error.keyword !== 'additionalProperties') return false;
           return true;
         }).message
@@ -394,7 +394,7 @@ describe('#normalizeAjvErrors', () => {
     it('should report unrecognized event error with a meaningful message', () =>
       expect(
         errors.find((error) => {
-          if (error.dataPath !== ".functions['foo'].events[0]") return false;
+          if (error.dataPath !== '/functions/foo/events/0') return false;
           if (error.keyword !== 'anyOf') return false;
           return true;
         }).message
@@ -402,7 +402,7 @@ describe('#normalizeAjvErrors', () => {
     it('should report value which do not match multiple constants with a meaningful message', () =>
       expect(
         errors.find((error) => {
-          if (error.dataPath !== '.custom.someCustom') return false;
+          if (error.dataPath !== '/custom/someCustom') return false;
           if (error.keyword !== 'anyOf') return false;
           return true;
         }).message
@@ -410,7 +410,7 @@ describe('#normalizeAjvErrors', () => {
     it('should report value which do not match multiple string formats with a meaningful message', () =>
       expect(
         errors.find((error) => {
-          if (error.dataPath !== '.custom.someString') return false;
+          if (error.dataPath !== '/custom/someString') return false;
           if (error.keyword !== 'anyOf') return false;
           return true;
         }).message
