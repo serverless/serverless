@@ -339,6 +339,77 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
                 Trigger: 'CustomMessage',
               },
             ],
+            ForceDeploy: 0,
+          },
+        });
+      });
+    });
+
+    it('should create the necessary resources for the most minimal configuration with forceDeploy', () => {
+      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
+        first: {
+          name: 'first',
+          events: [
+            {
+              cognitoUserPool: {
+                pool: 'existing-cognito-user-pool',
+                trigger: 'CustomMessage',
+                existing: true,
+                forceDeploy: true,
+              },
+            },
+          ],
+        },
+      };
+
+      return expect(
+        awsCompileCognitoUserPoolEvents.existingCognitoUserPools()
+      ).to.be.fulfilled.then(() => {
+        const { Resources } =
+          awsCompileCognitoUserPoolEvents.serverless.service.provider
+            .compiledCloudFormationTemplate;
+
+        expect(addCustomResourceToServiceStub).to.have.been.calledOnce;
+        expect(addCustomResourceToServiceStub.args[0][1]).to.equal('cognitoUserPool');
+        expect(addCustomResourceToServiceStub.args[0][2]).to.deep.equal([
+          {
+            Action: [
+              'cognito-idp:ListUserPools',
+              'cognito-idp:DescribeUserPool',
+              'cognito-idp:UpdateUserPool',
+            ],
+            Effect: 'Allow',
+            Resource: '*',
+          },
+          {
+            Action: ['lambda:AddPermission', 'lambda:RemovePermission'],
+            Effect: 'Allow',
+            Resource: { 'Fn::Sub': 'arn:${AWS::Partition}:lambda:*:*:function:first' },
+          },
+          {
+            Effect: 'Allow',
+            Resource: {
+              'Fn::Sub': 'arn:${AWS::Partition}:iam::*:role/*',
+            },
+            Action: ['iam:PassRole'],
+          },
+        ]);
+        expect(Resources.FirstCustomCognitoUserPool1).to.not.deep.equal({
+          Type: 'Custom::CognitoUserPool',
+          Version: 1,
+          DependsOn: ['FirstLambdaFunction', 'CustomDashresourceDashexistingDashcupLambdaFunction'],
+          Properties: {
+            ServiceToken: {
+              'Fn::GetAtt': ['CustomDashresourceDashexistingDashcupLambdaFunction', 'Arn'],
+            },
+            FunctionName: 'first',
+            UserPoolName: 'existing-cognito-user-pool',
+            UserPoolConfigs: [
+              {
+                Trigger: 'CustomMessage',
+              },
+            ],
+            ForceDeploy: 0,
           },
         });
       });
@@ -427,6 +498,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
                 Trigger: 'DefineAuthChallenge',
               },
             ],
+            ForceDeploy: 0,
           },
         });
       });
@@ -556,6 +628,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
                 Trigger: 'DefineAuthChallenge',
               },
             ],
+            ForceDeploy: 0,
           },
         });
         expect(Resources.SecondCustomCognitoUserPool1).to.deep.equal({
@@ -583,6 +656,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
                 Trigger: 'PostAuthentication',
               },
             ],
+            ForceDeploy: 0,
           },
         });
       });
