@@ -339,7 +339,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
                 Trigger: 'CustomMessage',
               },
             ],
-            ForceDeploy: 0,
+            ForceDeploy: undefined,
           },
         });
       });
@@ -409,7 +409,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
                 Trigger: 'CustomMessage',
               },
             ],
-            ForceDeploy: 0,
+            ForceDeploy: undefined,
           },
         });
       });
@@ -498,7 +498,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
                 Trigger: 'DefineAuthChallenge',
               },
             ],
-            ForceDeploy: 0,
+            ForceDeploy: undefined,
           },
         });
       });
@@ -628,7 +628,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
                 Trigger: 'DefineAuthChallenge',
               },
             ],
-            ForceDeploy: 0,
+            ForceDeploy: undefined,
           },
         });
         expect(Resources.SecondCustomCognitoUserPool1).to.deep.equal({
@@ -656,7 +656,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
                 Trigger: 'PostAuthentication',
               },
             ],
-            ForceDeploy: 0,
+            ForceDeploy: undefined,
           },
         });
       });
