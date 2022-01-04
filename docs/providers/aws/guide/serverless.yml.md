@@ -509,6 +509,7 @@ functions:
           pool: MyUserPool
           trigger: PreSignUp
           existing: true # optional, if you're referencing an existing User Pool
+          forceDeploy: true # optional, for forcing deployment of triggers on existing User Pools
       - alb:
           listenerArn: arn:aws:elasticloadbalancing:us-east-1:12345:listener/app/my-load-balancer/50dc6c495c0c9188/
           priority: 1
