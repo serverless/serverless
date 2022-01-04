@@ -45,6 +45,7 @@ Most commonly used templates:
 - google-nodejs
 - google-nodejs-typescript
 - google-go
+- google-ruby
 - google-python
 
 ## Examples
