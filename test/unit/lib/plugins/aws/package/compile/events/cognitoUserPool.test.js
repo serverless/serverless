@@ -346,7 +346,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
       });
     });
 
-    it('should create the necessary resources for the most minimal configuration with forceDeploy', async () => {
+    it('should support `forceDeploy` setting', async () => {
       const result = await runServerless({
         fixture: 'cognitoUserPool',
         configExt: {
@@ -371,8 +371,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
       const customResource =
         Resources[awsNaming.getCustomResourceCognitoUserPoolResourceLogicalId('existingSimple')];
 
-      expect(customResource.Properties.ForceDeploy).to.not.deep.equal(undefined);
-      expect(customResource.Properties.ForceDeploy).to.be.below(Date.now()).and.to.be.above(0);
+      expect(typeof customResource.Properties.ForceDeploy).to.equal('number');
     });
 
     it('should create the necessary resources for a service using multiple event definitions', () => {
