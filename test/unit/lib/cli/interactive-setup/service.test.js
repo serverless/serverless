@@ -104,7 +104,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       const stats = await fsp.lstat('test-project/serverless.yml');
       expect(stats.isFile()).to.be.true;
       expect(downloadTemplateFromRepoStub).to.have.been.calledWith(
-        'https://github.com/serverless/examples/tree/master/aws-nodejs',
+        'https://github.com/serverless/examples/tree/v2/aws-nodejs',
         'aws-nodejs',
         'test-project'
       );
@@ -145,7 +145,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       const stats = await fsp.lstat('test-project-template/serverless.yml');
       expect(stats.isFile()).to.be.true;
       expect(downloadTemplateFromRepoStub).to.have.been.calledWith(
-        'https://github.com/serverless/examples/tree/master/aws-nodejs',
+        'https://github.com/serverless/examples/tree/v2/aws-nodejs',
         'aws-nodejs',
         'test-project-template'
       );
@@ -192,7 +192,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       const stats = await fsp.lstat('test-project-package-json/serverless.yml');
       expect(stats.isFile()).to.be.true;
       expect(downloadTemplateFromRepoStub).to.have.been.calledWith(
-        'https://github.com/serverless/examples/tree/master/aws-nodejs',
+        'https://github.com/serverless/examples/tree/v2/aws-nodejs',
         'aws-nodejs',
         'test-project-package-json'
       );
@@ -368,7 +368,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       const stats = await fsp.lstat('test-project-from-provided-template/serverless.yml');
       expect(stats.isFile()).to.be.true;
       expect(downloadTemplateFromRepoStub).to.have.been.calledWith(
-        'https://github.com/serverless/examples/tree/master/test-template',
+        'https://github.com/serverless/examples/tree/v2/test-template',
         'test-template',
         'test-project-from-provided-template'
       );
@@ -379,8 +379,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
     });
 
     it('Should create project at not existing directory with provided `template-url`', async () => {
-      const providedTemplateUrl =
-        'https://github.com/serverless/examples/tree/master/test-template';
+      const providedTemplateUrl = 'https://github.com/serverless/examples/tree/v2/test-template';
       const downloadTemplateFromRepoStub = sinon.stub();
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
         '../../utils/downloadTemplateFromRepo': {
