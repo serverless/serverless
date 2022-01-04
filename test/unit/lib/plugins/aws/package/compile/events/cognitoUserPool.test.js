@@ -7,6 +7,7 @@ const chai = require('chai');
 const proxyquire = require('proxyquire').noCallThru();
 const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
 const Serverless = require('../../../../../../../../lib/Serverless');
+const runServerless = require('../../../../../../../utils/run-serverless');
 
 const { expect } = chai;
 chai.use(require('sinon-chai'));
@@ -345,74 +346,33 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
       });
     });
 
-    it('should create the necessary resources for the most minimal configuration with forceDeploy', () => {
-      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cognitoUserPool: {
-                pool: 'existing-cognito-user-pool',
-                trigger: 'CustomMessage',
-                existing: true,
-                forceDeploy: true,
-              },
+    it('should create the necessary resources for the most minimal configuration with forceDeploy', async () => {
+      const result = await runServerless({
+        fixture: 'cognitoUserPool',
+        configExt: {
+          functions: {
+            existingSimple: {
+              events: [
+                {
+                  cognitoUserPool: {
+                    forceDeploy: true,
+                  },
+                },
+              ],
             },
-          ],
+          },
         },
-      };
-
-      return expect(
-        awsCompileCognitoUserPoolEvents.existingCognitoUserPools()
-      ).to.be.fulfilled.then(() => {
-        const { Resources } =
-          awsCompileCognitoUserPoolEvents.serverless.service.provider
-            .compiledCloudFormationTemplate;
-
-        expect(addCustomResourceToServiceStub).to.have.been.calledOnce;
-        expect(addCustomResourceToServiceStub.args[0][1]).to.equal('cognitoUserPool');
-        expect(addCustomResourceToServiceStub.args[0][2]).to.deep.equal([
-          {
-            Action: [
-              'cognito-idp:ListUserPools',
-              'cognito-idp:DescribeUserPool',
-              'cognito-idp:UpdateUserPool',
-            ],
-            Effect: 'Allow',
-            Resource: '*',
-          },
-          {
-            Action: ['lambda:AddPermission', 'lambda:RemovePermission'],
-            Effect: 'Allow',
-            Resource: { 'Fn::Sub': 'arn:${AWS::Partition}:lambda:*:*:function:first' },
-          },
-          {
-            Effect: 'Allow',
-            Resource: {
-              'Fn::Sub': 'arn:${AWS::Partition}:iam::*:role/*',
-            },
-            Action: ['iam:PassRole'],
-          },
-        ]);
-        expect(Resources.FirstCustomCognitoUserPool1).to.not.deep.equal({
-          Type: 'Custom::CognitoUserPool',
-          Version: 1,
-          DependsOn: ['FirstLambdaFunction', 'CustomDashresourceDashexistingDashcupLambdaFunction'],
-          Properties: {
-            ServiceToken: {
-              'Fn::GetAtt': ['CustomDashresourceDashexistingDashcupLambdaFunction', 'Arn'],
-            },
-            FunctionName: 'first',
-            UserPoolName: 'existing-cognito-user-pool',
-            UserPoolConfigs: [
-              {
-                Trigger: 'CustomMessage',
-              },
-            ],
-            ForceDeploy: undefined,
-          },
-        });
+        command: 'package',
       });
+
+      const { Resources } = result.cfTemplate;
+      const { awsNaming } = result;
+
+      const customResource =
+        Resources[awsNaming.getCustomResourceCognitoUserPoolResourceLogicalId('existingSimple')];
+
+      expect(customResource.Properties.ForceDeploy).to.not.deep.equal(undefined);
+      expect(customResource.Properties.ForceDeploy).to.be.below(Date.now()).and.to.be.above(0);
     });
 
     it('should create the necessary resources for a service using multiple event definitions', () => {
