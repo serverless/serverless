@@ -7,6 +7,7 @@ const chai = require('chai');
 const proxyquire = require('proxyquire').noCallThru();
 const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
 const Serverless = require('../../../../../../../../lib/Serverless');
+const runServerless = require('../../../../../../../utils/run-serverless');
 
 const { expect } = chai;
 chai.use(require('sinon-chai'));
@@ -339,9 +340,38 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
                 Trigger: 'CustomMessage',
               },
             ],
+            ForceDeploy: undefined,
           },
         });
       });
+    });
+
+    it('should support `forceDeploy` setting', async () => {
+      const result = await runServerless({
+        fixture: 'cognitoUserPool',
+        configExt: {
+          functions: {
+            existingSimple: {
+              events: [
+                {
+                  cognitoUserPool: {
+                    forceDeploy: true,
+                  },
+                },
+              ],
+            },
+          },
+        },
+        command: 'package',
+      });
+
+      const { Resources } = result.cfTemplate;
+      const { awsNaming } = result;
+
+      const customResource =
+        Resources[awsNaming.getCustomResourceCognitoUserPoolResourceLogicalId('existingSimple')];
+
+      expect(typeof customResource.Properties.ForceDeploy).to.equal('number');
     });
 
     it('should create the necessary resources for a service using multiple event definitions', () => {
@@ -427,6 +457,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
                 Trigger: 'DefineAuthChallenge',
               },
             ],
+            ForceDeploy: undefined,
           },
         });
       });
@@ -556,6 +587,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
                 Trigger: 'DefineAuthChallenge',
               },
             ],
+            ForceDeploy: undefined,
           },
         });
         expect(Resources.SecondCustomCognitoUserPool1).to.deep.equal({
@@ -583,6 +615,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
                 Trigger: 'PostAuthentication',
               },
             ],
+            ForceDeploy: undefined,
           },
         });
       });
