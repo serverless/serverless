@@ -1821,7 +1821,7 @@ describe('PluginManager', () => {
         localPath: path.join(serviceDir, 'serverless-plugins-custom'),
         modules: ['local-plugin'],
       });
-      // Had to use contructor.name because the class will be loaded via
+      // Had to use constructor.name because the class will be loaded via
       // require and the reference will not match with SynchronousPluginMock
       expect(pluginManager.plugins).to.satisfy((plugins) =>
         plugins.some((plugin) => plugin.constructor.name === 'SynchronousPluginMock')
@@ -1837,23 +1837,7 @@ describe('PluginManager', () => {
         localPath: serviceDir,
         modules: ['local-plugin'],
       });
-      // Had to use contructor.name because the class will be loaded via
-      // require and the reference will not match with SynchronousPluginMock
-      expect(pluginManager.plugins).to.satisfy((plugins) =>
-        plugins.some((plugin) => plugin.constructor.name === 'SynchronousPluginMock')
-      );
-    });
-
-    it('should load plugins from custom folder outside of serviceDir', () => {
-      serviceDir = path.join(tmpDir, 'serverless-plugins-custom');
-      const localPluginDir = path.join(serviceDir, 'local-plugin');
-      installPlugin(localPluginDir, SynchronousPluginMock);
-
-      pluginManager.loadAllPlugins({
-        localPath: '../serverless-plugins-custom',
-        modules: ['local-plugin'],
-      });
-      // Had to use contructor.name because the class will be loaded via
+      // Had to use constructor.name because the class will be loaded via
       // require and the reference will not match with SynchronousPluginMock
       expect(pluginManager.plugins).to.satisfy((plugins) =>
         plugins.some((plugin) => plugin.constructor.name === 'SynchronousPluginMock')
