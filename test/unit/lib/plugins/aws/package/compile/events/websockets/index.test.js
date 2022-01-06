@@ -114,9 +114,10 @@ describe('AwsCompileWebsocketsEvents', () => {
 });
 
 describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test.js', () => {
-  describe.skip('TODO: regular configuration', () => {
+  describe('TODO: regular configuration', () => {
+    let cfTemplate;
     before(async () => {
-      await runServerless({
+      ({ cfTemplate } = await runServerless({
         fixture: 'function',
         command: 'package',
 
@@ -131,10 +132,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test
             },
           },
         },
-      });
+      }));
     });
 
     it('should create a websocket api resource', () => {
+      expect(cfTemplate.Resources.WebsocketsApi).to.not.equal(undefined);
       // Replaces
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/websockets/lib/api.test.js#L37-L52
     });
