@@ -239,7 +239,7 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
       } = await runServerless({
         fixture: 'packaging',
         command: 'package',
-        awsRequestStubMap: mockedDescribeStacksResponse,
+        awsRequestStubMap,
         configExt: {
           plugins: [
             './custom-plugins/index.js',
