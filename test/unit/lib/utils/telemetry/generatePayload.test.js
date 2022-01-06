@@ -152,6 +152,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
           general: ['AWS::Logs::LogGroup', 'AWS::S3::Bucket', 'Custom'],
         },
         variableSources: [],
+        paramsCount: 0,
       },
       isAutoUpdateEnabled: false,
       notificationsMode: 'on',
@@ -212,6 +213,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         ],
         resources: undefined,
         variableSources: [],
+        paramsCount: 0,
       },
       isAutoUpdateEnabled: false,
       notificationsMode: 'on',
@@ -275,6 +277,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         functions: [],
         resources: { general: [] },
         variableSources: [],
+        paramsCount: 0,
       },
       isAutoUpdateEnabled: false,
       notificationsMode: 'on',
@@ -367,6 +370,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         plugins: [],
         functions: [],
         resources: { general: [] },
+        paramsCount: 0,
       },
       isAutoUpdateEnabled: false,
       triggeredDeprecations: [],
@@ -694,5 +698,34 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     });
 
     expect(payload.didCreateService).to.be.true;
+  });
+
+  it('Should correctly resolve `params` property', () => {
+    const payload = generatePayload({
+      command: 'print',
+      options: {},
+      commandSchema: commandsSchema.get('print'),
+      serviceDir: process.cwd(),
+      configuration: {
+        service: 'foo',
+        provider: 'aws',
+        params: {
+          prod: {
+            val: '1',
+            other: '2',
+          },
+          staging: {
+            val: 'dev',
+            stagingonly: '1',
+          },
+          dev: {
+            devonly: 123,
+          },
+        },
+      },
+      commandUsage: [],
+    });
+
+    expect(payload.config.paramsCount).to.equal(4);
   });
 });
