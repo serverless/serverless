@@ -8,6 +8,9 @@ const Serverless = require('../../../../../../../../../../lib/Serverless');
 const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
 const ServerlessError = require('../../../../../../../../../../lib/serverless-error');
 
+const chai = require('chai');
+chai.use(require('chai-as-promised'));
+
 describe('#validate()', () => {
   let serverless;
   let awsCompileApigEvents;
@@ -1415,27 +1418,146 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/valida
   const getApiGatewayMethod = (path, method) =>
     cfResources[naming.getMethodLogicalId(naming.normalizePath(path), method)];
 
-  before(async () => {
+  describe('regular', () => {
+    before(async () => {
+      const result = await runServerless({
+        fixture: 'function',
+        command: 'package',
+        configExt: {
+          functions: {
+            corsDefault: {
+              handler: 'index.handler',
+              events: [
+                {
+                  http: {
+                    method: 'POST',
+                    path: '/cors-default-set-by-boolean',
+                    cors: true,
+                  },
+                },
+                {
+                  http: {
+                    method: 'POST',
+                    path: '/cors-default-set-by-object',
+                    cors: {},
+                  },
+                },
+              ],
+            },
+          },
+        },
+      });
+      cfTemplate = result.cfTemplate;
+      cfResources = cfTemplate.Resources;
+      naming = result.awsNaming;
+    });
+
+    it('should process cors defaults', async () => {
+      const expected = {
+        'method.response.header.Access-Control-Allow-Headers': `'${[
+          'Content-Type',
+          'X-Amz-Date',
+          'Authorization',
+          'X-Api-Key',
+          'X-Amz-Security-Token',
+          'X-Amz-User-Agent',
+        ].join(',')}'`,
+        'method.response.header.Access-Control-Allow-Methods': `'${['OPTIONS', 'POST'].join(',')}'`,
+        'method.response.header.Access-Control-Allow-Origin': "'*'",
+      };
+
+      expect(
+        getApiGatewayMethod('/cors-default-set-by-boolean', 'OPTIONS').Properties.Integration
+          .IntegrationResponses[0].ResponseParameters
+      ).to.deep.eq(expected);
+      expect(
+        getApiGatewayMethod('/cors-default-set-by-object', 'OPTIONS').Properties.Integration
+          .IntegrationResponses[0].ResponseParameters
+      ).to.deep.eq(expected);
+    });
+  });
+
+  it('should throw an error when restApiRootResourceId is not provided with restApiId', async () => {
+    await expect(
+      runServerless({
+        fixture: 'function',
+        command: 'package',
+        configExt: {
+          provider: {
+            apiGateway: {
+              restApiId: 'ivrcdpj7y2',
+            },
+          },
+          functions: {
+            first: {
+              handler: 'index.handler',
+              events: [
+                {
+                  http: {
+                    method: 'GET',
+                    path: 'foo/bar',
+                  },
+                },
+              ],
+            },
+          },
+        },
+      })
+    ).to.be.eventually.rejected.and.have.property(
+      'code',
+      'API_GATEWAY_MISSING_REST_API_ROOT_RESOURCE_ID'
+    );
+  });
+
+  it('should throw when using a CUSTOM authorizer without an authorizer id', async () => {
+    await expect(
+      runServerless({
+        fixture: 'function',
+        command: 'package',
+        configExt: {
+          functions: {
+            first: {
+              handler: 'index.handler',
+              events: [
+                {
+                  http: {
+                    method: 'POST',
+                    path: '/custom-authorizer',
+                    integration: 'lambda-proxy',
+                    authorizer: {
+                      type: 'CUSTOM',
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      })
+    ).to.be.eventually.rejected.and.have.property(
+      'code',
+      'API_GATEWAY_MISSING_AUTHORIZER_NAME_OR_ARN'
+    );
+  });
+
+  it('should not throw when using CUSTOM authorizer with an authorizer id', async () => {
     const result = await runServerless({
       fixture: 'function',
       command: 'package',
       configExt: {
         functions: {
-          corsDefault: {
+          first: {
             handler: 'index.handler',
             events: [
               {
                 http: {
                   method: 'POST',
-                  path: '/cors-default-set-by-boolean',
-                  cors: true,
-                },
-              },
-              {
-                http: {
-                  method: 'POST',
-                  path: '/cors-default-set-by-object',
-                  cors: {},
+                  path: '/custom-authorizer',
+                  integration: 'lambda-proxy',
+                  authorizer: {
+                    type: 'CUSTOM',
+                    authorizerId: 'MyAuthorizerId',
+                  },
                 },
               },
             ],
@@ -1443,32 +1565,10 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/valida
         },
       },
     });
-    cfTemplate = result.cfTemplate;
-    cfResources = cfTemplate.Resources;
+
+    cfResources = result.cfTemplate.Resources;
     naming = result.awsNaming;
-  });
-
-  it('should process cors defaults', async () => {
-    const expected = {
-      'method.response.header.Access-Control-Allow-Headers': `'${[
-        'Content-Type',
-        'X-Amz-Date',
-        'Authorization',
-        'X-Api-Key',
-        'X-Amz-Security-Token',
-        'X-Amz-User-Agent',
-      ].join(',')}'`,
-      'method.response.header.Access-Control-Allow-Methods': `'${['OPTIONS', 'POST'].join(',')}'`,
-      'method.response.header.Access-Control-Allow-Origin': "'*'",
-    };
-
-    expect(
-      getApiGatewayMethod('/cors-default-set-by-boolean', 'OPTIONS').Properties.Integration
-        .IntegrationResponses[0].ResponseParameters
-    ).to.deep.eq(expected);
-    expect(
-      getApiGatewayMethod('/cors-default-set-by-object', 'OPTIONS').Properties.Integration
-        .IntegrationResponses[0].ResponseParameters
-    ).to.deep.eq(expected);
+    const resource = getApiGatewayMethod('/custom-authorizer', 'POST');
+    expect(resource.Properties.AuthorizationType).to.equal('CUSTOM');
   });
 });

@@ -51,7 +51,11 @@ functions:
 
 For the SQS event integration, you can set the `batchSize`, which effects how many SQS messages can be included in a single Lambda invocation. The default `batchSize` is `10`. The max `batchSize` is `10000` for a standard queue, `10` for a FIFO queue.
 
-You can also set `maximumBatchingWindow` to standard queues to specify the maximum amount of time in seconds to gather records before invoking the function. The max `maximumBatchingWindow` is `300` seconds. Check [AWS documentation](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html) for more details.
+You can also set `maximumBatchingWindow` to standard queues to specify the maximum amount of time in seconds to gather records before invoking the function. The max `maximumBatchingWindow` is `300` seconds.
+
+You can set `functionResponseType` to `ReportBatchItemFailures` to let your function return a partial success result if one or more messages in the batch have failed.
+
+Check [AWS documentation](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html) for more details.
 
 ```yml
 functions:
@@ -62,6 +66,26 @@ functions:
           arn: arn:aws:sqs:region:XXXXXX:myQueue
           batchSize: 10
           maximumBatchingWindow: 60
+          functionResponseType: ReportBatchItemFailures
+```
+
+## Setting filter patterns
+
+This configuration allows customers to filter event before lambda invocation. It accepts up to 5 filter patterns by default and up to 10 with quota extension. If one event matches at least 1 pattern, lambda will process it.
+
+For more details and examples of filter patterns, please see the [AWS event filtering documentation](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventfiltering.html)
+
+Note: Serverless only sets this property if you explicitly add it to the `sqs` configuration (see an example below). The following example will only process records where field `a` is equal to 1 or 2.
+
+```yml
+functions:
+  onlyOneOrTwo:
+    handler: handler.preprocess
+    events:
+      - sqs:
+          arn: arn:aws:sqs:region:XXXXXX:myQueue
+          filterPatterns:
+            - a: [1, 2]
 ```
 
 ## IAM Permissions

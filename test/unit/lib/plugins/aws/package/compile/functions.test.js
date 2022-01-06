@@ -1921,6 +1921,11 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               handler: 'target.handler',
               layers: [{ Ref: 'ExternalLambdaLayer' }],
             },
+            fnProvisioned: {
+              handler: 'trigger.handler',
+              maximumRetryAttempts: 0,
+              provisionedConcurrency: 1,
+            },
           },
           resources: {
             Resources: {
@@ -2231,12 +2236,17 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
     it('should support `functions[].maximumRetryAttempts`', () => {
       const maximumRetryAttempts =
         serviceConfig.functions.fnMaximumRetryAttempts.maximumRetryAttempts;
+
       expect(maximumRetryAttempts).to.be.a('number');
 
       expect(
         cfResources[naming.getLambdaEventConfigLogicalId('fnMaximumRetryAttempts')].Properties
           .MaximumRetryAttempts
       ).to.equal(maximumRetryAttempts);
+
+      expect(cfResources[naming.getLambdaEventConfigLogicalId('fnProvisioned')].DependsOn).to.equal(
+        naming.getLambdaProvisionedConcurrencyAliasLogicalId('fnProvisioned')
+      );
     });
 
     it('should support `functions[].fileSystemConfig` (with vpc configured on function)', () => {

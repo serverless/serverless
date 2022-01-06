@@ -188,6 +188,8 @@ provider:
     id: 'my-id' # If we want to attach to externally created HTTP API its id should be provided here
     name: 'dev-my-service' # Use custom name for the API Gateway API, default is ${sls:stage}-${self:service}
     payload: '2.0' # Specify payload format version for Lambda integration ('1.0' or '2.0'), default is '2.0'
+    disableDefaultEndpoint: false # Specify whether clients can invoke your API by using the default `execute-api` endpoint
+    metrics: true # Enable detailed metrics
     cors: true # Implies default behavior, can be fine tuned with specific options
     authorizers:
       # JWT authorizer to back HTTP API endpoints
@@ -261,6 +263,7 @@ provider:
   stackParameters:
     - ParameterKey: 'Keyname'
       ParameterValue: 'Value'
+  disableRollback: true # To be used for non-production environment
   rollbackConfiguration:
     MonitoringTimeInMinutes: 20
     RollbackTriggers:
@@ -450,6 +453,8 @@ functions:
           batchSize: 10
           maximumBatchingWindow: 10 # optional, minimum is 0 and the maximum is 300 (seconds)
           enabled: true
+          filterPatterns:
+            - a: [ 1, 2 ]
       - stream:
           arn: arn:aws:kinesis:region:XXXXXX:stream/foo
           batchSize: 100
@@ -457,6 +462,8 @@ functions:
           startingPosition: LATEST
           enabled: true
           functionResponseType: ReportBatchItemFailures
+          filterPatterns:
+            - partitionKey: [ 1 ]
       - msk:
           arn: arn:aws:kafka:us-east-1:111111111111:cluster/ClusterName/a1a1a1a1a1a1a1a1a # ARN of MSK Cluster
           topic: kafkaTopic # name of Kafka topic to consume from
@@ -502,6 +509,7 @@ functions:
           pool: MyUserPool
           trigger: PreSignUp
           existing: true # optional, if you're referencing an existing User Pool
+          forceDeploy: true # optional, for forcing deployment of triggers on existing User Pools
       - alb:
           listenerArn: arn:aws:elasticloadbalancing:us-east-1:12345:listener/app/my-load-balancer/50dc6c495c0c9188/
           priority: 1

@@ -13,7 +13,7 @@ assemblyJarName in assembly := "hello.jar"
 libraryDependencies ++= Seq(
   "com.amazonaws" % "aws-lambda-java-events" % "2.2.7",
   "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
-  "com.amazonaws" % "aws-lambda-java-log4j2" % "1.1.0"
+  "com.amazonaws" % "aws-lambda-java-log4j2" % "1.5.0"
 )
 
 scalacOptions ++= Seq(

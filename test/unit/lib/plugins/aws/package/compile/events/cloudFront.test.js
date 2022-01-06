@@ -1624,7 +1624,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
       });
     });
 
-    it('should not show preconfigured notice on "sls remove" if service doesn\'t have  cloudFront event', async () => {
+    it('should not show preconfigured notice on "sls remove" if service doesn\'t have cloudFront event', async () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L113-L118
 

@@ -38,10 +38,10 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 
 ## Current variable sources:
 
+- [Other properties defined in `serverless.yml`](#reference-properties-in-serverlessyml)
 - [Serverless Core variables](#referencing-serverless-core-variables)
 - [Environment variables](#referencing-environment-variables)
 - [CLI options](#referencing-cli-options)
-- [Other properties defined in `serverless.yml`](#reference-properties-in-serverlessyml)
 - [External YAML/JSON files](#reference-properties-in-other-files)
 - [Variables from S3](#referencing-s3-objects)
 - [Variables from AWS SSM Parameter Store](#reference-variables-using-the-ssm-parameter-store)
@@ -50,8 +50,6 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 - [Properties exported from Javascript files (sync or async)](#reference-variables-in-javascript-files)
 - [Read String Variable Values as Boolean Values](#read-string-variable-values-as-boolean-values)
 - [Pseudo Parameters Reference](#aws-cloudformation-pseudo-parameters-and-intrinsic-functions)
-
-## Casting string variables to boolean values
 
 ## Recursively reference properties
 
@@ -339,6 +337,8 @@ New variable resolver, ensures that automatically other types as `SecureString` 
 #### Auto decrypting of `SecureString` type parameters.
 
 All `SecureString` type parameters are automatically decrypted, and automatically parsed if they export stringified JSON content (Note: you can turn off parsing by passing `raw` instruction into variable as: `${ssm(raw):/path/to/secureparam}`, if you need to also pass custom region, put it first as: `${ssm(eu-west-1, raw):/path/to/secureparam}`)
+
+In order to get the encrypted content, you can pass `noDecrypt` instruction into variable as: `${ssm(noDecrypt):/path/to/secureparam}` (it can be passed aside of region param as e.g.: `${ssm(eu-west-1, noDecrypt):/path/to/secureparam})`
 
 ## Reference Variables using AWS Secrets Manager
 

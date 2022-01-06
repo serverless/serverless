@@ -18,4 +18,14 @@ describe('getS3EndpointForRegion', () => {
     const actual = getS3EndpointForRegion('cn-north-1');
     expect(actual).to.equal(expected);
   });
+  it('should return US isolated region', () => {
+    const expected = 's3.us-iso-east-1.c2s.ic.gov';
+    const actual = getS3EndpointForRegion('us-iso-east-1');
+    expect(actual).to.equal(expected);
+  });
+  it('should return US isolated B region', () => {
+    const expected = 's3.us-isob-east-1.sc2s.sgov.gov';
+    const actual = getS3EndpointForRegion('us-isob-east-1');
+    expect(actual).to.equal(expected);
+  });
 });
