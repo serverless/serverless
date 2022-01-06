@@ -56,7 +56,20 @@ if (require('../lib/utils/isStandaloneExecutable')) {
       }
       return;
     case '@serverless/cli':
-      require('@serverless/cli').runComponents();
+      {
+        const chalk = require('chalk');
+        process.stdout.write(
+          `${[
+            'Serverless Components CLI v1 is no longer bundled with Serverless Framework CLI',
+            '',
+            "To run it, ensure it's installed:",
+            chalk.bold('npm install -g @serverless/cli'),
+            '',
+            'Then run:',
+            chalk.bold('components-v1 <command> <options>'),
+          ].join('\n')}\n`
+        );
+      }
       return;
     default:
       throw new Error(`Unrecognized CLI name "${cliName}"`);
