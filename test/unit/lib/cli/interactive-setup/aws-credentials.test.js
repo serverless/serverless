@@ -6,7 +6,6 @@ const proxyquire = require('proxyquire');
 const overrideEnv = require('process-utils/override-env');
 const overrideStdoutWrite = require('process-utils/override-stdout-write');
 const requireUncached = require('ncjsm/require-uncached');
-const chalk = require('chalk');
 const { StepHistory } = require('@serverless/utils/telemetry');
 
 const { expect } = chai;
@@ -485,9 +484,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
 
       expect(stdoutData).to.include('AWS Access Role provider was successfully created');
       expect(mockedOpenBrowser).to.have.been.calledWith(
-        chalk.bold.white(
-          'https://app.serverless.com/someorg/settings/providers?source=cli&providerId=new&provider=aws'
-        )
+        'https://app.serverless.com/someorg/settings/providers?source=cli&providerId=new&provider=aws'
       );
       expect(mockedDisconnect).to.have.been.called;
       expect(mockedCreateProviderLink).not.to.have.been.called;
@@ -562,9 +559,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
 
       expect(stdoutData).to.include('AWS Access Role provider was successfully created');
       expect(mockedOpenBrowser).to.have.been.calledWith(
-        chalk.bold.white(
-          'https://app.serverless.com/someorg/settings/providers?source=cli&providerId=new&provider=aws'
-        )
+        'https://app.serverless.com/someorg/settings/providers?source=cli&providerId=new&provider=aws'
       );
       expect(mockedDisconnect).to.have.been.called;
       expect(mockedCreateProviderLink).to.have.been.calledWith(
@@ -618,9 +613,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
 
       expect(stdoutData).to.include('Serverless Dashboard is currently unavailable');
       expect(mockedOpenBrowser).to.have.been.calledWith(
-        chalk.bold.white(
-          'https://app.serverless.com/someorg/settings/providers?source=cli&providerId=new&provider=aws'
-        )
+        'https://app.serverless.com/someorg/settings/providers?source=cli&providerId=new&provider=aws'
       );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([['credentialsSetupChoice', '_create_provider_']])
