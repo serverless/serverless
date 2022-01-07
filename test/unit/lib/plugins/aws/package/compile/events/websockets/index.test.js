@@ -194,7 +194,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test
 
     it('should not configure IAM policies with custom roles', () => {
       const id = awsNaming.getRoleLogicalId();
-      expect(cfTemplate.Resources[id]).to.deep.equal(undefined);
+      expect(cfTemplate.Resources[id]).to.equal(undefined);
       // Replaces
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/websockets/lib/api.test.js#L93-L103
     });
