@@ -114,7 +114,7 @@ describe('AwsCompileWebsocketsEvents', () => {
 });
 
 describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test.js', () => {
-  describe('TODO: regular configuration', () => {
+  describe('regular configuration', () => {
     let cfTemplate;
     let awsNaming;
     before(async () => {
@@ -156,9 +156,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test
     });
   });
 
-  describe.skip('TODO: external websocket API', () => {
+  describe('external websocket API', () => {
+    let cfTemplate;
+    let awsNaming;
     before(async () => {
-      await runServerless({
+      ({ cfTemplate, awsNaming } = await runServerless({
         fixture: 'function',
         command: 'package',
 
@@ -181,15 +183,18 @@ describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test
             },
           },
         },
-      });
+      }));
     });
 
     it('should not create a websocket api resource', () => {
+      expect(cfTemplate.Resources.WebsocketsApi).to.equal(undefined);
       // Replaces
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/websockets/lib/api.test.js#L54-L64
     });
 
     it('should not configure IAM policies with custom roles', () => {
+      const id = awsNaming.getRoleLogicalId();
+      expect(cfTemplate.Resources[id]).to.deep.equal(undefined);
       // Replaces
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/websockets/lib/api.test.js#L93-L103
     });
