@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const Module = require('module');
 
 // Temporary patch to help tackle peekaboo error, by revelaing fuller stack trace for "fs" errors
 // https://github.com/serverless/serverless/runs/1740873363
@@ -63,7 +64,15 @@ runnerEmitter.on('runner', (runner) => {
     resolveInput.clear();
     // Ensure to reset cache for local serverless installation resolution
     // Leaking it across test files may introduce wrong assumptions when result is used for testing
-    resolveLocalServerless.clear();
+    if (resolveLocalServerless._has('data')) {
+      // As we rely on native require.resolve, we need to ensure that it's cache related to
+      // tmp homedir is cleared
+      const homedir = require('os').homedir();
+      for (const key of Object.keys(Module._pathCache)) {
+        if (key.includes(homedir)) delete Module._pathCache[key];
+      }
+      resolveLocalServerless.clear();
+    }
     // Ensure to reset memoization on artifacts generation after each test file run.
     // Reason is that homedir is automatically cleaned for each test,
     // therefore eventually built custom resource file is also removed
