@@ -116,8 +116,9 @@ describe('AwsCompileWebsocketsEvents', () => {
 describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test.js', () => {
   describe('TODO: regular configuration', () => {
     let cfTemplate;
+    let awsNaming;
     before(async () => {
-      ({ cfTemplate } = await runServerless({
+      ({ cfTemplate, awsNaming } = await runServerless({
         fixture: 'function',
         command: 'package',
 
@@ -142,6 +143,14 @@ describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test
     });
 
     it('should configure expected IAM', () => {
+      const id = awsNaming.getRoleLogicalId();
+      expect(
+        cfTemplate.Resources[id].Properties.Policies[0].PolicyDocument.Statement
+      ).to.deep.include({
+        Effect: 'Allow',
+        Action: ['execute-api:ManageConnections'],
+        Resource: [{ 'Fn::Sub': 'arn:${AWS::Partition}:execute-api:*:*:*/@connections/*' }],
+      });
       // Replaces
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/websockets/lib/api.test.js#L66-L91
     });
