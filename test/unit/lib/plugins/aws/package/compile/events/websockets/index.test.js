@@ -147,8 +147,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test
           ProtocolType: 'WEBSOCKET',
         },
       });
-      // Replaces
-      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/websockets/lib/api.test.js#L37-L52
     });
 
     it('should configure expected IAM', () => {
@@ -160,8 +158,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test
         Action: ['execute-api:ManageConnections'],
         Resource: [{ 'Fn::Sub': 'arn:${AWS::Partition}:execute-api:*:*:*/@connections/*' }],
       });
-      // Replaces
-      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/websockets/lib/api.test.js#L66-L91
     });
   });
 
@@ -197,15 +193,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test
 
     it('should not create a websocket api resource', () => {
       expect(cfTemplate.Resources.WebsocketsApi).to.equal(undefined);
-      // Replaces
-      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/websockets/lib/api.test.js#L54-L64
     });
 
     it('should not configure IAM policies with custom roles', () => {
       const id = awsNaming.getRoleLogicalId();
       expect(cfTemplate.Resources[id]).to.equal(undefined);
-      // Replaces
-      // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/websockets/lib/api.test.js#L93-L103
     });
   });
 });
