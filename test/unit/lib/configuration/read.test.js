@@ -160,11 +160,13 @@ describe('test/unit/lib/configuration/read.test.js', () => {
   });
 
   it('should reject TS configuration if "ts-node" is not found', async () => {
-    configurationPath = 'serverless-errored.ts';
+    // Test against different service dir, to not fall into cached `require.resolve` value
+    configurationPath = 'other/serverless-errored.ts';
     const configuration = {
       service: 'test-ts',
       provider: { name: 'aws' },
     };
+    await fse.ensureFile(configurationPath);
     await fsp.writeFile(configurationPath, `module.exports = ${JSON.stringify(configuration)}`);
     await expect(
       proxyquire('../../../../lib/configuration/read', {
