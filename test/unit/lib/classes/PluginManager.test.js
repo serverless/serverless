@@ -4,7 +4,6 @@
 
 const chai = require('chai');
 const overrideEnv = require('process-utils/override-env');
-const cjsResolve = require('ncjsm/resolve/sync');
 const spawn = require('child-process-ext/spawn');
 const overrideArgv = require('process-utils/override-argv');
 const resolveAwsEnv = require('@serverless/test/resolve-env');
@@ -14,6 +13,7 @@ const CLI = require('../../../../lib/classes/CLI');
 const resolveInput = require('../../../../lib/cli/resolve-input');
 const Create = require('../../../../lib/plugins/create/create');
 const ServerlessError = require('../../../../lib/serverless-error');
+const getRequire = require('../../../../lib/utils/get-require');
 
 const path = require('path');
 const fs = require('fs');
@@ -405,18 +405,22 @@ describe('PluginManager', () => {
       case 'BrokenPluginMock':
       case 'ServicePluginMock1':
       case 'ServicePluginMock2':
-        return { realPath: pluginPath };
+        return pluginPath;
       case './RelativePath/ServicePluginMock2':
-        return { realPath: `${serviceDir}/RelativePath/ServicePluginMock2` };
+        return `${serviceDir}/RelativePath/ServicePluginMock2`;
       default:
-        return cjsResolve(directory, pluginPath);
+        return getRequire(directory).resolve(pluginPath);
     }
   };
 
   let restoreEnv;
   let serviceDir;
   const PluginManager = proxyquire('../../../../lib/classes/PluginManager', {
-    'ncjsm/resolve/sync': resolveStub,
+    '../utils/get-require': (directory) => {
+      const resultRequire = require('module').createRequire(path.resolve(directory, 'req'));
+      resultRequire.resolve = (pluginPath) => resolveStub(directory, pluginPath);
+      return resultRequire;
+    },
   });
 
   beforeEach(() => {
