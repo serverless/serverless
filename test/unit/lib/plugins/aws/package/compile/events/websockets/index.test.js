@@ -137,7 +137,16 @@ describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test
     });
 
     it('should create a websocket api resource', () => {
-      expect(cfTemplate.Resources.WebsocketsApi).to.not.equal(undefined);
+      const websocketsApiName = awsNaming.getWebsocketsApiName();
+      expect(cfTemplate.Resources.WebsocketsApi).to.deep.equal({
+        Type: 'AWS::ApiGatewayV2::Api',
+        Properties: {
+          Name: websocketsApiName,
+          RouteSelectionExpression: '$request.body.action',
+          Description: 'Serverless Websockets',
+          ProtocolType: 'WEBSOCKET',
+        },
+      });
       // Replaces
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/websockets/lib/api.test.js#L37-L52
     });
