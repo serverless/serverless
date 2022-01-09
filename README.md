@@ -57,8 +57,6 @@ cd my-new-service
 
 Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
 
-:warning: If deploying using a serverless.ts file, ts-node needs to be installed separately as a dev dependency.
-
 ```bash
 serverless deploy
 ```
