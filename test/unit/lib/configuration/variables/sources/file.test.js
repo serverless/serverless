@@ -49,7 +49,6 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
       notFile: '${file(dir.yaml)}',
       noParams: '${file:}',
       noParams2: '${file():}',
-      external: '${file(../file.test.js)}',
       invalidYaml: '${file(invalid.yml)}',
       invalidJson: '${file(invalid.json)}',
       invalidJs: '${file(invalid.js)}',
@@ -178,9 +177,6 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
     expect(variablesMeta.get('noParams2').error.code).to.equal('VARIABLE_RESOLUTION_ERROR');
   });
 
-  it('should report with an error attempt to access external path', () =>
-    expect(variablesMeta.get('external').error.code).to.equal('VARIABLE_RESOLUTION_ERROR'));
-
   it('should report with an error an invalid YAML file', () =>
     expect(variablesMeta.get('invalidYaml').error.code).to.equal('VARIABLE_RESOLUTION_ERROR'));
 
@@ -222,9 +218,8 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
     );
   });
 
-  it('should support "projectDir"', async () => {
+  it('should support reaching out beyond service directory', async () => {
     configuration = {
-      projectDir: '..',
       yml: '${file(../file.yml)}',
     };
     variablesMeta = resolveMeta(configuration);
