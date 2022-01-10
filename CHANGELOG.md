@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.71.0](https://github.com/serverless/serverless/compare/v2.70.0...v2.71.0) (2022-01-10)
+
+### Features
+
+- **AWS Cognito:** Support `forceDeploy` setting ([#10435](https://github.com/serverless/serverless/issues/10435)) ([c67a3f1](https://github.com/serverless/serverless/commit/c67a3f1a4fe6c64f2b6c68ef1b184b2642ad2266)) ([TsimpDim](https://github.com/TsimpDim))
+- **Variables:** Resign from `projectDir` concept ([#10478](https://github.com/serverless/serverless/pull/10478)) ([5a76437](https://github.com/serverless/serverless/commit/5a764373c49d5fb313f50218ab8166f1638c2c32)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **CLI:** Fix handling of provider URL handling ([#10461](https://github.com/serverless/serverless/pull/10461)) ([7ebe133](https://github.com/serverless/serverless/commit/7ebe133b35fa9affafd73b61ee4626d8ce5aee1f)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Config Schema:** Address invalid schema definitions ([#10452](https://github.com/serverless/serverless/pull/10452)) ([9e1fe0a](https://github.com/serverless/serverless/commit/9e1fe0ad5da8b936ccb238041fb2b452e6309faf)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **CLI Onboarding:** Download templates from v2 examples branch ([#10447](https://github.com/serverless/serverless/pull/10447)) ([46d090a](https://github.com/serverless/serverless/commit/46d090a302b9f7f4a3cf479695489b7ffc46b75b)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:** Ensure telemetry logs are issued at debug level ([#10424](https://github.com/serverless/serverless/pull/10424)) ([7b36038](https://github.com/serverless/serverless/commit/7b360386eadb9a83af73514ced34bc901af43457)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Templates
+
+- Upgrade `log4j` to `2.17.1` in corresponding templates ([#10430](https://github.com/serverless/serverless/issues/10430)) ([2c3ab1d](https://github.com/serverless/serverless/commit/2c3ab1db9aa7c22c315957d1e474568e62e07e37)) ([Graham Campbell](https://github.com/GrahamCampbell))
+
 ## [2.70.0](https://github.com/serverless/serverless/compare/v2.69.1...v2.70.0) (2021-12-27)
 
 ### Features
