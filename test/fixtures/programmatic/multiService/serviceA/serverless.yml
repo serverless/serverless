@@ -3,8 +3,6 @@ service: service
 configValidationMode: error
 frameworkVersion: '*'
 
-projectDir: ../
-
 provider:
   name: aws
   runtime: nodejs12.x
