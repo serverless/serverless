@@ -229,38 +229,6 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
     });
   });
 
-  describe('with local plugins', async () => {
-    it('should exclude local plugins with relative paths', async () => {
-      const {
-        fixtureData: {
-          servicePath: serviceDir,
-          serviceConfig: { service: serviceName },
-        },
-      } = await runServerless({
-        fixture: 'packaging',
-        command: 'package',
-        awsRequestStubMap,
-        configExt: {
-          plugins: [
-            './custom-plugins/index.js',
-            './custom-plugins/plugin-2/index',
-            './custom-plugins/plugin-3',
-            './custom-plugins/plugin-4/',
-          ],
-        },
-      });
-
-      const zippedFiles = await listZipFiles(
-        path.join(serviceDir, '.serverless', `${serviceName}.zip`)
-      );
-
-      expect(zippedFiles).to.not.include('custom-plugins/index.js');
-      expect(zippedFiles).to.not.include('custom-plugins/plugin-2/index.js');
-      expect(zippedFiles).to.not.include('custom-plugins/plugin-3/src/main.js');
-      expect(zippedFiles).to.not.include('custom-plugins/plugin-4/index.js');
-    });
-  });
-
   describe('pre-prepared artifact', () => {
     let serverless;
     before(async () => {
