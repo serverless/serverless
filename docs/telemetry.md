@@ -20,6 +20,8 @@ SLS_TELEMETRY_DISABLED=1 sls deploy
 
 Disabling telemetry via `SLS_TELEMETRY_DISABLED` environment variable is available since Serverless Framework `2.37.1`.
 
+As of Serverless Framework `2.72.0`, setting `DO_NOT_TRACK=1` will also disable telemetry.
+
 Alternatively, it is also possible to globally disable telemetry by running the following command:
 
 ```
