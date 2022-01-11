@@ -46,7 +46,8 @@ patchCallback('open');
 patchCallback('readFile');
 
 const ensureArtifact = require('../lib/utils/ensureArtifact');
-const resolveLocalServerless = require('../lib/cli/resolve-local-serverless-path');
+
+const localServerlessPathModulePath = require.resolve('../lib/cli/local-serverless-path');
 const resolveInput = require('../lib/cli/resolve-input');
 
 const BbPromise = require('bluebird');
@@ -64,14 +65,14 @@ runnerEmitter.on('runner', (runner) => {
     resolveInput.clear();
     // Ensure to reset cache for local serverless installation resolution
     // Leaking it across test files may introduce wrong assumptions when result is used for testing
-    if (resolveLocalServerless._has('data')) {
+    if (require.cache[localServerlessPathModulePath]) {
       // As we rely on native require.resolve, we need to ensure that it's cache related to
       // tmp homedir is cleared
       const homedir = require('os').homedir();
       for (const key of Object.keys(Module._pathCache)) {
         if (key.includes(homedir)) delete Module._pathCache[key];
       }
-      resolveLocalServerless.clear();
+      delete require.cache[localServerlessPathModulePath];
     }
     // Ensure to reset memoization on artifacts generation after each test file run.
     // Reason is that homedir is automatically cleaned for each test,
