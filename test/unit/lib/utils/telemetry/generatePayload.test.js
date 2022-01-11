@@ -8,7 +8,6 @@ const overrideEnv = require('process-utils/override-env');
 const overrideCwd = require('process-utils/override-cwd');
 const proxyquire = require('proxyquire');
 
-const resolveLocalServerless = require('../../../../../lib/cli/resolve-local-serverless-path');
 const commandsSchema = require('../../../../../lib/cli/commands-schema');
 const runServerless = require('../../../../utils/run-serverless');
 const fixtures = require('../../../../fixtures/programmatic');
@@ -18,25 +17,30 @@ const versions = {
   '@serverless/dashboard-plugin': require('@serverless/dashboard-plugin/package').version,
 };
 
-const generatePayload = proxyquire('../../../../../lib/utils/telemetry/generatePayload', {
-  '@serverless/utils/get-notifications-mode': () => 'on',
-});
+const getGeneratePayload = () =>
+  proxyquire('../../../../../lib/utils/telemetry/generatePayload', {
+    '@serverless/utils/get-notifications-mode': () => 'on',
+  });
 
 describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   let isTTYCache;
+  let originalModulesCache;
   before(() => {
     // In order for tests below to return `commandDurationMs`
     EvalError.$serverlessCommandStartTime = process.hrtime();
     isTTYCache = process.stdin.isTTY;
     process.stdin.isTTY = true;
+    originalModulesCache = Object.assign({}, require.cache);
   });
 
   after(() => {
     process.stdin.isTTY = isTTYCache;
+    for (const key of Object.keys(require.cache)) delete require.cache[key];
+    Object.assign(require.cache, originalModulesCache);
   });
 
   beforeEach(() => {
-    resolveLocalServerless.clear();
+    for (const key of Object.keys(require.cache)) delete require.cache[key];
   });
 
   it('Should resolve payload for AWS service', async () => {
@@ -104,7 +108,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       cwd: serviceDir,
       command: 'print',
     });
-    const payload = generatePayload({
+    const payload = getGeneratePayload()({
       command: 'print',
       options: {},
       commandSchema: commandsSchema.get('print'),
@@ -169,7 +173,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       fixture: 'customProvider',
       command: 'print',
     });
-    const payload = generatePayload({
+    const payload = getGeneratePayload()({
       command: 'print',
       options: {},
       commandSchema: commandsSchema.get('print'),
@@ -235,7 +239,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       modulesCacheStub: {},
     });
     const payload = overrideCwd(serviceDir, () =>
-      generatePayload({
+      getGeneratePayload()({
         command: 'print',
         options: {},
         commandSchema: commandsSchema.get('print'),
@@ -294,7 +298,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should resolve service-agnostic payload', async () => {
-    const payload = generatePayload({
+    const payload = getGeneratePayload()({
       command: 'config',
       options: {},
       commandSchema: commandsSchema.get('config'),
@@ -330,7 +334,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should resolve service-agnostic payload for command with `serviceDependencyMode: "optional"`', () => {
-    const payload = generatePayload({
+    const payload = getGeneratePayload()({
       command: '',
       options: {},
       commandSchema: commandsSchema.get(''),
@@ -383,7 +387,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should correctly resolve payload with missing service configuration', () => {
-    const payload = generatePayload({
+    const payload = getGeneratePayload()({
       command: 'plugin list',
       options: {},
       commandSchema: commandsSchema.get('plugin list'),
@@ -428,7 +432,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       })
     );
 
-    const payload = generatePayload({
+    const payload = getGeneratePayload()({
       command: 'config',
       options: {},
       commandSchema: commandsSchema.get('config'),
@@ -452,7 +456,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     let payload;
 
     overrideEnv({ variables: { SERVERLESS_ACCESS_KEY: 'some-key' } }, () => {
-      payload = generatePayload({
+      payload = getGeneratePayload()({
         command: 'config',
         options: {},
         commandSchema: commandsSchema.get('config'),
@@ -468,7 +472,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     let payload;
 
     overrideEnv({ variables: { SERVERLESS_CI_CD: 'true' } }, () => {
-      payload = generatePayload({
+      payload = getGeneratePayload()({
         command: 'config',
         options: {},
         commandSchema: commandsSchema.get('config'),
@@ -483,7 +487,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     let payload;
 
     overrideEnv({ variables: { SEED_APP_NAME: 'some-app' } }, () => {
-      payload = generatePayload({
+      payload = getGeneratePayload()({
         command: 'config',
         options: {},
         commandSchema: commandsSchema.get('config'),
@@ -495,7 +499,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should correctly resolve `commandOptionNames` property', () => {
-    const payload = generatePayload({
+    const payload = getGeneratePayload()({
       command: 'print',
       options: {
         region: 'eu-west-1',
@@ -513,7 +517,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should correctly resolve `constructs` property', () => {
-    const payload = generatePayload({
+    const payload = getGeneratePayload()({
       command: 'print',
       commandSchema: commandsSchema.get('print'),
       options: {},
@@ -549,7 +553,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should correctly resolve `configValidationMode` property', () => {
-    const payload = generatePayload({
+    const payload = getGeneratePayload()({
       command: 'print',
       commandSchema: commandsSchema.get('print'),
       options: {},
@@ -568,7 +572,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     overrideEnv(
       { variables: { AWS_ACCESS_KEY_ID: 'someaccesskey', AWS_SECRET_ACCESS_KEY: 'secretkey' } },
       () => {
-        payload = generatePayload({
+        payload = getGeneratePayload()({
           command: 'print',
           options: {},
           commandSchema: commandsSchema.get('print'),
@@ -586,7 +590,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     overrideEnv(
       { variables: { AWS_ACCESS_KEY_ID: 'someaccesskey', AWS_SECRET_ACCESS_KEY: 'secretkey' } },
       () => {
-        payload = generatePayload({
+        payload = getGeneratePayload()({
           command: 'print',
           options: {},
           commandSchema: commandsSchema.get('print'),
@@ -600,7 +604,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should correctly resolve `commandUsage` property', () => {
-    const payload = generatePayload({
+    const payload = getGeneratePayload()({
       command: 'print',
       options: {},
       commandSchema: commandsSchema.get('print'),
@@ -645,7 +649,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should correctly resolve `variableSources` property', () => {
-    const payload = generatePayload({
+    const payload = getGeneratePayload()({
       command: 'print',
       options: {},
       commandSchema: commandsSchema.get('print'),
@@ -667,7 +671,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       },
     });
     serverless.getProvider('aws').accountId = '1234567890';
-    const payload = generatePayload({
+    const payload = getGeneratePayload()({
       command: 'deploy',
       options: {},
       commandSchema: commandsSchema.get('deploy'),
@@ -688,7 +692,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       },
     });
     serverless.getProvider('aws').didCreateService = true;
-    const payload = generatePayload({
+    const payload = getGeneratePayload()({
       command: '',
       options: {},
       commandSchema: commandsSchema.get('deploy'),
@@ -701,7 +705,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should correctly resolve `params` property', () => {
-    const payload = generatePayload({
+    const payload = getGeneratePayload()({
       command: 'print',
       options: {},
       commandSchema: commandsSchema.get('print'),
