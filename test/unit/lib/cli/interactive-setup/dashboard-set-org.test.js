@@ -107,7 +107,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
     });
   });
 
-  // TODO: VERIFY THESE CLEANUPS
   after(() => {
     sinon.restore();
   });

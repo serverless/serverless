@@ -255,8 +255,6 @@ describe('HTTP API Integration Test', function () {
     });
 
     after(async function () {
-      // Added temporarily to inspect random fails
-      // TODO: Remove once properly diagnosed
       if (this.test.parent.tests.some((test) => test.state === 'failed')) return;
       log.notice('Removing service...');
       await removeService(serviceDir);
