@@ -222,21 +222,6 @@ describe('AwsProvider', () => {
           expect(awsRequestStub.memoized).to.have.been.calledTwice;
         });
     });
-
-    it('should detect incompatible legacy use of aws request and print a debug warning', () => {
-      // Enable debug log
-      process.env.SLS_DEBUG = true;
-      return awsProviderProxied
-        .request('S3', 'getObject', {}, 'incompatible string option')
-        .then(() => {
-          expect(logStub).to.have.been.calledWith(
-            'WARNING: Inappropriate call of provider.request()'
-          );
-        })
-        .finally(() => {
-          process.env.SLS_DEBUG = false;
-        });
-    });
   });
 
   describe('#getServerlessDeploymentBucketName()', () => {

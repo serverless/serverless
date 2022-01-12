@@ -4,7 +4,6 @@ const chai = require('chai');
 const sinon = require('sinon');
 const BbPromise = require('bluebird');
 const proxyquire = require('proxyquire');
-const chalk = require('chalk');
 const PluginInstall = require('../../../../../../lib/plugins/plugin/install');
 const Serverless = require('../../../../../../lib/Serverless');
 const CLI = require('../../../../../../lib/classes/CLI');
@@ -87,30 +86,6 @@ describe('PluginUtils', () => {
 
     it('should support scoped names', () => {
       expect(pluginUtils.getPluginInfo('@acme/some-plugin')).to.deep.equal(['@acme/some-plugin']);
-    });
-  });
-
-  describe('#display()', () => {
-    it('should display the plugins if present', () => {
-      let expectedMessage = '';
-      expectedMessage += `${chalk.yellow.underline('serverless-existing-plugin')}`;
-      expectedMessage += ' - Serverless Existing plugin\n';
-      expectedMessage += `${chalk.yellow.underline('serverless-plugin-1')}`;
-      expectedMessage += ' - Serverless Plugin 1\n';
-      expectedMessage += `${chalk.yellow.underline('serverless-plugin-2')}`;
-      expectedMessage += ' - Serverless Plugin 2\n';
-      expectedMessage = expectedMessage.slice(0, -2);
-      return expect(pluginUtils.display(plugins)).to.be.fulfilled.then((message) => {
-        expect(message).to.equal(expectedMessage);
-      });
-    });
-
-    it('should print a message when no plugins are available to display', () => {
-      const expectedMessage = 'There are no plugins available to display';
-
-      return pluginUtils.display([]).then((message) => {
-        expect(message).to.equal(expectedMessage);
-      });
     });
   });
 });
