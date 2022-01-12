@@ -295,3 +295,28 @@ configValidationMode: error
 Unlike planned initially, loading `.env` files is kept opt-in via `useDotenv: true`.
 
 Additionally, the short form `serverless deploy -f <function>` is still allowed in v3, but `serverless deploy function -f <function>` stays the preferred form.
+
+### Plugins
+
+The [`serverless-dotenv-plugin`](https://github.com/neverendingqs/serverless-dotenv-plugin) is directly impacted by v3. Indeed, for technical reasons the plugin will no longer be able to resolve `${env:xxx}` variables from `.env` files.
+
+However, `.env` files are now natively supported by Serverless Framework v3. Set `useDotenv: true` to use `.env` variables with `${env:xxx}`:
+
+```yaml
+useDotenv: true
+
+provider:
+  environment:
+    FOO: ${env:FOO}
+```
+
+The plugin can still be used as usual if you want to automatically import **all** variables from `.env` into functions.
+
+```yaml
+plugins:
+  - serverless-dotenv-plugin
+
+provider:
+  environment:
+    # With the plugin enabled, all variables in .env are automatically imported
+```
