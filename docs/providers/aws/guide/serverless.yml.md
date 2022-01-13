@@ -616,6 +616,7 @@ layers:
 
 # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 resources:
+  Description: My nice description of the stack
   Resources:
     usersTable:
       Type: AWS::DynamoDB::Table
