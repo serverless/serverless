@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+// WARNING: Do not use syntax not supported by old Node.js versions (v4 lowest)
+// It's to ensure that users running those versions, see properly the error message
+// (as constructed below) instead of the syntax error
+
 'use strict';
 
 // `EvalError` is used to not pollute global namespace but still have the value accessible globally
@@ -31,9 +35,7 @@ if (require('../lib/utils/isStandaloneExecutable')) {
   }
 }
 
-(async () => {
-  const cliName = await require('../lib/cli/triage')();
-
+require('../lib/cli/triage')().then((cliName) => {
   switch (cliName) {
     case 'serverless':
       require('../scripts/serverless');
@@ -47,4 +49,4 @@ if (require('../lib/utils/isStandaloneExecutable')) {
     default:
       throw new Error(`Unrecognized CLI name "${cliName}"`);
   }
-})();
+});

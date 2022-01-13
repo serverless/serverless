@@ -207,3 +207,18 @@ jobs:
         # Some tests depend on TTY support, which is missing in GA runner
         # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
         run: script -e -c "npm test -- -b"
+
+  linuxNode4:
+    name: '[Linux] Node.js v4: Node version validation test'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 4.x
+
+      - name: Node version validation test
+        run: ./bin/serverless.js | grep -q "Initialization error"
