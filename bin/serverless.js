@@ -10,12 +10,14 @@
 EvalError.$serverlessCommandStartTime = process.hrtime();
 
 const nodeVersion = Number(process.version.split('.')[0].slice(1));
+const minimumSupportedVersion = 12;
 
-if (nodeVersion < 12) {
+if (nodeVersion < minimumSupportedVersion) {
   const serverlessVersion = Number(require('../package.json').version.split('.')[0]);
-  process.stdout.write(
-    `Serverless: \x1b[91mInitialization error: Node.js v${nodeVersion} is not supported by ` +
-      `Serverless Framework v${serverlessVersion}. Please upgrade\x1b[39m\n`
+  process.stderr.write(
+    `\x1b[91mError: Serverless Framework v${serverlessVersion} does not support ` +
+      `Node.js v${nodeVersion}. Please upgrade Node.js to the latest ` +
+      `LTS version (v${minimumSupportedVersion} is a minimum supported version)\x1b[39m\n`
   );
   process.exit(1);
 }
