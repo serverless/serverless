@@ -118,7 +118,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       await spawn('node', [serverlessPath, 'print'], {
         cwd: (
           await programmaticFixturesEngine.setup('aws', {
-            configExt: { variablesResolutionMode: '20210326', provider: '${foo:bar}' },
+            configExt: { provider: '${foo:bar}' },
           })
         ).servicePath,
       });
@@ -134,7 +134,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       await spawn('node', [serverlessPath, 'print'], {
         cwd: (
           await programmaticFixturesEngine.setup('aws', {
-            configExt: { variablesResolutionMode: '20210326', provider: { stage: '${foo:bar}' } },
+            configExt: { provider: { stage: '${foo:bar}' } },
           })
         ).servicePath,
       });
@@ -204,7 +204,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       await spawn('node', [serverlessPath, 'print'], {
         cwd: (
           await programmaticFixturesEngine.setup('aws', {
-            configExt: { variablesResolutionMode: '20210326', plugins: '${foo:bar}' },
+            configExt: { plugins: '${foo:bar}' },
           })
         ).servicePath,
       });

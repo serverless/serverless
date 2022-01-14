@@ -163,31 +163,18 @@ const processSpanPromise = (async () => {
     let resolverConfiguration;
     let isInteractiveSetup;
 
-    const ensureResolvedProperty = (propertyPath, { shouldSilentlyReturnIfLegacyMode } = {}) => {
+    const ensureResolvedProperty = (propertyPath) => {
       if (isPropertyResolved(variablesMeta, propertyPath)) return true;
       variablesMeta = null;
       if (isHelpRequest) return false;
       const humanizedPropertyPath = humanizePropertyPathKeys(propertyPath.split('\0'));
-      if (!shouldSilentlyReturnIfLegacyMode || configuration.variablesResolutionMode) {
-        throw new ServerlessError(
-          `Cannot resolve ${path.basename(
-            configurationPath
-          )}: "${humanizedPropertyPath}" property is not accessible ` +
-            '(configured behind variables which cannot be resolved at this stage)',
-          'INACCESSIBLE_CONFIGURATION_PROPERTY'
-        );
-      }
-      logDeprecation(
-        'NEW_VARIABLES_RESOLVER',
-        `"${humanizedPropertyPath}" is not accessible ` +
-          '(configured behind variables which cannot be resolved at this stage).\n' +
-          'In the next major version ' +
-          'this will result in an error.\n' +
-          'Set "variablesResolutionMode: 20210326" in your service config ' +
-          'to opt in to this behavior now',
-        { serviceConfig: configuration }
+      throw new ServerlessError(
+        `Cannot resolve ${path.basename(
+          configurationPath
+        )}: "${humanizedPropertyPath}" property is not accessible ` +
+          '(configured behind variables which cannot be resolved at this stage)',
+        'INACCESSIBLE_CONFIGURATION_PROPERTY'
       );
-      return false;
     };
 
     if (!commandSchema || commandSchema.serviceDependencyMode) {
@@ -230,30 +217,6 @@ const processSpanPromise = (async () => {
 
         // IIFE for maintanance convenience
         await (async () => {
-          if (_.get(configuration.provider, 'variableSyntax')) {
-            // Request to rely on old variables resolver explictly
-            // abort (fallback to legacy internal resolution)
-            if (isHelpRequest) return;
-            if (configuration.variablesResolutionMode) {
-              throw new ServerlessError(
-                `Cannot resolve ${path.basename(
-                  configurationPath
-                )}: "variableSyntax" is not supported with the new variables resolver. ` +
-                  'Please drop this setting',
-                'UNSUPPORTED_VARIABLE_SYNTAX_CONFIGURATION'
-              );
-            }
-            logDeprecation(
-              'NEW_VARIABLES_RESOLVER',
-              'Serverless Framework was enhanced with a new variables resolver ' +
-                'which ignores the "provider.variableSyntax" setting. ' +
-                "In the next major version it will be the only resolver that's used. " +
-                'Remove the "provider.variableSyntax" setting to prepare to the next major version.',
-              { serviceConfig: configuration }
-            );
-            return;
-          }
-
           const resolveVariablesMeta = require('../lib/configuration/variables/resolve-meta');
 
           variablesMeta = resolveVariablesMeta(configuration);
@@ -270,9 +233,6 @@ const processSpanPromise = (async () => {
             return;
           }
 
-          // "variablesResolutionMode" must not be configured with variables as it influences
-          // variable resolution choices
-          if (!ensureResolvedProperty('variablesResolutionMode')) return;
           if (!ensureResolvedProperty('disabledDeprecations')) return;
           if (!ensureResolvedProperty('deprecationNotificationMode')) return;
 
@@ -486,12 +446,10 @@ const processSpanPromise = (async () => {
           if (!ensureResolvedProperty('app')) return;
           if (!ensureResolvedProperty('org')) return;
           if (!ensureResolvedProperty('tenant')) return;
-          if (!ensureResolvedProperty('service', { shouldSilentlyReturnIfLegacyMode: true })) {
-            return;
-          }
+          if (!ensureResolvedProperty('service')) return;
           if (configuration.org) {
             // Dashboard requires AWS region to be resolved upfront
-            ensureResolvedProperty('provider\0region', { shouldSilentlyReturnIfLegacyMode: true });
+            ensureResolvedProperty('provider\0region');
           }
         })();
 
@@ -635,18 +593,10 @@ const processSpanPromise = (async () => {
           // Ensure properties which are crucial to some variable source resolvers
           // are actually resolved.
           if (
-            !ensureResolvedProperty('provider\0credentials', {
-              shouldSilentlyReturnIfLegacyMode: true,
-            }) ||
-            !ensureResolvedProperty('provider\0deploymentBucket\0serverSideEncryption', {
-              shouldSilentlyReturnIfLegacyMode: true,
-            }) ||
-            !ensureResolvedProperty('provider\0profile', {
-              shouldSilentlyReturnIfLegacyMode: true,
-            }) ||
-            !ensureResolvedProperty('provider\0region', {
-              shouldSilentlyReturnIfLegacyMode: true,
-            })
+            !ensureResolvedProperty('provider\0credentials') ||
+            !ensureResolvedProperty('provider\0deploymentBucket\0serverSideEncryption') ||
+            !ensureResolvedProperty('provider\0profile') ||
+            !ensureResolvedProperty('provider\0region')
           ) {
             return;
           }
@@ -657,11 +607,7 @@ const processSpanPromise = (async () => {
             providerName,
           });
         }
-        if (configuration.variablesResolutionMode >= 20210326) {
-          // New resolver, resolves just recognized CLI options. Therefore we cannot assume
-          // we have full "opt" source data if user didn't explicitly switch to new resolver
-          resolverConfiguration.fulfilledSources.add('opt');
-        }
+        resolverConfiguration.fulfilledSources.add('opt');
 
         // Register serverless instance and AWS provider specific variable sources
         resolverConfiguration.sources.sls =
@@ -712,10 +658,7 @@ const processSpanPromise = (async () => {
 
         // Having all source resolvers configured, resolve variables
         await resolveVariables(resolverConfiguration);
-        if (!variablesMeta.size) {
-          serverless.isConfigurationInputResolved = true;
-          return;
-        }
+        if (!variablesMeta.size) return;
         if (
           eventuallyReportVariableResolutionErrors(configurationPath, configuration, variablesMeta)
         ) {
@@ -729,92 +672,23 @@ const processSpanPromise = (async () => {
         const unresolvedSources =
           require('../lib/configuration/variables/resolve-unresolved-source-types')(variablesMeta);
         const recognizedSourceNames = new Set(Object.keys(resolverConfiguration.sources));
-        if (!(configuration.variablesResolutionMode >= 20210326)) {
-          const legacyCfVarPropertyPaths = new Set();
-          const legacySsmVarPropertyPaths = new Set();
-          for (const [sourceType, propertyPaths] of unresolvedSources) {
-            if (sourceType.startsWith('cf.')) {
-              for (const propertyPath of propertyPaths) legacyCfVarPropertyPaths.add(propertyPath);
-              unresolvedSources.delete(sourceType);
-            }
-            if (sourceType.startsWith('ssm.')) {
-              for (const propertyPath of propertyPaths) legacySsmVarPropertyPaths.add(propertyPath);
-              unresolvedSources.delete(sourceType);
-            }
-            if (sourceType === 'output') {
-              logDeprecation(
-                'NEW_VARIABLES_RESOLVER',
-                '"param" and "output" variables can only be used in ' +
-                  'services deployed with Serverless Dashboard (with "org" setting configured).\n' +
-                  'In the next major release ' +
-                  'this will result in an error.\n',
-                { serviceConfig: configuration }
-              );
-              unresolvedSources.delete(sourceType);
-            }
-          }
-          if (legacyCfVarPropertyPaths.size) {
-            logDeprecation(
-              'NEW_VARIABLES_RESOLVER',
-              'Syntax for referencing CF outputs was upgraded to ' +
-                '"${cf(<region>):stackName.outputName}" (while  ' +
-                '"${cf.<region>:stackName.outputName}" is now deprecated, ' +
-                'as not supported by new variables resolver).\n' +
-                'Please upgrade to use new form instead.' +
-                'In the next major release ' +
-                'this will result in an error.\n',
-              { serviceConfig: configuration }
-            );
-          }
-          if (legacySsmVarPropertyPaths.size) {
-            logDeprecation(
-              'NEW_VARIABLES_RESOLVER',
-              'Syntax for referencing SSM parameters was upgraded to ' +
-                '"${ssm(<region>):parameter-path}" (while  ' +
-                '"${ssm.<region>:parameter-path}" is now deprecated, ' +
-                'as not supported by new variables resolver).\n' +
-                'Please upgrade to use the new form instead.' +
-                'In the next major release ' +
-                'this will result in an error.\n',
-              { serviceConfig: configuration }
-            );
-          }
 
-          const unrecognizedSourceNames = Array.from(unresolvedSources.keys()).filter(
-            (sourceName) => !recognizedSourceNames.has(sourceName)
-          );
-          if (unrecognizedSourceNames.length) {
-            logDeprecation(
-              'NEW_VARIABLES_RESOLVER',
-              `Unrecognized configuration variable sources: "${unrecognizedSourceNames.join(
-                '", "'
-              )}".\n` +
-                'In the next major version this will result in an error.\n' +
-                'Set "variablesResolutionMode: 20210326" in your service config ' +
-                'to adapt to the new behavior now',
-              { serviceConfig: configuration }
-            );
-          }
-        } else {
-          const unrecognizedSourceNames = Array.from(unresolvedSources.keys()).filter(
-            (sourceName) => !recognizedSourceNames.has(sourceName)
-          );
+        const unrecognizedSourceNames = Array.from(unresolvedSources.keys()).filter(
+          (sourceName) => !recognizedSourceNames.has(sourceName)
+        );
 
-          if (unrecognizedSourceNames.includes('output')) {
-            throw new ServerlessError(
-              '"Cannot resolve configuration: ' +
-                '"param" and "output" variables can only be used in ' +
-                'services deployed with Serverless Dashboard (with "org" setting configured)',
-              'DASHBOARD_VARIABLE_SOURCES_MISUSE'
-            );
-          }
+        if (unrecognizedSourceNames.includes('output')) {
           throw new ServerlessError(
-            `Unrecognized configuration variable sources: "${unrecognizedSourceNames.join(
-              '", "'
-            )}"`,
-            'UNRECOGNIZED_VARIABLE_SOURCES'
+            '"Cannot resolve configuration: ' +
+              '"output" variable can only be used in ' +
+              'services deployed with Serverless Dashboard (with "org" setting configured)',
+            'DASHBOARD_VARIABLE_SOURCES_MISUSE'
           );
         }
+        throw new ServerlessError(
+          `Unrecognized configuration variable sources: "${unrecognizedSourceNames.join('", "')}"`,
+          'UNRECOGNIZED_VARIABLE_SOURCES'
+        );
       })();
 
       if (isHelpRequest && serverless.pluginManager.externalPlugins) {
