@@ -22,7 +22,6 @@ describe('test/unit/lib/cli/conditionally-load-dotenv.test.js', () => {
   });
 
   beforeEach(() => {
-    conditionallyLoadDotenv.clear();
     ({ restoreEnv } = overrideEnv());
   });
   afterEach(() => {
