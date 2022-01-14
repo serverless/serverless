@@ -38,17 +38,6 @@ describe('test/unit/lib/cli/handle-error.test.js', () => {
       const output = await observeOutput(() => handleError(new ServerlessError('Test error')));
       expect(output).to.have.string('(standalone)');
     });
-  } else {
-    it('should support `isLocallyInstalled` option', async () => {
-      const output = await observeOutput(() =>
-        handleError(new ServerlessError('Test error'), { isLocallyInstalled: false })
-      );
-      expect(output).to.not.have.string('(local)');
-      const output2 = await observeOutput(() =>
-        handleError(new ServerlessError('Test error'), { isLocallyInstalled: true })
-      );
-      expect(output2).to.have.string('(local)');
-    });
   }
 
   it('should handle non-error objects', async () => {
