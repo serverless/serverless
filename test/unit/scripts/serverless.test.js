@@ -9,6 +9,7 @@ const stripAnsi = require('strip-ansi');
 const { version } = require('../../../package');
 const programmaticFixturesEngine = require('../../fixtures/programmatic');
 
+const serverlessBinPath = path.resolve(__dirname, '../../../bin/serverless.js');
 const serverlessPath = path.resolve(__dirname, '../../../scripts/serverless.js');
 const programmaticFixturesPath = path.resolve(__dirname, '../../fixtures/programmatic');
 const cliFixturesPath = path.resolve(__dirname, '../../fixtures/cli');
@@ -69,7 +70,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
   it('should handle local serverless installation', async () => {
     const output = String(
       (
-        await spawn('node', [serverlessPath, '--help'], {
+        await spawn('node', [serverlessBinPath, '--help'], {
           cwd: (await programmaticFixturesEngine.setup('locallyInstalledServerless')).servicePath,
         })
       ).stderrBuffer

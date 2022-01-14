@@ -5,7 +5,7 @@ const sinon = require('sinon');
 const BbPromise = require('bluebird');
 const proxyquire = require('proxyquire');
 const chalk = require('chalk');
-const PluginInstall = require('../../../../../../lib/plugins/plugin/install');
+const PluginList = require('../../../../../../lib/plugins/plugin/list');
 const Serverless = require('../../../../../../lib/Serverless');
 const CLI = require('../../../../../../lib/classes/CLI');
 const { expect } = require('chai');
@@ -37,14 +37,7 @@ describe('PluginUtils', () => {
     serverless = new Serverless({ commands: [], options: {} });
     serverless.cli = new CLI(serverless);
     const options = {};
-    pluginUtils = new PluginInstall(serverless, options);
-  });
-
-  describe('#getServerlessFilePath()', () => {
-    it('should reject if no configuration file exists', () =>
-      expect(pluginUtils.getServerlessFilePath.bind(pluginUtils)).to.throw(
-        'Could not find any serverless service definition file.'
-      ));
+    pluginUtils = new PluginList(serverless, options);
   });
 
   describe('#getPlugins()', () => {
@@ -70,23 +63,6 @@ describe('PluginUtils', () => {
         expect(fetchStub.args[0][0]).to.equal(endpoint);
         expect(result).to.deep.equal(plugins);
       });
-    });
-  });
-
-  describe('#getPluginInfo()', () => {
-    it('should return the plugins name', () => {
-      expect(pluginUtils.getPluginInfo('some-plugin')).to.deep.equal(['some-plugin']);
-    });
-
-    it('should return the plugins name and version', () => {
-      expect(pluginUtils.getPluginInfo('some-plugin@0.1.0')).to.deep.equal([
-        'some-plugin',
-        '0.1.0',
-      ]);
-    });
-
-    it('should support scoped names', () => {
-      expect(pluginUtils.getPluginInfo('@acme/some-plugin')).to.deep.equal(['@acme/some-plugin']);
     });
   });
 

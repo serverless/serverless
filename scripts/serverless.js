@@ -68,11 +68,7 @@ require('signal-exit/signals').forEach((signal) => {
     const isOtherSigintListener = Boolean(process.listenerCount(signal));
     if (!hasTelemetryBeenReported) {
       hasTelemetryBeenReported = true;
-      if (
-        commandSchema &&
-        !isTelemetryDisabled &&
-        (serverless ? serverless.isTelemetryReportedExternally : true)
-      ) {
+      if (commandSchema && !isTelemetryDisabled) {
         const telemetryPayload = generateTelemetryPayload({
           command,
           options,
@@ -589,8 +585,6 @@ const processSpanPromise = (async () => {
       configurationFilename,
       isConfigurationResolved:
         commands[0] === 'plugin' || Boolean(variablesMeta && !variablesMeta.size),
-      hasResolvedCommandsExternally: true,
-      isTelemetryReportedExternally: true,
       commands,
       options,
     });
@@ -599,43 +593,27 @@ const processSpanPromise = (async () => {
       serverless.onExitPromise = processSpanPromise;
       serverless.invocationId = uuid.v4();
       await serverless.init();
-      if (serverless.invokedInstance) {
-        // Local (in service) installation was found and initialized internally,
-        // From now on refer to it only
-        serverless.invokedInstance.invocationId = serverless.invocationId;
-        serverless = serverless.invokedInstance;
-      }
 
       // IIFE for maintanance convenience
       await (async () => {
         if (!configuration) return;
-        let hasFinalCommandSchema = null;
+        let hasFinalCommandSchema = false;
         if (configuration.plugins) {
           // After plugins are loaded, re-resolve CLI command and options schema as plugin
           // might have defined extra commands and options
 
-          // TODO: Remove "serverless.pluginManager.externalPlugins" check with next major
-          if (serverless.pluginManager.externalPlugins) {
-            if (serverless.pluginManager.externalPlugins.size) {
-              const commandsSchema = require('../lib/cli/commands-schema/resolve-final')(
-                serverless.pluginManager.externalPlugins,
-                { providerName: providerName || 'aws', configuration }
-              );
-              resolveInput.clear();
-              ({ command, commands, options, isHelpRequest, commandSchema } =
-                resolveInput(commandsSchema));
-              serverless.processedInput.commands = serverless.pluginManager.cliCommands = commands;
-              serverless.processedInput.options = options;
-              Object.assign(clear(serverless.pluginManager.cliOptions), options);
-              hasFinalCommandSchema = true;
-            }
-          } else {
-            // Invocation fallen back to old Framework version, where we do not have easily
-            // accessible info on loaded plugins
-            // 1. Skip further variables resolution
-            variablesMeta = null;
-            // 2. Avoid command validation
-            hasFinalCommandSchema = false;
+          if (serverless.pluginManager.externalPlugins.size) {
+            const commandsSchema = require('../lib/cli/commands-schema/resolve-final')(
+              serverless.pluginManager.externalPlugins,
+              { providerName: providerName || 'aws', configuration }
+            );
+            resolveInput.clear();
+            ({ command, commands, options, isHelpRequest, commandSchema } =
+              resolveInput(commandsSchema));
+            serverless.processedInput.commands = serverless.pluginManager.cliCommands = commands;
+            serverless.processedInput.options = options;
+            Object.assign(clear(serverless.pluginManager.cliOptions), options);
+            hasFinalCommandSchema = true;
           }
         }
         if (!providerName && !hasFinalCommandSchema) {
@@ -645,7 +623,7 @@ const processSpanPromise = (async () => {
             require('../lib/cli/commands-schema/aws-service')
           ));
         }
-        if (hasFinalCommandSchema == null) hasFinalCommandSchema = true;
+        hasFinalCommandSchema = true;
 
         // Validate result command and options
         if (hasFinalCommandSchema) require('../lib/cli/ensure-supported-command')(configuration);
@@ -853,7 +831,7 @@ const processSpanPromise = (async () => {
       if (!hasTelemetryBeenReported) {
         hasTelemetryBeenReported = true;
 
-        if (!isTelemetryDisabled && !isHelpRequest && serverless.isTelemetryReportedExternally) {
+        if (!isTelemetryDisabled && !isHelpRequest) {
           storeTelemetryLocally({
             ...generateTelemetryPayload({
               command,

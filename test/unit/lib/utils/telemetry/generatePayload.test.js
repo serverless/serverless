@@ -5,7 +5,6 @@ const path = require('path');
 const fsp = require('fs').promises;
 const os = require('os');
 const overrideEnv = require('process-utils/override-env');
-const overrideCwd = require('process-utils/override-cwd');
 const proxyquire = require('proxyquire');
 
 const commandsSchema = require('../../../../../lib/cli/commands-schema');
@@ -226,74 +225,6 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       hasLocalCredentials: false,
       installationType: 'global:other',
       versions,
-    });
-  });
-
-  it('Should recognize local fallback', async () => {
-    const {
-      serverless,
-      fixtureData: { servicePath: serviceDir },
-    } = await runServerless({
-      fixture: 'locallyInstalledServerless',
-      command: 'print',
-      modulesCacheStub: {},
-    });
-    const payload = overrideCwd(serviceDir, () =>
-      getGeneratePayload()({
-        command: 'print',
-        options: {},
-        commandSchema: commandsSchema.get('print'),
-        serviceDir: serverless.serviceDir,
-        configuration: serverless.configurationInput,
-        serverless,
-      })
-    );
-
-    expect(payload).to.have.property('frameworkLocalUserId');
-    delete payload.frameworkLocalUserId;
-    expect(payload).to.have.property('firstLocalInstallationTimestamp');
-    delete payload.firstLocalInstallationTimestamp;
-    expect(payload).to.have.property('timestamp');
-    delete payload.timestamp;
-    expect(payload).to.have.property('dashboard');
-    delete payload.dashboard;
-    expect(payload).to.have.property('timezone');
-    delete payload.timezone;
-    expect(payload).to.have.property('ciName');
-    delete payload.ciName;
-    expect(payload).to.have.property('commandDurationMs');
-    delete payload.commandDurationMs;
-    expect(payload).to.deep.equal({
-      cliName: 'serverless',
-      isTtyTerminal: true,
-      command: 'print',
-      commandOptionNames: [],
-      isConfigValid: null,
-      config: {
-        configValidationMode: 'error',
-        provider: {
-          name: 'aws',
-          runtime: 'nodejs12.x',
-          stage: 'dev',
-          region: 'us-east-1',
-        },
-        plugins: [],
-        functions: [],
-        resources: { general: [] },
-        variableSources: [],
-        paramsCount: 0,
-      },
-      isAutoUpdateEnabled: false,
-      notificationsMode: 'on',
-      npmDependencies: [],
-      triggeredDeprecations: [],
-      installationType: 'local:fallback',
-      hasLocalCredentials: false,
-      versions: {
-        'serverless': '2.0.0-local',
-        '@serverless/dashboard-plugin': '4.0.0-local',
-        '@serverless/enterprise-plugin': undefined,
-      },
     });
   });
 

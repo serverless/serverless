@@ -1127,14 +1127,6 @@ describe('PluginManager', () => {
         ServerlessError
       );
     });
-
-    it('should throw on entrypoints', () => {
-      pluginManager.addPlugin(EntrypointPluginMock);
-
-      expect(() => pluginManager.validateCommand(['myep', 'mysubep'])).to.throw(
-        /command ".*" not found/
-      );
-    });
   });
 
   describe('#assignDefaultOptions()', () => {
@@ -1271,82 +1263,6 @@ describe('PluginManager', () => {
       const foo = pluginManagerInstance.commands.foo;
 
       expect(pluginManagerInstance.validateServerlessConfigDependency(foo)).to.be.undefined;
-    });
-  });
-
-  describe('#validateOptions()', () => {
-    it('should throw an error if a required option is not set', () => {
-      pluginManager.commands = {
-        foo: {
-          options: {
-            baz: {
-              shortcut: 'b',
-              required: true,
-            },
-          },
-        },
-        bar: {
-          options: {
-            baz: {
-              required: true,
-            },
-          },
-        },
-      };
-
-      const foo = pluginManager.commands.foo;
-      const bar = pluginManager.commands.bar;
-
-      expect(() => {
-        pluginManager.validateOptions(foo);
-      }).to.throw(Error);
-      expect(() => {
-        pluginManager.validateOptions(bar);
-      }).to.throw(Error);
-    });
-
-    it('should throw an error if a customValidation is not met', () => {
-      pluginManager.setCliOptions({ bar: 'dev' });
-
-      pluginManager.commands = {
-        foo: {
-          options: {
-            bar: {
-              customValidation: {
-                regularExpression: /^[0-9]+$/,
-                errorMessage: 'Custom Error Message',
-              },
-            },
-          },
-        },
-      };
-      const command = pluginManager.commands.foo;
-
-      expect(() => {
-        pluginManager.validateOptions(command);
-      }).to.throw(Error);
-    });
-
-    it('should succeeds if a custom regex matches in a plain commands object', () => {
-      pluginManager.setCliOptions({ bar: 100 });
-
-      pluginManager.commands = {
-        foo: {
-          options: {
-            bar: {
-              customValidation: {
-                regularExpression: /^[0-9]+$/,
-                errorMessage: 'Custom Error Message',
-              },
-            },
-          },
-        },
-      };
-      const commandsArray = ['foo'];
-
-      expect(() => {
-        pluginManager.validateOptions(commandsArray);
-      }).to.not.throw(Error);
     });
   });
 
@@ -1600,34 +1516,6 @@ describe('PluginManager', () => {
           },
         },
       };
-    });
-
-    it('should give a suggestion for an unknown command', (done) => {
-      try {
-        pluginManager.getCommand(['creet']);
-        done('Test failed. Expected an error to be thrown');
-      } catch (error) {
-        expect(error.name).to.eql('ServerlessError');
-        expect(error.message).to.eql(
-          'Serverless command "creet" not found. ' +
-            'Did you mean "create"? Run "serverless help" for a list of all available commands.'
-        );
-        done();
-      }
-    });
-
-    it('should not give a suggestion for valid top level command', (done) => {
-      try {
-        pluginManager.getCommand(['deploy', 'function-misspelled']);
-        done('Test failed. Expected an error to be thrown');
-      } catch (error) {
-        expect(error.name).to.eql('ServerlessError');
-        expect(error.message).to.eql(
-          '"function-misspelled" is not a valid sub command. ' +
-            'Run "serverless deploy" to see a more helpful error message for this command.'
-        );
-        done();
-      }
     });
   });
 

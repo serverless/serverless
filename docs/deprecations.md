@@ -29,9 +29,7 @@ This notification mode can be changed via the `SLS_DEPRECATION_NOTIFICATION_MODE
 deprecationNotificationMode: error
 ```
 
-The `error` mode turns all deprecations into strict errors.
-
-The `warn` mode displays deprecations as they're discovered (this mode is automatically enabled in case of fallback to a locally installed Serverless Framework installation).
+The `error` mode turns all deprecations into strict errors, the `warn` mode displays deprecations as they're discovered.
 
 Note:
 
