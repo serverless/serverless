@@ -36,6 +36,16 @@ Note:
 - The `serverless.yml` setting is ineffective for deprecations reported before the configuration is read.
 - `SLS_DEPRECATION_DISABLE` and `disabledDeprecations` remain respected, and no errors will be thrown for mentioned deprecation codes.
 
+<a name="VARIABLES_RESOLUTION_MODE"><div>&nbsp;</div></a>
+
+## Property `variablesResolutionMode`
+
+Deprecation code: `VARIABLES_RESOLUTION_MODE`
+
+Starting with v4.0.0, Serverless will no longer recognize `variablesResolutionMode`, as supported configuration property. Drop it to avoid validation errors
+
+Learn more about configuration validation here: http://slss.io/configuration-validation
+
 <a name="PROJECT_DIR"><div>&nbsp;</div></a>
 
 ## Property `projectDir`
