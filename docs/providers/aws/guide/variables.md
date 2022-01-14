@@ -18,9 +18,6 @@ Variables allow users to dynamically replace config values in `serverless.yml` c
 
 They are especially useful when providing secrets for your service to use and when you are working with multiple stages.
 
-If `unresolvedVariablesNotificationMode` is set to `error`, references to variables that cannot be resolved will result in an error being thrown.
-This will become the default behaviour in the next major version.
-
 ## Syntax
 
 To use variables, you will need to reference values enclosed in `${}` brackets.
@@ -288,13 +285,10 @@ Buckets from all regions can be used without any additional specification due to
 
 ## Reference Variables using the SSM Parameter Store
 
-_Note: Ensure to add `variablesResolutionMode: 20210326` to your service configuration, to enable complete support for "ssm" variables resolution._
-
 You can reference SSM Parameters as the source of your variables with the `ssm:/path/to/param` syntax. For example:
 
 ```yml
 service: ${ssm:/path/to/service/id}-service
-variablesResolutionMode: 20210326
 provider:
   name: aws
 functions:
@@ -309,7 +303,6 @@ You can also reference SSM Parameters in another region with the `ssm(REGION):/p
 
 ```yml
 service: ${ssm(us-west-2):/path/to/service/id}-service
-variablesResolutionMode: 20210326
 provider:
   name: aws
 functions:
@@ -347,7 +340,7 @@ The region used by the Serverless CLI. The `${aws:region}` variable is a shortcu
 
 ### Resolution of non plain string types
 
-New variable resolver, ensures that automatically other types as `SecureString` and `StringList` are resolved into expected forms.
+Other types as `SecureString` and `StringList` are automatically resolved into expected forms.
 
 #### Auto decrypting of `SecureString` type parameters.
 
@@ -361,7 +354,6 @@ Variables in [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) can 
 
 ```yml
 service: new-service
-variablesResolutionMode: 20210326
 provider: aws
 functions:
   hello:
@@ -391,7 +383,6 @@ variables will be resolved like
 
 ```yml
 service: new-service
-variablesResolutionMode: 20210326
 provider: aws
 functions:
   hello:
@@ -412,7 +403,6 @@ Same `StringList` type parameters are automatically detected and resolved to arr
 
 ```yml
 service: new-service
-variablesResolutionMode: 20210326
 provider: aws
 functions:
   hello:
@@ -522,11 +512,7 @@ functions:
 
 ### Exporting a function
 
-#### With a new variables resolver
-
-_Note: works only with `variablesResolutionMode: 20210326` set in service configuration_
-
-With a new variables resolver (_which will be the only used resolver in v3 of a Framework_) functions receives an object, with following properties:
+Function receives an object, with following properties:
 
 - `options` - An object referencing resolved CLI params as passed to the command
 - `resolveVariable(variableString)` - Async function which resolves provided variable string. String should be passed without wrapping (`${` and `}`) braces. Example valid values:
@@ -539,7 +525,7 @@ Resolver function can be either _sync_ or _async_. Still both `resolveConfigurat
 Example on how to obtain some Serverless Framework configuration values:
 
 ```js
-// config.js (when relying on new variables resolver)
+// config.js
 module.exports = async ({ options, resolveVariable }) => {
   const stage = await resolveVariable('sls:stage');
   const region = await resolveVariable('opt:region, self:provider.region, "us-east-1"');
@@ -551,32 +537,6 @@ module.exports = async ({ options, resolveVariable }) => {
     prop2: someOther value
   }
 }
-```
-
-#### With a legacy (deprecated) resolver
-
-In old legacy resolver (deprecated, but still default in v2) function receives a reference to the Serverless object containing your configuration.
-
-_**Notice:** Configuration is yet in unresolved state, so any properties configured with variables may still be presented with variables in it_
-
-```js
-// config.js (when relying on legacy resolver)
-module.exports = (serverless) => {
-  serverless.cli.consoleLog('You can access Serverless config at serverless.configrationInput');
-
-  return {
-    property1: 'some value',
-    property2: 'some other value',
-  };
-};
-```
-
-```yml
-# serverless.yml
-service: new-service
-provider: aws
-
-custom: ${file(./config.js)}
 ```
 
 You can also return an object and reference a specific property. Just make sure you are returning a valid object and referencing a valid property:

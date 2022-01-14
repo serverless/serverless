@@ -24,8 +24,6 @@ service: myService
 frameworkVersion: '3'
 configValidationMode: warn # Modes for config validation. `error` throws an exception, `warn` logs error to console, `off` disables validation at all. The default is warn.
 useDotenv: false # If set to 'true', environment variables will be automatically loaded from .env files
-variablesResolutionMode: null # To crash on variable resolution errors (as coming from new resolver), set this value to "20210326"
-unresolvedVariablesNotificationMode: warn # If set to 'error', references to variables that cannot be resolved will result in an error being thrown (applies to legacy resolver)
 deprecationNotificationMode: warn:summary # 'warn' reports deprecations on the go, 'error' will result with an exception being thrown on first approached deprecation
 
 disabledDeprecations: # Disable deprecation logs by their codes. Default is empty.

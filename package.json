@@ -63,7 +63,6 @@
     "path2": "^0.1.0",
     "process-utils": "^4.0.0",
     "promise-queue": "^2.2.5",
-    "replaceall": "^0.1.6",
     "require-from-string": "^2.0.2",
     "semver": "^7.3.5",
     "signal-exit": "^3.0.6",
