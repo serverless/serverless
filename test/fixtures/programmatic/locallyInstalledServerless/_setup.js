@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const fixturePath = path.resolve(__dirname, 'node_modules/serverless');
-const fixtureModulePath = path.resolve(fixturePath, 'lib/Serverless.js');
+const fixtureModulePath = path.resolve(fixturePath, 'bin/serverless.js');
 
 module.exports = (originalFixturePath) => {
   const content = fs.readFileSync(fixtureModulePath);
