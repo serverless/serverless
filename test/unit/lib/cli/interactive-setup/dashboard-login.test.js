@@ -139,6 +139,46 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
     );
   });
 
+  it('Should login and skip question when user providers `org` option', async () => {
+    const loginStep = proxyquire('../../../../../lib/cli/interactive-setup/dashboard-login', {
+      '@serverless/dashboard-plugin/lib/login': loginStub,
+      '@serverless/platform-client': {
+        ServerlessSDK: ServerlessSDKMock,
+      },
+    });
+    const context = {
+      serviceDir: process.cwd(),
+      configuration: { provider: { name: 'aws', runtime: 'nodejs12.x' } },
+      configurationFilename: 'serverless.yml',
+      options: { org: 'someorg' },
+      initial: {},
+      inquirer,
+      stepHistory: new StepHistory(),
+    };
+    await loginStep.run(context);
+    expect(loginStub.calledOnce).to.be.true;
+  });
+
+  it('Should login and skip question when `org` configured', async () => {
+    const loginStep = proxyquire('../../../../../lib/cli/interactive-setup/dashboard-login', {
+      '@serverless/dashboard-plugin/lib/login': loginStub,
+      '@serverless/platform-client': {
+        ServerlessSDK: ServerlessSDKMock,
+      },
+    });
+    const context = {
+      serviceDir: process.cwd(),
+      configuration: { org: 'someorg', provider: { name: 'aws', runtime: 'nodejs12.x' } },
+      configurationFilename: 'serverless.yml',
+      options: {},
+      initial: {},
+      inquirer,
+      stepHistory: new StepHistory(),
+    };
+    await loginStep.run(context);
+    expect(loginStub.calledOnce).to.be.true;
+  });
+
   it('Should not login when user decides not to login/register', async () => {
     configureInquirerStub(inquirer, {
       confirm: { shouldLoginOrRegister: false },
