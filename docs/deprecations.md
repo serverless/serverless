@@ -36,6 +36,16 @@ Note:
 - The `serverless.yml` setting is ineffective for deprecations reported before the configuration is read.
 - `SLS_DEPRECATION_DISABLE` and `disabledDeprecations` remain respected, and no errors will be thrown for mentioned deprecation codes.
 
+<a name="PROJECT_DIR"><div>&nbsp;</div></a>
+
+## Property `projectDir`
+
+Deprecation code: `PROJECT_DIR`
+
+Starting with v4.0.0, Serverless will no longer recognize `projectDir`, as supported configuration property. Drop it to avoid validation errors
+
+Learn more about configuration validation here: http://slss.io/configuration-validation
+
 <a name="CLI_OPTIONS_SCHEMA_V3"><div>&nbsp;</div></a>
 
 ## CLI Options extensions, `type` requirement
