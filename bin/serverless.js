@@ -7,7 +7,9 @@
 'use strict';
 
 // `EvalError` is used to not pollute global namespace but still have the value accessible globally
-EvalError.$serverlessCommandStartTime = process.hrtime();
+// Can already be set, if we're in context of local fallback
+const isMainModule = !EvalError.$serverlessCommandStartTime;
+if (isMainModule) EvalError.$serverlessCommandStartTime = process.hrtime();
 
 const nodeVersion = Number(process.version.split('.')[0].slice(1));
 const minimumSupportedVersion = 12;
@@ -22,11 +24,41 @@ if (nodeVersion < minimumSupportedVersion) {
   process.exit(1);
 }
 
-if (require('../lib/utils/isStandaloneExecutable')) {
-  require('../lib/utils/standalone-patch');
-  if (process.argv[2] === 'binary-postinstall' && process.argv.length === 3) {
-    require('../scripts/postinstall');
-    return;
+if (isMainModule) {
+  if (require('../lib/utils/isStandaloneExecutable')) {
+    require('../lib/utils/standalone-patch');
+    if (process.argv[2] === 'binary-postinstall' && process.argv.length === 3) {
+      require('../scripts/postinstall');
+      return;
+    }
+  }
+
+  const path = require('path');
+  const localInstallationPath = require('../lib/cli/local-serverless-path');
+
+  if (localInstallationPath && localInstallationPath !== path.dirname(__dirname)) {
+    // Local fallback
+    const localServerlessBinPath = (() => {
+      try {
+        return require.resolve(path.resolve(localInstallationPath, 'bin/serverless'));
+      } catch (ignore) {
+        // Unrecognized "serverless" installation, continue with this one
+        return null;
+      }
+    })();
+
+    if (localServerlessBinPath) {
+      EvalError.$serverlessInitInstallationVersion = require('../package').version;
+      const colorSupportLevel = require('supports-color').stdout.level;
+      let message = 'Running "serverless" from node_modules\n';
+      if (colorSupportLevel) {
+        message =
+          colorSupportLevel > 2 ? `\x1b[38;5;145m${message}\x1b[39m` : `\x1b[90m${message}\x1b[39m`;
+      }
+      process.stderr.write(message);
+      require(localServerlessBinPath);
+      return;
+    }
   }
 }
 

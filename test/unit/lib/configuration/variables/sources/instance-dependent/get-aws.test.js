@@ -38,7 +38,6 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-a
       serviceDir: process.cwd(),
       configurationFilename: 'serverless.yml',
       isConfigurationResolved: true,
-      hasResolvedCommandsExternally: true,
       commands: ['package'],
       options: {},
     });
