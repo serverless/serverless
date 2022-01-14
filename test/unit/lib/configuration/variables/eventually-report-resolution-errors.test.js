@@ -3,7 +3,6 @@
 const { expect } = require('chai');
 
 const overrideArgv = require('process-utils/override-argv');
-const overrideStdoutWrite = require('process-utils/override-stdout-write');
 const ServerlessError = require('../../../../../lib/serverless-error');
 const resolveCliInput = require('../../../../../lib/cli/resolve-input');
 const resolveMeta = require('../../../../../lib/configuration/variables/resolve-meta');
@@ -23,38 +22,8 @@ describe('test/unit/lib/configuration/variables/eventually-report-resolution-err
   });
 
   describe('On errors', () => {
-    it('should log errors with help command', () => {
+    it('should throw error in regular circumstances', () => {
       const configuration = { foo: '${foo:raz' };
-      const variablesMeta = resolveMeta(configuration);
-      let stdoutData = '';
-      overrideArgv({ args: ['serverless', '--help'] }, () =>
-        overrideStdoutWrite(
-          (data) => (stdoutData += data),
-          () =>
-            expect(
-              eventuallyReportResolutionErrors(process.cwd(), configuration, variablesMeta)
-            ).to.equal(true)
-        )
-      );
-
-      expect(stdoutData).to.include('Resolution of service configuration failed');
-    });
-
-    it('should log deprecation with no "variablesResolutionMode" set', () => {
-      const configuration = { foo: '${foo:raz' };
-      const variablesMeta = resolveMeta(configuration);
-      overrideArgv(
-        { args: ['serverless', 'foo'] },
-        () => () =>
-          expect(() =>
-            eventuallyReportResolutionErrors(process.cwd(), configuration, variablesMeta)
-          )
-            .to.throw(ServerlessError)
-            .with.property('code', 'REJECTED_DEPRECATION_VARIABLES_RESOLUTION_ERROR')
-      );
-    });
-    it('should throw with no "variablesResolutionMode" set', () => {
-      const configuration = { foo: '${foo:raz', variablesResolutionMode: 20210326 };
       const variablesMeta = resolveMeta(configuration);
       overrideArgv({ args: ['serverless', 'foo'] }, () =>
         expect(() => eventuallyReportResolutionErrors(process.cwd(), configuration, variablesMeta))
