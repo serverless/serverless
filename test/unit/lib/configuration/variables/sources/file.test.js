@@ -18,7 +18,6 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
       json: '${file(file.json)}',
       tfstate: '${file(file.tfstate)}',
       js: '${file(file.js)}',
-      variablesResolutionMode: '20210326',
       jsFunction: '${file(file-function.js)}',
       jsPropertyFunction: '${file(file-property-function.js):property}',
       jsPropertyFunctionProperty: '${file(file-property-function.js):property.result}',
@@ -197,26 +196,6 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
     expect(variablesMeta.get('jsPropertyFunctionResolveVariableMissingSource').error.code).to.equal(
       'MISSING_VARIABLE_RESULT'
     ));
-
-  it('should not support function resolvers in "js" file sources not confirmed to work with new resolver', async () => {
-    configuration = {
-      jsFunction: '${file(file-function.js)}',
-      jsPropertyFunction: '${file(file-property-function.js):property}',
-    };
-    variablesMeta = resolveMeta(configuration);
-    await resolve({
-      serviceDir,
-      configuration,
-      variablesMeta,
-      sources: { file: fileSource },
-      options: {},
-      fulfilledSources: new Set(['file']),
-    });
-    expect(variablesMeta.get('jsFunction').error.code).to.equal('VARIABLE_RESOLUTION_ERROR');
-    expect(variablesMeta.get('jsPropertyFunction').error.code).to.equal(
-      'VARIABLE_RESOLUTION_ERROR'
-    );
-  });
 
   it('should support reaching out beyond service directory', async () => {
     configuration = {

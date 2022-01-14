@@ -15,7 +15,7 @@ describe('test/integration/plugin-install.test.js', function () {
     serviceDir = (
       await fixturesEngine.setup('function', {
         // Unresolved variables should not block "plugin install" command
-        configExt: { variablesResolutionMode: '20210326', custom: { foo: '${foo:bar}' } },
+        configExt: { custom: { foo: '${foo:bar}' } },
       })
     ).servicePath;
     await spawn(serverlessExec, ['plugin', 'install', '-n', 'serverless-offline'], {
