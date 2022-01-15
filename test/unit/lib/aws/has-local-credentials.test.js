@@ -27,8 +27,8 @@ describe('test/unit/lib/aws/has-local-credentials.test.js', () => {
 
     after(() => restoreEnv);
 
-    it('Should properly detect credentials', () => {
-      expect(uncachedHasLocalCredentials()).to.equal(true);
+    it('Should properly detect credentials', async () => {
+      expect(await uncachedHasLocalCredentials()).to.equal(true);
     });
   });
 
@@ -55,8 +55,8 @@ describe('test/unit/lib/aws/has-local-credentials.test.js', () => {
 
     after(async () => fse.remove(credentialsDirPath));
 
-    it('Should properly detect credentials', () => {
-      expect(uncachedHasLocalCredentials()).to.equal(true);
+    it('Should properly detect credentials', async () => {
+      expect(await uncachedHasLocalCredentials()).to.equal(true);
     });
   });
 
@@ -75,8 +75,8 @@ describe('test/unit/lib/aws/has-local-credentials.test.js', () => {
 
     after(() => restoreEnv);
 
-    it('Should properly report lack of credentials', () => {
-      expect(uncachedHasLocalCredentials()).to.equal(false);
+    it('Should properly report lack of credentials', async () => {
+      expect(await uncachedHasLocalCredentials()).to.equal(false);
     });
   });
 });

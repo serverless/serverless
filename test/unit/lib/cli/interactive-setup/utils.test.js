@@ -77,7 +77,7 @@ describe('test/unit/lib/cli/interactive-setup/utils.test.js', () => {
           '../../aws/has-local-credentials': () => true,
         }
       );
-      expect(resolveInitialContext({ configuration, serviceDir })).to.deep.equal({
+      expect(await resolveInitialContext({ configuration, serviceDir })).to.deep.equal({
         hasLocalAwsCredentials: true,
         isLoggedIntoDashboard: true,
         isDashboardEnabled: true,
@@ -95,7 +95,7 @@ describe('test/unit/lib/cli/interactive-setup/utils.test.js', () => {
           '../../aws/has-local-credentials': () => true,
         }
       );
-      expect(resolveInitialContext({ configuration, serviceDir })).to.deep.equal({
+      expect(await resolveInitialContext({ configuration, serviceDir })).to.deep.equal({
         hasLocalAwsCredentials: true,
         isLoggedIntoDashboard: true,
         isDashboardEnabled: false,

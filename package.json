@@ -22,6 +22,7 @@
     "sls": "./bin/serverless.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.47.0",
     "@serverless/dashboard-plugin": "pre-6",
     "@serverless/platform-client": "^4.3.0",
     "@serverless/utils": "pre-6",
