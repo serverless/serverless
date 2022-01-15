@@ -162,7 +162,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       npmDependencies: ['fooDep', 'barDep', 'fooOpt', 'someDev', 'otherDev'],
       triggeredDeprecations: [],
       installationType: 'global:other',
-      hasLocalCredentials: false,
+      hasLocalCredentials: true,
       versions,
     });
   });
@@ -312,7 +312,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       installationType: 'global:other',
       notificationsMode: 'on',
       npmDependencies: [],
-      hasLocalCredentials: false,
+      hasLocalCredentials: true,
       versions,
     });
   });
