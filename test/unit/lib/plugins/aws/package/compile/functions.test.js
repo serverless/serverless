@@ -1,12 +1,12 @@
 'use strict';
 
-const AWS = require('aws-sdk');
+const AWS = require('@aws-sdk/client-s3');
+const { mockClient } = require('aws-sdk-client-mock');
 const fse = require('fs-extra');
 const fsp = require('fs').promises;
 const _ = require('lodash');
 const path = require('path');
 const chai = require('chai');
-const sinon = require('sinon');
 const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 const AwsCompileFunctions = require('../../../../../../../lib/plugins/aws/package/compile/functions');
 const Serverless = require('../../../../../../../lib/Serverless');
@@ -25,6 +25,7 @@ describe('AwsCompileFunctions', () => {
   let serverless;
   let awsProvider;
   let awsCompileFunctions;
+  let s3client;
   const functionName = 'test';
   const compiledFunctionName = 'TestLambdaFunction';
 
@@ -40,7 +41,8 @@ describe('AwsCompileFunctions', () => {
     serverless.setProvider('aws', awsProvider);
     serverless.service.provider.name = 'aws';
     serverless.cli = new serverless.classes.CLI();
-    awsCompileFunctions = new AwsCompileFunctions(serverless, options);
+    s3client = mockClient(AWS.S3Client);
+    awsCompileFunctions = new AwsCompileFunctions(serverless, options, s3client);
     awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate = {
       Resources: {},
       Outputs: {},
@@ -76,24 +78,19 @@ describe('AwsCompileFunctions', () => {
   });
 
   describe('#downloadPackageArtifacts()', () => {
-    let requestStub;
     let testFilePath;
     const s3BucketName = 'test-bucket';
     const s3ArtifactName = 's3-hosted-artifact.zip';
 
     beforeEach(() => {
       testFilePath = createTmpFile('dummy-artifact');
-      requestStub = sinon.stub(AWS, 'S3').returns({
-        getObject: () => ({
-          createReadStream() {
-            return fse.createReadStream(testFilePath);
-          },
-        }),
+      s3client.on(AWS.GetObjectCommand).resolves({
+        Body: fse.createReadStream(testFilePath),
       });
     });
 
     afterEach(() => {
-      AWS.S3.restore();
+      s3client.restore();
     });
 
     it('should download the file and replace the artifact path for function packages', () => {
@@ -109,7 +106,7 @@ describe('AwsCompileFunctions', () => {
           .split(path.sep)
           .pop();
 
-        expect(requestStub.callCount).to.equal(1);
+        expect(s3client.send.callCount).to.equal(1);
         expect(artifactFileName).to.equal(s3ArtifactName);
       });
     });
@@ -124,22 +121,17 @@ describe('AwsCompileFunctions', () => {
           .split(path.sep)
           .pop();
 
-        expect(requestStub.callCount).to.equal(1);
+        expect(s3client.send.callCount).to.equal(1);
         expect(artifactFileName).to.equal(s3ArtifactName);
       });
     });
 
     it('should not access AWS.S3 if URL is not an S3 URl', () => {
-      AWS.S3.restore();
-      const myRequestStub = sinon.stub(AWS, 'S3').returns({
-        getObject: () => {
-          throw new Error('should not be invoked');
-        },
-      });
+      s3client.on(AWS.GetObjectCommand).rejects('should not be invoked');
       awsCompileFunctions.serverless.service.functions[functionName].package.artifact =
         'https://s33amazonaws.com/this/that';
       return expect(awsCompileFunctions.downloadPackageArtifacts()).to.be.fulfilled.then(() => {
-        expect(myRequestStub.callCount).to.equal(1);
+        expect(s3client.send.callCount).to.equal(0);
       });
     });
   });
