@@ -512,7 +512,9 @@ functions:
 
 ### Exporting a function
 
-Function receives an object, with following properties:
+_Note: the method described below works by default in Serverless v3, but it requires the `variablesResolutionMode: 20210326` option in v2._
+
+A variable resolver function receives an object with the following properties:
 
 - `options` - An object referencing resolved CLI params as passed to the command
 - `resolveVariable(variableString)` - Async function which resolves provided variable string. String should be passed without wrapping (`${` and `}`) braces. Example valid values:
@@ -520,91 +522,43 @@ Function receives an object, with following properties:
   - `env:SOME_ENV_VAR, null` (end with `, null`, if missing value at the variable source should be resolved with `null`, and not with a thrown error)
 - `resolveConfigurationProperty([key1, key2, ...keyN])` - Async function which resolves specific service configuration property. It returns a fully resolved value of configuration property. If circular reference is detected resolution will be rejected.
 
-Resolver function can be either _sync_ or _async_. Still both `resolveConfigurationProperty` and `resolveVariable` utils provided to it are _async_, so if there's an intention to rely on it naturally resolver function should be _async_.
+The resolver function can either be _sync_ or _async_. Note that both `resolveConfigurationProperty` and `resolveVariable` functions are async: if these functions are called, the resolver function must be async.
 
-Example on how to obtain some Serverless Framework configuration values:
+Here is an example of a resolver function:
 
 ```js
 // config.js
 module.exports = async ({ options, resolveVariable }) => {
+  // We can resolve other variables via `resolveVariable`
   const stage = await resolveVariable('sls:stage');
   const region = await resolveVariable('opt:region, self:provider.region, "us-east-1"');
   ...
 
   // Resolver may return any JSON value (null, boolean, string, number, array or plain object)
   return {
-    prop1: someValue // if we want to directly access this value, variable should be constructed as ${file(./config):prop1}
-    prop2: someOther value
+    prop1: 'someValue',
+    prop2: 'someOther value'
   }
 }
 ```
 
-You can also return an object and reference a specific property. Just make sure you are returning a valid object and referencing a valid property:
+It is possible to reference the resolver's returned value:
 
 ```yml
 # serverless.yml
 service: new-service
-provider: aws
-functions:
-  scheduledFunction:
-    handler: handler.scheduledFunction
-    events:
-      - schedule: ${file(./myCustomFile.js):schedule.ten}
+
+custom: ${file(./config.js)}
 ```
 
-```js
-// myCustomFile.js
-module.exports.schedule = () => {
-  // Code that generates dynamic data
-  return {
-    ten: 'rate(10 minutes)',
-    twenty: 'rate(20 minutes)',
-    thirty: 'rate(30 minutes)',
-  };
-};
-```
-
-If your use case requires handling dynamic/async data sources (ie. DynamoDB, API calls...etc), you can also return a Promise that would be resolved as the value of the variable:
+Or a single property (if the resolver returned an object):
 
 ```yml
 # serverless.yml
 service: new-service
-provider: aws
-functions:
-  scheduledFunction:
-    handler: handler.scheduledFunction
-    events:
-      - schedule: ${file(./myCustomFile.js):promised}
-```
 
-```js
-// myCustomFile.js
-module.exports.promised = () => {
-  // Async code that fetches the rate config...
-  return Promise.resolve('rate(10 minutes)');
-};
-```
-
-For example, in such helper you could call AWS SDK to get account details:
-
-```js
-// myCustomFile.js
-const { STS } = require('aws-sdk');
-const sts = new STS();
-
-module.exports.getAccountId = async () => {
-  // Checking AWS user details
-  const { Account } = await sts.getCallerIdentity().promise();
-  return Account;
-};
-```
-
-```yml
-# serverless.yml
-service: new-service
-provider: aws
 custom:
-  accountId: ${file(./myCustomFile.js):getAccountId}
+  foo: ${file(./config.js):prop1}
 ```
 
 ## Multiple Configuration Files
