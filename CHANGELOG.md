@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.72.0](https://github.com/serverless/serverless/compare/v2.71.0...v2.72.0) (2022-01-17)
+
+### Features
+
+- **CLI Onboarding:** Auto login if `org` provided or configured ([#10510](https://github.com/serverless/serverless/pull/10510)) ([dcf5273](https://github.com/serverless/serverless/commit/dcf52731ea3920ecf16b2484e2673080acbfe1cd)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **CLI:** Respect old Node.js versions in version detection ([#10499](https://github.com/serverless/serverless/pull/10499)) ([427920e](https://github.com/serverless/serverless/commit/427920ee0fc1c98109c0b673c794baac1cc5caf7)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **AWS Deploy:** Improve custom resource generation log ([#10496](https://github.com/serverless/serverless/pull/10496)) ([521861b](https://github.com/serverless/serverless/commit/521861b6510fd345c2b596e4ec9e9ef7be01ac10)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI Onboarding:** Improve user message when `app` does not exist ([#10509](https://github.com/serverless/serverless/pull/10509)) ([20afe33](https://github.com/serverless/serverless/commit/20afe339231112e4d5ade9498386ac3c00e37e04)) ([Mariusz Nowak](https://github.com/medikoo))
+- Ensure support for `warn` mode for modern deprecations ([#10502](https://github.com/serverless/serverless/pull/10502)) ([82303b3](https://github.com/serverless/serverless/commit/82303b38942b35fa6cb8ad3f19f2d528a1736587)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Support `conceal` option in modern logs ([#10501](https://github.com/serverless/serverless/pull/10501)) ([0dacf1b](https://github.com/serverless/serverless/commit/0dacf1bb3bd53da32a24cf2286cf081aecf22806)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Templates
+
+- Ensure `esbuild` dependency in `aws-nodejs-typescript` ([#10484](https://github.com/serverless/serverless/pull/10484)) ([452e4d8](https://github.com/serverless/serverless/commit/452e4d8279802ab2ce1ca300ab2c75ec8588a9e8)) ([François Farge](https://github.com/fargito))
+
 ## [2.71.0](https://github.com/serverless/serverless/compare/v2.70.0...v2.71.0) (2022-01-10)
 
 ### Features
