@@ -44,7 +44,7 @@ describe('test/integration/curated-plugins.test.js', function () {
     let output = '';
     slsProcess.stderr.on('data', function self(data) {
       output += data;
-      if (output.includes('server ready:')) {
+      if (output.includes('Server ready:')) {
         slsProcess.stderr.off('data', self);
         got('http://localhost:3000/dev/foo')
           .json()
@@ -78,7 +78,7 @@ describe('test/integration/curated-plugins.test.js', function () {
     const { stderrBuffer } = await spawn(serverlessExec, ['prune', '-n', '10'], {
       cwd: serviceDir,
     });
-    expect(String(stderrBuffer)).to.include('Prune: Pruning complete.');
+    expect(String(stderrBuffer)).to.include('Pruning of functions complete');
   });
 
   it('should be extended by "serverless-dotenv-plugin"', async () => {
