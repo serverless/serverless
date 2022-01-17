@@ -44,8 +44,8 @@ describe('test/integration/curated-plugins.test.js', function () {
     let output = '';
     slsProcess.stdout.on('data', function self(data) {
       output += data;
-      if (output.includes('server ready:')) {
-        slsProcess.stdout.off('data', self);
+      if (output.includes('Server ready:')) {
+        slsProcess.stderr.off('data', self);
         got('http://localhost:3000/dev/foo')
           .json()
           .then(async (responseBody) => {
@@ -75,10 +75,10 @@ describe('test/integration/curated-plugins.test.js', function () {
 
   it('should be extended by "serverless-prune-plugin"', async () => {
     await updateConfig({ plugins: ['serverless-prune-plugin'] });
-    const { stdoutBuffer } = await spawn(serverlessExec, ['prune', '-n', '10'], {
+    const { stderrBuffer } = await spawn(serverlessExec, ['prune', '-n', '10'], {
       cwd: serviceDir,
     });
-    expect(String(stdoutBuffer)).to.include('Prune: Pruning complete.');
+    expect(String(stderrBuffer)).to.include('Pruning of functions complete');
   });
 
   it('should be extended by "serverless-dotenv-plugin"', async () => {
