@@ -1,8 +1,6 @@
 service: service
 configValidationMode: error
 
-variablesResolutionMode: 20210326
-
 provider:
   name: aws
   runtime: nodejs12.x

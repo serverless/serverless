@@ -40,21 +40,8 @@ describe('test/unit/lib/configuration/variables/eventually-report-resolution-err
       expect(stdoutData).to.include('Resolution of service configuration failed');
     });
 
-    it('should log deprecation with no "variablesResolutionMode" set', () => {
+    it('should throw error in regular circumstances', () => {
       const configuration = { foo: '${foo:raz' };
-      const variablesMeta = resolveMeta(configuration);
-      overrideArgv(
-        { args: ['serverless', 'foo'] },
-        () => () =>
-          expect(() =>
-            eventuallyReportResolutionErrors(process.cwd(), configuration, variablesMeta)
-          )
-            .to.throw(ServerlessError)
-            .with.property('code', 'REJECTED_DEPRECATION_VARIABLES_RESOLUTION_ERROR')
-      );
-    });
-    it('should throw with no "variablesResolutionMode" set', () => {
-      const configuration = { foo: '${foo:raz', variablesResolutionMode: 20210326 };
       const variablesMeta = resolveMeta(configuration);
       overrideArgv({ args: ['serverless', 'foo'] }, () =>
         expect(() => eventuallyReportResolutionErrors(process.cwd(), configuration, variablesMeta))
