@@ -445,7 +445,6 @@ const processSpanPromise = (async () => {
           if (!ensureResolvedProperty('frameworkVersion')) return;
           if (!ensureResolvedProperty('app')) return;
           if (!ensureResolvedProperty('org')) return;
-          if (!ensureResolvedProperty('tenant')) return;
           if (!ensureResolvedProperty('service')) return;
           if (configuration.org) {
             // Dashboard requires AWS region to be resolved upfront
