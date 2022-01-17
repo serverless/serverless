@@ -6,13 +6,13 @@ layout: Doc
 
 # Resolution of environment variables
 
-To automatically load environment variables from `.env` files (with the help of [dotenv](https://www.npmjs.com/package/dotenv) package) please set `useDotenv` property in `serverless.yml` as below:
+To automatically load environment variables from `.env` files (with the help of the [dotenv](https://www.npmjs.com/package/dotenv) package), set `useDotenv: true` in `serverless.yml`:
 
 ```yaml
 useDotenv: true
 ```
 
-Having that `.env` files will also be excluded from the package in order to avoid uploading sensitive data as a part of a package by mistake. Starting with the next major version, `.env` files will be loaded by default and `useDotenv` setting will be ignored.
+With that option enabled, `.env` files will also be excluded from the package in order to avoid uploading sensitive data as a part of a package by mistake.
 
 ## Support for `.env` files
 

@@ -398,7 +398,7 @@ In context of v2 you may adapt old variables resolver so errors on unresolved va
 
 Deprecation code: `PROVIDER_IAM_SETTINGS`
 
-_Note: Originally support for old IAM settings was scheduled to be dropped with new major release. It's no longer the case. If you see this deprecation notice please upgrade to latest version of Serverless Framework_
+_Note: Originally, support for the legacy IAM settings format was scheduled to be dropped in v3. However, it's no longer the case. If you see this deprecation notice please upgrade to the latest version of Serverless Framework v2._
 
 All IAM-related settings of _provider_ including `iamRoleStatements`, `iamManagedPolicies`, `role` and `cfnRole` are also now supported at `iam` property. Refer to the [IAM Guide](/framework/docs/providers/aws/guide/iam.md).
 
@@ -568,7 +568,7 @@ Deprecation code: `AWS_FUNCTION_DESTINATIONS_ASYNC_CONFIG`
 
 Deprecation code: `AWS_HTTP_API_VERSION`
 
-Default HTTP API Payload version will be switched to 2.0 with next major release (For more details see [payload format documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html#http-api-develop-integrations-lambda.proxy-format))
+Default HTTP API Payload version will be switched to 2.0 with v3 (For more details see [payload format documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html#http-api-develop-integrations-lambda.proxy-format)).
 
 Configure `httpApi.payload` explicitly to ensure seamless migration.
 
