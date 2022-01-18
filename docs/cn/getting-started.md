@@ -60,7 +60,7 @@ $ choco upgrade serverless
 npm install -g serverless
 
 # 或者更新 serverless cli 到最新版本
-npm update -g serverless
+npm install -g serverless
 ```
 
 如果你的环境中还没有安装 Node 8 或者更高的版本，那么你需要首先安装 [Node.js](https://nodejs.org/zh-cn/download/)
