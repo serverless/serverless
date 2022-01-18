@@ -42,10 +42,10 @@ To install the latest version, run this command in your terminal:
 curl -o- -L https://slss.io/install | bash
 ```
 
-To install an specific version you may set a VERSION variable, for example:
+To install a specific version, you may set a VERSION variable, for example:
 
 ```bash
-curl -o- -L https://slss.io/install | VERSION=2.21.1 bash
+curl -o- -L https://slss.io/install | VERSION=2.72.2 bash
 ```
 
 Then, open another terminal window to run the `serverless` program.
@@ -63,7 +63,10 @@ choco install serverless
 If `serverless` was installed via NPM, upgrade it via:
 
 ```bash
-npm update -g serverless
+npm install -g serverless
+
+# You can also specify a major version:
+npm install -g serverless@2
 ```
 
 If you installed `serverless` as a standalone binary, read the following section instead.
@@ -74,6 +77,9 @@ On MacOS/Linux, run:
 
 ```bash
 serverless upgrade
+
+# You can also restrict the upgrade to the latest v2 version:
+curl -o- -L https://slss.io/install | VERSION=2.72.2 bash
 ```
 
 On Windows, run:

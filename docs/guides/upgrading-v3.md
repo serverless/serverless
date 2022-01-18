@@ -17,13 +17,11 @@ Serverless Framework v3 contains a few breaking changes that may impact some pro
 
 This guide helps users upgrade from Serverless Framework v2 to v3.
 
-**Note:** Serverless Framework v3 isn't released yet. However, this guide helps to prepare to v3, or upgrade to the [v3 beta version](https://www.serverless.com/blog/serverless-framework-v3-beta).
-
 ## Am I impacted by breaking changes?
 
 Serverless Framework v2 signals any deprecated feature via a deprecation warning. The simplest way to upgrade to v3 is to:
 
-1. Upgrade Serverless Framework to the latest v2 version
+1. [Upgrade Serverless Framework](../getting-started.md#upgrade) to the latest v2 version
 2. Run `serverless` commands in the project to see if there are any deprecation warnings
 
 Projects that do not have any deprecations can be immediately upgraded to v3. Projects that have deprecation warnings should first solve these deprecations, then upgrade to v3.
@@ -36,15 +34,13 @@ That being said, some plugins need to be updated to be installable with v3. In m
 
 ## Upgrading to v3
 
-First, upgrade to the latest v2 version and make sure that you do not see any deprecation warning.
+First, [upgrade to the latest v2 version](../getting-started.md#upgrade) and make sure that you do not get any deprecation warning when running `serverless` commands.
 
 Then, to upgrade to Serverless Framework v3, run:
 
 ```bash
-npm update -g serverless
+npm install -g serverless
 ```
-
-**Note:** v3 is currently available as beta version. [Read the blog post](https://www.serverless.com/blog/serverless-framework-v3-beta) to upgrade to v3 beta until the stable version is released.
 
 If you [installed `serverless` as a standalone binary](../getting-started.md#install-as-a-standalone-binary), run the following command instead:
 
