@@ -60,7 +60,7 @@ body:
     attributes:
       label: Command output
       description: |
-        COMPLETE command output. Ensure SLS_DEBUG=* env var for verbose debug output
+        COMPLETE command output.
 
         If not applicable, fill with "N/A"
       render: shell

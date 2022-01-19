@@ -8,7 +8,7 @@ const _ = require('lodash');
 const isPlainObject = require('type/plain-object/is');
 const yaml = require('js-yaml');
 const cloudformationSchema = require('@serverless/utils/cloudformation-schema');
-const { legacy, log, progress, style } = require('@serverless/utils/log');
+const { log, progress, style } = require('@serverless/utils/log');
 const ServerlessError = require('../lib/serverless-error');
 const yamlAstParser = require('../lib/utils/yamlAstParser');
 const npmCommandDeferred = require('../lib/utils/npm-command-deferred');
@@ -37,7 +37,6 @@ module.exports = async ({ configuration, serviceDir, configurationFilename, opti
   await installPlugin(context);
   await addPluginToServerlessFile(context);
 
-  legacy.log(`Successfully installed "${pluginName}@${pluginVersion}"`);
   log.notice();
   log.notice.success(
     `Plugin "${pluginName}${
@@ -48,7 +47,6 @@ module.exports = async ({ configuration, serviceDir, configurationFilename, opti
 
 const installPlugin = async ({ serviceDir, pluginName, pluginVersion }) => {
   const pluginFullName = `${pluginName}@${pluginVersion}`;
-  legacy.log(`Installing plugin "${pluginFullName}" (this might take a few seconds...)`);
   await npmInstall(pluginFullName, { serviceDir });
 };
 
@@ -128,17 +126,12 @@ const npmInstall = async (name, { serviceDir }) => {
       shell: true,
     });
   } catch (error) {
-    legacy.write(error.stderrBuffer);
     log.error(String(error.stderrBuffer));
     throw error;
   }
 };
 
 const requestManualUpdate = (configurationFilePath) => {
-  legacy.log(`
-  Can't automatically add plugin into "${path.basename(configurationFilePath)}" file.
-  Please make it manually.
-`);
   log.notice();
   log.notice.skip(
     `Can't automatically add plugin into "${path.basename(

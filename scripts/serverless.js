@@ -10,7 +10,7 @@ require('graceful-fs').gracefulify(require('fs'));
 
 // Setup log writing
 require('@serverless/utils/log-reporters/node');
-const { legacy, log, progress } = require('@serverless/utils/log');
+const { log, progress } = require('@serverless/utils/log');
 
 const handleError = require('../lib/cli/handle-error');
 const {
@@ -740,14 +740,6 @@ const processSpanPromise = (async () => {
       } catch (dashboardErrorHandlerError) {
         const tokenizeException = require('../lib/utils/tokenize-exception');
         const exceptionTokens = tokenizeException(dashboardErrorHandlerError);
-        legacy.log(
-          `Publication to Serverless Dashboard errored with:\n${' '.repeat('Serverless: '.length)}${
-            exceptionTokens.isUserError || !exceptionTokens.stack
-              ? exceptionTokens.message
-              : exceptionTokens.stack
-          }`,
-          { color: 'orange' }
-        );
         log.warning(
           `Publication to Serverless Dashboard errored with:\n${' '.repeat('Serverless: '.length)}${
             exceptionTokens.isUserError || !exceptionTokens.stack

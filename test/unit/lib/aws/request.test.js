@@ -14,7 +14,6 @@ describe('#request', () => {
   it('should enable aws logging when debug log is enabled', () => {
     const configStub = sinon.stub();
     overrideEnv(() => {
-      process.env.SLS_DEBUG = true;
       proxyquire('../../../../lib/aws/request', {
         'aws-sdk': { config: configStub },
       });
@@ -40,7 +39,6 @@ describe('#request', () => {
     });
 
     it('should produce a meaningful error when no supported credentials are provided', async () => {
-      process.env.SLS_DEBUG = true;
       const awsRequest = require('../../../../lib/aws/request');
       return expect(
         awsRequest(
