@@ -4,11 +4,11 @@ const chai = require('chai');
 const sinon = require('sinon');
 const BbPromise = require('bluebird');
 const proxyquire = require('proxyquire');
-const chalk = require('chalk');
 const PluginList = require('../../../../../../lib/plugins/plugin/list');
 const Serverless = require('../../../../../../lib/Serverless');
 const CLI = require('../../../../../../lib/classes/CLI');
 const { expect } = require('chai');
+const observeOutput = require('@serverless/test/observe-output');
 
 chai.use(require('chai-as-promised'));
 
@@ -67,26 +67,17 @@ describe('PluginUtils', () => {
   });
 
   describe('#display()', () => {
-    it('should display the plugins if present', () => {
+    it('should display the plugins if present', async () => {
+      const output = await observeOutput(() => pluginUtils.display(plugins));
       let expectedMessage = '';
-      expectedMessage += `${chalk.yellow.underline('serverless-existing-plugin')}`;
-      expectedMessage += ' - Serverless Existing plugin\n';
-      expectedMessage += `${chalk.yellow.underline('serverless-plugin-1')}`;
-      expectedMessage += ' - Serverless Plugin 1\n';
-      expectedMessage += `${chalk.yellow.underline('serverless-plugin-2')}`;
-      expectedMessage += ' - Serverless Plugin 2\n';
-      expectedMessage = expectedMessage.slice(0, -2);
-      return expect(pluginUtils.display(plugins)).to.be.fulfilled.then((message) => {
-        expect(message).to.equal(expectedMessage);
-      });
-    });
-
-    it('should print a message when no plugins are available to display', () => {
-      const expectedMessage = 'There are no plugins available to display';
-
-      return pluginUtils.display([]).then((message) => {
-        expect(message).to.equal(expectedMessage);
-      });
+      expectedMessage += 'serverless-existing-plugin Serverless Existing plugin\n';
+      expectedMessage += 'serverless-plugin-1 Serverless Plugin 1\n';
+      expectedMessage += 'serverless-plugin-2 Serverless Plugin 2\n\n';
+      expectedMessage += 'Install a plugin by running:\n';
+      expectedMessage += '  serverless plugin install --name ...\n\n';
+      expectedMessage +=
+        'It will be automatically downloaded and added to package.json and serverless.yml\n';
+      expect(output).to.equal(expectedMessage);
     });
   });
 });
