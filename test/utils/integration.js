@@ -14,7 +14,6 @@ const { load: loadYaml } = require('js-yaml');
 const serverlessExec = require('../serverlessBinary');
 
 const env = resolveAwsEnv();
-env.SLS_DEBUG = '1';
 
 async function resolveServiceName(cwd) {
   const configContent = await (async () => {
