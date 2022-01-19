@@ -8,7 +8,7 @@ const _ = require('lodash');
 const isPlainObject = require('type/plain-object/is');
 const yaml = require('js-yaml');
 const cloudformationSchema = require('@serverless/utils/cloudformation-schema');
-const { legacy, log, progress, style } = require('@serverless/utils/log');
+const { log, progress, style } = require('@serverless/utils/log');
 const yamlAstParser = require('../lib/utils/yamlAstParser');
 const npmCommandDeferred = require('../lib/utils/npm-command-deferred');
 const {
@@ -32,7 +32,6 @@ module.exports = async ({ configuration, serviceDir, configurationFilename, opti
   await uninstallPlugin(context);
   await removePluginFromServerlessFile(context);
 
-  legacy.log(`Successfully uninstalled "${pluginName}"`);
   log.notice();
   log.notice.success(
     `Plugin "${pluginName}" uninstalled ${style.aside(
@@ -42,7 +41,6 @@ module.exports = async ({ configuration, serviceDir, configurationFilename, opti
 };
 
 const uninstallPlugin = async ({ serviceDir, pluginName }) => {
-  legacy.log(`Uninstalling plugin "${pluginName}" (this might take a few seconds...)`);
   await npmUninstall(pluginName, { serviceDir });
 };
 
@@ -108,17 +106,12 @@ const npmUninstall = async (name, { serviceDir }) => {
       stdio: 'pipe',
     });
   } catch (error) {
-    legacy.write(error.stderrBuffer);
     log.error(String(error.stderrBuffer));
     throw error;
   }
 };
 
 const requestManualUpdate = (configurationFilePath) => {
-  legacy.log(`
-  Can't automatically remove plugin from "${path.basename(configurationFilePath)}" file.
-  Please do it manually.
-`);
   log.notice();
   log.notice.skip(
     `Can't automatically remove plugin from "${path.basename(
