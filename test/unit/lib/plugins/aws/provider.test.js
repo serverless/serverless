@@ -166,10 +166,8 @@ describe('AwsProvider', () => {
   describe('#request()', () => {
     let awsRequestStub;
     let awsProviderProxied;
-    let logStub;
 
     beforeEach(() => {
-      logStub = sinon.stub();
       awsRequestStub = sinon.stub().resolves();
       awsRequestStub.memoized = sinon.stub().resolves();
       const AwsProviderProxyquired = proxyquire
@@ -177,9 +175,6 @@ describe('AwsProvider', () => {
         .load('../../../../../lib/plugins/aws/provider.js', {
           '../../aws/request': awsRequestStub,
           '@serverless/utils/log': {
-            legacy: {
-              log: logStub,
-            },
             log: {
               debug: sinon.stub(),
             },
@@ -220,21 +215,6 @@ describe('AwsProvider', () => {
         .then(() => {
           expect(awsRequestStub).to.not.have.been.called;
           expect(awsRequestStub.memoized).to.have.been.calledTwice;
-        });
-    });
-
-    it('should detect incompatible legacy use of aws request and print a debug warning', () => {
-      // Enable debug log
-      process.env.SLS_DEBUG = true;
-      return awsProviderProxied
-        .request('S3', 'getObject', {}, 'incompatible string option')
-        .then(() => {
-          expect(logStub).to.have.been.calledWith(
-            'WARNING: Inappropriate call of provider.request()'
-          );
-        })
-        .finally(() => {
-          process.env.SLS_DEBUG = false;
         });
     });
   });
