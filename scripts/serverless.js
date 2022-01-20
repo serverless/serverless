@@ -41,8 +41,8 @@ process.once('uncaughtException', (error) => {
   progress.clear();
   const cachedHasTelemetryBeenReported = hasTelemetryBeenReported;
   hasTelemetryBeenReported = true;
+  log.error('Uncaught exception');
   handleError(error, {
-    isUncaughtException: true,
     command,
     options,
     commandSchema,
@@ -52,6 +52,8 @@ process.once('uncaughtException', (error) => {
     hasTelemetryBeenReported: cachedHasTelemetryBeenReported,
     commandUsage,
     variableSourcesInConfig,
+  }).then(() => {
+    process.exit();
   });
 });
 
