@@ -211,7 +211,7 @@ processSpanPromise = (async () => {
           ));
         }
 
-        // IIFE for maintanance convenience
+        // IIFE for maintenance convenience
         await (async () => {
           const resolveVariablesMeta = require('../lib/configuration/variables/resolve-meta');
 
