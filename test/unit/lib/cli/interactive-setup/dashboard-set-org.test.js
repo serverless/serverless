@@ -98,7 +98,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       '@serverless/platform-client': {
         ServerlessSDK: ServerlessSDKMock,
       },
-      '@serverless/dashboard-plugin/lib/clientUtils': {
+      '@serverless/dashboard-plugin/lib/client-utils': {
         getPlatformClientWithAccessKey: async () => new ServerlessSDKMock(),
         getOrCreateAccessKeyForOrg: async () => 'accessKey',
       },
