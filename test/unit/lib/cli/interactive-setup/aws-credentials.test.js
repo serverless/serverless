@@ -34,7 +34,7 @@ const step = proxyquire('../../../../../lib/cli/interactive-setup/aws-credential
   '../../utils/openBrowser': async (url) => {
     openBrowserUrls.push(url);
   },
-  '@serverless/dashboard-plugin/lib/clientUtils': {
+  '@serverless/dashboard-plugin/lib/client-utils': {
     getPlatformClientWithAccessKey: async () => mockedSdk,
   },
 });
@@ -90,10 +90,10 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
       },
     };
     const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/aws-credentials', {
-      '@serverless/dashboard-plugin/lib/clientUtils': {
+      '@serverless/dashboard-plugin/lib/client-utils': {
         getPlatformClientWithAccessKey: async () => internalMockedSdk,
       },
-      '@serverless/dashboard-plugin/lib/isAuthenticated': () => true,
+      '@serverless/dashboard-plugin/lib/is-authenticated': () => true,
     });
 
     const context = {
@@ -126,10 +126,10 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
       },
     };
     const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/aws-credentials', {
-      '@serverless/dashboard-plugin/lib/clientUtils': {
+      '@serverless/dashboard-plugin/lib/client-utils': {
         getPlatformClientWithAccessKey: async () => internalMockedSdk,
       },
-      '@serverless/dashboard-plugin/lib/isAuthenticated': () => true,
+      '@serverless/dashboard-plugin/lib/is-authenticated': () => true,
       './utils': {
         doesServiceInstanceHaveLinkedProvider: () => true,
       },
@@ -172,10 +172,10 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
       },
     };
     const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/aws-credentials', {
-      '@serverless/dashboard-plugin/lib/clientUtils': {
+      '@serverless/dashboard-plugin/lib/client-utils': {
         getPlatformClientWithAccessKey: async () => internalMockedSdk,
       },
-      '@serverless/dashboard-plugin/lib/isAuthenticated': () => true,
+      '@serverless/dashboard-plugin/lib/is-authenticated': () => true,
       './utils': {
         doesServiceInstanceHaveLinkedProvider: () => false,
       },
@@ -207,10 +207,10 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
       },
     };
     const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/aws-credentials', {
-      '@serverless/dashboard-plugin/lib/clientUtils': {
+      '@serverless/dashboard-plugin/lib/client-utils': {
         getPlatformClientWithAccessKey: async () => internalMockedSdk,
       },
-      '@serverless/dashboard-plugin/lib/isAuthenticated': () => true,
+      '@serverless/dashboard-plugin/lib/is-authenticated': () => true,
     });
 
     expect(
@@ -445,11 +445,11 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         createProviderLink: mockedCreateProviderLink,
       };
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/aws-credentials', {
-        '@serverless/dashboard-plugin/lib/clientUtils': {
+        '@serverless/dashboard-plugin/lib/client-utils': {
           getPlatformClientWithAccessKey: async () => internalMockedSdk,
         },
         '../../utils/openBrowser': mockedOpenBrowser,
-        '@serverless/dashboard-plugin/lib/isAuthenticated': () => true,
+        '@serverless/dashboard-plugin/lib/is-authenticated': () => true,
       });
 
       configureInquirerStub(inquirer, {
@@ -515,11 +515,11 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         createProviderLink: mockedCreateProviderLink,
       };
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/aws-credentials', {
-        '@serverless/dashboard-plugin/lib/clientUtils': {
+        '@serverless/dashboard-plugin/lib/client-utils': {
           getPlatformClientWithAccessKey: async () => internalMockedSdk,
         },
         '../../utils/openBrowser': mockedOpenBrowser,
-        '@serverless/dashboard-plugin/lib/isAuthenticated': () => true,
+        '@serverless/dashboard-plugin/lib/is-authenticated': () => true,
       });
 
       configureInquirerStub(inquirer, {
@@ -566,7 +566,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         },
       };
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/aws-credentials', {
-        '@serverless/dashboard-plugin/lib/clientUtils': {
+        '@serverless/dashboard-plugin/lib/client-utils': {
           getPlatformClientWithAccessKey: async () => internalMockedSdk,
         },
         '../../utils/openBrowser': mockedOpenBrowser,
@@ -620,7 +620,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         createProviderLink: mockedCreateProviderLink,
       };
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/aws-credentials', {
-        '@serverless/dashboard-plugin/lib/clientUtils': {
+        '@serverless/dashboard-plugin/lib/client-utils': {
           getPlatformClientWithAccessKey: async () => internalMockedSdk,
         },
       });
@@ -681,7 +681,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         createProviderLink: mockedCreateProviderLink,
       };
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/aws-credentials', {
-        '@serverless/dashboard-plugin/lib/clientUtils': {
+        '@serverless/dashboard-plugin/lib/client-utils': {
           getPlatformClientWithAccessKey: async () => internalMockedSdk,
         },
       });
@@ -725,10 +725,10 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         },
       };
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/aws-credentials', {
-        '@serverless/dashboard-plugin/lib/clientUtils': {
+        '@serverless/dashboard-plugin/lib/client-utils': {
           getPlatformClientWithAccessKey: async () => internalMockedSdk,
         },
-        '@serverless/dashboard-plugin/lib/isAuthenticated': () => true,
+        '@serverless/dashboard-plugin/lib/is-authenticated': () => true,
       });
 
       await mockedStep.run({
