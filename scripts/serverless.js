@@ -57,65 +57,65 @@ process.once('uncaughtException', (error) => {
   });
 });
 
-require('signal-exit/signals').forEach((signal) => {
-  process.once(signal, () => {
-    clearTimeout(keepAliveTimer);
-    progress.clear();
-    // If there's another listener (e.g. we're in deamon context or reading stdin input)
-    // then let the other listener decide how process will exit
-    const isOtherSigintListener = Boolean(process.listenerCount(signal));
-    if (!hasTelemetryBeenReported) {
-      hasTelemetryBeenReported = true;
-      if (commandSchema && !isTelemetryDisabled) {
-        const telemetryPayload = generateTelemetryPayload({
-          command,
-          options,
-          commandSchema,
-          serviceDir,
-          configuration,
-          serverless,
-          commandUsage,
-          variableSources: variableSourcesInConfig,
-        });
-        storeTelemetryLocally({
-          ...telemetryPayload,
-          outcome: 'interrupt',
-          interruptSignal: signal,
-        });
-      }
-    }
-
-    if (isOtherSigintListener) return;
-    // Follow recommendation from signal-exit:
-    // https://github.com/tapjs/signal-exit/blob/654117d6c9035ff6a805db4d4acf1f0c820fcb21/index.js#L97-L98
-    if (process.platform === 'win32' && signal === 'SIGHUP') signal = 'SIGINT';
-    process.kill(process.pid, signal);
-  });
-});
-
-const humanizePropertyPathKeys = require('../lib/configuration/variables/humanize-property-path-keys');
-const processBackendNotificationRequest = require('../lib/utils/processBackendNotificationRequest');
-const logDeprecation = require('../lib/utils/logDeprecation');
-
-const rewriteDeployFunctionParam = () => {
-  const isParamName = RegExp.prototype.test.bind(require('../lib/cli/param-reg-exp'));
-
-  const args = process.argv.slice(2);
-  const firstParamIndex = args.findIndex(isParamName);
-  const commands = args.slice(0, firstParamIndex === -1 ? Infinity : firstParamIndex);
-  if (commands.join(' ') !== 'deploy') return;
-  if (!args.includes('-f') && !args.includes('--function')) return;
-  logDeprecation(
-    'CLI_DEPLOY_FUNCTION_OPTION_V3',
-    'Starting with v4.0.0, `--function` or `-f` option for `deploy` command will no longer be supported. In order to deploy a single function, please use `deploy function` command instead.'
-  );
-  process.argv.splice(3, 0, 'function');
-};
-
 const processSpanPromise = (async () => {
   try {
     const wait = require('timers-ext/promise/sleep');
     await wait(); // Ensure access to "processSpanPromise"
+
+    require('signal-exit/signals').forEach((signal) => {
+      process.once(signal, () => {
+        clearTimeout(keepAliveTimer);
+        progress.clear();
+        // If there's another listener (e.g. we're in deamon context or reading stdin input)
+        // then let the other listener decide how process will exit
+        const isOtherSigintListener = Boolean(process.listenerCount(signal));
+        if (!hasTelemetryBeenReported) {
+          hasTelemetryBeenReported = true;
+          if (commandSchema && !isTelemetryDisabled) {
+            const telemetryPayload = generateTelemetryPayload({
+              command,
+              options,
+              commandSchema,
+              serviceDir,
+              configuration,
+              serverless,
+              commandUsage,
+              variableSources: variableSourcesInConfig,
+            });
+            storeTelemetryLocally({
+              ...telemetryPayload,
+              outcome: 'interrupt',
+              interruptSignal: signal,
+            });
+          }
+        }
+
+        if (isOtherSigintListener) return;
+        // Follow recommendation from signal-exit:
+        // https://github.com/tapjs/signal-exit/blob/654117d6c9035ff6a805db4d4acf1f0c820fcb21/index.js#L97-L98
+        if (process.platform === 'win32' && signal === 'SIGHUP') signal = 'SIGINT';
+        process.kill(process.pid, signal);
+      });
+    });
+
+    const humanizePropertyPathKeys = require('../lib/configuration/variables/humanize-property-path-keys');
+    const processBackendNotificationRequest = require('../lib/utils/processBackendNotificationRequest');
+    const logDeprecation = require('../lib/utils/logDeprecation');
+
+    const rewriteDeployFunctionParam = () => {
+      const isParamName = RegExp.prototype.test.bind(require('../lib/cli/param-reg-exp'));
+
+      const args = process.argv.slice(2);
+      const firstParamIndex = args.findIndex(isParamName);
+      const commands = args.slice(0, firstParamIndex === -1 ? Infinity : firstParamIndex);
+      if (commands.join(' ') !== 'deploy') return;
+      if (!args.includes('-f') && !args.includes('--function')) return;
+      logDeprecation(
+        'CLI_DEPLOY_FUNCTION_OPTION_V3',
+        'Starting with v4.0.0, `--function` or `-f` option for `deploy` command will no longer be supported. In order to deploy a single function, please use `deploy function` command instead.'
+      );
+      process.argv.splice(3, 0, 'function');
+    };
 
     rewriteDeployFunctionParam();
 
