@@ -19,8 +19,10 @@ const {
 } = require('../lib/utils/telemetry');
 const generateTelemetryPayload = require('../lib/utils/telemetry/generatePayload');
 const isTelemetryDisabled = require('../lib/utils/telemetry/areDisabled');
+const logDeprecation = require('../lib/utils/logDeprecation');
 
 let command;
+let isHelpRequest;
 let options;
 let commandSchema;
 let serviceDir = null;
@@ -29,67 +31,66 @@ let serverless;
 const commandUsage = {};
 const variableSourcesInConfig = new Set();
 
-let hasTelemetryBeenReported = false;
-
 // Inquirer async operations do not keep node process alive
 // We need to issue a keep alive timer so process does not die
 // to properly handle e.g. `SIGINT` interrupt
 const keepAliveTimer = setTimeout(() => {}, 60 * 60 * 1000);
 
-process.once('uncaughtException', (error) => {
+let processSpanPromise;
+let hasBeenFinalized = false;
+const finalize = async ({ error, shouldBeSync, telemetryData, shouldSendTelemetry } = {}) => {
+  if (hasBeenFinalized) {
+    if (error) {
+      // Programmer error in finalize handling, ensure to expose
+      process.nextTick(() => {
+        throw error;
+      });
+    }
+    return null;
+  }
+  hasBeenFinalized = true;
   clearTimeout(keepAliveTimer);
   progress.clear();
-  const cachedHasTelemetryBeenReported = hasTelemetryBeenReported;
-  hasTelemetryBeenReported = true;
-  log.error('Uncaught exception');
-  handleError(error, {
-    command,
-    options,
-    commandSchema,
-    serviceDir,
-    configuration,
-    serverless,
-    hasTelemetryBeenReported: cachedHasTelemetryBeenReported,
-    commandUsage,
-    variableSourcesInConfig,
-  }).then(() => {
-    process.exit();
+  if (error) ({ telemetryData } = await handleError(error, { serverless }));
+  if (!shouldBeSync) await logDeprecation.printSummary();
+  if (isTelemetryDisabled || !commandSchema) return null;
+  if (!error && isHelpRequest) return null;
+  storeTelemetryLocally({
+    ...generateTelemetryPayload({
+      command,
+      options,
+      commandSchema,
+      serviceDir,
+      configuration,
+      serverless,
+      commandUsage,
+      variableSources: variableSourcesInConfig,
+    }),
+    ...telemetryData,
   });
+  if (!error && !shouldSendTelemetry) return null;
+  return sendTelemetry({ serverlessExecutionSpan: processSpanPromise });
+};
+
+process.once('uncaughtException', (error) => {
+  log.error('Uncaught exception');
+  finalize({ error }).then(() => process.exit());
 });
 
-const processSpanPromise = (async () => {
+processSpanPromise = (async () => {
   try {
     const wait = require('timers-ext/promise/sleep');
     await wait(); // Ensure access to "processSpanPromise"
 
     require('signal-exit/signals').forEach((signal) => {
       process.once(signal, () => {
-        clearTimeout(keepAliveTimer);
-        progress.clear();
         // If there's another listener (e.g. we're in deamon context or reading stdin input)
         // then let the other listener decide how process will exit
         const isOtherSigintListener = Boolean(process.listenerCount(signal));
-        if (!hasTelemetryBeenReported) {
-          hasTelemetryBeenReported = true;
-          if (commandSchema && !isTelemetryDisabled) {
-            const telemetryPayload = generateTelemetryPayload({
-              command,
-              options,
-              commandSchema,
-              serviceDir,
-              configuration,
-              serverless,
-              commandUsage,
-              variableSources: variableSourcesInConfig,
-            });
-            storeTelemetryLocally({
-              ...telemetryPayload,
-              outcome: 'interrupt',
-              interruptSignal: signal,
-            });
-          }
-        }
-
+        finalize({
+          shouldBeSync: true,
+          telemetryData: { outcome: 'interrupt', interruptSignal: signal },
+        });
         if (isOtherSigintListener) return;
         // Follow recommendation from signal-exit:
         // https://github.com/tapjs/signal-exit/blob/654117d6c9035ff6a805db4d4acf1f0c820fcb21/index.js#L97-L98
@@ -100,7 +101,6 @@ const processSpanPromise = (async () => {
 
     const humanizePropertyPathKeys = require('../lib/configuration/variables/humanize-property-path-keys');
     const processBackendNotificationRequest = require('../lib/utils/processBackendNotificationRequest');
-    const logDeprecation = require('../lib/utils/logDeprecation');
 
     (() => {
       // Rewrite eventual `sls deploy -f` into `sls deploy function -f`
@@ -121,7 +121,6 @@ const processSpanPromise = (async () => {
     const resolveInput = require('../lib/cli/resolve-input');
 
     let commands;
-    let isHelpRequest;
     // Parse args against schemas of commands which do not require to be run in service context
     ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
       require('../lib/cli/commands-schema/no-service')
@@ -130,7 +129,7 @@ const processSpanPromise = (async () => {
     // If version number request, show it and abort
     if (options.version) {
       await require('../lib/cli/render-version')();
-      await logDeprecation.printSummary();
+      await finalize();
       return;
     }
 
@@ -510,29 +509,7 @@ const processSpanPromise = (async () => {
         });
       }
 
-      progress.clear();
-
-      await logDeprecation.printSummary();
-
-      if (!hasTelemetryBeenReported) {
-        hasTelemetryBeenReported = true;
-        if (!isTelemetryDisabled) {
-          storeTelemetryLocally({
-            ...generateTelemetryPayload({
-              command,
-              options,
-              commandSchema,
-              serviceDir,
-              configuration,
-              commandUsage,
-              variableSources: variableSourcesInConfig,
-              serverless,
-            }),
-            outcome: 'success',
-          });
-          await sendTelemetry({ serverlessExecutionSpan: processSpanPromise });
-        }
-      }
+      await finalize({ telemetryData: { outcome: 'success', shouldSendTelemetry: true } });
       return;
     }
 
@@ -697,36 +674,12 @@ const processSpanPromise = (async () => {
         // Run command
         await serverless.run();
       }
-      progress.clear();
 
-      await logDeprecation.printSummary();
-
-      if (!hasTelemetryBeenReported) {
-        hasTelemetryBeenReported = true;
-
-        if (!isTelemetryDisabled && !isHelpRequest) {
-          storeTelemetryLocally({
-            ...generateTelemetryPayload({
-              command,
-              options,
-              commandSchema,
-              serviceDir,
-              configuration,
-              serverless,
-              variableSources: variableSourcesInConfig,
-            }),
-            outcome: 'success',
-          });
-          let backendNotificationRequest;
-          if (commands.join(' ') === 'deploy') {
-            backendNotificationRequest = await sendTelemetry({
-              serverlessExecutionSpan: processSpanPromise,
-            });
-          }
-          if (backendNotificationRequest) {
-            await processBackendNotificationRequest(backendNotificationRequest);
-          }
-        }
+      const backendNotificationRequest = await finalize({
+        telemetryData: { outcome: 'success', shouldSendTelemetry: commands.join(' ') === 'deploy' },
+      });
+      if (backendNotificationRequest) {
+        await processBackendNotificationRequest(backendNotificationRequest);
       }
     } catch (error) {
       // If Dashboard Plugin, capture error
@@ -751,21 +704,6 @@ const processSpanPromise = (async () => {
       throw error;
     }
   } catch (error) {
-    progress.clear();
-    const cachedHasTelemetryBeenReported = hasTelemetryBeenReported;
-    hasTelemetryBeenReported = true;
-    handleError(error, {
-      command,
-      options,
-      commandSchema,
-      serviceDir,
-      configuration,
-      serverless,
-      hasTelemetryBeenReported: cachedHasTelemetryBeenReported,
-      commandUsage,
-      variableSources: variableSourcesInConfig,
-    });
-  } finally {
-    clearTimeout(keepAliveTimer);
+    await finalize({ error });
   }
 })();
