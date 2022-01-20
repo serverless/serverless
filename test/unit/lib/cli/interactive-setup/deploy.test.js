@@ -53,7 +53,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
 
   it('Should be applied if service instance has a linked provider', async () => {
     const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/deploy', {
-      '@serverless/dashboard-plugin/lib/isAuthenticated': () => true,
+      '@serverless/dashboard-plugin/lib/is-authenticated': () => true,
       './utils': {
         doesServiceInstanceHaveLinkedProvider: () => true,
       },
