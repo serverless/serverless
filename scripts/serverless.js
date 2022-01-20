@@ -102,7 +102,8 @@ const processSpanPromise = (async () => {
     const processBackendNotificationRequest = require('../lib/utils/processBackendNotificationRequest');
     const logDeprecation = require('../lib/utils/logDeprecation');
 
-    const rewriteDeployFunctionParam = () => {
+    (() => {
+      // Rewrite eventual `sls deploy -f` into `sls deploy function -f`
       const isParamName = RegExp.prototype.test.bind(require('../lib/cli/param-reg-exp'));
 
       const args = process.argv.slice(2);
@@ -115,9 +116,7 @@ const processSpanPromise = (async () => {
         'Starting with v4.0.0, `--function` or `-f` option for `deploy` command will no longer be supported. In order to deploy a single function, please use `deploy function` command instead.'
       );
       process.argv.splice(3, 0, 'function');
-    };
-
-    rewriteDeployFunctionParam();
+    })();
 
     const resolveInput = require('../lib/cli/resolve-input');
 
