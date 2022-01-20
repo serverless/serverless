@@ -23,16 +23,6 @@ describe('test/unit/lib/cli/handle-error.test.js', () => {
     expect(output).to.have.string('SDK');
   });
 
-  it('should support `isUncaughtException` option', async () => {
-    const processExitStub = sinon.stub(process, 'exit').returns();
-    try {
-      await handleError(new ServerlessError('Test error'), { isUncaughtException: true });
-      expect(processExitStub.called).to.be.true;
-    } finally {
-      processExitStub.restore();
-    }
-  });
-
   if (isStandaloneExecutable) {
     it('should report standalone installation', async () => {
       const output = await observeOutput(() => handleError(new ServerlessError('Test error')));
