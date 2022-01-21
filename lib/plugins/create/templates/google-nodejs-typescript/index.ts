@@ -1,2 +1,2 @@
-export { eventHello } from '@functions/eventHello/handler';
-export { httpHello } from '@functions/httpHello/handler';
+export { eventHello } from '@functions/event-hello/handler';
+export { httpHello } from '@functions/http-hello/handler';

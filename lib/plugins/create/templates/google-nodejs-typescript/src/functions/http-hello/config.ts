@@ -1,5 +1,5 @@
 export const httpHello = {
-  handler: 'httpHello',
+  handler: 'http-hello',
   events: [
     {
       http: 'hello',
