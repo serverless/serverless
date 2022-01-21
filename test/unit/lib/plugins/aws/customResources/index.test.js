@@ -142,7 +142,7 @@ describe('#addCustomResourceToService()', () => {
             S3Key: 'artifact-dir-name/custom-resources.zip',
           },
           FunctionName: `${serviceName}-dev-custom-resource-event-bridge`,
-          Handler: 'eventBridge/handler.handler',
+          Handler: 'event-bridge/handler.handler',
           MemorySize: 1024,
           Role: {
             'Fn::GetAtt': ['IamRoleCustomResourcesLambdaExecution', 'Arn'],
