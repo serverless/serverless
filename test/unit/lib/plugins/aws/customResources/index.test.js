@@ -123,7 +123,7 @@ describe('#addCustomResourceToService()', () => {
             S3Key: 'artifact-dir-name/custom-resources.zip',
           },
           FunctionName: `${serviceName}-dev-custom-resource-existing-cup`,
-          Handler: 'cognitoUserPool/handler.handler',
+          Handler: 'cognito-user-pool/handler.handler',
           MemorySize: 1024,
           Role: {
             'Fn::GetAtt': ['IamRoleCustomResourcesLambdaExecution', 'Arn'],

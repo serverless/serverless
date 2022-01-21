@@ -1,7 +1,7 @@
-// import { eventHello } from './eventHello/config';
-import { httpHello } from './httpHello/config';
+// import { eventHello } from './event-hello/config';
+import { httpHello } from './http-hello/config';
 
 export const functions = {
-  // eventHello, // cf ./eventHello/config.ts
-  httpHello
+  // eventHello, // cf ./event-hello/config.ts
+  httpHello,
 };
