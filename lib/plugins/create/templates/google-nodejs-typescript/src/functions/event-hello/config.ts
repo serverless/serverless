@@ -4,7 +4,7 @@
 // 3. Uncomment the eventHello import and declaration in src/functions/config.ts
 
 export const eventHello = {
-  handler: 'eventHello',
+  handler: 'event-hello',
   events: [
     {
       event: {
