@@ -179,7 +179,7 @@ describe('Create', () => {
         expect(dirContent).to.include(path.join('src', 'functions', 'hello', 'mock.json'));
         expect(dirContent).to.include(path.join('src', 'functions', 'hello', 'schema.ts'));
         expect(dirContent).to.include(path.join('src', 'functions', 'index.ts'));
-        expect(dirContent).to.include(path.join('src', 'libs', 'apiGateway.ts'));
+        expect(dirContent).to.include(path.join('src', 'libs', 'api-gateway.ts'));
         expect(dirContent).to.include(path.join('src', 'libs', 'lambda.ts'));
         expect(dirContent).to.include('tsconfig.json');
         expect(dirContent).to.include('tsconfig.paths.json');
