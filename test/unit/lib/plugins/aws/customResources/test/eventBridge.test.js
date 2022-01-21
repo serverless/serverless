@@ -3,7 +3,7 @@
 const { expect } = require('chai');
 const {
   getEventBusTargetId,
-} = require('../../../../../../../lib/plugins/aws/customResources/resources/eventBridge/lib/utils');
+} = require('../../../../../../../lib/plugins/aws/customResources/resources/event-bridge/lib/utils');
 
 describe('#getEventBusTargetId()', () => {
   const assertions = [
