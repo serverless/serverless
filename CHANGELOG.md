@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.72.1](https://github.com/serverless/serverless/compare/v2.72.0...v2.72.1) (2022-01-21)
+
+### Maintenance Improvements
+
+- Refactor direct use of `@serverless/utils/log` ([#10534](https://github.com/serverless/serverless/pull/10534)) ([05fb97f](https://github.com/serverless/serverless/commit/05fb97fdab0c0ddc471ca554e48e09e661f797db)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [2.72.0](https://github.com/serverless/serverless/compare/v2.71.0...v2.72.0) (2022-01-17)
 
 ### Features
