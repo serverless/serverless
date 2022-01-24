@@ -290,7 +290,7 @@ describe('HTTP API Integration Test', function () {
     let serviceName;
 
     before(async () => {
-      const exportServiceData = await fixtures.setup('httpApiExport');
+      const exportServiceData = await fixtures.setup('http-api-export');
       ({ servicePath: exportServicePath } = exportServiceData);
       const exportServiceName = exportServiceData.serviceConfig.service;
       await deployService(exportServicePath);
