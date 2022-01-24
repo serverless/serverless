@@ -380,7 +380,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
       describe('With a catch-all route', () => {
         before(() =>
           runServerless({
-            fixture: 'httpApiCatchAll',
+            fixture: 'http-api-catch-all',
             configExt: {
               provider: {
                 httpApi: {
