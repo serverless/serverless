@@ -45,7 +45,7 @@ describe.skip('AWS - Active MQ Integration Test', function () {
       endpoint.startsWith('stomp')
     );
 
-    const serviceData = await fixtures.setup('functionActivemq', {
+    const serviceData = await fixtures.setup('function-active-mq', {
       configExt: {
         functions: {
           producer: {
