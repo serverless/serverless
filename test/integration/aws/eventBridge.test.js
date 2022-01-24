@@ -34,7 +34,7 @@ describe('AWS - Event Bridge Integration Test', () => {
     ];
 
     before(async () => {
-      const serviceData = await fixtures.setup('eventBridge');
+      const serviceData = await fixtures.setup('event-bridge');
       ({ servicePath: serviceDir } = serviceData);
       serviceName = serviceData.serviceConfig.service;
 
@@ -173,7 +173,7 @@ describe('AWS - Event Bridge Integration Test', () => {
     ];
 
     before(async () => {
-      const serviceData = await fixtures.setup('eventBridge');
+      const serviceData = await fixtures.setup('event-bridge');
       ({ servicePath: serviceDir } = serviceData);
       serviceName = serviceData.serviceConfig.service;
 
