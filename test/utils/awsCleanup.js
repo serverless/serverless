@@ -5,7 +5,7 @@
 
 const { logger } = require('./misc');
 const { findStacks, deleteStack, listStackResources } = require('./cloudformation');
-const { findRestApis, deleteRestApi } = require('./apiGateway');
+const { findRestApis, deleteRestApi } = require('./api-gateway');
 const { deleteBucket } = require('./s3');
 const { findUserPools, deleteUserPoolById } = require('./cognito');
 
