@@ -30,7 +30,7 @@ describe('test/integration/aws/iotFleetProvisioning.test.js', function () {
 
   before(async () => {
     let serviceConfig;
-    ({ serviceConfig, servicePath: serviceDir } = await fixtures.setup('iotFleetProvisioning'));
+    ({ serviceConfig, servicePath: serviceDir } = await fixtures.setup('iot-fleet-provisioning'));
     const serviceName = serviceConfig.service;
     stackName = `${serviceName}-${stage}`;
     await deployService(serviceDir);

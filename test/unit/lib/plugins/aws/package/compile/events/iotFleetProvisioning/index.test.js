@@ -2,7 +2,7 @@
 
 const chai = require('chai');
 const runServerless = require('../../../../../../../../utils/run-serverless');
-const templateBody = require('../../../../../../../../fixtures/programmatic/iotFleetProvisioning/template.json');
+const templateBody = require('../../../../../../../../fixtures/programmatic/iot-fleet-provisioning/template.json');
 
 chai.use(require('chai-as-promised'));
 
