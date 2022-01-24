@@ -24,7 +24,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
     const output = String(
       (
         await spawn('node', [serverlessPath, '--help'], {
-          cwd: path.resolve(cliFixturesPath, 'configSyntaxError'),
+          cwd: path.resolve(cliFixturesPath, 'config-syntax-error'),
         })
       ).stdoutBuffer
     );
@@ -34,7 +34,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
   it('should report with an error invalid configuration', async () => {
     try {
       await spawn('node', [serverlessPath, 'print'], {
-        cwd: path.resolve(cliFixturesPath, 'configSyntaxError'),
+        cwd: path.resolve(cliFixturesPath, 'config-syntax-error'),
       });
       throw new Error('Unexpected');
     } catch (error) {
@@ -82,7 +82,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
     const output = String(
       (
         await spawn('node', [serverlessPath, 'plugin', 'list'], {
-          cwd: path.resolve(cliFixturesPath, 'configSyntaxError'),
+          cwd: path.resolve(cliFixturesPath, 'config-syntax-error'),
         })
       ).stdoutBuffer
     );
