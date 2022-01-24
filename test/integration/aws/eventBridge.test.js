@@ -10,7 +10,7 @@ const {
   putEvents,
   deleteEventBus,
   describeEventBus,
-} = require('../../utils/eventBridge');
+} = require('../../utils/event-bridge');
 
 const { deployService, removeService, getMarkers } = require('../../utils/integration');
 
