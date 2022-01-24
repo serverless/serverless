@@ -305,7 +305,7 @@ describe('#compileRequestValidators() - parameters', () => {
 
   before(async () => {
     const { cfTemplate, awsNaming } = await runServerless({
-      fixture: 'requestParameters',
+      fixture: 'request-parameters',
       command: 'package',
     });
     cfResources = cfTemplate.Resources;
