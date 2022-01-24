@@ -2,9 +2,9 @@
 
 const path = require('path');
 const globby = require('globby');
+const requireUncached = require('ncjsm/require-uncached');
 const { listZipFiles } = require('../../../../../utils/fs');
 const { expect } = require('chai');
-const generateZip = require('../../../../../../lib/plugins/aws/customResources/generateZip');
 
 // The directory that holds the files that generateZip zips up
 const resourcesDir = path.resolve(
@@ -15,7 +15,9 @@ const resourcesDir = path.resolve(
 describe('test/unit/lib/plugins/aws/customResources/generateZip.test.js', () => {
   describe('when generating a zip file', () => {
     it('should generate a zip file with the contents of the resources directory', async () => {
-      const zipFilePath = await generateZip();
+      const zipFilePath = await requireUncached(async () =>
+        require('../../../../../../lib/plugins/aws/customResources/generateZip')()
+      );
 
       // List the files in the zip to make sure it is valid
       const filesInZip = await listZipFiles(zipFilePath);
