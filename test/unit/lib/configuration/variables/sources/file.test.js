@@ -25,6 +25,7 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
       addressSupport: '${file(file.json):result}',
       jsFunctionResolveVariable: '${file(file-function-variable.js)}',
       jsFunctionResolveVariableMissingSource: '${file(file-function-variable-missing-source.js)}',
+      jsFunctionResolveManyVariables: '${file(file-function-many-variables.js)}',
       jsPropertyFunctionResolveVariable: '${file(file-property-function-variable.js):property}',
       jsPropertyFunctionResolveVariableMissingSource:
         '${file(file-property-function-variable-missing-source.js):property}',
@@ -100,6 +101,9 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
     });
     expect(configuration.jsPropertyFunctionResolveVariable).to.deep.equal({
       varResult: { result: 'json' },
+    });
+    expect(configuration.jsFunctionResolveManyVariables).to.deep.equal({
+      varResult: { result: ['yml', 'yml', 'yml', 'yml', 'yml', 'yml', 'yml', 'yml', 'yml', 'yml'] },
     });
   });
 
