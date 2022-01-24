@@ -1093,7 +1093,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       const imageSha = '6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38';
       const imageWithSha = `000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:${imageSha}`;
       const { awsNaming, cfTemplate, fixtureData } = await runServerless({
-        fixture: 'packageArtifact',
+        fixture: 'package-artifact',
         command: 'package',
         configExt: {
           provider: {
@@ -2322,7 +2322,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
   describe.skip('TODO: Download package artifact from S3 bucket', () => {
     before(async () => {
       await runServerless({
-        fixture: 'packageArtifact',
+        fixture: 'package-artifact',
         command: 'deploy',
         configExt: {
           package: { artifact: 'some s3 url' },

@@ -564,7 +564,7 @@ describe('checkForChanges', () => {
 describe('checkForChanges #2', () => {
   it('Should recognize package.artifact', () =>
     runServerless({
-      fixture: 'packageArtifact',
+      fixture: 'package-artifact',
       command: 'deploy',
       env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',

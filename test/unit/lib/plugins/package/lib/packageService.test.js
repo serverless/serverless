@@ -307,8 +307,8 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
       });
 
       it('for function', async () => {
-        const { servicePath: serviceDir, updateConfig } = await fixtures.setup('packageArtifact');
-        const absoluteArtifactFilePath = path.join(serviceDir, 'absoluteArtifact.zip');
+        const { servicePath: serviceDir, updateConfig } = await fixtures.setup('package-artifact');
+        const absoluteArtifactFilePath = path.join(serviceDir, 'absolute-artifact.zip');
 
         await updateConfig({
           functions: {
@@ -328,14 +328,14 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
         });
 
         const callArgs = s3UploadStub.args.find((item) =>
-          item[0].Key.endsWith('absoluteArtifact.zip')
+          item[0].Key.endsWith('absolute-artifact.zip')
         );
         expect(callArgs[0].Body.path).to.equal(absoluteArtifactFilePath);
       });
 
       it('service-wide', async () => {
-        const { servicePath: serviceDir, updateConfig } = await fixtures.setup('packageArtifact');
-        const absoluteArtifactFilePath = path.join(serviceDir, 'absoluteArtifact.zip');
+        const { servicePath: serviceDir, updateConfig } = await fixtures.setup('package-artifact');
+        const absoluteArtifactFilePath = path.join(serviceDir, 'absolute-artifact.zip');
 
         await updateConfig({
           package: {
@@ -350,7 +350,7 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
         });
 
         const callArgs = s3UploadStub.args.find((item) =>
-          item[0].Key.endsWith('absoluteArtifact.zip')
+          item[0].Key.endsWith('absolute-artifact.zip')
         );
         expect(callArgs[0].Body.path).to.equal(absoluteArtifactFilePath);
       });
@@ -377,8 +377,8 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
       });
 
       it('for function', async () => {
-        const { servicePath: serviceDir, updateConfig } = await fixtures.setup('packageArtifact');
-        const absoluteArtifactFilePath = path.join(serviceDir, 'absoluteArtifact.zip');
+        const { servicePath: serviceDir, updateConfig } = await fixtures.setup('package-artifact');
+        const absoluteArtifactFilePath = path.join(serviceDir, 'absolute-artifact.zip');
         const zipContent = await fsp.readFile(absoluteArtifactFilePath);
 
         await updateConfig({
@@ -401,8 +401,8 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
       });
 
       it('service-wide', async () => {
-        const { servicePath: serviceDir, updateConfig } = await fixtures.setup('packageArtifact');
-        const absoluteArtifactFilePath = path.join(serviceDir, 'absoluteArtifact.zip');
+        const { servicePath: serviceDir, updateConfig } = await fixtures.setup('package-artifact');
+        const absoluteArtifactFilePath = path.join(serviceDir, 'absolute-artifact.zip');
         const zipContent = await fsp.readFile(absoluteArtifactFilePath);
 
         await updateConfig({
