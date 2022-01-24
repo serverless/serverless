@@ -1566,7 +1566,7 @@ describe('PluginManager', () => {
 
     let serverlessInstance;
     let env;
-    const serverlessExec = require('../../../serverlessBinary');
+    const serverlessExec = require('../../../serverless-binary');
 
     before(() => {
       env = resolveAwsEnv();

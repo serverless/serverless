@@ -6,7 +6,7 @@ const spawn = require('child-process-ext/spawn');
 const fixturesEngine = require('../fixtures/programmatic');
 const { listZipFiles } = require('../utils/fs');
 
-const serverlessExec = require('../serverlessBinary');
+const serverlessExec = require('../serverless-binary');
 
 describe('test/integration/curated-plugins-python.test.js', function () {
   this.timeout(1000 * 60 * 10); // Involves time-taking npm install
