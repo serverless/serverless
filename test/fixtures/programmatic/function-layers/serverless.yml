@@ -6,19 +6,19 @@ provider:
 layers:
   testLayer:
     name: default_test_layer
-    path: testLayer
+    path: test-layer
     description: 'test layer'
 
   TestLayerWithCapitals:
     name: capitalized_test_layer
-    path: testLayer
+    path: test-layer
 
   testLayerWithNoName:
-    path: testLayer
+    path: test-layer
 
 package:
   patterns:
-    - '!extra_layers/**'
+    - '!extra-layers/**'
 
 functions:
   layerFunc:
