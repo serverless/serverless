@@ -466,7 +466,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
     };
 
     const { serverless } = await runServerless({
-      fixture: 'packageArtifactInServerlessDir',
+      fixture: 'package-artifact-in-serverless-dir',
       command: 'deploy',
       awsRequestStubMap,
       configExt: {
