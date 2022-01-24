@@ -27,7 +27,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
 
     before(() =>
       runServerless({
-        fixture: 'httpApi',
+        fixture: 'http-api',
         command: 'package',
         configExt: {
           functions: {
@@ -185,7 +185,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
 
     before(() =>
       runServerless({
-        fixture: 'httpApi',
+        fixture: 'http-api',
         configExt: {
           provider: {
             httpApi: {
@@ -307,7 +307,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
       describe('Object configuration #1', () => {
         before(() =>
           runServerless({
-            fixture: 'httpApi',
+            fixture: 'http-api',
             configExt: {
               provider: {
                 httpApi: {
@@ -347,7 +347,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
       describe('Object configuration #2', () => {
         before(() =>
           runServerless({
-            fixture: 'httpApi',
+            fixture: 'http-api',
             configExt: {
               provider: {
                 httpApi: {
@@ -408,7 +408,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
 
     before(async () => {
       const { awsNaming, cfTemplate } = await runServerless({
-        fixture: 'httpApi',
+        fixture: 'http-api',
         configExt: {
           provider: {
             httpApi: {
@@ -589,7 +589,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
 
     it('should correctly set `DependsOn` property on permission resource for functions with provisioned concurrency', async () => {
       const { awsNaming, cfTemplate } = await runServerless({
-        fixture: 'httpApi',
+        fixture: 'http-api',
         configExt: {
           provider: {
             httpApi: {
@@ -666,7 +666,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     it('should throw when request authorizer does not have "functionName" and "functionArn" defined', async () => {
       await expect(
         runServerless({
-          fixture: 'httpApi',
+          fixture: 'http-api',
           configExt: {
             provider: {
               httpApi: {
@@ -702,7 +702,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     it('should throw when request authorizer have both "functionName" and "functionArn" defined', async () => {
       await expect(
         runServerless({
-          fixture: 'httpApi',
+          fixture: 'http-api',
           configExt: {
             provider: {
               httpApi: {
@@ -740,7 +740,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     it('should throw when request authorizer have both references "functionName" not defined in service', async () => {
       await expect(
         runServerless({
-          fixture: 'httpApi',
+          fixture: 'http-api',
           configExt: {
             provider: {
               httpApi: {
@@ -777,7 +777,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     it('should throw when request authorizer has caching enabled but does not have "identitySource" defined', async () => {
       await expect(
         runServerless({
-          fixture: 'httpApi',
+          fixture: 'http-api',
           configExt: {
             provider: {
               httpApi: {
@@ -815,7 +815,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     it('should throw when authorizer with `request` type does not have name or id configured', async () => {
       await expect(
         runServerless({
-          fixture: 'httpApi',
+          fixture: 'http-api',
           configExt: {
             functions: {
               foo: {
@@ -845,7 +845,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     let naming;
     before(() =>
       runServerless({
-        fixture: 'httpApi',
+        fixture: 'http-api',
         configExt: {
           provider: {
             httpApi: {
@@ -907,7 +907,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     it('should throw when authorizer with `jwt` type does not have name or id configured', async () => {
       await expect(
         runServerless({
-          fixture: 'httpApi',
+          fixture: 'http-api',
           configExt: {
             functions: {
               foo: {
@@ -935,7 +935,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
   describe('Authorizers: AWS_IAM', () => {
     it('should setup correct properties on an endpoint', async () => {
       const { awsNaming, cfTemplate } = await runServerless({
-        fixture: 'httpApi',
+        fixture: 'http-api',
         configExt: {
           functions: {
             foo: {
@@ -962,7 +962,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     it('should throw when authorizer with `aws_iam` type receives additional properties', async () => {
       await expect(
         runServerless({
-          fixture: 'httpApi',
+          fixture: 'http-api',
           configExt: {
             functions: {
               foo: {
@@ -995,7 +995,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
       let naming;
       before(async () => {
         const { awsNaming, cfTemplate } = await runServerless({
-          fixture: 'httpApi',
+          fixture: 'http-api',
           configExt: {
             provider: { httpApi: { id: apiId } },
             functions: {
@@ -1052,7 +1052,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
       it('should not allow external authorizer without external httpApi', () => {
         return expect(
           runServerless({
-            fixture: 'httpApi',
+            fixture: 'http-api',
             configExt: {
               functions: {
                 foo: {
@@ -1088,7 +1088,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     describe('correct configuration', () => {
       before(() =>
         runServerless({
-          fixture: 'httpApi',
+          fixture: 'http-api',
           configExt: { provider: { httpApi: { id: apiId } } },
           command: 'package',
         }).then(({ awsNaming, cfTemplate }) => {
@@ -1130,7 +1130,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
       it('should not allow defined cors rules', () => {
         return expect(
           runServerless({
-            fixture: 'httpApi',
+            fixture: 'http-api',
             configExt: {
               provider: {
                 httpApi: {
@@ -1146,7 +1146,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
       it('should not allow defined authorizers', () => {
         return expect(
           runServerless({
-            fixture: 'httpApi',
+            fixture: 'http-api',
             configExt: {
               provider: {
                 httpApi: {
@@ -1171,7 +1171,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
       it('should not allow defined logs', () => {
         return expect(
           runServerless({
-            fixture: 'httpApi',
+            fixture: 'http-api',
             configExt: {
               provider: {
                 httpApi: {
@@ -1192,7 +1192,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
   it('should trigger a deprecation when `provider.httpApi.useProviderTags` is set', async () => {
     await expect(
       runServerless({
-        fixture: 'httpApi',
+        fixture: 'http-api',
         configExt: {
           provider: {
             httpApi: {

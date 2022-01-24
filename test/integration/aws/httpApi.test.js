@@ -55,7 +55,7 @@ describe('HTTP API Integration Test', function () {
         ),
       ]);
 
-      const serviceData = await fixtures.setup('httpApi', {
+      const serviceData = await fixtures.setup('http-api', {
         configExt: {
           provider: {
             httpApi: {
@@ -301,7 +301,7 @@ describe('HTTP API Integration Test', function () {
       ).Stacks[0].Outputs[0].OutputValue;
       endpoint = (await awsRequest('ApiGatewayV2', 'getApi', { ApiId: httpApiId })).ApiEndpoint;
 
-      const serviceData = await fixtures.setup('httpApi', {
+      const serviceData = await fixtures.setup('http-api', {
         configExt: {
           provider: { httpApi: { id: httpApiId } },
         },
