@@ -58,7 +58,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
   it('should handle uncaught exceptions', async () => {
     try {
       await spawn('node', [serverlessPath, 'print'], {
-        cwd: path.resolve(cliFixturesPath, 'uncaughtException'),
+        cwd: path.resolve(cliFixturesPath, 'uncaught-exception'),
       });
       throw new Error('Unexpected');
     } catch (error) {
