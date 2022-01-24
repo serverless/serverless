@@ -22,7 +22,7 @@ describe('AWS - Provisioned Concurrency Integration Test', function () {
   const stage = 'dev';
 
   before(async () => {
-    const serviceData = await fixtures.setup('provisionedConcurrency');
+    const serviceData = await fixtures.setup('provisioned-concurrency');
     ({ servicePath: serviceDir } = serviceData);
     const serviceName = serviceData.serviceConfig.service;
 
