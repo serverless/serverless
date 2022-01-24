@@ -118,7 +118,7 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
     it('should throw when defineFunctionEvent is used with an already defined event', async () => {
       await expect(
         runServerless({
-          fixture: 'configSchemaExtensionsError',
+          fixture: 'config-schema-extensions-error',
           command: 'info',
           configExt: {
             plugins: ['./test-plugin-with-colliding-function-event'],
@@ -182,7 +182,7 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
     it('should throw when defineFunctionEventProperties is used on non existing event name', async () => {
       await expect(
         runServerless({
-          fixture: 'configSchemaExtensionsError',
+          fixture: 'config-schema-extensions-error',
           command: 'info',
           configExt: {
             plugins: ['./test-plugin-with-non-existing-event-error'],
@@ -194,7 +194,7 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
     it('should throw when defineFunctionEventProperties is used on event without object definition', async () => {
       await expect(
         runServerless({
-          fixture: 'configSchemaExtensionsError',
+          fixture: 'config-schema-extensions-error',
           command: 'info',
           configExt: {
             plugins: ['./test-plugin-with-complex-event-without-object-definition'],
@@ -206,7 +206,7 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
     it('should throw when defineFunctionEventProperties is used with an already defined property', async () => {
       await expect(
         runServerless({
-          fixture: 'configSchemaExtensionsError',
+          fixture: 'config-schema-extensions-error',
           command: 'info',
           configExt: {
             plugins: ['./test-plugin-with-colliding-function-event-property'],
@@ -242,7 +242,7 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
     it('should throw when defineFunctionProperties is used with an already defined property', async () => {
       await expect(
         runServerless({
-          fixture: 'configSchemaExtensionsError',
+          fixture: 'config-schema-extensions-error',
           command: 'info',
           configExt: {
             plugins: ['./test-plugin-with-colliding-function-property'],
@@ -272,7 +272,7 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
     it('should throw when defineCustomProperties is used with an already defined property', async () => {
       await expect(
         runServerless({
-          fixture: 'configSchemaExtensionsError',
+          fixture: 'config-schema-extensions-error',
           command: 'info',
           configExt: {
             plugins: ['./test-plugin-with-colliding-custom-property'],
@@ -301,7 +301,7 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
     it('should throw when defineTopLevelProperty is used with an already defined property', async () => {
       await expect(
         runServerless({
-          fixture: 'configSchemaExtensionsError',
+          fixture: 'config-schema-extensions-error',
           command: 'info',
           configExt: {
             plugins: ['./test-plugin-with-colliding-top-level-property'],
@@ -343,7 +343,7 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
     it('should throw when defineProvider is used with an already defined property in provider', async () => {
       await expect(
         runServerless({
-          fixture: 'configSchemaExtensionsError',
+          fixture: 'config-schema-extensions-error',
           command: 'info',
           configExt: {
             plugins: ['./test-plugin-with-colliding-provider-property-in-provider'],
@@ -355,7 +355,7 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
     it('should throw when defineProvider is used with an already defined property in function', async () => {
       await expect(
         runServerless({
-          fixture: 'configSchemaExtensionsError',
+          fixture: 'config-schema-extensions-error',
           command: 'info',
           configExt: {
             plugins: ['./test-plugin-with-colliding-provider-property-in-function'],
