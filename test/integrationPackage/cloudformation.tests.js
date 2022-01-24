@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { expect } = require('chai');
 const fse = require('fs-extra');
-const { execSync } = require('../utils/childProcess');
+const { execSync } = require('../utils/child-process');
 const serverlessExec = require('../serverless-binary');
 const { getTmpDirPath } = require('../utils/fs');
 
