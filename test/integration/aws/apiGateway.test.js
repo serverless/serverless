@@ -28,7 +28,7 @@ describe('AWS - API Gateway Integration Test', function () {
   };
 
   before(async () => {
-    const serviceData = await fixtures.setup('apiGatewayExtended');
+    const serviceData = await fixtures.setup('api-gateway-extended');
     ({ servicePath: serviceDir, updateConfig } = serviceData);
     serviceName = serviceData.serviceConfig.service;
     apiKey = `${serviceName}-api-key-1`;
