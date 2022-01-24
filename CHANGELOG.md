@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.72.2](https://github.com/serverless/serverless/compare/v2.72.1...v2.72.2) (2022-01-24)
+
+### Bug Fixes
+
+- **Variables:** Fix too eager nested resolution tracking ([#10554](https://github.com/serverless/serverless/issues/10554)) ([8db03c9](https://github.com/serverless/serverless/commit/8db03c90ffba68ebda800d2a009452cd09f7bf7f)) ([Steven Noorbergen](https://github.com/steven-xaroth))
+
 ### [2.72.1](https://github.com/serverless/serverless/compare/v2.72.0...v2.72.1) (2022-01-21)
 
 ### Maintenance Improvements
