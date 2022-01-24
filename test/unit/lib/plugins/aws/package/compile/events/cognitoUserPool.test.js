@@ -348,7 +348,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
 
     it('should support `forceDeploy` setting', async () => {
       const result = await runServerless({
-        fixture: 'cognitoUserPool',
+        fixture: 'cognito-user-pool',
         configExt: {
           functions: {
             existingSimple: {
