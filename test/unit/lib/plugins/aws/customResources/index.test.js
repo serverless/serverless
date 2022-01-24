@@ -354,7 +354,7 @@ describe('#addCustomResourceToService()', () => {
 describe('test/unit/lib/plugins/aws/customResources/index.test.js', () => {
   it('correctly takes stage from cli into account when constructing apiGatewayCloudWatchRole resource', async () => {
     const { cfTemplate } = await runServerless({
-      fixture: 'apiGateway',
+      fixture: 'api-gateway',
       command: 'package',
       options: { stage: 'testing' },
       configExt: {
@@ -373,7 +373,7 @@ describe('test/unit/lib/plugins/aws/customResources/index.test.js', () => {
 
   it('correctly takes stage from config into account when constructing apiGatewayCloudWatchRole resource', async () => {
     const { cfTemplate } = await runServerless({
-      fixture: 'apiGateway',
+      fixture: 'api-gateway',
       command: 'package',
       configExt: {
         provider: {

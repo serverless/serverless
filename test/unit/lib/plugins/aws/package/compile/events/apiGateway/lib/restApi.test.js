@@ -167,7 +167,7 @@ describe('#compileRestApi()', () => {
 describe('lib/plugins/aws/package/compile/events/apiGateway/lib/restApi.test.js', () => {
   it('should not disable the default execute-api endpoint by default', async () => {
     const { cfTemplate } = await runServerless({
-      fixture: 'apiGateway',
+      fixture: 'api-gateway',
       command: 'package',
     });
     const resource = cfTemplate.Resources.ApiGatewayRestApi;
@@ -177,7 +177,7 @@ describe('lib/plugins/aws/package/compile/events/apiGateway/lib/restApi.test.js'
 
   it('should support `provider.apiGateway.disableDefaultEndpoint`', async () => {
     const { cfTemplate } = await runServerless({
-      fixture: 'apiGateway',
+      fixture: 'api-gateway',
       command: 'package',
       configExt: {
         provider: {
@@ -194,7 +194,7 @@ describe('lib/plugins/aws/package/compile/events/apiGateway/lib/restApi.test.js'
 
   it('should support `provider.apiGateway.resourcePolicy[].Principal.AWS with Fn::If`', async () => {
     const { cfTemplate } = await runServerless({
-      fixture: 'apiGateway',
+      fixture: 'api-gateway',
       command: 'package',
       configExt: {
         provider: {
@@ -224,7 +224,7 @@ describe('lib/plugins/aws/package/compile/events/apiGateway/lib/restApi.test.js'
 
   it('should support `provider.apiGateway.minimumCompressionSize to be set to 0`', async () => {
     const { cfTemplate } = await runServerless({
-      fixture: 'apiGateway',
+      fixture: 'api-gateway',
       command: 'package',
       configExt: {
         provider: {

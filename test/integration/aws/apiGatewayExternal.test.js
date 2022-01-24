@@ -27,7 +27,7 @@ describe('AWS - API Gateway with External REST API Integration Test', function (
   };
 
   before(async () => {
-    const serviceData = await fixtures.setup('apiGateway');
+    const serviceData = await fixtures.setup('api-gateway');
     ({ servicePath: serviceDir, updateConfig } = serviceData);
     const serviceName = serviceData.serviceConfig.service;
     const externalRestApiName = `${stage}-${serviceName}-ext-api`;

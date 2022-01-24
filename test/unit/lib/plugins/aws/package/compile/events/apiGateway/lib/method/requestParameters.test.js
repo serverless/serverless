@@ -13,7 +13,7 @@ describe('ApiGatewayEvents', () => {
     let naming;
     before(() =>
       runServerless({
-        fixture: 'apiGateway',
+        fixture: 'api-gateway',
         configExt: {
           functions: {
             foo: {

@@ -758,7 +758,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/hack/u
     const tagResourceStub = sinon.stub();
     const untagResourceStub = sinon.stub();
     await runServerless({
-      fixture: 'apiGateway',
+      fixture: 'api-gateway',
       command: 'deploy',
       configExt: {
         provider: {
@@ -815,7 +815,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/hack/u
   });
 
   it('should correctly resolve `apiId` during deployment', async () => {
-    const { serviceConfig, servicePath, updateConfig } = await fixtures.setup('apiGateway');
+    const { serviceConfig, servicePath, updateConfig } = await fixtures.setup('api-gateway');
     const getDeploymentsStub = sinon.stub().returns({ items: [{ id: 'deployment-id' }] });
     const stage = 'dev';
 

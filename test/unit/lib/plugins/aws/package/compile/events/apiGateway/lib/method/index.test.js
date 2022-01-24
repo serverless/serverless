@@ -1748,7 +1748,7 @@ describe('#compileMethods v2()', () => {
         awsNaming,
         cfTemplate: { Resources: cfResources },
       } = await runServerless({
-        fixture: 'apiGateway',
+        fixture: 'api-gateway',
         configExt: {
           functions: {
             foo: {
@@ -1779,7 +1779,7 @@ describe('#compileMethods v2()', () => {
         awsNaming,
         cfTemplate: { Resources: cfResources },
       } = await runServerless({
-        fixture: 'apiGateway',
+        fixture: 'api-gateway',
         configExt: {
           functions: {
             foo: {
@@ -1823,7 +1823,7 @@ describe('#compileMethods v2()', () => {
       cfTemplate: { Resources: cfResources },
     } = await runServerless({
       command: 'package',
-      fixture: 'apiGateway',
+      fixture: 'api-gateway',
     });
     const FooApiGatewayMethodConfig = cfResources[awsNaming.getMethodLogicalId('Foo', 'GET')];
     const OtherApiGatewayMethodConfig =

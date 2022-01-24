@@ -330,7 +330,7 @@ describe('UsagePlan', () => {
   it('Should have values for throttle', async () => {
     serverlessConfigurationExtension.provider.apiGateway = { usagePlan: { throttle } };
     const { cfTemplate } = await runServerless({
-      fixture: 'apiGateway',
+      fixture: 'api-gateway',
       configExt: serverlessConfigurationExtension,
       command: 'package',
     });
@@ -346,7 +346,7 @@ describe('UsagePlan', () => {
   it('Should have values for quota', async () => {
     serverlessConfigurationExtension.provider.apiGateway = { usagePlan: { quota } };
     const { cfTemplate } = await runServerless({
-      fixture: 'apiGateway',
+      fixture: 'api-gateway',
       configExt: serverlessConfigurationExtension,
       command: 'package',
     });
@@ -359,7 +359,7 @@ describe('UsagePlan', () => {
   it('Should have values for throttle and not quota', async () => {
     serverlessConfigurationExtension.provider.apiGateway = { usagePlan: { throttle } };
     const { cfTemplate } = await runServerless({
-      fixture: 'apiGateway',
+      fixture: 'api-gateway',
       configExt: serverlessConfigurationExtension,
       command: 'package',
     });
@@ -377,7 +377,7 @@ describe('UsagePlan', () => {
   it('Should have values for quota and throttle', async () => {
     serverlessConfigurationExtension.provider.apiGateway = { usagePlan: { throttle, quota } };
     const { cfTemplate } = await runServerless({
-      fixture: 'apiGateway',
+      fixture: 'api-gateway',
       configExt: serverlessConfigurationExtension,
       command: 'package',
     });
