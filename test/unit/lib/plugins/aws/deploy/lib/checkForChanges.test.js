@@ -1001,7 +1001,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
     // TODO: Reconfigure to rely on generateMatchingListObjectsResponse and generateMatchingHeadObjectResponse utils
 
     const { serverless } = await runServerless({
-      fixture: 'packageArtifactInServerlessDir',
+      fixture: 'package-artifact-in-serverless-dir',
       command: 'deploy',
       configExt: {
         // runServerless by default makes this: `test-${fixtureName}-${TIME_BASED_HASH}`
