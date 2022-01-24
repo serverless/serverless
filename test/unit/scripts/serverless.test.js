@@ -219,7 +219,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
     const output = String(
       (
         await spawn('node', [serverlessPath, '--help'], {
-          cwd: path.resolve(programmaticFixturesPath, 'configInvalid'),
+          cwd: path.resolve(programmaticFixturesPath, 'config-invalid'),
         })
       ).stdoutBuffer
     );
