@@ -12,7 +12,7 @@ const hasFailed = require('@serverless/test/has-failed');
 const awsRequest = require('@serverless/test/aws-request');
 const { getTmpDirPath } = require('./utils/fs');
 
-const serverlessExec = require('./serverlessBinary');
+const serverlessExec = require('./serverless-binary');
 
 describe('Service Lifecyle Integration Test', function () {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
