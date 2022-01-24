@@ -169,7 +169,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
 
   it('Should resolve payload for custom provider service', async () => {
     const { serverless } = await runServerless({
-      fixture: 'customProvider',
+      fixture: 'custom-provider',
       command: 'print',
     });
     const payload = getGeneratePayload()({
@@ -209,7 +209,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
           stage: 'dev',
           region: undefined,
         },
-        plugins: ['./customProvider'],
+        plugins: ['./custom-provider'],
         functions: [
           { runtime: 'foo', events: [{ type: 'someEvent' }] },
           { runtime: 'bar', events: [] },
