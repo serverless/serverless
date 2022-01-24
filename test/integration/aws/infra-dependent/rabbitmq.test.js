@@ -45,7 +45,7 @@ describe.skip('AWS - RabbitMQ Integration Test', function () {
       endpoint.startsWith('amqp')
     );
 
-    const serviceData = await fixtures.setup('functionRabbitmq', {
+    const serviceData = await fixtures.setup('function-rabbit-mq', {
       configExt: {
         functions: {
           producer: {
