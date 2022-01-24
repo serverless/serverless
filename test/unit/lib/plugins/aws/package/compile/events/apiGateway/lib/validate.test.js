@@ -1597,7 +1597,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/valida
   it('Should error when using external API Gateway and enabling tracing', async () => {
     await expect(
       runServerless({
-        fixture: 'apiGateway',
+        fixture: 'api-gateway',
         command: 'package',
         configExt: {
           provider: {
@@ -1617,7 +1617,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/valida
   it('Should error when using external API Gateway and enabling logs', async () => {
     await expect(
       runServerless({
-        fixture: 'apiGateway',
+        fixture: 'api-gateway',
         command: 'package',
         configExt: {
           provider: {

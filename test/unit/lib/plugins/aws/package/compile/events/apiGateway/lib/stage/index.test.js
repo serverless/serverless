@@ -320,7 +320,7 @@ describe('#compileStage()', () => {
 describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/stage/index.test.js', () => {
   it('should not create LogGroup if `accessLogging` set to false', async () => {
     const { cfTemplate, awsNaming } = await runServerless({
-      fixture: 'apiGateway',
+      fixture: 'api-gateway',
       command: 'package',
       configExt: {
         provider: {
@@ -338,7 +338,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/stage/
 
   it('should create LogGroup with `logs.restApi` set to `true`', async () => {
     const { cfTemplate, awsNaming, serverless } = await runServerless({
-      fixture: 'apiGateway',
+      fixture: 'api-gateway',
       command: 'package',
       configExt: {
         provider: {
@@ -359,7 +359,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/stage/
 
   it('should create LogGroup with default setting for `accessLogging`', async () => {
     const { cfTemplate, awsNaming, serverless } = await runServerless({
-      fixture: 'apiGateway',
+      fixture: 'api-gateway',
       command: 'package',
       configExt: {
         provider: {

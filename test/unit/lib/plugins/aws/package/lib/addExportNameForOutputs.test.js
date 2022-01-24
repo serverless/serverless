@@ -10,7 +10,7 @@ describe('test/unit/lib/plugins/aws/package/lib/addExportNameForOutputs.test.js'
   let service;
   before(async () => {
     const result = await runServerless({
-      fixture: 'apiGateway',
+      fixture: 'api-gateway',
       command: 'package',
       configExt: {
         resources: {
