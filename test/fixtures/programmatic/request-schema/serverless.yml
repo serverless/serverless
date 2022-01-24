@@ -9,13 +9,13 @@ provider:
         test-model:
           name: 'TestModel'
           description: 'Test Description'
-          schema: '${file(dummySchema.json)}'
+          schema: '${file(dummy-schema.json)}'
         test-model-simple:
-          schema: '${file(dummySchema.json)}'
+          schema: '${file(dummy-schema.json)}'
         unused-model:
           name: 'UnusedModel'
           description: 'I should not be created'
-          schema: '${file(dummySchema.json)}'
+          schema: '${file(dummy-schema.json)}'
 
 functions:
   target:
@@ -38,7 +38,7 @@ functions:
           method: get
           request:
             schemas:
-              application/json: '${file(dummySchema.json)}'
+              application/json: '${file(dummy-schema.json)}'
       - http:
           path: test-direct-full
           method: get
@@ -47,11 +47,11 @@ functions:
               application/json:
                 name: TestMethodModel
                 description: 'Test Method Model Desc'
-                schema: '${file(dummySchema.json)}'
+                schema: '${file(dummy-schema.json)}'
       - http:
           path: test-multiple
           method: get
           request:
             schemas:
-              application/json: '${file(dummySchema.json)}'
+              application/json: '${file(dummy-schema.json)}'
               text/plain: 'foo'
