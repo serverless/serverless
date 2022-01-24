@@ -35,7 +35,7 @@ describe('AWS - MSK Integration Test', function () {
     });
     const brokerUrls = getBootstrapBrokersResponse.BootstrapBrokerStringTls;
 
-    const serviceData = await fixtures.setup('functionMsk', {
+    const serviceData = await fixtures.setup('function-msk', {
       configExt: {
         functions: {
           producer: {
