@@ -246,7 +246,7 @@ describe('HTTP API Integration Test', function () {
 
   describe('Catch-all endpoints', () => {
     before(async () => {
-      const serviceData = await fixtures.setup('httpApiCatchAll');
+      const serviceData = await fixtures.setup('http-api-catch-all');
       ({ servicePath: serviceDir } = serviceData);
       const serviceName = serviceData.serviceConfig.service;
       stackName = `${serviceName}-${stage}`;
