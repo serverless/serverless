@@ -30,7 +30,7 @@ describe('AWS - Cognito User Pool Integration Test', function () {
   const stage = 'dev';
 
   before(async () => {
-    const serviceData = await fixtures.setup('cognitoUserPool');
+    const serviceData = await fixtures.setup('cognito-user-pool');
     ({ servicePath: serviceDir } = serviceData);
     const serviceName = serviceData.serviceConfig.service;
     stackName = `${serviceName}-${stage}`;
