@@ -2100,7 +2100,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         };
 
         beforeEach(async () => {
-          const serviceData = await fixtures.setup('functionLayers', { configExt });
+          const serviceData = await fixtures.setup('function-layers', { configExt });
           ({ servicePath: serviceDir, updateConfig } = serviceData);
           const data = await runServerless({
             cwd: serviceDir,
@@ -2121,7 +2121,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
             firstCfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref;
 
           await updateConfig({
-            layers: { testLayer: { path: 'testLayer', description: 'Different description' } },
+            layers: { testLayer: { path: 'test-layer', description: 'Different description' } },
           });
 
           const data = await runServerless({
@@ -2244,9 +2244,9 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           let backupLayer;
 
           beforeEach(async () => {
-            originalLayer = path.join(serviceDir, 'testLayer');
-            sourceChangeLayer = path.join(serviceDir, 'extra_layers', 'testLayerSourceChange');
-            backupLayer = path.join(serviceDir, 'extra_layers', 'testLayerBackup');
+            originalLayer = path.join(serviceDir, 'test-layer');
+            sourceChangeLayer = path.join(serviceDir, 'extra-layers', 'test-layer-source-change');
+            backupLayer = path.join(serviceDir, 'extra-layers', 'test-layer-backup');
 
             await fsp.rename(originalLayer, backupLayer);
             await fsp.rename(sourceChangeLayer, originalLayer);
