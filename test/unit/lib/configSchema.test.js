@@ -88,7 +88,7 @@ describe('test/unit/lib/configSchema.test.js', () => {
     const passOrFail = someCase.isValid ? 'pass' : 'fail';
     it(`should ${passOrFail} validation for ${someCase.description}`, () =>
       runServerless({
-        fixture: 'configSchemaExtensions',
+        fixture: 'config-schema-extensions',
         configExt: someCase.mutation,
         command: 'info',
       }).then(
