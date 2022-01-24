@@ -43,7 +43,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
   });
 
   it('Should resolve payload for AWS service', async () => {
-    const { servicePath: serviceDir } = await fixtures.setup('httpApi', {
+    const { servicePath: serviceDir } = await fixtures.setup('http-api', {
       configExt: {
         provider: {
           runtime: 'nodejs14.x',
@@ -595,7 +595,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
 
   it('Should correctly resolve projectId property', async () => {
     const { serverless } = await runServerless({
-      fixture: 'httpApi',
+      fixture: 'http-api',
       command: 'print',
       configExt: {
         service: 'to-ensure-unique-serivce-name',
@@ -616,7 +616,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
 
   it('Should correctly resolve `didCreateService` property', async () => {
     const { serverless } = await runServerless({
-      fixture: 'httpApi',
+      fixture: 'http-api',
       command: 'print',
       configExt: {
         service: 'to-ensure-unique-serivce-name',
