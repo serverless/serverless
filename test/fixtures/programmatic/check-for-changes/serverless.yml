@@ -13,6 +13,6 @@ functions:
   fn2:
     handler: fn.handler
   fnIndividually:
-    handler: fnIndividually.handler
+    handler: fn-individually.handler
     package:
       patterns: '!fn.js'

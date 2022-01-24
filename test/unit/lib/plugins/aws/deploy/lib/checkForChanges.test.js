@@ -682,7 +682,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
 
     let serverless;
     await runServerless({
-      fixture: 'checkForChanges',
+      fixture: 'check-for-changes',
       command: 'deploy',
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
       env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
@@ -718,7 +718,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
 
     let serverless;
     await runServerless({
-      fixture: 'checkForChanges',
+      fixture: 'check-for-changes',
       command: 'deploy',
       options: { force: true },
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
@@ -775,7 +775,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
 
     let serverless;
     await runServerless({
-      fixture: 'checkForChanges',
+      fixture: 'check-for-changes',
       command: 'deploy',
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
       env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
@@ -806,7 +806,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
 
     let serverless;
     await runServerless({
-      fixture: 'checkForChanges',
+      fixture: 'check-for-changes',
       command: 'deploy',
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
       env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
@@ -836,7 +836,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
     const {
       fixtureData: { updateConfig, servicePath: serviceDir },
     } = await runServerless({
-      fixture: 'checkForChanges',
+      fixture: 'check-for-changes',
       command: 'package',
     });
 
@@ -874,7 +874,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
 
     let serverless;
     await runServerless({
-      fixture: 'checkForChanges',
+      fixture: 'check-for-changes',
       command: 'deploy',
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
       env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
@@ -903,7 +903,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
 
     let serverless;
     await runServerless({
-      fixture: 'checkForChanges',
+      fixture: 'check-for-changes',
       command: 'deploy',
       configExt: {
         package: { individually: true },
@@ -936,7 +936,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
 
     let serverless;
     await runServerless({
-      fixture: 'checkForChanges',
+      fixture: 'check-for-changes',
       command: 'deploy',
       configExt: {
         package: { individually: true },
@@ -970,7 +970,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
 
     let serverless;
     await runServerless({
-      fixture: 'checkForChanges',
+      fixture: 'check-for-changes',
       command: 'deploy',
       configExt: {
         package: { artifact: 'artifact.zip' },
@@ -1077,7 +1077,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
 
     return expect(
       runServerless({
-        fixture: 'checkForChanges',
+        fixture: 'check-for-changes',
         command: 'deploy',
         lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
         env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
@@ -1101,7 +1101,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
 
     return expect(
       runServerless({
-        fixture: 'checkForChanges',
+        fixture: 'check-for-changes',
         command: 'deploy',
         lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
         env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
@@ -1124,7 +1124,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
       const deleteStub = sandbox.stub();
       let serverless;
       await runServerless({
-        fixture: 'checkForChanges',
+        fixture: 'check-for-changes',
         command: 'deploy',
         configExt: {
           functions: { fn1: { events: [{ cloudwatchLog: 'someLogGroupName' }] } },
@@ -1194,7 +1194,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
       const deleteStub = sandbox.stub();
       let serverless;
       await runServerless({
-        fixture: 'checkForChanges',
+        fixture: 'check-for-changes',
         command: 'deploy',
         configExt: {
           functions: { fn1: { events: [{ cloudwatchLog: 'someLogGroupName' }] } },
@@ -1260,7 +1260,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
       const deleteStub = sandbox.stub();
       let serverless;
       const promise = runServerless({
-        fixture: 'checkForChanges',
+        fixture: 'check-for-changes',
         command: 'deploy',
         configExt: {
           functions: {
@@ -1337,7 +1337,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
       const deleteStub = sandbox.stub();
       let serverless;
       const { awsNaming } = await runServerless({
-        fixture: 'checkForChanges',
+        fixture: 'check-for-changes',
         command: 'deploy',
         configExt: {
           functions: { fn1: { events: [{ cloudwatchLog: 'someLogGroupName' }] } },
@@ -1413,7 +1413,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
       const deleteStub = sandbox.stub();
       let serverless;
       const { awsNaming } = await runServerless({
-        fixture: 'checkForChanges',
+        fixture: 'check-for-changes',
         command: 'deploy',
         configExt: {
           functions: {
@@ -1514,7 +1514,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
       const deleteStub = sandbox.stub();
       let serverless;
       const { awsNaming } = await runServerless({
-        fixture: 'checkForChanges',
+        fixture: 'check-for-changes',
         command: 'deploy',
         configExt: {
           functions: {
@@ -1615,7 +1615,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
       const deleteStub = sandbox.stub();
       let serverless;
       await runServerless({
-        fixture: 'checkForChanges',
+        fixture: 'check-for-changes',
         command: 'deploy',
         configExt: {
           functions: { fn1: { events: [{ cloudwatchLog: 'someLogGroupName' }] } },
