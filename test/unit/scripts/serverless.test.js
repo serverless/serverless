@@ -106,7 +106,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       String(
         (
           await spawn('node', [serverlessPath, 'print'], {
-            cwd: path.resolve(programmaticFixturesPath, 'multiService/serviceA'),
+            cwd: path.resolve(programmaticFixturesPath, 'multi-service/service-a'),
           })
         ).stdoutBuffer
       )
