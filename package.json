@@ -128,7 +128,7 @@
   ],
   "mocha": {
     "require": [
-      "./test/mochaPatch",
+      "./test/mocha-patch",
       "@serverless/test/setup/log",
       "@serverless/test/setup/mock-homedir",
       "@serverless/test/setup/mock-cwd",
