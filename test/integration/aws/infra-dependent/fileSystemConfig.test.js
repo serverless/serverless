@@ -41,7 +41,7 @@ describe('AWS - FileSystemConfig Integration Test', function () {
       arn: outputMap.get('EFSAccessPointARN'),
     };
 
-    const serviceData = await fixtures.setup('functionEfs', {
+    const serviceData = await fixtures.setup('function-efs', {
       configExt: {
         provider: {
           vpc: {
