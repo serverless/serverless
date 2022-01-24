@@ -14,7 +14,7 @@ describe('test/unit/lib/plugins/aws/info/display.test.js', () => {
         serviceConfig: { service: serviceName },
       },
     } = await runServerless({
-      fixture: 'apiGateway',
+      fixture: 'api-gateway',
       command: 'info',
       awsRequestStubMap: {
         APIGateway: {
