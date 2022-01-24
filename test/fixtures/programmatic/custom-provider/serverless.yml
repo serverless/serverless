@@ -7,7 +7,7 @@ provider:
   runtime: foo
 
 plugins:
-  - ./customProvider
+  - ./custom-provider
 
 functions:
   someFunction:
