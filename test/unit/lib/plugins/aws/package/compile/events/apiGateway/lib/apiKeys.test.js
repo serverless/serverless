@@ -166,7 +166,7 @@ describe('lib/plugins/aws/package/compile/events/apiGateway/lib/apiKeys.test.js'
 
   before(async () => {
     const { awsNaming, cfTemplate, serverless } = await runServerless({
-      fixture: 'apiGateway',
+      fixture: 'api-gateway',
       command: 'package',
       configExt: {
         provider: {
