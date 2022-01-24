@@ -71,7 +71,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
     const output = String(
       (
         await spawn('node', [serverlessBinPath, '--help'], {
-          cwd: (await programmaticFixturesEngine.setup('locallyInstalledServerless')).servicePath,
+          cwd: (await programmaticFixturesEngine.setup('locally-installed-serverless')).servicePath,
         })
       ).stderrBuffer
     );
