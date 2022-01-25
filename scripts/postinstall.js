@@ -7,7 +7,7 @@ const isWindows = process.platform === 'win32';
 
 const truthyStr = (val) => val && !['0', 'false', 'f', 'n', 'no'].includes(val.toLowerCase());
 const { CI, ADBLOCK, SILENT } = process.env;
-const isNpmGlobalPackage = require('../lib/utils/npm-package/isGlobal');
+const isNpmGlobalPackage = require('../lib/utils/npm-package/is-global');
 
 if (!truthyStr(CI) && !truthyStr(ADBLOCK) && !truthyStr(SILENT)) {
   const messageTokens = ['Serverless Framework successfully installed!'];
