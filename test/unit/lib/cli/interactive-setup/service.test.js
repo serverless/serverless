@@ -78,7 +78,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
     it('Should create project at not existing directory', async () => {
       const downloadTemplateFromRepoStub = sinon.stub();
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: downloadTemplateFromRepoStub.callsFake(
             async (templateUrl, projectType, projectName) => {
               await fsp.mkdir(projectName);
@@ -118,7 +118,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
     it('Should remove `serverless.template.yml` if its a part of the template', async () => {
       const downloadTemplateFromRepoStub = sinon.stub();
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: downloadTemplateFromRepoStub.callsFake(
             async (templateUrl, projectType, projectName) => {
               await fsp.mkdir(projectName);
@@ -165,7 +165,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       const spawnStub = sinon.stub();
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
         'child-process-ext/spawn': spawnStub,
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: downloadTemplateFromRepoStub.callsFake(
             async (templateUrl, projectType, projectName) => {
               await fsp.mkdir(projectName);
@@ -211,7 +211,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       const downloadTemplateFromRepoStub = sinon.stub();
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
         'child-process-ext/spawn': sinon.stub().rejects({ message: 'Error message' }),
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: downloadTemplateFromRepoStub.callsFake(
             async (templateUrl, projectType, projectName) => {
               await fsp.mkdir(projectName);
@@ -266,7 +266,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
     it('Should create project at not existing directory with provided `name`', async () => {
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: sinon
             .stub()
             .callsFake(async (templateUrl, projectType, projectName) => {
@@ -299,7 +299,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
     it('Should create project at not existing directory with provided template', async () => {
       const downloadTemplateFromRepoStub = sinon.stub();
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: downloadTemplateFromRepoStub.callsFake(
             async (templateUrl, projectType, projectName) => {
               const serverlessYmlContent = `
@@ -336,7 +336,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       const providedTemplateUrl = 'https://github.com/serverless/examples/tree/v3/test-template';
       const downloadTemplateFromRepoStub = sinon.stub();
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: downloadTemplateFromRepoStub.callsFake(
             async (templateUrl, projectType, projectName) => {
               const serverlessYmlContent = `
@@ -374,7 +374,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
     it('Should throw an error when template cannot be downloaded', async () => {
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: sinon.stub().callsFake(async () => {
             throw new ServerlessError();
           }),
@@ -400,7 +400,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
     it('Should throw an error when provided template cannot be found', async () => {
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: sinon.stub().rejects({ code: 'ENOENT' }),
         },
       });
@@ -419,7 +419,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
     it('Should throw an error when template provided with url cannot be found', async () => {
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: sinon.stub().callsFake(async () => {
             throw new ServerlessError();
           }),
