@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const CLI = require('../../../../lib/classes/CLI');
+const CLI = require('../../../../lib/classes/cli');
 const Serverless = require('../../../../lib/serverless');
 
 const { expect } = chai;

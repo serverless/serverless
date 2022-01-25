@@ -5,7 +5,7 @@ const sinon = require('sinon');
 const BbPromise = require('bluebird');
 const PluginSearch = require('../../../../../lib/plugins/plugin/search');
 const Serverless = require('../../../../../lib/serverless');
-const CLI = require('../../../../../lib/classes/CLI');
+const CLI = require('../../../../../lib/classes/cli');
 chai.use(require('chai-as-promised'));
 const expect = require('chai').expect;
 
