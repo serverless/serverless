@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 const Serverless = require('../../../../../lib/serverless');
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
-const CLI = require('../../../../../lib/classes/CLI');
+const CLI = require('../../../../../lib/classes/cli');
 const proxyquire = require('proxyquire');
 
 describe('AwsRollbackFunction', () => {
