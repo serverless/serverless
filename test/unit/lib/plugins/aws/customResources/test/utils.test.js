@@ -6,51 +6,37 @@ const {
   getEnvironment,
 } = require('../../../../../../../lib/plugins/aws/customResources/resources/utils');
 
-describe('#getLambdaArn()', () => {
-  it('should return the Lambda arn', () => {
-    const partition = 'aws';
-    const region = 'us-east-1';
-    const accountId = '123456';
-    const functionName = 'some-function';
-    const arn = getLambdaArn(partition, region, accountId, functionName);
+[
+  { partition: 'aws', region: 'us-east-1' },
+  { partition: 'aws-us-gov', region: 'us-gov-west-1' },
+  { partition: 'aws-cn', region: 'cn-north-1' },
+].forEach(({ partition, region }) => {
+  describe(`#getLambdaArn() (${partition} ${region})`, () => {
+    it('should return the Lambda arn', () => {
+      const accountId = '123456';
+      const functionName = 'some-function';
+      const arn = getLambdaArn(partition, region, accountId, functionName);
 
-    expect(arn).to.equal('arn:aws:lambda:us-east-1:123456:function:some-function');
-  });
-});
+      expect(arn).to.equal(`arn:${partition}:lambda:${region}:123456:function:some-function`);
+    });
+    it('should return the Lambda arn for version', () => {
+      const accountId = '123456';
+      const functionName = 'some-function';
+      const functionVersion = '1';
+      const arn = getLambdaArn(partition, region, accountId, functionName, functionVersion);
 
-describe('#getLambdaArn() govloud west', () => {
-  it('should return the govcloud Lambda arn', () => {
-    const partition = 'aws-us-gov';
-    const region = 'us-gov-west-1';
-    const accountId = '123456';
-    const functionName = 'some-function';
-    const arn = getLambdaArn(partition, region, accountId, functionName);
+      expect(arn).to.equal(`arn:${partition}:lambda:${region}:123456:function:some-function:1`);
+    });
+    it('should return the Lambda arn for alias', () => {
+      const accountId = '123456';
+      const functionName = 'some-function';
+      const functionVersion = 'provisioned';
+      const arn = getLambdaArn(partition, region, accountId, functionName, functionVersion);
 
-    expect(arn).to.equal('arn:aws-us-gov:lambda:us-gov-west-1:123456:function:some-function');
-  });
-});
-
-describe('#getLambdaArn() govcloud east', () => {
-  it('should return the govcloud Lambda arn', () => {
-    const partition = 'aws-us-gov';
-    const region = 'us-gov-east-1';
-    const accountId = '123456';
-    const functionName = 'some-function';
-    const arn = getLambdaArn(partition, region, accountId, functionName);
-
-    expect(arn).to.equal('arn:aws-us-gov:lambda:us-gov-east-1:123456:function:some-function');
-  });
-});
-
-describe('#getLambdaArn() china region', () => {
-  it('should return the china Lambda arn', () => {
-    const partition = 'aws-cn';
-    const region = 'cn-north-1';
-    const accountId = '123456';
-    const functionName = 'some-function';
-    const arn = getLambdaArn(partition, region, accountId, functionName);
-
-    expect(arn).to.equal('arn:aws-cn:lambda:cn-north-1:123456:function:some-function');
+      expect(arn).to.equal(
+        `arn:${partition}:lambda:${region}:123456:function:some-function:provisioned`
+      );
+    });
   });
 });
 

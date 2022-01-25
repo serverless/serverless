@@ -842,6 +842,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', ()
     const { cfTemplate, awsNaming, serverless } = await runServerless({
       fixture: 'function',
       configExt: {
+        provider: {
+          versionFunctions: false,
+        },
         functions: {
           basic: {
             events: [
