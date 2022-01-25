@@ -45,7 +45,7 @@ patchCallback('mkdir');
 patchCallback('open');
 patchCallback('readFile');
 
-const ensureArtifact = require('../lib/utils/ensureArtifact');
+const ensureArtifact = require('../lib/utils/ensure-artifact');
 
 const localServerlessPathModulePath = require.resolve('../lib/cli/local-serverless-path');
 const resolveInput = require('../lib/cli/resolve-input');
