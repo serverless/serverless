@@ -2,7 +2,7 @@
 
 const expect = require('chai').expect;
 const writeFileSync = require('../../../../../lib/utils/fs/writeFileSync');
-const readFileSync = require('../../../../../lib/utils/fs/readFileSync');
+const readFileSync = require('../../../../../lib/utils/fs/read-file-sync');
 const { getTmpFilePath } = require('../../../../utils/fs');
 
 describe('#readFileSync()', () => {
