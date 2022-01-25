@@ -21,7 +21,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
   beforeEach(() => {
     addCustomResourceToServiceStub = sinon.stub().resolves();
     const AwsCompileCognitoUserPoolEvents = proxyquire(
-      '../../../../../../../../lib/plugins/aws/package/compile/events/cognitoUserPool',
+      '../../../../../../../../lib/plugins/aws/package/compile/events/cognito-user-pool',
       {
         '../../../custom-resources': {
           addCustomResourceToService: addCustomResourceToServiceStub,
