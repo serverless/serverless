@@ -3,12 +3,12 @@
 const expect = require('chai').expect;
 const sinon = require('sinon');
 const AwsProvider = require('../../../../../../../../../lib/plugins/aws/provider');
-const AwsCompileApigEvents = require('../../../../../../../../../lib/plugins/aws/package/compile/events/apiGateway/index');
+const AwsCompileApigEvents = require('../../../../../../../../../lib/plugins/aws/package/compile/events/api-gateway/index');
 const Serverless = require('../../../../../../../../../lib/serverless');
 const validate = require('../../../../../../../../../lib/plugins/aws/lib/validate');
 const getServiceState = require('../../../../../../../../../lib/plugins/aws/lib/get-service-state');
-const updateStage = require('../../../../../../../../../lib/plugins/aws/package/compile/events/apiGateway/lib/hack/updateStage');
-const disassociateUsagePlan = require('../../../../../../../../../lib/plugins/aws/package/compile/events/apiGateway/lib/hack/disassociateUsagePlan');
+const updateStage = require('../../../../../../../../../lib/plugins/aws/package/compile/events/api-gateway/lib/hack/updateStage');
+const disassociateUsagePlan = require('../../../../../../../../../lib/plugins/aws/package/compile/events/api-gateway/lib/hack/disassociateUsagePlan');
 
 describe('AwsCompileApigEvents', () => {
   let awsCompileApigEvents;
