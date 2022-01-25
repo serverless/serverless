@@ -6,7 +6,7 @@ const BbPromise = require('bluebird');
 const proxyquire = require('proxyquire');
 const PluginList = require('../../../../../../lib/plugins/plugin/list');
 const Serverless = require('../../../../../../lib/serverless');
-const CLI = require('../../../../../../lib/classes/CLI');
+const CLI = require('../../../../../../lib/classes/cli');
 const { expect } = require('chai');
 const observeOutput = require('@serverless/test/observe-output');
 

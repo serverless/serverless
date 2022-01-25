@@ -5,7 +5,7 @@ const sinon = require('sinon');
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
 const AwsMetrics = require('../../../../../lib/plugins/aws/metrics');
 const Serverless = require('../../../../../lib/serverless');
-const CLI = require('../../../../../lib/classes/CLI');
+const CLI = require('../../../../../lib/classes/cli');
 const dayjs = require('dayjs');
 
 const LocalizedFormat = require('dayjs/plugin/localizedFormat');
