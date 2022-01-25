@@ -12,7 +12,7 @@ const { expect } = chai;
 const { getTmpDirPath } = require('../../../utils/fs');
 
 const writeFileSync = require('../../../../lib/utils/fs/writeFileSync');
-const readFileSync = require('../../../../lib/utils/fs/readFileSync');
+const readFileSync = require('../../../../lib/utils/fs/read-file-sync');
 
 chai.use(require('chai-as-promised'));
 

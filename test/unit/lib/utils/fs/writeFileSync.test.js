@@ -3,7 +3,7 @@
 const fsp = require('fs').promises;
 const Serverless = require('../../../../../lib/serverless');
 const writeFileSync = require('../../../../../lib/utils/fs/writeFileSync');
-const readFileSync = require('../../../../../lib/utils/fs/readFileSync');
+const readFileSync = require('../../../../../lib/utils/fs/read-file-sync');
 const { expect } = require('chai');
 const { getTmpFilePath } = require('../../../../utils/fs');
 
