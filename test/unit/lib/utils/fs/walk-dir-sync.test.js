@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const writeFileSync = require('../../../../../lib/utils/fs/writeFileSync');
+const writeFileSync = require('../../../../../lib/utils/fs/write-file-sync');
 const walkDirSync = require('../../../../../lib/utils/fs/walk-dir-sync');
 const { expect } = require('chai');
 const { getTmpDirPath } = require('../../../../utils/fs');

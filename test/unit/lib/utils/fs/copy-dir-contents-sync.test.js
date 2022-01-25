@@ -6,7 +6,7 @@ const fse = require('fs-extra');
 const path = require('path');
 const copyDirContentsSync = require('../../../../../lib/utils/fs/copy-dir-contents-sync');
 const fileExistsSync = require('../../../../../lib/utils/fs/file-exists-sync');
-const writeFileSync = require('../../../../../lib/utils/fs/writeFileSync');
+const writeFileSync = require('../../../../../lib/utils/fs/write-file-sync');
 const skipOnDisabledSymlinksInWindows = require('@serverless/test/skip-on-disabled-symlinks-in-windows');
 
 describe('#copyDirContentsSync()', () => {
