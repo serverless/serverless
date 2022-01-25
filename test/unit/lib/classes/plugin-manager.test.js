@@ -415,7 +415,7 @@ describe('PluginManager', () => {
 
   let restoreEnv;
   let serviceDir;
-  const PluginManager = proxyquire('../../../../lib/classes/PluginManager', {
+  const PluginManager = proxyquire('../../../../lib/classes/plugin-manager', {
     '../utils/get-require': (directory) => {
       const resultRequire = require('module').createRequire(path.resolve(directory, 'req'));
       resultRequire.resolve = (pluginPath) => resolveStub(directory, pluginPath);
