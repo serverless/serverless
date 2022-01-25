@@ -54,7 +54,7 @@ describe('uploadArtifacts', () => {
       digest: sinon.stub(),
     };
     const uploadArtifacts = proxyquire(
-      '../../../../../../../lib/plugins/aws/deploy/lib/uploadArtifacts.js',
+      '../../../../../../../lib/plugins/aws/deploy/lib/upload-artifacts.js',
       {
         crypto: cryptoStub,
       }
