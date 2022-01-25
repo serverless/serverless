@@ -1,7 +1,7 @@
 'use strict';
 
 const expect = require('chai').expect;
-const normalizeFiles = require('../../../../../../lib/plugins/aws/lib/normalizeFiles');
+const normalizeFiles = require('../../../../../../lib/plugins/aws/lib/normalize-files');
 
 describe('normalizeFiles', () => {
   describe('#normalizeCloudFormationTemplate()', () => {
