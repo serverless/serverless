@@ -24,7 +24,7 @@ Here is a list of all available properties in `serverless.yml` when the provider
 # Service name
 service: myservice
 
-# Framework version constraint: '3', '>=2.33', '^2.33'
+# Framework version constraint (semver constraint): '3', '^2.33'
 frameworkVersion: '3'
 
 # Configuration validation: 'error' (fatal error), 'warn' (logged to the output) or 'off' (default: warn)
