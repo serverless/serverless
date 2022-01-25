@@ -14,7 +14,7 @@ module.exports = {
     // Service templates
     '../../lib/plugins/create/templates',
     // Local invocation artifacts
-    '../../lib/plugins/aws/invokeLocal/runtimeWrappers',
+    '../../lib/plugins/aws/invokeLocal/runtime-wrappers',
     // Dashboard policies
     '../../node_modules/@serverless/dashboard-plugin/lib/safeguards/policies',
     // Dashboard wrappers
