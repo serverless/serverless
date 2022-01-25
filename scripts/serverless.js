@@ -100,7 +100,7 @@ processSpanPromise = (async () => {
     });
 
     const humanizePropertyPathKeys = require('../lib/configuration/variables/humanize-property-path-keys');
-    const processBackendNotificationRequest = require('../lib/utils/processBackendNotificationRequest');
+    const processBackendNotificationRequest = require('../lib/utils/process-backend-notification-request');
 
     (() => {
       // Rewrite eventual `sls deploy -f` into `sls deploy function -f`
