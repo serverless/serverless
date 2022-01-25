@@ -185,7 +185,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
       }
 
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/deploy', {
-        '../../Serverless': MockedServerless,
+        '../../serverless': MockedServerless,
         '@serverless/dashboard-plugin/lib/dashboard': {
           getDashboardInteractUrl: () => 'https://app.serverless-dev.com/path/to/dashboard',
         },
@@ -237,7 +237,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
       }
 
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/deploy', {
-        '../../Serverless': MockedServerless,
+        '../../serverless': MockedServerless,
         '@serverless/dashboard-plugin/lib/dashboard': {
           getDashboardInteractUrl: () => 'https://app.serverless-dev.com/path/to/dashboard',
         },
@@ -288,7 +288,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
       }
 
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/deploy', {
-        '../../Serverless': MockedServerless,
+        '../../serverless': MockedServerless,
       });
 
       configureInquirerStub(inquirer, {
@@ -334,7 +334,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
       }
 
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/deploy', {
-        '../../Serverless': MockedServerless,
+        '../../serverless': MockedServerless,
       });
 
       configureInquirerStub(inquirer, {

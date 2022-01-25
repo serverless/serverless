@@ -147,7 +147,7 @@ processSpanPromise = (async () => {
     const uuid = require('uuid');
     const _ = require('lodash');
     const clear = require('ext/object/clear');
-    const Serverless = require('../lib/Serverless');
+    const Serverless = require('../lib/serverless');
     const resolveVariables = require('../lib/configuration/variables/resolve');
     const isPropertyResolved = require('../lib/configuration/variables/is-property-resolved');
     const eventuallyReportVariableResolutionErrors = require('../lib/configuration/variables/eventually-report-resolution-errors');
