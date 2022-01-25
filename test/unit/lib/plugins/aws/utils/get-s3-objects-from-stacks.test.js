@@ -1,7 +1,7 @@
 'use strict';
 
 const expect = require('chai').expect;
-const getS3ObjectsFromStacks = require('../../../../../../lib/plugins/aws/utils/getS3ObjectsFromStacks');
+const getS3ObjectsFromStacks = require('../../../../../../lib/plugins/aws/utils/get-s3-objects-from-stacks');
 
 describe('#getS3ObjectsFromStacks()', () => {
   it('should return an empty result in case no stacks are provided', () => {
