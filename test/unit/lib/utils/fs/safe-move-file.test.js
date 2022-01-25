@@ -9,7 +9,7 @@ const { expect } = require('chai');
 const fsp = require('fs').promises;
 const fs = require('fs');
 const sinonChai = require('sinon-chai');
-const safeMoveFile = require('../../../../../lib/utils/fs/safeMoveFile');
+const safeMoveFile = require('../../../../../lib/utils/fs/safe-move-file');
 
 chai.use(sinonChai);
 
