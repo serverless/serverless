@@ -1,7 +1,7 @@
 'use strict';
 
 const expect = require('chai').expect;
-const resolveLambdaTarget = require('../../../../../../lib/plugins/aws/utils/resolveLambdaTarget');
+const resolveLambdaTarget = require('../../../../../../lib/plugins/aws/utils/resolve-lambda-target');
 
 describe('#resolveLambdaTarget', () => {
   it('should return a reference to Lambda Arn when provisionnedConcurrency is not set', () => {
