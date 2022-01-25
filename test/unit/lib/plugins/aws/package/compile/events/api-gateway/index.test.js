@@ -7,7 +7,7 @@ const AwsCompileApigEvents = require('../../../../../../../../../lib/plugins/aws
 const Serverless = require('../../../../../../../../../lib/serverless');
 const validate = require('../../../../../../../../../lib/plugins/aws/lib/validate');
 const getServiceState = require('../../../../../../../../../lib/plugins/aws/lib/get-service-state');
-const updateStage = require('../../../../../../../../../lib/plugins/aws/package/compile/events/api-gateway/lib/hack/updateStage');
+const updateStage = require('../../../../../../../../../lib/plugins/aws/package/compile/events/api-gateway/lib/hack/update-stage');
 const disassociateUsagePlan = require('../../../../../../../../../lib/plugins/aws/package/compile/events/api-gateway/lib/hack/disassociate-usage-plan');
 
 describe('AwsCompileApigEvents', () => {
