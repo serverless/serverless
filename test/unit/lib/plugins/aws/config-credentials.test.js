@@ -8,7 +8,7 @@ const fsp = require('fs').promises;
 const fse = require('fs-extra');
 const os = require('os');
 const path = require('path');
-const AwsConfigCredentials = require('../../../../../lib/plugins/aws/configCredentials');
+const AwsConfigCredentials = require('../../../../../lib/plugins/aws/config-credentials');
 const Serverless = require('../../../../../lib/serverless');
 const runServerless = require('../../../../utils/run-serverless');
 
