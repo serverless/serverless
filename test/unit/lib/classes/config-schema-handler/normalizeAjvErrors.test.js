@@ -4,7 +4,7 @@ const { expect } = require('chai');
 
 const Ajv = require('ajv').default;
 const memoize = require('memoizee');
-const normalizeAjvErrors = require('../../../../../lib/classes/ConfigSchemaHandler/normalizeAjvErrors');
+const normalizeAjvErrors = require('../../../../../lib/classes/config-schema-handler/normalizeAjvErrors');
 
 describe('#normalizeAjvErrors', () => {
   const resolveAjv = memoize(
