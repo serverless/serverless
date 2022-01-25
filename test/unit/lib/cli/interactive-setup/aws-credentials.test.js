@@ -31,7 +31,7 @@ const mockedSdk = {
 };
 
 const step = proxyquire('../../../../../lib/cli/interactive-setup/aws-credentials', {
-  '../../utils/openBrowser': async (url) => {
+  '../../utils/open-browser': async (url) => {
     openBrowserUrls.push(url);
   },
   '@serverless/dashboard-plugin/lib/client-utils': {
@@ -448,7 +448,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         '@serverless/dashboard-plugin/lib/client-utils': {
           getPlatformClientWithAccessKey: async () => internalMockedSdk,
         },
-        '../../utils/openBrowser': mockedOpenBrowser,
+        '../../utils/open-browser': mockedOpenBrowser,
         '@serverless/dashboard-plugin/lib/is-authenticated': () => true,
       });
 
@@ -518,7 +518,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         '@serverless/dashboard-plugin/lib/client-utils': {
           getPlatformClientWithAccessKey: async () => internalMockedSdk,
         },
-        '../../utils/openBrowser': mockedOpenBrowser,
+        '../../utils/open-browser': mockedOpenBrowser,
         '@serverless/dashboard-plugin/lib/is-authenticated': () => true,
       });
 
@@ -569,7 +569,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         '@serverless/dashboard-plugin/lib/client-utils': {
           getPlatformClientWithAccessKey: async () => internalMockedSdk,
         },
-        '../../utils/openBrowser': mockedOpenBrowser,
+        '../../utils/open-browser': mockedOpenBrowser,
       });
 
       configureInquirerStub(inquirer, {
