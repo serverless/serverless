@@ -2,7 +2,7 @@
 
 const expect = require('chai').expect;
 const BbPromise = require('bluebird');
-const resolveCfImportValue = require('../../../../../../lib/plugins/aws/utils/resolveCfImportValue');
+const resolveCfImportValue = require('../../../../../../lib/plugins/aws/utils/resolve-cf-import-value');
 
 describe('#resolveCfImportValue', () => {
   it('should return matching exported value if found', () => {
