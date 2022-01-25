@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const getHashForFilePath = require('../../../../../../../lib/plugins/aws/package/lib/getHashForFilePath');
+const getHashForFilePath = require('../../../../../../../lib/plugins/aws/package/lib/get-hash-for-file-path');
 const fsp = require('fs').promises;
 const path = require('path');
 
