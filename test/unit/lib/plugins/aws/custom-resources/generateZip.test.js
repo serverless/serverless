@@ -9,14 +9,14 @@ const { expect } = require('chai');
 // The directory that holds the files that generateZip zips up
 const resourcesDir = path.resolve(
   __dirname,
-  '../../../../../../lib/plugins/aws/customResources/resources/'
+  '../../../../../../lib/plugins/aws/custom-resources/resources/'
 );
 
 describe('test/unit/lib/plugins/aws/customResources/generateZip.test.js', () => {
   describe('when generating a zip file', () => {
     it('should generate a zip file with the contents of the resources directory', async () => {
       const zipFilePath = await requireUncached(async () =>
-        require('../../../../../../lib/plugins/aws/customResources/generateZip')()
+        require('../../../../../../lib/plugins/aws/custom-resources/generateZip')()
       );
 
       // List the files in the zip to make sure it is valid

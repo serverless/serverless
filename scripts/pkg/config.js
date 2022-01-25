@@ -8,7 +8,7 @@ module.exports = {
     // Standalone commands
     '../../commands',
     // Custom resources
-    '../../lib/plugins/aws/customResources/resources',
+    '../../lib/plugins/aws/custom-resources/resources',
     // Basic CF templates
     '../../lib/plugins/aws/package/lib/*.json',
     // Service templates

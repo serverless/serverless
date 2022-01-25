@@ -20,7 +20,7 @@ describe('ensureApiGatewayCloudWatchRole', () => {
     ensureApiGatewayCloudWatchRole = proxyquire(
       '../../../../../../../../../lib/plugins/aws/package/compile/events/lib/ensureApiGatewayCloudWatchRole',
       {
-        '../../../../customResources': {
+        '../../../../custom-resources': {
           addCustomResourceToService: addCustomResourceToServiceStub,
         },
       }

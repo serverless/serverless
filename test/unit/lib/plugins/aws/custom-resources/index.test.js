@@ -10,7 +10,7 @@ const CLI = require('../../../../../../lib/classes/cli');
 const { createTmpDir } = require('../../../../../utils/fs');
 const {
   addCustomResourceToService,
-} = require('../../../../../../lib/plugins/aws/customResources/index.js');
+} = require('../../../../../../lib/plugins/aws/custom-resources/index.js');
 const runServerless = require('../../../../../utils/run-serverless');
 
 const expect = chai.expect;

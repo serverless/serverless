@@ -123,7 +123,7 @@
   "eslintIgnore": [
     "!/.github",
     "/lib/plugins/create/templates/**",
-    "/lib/plugins/aws/customResources/node_modules/**",
+    "/lib/plugins/aws/custom-resources/node_modules/**",
     "!/test/fixtures/programmatic/locallyInstalledServerless/node_modules/**"
   ],
   "mocha": {

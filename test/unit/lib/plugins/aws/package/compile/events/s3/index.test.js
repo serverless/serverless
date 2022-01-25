@@ -23,7 +23,7 @@ describe('AwsCompileS3Events', () => {
     const AwsCompileS3Events = proxyquire(
       '../../../../../../../../../lib/plugins/aws/package/compile/events/s3/index',
       {
-        '../../../../customResources': {
+        '../../../../custom-resources': {
           addCustomResourceToService: addCustomResourceToServiceStub,
         },
       }
