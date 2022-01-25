@@ -1,7 +1,7 @@
 'use strict';
 
 const chalk = require('chalk');
-const isStandaloneExecutable = require('../lib/utils/isStandaloneExecutable');
+const isStandaloneExecutable = require('../lib/utils/is-standalone-executable');
 
 const isWindows = process.platform === 'win32';
 
