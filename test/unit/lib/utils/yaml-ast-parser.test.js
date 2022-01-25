@@ -4,7 +4,7 @@ const path = require('path');
 const chai = require('chai');
 const writeFileSync = require('../../../../lib/utils/fs/writeFileSync');
 const readFileSync = require('../../../../lib/utils/fs/readFileSync');
-const yamlAstParser = require('../../../../lib/utils/yamlAstParser');
+const yamlAstParser = require('../../../../lib/utils/yaml-ast-parser');
 const chaiAsPromised = require('chai-as-promised');
 const { getTmpDirPath } = require('../../../utils/fs');
 
