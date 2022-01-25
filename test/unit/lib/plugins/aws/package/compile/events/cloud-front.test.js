@@ -2,7 +2,7 @@
 
 const chai = require('chai');
 const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
-const AwsCompileCloudFrontEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/cloudFront');
+const AwsCompileCloudFrontEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/cloud-front');
 const Serverless = require('../../../../../../../../lib/serverless');
 const runServerless = require('../../../../../../../utils/run-serverless');
 
