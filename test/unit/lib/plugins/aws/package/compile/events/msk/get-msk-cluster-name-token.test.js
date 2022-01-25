@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const getMskClusterNameToken = require('../../../../../../../../../lib/plugins/aws/package/compile/events/msk/getMskClusterNameToken');
+const getMskClusterNameToken = require('../../../../../../../../../lib/plugins/aws/package/compile/events/msk/get-msk-cluster-name-token');
 
 const { expect } = chai;
 
