@@ -11,7 +11,7 @@ const AwsProvider = require('../../../../../../../../../../../lib/plugins/aws/pr
 const {
   updateStage,
   defaultApiGatewayLogLevel,
-} = require('../../../../../../../../../../../lib/plugins/aws/package/compile/events/apiGateway/lib/hack/updateStage');
+} = require('../../../../../../../../../../../lib/plugins/aws/package/compile/events/api-gateway/lib/hack/updateStage');
 const runServerless = require('../../../../../../../../../../utils/run-serverless');
 const fixtures = require('../../../../../../../../../../fixtures/programmatic');
 
