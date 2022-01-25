@@ -12,7 +12,7 @@ const proxyquire = require('proxyquire');
 const normalizeFiles = require('../../../../../../../lib/plugins/aws/lib/normalizeFiles');
 const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 const AwsDeploy = require('../../../../../../../lib/plugins/aws/deploy/index');
-const Serverless = require('../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../lib/serverless');
 const ServerlessError = require('../../../../../../../lib/serverless-error');
 const runServerless = require('../../../../../../utils/run-serverless');
 

@@ -3,7 +3,7 @@
 const expect = require('chai').expect;
 const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
 const AwsCompileStreamEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/stream');
-const Serverless = require('../../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../../lib/serverless');
 const runServerless = require('../../../../../../../utils/run-serverless');
 
 describe('AwsCompileStreamEvents', () => {

@@ -6,7 +6,7 @@
 const chai = require('chai');
 const sinon = require('sinon');
 const _ = require('lodash');
-const Serverless = require('../../../../../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../../../../../lib/serverless');
 const AwsProvider = require('../../../../../../../../../../../lib/plugins/aws/provider');
 const {
   updateStage,

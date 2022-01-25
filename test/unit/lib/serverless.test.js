@@ -6,7 +6,7 @@ chai.use(require('chai-as-promised'));
 
 const { expect } = chai;
 
-const Serverless = require('../../../lib/Serverless');
+const Serverless = require('../../../lib/serverless');
 const semverRegex = require('semver-regex');
 
 const YamlParser = require('../../../lib/classes/YamlParser');
@@ -155,7 +155,7 @@ describe('Serverless', () => {
   });
 });
 
-describe('test/unit/lib/Serverless.test.js', () => {
+describe('test/unit/lib/serverless.test.js', () => {
   describe('Legacy API interface', () => {
     let serverless;
 

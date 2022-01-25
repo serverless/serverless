@@ -3,7 +3,7 @@
 const path = require('path');
 const expect = require('chai').expect;
 const AwsPackage = require('../../../../../../../lib/plugins/aws/package/index');
-const Serverless = require('../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../lib/serverless');
 const ServerlessError = require('../../../../../../../lib/serverless-error');
 
 describe('mergeCustomProviderResources', () => {
