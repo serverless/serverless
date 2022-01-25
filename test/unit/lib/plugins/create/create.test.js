@@ -8,7 +8,7 @@ const Create = require('../../../../../lib/plugins/create/create');
 const Serverless = require('../../../../../lib/serverless');
 const sinon = require('sinon');
 const walkDirSync = require('../../../../../lib/utils/fs/walkDirSync');
-const download = require('../../../../../lib/utils/downloadTemplateFromRepo');
+const download = require('../../../../../lib/utils/download-template-from-repo');
 const { getTmpDirPath } = require('../../../../utils/fs');
 
 chai.use(require('chai-as-promised'));
