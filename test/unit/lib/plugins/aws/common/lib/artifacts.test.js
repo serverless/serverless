@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const path = require('path');
 const fse = require('fs-extra');
 const AWSCommon = require('../../../../../../../lib/plugins/aws/common/index');
-const Serverless = require('../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../lib/serverless');
 const { getTmpDirPath } = require('../../../../../../utils/fs');
 
 describe('#moveArtifactsToPackage()', () => {

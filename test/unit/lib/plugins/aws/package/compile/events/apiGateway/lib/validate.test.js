@@ -4,7 +4,7 @@ const chai = require('chai');
 const sinon = require('sinon');
 const runServerless = require('../../../../../../../../../utils/run-serverless');
 const AwsCompileApigEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/apiGateway/index');
-const Serverless = require('../../../../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../../../../lib/serverless');
 const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
 const ServerlessError = require('../../../../../../../../../../lib/serverless-error');
 

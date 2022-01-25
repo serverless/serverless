@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const expect = require('chai').expect;
 const AwsCompileApigEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/apiGateway/index');
-const Serverless = require('../../../../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../../../../lib/serverless');
 const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
 
 describe('#compileUsagePlanKeys()', () => {

@@ -3,7 +3,7 @@
 const chai = require('chai');
 const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
 const AwsCompileCloudFrontEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/cloudFront');
-const Serverless = require('../../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../../lib/serverless');
 const runServerless = require('../../../../../../../utils/run-serverless');
 
 chai.use(require('sinon-chai'));

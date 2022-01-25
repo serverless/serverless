@@ -2,7 +2,7 @@
 
 const expect = require('chai').expect;
 const Rollback = require('../../../../lib/plugins/rollback');
-const Serverless = require('../../../../lib/Serverless');
+const Serverless = require('../../../../lib/serverless');
 
 describe('Rollback', () => {
   let rollback;

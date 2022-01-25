@@ -3,7 +3,7 @@
 const expect = require('chai').expect;
 const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
 const AwsCompileIoTEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/iot');
-const Serverless = require('../../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../../lib/serverless');
 
 describe('AwsCompileIoTEvents', () => {
   let serverless;
