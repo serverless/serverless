@@ -2,7 +2,7 @@
 
 const path = require('path');
 const chai = require('chai');
-const createZipFile = require('../../../../../lib/utils/fs/createZipFile');
+const createZipFile = require('../../../../../lib/utils/fs/create-zip-file');
 const { createTmpFile, listZipFiles } = require('../../../../utils/fs');
 
 // Configure chai
