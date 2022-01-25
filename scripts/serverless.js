@@ -17,7 +17,7 @@ const {
   storeLocally: storeTelemetryLocally,
   send: sendTelemetry,
 } = require('../lib/utils/telemetry');
-const generateTelemetryPayload = require('../lib/utils/telemetry/generatePayload');
+const generateTelemetryPayload = require('../lib/utils/telemetry/generate-payload');
 const isTelemetryDisabled = require('../lib/utils/telemetry/are-disabled');
 const logDeprecation = require('../lib/utils/log-deprecation');
 
