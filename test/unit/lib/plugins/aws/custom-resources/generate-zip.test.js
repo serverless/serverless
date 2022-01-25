@@ -16,7 +16,7 @@ describe('test/unit/lib/plugins/aws/customResources/generateZip.test.js', () => 
   describe('when generating a zip file', () => {
     it('should generate a zip file with the contents of the resources directory', async () => {
       const zipFilePath = await requireUncached(async () =>
-        require('../../../../../../lib/plugins/aws/custom-resources/generateZip')()
+        require('../../../../../../lib/plugins/aws/custom-resources/generate-zip')()
       );
 
       // List the files in the zip to make sure it is valid
