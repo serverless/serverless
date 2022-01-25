@@ -6,7 +6,7 @@ const path = require('path');
 const { expect } = require('chai');
 const { getTmpDirPath } = require('../../../utils/fs');
 
-const { renameService } = require('../../../../lib/utils/renameService');
+const { renameService } = require('../../../../lib/utils/rename-service');
 
 describe('renameService', () => {
   let serverless;
