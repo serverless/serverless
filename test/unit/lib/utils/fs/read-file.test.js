@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const writeFile = require('../../../../../lib/utils/fs/writeFile');
+const writeFile = require('../../../../../lib/utils/fs/write-file');
 const readFile = require('../../../../../lib/utils/fs/read-file');
 const { getTmpFilePath } = require('../../../../utils/fs');
 
