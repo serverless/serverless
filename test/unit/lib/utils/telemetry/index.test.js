@@ -26,7 +26,7 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
   before(() => {
     ({ storeLocally, send } = proxyquire('../../../../../lib/utils/telemetry/index.js', {
       '@serverless/utils/analytics-and-notfications-url': telemetryUrl,
-      './areDisabled': false,
+      './are-disabled': false,
       'node-fetch': async (url, options) => {
         usedUrl = url;
         usedOptions = options;

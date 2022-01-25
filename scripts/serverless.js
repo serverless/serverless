@@ -18,7 +18,7 @@ const {
   send: sendTelemetry,
 } = require('../lib/utils/telemetry');
 const generateTelemetryPayload = require('../lib/utils/telemetry/generatePayload');
-const isTelemetryDisabled = require('../lib/utils/telemetry/areDisabled');
+const isTelemetryDisabled = require('../lib/utils/telemetry/are-disabled');
 const logDeprecation = require('../lib/utils/log-deprecation');
 
 let command;
