@@ -3,7 +3,7 @@
 const expect = require('chai').expect;
 const dayjs = require('dayjs');
 const { style } = require('@serverless/utils/log');
-const formatLambdaLogEvent = require('../../../../../../lib/plugins/aws/utils/formatLambdaLogEvent');
+const formatLambdaLogEvent = require('../../../../../../lib/plugins/aws/utils/format-lambda-log-event');
 
 describe('#formatLambdaLogEvent()', () => {
   it('should format invocation report', () => {
