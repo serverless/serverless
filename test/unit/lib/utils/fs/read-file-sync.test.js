@@ -1,7 +1,7 @@
 'use strict';
 
 const expect = require('chai').expect;
-const writeFileSync = require('../../../../../lib/utils/fs/writeFileSync');
+const writeFileSync = require('../../../../../lib/utils/fs/write-file-sync');
 const readFileSync = require('../../../../../lib/utils/fs/read-file-sync');
 const { getTmpFilePath } = require('../../../../utils/fs');
 
