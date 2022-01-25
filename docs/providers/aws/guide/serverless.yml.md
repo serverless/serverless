@@ -76,12 +76,6 @@ provider:
   profile: production
   # Use a custom name for the CloudFormation stack
   stackName: custom-stack-name
-  # Use a custom name for the API Gateway API
-  apiName: custom-api-name
-  # Use a custom name for the websockets API
-  websocketsApiName: custom-websockets-api-name
-  # custom route selection expression
-  websocketsApiRouteSelectionExpression: $request.body.route
   # Optional CloudFormation tags to apply to APIs and functions
   tags:
     foo: bar
@@ -239,8 +233,14 @@ The `apiGateway` settings apply to [API Gateway v1 REST APIs](../events/apigatew
 
 ```yml
 provider:
+  # Use a custom name for the API Gateway API
+  apiName: custom-api-name
   # Endpoint type for API Gateway REST API: edge or regional (default: edge)
   endpointType: regional
+  # Use a custom name for the websockets API
+  websocketsApiName: custom-websockets-api-name
+  # custom route selection expression
+  websocketsApiRouteSelectionExpression: $request.body.route
   # Optional API Gateway REST API global config
   apiGateway:
     # Attach to an externally created REST API via its ID:
