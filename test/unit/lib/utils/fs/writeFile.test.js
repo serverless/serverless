@@ -4,7 +4,7 @@ const fsp = require('fs').promises;
 const Serverless = require('../../../../../lib/serverless');
 const chai = require('chai');
 const writeFile = require('../../../../../lib/utils/fs/writeFile');
-const readFile = require('../../../../../lib/utils/fs/readFile');
+const readFile = require('../../../../../lib/utils/fs/read-file');
 const { getTmpFilePath } = require('../../../../utils/fs');
 
 // Configure chai
