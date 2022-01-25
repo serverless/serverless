@@ -1033,7 +1033,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
                 Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json',
               })
               .returns({
-                Metadata: { filesha256: 'pZOdrt6qijT7ITsLQjPP9QwgMAfKA2RuUUSTW+l8wWs=' },
+                Metadata: { filesha256: '1lX4znKl+E2XIDCKbnfYHdfh8lTbVHV6Oab07Hgvzw0=' },
               });
 
             headObjectStub
