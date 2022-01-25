@@ -10,7 +10,7 @@ const Serverless = require('../../../lib/serverless');
 const semverRegex = require('semver-regex');
 
 const YamlParser = require('../../../lib/classes/YamlParser');
-const PluginManager = require('../../../lib/classes/PluginManager');
+const PluginManager = require('../../../lib/classes/plugin-manager');
 const Utils = require('../../../lib/classes/utils');
 const Service = require('../../../lib/classes/service');
 const ConfigSchemaHandler = require('../../../lib/classes/ConfigSchemaHandler');
