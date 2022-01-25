@@ -23,7 +23,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
     const AwsCompileCognitoUserPoolEvents = proxyquire(
       '../../../../../../../../lib/plugins/aws/package/compile/events/cognitoUserPool',
       {
-        '../../../customResources': {
+        '../../../custom-resources': {
           addCustomResourceToService: addCustomResourceToServiceStub,
         },
       }
