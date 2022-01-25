@@ -4,7 +4,7 @@ const { expect } = require('chai');
 const overrideArgv = require('process-utils/override-argv');
 const ServerlessError = require('../../../../lib/serverless-error');
 const resolveInput = require('../../../../lib/cli/resolve-input');
-const { triggeredDeprecations } = require('../../../../lib/utils/logDeprecation');
+const { triggeredDeprecations } = require('../../../../lib/utils/log-deprecation');
 const ensureSupportedCommand = require('../../../../lib/cli/ensure-supported-command');
 
 describe('test/unit/lib/cli/ensure-supported-command.test.js', () => {
