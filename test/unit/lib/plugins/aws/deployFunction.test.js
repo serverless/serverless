@@ -6,7 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const proxyquire = require('proxyquire');
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
-const Serverless = require('../../../../../lib/Serverless');
+const Serverless = require('../../../../../lib/serverless');
 const runServerless = require('../../../../utils/run-serverless');
 const { getTmpDirPath } = require('../../../../utils/fs');
 

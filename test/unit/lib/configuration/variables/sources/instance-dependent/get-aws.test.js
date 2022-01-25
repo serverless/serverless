@@ -7,7 +7,7 @@ const resolveMeta = require('../../../../../../../lib/configuration/variables/re
 const resolve = require('../../../../../../../lib/configuration/variables/resolve');
 const selfSource = require('../../../../../../../lib/configuration/variables/sources/self');
 const getAwsSource = require('../../../../../../../lib/configuration/variables/sources/instance-dependent/get-aws');
-const Serverless = require('../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../lib/serverless');
 
 describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-aws.test.js', () => {
   let configuration;

@@ -13,7 +13,7 @@ const fs = BbPromise.promisifyAll(require('fs'));
 const childProcess = BbPromise.promisifyAll(require('child_process'));
 const sinon = require('sinon');
 const Package = require('../../../../../../lib/plugins/package/package');
-const Serverless = require('../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../lib/serverless');
 const { getTmpDirPath } = require('../../../../../utils/fs');
 
 // Configure chai

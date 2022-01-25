@@ -9,7 +9,7 @@ const fse = require('fs-extra');
 const os = require('os');
 const path = require('path');
 const AwsConfigCredentials = require('../../../../../lib/plugins/aws/configCredentials');
-const Serverless = require('../../../../../lib/Serverless');
+const Serverless = require('../../../../../lib/serverless');
 const runServerless = require('../../../../utils/run-serverless');
 
 const { expect } = chai;

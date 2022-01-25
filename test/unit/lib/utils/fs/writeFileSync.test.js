@@ -1,7 +1,7 @@
 'use strict';
 
 const fsp = require('fs').promises;
-const Serverless = require('../../../../../lib/Serverless');
+const Serverless = require('../../../../../lib/serverless');
 const writeFileSync = require('../../../../../lib/utils/fs/writeFileSync');
 const readFileSync = require('../../../../../lib/utils/fs/readFileSync');
 const { expect } = require('chai');

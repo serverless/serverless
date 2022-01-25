@@ -4,7 +4,7 @@ const sinon = require('sinon');
 const expect = require('chai').expect;
 const AwsDeployList = require('../../../../../lib/plugins/aws/deployList');
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
-const Serverless = require('../../../../../lib/Serverless');
+const Serverless = require('../../../../../lib/serverless');
 
 describe('AwsDeployList', () => {
   let serverless;

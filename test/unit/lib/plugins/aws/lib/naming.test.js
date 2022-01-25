@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const _ = require('lodash');
 
 const SDK = require('../../../../../../lib/plugins/aws/provider');
-const Serverless = require('../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../lib/serverless');
 
 describe('#naming()', () => {
   let options;

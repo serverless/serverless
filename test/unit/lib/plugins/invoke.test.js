@@ -3,7 +3,7 @@
 const chai = require('chai');
 const overrideEnv = require('process-utils/override-env');
 const Invoke = require('../../../../lib/plugins/invoke');
-const Serverless = require('../../../../lib/Serverless');
+const Serverless = require('../../../../lib/serverless');
 
 chai.use(require('chai-as-promised'));
 

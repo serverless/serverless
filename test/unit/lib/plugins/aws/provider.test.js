@@ -12,7 +12,7 @@ const sinon = require('sinon');
 const overrideEnv = require('process-utils/override-env');
 
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
-const Serverless = require('../../../../../lib/Serverless');
+const Serverless = require('../../../../../lib/serverless');
 const runServerless = require('../../../../utils/run-serverless');
 
 chai.use(require('chai-as-promised'));

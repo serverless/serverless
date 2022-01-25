@@ -1,6 +1,6 @@
 'use strict';
 
-const Serverless = require('../../../../lib/Serverless');
+const Serverless = require('../../../../lib/serverless');
 const fse = require('fs-extra');
 const path = require('path');
 const { expect } = require('chai');

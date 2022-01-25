@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
 const AwsDeploy = require('../../../../../../lib/plugins/aws/deploy/index');
-const Serverless = require('../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../lib/serverless');
 
 describe('#setBucketName()', () => {
   let serverless;

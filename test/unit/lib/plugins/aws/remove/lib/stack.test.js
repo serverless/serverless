@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 const AwsRemove = require('../../../../../../../lib/plugins/aws/remove/index');
-const Serverless = require('../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../lib/serverless');
 
 describe('removeStack', () => {
   const options = {

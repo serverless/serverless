@@ -16,7 +16,7 @@
     "apache-open-whisk",
     "iot"
   ],
-  "main": "lib/Serverless.js",
+  "main": "lib/serverless.js",
   "bin": {
     "serverless": "./bin/serverless.js",
     "sls": "./bin/serverless.js"

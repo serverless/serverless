@@ -2,7 +2,7 @@
 
 const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
 const AwsCommon = require('../../../../../../lib/plugins/aws/common/index');
-const Serverless = require('../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../lib/serverless');
 const expect = require('chai').expect;
 const sinon = require('sinon');
 

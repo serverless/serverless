@@ -3,7 +3,7 @@
 const expect = require('chai').expect;
 const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
 const AwsCompileAlexaSmartHomeEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/alexaSmartHome');
-const Serverless = require('../../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../../lib/serverless');
 
 describe('AwsCompileAlexaSmartHomeEvents', () => {
   let serverless;

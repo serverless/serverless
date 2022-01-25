@@ -22,10 +22,10 @@ describe('test/unit/lib/cli/local-serverless.test.js', () => {
     );
     await fse.ensureDir(path.resolve(tmpServerlessPath, 'lib'));
     await Promise.all([
-      fse.ensureFile(path.resolve(tmpServerlessPath, 'lib/Serverless.js')),
+      fse.ensureFile(path.resolve(tmpServerlessPath, 'lib/serverless.js')),
       fsp.writeFile(
         path.resolve(tmpServerlessPath, 'package.json'),
-        JSON.stringify({ main: 'lib/Serverless.js' })
+        JSON.stringify({ main: 'lib/serverless.js' })
       ),
     ]);
     expect(await fsp.realpath(require('../../../../lib/cli/local-serverless-path'))).to.equal(

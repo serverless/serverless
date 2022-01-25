@@ -7,7 +7,7 @@
 const chai = require('chai');
 const yaml = require('js-yaml');
 const path = require('path');
-const Serverless = require('../../../../lib/Serverless');
+const Serverless = require('../../../../lib/serverless');
 const { getTmpFilePath, getTmpDirPath } = require('../../../utils/fs');
 
 // Configure chai

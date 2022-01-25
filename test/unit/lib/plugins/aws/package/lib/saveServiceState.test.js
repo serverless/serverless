@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 const path = require('path');
 const AwsPackage = require('../../../../../../../lib/plugins/aws/package/index');
-const Serverless = require('../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../lib/serverless');
 const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 
 describe('#saveServiceState()', () => {

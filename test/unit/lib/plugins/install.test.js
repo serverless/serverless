@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const Serverless = require('../../../../lib/Serverless');
+const Serverless = require('../../../../lib/serverless');
 const Install = require('../../../../lib/plugins/install.js');
 const sinon = require('sinon');
 const download = require('../../../../lib/utils/downloadTemplateFromRepo');

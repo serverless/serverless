@@ -5,7 +5,7 @@
 const chai = require('chai');
 const BbPromise = require('bluebird');
 const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
-const Serverless = require('../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../lib/serverless');
 const CLI = require('../../../../../../lib/classes/CLI');
 const { createTmpDir } = require('../../../../../utils/fs');
 const {

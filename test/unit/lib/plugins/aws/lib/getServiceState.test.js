@@ -3,7 +3,7 @@
 const path = require('path');
 const chai = require('chai');
 const sinon = require('sinon');
-const Serverless = require('../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../lib/serverless');
 const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
 const getServiceState = require('../../../../../../lib/plugins/aws/lib/getServiceState');
 
