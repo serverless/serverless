@@ -17,7 +17,7 @@ const versions = {
 };
 
 const getGeneratePayload = () =>
-  proxyquire('../../../../../lib/utils/telemetry/generatePayload', {
+  proxyquire('../../../../../lib/utils/telemetry/generate-payload', {
     '@serverless/utils/get-notifications-mode': () => 'on',
   });
 
