@@ -2,7 +2,7 @@
 
 const chai = require('chai');
 const CLI = require('../../../../lib/classes/CLI');
-const Serverless = require('../../../../lib/Serverless');
+const Serverless = require('../../../../lib/serverless');
 
 const { expect } = chai;
 chai.use(require('sinon-chai'));

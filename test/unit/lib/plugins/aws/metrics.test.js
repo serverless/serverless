@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
 const AwsMetrics = require('../../../../../lib/plugins/aws/metrics');
-const Serverless = require('../../../../../lib/Serverless');
+const Serverless = require('../../../../../lib/serverless');
 const CLI = require('../../../../../lib/classes/CLI');
 const dayjs = require('dayjs');
 

@@ -6,7 +6,7 @@ const sinon = require('sinon');
 const chai = require('chai');
 const proxyquire = require('proxyquire').noCallThru();
 const AwsProvider = require('../../../../../../../../../lib/plugins/aws/provider');
-const Serverless = require('../../../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../../../lib/serverless');
 const runServerless = require('../../../../../../../../utils/run-serverless');
 
 const { expect } = chai;
