@@ -81,6 +81,90 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
     });
   });
 
+  describe('#addPropertiesToSchema', () => {
+    it('throws if there is an attempt to change the schema of an existing property', async () => {
+      const existingProperty = 'colliding';
+      const subschema = { properties: { [existingProperty]: 'value' } };
+      const extension = { properties: { [existingProperty]: 'value-again' } };
+
+      const {
+        serverless: { configSchemaHandler },
+      } = await runServerless({
+        fixture: 'configSchemaExtensions',
+        command: 'info',
+      });
+
+      expect(() => configSchemaHandler.addPropertiesToSchema(subschema, extension))
+        .to.throw(Error)
+        .which.has.property('property', existingProperty);
+    });
+
+    it('add extension to subschema', async () => {
+      const subschema = { properties: { foo: 'value' }, required: ['foo'] };
+
+      const originalSubSchema = JSON.parse(JSON.stringify(subschema));
+      const extension = { properties: { bar: 'value-again' }, required: ['bar'] };
+
+      const {
+        serverless: { configSchemaHandler },
+      } = await runServerless({
+        fixture: 'configSchemaExtensions',
+        command: 'info',
+      });
+
+      configSchemaHandler.addPropertiesToSchema(subschema, extension);
+
+      expect(subschema).to.deep.equal({
+        properties: {
+          ...originalSubSchema.properties,
+          ...extension.properties,
+        },
+        required: [...originalSubSchema.required, ...extension.required],
+      });
+    });
+
+    it('adds "required" to subschema if it does not already exist', async () => {
+      const subschema = { properties: { foo: 'value' } };
+
+      const originalSubSchema = JSON.parse(JSON.stringify(subschema));
+      const extension = { properties: { bar: 'value-again' }, required: ['bar'] };
+
+      const {
+        serverless: { configSchemaHandler },
+      } = await runServerless({
+        fixture: 'configSchemaExtensions',
+        command: 'info',
+      });
+
+      configSchemaHandler.addPropertiesToSchema(subschema, extension);
+
+      expect(subschema).to.deep.equal({
+        properties: {
+          ...originalSubSchema.properties,
+          ...extension.properties,
+        },
+        required: [...extension.required],
+      });
+    });
+
+    it('handles undefined "extension" argument', async () => {
+      const subschema = { properties: { foo: 'value' }, required: ['foo'] };
+      const originalSubSchema = JSON.parse(JSON.stringify(subschema));
+      const extension = undefined;
+
+      const {
+        serverless: { configSchemaHandler },
+      } = await runServerless({
+        fixture: 'configSchemaExtensions',
+        command: 'info',
+      });
+
+      configSchemaHandler.addPropertiesToSchema(subschema, extension);
+
+      expect(subschema).to.deep.equal(originalSubSchema);
+    });
+  });
+
   describe('#defineFunctionEvent', () => {
     it('should extend schema with defineFunctionEvent method', () => {
       return runServerless({
