@@ -4,7 +4,7 @@ const path = require('path');
 const chai = require('chai');
 const { existsSync, outputJsonSync, readFileSync } = require('fs-extra');
 const { load: yamlParse } = require('js-yaml');
-const installTemplate = require('../../../../lib/utils/createFromTemplate');
+const installTemplate = require('../../../../lib/utils/create-from-template');
 const { getTmpDirPath } = require('../../../utils/fs');
 
 chai.use(require('chai-as-promised'));
