@@ -1,11 +1,37 @@
 'use strict';
 
-const expect = require('chai').expect;
+const chai = require('chai');
 const sinon = require('sinon');
 const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
 const AwsDeploy = require('../../../../../../lib/plugins/aws/deploy');
 const Serverless = require('../../../../../../lib/Serverless');
 const { getTmpDirPath } = require('../../../../../utils/fs');
+const runServerless = require('../../../../../utils/run-serverless');
+
+const { expect } = chai;
+chai.use(require('sinon-chai'));
+
+const awsRequestStubMapBase = {
+  STS: {
+    getCallerIdentity: {
+      ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+      UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+      Account: '999999999999',
+      Arn: 'arn:aws-us-gov:iam::999999999999:user/test',
+    },
+  },
+  S3: {
+    deleteObjects: {},
+    listObjectsV2: { Contents: [] },
+    upload: {},
+  },
+  CloudFormation: {
+    describeStacks: { Stacks: [{}] },
+    describeStackResource: { StackResourceDetail: { PhysicalResourceId: 's3-bucket-resource' } },
+    listStackResources: {},
+    validateTemplate: {},
+  },
+};
 
 describe('updateStack', () => {
   let serverless;
@@ -209,6 +235,38 @@ describe('updateStack', () => {
           '{"Statement":[{"Effect":"Allow","Principal":"*","Action":"Update:*","Resource":"*"}]}'
         );
       });
+    });
+
+    it('should include custom stack policy during updates', async () => {
+      const updateStub = sinon.stub().resolves('alreadyCreated');
+      const stackPolicyDuringUpdate = [
+        {
+          Effect: 'Allow',
+          Principal: '*',
+          Action: ['Update:*'],
+          Resource: '*',
+        },
+      ];
+      await runServerless({
+        config: {
+          service: 'irrelevant',
+          provider: { name: 'aws', region: 'us-east-1', stackPolicyDuringUpdate },
+        },
+        command: 'deploy',
+        lastLifecycleHookName: 'deploy:deploy',
+        awsRequestStubMap: {
+          ...awsRequestStubMapBase,
+          CloudFormation: {
+            ...awsRequestStubMapBase.CloudFormation,
+            updateStack: updateStub,
+          },
+        },
+      });
+
+      expect(updateStub).to.be.calledOnce;
+      expect(updateStub.args[0][0].StackPolicyDuringUpdateBody).to.equal(
+        JSON.stringify({ Statement: stackPolicyDuringUpdate })
+      );
     });
 
     it('should success if no changes to stack happened', () => {

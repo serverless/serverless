@@ -249,6 +249,11 @@ provider:
         StringEquals:
           ResourceType:
             - AWS::EC2::Instance
+  stackPolicyDuringUpdate: # Optional CF stack policy during update. The example below allows updates to all resources for this update stack
+    - Effect: Allow
+      Principal: '*'
+      Action: 'Update:*'
+      Resource: '*'
   vpc: # Optional VPC. But if you use VPC then both subproperties (securityGroupIds and subnetIds) are required
     securityGroupIds:
       - securityGroupId1
