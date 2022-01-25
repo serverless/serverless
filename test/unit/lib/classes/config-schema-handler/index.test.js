@@ -4,7 +4,7 @@ const chai = require('chai');
 const runServerless = require('../../../../utils/run-serverless');
 const {
   getConfigurationValidationResult,
-} = require('../../../../../lib/classes/ConfigSchemaHandler');
+} = require('../../../../../lib/classes/config-schema-handler');
 
 chai.use(require('chai-as-promised'));
 
