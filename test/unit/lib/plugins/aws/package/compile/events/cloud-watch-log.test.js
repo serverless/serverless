@@ -2,7 +2,7 @@
 
 const expect = require('chai').expect;
 const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
-const AwsCompileCloudWatchLogEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/cloudWatchLog');
+const AwsCompileCloudWatchLogEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/cloud-watch-log');
 const Serverless = require('../../../../../../../../lib/serverless');
 
 describe('AwsCompileCloudWatchLogEvents', () => {
