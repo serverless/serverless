@@ -14,7 +14,7 @@ const PluginManager = require('../../../lib/classes/PluginManager');
 const Utils = require('../../../lib/classes/Utils');
 const Service = require('../../../lib/classes/Service');
 const ConfigSchemaHandler = require('../../../lib/classes/ConfigSchemaHandler');
-const CLI = require('../../../lib/classes/CLI');
+const CLI = require('../../../lib/classes/cli');
 const ServerlessError = require('../../../lib/serverless-error');
 const runServerless = require('../../utils/run-serverless');
 
