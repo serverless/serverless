@@ -2,7 +2,7 @@
 
 const { expect } = require('chai');
 
-const ensureArtifact = require('../../../../lib/utils/ensureArtifact');
+const ensureArtifact = require('../../../../lib/utils/ensure-artifact');
 
 const path = require('path');
 const fsp = require('fs').promises;
