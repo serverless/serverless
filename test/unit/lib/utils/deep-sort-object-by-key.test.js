@@ -1,7 +1,7 @@
 'use strict';
 
 const expect = require('chai').expect;
-const deepSortObjectByKey = require('../../../../lib/utils/deepSortObjectByKey');
+const deepSortObjectByKey = require('../../../../lib/utils/deep-sort-object-by-key');
 
 describe('deepSortObjectByKey', () => {
   it('handles plain object', () => {
