@@ -60,7 +60,7 @@ describe('AwsInvokeLocal', () => {
     });
 
     stdinStub = sinon.stub().resolves('');
-    AwsInvokeLocal = proxyquire('../../../../../../lib/plugins/aws/invokeLocal/index', {
+    AwsInvokeLocal = proxyquire('../../../../../../lib/plugins/aws/invoke-local/index', {
       'get-stdin': stdinStub,
       'child-process-ext/spawn': spawnExtStub,
     });
@@ -498,7 +498,7 @@ describe('AwsInvokeLocal', () => {
   describe('#callJavaBridge()', () => {
     let invokeLocalSpawnStubbed;
     beforeEach(() => {
-      AwsInvokeLocal = proxyquire('../../../../../../lib/plugins/aws/invokeLocal/index', {
+      AwsInvokeLocal = proxyquire('../../../../../../lib/plugins/aws/invoke-local/index', {
         'get-stdin': stdinStub,
         'child-process-ext/spawn': spawnExtStub,
         'child_process': {
