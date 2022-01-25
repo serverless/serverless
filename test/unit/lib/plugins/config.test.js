@@ -23,7 +23,7 @@ describe('Config', () => {
       options: { autoupdate: true },
       modulesCacheStub: {
         './lib/utils/npm-package/is-global.js': async () => true,
-        './lib/utils/npm-package/isWritable.js': async () => true,
+        './lib/utils/npm-package/is-writable.js': async () => true,
       },
     });
     expect(config.get('autoUpdate.enabled')).to.be.true;
