@@ -15,7 +15,7 @@ describe('AwsRollbackFunction', () => {
 
   beforeEach(() => {
     fetchStub = sinon.stub().resolves({ buffer: () => {} });
-    AwsRollbackFunction = proxyquire('../../../../../lib/plugins/aws/rollbackFunction.js', {
+    AwsRollbackFunction = proxyquire('../../../../../lib/plugins/aws/rollback-function.js', {
       'node-fetch': fetchStub,
     });
     serverless = new Serverless({ commands: [], options: {} });
