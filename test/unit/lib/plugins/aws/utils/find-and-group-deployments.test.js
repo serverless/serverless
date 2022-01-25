@@ -1,7 +1,7 @@
 'use strict';
 
 const expect = require('chai').expect;
-const findAndGroupDeployments = require('../../../../../../lib/plugins/aws/utils/findAndGroupDeployments');
+const findAndGroupDeployments = require('../../../../../../lib/plugins/aws/utils/find-and-group-deployments');
 
 describe('#findAndGroupDeployments()', () => {
   it('should return an empty result in case no S3 objects are provided', () => {
