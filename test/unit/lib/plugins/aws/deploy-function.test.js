@@ -62,7 +62,7 @@ describe('AwsDeployFunction', () => {
       },
       digest: sinon.stub(),
     };
-    AwsDeployFunction = proxyquire('../../../../../lib/plugins/aws/deployFunction', {
+    AwsDeployFunction = proxyquire('../../../../../lib/plugins/aws/deploy-function', {
       crypto: cryptoStub,
     });
     awsDeployFunction = new AwsDeployFunction(serverless, options);
