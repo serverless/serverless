@@ -5,7 +5,7 @@ const sinon = require('sinon');
 
 const observeOutput = require('@serverless/test/observe-output');
 const handleError = require('../../../../lib/cli/handle-error');
-const isStandaloneExecutable = require('../../../../lib/utils/isStandaloneExecutable');
+const isStandaloneExecutable = require('../../../../lib/utils/is-standalone-executable');
 const ServerlessError = require('../../../../lib/serverless-error');
 
 chai.use(require('sinon-chai'));
