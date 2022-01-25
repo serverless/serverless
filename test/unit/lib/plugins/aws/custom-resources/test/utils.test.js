@@ -4,7 +4,7 @@ const { expect } = require('chai');
 const {
   getLambdaArn,
   getEnvironment,
-} = require('../../../../../../../lib/plugins/aws/customResources/resources/utils');
+} = require('../../../../../../../lib/plugins/aws/custom-resources/resources/utils');
 
 describe('#getLambdaArn()', () => {
   it('should return the Lambda arn', () => {
