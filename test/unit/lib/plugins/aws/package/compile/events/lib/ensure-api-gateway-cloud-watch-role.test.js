@@ -18,7 +18,7 @@ describe('ensureApiGatewayCloudWatchRole', () => {
   beforeEach(() => {
     addCustomResourceToServiceStub = sinon.stub().resolves();
     ensureApiGatewayCloudWatchRole = proxyquire(
-      '../../../../../../../../../lib/plugins/aws/package/compile/events/lib/ensureApiGatewayCloudWatchRole',
+      '../../../../../../../../../lib/plugins/aws/package/compile/events/lib/ensure-api-gateway-cloud-watch-role',
       {
         '../../../../custom-resources': {
           addCustomResourceToService: addCustomResourceToServiceStub,
