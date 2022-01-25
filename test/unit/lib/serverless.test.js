@@ -9,7 +9,7 @@ const { expect } = chai;
 const Serverless = require('../../../lib/serverless');
 const semverRegex = require('semver-regex');
 
-const YamlParser = require('../../../lib/classes/YamlParser');
+const YamlParser = require('../../../lib/classes/yaml-parser');
 const PluginManager = require('../../../lib/classes/plugin-manager');
 const Utils = require('../../../lib/classes/utils');
 const Service = require('../../../lib/classes/service');
