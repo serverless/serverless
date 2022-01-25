@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const resolveAjvValidate = require('../../../../../lib/classes/ConfigSchemaHandler/resolveAjvValidate');
+const resolveAjvValidate = require('../../../../../lib/classes/config-schema-handler/resolveAjvValidate');
 const objectHash = require('object-hash');
 const deepSortObjectByKey = require('../../../../../lib/utils/deepSortObjectByKey');
 const path = require('path');
