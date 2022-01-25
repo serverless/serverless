@@ -54,7 +54,7 @@ describe('checkForChanges', () => {
       digest: sandbox.stub(),
     };
     const checkForChanges = proxyquire(
-      '../../../../../../../lib/plugins/aws/deploy/lib/checkForChanges.js',
+      '../../../../../../../lib/plugins/aws/deploy/lib/check-for-changes.js',
       {
         crypto: cryptoStub,
       }
