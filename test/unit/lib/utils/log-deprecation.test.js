@@ -9,7 +9,7 @@ describe('test/unit/lib/utils/logDeprecation.test.js', () => {
   let restoreEnv;
 
   beforeEach(() => {
-    delete require.cache[require.resolve('../../../../lib/utils/logDeprecation')];
+    delete require.cache[require.resolve('../../../../lib/utils/log-deprecation')];
     ({ restoreEnv } = overrideEnv({
       whitelist: ['APPDATA', 'HOME', 'PATH', 'TEMP', 'TMP', 'TMPDIR', 'USERPROFILE'],
     }));
@@ -21,7 +21,7 @@ describe('test/unit/lib/utils/logDeprecation.test.js', () => {
   });
 
   it('should throw on deprecation if error notifications mode set in service config', () => {
-    const logDeprecation = require('../../../../lib/utils/logDeprecation');
+    const logDeprecation = require('../../../../lib/utils/log-deprecation');
     expect(() =>
       logDeprecation('CODE1', 'Start using deprecation log', {
         serviceConfig: { deprecationNotificationMode: 'error' },

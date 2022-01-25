@@ -19,7 +19,7 @@ const {
 } = require('../lib/utils/telemetry');
 const generateTelemetryPayload = require('../lib/utils/telemetry/generatePayload');
 const isTelemetryDisabled = require('../lib/utils/telemetry/areDisabled');
-const logDeprecation = require('../lib/utils/logDeprecation');
+const logDeprecation = require('../lib/utils/log-deprecation');
 
 let command;
 let isHelpRequest;
