@@ -5,7 +5,7 @@ const sinon = require('sinon');
 const Serverless = require('../../../../../../lib/serverless');
 const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
 const CLI = require('../../../../../../lib/classes/cli');
-const monitorStack = require('../../../../../../lib/plugins/aws/lib/monitorStack');
+const monitorStack = require('../../../../../../lib/plugins/aws/lib/monitor-stack');
 
 chai.use(require('chai-as-promised'));
 
