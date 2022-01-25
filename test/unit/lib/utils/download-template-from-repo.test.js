@@ -48,7 +48,7 @@ describe('downloadTemplateFromRepo', () => {
     downloadStub = sinon.stub().resolves();
 
     const downloadTemplateFromRepoModule = proxyquire(
-      '../../../../lib/utils/downloadTemplateFromRepo',
+      '../../../../lib/utils/download-template-from-repo',
       {
         'node-fetch': (url) => {
           if (url.indexOf('mybitbucket.server.ltd') > -1) {
