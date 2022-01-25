@@ -9,7 +9,7 @@ const isPlainObject = require('type/plain-object/is');
 const yaml = require('js-yaml');
 const cloudformationSchema = require('@serverless/utils/cloudformation-schema');
 const { log, progress, style } = require('@serverless/utils/log');
-const yamlAstParser = require('../lib/utils/yamlAstParser');
+const yamlAstParser = require('../lib/utils/yaml-ast-parser');
 const npmCommandDeferred = require('../lib/utils/npm-command-deferred');
 const {
   getPluginInfo,
