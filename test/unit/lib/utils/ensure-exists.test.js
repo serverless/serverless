@@ -3,7 +3,7 @@
 const chai = require('chai');
 const sinon = require('sinon');
 
-const ensureExists = require('../../../../lib/utils/ensureExists');
+const ensureExists = require('../../../../lib/utils/ensure-exists');
 const { getTmpDirPath } = require('../../../utils/fs');
 
 const path = require('path');
