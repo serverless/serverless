@@ -5,7 +5,7 @@ const os = require('os');
 const chai = require('chai');
 const fse = require('fs-extra');
 const Serverless = require('../../../../lib/serverless');
-const Utils = require('../../../../lib/classes/Utils');
+const Utils = require('../../../../lib/classes/utils');
 const { expect } = require('chai');
 const { getTmpFilePath, getTmpDirPath } = require('../../../utils/fs');
 
