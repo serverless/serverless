@@ -1,7 +1,7 @@
 'use strict';
 
 const expect = require('chai').expect;
-const findReferences = require('../../../../../../lib/plugins/aws/utils/findReferences');
+const findReferences = require('../../../../../../lib/plugins/aws/utils/find-references');
 
 describe('#findReferences()', () => {
   it('should succeed on invalid input', () => {
