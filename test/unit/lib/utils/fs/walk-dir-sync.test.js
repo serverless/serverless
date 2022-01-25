@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const writeFileSync = require('../../../../../lib/utils/fs/writeFileSync');
-const walkDirSync = require('../../../../../lib/utils/fs/walkDirSync');
+const walkDirSync = require('../../../../../lib/utils/fs/walk-dir-sync');
 const { expect } = require('chai');
 const { getTmpDirPath } = require('../../../../utils/fs');
 const skipOnDisabledSymlinksInWindows = require('@serverless/test/skip-on-disabled-symlinks-in-windows');

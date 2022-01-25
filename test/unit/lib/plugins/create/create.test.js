@@ -7,7 +7,7 @@ const fse = require('fs-extra');
 const Create = require('../../../../../lib/plugins/create/create');
 const Serverless = require('../../../../../lib/serverless');
 const sinon = require('sinon');
-const walkDirSync = require('../../../../../lib/utils/fs/walkDirSync');
+const walkDirSync = require('../../../../../lib/utils/fs/walk-dir-sync');
 const download = require('../../../../../lib/utils/download-template-from-repo');
 const { getTmpDirPath } = require('../../../../utils/fs');
 
