@@ -11,7 +11,7 @@ const semverRegex = require('semver-regex');
 
 const YamlParser = require('../../../lib/classes/YamlParser');
 const PluginManager = require('../../../lib/classes/PluginManager');
-const Utils = require('../../../lib/classes/Utils');
+const Utils = require('../../../lib/classes/utils');
 const Service = require('../../../lib/classes/service');
 const ConfigSchemaHandler = require('../../../lib/classes/ConfigSchemaHandler');
 const CLI = require('../../../lib/classes/cli');
