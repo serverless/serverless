@@ -2,6 +2,124 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/serverless/serverless/compare/v2.72.2...v3.0.0) (2022-01-27)
+
+### ⚠ BREAKING CHANGES
+
+- **Variables:** Old variables resolver is permanently removed. Any resolution error as approached with current resolver is assumed as final (there's no longer fallback to old resolver)
+- **AWS Lambda:**
+  - Default lambda hashing algorithm was changed to `20201221`
+  - Runtimes `nodejs10.x`, `python2.7`, `ruby2.5` and `dotnetcore2.1` reached end of support on AWS and are no longer recognized in configuration.
+  - Default runtime has been changed from `nodejs12.x` to `nodejs14.x`
+  - Properties `service.awsKmsKeyArn` and `functions[].awsKmsKeyArn` are no longer supported. Use `provider.kmsKeyArn` and `functions[].kmsKeyArn` instead.
+- **CLI:**
+  - CLI params put before command tokens are no longer recgonized (e.g. `sls -f <function-name> deploy function` will no longer work). In all cases construct CLI args in `sls <command> <options>` order
+  - Unrecognized CLI options will no longer be supported and will result in an error.
+  - `enableLocalInstallationFallback` configuration property is no longer supported.
+  - Remove `studio` command schema
+  - The `--verbose` CLI flag does no longer support `-v` alias
+  - Opt-in tab-tab autocompletion feature is removed due to performance and security issues
+- **AWS API Gateway:**
+  - Enabling logs or tracing for imported API Gateway will now result in an error instead of warning
+  - For authorizers with `request` type and caching disabled (`resultTtlInSeconds: 0`), the `identitySource` will no longer be set to `method.request.header.Authorization` by default.
+  - Support for `usagePlan`, `resourcePolicy` and `apiKeys` on `provider` level is removed. Use `provider.apiGateway` level instead to set them.
+  - Support for `http.request.schema` has been removed and replaced with `http.request.schemas`.
+- **AWS HTTP API:** Tags from `provider.tags` are applied by default to HTTP API Gateway.
+- **AWS CloudFront:** Support for `MinTTL`, `MaxTTL`, `DefaultTTL` and `ForwardedValues` on `cloudfront.behavior` has been removed.
+- **AWS EventBridge:** By default, EventBridge resources now will be deployed using native CloudFormation resources instead of Custom Resources.
+- **AWS Alexa:** Support for simple `alexaSkill` event was removed and now `appId` is required for all `alexaSkill` events.- Serverless Components (`@serverless/components`) CLI is no longer integrated with Framework CLI.
+- **Dashboard:** `tenant` configuration setting is no longer respected. Ensure to rely on `org` instead
+- Serverless Components v1 (`@serverless/cli`) CLI is no longer integrated with Framework CLI.
+- Custom nested configuration paths will no longer be supported and such usage will result in an error.
+- Object notation is no longer supported for `service` property. Set name directly to `service`.
+- When creating `Serverless` class instance programatically, both `options` and `commands` have to be passed via `config` to the constructor.
+- Duplicate plugin definition in configuration will now result in an error instead of a warning.
+- Using `--aws-s3-accelerate` flag will result in an error instead of deprecation when custom S3 bucket is used.
+- Removed support for `provider.disableDefaultOutputExportNames`
+- Node.js versions lower than 12 is no longer supported
+- Lifecycle events marked as deprecated (in context of v1) are no longer evaluated
+
+### Features
+
+- **Variables:** Remove old variables resolver ([9bf6c16](https://github.com/serverless/serverless/commit/9bf6c16cb787ae48092d90bd7613d86a1c8ca075))
+- **Packaging:** Deprecate `package.include` and `package.exclude` ([aa4f9e3](https://github.com/serverless/serverless/commit/aa4f9e344e313f1ca64fa7af9475e6b84be8fb56))
+- **CLI:**
+  - Deprecate support for `deploy -f` alias ([09c9ea3](https://github.com/serverless/serverless/commit/09c9ea3a38afc30c1c15d21c926b8d06dfd81356))
+  - Deprecate missing options schema ([0db9c49](https://github.com/serverless/serverless/commit/0db9c49e2d435499e2b836b948e815b4a8839521))
+  - Deprecate recognition of `projectDir` configuration setting ([00fcd83](https://github.com/serverless/serverless/commit/00fcd83f49703188f3ddb0317afaa88fbece4801))
+  - Global `--debug` flag for debug logging ([3b4f267](https://github.com/serverless/serverless/commit/3b4f2677f8d83fd76a47bfac781bf1b81bfec924))
+  - Global `--verbose` flag for verbose logging ([2eef264](https://github.com/serverless/serverless/commit/2eef264bdca3dc7ae270aa09b974f23546425344))
+  - Register `-v` as global `--version` alias ([211db81](https://github.com/serverless/serverless/commit/211db8149cad519174490fbb5d2f1f42f859aabb))
+  - Remove `-v` alias for `--verbose` flag ([03b77c0](https://github.com/serverless/serverless/commit/03b77c0d2392e74f7d5caf76b9c01675d6d14023))
+  - Remove support for unrecognized cli options ([7c2b2ea](https://github.com/serverless/serverless/commit/7c2b2ea6a84c62fcb5c8830c16437376002b2a10))
+  - Simplify CLI args parsing to <command> <options> format ([8229812](https://github.com/serverless/serverless/commit/8229812e2bd1632efd9c8c8999236f6dff79171c))
+  - Support `serverless-tencent` CLI ([10db944](https://github.com/serverless/serverless/commit/10db944c73357014db20062c70ec666898505b0f))
+  - Do not decorate `cli.log` logs ([1f44227](https://github.com/serverless/serverless/commit/1f44227b7feeef30ca2ac151fffe219bde6a8461))
+  - Expose `sls doctor` command ([d403bfc](https://github.com/serverless/serverless/commit/d403bfc94eb13490d6a91d3352ae3b163caa6d68))
+  - Remove `studio` command schema ([7f1e7e1](https://github.com/serverless/serverless/commit/7f1e7e163b65580a2f0d10cad012f69605f32b18))
+  - Remove tab autocomplete feature ([519ce0c](https://github.com/serverless/serverless/commit/519ce0cb77056ba53be92968958f55f8eb7cc779))
+- **AWS Lambda:**
+  - Change default hashing algorithm ([775debf](https://github.com/serverless/serverless/commit/775debf5e2bebc51346853d99d109776f9856cee))
+  - Change default runtime to `nodejs14.x` ([30e99fb](https://github.com/serverless/serverless/commit/30e99fb92f72a968f8e1c9a1ddbbb81a6bdc5288))
+  - Remove support for `awsKmsKeyArn` setting ([6de37bf](https://github.com/serverless/serverless/commit/6de37bf3b7c14ca84a32188b377e92dfbd0af473))
+  - Remove support for obsolete runtimes ([23cfb63](https://github.com/serverless/serverless/commit/23cfb63cdf400ac4601f13571554f4d8fc5ee0cd))
+- **AWS HTTP API:**
+  - Always apply `provider.tags` to HTTP API ([b34d549](https://github.com/serverless/serverless/commit/b34d5497b6290635037f6d8f3b65451803ef6027))
+  - Deprecate `provider.httpApi.useProviderTags` ([fee410a](https://github.com/serverless/serverless/commit/fee410a445b088d4fb86074924604208043934c0))
+- **AWS API Gateway:**
+  - Change default identity source for authorizers ([1139255](https://github.com/serverless/serverless/commit/11392557d2800cdf226bd17bd32407f61a9dba52))
+  - Error on tracing or logs set for external API ([64ea6e5](https://github.com/serverless/serverless/commit/64ea6e59b5bbd1c807a948fd092c5792923e9559))
+  - Remove API specific settings from `provider` ([99941f0](https://github.com/serverless/serverless/commit/99941f0a5723aef0395ea0fb5b059e9ade8321b4))
+  - Remove support for `request.schema` ([b8019d8](https://github.com/serverless/serverless/commit/b8019d82ccabf732a75c2f97c958b84efb1e43ef))
+- **AWS CloudFront:** Remove support for deprecated `behavior` props ([c22277f](https://github.com/serverless/serverless/commit/c22277f69c327f271ea5cd51c98538c9b4eb7b1b))
+- **AWS EventBridge:** Change default deployment method to native CF ([46956f3](https://github.com/serverless/serverless/commit/46956f3e9f5dde9367669b0d9c1ca2dc454bfc8e))
+- **AWS IAM:** Deprecate IAM settings grouped directly at `provider` ([d7fd239](https://github.com/serverless/serverless/commit/d7fd23997f570c868437a5ea0187797403f8fe0a))
+- **Plugins:** Pass log writers to plugin constructor ([57079b7](https://github.com/serverless/serverless/commit/57079b78a671d7756c768f3136518f6a6f46d8ef))
+- **Config Schema:** Deprecate `warn` as a validation mode default ([6e27cc1](https://github.com/serverless/serverless/commit/6e27cc18c6c50fbd3311427e92c9e7f16055ae85))
+- **Standalone:** Upgrade `npm` to v8 ([6bfdc0c](https://github.com/serverless/serverless/commit/6bfdc0cda4b2009e4433f2fda45356c5d297c172))
+- **Dashboard:** Drop support for `tenant` ([9894875](https://github.com/serverless/serverless/commit/98948750e6cb856c62f1b4f4138a5157da07ae7e))
+- **AWS Alexa:** Remove support for alexaSkill without appId ([a9edd06](https://github.com/serverless/serverless/commit/a9edd063039a41fee1679827f7abe0e754036b45))
+- Disallow custom nested configuration path ([aeb9a57](https://github.com/serverless/serverless/commit/aeb9a57681cc3ff67c6dedbbf051b0c42d8ba6bb))
+- Error instead of warning when missing "commands" or "options" ([f86f691](https://github.com/serverless/serverless/commit/f86f69131678a3a9be13acaeba0b56b751e6ce57))
+- Remove `@serverless/cli` CLI integration ([396cfb9](https://github.com/serverless/serverless/commit/396cfb9621a5db211e2853b8105386103f9f097c))
+- Remove `@serverless/components` CLI integration ([3395395](https://github.com/serverless/serverless/commit/33953958ae354b240e6d949b889e376dcce09cc8))
+- Remove support for `provider.disableDefaultOutputExportNames` ([a9cd331](https://github.com/serverless/serverless/commit/a9cd3317b2e68b1b08c3f7388a2d4d459db1f2d7))
+- Remove support for Node v10 ([90f00b7](https://github.com/serverless/serverless/commit/90f00b7c02113932034f4e3ee3ef659b1ec0db02))
+- Remove support for object notation for `service` ([bccd188](https://github.com/serverless/serverless/commit/bccd188a0da7fe335b3e2b573f3ab19ccd0c49f8))
+- Restrict stage name with pattern ([c8c9f49](https://github.com/serverless/serverless/commit/c8c9f49fd239df723e3841fbfe22abdb90c02dae))
+- Simplify `logs` command output ([d4124a3](https://github.com/serverless/serverless/commit/d4124a3ca6d3895289ef605d4dc6e5eb0cd2e3df))
+- Support `params` configuration ([4675b57](https://github.com/serverless/serverless/commit/4675b57117e7d850a6015ab97c81938b9f374bf1))
+- Throw error on duplicated plugin definition ([d3aca0a](https://github.com/serverless/serverless/commit/d3aca0a7955c48b123720a887e6dd7300475fe03))
+- Throw for `--aws-s3-accelerate` when custom bucket used ([b7d48e5](https://github.com/serverless/serverless/commit/b7d48e59fdbe2a2056c6352d6ac33d4c43099e53))
+- Unconditionally fallback when local installation found ([137554c](https://github.com/serverless/serverless/commit/137554c9d35eb14bf3bba654673b99d343c0a7d1))
+
+### Maintenance Improvements
+
+- **AWS Deploy:** Use change sets in CF deployments ([e2c65a2](https://github.com/serverless/serverless/commit/e2c65a2230b9bf9fb78c7445b02d3ee4945ee1aa))
+- Adapt to rename in `@serverless/dashboard-plugin` ([88234a5](https://github.com/serverless/serverless/commit/88234a51233e74b3155427a5bf0a4022ec182c04))
+- **CLI Onboarding:** Download templates from v3 examples branch ([ded1b0e](https://github.com/serverless/serverless/commit/ded1b0e832c420871ffe37fedff0afe990d1d3e6))
+- **CLI:**
+  - Convert `isLocallyInstalled` to export result directly ([ad0bbb0](https://github.com/serverless/serverless/commit/ad0bbb0a9161bc823d1c542e6dbf993f436f6b5a))
+  - Export resolved local installation path directly ([fb3b39a](https://github.com/serverless/serverless/commit/fb3b39a5a9bd35e211600530a30fc5583deec0db))
+  - Improve post install log to reflect modern style ([843764b](https://github.com/serverless/serverless/commit/843764baf837f195ec8ee911f103c9f3817f9a10))
+  - Improve progress for CloudFormation updates ([14b1443](https://github.com/serverless/serverless/commit/14b14432730c77ca34d41000e9aaaad0c29ffb35))
+  - Seclude `paramRegExp` ([703e40f](https://github.com/serverless/serverless/commit/703e40f0d217d925560ba2c1d43b403bb61d335b))
+  - Seclude uncaught exception handling ([b4bd0d4](https://github.com/serverless/serverless/commit/b4bd0d437074a29a972ecdbdc3a026554657817e))
+  - Simplify deploy function args patch ([6527f8a](https://github.com/serverless/serverless/commit/6527f8a583e967a3b68b5cec1f72460cf307117a))
+  - Unify finalization of a process handling ([29357f4](https://github.com/serverless/serverless/commit/29357f4e182f102504e5ea841fb95915ccfe6821))
+  - Move `isLocalyInstalled` util to CLI context ([3dc8395](https://github.com/serverless/serverless/commit/3dc8395d88dfebf4742625ec054955c40a4e2499))
+- **Config Schema:** Do not rely on `ajv-keywords` ([#10490](https://github.com/serverless/serverless/issues/10490)) ([4a22a4e](https://github.com/serverless/serverless/commit/4a22a4e58cd8c10d6da34a094a0768b5caafbdb9))
+- **Telemetry:** Include `paramsCount` in telemetry ([dd721b0](https://github.com/serverless/serverless/commit/dd721b0a2038e4b7256593397b5db19833cef387))
+- Rely on `require.resolve` to detect wether module exist ([040be5f](https://github.com/serverless/serverless/commit/040be5fe7321e051bb6e5e1aa78458c17d2582bc))
+- Remove `legacy` logs ([a92ab91](https://github.com/serverless/serverless/commit/a92ab917128629e4e516d69976fdac1014cb5ebb))
+- Remove `lib/classes/Error.js` ([44391fa](https://github.com/serverless/serverless/commit/44391fac513c7941447d03bdeae95043590cc52c))
+- Remove evaluation of deprecated lifecycle events ([34bb51e](https://github.com/serverless/serverless/commit/34bb51e71d542e31a13cfb0f56443d57b6e0f89a))
+- Remove internal `suppressLogIfPrintCommand` method ([584286e](https://github.com/serverless/serverless/commit/584286ec7aba94ac96eb747361f79fafb7c0f32b))
+- Unify file naming convention
+- Replace `ncjsm/resolve` usage with native `createRequire` ([d18efc2](https://github.com/serverless/serverless/commit/d18efc2d43789dc11857d677851ba4b66e09a6a4))
+- Upgrade `@serverless/utils` to v6 ([74d9c70](https://github.com/serverless/serverless/commit/74d9c70f8abbfab1af4c6440ed93fd163145a597))
+- Upgrade `ajv` to `v8` along with related packages ([15cd724](https://github.com/serverless/serverless/commit/15cd724f723b55ca73cd0bb00d41d67307ffbed8))
+
 ### [2.72.2](https://github.com/serverless/serverless/compare/v2.72.1...v2.72.2) (2022-01-24)
 
 ### Bug Fixes
