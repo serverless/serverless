@@ -466,6 +466,7 @@ functions:
           arn: arn:aws:kafka:us-east-1:111111111111:cluster/ClusterName/a1a1a1a1a1a1a1a1a # ARN of MSK Cluster
           topic: kafkaTopic # name of Kafka topic to consume from
           batchSize: 100 # optional, must be in 1-10000 range
+          maximumBatchingWindowInSeconds: 30 # optional, minimum is 0 and the maximum is 300 (seconds)
           startingPosition: LATEST # optional, can be set to LATEST or TRIM_HORIZON
           enabled: true # optional, true by default, can be used to disable event without deleting resource
       - alexaSkill:
