@@ -56,7 +56,7 @@ describe('test/unit/lib/cli/interactive-setup/index.test.js', () => {
       },
 
       // deploy
-      { instructionString: 'Do you want to deploy your project?', input: 'n' },
+      { instructionString: 'Do you want to deploy now?', input: 'n' },
     ];
     slsProcess.stdout.on('data', (data) => {
       output += data;
