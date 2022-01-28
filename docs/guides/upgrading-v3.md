@@ -47,6 +47,14 @@ If you [installed `serverless` as a standalone binary](../getting-started.md#ins
 - MacOS/Linux standalone binary: `serverless upgrade --major`
 - Windows: `choco upgrade serverless`
 
+## Update `frameworkVersion` setting for v3
+
+In all projects that you want to upgrade to Serverless Framework v3, you need to make sure that `frameworkVersion` specified in project configuration allows v3 version. You can achieve it by setting it in the following manner:
+
+```yml
+frameworkVersion: '3'
+```
+
 ## Using v2 and v3 in different projects
 
 It is possible to use v3 in some projects and v2 in other projects. To achieve that, install the Serverless Framework locally via NPM (`npm i --save-dev serverless`).
