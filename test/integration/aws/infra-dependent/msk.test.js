@@ -54,6 +54,8 @@ describe('AWS - MSK Integration Test', function () {
                 msk: {
                   arn: outputMap.get('MSKCluster'),
                   topic: topicName,
+                  batchSize: 100,
+                  maximumBatchWindowingInSeconds: 3,
                 },
               },
             ],
