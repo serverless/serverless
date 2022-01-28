@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.1](https://github.com/serverless/serverless/compare/v3.0.0...v3.0.1) (2022-01-28)
+
+### Bug Fixes
+
+- Report more meaningful strict schema mode error ([#10574](https://github.com/serverless/serverless/pull/10574)) ([e98d699](https://github.com/serverless/serverless/commit/e98d699e7800780e7d56340d778116e1b3b5b005)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **CLI Onboarding:** Minor wording adjustments ([#10575](https://github.com/serverless/serverless/pull/10575)) ([772a9bb](https://github.com/serverless/serverless/commit/772a9bb86c4b9b4e65f5f834c39620359cfc7c7a)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Templates
+
+- Update dependencies of `aws-nodejs-typescript` to v3 ([#10582](https://github.com/serverless/serverless/pull/10582)) ([88ac3d0](https://github.com/serverless/serverless/commit/88ac3d0586b3ed98ee0c1b7c618cbca095ee85d3)) ([Paul Lessing](https://github.com/paullessing))
+
 ## [3.0.0](https://github.com/serverless/serverless/compare/v2.72.2...v3.0.0) (2022-01-27)
 
 ### ⚠ BREAKING CHANGES
