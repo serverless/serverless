@@ -13,7 +13,7 @@ describe('AwsCompileMSKEvents', () => {
   const enabled = false;
   const startingPosition = 'LATEST';
   const batchSize = 5000;
-  const maximumBatchingWindowInSeconds = 10;
+  const maximumBatchingWindow = 10;
 
   describe('when there are msk events defined', () => {
     let minimalEventSourceMappingResource;
@@ -43,7 +43,7 @@ describe('AwsCompileMSKEvents', () => {
                     topic,
                     arn,
                     batchSize,
-                    maximumBatchingWindowInSeconds,
+                    maximumBatchingWindow,
                     enabled,
                     startingPosition,
                   },
@@ -104,7 +104,7 @@ describe('AwsCompileMSKEvents', () => {
     it('should correctly complie EventSourceMapping resource with all parameters', () => {
       expect(allParamsEventSourceMappingResource.Properties).to.deep.equal({
         BatchSize: batchSize,
-        MaximumBatchingWindowInSeconds: maximumBatchingWindowInSeconds,
+        MaximumBatchingWindowInSeconds: maximumBatchingWindow,
         Enabled: enabled,
         EventSourceArn: arn,
         StartingPosition: startingPosition,
