@@ -928,6 +928,8 @@ functions:
           enabled: false
 ```
 
+### Kafka
+
 [Kakfa events](../events/kafka.md):
 
 ```yaml
