@@ -19,6 +19,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
   const enabled = false;
   const startingPosition = 'LATEST';
   const batchSize = 5000;
+  const maximumBatchingWindow = 20;
 
   describe('when there are kafka events defined', () => {
     let minimalEventSourceMappingResource;
@@ -50,6 +51,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
                     bootstrapServers: ['abc.xyz:9092'],
                     accessConfigurations: { saslScram256Auth: saslScram256AuthArn },
                     batchSize,
+                    maximumBatchingWindow,
                     enabled,
                     startingPosition,
                   },
@@ -105,6 +107,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
     it('should correctly compile EventSourceMapping resource with all parameters', () => {
       expect(allParamsEventSourceMappingResource.Properties).to.deep.equal({
         BatchSize: batchSize,
+        MaximumBatchingWindowInSeconds: maximumBatchingWindow,
         Enabled: enabled,
         SelfManagedEventSource: {
           Endpoints: {
