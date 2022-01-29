@@ -920,6 +920,8 @@ functions:
           topic: kafkaTopic
           # Optional, must be in 1-10000 range
           batchSize: 100
+          # Optional, minimum is 0 and the maximum is 300 (seconds)
+          maximumBatchingWindow: 30
           # Optional, can be set to LATEST or TRIM_HORIZON
           startingPosition: LATEST
           # (default: true)
