@@ -928,6 +928,30 @@ functions:
           enabled: false
 ```
 
+[ActiveMQ events](../events/activemq.md):
+
+```yaml
+functions:
+  hello:
+    # ...
+    events:
+      - activemq:
+          # ARN of ActiveMQ Broker
+          arn: arn:aws:mq:us-east-1:0000:broker:ExampleMQBroker:b-xxx-xxx
+          # name of ActiveMQ queue consume from
+          queue: queue-name
+          # Secrets Manager ARN for credentials required to do basic auth
+          basicAuthArn: arn:aws:secretsmanager:us-east-1:01234567890:secret:MySecret
+          # Optional, must be in 1-10000 range
+          batchSize: 100
+          # Optional, minimum is 0 and the maximum is 300 (seconds)
+          maximumBatchingWindow: 30
+          # Optional, can be set to LATEST or TRIM_HORIZON
+          startingPosition: LATEST
+          # (default: true)
+          enabled: false
+```
+
 ### Alexa
 
 [Alexa Skill events](../events/alexa-skill.md) and [Alexa Smart Home events](../events/alexa-smart-home.md):
