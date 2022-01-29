@@ -928,6 +928,8 @@ functions:
           enabled: false
 ```
 
+### ActiveMQ
+
 [ActiveMQ events](../events/activemq.md):
 
 ```yaml
