@@ -928,6 +928,35 @@ functions:
           enabled: false
 ```
 
+### Kafka
+
+[Kakfa events](../events/kafka.md):
+
+```yaml
+functions:
+  hello:
+    # ...
+    events:
+      - kafka:
+          # See main kafka documentation for various access configuration settings
+          accessConfigurations:
+            # ...
+          # An array of bootstrap server addresses
+          bootstrapServers:
+            - abc3.xyz.com:9092
+            - abc2.xyz.com:9092
+          # name of Kafka topic to consume from
+          topic: MySelfManagedKafkaTopic
+          # Optional, must be in 1-10000 range
+          batchSize: 100
+          # Optional, must be in 0-300 range (seconds)
+          maximumBatchingWindow: 30
+          # Optional, can be set to LATEST or TRIM_HORIZON
+          startingPosition: LATEST
+          # (default: true)
+          enabled: false
+```
+
 ### Alexa
 
 [Alexa Skill events](../events/alexa-skill.md) and [Alexa Smart Home events](../events/alexa-smart-home.md):
