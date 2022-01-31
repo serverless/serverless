@@ -60,7 +60,7 @@ choco install serverless
 
 ## Upgrade
 
-If `serverless` was installed via NPM, upgrade it via:
+If `serverless` was installed via NPM, you can upgrade it via:
 
 ```bash
 npm install -g serverless
@@ -73,7 +73,7 @@ If you installed `serverless` as a standalone binary, read the following section
 
 ### Standalone binary
 
-On MacOS/Linux, run:
+On MacOS/Linux, you can upgrade the standalone `serverless` binary by running:
 
 ```bash
 serverless upgrade
