@@ -1,10 +1,10 @@
-# master only
+# main only
 
 name: Integrate
 
 on:
   push:
-    branches: [master]
+    branches: [main]
 
 env:
   SLS_IGNORE_WARNING: '*'
