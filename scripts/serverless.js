@@ -176,6 +176,13 @@ processSpanPromise = (async () => {
     if (!commandSchema || commandSchema.serviceDependencyMode) {
       // Command is potentially service specific, follow up with resolution of service config
 
+      // Parse args again, taking acounnt schema of service-specific flags
+      // as they may influence configuration resolution
+      resolveInput.clear();
+      ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
+        require('../lib/cli/commands-schema/service')
+      ));
+
       isInteractiveSetup = !isHelpRequest && command === '';
 
       const resolveConfigurationPath = require('../lib/cli/resolve-configuration-path');
@@ -202,14 +209,6 @@ processSpanPromise = (async () => {
 
       if (configuration) {
         serviceDir = process.cwd();
-        if (!commandSchema) {
-          // If command was not recognized in first resolution phase
-          // parse args again also against schemas of commands which require service context
-          resolveInput.clear();
-          ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
-            require('../lib/cli/commands-schema/service')
-          ));
-        }
 
         // IIFE for maintenance convenience
         await (async () => {

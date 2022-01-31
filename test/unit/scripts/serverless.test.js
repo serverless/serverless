@@ -113,6 +113,18 @@ describe('test/unit/scripts/serverless.test.js', () => {
     ).to.include('self: bar');
   });
 
+  it('should support "-c" flag', async () => {
+    expect(
+      String(
+        (
+          await spawn('node', [serverlessPath, 'print', '-c', 'serverless.custom.yml'], {
+            cwd: path.resolve(programmaticFixturesPath, 'custom-config-filename'),
+          })
+        ).stdoutBuffer
+      )
+    ).to.include('looks: good');
+  });
+
   it('should rejected unresolved "provider" section', async () => {
     try {
       await spawn('node', [serverlessPath, 'print'], {
