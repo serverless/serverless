@@ -14,8 +14,6 @@ layout: Doc
 
 # CLI output in plugins
 
-**Warning:** the API documented on this page is available in Serverless Framework v3, which is not released yet. This documentation is published to help plugins upgrade to v3.
-
 Plugins can integrate and extend the CLI output of the Serverless Framework in different ways.
 
 ## Writing to the output
