@@ -1,0 +1,10 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+custom:
+  looks: good
+
+provider:
+  name: aws
