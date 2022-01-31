@@ -13,6 +13,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
   const queue = 'TestingQueue';
   const enabled = false;
   const batchSize = 5000;
+  const maximumBatchingWindow = 20;
 
   describe('when there are rabbitmq events defined', () => {
     let minimalEventSourceMappingResource;
@@ -44,6 +45,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
                     arn: brokerArn,
                     basicAuthArn,
                     batchSize,
+                    maximumBatchingWindow,
                     enabled,
                   },
                 },
@@ -102,6 +104,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
       expect(allParamsEventSourceMappingResource.Properties).to.deep.equal({
         EventSourceArn: brokerArn,
         BatchSize: batchSize,
+        MaximumBatchingWindowInSeconds: maximumBatchingWindow,
         Enabled: enabled,
         SourceAccessConfigurations: [
           {
