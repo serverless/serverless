@@ -4,7 +4,7 @@ name: Validate
 
 on:
   pull_request:
-    branches: [master]
+    branches: [main]
 
 env:
   SLS_IGNORE_WARNING: '*'
@@ -23,11 +23,11 @@ jobs:
           # It's loose and imperfect assumption that PR has no more than 30 commits
           fetch-depth: 30
 
-      - name: Retrieve last master commit (for `git diff` purposes)
+      - name: Retrieve last main commit (for `git diff` purposes)
         run: |
           git checkout -b pr
-          git fetch --prune --depth=30 origin +refs/heads/master:refs/remotes/origin/master
-          git checkout master
+          git fetch --prune --depth=30 origin +refs/heads/main:refs/remotes/origin/main
+          git checkout main
           git checkout pr
 
       - name: Retrieve dependencies from cache
@@ -40,7 +40,7 @@ jobs:
           key: npm-v16-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
             npm-v16-${{ runner.os }}-${{ github.ref }}-
-            npm-v16-${{ runner.os }}-refs/heads/master-
+            npm-v16-${{ runner.os }}-refs/heads/main-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
@@ -58,10 +58,10 @@ jobs:
         run: npm run lint:updated
       - name: Validate commit messages
         if: github.event.pull_request.base.repo.id == github.event.pull_request.head.repo.id
-        run: npx commitlint -f master
+        run: npx commitlint -f main
       - name: Validate changelog (if new version)
         run: |
-          NEW_VERSION=`git diff -U0 master package.json | grep '"version": "' | tail -n 1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+"` || :
+          NEW_VERSION=`git diff -U0 main package.json | grep '"version": "' | tail -n 1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+"` || :
           if [ -n "$NEW_VERSION" ];
           then
             npx dump-release-notes-from-cc-changelog $NEW_VERSION
@@ -90,7 +90,7 @@ jobs:
           key: npm-v16-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
             npm-v16-${{ runner.os }}-${{ github.ref }}-
-            npm-v16-${{ runner.os }}-refs/heads/master-
+            npm-v16-${{ runner.os }}-refs/heads/main-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
@@ -122,7 +122,7 @@ jobs:
           key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
             npm-v14-${{ runner.os }}-${{ github.ref }}-
-            npm-v14-${{ runner.os }}-refs/heads/master-
+            npm-v14-${{ runner.os }}-refs/heads/main-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
@@ -156,7 +156,7 @@ jobs:
           key: npm-v12-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
             npm-v12-${{ runner.os }}-${{ github.ref }}-
-            npm-v12-${{ runner.os }}-refs/heads/master-
+            npm-v12-${{ runner.os }}-refs/heads/main-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
