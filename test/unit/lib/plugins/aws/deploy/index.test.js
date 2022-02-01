@@ -668,6 +668,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       ChangeSetType: 'UPDATE',
       Capabilities: ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM'],
       Parameters: [],
+      NotificationARNs: [],
       Tags: [{ Key: 'STAGE', Value: 'dev' }],
       TemplateBody: JSON.stringify({
         Resources: serverless.service.provider.coreCloudFormationTemplate.Resources,
