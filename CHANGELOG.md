@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.1.0](https://github.com/serverless/serverless/compare/v3.0.1...v3.1.0) (2022-02-01)
+
+### Features
+
+- **AWS ActiveMQ:** Support `maximumBatchingWindow` ([#10593](https://github.com/serverless/serverless/pull/10593)) ([658dc28](https://github.com/serverless/serverless/commit/658dc28b8b1e087948482553be98b12bd5783c09)) ([Richard Hull](https://github.com/rm-hull))
+- **AWS Kafka:** Support `maximumBatchingWindow` ([#10591](https://github.com/serverless/serverless/pull/10591)) ([e90c114](https://github.com/serverless/serverless/commit/e90c114932362d79727800f0787237764ce767c3)) ([Richard Hull](https://github.com/rm-hull))
+- **AWS MSK:** Support `maximumBatchingWindow` ([#10580](https://github.com/serverless/serverless/issues/10580)) ([d341b6b](https://github.com/serverless/serverless/commit/d341b6b99d61e44cbb00e18cbfd791e963890bfd)) ([Richard Hull](https://github.com/rm-hull))
+- **AWS RabbitMQ:** Support `maximumBatchingWindow` ([#10598](https://github.com/serverless/serverless/pull/10598)) ([d0554b7](https://github.com/serverless/serverless/commit/d0554b738543221e0fe3d9c6fd83d30a15aae79f)) ([Richard Hull](https://github.com/rm-hull))
+- Recognize `ap-southeast-3` AWS region ([#10586](https://github.com/serverless/serverless/issues/10586)) ([f77477e](https://github.com/serverless/serverless/commit/f77477e3cc6c0c13749af1352d28b88cbadbeb6b)) ([Jeremy Care](https://github.com/jeremycare))
+
+### Bug Fixes
+
+- **CLI:**
+  - Fix support for `-c` (`--config`) shortcut ([#10607](https://github.com/serverless/serverless/pull/10607)) ([06fc4df](https://github.com/serverless/serverless/commit/06fc4df7880e8f03cb0dbd5229b7bd2a92e11a87)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Get `serverless-tencent` version from all supported locations ([#10608](https://github.com/serverless/serverless/pull/10608)) ([395ea7d](https://github.com/serverless/serverless/commit/395ea7d2a8d7c6d95417bde8448e6d58c2094125)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [3.0.1](https://github.com/serverless/serverless/compare/v3.0.0...v3.0.1) (2022-01-28)
 
 ### Bug Fixes
