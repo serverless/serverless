@@ -83,6 +83,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         },
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
+        history: new Map(),
         initial: {
           isInServiceContext: false,
         },
@@ -105,6 +106,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         },
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
+        history: new Map(),
         initial: {
           isInServiceContext: true,
         },
@@ -129,6 +131,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         },
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
+        history: new Map(),
         initial: {
           isInServiceContext: false,
         },
@@ -153,6 +156,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         },
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
+        history: new Map(),
         initial: {
           isInServiceContext: true,
         },
@@ -205,6 +209,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         },
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
+        history: new Map(),
         initial: {
           isInServiceContext: false,
         },
@@ -257,6 +262,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         },
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
+        history: new Map(),
         initial: {
           isInServiceContext: true,
         },
@@ -303,6 +309,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         },
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
+        history: new Map(),
         initial: {
           isInServiceContext: false,
         },
@@ -349,6 +356,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         },
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
+        history: new Map(),
         initial: {
           isInServiceContext: true,
         },
