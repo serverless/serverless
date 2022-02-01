@@ -14,8 +14,7 @@ const fixturePaths = {
   individuallyFunction: path.join(__dirname, 'fixtures/individually-function'),
 };
 
-describe('Integration test - Packaging - Lambda Files', function () {
-  this.timeout(15000);
+describe('Integration test - Packaging - Lambda Files', () => {
   let cwd;
   beforeEach(() => {
     cwd = getTmpDirPath();
