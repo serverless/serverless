@@ -683,6 +683,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
   describe('custom deployment-related properties', () => {
     let createChangeSetStub;
     let executeChangeSetStub;
+    let setStackPolicyStub;
     const deploymentRole = 'arn:xxx';
     const notificationArns = ['arn:xxx', 'arn:yyy'];
     const stackParameters = [
@@ -724,6 +725,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         .resolves({ Stacks: [{}] });
       createChangeSetStub = sinon.stub().resolves({});
       executeChangeSetStub = sinon.stub().resolves({});
+      setStackPolicyStub = sinon.stub().resolves({});
       const awsRequestStubMap = {
         ...baseAwsRequestStubMap,
         ECR: {
@@ -748,6 +750,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
             StackName: 'new-service-dev',
             Status: 'CREATE_COMPLETE',
           },
+          setStackPolicy: setStackPolicyStub,
           describeStackEvents: {
             StackEvents: [
               {
@@ -807,7 +810,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
     });
 
     it('should support `stackPolicy`', () => {
-      expect(createChangeSetStub.getCall(1).args[0].StackPolicyBody).to.deep.equal(
+      expect(setStackPolicyStub.getCall(0).args[0].StackPolicyBody).to.equal(
         JSON.stringify({ Statement: stackPolicy })
       );
     });
