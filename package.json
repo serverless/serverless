@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@serverless/dashboard-plugin": "^6.0.0",
-    "@serverless/platform-client": "^4.3.0",
+    "@serverless/platform-client": "^4.3.1",
     "@serverless/utils": "^6.0.0",
     "ajv": "^8.9.0",
     "ajv-formats": "^2.1.1",
