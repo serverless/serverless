@@ -17,3 +17,8 @@ If you were presented with configuration error (or a warning, depending on `conf
 **Note**: In a warning mode (with `configValidationMode: warn` set in configuration) Framework commands are not blocked in any way, e.g. `sls deploy` will still attempt to deploy the service normally (still depending on the source of the warning, success of a deployment may vary)
 
 If you find this functionality problematic, you may also turn it off with `configValidationMode: off` setting.
+
+Default value for the `configValidationMode` is `warn`. Accepted values are:
+* `error` - fatal error, deployment will fail.
+* `warn` - logged to the output and deployment will not fail due to an error.
+* `off` - nothing will be looged to the output and deployment will not fail due to an error.
