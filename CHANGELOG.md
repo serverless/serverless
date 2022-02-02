@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.1.1](https://github.com/serverless/serverless/compare/v3.1.0...v3.1.1) (2022-02-02)
+
+### Bug Fixes
+
+- **AWS Deploy:** Ensure to clear `notificationArns` if needed during changeset deployment ([#10620](https://github.com/serverless/serverless/pull/10620)) ([a2e58cd](https://github.com/serverless/serverless/commit/a2e58cdeae51f7fc034743743354bf75c3817413)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS Deploy:** Handle gently missing template body ([#10622](https://github.com/serverless/serverless/pull/10622)) ([195c3f2](https://github.com/serverless/serverless/commit/195c3f2f15b581ac8f400e091cbf40941a20ff5e)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Deploy:** Properly apply `stackPolicy` with changesets ([#10617](https://github.com/serverless/serverless/pull/10617)) ([ee30a7b](https://github.com/serverless/serverless/commit/ee30a7be628de24dfdfe35bfd5ad7df3653891f7)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **CLI Onboarding:** Improve deploy messaging ([#10623](https://github.com/serverless/serverless/pull/10623)) ([97fda34](https://github.com/serverless/serverless/commit/97fda34b29ecd3711bcd4b94c741ff9b17663188)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:** Expose installation type by `serverless-tencent` version info ([#10621](https://github.com/serverless/serverless/pull/10621)) ([4c5f834](https://github.com/serverless/serverless/commit/4c5f8349050cb870f80f210be4f93f7fb55bd71c)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Config Schema:** Improve error message for non-function AJV validate ([#10625](https://github.com/serverless/serverless/pull/10625)) ([e4ee0a3](https://github.com/serverless/serverless/commit/e4ee0a39eaffc2b64030856c894a1c5e66270a07)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [3.1.0](https://github.com/serverless/serverless/compare/v3.0.1...v3.1.0) (2022-02-01)
 
 ### Features
