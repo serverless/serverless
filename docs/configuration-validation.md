@@ -20,14 +20,10 @@ If you find this functionality problematic, you may also turn it off with `confi
 
 ## Configuration
 
-### Where
+Add `configValidationMode` to your service configuration with one of the following values:
 
-At the root of the `serverless.yml` file, add a `configValidationMode` key.
-
-### Supported Values
-
-| Value | Effect                                                                                        |
-|-------|-----------------------------------------------------------------------------------------------|
-| error | Print configuration errors and fail packaging. As of serverless v3 this is the default value. |
-| warn  | Print a warning about configuration erors and package.                                        |
-| off   | Silently ignore configuration errors and package.                                             |
+| Value | Effect                                                |
+| ----- | ----------------------------------------------------- |
+| error | Fail invoked command and output configuration errors. |
+| warn  | Output configuration errors in form of warnings.      |
+| off   | Suppress configuration errors.                        |
