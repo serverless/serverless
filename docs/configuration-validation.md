@@ -20,5 +20,5 @@ If you find this functionality problematic, you may also turn it off with `confi
 
 Default value for the `configValidationMode` is `warn`. Accepted values are:
 * `error` - fatal error, deployment will fail.
-* `warn` - logged to the output and deployment will not fail due to an error.
-* `off` - nothing will be looged to the output and deployment will not fail due to an error.
+* `warn` - log warning to the output.
+* `off` - nothing will be logged to the output.
