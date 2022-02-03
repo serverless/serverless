@@ -6,13 +6,13 @@ const spawn = require('child-process-ext/spawn');
 const path = require('path');
 
 const serverlessPath = path.resolve(__dirname, '../../../../../scripts/serverless.js');
-const templatesPath = path.resolve(__dirname, '../../../../../lib/plugins/create/templates');
+const fixturesPath = path.resolve(__dirname, '../../../../fixtures/programmatic');
 
 describe('test/unit/lib/cli/interactive-setup/index.test.js', () => {
   it('should configure interactive setup flow', async () => {
     const slsProcessPromise = spawn(
       'node',
-      [serverlessPath, '--template-path', path.join(templatesPath, 'aws-nodejs')],
+      [serverlessPath, '--template-path', path.join(fixturesPath, 'aws')],
       {
         env: {
           ...process.env,

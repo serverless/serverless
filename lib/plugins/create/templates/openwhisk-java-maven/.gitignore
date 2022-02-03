@@ -1,8 +1,0 @@
-target
-.vscode
-.sts4-cache
-.project
-.classpath
-.settings
-*.iml
-.idea
