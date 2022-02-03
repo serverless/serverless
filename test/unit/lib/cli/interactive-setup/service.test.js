@@ -9,7 +9,7 @@ const proxyquire = require('proxyquire');
 const ServerlessError = require('../../../../../lib/serverless-error');
 const { StepHistory } = require('@serverless/utils/telemetry');
 
-const templatesPath = path.resolve(__dirname, '../../../../../lib/plugins/create/templates');
+const fixturesPath = path.resolve(__dirname, '../../../../fixtures/programmatic');
 
 const { expect } = chai;
 
@@ -252,7 +252,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
         input: { projectName: 'test-project-from-local-template' },
       });
       const context = {
-        options: { 'template-path': path.join(templatesPath, 'aws-nodejs') },
+        options: { 'template-path': path.join(fixturesPath, 'aws') },
         stepHistory: new StepHistory(),
       };
       await step.run(context);

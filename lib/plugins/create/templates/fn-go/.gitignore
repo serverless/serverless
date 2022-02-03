@@ -1,5 +1,0 @@
-# Serverless directories
-.serverless
-
-# golang output binary directory
-bin
