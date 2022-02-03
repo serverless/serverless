@@ -95,6 +95,14 @@ On that note, the `-v` option is no longer recognized (it was ambiguous with `--
 
 When the `serverless` CLI is installed globally and locally (in the project’s `node_modules`), the local version will always be used. It is no longer possible to disable that behavior ([learn more](../deprecations.md#support-for-enablelocalinstallationfallback-setting-is-to-be-removed)).
 
+The `serverless deploy` command internals for AWS provider has been changed and now use [change sets](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-changesets.html). Due to that, the required IAM permissions for succesfully running deployments have changed and now also include the following actions:
+
+```
+- cloudformation:CreateChangeSet
+- cloudformation:DeleteChangeSet
+- cloudformation:ExecuteChangeSet
+```
+
 Finally, the `serverless studio` command has been removed: that feature was deprecated and is no longer available.
 
 ### Service configuration

@@ -85,6 +85,7 @@ Read the [**complete v3 Upgrade Guide**](https://www.serverless.com/framework/do
 - **AWS EventBridge:** By default, EventBridge resources now will be deployed using native CloudFormation resources instead of Custom Resources.
 - **AWS Alexa:** Support for simple `alexaSkill` event was removed and now `appId` is required for all `alexaSkill` events.- Serverless Components (`@serverless/components`) CLI is no longer integrated with Framework CLI.
 - **Dashboard:** `tenant` configuration setting is no longer respected. Ensure to rely on `org` instead
+- **AWS Deploy:** Deployment now uses change sets instead of direct stack updates.
 - Serverless Components v1 (`@serverless/cli`) CLI is no longer integrated with Framework CLI.
 - Custom nested configuration paths will no longer be supported and such usage will result in an error.
 - Object notation is no longer supported for `service` property. Set name directly to `service`.
