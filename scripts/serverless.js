@@ -565,7 +565,20 @@ processSpanPromise = (async () => {
         if (isHelpRequest) return;
         if (!_.get(variablesMeta, 'size')) return;
 
-        // Resolve remaininig service configuration variables
+        if (commandSchema) {
+          resolverConfiguration.options = filterSupportedOptions(options, {
+            commandSchema,
+            providerName,
+          });
+        }
+        resolverConfiguration.fulfilledSources.add('opt');
+
+        // Register serverless instance specific variable sources
+        resolverConfiguration.sources.sls =
+          require('../lib/configuration/variables/sources/instance-dependent/get-sls')(serverless);
+        resolverConfiguration.fulfilledSources.add('sls');
+
+        // Register AWS provider specific variable sources
         if (providerName === 'aws') {
           // Ensure properties which are crucial to some variable source resolvers
           // are actually resolved.
@@ -577,21 +590,6 @@ processSpanPromise = (async () => {
           ) {
             return;
           }
-        }
-        if (commandSchema) {
-          resolverConfiguration.options = filterSupportedOptions(options, {
-            commandSchema,
-            providerName,
-          });
-        }
-        resolverConfiguration.fulfilledSources.add('opt');
-
-        // Register serverless instance and AWS provider specific variable sources
-        resolverConfiguration.sources.sls =
-          require('../lib/configuration/variables/sources/instance-dependent/get-sls')(serverless);
-        resolverConfiguration.fulfilledSources.add('sls');
-
-        if (providerName === 'aws') {
           Object.assign(resolverConfiguration.sources, {
             cf: require('../lib/configuration/variables/sources/instance-dependent/get-cf')(
               serverless
