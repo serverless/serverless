@@ -93,7 +93,7 @@ Read the [**complete v3 Upgrade Guide**](https://www.serverless.com/framework/do
 - Duplicate plugin definition in configuration will now result in an error instead of a warning.
 - Using `--aws-s3-accelerate` flag will result in an error instead of deprecation when custom S3 bucket is used.
 - Removed support for `provider.disableDefaultOutputExportNames`
-- Node.js versions lower than 12 is no longer supported
+- Node.js versions lower than v12.13.0 (LTS) is no longer supported
 - Lifecycle events marked as deprecated (in context of v1) are no longer evaluated
 
 ### Features

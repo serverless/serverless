@@ -75,7 +75,7 @@ You will find below a complete list of all breaking changes. All those breaking 
 
 ### CLI commands and options
 
-The `serverless` CLI no longer runs on Node v10 because [that version is obsolete](https://endoflife.date/nodejs): upgrade to v12 or greater to run `serverless` on your machine.
+The `serverless` CLI no longer runs on Node v10 because [that version is obsolete](https://endoflife.date/nodejs): upgrade to v12.13.0 (LTS) or greater to run `serverless` on your machine.
 
 The `serverless` CLI used to accept free-form CLI options. This feature was deprecated and has been removed. The main reason is that this prevented us from detecting typos in options, which sometimes created unexpected situations and overall a bad user experience. [Learn more about this change](../deprecations.md#handling-of-unrecognized-cli-options).
 
