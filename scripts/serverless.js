@@ -578,8 +578,36 @@ processSpanPromise = (async () => {
           require('../lib/configuration/variables/sources/instance-dependent/get-sls')(serverless);
         resolverConfiguration.fulfilledSources.add('sls');
 
+        resolverConfiguration.sources.param =
+          serverless.pluginManager.dashboardPlugin.configurationVariablesSources.param;
+        resolverConfiguration.fulfilledSources.add('param');
+
+        // Register dashboard specific variable source resolvers
+        if (configuration.org) {
+          for (const [sourceName, sourceConfig] of Object.entries(
+            serverless.pluginManager.dashboardPlugin.configurationVariablesSources
+          )) {
+            if (sourceName === 'param') continue;
+            resolverConfiguration.sources[sourceName] = sourceConfig;
+            resolverConfiguration.fulfilledSources.add(sourceName);
+          }
+        }
+
         // Register AWS provider specific variable sources
         if (providerName === 'aws') {
+          // Pre-resolve to eventually pick not yet resolved AWS auth related properties
+          await resolveVariables(resolverConfiguration);
+          if (!variablesMeta.size) return;
+          if (
+            eventuallyReportVariableResolutionErrors(
+              configurationPath,
+              configuration,
+              variablesMeta
+            )
+          ) {
+            return;
+          }
+
           // Ensure properties which are crucial to some variable source resolvers
           // are actually resolved.
           if (
@@ -605,20 +633,6 @@ processSpanPromise = (async () => {
             ),
           });
           resolverConfiguration.fulfilledSources.add('cf').add('s3').add('ssm').add('aws');
-        }
-
-        // Register dashboard specific variable source resolvers
-        if (configuration.org) {
-          for (const [sourceName, sourceConfig] of Object.entries(
-            serverless.pluginManager.dashboardPlugin.configurationVariablesSources
-          )) {
-            resolverConfiguration.sources[sourceName] = sourceConfig;
-            resolverConfiguration.fulfilledSources.add(sourceName);
-          }
-        } else {
-          resolverConfiguration.sources.param =
-            serverless.pluginManager.dashboardPlugin.configurationVariablesSources.param;
-          resolverConfiguration.fulfilledSources.add('param');
         }
 
         // Register variable source resolvers provided by external plugins
