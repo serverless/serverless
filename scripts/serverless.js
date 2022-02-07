@@ -375,9 +375,43 @@ processSpanPromise = (async () => {
                 }
               }
             }
+            if (!isPropertyResolved(variablesMeta, 'provider\0name')) {
+              await resolveVariables(resolverConfiguration);
+              if (
+                eventuallyReportVariableResolutionErrors(
+                  configurationPath,
+                  configuration,
+                  variablesMeta
+                )
+              ) {
+                variablesMeta = null;
+                return;
+              }
+            }
           }
 
           if (!variablesMeta.size) return; // No properties configured with variables
+
+          if (!providerName) {
+            if (!ensureResolvedProperty('provider\0name')) return;
+            providerName = resolveProviderName(configuration);
+            if (providerName == null) {
+              variablesMeta = null;
+              return;
+            }
+            if (!commandSchema && providerName === 'aws') {
+              resolveInput.clear();
+              ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
+                require('../lib/cli/commands-schema/aws-service')
+              ));
+              if (commandSchema) {
+                resolverConfiguration.options = filterSupportedOptions(options, {
+                  commandSchema,
+                  providerName,
+                });
+              }
+            }
+          }
 
           if (isHelpRequest || commands[0] === 'plugin') {
             // We do not need full config resolved, we just need to know what
@@ -398,38 +432,6 @@ processSpanPromise = (async () => {
           ) {
             variablesMeta = null;
             return;
-          }
-
-          if (!providerName) {
-            if (!ensureResolvedProperty('provider\0name')) return;
-            providerName = resolveProviderName(configuration);
-            if (providerName == null) {
-              variablesMeta = null;
-              return;
-            }
-            if (!commandSchema && providerName === 'aws') {
-              resolveInput.clear();
-              ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
-                require('../lib/cli/commands-schema/aws-service')
-              ));
-              if (commandSchema) {
-                resolverConfiguration.options = filterSupportedOptions(options, {
-                  commandSchema,
-                  providerName,
-                });
-                await resolveVariables(resolverConfiguration);
-                if (
-                  eventuallyReportVariableResolutionErrors(
-                    configurationPath,
-                    configuration,
-                    variablesMeta
-                  )
-                ) {
-                  variablesMeta = null;
-                  return;
-                }
-              }
-            }
           }
 
           if (!variablesMeta.size) return; // All properties successuflly resolved
