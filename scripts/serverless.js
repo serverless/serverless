@@ -362,17 +362,17 @@ processSpanPromise = (async () => {
           }
 
           // Load eventual environment variables from .env files
-          await require('../lib/cli/conditionally-load-dotenv')(options, configuration);
-
-          if (envVarNamesNeededForDotenvResolution) {
-            for (const envVarName of envVarNamesNeededForDotenvResolution) {
-              if (process.env[envVarName]) {
-                throw new ServerlessError(
-                  'Cannot reliably resolve "env" variables due to resolution conflict.\n' +
-                    `Environment variable "${envVarName}" which influences resolution of ` +
-                    '".env" file were found to be defined in resolved ".env" file.' +
-                    'DOTENV_ENV_VAR_RESOLUTION_CONFLICT'
-                );
+          if (await require('../lib/cli/conditionally-load-dotenv')(options, configuration)) {
+            if (envVarNamesNeededForDotenvResolution) {
+              for (const envVarName of envVarNamesNeededForDotenvResolution) {
+                if (process.env[envVarName]) {
+                  throw new ServerlessError(
+                    'Cannot reliably resolve "env" variables due to resolution conflict.\n' +
+                      `Environment variable "${envVarName}" which influences resolution of ` +
+                      '".env" file were found to be defined in resolved ".env" file.' +
+                      'DOTENV_ENV_VAR_RESOLUTION_CONFLICT'
+                  );
+                }
               }
             }
           }
