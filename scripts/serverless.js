@@ -680,9 +680,7 @@ processSpanPromise = (async () => {
       }
     } catch (error) {
       // If Dashboard Plugin, capture error
-      const dashboardPlugin =
-        serverless.pluginManager.dashboardPlugin ||
-        serverless.pluginManager.plugins.find((p) => p.enterprise);
+      const dashboardPlugin = serverless.pluginManager.dashboardPlugin;
       const dashboardErrorHandler = _.get(dashboardPlugin, 'enterprise.errorHandler');
       if (!dashboardErrorHandler) throw error;
       try {
