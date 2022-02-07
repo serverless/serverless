@@ -608,19 +608,17 @@ processSpanPromise = (async () => {
         }
 
         // Register dashboard specific variable source resolvers
-        if (serverless.pluginManager.dashboardPlugin) {
-          if (configuration.org) {
-            for (const [sourceName, sourceConfig] of Object.entries(
-              serverless.pluginManager.dashboardPlugin.configurationVariablesSources
-            )) {
-              resolverConfiguration.sources[sourceName] = sourceConfig;
-              resolverConfiguration.fulfilledSources.add(sourceName);
-            }
-          } else {
-            resolverConfiguration.sources.param =
-              serverless.pluginManager.dashboardPlugin.configurationVariablesSources.param;
-            resolverConfiguration.fulfilledSources.add('param');
+        if (configuration.org) {
+          for (const [sourceName, sourceConfig] of Object.entries(
+            serverless.pluginManager.dashboardPlugin.configurationVariablesSources
+          )) {
+            resolverConfiguration.sources[sourceName] = sourceConfig;
+            resolverConfiguration.fulfilledSources.add(sourceName);
           }
+        } else {
+          resolverConfiguration.sources.param =
+            serverless.pluginManager.dashboardPlugin.configurationVariablesSources.param;
+          resolverConfiguration.fulfilledSources.add('param');
         }
 
         // Register variable source resolvers provided by external plugins
