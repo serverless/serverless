@@ -604,7 +604,7 @@ processSpanPromise = (async () => {
               serverless
             ),
           });
-          resolverConfiguration.fulfilledSources.add('cf').add('s3').add('ssm');
+          resolverConfiguration.fulfilledSources.add('cf').add('s3').add('ssm').add('aws');
         }
 
         // Register dashboard specific variable source resolvers
