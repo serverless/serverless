@@ -100,6 +100,7 @@ The `serverless deploy` command internals for AWS provider has been changed and 
 ```
 - cloudformation:CreateChangeSet
 - cloudformation:DeleteChangeSet
+- cloudformation:DescribeChangeSet
 - cloudformation:ExecuteChangeSet
 ```
 
