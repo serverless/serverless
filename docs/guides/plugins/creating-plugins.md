@@ -187,3 +187,15 @@ class MyPlugin {
 ```
 
 The plugin will now only be executed when the service's provider matches the given provider.
+
+## ESM plugins
+
+If you use Node.js v12.22 or later, ESM plugins are also supported.
+
+```javascript
+export default class MyPlugin {
+  constructor() {
+    // The plugin is loaded
+  }
+}
+```

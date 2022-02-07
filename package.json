@@ -117,6 +117,23 @@
         "rules": {
           "no-console": "off"
         }
+      },
+      {
+        "files": [
+          "test/fixtures/programmatic/plugin/local-esm-plugin/**",
+          "test/fixtures/programmatic/plugin/node_modules/esm-plugin/**"
+        ],
+        "parserOptions": {
+          "sourceType": "module"
+        }
+      },
+      {
+        "files": [
+          "lib/utils/import-module.js"
+        ],
+        "parserOptions": {
+          "ecmaVersion": 2020
+        }
       }
     ]
   },

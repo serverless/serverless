@@ -607,18 +607,18 @@ describe('PluginManager', () => {
       mockRequire('@serverless/dashboard-plugin', EnterprisePluginMock);
     });
 
-    it('should load only core plugins when no service plugins are given', () => {
+    it('should load only core plugins when no service plugins are given', async () => {
       // Note: We need the Create plugin for this test to pass
-      pluginManager.loadAllPlugins();
+      await pluginManager.loadAllPlugins();
 
       // note: this test will be refactored as the Create plugin will be moved
       // to another directory
       expect(pluginManager.plugins.length).to.be.above(0);
     });
 
-    it('should load all plugins when service plugins are given', () => {
+    it('should load all plugins when service plugins are given', async () => {
       const servicePlugins = ['ServicePluginMock1', 'ServicePluginMock2'];
-      pluginManager.loadAllPlugins(servicePlugins);
+      await pluginManager.loadAllPlugins(servicePlugins);
 
       expect(pluginManager.plugins.some((plugin) => plugin instanceof ServicePluginMock1)).to.equal(
         true
@@ -634,10 +634,10 @@ describe('PluginManager', () => {
       expect(pluginManager.plugins.length).to.be.above(2);
     });
 
-    it('should load all plugins in the correct order', () => {
+    it('should load all plugins in the correct order', async () => {
       const servicePlugins = ['ServicePluginMock1', 'ServicePluginMock2'];
 
-      pluginManager.loadAllPlugins(servicePlugins);
+      await pluginManager.loadAllPlugins(servicePlugins);
 
       const pluginIndexes = [
         pluginManager.plugins.findIndex((plugin) => plugin instanceof Create),
@@ -648,8 +648,8 @@ describe('PluginManager', () => {
       expect(pluginIndexes).to.deep.equal(pluginIndexes.slice().sort((a, b) => a - b));
     });
 
-    it('should load the Serverless core plugins', () => {
-      pluginManager.loadAllPlugins();
+    it('should load the Serverless core plugins', async () => {
+      await pluginManager.loadAllPlugins();
 
       expect(pluginManager.plugins.length).to.be.above(1);
     });
@@ -657,24 +657,30 @@ describe('PluginManager', () => {
     it('should throw an error when trying to load unknown plugin', () => {
       const servicePlugins = ['ServicePluginMock3', 'ServicePluginMock1'];
 
-      expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.throw(ServerlessError);
+      return expect(pluginManager.loadAllPlugins(servicePlugins)).to.be.rejectedWith(
+        ServerlessError
+      );
     });
 
-    it('should not throw error when trying to load unknown plugin with help flag', () => {
+    it('should not throw error when trying to load unknown plugin with help flag', async () => {
       const servicePlugins = ['ServicePluginMock3', 'ServicePluginMock1'];
 
       pluginManager.setCliOptions({ help: true });
 
       resolveInput.clear();
-      overrideArgv({ args: ['serverless', '--help'] }, () =>
-        expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.not.throw(ServerlessError)
-      );
+      return overrideArgv({ args: ['serverless', '--help'] }, () => {
+        return expect(pluginManager.loadAllPlugins(servicePlugins)).to.not.be.rejectedWith(
+          ServerlessError
+        );
+      });
     });
 
-    it('should pass through an error when trying to load a broken plugin', () => {
+    it('should pass through an error when plugin load fails', () => {
       const servicePlugins = ['BrokenPluginMock'];
 
-      expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.throw(brokenPluginError);
+      return expect(pluginManager.loadAllPlugins(servicePlugins)).to.be.rejectedWith(
+        brokenPluginError
+      );
     });
 
     it('should not throw error when running the plugin commands and given plugins does not exist', () => {
@@ -682,7 +688,9 @@ describe('PluginManager', () => {
       const cliCommandsMock = ['plugin'];
       pluginManager.setCliCommands(cliCommandsMock);
 
-      expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.not.throw(ServerlessError);
+      return expect(pluginManager.loadAllPlugins(servicePlugins)).to.not.be.rejectedWith(
+        ServerlessError
+      );
     });
 
     afterEach(() => {
@@ -700,9 +708,9 @@ describe('PluginManager', () => {
       mockRequire(`${serviceDir}/RelativePath/ServicePluginMock2`, ServicePluginMock2);
     });
 
-    it('should resolve the service plugins', () => {
+    it('should resolve the service plugins', async () => {
       const servicePlugins = ['ServicePluginMock1', './RelativePath/ServicePluginMock2'];
-      expect(pluginManager.resolveServicePlugins(servicePlugins)).to.deep.equal([
+      expect(await pluginManager.resolveServicePlugins(servicePlugins)).to.deep.equal([
         ServicePluginMock1,
         ServicePluginMock2,
       ]);
@@ -711,13 +719,13 @@ describe('PluginManager', () => {
     it('should not error if plugins = null', () => {
       // Happens when `plugins` property exists but is empty
       const servicePlugins = null;
-      pluginManager.resolveServicePlugins(servicePlugins);
+      return expect(pluginManager.resolveServicePlugins(servicePlugins)).to.not.be.rejected;
     });
 
     it('should not error if plugins = undefined', () => {
       // Happens when `plugins` property does not exist
       const servicePlugins = undefined;
-      pluginManager.resolveServicePlugins(servicePlugins);
+      return expect(pluginManager.resolveServicePlugins(servicePlugins)).to.not.be.rejected;
     });
 
     afterEach(() => {
@@ -964,9 +972,9 @@ describe('PluginManager', () => {
       mockRequire('ServicePluginMock2', ServicePluginMock2);
     });
 
-    it('should return all loaded plugins', () => {
+    it('should return all loaded plugins', async () => {
       const servicePlugins = ['ServicePluginMock1', 'ServicePluginMock2'];
-      pluginManager.loadAllPlugins(servicePlugins);
+      await pluginManager.loadAllPlugins(servicePlugins);
 
       const plugins = pluginManager.getPlugins();
       expect(plugins.length).to.be.above(3);
@@ -1509,21 +1517,21 @@ describe('PluginManager', () => {
       pluginManager.serverless.serviceDir = serviceDir;
     });
 
-    it('should load plugins from .serverless_plugins', () => {
+    it('should load plugins from .serverless_plugins', async () => {
       const localPluginDir = path.join(serviceDir, '.serverless_plugins', 'local-plugin');
       installPlugin(localPluginDir, SynchronousPluginMock);
 
-      pluginManager.loadAllPlugins(['local-plugin']);
+      await pluginManager.loadAllPlugins(['local-plugin']);
       expect(pluginManager.plugins).to.satisfy((plugins) =>
         plugins.some((plugin) => plugin.constructor.name === 'SynchronousPluginMock')
       );
     });
 
-    it('should load plugins from custom folder', () => {
+    it('should load plugins from custom folder', async () => {
       const localPluginDir = path.join(serviceDir, 'serverless-plugins-custom', 'local-plugin');
       installPlugin(localPluginDir, SynchronousPluginMock);
 
-      pluginManager.loadAllPlugins({
+      await pluginManager.loadAllPlugins({
         localPath: path.join(serviceDir, 'serverless-plugins-custom'),
         modules: ['local-plugin'],
       });
@@ -1534,12 +1542,12 @@ describe('PluginManager', () => {
       );
     });
 
-    it('should load plugins from custom folder outside of serviceDir', () => {
+    it('should load plugins from custom folder outside of serviceDir', async () => {
       serviceDir = path.join(tmpDir, 'serverless-plugins-custom');
       const localPluginDir = path.join(serviceDir, 'local-plugin');
       installPlugin(localPluginDir, SynchronousPluginMock);
 
-      pluginManager.loadAllPlugins({
+      await pluginManager.loadAllPlugins({
         localPath: serviceDir,
         modules: ['local-plugin'],
       });
@@ -1608,5 +1616,33 @@ describe('test/unit/lib/classes/PluginManager.test.js', () => {
         },
       })
     ).to.be.eventually.rejected.and.have.property('code', 'DUPLICATE_PLUGIN_DEFINITION');
+  });
+
+  it('should pass through an error when trying to load a plugin with error', async () => {
+    await expect(
+      runServerless({
+        fixture: 'plugin',
+        command: 'print',
+        configExt: {
+          plugins: ['./broken-plugin'],
+        },
+      })
+    ).to.be.eventually.rejectedWith(Error, 'failed to load plugin');
+  });
+
+  it('should load ESM plugins', async () => {
+    const { serverless } = await runServerless({
+      fixture: 'plugin',
+      command: 'print',
+      configExt: {
+        plugins: ['./local-esm-plugin', 'esm-plugin'],
+      },
+    });
+
+    const pluginNames = new Set(
+      serverless.pluginManager.plugins.map((plugin) => plugin.constructor.name)
+    );
+    expect(pluginNames).to.include('LocalESMPlugin');
+    expect(pluginNames).to.include('ESMPlugin');
   });
 });
