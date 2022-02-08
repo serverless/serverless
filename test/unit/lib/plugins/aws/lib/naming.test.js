@@ -1044,6 +1044,14 @@ describe('#naming()', () => {
     });
   });
 
+  describe('#getLambdaFnUrlPermissionLogicalId()', () => {
+    it('should normalize the name and append correct suffix', () => {
+      expect(sdk.naming.getLambdaFnUrlPermissionLogicalId('fnName')).to.equal(
+        'FnNameLambdaPermissionFnUrl'
+      );
+    });
+  });
+
   describe('#getHttpApiName()', () => {
     it('should return the composition of service & stage name if custom name not provided and shouldStartNameWithService is true', () => {
       serverless.service.service = 'myService';

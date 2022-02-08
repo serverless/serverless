@@ -81,6 +81,7 @@
     "@serverless/eslint-config": "^4.0.0",
     "@serverless/test": "^10.0.2",
     "adm-zip": "^0.5.9",
+    "aws4": "^1.11.0",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
     "cos-nodejs-sdk-v5": "^2.11.6",

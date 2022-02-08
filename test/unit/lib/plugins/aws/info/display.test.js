@@ -43,6 +43,10 @@ describe('test/unit/lib/plugins/aws/info/display.test.js', () => {
                     OutputKey: 'LayerLambdaLayerQualifiedArn',
                     OutputValue: 'arn:aws:lambda:us-east-1:00000000:layer:layer:1',
                   },
+                  {
+                    OutputKey: 'WithUrlLambdaFunctionUrl',
+                    OutputValue: 'https://sub.lambda.com',
+                  },
                 ],
               },
             ],
@@ -68,6 +72,12 @@ describe('test/unit/lib/plugins/aws/info/display.test.js', () => {
             ],
           },
         },
+        functions: {
+          withUrl: {
+            handler: 'index.handler',
+            url: true,
+          },
+        },
         layers: {
           layer: {
             path: 'layer',
@@ -90,6 +100,7 @@ describe('test/unit/lib/plugins/aws/info/display.test.js', () => {
       'GET - https://xxxxx.execute-api.us-east-1.amazonaws.com/dev/foo',
       'POST - https://xxxxx.execute-api.us-east-1.amazonaws.com/dev/some-post',
       'GET - https://xxxxx.execute-api.us-east-1.amazonaws.com/dev/bar/{marko}',
+      'withUrl: https://sub.lambda.com',
     ]);
   });
   it('should register functions section', () => {
@@ -97,6 +108,7 @@ describe('test/unit/lib/plugins/aws/info/display.test.js', () => {
       `minimal: ${serviceName}-dev-minimal`,
       `foo: ${serviceName}-dev-foo`,
       `other: ${serviceName}-dev-other`,
+      `withUrl: ${serviceName}-dev-withUrl`,
     ]);
   });
   it('should register layers section', () => {
