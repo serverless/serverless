@@ -246,7 +246,7 @@ Check [Packaging Patterns](/framework/docs/providers/aws/guide/packaging/#patter
 
 Deprecation code: `UNSUPPORTED_CLI_OPTIONS`
 
-Framework was upgraded with extensive CLI options validation and that required dropping support for _free form_ CLI options (keeping that in will make not possible to reliably detect accidental typos in option names).
+Framework was upgraded with extensive CLI options validation and that required dropping support for _free form_ CLI options (keeping that in will make it not possible to reliably detect accidental typos in option names).
 
 For _free form_ process configuration options it is advised to rely on environment variables instead, as e.g.:
 
