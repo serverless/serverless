@@ -8,7 +8,7 @@
     <projectUrl>https://serverless.com/</projectUrl>
     <iconUrl>https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/external/logo/serverless-logo.png</iconUrl>
     <copyright>TO_BE_GENERATED</copyright>
-    <licenseUrl>https://github.com/serverless/serverless/blob/master/LICENSE.txt</licenseUrl>
+    <licenseUrl>https://github.com/serverless/serverless/blob/main/LICENSE.txt</licenseUrl>
     <packageSourceUrl>https://github.com/serverless/serverless/tree/master/scripts/pkg/choco-package-template</packageSourceUrl>
     <projectSourceUrl>https://github.com/serverless/serverless/</projectSourceUrl>
     <releaseNotes>TO_BE_GENERATED</releaseNotes>

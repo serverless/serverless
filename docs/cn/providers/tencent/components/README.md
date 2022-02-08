@@ -11,7 +11,7 @@ Serverless Components 是支持多个云资源编排和组织的场景化解决�
 
 ## 优势特性
 
-**Serverless Components** 是 **[Serverless Framework](https://github.com/serverless/serverless/blob/master/README_CN.md)** 重磅推出的基础设置编排能力，支持开发者通过 **Serverless Components** 构建，组合并部署你的 Serverless 应用。
+**Serverless Components** 是 **[Serverless Framework](https://github.com/serverless/serverless/blob/main/README_CN.md)** 重磅推出的基础设置编排能力，支持开发者通过 **Serverless Components** 构建，组合并部署你的 Serverless 应用。
 
 - - [x] **快速部署 -** Components 支持极速部署 Serverless 架构和应用
 - - [x] **全面覆盖 -** 既能支持基础设施的 Components，也可以支持更高维度的，场景级别的 Components。
