@@ -14,7 +14,7 @@ https://github.com/serverless/serverless/blob/main/CONTRIBUTING.md#code-style
 https://github.com/serverless/serverless/blob/main/test/README.md
 --
 
-<!-- ⚠️⚠️ Ensure that support for Node.js v10 is maintained. -->
+<!-- ⚠️⚠️ Ensure that support for Node.js v12 is maintained. -->
 
 <!--
 ⚠️⚠️ Ensure that the proposed change passes CI. Confirm that by running the following scripts:
