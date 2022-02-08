@@ -129,9 +129,10 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.ciName;
     expect(payload).to.have.property('commandDurationMs');
     delete payload.commandDurationMs;
+    expect(payload).to.have.property('isTtyTerminal');
+    delete payload.isTtyTerminal;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
-      isTtyTerminal: true,
       command: 'print',
       commandOptionNames: [],
       isConfigValid: true,
@@ -195,9 +196,10 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.ciName;
     expect(payload).to.have.property('commandDurationMs');
     delete payload.commandDurationMs;
+    expect(payload).to.have.property('isTtyTerminal');
+    delete payload.isTtyTerminal;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
-      isTtyTerminal: true,
       command: 'print',
       commandOptionNames: [],
       isConfigValid: false, // No schema for custom provider
@@ -251,9 +253,10 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.ciName;
     expect(payload).to.have.property('commandDurationMs');
     delete payload.commandDurationMs;
+    expect(payload).to.have.property('isTtyTerminal');
+    delete payload.isTtyTerminal;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
-      isTtyTerminal: true,
       command: 'config',
       commandOptionNames: [],
       isAutoUpdateEnabled: false,
@@ -287,11 +290,12 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.ciName;
     expect(payload).to.have.property('commandDurationMs');
     delete payload.commandDurationMs;
+    expect(payload).to.have.property('isTtyTerminal');
+    delete payload.isTtyTerminal;
     expect(payload).to.deep.equal({
       command: '',
       commandOptionNames: [],
       cliName: 'serverless',
-      isTtyTerminal: true,
       isConfigValid: null,
       config: {
         configValidationMode: 'warn',
@@ -338,9 +342,10 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.ciName;
     expect(payload).to.have.property('commandDurationMs');
     delete payload.commandDurationMs;
+    expect(payload).to.have.property('isTtyTerminal');
+    delete payload.isTtyTerminal;
     expect(payload).to.deep.equal({
       cliName: 'serverless',
-      isTtyTerminal: true,
       command: 'plugin list',
       commandOptionNames: [],
       isAutoUpdateEnabled: false,

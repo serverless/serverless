@@ -10,7 +10,7 @@ require('graceful-fs').gracefulify(require('fs'));
 
 // Setup log writing
 require('@serverless/utils/log-reporters/node');
-const { log, progress } = require('@serverless/utils/log');
+const { log, progress, isInteractive: isInteractiveTerminal } = require('@serverless/utils/log');
 
 const handleError = require('../lib/cli/handle-error');
 const {
@@ -481,7 +481,7 @@ processSpanPromise = (async () => {
     if (!isHelpRequest && (isInteractiveSetup || isStandaloneCommand)) {
       if (configuration) require('../lib/cli/ensure-supported-command')(configuration);
       if (isInteractiveSetup) {
-        if (!process.stdin.isTTY && !process.env.SLS_INTERACTIVE_SETUP_ENABLE) {
+        if (!isInteractiveTerminal) {
           throw new ServerlessError(
             'Attempted to run an interactive setup in non TTY environment.\n' +
               "If that's intended, run with the SLS_INTERACTIVE_SETUP_ENABLE=1 environment variable",
