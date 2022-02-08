@@ -53,6 +53,10 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
             image:
               '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38',
           },
+          withUrl: {
+            handler: 'index.handler',
+            url: true,
+          },
         },
         resources: {
           Resources: {
@@ -148,11 +152,12 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         },
         plugins: [],
         functions: [
-          { runtime: 'nodejs14.x', events: [{ type: 'httpApi' }, { type: 'httpApi' }] },
-          { runtime: 'nodejs14.x', events: [{ type: 'httpApi' }] },
-          { runtime: 'nodejs14.x', events: [] },
-          { runtime: 'nodejs14.x', events: [] },
-          { runtime: '$containerimage', events: [] },
+          { runtime: 'nodejs14.x', events: [{ type: 'httpApi' }, { type: 'httpApi' }], url: false },
+          { runtime: 'nodejs14.x', events: [{ type: 'httpApi' }], url: false },
+          { runtime: 'nodejs14.x', events: [], url: false },
+          { runtime: 'nodejs14.x', events: [], url: false },
+          { runtime: '$containerimage', events: [], url: false },
+          { runtime: 'nodejs14.x', events: [], url: true },
         ],
         resources: {
           general: ['AWS::Logs::LogGroup', 'AWS::S3::Bucket', 'Custom'],
@@ -217,8 +222,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         },
         plugins: ['./custom-provider'],
         functions: [
-          { runtime: 'foo', events: [{ type: 'someEvent' }] },
-          { runtime: 'bar', events: [] },
+          { runtime: 'foo', events: [{ type: 'someEvent' }], url: false },
+          { runtime: 'bar', events: [], url: false },
         ],
         resources: undefined,
         variableSources: [],

@@ -1577,6 +1577,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
 
   describe('Function properties', () => {
     let cfResources;
+    let cfOutputs;
     let naming;
     let serverless;
     let serviceConfig;
@@ -1689,6 +1690,28 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               handler: 'index.handler',
               ephemeralStorageSize: 1024,
             },
+            fnUrl: {
+              handler: 'target.handler',
+              url: true,
+            },
+            fnUrlWithAuthAndCors: {
+              handler: 'target.handler',
+              url: {
+                authorizer: 'aws_iam',
+                cors: {
+                  maxAge: 3600,
+                },
+              },
+            },
+            fnUrlNullifyDefaultCorsValue: {
+              handler: 'target.handler',
+              url: {
+                authorizer: 'aws_iam',
+                cors: {
+                  allowedHeaders: null,
+                },
+              },
+            },
           },
           resources: {
             Resources: {
@@ -1708,6 +1731,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         },
       });
       cfResources = cfTemplate.Resources;
+      cfOutputs = cfTemplate.Outputs;
       naming = awsNaming;
       serverless = serverlessInstance;
       serviceConfig = fixtureData.serviceConfig;
@@ -1886,6 +1910,89 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
     it.skip('TODO: should support `functions[].dependsOn`', () => {
       // Replacement for
       // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L2381-L2397
+    });
+
+    it('should support `functions[].url` set to `true`', () => {
+      expect(cfResources[naming.getLambdaFunctionUrlLogicalId('fnUrl')].Properties).to.deep.equal({
+        AuthType: 'NONE',
+        TargetFunctionArn: {
+          'Fn::GetAtt': [naming.getLambdaLogicalId('fnUrl'), 'Arn'],
+        },
+      });
+      expect(cfOutputs[naming.getLambdaFunctionUrlLogicalId('fnUrl')].Value).to.deep.equal({
+        'Fn::GetAtt': [naming.getLambdaFunctionUrlOutputLogicalId('fnUrl'), 'FunctionUrl'],
+      });
+
+      expect(
+        cfResources[naming.getLambdaFnUrlPermissionLogicalId('fnUrl')].Properties
+      ).to.deep.equal({
+        Action: 'lambda:InvokeFunctionUrl',
+        FunctionName: {
+          'Fn::GetAtt': ['FnUrlLambdaFunction', 'Arn'],
+        },
+        FunctionUrlAuthType: 'NONE',
+        Principal: '*',
+      });
+    });
+
+    it('should support `functions[].url` set to an object with authorizer and cors', () => {
+      expect(
+        cfResources[naming.getLambdaFunctionUrlLogicalId('fnUrlWithAuthAndCors')].Properties
+      ).to.deep.equal({
+        AuthType: 'AWS_IAM',
+        TargetFunctionArn: {
+          'Fn::GetAtt': [naming.getLambdaLogicalId('fnUrlWithAuthAndCors'), 'Arn'],
+        },
+        Cors: {
+          AllowMethods: ['*'],
+          AllowOrigins: ['*'],
+          AllowHeaders: [
+            'Content-Type',
+            'X-Amz-Date',
+            'Authorization',
+            'X-Api-Key',
+            'X-Amz-Security-Token',
+          ],
+          MaxAge: 3600,
+          AllowCredentials: undefined,
+          ExposeHeaders: undefined,
+        },
+      });
+      expect(
+        cfOutputs[naming.getLambdaFunctionUrlLogicalId('fnUrlWithAuthAndCors')].Value
+      ).to.deep.equal({
+        'Fn::GetAtt': [
+          naming.getLambdaFunctionUrlOutputLogicalId('fnUrlWithAuthAndCors'),
+          'FunctionUrl',
+        ],
+      });
+    });
+
+    it('should support nullifying default cors value with `null` for `functions[].url`', () => {
+      expect(
+        cfResources[naming.getLambdaFunctionUrlLogicalId('fnUrlNullifyDefaultCorsValue')].Properties
+      ).to.deep.equal({
+        AuthType: 'AWS_IAM',
+        TargetFunctionArn: {
+          'Fn::GetAtt': [naming.getLambdaLogicalId('fnUrlNullifyDefaultCorsValue'), 'Arn'],
+        },
+        Cors: {
+          AllowMethods: ['*'],
+          AllowOrigins: ['*'],
+          AllowHeaders: undefined,
+          MaxAge: undefined,
+          AllowCredentials: undefined,
+          ExposeHeaders: undefined,
+        },
+      });
+      expect(
+        cfOutputs[naming.getLambdaFunctionUrlLogicalId('fnUrlNullifyDefaultCorsValue')].Value
+      ).to.deep.equal({
+        'Fn::GetAtt': [
+          naming.getLambdaFunctionUrlOutputLogicalId('fnUrlNullifyDefaultCorsValue'),
+          'FunctionUrl',
+        ],
+      });
     });
 
     it('should support `functions[].architecture`', () => {

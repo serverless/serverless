@@ -645,6 +645,21 @@ functions:
       subnetIds:
         - subnetId1
         - subnetId2
+    # Lambda URL definition for this function, optional
+    # Can be defined as `true` which will create URL without authorizer and cors settings
+    url:
+      authorizer: 'aws_iam' # Authorizer used for calls to Lambda URL
+      cors:  # CORS configuration for Lambda URL, can also be defined as `true` with default CORS configuration
+        allowedOrigins:
+          - *
+        allowedHeaders:
+          - Authorization
+        allowedMethods:
+          - GET
+        allowCredentials: true
+        exposedResponseHeaders:
+          - SomeHeader
+        maxAge: 3600
     # Packaging rules specific to this function
     package:
       # Directories and files to include in the deployed package

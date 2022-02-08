@@ -200,6 +200,91 @@ provider:
 
 See the documentation about [IAM](./iam.md) for function level IAM roles.
 
+## Lambda Function URLs
+
+A [Lambda Function URL](https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-urls.html) is a simple solution to create HTTP endpoints with AWS Lambda. Function URLs are ideal for getting started with AWS Lambda, or for single-function applications like webhooks or APIs built with web frameworks.
+
+You can create a function URL via the `url` property in the function configuration in `serverless.yml`. By setting `url` to `true`, as shown below, the URL will be public without CORS configuration.
+
+```yaml
+functions:
+  func:
+    handler: index.handler
+    url: true
+```
+
+Alternatively, you can configure it as an object with the `authorizer` and/or `cors` properties. The `authorizer` property can be set to `aws_iam` to enable AWS IAM authorization on your function URL.
+
+```yaml
+functions:
+  func:
+    handler: index.handler
+    url:
+      authorizer: aws_iam
+```
+
+When using IAM authorization, the URL will only accept HTTP requests with AWS credentials allowing `lambda:InvokeFunctionUrl` (similar to [API Gateway IAM authentication](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-access-control-iam.html)).
+
+You can also configure [CORS headers](https://developer.mozilla.org/docs/Web/HTTP/CORS) so that your function URL can be called from other domains in browsers. Setting `cors` to `true` will allow all domains via the following CORS headers:
+
+```yaml
+functions:
+  func:
+    handler: index.handler
+    url:
+      cors: true
+```
+
+| Header                       | Value                                                                    |
+| :--------------------------- | :----------------------------------------------------------------------- |
+| Access-Control-Allow-Origin  | \*                                                                       |
+| Access-Control-Allow-Headers | Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token |
+| Access-Control-Allow-Methods | \*                                                                       |
+
+You can also additionally adjust your CORS configuration by setting `allowedOrigins`, `allowedHeaders`, `allowedMethods`, `allowCredentials`, `exposedResponseHeaders`, and `maxAge` properties as shown in example below.
+
+```yaml
+functions:
+  func:
+    handler: index.handler
+    url:
+      cors:
+        allowedOrigins:
+          - https://url1.com
+          - https://url2.com
+        allowedHeaders:
+          - Content-Type
+          - Authorization
+        allowedMethods:
+          - GET
+        allowCredentials: true
+        exposedResponseHeaders:
+          - Special-Response-Header
+        maxAge: 6000 # In seconds
+```
+
+In the table below you can find how the `cors` properties map to CORS headers
+
+| Configuration property | CORS Header                      |
+| :--------------------- | :------------------------------- |
+| allowedOrigins         | Access-Control-Allow-Origin      |
+| allowedHeaders         | Access-Control-Allow-Headers     |
+| allowedMethods         | Access-Control-Allow-Methods     |
+| allowCredentials       | Access-Control-Allow-Credentials |
+| exposedResponseHeaders | Access-Control-Expose-Headers    |
+| maxAge                 | Access-Control-Max-Age           |
+
+It is also possible to remove the values in CORS configuration that are set by default by setting them to `null` instead.
+
+```yaml
+functions:
+  func:
+    handler: index.handler
+    url:
+      cors:
+        allowedHeaders: null
+```
+
 ## Referencing container image as a target
 
 Alternatively lambda environment can be configured through docker images. Image published to AWS ECR registry can be referenced as lambda source (check [AWS Lambda – Container Image Support](https://aws.amazon.com/blogs/aws/new-for-aws-lambda-container-image-support/)). In addition, you can also define your own images that will be built locally and uploaded to AWS ECR registry.
