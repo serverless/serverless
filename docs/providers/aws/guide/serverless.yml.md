@@ -241,6 +241,8 @@ provider:
   websocketsApiName: custom-websockets-api-name
   # custom route selection expression
   websocketsApiRouteSelectionExpression: $request.body.route
+  # Use a custom description for the websockets API
+  websocketsDescription: Custom Serverless Websockets
   # Optional API Gateway REST API global config
   apiGateway:
     # Attach to an externally created REST API via its ID:

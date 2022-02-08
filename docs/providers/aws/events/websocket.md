@@ -78,6 +78,7 @@ provider:
   runtime: nodejs12.x
   websocketsApiName: custom-websockets-api-name
   websocketsApiRouteSelectionExpression: $request.body.action # custom routes are selected by the value of the action property in the body
+  websocketsDescription: Custom Serverless Websockets
 
 functions:
   connectionHandler:
