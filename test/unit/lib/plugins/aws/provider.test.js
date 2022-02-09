@@ -1287,6 +1287,7 @@ aws_secret_access_key = CUSTOMSECRET
           `${awsNaming.getEcrRepositoryName()}:baseimage`,
           '-f',
           path.join(serviceDir, 'Dockerfile'),
+          '--progress=plain',
           './',
         ]);
         expect(spawnExtStub).to.be.calledWith('docker', [
@@ -1420,6 +1421,7 @@ aws_secret_access_key = CUSTOMSECRET
           `${awsNaming.getEcrRepositoryName()}:baseimage`,
           '-f',
           path.join(serviceDir, 'Dockerfile'),
+          '--progress=plain',
           './',
         ]);
         expect(innerSpawnExtStub).to.be.calledWith('docker', [
@@ -1576,6 +1578,7 @@ aws_secret_access_key = CUSTOMSECRET
           `${awsNaming.getEcrRepositoryName()}:baseimage`,
           '-f',
           path.join(serviceDir, 'Dockerfile.dev'),
+          '--progress=plain',
           './',
         ]);
       });
@@ -1633,6 +1636,7 @@ aws_secret_access_key = CUSTOMSECRET
           `${awsNaming.getEcrRepositoryName()}:baseimage`,
           '-f',
           path.join(serviceDir, 'Dockerfile.dev'),
+          '--progress=plain',
           '--cache-from',
           'my-image:latest',
           './',
@@ -1694,6 +1698,7 @@ aws_secret_access_key = CUSTOMSECRET
           `${awsNaming.getEcrRepositoryName()}:baseimage`,
           '-f',
           path.join(serviceDir, 'Dockerfile.dev'),
+          '--progress=plain',
           '--build-arg',
           'TESTKEY=TESTVAL',
           './',
@@ -1753,6 +1758,7 @@ aws_secret_access_key = CUSTOMSECRET
           `${awsNaming.getEcrRepositoryName()}:baseimage`,
           '-f',
           path.join(serviceDir, 'Dockerfile.dev'),
+          '--progress=plain',
           './',
           '--platform=TESTVAL',
         ]);
