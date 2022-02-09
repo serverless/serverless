@@ -297,4 +297,56 @@ describe('test/unit/lib/plugins/aws/remove/index.test.js', () => {
       },
     });
   });
+
+  it('should throw an error when deleteObjects operation was not successfull', async () => {
+    const innerDeleteObjectsStub = sinon.stub().resolves({
+      Deleted: [],
+      Errors: [
+        {
+          Code: 'InternalError',
+        },
+      ],
+    });
+
+    await expect(
+      runServerless({
+        command: 'remove',
+        fixture: 'function',
+        awsRequestStubMap: {
+          ...awsRequestStubMap,
+          S3: {
+            ...awsRequestStubMap.S3,
+            deleteObjects: innerDeleteObjectsStub,
+            headBucket: {},
+          },
+        },
+      })
+    ).to.be.eventually.rejected.and.have.property('code', 'CANNOT_DELETE_S3_OBJECTS_GENERIC');
+  });
+
+  it('should throw an error when deleteObjects operation was not successfull due to "AccessDenied"', async () => {
+    const innerDeleteObjectsStub = sinon.stub().resolves({
+      Deleted: [],
+      Errors: [
+        {
+          Code: 'AccessDenied',
+        },
+      ],
+    });
+
+    await expect(
+      runServerless({
+        command: 'remove',
+        fixture: 'function',
+        awsRequestStubMap: {
+          ...awsRequestStubMap,
+          S3: {
+            ...awsRequestStubMap.S3,
+            deleteObjects: innerDeleteObjectsStub,
+            headBucket: {},
+          },
+        },
+      })
+    ).to.be.eventually.rejected.and.have.property('code', 'CANNOT_DELETE_S3_OBJECTS_ACCESS_DENIED');
+  });
 });
