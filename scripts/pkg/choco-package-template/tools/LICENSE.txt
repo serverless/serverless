@@ -1,4 +1,4 @@
-﻿From: https://github.com/serverless/serverless/blob/master/LICENSE.txt
+﻿From: https://github.com/serverless/serverless/blob/main/LICENSE.txt
 
 LICENSE
 
