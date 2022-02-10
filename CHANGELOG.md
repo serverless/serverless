@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.2.0](https://github.com/serverless/serverless/compare/v3.1.1...v3.2.0) (2022-02-10)
+
+### Features
+
+- **Plugins:** Support ESM format for plugins ([#10657](https://github.com/serverless/serverless/issues/10657)) ([ec3271f](https://github.com/serverless/serverless/commit/ec3271f3e8b7e055ad26eec89dfccfd3ca59fd0e)) ([frozenbonito](https://github.com/frozenbonito))
+
+### Bug Fixes
+
+- **AWS Deploy:** Add descriptive error if S3 bucket cant be cleaned ([#10668](https://github.com/serverless/serverless/pull/10668)) ([d4ee656](https://github.com/serverless/serverless/commit/d4ee656de1fd4cb6b2803cb531725a016cc7e428)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Config Schema:** Recognize `provider.websocketsDescription` ([#10663](https://github.com/serverless/serverless/issues/10663)) ([9778751](https://github.com/serverless/serverless/commit/977875144798d4c1e2e37ecccc7bbab286f4684d)) ([Jérémy Benoist](https://github.com/j0k3r))
+- **Variables:** Improve resolution of AWS auth related properties ([#10652](https://github.com/serverless/serverless/pull/10652)) ([e66c865](https://github.com/serverless/serverless/commit/e66c865a26c237273473429eb595295c2d7992af)) ([Mariusz Nowak](https://github.com/medikoo))
+- Improve detection of `tty` ([#10662](https://github.com/serverless/serverless/pull/10662)) ([0c810bf](https://github.com/serverless/serverless/commit/0c810bf96a9f1000d9dead9459e0db652819ea02)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Improve validation of min supported Node version ([#10655](https://github.com/serverless/serverless/pull/10655)) ([bf084f3](https://github.com/serverless/serverless/commit/bf084f3edd0891bb4947c9727c8d85684c3a423d)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **CLI:** Conditionally apply post dotenv resolution logic ([#10652](https://github.com/serverless/serverless/pull/10652)) ([30465cc](https://github.com/serverless/serverless/commit/30465ccb0bfd1b56b89833208b3d96dba2ae8119)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:**
+  - Ensure to mark `aws` as fulfilled source ([#10652](https://github.com/serverless/serverless/pull/10652)) ([a4c9392](https://github.com/serverless/serverless/commit/a4c93920830051ee67bebd0be815f8aa4c2ba234)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Optimize `provider.name` resolution handling ([#10652](https://github.com/serverless/serverless/pull/10652)) ([6e1f5ed](https://github.com/serverless/serverless/commit/6e1f5ed3f8fb76c5583b0f6f6bea086bf24ff6b4)) ([Mariusz Nowak](https://github.com/medikoo))
+- Use templates from `examples` in `create` command ([#10576](https://github.com/serverless/serverless/pull/10576)) ([76a60ae](https://github.com/serverless/serverless/commit/76a60ae2b769c73657770392806eb59cfbb4d186)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Change all occurences of succesful to successful ([#10639](https://github.com/serverless/serverless/issues/10639)) ([77f8e56](https://github.com/serverless/serverless/commit/77f8e56a6958824a727f8420c3ed1b06448b72f9)) ([Rohan Mukherjee](https://github.com/roerohan))
+
 ## [3.1.1](https://github.com/serverless/serverless/compare/v3.1.0...v3.1.1) (2022-02-02)
 
 ### Bug Fixes
