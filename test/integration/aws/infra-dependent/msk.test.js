@@ -10,6 +10,8 @@ const {
 } = require('../../../utils/cloudformation');
 
 const awsRequest = require('@serverless/test/aws-request');
+const LambdaService = require('aws-sdk').Lambda;
+const KafkaService = require('aws-sdk').Kafka;
 const crypto = require('crypto');
 const { deployService, removeService } = require('../../../utils/integration');
 
@@ -30,7 +32,7 @@ describe('AWS - MSK Integration Test', function () {
     const outputMap = await getDependencyStackOutputMap();
 
     log.notice('Getting MSK Boostrap Brokers URLs...');
-    const getBootstrapBrokersResponse = await awsRequest('Kafka', 'getBootstrapBrokers', {
+    const getBootstrapBrokersResponse = await awsRequest(KafkaService, 'getBootstrapBrokers', {
       ClusterArn: outputMap.get('MSKCluster'),
     });
     const brokerUrls = getBootstrapBrokersResponse.BootstrapBrokerStringTls;
@@ -84,7 +86,7 @@ describe('AWS - MSK Integration Test', function () {
     const events = await confirmCloudWatchLogs(
       `/aws/lambda/${stackName}-${functionName}`,
       async () =>
-        await awsRequest('Lambda', 'invoke', {
+        await awsRequest(LambdaService, 'invoke', {
           FunctionName: `${stackName}-producer`,
           InvocationType: 'RequestResponse',
         }),

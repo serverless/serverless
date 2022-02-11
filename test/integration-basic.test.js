@@ -10,6 +10,7 @@ const spawn = require('child-process-ext/spawn');
 const resolveAwsEnv = require('@serverless/test/resolve-aws-env');
 const hasFailed = require('@serverless/test/has-failed');
 const awsRequest = require('@serverless/test/aws-request');
+const CloudFormationService = require('aws-sdk').CloudFormation;
 const { getTmpDirPath } = require('./utils/fs');
 
 const serverlessExec = require('./serverless-binary');
@@ -43,7 +44,7 @@ describe('Service Lifecyle Integration Test', function () {
 
   after(async () => {
     try {
-      await awsRequest('CloudFormation', 'describeStacks', { StackName });
+      await awsRequest(CloudFormationService, 'describeStacks', { StackName });
     } catch (error) {
       if (error.message.indexOf('does not exist') > -1) return;
       throw error;
@@ -64,7 +65,7 @@ describe('Service Lifecyle Integration Test', function () {
   it('should deploy service to aws', async () => {
     await spawn(serverlessExec, ['deploy'], { cwd: tmpDir, env });
 
-    const d = await awsRequest('CloudFormation', 'describeStacks', { StackName });
+    const d = await awsRequest(CloudFormationService, 'describeStacks', { StackName });
     expect(d.Stacks[0].StackStatus).to.be.equal('UPDATE_COMPLETE');
   });
 
@@ -135,7 +136,7 @@ describe('Service Lifecyle Integration Test', function () {
 
     const d = await (async () => {
       try {
-        return await awsRequest('CloudFormation', 'describeStacks', { StackName });
+        return await awsRequest(CloudFormationService, 'describeStacks', { StackName });
       } catch (error) {
         if (error.message.indexOf('does not exist') > -1) return null;
         throw error;

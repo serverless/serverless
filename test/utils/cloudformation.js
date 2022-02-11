@@ -1,6 +1,7 @@
 'use strict';
 
 const awsRequest = require('@serverless/test/aws-request');
+const CloudFormationService = require('aws-sdk').CloudFormation;
 
 const SHARED_INFRA_TESTS_CLOUDFORMATION_STACK = 'integration-tests-deps-stack';
 const SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME =
@@ -16,7 +17,7 @@ function findStacks(name, status) {
 
   function recursiveFind(found, token) {
     if (token) params.NextToken = token;
-    return awsRequest('CloudFormation', 'listStacks', params).then((result) => {
+    return awsRequest(CloudFormationService, 'listStacks', params).then((result) => {
       const matches = result.StackSummaries.filter((stack) => stack.StackName.match(name));
       if (matches.length) {
         found.push(...matches);
@@ -34,7 +35,7 @@ function deleteStack(stack) {
     StackName: stack,
   };
 
-  return awsRequest('CloudFormation', 'deleteStack', params);
+  return awsRequest(CloudFormationService, 'deleteStack', params);
 }
 
 function listStackResources(stack) {
@@ -44,7 +45,7 @@ function listStackResources(stack) {
 
   function recursiveFind(resources, token) {
     if (token) params.NextToken = token;
-    return awsRequest('CloudFormation', 'listStackResources', params).then((result) => {
+    return awsRequest(CloudFormationService, 'listStackResources', params).then((result) => {
       resources.push(...result.StackResourceSummaries);
       if (result.NextToken) return recursiveFind(resources, result.NextToken);
       return resources;
@@ -60,11 +61,11 @@ function listStacks(status) {
     params.StackStatusFilter = status;
   }
 
-  return awsRequest('CloudFormation', 'listStacks', params);
+  return awsRequest(CloudFormationService, 'listStacks', params);
 }
 
 async function getStackOutputMap(name) {
-  const describeStackResponse = await awsRequest('CloudFormation', 'describeStacks', {
+  const describeStackResponse = await awsRequest(CloudFormationService, 'describeStacks', {
     StackName: name,
   });
 
@@ -79,7 +80,7 @@ async function isDependencyStackAvailable() {
   const validStatuses = ['CREATE_COMPLETE', 'UPDATE_COMPLETE'];
 
   try {
-    const describeStacksResponse = await awsRequest('CloudFormation', 'describeStacks', {
+    const describeStacksResponse = await awsRequest(CloudFormationService, 'describeStacks', {
       StackName: SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
     });
     if (validStatuses.includes(describeStacksResponse.Stacks[0].StackStatus)) {

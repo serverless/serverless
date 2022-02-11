@@ -3,6 +3,9 @@
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 const awsRequest = require('@serverless/test/aws-request');
+const CloudFormationService = require('aws-sdk').CloudFormation;
+const CognitoIdentityServiceProviderService = require('aws-sdk').CognitoIdentityServiceProvider;
+const ApiGatewayV2Service = require('aws-sdk').ApiGatewayV2;
 const fixtures = require('../../fixtures/programmatic');
 const { confirmCloudWatchLogs } = require('../../utils/misc');
 
@@ -16,7 +19,9 @@ describe('HTTP API Integration Test', function () {
   const stage = 'dev';
 
   const resolveEndpoint = async () => {
-    const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
+    const result = await awsRequest(CloudFormationService, 'describeStacks', {
+      StackName: stackName,
+    });
     const endpointOutput = result.Stacks[0].Outputs.find(
       (output) => output.OutputKey === 'HttpApiUrl'
     ).OutputValue;
@@ -31,22 +36,22 @@ describe('HTTP API Integration Test', function () {
 
     before(async () => {
       poolId = (
-        await awsRequest('CognitoIdentityServiceProvider', 'createUserPool', {
+        await awsRequest(CognitoIdentityServiceProviderService, 'createUserPool', {
           PoolName: `test-http-api-${process.hrtime()[1]}`,
         })
       ).UserPool.Id;
       [clientId] = await Promise.all([
-        awsRequest('CognitoIdentityServiceProvider', 'createUserPoolClient', {
+        awsRequest(CognitoIdentityServiceProviderService, 'createUserPoolClient', {
           ClientName: 'test-http-api',
           UserPoolId: poolId,
           ExplicitAuthFlows: ['ALLOW_USER_PASSWORD_AUTH', 'ALLOW_REFRESH_TOKEN_AUTH'],
           PreventUserExistenceErrors: 'ENABLED',
         }).then((result) => result.UserPoolClient.ClientId),
-        awsRequest('CognitoIdentityServiceProvider', 'adminCreateUser', {
+        awsRequest(CognitoIdentityServiceProviderService, 'adminCreateUser', {
           UserPoolId: poolId,
           Username: userName,
         }).then(() =>
-          awsRequest('CognitoIdentityServiceProvider', 'adminSetUserPassword', {
+          awsRequest(CognitoIdentityServiceProviderService, 'adminSetUserPassword', {
             UserPoolId: poolId,
             Username: userName,
             Password: userPassword,
@@ -127,7 +132,9 @@ describe('HTTP API Integration Test', function () {
     });
 
     after(async () => {
-      await awsRequest('CognitoIdentityServiceProvider', 'deleteUserPool', { UserPoolId: poolId });
+      await awsRequest(CognitoIdentityServiceProviderService, 'deleteUserPool', {
+        UserPoolId: poolId,
+      });
       if (!serviceDir) return;
       await removeService(serviceDir);
     });
@@ -189,7 +196,7 @@ describe('HTTP API Integration Test', function () {
       expect(responseUnauthorized.status).to.equal(401);
 
       const token = (
-        await awsRequest('CognitoIdentityServiceProvider', 'initiateAuth', {
+        await awsRequest(CognitoIdentityServiceProviderService, 'initiateAuth', {
           AuthFlow: 'USER_PASSWORD_AUTH',
           AuthParameters: { USERNAME: userName, PASSWORD: userPassword },
           ClientId: clientId,
@@ -295,11 +302,12 @@ describe('HTTP API Integration Test', function () {
       const exportServiceName = exportServiceData.serviceConfig.service;
       await deployService(exportServicePath);
       const httpApiId = (
-        await awsRequest('CloudFormation', 'describeStacks', {
+        await awsRequest(CloudFormationService, 'describeStacks', {
           StackName: `${exportServiceName}-${stage}`,
         })
       ).Stacks[0].Outputs[0].OutputValue;
-      endpoint = (await awsRequest('ApiGatewayV2', 'getApi', { ApiId: httpApiId })).ApiEndpoint;
+      endpoint = (await awsRequest(ApiGatewayV2Service, 'getApi', { ApiId: httpApiId }))
+        .ApiEndpoint;
 
       const serviceData = await fixtures.setup('http-api', {
         configExt: {

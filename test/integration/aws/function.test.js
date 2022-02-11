@@ -2,6 +2,7 @@
 
 const { expect } = require('chai');
 const awsRequest = require('@serverless/test/aws-request');
+const LambdaService = require('aws-sdk').Lambda;
 const fixtures = require('../../fixtures/programmatic');
 const { confirmCloudWatchLogs } = require('../../utils/misc');
 
@@ -46,7 +47,7 @@ describe('test/integration/aws/function.test.js', function () {
     const events = await confirmCloudWatchLogs(
       `/aws/lambda/${stackName}-target`,
       async () => {
-        await awsRequest('Lambda', 'invoke', {
+        await awsRequest(LambdaService, 'invoke', {
           FunctionName: `${stackName}-trigger`,
           InvocationType: 'Event',
         });
@@ -60,7 +61,7 @@ describe('test/integration/aws/function.test.js', function () {
     const events = await confirmCloudWatchLogs(
       `/aws/lambda/${stackName}-arch`,
       async () => {
-        await awsRequest('Lambda', 'invoke', {
+        await awsRequest(LambdaService, 'invoke', {
           FunctionName: `${stackName}-arch`,
           InvocationType: 'Event',
         });

@@ -3,6 +3,7 @@
 const WebSocket = require('ws');
 const { expect } = require('chai');
 const awsRequest = require('@serverless/test/aws-request');
+const CloudFormationService = require('aws-sdk').CloudFormation;
 const log = require('log').get('serverless:test');
 const wait = require('timers-ext/promise/sleep');
 const fixtures = require('../../fixtures/programmatic');
@@ -41,7 +42,9 @@ describe('AWS - API Gateway Websocket Integration Test', function () {
   });
 
   async function getWebSocketServerUrl() {
-    const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
+    const result = await awsRequest(CloudFormationService, 'describeStacks', {
+      StackName: stackName,
+    });
     const webSocketServerUrl = result.Stacks[0].Outputs.find(
       (output) => output.OutputKey === 'ServiceEndpointWebsocket'
     ).OutputValue;

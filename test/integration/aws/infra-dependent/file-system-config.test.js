@@ -5,6 +5,7 @@ const log = require('log').get('serverless:test');
 const fixtures = require('../../../fixtures/programmatic');
 
 const awsRequest = require('@serverless/test/aws-request');
+const LambdaService = require('aws-sdk').Lambda;
 const crypto = require('crypto');
 const { deployService, removeService } = require('../../../utils/integration');
 const {
@@ -71,7 +72,7 @@ describe('AWS - FileSystemConfig Integration Test', function () {
 
   it('should be able to write to efs and read from it in a separate function', async function self() {
     try {
-      await awsRequest('Lambda', 'invoke', {
+      await awsRequest(LambdaService, 'invoke', {
         FunctionName: `${stackName}-writer`,
         InvocationType: 'RequestResponse',
       });
@@ -85,7 +86,7 @@ describe('AWS - FileSystemConfig Integration Test', function () {
       throw e;
     }
 
-    const readerResult = await awsRequest('Lambda', 'invoke', {
+    const readerResult = await awsRequest(LambdaService, 'invoke', {
       FunctionName: `${stackName}-reader`,
       InvocationType: 'RequestResponse',
     });

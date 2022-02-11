@@ -11,6 +11,9 @@ const {
 } = require('../../../utils/cloudformation');
 
 const awsRequest = require('@serverless/test/aws-request');
+const LambdaService = require('aws-sdk').Lambda;
+const MQService = require('aws-sdk').MQ;
+const SecretsManagerService = require('aws-sdk').SecretsManager;
 const crypto = require('crypto');
 const { deployService, removeService } = require('../../../utils/integration');
 
@@ -31,14 +34,14 @@ describe.skip('AWS - RabbitMQ Integration Test', function () {
     const outputMap = await getDependencyStackOutputMap();
 
     log.notice('Getting RabbitMQ Credentials ARN');
-    const getSecretValueResponse = await awsRequest('SecretsManager', 'getSecretValue', {
+    const getSecretValueResponse = await awsRequest(SecretsManagerService, 'getSecretValue', {
       SecretId: SHARED_INFRA_TESTS_RABBITMQ_CREDENTIALS_NAME,
     });
     const { username: mqUsername, password: mqPassword } = JSON.parse(
       getSecretValueResponse.SecretString
     );
 
-    const describeBrokerResponse = await awsRequest('MQ', 'describeBroker', {
+    const describeBrokerResponse = await awsRequest(MQService, 'describeBroker', {
       BrokerId: outputMap.get('RabbitMQBrokerId'),
     });
     const amqpEndpoint = describeBrokerResponse.BrokerInstances[0].Endpoints.find((endpoint) =>
@@ -99,7 +102,7 @@ describe.skip('AWS - RabbitMQ Integration Test', function () {
     const events = await confirmCloudWatchLogs(
       `/aws/lambda/${stackName}-${functionName}`,
       async () =>
-        await awsRequest('Lambda', 'invoke', {
+        await awsRequest(LambdaService, 'invoke', {
           FunctionName: `${stackName}-producer`,
           InvocationType: 'RequestResponse',
         }),
