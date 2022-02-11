@@ -2,10 +2,11 @@
 
 const awsLog = require('log').get('aws');
 const awsRequest = require('@serverless/test/aws-request');
+const CognitoIdentityServiceProviderService = require('aws-sdk').CognitoIdentityServiceProvider;
 
 function createUserPool(name, config = {}) {
   const params = Object.assign({}, { PoolName: name }, config);
-  return awsRequest('CognitoIdentityServiceProvider', 'createUserPool', params);
+  return awsRequest(CognitoIdentityServiceProviderService, 'createUserPool', params);
 }
 
 function createUserPoolClient(name, userPoolId) {
@@ -14,17 +15,19 @@ function createUserPoolClient(name, userPoolId) {
     UserPoolId: userPoolId,
     ExplicitAuthFlows: ['USER_PASSWORD_AUTH'],
   };
-  return awsRequest('CognitoIdentityServiceProvider', 'createUserPoolClient', params);
+  return awsRequest(CognitoIdentityServiceProviderService, 'createUserPoolClient', params);
 }
 
 function deleteUserPool(name) {
   return findUserPoolByName(name).then((pool) =>
-    awsRequest('CognitoIdentityServiceProvider', 'deleteUserPool', { UserPoolId: pool.Id })
+    awsRequest(CognitoIdentityServiceProviderService, 'deleteUserPool', { UserPoolId: pool.Id })
   );
 }
 
 function deleteUserPoolById(poolId) {
-  return awsRequest('CognitoIdentityServiceProvider', 'deleteUserPool', { UserPoolId: poolId });
+  return awsRequest(CognitoIdentityServiceProviderService, 'deleteUserPool', {
+    UserPoolId: poolId,
+  });
 }
 
 function findUserPoolByName(name) {
@@ -37,18 +40,20 @@ function findUserPoolByName(name) {
   const pools = [];
   function recursiveFind(nextToken) {
     if (nextToken) params.NextToken = nextToken;
-    return awsRequest('CognitoIdentityServiceProvider', 'listUserPools', params).then((result) => {
-      pools.push(...result.UserPools.filter((pool) => pool.Name === name));
-      if (result.NextToken) return recursiveFind(result.NextToken);
-      switch (pools.length) {
-        case 0:
-          return null;
-        case 1:
-          return pools[0];
-        default:
-          throw new Error(`Found more than one pool named '${name}'`);
+    return awsRequest(CognitoIdentityServiceProviderService, 'listUserPools', params).then(
+      (result) => {
+        pools.push(...result.UserPools.filter((pool) => pool.Name === name));
+        if (result.NextToken) return recursiveFind(result.NextToken);
+        switch (pools.length) {
+          case 0:
+            return null;
+          case 1:
+            return pools[0];
+          default:
+            throw new Error(`Found more than one pool named '${name}'`);
+        }
       }
-    });
+    );
   }
 
   return recursiveFind();
@@ -60,18 +65,20 @@ function findUserPools() {
   const pools = [];
   function recursiveFind(nextToken) {
     if (nextToken) params.NextToken = nextToken;
-    return awsRequest('CognitoIdentityServiceProvider', 'listUserPools', params).then((result) => {
-      pools.push(...result.UserPools.filter((pool) => pool.Name.includes(' CUP ')));
-      if (result.NextToken) return recursiveFind(result.NextToken);
-      return null;
-    });
+    return awsRequest(CognitoIdentityServiceProviderService, 'listUserPools', params).then(
+      (result) => {
+        pools.push(...result.UserPools.filter((pool) => pool.Name.includes(' CUP ')));
+        if (result.NextToken) return recursiveFind(result.NextToken);
+        return null;
+      }
+    );
   }
 
   return recursiveFind().then(() => pools);
 }
 
 function describeUserPool(userPoolId) {
-  return awsRequest('CognitoIdentityServiceProvider', 'describeUserPool', {
+  return awsRequest(CognitoIdentityServiceProviderService, 'describeUserPool', {
     UserPoolId: userPoolId,
   }).then((result) => {
     awsLog.debug('cognito.describeUserPool %s %j', userPoolId, result);
@@ -85,7 +92,7 @@ function createUser(userPoolId, username, password) {
     Username: username,
     TemporaryPassword: password,
   };
-  return awsRequest('CognitoIdentityServiceProvider', 'adminCreateUser', params);
+  return awsRequest(CognitoIdentityServiceProviderService, 'adminCreateUser', params);
 }
 
 function setUserPassword(userPoolId, username, password) {
@@ -95,7 +102,7 @@ function setUserPassword(userPoolId, username, password) {
     Password: password,
     Permanent: true,
   };
-  return awsRequest('CognitoIdentityServiceProvider', 'adminSetUserPassword', params);
+  return awsRequest(CognitoIdentityServiceProviderService, 'adminSetUserPassword', params);
 }
 
 function initiateAuth(clientId, username, password) {
@@ -107,7 +114,7 @@ function initiateAuth(clientId, username, password) {
       PASSWORD: password,
     },
   };
-  return awsRequest('CognitoIdentityServiceProvider', 'initiateAuth', params);
+  return awsRequest(CognitoIdentityServiceProviderService, 'initiateAuth', params);
 }
 
 module.exports = {

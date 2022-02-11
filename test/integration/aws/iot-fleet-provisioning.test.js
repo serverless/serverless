@@ -1,6 +1,9 @@
 'use strict';
 
 const awsRequest = require('@serverless/test/aws-request');
+const CloudFormationService = require('aws-sdk').CloudFormation;
+const IotService = require('aws-sdk').Iot;
+const LambdaService = require('aws-sdk').Lambda;
 const hasFailed = require('@serverless/test/has-failed');
 const { expect } = require('chai');
 const fixtures = require('../../fixtures/programmatic');
@@ -17,13 +20,17 @@ describe('test/integration/aws/iotFleetProvisioning.test.js', function () {
   let isDeployed = false;
 
   const resolveTemplateName = async () => {
-    const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
+    const result = await awsRequest(CloudFormationService, 'describeStacks', {
+      StackName: stackName,
+    });
     return result.Stacks[0].Outputs.find(
       (output) => output.OutputKey === 'ProvisioningTemplateName'
     ).OutputValue;
   };
   const resolveIoTPolicyName = async () => {
-    const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
+    const result = await awsRequest(CloudFormationService, 'describeStacks', {
+      StackName: stackName,
+    });
     return result.Stacks[0].Outputs.find((output) => output.OutputKey === 'IoTPolicyName')
       .OutputValue;
   };
@@ -47,30 +54,30 @@ describe('test/integration/aws/iotFleetProvisioning.test.js', function () {
         },
         policyName,
       ] = await Promise.all([
-        awsRequest('Iot', 'describeCertificate', {
+        awsRequest(IotService, 'describeCertificate', {
           certificateId,
         }),
         resolveIoTPolicyName(),
       ]);
       await Promise.all([
-        awsRequest('Iot', 'detachThingPrincipal', {
+        awsRequest(IotService, 'detachThingPrincipal', {
           thingName,
           principal: certificateArn,
         }),
-        awsRequest('Iot', 'detachPolicy', {
+        awsRequest(IotService, 'detachPolicy', {
           policyName,
           target: certificateArn,
         }),
-        awsRequest('Iot', 'updateCertificate', {
+        awsRequest(IotService, 'updateCertificate', {
           certificateId,
           newStatus: 'INACTIVE',
         }),
       ]);
       await Promise.all([
-        awsRequest('Iot', 'deleteThing', {
+        awsRequest(IotService, 'deleteThing', {
           thingName,
         }),
-        awsRequest('Iot', 'deleteCertificate', {
+        awsRequest(IotService, 'deleteCertificate', {
           certificateId,
         }),
       ]);
@@ -80,13 +87,13 @@ describe('test/integration/aws/iotFleetProvisioning.test.js', function () {
 
   it('setup a new IoT Thing with the provisioning template', async () => {
     const [{ certificatePem, keyPair }, iotEndpoint] = await Promise.all([
-      awsRequest('Iot', 'createProvisioningClaim', {
+      awsRequest(IotService, 'createProvisioningClaim', {
         templateName: await resolveTemplateName(),
       }),
       resolveIotEndpoint(),
     ]);
 
-    const { Payload } = await awsRequest('Lambda', 'invoke', {
+    const { Payload } = await awsRequest(LambdaService, 'invoke', {
       FunctionName: `${stackName}-registerDevice`,
       InvocationType: 'RequestResponse',
       Payload: JSON.stringify({

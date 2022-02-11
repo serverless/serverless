@@ -78,7 +78,7 @@
   "devDependencies": {
     "@commitlint/cli": "^12.1.4",
     "@serverless/eslint-config": "^4.0.0",
-    "@serverless/test": "^9.0.0",
+    "@serverless/test": "^10.0.1",
     "adm-zip": "^0.5.9",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
@@ -92,7 +92,7 @@
     "lint-staged": "^10.5.4",
     "log": "^6.3.1",
     "log-node": "^8.0.3",
-    "mocha": "^8.4.0",
+    "mocha": "^9.2.0",
     "mock-require": "^3.0.3",
     "ncjsm": "^4.3.0",
     "nyc": "^15.1.0",

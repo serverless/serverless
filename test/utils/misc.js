@@ -1,6 +1,7 @@
 'use strict';
 
 const awsRequest = require('@serverless/test/aws-request');
+const CloudWatchLogsService = require('aws-sdk').CloudWatchLogs;
 const wait = require('timers-ext/promise/sleep');
 
 const logger = console;
@@ -32,7 +33,7 @@ function confirmCloudWatchLogs(logGroupName, trigger, options = {}) {
   const timeout = options.timeout || 3 * 60 * 1000;
   return trigger()
     .then(() => wait(1000))
-    .then(() => awsRequest('CloudWatchLogs', 'filterLogEvents', { logGroupName }))
+    .then(() => awsRequest(CloudWatchLogsService, 'filterLogEvents', { logGroupName }))
     .then(({ events }) => {
       if (events.length) {
         if (options.checkIsComplete) {

@@ -4,6 +4,7 @@ const uuid = require('uuid');
 const { expect } = require('chai');
 const fixtures = require('../../fixtures/programmatic');
 const awsRequest = require('@serverless/test/aws-request');
+const S3Service = require('aws-sdk').S3;
 const { deployService, removeService } = require('../../utils/integration');
 const { createBucket, deleteBucket } = require('../../utils/s3');
 
@@ -23,7 +24,7 @@ describe('Base AWS provider test', function () {
 
   it('should deploy in the configured aws bucket', async () => {
     // we cannot deploy an empty fixture like aws so we go for a small one
-    const res = await awsRequest('S3', 'listObjects', { Bucket: bucketName });
+    const res = await awsRequest(S3Service, 'listObjects', { Bucket: bucketName });
     expect(
       res.Contents.filter((obj) => /compiled-cloudformation-template.json$/.test(obj.Key)).length
     ).to.equal(1);

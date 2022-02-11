@@ -3,6 +3,7 @@
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 const awsRequest = require('@serverless/test/aws-request');
+const CloudFormationService = require('aws-sdk').CloudFormation;
 const fixtures = require('../../fixtures/programmatic');
 
 const { confirmCloudWatchLogs } = require('../../utils/misc');
@@ -20,7 +21,9 @@ describe('AWS - API Gateway Integration Test', function () {
   const stage = 'dev';
 
   const resolveEndpoint = async () => {
-    const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
+    const result = await awsRequest(CloudFormationService, 'describeStacks', {
+      StackName: stackName,
+    });
     const endpointOutput = result.Stacks[0].Outputs.find(
       (output) => output.OutputKey === 'ServiceEndpoint'
     ).OutputValue;
