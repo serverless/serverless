@@ -1,13 +1,13 @@
 'use strict';
 
-const { use: chaiUse, expect } = require('chai');
-const chaiAsPromised = require('chai-as-promised');
+const chai = require('chai');
 const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
 const AwsCompileStreamEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/stream');
 const Serverless = require('../../../../../../../../lib/serverless');
 const runServerless = require('../../../../../../../utils/run-serverless');
 
-chaiUse(chaiAsPromised);
+const { expect } = chai;
+chai.use(require('chai-as-promised'));
 
 describe('AwsCompileStreamEvents', () => {
   let serverless;
@@ -36,412 +36,613 @@ describe('AwsCompileStreamEvents', () => {
   });
 
   describe('#compileStreamEvents()', () => {
-    it('should not throw error or merge role statements if default policy is not present', () => {
-      awsCompileStreamEvents.serverless.service.functions = {
-        first: {
-          events: [
-            {
-              // doesn't matter if DynamoDB or Kinesis stream
-              stream: 'arn:aws:dynamodb:region:account:table/foo/stream/1',
-            },
-          ],
-        },
-      };
-
-      // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
-
-      expect(() => {
-        awsCompileStreamEvents.compileStreamEvents();
-      }).to.not.throw(Error);
-      expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
-
-    it('should not throw error if custom IAM role is set in function', () => {
-      awsCompileStreamEvents.serverless.service.functions = {
-        first: {
-          role: 'arn:aws:iam::account:role/foo',
-          events: [
-            {
-              // doesn't matter if DynamoDB or Kinesis stream
-              stream: 'arn:aws:dynamodb:region:account:table/foo/stream/1',
-            },
-          ],
-        },
-      };
-
-      // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
-
-      expect(() => {
-        awsCompileStreamEvents.compileStreamEvents();
-      }).to.not.throw(Error);
-      expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn
-      ).to.be.instanceof(Array);
-      expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn.length
-      ).to.equal(0);
-      expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
-
-    it('should not throw error if custom IAM role name reference is set in function', () => {
-      const roleLogicalId = 'RoleLogicalId';
-      awsCompileStreamEvents.serverless.service.functions = {
-        first: {
-          role: roleLogicalId,
-          events: [
-            {
-              // doesn't matter if DynamoDB or Kinesis stream
-              stream: 'arn:aws:dynamodb:region:account:table/foo/stream/1',
-            },
-          ],
-        },
-      };
-
-      // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
-
-      expect(() => {
-        awsCompileStreamEvents.compileStreamEvents();
-      }).to.not.throw(Error);
-      expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn
-      ).to.include(roleLogicalId);
-      expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
-
-    it('should not throw error if custom IAM role reference is set in function', () => {
-      const roleLogicalId = 'RoleLogicalId';
-      awsCompileStreamEvents.serverless.service.functions = {
-        first: {
-          role: { 'Fn::GetAtt': [roleLogicalId, 'Arn'] },
-          events: [
-            {
-              // doesn't matter if DynamoDB or Kinesis stream
-              stream: 'arn:aws:dynamodb:region:account:table/foo/stream/1',
-            },
-          ],
-        },
-      };
-
-      // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
-
-      expect(() => {
-        awsCompileStreamEvents.compileStreamEvents();
-      }).to.not.throw(Error);
-      expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn
-      ).to.include(roleLogicalId);
-      expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
-
-    it('should not throw error if custom IAM role is set in provider', () => {
-      awsCompileStreamEvents.serverless.service.functions = {
-        first: {
-          events: [
-            {
-              // doesn't matter if DynamoDB or Kinesis stream
-              stream: 'arn:aws:dynamodb:region:account:table/foo/stream/1',
-            },
-          ],
-        },
-      };
-
-      // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
-
-      awsCompileStreamEvents.serverless.service.provider.role = 'arn:aws:iam::account:role/foo';
-
-      expect(() => {
-        awsCompileStreamEvents.compileStreamEvents();
-      }).to.not.throw(Error);
-      expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn
-      ).to.be.instanceof(Array);
-      expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn.length
-      ).to.equal(0);
-      expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
-
-    it('should not throw error if IAM role is referenced from cloudformation parameters', () => {
-      awsCompileStreamEvents.serverless.service.functions = {
-        first: {
-          role: { Ref: 'MyStreamRoleArn' },
-          events: [
-            {
-              // doesn't matter if DynamoDB or Kinesis stream
-              stream: 'arn:aws:dynamodb:region:account:table/foo/stream/1',
-            },
-          ],
-        },
-      };
-
-      // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
-
-      expect(() => {
-        awsCompileStreamEvents.compileStreamEvents();
-      }).to.not.throw(Error);
-      expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn.length
-      ).to.equal(0);
-      expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
-
-    it('should not throw error if IAM role is imported', () => {
-      awsCompileStreamEvents.serverless.service.functions = {
-        first: {
-          role: { 'Fn::ImportValue': 'ExportedRoleId' },
-          events: [
-            {
-              // doesn't matter if DynamoDB or Kinesis stream
-              stream: 'arn:aws:dynamodb:region:account:table/foo/stream/1',
-            },
-          ],
-        },
-      };
-
-      // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
-
-      expect(() => {
-        awsCompileStreamEvents.compileStreamEvents();
-      }).to.not.throw(Error);
-      expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn.length
-      ).to.equal(0);
-      expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
-
-    it('should not throw error if custom IAM role reference is set in provider', () => {
-      const roleLogicalId = 'RoleLogicalId';
-      awsCompileStreamEvents.serverless.service.functions = {
-        first: {
-          events: [
-            {
-              // doesn't matter if DynamoDB or Kinesis stream
-              stream: 'arn:aws:dynamodb:region:account:table/foo/stream/1',
-            },
-          ],
-        },
-      };
-
-      // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
-
-      awsCompileStreamEvents.serverless.service.provider.role = {
-        'Fn::GetAtt': [roleLogicalId, 'Arn'],
-      };
-
-      expect(() => {
-        awsCompileStreamEvents.compileStreamEvents();
-      }).to.not.throw(Error);
-      expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn
-      ).to.include(roleLogicalId);
-      expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
-
-    it('should not throw error if custom IAM role name reference is set in provider', () => {
-      const roleLogicalId = 'RoleLogicalId';
-      awsCompileStreamEvents.serverless.service.functions = {
-        first: {
-          events: [
-            {
-              // doesn't matter if DynamoDB or Kinesis stream
-              stream: 'arn:aws:dynamodb:region:account:table/foo/stream/1',
-            },
-          ],
-        },
-      };
-
-      // pretend that the default IamRoleLambdaExecution is not in place
-      awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
-
-      awsCompileStreamEvents.serverless.service.provider.role = roleLogicalId;
-
-      expect(() => {
-        awsCompileStreamEvents.compileStreamEvents();
-      }).to.not.throw(Error);
-      expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn
-      ).to.include(roleLogicalId);
-      expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
-
     describe('when a DynamoDB stream ARN is given', () => {
-      it('fails if Ref/dynamic stream ARN is used without defining it to the CF parameters', () => {
-        awsCompileStreamEvents.serverless.service.functions = {
-          first: {
-            events: [
-              {
-                stream: {
-                  arn: { Ref: 'SomeDdbTableStreamArn' },
-                },
-              },
-            ],
+      it('should allow specifying DynamoDB and Kinesis streams as CFN reference types', () => {
+        awsCompileStreamEvents.serverless.service.resources.Parameters = {
+          SomeDdbTableStreamArn: {
+            Type: 'String',
+          },
+          ForeignKinesisStreamArn: {
+            Type: 'String',
           },
         };
-        expect(() => awsCompileStreamEvents.compileStreamEvents()).to.throw(Error);
-      });
-
-      it('fails if Ref/dynamic onFailure ARN is used without defining it to the CF parameters', () => {
-        awsCompileStreamEvents.serverless.service.functions = {
-          first: {
-            events: [
-              {
-                stream: {
-                  arn: 'arn:aws:dynamodb:region:account:table/fizz/stream/1',
-                  destinations: {
-                    onFailure: {
-                      arn: { Ref: 'ForeignSQSArn' },
-                    },
-                  },
-                },
-              },
-            ],
-          },
-        };
-
-        expect(() => awsCompileStreamEvents.compileStreamEvents()).to.throw(Error);
-      });
-
-      it('fails if Fn::GetAtt/dynamic stream ARN is used without a type', () => {
         awsCompileStreamEvents.serverless.service.functions = {
           first: {
             events: [
               {
                 stream: {
                   arn: { 'Fn::GetAtt': ['SomeDdbTable', 'StreamArn'] },
+                  type: 'dynamodb',
                 },
-              },
-            ],
-          },
-        };
-
-        expect(() => awsCompileStreamEvents.compileStreamEvents()).to.throw(Error);
-      });
-
-      it('fails if Fn::GetAtt/dynamic onFailure ARN is used without a type', () => {
-        awsCompileStreamEvents.serverless.service.functions = {
-          first: {
-            events: [
-              {
-                stream: {
-                  arn: 'arn:aws:dynamodb:region:account:table/foo/stream/1',
-                  destinations: {
-                    onFailure: {
-                      arn: { 'Fn::GetAtt': ['SomeSNS', 'Arn'] },
-                    },
-                  },
-                },
-              },
-            ],
-          },
-        };
-
-        expect(() => awsCompileStreamEvents.compileStreamEvents()).to.throw(Error);
-      });
-
-      it('should add the necessary IAM role statements', () => {
-        awsCompileStreamEvents.serverless.service.functions = {
-          first: {
-            events: [
-              {
-                stream: 'arn:aws:dynamodb:region:account:table/foo/stream/1',
               },
               {
                 stream: {
-                  arn: 'arn:aws:dynamodb:region:account:table/bar/stream/2',
-                  destinations: {
-                    onFailure: 'arn:aws:sns:region:account:snstopic',
+                  arn: { 'Fn::ImportValue': 'ForeignKinesis' },
+                  type: 'kinesis',
+                },
+              },
+              {
+                stream: {
+                  arn: {
+                    'Fn::Join': [
+                      ':',
+                      [
+                        'arn',
+                        'aws',
+                        'kinesis',
+                        {
+                          Ref: 'AWS::Region',
+                        },
+                        {
+                          Ref: 'AWS::AccountId',
+                        },
+                        'stream/MyStream',
+                      ],
+                    ],
                   },
+                  type: 'kinesis',
+                },
+              },
+              {
+                stream: {
+                  arn: { Ref: 'SomeDdbTableStreamArn' },
+                  type: 'dynamodb',
+                },
+              },
+              {
+                stream: {
+                  arn: { Ref: 'ForeignKinesisStreamArn' },
+                  type: 'kinesis',
                 },
               },
             ],
           },
         };
-
-        const iamRoleStatements = [
-          {
-            Effect: 'Allow',
-            Action: [
-              'dynamodb:GetRecords',
-              'dynamodb:GetShardIterator',
-              'dynamodb:DescribeStream',
-              'dynamodb:ListStreams',
-            ],
-            Resource: [
-              'arn:aws:dynamodb:region:account:table/foo/stream/1',
-              'arn:aws:dynamodb:region:account:table/bar/stream/2',
-            ],
-          },
-          {
-            Effect: 'Allow',
-            Action: ['sns:Publish'],
-            Resource: ['arn:aws:sns:region:account:snstopic'],
-          },
-        ];
 
         awsCompileStreamEvents.compileStreamEvents();
 
+        // dynamodb with Fn::GetAtt
         expect(
           awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement
-        ).to.deep.equal(iamRoleStatements);
-      });
-    });
+            .Resources.FirstEventSourceMappingDynamodbSomeDdbTable.Properties.EventSourceArn
+        ).to.deep.equal({ 'Fn::GetAtt': ['SomeDdbTable', 'StreamArn'] });
+        expect(
+          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement[0]
+        ).to.deep.equal({
+          Action: [
+            'dynamodb:GetRecords',
+            'dynamodb:GetShardIterator',
+            'dynamodb:DescribeStream',
+            'dynamodb:ListStreams',
+          ],
+          Effect: 'Allow',
+          Resource: [
+            {
+              'Fn::GetAtt': ['SomeDdbTable', 'StreamArn'],
+            },
+            {
+              Ref: 'SomeDdbTableStreamArn',
+            },
+          ],
+        });
 
-    describe('when a Kinesis stream ARN is given', () => {
+        // kinesis with Fn::ImportValue
+        expect(
+          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources.FirstEventSourceMappingKinesisForeignKinesis.Properties.EventSourceArn
+        ).to.deep.equal({ 'Fn::ImportValue': 'ForeignKinesis' });
+
+        // kinesis with Fn::Join
+        expect(
+          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources.FirstEventSourceMappingKinesisMyStream.Properties.EventSourceArn
+        ).to.deep.equal({
+          'Fn::Join': [
+            ':',
+            [
+              'arn',
+              'aws',
+              'kinesis',
+              {
+                Ref: 'AWS::Region',
+              },
+              {
+                Ref: 'AWS::AccountId',
+              },
+              'stream/MyStream',
+            ],
+          ],
+        });
+
+        expect(
+          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement[1]
+        ).to.deep.equal({
+          Effect: 'Allow',
+          Action: [
+            'kinesis:GetRecords',
+            'kinesis:GetShardIterator',
+            'kinesis:DescribeStream',
+            'kinesis:ListStreams',
+          ],
+          Resource: [
+            {
+              'Fn::ImportValue': 'ForeignKinesis',
+            },
+            {
+              'Fn::Join': [
+                ':',
+                [
+                  'arn',
+                  'aws',
+                  'kinesis',
+                  {
+                    Ref: 'AWS::Region',
+                  },
+                  {
+                    Ref: 'AWS::AccountId',
+                  },
+                  'stream/MyStream',
+                ],
+              ],
+            },
+            {
+              Ref: 'ForeignKinesisStreamArn',
+            },
+          ],
+        });
+      });
+
+      describe('when a Kinesis stream ARN is given', () => {
+        it('should create event source mappings when a Kinesis stream ARN is given', () => {
+          awsCompileStreamEvents.serverless.service.functions = {
+            first: {
+              events: [
+                {
+                  stream: {
+                    arn: 'arn:aws:kinesis:region:account:stream/foo',
+                    batchSize: 1,
+                    startingPosition: 'STARTING_POSITION_ONE',
+                    enabled: false,
+                    parallelizationFactor: 10,
+                  },
+                },
+                {
+                  stream: {
+                    arn: 'arn:aws:kinesis:region:account:stream/bar',
+                    batchWindow: 15,
+                    maximumRetryAttempts: 5,
+                  },
+                },
+                {
+                  stream: 'arn:aws:kinesis:region:account:stream/baz',
+                },
+                {
+                  stream: {
+                    arn: 'arn:aws:kinesis:region:account:stream/buzz',
+                    bisectBatchOnFunctionError: true,
+                    maximumRecordAgeInSeconds: 180,
+                  },
+                },
+                {
+                  stream: {
+                    arn: 'arn:aws:kinesis:region:account:table/fizz/stream/5',
+                    destinations: {
+                      onFailure: 'arn:aws:sns:region:account:snstopic',
+                    },
+                  },
+                },
+                {
+                  stream: {
+                    arn: 'arn:aws:kinesis:region:account:stream/abc',
+                    consumer: true,
+                  },
+                },
+                {
+                  stream: {
+                    arn: 'arn:aws:kinesis:region:account:stream/xyz',
+                    consumer:
+                      'arn:aws:kinesis:region:account:stream/xyz/consumer/foobar:1558544531',
+                  },
+                },
+                {
+                  stream: {
+                    arn: 'arn:aws:kinesis:region:account:stream/def',
+                    consumer: false,
+                  },
+                },
+              ],
+            },
+          };
+
+          awsCompileStreamEvents.compileStreamEvents();
+
+          // event 1
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisFoo.Type
+          ).to.equal('AWS::Lambda::EventSourceMapping');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisFoo.DependsOn
+          ).to.include('IamRoleLambdaExecution');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisFoo.Properties.EventSourceArn
+          ).to.equal(
+            awsCompileStreamEvents.serverless.service.functions.first.events[0].stream.arn
+          );
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisFoo.Properties.BatchSize
+          ).to.equal(
+            awsCompileStreamEvents.serverless.service.functions.first.events[0].stream.batchSize
+          );
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisFoo.Properties.StartingPosition
+          ).to.equal(
+            awsCompileStreamEvents.serverless.service.functions.first.events[0].stream
+              .startingPosition
+          );
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisFoo.Properties.ParallelizationFactor
+          ).to.equal(
+            awsCompileStreamEvents.serverless.service.functions.first.events[0].stream
+              .parallelizationFactor
+          );
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisFoo.Properties.Enabled
+          ).to.equal(false);
+
+          // event 2
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBar.Type
+          ).to.equal('AWS::Lambda::EventSourceMapping');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBar.DependsOn
+          ).to.include('IamRoleLambdaExecution');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBar.Properties.EventSourceArn
+          ).to.equal(
+            awsCompileStreamEvents.serverless.service.functions.first.events[1].stream.arn
+          );
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBar.Properties.BatchSize
+          ).to.equal(10);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBar.Properties.ParallelizationFactor
+          ).to.equal(undefined);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBar.Properties.StartingPosition
+          ).to.equal('TRIM_HORIZON');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBar.Properties.Enabled
+          ).to.equal(true);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBar.Properties.MaximumBatchingWindowInSeconds
+          ).to.equal(15);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBar.Properties.MaximumRetryAttempts
+          ).to.equal(5);
+
+          // event 3
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBaz.Type
+          ).to.equal('AWS::Lambda::EventSourceMapping');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBaz.DependsOn
+          ).to.include('IamRoleLambdaExecution');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBaz.Properties.EventSourceArn
+          ).to.equal(awsCompileStreamEvents.serverless.service.functions.first.events[2].stream);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBaz.Properties.BatchSize
+          ).to.equal(10);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBaz.Properties.StartingPosition
+          ).to.equal('TRIM_HORIZON');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBaz.Properties.Enabled
+          ).to.equal(true);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBaz.Properties.BisectBatchOnFunctionError
+          ).to.equal(undefined);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBaz.Properties.MaximumRecordAgeInSeconds
+          ).to.equal(undefined);
+
+          // event 4
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBuzz.Type
+          ).to.equal('AWS::Lambda::EventSourceMapping');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBuzz.DependsOn
+          ).to.include('IamRoleLambdaExecution');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBuzz.Properties.EventSourceArn
+          ).to.equal(
+            awsCompileStreamEvents.serverless.service.functions.first.events[3].stream.arn
+          );
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBuzz.Properties.BatchSize
+          ).to.equal(10);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBuzz.Properties.ParallelizationFactor
+          ).to.equal(undefined);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBuzz.Properties.StartingPosition
+          ).to.equal('TRIM_HORIZON');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBuzz.Properties.Enabled
+          ).to.equal(true);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBuzz.Properties.BisectBatchOnFunctionError
+          ).to.equal(true);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisBuzz.Properties.MaximumRecordAgeInSeconds
+          ).to.equal(180);
+
+          // event 5
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisFizz.Type
+          ).to.equal('AWS::Lambda::EventSourceMapping');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisFizz.DependsOn
+          ).to.include('IamRoleLambdaExecution');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisFizz.Properties.EventSourceArn
+          ).to.equal(
+            awsCompileStreamEvents.serverless.service.functions.first.events[4].stream.arn
+          );
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisFizz.Properties.BatchSize
+          ).to.equal(10);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisFizz.Properties.StartingPosition
+          ).to.equal('TRIM_HORIZON');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisFizz.Properties.Enabled
+          ).to.equal(true);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisFizz.Properties.DestinationConfig.OnFailure
+              .Destination
+          ).to.equal(
+            awsCompileStreamEvents.serverless.service.functions.first.events[4].stream.destinations
+              .onFailure
+          );
+
+          // event 6
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisAbc.Type
+          ).to.equal('AWS::Lambda::EventSourceMapping');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisAbc.DependsOn
+          ).to.eql(['IamRoleLambdaExecution', 'FirstabcConsumerStreamConsumer']);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisAbc.Properties.EventSourceArn
+          ).to.eql({ Ref: 'FirstabcConsumerStreamConsumer' });
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisAbc.Properties.BatchSize
+          ).to.equal(10);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisAbc.Properties.StartingPosition
+          ).to.equal('TRIM_HORIZON');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisAbc.Properties.Enabled
+          ).to.equal(true);
+
+          // event 7
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisXyz.Type
+          ).to.equal('AWS::Lambda::EventSourceMapping');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisXyz.DependsOn
+          ).to.include('IamRoleLambdaExecution');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisXyz.Properties.EventSourceArn
+          ).to.equal('arn:aws:kinesis:region:account:stream/xyz/consumer/foobar:1558544531');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisXyz.Properties.BatchSize
+          ).to.equal(10);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisXyz.Properties.StartingPosition
+          ).to.equal('TRIM_HORIZON');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisXyz.Properties.Enabled
+          ).to.equal(true);
+
+          // event 8
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisDef.Type
+          ).to.equal('AWS::Lambda::EventSourceMapping');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisDef.DependsOn
+          ).to.include('IamRoleLambdaExecution');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisDef.Properties.EventSourceArn
+          ).to.equal(
+            awsCompileStreamEvents.serverless.service.functions.first.events[7].stream.arn
+          );
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisDef.Properties.BatchSize
+          ).to.equal(10);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisDef.Properties.StartingPosition
+          ).to.equal('TRIM_HORIZON');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisDef.Properties.Enabled
+          ).to.equal(true);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisDef.Properties.BisectBatchOnFunctionError
+          ).to.equal(undefined);
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstEventSourceMappingKinesisDef.Properties.MaximumRecordAgeInSeconds
+          ).to.equal(undefined);
+        });
+
+        it('should create stream consumer when a Kinesis stream with consumer "true" is given', () => {
+          awsCompileStreamEvents.serverless.service.functions = {
+            first: {
+              events: [
+                {
+                  stream: {
+                    arn: 'arn:aws:kinesis:region:account:stream/abc',
+                    consumer: true,
+                  },
+                },
+              ],
+            },
+          };
+
+          awsCompileStreamEvents.compileStreamEvents();
+
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstabcConsumerStreamConsumer.Type
+          ).to.equal('AWS::Kinesis::StreamConsumer');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstabcConsumerStreamConsumer.Properties.ConsumerName
+          ).to.equal('firstabcConsumer');
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.FirstabcConsumerStreamConsumer.Properties.StreamARN
+          ).to.equal(
+            awsCompileStreamEvents.serverless.service.functions.first.events[0].stream.arn
+          );
+        });
+
+        it('should add the necessary IAM role statements', () => {
+          awsCompileStreamEvents.serverless.service.functions = {
+            first: {
+              events: [
+                {
+                  stream: 'arn:aws:kinesis:region:account:stream/foo',
+                },
+                {
+                  stream: 'arn:aws:kinesis:region:account:stream/bar',
+                },
+                {
+                  stream: {
+                    type: 'kinesis',
+                    arn: 'arn:aws:kinesis:region:account:stream/fizz',
+                    consumer: true,
+                  },
+                },
+                {
+                  stream: {
+                    type: 'kinesis',
+                    arn: 'arn:aws:kinesis:region:account:stream/buzz',
+                    consumer: 'arn:aws:kinesis:region:account:stream/buzz/consumer/abc:1558544531',
+                  },
+                },
+              ],
+            },
+          };
+
+          const iamRoleStatements = [
+            {
+              Effect: 'Allow',
+              Action: [
+                'kinesis:GetRecords',
+                'kinesis:GetShardIterator',
+                'kinesis:DescribeStream',
+                'kinesis:ListStreams',
+              ],
+              Resource: [
+                'arn:aws:kinesis:region:account:stream/foo',
+                'arn:aws:kinesis:region:account:stream/bar',
+              ],
+            },
+            {
+              Effect: 'Allow',
+              Action: [
+                'kinesis:GetRecords',
+                'kinesis:GetShardIterator',
+                'kinesis:DescribeStreamSummary',
+                'kinesis:ListShards',
+              ],
+              Resource: [
+                'arn:aws:kinesis:region:account:stream/fizz',
+                'arn:aws:kinesis:region:account:stream/buzz',
+              ],
+            },
+            {
+              Effect: 'Allow',
+              Action: ['kinesis:SubscribeToShard'],
+              Resource: [
+                { Ref: 'FirstfizzConsumerStreamConsumer' },
+                'arn:aws:kinesis:region:account:stream/buzz/consumer/abc:1558544531',
+              ],
+            },
+          ];
+
+          awsCompileStreamEvents.compileStreamEvents();
+
+          expect(
+            awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement
+          ).to.deep.equal(iamRoleStatements);
+        });
+      });
+
       it('should remove all non-alphanumerics from stream names for the resource logical ids', () => {
         awsCompileStreamEvents.serverless.service.functions = {
           first: {
