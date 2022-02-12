@@ -13,7 +13,7 @@ layout: Doc
 
 # Mono-repo support using Trigger Directories
 
-When first getting started with a Serverless Framework project it is common to have a single `serverless.yml` file in a single Github repo. As the project grows it is common to split up the single mono-services into micro-services in individual `serverless.yml` files by placing them into different directories in the same repo. In some cases, another directory may existing (e.g. `/shared`) which may contain shared libraries used by those services.
+When first getting started with a Serverless Framework project it is common to have a single `serverless.yml` file in a single Github repo. As the project grows it is common to split up the single mono-service into micro-services in individual `serverless.yml` files by placing them into different directories in the same repo. In some cases, another directory may exist (e.g. `/shared`) which may contain shared libraries used by those services.
 
 As an example, you may end up with a directory structure like this:
 
@@ -21,7 +21,7 @@ As an example, you may end up with a directory structure like this:
 - `/service2`
 - `/shared`
 
-In this case, there is a `/service/serverless.yml` and a `/service2/serverless.yml`. The services in those two directories may have a dependency on code defined in the `/shared` directory. We want to avoid redeploying ALL services every any of the files change. Instead, we want to run tests and redeploy when the relevant changes are made, in particular:
+In this case, there is a `/service1/serverless.yml` and a `/service2/serverless.yml`. The services in those two directories may have a dependency on code defined in the `/shared` directory. We want to avoid redeploying ALL services every time any of the files change. Instead, we want to run tests and redeploy when the relevant changes are made, in particular:
 
 - If there is a change in `/service1` only deploy `/service1/serverless.yml`.
 - If there is a change in `/service2` only deploy `/service2/serverless.yml`.
