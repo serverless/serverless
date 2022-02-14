@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.2.1](https://github.com/serverless/serverless/compare/v3.2.0...v3.2.1) (2022-02-14)
+
+### Bug Fixes
+
+- **CLI:** Ensure to pass through `serverless-tencent` exit code ([#10698](https://github.com/serverless/serverless/pull/10698)) ([4d091b4](https://github.com/serverless/serverless/commit/4d091b42cbcfadf8f8922aba9e46f756ebfe3e88)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Config Schema:** Safe generation of standalone AJV validator ([#10680](https://github.com/serverless/serverless/pull/10680)) ([6093ee4](https://github.com/serverless/serverless/commit/6093ee480aceba35d7eb74d7a0ea3c378a596e63)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Standalone:** Fix upgrade when temp dir is on other device ([#10684](https://github.com/serverless/serverless/pull/10684)) ([1b8d463](https://github.com/serverless/serverless/commit/1b8d463a08fb48cca0236874dd1cf68e477ba93d)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- Upgrade to `@serverless/test` in `v10` ([4201b30](https://github.com/serverless/serverless/commit/4201b304a2b6582e5755944b1c4a0ff89ad2bcc1))
+
 ## [3.2.0](https://github.com/serverless/serverless/compare/v3.1.1...v3.2.0) (2022-02-10)
 
 ### Features
