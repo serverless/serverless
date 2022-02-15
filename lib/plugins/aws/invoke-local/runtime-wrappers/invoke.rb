@@ -62,7 +62,7 @@ if __FILE__ == $0
 
   attach_tty
 
-  context = FakeLambdaContext.new(**input.fetch('context', {}))
+  context = FakeLambdaContext.new(**input.fetch('context', {}).transform_keys(&:to_sym))
   result = Object.const_get(handler_class).send(handler_method, event: input['event'], context: context)
 
   puts result.to_json
