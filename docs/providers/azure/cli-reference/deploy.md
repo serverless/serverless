@@ -29,7 +29,7 @@ The `sls deploy apim` command will deploy API management as configured within `s
 - `--region` or `-r` - Specify region name
 - `--subscriptionId` or `-i` - Specify subscription ID
 - `--config` or `-c` Name of your configuration file, if other than `serverless.yml|.yaml|.js|.json`.
-- `--verbose` or `-v` Shows all stack events during deployment, and display any Stack Output.
+- `--verbose` Shows all stack events during deployment, and display any Stack Output.
 
 ## Artifacts
 

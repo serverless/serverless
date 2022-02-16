@@ -24,7 +24,7 @@ serverless info
 
 - `--stage` or `-s` The stage in your service you want to display information about.
 - `--region` or `-r` The region in your stage that you want to display information about.
-- `--verbose` or `-v` Shows displays any Stack Output.
+- `--verbose` Shows displays any Stack Output.
 
 ## Provided lifecycle events
 
