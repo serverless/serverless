@@ -22,7 +22,7 @@ serverless info
 
 ## Options
 
-- `--verbose` or `-v` Shows the metadata of the Kubernetes objects.
+- `--verbose` Shows the metadata of the Kubernetes objects.
 
 ## Provided lifecycle events
 

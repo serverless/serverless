@@ -23,4 +23,4 @@ serverless info
 ## Options
 
 - `--function` or `-f` The name of the function which should be fetched.
-- `--verbose` or `-v` Shows displays any Stack Output.
+- `--verbose` Shows displays any Stack Output.

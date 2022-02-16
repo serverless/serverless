@@ -24,7 +24,7 @@ serverless remove
 
 - `--stage` or `-s` The name of the stage in service.
 - `--region` or `-r` The name of the region in stage.
-- `--verbose` or `-v` Shows all stack events during deployment.
+- `--verbose` Shows all stack events during deployment.
 
 ## Provided lifecycle events
 
