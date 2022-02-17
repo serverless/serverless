@@ -13,11 +13,28 @@ layout: Doc
 
 # Parameters
 
-Parameters can be defined in `serverless.yml` or in [Serverless Dashboard](https://www.serverless.com/secrets). They can be used for example to:
+Parameters can be defined in `serverless.yml`, [Serverless Dashboard](https://www.serverless.com/secrets) or passed via CLI with `--param="<key>=<value>"` flag. They can be used for example to:
 
 - adapt the configuration based on the stage
 - store secrets securely
 - share configuration values between team members
+
+## CLI parameters
+
+Parameters can be passed directly via CLI `--param` flag, following the pattern `--param="<key>=<value>"`:
+
+```
+serverless deploy --param="domain=myapp.com" --param="key=value"
+```
+
+Parameters can then be used via the `${param:XXX}` variables:
+
+```yaml
+provider:
+  environment:
+    APP_DOMAIN: ${param:domain}
+    KEY: ${param:key}
+```
 
 ## Stage parameters
 
@@ -117,7 +134,8 @@ serverless param get --name <name>
 
 Parameters can be defined in `serverless.yml` per stage, as well as in Serverless Dashboard on the service or the instance (stage). Here is the priority used to resolve a `${param:XXX}` variable:
 
-- First, look in `params.<stage>` in `serverless.yml`
+- First, look in params passed with `--param` CLI flag
+- If not found, then look in `params.<stage>` in `serverless.yml`
 - If not found, then look in the instance's parameters in the Dashboard
 - If not found, then look in `params.default` in `serverless.yml`
 - If not found, then look in the service's parameters in the Dashboard
