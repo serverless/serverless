@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.3.0](https://github.com/serverless/serverless/compare/v3.2.1...v3.3.0) (2022-02-18)
+
+### Features
+
+- **Variables:** Support for `--param` CLI options ([#10713](https://github.com/serverless/serverless/pull/10713)) ([964b883](https://github.com/serverless/serverless/commit/964b8834554e4607fa68f4460cab995af1352746)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **AWS Local Invocation:** Improve `ruby` context ([#10705](https://github.com/serverless/serverless/issues/10705)) ([ce5bf0b](https://github.com/serverless/serverless/commit/ce5bf0b40f64c087fa5ec114d0d28750b4813aaa)) ([Shalvah](https://github.com/shalvah))
+
+### Maintenance Improvements
+
+- **CLI:** Remove obsolete `v` postfix when listing global version ([#10708](https://github.com/serverless/serverless/pull/10708)) ([5013af0](https://github.com/serverless/serverless/commit/5013af01476fb3d13f31775ff4171bc98a35d39d)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [3.2.1](https://github.com/serverless/serverless/compare/v3.2.0...v3.2.1) (2022-02-14)
 
 ### Bug Fixes
