@@ -22,13 +22,13 @@
     "sls": "./bin/serverless.js"
   },
   "dependencies": {
-    "@serverless/dashboard-plugin": "^6.0.0",
+    "@serverless/dashboard-plugin": "^6.1.0",
     "@serverless/platform-client": "^4.3.1",
     "@serverless/utils": "^6.0.2",
     "ajv": "^8.10.0",
     "ajv-formats": "^2.1.1",
     "archiver": "^5.3.0",
-    "aws-sdk": "^2.1073.0",
+    "aws-sdk": "^2.1076.0",
     "bluebird": "^3.7.2",
     "cachedir": "^2.3.0",
     "chalk": "^4.1.2",
