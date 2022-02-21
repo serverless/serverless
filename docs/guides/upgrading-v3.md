@@ -254,6 +254,25 @@ However, we highly encourage upgrading to the new algorithm. To upgrade, you mus
 
 Remember that you will need to deploy with changes to each stage you have previously deployed. For development stages another option is to remove and recreate the stage entirely.
 
+### New variable resolver engine
+
+A more robust and powerful variable resolver engine was introduced behind a flag in Serverless Framework v2. This new engine is used by default in v3.
+
+It supports the same variables with the same syntax. The main impacts are:
+
+- Some edge cases (ambiguous configuration) now throw errors
+- A very small share of unmaintained plugins haven't been updated to support the new engine
+
+You can prepare the upgrade from v2 to v3 by enabling the new engine:
+
+```yaml
+# serverless.yml
+service: myapp
+variablesResolutionMode: 20210326
+```
+
+In v3, the `variablesResolutionMode` option can be removed as the new engine becomes the default.
+
 ### Low-level changes
 
 Internal changes that may impact plugins or advanced use cases:
