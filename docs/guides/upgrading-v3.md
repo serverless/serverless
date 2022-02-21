@@ -87,6 +87,8 @@ serverless deploy --foo=bar
 serverless deploy --param="foo=bar"
 ```
 
+In the example above, the `${opt:foo}` variable must be replaced with `${param:foo}` in the service configuration.
+
 [Learn more about this change](../deprecations.md#handling-of-unrecognized-cli-options).
 
 Additionally, all CLI options must now be passed at the end of the commands:
