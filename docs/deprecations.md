@@ -122,11 +122,11 @@ Starting with `v4.0.0`, `--function` or `-f` option for `deploy` command will no
 
 Deprecation code: `LAMBDA_HASHING_VERSION_PROPERTY`
 
-Lambda version hashes were improved with a better algorithm (that fixed determinism issues), which is used by default, starting with v3.0.0.
+Lambda version hashes were improved with a better algorithm (that fixed determinism issues). It is used by default starting with v3.0.0.
 
-If you previously opted-in to use new algorithm by setting `provider.lambdaHashingVersion` to `20201221`, you can safely remove that property from your configuration to silence the deprecation.
+If you previously opted-in to use new algorithm by setting `provider.lambdaHashingVersion: 20201221`, you can safely remove that property from your configuration in v3.
 
-The old `20200924` algorithm is deprecated and it is recommended to migrate to the new version. In order to do that, you can follow the guide in [Functions Docs](./providers/aws/guide/functions.md#lambda-hashing-algorithm-migration).
+To get more details, read [the v3 upgrade guide](./guides/upgrading-v3.md#lambda-hashing-algorithm).
 
 <a name="AwS_EVENT_BRIDGE_CUSTOM_RESOURCE_LEGACY_OPT_IN"><div>&nbsp;</div></a>
 
@@ -432,21 +432,14 @@ Org, app, service, stage, and region are required to resolve variables when logg
 
 Deprecation code: `LAMBDA_HASHING_VERSION_V2`
 
-Lambda version hashes were improved with a better algorithm (that fixed determinism issues). It will be used by default starting with v3.0.0.
+Lambda version hashes were improved with a more robust algorithm (that fixes determinism issues). It is used by default starting with v3.0.0.
 
-You can adapt your services to use it now by setting `provider.lambdaHashingVersion` to `20201221`.
+You can either:
 
-While not recommended, you can keep using the old hashing algorithm by setting `provider.lambdaHashingVersion` to `20200924`. That will silence the deprecation and allow to upgrade to v3.
+- keep using the deprecated algorithm in v3 (easy upgrade),
+- or upgrade to the new algorithm (recommended).
 
-**Notice:** If you apply this on already deployed service without any changes to lambda code, you might encounter an error similar to the one below:
-
-```
-  Serverless Error ---------------------------------------
-
-  An error occurred: FooLambdaVersion3IV5NZ3sE5T2UFimCOai2Tc6eCaW7yIYOP786U0Oc - A version for this Lambda function exists ( 11 ). Modify the function to create a new version..
-```
-
-It is an expected behavior. AWS complains here that received a different hash for very same lambda configuration. To workaround that, you need to modify your function(s) code and try to redeploy it again. One common approach is to modify an utility function that is used by all/most of your Lambda functions. There's also a semi-automated migration available and described in [V3 Upgrade docs](./guides/upgrading-v3.md#lambda-hashing-algorithm).
+Read [the instructions in the v3 upgrade guide](./guides/upgrading-v3.md#lambda-hashing-algorithm).
 
 <a name="LOAD_VARIABLES_FROM_ENV_FILES"><div>&nbsp;</div></a>
 
