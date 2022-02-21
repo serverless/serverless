@@ -77,7 +77,17 @@ You will find below a complete list of all breaking changes. All those breaking 
 
 The `serverless` CLI no longer runs on Node v10 because [that version is obsolete](https://endoflife.date/nodejs): upgrade to v12.13.0 (LTS) or greater to run `serverless` on your machine.
 
-The `serverless` CLI used to accept free-form CLI options. This feature was deprecated and has been removed. The main reason is that this prevented us from detecting typos in options, which sometimes created unexpected situations and overall a bad user experience. [Learn more about this change](../deprecations.md#handling-of-unrecognized-cli-options).
+The `serverless` CLI used to accept free-form CLI options. This feature was deprecated and has been removed. The main reason is that this prevented us from detecting typos in options, which sometimes created unexpected situations and overall a bad user experience. You can use [the `--param` option](./parameters.md#cli-parameters) as a replacement, for example:
+
+```bash
+# Will no longer work in v3:
+serverless deploy --foo=bar
+
+# Alternative in v3.3 and greater:
+serverless deploy --param="foo=bar"
+```
+
+[Learn more about this change](../deprecations.md#handling-of-unrecognized-cli-options).
 
 Additionally, all CLI options must now be passed at the end of the commands:
 
