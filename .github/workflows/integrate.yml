@@ -4,7 +4,7 @@ name: Integrate
 
 on:
   push:
-    branches: [master]
+    branches: [v2]
 
 env:
   SLS_IGNORE_WARNING: '*'
@@ -12,7 +12,7 @@ env:
 
 jobs:
   linuxNode16:
-    name: '[Linux] Node.js 16: Publish canary, Unit & packaging tests '
+    name: '[Linux] Node.js 16: Unit & packaging tests '
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -23,16 +23,6 @@ jobs:
         with:
           node-version: 16.x
           registry-url: https://registry.npmjs.org
-
-      - name: Publish canary
-        # Note: Setting NODE_AUTH_TOKEN as job|workspace wide env var won't work
-        #       as it appears actions/setup-node sets own value
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # 01dd......71cc
-        run: |
-          ./.github/prepare-canary.js
-          npm publish --tag canary
-          git checkout .
 
       - name: Retrieve dependencies from cache
         id: cacheNpm
