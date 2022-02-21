@@ -310,11 +310,22 @@ If you want to keep using the old deployment method for your AWS EventBridge res
 
 Deprecation code: `NEW_VARIABLES_RESOLVER`
 
-Framework was updated with a new implementation of variables resolver.
+A more robust and powerful variable resolver engine was introduced (disabled by default) in Serverless Framework v2. It is used by default in v3.
 
-It supports very same variable syntax, and is being updated with support for same resolution sources. Still as it has improved internal resolution rules (which leave no room for ambiguity) in some edge cases it may report errors on which old parser passed by.
+It supports the same variables with the same syntax. The main impacts are:
 
-It's recommended to expose all errors that eventually new resolver may report (those will be an unconditional errors in v3). You can turn that behavior on by adding `variablesResolutionMode: 20210326` to service configuration
+- Some edge cases (ambiguous configuration) now throw errors
+- A very small share of unmaintained plugins haven't been updated to support the new engine
+
+You can prepare the upgrade from v2 to v3 by enabling the new engine:
+
+```yaml
+# serverless.yml
+service: myapp
+variablesResolutionMode: 20210326
+```
+
+In v3, the `variablesResolutionMode` option can be removed as the new engine becomes the default.
 
 <a name="AWS_HTTP_API_USE_PROVIDER_TAGS"><div>&nbsp;</div></a>
 
