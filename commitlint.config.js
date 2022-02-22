@@ -42,6 +42,7 @@ module.exports = {
         'CLI',
         'CLI Onboarding',
         'Components',
+        'Console',
         'Config Schema',
         'Dashboard',
         'Packaging',
