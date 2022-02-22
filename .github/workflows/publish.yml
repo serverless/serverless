@@ -17,6 +17,7 @@ jobs:
 
       - name: Retrieve dependencies from cache
         uses: actions/cache@v2
+        id: cacheNpm
         with:
           path: |
             ~/.npm
@@ -64,6 +65,7 @@ jobs:
 
       - name: Retrieve dependencies from cache
         uses: actions/cache@v2
+        id: cacheNpm
         with:
           path: |
             ~/.npm
