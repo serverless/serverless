@@ -152,6 +152,7 @@ processSpanPromise = (async () => {
     const isPropertyResolved = require('../lib/configuration/variables/is-property-resolved');
     const eventuallyReportVariableResolutionErrors = require('../lib/configuration/variables/eventually-report-resolution-errors');
     const filterSupportedOptions = require('../lib/cli/filter-supported-options');
+    const isDashboardEnabled = require('../lib/configuration/is-dashboard-enabled');
 
     let configurationPath = null;
     let providerName;
@@ -443,7 +444,7 @@ processSpanPromise = (async () => {
           if (!ensureResolvedProperty('app')) return;
           if (!ensureResolvedProperty('org')) return;
           if (!ensureResolvedProperty('service')) return;
-          if (configuration.org) {
+          if (isDashboardEnabled({ configuration, options })) {
             // Dashboard requires AWS region to be resolved upfront
             ensureResolvedProperty('provider\0region');
           }
@@ -583,7 +584,7 @@ processSpanPromise = (async () => {
         resolverConfiguration.fulfilledSources.add('param');
 
         // Register dashboard specific variable source resolvers
-        if (configuration.org) {
+        if (isDashboardEnabled({ configuration, options })) {
           for (const [sourceName, sourceConfig] of Object.entries(
             serverless.pluginManager.dashboardPlugin.configurationVariablesSources
           )) {
