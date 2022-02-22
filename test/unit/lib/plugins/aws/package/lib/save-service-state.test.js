@@ -40,14 +40,14 @@ describe('#saveServiceState()', () => {
     awsPackage.serverless.utils.writeFileSync.restore();
   });
 
-  it('should write the service state file template to disk', () => {
+  it('should write the service state file template to disk', async () => {
     const filePath = path.join(
       awsPackage.serverless.serviceDir,
       '.serverless',
       'service-state.json'
     );
 
-    awsPackage.saveServiceState();
+    await awsPackage.saveServiceState();
     const expectedStateFileContent = {
       service: {
         provider: {
@@ -67,7 +67,7 @@ describe('#saveServiceState()', () => {
     );
   });
 
-  it('should remove self references correctly', () => {
+  it('should remove self references correctly', async () => {
     const filePath = path.join(
       awsPackage.serverless.serviceDir,
       '.serverless',
@@ -78,7 +78,7 @@ describe('#saveServiceState()', () => {
       mySelfRef: serverless.service,
     };
 
-    awsPackage.saveServiceState();
+    await awsPackage.saveServiceState();
     const expectedStateFileContent = {
       service: {
         provider: {
