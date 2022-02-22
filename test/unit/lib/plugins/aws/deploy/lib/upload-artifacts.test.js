@@ -13,6 +13,7 @@ const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 const AwsDeploy = require('../../../../../../../lib/plugins/aws/deploy/index');
 const Serverless = require('../../../../../../../lib/serverless');
 const { getTmpDirPath, createTmpDir } = require('../../../../../../utils/fs');
+const runServerless = require('../../../../../../utils/run-serverless');
 
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
@@ -332,5 +333,63 @@ describe('uploadArtifacts', () => {
         });
       });
     });
+  });
+});
+
+describe('test/unit/lib/plugins/aws/deploy/lib/upload-artifacts.test.js', () => {
+  it('should upload state file', async () => {
+    const uploadStub = sinon.stub().resolves({});
+    const { awsNaming } = await runServerless({
+      fixture: 'function',
+      command: 'deploy',
+      lastLifecycleHookName: 'aws:deploy:deploy:uploadArtifacts',
+      awsRequestStubMap: {
+        CloudFormation: {
+          describeStacks: {},
+          describeStackResource: {
+            StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
+          },
+        },
+        Lambda: {
+          getFunction: {
+            Configuration: {
+              LastModified: '2020-05-20T15:34:16.494+0000',
+            },
+          },
+        },
+        S3: {
+          headObject: {
+            Metadata: { filesha256: 'RRYyTm4Ri8mocpvx44pvas4JKLYtdJS3Z8MOlrZrDXA=' },
+          },
+          listObjectsV2: {
+            Contents: [
+              {
+                Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/artifact.zip',
+                LastModified: new Date(),
+                ETag: '"5102a4cf710cae6497dba9e61b85d0a4"',
+                Size: 356,
+                StorageClass: 'STANDARD',
+              },
+            ],
+          },
+          headBucket: {},
+          upload: uploadStub,
+        },
+        STS: {
+          getCallerIdentity: {
+            ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+            UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+            Account: '999999999999',
+            Arn: 'arn:aws:iam::999999999999:user/test',
+          },
+        },
+      },
+    });
+
+    const [statePayload] = uploadStub.args.find(([params]) =>
+      params.Key.endsWith(awsNaming.getServiceStateFileName())
+    );
+    expect(statePayload.Body.includes('"service":')).to.be.true;
+    expect(statePayload.ContentType).to.equal('application/json');
   });
 });
