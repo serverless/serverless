@@ -147,19 +147,24 @@ describe('uploadArtifacts', () => {
       const artifactFilePath = path.join(tmpDirPath, 'artifact.zip');
       serverless.utils.writeFileSync(artifactFilePath, 'artifact.zip file content');
 
-      return awsDeploy.uploadZipFile(artifactFilePath).then(() => {
-        expect(uploadStub).to.have.been.calledOnce;
-        expect(uploadStub).to.have.been.calledWithExactly('S3', 'upload', {
-          Bucket: awsDeploy.bucketName,
-          Key: `${awsDeploy.serverless.service.package.artifactDirectoryName}/artifact.zip`,
-          Body: sinon.match.object.and(sinon.match.has('path', artifactFilePath)),
-          ContentType: 'application/zip',
-          Metadata: {
-            filesha256: 'local-hash-zip-file',
-          },
+      return awsDeploy
+        .uploadZipFile({
+          filename: artifactFilePath,
+          s3KeyDirname: awsDeploy.serverless.service.package.artifactDirectoryName,
+        })
+        .then(() => {
+          expect(uploadStub).to.have.been.calledOnce;
+          expect(uploadStub).to.have.been.calledWithExactly('S3', 'upload', {
+            Bucket: awsDeploy.bucketName,
+            Key: `${awsDeploy.serverless.service.package.artifactDirectoryName}/artifact.zip`,
+            Body: sinon.match.object.and(sinon.match.has('path', artifactFilePath)),
+            ContentType: 'application/zip',
+            Metadata: {
+              filesha256: 'local-hash-zip-file',
+            },
+          });
+          expect(readFileSyncStub).to.have.been.calledWithExactly(artifactFilePath);
         });
-        expect(readFileSyncStub).to.have.been.calledWithExactly(artifactFilePath);
-      });
     });
 
     it('should upload the .zip file to a bucket with SSE bucket policy', () => {
@@ -172,21 +177,26 @@ describe('uploadArtifacts', () => {
         serverSideEncryption: 'AES256',
       };
 
-      return awsDeploy.uploadZipFile(artifactFilePath).then(() => {
-        expect(uploadStub).to.have.been.calledOnce;
-        expect(readFileSyncStub).to.have.been.calledOnce;
-        expect(uploadStub).to.have.been.calledWithExactly('S3', 'upload', {
-          Bucket: awsDeploy.bucketName,
-          Key: `${awsDeploy.serverless.service.package.artifactDirectoryName}/artifact.zip`,
-          Body: sinon.match.object.and(sinon.match.has('path', artifactFilePath)),
-          ContentType: 'application/zip',
-          ServerSideEncryption: 'AES256',
-          Metadata: {
-            filesha256: 'local-hash-zip-file',
-          },
+      return awsDeploy
+        .uploadZipFile({
+          filename: artifactFilePath,
+          s3KeyDirname: awsDeploy.serverless.service.package.artifactDirectoryName,
+        })
+        .then(() => {
+          expect(uploadStub).to.have.been.calledOnce;
+          expect(readFileSyncStub).to.have.been.calledOnce;
+          expect(uploadStub).to.have.been.calledWithExactly('S3', 'upload', {
+            Bucket: awsDeploy.bucketName,
+            Key: `${awsDeploy.serverless.service.package.artifactDirectoryName}/artifact.zip`,
+            Body: sinon.match.object.and(sinon.match.has('path', artifactFilePath)),
+            ContentType: 'application/zip',
+            ServerSideEncryption: 'AES256',
+            Metadata: {
+              filesha256: 'local-hash-zip-file',
+            },
+          });
+          expect(readFileSyncStub).to.have.been.calledWithExactly(artifactFilePath);
         });
-        expect(readFileSyncStub).to.have.been.calledWithExactly(artifactFilePath);
-      });
     });
   });
 
@@ -210,7 +220,7 @@ describe('uploadArtifacts', () => {
       return awsDeploy.uploadFunctionsAndLayers().then(() => {
         expect(uploadZipFileStub.calledOnce).to.be.equal(true);
         const expectedPath = path.join('foo', '.serverless', 'new-service.zip');
-        expect(uploadZipFileStub.args[0][0]).to.be.equal(expectedPath);
+        expect(uploadZipFileStub.args[0][0].filename).to.be.equal(expectedPath);
       });
     });
 
@@ -230,7 +240,7 @@ describe('uploadArtifacts', () => {
 
       return awsDeploy.uploadFunctionsAndLayers().then(() => {
         expect(uploadZipFileStub.calledOnce).to.be.equal(true);
-        expect(uploadZipFileStub.args[0][0]).to.be.equal('artifact.zip');
+        expect(uploadZipFileStub.args[0][0].filename).to.be.equal('artifact.zip');
       });
     });
 
@@ -251,10 +261,10 @@ describe('uploadArtifacts', () => {
 
       return awsDeploy.uploadFunctionsAndLayers().then(() => {
         expect(uploadZipFileStub.calledTwice).to.be.equal(true);
-        expect(uploadZipFileStub.args[0][0]).to.be.equal(
+        expect(uploadZipFileStub.args[0][0].filename).to.be.equal(
           awsDeploy.serverless.service.functions.first.package.artifact
         );
-        expect(uploadZipFileStub.args[1][0]).to.be.equal(
+        expect(uploadZipFileStub.args[1][0].filename).to.be.equal(
           awsDeploy.serverless.service.functions.second.package.artifact
         );
       });
@@ -277,10 +287,10 @@ describe('uploadArtifacts', () => {
 
       return awsDeploy.uploadFunctionsAndLayers().then(() => {
         expect(uploadZipFileStub.calledTwice).to.be.equal(true);
-        expect(uploadZipFileStub.args[0][0]).to.be.equal(
+        expect(uploadZipFileStub.args[0][0].filename).to.be.equal(
           awsDeploy.serverless.service.functions.first.package.artifact
         );
-        expect(uploadZipFileStub.args[1][0]).to.be.equal(
+        expect(uploadZipFileStub.args[1][0].filename).to.be.equal(
           awsDeploy.serverless.service.package.artifact
         );
       });
