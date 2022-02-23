@@ -46,8 +46,8 @@ describe('#compileRestApi()', () => {
       Type: 'AWS::ApiGateway::RestApi',
       Properties: {
         BinaryMediaTypes: undefined,
-        DisableExecuteApiEndpoint: undefined,
         Description: undefined,
+        DisableExecuteApiEndpoint: undefined,
         Name: 'dev-new-service',
         EndpointConfiguration: {
           Types: ['EDGE'],
@@ -82,8 +82,8 @@ describe('#compileRestApi()', () => {
       Properties: {
         Name: 'dev-new-service',
         BinaryMediaTypes: undefined,
-        DisableExecuteApiEndpoint: undefined,
         Description: undefined,
+        DisableExecuteApiEndpoint: undefined,
         EndpointConfiguration: {
           Types: ['EDGE'],
         },
@@ -117,8 +117,8 @@ describe('#compileRestApi()', () => {
       Properties: {
         Name: 'dev-new-service',
         BinaryMediaTypes: undefined,
-        DisableExecuteApiEndpoint: undefined,
         Description: undefined,
+        DisableExecuteApiEndpoint: undefined,
         EndpointConfiguration: {
           Types: ['EDGE'],
         },
@@ -150,8 +150,8 @@ describe('#compileRestApi()', () => {
       Type: 'AWS::ApiGateway::RestApi',
       Properties: {
         BinaryMediaTypes: ['*/*'],
-        DisableExecuteApiEndpoint: undefined,
         Description: undefined,
+        DisableExecuteApiEndpoint: undefined,
         EndpointConfiguration: {
           Types: ['EDGE'],
         },
