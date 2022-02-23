@@ -47,6 +47,7 @@ describe('#compileRestApi()', () => {
       Properties: {
         BinaryMediaTypes: undefined,
         DisableExecuteApiEndpoint: undefined,
+        Description: undefined,
         Name: 'dev-new-service',
         EndpointConfiguration: {
           Types: ['EDGE'],
@@ -82,6 +83,7 @@ describe('#compileRestApi()', () => {
         Name: 'dev-new-service',
         BinaryMediaTypes: undefined,
         DisableExecuteApiEndpoint: undefined,
+        Description: undefined,
         EndpointConfiguration: {
           Types: ['EDGE'],
         },
@@ -116,6 +118,7 @@ describe('#compileRestApi()', () => {
         Name: 'dev-new-service',
         BinaryMediaTypes: undefined,
         DisableExecuteApiEndpoint: undefined,
+        Description: undefined,
         EndpointConfiguration: {
           Types: ['EDGE'],
         },
@@ -148,6 +151,7 @@ describe('#compileRestApi()', () => {
       Properties: {
         BinaryMediaTypes: ['*/*'],
         DisableExecuteApiEndpoint: undefined,
+        Description: undefined,
         EndpointConfiguration: {
           Types: ['EDGE'],
         },
