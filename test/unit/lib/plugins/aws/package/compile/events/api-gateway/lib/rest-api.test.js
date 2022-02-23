@@ -161,6 +161,29 @@ describe('#compileRestApi()', () => {
     });
   });
 
+  it('should set description if defined at the apiGateway provider config level', () => {
+    awsCompileApigEvents.serverless.service.provider.apiGateway = {
+      description: 'API Test DEV',
+    };
+    awsCompileApigEvents.compileRestApi();
+    const resources =
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+
+    expect(resources.ApiGatewayRestApi).to.deep.equal({
+      Type: 'AWS::ApiGateway::RestApi',
+      Properties: {
+        BinaryMediaTypes: undefined,
+        DisableExecuteApiEndpoint: undefined,
+        Description: 'API Test DEV',
+        EndpointConfiguration: {
+          Types: ['EDGE'],
+        },
+        Name: 'dev-new-service',
+        Policy: '',
+      },
+    });
+  });
+
   it('should throw error if endpointType property is not PRIVATE and vpcEndpointIds property is [id1]', () => {
     awsCompileApigEvents.serverless.service.provider.endpointType = 'Testing';
     awsCompileApigEvents.serverless.service.provider.vpcEndpointIds = ['id1'];
