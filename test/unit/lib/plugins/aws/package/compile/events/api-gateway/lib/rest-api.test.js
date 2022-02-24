@@ -238,4 +238,21 @@ describe('lib/plugins/aws/package/compile/events/apiGateway/lib/restApi.test.js'
 
     expect(resource.Properties.MinimumCompressionSize).to.equal(0);
   });
+
+  it('should support `provider.apiGateway.description`', async () => {
+    const { cfTemplate } = await runServerless({
+      fixture: 'api-gateway',
+      command: 'package',
+      configExt: {
+        provider: {
+          apiGateway: {
+            description: 'API Test DEV',
+          },
+        },
+      },
+    });
+    const resource = cfTemplate.Resources.ApiGatewayRestApi;
+
+    expect(resource.Properties.Description).to.equal('API Test DEV');
+  });
 });
