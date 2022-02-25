@@ -22,7 +22,8 @@
     "sls": "./bin/serverless.js"
   },
   "dependencies": {
-    "@serverless/dashboard-plugin": "^6.1.0",
+    "@serverless/aws-lambda-otel-extension-dist": "^0.1.5",
+    "@serverless/dashboard-plugin": "^6.1.1",
     "@serverless/platform-client": "^4.3.1",
     "@serverless/utils": "^6.0.2",
     "ajv": "^8.10.0",
