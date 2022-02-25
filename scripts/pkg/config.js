@@ -20,6 +20,8 @@ module.exports = {
     // Dashboard wrappers
     '../../node_modules/@serverless/dashboard-plugin/sdk-js/dist/index.js',
     '../../node_modules/@serverless/dashboard-plugin/sdk-py',
+    // Console extension
+    '../../node_modules/@serverless/aws-lambda-otel-extension-dist',
     // Ensure npm is bundled as a dependency
     '../../node_modules/npm/bin/npm-cli.js',
     // Below module is not automatically traced by pkg, we need to point it manually

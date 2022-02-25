@@ -14,6 +14,8 @@ const fixtures = require('../../../../fixtures/programmatic');
 const versions = {
   'serverless': require('../../../../../package').version,
   '@serverless/dashboard-plugin': require('@serverless/dashboard-plugin/package').version,
+  '@serverless/aws-lambda-otel-extension-dist':
+    require('@serverless/aws-lambda-otel-extension-dist/package').version,
 };
 
 const getGeneratePayload = () =>
@@ -123,6 +125,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.timestamp;
     expect(payload).to.have.property('dashboard');
     delete payload.dashboard;
+    expect(payload).to.have.property('console');
+    delete payload.console;
     expect(payload).to.have.property('timezone');
     delete payload.timezone;
     expect(payload).to.have.property('ciName');
@@ -190,6 +194,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.timestamp;
     expect(payload).to.have.property('dashboard');
     delete payload.dashboard;
+    expect(payload).to.have.property('console');
+    delete payload.console;
     expect(payload).to.have.property('timezone');
     delete payload.timezone;
     expect(payload).to.have.property('ciName');
@@ -247,6 +253,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.timestamp;
     expect(payload).to.have.property('dashboard');
     delete payload.dashboard;
+    expect(payload).to.have.property('console');
+    delete payload.console;
     expect(payload).to.have.property('timezone');
     delete payload.timezone;
     expect(payload).to.have.property('ciName');
@@ -284,6 +292,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.timestamp;
     expect(payload).to.have.property('dashboard');
     delete payload.dashboard;
+    expect(payload).to.have.property('console');
+    delete payload.console;
     expect(payload).to.have.property('timezone');
     delete payload.timezone;
     expect(payload).to.have.property('ciName');
@@ -336,6 +346,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.timestamp;
     expect(payload).to.have.property('dashboard');
     delete payload.dashboard;
+    expect(payload).to.have.property('console');
+    delete payload.console;
     expect(payload).to.have.property('timezone');
     delete payload.timezone;
     expect(payload).to.have.property('ciName');
@@ -376,6 +388,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       configuration: { service: 'foo', provider: 'aws' },
     });
     expect(payload.dashboard.userId).to.equal('some-user-id');
+    expect(payload.console.userId).to.equal('some-user-id');
     expect(payload.frameworkLocalUserId).to.equal('123');
     expect(payload.firstLocalInstallationTimestamp).to.equal(1616151998);
   });
@@ -401,6 +414,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       });
     });
     expect(payload.dashboard.userId).to.be.null;
+    expect(payload.console.userId).to.be.null;
     expect(payload.frameworkLocalUserId).to.equal('123');
   });
 

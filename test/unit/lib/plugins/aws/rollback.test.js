@@ -190,7 +190,6 @@ describe('AwsRollback', () => {
         expect(awsRollback.serverless.service.package.artifactDirectoryName).to.be.equal(
           'serverless/rollback/dev/1476779096930-2016-10-18T08:24:56.930Z'
         );
-        expect(listObjectsStub.calledOnce).to.be.equal(true);
         expect(
           listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
             Bucket: awsRollback.bucketName,
