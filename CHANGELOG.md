@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.4.0](https://github.com/serverless/serverless/compare/v3.3.0...v3.4.0) (2022-02-25)
+
+### Features
+
+- **AWS Lambda:** Add support for `dotnet6` runtime ([#10757](https://github.com/serverless/serverless/issues/10757)) ([818dda2](https://github.com/serverless/serverless/commit/818dda21a9b97fbc911d9885d71b8b708b7b1ecf)) ([Martin Costello](https://github.com/martincostello))
+- **Console:** Initial (experimental) support ([#10752](https://github.com/serverless/serverless/issues/10752)) ([bdaf21e](https://github.com/serverless/serverless/commit/bdaf21e1a1e839b7f2a2575cfeba741305080a92)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **AWS API Gateway:** Properly apply `description` to REST API ([#10746](https://github.com/serverless/serverless/issues/10746)) ([451def9](https://github.com/serverless/serverless/commit/451def93ae1997df6dde10439bd931d73e926708)) ([ALOHACREPES345](https://github.com/ALOHACREPES345))
+
+### Maintenance Improvements
+
+- **AWS Deploy:** Generalize `uploadZipFile` logic ([#10752](https://github.com/serverless/serverless/issues/10752)) ([26bc112](https://github.com/serverless/serverless/commit/26bc112f1f5f34512b9255315b2fab3274d32f74)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Deploy:** Improve progress logs for rollback ([#10752](https://github.com/serverless/serverless/issues/10752)) ([24c45a0](https://github.com/serverless/serverless/commit/24c45a08462741bde5e450d9cf6601b7d60ff49c)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Deploy:** Refactor `extendedValidate` to async ([#10752](https://github.com/serverless/serverless/issues/10752)) ([e1d2b82](https://github.com/serverless/serverless/commit/e1d2b8251ac7e06ca01fc3bb3505531cee459bce)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Deploy:** Store resolved state on internal class ([#10752](https://github.com/serverless/serverless/issues/10752)) ([1c00eb2](https://github.com/serverless/serverless/commit/1c00eb29fe55bccd0fe2ca62fe2c99f93bc4b6db)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Deploy:** Upload state file to deployment bucket ([#10752](https://github.com/serverless/serverless/issues/10752)) ([5525a3e](rverless/serverless/commit/5525a3e6f54209e80db98cb32baadd62aac16da9)) ([Mariusz Nowak](https://github.com/medikoo))
+- Expose `isDashboardEnabled` resolver ([#10752](https://github.com/serverless/serverless/issues/10752)) ([ba34c57](https://github.com/serverless/serverless/commit/ba34c573f4d471bd724fe1a8e77c62e10d7c29c3)) ([Mariusz Nowak](https://github.com/medikoo))
+- Generalize S3 upload dirname handling ([#10752](https://github.com/serverless/serverless/issues/10752)) ([9223b79](https://github.com/serverless/serverless/commit/9223b793161d3cb8e6075abb1254f1d707adb8ee)) ([Mariusz Nowak](https://github.com/medikoo))
+- Introduce hooks tracking debug logs ([#10752](https://github.com/serverless/serverless/issues/10752)) ([efe1139](https://github.com/serverless/serverless/commit/efe11396be5c9f34a92b60b5c4217201e2f55a54)) ([Mariusz Nowak](https://github.com/medikoo))
+- Mark `saveServiceState` internal function as async ([#10752](https://github.com/serverless/serverless/issues/10752)) ([4f895a2](https://github.com/serverless/serverless/commit/4f895a2e36f56eb65161af706c0c6f4f2d9a4655)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [3.3.0](https://github.com/serverless/serverless/compare/v3.2.1...v3.3.0) (2022-02-18)
 
 ### Features
