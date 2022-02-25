@@ -6,8 +6,8 @@ const sinon = require('sinon');
 const fs = require('fs');
 const fse = require('fs-extra');
 const path = require('path');
+const crypto = require('crypto');
 const chai = require('chai');
-const proxyquire = require('proxyquire');
 const normalizeFiles = require('../../../../../../../lib/plugins/aws/lib/normalize-files');
 const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 const AwsDeploy = require('../../../../../../../lib/plugins/aws/deploy/index');
@@ -45,23 +45,19 @@ describe('uploadArtifacts', () => {
       foo: 'bar',
     };
     awsDeploy.serverless.cli = new serverless.classes.CLI();
+
     cryptoStub = {
-      createHash() {
-        return this;
-      },
       update() {
         return this;
       },
       digest: sinon.stub(),
     };
-    const uploadArtifacts = proxyquire(
-      '../../../../../../../lib/plugins/aws/deploy/lib/upload-artifacts.js',
-      {
-        crypto: cryptoStub,
-      }
-    );
-    Object.assign(awsDeploy, uploadArtifacts);
+    sinon.stub(crypto, 'createHash').callsFake(() => {
+      return cryptoStub;
+    });
   });
+
+  afterEach(() => sinon.restore());
 
   describe('#uploadCloudFormationFile()', () => {
     let normalizeCloudFormationTemplateStub;
@@ -80,7 +76,7 @@ describe('uploadArtifacts', () => {
     });
 
     it('should upload the CloudFormation file to the S3 bucket', () => {
-      cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-cf-template');
+      crypto.createHash().update().digest.onCall(0).returns('local-hash-cf-template');
 
       return awsDeploy.uploadCloudFormationFile().then(() => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
@@ -99,7 +95,7 @@ describe('uploadArtifacts', () => {
     });
 
     it('should upload the CloudFormation file to a bucket with SSE bucket policy', () => {
-      cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-cf-template');
+      crypto.createHash().update().digest.onCall(0).returns('local-hash-cf-template');
       awsDeploy.serverless.service.provider.deploymentBucketObject = {
         serverSideEncryption: 'AES256',
       };
@@ -141,7 +137,7 @@ describe('uploadArtifacts', () => {
     });
 
     it('should upload the .zip file to the S3 bucket', () => {
-      cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-zip-file');
+      crypto.createHash().update().digest.onCall(0).returns('local-hash-zip-file');
 
       const tmpDirPath = getTmpDirPath();
       const artifactFilePath = path.join(tmpDirPath, 'artifact.zip');
@@ -168,7 +164,7 @@ describe('uploadArtifacts', () => {
     });
 
     it('should upload the .zip file to a bucket with SSE bucket policy', () => {
-      cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-zip-file');
+      crypto.createHash().update().digest.onCall(0).returns('local-hash-zip-file');
 
       const tmpDirPath = getTmpDirPath();
       const artifactFilePath = path.join(tmpDirPath, 'artifact.zip');
@@ -328,7 +324,7 @@ describe('uploadArtifacts', () => {
     it('should upload the custom resources .zip file to the S3 bucket', () => {
       fse.ensureFileSync(customResourcesFilePath);
 
-      cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-zip-file');
+      crypto.createHash().update().digest.onCall(0).returns('local-hash-zip-file');
 
       return expect(awsDeploy.uploadCustomResources()).to.eventually.be.fulfilled.then(() => {
         expect(uploadStub).to.have.been.calledOnce;
