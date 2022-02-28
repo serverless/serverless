@@ -39,7 +39,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       throw new Error('Unexpected');
     } catch (error) {
       expect(error.code).to.equal(1);
-      expect(String(error.stdoutBuffer)).to.include('Environment: ');
+      expect(String(error.stdoutBuffer)).to.include('Cannot parse');
     }
   });
 
@@ -51,7 +51,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       throw new Error('Unexpected');
     } catch (error) {
       expect(error.code).to.equal(1);
-      expect(String(error.stdoutBuffer)).to.include('Environment: ');
+      expect(String(error.stdoutBuffer)).to.include('Error: Stop');
     }
   });
 
@@ -63,7 +63,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       throw new Error('Unexpected');
     } catch (error) {
       expect(error.code).to.equal(1);
-      expect(String(error.stdoutBuffer)).to.include('Environment: ');
+      expect(String(error.stdoutBuffer)).to.include('Error: Stop');
     }
   });
 

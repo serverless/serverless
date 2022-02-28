@@ -13,13 +13,9 @@ chai.use(require('sinon-chai'));
 const expect = chai.expect;
 
 describe('test/unit/lib/cli/handle-error.test.js', () => {
-  it('should output environment information', async () => {
+  it('should output error', async () => {
     const output = await observeOutput(() => handleError(new ServerlessError('Test error')));
-    expect(output).to.have.string('Environment: ');
-    expect(output).to.have.string('node');
-    expect(output).to.have.string('framework');
-    expect(output).to.have.string('plugin');
-    expect(output).to.have.string('SDK');
+    expect(output).to.have.string('Test error');
   });
 
   if (isStandaloneExecutable) {
