@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.5.0](https://github.com/serverless/serverless/compare/v3.4.0...v3.5.0) (2022-02-28)
+
+### Features
+
+- **AWS Lambda:** Simplify `logs` command output ([#10768](https://github.com/serverless/serverless/pull/10768)) ([d8f251c](https://github.com/serverless/serverless/commit/d8f251cfd4798672aa36e869882df0e24ebddc10)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **Console:** Add missing `OTEL_RESOURCE_ATTRIBUTES` var ([#10762](https://github.com/serverless/serverless/pull/10762)) ([1f9458b](https://github.com/serverless/serverless/commit/1f9458b4f11c23f8e7fb0b4f9090dbd089224d1e)) ([Piotr Grzesik](https://github.com/pgrzesik) & [Mariusz Nowak](https://github.com/medikoo))
+- Log environment details of error to stderr ([#10769](https://github.com/serverless/serverless/pull/10769)) ([f439201](https://github.com/serverless/serverless/commit/f439201d7f884ab1994f7691c35abe50d72bf49e)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [3.4.0](https://github.com/serverless/serverless/compare/v3.3.0...v3.4.0) (2022-02-25)
 
 ### Features
