@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.5.1](https://github.com/serverless/serverless/compare/v3.5.0...v3.5.1) (2022-02-28)
+
+### Bug Fixes
+
+- **AWS Lambda:** Properly format `logs` with missing init duration ([#10772](https://github.com/serverless/serverless/pull/10772)) ([0bb64e2](https://github.com/serverless/serverless/commit/0bb64e21cbe7250f9b14ccb3fd9537d6dec64c67)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [3.5.0](https://github.com/serverless/serverless/compare/v3.4.0...v3.5.0) (2022-02-28)
 
 ### Features
