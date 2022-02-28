@@ -8,10 +8,8 @@ const formatLambdaLogEvent = require('../../../../../../lib/plugins/aws/utils/fo
 describe('#formatLambdaLogEvent()', () => {
   it('should format invocation report', () => {
     const msg =
-      'REPORT RequestId: 99c30000-b01a-11e5-93f7-b8e85631a00e\tDuration: 0.40 ms\tBilled Duration: 100 ms\tMemory Size: 512 MB\tMax Memory Used: 30 MB';
-    const expectedMsg = style.aside(
-      'END Duration: 0.40 ms\tBilled Duration: 100 ms\tMemory Size: 512 MB\tMax Memory Used: 30 MB'
-    );
+      'REPORT RequestId: 99c30000-b01a-11e5-93f7-b8e85631a00e\tDuration: 0.40 ms\tBilled Duration: 100 ms\tMemory Size: 512 MB\tMax Memory Used: 30 MB\tInit Duration: 160.25 ms';
+    const expectedMsg = style.aside('END Duration: 0.40 ms (init: 160.25 ms) Memory Used: 30 MB');
 
     expect(formatLambdaLogEvent(msg)).to.deep.equal(expectedMsg);
   });
