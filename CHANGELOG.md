@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.6.0](https://github.com/serverless/serverless/compare/v3.5.1...v3.6.0) (2022-03-01)
+
+### Features
+
+- **Variables:** Add support for `csj` in `file` source ([#10776](https://github.com/serverless/serverless/issues/10776)) ([df08283](https://github.com/serverless/serverless/commit/df0828381057b7edb2731f3763c2d60eed126d8a)) ([Julian Grinblat](https://github.com/perrin4869))
+
+### Maintenance Improvements
+
+- **Console:** Support login with Console ([#10777](https://github.com/serverless/serverless/pull/10777)) ([4ce1088](https://github.com/serverless/serverless/commit/4ce10883b5aca692a534be8114733fafc5c02a0e)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ### [3.5.1](https://github.com/serverless/serverless/compare/v3.5.0...v3.5.1) (2022-02-28)
 
 ### Bug Fixes
