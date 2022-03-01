@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.7.0](https://github.com/serverless/serverless/compare/v3.6.0...v3.7.0) (2022-03-01)
+
+### Features
+
+- **CLI Onboarding:** Support `--console` flag ([#10779](https://github.com/serverless/serverless/pull/10779)) ([a34d07a](https://github.com/serverless/serverless/commit/a34d07a5c129e21d1a0b902479bcaa4a92c158fb)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [3.6.0](https://github.com/serverless/serverless/compare/v3.5.1...v3.6.0) (2022-03-01)
 
 ### Features
