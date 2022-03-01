@@ -7,7 +7,7 @@ const resolveMeta = require('../../../../../../lib/configuration/variables/resol
 const resolve = require('../../../../../../lib/configuration/variables/resolve');
 const fileSource = require('../../../../../../lib/configuration/variables/sources/file');
 
-describe.only('test/unit/lib/configuration/variables/sources/file.test.js', () => {
+describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
   const serviceDir = path.resolve(__dirname, 'fixture');
   let configuration;
   let variablesMeta;
