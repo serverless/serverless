@@ -84,7 +84,7 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
     expect(configuration.js).to.deep.equal({ result: 'js' }));
 
   it('should resolve "cjs" file sources', () =>
-    expect(configuration.js).to.deep.equal({ result: 'cjs' }));
+    expect(configuration.cjs).to.deep.equal({ result: 'cjs' }));
 
   it('should support function resolvers in "js" file sources', () =>
     expect(configuration.jsFunction).to.deep.equal({ result: 'js-function' }));
