@@ -7,7 +7,7 @@ const resolveMeta = require('../../../../../../lib/configuration/variables/resol
 const resolve = require('../../../../../../lib/configuration/variables/resolve');
 const fileSource = require('../../../../../../lib/configuration/variables/sources/file');
 
-describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
+describe.only('test/unit/lib/configuration/variables/sources/file.test.js', () => {
   const serviceDir = path.resolve(__dirname, 'fixture');
   let configuration;
   let variablesMeta;
@@ -18,6 +18,7 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
       json: '${file(file.json)}',
       tfstate: '${file(file.tfstate)}',
       js: '${file(file.js)}',
+      cjs: '${file(file.cjs)}',
       jsFunction: '${file(file-function.js)}',
       jsPropertyFunction: '${file(file-property-function.js):property}',
       jsPropertyFunctionProperty: '${file(file-property-function.js):property.result}',
@@ -81,6 +82,9 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
 
   it('should resolve "js" file sources', () =>
     expect(configuration.js).to.deep.equal({ result: 'js' }));
+
+  it('should resolve "cjs" file sources', () =>
+    expect(configuration.js).to.deep.equal({ result: 'cjs' }));
 
   it('should support function resolvers in "js" file sources', () =>
     expect(configuration.jsFunction).to.deep.equal({ result: 'js-function' }));
