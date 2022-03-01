@@ -1,3 +1,3 @@
 'use strict';
 
-module.exports = Promise.resolve({ result: 'js' });
+module.exports = Promise.resolve({ result: 'cjs' });
