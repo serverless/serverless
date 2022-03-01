@@ -23,8 +23,8 @@
   },
   "dependencies": {
     "@serverless/aws-lambda-otel-extension-dist": "^0.1.5",
-    "@serverless/dashboard-plugin": "^6.1.2",
-    "@serverless/platform-client": "^4.3.1",
+    "@serverless/dashboard-plugin": "^6.1.3",
+    "@serverless/platform-client": "^4.3.2",
     "@serverless/utils": "^6.0.2",
     "ajv": "^8.10.0",
     "ajv-formats": "^2.1.1",
