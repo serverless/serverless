@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.7.1](https://github.com/serverless/serverless/compare/v3.7.0...v3.7.1) (2022-03-02)
+
+### Bug Fixes
+
+- **CLI Onboarding:** Ensure improved variables resolution for existing templates ([#10784](https://github.com/serverless/serverless/pull/10784)) ([17df292](https://github.com/serverless/serverless/commit/17df2928cfb2efa8eab27e625b4609f8047eab5a)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **Telemetry:** Rely on direct evaluation of `isTtyTerminal` ([#10786](https://github.com/serverless/serverless/pull/10786)) ([e29253f](https://github.com/serverless/serverless/commit/e29253fbeb17764644ef97c61c0a88892cda4136)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Recognize `logout` as service-aware command ([#10785](https://github.com/serverless/serverless/pull/10785)) ([21c783d](https://github.com/serverless/serverless/commit/21c783dc16dfd00385c907729a67a2fcccda4498)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [3.7.0](https://github.com/serverless/serverless/compare/v3.6.0...v3.7.0) (2022-03-01)
 
 ### Features
