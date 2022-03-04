@@ -750,7 +750,7 @@ functions:
               querystrings:
                 paramName: true # mark query string
             # Request schema validation mapped by content type
-            schema:
+            schemas:
               # Define the valid JSON Schema for this content-type
               application/json: ${file(create_request.json)}
               application/json+abc:
