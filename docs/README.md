@@ -13,7 +13,7 @@ menuItems:
   - {menuText: "- Access Roles", path: /framework/docs/guides/access-roles/}
   - {menuText: "- Profiles", path: /framework/docs/guides/profiles/}
   - {menuText: "- Pipelines", path: /framework/docs/guides/pipelines/}
-  - {menuText: "Provider CLI References", path: /framework/docs/providers}
+  - {menuText: "Provider References", path: /framework/docs/providers}
   - {menuText: "- AWS", path: /framework/docs/providers/aws/}
   - {menuText: "- Azure", path: /framework/docs/providers/azure/}
   - {menuText: "- fn", path: /framework/docs/providers/fn/}

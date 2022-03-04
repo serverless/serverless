@@ -1,6 +1,6 @@
 <!--
 title: Serverless - Infrastructure & Compute Providers
-menuText: Provider CLI References
+menuText: Provider References
 layout: Doc
 -->
 
