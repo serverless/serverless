@@ -511,7 +511,7 @@ processSpanPromise = (async () => {
         });
       }
 
-      await finalize({ telemetryData: { outcome: 'success', shouldSendTelemetry: true } });
+      await finalize({ telemetryData: { outcome: 'success' }, shouldSendTelemetry: true });
       return;
     }
 
@@ -688,7 +688,8 @@ processSpanPromise = (async () => {
       }
 
       const backendNotificationRequest = await finalize({
-        telemetryData: { outcome: 'success', shouldSendTelemetry: commands.join(' ') === 'deploy' },
+        telemetryData: { outcome: 'success' },
+        shouldSendTelemetry: commands.join(' ') === 'deploy',
       });
       if (backendNotificationRequest) {
         await processBackendNotificationRequest(backendNotificationRequest);
