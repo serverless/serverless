@@ -65,9 +65,7 @@ functions:
                 - cloudformation.amazonaws.com
 ```
 
-You can build a more robust pattern matching thanks to [content filtering](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-event-patterns-content-based-filtering.html).
-
-For example, if you defined a s3 bucket with EventBridge notification enabled, you can handle the same event as the default s3 from serverless:
+Here is an example that uses "[prefix matching](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-event-patterns-content-based-filtering.html#eb-filtering-prefix-matching)" to filter EventBridge events produced by S3 (the bucket must have the [EventBridge notification enabled](https://docs.aws.amazon.com/AmazonS3/latest/userguide/enable-event-notifications-eventbridge.html)):
 
 ```yml
 functions:
