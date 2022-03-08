@@ -34,7 +34,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
                     queue,
                     arn: brokerArn,
                     basicAuthArn,
-                    virtualHost,
                   },
                 },
               ],
@@ -73,10 +72,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
           {
             Type: 'BASIC_AUTH',
             URI: basicAuthArn,
-          },
-          {
-            Type: 'VIRTUAL_HOST',
-            URI: virtualHost
           },
         ],
         Queues: [queue],
