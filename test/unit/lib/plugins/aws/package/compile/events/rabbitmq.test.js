@@ -11,6 +11,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
   const brokerArn = 'arn:aws:mq:us-east-1:0000:broker:ExampleMQBroker:b-xxx-xxx';
   const basicAuthArn = 'arn:aws:secretsmanager:us-east-1:01234567890:secret:MyBrokerSecretName';
   const queue = 'TestingQueue';
+  const virtualHost = '/';
   const enabled = false;
   const batchSize = 5000;
   const maximumBatchingWindow = 20;
@@ -33,6 +34,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
                     queue,
                     arn: brokerArn,
                     basicAuthArn,
+                    virtualHost,
                   },
                 },
               ],
@@ -42,6 +44,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
                 {
                   rabbitmq: {
                     queue,
+                    virtualHost,
                     arn: brokerArn,
                     basicAuthArn,
                     batchSize,
@@ -70,6 +73,10 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
           {
             Type: 'BASIC_AUTH',
             URI: basicAuthArn,
+          },
+          {
+            Type: 'VIRTUAL_HOST',
+            URI: virtualHost
           },
         ],
         Queues: [queue],
@@ -111,6 +118,10 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
             Type: 'BASIC_AUTH',
             URI: basicAuthArn,
           },
+          {
+            Type: 'VIRTUAL_HOST',
+            URI: virtualHost
+          },
         ],
         Queues: [queue],
         FunctionName: {
@@ -149,6 +160,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
                     queue,
                     arn: brokerArn,
                     basicAuthArn,
+                    virtualHost
                   },
                 },
               ],
