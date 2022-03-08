@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.7.2](https://github.com/serverless/serverless/compare/v3.7.1...v3.7.2) (2022-03-08)
+
+### Bug Fixes
+
+- Ensure to properly support moving directories across filesystems ([#10796](https://github.com/serverless/serverless/pull/10796)) ([d06b64d](https://github.com/serverless/serverless/commit/d06b64d4b9e8203945ad946495ff300d9852b37c)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **AWS Lambda:** Support `provisionedConcurrency` set to `0` ([#10798](https://github.com/serverless/serverless/pull/10798)) ([e40ba43](https://github.com/serverless/serverless/commit/e40ba43b84b373a1ef4ac92abc7bf41315ecf955)) ([Dustin Fay](https://github.com/d-fay))
+- **Standalone:** Update Tencent CLI standalone download URL ([#10811](https://github.com/serverless/serverless/issues/10811)) ([e26625a](https://github.com/serverless/serverless/commit/e26625a58ce96776f241037b00a190a89ecd6d45)) ([Tim Qian](https://github.com/timqian))
+- **Telemetry:** Ensure excluding `shouldSendTelemetry` from payload ([#10810](https://github.com/serverless/serverless/pull/10810)) ([9c6423b](https://github.com/serverless/serverless/commit/9c6423bc5c5d81b977d03d3412b4a2ab05bf4513)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ### [3.7.1](https://github.com/serverless/serverless/compare/v3.7.0...v3.7.1) (2022-03-02)
 
 ### Bug Fixes
