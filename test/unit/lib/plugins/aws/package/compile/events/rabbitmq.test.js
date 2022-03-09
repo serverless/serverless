@@ -115,7 +115,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
           },
           {
             Type: 'VIRTUAL_HOST',
-            URI: virtualHost
+            URI: virtualHost,
           },
         ],
         Queues: [queue],
@@ -155,7 +155,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
                     queue,
                     arn: brokerArn,
                     basicAuthArn,
-                    virtualHost
+                    virtualHost,
                   },
                 },
               ],
