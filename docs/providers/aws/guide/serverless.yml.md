@@ -261,7 +261,7 @@ provider:
     apiKeySourceType: HEADER
     # List of API keys for the REST API
     apiKeys:
-      - myFirstKey
+      - name: myFirstKey
         value: myFirstKeyValue
         description: myFirstKeyDescription
         customerId: myFirstKeyCustomerId
