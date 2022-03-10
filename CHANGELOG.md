@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.7.4](https://github.com/serverless/serverless/compare/v3.7.3...v3.7.4) (2022-03-10)
+
+### Bug Fixes
+
+- **AWS Local Invocation:** Remove log4j dependency from java wrapper ([#10832](https://github.com/serverless/serverless/pull/10832)) ([8b17338](https://github.com/serverless/serverless/commit/8b1733807fe76b01f03880652111f8085a664e31)) ([Yuji Yamano](https://github.com/yyamano))
+
+### Maintenance Improvements
+
+- **Console:** Communicate new token implications with verbose mode ([#10835](https://github.com/serverless/serverless/pull/10835)) ([7e56aa1](https://github.com/serverless/serverless/commit/7e56aa17939021c920ba4046684386016b8f7a1f)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [3.7.3](https://github.com/serverless/serverless/compare/v3.7.2...v3.7.3) (2022-03-09)
 
 ### Bug Fixes
