@@ -261,7 +261,7 @@ provider:
     apiKeySourceType: HEADER
     # List of API keys for the REST API
     apiKeys:
-      - myFirstKey
+      - name: myFirstKey
         value: myFirstKeyValue
         description: myFirstKeyDescription
         customerId: myFirstKeyCustomerId
@@ -309,7 +309,7 @@ provider:
           # Optional: Name of the API Gateway model
           name: GlobalModel
           # Optional: Description of the API Gateway model
-          description: "A global model that can be referenced in functions"
+          description: 'A global model that can be referenced in functions'
 ```
 
 ### ALB
