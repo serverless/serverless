@@ -5,6 +5,7 @@ const sinon = require('sinon');
 const path = require('path');
 const fsp = require('fs').promises;
 const _ = require('lodash');
+const fetch = require('node-fetch');
 const log = require('log').get('serverless:test');
 const runServerless = require('../../../utils/run-serverless');
 const getRequire = require('../../../../lib/utils/get-require');
@@ -17,7 +18,7 @@ const createFetchStub = () => {
   const requests = [];
   return {
     requests,
-    stub: sinon.stub().callsFake(async (url, { method }) => {
+    stub: sinon.stub().callsFake(async (url, { method } = { method: 'GET' }) => {
       log.debug('fetch request %s %o', url, method);
       if (url.includes('/org/')) {
         if (method.toUpperCase() === 'GET') {
@@ -48,7 +49,8 @@ const createFetchStub = () => {
           return { ok: true, text: async () => '' };
         }
       }
-      throw new Error('Unexpected request');
+      if (url.startsWith('https://registry.npmjs.org')) return fetch(url, { method });
+      throw new Error(`Unexpected request: ${url} method: ${method}`);
     }),
   };
 };
@@ -188,15 +190,24 @@ describe('test/unit/lib/classes/console.test.js', () => {
           awsNaming.getConsoleExtensionLayerLogicalId()
         );
         await fsp.access(
-          path.resolve(servicePath, '.serverless', serverless.console.extensionLayerFilename)
+          path.resolve(
+            servicePath,
+            '.serverless',
+            await serverless.console.deferredExtensionLayerBasename
+          )
         );
       });
 
-      it('should upload extension layer to S3', () => {
+      it('should upload extension layer to S3', async () => {
+        const consoleExtensionLayerBasename = await serverless.console
+          .deferredExtensionLayerBasename;
+        log.debug(
+          'layer basename: %s, s3Keys: %o',
+          consoleExtensionLayerBasename,
+          uploadStub.args.map(([{ Key: s3Key }]) => s3Key)
+        );
         expect(
-          uploadStub.args.some(([{ Key: s3Key }]) =>
-            s3Key.endsWith(serverless.console.extensionLayerFilename)
-          )
+          uploadStub.args.some(([{ Key: s3Key }]) => s3Key.endsWith(consoleExtensionLayerBasename))
         ).to.be.true;
       });
 
@@ -259,12 +270,10 @@ describe('test/unit/lib/classes/console.test.js', () => {
       expect(consoleDeploy.serviceId).to.equal(consolePackage.serviceId);
     });
 
-    it('should upload extension layer to S3', () => {
-      expect(
-        uploadStub.args.some(([{ Key: s3Key }]) =>
-          s3Key.endsWith(consoleDeploy.extensionLayerFilename)
-        )
-      ).to.be.true;
+    it('should upload extension layer to S3', async () => {
+      const extensionLayerFilename = await consoleDeploy.deferredExtensionLayerBasename;
+      expect(uploadStub.args.some(([{ Key: s3Key }]) => s3Key.endsWith(extensionLayerFilename))).to
+        .be.true;
     });
 
     it('should activate otel ingestion token', () => {
@@ -326,12 +335,10 @@ describe('test/unit/lib/classes/console.test.js', () => {
       expect(fnVariables).to.have.property('AWS_LAMBDA_EXEC_WRAPPER');
     });
 
-    it('should upload extension layer to S3', () => {
-      expect(
-        uploadStub.args.some(([{ Key: s3Key }]) =>
-          s3Key.endsWith(serverless.console.extensionLayerFilename)
-        )
-      ).to.be.true;
+    it('should upload extension layer to S3', async () => {
+      const extensionLayerFilename = await serverless.console.deferredExtensionLayerBasename;
+      expect(uploadStub.args.some(([{ Key: s3Key }]) => s3Key.endsWith(extensionLayerFilename))).to
+        .be.true;
     });
 
     it('should activate otel ingestion token', () => {
