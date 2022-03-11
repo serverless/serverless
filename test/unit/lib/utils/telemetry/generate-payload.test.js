@@ -14,8 +14,6 @@ const fixtures = require('../../../../fixtures/programmatic');
 const versions = {
   'serverless': require('../../../../../package').version,
   '@serverless/dashboard-plugin': require('@serverless/dashboard-plugin/package').version,
-  '@serverless/aws-lambda-otel-extension-dist':
-    require('@serverless/aws-lambda-otel-extension-dist/package').version,
 };
 
 const getGeneratePayload = () =>
