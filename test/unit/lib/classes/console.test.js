@@ -107,7 +107,18 @@ const createAwsRequestStubMap = () => ({
       ],
     }),
     headBucket: {},
-    upload: {},
+    upload: sinon.stub().callsFake(async ({ Body: body }) => {
+      if (typeof body.destroy === 'function') {
+        // Ensure to drain eventual file streams, otherwise file remain locked and
+        // on Windows they cannot be removed, resulting with homedir being dirty for next test runs
+        await new Promise((resolve, reject) => {
+          body.on('data', () => {});
+          body.on('end', resolve);
+          body.on('error', reject);
+        });
+      }
+      return {};
+    }),
   },
   STS: {
     getCallerIdentity: {
@@ -136,9 +147,8 @@ describe('test/unit/lib/classes/console.test.js', () => {
       let fetchStub;
       let otelIngenstionRequests;
       before(async () => {
-        uploadStub = sinon.stub().resolves({});
         const awsRequestStubMap = createAwsRequestStubMap();
-        awsRequestStubMap.S3.upload = uploadStub;
+        uploadStub = awsRequestStubMap.S3.upload;
         ({ requests: otelIngenstionRequests, stub: fetchStub } = createFetchStub());
 
         ({
@@ -225,9 +235,8 @@ describe('test/unit/lib/classes/console.test.js', () => {
     let fetchStub;
     let otelIngenstionRequests;
     before(async () => {
-      uploadStub = sinon.stub().resolves({});
       const awsRequestStubMap = createAwsRequestStubMap();
-      awsRequestStubMap.S3.upload = uploadStub;
+      uploadStub = awsRequestStubMap.S3.upload;
       ({ requests: otelIngenstionRequests, stub: fetchStub } = createFetchStub());
 
       ({
@@ -289,11 +298,10 @@ describe('test/unit/lib/classes/console.test.js', () => {
     let fetchStub;
     let otelIngenstionRequests;
     before(async () => {
-      uploadStub = sinon.stub().resolves({});
       updateFunctionStub = sinon.stub().resolves({});
       publishLayerStub = sinon.stub().resolves({});
       const awsRequestStubMap = createAwsRequestStubMap();
-      awsRequestStubMap.S3.upload = uploadStub;
+      uploadStub = awsRequestStubMap.S3.upload;
       let isFirstLayerVersionsQuery = true;
       ({ requests: otelIngenstionRequests, stub: fetchStub } = createFetchStub());
 
@@ -348,13 +356,10 @@ describe('test/unit/lib/classes/console.test.js', () => {
 
   describe('rollback', () => {
     let slsConsole;
-    let uploadStub;
     let fetchStub;
     let otelIngenstionRequests;
     before(async () => {
-      uploadStub = sinon.stub().resolves({});
       const awsRequestStubMap = createAwsRequestStubMap();
-      awsRequestStubMap.S3.upload = uploadStub;
       ({ requests: otelIngenstionRequests, stub: fetchStub } = createFetchStub());
 
       ({
@@ -432,9 +437,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
     let otelIngenstionRequests;
     let fetchStub;
     before(async () => {
-      const uploadStub = sinon.stub().resolves({});
       const awsRequestStubMap = createAwsRequestStubMap();
-      awsRequestStubMap.S3.upload = uploadStub;
       ({ requests: otelIngenstionRequests, stub: fetchStub } = createFetchStub());
 
       await runServerless({
