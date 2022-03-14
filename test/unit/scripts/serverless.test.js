@@ -125,6 +125,20 @@ describe('test/unit/scripts/serverless.test.js', () => {
     ).to.include('looks: good');
   });
 
+  it('should support "-c" flag for "aws-service" commands', async () => {
+    try {
+      await spawn('node', [serverlessPath, 'info', '-c', 'serverless.custom.yml'], {
+        cwd: path.resolve(programmaticFixturesPath, 'custom-config-filename'),
+      });
+      throw new Error('Unexpected');
+    } catch (error) {
+      // The way to validate it is to check if command errors out with missing credentials
+      // at this point we know the configuration was resolved properly
+      expect(error.code).to.equal(1);
+      expect(String(error.stdoutBuffer)).to.include('AWS provider credentials not found');
+    }
+  });
+
   it('should rejected unresolved "provider" section', async () => {
     try {
       await spawn('node', [serverlessPath, 'print'], {
