@@ -621,7 +621,7 @@ When intention is to invoke function asynchronously you may want to configure fo
 
 [destination targets](https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html#invocation-async-destinations)
 
-Target can be the other lambdas you also deploy with a service or other qualified target (externally managed lambda, EventBridge event bus, SQS queue or SNS topic) which you can address via its ARN
+Target can be the other lambdas you also deploy with a service or other qualified target (externally managed lambda, EventBridge event bus, SQS queue or SNS topic) which you can address via its ARN or Ref
 
 ```yml
 functions:
@@ -630,6 +630,11 @@ functions:
     destinations:
       onSuccess: otherFunctionInService
       onFailure: arn:aws:sns:us-east-1:xxxx:some-topic-name
+  asyncGoodBye:
+    handler: handler.asyncGoodBye
+    destinations:
+      onFailure:
+        Ref: EventsTopic
 ```
 
 ### Maximum Event Age and Maximum Retry Attempts

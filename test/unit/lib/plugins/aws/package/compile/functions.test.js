@@ -1617,6 +1617,18 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               handler: 'trigger.handler',
               destinations: { onSuccess: 'arn:aws:lambda:us-east-1:12313231:function:external' },
             },
+            fnDestinationsRef: {
+              handler: 'trigger.handler',
+              destinations: {
+                onSuccess: { Ref: 'EventsTopic' },
+              },
+            },
+            fnDestinationsRefOnFailure: {
+              handler: 'trigger.handler',
+              destinations: {
+                onFailure: { Ref: 'EventsTopic' },
+              },
+            },
             fnDisabledLogs: { handler: 'trigger.handler', disableLogs: true },
             fnMaximumEventAge: { handler: 'trigger.handler', maximumEventAge: 3600 },
             fnMaximumRetryAttempts: { handler: 'trigger.handler', maximumRetryAttempts: 0 },
@@ -1667,6 +1679,12 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
                     S3Key: 'key',
                   },
                   LayerName: 'externalLayer',
+                },
+              },
+              EventsTopic: {
+                Type: 'AWS::SNS::Topic',
+                Properties: {
+                  TopicName: 'serverless-topic',
                 },
               },
             },
@@ -1928,6 +1946,40 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       expect(iamRolePolicyStatements).to.deep.include({
         Effect: 'Allow',
         Action: 'lambda:InvokeFunction',
+        Resource: arn,
+      });
+    });
+
+    it('should support `functions[].destinations.onSuccess` as `Ref`', () => {
+      const destinationConfig =
+        cfResources[naming.getLambdaEventConfigLogicalId('fnDestinationsRef')].Properties
+          .DestinationConfig;
+
+      const arn = serviceConfig.functions.fnDestinationsRef.destinations.onSuccess;
+      expect(destinationConfig).to.deep.equal({
+        OnSuccess: { Destination: arn },
+      });
+
+      expect(iamRolePolicyStatements).to.deep.include({
+        Effect: 'Allow',
+        Action: 'sns:Publish',
+        Resource: arn,
+      });
+    });
+
+    it('should support `functions[].destinations.onFailure` as `Ref`', () => {
+      const destinationConfig =
+        cfResources[naming.getLambdaEventConfigLogicalId('fnDestinationsRefOnFailure')].Properties
+          .DestinationConfig;
+
+      const arn = serviceConfig.functions.fnDestinationsRefOnFailure.destinations.onFailure;
+      expect(destinationConfig).to.deep.equal({
+        OnFailure: { Destination: arn },
+      });
+
+      expect(iamRolePolicyStatements).to.deep.include({
+        Effect: 'Allow',
+        Action: 'sns:Publish',
         Resource: arn,
       });
     });
