@@ -1617,16 +1617,34 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               handler: 'trigger.handler',
               destinations: { onSuccess: 'arn:aws:lambda:us-east-1:12313231:function:external' },
             },
-            fnDestinationsRef: {
+            fnDestinationsRefSns: {
               handler: 'trigger.handler',
               destinations: {
-                onSuccess: { Ref: 'EventsTopic' },
+                onSuccess: { type: 'sns', arn: { Ref: 'SomeSNSArn' } },
+              },
+            },
+            fnDestinationsRefSqs: {
+              handler: 'trigger.handler',
+              destinations: {
+                onSuccess: { type: 'sqs', arn: { Ref: 'SomeSQSArn' } },
+              },
+            },
+            fnDestinationsRefEventBus: {
+              handler: 'trigger.handler',
+              destinations: {
+                onSuccess: { type: 'eventBus', arn: { Ref: 'SomeEventBusArn' } },
+              },
+            },
+            fnDestinationsRefFunction: {
+              handler: 'trigger.handler',
+              destinations: {
+                onSuccess: { type: 'function', arn: { Ref: 'SomeFunctionArn' } },
               },
             },
             fnDestinationsRefOnFailure: {
               handler: 'trigger.handler',
               destinations: {
-                onFailure: { Ref: 'EventsTopic' },
+                onFailure: { type: 'sns', arn: { Ref: 'SomeSNSArn' } },
               },
             },
             fnDisabledLogs: { handler: 'trigger.handler', disableLogs: true },
@@ -1679,12 +1697,6 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
                     S3Key: 'key',
                   },
                   LayerName: 'externalLayer',
-                },
-              },
-              EventsTopic: {
-                Type: 'AWS::SNS::Topic',
-                Properties: {
-                  TopicName: 'serverless-topic',
                 },
               },
             },
@@ -1950,20 +1962,71 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       });
     });
 
-    it('should support `functions[].destinations.onSuccess` as `Ref`', () => {
+    it('should support `functions[].destinations.onSuccess` as `Ref` for `sns`', () => {
       const destinationConfig =
-        cfResources[naming.getLambdaEventConfigLogicalId('fnDestinationsRef')].Properties
+        cfResources[naming.getLambdaEventConfigLogicalId('fnDestinationsRefSns')].Properties
           .DestinationConfig;
 
-      const arn = serviceConfig.functions.fnDestinationsRef.destinations.onSuccess;
+      const property = serviceConfig.functions.fnDestinationsRefSns.destinations.onSuccess;
       expect(destinationConfig).to.deep.equal({
-        OnSuccess: { Destination: arn },
+        OnSuccess: { Destination: property.arn },
       });
 
       expect(iamRolePolicyStatements).to.deep.include({
         Effect: 'Allow',
         Action: 'sns:Publish',
-        Resource: arn,
+        Resource: property.arn,
+      });
+    });
+
+    it('should support `functions[].destinations.onSuccess` as `Ref` for `sqs`', () => {
+      const destinationConfig =
+        cfResources[naming.getLambdaEventConfigLogicalId('fnDestinationsRefSqs')].Properties
+          .DestinationConfig;
+
+      const property = serviceConfig.functions.fnDestinationsRefSqs.destinations.onSuccess;
+      expect(destinationConfig).to.deep.equal({
+        OnSuccess: { Destination: property.arn },
+      });
+
+      expect(iamRolePolicyStatements).to.deep.include({
+        Effect: 'Allow',
+        Action: 'sqs:SendMessage',
+        Resource: property.arn,
+      });
+    });
+
+    it('should support `functions[].destinations.onSuccess` as `Ref` for `eventBus`', () => {
+      const destinationConfig =
+        cfResources[naming.getLambdaEventConfigLogicalId('fnDestinationsRefEventBus')].Properties
+          .DestinationConfig;
+
+      const property = serviceConfig.functions.fnDestinationsRefEventBus.destinations.onSuccess;
+      expect(destinationConfig).to.deep.equal({
+        OnSuccess: { Destination: property.arn },
+      });
+
+      expect(iamRolePolicyStatements).to.deep.include({
+        Effect: 'Allow',
+        Action: 'events:PutEvents',
+        Resource: property.arn,
+      });
+    });
+
+    it('should support `functions[].destinations.onSuccess` as `Ref` for `function`', () => {
+      const destinationConfig =
+        cfResources[naming.getLambdaEventConfigLogicalId('fnDestinationsRefFunction')].Properties
+          .DestinationConfig;
+
+      const property = serviceConfig.functions.fnDestinationsRefFunction.destinations.onSuccess;
+      expect(destinationConfig).to.deep.equal({
+        OnSuccess: { Destination: property.arn },
+      });
+
+      expect(iamRolePolicyStatements).to.deep.include({
+        Effect: 'Allow',
+        Action: 'lambda:InvokeFunction',
+        Resource: property.arn,
       });
     });
 
@@ -1972,15 +2035,15 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         cfResources[naming.getLambdaEventConfigLogicalId('fnDestinationsRefOnFailure')].Properties
           .DestinationConfig;
 
-      const arn = serviceConfig.functions.fnDestinationsRefOnFailure.destinations.onFailure;
+      const property = serviceConfig.functions.fnDestinationsRefOnFailure.destinations.onFailure;
       expect(destinationConfig).to.deep.equal({
-        OnFailure: { Destination: arn },
+        OnFailure: { Destination: property.arn },
       });
 
       expect(iamRolePolicyStatements).to.deep.include({
         Effect: 'Allow',
         Action: 'sns:Publish',
-        Resource: arn,
+        Resource: property.arn,
       });
     });
 
