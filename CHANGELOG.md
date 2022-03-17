@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.7.8](https://github.com/serverless/serverless/compare/v3.7.7...v3.7.8) (2022-03-17)
+
+### Bug Fixes
+
+- **Console:**
+  - Fix reference to bucket name in CF template ([#10869](https://github.com/serverless/serverless/pull/10869)) ([fcaa9c2](https://github.com/serverless/serverless/commit/fcaa9c2c4f756b552ba990438df8866e304f3b56)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Fix upload of extension to S3 bucket ([#10869](https://github.com/serverless/serverless/pull/10869)) ([23719d8](https://github.com/serverless/serverless/commit/23719d868c0b4270b57ea025a4271c62a58cb65f)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [3.7.7](https://github.com/serverless/serverless/compare/v3.7.6...v3.7.7) (2022-03-17)
 
 ### Bug Fixes
