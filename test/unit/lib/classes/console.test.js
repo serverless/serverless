@@ -225,6 +225,39 @@ describe('test/unit/lib/classes/console.test.js', () => {
         otelIngenstionRequests.includes('activate-token');
       });
     });
+
+    describe('package for custom deployment bucket', () => {
+      let cfTemplate;
+      let awsNaming;
+      before(async () => {
+        const awsRequestStubMap = createAwsRequestStubMap();
+        const { stub: fetchStub } = createFetchStub();
+
+        ({ cfTemplate, awsNaming } = await runServerless({
+          fixture: 'packaging',
+          command: 'package',
+          configExt: { console: true, org: 'testorg', provider: { deploymentBucket: 'custom' } },
+          env: { SERVERLESS_ACCESS_KEY: 'dummy' },
+          modulesCacheStub: {
+            [getRequire(path.dirname(require.resolve('@serverless/dashboard-plugin'))).resolve(
+              '@serverless/platform-client'
+            )]: { ServerlessSDK: ServerlessSDKMock },
+            [require.resolve('node-fetch')]: fetchStub,
+          },
+          awsRequestStubMap,
+        }));
+      });
+
+      it('should not reference default deployment bucket anywhere', () => {
+        expect(JSON.stringify(cfTemplate.Resources)).to.not.contain('ServerlessDeploymentBucket');
+      });
+      it('should reference custom S3 bucket at layre version', () => {
+        expect(
+          cfTemplate.Resources[awsNaming.getConsoleExtensionLayerLogicalId()].Properties.Content
+            .S3Bucket
+        ).to.equal('custom');
+      });
+    });
   });
 
   describe('deploy --package', () => {
@@ -235,8 +268,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
     let fetchStub;
     let otelIngenstionRequests;
     before(async () => {
-      const awsRequestStubMap = createAwsRequestStubMap();
-      uploadStub = awsRequestStubMap.S3.upload;
       ({ requests: otelIngenstionRequests, stub: fetchStub } = createFetchStub());
 
       ({
@@ -254,7 +285,11 @@ describe('test/unit/lib/classes/console.test.js', () => {
           )]: { ServerlessSDK: ServerlessSDKMock },
           [require.resolve('node-fetch')]: fetchStub,
         },
+        awsRequestStubMap: createAwsRequestStubMap(),
       }));
+
+      const awsRequestStubMap = createAwsRequestStubMap();
+      uploadStub = awsRequestStubMap.S3.upload;
 
       ({
         serverless: { console: consoleDeploy },
@@ -516,6 +551,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
             )]: { ServerlessSDK: ServerlessSDKMock },
             [require.resolve('node-fetch')]: fetchStub,
           },
+          awsRequestStubMap: createAwsRequestStubMap(),
         });
         const stateFilename = path.resolve(servicePath, 'package-dir', 'serverless-state.json');
         const state = JSON.parse(await fsp.readFile(stateFilename, 'utf-8'));
@@ -561,6 +597,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
             )]: { ServerlessSDK: ServerlessSDKMock },
             [require.resolve('node-fetch')]: fetchStub,
           },
+          awsRequestStubMap: createAwsRequestStubMap(),
         });
         const stateFilename = path.resolve(servicePath, 'package-dir', 'serverless-state.json');
         const state = JSON.parse(await fsp.readFile(stateFilename, 'utf-8'));
@@ -589,7 +626,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
     );
     it(
       'should throw activation mismatch error when attempting to deploy with ' +
-        'console integration off, but packaged with console integration on, ',
+        'console integration off, but packaged with console integration on',
       async () => {
         const fetchStub = createFetchStub().stub;
         const {
@@ -606,6 +643,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
             )]: { ServerlessSDK: ServerlessSDKMock },
             [require.resolve('node-fetch')]: fetchStub,
           },
+          awsRequestStubMap: createAwsRequestStubMap(),
         });
         const stateFilename = path.resolve(servicePath, 'package-dir', 'serverless-state.json');
         const state = JSON.parse(await fsp.readFile(stateFilename, 'utf-8'));
