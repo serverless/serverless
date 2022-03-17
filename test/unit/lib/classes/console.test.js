@@ -216,9 +216,11 @@ describe('test/unit/lib/classes/console.test.js', () => {
           consoleExtensionLayerBasename,
           uploadStub.args.map(([{ Key: s3Key }]) => s3Key)
         );
-        expect(
-          uploadStub.args.some(([{ Key: s3Key }]) => s3Key.endsWith(consoleExtensionLayerBasename))
-        ).to.be.true;
+        const uploadArgs = uploadStub.args.find(([{ Key: s3Key }]) =>
+          s3Key.endsWith(consoleExtensionLayerBasename)
+        )[0];
+        // Confirm that Bucket is properly resolved in outer `uploadZipFile` method
+        expect(typeof uploadArgs.Bucket).to.equal('string');
       });
 
       it('should activate otel ingestion token', () => {
