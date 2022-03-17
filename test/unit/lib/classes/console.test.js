@@ -232,11 +232,10 @@ describe('test/unit/lib/classes/console.test.js', () => {
       let cfTemplate;
       let awsNaming;
       before(async () => {
-        const awsRequestStubMap = createAwsRequestStubMap();
         const { stub: fetchStub } = createFetchStub();
 
         ({ cfTemplate, awsNaming } = await runServerless({
-          fixture: 'packaging',
+          fixture: 'function',
           command: 'package',
           configExt: { console: true, org: 'testorg', provider: { deploymentBucket: 'custom' } },
           env: { SERVERLESS_ACCESS_KEY: 'dummy' },
@@ -246,14 +245,13 @@ describe('test/unit/lib/classes/console.test.js', () => {
             )]: { ServerlessSDK: ServerlessSDKMock },
             [require.resolve('node-fetch')]: fetchStub,
           },
-          awsRequestStubMap,
         }));
       });
 
       it('should not reference default deployment bucket anywhere', () => {
         expect(JSON.stringify(cfTemplate.Resources)).to.not.contain('ServerlessDeploymentBucket');
       });
-      it('should reference custom S3 bucket at layre version', () => {
+      it('should reference custom S3 bucket at layer version', () => {
         expect(
           cfTemplate.Resources[awsNaming.getConsoleExtensionLayerLogicalId()].Properties.Content
             .S3Bucket
@@ -287,7 +285,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
           )]: { ServerlessSDK: ServerlessSDKMock },
           [require.resolve('node-fetch')]: fetchStub,
         },
-        awsRequestStubMap: createAwsRequestStubMap(),
       }));
 
       const awsRequestStubMap = createAwsRequestStubMap();
@@ -599,7 +596,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
             )]: { ServerlessSDK: ServerlessSDKMock },
             [require.resolve('node-fetch')]: fetchStub,
           },
-          awsRequestStubMap: createAwsRequestStubMap(),
         });
         const stateFilename = path.resolve(servicePath, 'package-dir', 'serverless-state.json');
         const state = JSON.parse(await fsp.readFile(stateFilename, 'utf-8'));
@@ -645,7 +641,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
             )]: { ServerlessSDK: ServerlessSDKMock },
             [require.resolve('node-fetch')]: fetchStub,
           },
-          awsRequestStubMap: createAwsRequestStubMap(),
         });
         const stateFilename = path.resolve(servicePath, 'package-dir', 'serverless-state.json');
         const state = JSON.parse(await fsp.readFile(stateFilename, 'utf-8'));
