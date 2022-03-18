@@ -621,6 +621,49 @@ describe('test/unit/lib/classes/console.test.js', () => {
       }
     );
     it(
+      'should throw mismatch error when attempting to deploy package, ' +
+        'packaged with different org',
+      async () => {
+        const fetchStub = createFetchStub().stub;
+        const {
+          fixtureData: { servicePath, updateConfig },
+        } = await runServerless({
+          fixture: 'function',
+          command: 'package',
+          options: { package: 'package-dir' },
+          configExt: { console: true, org: 'testorg' },
+          env: { SERVERLESS_ACCESS_KEY: 'dummy' },
+          modulesCacheStub: {
+            [getRequire(path.dirname(require.resolve('@serverless/dashboard-plugin'))).resolve(
+              '@serverless/platform-client'
+            )]: { ServerlessSDK: ServerlessSDKMock },
+            [require.resolve('node-fetch')]: fetchStub,
+          },
+        });
+
+        await updateConfig({ provider: { region: 'us-east-2' } });
+
+        await expect(
+          runServerless({
+            cwd: servicePath,
+            command: 'deploy',
+            lastLifecycleHookName: 'aws:deploy:deploy:uploadArtifacts',
+            options: { package: 'package-dir' },
+            env: { SERVERLESS_ACCESS_KEY: 'dummy' },
+            modulesCacheStub: {
+              [getRequire(path.dirname(require.resolve('@serverless/dashboard-plugin'))).resolve(
+                '@serverless/platform-client'
+              )]: {
+                ServerlessSDK: ServerlessSDKMock,
+              },
+              [require.resolve('node-fetch')]: fetchStub,
+            },
+            awsRequestStubMap: createAwsRequestStubMap(),
+          })
+        ).to.eventually.be.rejected.and.have.property('code', 'CONSOLE_REGION_MISMATCH');
+      }
+    );
+    it(
       'should throw activation mismatch error when attempting to deploy with ' +
         'console integration off, but packaged with console integration on',
       async () => {
