@@ -135,6 +135,8 @@ provider:
   versionFunctions: false
   # Processor architecture: 'x86_64' or 'arm64' via Graviton2 (default: x86_64)
   architecture: x86_64
+  # Maximum retry attempts when an asynchronous invocation fails (between 0 and 2; default: 2)
+  maximumRetryAttempts: 1
 ```
 
 ### Deployment bucket
