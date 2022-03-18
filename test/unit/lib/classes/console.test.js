@@ -131,8 +131,8 @@ const createAwsRequestStubMap = () => ({
 });
 
 const ServerlessSDKMock = class ServerlessSDK {
-  async getOrgByName() {
-    return { orgUid: 'testorgid' };
+  async getOrgByName(orgName) {
+    return { orgUid: `${orgName}id` };
   }
 };
 
@@ -583,12 +583,12 @@ describe('test/unit/lib/classes/console.test.js', () => {
       async () => {
         const fetchStub = createFetchStub().stub;
         const {
-          fixtureData: { servicePath },
+          fixtureData: { servicePath, updateConfig },
         } = await runServerless({
           fixture: 'function',
           command: 'package',
           options: { package: 'package-dir' },
-          configExt: { console: true, org: 'testorg' },
+          configExt: { console: true, org: 'other' },
           env: { SERVERLESS_ACCESS_KEY: 'dummy' },
           modulesCacheStub: {
             [getRequire(path.dirname(require.resolve('@serverless/dashboard-plugin'))).resolve(
@@ -597,17 +597,15 @@ describe('test/unit/lib/classes/console.test.js', () => {
             [require.resolve('node-fetch')]: fetchStub,
           },
         });
-        const stateFilename = path.resolve(servicePath, 'package-dir', 'serverless-state.json');
-        const state = JSON.parse(await fsp.readFile(stateFilename, 'utf-8'));
-        state.console.orgId = 'other';
-        await fsp.writeFile(stateFilename, JSON.stringify(state));
+
+        await updateConfig({ org: 'testorg' });
+
         await expect(
           runServerless({
             cwd: servicePath,
             command: 'deploy',
             lastLifecycleHookName: 'aws:deploy:deploy:uploadArtifacts',
             options: { package: 'package-dir' },
-            configExt: { console: true, org: 'testorg' },
             env: { SERVERLESS_ACCESS_KEY: 'dummy' },
             modulesCacheStub: {
               [getRequire(path.dirname(require.resolve('@serverless/dashboard-plugin'))).resolve(
