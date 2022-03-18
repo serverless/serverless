@@ -135,8 +135,6 @@ provider:
   versionFunctions: false
   # Processor architecture: 'x86_64' or 'arm64' via Graviton2 (default: x86_64)
   architecture: x86_64
-  # Maximum retry attempts when an asynchronous invocation fails (between 0 and 2; default: 2)
-  maximumRetryAttempts: 1
 ```
 
 ### Deployment bucket
@@ -712,6 +710,10 @@ functions:
       arn: arn:aws:elasticfilesystem:us-east-1:11111111:access-point/fsap-a1a1a1
       # Path under which EFS will be mounted and accessible in Lambda
       localMountPath: /mnt/example
+    # Maximum retry attempts when an asynchronous invocation fails (between 0 and 2; default: 2)
+    maximumRetryAttempts: 1
+    # Maximum event age in seconds when invoking asynchornously (between 60 and 21600)
+    maximumEventAge: 7200
 ```
 
 ## Lambda events
