@@ -479,9 +479,18 @@ processSpanPromise = (async () => {
     const notIntegratedCommands = new Set(['doctor', 'plugin install', 'plugin uninstall']);
     const isStandaloneCommand = notIntegratedCommands.has(command);
 
-    if (!isHelpRequest && (isInteractiveSetup || isStandaloneCommand)) {
-      if (configuration) require('../lib/cli/ensure-supported-command')(configuration);
-      if (isInteractiveSetup) {
+    if (!isHelpRequest) {
+      if (isStandaloneCommand) {
+        if (configuration) require('../lib/cli/ensure-supported-command')(configuration);
+        await require(`../commands/${commands.join('-')}`)({
+          configuration,
+          serviceDir,
+          configurationFilename,
+          options,
+        });
+        await finalize({ telemetryData: { outcome: 'success' } });
+        return;
+      } else if (isInteractiveSetup) {
         if (!isInteractiveTerminal) {
           throw new ServerlessError(
             'Attempted to run an interactive setup in non TTY environment.\n' +
@@ -489,30 +498,24 @@ processSpanPromise = (async () => {
             'INTERACTIVE_SETUP_IN_NON_TTY'
           );
         }
-        const interactiveContext = await require('../lib/cli/interactive-setup')({
-          configuration,
-          serviceDir,
-          configurationFilename,
-          options,
-          commandUsage,
-        });
-        if (interactiveContext.configuration) {
-          configuration = interactiveContext.configuration;
+        if (!configuration) {
+          const interactiveContext = await require('../lib/cli/interactive-setup')({
+            configuration,
+            serviceDir,
+            configurationFilename,
+            options,
+            commandUsage,
+          });
+          if (interactiveContext.configuration) {
+            configuration = interactiveContext.configuration;
+          }
+          if (interactiveContext.serverless) {
+            serverless = interactiveContext.serverless;
+          }
+          await finalize({ telemetryData: { outcome: 'success' }, shouldSendTelemetry: true });
+          return;
         }
-        if (interactiveContext.serverless) {
-          serverless = interactiveContext.serverless;
-        }
-      } else {
-        await require(`../commands/${commands.join('-')}`)({
-          configuration,
-          serviceDir,
-          configurationFilename,
-          options,
-        });
       }
-
-      await finalize({ telemetryData: { outcome: 'success' }, shouldSendTelemetry: true });
-      return;
     }
 
     serverless = new Serverless({
@@ -682,6 +685,21 @@ processSpanPromise = (async () => {
       if (isHelpRequest && serverless.pluginManager.externalPlugins) {
         // Show help
         require('../lib/cli/render-help')(serverless.pluginManager.externalPlugins);
+      } else if (isInteractiveSetup) {
+        const interactiveContext = await require('../lib/cli/interactive-setup')({
+          configuration,
+          serverless,
+          serviceDir,
+          configurationFilename,
+          options,
+          commandUsage,
+        });
+        if (interactiveContext.configuration) {
+          configuration = interactiveContext.configuration;
+        }
+        if (interactiveContext.serverless) {
+          serverless = interactiveContext.serverless;
+        }
       } else {
         // Run command
         await serverless.run();
@@ -689,7 +707,7 @@ processSpanPromise = (async () => {
 
       const backendNotificationRequest = await finalize({
         telemetryData: { outcome: 'success' },
-        shouldSendTelemetry: commands.join(' ') === 'deploy',
+        shouldSendTelemetry: isInteractiveSetup || commands.join(' ') === 'deploy',
       });
       if (backendNotificationRequest) {
         await processBackendNotificationRequest(backendNotificationRequest);
