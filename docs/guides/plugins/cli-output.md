@@ -59,6 +59,10 @@ To write a formatted "success" message, use the following helper:
 log.success('The task executed with success');
 ```
 
+Success messages render with the checkmark, like the "Service deployed" success message:
+
+![](https://uploads-ssl.webflow.com/60acbb950c4d6606963e1fed/618259092410635f822c71af_framework-plugin-api-success-message.png)
+
 Log methods also support the printf format:
 
 ```js

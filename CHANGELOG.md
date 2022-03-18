@@ -2,6 +2,87 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.7.8](https://github.com/serverless/serverless/compare/v3.7.7...v3.7.8) (2022-03-17)
+
+### Bug Fixes
+
+- **Console:**
+  - Fix reference to bucket name in CF template ([#10869](https://github.com/serverless/serverless/pull/10869)) ([fcaa9c2](https://github.com/serverless/serverless/commit/fcaa9c2c4f756b552ba990438df8866e304f3b56)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Fix upload of extension to S3 bucket ([#10869](https://github.com/serverless/serverless/pull/10869)) ([23719d8](https://github.com/serverless/serverless/commit/23719d868c0b4270b57ea025a4271c62a58cb65f)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### [3.7.7](https://github.com/serverless/serverless/compare/v3.7.6...v3.7.7) (2022-03-17)
+
+### Bug Fixes
+
+- **Console:** Respect custom deployment bucket configuration ([#10867](https://github.com/serverless/serverless/pull/10867)) ([4d705cc](https://github.com/serverless/serverless/commit/4d705cc96d1bec29c3328879e41a71f907b0696d)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Console:**
+  - Generalize internal `bucketName` resolution ([#10867](https://github.com/serverless/serverless/pull/10867)) ([103fc55](https://github.com/serverless/serverless/commit/103fc554fc21bf7f8f16a634836bfe10d5109446)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Report used layer extension version to telemetry ([#10867](https://github.com/serverless/serverless/pull/10867)) ([db89f20](https://github.com/serverless/serverless/commit/db89f20f01b66c7dfc81f1571dfb215ba85daa24)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI:** Support internally a temporary `SLS_DISABLE_AUTO_UPDATE` env var ([c939457](https://github.com/serverless/serverless/commit/c939457ba46232b247a691b23c95f8408eba406f)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### [3.7.6](https://github.com/serverless/serverless/compare/v3.7.5...v3.7.6) (2022-03-17)
+
+### Bug Fixes
+
+- **Standalone:** Ensure error in China upload don't break GitHub upload ([#10853](https://github.com/serverless/serverless/pull/10853)) ([2b8afac](https://github.com/serverless/serverless/commit/2b8afac5ecf879a6e979c5a4642ededeca4a5cf7)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Console:** Ensure to package extension without errors ([#10860](https://github.com/serverless/serverless/pull/10860)) ([64ee4a5](https://github.com/serverless/serverless/commit/64ee4a528815354905b1f5c92fb7ba1e1604e4b4)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Console:** Upgrade to rely on v0.2 version of extension ([#10837](https://github.com/serverless/serverless/pull/10837)) ([3ccfec1](https://github.com/serverless/serverless/commit/3ccfec1abdace3abb3e7484d51feb532ad37dda0)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### [3.7.5](https://github.com/serverless/serverless/compare/v3.7.4...v3.7.5) (2022-03-14)
+
+### Bug Fixes
+
+- **AWS Kafka:** Allow usage of Server Root CA without client TLS auth ([#10837](https://github.com/serverless/serverless/pull/10837)) ([6a6417c](https://github.com/serverless/serverless/commit/6a6417c29fe6c06286562ab7604536004bf62334)) ([Fabian Desoye](https://github.com/fdesoye))
+- **CLI:** Ensure proper resolution of options for service commands ([#10846](https://github.com/serverless/serverless/issues/10846)) ([dd421cc](https://github.com/serverless/serverless/commit/dd421cc8a65816c59572c581e275455f9793754e)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **Console:** Dynamically resolve latest version of the extension ([#10842](https://github.com/serverless/serverless/pull/10842)) ([c28c48c](https://github.com/serverless/serverless/commit/c28c48c6a131201448c6018d6e6951d7d9131eeb)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### [3.7.4](https://github.com/serverless/serverless/compare/v3.7.3...v3.7.4) (2022-03-10)
+
+### Bug Fixes
+
+- **AWS Local Invocation:** Remove log4j dependency from java wrapper ([#10832](https://github.com/serverless/serverless/pull/10832)) ([8b17338](https://github.com/serverless/serverless/commit/8b1733807fe76b01f03880652111f8085a664e31)) ([Yuji Yamano](https://github.com/yyamano))
+
+### Maintenance Improvements
+
+- **Console:** Communicate new token implications with verbose mode ([#10835](https://github.com/serverless/serverless/pull/10835)) ([7e56aa1](https://github.com/serverless/serverless/commit/7e56aa17939021c920ba4046684386016b8f7a1f)) ([Mariusz Nowak](https://github.com/medikoo))
+
+## [3.7.3](https://github.com/serverless/serverless/compare/v3.7.2...v3.7.3) (2022-03-09)
+
+### Bug Fixes
+
+- **CLI Onboarding:**
+  - Enable Console in config, only with `--console` ([#10825](https://github.com/serverless/serverless/pull/10825)) ([b173d90](https://github.com/serverless/serverless/commit/b173d90e643a472817f90c9d9a31d4924d35c56f)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Ensure to enable Console when commented out ([#10825](https://github.com/serverless/serverless/pull/10825)) ([f0bff74](https://github.com/serverless/serverless/commit/f0bff7463c29e346dc61aa05db2c6f530b9282fb)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Fix `initialContext.isDashboardEnabled` resolution ([#10825](https://github.com/serverless/serverless/pull/10825)) ([10c24f6](https://github.com/serverless/serverless/commit/10c24f6398bf8fc987cb2e79fd33ee70964b7836)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Fix `isConsole` resolution in `login` step ([#10825](https://github.com/serverless/serverless/pull/10825)) ([688bfcf](https://github.com/serverless/serverless/commit/688bfcf00d276dcc39dc1b67e9a673ccbdc78512)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Fix resolution of onboarding message ([#10825](https://github.com/serverless/serverless/pull/10825)) ([624536f](https://github.com/serverless/serverless/commit/624536f77ebe1a0cd6759cb90ef1cb9a209fb64d)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Leave `app` intact with also enabled Dashboard ([#10825](https://github.com/serverless/serverless/pull/10825)) ([a043624](https://github.com/serverless/serverless/commit/a0436248e7b127b56b5444a67870ea2671de0a21)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Prevent side-effects of not supported `app` option ([#10825](https://github.com/serverless/serverless/pull/10825)) ([0c65663](https://github.com/serverless/serverless/commit/0c65663861b80a4fbd395018141ed90dd41cbdce)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Setup `app` when Console and Dashboard enabled ([#10825](https://github.com/serverless/serverless/pull/10825)) ([bffbfe3](https://github.com/serverless/serverless/commit/bffbfe32fd54f5f1fa01db3fcbb81287be246092)) ([Mariusz Nowak](https://github.com/medikoo))
+  - With Console always favor console messaging ([#10825](https://github.com/serverless/serverless/pull/10825)) ([f0d441e](https://github.com/serverless/serverless/commit/f0d441e0d469640e04d880b81e361da539aa5f62)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **CLI Onboarding:**
+  - Support joint Console (experimental) & Dashboard configurations ([#10825](https://github.com/serverless/serverless/pull/10825)) ([48609f7](https://github.com/serverless/serverless/commit/48609f72762ffe8eabd9415084eed42e01ea061e)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Hide not supported templates with console ([#10825](https://github.com/serverless/serverless/pull/10825)) ([79e156f](https://github.com/serverless/serverless/commit/79e156f7ac70d997093d2b2ca127f0844cab121a)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Reorganize `writeOrgAppAndConsole` input ([#10825](https://github.com/serverless/serverless/pull/10825)) ([fc9dc1d](https://github.com/serverless/serverless/commit/fc9dc1dc4022163ff6f28f1ee6de2db85fd56202)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Reorganize internal variables ([#10825](https://github.com/serverless/serverless/pull/10825)) ([25d2e7a](https://github.com/serverless/serverless/commit/25d2e7a2a0932f40ac5114702fce74a0caa9c019)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Support future object notation for `console` ([#10825](https://github.com/serverless/serverless/pull/10825)) ([2f187a5](https://github.com/serverless/serverless/commit/2f187a52eb3a14c6e94d00a37ded64ed75914d3f)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Console:** Unify headers resolution ([#10825](https://github.com/serverless/serverless/pull/10825)) ([494fb26](https://github.com/serverless/serverless/commit/494fb2662f910449eb0b7ad3f6caeb1c77486501)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Telemetry:**
+  - Expose `initialContext.isConsoleEnabled` ([#10825](https://github.com/serverless/serverless/pull/10825)) ([f580883](https://github.com/serverless/serverless/commit/f580883d48027065e9e9aff77ee49c9c1a61fedd)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Ensure to not leak `false` as empty value ([#10825](https://github.com/serverless/serverless/pull/10825)) ([167a77e](https://github.com/serverless/serverless/commit/167a77ecaecc4da92f629d1aa075eb1a62831916)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [3.7.2](https://github.com/serverless/serverless/compare/v3.7.1...v3.7.2) (2022-03-08)
 
 ### Bug Fixes
@@ -304,6 +385,12 @@ Read the [**complete v3 Upgrade Guide**](https://www.serverless.com/framework/do
 - Replace `ncjsm/resolve` usage with native `createRequire` ([#10503](https://github.com/serverless/serverless/issues/10503)) ([d18efc2](https://github.com/serverless/serverless/commit/d18efc2d43789dc11857d677851ba4b66e09a6a4)) ([Mariusz Nowak](https://github.com/medikoo))
 - Adapt to rename in `@serverless/dashboard-plugin` ([#10543](https://github.com/serverless/serverless/issues/10543)) ([88234a5](https://github.com/serverless/serverless/commit/88234a51233e74b3155427a5bf0a4022ec182c04)) ([Mariusz Nowak](https://github.com/medikoo))
 - Upgrade `@serverless/utils` to v6 ([74d9c70](https://github.com/serverless/serverless/commit/74d9c70f8abbfab1af4c6440ed93fd163145a597)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### [2.72.3](https://github.com/serverless/serverless/compare/v2.72.2...v2.72.3) (2022-02-22)
+
+### Maintenance Improvements
+
+- Improve CLI options deprecation message ([#10740](https://github.com/serverless/serverless/pull/10740)) ([58ed08c](https://github.com/serverless/serverless/commit/58ed08c9ff5bf4d41256c462a72aad7e580b5551)) ([Piotr Grzesik](https://github.com/pgrzesik))
 
 ### [2.72.2](https://github.com/serverless/serverless/compare/v2.72.1...v2.72.2) (2022-01-24)
 

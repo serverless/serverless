@@ -5,6 +5,7 @@ const sinon = require('sinon');
 const path = require('path');
 const EventEmitter = require('events');
 const fse = require('fs-extra');
+const log = require('log').get('serverless:test');
 const proxyquire = require('proxyquire');
 const overrideEnv = require('process-utils/override-env');
 const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
@@ -997,7 +998,14 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
             },
           },
         });
-        const outputAsJson = JSON.parse(response.output);
+        const outputAsJson = (() => {
+          try {
+            return JSON.parse(response.output);
+          } catch (error) {
+            log.error('Unexpected response output: %s', response.output);
+            throw error;
+          }
+        })();
         responseBody = JSON.parse(outputAsJson.body);
       });
 

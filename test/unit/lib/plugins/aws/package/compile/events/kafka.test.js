@@ -457,35 +457,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
         await runCompileEventSourceMappingTest(eventConfig);
       });
 
-      it('should fail to compile EventSourceMapping resource properties for SERVER_ROOT_CA_CERTIFICATE with no CLIENT_CERTIFICATE_TLS_AUTH', async () => {
-        await expect(
-          runServerless({
-            fixture: 'function',
-            configExt: {
-              functions: {
-                basic: {
-                  events: [
-                    {
-                      kafka: {
-                        topic,
-                        bootstrapServers: ['abc.xyz:9092'],
-                        accessConfigurations: {
-                          serverRootCaCertificate: serverRootCaCertificateArn,
-                        },
-                      },
-                    },
-                  ],
-                },
-              },
-            },
-            command: 'package',
-          })
-        ).to.be.rejected.and.eventually.have.property(
-          'code',
-          'FUNCTION_KAFKA_CLIENT_CERTIFICATE_TLS_AUTH_CONFIGURATION_MISSING'
-        );
-      });
-
       it('should update default IAM role with EC2 statement when VPC accessConfiguration is provided', async () => {
         const { cfTemplate } = await runServerless({
           fixture: 'function',
