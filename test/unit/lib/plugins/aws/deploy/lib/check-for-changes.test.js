@@ -16,6 +16,8 @@ const Serverless = require('../../../../../../../lib/serverless');
 const ServerlessError = require('../../../../../../../lib/serverless-error');
 const runServerless = require('../../../../../../utils/run-serverless');
 
+const fsp = fs.promises;
+
 // Configure chai
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
@@ -247,17 +249,17 @@ describe('checkForChanges', () => {
         .stub(normalizeFiles, 'normalizeCloudFormationTemplate')
         .returns();
       globbySyncStub = sandbox.stub(globby, 'sync');
-      readFileStub = sandbox.stub(fs, 'readFile').yields(null, undefined);
+      readFileStub = sandbox.stub(fsp, 'readFile').returns(Promise.resolve(''));
     });
 
     afterEach(() => {
       normalizeFiles.normalizeCloudFormationTemplate.restore();
       globby.sync.restore();
-      fs.readFile.restore();
+      fsp.readFile.restore();
     });
 
     it('should resolve if no input is provided', () =>
-      expect(awsDeploy.checkIfDeploymentIsNecessary()).to.be.fulfilled.then(() => {
+      expect(awsDeploy.checkIfDeploymentIsNecessary([])).to.be.fulfilled.then(() => {
         expect(normalizeCloudFormationTemplateStub).to.not.have.been.called;
         expect(globbySyncStub).to.not.have.been.called;
         expect(readFileStub).to.not.have.been.called;
