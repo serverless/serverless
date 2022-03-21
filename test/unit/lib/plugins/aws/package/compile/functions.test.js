@@ -1126,8 +1126,8 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
             fnImage: { image: imageWithSha },
             foo: {
               vpc: {
-                subnetIds: ['subnet-02020202'],
-                securityGroupIds: ['sg-1b1b1b1b'],
+                subnetIds: ['subnet-02020202', { 'Fn::If': ['cond', 'first', 'second'] }],
+                securityGroupIds: ['sg-1b1b1b1b', { 'Fn::If': ['cond', 'first', 'second'] }],
               },
               kmsKeyArn: 'arn:aws:kms:region:accountid:fun/ction',
               tracing: 'PassThrough',
