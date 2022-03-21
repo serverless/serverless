@@ -629,6 +629,8 @@ functions:
     kmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
     # Disable the creation of the CloudWatch log group
     disableLogs: false
+    # Duration for CloudWatch log retention (default: forever).
+    logRetentionInDays: 14
     tags: # Function specific tags
       foo: bar
     # VPC settings for this function

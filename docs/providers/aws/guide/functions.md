@@ -506,11 +506,16 @@ By default, the framework will create LogGroups for your Lambdas. This makes it 
 
 You can opt out of the default behavior by setting `disableLogs: true`
 
+You can also specify the duration for CloudWatch log retention by setting `logRetentionInDays`.
+
 ```yml
 functions:
   hello:
     handler: handler.hello
     disableLogs: true
+  goodBye:
+    handler: handler.goodBye
+    logRetentionInDays: 14
 ```
 
 ## Versioning Deployed Functions
