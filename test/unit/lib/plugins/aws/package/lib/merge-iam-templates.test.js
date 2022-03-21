@@ -473,6 +473,10 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
                 handler: 'index.handler',
                 disableLogs: true,
               },
+              fnLogRetentionInDays: {
+                handler: 'index.handler',
+                logRetentionInDays: 5,
+              },
               fnWithVpc: {
                 handler: 'index.handler',
                 vpc: {
@@ -513,6 +517,18 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         const functionLogGroupName = naming.getLogGroupName(functionName);
 
         expect(cfResources).to.not.have.property(functionLogGroupName);
+      });
+
+      it('should support `functions[].logRetentionInDays`', async () => {
+        const functionName = serverless.service.getFunction('fnLogRetentionInDays').name;
+        const normalizedName = naming.getLogGroupLogicalId('fnLogRetentionInDays');
+        const logResource = cfResources[normalizedName];
+
+        expect(logResource.Type).to.be.equal('AWS::Logs::LogGroup');
+        expect(logResource.Properties.RetentionInDays).to.be.equal(5);
+        expect(logResource.Properties.LogGroupName).to.be.equal(
+          naming.getLogGroupName(functionName)
+        );
       });
 
       it('should not have allow rights to put logs for custom named function when disableLogs option is enabled', async () => {

@@ -131,8 +131,8 @@ const createAwsRequestStubMap = () => ({
 });
 
 const ServerlessSDKMock = class ServerlessSDK {
-  async getOrgByName() {
-    return { orgUid: 'testorgid' };
+  async getOrgByName(orgName) {
+    return { orgUid: `${orgName}id` };
   }
 };
 
@@ -216,13 +216,46 @@ describe('test/unit/lib/classes/console.test.js', () => {
           consoleExtensionLayerBasename,
           uploadStub.args.map(([{ Key: s3Key }]) => s3Key)
         );
-        expect(
-          uploadStub.args.some(([{ Key: s3Key }]) => s3Key.endsWith(consoleExtensionLayerBasename))
-        ).to.be.true;
+        const uploadArgs = uploadStub.args.find(([{ Key: s3Key }]) =>
+          s3Key.endsWith(consoleExtensionLayerBasename)
+        )[0];
+        // Confirm that Bucket is properly resolved in outer `uploadZipFile` method
+        expect(typeof uploadArgs.Bucket).to.equal('string');
       });
 
       it('should activate otel ingestion token', () => {
         otelIngenstionRequests.includes('activate-token');
+      });
+    });
+
+    describe('package for custom deployment bucket', () => {
+      let cfTemplate;
+      let awsNaming;
+      before(async () => {
+        const { stub: fetchStub } = createFetchStub();
+
+        ({ cfTemplate, awsNaming } = await runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: { console: true, org: 'testorg', provider: { deploymentBucket: 'custom' } },
+          env: { SERVERLESS_ACCESS_KEY: 'dummy' },
+          modulesCacheStub: {
+            [getRequire(path.dirname(require.resolve('@serverless/dashboard-plugin'))).resolve(
+              '@serverless/platform-client'
+            )]: { ServerlessSDK: ServerlessSDKMock },
+            [require.resolve('node-fetch')]: fetchStub,
+          },
+        }));
+      });
+
+      it('should not reference default deployment bucket anywhere', () => {
+        expect(JSON.stringify(cfTemplate.Resources)).to.not.contain('ServerlessDeploymentBucket');
+      });
+      it('should reference custom S3 bucket at layer version', () => {
+        expect(
+          cfTemplate.Resources[awsNaming.getConsoleExtensionLayerLogicalId()].Properties.Content
+            .S3Bucket
+        ).to.equal('custom');
       });
     });
   });
@@ -235,8 +268,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
     let fetchStub;
     let otelIngenstionRequests;
     before(async () => {
-      const awsRequestStubMap = createAwsRequestStubMap();
-      uploadStub = awsRequestStubMap.S3.upload;
       ({ requests: otelIngenstionRequests, stub: fetchStub } = createFetchStub());
 
       ({
@@ -255,6 +286,9 @@ describe('test/unit/lib/classes/console.test.js', () => {
           [require.resolve('node-fetch')]: fetchStub,
         },
       }));
+
+      const awsRequestStubMap = createAwsRequestStubMap();
+      uploadStub = awsRequestStubMap.S3.upload;
 
       ({
         serverless: { console: consoleDeploy },
@@ -516,6 +550,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
             )]: { ServerlessSDK: ServerlessSDKMock },
             [require.resolve('node-fetch')]: fetchStub,
           },
+          awsRequestStubMap: createAwsRequestStubMap(),
         });
         const stateFilename = path.resolve(servicePath, 'package-dir', 'serverless-state.json');
         const state = JSON.parse(await fsp.readFile(stateFilename, 'utf-8'));
@@ -548,12 +583,12 @@ describe('test/unit/lib/classes/console.test.js', () => {
       async () => {
         const fetchStub = createFetchStub().stub;
         const {
-          fixtureData: { servicePath },
+          fixtureData: { servicePath, updateConfig },
         } = await runServerless({
           fixture: 'function',
           command: 'package',
           options: { package: 'package-dir' },
-          configExt: { console: true, org: 'testorg' },
+          configExt: { console: true, org: 'other' },
           env: { SERVERLESS_ACCESS_KEY: 'dummy' },
           modulesCacheStub: {
             [getRequire(path.dirname(require.resolve('@serverless/dashboard-plugin'))).resolve(
@@ -562,17 +597,15 @@ describe('test/unit/lib/classes/console.test.js', () => {
             [require.resolve('node-fetch')]: fetchStub,
           },
         });
-        const stateFilename = path.resolve(servicePath, 'package-dir', 'serverless-state.json');
-        const state = JSON.parse(await fsp.readFile(stateFilename, 'utf-8'));
-        state.console.orgId = 'other';
-        await fsp.writeFile(stateFilename, JSON.stringify(state));
+
+        await updateConfig({ org: 'testorg' });
+
         await expect(
           runServerless({
             cwd: servicePath,
             command: 'deploy',
             lastLifecycleHookName: 'aws:deploy:deploy:uploadArtifacts',
             options: { package: 'package-dir' },
-            configExt: { console: true, org: 'testorg' },
             env: { SERVERLESS_ACCESS_KEY: 'dummy' },
             modulesCacheStub: {
               [getRequire(path.dirname(require.resolve('@serverless/dashboard-plugin'))).resolve(
@@ -588,8 +621,51 @@ describe('test/unit/lib/classes/console.test.js', () => {
       }
     );
     it(
+      'should throw mismatch error when attempting to deploy package, ' +
+        'packaged with different org',
+      async () => {
+        const fetchStub = createFetchStub().stub;
+        const {
+          fixtureData: { servicePath, updateConfig },
+        } = await runServerless({
+          fixture: 'function',
+          command: 'package',
+          options: { package: 'package-dir' },
+          configExt: { console: true, org: 'testorg' },
+          env: { SERVERLESS_ACCESS_KEY: 'dummy' },
+          modulesCacheStub: {
+            [getRequire(path.dirname(require.resolve('@serverless/dashboard-plugin'))).resolve(
+              '@serverless/platform-client'
+            )]: { ServerlessSDK: ServerlessSDKMock },
+            [require.resolve('node-fetch')]: fetchStub,
+          },
+        });
+
+        await updateConfig({ provider: { region: 'us-east-2' } });
+
+        await expect(
+          runServerless({
+            cwd: servicePath,
+            command: 'deploy',
+            lastLifecycleHookName: 'aws:deploy:deploy:uploadArtifacts',
+            options: { package: 'package-dir' },
+            env: { SERVERLESS_ACCESS_KEY: 'dummy' },
+            modulesCacheStub: {
+              [getRequire(path.dirname(require.resolve('@serverless/dashboard-plugin'))).resolve(
+                '@serverless/platform-client'
+              )]: {
+                ServerlessSDK: ServerlessSDKMock,
+              },
+              [require.resolve('node-fetch')]: fetchStub,
+            },
+            awsRequestStubMap: createAwsRequestStubMap(),
+          })
+        ).to.eventually.be.rejected.and.have.property('code', 'CONSOLE_REGION_MISMATCH');
+      }
+    );
+    it(
       'should throw activation mismatch error when attempting to deploy with ' +
-        'console integration off, but packaged with console integration on, ',
+        'console integration off, but packaged with console integration on',
       async () => {
         const fetchStub = createFetchStub().stub;
         const {

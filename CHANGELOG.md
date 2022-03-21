@@ -2,6 +2,53 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.7.9](https://github.com/serverless/serverless/compare/v3.7.8...v3.7.9) (2022-03-18)
+
+### Bug Fixes
+
+- **CLI Onboarding:** Ensure to process fully resolved service config ([#10873](https://github.com/serverless/serverless/pull/10873)) ([6a1f083](https://github.com/serverless/serverless/commit/6a1f083ac80aa9ba04e072b55f53ea1a4367fc2a)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI Onboarding:** Improve fix for initial variables resolution ([#10873](https://github.com/serverless/serverless/pull/10873)) ([1f12b19](https://github.com/serverless/serverless/commit/1f12b19a22bd40ce34c8bf45f090e46074409887)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Console:** Prevent AWS region mismatch ([#10873](https://github.com/serverless/serverless/pull/10873)) ([43480ee](https://github.com/serverless/serverless/commit/43480ee872d7d999d398eccdf56172860d40be56)) ([Mariusz Nowak](https://github.com/medikoo))
+- Fix internal unrecognized command error processing ([#10873](https://github.com/serverless/serverless/pull/10873)) ([a89e36a](https://github.com/serverless/serverless/commit/a89e36a0e73df141a486b8a151bb2cfb228a9f5d)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **CLI:** Configure processing flow debug logs ([#10873](https://github.com/serverless/serverless/pull/10873)) ([7af0c8c](https://github.com/serverless/serverless/commit/7af0c8cb07ee056e0224d35fdcdbac4ead004cee)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Console:** Present url to console UI ([#10873](https://github.com/serverless/serverless/pull/10873)) ([0d9f866](https://github.com/serverless/serverless/commit/0d9f86620b9c600dfecaf2a194a499b57c5bac0c)) ([Mariusz Nowak](https://github.com/medikoo))
+- Upgrade to async/await ([#10873](https://github.com/serverless/serverless/pull/10873)) ([8c7731d](https://github.com/serverless/serverless/commit/8c7731d4376fb7ae4998a37b2a196e4fb80107ba)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### [3.7.8](https://github.com/serverless/serverless/compare/v3.7.7...v3.7.8) (2022-03-17)
+
+### Bug Fixes
+
+- **Console:**
+  - Fix reference to bucket name in CF template ([#10869](https://github.com/serverless/serverless/pull/10869)) ([fcaa9c2](https://github.com/serverless/serverless/commit/fcaa9c2c4f756b552ba990438df8866e304f3b56)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Fix upload of extension to S3 bucket ([#10869](https://github.com/serverless/serverless/pull/10869)) ([23719d8](https://github.com/serverless/serverless/commit/23719d868c0b4270b57ea025a4271c62a58cb65f)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### [3.7.7](https://github.com/serverless/serverless/compare/v3.7.6...v3.7.7) (2022-03-17)
+
+### Bug Fixes
+
+- **Console:** Respect custom deployment bucket configuration ([#10867](https://github.com/serverless/serverless/pull/10867)) ([4d705cc](https://github.com/serverless/serverless/commit/4d705cc96d1bec29c3328879e41a71f907b0696d)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Console:**
+  - Generalize internal `bucketName` resolution ([#10867](https://github.com/serverless/serverless/pull/10867)) ([103fc55](https://github.com/serverless/serverless/commit/103fc554fc21bf7f8f16a634836bfe10d5109446)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Report used layer extension version to telemetry ([#10867](https://github.com/serverless/serverless/pull/10867)) ([db89f20](https://github.com/serverless/serverless/commit/db89f20f01b66c7dfc81f1571dfb215ba85daa24)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI:** Support internally a temporary `SLS_DISABLE_AUTO_UPDATE` env var ([c939457](https://github.com/serverless/serverless/commit/c939457ba46232b247a691b23c95f8408eba406f)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### [3.7.6](https://github.com/serverless/serverless/compare/v3.7.5...v3.7.6) (2022-03-17)
+
+### Bug Fixes
+
+- **Standalone:** Ensure error in China upload don't break GitHub upload ([#10853](https://github.com/serverless/serverless/pull/10853)) ([2b8afac](https://github.com/serverless/serverless/commit/2b8afac5ecf879a6e979c5a4642ededeca4a5cf7)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Console:** Ensure to package extension without errors ([#10860](https://github.com/serverless/serverless/pull/10860)) ([64ee4a5](https://github.com/serverless/serverless/commit/64ee4a528815354905b1f5c92fb7ba1e1604e4b4)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Console:** Upgrade to rely on v0.2 version of extension ([#10837](https://github.com/serverless/serverless/pull/10837)) ([3ccfec1](https://github.com/serverless/serverless/commit/3ccfec1abdace3abb3e7484d51feb532ad37dda0)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [3.7.5](https://github.com/serverless/serverless/compare/v3.7.4...v3.7.5) (2022-03-14)
 
 ### Bug Fixes
