@@ -270,29 +270,28 @@ describe('checkForChanges', () => {
       });
     });
 
-    it('should resolve if objects are given, but no function last modified date', () => {
+    it('should resolve if objects are given, but no function last modified date', async () => {
       globbySyncStub.returns(['my-service.zip']);
       cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-cf-template');
 
       const input = [{ Metadata: { filesha256: 'remote-hash-cf-template' } }];
 
-      return expect(awsDeploy.checkIfDeploymentIsNecessary(input)).to.be.fulfilled.then(() => {
-        expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
-        expect(globbySyncStub).to.have.been.calledOnce;
-        expect(readFileStub).to.have.been.calledOnce;
-        expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
-          awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
-        );
-        expect(globbySyncStub).to.have.been.calledWithExactly(['**.zip'], {
-          cwd: path.join(awsDeploy.serverless.serviceDir, '.serverless'),
-          dot: true,
-          silent: true,
-        });
-        expect(readFileStub).to.have.been.calledWith(
-          path.resolve(awsDeploy.serverless.serviceDir, '.serverless/my-service.zip')
-        );
-        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(false);
+      await awsDeploy.checkIfDeploymentIsNecessary(input);
+      expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
+      expect(globbySyncStub).to.have.been.calledOnce;
+      expect(readFileStub).to.have.been.calledOnce;
+      expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
+        awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
+      );
+      expect(globbySyncStub).to.have.been.calledWithExactly(['**.zip'], {
+        cwd: path.join(awsDeploy.serverless.serviceDir, '.serverless'),
+        dot: true,
+        silent: true,
       });
+      expect(readFileStub).to.have.been.calledWith(
+        path.resolve(awsDeploy.serverless.serviceDir, '.serverless/my-service.zip')
+      );
+      expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(false);
     });
 
     it('should not set a flag if there are more remote hashes', () => {
