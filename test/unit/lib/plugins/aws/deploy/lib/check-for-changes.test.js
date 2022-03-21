@@ -194,12 +194,6 @@ describe('checkForChanges', () => {
       awsDeploy.provider.request.restore();
     });
 
-    it('should resolve if no input is provided', () =>
-      expect(awsDeploy.getObjectMetadata()).to.be.fulfilled.then((result) => {
-        expect(headObjectStub).to.not.have.been.called;
-        expect(result).to.deep.equal([]);
-      }));
-
     it('should resolve if no objects are provided as input', () => {
       const input = [];
 
