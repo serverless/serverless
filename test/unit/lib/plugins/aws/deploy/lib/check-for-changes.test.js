@@ -40,6 +40,7 @@ describe('checkForChanges', () => {
     provider = new AwsProvider(serverless, options);
     serverless.setProvider('aws', provider);
     serverless.service.service = 'my-service';
+    serverless.service.provider.shouldNotDeploy = false;
     awsDeploy = new AwsDeploy(serverless, options);
     awsDeploy.bucketName = 'deployment-bucket';
     awsDeploy.serverless.service.provider.compiledCloudFormationTemplate = {
@@ -290,7 +291,7 @@ describe('checkForChanges', () => {
         expect(readFileStub).to.have.been.calledWith(
           path.resolve(awsDeploy.serverless.serviceDir, '.serverless/my-service.zip')
         );
-        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(undefined);
+        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(false);
       });
     });
 
@@ -324,7 +325,7 @@ describe('checkForChanges', () => {
         expect(readFileStub).to.have.been.calledWith(
           path.resolve(awsDeploy.serverless.serviceDir, '.serverless/my-service.zip')
         );
-        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(undefined);
+        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(false);
       });
     });
 
@@ -353,7 +354,7 @@ describe('checkForChanges', () => {
         expect(readFileStub).to.have.been.calledWith(
           path.resolve(awsDeploy.serverless.serviceDir, '.serverless/my-service.zip')
         );
-        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(undefined);
+        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(false);
       });
     });
 
@@ -387,7 +388,7 @@ describe('checkForChanges', () => {
         expect(readFileStub).to.have.been.calledWith(
           path.resolve(awsDeploy.serverless.serviceDir, '.serverless/func2.zip')
         );
-        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(undefined);
+        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(false);
       });
     });
 
@@ -420,7 +421,7 @@ describe('checkForChanges', () => {
         expect(readFileStub).to.have.been.calledWith(
           path.resolve(awsDeploy.serverless.serviceDir, '.serverless/my-service.zip')
         );
-        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(undefined);
+        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(false);
       });
     });
 
@@ -551,7 +552,7 @@ describe('checkForChanges', () => {
         expect(readFileStub).to.have.been.calledWith(
           path.resolve(awsDeploy.serverless.serviceDir, 'foo/bar/my-own.zip')
         );
-        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(undefined);
+        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(false);
       });
     });
   });
