@@ -639,7 +639,7 @@ functions:
     handler: handler.asyncGoodBye
     destinations:
       onFailure:
-        # you can specify the type from 'sns', 'sqs', 'eventBus', 'function'.
+        # For the case using CF intrinsic function for `arn`, to ensure target execution permission exactly, you have to specify `type` from 'sns', 'sqs', 'eventBus', 'function'.
         type: sns
         arn:
           Ref: SomeTopicName
