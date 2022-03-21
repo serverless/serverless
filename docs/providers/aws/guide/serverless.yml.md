@@ -712,7 +712,7 @@ functions:
       localMountPath: /mnt/example
     # Maximum retry attempts when an asynchronous invocation fails (between 0 and 2; default: 2)
     maximumRetryAttempts: 1
-    # Maximum event age in seconds when invoking asynchornously (between 60 and 21600)
+    # Maximum event age in seconds when invoking asynchronously (between 60 and 21600)
     maximumEventAge: 7200
 ```
 
