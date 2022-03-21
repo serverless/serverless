@@ -188,7 +188,7 @@ describe('checkForChanges', () => {
     let headObjectStub;
 
     beforeEach(() => {
-      headObjectStub = sandbox.stub(awsDeploy.provider, 'request').resolves();
+      headObjectStub = sandbox.stub(awsDeploy.provider, 'request').resolves({});
     });
 
     afterEach(() => {
@@ -430,9 +430,10 @@ describe('checkForChanges', () => {
       cryptoStub.createHash().update().digest.onCall(0).returns('hash-cf-template');
       cryptoStub.createHash().update().digest.onCall(1).returns('hash-zip-file-1');
 
+      let fileCounter = 0;
       const input = [
-        { Metadata: { filesha256: 'hash-cf-template' } },
-        { Metadata: { filesha256: 'hash-zip-file-1' } },
+        { Metadata: { filesha256: 'hash-cf-template' }, Key: `file${++fileCounter}.zip` },
+        { Metadata: { filesha256: 'hash-zip-file-1' }, Key: `file${++fileCounter}.zip` },
       ];
 
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input)).to.be.fulfilled.then(() => {
@@ -462,9 +463,18 @@ describe('checkForChanges', () => {
       const longAgo = new Date(new Date().getTime() - 100000);
       const longerAgo = new Date(new Date().getTime() - 200000);
 
+      let fileCounter = 0;
       const input = [
-        { Metadata: { filesha256: 'hash-cf-template' }, LastModified: longerAgo },
-        { Metadata: { filesha256: 'hash-zip-file-1' }, LastModified: longerAgo },
+        {
+          Metadata: { filesha256: 'hash-cf-template' },
+          LastModified: longerAgo,
+          Key: `file${++fileCounter}.zip`,
+        },
+        {
+          Metadata: { filesha256: 'hash-zip-file-1' },
+          LastModified: longerAgo,
+          Key: `file${++fileCounter}.zip`,
+        },
       ];
 
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input, longAgo)).to.be.fulfilled.then(
@@ -495,10 +505,11 @@ describe('checkForChanges', () => {
       cryptoStub.createHash().update().digest.onCall(1).returns('hash-zip-file-1');
       cryptoStub.createHash().update().digest.onCall(2).returns('hash-zip-file-1');
 
+      let fileCounter = 0;
       const input = [
-        { Metadata: { filesha256: 'hash-cf-template' } },
-        { Metadata: { filesha256: 'hash-zip-file-1' } },
-        { Metadata: { filesha256: 'hash-zip-file-1' } },
+        { Metadata: { filesha256: 'hash-cf-template' }, Key: `file${++fileCounter}.zip` },
+        { Metadata: { filesha256: 'hash-zip-file-1' }, Key: `file${++fileCounter}.zip` },
+        { Metadata: { filesha256: 'hash-zip-file-1' }, Key: `file${++fileCounter}.zip` },
       ];
 
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input)).to.be.fulfilled.then(() => {
@@ -532,9 +543,10 @@ describe('checkForChanges', () => {
       cryptoStub.createHash().update().digest.onCall(0).returns('hash-cf-template');
       cryptoStub.createHash().update().digest.onCall(1).returns('local-my-own-hash');
 
+      let fileCounter = 0;
       const input = [
-        { Metadata: { filesha256: 'hash-cf-template' } },
-        { Metadata: { filesha256: 'remote-my-own-hash' } },
+        { Metadata: { filesha256: 'hash-cf-template' }, Key: `file${++fileCounter}.zip` },
+        { Metadata: { filesha256: 'remote-my-own-hash' }, Key: `file${++fileCounter}.zip` },
       ];
 
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input)).to.be.fulfilled.then(() => {
