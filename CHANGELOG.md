@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.8.0](https://github.com/serverless/serverless/compare/v3.7.9...v3.8.0) (2022-03-21)
+
+### Features
+
+- **AWS Lambda:**
+  - Recognize `Fn::If` for properties of `vpc` ([#10877](https://github.com/serverless/serverless/issues/10877)) ([6a86ed7](https://github.com/serverless/serverless/commit/6a86ed77f8f9702f033b043f47d781d60ab76d4e)) ([ALOHACREPES345](https://github.com/ALOHACREPES345))
+  - Support `logRetentionInDays` per function ([#10878](https://github.com/serverless/serverless/issues/10878)) ([4c25184](https://github.com/serverless/serverless/commit/4c25184ca0cffa273c4171f5fccac52ab8ee3413)) ([ALOHACREPES345](https://github.com/ALOHACREPES345))
+
 ### [3.7.9](https://github.com/serverless/serverless/compare/v3.7.8...v3.7.9) (2022-03-18)
 
 ### Bug Fixes
