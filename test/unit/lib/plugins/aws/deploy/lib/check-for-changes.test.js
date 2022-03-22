@@ -645,9 +645,11 @@ const commonAwsSdkMock = {
 };
 
 const generateMatchingListObjectsResponse = async (serverless) => {
-  const packagePath = `${serverless.serviceDir}/.serverless`;
-  const artifactNames = await globby(packagePath, { expandDirectories: { extensions: ['zip'] } });
-  artifactNames.push('compiled-cloudformation-template.json');
+  const packagePath = path.resolve(serverless.serviceDir, '.serverless');
+  const artifactNames = (await globby('*.zip', { cwd: packagePath })).map((filename) =>
+    path.basename(filename)
+  );
+  artifactNames.push('compiled-cloudformation-template.json', 'serverless-state.json');
   return {
     Contents: artifactNames.map((artifactName) => ({
       Key: `serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/${artifactName}`,
@@ -668,14 +670,31 @@ const generateMatchingHeadObjectResponse = async (serverless, { Key: key }) => {
       Metadata: { filesha256: fileHash },
     };
   }
-  const fileHash = await (async (fileName) => {
+  if (path.basename(key) === 'serverless-state.json') {
+    const provider = serverless.getProvider('aws');
+    const basename = provider.naming.getServiceStateFileName();
+    const content = await fsp.readFile(
+      path.join(serverless.serviceDir, '.serverless', basename),
+      'utf-8'
+    );
+
+    const stateObject = JSON.parse(content);
+    const fileHash = crypto
+      .createHash('sha256')
+      .update(JSON.stringify(normalizeFiles.normalizeState(stateObject)))
+      .digest('base64');
+    return {
+      Metadata: { filesha256: fileHash },
+    };
+  }
+  const fileHash = await (async (basename) => {
     return new Promise((resolve) => {
       const hash = crypto.createHash('sha256');
-      const f = fs.createReadStream(`${serverless.serviceDir}/.serverless/${fileName}`);
+      const f = fs.createReadStream(`${serverless.serviceDir}/.serverless/${basename}`);
       f.on('data', (d) => hash.update(d));
       f.on('close', () => resolve(hash.digest('base64')));
     });
-  })(key);
+  })(path.basename(key));
   return {
     Metadata: { filesha256: fileHash },
   };
@@ -1311,8 +1330,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
             getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
           },
           S3: {
-            listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
-            headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            listObjectsV2: { Contents: [] },
             headBucket: {},
           },
           CloudFormation: {
@@ -1381,8 +1399,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
             getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
           },
           S3: {
-            listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
-            headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            listObjectsV2: { Contents: [] },
             headBucket: {},
           },
           CloudFormation: {
@@ -1464,8 +1481,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
             getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
           },
           S3: {
-            listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
-            headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            listObjectsV2: { Contents: [] },
             headBucket: {},
           },
           CloudFormation: {
@@ -1565,8 +1581,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
             getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
           },
           S3: {
-            listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
-            headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            listObjectsV2: { Contents: [] },
             headBucket: {},
           },
           CloudFormation: {
