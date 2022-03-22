@@ -639,10 +639,16 @@ const generateMatchingListObjectsResponse = async (serverless) => {
   );
   artifactNames.push('compiled-cloudformation-template.json', 'serverless-state.json');
   return {
-    Contents: artifactNames.map((artifactName) => ({
-      Key: `serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/${artifactName}`,
-      LastModified: new Date('2020-05-20T15:30:16.494+0000'),
-    })),
+    Contents: [
+      {
+        Key: 'serverless/test-package-artifact/dev/code-artifacts/sls-otel.0.2.2.zip',
+        LastModified: new Date('2020-05-20T15:30:16.494+0000'),
+      },
+      ...artifactNames.map((artifactName) => ({
+        Key: `serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/${artifactName}`,
+        LastModified: new Date('2020-05-20T15:30:16.494+0000'),
+      })),
+    ],
   };
 };
 
