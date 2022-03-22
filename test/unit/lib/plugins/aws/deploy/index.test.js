@@ -409,6 +409,13 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           StorageClass: 'STANDARD',
         },
         {
+          Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/serverless-state.json',
+          LastModified: new Date(),
+          ETag: '"5102a4cf710cae6497dba9e61b85d0a4"',
+          Size: 356,
+          StorageClass: 'STANDARD',
+        },
+        {
           Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/my-own.zip',
           LastModified: new Date(),
           ETag: '"5102a4cf710cae6497dba9e61b85d0a4"',
@@ -426,6 +433,15 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       .returns({
         Metadata: { filesha256: 'qxp+iwSTMhcRUfHzka4AE4XAWawS8GnEyBh1WpGb7Vw=' },
       });
+    s3HeadObjectStub
+      .withArgs({
+        Bucket: 's3-bucket-resource',
+        Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/serverless-state.json',
+      })
+      .returns({
+        Metadata: { filesha256: 'DCociWxGeu49Gi6Ej103YnbXACySaslxTzQn19R1Q5I=' },
+      });
+
     s3HeadObjectStub
       .withArgs({
         Bucket: 's3-bucket-resource',

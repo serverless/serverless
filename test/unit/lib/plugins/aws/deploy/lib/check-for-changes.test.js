@@ -244,7 +244,9 @@ describe('checkForChanges', () => {
         .stub(normalizeFiles, 'normalizeCloudFormationTemplate')
         .returns();
       globbySyncStub = sandbox.stub(globby, 'sync');
-      readFileStub = sandbox.stub(fsp, 'readFile').returns(Promise.resolve(''));
+      readFileStub = sandbox
+        .stub(fsp, 'readFile')
+        .returns(Promise.resolve('{"service":{"provider":{}},"package":{}}'));
     });
 
     afterEach(() => {
@@ -279,7 +281,6 @@ describe('checkForChanges', () => {
       await awsDeploy.checkIfDeploymentIsNecessary(input);
       expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
       expect(globbySyncStub).to.have.been.calledOnce;
-      expect(readFileStub).to.have.been.calledOnce;
       expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
         awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
       );
@@ -312,7 +313,6 @@ describe('checkForChanges', () => {
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input)).to.be.fulfilled.then(() => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
-        expect(readFileStub).to.have.been.calledOnce;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -341,7 +341,6 @@ describe('checkForChanges', () => {
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input)).to.be.fulfilled.then(() => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
-        expect(readFileStub).to.have.been.calledOnce;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -372,7 +371,6 @@ describe('checkForChanges', () => {
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input)).to.be.fulfilled.then(() => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
-        expect(readFileStub).to.have.been.calledTwice;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -408,7 +406,6 @@ describe('checkForChanges', () => {
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input, now)).to.be.fulfilled.then(() => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
-        expect(readFileStub).to.have.been.calledOnce;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -427,18 +424,19 @@ describe('checkForChanges', () => {
     it('should set a flag if the remote and local hashes are equal', () => {
       globbySyncStub.returns(['my-service.zip']);
       cryptoStub.createHash().update().digest.onCall(0).returns('hash-cf-template');
-      cryptoStub.createHash().update().digest.onCall(1).returns('hash-zip-file-1');
+      cryptoStub.createHash().update().digest.onCall(1).returns('hash-state');
+      cryptoStub.createHash().update().digest.onCall(2).returns('hash-zip-file-1');
 
       let fileCounter = 0;
       const input = [
         { Metadata: { filesha256: 'hash-cf-template' }, Key: `file${++fileCounter}.zip` },
+        { Metadata: { filesha256: 'hash-state' }, Key: `file${++fileCounter}.zip` },
         { Metadata: { filesha256: 'hash-zip-file-1' }, Key: `file${++fileCounter}.zip` },
       ];
 
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input)).to.be.fulfilled.then(() => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
-        expect(readFileStub).to.have.been.calledOnce;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -457,7 +455,8 @@ describe('checkForChanges', () => {
     it('should set a flag if the remote and local hashes are equal, and the edit times are ordered', () => {
       globbySyncStub.returns(['my-service.zip']);
       cryptoStub.createHash().update().digest.onCall(0).returns('hash-cf-template');
-      cryptoStub.createHash().update().digest.onCall(1).returns('hash-zip-file-1');
+      cryptoStub.createHash().update().digest.onCall(1).returns('hash-state');
+      cryptoStub.createHash().update().digest.onCall(2).returns('hash-zip-file-1');
 
       const longAgo = new Date(new Date().getTime() - 100000);
       const longerAgo = new Date(new Date().getTime() - 200000);
@@ -466,6 +465,11 @@ describe('checkForChanges', () => {
       const input = [
         {
           Metadata: { filesha256: 'hash-cf-template' },
+          LastModified: longerAgo,
+          Key: `file${++fileCounter}.zip`,
+        },
+        {
+          Metadata: { filesha256: 'hash-state' },
           LastModified: longerAgo,
           Key: `file${++fileCounter}.zip`,
         },
@@ -480,7 +484,6 @@ describe('checkForChanges', () => {
         () => {
           expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
           expect(globbySyncStub).to.have.been.calledOnce;
-          expect(readFileStub).to.have.been.calledOnce;
           expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
             awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
           );
@@ -500,13 +503,15 @@ describe('checkForChanges', () => {
     it('should set a flag if the remote and local hashes are duplicated and equal', () => {
       globbySyncStub.returns(['func1.zip', 'func2.zip']);
       cryptoStub.createHash().update().digest.onCall(0).returns('hash-cf-template');
+      cryptoStub.createHash().update().digest.onCall(1).returns('hash-state');
       // happens when package.individually is used
-      cryptoStub.createHash().update().digest.onCall(1).returns('hash-zip-file-1');
       cryptoStub.createHash().update().digest.onCall(2).returns('hash-zip-file-1');
+      cryptoStub.createHash().update().digest.onCall(3).returns('hash-zip-file-1');
 
       let fileCounter = 0;
       const input = [
         { Metadata: { filesha256: 'hash-cf-template' }, Key: `file${++fileCounter}.zip` },
+        { Metadata: { filesha256: 'hash-state' }, Key: `file${++fileCounter}.zip` },
         { Metadata: { filesha256: 'hash-zip-file-1' }, Key: `file${++fileCounter}.zip` },
         { Metadata: { filesha256: 'hash-zip-file-1' }, Key: `file${++fileCounter}.zip` },
       ];
@@ -514,7 +519,6 @@ describe('checkForChanges', () => {
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input)).to.be.fulfilled.then(() => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
-        expect(readFileStub).to.have.been.calledTwice;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -540,18 +544,19 @@ describe('checkForChanges', () => {
 
       globbySyncStub.returns([]);
       cryptoStub.createHash().update().digest.onCall(0).returns('hash-cf-template');
-      cryptoStub.createHash().update().digest.onCall(1).returns('local-my-own-hash');
+      cryptoStub.createHash().update().digest.onCall(1).returns('hash-state');
+      cryptoStub.createHash().update().digest.onCall(2).returns('local-my-own-hash');
 
       let fileCounter = 0;
       const input = [
         { Metadata: { filesha256: 'hash-cf-template' }, Key: `file${++fileCounter}.zip` },
+        { Metadata: { filesha256: 'hash-state' }, Key: `file${++fileCounter}.zip` },
         { Metadata: { filesha256: 'remote-my-own-hash' }, Key: `file${++fileCounter}.zip` },
       ];
 
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input)).to.be.fulfilled.then(() => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
-        expect(readFileStub).to.have.been.calledOnce;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -1043,6 +1048,14 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
               .returns({
                 Metadata: { filesha256: 'pZOdrt6qijT7ITsLQjPP9QwgMAfKA2RuUUSTW+l8wWs=' },
               });
+            headObjectStub
+              .withArgs({
+                Bucket: 'deployment-bucket',
+                Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/serverless-state.json',
+              })
+              .returns({
+                Metadata: { filesha256: '+LsZPkrDKAtccClX0Uv88s71VPtsHAGeifgiRyW0/OQ=' },
+              });
 
             headObjectStub
               .withArgs({
@@ -1059,6 +1072,13 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
             Contents: [
               {
                 Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json',
+                LastModified: new Date(),
+                ETag: '"5102a4cf710cae6497dba9e61b85d0a4"',
+                Size: 356,
+                StorageClass: 'STANDARD',
+              },
+              {
+                Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/serverless-state.json',
                 LastModified: new Date(),
                 ETag: '"5102a4cf710cae6497dba9e61b85d0a4"',
                 Size: 356,
