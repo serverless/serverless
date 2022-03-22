@@ -668,9 +668,9 @@ functions:
       - MyOtherThing
     # Lambda destination settings
     destinations:
-      # Function name or ARN(or reference) of target (EventBridge/SQS/SNS topic)
+      # Function name or ARN (or reference) of target (EventBridge/SQS/SNS topic)
       onSuccess: functionName
-      # Function name or ARN(or reference) of target (EventBridge/SQS/SNS topic)
+      # Function name or ARN (or reference) of target (EventBridge/SQS/SNS topic)
       onFailure: arn:xxx:target
       onFailure:
         type: sns
