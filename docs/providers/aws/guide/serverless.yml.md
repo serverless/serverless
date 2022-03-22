@@ -668,10 +668,14 @@ functions:
       - MyOtherThing
     # Lambda destination settings
     destinations:
-      # Function name or ARN of target (EventBridge/SQS/SNS topic)
+      # Function name or ARN (or reference) of target (EventBridge/SQS/SNS topic)
       onSuccess: functionName
-      # Function name or ARN of target (EventBridge/SQS/SNS topic)
-      onFailure: xxx:xxx:target
+      # Function name or ARN (or reference) of target (EventBridge/SQS/SNS topic)
+      onFailure: arn:xxx:target
+      onFailure:
+        type: sns
+        arn:
+          Ref: SomeTopicName
     # Mount an EFS filesystem
     fileSystemConfig:
       # ARN of EFS Access Point
