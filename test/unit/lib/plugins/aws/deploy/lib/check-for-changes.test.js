@@ -114,18 +114,6 @@ describe('checkForChanges', () => {
       awsDeploy.provider.request.restore();
     });
 
-    it('should resolve if no result is returned', () => {
-      listObjectsV2Stub.resolves();
-
-      return expect(awsDeploy.getMostRecentObjects()).to.be.fulfilled.then((result) => {
-        expect(listObjectsV2Stub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
-          Bucket: awsDeploy.bucketName,
-          Prefix: 'serverless/my-service/dev',
-        });
-        expect(result).to.deep.equal([]);
-      });
-    });
-
     it('should translate error if rejected due to missing bucket', () => {
       listObjectsV2Stub.rejects(new ServerlessError('The specified bucket does not exist'));
 

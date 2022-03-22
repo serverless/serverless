@@ -360,7 +360,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       },
       S3: {
         deleteObjects: {},
-        listObjectsV2: {},
+        listObjectsV2: { Contents: [] },
         upload: {},
         headBucket: {},
       },

@@ -285,7 +285,7 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
         },
         S3: {
           upload: s3UploadStub,
-          listObjectsV2: {},
+          listObjectsV2: { Contents: [] },
           headBucket: {},
         },
         CloudFormation: {
