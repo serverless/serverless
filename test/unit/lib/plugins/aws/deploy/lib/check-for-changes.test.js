@@ -1030,9 +1030,8 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
   });
 
   it('should skip a deployment with identical hashes and package.artifact targeting .serverless directory', async () => {
-    // TODO: Reconfigure to rely on generateMatchingListObjectsResponse and generateMatchingHeadObjectResponse utils
-
-    const { serverless } = await runServerless({
+    let serverless;
+    await runServerless({
       fixture: 'package-artifact-in-serverless-dir',
       command: 'deploy',
       configExt: {
@@ -1045,6 +1044,9 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
       },
       env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
       awsRequestStubMap: {
         ...commonAwsSdkMock,
         Lambda: {
@@ -1056,62 +1058,8 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
         },
         S3: {
           headBucket: {},
-          headObject: (() => {
-            const headObjectStub = sandbox.stub();
-
-            headObjectStub
-              .withArgs({
-                Bucket: 'deployment-bucket',
-                Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json',
-              })
-              .returns({
-                Metadata: { filesha256: 'pZOdrt6qijT7ITsLQjPP9QwgMAfKA2RuUUSTW+l8wWs=' },
-              });
-            headObjectStub
-              .withArgs({
-                Bucket: 'deployment-bucket',
-                Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/serverless-state.json',
-              })
-              .returns({
-                Metadata: { filesha256: '+LsZPkrDKAtccClX0Uv88s71VPtsHAGeifgiRyW0/OQ=' },
-              });
-
-            headObjectStub
-              .withArgs({
-                Bucket: 'deployment-bucket',
-                Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/my-own.zip',
-              })
-              .returns({
-                Metadata: { filesha256: 'T0qEYHOE4Xv2E8Ar03xGogAlElcdf/dQh/lh9ao7Glo=' },
-              });
-
-            return headObjectStub;
-          })(),
-          listObjectsV2: {
-            Contents: [
-              {
-                Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json',
-                LastModified: new Date(),
-                ETag: '"5102a4cf710cae6497dba9e61b85d0a4"',
-                Size: 356,
-                StorageClass: 'STANDARD',
-              },
-              {
-                Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/serverless-state.json',
-                LastModified: new Date(),
-                ETag: '"5102a4cf710cae6497dba9e61b85d0a4"',
-                Size: 356,
-                StorageClass: 'STANDARD',
-              },
-              {
-                Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/my-own.zip',
-                LastModified: new Date(),
-                ETag: '"5102a4cf710cae6497dba9e61b85d0a4"',
-                Size: 356,
-                StorageClass: 'STANDARD',
-              },
-            ],
-          },
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+          listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
         },
       },
     });
