@@ -11,6 +11,9 @@ env:
   FORCE_COLOR: 1
   SLS_SCHEMA_CACHE_BASE_DIR: '/home/runner'
 
+permissions:
+  contents: read
+
 jobs:
   linuxNode16:
     name: '[Linux] Node.js 16: Publish canary, Unit & packaging tests '
@@ -169,6 +172,8 @@ jobs:
         run: ./bin/serverless.js 2>&1 | grep -q "does not support"
 
   integrate:
+    permissions:
+      contents: write  # for Git to git push
     name: Integrate
     runs-on: ubuntu-latest
     needs: [linuxNode16, windowsNode16, linuxNode14, linuxNode12, linuxNode4]

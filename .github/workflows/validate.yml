@@ -11,6 +11,9 @@ env:
   FORCE_COLOR: 1
   SLS_SCHEMA_CACHE_BASE_DIR: '/home/runner'
 
+permissions:
+  contents: read
+
 jobs:
   linuxNode16:
     name: '[Linux] Node.js 16: Lint, Formatting, Eventual Commitlint, Eventual Changelog, Unit & packaging tests'
