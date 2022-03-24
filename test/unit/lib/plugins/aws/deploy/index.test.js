@@ -439,7 +439,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/serverless-state.json',
       })
       .returns({
-        Metadata: { filesha256: 'DCociWxGeu49Gi6Ej103YnbXACySaslxTzQn19R1Q5I=' },
+        Metadata: { filesha256: 'JZ0oWM9ZWnYOxa3CRNeBRE5HAg+Q9RSwdxcKbik33d8=' },
       });
 
     s3HeadObjectStub
