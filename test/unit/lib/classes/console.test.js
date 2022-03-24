@@ -228,6 +228,45 @@ describe('test/unit/lib/classes/console.test.js', () => {
       });
     });
 
+    describe('package with "provider.layers" configuration', () => {
+      it('should setup console wihout errors', async () => {
+        const fetchStub = createFetchStub().stub;
+        const { cfTemplate, awsNaming } = await runServerless({
+          fixture: 'function-layers',
+          command: 'package',
+          configExt: {
+            console: true,
+            org: 'testorg',
+            layers: {
+              extra1: { path: 'test-layer' },
+              extra2: { path: 'test-layer' },
+            },
+            package: {
+              individually: true,
+            },
+            provider: { layers: [{ Ref: 'Extra1LambdaLayer' }, { Ref: 'Extra2LambdaLayer' }] },
+            functions: { layerFunc: { layers: null }, capitalLayerFunc: { layers: null } },
+          },
+          modulesCacheStub: {
+            [getRequire(path.dirname(require.resolve('@serverless/dashboard-plugin'))).resolve(
+              '@serverless/platform-client'
+            )]: { ServerlessSDK: ServerlessSDKMock },
+            [require.resolve('node-fetch')]: fetchStub,
+          },
+          awsRequestStubMap: createAwsRequestStubMap(),
+          env: { SERVERLESS_ACCESS_KEY: 'dummy' },
+        });
+
+        const configuredLayers =
+          cfTemplate.Resources[awsNaming.getLambdaLogicalId('layerFunc')].Properties.Layers;
+        expect(
+          configuredLayers.some(
+            ({ Ref: logicalId }) => logicalId === awsNaming.getConsoleExtensionLayerLogicalId()
+          )
+        ).to.be.true;
+      });
+    });
+
     describe('package for custom deployment bucket', () => {
       let cfTemplate;
       let awsNaming;
