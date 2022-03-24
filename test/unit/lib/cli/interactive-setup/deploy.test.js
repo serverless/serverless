@@ -61,7 +61,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
 
     expect(
       await mockedStep.isApplicable({
-        configuration: { provider: { name: 'aws' }, org: 'someorg' },
+        configuration: { provider: { name: 'aws' }, org: 'someorg', app: 'someapp' },
         serviceDir: '/foo',
         options: {},
         history: new Map([['awsCredentials', []]]),
