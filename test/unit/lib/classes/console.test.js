@@ -622,7 +622,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
     );
     it(
       'should throw mismatch error when attempting to deploy package, ' +
-        'packaged with different org',
+        'packaged with different region',
       async () => {
         const fetchStub = createFetchStub().stub;
         const {
