@@ -531,6 +531,43 @@ describe('test/unit/lib/classes/console.test.js', () => {
       ).to.eventually.be.rejected.and.have.property('code', 'CONSOLE_NOT_AUTHENTICATED');
     });
 
+    it('should abort when function has already maximum numbers of layers configured', async () => {
+      const fetchStub = createFetchStub().stub;
+      await expect(
+        runServerless({
+          fixture: 'function-layers',
+          command: 'package',
+          configExt: {
+            console: true,
+            org: 'testorg',
+            layers: {
+              extra1: { path: 'test-layer' },
+              extra2: { path: 'test-layer' },
+            },
+            functions: {
+              layerFuncWithConfig: {
+                layers: [
+                  { Ref: 'TestLayerLambdaLayer' },
+                  { Ref: 'TestLayerWithCapitalsLambdaLayer' },
+                  { Ref: 'TestLayerWithNoNameLambdaLayer' },
+                  { Ref: 'Extra1LambdaLayer' },
+                  { Ref: 'Extra2LambdaLayer' },
+                ],
+              },
+            },
+          },
+          modulesCacheStub: {
+            [getRequire(path.dirname(require.resolve('@serverless/dashboard-plugin'))).resolve(
+              '@serverless/platform-client'
+            )]: { ServerlessSDK: ServerlessSDKMock },
+            [require.resolve('node-fetch')]: fetchStub,
+          },
+          awsRequestStubMap: createAwsRequestStubMap(),
+          env: { SERVERLESS_ACCESS_KEY: 'dummy' },
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'TOO_MANY_LAYERS_TO_SETUP_CONSOLE');
+    });
+
     it(
       'should throw integration error when attempting to deploy package, ' +
         'packaged with different console integration version',
