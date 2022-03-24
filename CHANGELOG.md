@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.9.0](https://github.com/serverless/serverless/compare/v3.8.0...v3.9.0) (2022-03-24)
+
+### Features
+
+- **AWS Lambda:** Support `Ref` for `destinations` properties ([#10845](https://github.com/serverless/serverless/issues/10845)) ([9e0ca03](https://github.com/serverless/serverless/commit/9e0ca03900feb19be21ebe7498ed0fc592af37e0)) ([ALOHACREPES345](https://github.com/ALOHACREPES345))
+
+### Bug Fixes
+
+- **AWS Deploy:**
+  - Fix handling of state file in check for changes logic ([#10885](https://github.com/serverless/serverless/pull/10885)) ([12d95dc](https://github.com/serverless/serverless/commit/12d95dcee1985ff32c02e1ba507a236eceab65ba)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Recognize otel extension in check for changes logic ([#10885](https://github.com/serverless/serverless/pull/10885)) ([6da0b65](https://github.com/serverless/serverless/commit/6da0b6554ee1d42dca4f02ac874ff8e992051de0)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Console:** Ensure single layer attachment with `package.individually` ([#10895](https://github.com/serverless/serverless/pull/10895)) ([fac8a73](https://github.com/serverless/serverless/commit/fac8a73eec9ed6a6cf7535a1c723da3cb882905a)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **AWS Deploy:**
+  - Debug logs for check for changes logic ([#10885](https://github.com/serverless/serverless/pull/10885)) ([9f76f19](https://github.com/serverless/serverless/commit/9f76f19cf3cfe1e3e7e74953d15e5feb9cd875ac)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Debug logs for logs subscription check ([#10885](https://github.com/serverless/serverless/pull/10885)) ([895f320](https://github.com/serverless/serverless/commit/895f320c60da21daf12afaab91e967576294f374)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Improve internal resolution of hashes ([#10885](https://github.com/serverless/serverless/pull/10885)) ([711b643](https://github.com/serverless/serverless/commit/711b6439e06552d5c2bb411299b851f8f39f8a76)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Refactor `getMostRecentObjects` to async/await ([#10885](https://github.com/serverless/serverless/pull/10885)) ([1461860](https://github.com/serverless/serverless/commit/1461860dabe6f5154ee0d5e69b4c1ed16eb05616)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Refactor to async/await ([#10885](https://github.com/serverless/serverless/pull/10885)) ([8bb306b](https://github.com/serverless/serverless/commit/8bb306b56f763f474e0c5cf32f07724223ca7f2a)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Refactor to native promises ([#10885](https://github.com/serverless/serverless/pull/10885)) ([c5970e7](https://github.com/serverless/serverless/commit/c5970e72a3129c349f719009deff017fce430e69)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Console:**
+  - Do not disable dashboard with console ([#10895](https://github.com/serverless/serverless/pull/10895)) ([e6cdc9d](https://github.com/serverless/serverless/commit/e6cdc9d68bed6bafb78bbb1bf4490e5dc35c4fdd)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Ensure to list extension layer in layers output ([#10895](https://github.com/serverless/serverless/pull/10895)) ([14109e8](https://github.com/serverless/serverless/commit/14109e8ec475c71170215154b8ad92aecdb5f432)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Improve error reporting when layer cannot be added ([#10895](https://github.com/serverless/serverless/pull/10895)) ([ba71dd9](https://github.com/serverless/serverless/commit/ba71dd9fb527ebac854e4a12b974581f4de6e57e)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [3.8.0](https://github.com/serverless/serverless/compare/v3.7.9...v3.8.0) (2022-03-21)
 
 ### Features
