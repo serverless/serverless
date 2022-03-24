@@ -43,7 +43,7 @@ It is recommended that you deploy your Serverless Framework apps to different ac
 
 A Provider at the organization level can also be designated as the default provider for the organization. This provider will be used in any deployments where the service or instance do not have a provider set.
 
-To set the organizatwion default, go to the **orgs** section of the dashboard, and select the **providers** tab, under the **...** menu of the provider select **set as default**.
+To set the organization default, go to the **orgs** section of the dashboard, and select the **providers** tab, under the **...** menu of the provider select **set as default**.
 
 ### Adding a provider to a service
 
