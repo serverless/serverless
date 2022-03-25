@@ -680,6 +680,19 @@ functions:
         - subnetId1
 ```
 
+## Ephemeral storage
+
+By default, Lambda [allocates 512 MB of ephemeral storage](https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-common.html#configuration-ephemeral-storage) in functions under the `/tmp` directory.
+
+You can increase its size via the `ephemeralStorageSize` property. It should be a numerical value in MBs, between 512 and 10240.
+
+```yml
+functions:
+  helloEphemeral:
+    handler: handler.handler
+    ephemeralStorageSize: 1024
+```
+
 ## Lambda Hashing Algorithm migration
 
 **Note** Below migration guide is intended to be used if you are already using `v3` version of the Framework and you have `provider.lambdaHashingVersion` property set to `20200924` in your configuration file. If you are still on v2 and want to upgrade to v3, please refer to [V3 Upgrade docs](../../../guides/upgrading-v3.md#lambda-hashing-algorithm).
