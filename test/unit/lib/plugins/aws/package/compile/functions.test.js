@@ -1685,6 +1685,10 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               maximumRetryAttempts: 0,
               provisionedConcurrency: 1,
             },
+            fnEphemeralStorage: {
+              handler: 'index.handler',
+              ephemeralStorageSize: 1024,
+            },
           },
           resources: {
             Resources: {
@@ -2076,6 +2080,16 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       expect(cfResources[naming.getLambdaEventConfigLogicalId('fnProvisioned')].DependsOn).to.equal(
         naming.getLambdaProvisionedConcurrencyAliasLogicalId('fnProvisioned')
       );
+    });
+
+    it('should support `functions[].ephemeralStorageSize`', () => {
+      const ephemeralStorageSize = serviceConfig.functions.fnEphemeralStorage.ephemeralStorageSize;
+
+      expect(ephemeralStorageSize).to.be.a('number');
+
+      expect(
+        cfResources[naming.getLambdaLogicalId('fnEphemeralStorage')].Properties.EphemeralStorage
+      ).to.deep.equal({ Size: ephemeralStorageSize });
     });
 
     it('should support `functions[].fileSystemConfig` (with vpc configured on function)', () => {

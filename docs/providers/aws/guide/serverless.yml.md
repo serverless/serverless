@@ -612,6 +612,8 @@ functions:
     # Function environment variables
     environment:
       APP_ENV_VARIABLE: FOOBAR
+    # Configure the size of ephemeral storage available to your Lambda function (in MBs, default: 512)
+    ephemeralStorageSize: 512
     # Override the Lambda function name
     name: ${sls:stage}-lambdaName
     description: My function
