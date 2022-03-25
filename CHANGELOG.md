@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.10.0](https://github.com/serverless/serverless/compare/v3.9.0...v3.10.0) (2022-03-25)
+
+### Features
+
+- **AWS Lambda:** Support `ephemeralStorageSize` ([#10901](https://github.com/serverless/serverless/pull/10901)) ([d317cff](https://github.com/serverless/serverless/commit/d317cff875535a0de47578e12de395b1d52043a0)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [3.9.0](https://github.com/serverless/serverless/compare/v3.8.0...v3.9.0) (2022-03-24)
 
 ### Features
