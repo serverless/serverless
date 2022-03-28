@@ -833,7 +833,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
     });
 
     it('should only set `stackPolicy` after applying change set', () => {
-      expect(executeChangeSetStub).to.be.calledImmediatelyBefore(setStackPolicyStub);
+      expect(setStackPolicyStub).to.not.be.calledBefore(executeChangeSetStub);
     });
 
     it('should support `rollbackConfiguration`', () => {
