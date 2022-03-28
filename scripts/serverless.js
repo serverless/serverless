@@ -38,6 +38,8 @@ const variableSourcesInConfig = new Set();
 // to properly handle e.g. `SIGINT` interrupt
 const keepAliveTimer = setTimeout(() => {}, 60 * 60 * 1000);
 
+const trueWithProbability = (probability) => Math.random() < probability;
+
 let processSpanPromise;
 let hasBeenFinalized = false;
 const finalize = async ({ error, shouldBeSync, telemetryData, shouldSendTelemetry } = {}) => {
@@ -71,7 +73,15 @@ const finalize = async ({ error, shouldBeSync, telemetryData, shouldSendTelemetr
     }),
     ...telemetryData,
   });
-  if (!error && !shouldSendTelemetry) return null;
+
+  // We want to explicitly ensure that when processing should be sync, we never attempt sending telemetry data
+  if (shouldBeSync) return null;
+
+  // We want to send telemetry at least roughly every 20 commands (in addition to sending on deploy and on errors)
+  // to avoid situations where we have very big batches of telemetry events that cannot be processed on the backend side
+  const shouldForceTelemetry = trueWithProbability(0.05);
+
+  if (!error && !shouldSendTelemetry && !shouldForceTelemetry) return null;
   return sendTelemetry({ serverlessExecutionSpan: processSpanPromise });
 };
 
