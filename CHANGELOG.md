@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.10.1](https://github.com/serverless/serverless/compare/v3.10.0...v3.10.1) (2022-03-30)
+
+### Bug Fixes
+
+- **AWS Deploy:** Apply stack policy after executing change sets ([#10903](https://github.com/serverless/serverless/issues/10903)) ([2d2cb3e](https://github.com/serverless/serverless/commit/2d2cb3ed11919ccdb5b99e8316906ad5eccd836f)) ([Mark Tse](https://github.com/neverendingqs))
+- **AWS Local Invocation:**
+  - Ensure proper artifact permissions for `rust` functions ([#10891](https://github.com/serverless/serverless/issues/10891)) ([11dd77e](https://github.com/serverless/serverless/commit/11dd77ecde61b690023067dacdabf759121cd17c)) ([Sergii Dolgushev](https://github.com/SerheyDolgushev))
+  - Ensure package before resolving runtime ([#10888](https://github.com/serverless/serverless/pull/10888)) ([80b3e1a](https://github.com/serverless/serverless/commit/80b3e1a9e59746dd795828207a2badf683638df4)) ([Sergii Dolgushev](https://github.com/SerheyDolgushev))
+
+### Maintenance Improvements
+
+- **AWS Deploy:** Ensure no internal dependency on `console` ([#10908](https://github.com/serverless/serverless/pull/10908)) ([2a8ef3e](https://github.com/serverless/serverless/commit/2a8ef3ed5abc6497b9552e1786586468d66d806a)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Telemetry:** Send more frequently to avoid too big payloads ([#10909](https://github.com/serverless/serverless/pull/10909)) ([889e1b6](https://github.com/serverless/serverless/commit/889e1b67bf1637e6f78bef83ac036937df50ebce)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [3.10.0](https://github.com/serverless/serverless/compare/v3.9.0...v3.10.0) (2022-03-25)
 
 ### Features
