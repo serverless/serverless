@@ -50,7 +50,7 @@
       "Extending the Configuration": "guides/plugins/custom-configuration"
     }
   },
-  "Examples and Tutorials": "getting-started",
+  "Examples and Tutorials": "examples-and-tutorials",
   "Cloud Providers": {
     "Overview": "providers",
     "AWS": "providers",
