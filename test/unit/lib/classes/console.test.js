@@ -182,6 +182,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
         for (const fnVariables of fnVariablesList) {
           expect(fnVariables).to.have.property('SLS_OTEL_REPORT_REQUEST_HEADERS');
           expect(fnVariables).to.have.property('SLS_OTEL_REPORT_METRICS_URL');
+          expect(fnVariables).to.have.property('SLS_OTEL_REPORT_LOGS_URL');
           expect(fnVariables).to.have.property('AWS_LAMBDA_EXEC_WRAPPER');
         }
 
@@ -264,6 +265,35 @@ describe('test/unit/lib/classes/console.test.js', () => {
             ({ Ref: logicalId }) => logicalId === awsNaming.getConsoleExtensionLayerLogicalId()
           )
         ).to.be.true;
+      });
+    });
+
+    describe('disable logs collection', () => {
+      it('should not setup report logs url', async () => {
+        const fetchStub = createFetchStub().stub;
+        const { cfTemplate, awsNaming } = await runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            console: { disableLogsCollection: true },
+            org: 'testorg',
+          },
+          modulesCacheStub: {
+            [getRequire(path.dirname(require.resolve('@serverless/dashboard-plugin'))).resolve(
+              '@serverless/platform-client'
+            )]: { ServerlessSDK: ServerlessSDKMock },
+            [require.resolve('node-fetch')]: fetchStub,
+          },
+          awsRequestStubMap: createAwsRequestStubMap(),
+          env: { SERVERLESS_ACCESS_KEY: 'dummy' },
+        });
+
+        const fnVariables =
+          cfTemplate.Resources[awsNaming.getLambdaLogicalId('basic')].Properties.Environment
+            .Variables;
+        expect(fnVariables).to.have.property('SLS_OTEL_REPORT_REQUEST_HEADERS');
+        expect(fnVariables).to.not.have.property('SLS_OTEL_REPORT_LOGS_URL');
+        expect(fnVariables).to.have.property('AWS_LAMBDA_EXEC_WRAPPER');
       });
     });
 
