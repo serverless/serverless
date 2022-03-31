@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.10.2](https://github.com/serverless/serverless/compare/v3.10.1...v3.10.2) (2022-03-31)
+
+### Maintenance Improvements
+
+- **Console:** Report logs with opt out option ([#10919](https://github.com/serverless/serverless/issues/10193)) ([ababd90](https://github.com/serverless/serverless/commit/ababd90f098f922a92a79ca7bdb00a3dfe112c6b)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [3.10.1](https://github.com/serverless/serverless/compare/v3.10.0...v3.10.1) (2022-03-30)
 
 ### Bug Fixes
