@@ -1126,8 +1126,8 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
             fnImage: { image: imageWithSha },
             foo: {
               vpc: {
-                subnetIds: ['subnet-02020202'],
-                securityGroupIds: ['sg-1b1b1b1b'],
+                subnetIds: ['subnet-02020202', { 'Fn::If': ['cond', 'first', 'second'] }],
+                securityGroupIds: ['sg-1b1b1b1b', { 'Fn::If': ['cond', 'first', 'second'] }],
               },
               kmsKeyArn: 'arn:aws:kms:region:accountid:fun/ction',
               tracing: 'PassThrough',
@@ -1617,6 +1617,36 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               handler: 'trigger.handler',
               destinations: { onSuccess: 'arn:aws:lambda:us-east-1:12313231:function:external' },
             },
+            fnDestinationsRefSns: {
+              handler: 'trigger.handler',
+              destinations: {
+                onSuccess: { type: 'sns', arn: { Ref: 'SomeSNSArn' } },
+              },
+            },
+            fnDestinationsRefSqs: {
+              handler: 'trigger.handler',
+              destinations: {
+                onSuccess: { type: 'sqs', arn: { Ref: 'SomeSQSArn' } },
+              },
+            },
+            fnDestinationsRefEventBus: {
+              handler: 'trigger.handler',
+              destinations: {
+                onSuccess: { type: 'eventBus', arn: { Ref: 'SomeEventBusArn' } },
+              },
+            },
+            fnDestinationsRefFunction: {
+              handler: 'trigger.handler',
+              destinations: {
+                onSuccess: { type: 'function', arn: { Ref: 'SomeFunctionArn' } },
+              },
+            },
+            fnDestinationsRefOnFailure: {
+              handler: 'trigger.handler',
+              destinations: {
+                onFailure: { type: 'sns', arn: { Ref: 'SomeSNSArn' } },
+              },
+            },
             fnDisabledLogs: { handler: 'trigger.handler', disableLogs: true },
             fnMaximumEventAge: { handler: 'trigger.handler', maximumEventAge: 3600 },
             fnMaximumRetryAttempts: { handler: 'trigger.handler', maximumRetryAttempts: 0 },
@@ -1654,6 +1684,10 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               handler: 'trigger.handler',
               maximumRetryAttempts: 0,
               provisionedConcurrency: 1,
+            },
+            fnEphemeralStorage: {
+              handler: 'index.handler',
+              ephemeralStorageSize: 1024,
             },
           },
           resources: {
@@ -1932,6 +1966,91 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       });
     });
 
+    it('should support `functions[].destinations.onSuccess` as `Ref` for `sns`', () => {
+      const destinationConfig =
+        cfResources[naming.getLambdaEventConfigLogicalId('fnDestinationsRefSns')].Properties
+          .DestinationConfig;
+
+      const property = serviceConfig.functions.fnDestinationsRefSns.destinations.onSuccess;
+      expect(destinationConfig).to.deep.equal({
+        OnSuccess: { Destination: property.arn },
+      });
+
+      expect(iamRolePolicyStatements).to.deep.include({
+        Effect: 'Allow',
+        Action: 'sns:Publish',
+        Resource: property.arn,
+      });
+    });
+
+    it('should support `functions[].destinations.onSuccess` as `Ref` for `sqs`', () => {
+      const destinationConfig =
+        cfResources[naming.getLambdaEventConfigLogicalId('fnDestinationsRefSqs')].Properties
+          .DestinationConfig;
+
+      const property = serviceConfig.functions.fnDestinationsRefSqs.destinations.onSuccess;
+      expect(destinationConfig).to.deep.equal({
+        OnSuccess: { Destination: property.arn },
+      });
+
+      expect(iamRolePolicyStatements).to.deep.include({
+        Effect: 'Allow',
+        Action: 'sqs:SendMessage',
+        Resource: property.arn,
+      });
+    });
+
+    it('should support `functions[].destinations.onSuccess` as `Ref` for `eventBus`', () => {
+      const destinationConfig =
+        cfResources[naming.getLambdaEventConfigLogicalId('fnDestinationsRefEventBus')].Properties
+          .DestinationConfig;
+
+      const property = serviceConfig.functions.fnDestinationsRefEventBus.destinations.onSuccess;
+      expect(destinationConfig).to.deep.equal({
+        OnSuccess: { Destination: property.arn },
+      });
+
+      expect(iamRolePolicyStatements).to.deep.include({
+        Effect: 'Allow',
+        Action: 'events:PutEvents',
+        Resource: property.arn,
+      });
+    });
+
+    it('should support `functions[].destinations.onSuccess` as `Ref` for `function`', () => {
+      const destinationConfig =
+        cfResources[naming.getLambdaEventConfigLogicalId('fnDestinationsRefFunction')].Properties
+          .DestinationConfig;
+
+      const property = serviceConfig.functions.fnDestinationsRefFunction.destinations.onSuccess;
+      expect(destinationConfig).to.deep.equal({
+        OnSuccess: { Destination: property.arn },
+      });
+
+      expect(iamRolePolicyStatements).to.deep.include({
+        Effect: 'Allow',
+        Action: 'lambda:InvokeFunction',
+        Resource: property.arn,
+      });
+    });
+
+    it('should support `functions[].destinations.onFailure` as `Ref`', () => {
+      const destinationConfig =
+        cfResources[naming.getLambdaEventConfigLogicalId('fnDestinationsRefOnFailure')].Properties
+          .DestinationConfig;
+
+      const property = serviceConfig.functions.fnDestinationsRefOnFailure.destinations.onFailure;
+      expect(destinationConfig).to.deep.equal({
+        OnFailure: { Destination: property.arn },
+      });
+
+      expect(iamRolePolicyStatements).to.deep.include({
+        Effect: 'Allow',
+        Action: 'sns:Publish',
+        Resource: property.arn,
+      });
+    });
+
     it('should support `functions[].disableLogs`', () => {
       expect(cfResources[naming.getLambdaLogicalId('fnDisabledLogs')]).to.not.have.property(
         'DependsOn'
@@ -1961,6 +2080,16 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       expect(cfResources[naming.getLambdaEventConfigLogicalId('fnProvisioned')].DependsOn).to.equal(
         naming.getLambdaProvisionedConcurrencyAliasLogicalId('fnProvisioned')
       );
+    });
+
+    it('should support `functions[].ephemeralStorageSize`', () => {
+      const ephemeralStorageSize = serviceConfig.functions.fnEphemeralStorage.ephemeralStorageSize;
+
+      expect(ephemeralStorageSize).to.be.a('number');
+
+      expect(
+        cfResources[naming.getLambdaLogicalId('fnEphemeralStorage')].Properties.EphemeralStorage
+      ).to.deep.equal({ Size: ephemeralStorageSize });
     });
 
     it('should support `functions[].fileSystemConfig` (with vpc configured on function)', () => {

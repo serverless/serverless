@@ -16,6 +16,8 @@ const Serverless = require('../../../../../../../lib/serverless');
 const ServerlessError = require('../../../../../../../lib/serverless-error');
 const runServerless = require('../../../../../../utils/run-serverless');
 
+const fsp = fs.promises;
+
 // Configure chai
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
@@ -38,6 +40,7 @@ describe('checkForChanges', () => {
     provider = new AwsProvider(serverless, options);
     serverless.setProvider('aws', provider);
     serverless.service.service = 'my-service';
+    serverless.service.provider.shouldNotDeploy = false;
     awsDeploy = new AwsDeploy(serverless, options);
     awsDeploy.bucketName = 'deployment-bucket';
     awsDeploy.serverless.service.provider.compiledCloudFormationTemplate = {
@@ -111,18 +114,6 @@ describe('checkForChanges', () => {
       awsDeploy.provider.request.restore();
     });
 
-    it('should resolve if no result is returned', () => {
-      listObjectsV2Stub.resolves();
-
-      return expect(awsDeploy.getMostRecentObjects()).to.be.fulfilled.then((result) => {
-        expect(listObjectsV2Stub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
-          Bucket: awsDeploy.bucketName,
-          Prefix: 'serverless/my-service/dev',
-        });
-        expect(result).to.deep.equal([]);
-      });
-    });
-
     it('should translate error if rejected due to missing bucket', () => {
       listObjectsV2Stub.rejects(new ServerlessError('The specified bucket does not exist'));
 
@@ -185,18 +176,12 @@ describe('checkForChanges', () => {
     let headObjectStub;
 
     beforeEach(() => {
-      headObjectStub = sandbox.stub(awsDeploy.provider, 'request').resolves();
+      headObjectStub = sandbox.stub(awsDeploy.provider, 'request').resolves({});
     });
 
     afterEach(() => {
       awsDeploy.provider.request.restore();
     });
-
-    it('should resolve if no input is provided', () =>
-      expect(awsDeploy.getObjectMetadata()).to.be.fulfilled.then((result) => {
-        expect(headObjectStub).to.not.have.been.called;
-        expect(result).to.deep.equal([]);
-      }));
 
     it('should resolve if no objects are provided as input', () => {
       const input = [];
@@ -247,17 +232,19 @@ describe('checkForChanges', () => {
         .stub(normalizeFiles, 'normalizeCloudFormationTemplate')
         .returns();
       globbySyncStub = sandbox.stub(globby, 'sync');
-      readFileStub = sandbox.stub(fs, 'readFile').yields(null, undefined);
+      readFileStub = sandbox
+        .stub(fsp, 'readFile')
+        .returns(Promise.resolve('{"service":{"provider":{}},"package":{}}'));
     });
 
     afterEach(() => {
       normalizeFiles.normalizeCloudFormationTemplate.restore();
       globby.sync.restore();
-      fs.readFile.restore();
+      fsp.readFile.restore();
     });
 
     it('should resolve if no input is provided', () =>
-      expect(awsDeploy.checkIfDeploymentIsNecessary()).to.be.fulfilled.then(() => {
+      expect(awsDeploy.checkIfDeploymentIsNecessary([])).to.be.fulfilled.then(() => {
         expect(normalizeCloudFormationTemplateStub).to.not.have.been.called;
         expect(globbySyncStub).to.not.have.been.called;
         expect(readFileStub).to.not.have.been.called;
@@ -273,29 +260,27 @@ describe('checkForChanges', () => {
       });
     });
 
-    it('should resolve if objects are given, but no function last modified date', () => {
+    it('should resolve if objects are given, but no function last modified date', async () => {
       globbySyncStub.returns(['my-service.zip']);
       cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-cf-template');
 
       const input = [{ Metadata: { filesha256: 'remote-hash-cf-template' } }];
 
-      return expect(awsDeploy.checkIfDeploymentIsNecessary(input)).to.be.fulfilled.then(() => {
-        expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
-        expect(globbySyncStub).to.have.been.calledOnce;
-        expect(readFileStub).to.have.been.calledOnce;
-        expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
-          awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
-        );
-        expect(globbySyncStub).to.have.been.calledWithExactly(['**.zip'], {
-          cwd: path.join(awsDeploy.serverless.serviceDir, '.serverless'),
-          dot: true,
-          silent: true,
-        });
-        expect(readFileStub).to.have.been.calledWith(
-          path.resolve(awsDeploy.serverless.serviceDir, '.serverless/my-service.zip')
-        );
-        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(undefined);
+      await awsDeploy.checkIfDeploymentIsNecessary(input);
+      expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
+      expect(globbySyncStub).to.have.been.calledOnce;
+      expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
+        awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
+      );
+      expect(globbySyncStub).to.have.been.calledWithExactly(['**.zip'], {
+        cwd: path.join(awsDeploy.serverless.serviceDir, '.serverless'),
+        dot: true,
+        silent: true,
       });
+      expect(readFileStub).to.have.been.calledWith(
+        path.resolve(awsDeploy.serverless.serviceDir, '.serverless/my-service.zip')
+      );
+      expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(false);
     });
 
     it('should not set a flag if there are more remote hashes', () => {
@@ -316,7 +301,6 @@ describe('checkForChanges', () => {
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input)).to.be.fulfilled.then(() => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
-        expect(readFileStub).to.have.been.calledOnce;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -328,7 +312,7 @@ describe('checkForChanges', () => {
         expect(readFileStub).to.have.been.calledWith(
           path.resolve(awsDeploy.serverless.serviceDir, '.serverless/my-service.zip')
         );
-        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(undefined);
+        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(false);
       });
     });
 
@@ -345,7 +329,6 @@ describe('checkForChanges', () => {
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input)).to.be.fulfilled.then(() => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
-        expect(readFileStub).to.have.been.calledOnce;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -357,7 +340,7 @@ describe('checkForChanges', () => {
         expect(readFileStub).to.have.been.calledWith(
           path.resolve(awsDeploy.serverless.serviceDir, '.serverless/my-service.zip')
         );
-        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(undefined);
+        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(false);
       });
     });
 
@@ -376,7 +359,6 @@ describe('checkForChanges', () => {
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input)).to.be.fulfilled.then(() => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
-        expect(readFileStub).to.have.been.calledTwice;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -391,7 +373,7 @@ describe('checkForChanges', () => {
         expect(readFileStub).to.have.been.calledWith(
           path.resolve(awsDeploy.serverless.serviceDir, '.serverless/func2.zip')
         );
-        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(undefined);
+        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(false);
       });
     });
 
@@ -412,7 +394,6 @@ describe('checkForChanges', () => {
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input, now)).to.be.fulfilled.then(() => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
-        expect(readFileStub).to.have.been.calledOnce;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -424,24 +405,26 @@ describe('checkForChanges', () => {
         expect(readFileStub).to.have.been.calledWith(
           path.resolve(awsDeploy.serverless.serviceDir, '.serverless/my-service.zip')
         );
-        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(undefined);
+        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(false);
       });
     });
 
     it('should set a flag if the remote and local hashes are equal', () => {
       globbySyncStub.returns(['my-service.zip']);
       cryptoStub.createHash().update().digest.onCall(0).returns('hash-cf-template');
-      cryptoStub.createHash().update().digest.onCall(1).returns('hash-zip-file-1');
+      cryptoStub.createHash().update().digest.onCall(1).returns('hash-state');
+      cryptoStub.createHash().update().digest.onCall(2).returns('hash-zip-file-1');
 
+      let fileCounter = 0;
       const input = [
-        { Metadata: { filesha256: 'hash-cf-template' } },
-        { Metadata: { filesha256: 'hash-zip-file-1' } },
+        { Metadata: { filesha256: 'hash-cf-template' }, Key: `file${++fileCounter}.zip` },
+        { Metadata: { filesha256: 'hash-state' }, Key: `file${++fileCounter}.zip` },
+        { Metadata: { filesha256: 'hash-zip-file-1' }, Key: `file${++fileCounter}.zip` },
       ];
 
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input)).to.be.fulfilled.then(() => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
-        expect(readFileStub).to.have.been.calledOnce;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -460,21 +443,35 @@ describe('checkForChanges', () => {
     it('should set a flag if the remote and local hashes are equal, and the edit times are ordered', () => {
       globbySyncStub.returns(['my-service.zip']);
       cryptoStub.createHash().update().digest.onCall(0).returns('hash-cf-template');
-      cryptoStub.createHash().update().digest.onCall(1).returns('hash-zip-file-1');
+      cryptoStub.createHash().update().digest.onCall(1).returns('hash-state');
+      cryptoStub.createHash().update().digest.onCall(2).returns('hash-zip-file-1');
 
       const longAgo = new Date(new Date().getTime() - 100000);
       const longerAgo = new Date(new Date().getTime() - 200000);
 
+      let fileCounter = 0;
       const input = [
-        { Metadata: { filesha256: 'hash-cf-template' }, LastModified: longerAgo },
-        { Metadata: { filesha256: 'hash-zip-file-1' }, LastModified: longerAgo },
+        {
+          Metadata: { filesha256: 'hash-cf-template' },
+          LastModified: longerAgo,
+          Key: `file${++fileCounter}.zip`,
+        },
+        {
+          Metadata: { filesha256: 'hash-state' },
+          LastModified: longerAgo,
+          Key: `file${++fileCounter}.zip`,
+        },
+        {
+          Metadata: { filesha256: 'hash-zip-file-1' },
+          LastModified: longerAgo,
+          Key: `file${++fileCounter}.zip`,
+        },
       ];
 
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input, longAgo)).to.be.fulfilled.then(
         () => {
           expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
           expect(globbySyncStub).to.have.been.calledOnce;
-          expect(readFileStub).to.have.been.calledOnce;
           expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
             awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
           );
@@ -494,20 +491,22 @@ describe('checkForChanges', () => {
     it('should set a flag if the remote and local hashes are duplicated and equal', () => {
       globbySyncStub.returns(['func1.zip', 'func2.zip']);
       cryptoStub.createHash().update().digest.onCall(0).returns('hash-cf-template');
+      cryptoStub.createHash().update().digest.onCall(1).returns('hash-state');
       // happens when package.individually is used
-      cryptoStub.createHash().update().digest.onCall(1).returns('hash-zip-file-1');
       cryptoStub.createHash().update().digest.onCall(2).returns('hash-zip-file-1');
+      cryptoStub.createHash().update().digest.onCall(3).returns('hash-zip-file-1');
 
+      let fileCounter = 0;
       const input = [
-        { Metadata: { filesha256: 'hash-cf-template' } },
-        { Metadata: { filesha256: 'hash-zip-file-1' } },
-        { Metadata: { filesha256: 'hash-zip-file-1' } },
+        { Metadata: { filesha256: 'hash-cf-template' }, Key: `file${++fileCounter}.zip` },
+        { Metadata: { filesha256: 'hash-state' }, Key: `file${++fileCounter}.zip` },
+        { Metadata: { filesha256: 'hash-zip-file-1' }, Key: `file${++fileCounter}.zip` },
+        { Metadata: { filesha256: 'hash-zip-file-1' }, Key: `file${++fileCounter}.zip` },
       ];
 
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input)).to.be.fulfilled.then(() => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
-        expect(readFileStub).to.have.been.calledTwice;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -533,17 +532,19 @@ describe('checkForChanges', () => {
 
       globbySyncStub.returns([]);
       cryptoStub.createHash().update().digest.onCall(0).returns('hash-cf-template');
-      cryptoStub.createHash().update().digest.onCall(1).returns('local-my-own-hash');
+      cryptoStub.createHash().update().digest.onCall(1).returns('hash-state');
+      cryptoStub.createHash().update().digest.onCall(2).returns('local-my-own-hash');
 
+      let fileCounter = 0;
       const input = [
-        { Metadata: { filesha256: 'hash-cf-template' } },
-        { Metadata: { filesha256: 'remote-my-own-hash' } },
+        { Metadata: { filesha256: 'hash-cf-template' }, Key: `file${++fileCounter}.zip` },
+        { Metadata: { filesha256: 'hash-state' }, Key: `file${++fileCounter}.zip` },
+        { Metadata: { filesha256: 'remote-my-own-hash' }, Key: `file${++fileCounter}.zip` },
       ];
 
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input)).to.be.fulfilled.then(() => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
         expect(globbySyncStub).to.have.been.calledOnce;
-        expect(readFileStub).to.have.been.calledOnce;
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledWithExactly(
           awsDeploy.serverless.service.provider.compiledCloudFormationTemplate
         );
@@ -555,7 +556,7 @@ describe('checkForChanges', () => {
         expect(readFileStub).to.have.been.calledWith(
           path.resolve(awsDeploy.serverless.serviceDir, 'foo/bar/my-own.zip')
         );
-        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(undefined);
+        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(false);
       });
     });
   });
@@ -632,14 +633,22 @@ const commonAwsSdkMock = {
 };
 
 const generateMatchingListObjectsResponse = async (serverless) => {
-  const packagePath = `${serverless.serviceDir}/.serverless`;
-  const artifactNames = await globby(packagePath, { expandDirectories: { extensions: ['zip'] } });
-  artifactNames.push('compiled-cloudformation-template.json');
+  const packagePath = path.resolve(serverless.serviceDir, '.serverless');
+  const artifactNames = (await globby('*.zip', { cwd: packagePath })).map((filename) =>
+    path.basename(filename)
+  );
+  artifactNames.push('compiled-cloudformation-template.json', 'serverless-state.json');
   return {
-    Contents: artifactNames.map((artifactName) => ({
-      Key: `serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/${artifactName}`,
-      LastModified: new Date('2020-05-20T15:30:16.494+0000'),
-    })),
+    Contents: [
+      {
+        Key: 'serverless/test-package-artifact/dev/code-artifacts/sls-otel.0.2.2.zip',
+        LastModified: new Date('2020-05-20T15:30:16.494+0000'),
+      },
+      ...artifactNames.map((artifactName) => ({
+        Key: `serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/${artifactName}`,
+        LastModified: new Date('2020-05-20T15:30:16.494+0000'),
+      })),
+    ],
   };
 };
 
@@ -655,14 +664,31 @@ const generateMatchingHeadObjectResponse = async (serverless, { Key: key }) => {
       Metadata: { filesha256: fileHash },
     };
   }
-  const fileHash = await (async (fileName) => {
+  if (path.basename(key) === 'serverless-state.json') {
+    const provider = serverless.getProvider('aws');
+    const basename = provider.naming.getServiceStateFileName();
+    const content = await fsp.readFile(
+      path.join(serverless.serviceDir, '.serverless', basename),
+      'utf-8'
+    );
+
+    const stateObject = JSON.parse(content);
+    const fileHash = crypto
+      .createHash('sha256')
+      .update(JSON.stringify(normalizeFiles.normalizeState(stateObject)))
+      .digest('base64');
+    return {
+      Metadata: { filesha256: fileHash },
+    };
+  }
+  const fileHash = await (async (basename) => {
     return new Promise((resolve) => {
       const hash = crypto.createHash('sha256');
-      const f = fs.createReadStream(`${serverless.serviceDir}/.serverless/${fileName}`);
+      const f = fs.createReadStream(`${serverless.serviceDir}/.serverless/${basename}`);
       f.on('data', (d) => hash.update(d));
       f.on('close', () => resolve(hash.digest('base64')));
     });
-  })(key);
+  })(path.basename(key));
   return {
     Metadata: { filesha256: fileHash },
   };
@@ -998,9 +1024,8 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
   });
 
   it('should skip a deployment with identical hashes and package.artifact targeting .serverless directory', async () => {
-    // TODO: Reconfigure to rely on generateMatchingListObjectsResponse and generateMatchingHeadObjectResponse utils
-
-    const { serverless } = await runServerless({
+    let serverless;
+    await runServerless({
       fixture: 'package-artifact-in-serverless-dir',
       command: 'deploy',
       configExt: {
@@ -1013,6 +1038,9 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
       },
       env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
       awsRequestStubMap: {
         ...commonAwsSdkMock,
         Lambda: {
@@ -1024,47 +1052,8 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
         },
         S3: {
           headBucket: {},
-          headObject: (() => {
-            const headObjectStub = sandbox.stub();
-
-            headObjectStub
-              .withArgs({
-                Bucket: 'deployment-bucket',
-                Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json',
-              })
-              .returns({
-                Metadata: { filesha256: 'pZOdrt6qijT7ITsLQjPP9QwgMAfKA2RuUUSTW+l8wWs=' },
-              });
-
-            headObjectStub
-              .withArgs({
-                Bucket: 'deployment-bucket',
-                Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/my-own.zip',
-              })
-              .returns({
-                Metadata: { filesha256: 'T0qEYHOE4Xv2E8Ar03xGogAlElcdf/dQh/lh9ao7Glo=' },
-              });
-
-            return headObjectStub;
-          })(),
-          listObjectsV2: {
-            Contents: [
-              {
-                Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json',
-                LastModified: new Date(),
-                ETag: '"5102a4cf710cae6497dba9e61b85d0a4"',
-                Size: 356,
-                StorageClass: 'STANDARD',
-              },
-              {
-                Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/my-own.zip',
-                LastModified: new Date(),
-                ETag: '"5102a4cf710cae6497dba9e61b85d0a4"',
-                Size: 356,
-                StorageClass: 'STANDARD',
-              },
-            ],
-          },
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+          listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
         },
       },
     });
@@ -1283,8 +1272,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
             getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
           },
           S3: {
-            listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
-            headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            listObjectsV2: { Contents: [] },
             headBucket: {},
           },
           CloudFormation: {
@@ -1353,8 +1341,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
             getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
           },
           S3: {
-            listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
-            headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            listObjectsV2: { Contents: [] },
             headBucket: {},
           },
           CloudFormation: {
@@ -1436,8 +1423,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
             getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
           },
           S3: {
-            listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
-            headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            listObjectsV2: { Contents: [] },
             headBucket: {},
           },
           CloudFormation: {
@@ -1537,8 +1523,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
             getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
           },
           S3: {
-            listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
-            headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+            listObjectsV2: { Contents: [] },
             headBucket: {},
           },
           CloudFormation: {

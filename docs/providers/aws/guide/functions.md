@@ -506,11 +506,16 @@ By default, the framework will create LogGroups for your Lambdas. This makes it 
 
 You can opt out of the default behavior by setting `disableLogs: true`
 
+You can also specify the duration for CloudWatch log retention by setting `logRetentionInDays`.
+
 ```yml
 functions:
   hello:
     handler: handler.hello
     disableLogs: true
+  goodBye:
+    handler: handler.goodBye
+    logRetentionInDays: 14
 ```
 
 ## Versioning Deployed Functions
@@ -621,7 +626,7 @@ When intention is to invoke function asynchronously you may want to configure fo
 
 [destination targets](https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html#invocation-async-destinations)
 
-Target can be the other lambdas you also deploy with a service or other qualified target (externally managed lambda, EventBridge event bus, SQS queue or SNS topic) which you can address via its ARN
+Target can be the other lambdas you also deploy with a service or other qualified target (externally managed lambda, EventBridge event bus, SQS queue or SNS topic) which you can address via its ARN or reference
 
 ```yml
 functions:
@@ -630,6 +635,14 @@ functions:
     destinations:
       onSuccess: otherFunctionInService
       onFailure: arn:aws:sns:us-east-1:xxxx:some-topic-name
+  asyncGoodBye:
+    handler: handler.asyncGoodBye
+    destinations:
+      onFailure:
+        # For the case using CF intrinsic function for `arn`, to ensure target execution permission exactly, you have to specify `type` from 'sns', 'sqs', 'eventBus', 'function'.
+        type: sns
+        arn:
+          Ref: SomeTopicName
 ```
 
 ### Maximum Event Age and Maximum Retry Attempts
@@ -665,6 +678,19 @@ functions:
         - securityGroupId1
       subnetIds:
         - subnetId1
+```
+
+## Ephemeral storage
+
+By default, Lambda [allocates 512 MB of ephemeral storage](https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-common.html#configuration-ephemeral-storage) in functions under the `/tmp` directory.
+
+You can increase its size via the `ephemeralStorageSize` property. It should be a numerical value in MBs, between 512 and 10240.
+
+```yml
+functions:
+  helloEphemeral:
+    handler: handler.handler
+    ephemeralStorageSize: 1024
 ```
 
 ## Lambda Hashing Algorithm migration

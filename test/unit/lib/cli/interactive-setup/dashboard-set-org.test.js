@@ -693,11 +693,9 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         expect(serviceConfig.org).to.equal('testinteractivecli');
         expect(serviceConfig.app).to.equal('some-aws-service-app');
         expect(serviceConfig.console).to.be.true;
-        expect(serviceConfig.dashboard).to.be.true;
         expect(context.configuration.org).to.equal('testinteractivecli');
         expect(context.configuration.app).to.equal('some-aws-service-app');
         expect(context.configuration.console).to.be.true;
-        expect(context.configuration.dashboard).to.be.true;
         expect(Array.from(context.stepHistory.valuesMap())).to.deep.equal(Array.from(new Map()));
       });
     });

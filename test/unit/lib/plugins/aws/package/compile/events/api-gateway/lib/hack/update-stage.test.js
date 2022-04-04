@@ -788,7 +788,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/hack/u
           getFunction: { Configuration: { LastModified: '2020-05-20T15:34:16.494+0000' } },
         },
         S3: {
-          listObjectsV2: {},
+          listObjectsV2: { Contents: [] },
           headObject: {},
           headBucket: {},
         },
@@ -866,7 +866,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/hack/u
           },
         },
         S3: {
-          listObjectsV2: {},
+          listObjectsV2: { Contents: [] },
           upload: {},
           headBucket: {},
         },

@@ -612,6 +612,8 @@ functions:
     # Function environment variables
     environment:
       APP_ENV_VARIABLE: FOOBAR
+    # Configure the size of ephemeral storage available to your Lambda function (in MBs, default: 512)
+    ephemeralStorageSize: 512
     # Override the Lambda function name
     name: ${sls:stage}-lambdaName
     description: My function
@@ -629,6 +631,8 @@ functions:
     kmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
     # Disable the creation of the CloudWatch log group
     disableLogs: false
+    # Duration for CloudWatch log retention (default: forever).
+    logRetentionInDays: 14
     tags: # Function specific tags
       foo: bar
     # VPC settings for this function
@@ -666,10 +670,14 @@ functions:
       - MyOtherThing
     # Lambda destination settings
     destinations:
-      # Function name or ARN of target (EventBridge/SQS/SNS topic)
+      # Function name or ARN (or reference) of target (EventBridge/SQS/SNS topic)
       onSuccess: functionName
-      # Function name or ARN of target (EventBridge/SQS/SNS topic)
-      onFailure: xxx:xxx:target
+      # Function name or ARN (or reference) of target (EventBridge/SQS/SNS topic)
+      onFailure: arn:xxx:target
+      onFailure:
+        type: sns
+        arn:
+          Ref: SomeTopicName
     # Mount an EFS filesystem
     fileSystemConfig:
       # ARN of EFS Access Point

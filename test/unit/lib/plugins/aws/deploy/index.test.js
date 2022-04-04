@@ -360,7 +360,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       },
       S3: {
         deleteObjects: {},
-        listObjectsV2: {},
+        listObjectsV2: { Contents: [] },
         upload: {},
         headBucket: {},
       },
@@ -409,6 +409,13 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           StorageClass: 'STANDARD',
         },
         {
+          Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/serverless-state.json',
+          LastModified: new Date(),
+          ETag: '"5102a4cf710cae6497dba9e61b85d0a4"',
+          Size: 356,
+          StorageClass: 'STANDARD',
+        },
+        {
           Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/my-own.zip',
           LastModified: new Date(),
           ETag: '"5102a4cf710cae6497dba9e61b85d0a4"',
@@ -426,6 +433,15 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       .returns({
         Metadata: { filesha256: 'qxp+iwSTMhcRUfHzka4AE4XAWawS8GnEyBh1WpGb7Vw=' },
       });
+    s3HeadObjectStub
+      .withArgs({
+        Bucket: 's3-bucket-resource',
+        Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/serverless-state.json',
+      })
+      .returns({
+        Metadata: { filesha256: 'JZ0oWM9ZWnYOxa3CRNeBRE5HAg+Q9RSwdxcKbik33d8=' },
+      });
+
     s3HeadObjectStub
       .withArgs({
         Bucket: 's3-bucket-resource',
@@ -814,6 +830,10 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       expect(setStackPolicyStub.getCall(0).args[0].StackPolicyBody).to.equal(
         JSON.stringify({ Statement: stackPolicy })
       );
+    });
+
+    it('should only set `stackPolicy` after applying change set', () => {
+      expect(setStackPolicyStub).to.not.be.calledBefore(executeChangeSetStub);
     });
 
     it('should support `rollbackConfiguration`', () => {
