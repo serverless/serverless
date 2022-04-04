@@ -50,6 +50,7 @@ functions:
       - rabbitmq:
           arn: arn:aws:mq:us-east-1:0000:broker:ExampleMQBroker:b-xxx-xxx
           queue: queue-name
+          virtualHost: virtual-host
           enabled: false
           basicAuthArn: arn:aws:secretsmanager:us-east-1:01234567890:secret:MySecret
 ```

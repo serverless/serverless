@@ -1007,6 +1007,8 @@ functions:
           arn: arn:aws:mq:us-east-1:0000:broker:ExampleMQBroker:b-xxx-xxx
           # Name of RabbitMQ queue consume from
           queue: queue-name
+          # Name of RabbitMQ virtual host to consume from
+          virtualHost: virtual-host
           # Secrets Manager ARN for basic auth credentials
           basicAuthArn: arn:aws:secretsmanager:us-east-1:01234567890:secret:MySecret
           # Optional, must be in 1-10000 range
