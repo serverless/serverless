@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.11.0](https://github.com/serverless/serverless/compare/v3.10.2...v3.11.0) (2022-04-04)
+
+### Features
+
+- **AWS RabbitMQ:** Support `virtualHost` ([#10814](https://github.com/serverless/serverless/issues/10814)) ([e21fb75](https://github.com/serverless/serverless/commit/e21fb756fc8625c7dc1bfe86137effbcf09f8287)) ([Rudolf Nel](https://github.com/EnterNameHere7))
+- **CLI Onboarding:** Support all runtimes for dashboard (with limited functionality) ([#10922](https://github.com/serverless/serverless/pull/10922)) ([0ca0cff](https://github.com/serverless/serverless/commit/0ca0cfffda6dbf5c3179a6d2de4b2dd52e07af59)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ### [3.10.2](https://github.com/serverless/serverless/compare/v3.10.1...v3.10.2) (2022-03-31)
 
 ### Maintenance Improvements
