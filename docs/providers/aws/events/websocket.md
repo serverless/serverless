@@ -296,3 +296,16 @@ provider:
     websocket:
       fullExecutionData: false
 ```
+
+## Tags
+
+When using Websocket API, it is possible to tag the corresponding API Gateway resources. By setting `provider.websocketsUseProviderTags` to `true`, all tags defined on `provider.tags` will be applied to API Gateway and API Gateway Stage.
+
+```yaml
+provider:
+  tags:
+    project: myProject
+  websocketsUseProviderTags: true
+```
+
+In the above example, the tag project: myProject will be applied to API Gateway and API Gateway Stage.

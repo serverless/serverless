@@ -123,6 +123,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test
         command: 'package',
 
         configExt: {
+          provider: {
+            tags: {
+              tag: 'bar',
+            },
+          },
           functions: {
             basic: {
               events: [
@@ -178,6 +183,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test
             tags: {
               tag: 'bar',
             },
+            websocketsUseProviderTags: true,
           },
           functions: {
             basic: {
@@ -202,7 +208,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test
           Description: 'Serverless Websockets',
           ProtocolType: 'WEBSOCKET',
           Tags: {
-            stack_tag: 'foo',
             tag: 'bar',
           },
         },
