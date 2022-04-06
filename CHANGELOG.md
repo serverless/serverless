@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.12.0](https://github.com/serverless/serverless/compare/v3.11.0...v3.12.0) (2022-04-06)
+
+### Features
+
+- **AWS Lambda:** Add support for function URLs ([#10936](https://github.com/serverless/serverless/pull/10936)) ([d215517](https://github.com/serverless/serverless/commit/d215517cf009ded63e50cd37e55c0be99bdba754)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **CLI:** Fix typos in `create` CLI messages ([#10933](https://github.com/serverless/serverless/issues/10933)) ([26f79aa](https://github.com/serverless/serverless/commit/26f79aaf19f39725e81461ee06b79cb00a6d14db)) ([Petri Partio](https://github.com/peritpatrio))
+
 ## [3.11.0](https://github.com/serverless/serverless/compare/v3.10.2...v3.11.0) (2022-04-04)
 
 ### Features
