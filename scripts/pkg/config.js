@@ -21,6 +21,7 @@ module.exports = {
     '../../node_modules/@serverless/dashboard-plugin/sdk-js/dist/index.js',
     '../../node_modules/@serverless/dashboard-plugin/sdk-py',
     // Ensure npm is bundled as a dependency
+    '../../node_modules/npm/lib',
     '../../node_modules/npm/bin/npm-cli.js',
     // Below module is not automatically traced by pkg, we need to point it manually
     // See: https://github.com/npm/npm-lifecycle/pull/41
