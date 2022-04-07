@@ -448,8 +448,12 @@ describe('#naming()', () => {
   describe('#getEndpointModelLogicalId()', () => {
     it('', () => {
       expect(
-        sdk.naming.getEndpointModelLogicalId('ResourceId', 'get', 'application/json')
-      ).to.equal('ApiGatewayMethodResourceIdGetApplicationJsonModel');
+        sdk.naming.getEndpointModelLogicalId(
+          'ResourceId',
+          'get',
+          'application/x-www-form-urlencoded'
+        )
+      ).to.equal('ApiGatewayMethodResourceIdGetApplicationXWwwFormUrlencodedModel');
     });
   });
 
