@@ -47,6 +47,7 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
         '${file(file-property-function-errored-non-error.js):property}',
       jsFilePropertyFunctionAccessUnresolvableProperty:
         '${file(file-property-function-access-unresolvable-property.js):property}',
+      jsFilePropertyPromise: '${file(file-property-promise.js):property}',
       notFile: '${file(dir.yaml)}',
       noParams: '${file:}',
       noParams2: '${file():}',
@@ -91,6 +92,9 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
 
   it('should support function property resolvers in "js" file sources', () =>
     expect(configuration.jsPropertyFunction).to.deep.equal({ result: 'js-property-function' }));
+
+  it('should support promise property resolvers in "js" file sources', () =>
+    expect(configuration.jsFilePropertyPromise).to.deep.equal({ result: 'js-property-promise' }));
 
   it('should resolves properties on objects returned by function property resolvers in "js" file sources', () =>
     expect(configuration.jsPropertyFunctionProperty).to.equal('js-property-function'));
