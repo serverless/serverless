@@ -1,7 +1,5 @@
 <!--
-title: Serverless Framework - AWS Lambda Guide - Credentials
-menuText: Credentials
-menuOrder: 3
+title: Serverless Framework - AWS Credentials
 description: How to set up the Serverless Framework with your Amazon Web Services credentials
 layout: Doc
 -->
@@ -12,7 +10,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS - Credentials
+# AWS Credentials
 
 The Serverless Framework needs access to your cloud provider account so that it can create and manage resources on your behalf.
 

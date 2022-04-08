@@ -1,8 +1,6 @@
 <!--
-title: Serverless Framework - AWS Lambda Guide - IAM
+title: Serverless Framework - IAM Permissions For Functions
 description: How to manage your AWS Lambda functions and their AWS infrastructure resources easily with the Serverless Framework.
-menuText: IAM
-menuOrder: 13
 layout: Doc
 -->
 
@@ -12,7 +10,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# IAM
+# IAM Permissions For Functions
 
 Every AWS Lambda function needs permission to interact with other AWS infrastructure resources within your account. These permissions are set via an AWS IAM Role which the Serverless Framework automatically creates for each Serverless Service, and is shared by all of your Functions. The Framework allows you to modify this Role or create Function-specific Roles, easily.
 

@@ -1,7 +1,5 @@
 <!--
-title: Serverless Framework - AWS Lambda Guide - Layers
-menuText: Layers
-menuOrder: 7
+title: Serverless Framework - AWS Lambda Layers
 description: How to configure AWS Lambda layers in the Serverless Framework
 layout: Doc
 -->
@@ -12,7 +10,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS - Layers
+# AWS Lambda Layers
 
 If you are using AWS as a provider, all _layers_ inside the service are [AWS Lambda
 layers](https://aws.amazon.com/blogs/aws/new-for-aws-lambda-use-any-programming-language-and-share-common-components/).

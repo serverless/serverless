@@ -1,7 +1,5 @@
 <!--
-title: Serverless Framework - AWS Lambda Guide - AWS Infrastructure Resources
-menuText: Resources
-menuOrder: 8
+title: Serverless Framework - AWS Infrastructure Resources
 description: How to deploy and manage AWS infrastructure to use with your AWS Lambda functions with the Serverless Framework
 layout: Doc
 -->
@@ -12,7 +10,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS - Resources
+# AWS Infrastructure Resources
 
 If you are using AWS as a provider for your Service, all [_Resources_](./intro.md#resources) are other AWS infrastructure resources which the AWS Lambda functions in your [_Service_](./intro.md#services) depend on, like AWS DynamoDB or AWS S3.
 

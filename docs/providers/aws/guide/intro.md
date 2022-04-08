@@ -1,7 +1,5 @@
 <!--
-title: Serverless Framework - AWS Lambda Guide - Introduction
-menuText: Intro
-menuOrder: 1
+title: Serverless Framework Concepts
 description: An introduction to using AWS and AWS Lambda with the Serverless Framework.
 layout: Doc
 -->
@@ -12,7 +10,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS - Introduction
+# Serverless Framework Concepts
 
 The Serverless Framework helps you develop and deploy your [AWS Lambda](https://serverless.com/aws-lambda/) functions, along with the AWS infrastructure resources they require. It's a CLI that offers structure, automation and best practices out-of-the-box, allowing you to focus on building sophisticated, event-driven, serverless architectures, comprised of [Functions](#functions) and [Events](#events).
 
@@ -20,8 +18,6 @@ The Serverless Framework is different from other application frameworks because:
 
 - It manages your code as well as your infrastructure
 - It supports multiple languages (Node.js, Python, Java, and more)
-
-## Core Concepts
 
 Here are the Framework's main concepts and how they pertain to AWS and Lambda...
 
