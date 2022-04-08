@@ -1,7 +1,5 @@
 <!--
-title: Serverless Framework - AWS Lambda Guide - Services
-menuText: Services
-menuOrder: 4
+title: Serverless Framework Services
 description: How to manage and configure serverless services, which contain your AWS Lambda functions, their events and infrastructure resources.
 layout: Doc
 -->
@@ -12,7 +10,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Services
+# Serverless Framework Services
 
 A `service` is like a project. It's where you define your AWS Lambda Functions, the `events` that trigger them and any AWS infrastructure `resources` they require, all in a file called `serverless.yml`.
 

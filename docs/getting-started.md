@@ -1,24 +1,11 @@
 <!--
-title: Serverless Getting Started Guide
-menuText: Get Started
+title: Setting Up Serverless Framework With AWS
 layout: Doc
-menuOrder: 0
-menuItems:
-  - {menuText: Azure Functions Guide, path: /framework/docs/providers/azure/guide/quick-start}
-  - {menuText: Apache OpenWhisk Guide, path: /framework/docs/providers/openwhisk/guide/quick-start}
-  - {menuText: Google Functions Guide, path: /framework/docs/providers/google/guide/quick-start}
-  - {menuText: Kubeless Guide, path: /framework/docs/providers/kubeless/guide/quick-start}
-  - {menuText: Knative Guide, path: /framework/docs/providers/knative/guide/quick-start}
-  - {menuText: Spotinst Guide, path: /framework/docs/providers/spotinst/guide/quick-start}
-  - {menuText: Fn Guide, path: /framework/docs/providers/fn/guide/quick-start}
-  - {menuText: Cloudflare Workers Guide, path: /framework/docs/providers/cloudflare/guide/quick-start}
-  - {menuText: Alibaba Guide , path: /framework/docs/providers/aliyun/guide/quick-start}
-  - {menuText: Tencent Guide , path: /framework/docs/providers/tencent/guide/quick-start}
 -->
 
-# Get started with Serverless Framework Open Source & AWS
+# Setting Up Serverless Framework With AWS
 
-Getting started with Serverless Framework’s Open Source CLI and AWS only takes a few minutes.
+Getting started with Serverless Framework’s open-source CLI and AWS only takes a few minutes.
 
 ## Installation
 

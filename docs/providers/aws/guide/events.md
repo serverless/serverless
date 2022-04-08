@@ -1,5 +1,5 @@
 <!--
-title: Serverless Framework - AWS Lambda Guide - Events
+title: Serverless Framework - AWS Lambda Events
 menuText: Events
 menuOrder: 6
 description: Configuring AWS Lambda function events in the Serverless Framework
@@ -12,7 +12,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS - Events
+# AWS Lambda Events
 
 Simply put, events are the things that trigger your functions to run.
 

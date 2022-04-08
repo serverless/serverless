@@ -1,7 +1,5 @@
 <!--
-title: Serverless Framework - AWS Lambda Guide - Testing
-menuText: Testing
-menuOrder: 10
+title: Serverless Framework - Testing
 description: Recommendations and best practices for testing AWS Lambda Functions with the Serverless Framework
 layout: Doc
 -->

@@ -1,7 +1,5 @@
 <!--
-title: Serverless Framework Guide - AWS Lambda Guide - Packaging
-menuText: Packaging
-menuOrder: 12
+title: Serverless Framework - Packaging
 description: How the Serverless Framework packages your AWS Lambda functions and other available options
 layout: Doc
 -->
@@ -12,7 +10,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS - Packaging
+# Packaging
 
 ## Package CLI Command
 
