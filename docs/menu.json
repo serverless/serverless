@@ -1,9 +1,12 @@
 {
   "Overview": "",
-  "Get Started": "getting-started",
-  "Deployment Credentials": "providers/aws/guide/credentials",
-  "Usage": {
+  "Get Started": {
+    "Setup": "getting-started",
+    "Tutorial": "your-first-project",
     "Concepts": "providers/aws/guide/intro",
+    "AWS Credentials": "providers/aws/guide/credentials"
+  },
+  "Usage": {
     "Deploying": "providers/aws/guide/deploying",
     "Packaging": "providers/aws/guide/packaging",
     "Testing": "providers/aws/guide/testing",
