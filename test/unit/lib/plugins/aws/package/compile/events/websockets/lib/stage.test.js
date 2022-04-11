@@ -191,5 +191,139 @@ describe('#compileStage()', () => {
         ).to.equal(true);
       });
     });
+
+    it('should set a specific log Format if provider has format', () => {
+      const customFormat = ['$context.identity.sourceIp', '$context.requestId'].join(' ');
+      awsCompileWebsocketsEvents.serverless.service.provider.logs = {
+        websocket: {
+          format: customFormat,
+        },
+      };
+
+      return awsCompileWebsocketsEvents.compileStage().then(() => {
+        const resources =
+          awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources;
+
+        expect(resources[stageLogicalId].Properties.AccessLogSettings.Format).to.equal(
+          customFormat
+        );
+      });
+    });
+
+    it('should set LoggingLevel if provider has executionLogging', () => {
+      awsCompileWebsocketsEvents.serverless.service.provider.logs = {
+        websocket: {
+          executionLogging: false,
+        },
+      };
+
+      return awsCompileWebsocketsEvents.compileStage().then(() => {
+        const resources =
+          awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources;
+
+        expect(resources[stageLogicalId]).to.deep.equal({
+          Type: 'AWS::ApiGatewayV2::Stage',
+          Properties: {
+            ApiId: {
+              Ref: awsCompileWebsocketsEvents.websocketsApiLogicalId,
+            },
+            StageName: 'dev',
+            Description: 'Serverless Websockets',
+            AccessLogSettings: {
+              DestinationArn: {
+                'Fn::Sub':
+                  'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${WebsocketsLogGroup}',
+              },
+              Format: [
+                '$context.identity.sourceIp',
+                '$context.identity.caller',
+                '$context.identity.user',
+                '[$context.requestTime]',
+                '"$context.eventType $context.routeKey $context.connectionId"',
+                '$context.requestId',
+              ].join(' '),
+            },
+            DefaultRouteSettings: {
+              DataTraceEnabled: true,
+              LoggingLevel: 'OFF',
+            },
+          },
+        });
+      });
+    });
+
+    it('should set DataTraceEnabled if provider has fullExecutionData', () => {
+      awsCompileWebsocketsEvents.serverless.service.provider.logs = {
+        websocket: {
+          fullExecutionData: false,
+        },
+      };
+
+      return awsCompileWebsocketsEvents.compileStage().then(() => {
+        const resources =
+          awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources;
+
+        expect(resources[stageLogicalId]).to.deep.equal({
+          Type: 'AWS::ApiGatewayV2::Stage',
+          Properties: {
+            ApiId: {
+              Ref: awsCompileWebsocketsEvents.websocketsApiLogicalId,
+            },
+            StageName: 'dev',
+            Description: 'Serverless Websockets',
+            AccessLogSettings: {
+              DestinationArn: {
+                'Fn::Sub':
+                  'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${WebsocketsLogGroup}',
+              },
+              Format: [
+                '$context.identity.sourceIp',
+                '$context.identity.caller',
+                '$context.identity.user',
+                '[$context.requestTime]',
+                '"$context.eventType $context.routeKey $context.connectionId"',
+                '$context.requestId',
+              ].join(' '),
+            },
+            DefaultRouteSettings: {
+              DataTraceEnabled: false,
+              LoggingLevel: 'INFO',
+            },
+          },
+        });
+      });
+    });
+
+    it('should set AccessLogSettings if provider has accessLogging', () => {
+      awsCompileWebsocketsEvents.serverless.service.provider.logs = {
+        websocket: {
+          accessLogging: false,
+        },
+      };
+
+      return awsCompileWebsocketsEvents.compileStage().then(() => {
+        const resources =
+          awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources;
+
+        expect(resources[stageLogicalId]).to.deep.equal({
+          Type: 'AWS::ApiGatewayV2::Stage',
+          Properties: {
+            ApiId: {
+              Ref: awsCompileWebsocketsEvents.websocketsApiLogicalId,
+            },
+            StageName: 'dev',
+            Description: 'Serverless Websockets',
+            DefaultRouteSettings: {
+              DataTraceEnabled: true,
+              LoggingLevel: 'INFO',
+            },
+          },
+        });
+      });
+    });
   });
 });
