@@ -11,6 +11,7 @@ const AwsCompileWebsocketsEvents = require('../../../../../../../../../../lib/pl
 const Serverless = require('../../../../../../../../../../lib/serverless');
 const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
 const { createTmpDir } = require('../../../../../../../../../utils/fs');
+const runServerless = require('../../../../../../../../../utils/run-serverless');
 
 chai.use(require('chai-as-promised'));
 
@@ -191,139 +192,96 @@ describe('#compileStage()', () => {
         ).to.equal(true);
       });
     });
+  });
+});
 
-    it('should set a specific log Format if provider has format', () => {
-      const customFormat = ['$context.identity.sourceIp', '$context.requestId'].join(' ');
-      awsCompileWebsocketsEvents.serverless.service.provider.logs = {
-        websocket: {
-          format: customFormat,
-        },
-      };
+describe('lib/plugins/aws/package/compile/events/websockets/lib/stage.test.js', () => {
+  describe('logs with several custom options', () => {
+    let resource;
+    const customLogFormat = ['$context.identity.sourceIp', '$context.requestId'].join(' ');
 
-      return awsCompileWebsocketsEvents.compileStage().then(() => {
-        const resources =
-          awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources;
-
-        expect(resources[stageLogicalId].Properties.AccessLogSettings.Format).to.equal(
-          customFormat
-        );
-      });
-    });
-
-    it('should set LoggingLevel if provider has executionLogging', () => {
-      awsCompileWebsocketsEvents.serverless.service.provider.logs = {
-        websocket: {
-          executionLogging: false,
-        },
-      };
-
-      return awsCompileWebsocketsEvents.compileStage().then(() => {
-        const resources =
-          awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources;
-
-        expect(resources[stageLogicalId]).to.deep.equal({
-          Type: 'AWS::ApiGatewayV2::Stage',
-          Properties: {
-            ApiId: {
-              Ref: awsCompileWebsocketsEvents.websocketsApiLogicalId,
-            },
-            StageName: 'dev',
-            Description: 'Serverless Websockets',
-            AccessLogSettings: {
-              DestinationArn: {
-                'Fn::Sub':
-                  'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${WebsocketsLogGroup}',
+    before(() =>
+      runServerless({
+        fixture: 'websocket',
+        configExt: {
+          provider: {
+            logs: {
+              websocket: {
+                format: customLogFormat,
+                fullExecutionData: false,
+                level: 'ERROR',
               },
-              Format: [
-                '$context.identity.sourceIp',
-                '$context.identity.caller',
-                '$context.identity.user',
-                '[$context.requestTime]',
-                '"$context.eventType $context.routeKey $context.connectionId"',
-                '$context.requestId',
-              ].join(' '),
-            },
-            DefaultRouteSettings: {
-              DataTraceEnabled: true,
-              LoggingLevel: 'OFF',
             },
           },
-        });
+        },
+        command: 'package',
+      }).then(({ cfTemplate, awsNaming }) => {
+        const stageLogicalId = awsNaming.getWebsocketsStageLogicalId();
+        resource = cfTemplate.Resources[stageLogicalId];
+      })
+    );
+
+    it('should set a specific log Format if provider has format option', async () => {
+      expect(resource.Properties.AccessLogSettings.Format).to.equal(customLogFormat);
+    });
+
+    it('should set DataTraceEnabled if provider has fullExecutionData option', async () => {
+      expect(resource.Properties.DefaultRouteSettings.DataTraceEnabled).to.equal(false);
+    });
+
+    it('should set LoggingLevel if provider has level option', async () => {
+      expect(resource.Properties.DefaultRouteSettings.LoggingLevel).to.equal('ERROR');
+    });
+
+    it('should set accessLogging true as default value', async () => {
+      expect(resource.Properties.AccessLogSettings.DestinationArn).to.deep.equal({
+        'Fn::Sub':
+          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${WebsocketsLogGroup}',
       });
     });
 
-    it('should set DataTraceEnabled if provider has fullExecutionData', () => {
-      awsCompileWebsocketsEvents.serverless.service.provider.logs = {
-        websocket: {
-          fullExecutionData: false,
-        },
-      };
+    it('should set executionLogging true as default value', async () => {
+      expect(resource.Properties.DefaultRouteSettings.LoggingLevel).to.not.equal('OFF');
+    });
+  });
 
-      return awsCompileWebsocketsEvents.compileStage().then(() => {
-        const resources =
-          awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources;
+  describe('logs with full custom options', () => {
+    let resource;
+    const customLogFormat = ['$context.identity.sourceIp', '$context.requestId'].join(' ');
 
-        expect(resources[stageLogicalId]).to.deep.equal({
-          Type: 'AWS::ApiGatewayV2::Stage',
-          Properties: {
-            ApiId: {
-              Ref: awsCompileWebsocketsEvents.websocketsApiLogicalId,
-            },
-            StageName: 'dev',
-            Description: 'Serverless Websockets',
-            AccessLogSettings: {
-              DestinationArn: {
-                'Fn::Sub':
-                  'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${WebsocketsLogGroup}',
+    before(() =>
+      runServerless({
+        fixture: 'websocket',
+        configExt: {
+          provider: {
+            logs: {
+              websocket: {
+                accessLogging: false,
+                executionLogging: false,
+                fullExecutionData: true,
+                level: 'ERROR',
+                format: customLogFormat,
               },
-              Format: [
-                '$context.identity.sourceIp',
-                '$context.identity.caller',
-                '$context.identity.user',
-                '[$context.requestTime]',
-                '"$context.eventType $context.routeKey $context.connectionId"',
-                '$context.requestId',
-              ].join(' '),
-            },
-            DefaultRouteSettings: {
-              DataTraceEnabled: false,
-              LoggingLevel: 'INFO',
             },
           },
-        });
-      });
+        },
+        command: 'package',
+      }).then(({ cfTemplate, awsNaming }) => {
+        const stageLogicalId = awsNaming.getWebsocketsStageLogicalId();
+        resource = cfTemplate.Resources[stageLogicalId];
+      })
+    );
+
+    it('should set accessLogging off', async () => {
+      expect(resource.Properties.AccessLogSettings).to.be.undefined;
     });
 
-    it('should set AccessLogSettings if provider has accessLogging', () => {
-      awsCompileWebsocketsEvents.serverless.service.provider.logs = {
-        websocket: {
-          accessLogging: false,
-        },
-      };
+    it('should set executionLogging off', async () => {
+      expect(resource.Properties.DefaultRouteSettings.LoggingLevel).to.equal('OFF');
+    });
 
-      return awsCompileWebsocketsEvents.compileStage().then(() => {
-        const resources =
-          awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources;
-
-        expect(resources[stageLogicalId]).to.deep.equal({
-          Type: 'AWS::ApiGatewayV2::Stage',
-          Properties: {
-            ApiId: {
-              Ref: awsCompileWebsocketsEvents.websocketsApiLogicalId,
-            },
-            StageName: 'dev',
-            Description: 'Serverless Websockets',
-            DefaultRouteSettings: {
-              DataTraceEnabled: true,
-              LoggingLevel: 'INFO',
-            },
-          },
-        });
-      });
+    it('should set fullExecutionData true', async () => {
+      expect(resource.Properties.DefaultRouteSettings.DataTraceEnabled).to.equal(true);
     });
   });
 });
