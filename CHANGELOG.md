@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.13.0](https://github.com/serverless/serverless/compare/v3.12.0...v3.13.0) (2022-04-13)
+
+### Features
+
+- **Variables:** Ensure support for promise properties at `file` source ([#10949](https://github.com/serverless/serverless/pull/10949)) ([8dae213](https://github.com/serverless/serverless/commit/8dae21375801be00f24d68d6a3e12854132b7bb9)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **AWS API Gateway:** Correctly construct resource name for schema ([#10940](https://github.com/serverless/serverless/pull/10940)) ([0a0f6c6](https://github.com/serverless/serverless/commit/0a0f6c6102b3cb8921ef7448d5b3a8f1294b6802)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS Local Invocation:** Ensure environment variables resolution for docker invoke ([#10962](https://github.com/serverless/serverless/issues/10962)) ([1a8e7d9](https://github.com/serverless/serverless/commit/1a8e7d948efe696cd4970f73ac4262cc15ebe977)) ([Sergii Dolgushev](https://github.com/SerheyDolgushev))
+- **CLI:** Do not attempt to resolve full config for `login` ([#10942](https://github.com/serverless/serverless/pull/10942)) ([9b62d14](https://github.com/serverless/serverless/commit/9b62d14e691eedafcefc0cc414c82f3f7d13636d)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Standalone:** Ensure proper `npm` bundling ([#10941](https://github.com/serverless/serverless/pull/10941)) ([cf482f0](https://github.com/serverless/serverless/commit/cf482f01700ddd0946e71ad5e7d2ca0d06cc49a3)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **Console:** Document `--console` with a link to documentation ([#10951](https://github.com/serverless/serverless/pull/10951)) ([23a5ea3](https://github.com/serverless/serverless/commit/23a5ea3a3a53a2e9fb7f1a65160d22c8868ddbbe)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Telemetry:** Ensure to pass unique id with events ([#10966](https://github.com/serverless/serverless/pull/10966)) ([3bcff79](https://github.com/serverless/serverless/commit/3bcff796f1046c09c4f7f9c0545f6393a332c4c0)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [3.12.0](https://github.com/serverless/serverless/compare/v3.11.0...v3.12.0) (2022-04-06)
 
 ### Features
