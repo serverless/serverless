@@ -540,8 +540,16 @@ provider:
     # Enable Websocket API logs
     # This can either be set to `websocket: true` to use defaults, or configured via subproperties.
     websocket:
-      # Log level to use for execution logging: INFO or ERROR.
+      # Enables HTTP access logs (default: true)
+      accessLogging: true
+      # Log format to use for access logs
+      format: 'requestId: $context.requestId'
+      # Enable execution logging (default: true)
+      executionLogging: true
+      # Log level to use for execution logging: INFO or ERROR
       level: INFO
+      # Log full requests/responses for execution logging (default: true)
+      fullExecutionData: true
 
     # Optional, whether to write CloudWatch logs for custom resource lambdas as added by the framework
     frameworkLambda: true

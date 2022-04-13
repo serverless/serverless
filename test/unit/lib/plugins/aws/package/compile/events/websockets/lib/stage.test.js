@@ -249,8 +249,8 @@ describe('lib/plugins/aws/package/compile/events/websockets/lib/stage.test.js', 
     let resource;
     const customLogFormat = ['$context.identity.sourceIp', '$context.requestId'].join(' ');
 
-    before(() =>
-      runServerless({
+    before(async () => {
+      const { cfTemplate, awsNaming } = await runServerless({
         fixture: 'websocket',
         configExt: {
           provider: {
@@ -266,11 +266,10 @@ describe('lib/plugins/aws/package/compile/events/websockets/lib/stage.test.js', 
           },
         },
         command: 'package',
-      }).then(({ cfTemplate, awsNaming }) => {
-        const stageLogicalId = awsNaming.getWebsocketsStageLogicalId();
-        resource = cfTemplate.Resources[stageLogicalId];
-      })
-    );
+      });
+      const stageLogicalId = awsNaming.getWebsocketsStageLogicalId();
+      resource = cfTemplate.Resources[stageLogicalId];
+    });
 
     it('should set accessLogging off', async () => {
       expect(resource.Properties.AccessLogSettings).to.be.undefined;
