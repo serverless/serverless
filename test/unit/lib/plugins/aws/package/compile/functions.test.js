@@ -815,41 +815,6 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should create a new version object if only the configuration changed', () => {
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-        },
-        anotherFunc: {
-          handler: 'anotherFunc.function.handler',
-        },
-      };
-
-      let firstOutputs;
-      return expect(awsCompileFunctions.compileFunctions())
-        .to.be.fulfilled.then(() => {
-          firstOutputs =
-            awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
-
-          // Change configuration
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate = {
-            Resources: {},
-            Outputs: {},
-          };
-
-          awsCompileFunctions.serverless.service.functions.func.environment = {
-            MY_ENV_VAR: 'myvalue',
-          };
-
-          return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled;
-        })
-        .then(() => {
-          expect(
-            awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Outputs
-          ).to.not.deep.equal(firstOutputs);
-        });
-    });
-
     it('should include description under version too if function is specified', () => {
       const lambdaDescription = 'Lambda function description';
       awsCompileFunctions.serverless.service.functions = {
@@ -2283,11 +2248,41 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           }
         : {};
 
-      it.skip('TODO: should create a different version if configuration changed', () => {
-        // Replacement for
-        // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L2022-L2057
-        //
-        // Configure in similar fashion as test below
+      it('should create a different version if configuration changed', async () => {
+        const { servicePath: serviceDir, updateConfig } = await fixtures.setup('function', {
+          configExt,
+        });
+
+        const { cfTemplate: originalTemplate } = await runServerless({
+          cwd: serviceDir,
+          command: 'package',
+        });
+
+        const originalVersionArn =
+          originalTemplate.Outputs.BasicLambdaFunctionQualifiedArn.Value.Ref;
+
+        await updateConfig({
+          functions: {
+            basic: {
+              environment: {
+                MY_ENV_VAR: 'myvalue',
+              },
+            },
+          },
+        });
+
+        const { cfTemplate: updatedTemplate } = await runServerless({
+          cwd: serviceDir,
+          command: 'package',
+        });
+
+        const updatedVersionArn = updatedTemplate.Outputs.BasicLambdaFunctionQualifiedArn.Value.Ref;
+
+        expect(
+          updatedTemplate.Resources.BasicLambdaFunction.Properties.Environment.Variables.MY_ENV_VAR
+        ).to.equal('myvalue');
+
+        expect(originalVersionArn).to.not.equal(updatedVersionArn);
       });
 
       it('should not create a different version if only function-wide configuration changed', async () => {
