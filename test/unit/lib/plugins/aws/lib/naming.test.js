@@ -242,7 +242,7 @@ describe('#naming()', () => {
     });
 
     it('should return the custom api name if provided', () => {
-      serverless.service.provider.websockets.apiName = 'app-dev-websockets-testApi';
+      serverless.service.provider.websocketsApiName = 'app-dev-websockets-testApi';
       serverless.service.service = 'myService';
       serverless.service.provider.stage = sdk.naming.provider.getStage();
       expect(sdk.naming.getWebsocketsApiName()).to.equal('app-dev-websockets-testApi');
