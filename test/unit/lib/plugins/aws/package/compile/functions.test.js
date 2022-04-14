@@ -815,41 +815,6 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should create a new version object if only the configuration changed', () => {
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-        },
-        anotherFunc: {
-          handler: 'anotherFunc.function.handler',
-        },
-      };
-
-      let firstOutputs;
-      return expect(awsCompileFunctions.compileFunctions())
-        .to.be.fulfilled.then(() => {
-          firstOutputs =
-            awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
-
-          // Change configuration
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate = {
-            Resources: {},
-            Outputs: {},
-          };
-
-          awsCompileFunctions.serverless.service.functions.func.environment = {
-            MY_ENV_VAR: 'myvalue',
-          };
-
-          return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled;
-        })
-        .then(() => {
-          expect(
-            awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Outputs
-          ).to.not.deep.equal(firstOutputs);
-        });
-    });
-
     it('should include description under version too if function is specified', () => {
       const lambdaDescription = 'Lambda function description';
       awsCompileFunctions.serverless.service.functions = {
