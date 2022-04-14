@@ -41,7 +41,6 @@ if (isMainModule) {
 
   const path = require('path');
   const localInstallationPath = require('../lib/cli/local-serverless-path');
-
   if (localInstallationPath && localInstallationPath !== path.dirname(__dirname)) {
     // Local fallback
     const localServerlessBinPath = (() => {
@@ -72,6 +71,14 @@ require('../lib/cli/triage')().then((cliName) => {
   switch (cliName) {
     case 'serverless':
       require('../scripts/serverless');
+      return;
+    case '@serverless/compose':
+      require('../lib/cli/run-compose')().catch((error) => {
+        // Expose eventual resolution error as regular crash, and not unhandled rejection
+        process.nextTick(() => {
+          throw error;
+        });
+      });
       return;
     case 'serverless-tencent':
       require('../lib/cli/run-serverless-tencent')().catch((error) => {
