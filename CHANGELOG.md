@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.14.0](https://github.com/serverless/serverless/compare/v3.13.0...v3.14.0) (2022-04-14)
+
+### Features
+
+- **AWS Websocket:** Add ability to configure log format and types ([#10956](https://github.com/serverless/serverless/pull/10956)) ([82ce1c8](https://github.com/serverless/serverless/commit/82ce1c83d23008a5f7b48d149fcaac828c782871)) ([Ariette](https://github.com/Ariette))
+
+### Maintenance Improvements
+
+- Enable triage process to run `@serverless/compose` ([#10950](https://github.com/serverless/serverless/issues/10950)) ([401c721](https://github.com/serverless/serverless/commit/401c721f8e1c59441ba3e5bb44bb2ce34576d99d)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [3.13.0](https://github.com/serverless/serverless/compare/v3.12.0...v3.13.0) (2022-04-13)
 
 ### Features
