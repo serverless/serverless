@@ -657,7 +657,7 @@ describe('AwsInvokeLocal', () => {
       expect(spawnExtStub.getCall(0).args).to.deep.equal(['docker', ['version']]);
       expect(spawnExtStub.getCall(1).args).to.deep.equal([
         'docker',
-        ['images', '-q', 'lambci/lambda:nodejs12.x'],
+        ['images', '-q', 'amazon/aws-sam-cli-emulation-image-nodejs12.x:latest'],
       ]);
       expect(spawnExtStub.getCall(3).args).to.deep.equal([
         'docker',
