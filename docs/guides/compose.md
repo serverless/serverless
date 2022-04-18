@@ -248,3 +248,13 @@ To delete only one service:
 If you remove the service from `serverless-compose.yml` without doing step 1 first, the service will still be deployed in your AWS account.
 
 Remember to do this for every stage you may have previously deployed.
+
+## FAQ
+
+### Multi-region deployments
+
+> Is multi-region deployment possible via Compose?
+
+It is possible to deploy different services to different regions. For example, deploy service `frontend` to us-east-1 and service `backend` to eu-west-3.
+
+However, Compose currently does not support deploying _the same service_ to multiple regions. The reason is that each service is packaged in the `.serverless/` directory. If the same service was to be deployed in parallel to different regions, package artifacts would conflict and overwrite each others.
