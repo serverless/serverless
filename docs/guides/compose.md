@@ -16,7 +16,7 @@ layout: Doc
 Deploying multiple services in a monorepository is a very common pattern across larger teams. Serverless Framework Compose is meant to simplify deploying and orchestrating multiple services:
 
 - Deploy multiple services in parallel
-- Deploy dependent services in a specific order
+- Deploy services in a specific order
 - Share outputs from one service to another
 - Run commands across multiple services
 
@@ -228,7 +228,7 @@ You can [open feature requests](https://github.com/serverless/compose) if you ne
 
 ## Refreshing outputs
 
-The outputs of a service are stored locally to accelerate deployments. If a colleague deployed changes that changed the outputs of a service, you can refresh your local state via the `refresh-outputs` command:
+The outputs of a service are stored locally (in the `.serverless/` directory). If a colleague deployed changes that changed the outputs of a service, you can refresh your local state via the `refresh-outputs` command:
 
 ```
 serverless refresh-outputs
@@ -242,8 +242,9 @@ To delete the whole project (and all its services), run `serverless remove` in t
 
 To delete only one service:
 
-1. run `serverless <service-name>:remove`
-2. then remove the service from `serverless-compose.yml`
+1. make sure no other service depends on it (else these services will be broken)
+2. run `serverless <service-name>:remove`
+3. then remove the service from `serverless-compose.yml`
 
 If you remove the service from `serverless-compose.yml` without doing step 1 first, the service will still be deployed in your AWS account.
 
