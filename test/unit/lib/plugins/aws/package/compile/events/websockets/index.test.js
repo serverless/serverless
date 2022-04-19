@@ -127,6 +127,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test
             tags: {
               tag: 'bar',
             },
+            websockets: {
+              useProviderTags: true,
+            },
           },
           functions: {
             basic: {
@@ -150,7 +153,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test
           RouteSelectionExpression: '$request.body.action',
           Description: 'Serverless Websockets',
           ProtocolType: 'WEBSOCKET',
-          Tags: {},
+          Tags: {
+            tag: 'bar',
+          },
         },
       });
     });
@@ -183,7 +188,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test
             tags: {
               tag: 'bar',
             },
-            websocketsUseProviderTags: true,
+            websockets: {
+              useProviderTags: true,
+            },
           },
           functions: {
             basic: {
