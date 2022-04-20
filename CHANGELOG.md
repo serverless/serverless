@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.15.0](https://github.com/serverless/serverless/compare/v3.14.0...v3.15.0) (2022-04-20)
+
+### Maintenance Improvements
+
+- Handle `@serverless/compose` install in non-interactive environments ([#10984](https://github.com/serverless/serverless/pull/10984)) ([75885cb](https://github.com/serverless/serverless/commit/75885cbbc5165aa4f27be4aab179e9e2655c1d99)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Support custom error message for variables resolution ([#10985](https://github.com/serverless/serverless/pull/10985)) ([f7ffb19](https://github.com/serverless/serverless/commit/f7ffb1978804ce01fc14d14866529378ebc1c1e2)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [3.14.0](https://github.com/serverless/serverless/compare/v3.13.0...v3.14.0) (2022-04-14)
 
 ### Features
