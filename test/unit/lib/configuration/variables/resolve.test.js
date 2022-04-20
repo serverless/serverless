@@ -78,6 +78,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       sharedSourceResolution2: '${sourceProperty(sharedSourceResolution1, sharedFinal)}',
       sharedPropertyResolution1: '${sourceSharedProperty:}',
       sharedPropertyResolution2: '${sourceProperty(sharedPropertyResolution1, sharedFinal)}',
+      nullWithCustomErrorMessage: '${sourceDirectNull:}',
     };
     let variablesMeta;
     const sources = {
@@ -91,6 +92,9 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       },
       sourceDirect: {
         resolve: () => ({ value: 234 }),
+      },
+      sourceDirectNull: {
+        resolve: () => ({ value: null, eventualErrorMessage: 'Custom error message from source' }),
       },
       sourceProperty: {
         resolve: async ({ params, resolveConfigurationProperty }) => {
@@ -442,6 +446,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         'invalidResultNonJson',
         'invalidResultNonJsonCircular',
         'invalidResultValue',
+        'nullWithCustomErrorMessage',
         `infiniteResolutionRecursion${'\0nest'.repeat(10)}`,
       ]);
     });
@@ -463,6 +468,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         'sourceInfinite',
         'sourceShared',
         'sourceSharedProperty',
+        'sourceDirectNull',
       ]);
     });
 
@@ -483,6 +489,13 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         expect(valueMeta).to.not.have.property('variables');
         expect(valueMeta.error.code).to.equal('VARIABLE_RESOLUTION_ERROR');
       });
+    });
+
+    it('should recognize custom error message for null values', () => {
+      const valueMeta = variablesMeta.get('nullWithCustomErrorMessage');
+      expect(valueMeta).to.not.have.property('variables');
+      expect(valueMeta.error.code).to.equal('MISSING_VARIABLE_RESULT');
+      expect(valueMeta.error.message).to.include('Custom error message from source');
     });
   });
 
