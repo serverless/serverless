@@ -299,13 +299,13 @@ provider:
 
 ## Tags
 
-When using Websocket API, it is possible to tag the corresponding API Gateway resources. By setting `provider.websockets.useProviderTags` to `true`, all tags defined on `provider.tags` will be applied to API Gateway and API Gateway Stage.
+When using Websocket API, it is possible to tag the corresponding API Gateway resources. By setting `provider.websocket.useProviderTags` to `true`, all tags defined on `provider.tags` will be applied to API Gateway and API Gateway Stage.
 
 ```yaml
 provider:
   tags:
     project: myProject
-  websockets:
+  websocket:
     useProviderTags: true
 ```
 

@@ -118,12 +118,12 @@ Starting with `v4.0.0`, `--function` or `-f` option for `deploy` command will no
 
 <a name="AWS_WEBSOCKET_API_USE_PROVIDER_TAGS"><div>&nbsp;</div></a>
 
-## Property `provider.websockets.useProviderTags`
+## Property `provider.websocket.useProviderTags`
 
 Deprecation code: `AWS_WEBSOCKET_API_USE_PROVIDER_TAGS`
 
 Starting with v4.0.0, `provider.tags` will be applied to Websocket Api Gateway by default
-Set `provider.websockets.useProviderTags` to `true` to adapt to the new behavior now.
+Set `provider.websocket.useProviderTags` to `true` to adapt to the new behavior now.
 
 <a name="LAMBDA_HASHING_VERSION_PROPERTY"><div>&nbsp;</div></a>
 

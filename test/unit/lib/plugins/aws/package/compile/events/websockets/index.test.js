@@ -127,7 +127,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test
             tags: {
               tag: 'bar',
             },
-            websockets: {
+            websocket: {
               useProviderTags: true,
             },
           },
@@ -188,7 +188,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test
             tags: {
               tag: 'bar',
             },
-            websockets: {
+            websocket: {
               useProviderTags: true,
             },
           },
