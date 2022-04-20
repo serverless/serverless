@@ -22,7 +22,7 @@ Deploying multiple services in a monorepository is a very common pattern across 
 
 ## Setup
 
-_Note: Compose is available in Serverless Framework **v3.14.0** or greater ([Upgrading guide](../getting-started.md#upgrade)). If Serverless Framework is installed locally (in `node_modules/`), make sure to upgrade it as well._
+_Note: Compose is available in Serverless Framework **v3.15.0** or greater ([Upgrading guide](../getting-started.md#upgrade)). If Serverless Framework is installed locally (in `node_modules/`), make sure to upgrade it as well._
 
 Assuming you have an application containing multiple Serverless Framework services, for example:
 
@@ -50,7 +50,7 @@ services:
 
   service-b:
     path: service-b
-    # If the file is not named "serverless.yml" it is possible to configure that:
+    # If the file is not named "serverless.yml":
     # config: serverless.api.yml
 ```
 
@@ -123,7 +123,7 @@ Let's break down the example above into 3 steps:
        SERVICE_A_QUEUE_URL: ${param:queueUrl}
    ```
 
-Cross-services variables are a great way to share API URLs, queue URLs, database table names, and more, without having to hardcode resource names or use SSM.
+Cross-service variables are a great way to share API URLs, queue URLs, database table names, and more, without having to hardcode resource names or use SSM.
 
 ### Explicit dependencies
 
@@ -168,9 +168,9 @@ $ serverless logs --tail
 service-a › users › START
 service-a › users › 2021-12-31 16:54:14  INFO  New user created
 service-a › users › END Duration: 13 ms ...
-service-b › subscriptions › START
-service-b › subscriptions › 2021-12-31 16:54:14  INFO  New subscription enabled
-service-b › subscriptions › END Duration: 7 ms ...
+service-b › billing › START
+service-b › billing › 2021-12-31 16:54:14  INFO  New subscription enabled
+service-b › billing › END Duration: 7 ms ...
 
     ⠴  service-a › logs › 2s
     ⠦  service-a › logs › 2s
