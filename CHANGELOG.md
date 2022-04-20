@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [3.15.0](https://github.com/serverless/serverless/compare/v3.14.0...v3.15.0) (2022-04-20)
 
+### Features
+
+- Introduce [Serverless Framework Compose](https://www.serverless.com/framework/docs/guides/compose), a new feature that enables deploying multiple services in one command, in parallel, or ordered by dependencies
+
 ### Maintenance Improvements
 
 - Handle `@serverless/compose` install in non-interactive environments ([#10984](https://github.com/serverless/serverless/pull/10984)) ([75885cb](https://github.com/serverless/serverless/commit/75885cbbc5165aa4f27be4aab179e9e2655c1d99)) ([Piotr Grzesik](https://github.com/pgrzesik))
