@@ -4,8 +4,7 @@ name: Publish docs
 
 on:
   push:
-    # TODO remove new-docs-menu
-    branches: [main, new-docs-menu]
+    branches: [main]
 
 jobs:
   docs-menu:
