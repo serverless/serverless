@@ -153,7 +153,7 @@
       "@serverless/test/setup/mock-cwd",
       "@serverless/test/setup/restore-env"
     ],
-    "timeout": 45000
+    "timeout": 60000
   },
   "nyc": {
     "all": true,
