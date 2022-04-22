@@ -196,6 +196,14 @@ describe('test/unit/lib/classes/console.test.js', () => {
         expect(notSupportedFnVariables).to.not.have.property('AWS_LAMBDA_EXEC_WRAPPER');
       });
 
+      it('should reflect default userSettings', () => {
+        const userSettingsString =
+          cfTemplate.Resources[awsNaming.getLambdaLogicalId('fnService')].Properties.Environment
+            .Variables.SLS_OTEL_USER_SETTINGS;
+        if (!userSettingsString) return;
+        expect(JSON.parse(userSettingsString)).to.deep.equal({});
+      });
+
       it('should package extension layer', async () => {
         expect(cfTemplate.Resources).to.have.property(
           awsNaming.getConsoleExtensionLayerLogicalId()
@@ -226,6 +234,40 @@ describe('test/unit/lib/classes/console.test.js', () => {
 
       it('should activate otel ingestion token', () => {
         otelIngenstionRequests.includes('activate-token');
+      });
+    });
+
+    describe('package', () => {
+      let userSettings;
+      before(async () => {
+        const { stub: fetchStub } = createFetchStub();
+
+        const { cfTemplate, awsNaming } = await runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            console: {
+              disableLogsCollection: true,
+              disableRequestResponseCollection: true,
+            },
+            org: 'testorg',
+          },
+          env: { SERVERLESS_ACCESS_KEY: 'dummy' },
+          modulesCacheStub: {
+            [getRequire(path.dirname(require.resolve('@serverless/dashboard-plugin'))).resolve(
+              '@serverless/platform-client'
+            )]: { ServerlessSDK: ServerlessSDKMock },
+            [require.resolve('node-fetch')]: fetchStub,
+          },
+        });
+        userSettings = JSON.parse(
+          cfTemplate.Resources[awsNaming.getLambdaLogicalId('basic')].Properties.Environment
+            .Variables.SLS_OTEL_USER_SETTINGS
+        );
+      });
+
+      it('should propagate `disableLogsCollection`', () => {
+        expect(userSettings.disableLogsMonitoring).to.be.true;
       });
     });
 
