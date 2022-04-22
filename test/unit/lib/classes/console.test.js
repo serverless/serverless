@@ -269,6 +269,10 @@ describe('test/unit/lib/classes/console.test.js', () => {
       it('should propagate `disableLogsCollection`', () => {
         expect(userSettings.disableLogsMonitoring).to.be.true;
       });
+
+      it('should propagate `disableRequestResponseCollection`', () => {
+        expect(userSettings.disableRequestResponseMonitoring).to.be.true;
+      });
     });
 
     describe('package with "provider.layers" configuration', () => {
