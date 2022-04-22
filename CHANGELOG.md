@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.15.1](https://github.com/serverless/serverless/compare/v3.15.0...v3.15.1) (2022-04-22)
+
+### Maintenance Improvements
+
+- **Console:**
+  - Propagate `disableLogsCollection` to extension user settings ([#10995](https://github.com/serverless/serverless/pull/10995)) ([4521eb7](https://github.com/serverless/serverless/commit/4521eb7e3b3eb72af7c535fda9cf6efcb4a1e140)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Support `disableRequestResponseMonitoring` setting ([#10995](https://github.com/serverless/serverless/pull/10995)) ([e5c088f](https://github.com/serverless/serverless/commit/e5c088fe2e2de99e0da464abb36c785741b5b085)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Telemetry:**
+  - Fix Console org reporting ([#10995](https://github.com/serverless/serverless/pull/10995)) ([c0aabb4](https://github.com/serverless/serverless/commit/c0aabb484531c5227f42791cdb9e644c402a5c8d)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Debug log for telemetry payload ([#10995](https://github.com/serverless/serverless/pull/10995)) ([db67962](https://github.com/serverless/serverless/commit/db6796257f41618ad7da440ca5b2e46fae971fe1)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [3.15.0](https://github.com/serverless/serverless/compare/v3.14.0...v3.15.0) (2022-04-20)
 
 ### Features
