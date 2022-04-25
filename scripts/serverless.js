@@ -448,7 +448,6 @@ processSpanPromise = (async () => {
               }
             }
           }
-
           if (isHelpRequest || commands[0] === 'plugin') {
             processLog.debug('resolve variables in "plugins"');
             // We do not need full config resolved, we just need to know what
@@ -475,6 +474,12 @@ processSpanPromise = (async () => {
           if (!variablesMeta.size) return; // All properties successuflly resolved
 
           if (!ensureResolvedProperty('plugins')) return;
+
+          // At this point we have all properties needed for `plugin install/uninstall` commands
+          if (commands[0] === 'plugin') {
+            return;
+          }
+
           if (!ensureResolvedProperty('package\0path')) return;
 
           if (!ensureResolvedProperty('frameworkVersion')) return;
