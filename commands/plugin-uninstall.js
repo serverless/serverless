@@ -77,7 +77,7 @@ const removePluginFromServerlessFile = async ({ configurationFilePath, pluginNam
     schema: cloudformationSchema,
   });
   if (serverlessFileObj.plugins != null) {
-    // Plugins section can be behind veriables, opt-out in such case
+    // Plugins section can be behind variables, opt-out in such case
     if (isPlainObject(serverlessFileObj.plugins)) {
       if (
         serverlessFileObj.plugins.modules != null &&
