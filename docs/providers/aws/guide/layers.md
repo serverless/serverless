@@ -177,7 +177,7 @@ functions:
   hello:
     handler: handler.hello
     layers:
-      - { Ref: TestLambdaLayer }
+      - !Ref TestLambdaLayer
 ```
 
 You can also configure layers at the service level. EG:
