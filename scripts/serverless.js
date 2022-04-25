@@ -518,7 +518,12 @@ processSpanPromise = (async () => {
 
     // Names of the commands which are configured independently in root `commands` folder
     // and not in Serverless class internals
-    const notIntegratedCommands = new Set(['doctor', 'plugin install', 'plugin uninstall']);
+    const notIntegratedCommands = new Set([
+      'doctor',
+      'login',
+      'plugin install',
+      'plugin uninstall',
+    ]);
     const isStandaloneCommand = notIntegratedCommands.has(command);
 
     if (!isHelpRequest) {
@@ -582,12 +587,6 @@ processSpanPromise = (async () => {
       // IIFE for maintanance convenience
       await (async () => {
         if (!configuration) return;
-
-        // We do not need to attempt resolution of further variables for login command as the only variable from configuration that we
-        // potentially rely on is `console`
-        // TODO: Remove when dashboard/console triage won't be needed - when that happens
-        // login command should once again be service independent
-        if (command === 'login') return;
 
         let hasFinalCommandSchema = false;
         if (configuration.plugins) {
