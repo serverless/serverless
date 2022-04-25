@@ -521,6 +521,7 @@ processSpanPromise = (async () => {
     const notIntegratedCommands = new Set([
       'doctor',
       'login',
+      'logout',
       'plugin install',
       'plugin uninstall',
     ]);
