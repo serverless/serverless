@@ -5,7 +5,7 @@ menuText: Your First Project
 
 # Tutorial: Your First Serverless Framework Project
 
-<iframe width="700" height="394" src="https://www.youtube.com/embed/p2LBRO2M48g" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width="700" height="394" src="https://www.youtube.com/embed/dMVfqCTzuwk" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 This guide helps you create and deploy a REST API with Serverless Framework and AWS.
 
