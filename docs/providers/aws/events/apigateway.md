@@ -896,7 +896,7 @@ not blocked. Currently, API Gateway [supports](https://docs.aws.amazon.com/apiga
 
 ### Setting source of API key for metering requests
 
-API Gateway provide a feature for metering your API's requests and you can choice [the source of key](https://docs.aws.amazon.com/apigateway/api-reference/resource/rest-api/#apiKeySource) which is used for metering. If you want to acquire that key from the request's X-API-Key header, set option like this:
+API Gateway provides a feature for metering your API's requests and you can choose [the source of key](https://docs.aws.amazon.com/apigateway/api-reference/resource/rest-api/#apiKeySource) which is used for metering. If you want to acquire that key from the request's X-API-Key header, set option like this:
 
 ```yml
 service: my-service
