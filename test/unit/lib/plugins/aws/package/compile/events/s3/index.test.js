@@ -883,6 +883,30 @@ describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', ()
               },
             ],
           },
+          prefixSuffixWithCfFunction: {
+            handler: 'basic.handler',
+            events: [
+              {
+                s3: {
+                  bucket: 'TestBucket',
+                  event: 's3:ObjectCreated:*',
+                  existing: true,
+                  rules: [
+                    {
+                      prefix: {
+                        'Fn::Join': ['-', ['test', 'join']],
+                      },
+                    },
+                    {
+                      suffix: {
+                        'Fn::Join': ['-', ['test', 'join']],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
         },
       },
       command: 'package',
@@ -951,6 +975,43 @@ describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', ()
           'Fn::If': ['isFirstBucketEmtpy', { Ref: 'FirstBucket' }, { Ref: 'SecondBucket' }],
         },
         BucketConfigs: [{ Event: 's3:ObjectCreated:*', Rules: [] }],
+      },
+    });
+  });
+
+  it('should support `prefix` and `suffix` provided as CF function', () => {
+    expect(
+      cfResources[naming.getCustomResourceS3ResourceLogicalId('prefixSuffixWithCfFunction')]
+    ).to.deep.equal({
+      Type: 'Custom::S3',
+      Version: 1,
+      DependsOn: [
+        'PrefixSuffixWithCfFunctionLambdaFunction',
+        'CustomDashresourceDashexistingDashs3LambdaFunction',
+      ],
+      Properties: {
+        ServiceToken: {
+          'Fn::GetAtt': ['CustomDashresourceDashexistingDashs3LambdaFunction', 'Arn'],
+        },
+        FunctionName: `${serverlessInstance.service.service}-dev-prefixSuffixWithCfFunction`,
+        BucketName: 'TestBucket',
+        BucketConfigs: [
+          {
+            Event: 's3:ObjectCreated:*',
+            Rules: [
+              {
+                Prefix: {
+                  'Fn::Join': ['-', ['test', 'join']],
+                },
+              },
+              {
+                Suffix: {
+                  'Fn::Join': ['-', ['test', 'join']],
+                },
+              },
+            ],
+          },
+        ],
       },
     });
   });
