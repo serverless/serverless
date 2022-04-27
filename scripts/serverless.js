@@ -98,7 +98,7 @@ processSpanPromise = (async () => {
     require('signal-exit/signals').forEach((signal) => {
       process.once(signal, () => {
         processLog.debug('exit signal %s', signal);
-        // If there's another listener (e.g. we're in deamon context or reading stdin input)
+        // If there's another listener (e.g. we're in daemon context or reading stdin input)
         // then let the other listener decide how process will exit
         const isOtherSigintListener = Boolean(process.listenerCount(signal));
         finalize({
@@ -193,7 +193,7 @@ processSpanPromise = (async () => {
     if (!commandSchema || commandSchema.serviceDependencyMode) {
       // Command is potentially service specific, follow up with resolution of service config
 
-      // Parse args again, taking acounnt schema of service-specific flags
+      // Parse args again, taking account schema of service-specific flags
       // as they may influence configuration resolution
       processLog.debug('resolve CLI input (service schema)');
       resolveInput.clear();
@@ -361,7 +361,7 @@ processSpanPromise = (async () => {
             ) {
               // Assume "env" source fulfilled for `provider.stage` and `useDotenv` resolution.
               // To pick eventual resolution conflict, track what env variables were reported
-              // misssing when applying this resolution
+              // missing when applying this resolution
               processLog.debug('resolve variables in stage related properties');
               const envSource = require('../lib/configuration/variables/sources/env');
               envSource.missingEnvVariables.clear();
@@ -471,7 +471,7 @@ processSpanPromise = (async () => {
             return;
           }
 
-          if (!variablesMeta.size) return; // All properties successuflly resolved
+          if (!variablesMeta.size) return; // All properties successfully resolved
 
           if (!ensureResolvedProperty('plugins')) return;
 
@@ -534,7 +534,7 @@ processSpanPromise = (async () => {
 
     if (!isHelpRequest) {
       if (isStandaloneCommand) {
-        processLog.debug('run standalone commmand');
+        processLog.debug('run standalone command');
         if (configuration) require('../lib/cli/ensure-supported-command')(configuration);
         await require(`../commands/${commands.join('-')}`)({
           configuration,
@@ -553,7 +553,7 @@ processSpanPromise = (async () => {
           );
         }
         if (!configuration) {
-          processLog.debug('run interative onboarding');
+          processLog.debug('run interactive onboarding');
           const interactiveContext = await require('../lib/cli/interactive-setup')({
             configuration,
             serviceDir,
@@ -590,7 +590,7 @@ processSpanPromise = (async () => {
       processLog.debug('initialize Serverless instance');
       await serverless.init();
 
-      // IIFE for maintanance convenience
+      // IIFE for maintenance convenience
       await (async () => {
         if (!configuration) return;
 
