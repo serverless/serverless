@@ -96,4 +96,21 @@ describe('test/unit/lib/cli/triage/index.test.js', () => {
       }
     }
   });
+
+  describe('Service configuration with CLI params', () => {
+    let restoreArgv;
+    before(() => {
+      ({ restoreArgv } = overrideArgv({ args: ['sls', 'login'] }));
+    });
+    after(() => restoreArgv());
+
+    it('should not resolve to `@serverless/compose` with compose config present when command should be ignored', async () => {
+      await overrideCwd(
+        path.resolve(fixturesDirname, '@serverless/compose', 'yml', 'project'),
+        async () => {
+          expect(await triage()).to.equal('serverless');
+        }
+      );
+    });
+  });
 });
