@@ -83,6 +83,8 @@ provider:
   # Optional CloudFormation tags to apply to the stack
   stackTags:
     key: value
+  # Method used during `deploy` for CloudFormation stack deployments (default: changesets), can be 'changesets' or 'direct'
+  deploymentMethod: direct
   # List of existing Amazon SNS topics in the same region where notifications about stack events are sent.
   notificationArns:
     - 'arn:aws:sns:us-east-1:XXXXXX:mytopic'
