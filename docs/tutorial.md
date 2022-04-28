@@ -7,7 +7,7 @@ menuText: Your First Project
 
 <iframe width="700" height="394" src="https://www.youtube.com/embed/dMVfqCTzuwk" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-This guide helps you create and deploy a REST API with Serverless Framework and AWS.
+This guide helps you create and deploy an HTTP API with Serverless Framework and AWS.
 
 We won't be going deep into the details behind why we are doing what we are doing; this guide is meant to help you get this API up and running so you can see the value of Serverless as fast as possible and decide from there where you want to go next. We will provide links to more details where appropriate if you want to dive deeper into specific topics.
 
@@ -150,7 +150,7 @@ module.exports.createCustomer = async (event) => {
 You may have noticed we include an npm module to help us talk to AWS, so lets make sure we install this required npm module as a part of our service with the following command:
 
 ```bash
-npm install –save aws-sdk
+npm install --save-dev aws-sdk
 ```
 
 Note: If you would like this entire project as a reference to clone, you can find this on [GitHub](https://github.com/serverless/tutorial/tree/main/getting-started) but just remember to add your own org and app names to `serverless.yml` to connect to your Serverless Dashboard account before deploying.
@@ -173,15 +173,17 @@ While we could go ahead and deploy our changes already (feel free to do so with 
 
 ```yaml
 provider:
-  iamRoleStatements:
-    - Effect: 'Allow'
-      Action:
-        - 'dynamodb:PutItem'
-        - 'dynamodb:Get*'
-        - 'dynamodb:Scan*'
-        - 'dynamodb:UpdateItem'
-        - 'dynamodb:DeleteItem'
-      Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:service}-customerTable-${sls:stage}
+  iam:
+    role:
+      statements:
+        - Effect: 'Allow'
+          Action:
+            - 'dynamodb:PutItem'
+            - 'dynamodb:Get*'
+            - 'dynamodb:Scan*'
+            - 'dynamodb:UpdateItem'
+            - 'dynamodb:DeleteItem'
+          Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:service}-customerTable-${sls:stage}
 ```
 
 These permissions will now be applied to our Lambda function when it is deployed to allow us to connect to DynamoDB.
@@ -194,15 +196,17 @@ In your `serverless.yml`, paste the following block within the functions block:
 
 ```yaml
 provider:
-  iamRoleStatements:
-    - Effect: 'Allow'
-      Action:
-        - 'dynamodb:PutItem'
-        - 'dynamodb:Get*'
-        - 'dynamodb:Scan*'
-        - 'dynamodb:UpdateItem'
-        - 'dynamodb:DeleteItem'
-      Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:service}-customerTable-${sls:stage}
+  iam:
+    role:
+      statements:
+        - Effect: 'Allow'
+          Action:
+            - 'dynamodb:PutItem'
+            - 'dynamodb:Get*'
+            - 'dynamodb:Scan*'
+            - 'dynamodb:UpdateItem'
+            - 'dynamodb:DeleteItem'
+          Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:service}-customerTable-${sls:stage}
 ```
 
 1. The first line allows us to give our specific function a name, in this case `createCustomer`
