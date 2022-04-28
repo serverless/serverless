@@ -109,10 +109,10 @@ package:
 functions:
   hello:
     handler: com.serverless.Handler
-  package:
-    artifact: hello.jar
-  events:
-    - httpApi: 'GET /hello'
+    package:
+      artifact: hello.jar
+    events:
+      - httpApi: 'GET /hello'
 ```
 
 #### Artifacts hosted on S3
@@ -141,8 +141,8 @@ package:
 functions:
   hello:
     handler: com.serverless.Handler
-  package:
-    artifact: s3://some-bucket/path/to/service-artifact.zip
+    package:
+      artifact: s3://some-bucket/path/to/service-artifact.zip
 ```
 
 ### Packaging functions separately
