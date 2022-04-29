@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.16.0](https://github.com/serverless/serverless/compare/v3.15.2...v3.16.0) (2022-04-29)
+
+### Features
+
+- **AWS Deploy:** New option to deploy with CloudFormation without using changesets, which is faster. Learn more [in the documentation](https://www.serverless.com/framework/docs/providers/aws/guide/deploying#deployment-method). ([#11016](https://github.com/serverless/serverless/pull/11016)) ([efa3a28](https://github.com/serverless/serverless/commit/efa3a28f0727602b02989c731054697608c22bbc)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **CLI:** Do not run `compose` for non-service commands ([#11017](https://github.com/serverless/serverless/pull/11017)) ([e56bc4b](https://github.com/serverless/serverless/commit/e56bc4be0c5941e76a6433782aa1462b83f5d13f)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Allow S3 event rule prefix and suffix to use CF functions ([#11018](https://github.com/serverless/serverless/issues/11018)) ([0279e1e](https://github.com/serverless/serverless/commit/0279e1eb9d79abce52c595b3cde190ff96599e42)) ([Matthew Crouch](https://github.com/macrouch))
+- Ensure to attempt minimal config resolution for plugin commands ([#11005](https://github.com/serverless/serverless/pull/11005)) ([af9a238](https://github.com/serverless/serverless/commit/af9a238f852fb04fbfcdfa57b9b313426f579bd1)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Ensure to not add double entries during `plugin install` ([#11005](https://github.com/serverless/serverless/pull/11005)) ([c4ca97d](https://github.com/serverless/serverless/commit/c4ca97d0100a28d02012b144c1a9ba06f7ac7dc6)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **AWS Local Invocation:** Rely on observable spawn ([#11002](https://github.com/serverless/serverless/pull/11002)) ([6d97496](https://github.com/serverless/serverless/commit/6d9749699da62a07ae933bd2c9a9ced8ccf877df)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Console:**
+  - Configure `login` as standalone command ([#11003](https://github.com/serverless/serverless/pull/11003)) ([fffaf9c](https://github.com/serverless/serverless/commit/fffaf9cee2da00bdb4f8d13846ad216d4dee13ef)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Configure `logout` as standalone command ([#11003](https://github.com/serverless/serverless/pull/11003)) ([70ca359](https://github.com/serverless/serverless/commit/70ca3594b6fbc1118b24c2bc4975219f6c00cbd0)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [3.15.2](https://github.com/serverless/serverless/compare/v3.15.1...v3.15.2) (2022-04-22)
 
 ### Maintenance Improvements
