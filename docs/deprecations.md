@@ -44,7 +44,7 @@ Deprecation code: `PROVIDER_WEBSOCKETS_SETTINGS_v3`
 
 Websockets-related settings of _provider_ including `websocketsApiName`, `websocketsApiRouteSelectionExpression` and `websocketsDescription` are also now supported at `websockets` property. Refer to the [Websocket Guide](/docs/providers/aws/events/websocket.md).
 
-- `provider.websocketsApiName` -> `provider.iam.role`
+- `provider.websocketsApiName` -> `provider.websockets.apiName`
 - `provider.websocketsApiRouteSelectionExpression` -> `provider.websockets.apiRouteSelectionExpression`
 - `provider.websocketsDescription` -> `provider.websockets.description`
 
