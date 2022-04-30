@@ -48,8 +48,6 @@ Websockets-related settings of _provider_ including `websocketsApiName`, `websoc
 - `provider.websocketsApiRouteSelectionExpression` -> `provider.websockets.apiRouteSelectionExpression`
 - `provider.websocketsDescription` -> `provider.websockets.description`
 
-In addition `iam.role.permissionBoundary` can also be set at `iam.role.permissionsBoundary` (which matches CloudFormation property name).
-
 Starting with v4.0.0 old versions of settings will no longer be supported
 
 <a name="VARIABLES_RESOLUTION_MODE"><div>&nbsp;</div></a>
