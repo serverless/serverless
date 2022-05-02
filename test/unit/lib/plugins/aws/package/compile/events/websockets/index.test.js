@@ -124,9 +124,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test
 
         configExt: {
           provider: {
-            tags: {
-              tag: 'bar',
-            },
             websocket: {
               useProviderTags: true,
             },
@@ -153,9 +150,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test
           RouteSelectionExpression: '$request.body.action',
           Description: 'Serverless Websockets',
           ProtocolType: 'WEBSOCKET',
-          Tags: {
-            tag: 'bar',
-          },
         },
       });
     });
