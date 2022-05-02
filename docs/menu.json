@@ -2,7 +2,7 @@
   "Overview": "",
   "Get Started": {
     "Setup": "getting-started",
-    "Tutorial": "your-first-project",
+    "Tutorial": "tutorial",
     "Concepts": "providers/aws/guide/intro",
     "AWS Credentials": "providers/aws/guide/credentials"
   },
