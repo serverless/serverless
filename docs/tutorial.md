@@ -1,5 +1,5 @@
 <!--
-title: Tutorial: Your First Serverless Framework Project
+title: Your First Serverless Framework Project
 menuText: Your First Project
 -->
 
