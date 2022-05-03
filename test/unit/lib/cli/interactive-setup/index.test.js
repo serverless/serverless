@@ -45,7 +45,7 @@ describe('test/unit/lib/cli/interactive-setup/index.test.js', () => {
         instructionString: 'No AWS credentials found, what credentials do you want to use?',
       },
       { instructionString: 'AWS account', input: 'Y' },
-      { instructionString: 'Press Enter to continue' },
+      { instructionString: 'press [Enter]' },
       {
         instructionString: 'AWS Access Key Id',
         input: 'AKIAIOSFODNN7EXAMPLE',
