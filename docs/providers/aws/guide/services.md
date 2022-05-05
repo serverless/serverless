@@ -12,21 +12,46 @@ layout: Doc
 
 # Serverless Framework Services
 
-A `service` is like a project. It's where you define your AWS Lambda Functions, the `events` that trigger them and any AWS infrastructure `resources` they require, all in a file called `serverless.yml`.
+A service, aka a project, is the Framework's unit of organization.
 
-To get started building your first Serverless Framework project, create a `service`.
+A service is configured via a `serverless.yml` file where you define your functions, the events that trigger them, and the AWS resources to deploy. For example:
+
+```yml
+service: users
+
+provider:
+  # Configuration of the cloud provider
+  name: aws
+
+functions:
+  # The functions to deploy
+  usersCreate:
+    events:
+      - httpApi: 'POST /users/create'
+  usersDelete:
+    events:
+      - httpApi: 'DELETE /users/delete'
+
+plugins:
+  # Plugins to enable
+
+resources:
+  # Additional AWS resources to deploy
+```
+
+To create a new service, run the `serverless` command and check out the [Getting started guide](../../../getting-started.md#getting-started).
 
 ## Organization
 
-In the beginning of an application, many people use a single Service to define all of the Functions, Events and Resources for that project. This is what we recommend in the beginning.
+In the beginning of an application, many people use a single service to define all functions, events and resources for that project. This is what we recommend in the beginning.
 
 ```bash
-myService/
+my-service/
   # Contains all functions and infrastructure resources
   serverless.yml
 ```
 
-However, as your application grows, you can break it out into multiple services. A lot of people organize their services by workflows or data models, and group the functions related to those workflows and data models together in the service.
+However, as an application grows, you can break it out into multiple services. A lot of people organize their services by workflows or data models, and group the functions related to those workflows and data models together in the service.
 
 ```bash
 users/
@@ -42,40 +67,7 @@ comments/
 
 This makes sense since related functions usually use common infrastructure resources, and you want to keep those functions and resources together as a single unit of deployment, for better organization and separation of concerns.
 
-## Creation
-
-To create a service, use the `create` command. You must also pass in a runtime (e.g., node.js, python etc.) you would like to write the service in. You can also pass in a path to create a directory and auto-name your service:
-
-```bash
-# Create service with nodeJS template in the folder ./myService
-serverless create --template aws-nodejs --path myService
-```
-
-Here are the available templates for AWS Lambda:
-
-- aws-clojurescript-gradle
-- aws-clojure-gradle
-- aws-nodejs
-- aws-nodejs-typescript
-- aws-alexa-typescript
-- aws-nodejs-ecma-script
-- aws-python
-- aws-python3
-- aws-ruby
-- aws-provided
-- aws-kotlin-jvm-maven
-- aws-kotlin-nodejs-gradle
-- aws-groovy-gradle
-- aws-java-gradle
-- aws-java-maven
-- aws-scala-sbt
-- aws-csharp
-- aws-fsharp
-- aws-go
-- aws-go-dep
-- aws-go-mod
-
-Check out the [create command docs](../cli-reference/create) for all the details and options.
+To orchestrate and deploy multiple services, check out the ["Composing services" documentation](../../../guides/compose.md).
 
 ## Contents
 
@@ -88,68 +80,40 @@ You'll see the following files in your working directory:
 
 Each `service` configuration is managed in the `serverless.yml` file. The main responsibilities of this file are:
 
-- Declare a Serverless service
-- Define one or more functions in the service
-- Define the provider the service will be deployed to (and the runtime if provided)
-- Define any custom plugins to be used
-- Define events that trigger each function to execute (e.g. HTTP requests)
-- Define a set of resources (e.g. 1 DynamoDB table) required by the functions in this service
+- Declare a serverless service
+- Define the cloud provider the service will be deployed to
+- Define one or more functions
+- Define the events that trigger each function (e.g. HTTP requests)
+- Define any plugin to use
+- Define a set of AWS resources to create
 - Allow events listed in the `events` section to automatically create the resources required for the event upon deployment
-- Allow flexible configuration using Serverless Variables
+- Allow flexible configuration using [variables](./variables.md)
 
 You can see the name of the service, the provider configuration and the first function inside the `functions` definition which points to the `handler.js` file. Any further service configuration will be done in this file.
 
 ```yml
 # serverless.yml
-
 service: users
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
   stage: dev # Set the default stage used. Default is dev
   region: us-east-1 # Overwrite the default region used. Default is us-east-1
-  stackName: my-custom-stack-name-${sls:stage} # Overwrite default CloudFormation stack name. Default is ${self:service}-${sls:stage}
-  apiName: my-custom-api-gateway-name-${sls:stage} # Overwrite default API Gateway name. Default is ${sls:stage}-${self:service}
   profile: production # The default profile to use with this service
   memorySize: 512 # Overwrite the default memory size. Default is 1024
-  deploymentBucket:
-    name: com.serverless.${self:provider.region}.deploys # Overwrite the default deployment bucket
-    serverSideEncryption: AES256 # when using server-side encryption
-    tags: # Tags that will be added to each of the deployment resources
-      key1: value1
-      key2: value2
-  deploymentPrefix: serverless # Overwrite the default S3 prefix under which deployed artifacts should be stored. Default is serverless
-  versionFunctions: false # Optional function versioning
-  stackTags: # Optional CF stack tags
-    key: value
-  stackPolicy: # Optional CF stack policy. The example below allows updates to all resources except deleting/replacing EC2 instances (use with caution!)
-    - Effect: Allow
-      Principal: '*'
-      Action: 'Update:*'
-      Resource: '*'
-    - Effect: Deny
-      Principal: '*'
-      Action:
-        - Update:Replace
-        - Update:Delete
-      Resource: '*'
-      Condition:
-        StringEquals:
-          ResourceType:
-            - AWS::EC2::Instance
 
 functions:
-  usersCreate: # A Function
+  usersCreate: # A function
     handler: users.create
-    events: # The Events that trigger this Function
+    events: # The events that trigger this function
       - httpApi: 'POST /users/create'
-  usersDelete: # A Function
+  usersDelete: # A function
     handler: users.delete
-    events: # The Events that trigger this Function
+    events: # The events that trigger this function
       - httpApi: 'DELETE /users/delete'
 
-# The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
+# The "Resources" your "Functions" use. Raw AWS CloudFormation goes in here.
 resources:
   Resources:
     usersTable:
@@ -162,56 +126,32 @@ resources:
         KeySchema:
           - AttributeName: email
             KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
+        BillingMode: PAY_PER_REQUEST
 ```
-
-Every `serverless.yml` translates to a single AWS CloudFormation template and a CloudFormation stack is created from that resulting CloudFormation template.
-
-### handler.js
-
-The `handler.js` file contains your function code. The function definition in `serverless.yml` will point to this `handler.js` file and the function exported here.
-
-### event.json
-
-**Note:** This file is not created by default
-
-Create this file and add event data so you can invoke your function with the data via `serverless invoke -p event.json`
 
 ## Deployment
 
-When you deploy a Service, all of the Functions, Events and Resources in your `serverless.yml` are translated to an AWS CloudFormation template and deployed as a single CloudFormation stack.
+When you deploy a service, all functions, events and resources in `serverless.yml` are translated to an AWS CloudFormation template and deployed as a single CloudFormation stack.
 
-To deploy a service, first `cd` into the relevant service directory:
-
-```bash
-cd my-service
-```
-
-Then use the `deploy` command:
+To deploy a service, run the `deploy` command in the same directory as `serverless.yml`:
 
 ```bash
 serverless deploy
 ```
 
-Deployment defaults to `dev` stage and `us-east-1` region on AWS, unless you specified these elsewhere, or add them in as options:
+Deployment defaults to `dev` stage and `us-east-1` region on AWS. You can deploy to a different stage or region via CLI options:
 
 ```bash
 serverless deploy --stage prod --region us-east-1
 ```
 
-Check out the [deployment guide](https://serverless.com/framework/docs/providers/aws/guide/deploying/) to learn more about deployments and how they work. Or, check out the [deploy command docs](../cli-reference/deploy) for all the details and options.
+Check out the [deployment guide](https://serverless.com/framework/docs/providers/aws/guide/deploying/) to learn more about deployments and how they work. Or, check out the [`deploy` command reference](../cli-reference/deploy) to see all the options available.
 
 ## Removal
 
-To easily remove your Service from your AWS account, you can use the `remove` command.
+To easily remove your service from your AWS account, you can use the `serverless remove` command.
 
-Run `serverless remove --verbose` to trigger the removal process. As in the deploy step we're also running in the `verbose` mode so you can see all details of the remove process.
-
-Serverless will start the removal and informs you about its process on the console. A success message is printed once the whole service is removed.
-
-The removal process will only remove the service on your provider's infrastructure. The service directory will still remain on your local machine so you can still modify and (re)deploy it to another stage, region or provider later on.
+The removal process will only remove the service on your provider's infrastructure (including all the resources mentioned in `serverless.yml`). The service directory will still remain on your local machine, so you can still modify and (re)deploy it to another stage, region or provider later on.
 
 ## Version Pinning
 
