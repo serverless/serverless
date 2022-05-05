@@ -233,7 +233,7 @@ describe('#naming()', () => {
     });
   });
 
-  describe('#getWebsocketsApiName()', () => {
+  describe('#get()', () => {
     it('should return the composition of stage & service name if custom name not provided', () => {
       serverless.service.service = 'myService';
       expect(sdk.naming.getWebsocketsApiName()).to.equal(

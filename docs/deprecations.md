@@ -36,6 +36,20 @@ Note:
 - The `serverless.yml` setting is ineffective for deprecations reported before the configuration is read.
 - `SLS_DEPRECATION_DISABLE` and `disabledDeprecations` remain respected, and no errors will be thrown for mentioned deprecation codes.
 
+<a name="PROVIDER_WEBSOCKETS_SETTINGS_v3"><div>&nbsp;</div></a>
+
+## Grouping websockets settings under `provider.websockets`
+
+Deprecation code: `PROVIDER_WEBSOCKETS_SETTINGS_v3`
+
+Websockets-related settings of _provider_ including `websocketsApiName`, `websocketsApiRouteSelectionExpression` and `websocketsDescription` are also now supported at `websockets` property. Refer to the [Websocket Guide](/docs/providers/aws/events/websocket.md).
+
+- `provider.websocketsApiName` -> `provider.websockets.apiName`
+- `provider.websocketsApiRouteSelectionExpression` -> `provider.websockets.apiRouteSelectionExpression`
+- `provider.websocketsDescription` -> `provider.websockets.description`
+
+Starting with v4.0.0 old versions of settings will no longer be supported
+
 <a name="VARIABLES_RESOLUTION_MODE"><div>&nbsp;</div></a>
 
 ## Property `variablesResolutionMode`
