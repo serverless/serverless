@@ -115,6 +115,13 @@ serverless remove
 - An ecosystem of serverless services and plugins.
 - A passionate and welcoming community!
 
+<br>
+
+| <br>**Try Serverless Console**<br><br>Monitor, observe, and trace your serverless architectures.<br>Real-time dev mode provides streaming logs from your AWS Lambda Functions.<br><br>Get started instantly with `serverless --console`<br>-or-<br>[Visit the Docs](https://bit.ly/3kL8ACL)<br><br>![1800x1-ffffff7f](https://user-images.githubusercontent.com/3837103/167449348-bf254fca-9aec-4367-b166-aaa69178f98c.png) |
+| :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+
+<br>
+
 ## <a name="contributing"></a>Contributing
 
 We love our contributors! Please read our [Contributing Document](CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
