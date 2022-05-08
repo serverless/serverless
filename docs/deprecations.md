@@ -116,6 +116,15 @@ Deprecation code: `CLI_DEPLOY_FUNCTION_OPTION_V3`
 
 Starting with `v4.0.0`, `--function` or `-f` option for `deploy` command will no longer be supported. In order to deploy a single function, please use `deploy function` command instead.
 
+<a name="AWS_WEBSOCKET_API_USE_PROVIDER_TAGS"><div>&nbsp;</div></a>
+
+## Property `provider.websocket.useProviderTags`
+
+Deprecation code: `AWS_WEBSOCKET_API_USE_PROVIDER_TAGS`
+
+Starting with v4.0.0, `provider.tags` will be applied to Websocket Api Gateway by default
+Set `provider.websocket.useProviderTags` to `true` to adapt to the new behavior now.
+
 <a name="LAMBDA_HASHING_VERSION_PROPERTY"><div>&nbsp;</div></a>
 
 ## Property `provider.lambdaHashingVersion`
