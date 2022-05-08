@@ -195,21 +195,16 @@ We have added configuration for a database, and even written code to talk to the
 In your `serverless.yml`, paste the following block within the functions block:
 
 ```yaml
-provider:
-  iam:
-    role:
-      statements:
-        - Effect: 'Allow'
-          Action:
-            - 'dynamodb:PutItem'
-            - 'dynamodb:Get*'
-            - 'dynamodb:Scan*'
-            - 'dynamodb:UpdateItem'
-            - 'dynamodb:DeleteItem'
-          Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:service}-customerTable-${sls:stage}
+functions:
+  createCustomer:
+    handler: createCustomer.createCustomer
+    events:
+      - httpApi:
+          path: /
+          method: post
 ```
 
-1. The first line allows us to give our specific function a name, in this case `createCustomer`
+1. The first line in the block allows us to give our specific function a name, in this case `createCustomer`
 2. The next indented line defines where our code for this function lives. `createCustomer.createCustomer` is broken down as the file name preceding the period and the function name in the file after. You can specify an entire path if you prefer as well. If we moved the `createCustomer.js` file to another folder called `src` our handler property would be `handler: src/createCustomer.createCustomer`
 3. We then need to define the events that trigger our function code. You read that right, plural. We could have multiple triggers on the same code. In our case we are just using the one.
 4. The rest of the code is just standard HTTP configuration; calls are made to the root url `/` as a POST request.
