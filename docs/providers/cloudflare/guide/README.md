@@ -16,4 +16,4 @@ Welcome to the Serverless Cloudflare Workers Guide!
 
 Get started with the [Introduction to the Serverless framework](./intro.md)
 
-If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](http://forum.serverless.com/)
+If you have questions, join the [Slack community](https://serverless.com/slack) or [post over on the forums](http://forum.serverless.com/)
