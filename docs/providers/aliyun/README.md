@@ -15,7 +15,7 @@ layout: Doc
 
 Welcome to the Serverless Alibaba Cloud Function Compute documentation!
 
-If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://forum.serverless.com/)
+If you have questions, join the [Slack community](https://serverless.com/slack) or [post over on the forums](https://forum.serverless.com/)
 
 **Note:** [Alibaba Cloud AccessKeys](./guide/credentials.md) are required for using the CLI.
 

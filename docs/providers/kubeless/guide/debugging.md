@@ -98,7 +98,6 @@ Serverless: Calling function: bikesearch...
      Docs:          docs.serverless.com
      Bugs:          github.com/serverless/serverless/issues
      Forums:        forum.serverless.com
-     Chat:          gitter.im/serverless/serverless
 
   Your Environment Information -----------------------------
      OS:                     darwin
