@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.17.0](https://github.com/serverless/serverless/compare/v3.16.0...v3.17.0) (2022-05-10)
+
+### Features
+
+- **AWS Lambda:** Add support for `nodejs16.x` runtime ([#11049](https://github.com/serverless/serverless/issues/11049)) ([719766b](https://github.com/serverless/serverless/commit/719766b03088f6acf4045c83045ec2d220c11819)) ([Hibanka](https://github.com/Hibanka))
+- **AWS Websocket:** Allow propagating tags to Websocket APIGW ([#10931](https://github.com/serverless/serverless/issues/10931)) ([22e4842](https://github.com/serverless/serverless/commit/22e4842d97ac3cbc11d8c398e84639af0b6068b8)) ([tjurdzinski](https://github.com/tjurdzinski))
+
 ## [3.16.0](https://github.com/serverless/serverless/compare/v3.15.2...v3.16.0) (2022-04-29)
 
 ### Features
