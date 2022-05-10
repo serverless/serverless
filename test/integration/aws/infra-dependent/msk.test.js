@@ -58,6 +58,12 @@ describe('AWS - MSK Integration Test', function () {
                   topic: topicName,
                   batchSize: 100,
                   maximumBatchingWindow: 3,
+                  SourceAccessConfigurations: [
+                    {
+                      Type: 'SASL_SCRAM_512_AUTH',
+                      URI: outputMap.get('MSKSecret'),
+                    },
+                  ],
                 },
               },
             ],

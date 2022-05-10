@@ -202,11 +202,41 @@ Resources:
         - ConsoleAccess: 'true'
           Password: !Ref RabbitMQPassword
           Username: !Ref RabbitMQUser
-
+  MSKKey:
+    Type: 'AWS::KMS::Key'
+    Properties:
+      Description: kafka kms key
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: key-default-1
+        Statement:
+          - Sid: AWSKafkaResourcePolicy
+            Effect: 'Allow'
+            Principal:
+              Service: kafka.amazonaws.com
+            Action: secretsmanager:getSecretValue
+            Resource: !Ref MSKSecret
+  MSKSecret:
+    Type: 'AWS::SecretsManager::Secret'
+    Properties:
+      Name: AmazonMSK_cluster_secret
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "user"}'
+        GenerateStringKey: password
+        PasswordLength: 10
   MSKCluster:
     Type: 'AWS::MSK::Cluster'
     Properties:
       ClusterName: !Ref ClusterName
+      ClientAuthentication:
+        Sasl:
+          Scram:
+            Enabled: true
+      EncryptionInfo:
+        EncryptionInTransit:
+          InCluster: true
+        EncryptionAtRest:
+          DataVolumeKMSKeyId: !Ref MSKKey
       KafkaVersion: 2.2.1
       NumberOfBrokerNodes: 2
       BrokerNodeGroupInfo:
@@ -291,6 +321,10 @@ Outputs:
   MSKCluster:
     Description: Created MSK Cluster
     Value: !Ref MSKCluster
+
+  MSKSecret:
+    Description: Created KMS secret
+    Value: !Ref MSKSecret
 
   EFSAccessPointARN:
     Description: EFS Access Point ARN

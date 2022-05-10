@@ -81,6 +81,23 @@ functions:
           enabled: false
 ```
 
+## Enabling authentication
+
+In order to authenticate to the `msk` you can set the `SourceAccessConfigurations`, which sets the authentication protocol.
+
+```yml
+functions:
+  compute:
+    handler: handler.compute
+    events:
+      - msk:
+          arn: arn:aws:kafka:region:XXXXXX:cluster/MyCluster/xxxx-xxxxx-xxxx
+          topic: mytopic
+          SourceAccessConfigurations:
+            - Type: SASL_SCRAM_512_AUTH
+              URI: arn:aws:secretsmanager:region:XXXXXX:secret:AmazonMSK_xxxxxx
+```
+
 ## IAM Permissions
 
 The Serverless Framework will automatically configure the most minimal set of IAM permissions for you. However you can still add additional permissions if you need to. Read the official [AWS documentation](https://docs.aws.amazon.com/lambda/latest/dg/with-msk.html) for more information about IAM Permissions for MSK events.

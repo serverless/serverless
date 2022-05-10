@@ -14,6 +14,12 @@ describe('AwsCompileMSKEvents', () => {
   const startingPosition = 'LATEST';
   const batchSize = 5000;
   const maximumBatchingWindow = 10;
+  const sourceAccessConfigurations = [
+    {
+      Type: 'SASL_SCRAM_512_AUTH',
+      URI: 'arn:aws:secretsmanager:us-east-1:111111111111:secret:AmazonMSK_a1a1a1a1a1a1a1a1',
+    },
+  ];
 
   describe('when there are msk events defined', () => {
     let minimalEventSourceMappingResource;
@@ -46,6 +52,7 @@ describe('AwsCompileMSKEvents', () => {
                     maximumBatchingWindow,
                     enabled,
                     startingPosition,
+                    sourceAccessConfigurations,
                   },
                 },
               ],
@@ -108,6 +115,7 @@ describe('AwsCompileMSKEvents', () => {
         Enabled: enabled,
         EventSourceArn: arn,
         StartingPosition: startingPosition,
+        SourceAccessConfigurations: sourceAccessConfigurations,
         Topics: [topic],
         FunctionName: {
           'Fn::GetAtt': [naming.getLambdaLogicalId('other'), 'Arn'],

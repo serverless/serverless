@@ -966,6 +966,10 @@ functions:
           startingPosition: LATEST
           # (default: true)
           enabled: false
+          # Optional, array of the authentication protocol
+          SourceAccessConfigurations:
+            - Type: SASL_SCRAM_512_AUTH
+              URI: arn:aws:secretsmanager:region:XXXXXX:secret:AmazonMSK_xxxxxx
 ```
 
 ### ActiveMQ
