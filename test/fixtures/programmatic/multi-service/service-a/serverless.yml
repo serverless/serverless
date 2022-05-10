@@ -1,0 +1,21 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+custom:
+  env: ${env:ENV_SOURCE_TEST, null}
+  file: ${file(../file.json)}
+  opt: ${opt:stage, null}
+  self: ${self:custom.file.foo}
+  strToBool: ${strToBool('false')}
+
+functions:
+  foo:
+    handler: index.handler
+  other:
+    handler: index.handler

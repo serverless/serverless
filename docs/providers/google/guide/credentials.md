@@ -35,7 +35,7 @@ A Google Cloud Project is required to use Google Cloud Functions. Here's how to 
 3. Enter a Project name and select the Billing Account you created in the steps above (or any Billing Account with a valid credit card attached).
 4. Click on "Create" to start the creation process.
 5. Wait until the Project was successfully created and Google will redirect you to your new Project.
-6. Verify your currently within your new Project by looking at the dropdown next to the search bar. This should mark your new Project as selected.
+6. Verify you're currently within your new Project by looking at the dropdown next to the search bar. This should mark your new Project as selected.
 
 ## Enable the necessary APIs
 

@@ -48,7 +48,7 @@ Follow these steps to create an access token:
 5. Provide a name and press “Create”
 6. You will be presented with the access key on the new page.
 
-**Note**: The access token has permission to the tenant; however, it is associated with your account. If your account is deleted, then the access token will be revoked too.
+**Note**: The access token has permission to the org; however, it is associated with your account. If your account is deleted, then the access token will be revoked too.
 
 ### Configure environment variables
 

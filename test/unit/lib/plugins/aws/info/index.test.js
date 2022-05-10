@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 const AwsInfo = require('../../../../../../lib/plugins/aws/info/index');
 const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
-const Serverless = require('../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../lib/serverless');
 
 describe('AwsInfo', () => {
   let serverless;
@@ -25,7 +25,7 @@ describe('AwsInfo', () => {
       stage: 'dev',
       region: 'us-east-1',
     };
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.setProvider('aws', new AwsProvider(serverless, options));
     serverless.cli = {
       log: sinon.stub().returns(),

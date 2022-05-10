@@ -1,0 +1,27 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+resources:
+  Resources:
+    HttpApi:
+      Type: AWS::ApiGatewayV2::Api
+      Properties:
+        Name: dev-${self:service}
+        ProtocolType: HTTP
+    HttpApiStage:
+      Type: AWS::ApiGatewayV2::Stage
+      Properties:
+        ApiId:
+          Ref: HttpApi
+        StageName: $default
+        AutoDeploy: true
+  Outputs:
+    HttpApiId:
+      Value:
+        Ref: HttpApi

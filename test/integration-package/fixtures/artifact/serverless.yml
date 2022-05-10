@@ -1,0 +1,14 @@
+service: aws-nodejs
+
+configValidationMode: error
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+functions:
+  hello:
+    handler: handler.hello
+
+package:
+  artifact: artifact.zip

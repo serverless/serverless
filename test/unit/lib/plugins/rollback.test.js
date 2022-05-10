@@ -2,14 +2,14 @@
 
 const expect = require('chai').expect;
 const Rollback = require('../../../../lib/plugins/rollback');
-const Serverless = require('../../../../lib/Serverless');
+const Serverless = require('../../../../lib/serverless');
 
 describe('Rollback', () => {
   let rollback;
   let serverless;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     rollback = new Rollback(serverless);
   });
 

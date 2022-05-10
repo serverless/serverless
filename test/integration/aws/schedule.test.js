@@ -54,4 +54,21 @@ describe('AWS - Schedule Integration Test', function () {
       });
     });
   });
+
+  describe('Extended Setup (array)', () => {
+    it('should invoke every minute with transformed input', () => {
+      const functionName = 'scheduleExtendedArray';
+
+      return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, async () => {}, {
+        checkIsComplete: (soFarEvents) => {
+          const logs = soFarEvents.reduce((data, event) => data + event.message, '');
+          return logs.includes('transformedInput');
+        },
+      }).then((events) => {
+        const logs = events.reduce((data, event) => data + event.message, '');
+        expect(logs).to.include(functionName);
+        expect(logs).to.include('transformedInput');
+      });
+    });
+  });
 });

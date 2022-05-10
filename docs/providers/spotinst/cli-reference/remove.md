@@ -22,4 +22,4 @@ serverless remove
 
 ## Options
 
-- `--verbose` or `-v` Shows all stack events during deployment.
+- `--verbose` Shows all stack events during deployment.

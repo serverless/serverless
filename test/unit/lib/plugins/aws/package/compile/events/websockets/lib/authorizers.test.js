@@ -2,7 +2,7 @@
 
 const expect = require('chai').expect;
 const AwsCompileWebsocketsEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/index');
-const Serverless = require('../../../../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../../../../lib/serverless');
 const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
 
 describe('#compileAuthorizers()', () => {
@@ -10,7 +10,7 @@ describe('#compileAuthorizers()', () => {
 
   describe('for routes with authorizer definition', () => {
     beforeEach(() => {
-      const serverless = new Serverless();
+      const serverless = new Serverless({ commands: [], options: {} });
       serverless.setProvider('aws', new AwsProvider(serverless));
       serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
 
@@ -106,7 +106,7 @@ describe('#compileAuthorizers()', () => {
 
   describe('for routes without authorizer definition', () => {
     beforeEach(() => {
-      const serverless = new Serverless();
+      const serverless = new Serverless({ commands: [], options: {} });
       serverless.setProvider('aws', new AwsProvider(serverless));
       serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
 

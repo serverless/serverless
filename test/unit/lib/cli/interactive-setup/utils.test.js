@@ -21,7 +21,7 @@ describe('test/unit/lib/cli/interactive-setup/utils.test.js', () => {
       const { doesServiceInstanceHaveLinkedProvider } = proxyquire(
         '../../../../../lib/cli/interactive-setup/utils',
         {
-          '@serverless/dashboard-plugin/lib/resolveProviderCredentials': () => {
+          '@serverless/dashboard-plugin/lib/resolve-provider-credentials': () => {
             return {
               accessKeyId: 'someaccess',
               secretAccessKey: 'somesecret',
@@ -37,7 +37,7 @@ describe('test/unit/lib/cli/interactive-setup/utils.test.js', () => {
       const { doesServiceInstanceHaveLinkedProvider } = proxyquire(
         '../../../../../lib/cli/interactive-setup/utils',
         {
-          '@serverless/dashboard-plugin/lib/resolveProviderCredentials': () => {
+          '@serverless/dashboard-plugin/lib/resolve-provider-credentials': () => {
             return null;
           },
         }
@@ -49,7 +49,7 @@ describe('test/unit/lib/cli/interactive-setup/utils.test.js', () => {
       const { doesServiceInstanceHaveLinkedProvider } = proxyquire(
         '../../../../../lib/cli/interactive-setup/utils',
         {
-          '@serverless/dashboard-plugin/lib/resolveProviderCredentials': () => {
+          '@serverless/dashboard-plugin/lib/resolve-provider-credentials': () => {
             const err = new Error('Error');
             err.statusCode = 500;
             throw err;
@@ -73,13 +73,14 @@ describe('test/unit/lib/cli/interactive-setup/utils.test.js', () => {
       const { resolveInitialContext } = proxyquire(
         '../../../../../lib/cli/interactive-setup/utils',
         {
-          '@serverless/dashboard-plugin/lib/isAuthenticated': () => true,
+          '@serverless/dashboard-plugin/lib/is-authenticated': () => true,
           '../../aws/has-local-credentials': () => true,
         }
       );
       expect(resolveInitialContext({ configuration, serviceDir })).to.deep.equal({
         hasLocalAwsCredentials: true,
         isLoggedIntoDashboard: true,
+        isConsoleEnabled: false,
         isDashboardEnabled: true,
         isInServiceContext: true,
       });
@@ -91,13 +92,14 @@ describe('test/unit/lib/cli/interactive-setup/utils.test.js', () => {
       const { resolveInitialContext } = proxyquire(
         '../../../../../lib/cli/interactive-setup/utils',
         {
-          '@serverless/dashboard-plugin/lib/isAuthenticated': () => true,
+          '@serverless/dashboard-plugin/lib/is-authenticated': () => true,
           '../../aws/has-local-credentials': () => true,
         }
       );
       expect(resolveInitialContext({ configuration, serviceDir })).to.deep.equal({
         hasLocalAwsCredentials: true,
         isLoggedIntoDashboard: true,
+        isConsoleEnabled: false,
         isDashboardEnabled: false,
         isInServiceContext: false,
       });

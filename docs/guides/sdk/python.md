@@ -10,7 +10,9 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# `capture_exception`
+# Python SDK
+
+## `capture_exception`
 
 Your lambda function may throw an exception, but your function handles it in order to respond to
 the requester without throwing the error. One very common example is functions tied to HTTP
@@ -55,7 +57,7 @@ def hello(event, context):
     }
 ```
 
-# `span`
+## `span`
 
 While the `serverless_sdk` automatically instruments AWS SDK and HTTP spans, you may be interested
 in capturing span data for functions that do numerical computation or functions making database
@@ -80,7 +82,7 @@ def handler(event, context):
 
 It also works as an async context manager for use with `async with`.
 
-# `tag_event`
+## `tag_event`
 
 Busy applications can invoke hundreds of thousands of requests per minute! At these rates, finding specific invocations can be like
 searching for a needle in a haystack. We've felt this pain, which is why we've introduced tagged events.
@@ -107,7 +109,7 @@ def hello(event, context):
     }
 ```
 
-# Automatic route instrumentation with application middleware
+## Automatic route instrumentation with application middleware
 
 Faced with practical considerations (a big one being CloudFormation stack resource limit), developers often reach for a single function solution with routing being handled by the application layer. This is typically accomplished by leveraging the [serverless-wsgi](https://github.com/logandk/serverless-wsgi) plugin to deploy existing WSGI applications (Flask/Django/Pyramid etc). Rolling your own custom router is another option as well.
 
@@ -119,7 +121,7 @@ If your application is using a custom-built router, you can still work around th
 
 Once set, invocations can be explored and inspected by endpoint in the Dashboard.
 
-# `set_endpoint`
+## `set_endpoint`
 
 Allows the application to explicitly set the routed endpoint for an invocation. Like the other SDK methods, `setEndpoint` is available on either the context object: `context.serverless_sdk`.
 

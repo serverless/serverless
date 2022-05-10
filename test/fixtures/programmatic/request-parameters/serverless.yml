@@ -1,0 +1,82 @@
+service: service
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+functions:
+  target:
+    handler: target.handler
+    events:
+      - http:
+          path: no-params
+          method: get
+      - http:
+          path: querystrings-not-required
+          method: get
+          request:
+            parameters:
+              querystrings:
+                url: false
+      - http:
+          path: querystrings-required
+          method: get
+          request:
+            parameters:
+              querystrings:
+                url: true
+      - http:
+          path: headers-not-required
+          method: get
+          request:
+            parameters:
+              headers:
+                foo: false
+      - http:
+          path: headers-required
+          method: get
+          request:
+            parameters:
+              headers:
+                foo: true
+      - http:
+          path: paths-not-required
+          method: get
+          request:
+            parameters:
+              paths:
+                bar: false
+      - http:
+          path: paths-not-required-object
+          method: get
+          request:
+            parameters:
+              paths:
+                bar:
+                  required: false
+      - http:
+          path: paths-required
+          method: get
+          request:
+            parameters:
+              paths:
+                bar: true
+      - http:
+          path: no-params-with-schema
+          method: get
+          request:
+            schemas:
+              application/json:
+                schema:
+                  $schema: http://json-schema.org/schema#
+      - http:
+          path: params-with-schema
+          method: get
+          request:
+            schemas:
+              application/json:
+                schema:
+                  $schema: http://json-schema.org/schema#
+            parameters:
+              querystrings:
+                url: true

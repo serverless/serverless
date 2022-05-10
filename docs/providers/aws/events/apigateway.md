@@ -12,51 +12,63 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# API Gateway
+# API Gateway REST API
 
-- [API Gateway](#api-gateway)
-  - [Lambda Proxy Integration](#lambda-proxy-integration)
-    - [Simple HTTP Endpoint](#simple-http-endpoint)
-    - [Example "LAMBDA-PROXY" event (default)](#example-lambda-proxy-event-default)
-    - [HTTP Endpoint with Extended Options](#http-endpoint-with-extended-options)
-    - [Enabling CORS](#enabling-cors)
-    - [HTTP Endpoints with `AWS_IAM` Authorizers](#http-endpoints-with-aws_iam-authorizers)
-    - [HTTP Endpoints with Custom Authorizers](#http-endpoints-with-custom-authorizers)
-    - [HTTP Endpoints with `operationId`](#http-endpoints-with-operationId)
-    - [Catching Exceptions In Your Lambda Function](#catching-exceptions-in-your-lambda-function)
-    - [Setting API keys for your Rest API](#setting-api-keys-for-your-rest-api)
-    - [Configuring endpoint types](#configuring-endpoint-types)
-    - [Request Parameters](#request-parameters)
-    - [Request Schema Validators](#request-schema-validators)
-    - [Setting source of API key for metering requests](#setting-source-of-api-key-for-metering-requests)
-  - [Lambda Integration](#lambda-integration)
-    - [Example "LAMBDA" event (before customization)](#example-lambda-event-before-customization)
-    - [Request templates](#request-templates)
-      - [Default Request Templates](#default-request-templates)
-      - [Custom Request Templates](#custom-request-templates)
-      - [Pass Through Behavior](#pass-through-behavior)
-    - [Responses](#responses)
-      - [Custom Response Headers](#custom-response-headers)
-      - [Custom Response Templates](#custom-response-templates)
-    - [Status Codes](#status-codes)
-      - [Available Status Codes](#available-status-codes)
-      - [Using Status Codes](#using-status-codes)
-      - [Custom Status Codes](#custom-status-codes)
-  - [Setting an HTTP Proxy on API Gateway](#setting-an-http-proxy-on-api-gateway)
-  - [Accessing private resources using VPC Link](#accessing-private-resources-using-vpc-link)
-  - [Mock Integration](#mock-integration)
-  - [Share API Gateway and API Resources](#share-api-gateway-and-api-resources)
-    - [Easiest and CI/CD friendly example of using shared API Gateway and API Resources.](#easiest-and-cicd-friendly-example-of-using-shared-api-gateway-and-api-resources)
-    - [Manually Configuring shared API Gateway](#manually-configuring-shared-api-gateway)
-      - [Note while using authorizers with shared API Gateway](#note-while-using-authorizers-with-shared-api-gateway)
-  - [Share Authorizer](#share-authorizer)
-  - [Resource Policy](#resource-policy)
-  - [Compression](#compression)
-  - [Binary Media Types](#binary-media-types)
-  - [Detailed CloudWatch Metrics](#detailed-cloudwatch-metrics)
-  - [AWS X-Ray Tracing](#aws-x-ray-tracing)
-  - [Tags / Stack Tags](#tags--stack-tags)
-  - [Logs](#logs)
+API Gateway lets you deploy HTTP APIs. It comes [in two versions](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html):
+
+- v1, also called **REST API**
+- v2, also called **HTTP API**, which is faster and cheaper than v1
+
+Despite their confusing name, both versions allow deploying any HTTP API (like REST, GraphQL, etc.). Read the full comparison [in the AWS documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html).
+
+This guide documents using API Gateway **v1 REST API** via the `http` event.
+
+To use API Gateway **v2 HTTP API** instead, follow the [HTTP API guide](http-api.md).
+
+Summary:
+
+- [Lambda Proxy Integration](#lambda-proxy-integration)
+  - [Simple HTTP Endpoint](#simple-http-endpoint)
+  - [Example "LAMBDA-PROXY" event (default)](#example-lambda-proxy-event-default)
+  - [HTTP Endpoint with Extended Options](#http-endpoint-with-extended-options)
+  - [Enabling CORS](#enabling-cors)
+  - [HTTP Endpoints with `AWS_IAM` Authorizers](#http-endpoints-with-aws_iam-authorizers)
+  - [HTTP Endpoints with Custom Authorizers](#http-endpoints-with-custom-authorizers)
+  - [HTTP Endpoints with `operationId`](#http-endpoints-with-operationId)
+  - [Catching Exceptions In Your Lambda Function](#catching-exceptions-in-your-lambda-function)
+  - [Setting API keys for your Rest API](#setting-api-keys-for-your-rest-api)
+  - [Configuring endpoint types](#configuring-endpoint-types)
+  - [Request Parameters](#request-parameters)
+  - [Request Schema Validators](#request-schema-validators)
+  - [Setting source of API key for metering requests](#setting-source-of-api-key-for-metering-requests)
+- [Lambda Integration](#lambda-integration)
+  - [Example "LAMBDA" event (before customization)](#example-lambda-event-before-customization)
+  - [Request templates](#request-templates)
+    - [Default Request Templates](#default-request-templates)
+    - [Custom Request Templates](#custom-request-templates)
+    - [Pass Through Behavior](#pass-through-behavior)
+  - [Responses](#responses)
+    - [Custom Response Headers](#custom-response-headers)
+    - [Custom Response Templates](#custom-response-templates)
+  - [Status Codes](#status-codes)
+    - [Available Status Codes](#available-status-codes)
+    - [Using Status Codes](#using-status-codes)
+    - [Custom Status Codes](#custom-status-codes)
+- [Setting an HTTP Proxy on API Gateway](#setting-an-http-proxy-on-api-gateway)
+- [Accessing private resources using VPC Link](#accessing-private-resources-using-vpc-link)
+- [Mock Integration](#mock-integration)
+- [Share API Gateway and API Resources](#share-api-gateway-and-api-resources)
+  - [Easiest and CI/CD friendly example of using shared API Gateway and API Resources.](#easiest-and-cicd-friendly-example-of-using-shared-api-gateway-and-api-resources)
+  - [Manually Configuring shared API Gateway](#manually-configuring-shared-api-gateway)
+    - [Note while using authorizers with shared API Gateway](#note-while-using-authorizers-with-shared-api-gateway)
+- [Share Authorizer](#share-authorizer)
+- [Resource Policy](#resource-policy)
+- [Compression](#compression)
+- [Binary Media Types](#binary-media-types)
+- [Detailed CloudWatch Metrics](#detailed-cloudwatch-metrics)
+- [AWS X-Ray Tracing](#aws-x-ray-tracing)
+- [Tags / Stack Tags](#tags--stack-tags)
+- [Logs](#logs)
 
 _Are you looking for tutorials on using API Gateway? Check out the following resources:_
 
@@ -327,7 +339,8 @@ functions:
               - X-Amz-Security-Token
               - X-Amz-User-Agent
             allowCredentials: false
-            cacheControl: 'max-age=600, s-maxage=600, proxy-revalidate' # Caches on browser and proxy for 10 minutes and doesnt allow proxy to serve out of date content
+            # Caches on browser and proxy for 10 minutes and doesnt allow proxy to serve out of date content
+            cacheControl: 'max-age=600, s-maxage=600, proxy-revalidate'
 ```
 
 CORS header accepts single value too
@@ -355,8 +368,10 @@ module.exports.hello = function (event, context, callback) {
   const response = {
     statusCode: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*', // Required for CORS support to work
-      'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+      // Required for CORS support to work
+      'Access-Control-Allow-Origin': '*',
+      // Required for cookies, authorization headers with HTTPS
+      'Access-Control-Allow-Credentials': true,
     },
     body: JSON.stringify({ message: 'Hello World!' }),
   };
@@ -608,7 +623,7 @@ In case an exception is thrown in your lambda function AWS will send an error me
 
 ### Setting API keys for your Rest API
 
-You can specify a list of API keys to be used by your service Rest API by adding an `apiKeys` array property to the `provider.apiGateway` object in `serverless.yml`. You'll also need to explicitly specify which endpoints are `private` and require one of the api keys to be included in the request by adding a `private` boolean property to the `http` event object you want to set as private. API Keys are created globally, so if you want to deploy your service to different stages make sure your API key contains a stage variable as defined below. When using API keys, you can optionally define usage plan quota and throttle, using `usagePlan` object.
+You can specify a list of API keys to be used by your service Rest API by adding an `apiKeys` array property to the `provider.apiGateway` object in `serverless.yml`. You'll also need to explicitly specify which endpoints are `private` and require one of the api keys to be included in the request by adding a `private` boolean property to the `http` event object you want to set as private. API Keys are created globally, so if you want to deploy your service to different stages make sure your API key contains a stage variable as defined below. When using API keys, you can optionally define usage plan quota and throttle, using `usagePlan` object. Additionally, you can also disable selected API keys by setting `enabled` property to `false`.
 
 When setting the value, you need to be aware that changing value will require replacement and CloudFormation doesn't allow
 two API keys with the same name. It means that you need to change the name also when changing the value. If you don't care
@@ -624,10 +639,12 @@ provider:
     apiKeys:
       - myFirstKey
       - ${opt:stage}-myFirstKey
-      - ${env:MY_API_KEY} # you can hide it in a serverless variable
+      # you can hide it in a serverless variable
+      - ${env:MY_API_KEY}
       - name: myThirdKey
         value: myThirdKeyValue
-      - value: myFourthKeyValue # let cloudformation name the key (recommended when setting api key value)
+      # let cloudformation name the key (recommended when setting api key value)
+      - value: myFourthKeyValue
         description: Api key description # Optional
         customerId: A string that will be set as the customerID for the key # Optional
     usagePlan:
@@ -879,7 +896,7 @@ not blocked. Currently, API Gateway [supports](https://docs.aws.amazon.com/apiga
 
 ### Setting source of API key for metering requests
 
-API Gateway provide a feature for metering your API's requests and you can choice [the source of key](https://docs.aws.amazon.com/apigateway/api-reference/resource/rest-api/#apiKeySource) which is used for metering. If you want to acquire that key from the request's X-API-Key header, set option like this:
+API Gateway provides a feature for metering your API's requests and you can choose [the source of key](https://docs.aws.amazon.com/apigateway/api-reference/resource/rest-api/#apiKeySource) which is used for metering. If you want to acquire that key from the request's X-API-Key header, set option like this:
 
 ```yml
 service: my-service
@@ -1637,16 +1654,17 @@ provider:
   name: aws
   runtime: nodejs12.x
 
-  resourcePolicy:
-    - Effect: Allow
-      Principal: '*'
-      Action: execute-api:Invoke
-      Resource:
-        - execute-api:/*/*/*
-      Condition:
-        IpAddress:
-          aws:SourceIp:
-            - '123.123.123.123'
+  apiGateway:
+    resourcePolicy:
+      - Effect: Allow
+        Principal: '*'
+        Action: execute-api:Invoke
+        Resource:
+          - execute-api:/*/*/*
+        Condition:
+          IpAddress:
+            aws:SourceIp:
+              - '123.123.123.123'
 ```
 
 ## Compression
@@ -1664,31 +1682,35 @@ provider:
 
 API Gateway makes it possible to return binary media such as images or files as responses.
 
-Configuring API Gateway to return binary media can be done via the `binaryMediaTypes` config:
+To return binary media in proxy integration, set the `binaryMediaTypes` config:
 
 ```yml
 provider:
   apiGateway:
     binaryMediaTypes:
       - '*/*'
-```
-
-In your Lambda function you need to ensure that the correct `content-type` header is set. Furthermore you might want to return the response body in base64 format.
-
-To convert the request or response payload, you can set the [contentHandling](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-payload-encodings-workflow.html) property (if set, the response contentHandling property will be passed to integration responses with 2XXs method response statuses).
-
-```yml
 functions:
-  create:
-    handler: posts.create
+  binaryExample:
+    handler: binaryExample.handler
     events:
       - http:
-          path: posts/create
-          method: post
-          request:
-            contentHandling: CONVERT_TO_TEXT
-          response:
-            contentHandling: CONVERT_TO_TEXT
+          path: binary
+          method: GET
+```
+
+Having that in your Lambda function, you need to ensure that the correct `content-type` header is set and provide a base64 encoded string for a body.
+e.g., Assuming that there's an `image.jpg` file located aside of `binaryExample.js` lambda handler, the handler can be set up as follows:
+
+```js
+const fsp = require('fs').promises;
+const path = require('path');
+
+module.exports.handler = async () => ({
+  statusCode: 200,
+  headers: { 'Content-type': 'image/jpeg' },
+  body: (await fsp.readFile(path.resolve(__dirname, 'image.jpg'))).toString('base64'),
+  isBase64Encoded: true,
+});
 ```
 
 ## Detailed CloudWatch Metrics

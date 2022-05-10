@@ -1,0 +1,35 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  apiGateway:
+    shouldStartNameWithService: true
+
+functions:
+  minimal:
+    handler: index.minimal
+    events:
+      - http: GET /
+      - http:
+          method: POST
+          path: minimal-1
+  foo:
+    handler: index.handler
+    events:
+      - http:
+          method: GET
+          path: /foo
+      - http:
+          method: POST
+          path: /some-post
+
+  other:
+    handler: index.handler
+    events:
+      - http:
+          method: get
+          path: /bar/{marko}

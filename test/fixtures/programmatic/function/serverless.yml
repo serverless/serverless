@@ -5,11 +5,9 @@ frameworkVersion: '*'
 
 provider:
   name: aws
-  runtime: nodejs12.x
-  lambdaHashingVersion: 20201221
 
 functions:
-  foo:
-    handler: index.handler
+  basic:
+    handler: basic.handler
   other:
-    handler: index.handler
+    handler: other.handler

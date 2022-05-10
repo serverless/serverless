@@ -1,0 +1,59 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  versionFunctions: false
+
+functions:
+  registerDevice:
+    handler: register-device.main
+    timeout: 30
+    environment:
+      TEMPLATE_NAME:
+        Ref: BasicIotProvisioningTemplate
+  basic:
+    handler: hook.main
+    events:
+      - iotFleetProvisioning:
+          templateBody: ${file(template.json)}
+          provisioningRoleArn:
+            Fn::GetAtt:
+              - ProvisioningRole
+              - Arn
+
+resources:
+  Resources:
+    ProvisioningRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${opt:stage, self:provider.stage, 'dev'}-provisioning-role
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AWSIoTThingsRegistration
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: iot.amazonaws.com
+              Action: sts:AssumeRole
+    IoTPolicy:
+      Type: AWS::IoT::Policy
+      Properties:
+        PolicyName: ${self:service}-${opt:stage, self:provider.stage, 'dev'}-iot-policy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: 'iot:*'
+              Resource: '*'
+  Outputs:
+    ProvisioningTemplateName:
+      Value:
+        Ref: BasicIotProvisioningTemplate
+    IoTPolicyName:
+      Value:
+        Ref: IoTPolicy

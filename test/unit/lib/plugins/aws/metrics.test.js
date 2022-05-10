@@ -4,9 +4,8 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
 const AwsMetrics = require('../../../../../lib/plugins/aws/metrics');
-const Serverless = require('../../../../../lib/Serverless');
-const CLI = require('../../../../../lib/classes/CLI');
-const chalk = require('chalk');
+const Serverless = require('../../../../../lib/serverless');
+const CLI = require('../../../../../lib/classes/cli');
 const dayjs = require('dayjs');
 
 const LocalizedFormat = require('dayjs/plugin/localizedFormat');
@@ -18,7 +17,7 @@ describe('AwsMetrics', () => {
   let serverless;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.cli = new CLI(serverless);
     const options = {
       stage: 'dev',
@@ -369,199 +368,6 @@ describe('AwsMetrics', () => {
           sinon.match.has('Period', 24 * 3600)
         )
       ).to.equal(true);
-    });
-  });
-
-  describe('#showMetrics()', () => {
-    let consoleLogStub;
-
-    beforeEach(() => {
-      awsMetrics.serverless.service.functions = {
-        function1: {
-          name: 'func1',
-        },
-        function2: {
-          name: 'func2',
-        },
-      };
-      awsMetrics.options.startTime = '1970-01-01';
-      awsMetrics.options.endTime = '1970-01-02';
-      consoleLogStub = sinon.stub(serverless.cli, 'consoleLog').returns();
-    });
-
-    afterEach(() => {
-      serverless.cli.consoleLog.restore();
-    });
-
-    it('should display service wide metrics if no function option is specified', () => {
-      const metrics = [
-        [
-          {
-            ResponseMetadata: {
-              RequestId: '1f50045b-b569-11e6-86c6-eb54d1aaa755-func1',
-            },
-            Label: 'Invocations',
-            Datapoints: [{ Sum: 12 }, { Sum: 8 }],
-          },
-          {
-            ResponseMetadata: {
-              RequestId: '1f59059b-b569-11e6-aa18-c7bab68810d2-func1',
-            },
-            Label: 'Throttles',
-            Datapoints: [{ Sum: 15 }, { Sum: 15 }],
-          },
-          {
-            ResponseMetadata: {
-              RequestId: '1f50c7b1-b569-11e6-b1b6-ab86694b617b-func1',
-            },
-            Label: 'Errors',
-            Datapoints: [{ Sum: 0 }],
-          },
-          {
-            ResponseMetadata: {
-              RequestId: '1f63db14-b569-11e6-8501-d98a275ce164-func1',
-            },
-            Label: 'Duration',
-            Datapoints: [{ Average: 1000 }],
-          },
-        ],
-        [
-          {
-            ResponseMetadata: {
-              RequestId: '1f50045b-b569-11e6-86c6-eb54d1aaa755-func2',
-            },
-            Label: 'Invocations',
-            Datapoints: [{ Sum: 12 }, { Sum: 8 }],
-          },
-          {
-            ResponseMetadata: {
-              RequestId: '1f59059b-b569-11e6-aa18-c7bab68810d2-func2',
-            },
-            Label: 'Throttles',
-            Datapoints: [{ Sum: 15 }, { Sum: 15 }],
-          },
-          {
-            ResponseMetadata: {
-              RequestId: '1f50c7b1-b569-11e6-b1b6-ab86694b617b-func2',
-            },
-            Label: 'Errors',
-            Datapoints: [{ Sum: 0 }],
-          },
-          {
-            ResponseMetadata: {
-              RequestId: '1f63db14-b569-11e6-8501-d98a275ce164-func2',
-            },
-            Label: 'Duration',
-            Datapoints: [{ Average: 1000 }],
-          },
-        ],
-      ];
-
-      let expectedMessage = '';
-      expectedMessage += `${chalk.yellow.underline('Service wide metrics')}\n`;
-      expectedMessage += 'January 1, 1970 12:00 AM - January 2, 1970 12:00 AM\n\n';
-      expectedMessage += `${chalk.yellow('Invocations: 40 \n')}`;
-      expectedMessage += `${chalk.yellow('Throttles: 60 \n')}`;
-      expectedMessage += `${chalk.yellow('Errors: 0 \n')}`;
-      expectedMessage += `${chalk.yellow('Duration (avg.): 1000ms')}`;
-
-      awsMetrics.showMetrics(metrics);
-
-      expect(consoleLogStub.calledOnce).to.equal(true);
-      expect(consoleLogStub.getCall(0).args[0]).to.equal(expectedMessage);
-    });
-
-    it('should display correct average of service wide average function duration', () => {
-      const metrics = [
-        [
-          {
-            Label: 'Duration',
-            Datapoints: [{ Average: 100 }, { Average: 200 }, { Average: 300 }],
-          },
-        ],
-        [
-          {
-            Label: 'Duration',
-            Datapoints: [{ Average: 400 }, { Average: 500 }],
-          },
-        ],
-      ];
-
-      awsMetrics.showMetrics(metrics);
-
-      expect(consoleLogStub.getCall(0).args[0]).to.include('Duration (avg.): 300ms');
-    });
-
-    it('should display 0 as average function duration if no data by given period', () => {
-      const metrics = [[], []];
-
-      awsMetrics.showMetrics(metrics);
-
-      expect(consoleLogStub.getCall(0).args[0]).to.include('Duration (avg.): 0ms');
-    });
-
-    it('should display function metrics if function option is specified', () => {
-      awsMetrics.options.function = 'function1';
-
-      const metrics = [
-        [
-          {
-            ResponseMetadata: {
-              RequestId: '1f50045b-b569-11e6-86c6-eb54d1aaa755-func1',
-            },
-            Label: 'Invocations',
-            Datapoints: [{ Sum: 12 }, { Sum: 8 }],
-          },
-          {
-            ResponseMetadata: {
-              RequestId: '1f59059b-b569-11e6-aa18-c7bab68810d2-func1',
-            },
-            Label: 'Throttles',
-            Datapoints: [{ Sum: 15 }, { Sum: 15 }],
-          },
-          {
-            ResponseMetadata: {
-              RequestId: '1f50c7b1-b569-11e6-b1b6-ab86694b617b-func1',
-            },
-            Label: 'Errors',
-            Datapoints: [{ Sum: 0 }],
-          },
-          {
-            ResponseMetadata: {
-              RequestId: '1f63db14-b569-11e6-8501-d98a275ce164-func1',
-            },
-            Label: 'Duration',
-            Datapoints: [{ Average: 1000 }],
-          },
-        ],
-      ];
-
-      let expectedMessage = '';
-      expectedMessage += `${chalk.yellow.underline(awsMetrics.options.function)}\n`;
-      expectedMessage += 'January 1, 1970 12:00 AM - January 2, 1970 12:00 AM\n\n';
-      expectedMessage += `${chalk.yellow('Invocations: 20 \n')}`;
-      expectedMessage += `${chalk.yellow('Throttles: 30 \n')}`;
-      expectedMessage += `${chalk.yellow('Errors: 0 \n')}`;
-      expectedMessage += `${chalk.yellow('Duration (avg.): 1000ms')}`;
-
-      awsMetrics.showMetrics(metrics);
-
-      expect(consoleLogStub.calledOnce).to.equal(true);
-      expect(consoleLogStub.getCall(0).args[0]).to.equal(expectedMessage);
-    });
-
-    it('should resolve with an error message if no metrics are available', () => {
-      awsMetrics.options.function = 'function1';
-
-      let expectedMessage = '';
-      expectedMessage += `${chalk.yellow.underline(awsMetrics.options.function)}\n`;
-      expectedMessage += 'January 1, 1970 12:00 AM - January 2, 1970 12:00 AM\n\n';
-      expectedMessage += `${chalk.yellow('There are no metrics to show for these options')}`;
-
-      awsMetrics.showMetrics();
-
-      expect(consoleLogStub.calledOnce).to.equal(true);
-      expect(consoleLogStub.getCall(0).args[0]).to.equal(expectedMessage);
     });
   });
 });

@@ -4,15 +4,16 @@ name: Validate
 
 on:
   pull_request:
-    branches: [master]
+    branches: [main]
 
 env:
   SLS_IGNORE_WARNING: '*'
   FORCE_COLOR: 1
+  SLS_SCHEMA_CACHE_BASE_DIR: '/home/runner'
 
 jobs:
-  linuxNode14:
-    name: '[Linux] Node.js 14: Lint, Formatting, Eventual Commitlint, Eventual Changelog, Unit & packaging tests'
+  linuxNode16:
+    name: '[Linux] Node.js 16: Lint, Formatting, Eventual Commitlint, Eventual Changelog, Unit & packaging tests'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -22,11 +23,11 @@ jobs:
           # It's loose and imperfect assumption that PR has no more than 30 commits
           fetch-depth: 30
 
-      - name: Retrieve last master commit (for `git diff` purposes)
+      - name: Retrieve last main commit (for `git diff` purposes)
         run: |
           git checkout -b pr
-          git fetch --prune --depth=30 origin +refs/heads/master:refs/remotes/origin/master
-          git checkout master
+          git fetch --prune --depth=30 origin +refs/heads/main:refs/remotes/origin/main
+          git checkout main
           git checkout pr
 
       - name: Retrieve dependencies from cache
@@ -36,15 +37,15 @@ jobs:
           path: |
             ~/.npm
             node_modules
-          key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          key: npm-v16-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
-            npm-v14-${{ runner.os }}-${{ github.ref }}-
-            npm-v14-${{ runner.os }}-refs/heads/master-
+            npm-v16-${{ runner.os }}-${{ github.ref }}-
+            npm-v16-${{ runner.os }}-refs/heads/main-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
         with:
-          node-version: 14.x
+          node-version: 16.x
 
       - name: Install dependencies
         if: steps.cacheNpm.outputs.cache-hit != 'true'
@@ -57,10 +58,10 @@ jobs:
         run: npm run lint:updated
       - name: Validate commit messages
         if: github.event.pull_request.base.repo.id == github.event.pull_request.head.repo.id
-        run: npx commitlint -f master
+        run: npx commitlint -f main
       - name: Validate changelog (if new version)
         run: |
-          NEW_VERSION=`git diff -U0 master package.json | grep '"version": "' | tail -n 1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+"` || :
+          NEW_VERSION=`git diff -U0 main package.json | grep '"version": "' | tail -n 1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+"` || :
           if [ -n "$NEW_VERSION" ];
           then
             npx dump-release-notes-from-cc-changelog $NEW_VERSION
@@ -72,41 +73,9 @@ jobs:
       - name: Packaging tests
         run: npm run integration-test-run-package
 
-  windowsNode14:
-    name: '[Windows] Node.js v14: Unit tests'
+  windowsNode16:
+    name: '[Windows] Node.js v16: Unit tests'
     runs-on: windows-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Retrieve dependencies from cache
-        id: cacheNpm
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.npm
-            node_modules
-          key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
-          restore-keys: |
-            npm-v14-${{ runner.os }}-${{ github.ref }}-
-            npm-v14-${{ runner.os }}-refs/heads/master-
-
-      - name: Install Node.js and npm
-        uses: actions/setup-node@v1
-        with:
-          node-version: 14.x
-
-      - name: Install dependencies
-        if: steps.cacheNpm.outputs.cache-hit != 'true'
-        run: |
-          npm update --no-save
-          npm update --save-dev --no-save
-      - name: Unit tests
-        run: npm test -- -b
-
-  linuxNode16:
-    name: '[Linux] Node.js 16: Isolated unit tests'
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -121,12 +90,44 @@ jobs:
           key: npm-v16-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
             npm-v16-${{ runner.os }}-${{ github.ref }}-
-            npm-v16-${{ runner.os }}-refs/heads/master-
+            npm-v16-${{ runner.os }}-refs/heads/main-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
+
+      - name: Install dependencies
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+      - name: Unit tests
+        run: npm test -- -b
+
+  linuxNode14:
+    name: '[Linux] Node.js 14: Isolated unit tests'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve dependencies from cache
+        id: cacheNpm
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            npm-v14-${{ runner.os }}-${{ github.ref }}-
+            npm-v14-${{ runner.os }}-refs/heads/main-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
 
       - name: Install dependencies
         if: steps.cacheNpm.outputs.cache-hit != 'true'
@@ -155,7 +156,7 @@ jobs:
           key: npm-v12-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
             npm-v12-${{ runner.os }}-${{ github.ref }}-
-            npm-v12-${{ runner.os }}-refs/heads/master-
+            npm-v12-${{ runner.os }}-refs/heads/main-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
@@ -174,36 +175,17 @@ jobs:
       - name: Push coverage
         run: npx codecov
 
-  linuxNode10:
-    name: '[Linux] Node.js v10: Unit tests'
+  linuxNode4:
+    name: '[Linux] Node.js v4: Node version validation test'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Retrieve dependencies from cache
-        id: cacheNpm
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.npm
-            node_modules
-          key: npm-v10-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
-          restore-keys: |
-            npm-v10-${{ runner.os }}-${{ github.ref }}-
-            npm-v10-${{ runner.os }}-refs/heads/master-
-
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
         with:
-          node-version: 10.x
+          node-version: 4.x
 
-      - name: Install dependencies
-        if: steps.cacheNpm.outputs.cache-hit != 'true'
-        run: |
-          npm update --no-save
-          npm update --save-dev --no-save
-      - name: Unit tests
-        # Some tests depend on TTY support, which is missing in GA runner
-        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
-        run: script -e -c "npm test -- -b"
+      - name: Node version validation test
+        run: ./bin/serverless.js 2>&1 | grep -q "does not support"

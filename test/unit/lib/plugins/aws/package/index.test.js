@@ -2,8 +2,8 @@
 
 const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
 const AwsPackage = require('../../../../../../lib/plugins/aws/package/index');
-const Serverless = require('../../../../../../lib/Serverless');
-const CLI = require('../../../../../../lib/classes/CLI');
+const Serverless = require('../../../../../../lib/serverless');
+const CLI = require('../../../../../../lib/classes/cli');
 const expect = require('chai').expect;
 const sinon = require('sinon');
 const path = require('path');
@@ -14,7 +14,7 @@ describe('AwsPackage', () => {
   let options;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     options = {
       stage: 'dev',
       region: 'us-east-1',

@@ -67,7 +67,14 @@ Outputs can also be accessed on the CLI. You can use this at development time to
 
 ### List outputs
 
-`sls output list [--org <org>] [--app <app>] [--service <service>] [--stage <stage>] [--region <region>]`
+```
+sls output list
+  [--org <org>]
+  [--app <app>]
+  [--service <service>]
+  [--stage <stage>]
+  [--region <region>]
+```
 
 If you are in a working directory with a `serverless.yml` then the outputs will be listed for the org, app, and service specified in the serverless.yml file.
 
@@ -75,7 +82,15 @@ If you are not in a working directory, without a `serverless.yml`, or if you wan
 
 ### Get an output
 
-`sls output get --name <name> [--org <org>] [--app <app>] [--service <service>] [--stage <stage>] [--region region]`
+```
+sls output get
+  --name <name>
+  [--org <org>]
+  [--app <app>]
+  [--service <service>]
+  [--stage <stage>]
+  [--region region]
+```
 
 Individual outputs can also be accessed from the CLI using the `output get` sub-command. This command requires the `--name <name>` flag to identify the output name.
 

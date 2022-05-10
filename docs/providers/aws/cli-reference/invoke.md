@@ -14,7 +14,7 @@ layout: Doc
 
 # AWS - Invoke
 
-Invokes deployed function. It allows to send event data to the function, read logs and display other important information of the function invocation.
+Invokes a deployed function. You can send event data, read logs and display other important information of the function invocation.
 
 ```bash
 serverless invoke [local] --function functionName
@@ -72,19 +72,19 @@ output the result of the invocation in your terminal.
 #### Function invocation with data
 
 ```bash
-serverless invoke --function functionName --stage dev --region us-east-1 --data "hello world"
+serverless invoke --function functionName --data "hello world"
 ```
 
 #### Function invocation with custom context
 
 ```bash
-serverless invoke --function functionName --stage dev --region us-east-1 --context "hello world"
+serverless invoke --function functionName --context "hello world"
 ```
 
 #### Function invocation with context passing
 
 ```bash
-serverless invoke --function functionName --stage dev --region us-east-1 --contextPath lib/context.json
+serverless invoke --function functionName --contextPath lib/context.json
 ```
 
 This example will pass the json context in the `lib/context.json` file (relative to the root of the service) while invoking the specified/deployed function.
@@ -92,13 +92,13 @@ This example will pass the json context in the `lib/context.json` file (relative
 #### Function invocation with data from standard input
 
 ```bash
-node dataGenerator.js | serverless invoke --function functionName --stage dev --region us-east-1
+node dataGenerator.js | serverless invoke --function functionName
 ```
 
 #### Function invocation with logging
 
 ```bash
-serverless invoke --function functionName --stage dev --region us-east-1 --log
+serverless invoke --function functionName --log
 ```
 
 Just like the first example, but will also outputs logging information about your invocation.
@@ -106,7 +106,7 @@ Just like the first example, but will also outputs logging information about you
 #### Function invocation with data passing
 
 ```bash
-serverless invoke --function functionName --stage dev --region us-east-1 --path lib/data.json
+serverless invoke --function functionName --path lib/data.json
 ```
 
 This example will pass the json data in the `lib/data.json` file (relative to the root of the service) while invoking
@@ -132,14 +132,15 @@ serverless invoke local --function functionName --context "hello world"
 ### Local function invocation with context passing
 
 ```bash
-serverless invoke local --function functionName --contextPath lib/context.json
+serverless invoke local --function functionName \
+  --contextPath lib/context.json
 ```
 
 This example will pass the json context in the `lib/context.json` file (relative to the root of the service) while invoking the specified/deployed function.
 
 ### Limitations
 
-Currently, `invoke local` only supports the NodeJs and Python runtimes.
+Currently, `invoke local` only supports the Node.js, Python, Java and Ruby runtimes.
 
 ## Resource permissions
 

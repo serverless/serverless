@@ -1,0 +1,106 @@
+<script>
+  /**
+   * This is the script used in Webflow to render the docs menu on serverless.com
+   * It is stored here so that we have a central place to view and store this script.
+   */
+
+  const { origin, pathname } = window.location;
+
+  const FixPath = (name) => name.replace(/^\/|\/$/g, '');
+
+  const currentPath = origin === 'http://127.0.0.1:5500' ? '' : FixPath(pathname);
+  const isWebFlowOrigin = origin.includes('webflow.io');
+
+  const toggleClass = (element, className) => element && element.classList.toggle(className);
+
+  const renderTreeNodes = (nodes) => {
+    const domNodes = [];
+    for (const menuText in nodes) {
+      const menuChildren = nodes[menuText];
+
+      const link = document.createElement('a');
+      const span = document.createElement('span');
+      const listItemTitleClass = 'list-item';
+
+      span.classList.add('list-item-label');
+      if (typeof menuChildren === 'string') {
+        link.classList.add(listItemTitleClass);
+        span.innerHTML = menuText;
+        link.appendChild(span);
+
+        const partialMenuLink = menuChildren ? `/${menuChildren}` : '';
+        const basename = isWebFlowOrigin
+          ? `framework/docs${partialMenuLink.replaceAll('/', '-').replaceAll('.', '-')}`
+          : `framework/docs${partialMenuLink}`;
+        if (basename === currentPath) {
+          link.classList.add('active-list-item', 'item-active');
+        }
+        link.href = `${origin}/${basename}`;
+
+        domNodes.push(link);
+      } else {
+        const childNodes = renderTreeNodes(menuChildren);
+        const parentListItem = document.createElement('div');
+        const listWrapper = document.createElement('div');
+
+        parentListItem.classList.add(listItemTitleClass);
+
+        listWrapper.classList.add('nested-list');
+
+        span.classList.add('caret');
+        span.innerHTML = menuText;
+
+        childNodes.forEach((n) => {
+          listWrapper.appendChild(n);
+        });
+        parentListItem.appendChild(span);
+        parentListItem.appendChild(listWrapper);
+
+        /**
+         *  If current path includes node path then add active class (to show collapsed list)
+         * */
+        const toggleListActiveClass = () => {
+          toggleClass(listWrapper, 'nested-list-active');
+          toggleClass(span, 'caret-down');
+          toggleClass(parentListItem, 'list-item-expanded');
+        };
+        // If the menu contains an active menu item we expand the menu
+        if (parentListItem.querySelectorAll('.active-list-item').length > 0) {
+          toggleListActiveClass();
+        }
+        span.addEventListener('click', function () {
+          toggleListActiveClass();
+        });
+
+        domNodes.push(parentListItem);
+      }
+    }
+    return domNodes;
+  };
+
+  const renderHits = (tree, selector) => {
+    const container = document.querySelector(selector);
+    const sidebarList = document.createElement('div');
+    const loaderWrapper = document.querySelector('.loader-wrapper');
+    if (loaderWrapper) {
+      loaderWrapper.remove();
+    }
+    const nodes = renderTreeNodes(tree);
+
+    /**
+     * Empty list to avoid adding the same items
+     */
+    sidebarList.innerHTML = '';
+    nodes.forEach((node) => {
+      sidebarList.appendChild(node);
+    });
+    container.replaceChildren(sidebarList);
+  };
+
+  fetch('https://assets.serverless-extras.com/website/framework/docs/menu.json')
+    .then((response) => response.json())
+    .then((data) => {
+      renderHits(data, '#docs-sidebar-items');
+      renderHits(data, '#docs-sidebar-items-mobile');
+    });
+</script>

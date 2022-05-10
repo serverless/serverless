@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const path = require('path');
 const fse = require('fs-extra');
 const AWSCommon = require('../../../../../../../lib/plugins/aws/common/index');
-const Serverless = require('../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../lib/serverless');
 const { getTmpDirPath } = require('../../../../../../utils/fs');
 
 describe('#moveArtifactsToPackage()', () => {
@@ -14,7 +14,7 @@ describe('#moveArtifactsToPackage()', () => {
   const moveServerlessPath = path.join(moveBasePath, '.serverless');
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     awsCommon = new AWSCommon(serverless, {});
 
     serverless.serviceDir = moveBasePath;
@@ -104,7 +104,7 @@ describe('#moveArtifactsToTemp()', () => {
   const moveTargetPath = path.join(moveBasePath, 'target');
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     awsCommon = new AWSCommon(serverless, {});
 
     serverless.serviceDir = moveBasePath;

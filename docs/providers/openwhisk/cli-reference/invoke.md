@@ -14,7 +14,7 @@ layout: Doc
 
 # OpenWhisk - Invoke
 
-Invokes deployed function. It allows to send event data to the function, read logs and display other important information of the function invocation.
+Invokes a deployed function. You can send event data, read logs and display other important information of the function invocation.
 
 ```bash
 serverless invoke [local] --function functionName

@@ -26,7 +26,7 @@ serverless deploy
 - `--stage` or `-s` The stage in your service that you want to deploy to.
 - `--region` or `-r` The region in that stage that you want to deploy to.
 - `--package` or `-p` path to a pre-packaged directory and skip packaging step.
-- `--verbose` or `-v` Shows all stack events during deployment, and display any Stack Output.
+- `--verbose` Shows all stack events during deployment, and display any Stack Output.
 - `--force` Forces a deployment to take place.
 - `--function` or `-f` Invoke `deploy function` (see above). Convenience shortcut - cannot be used with `--package`.
 - `--conceal` Hides secrets from the output (e.g. API Gateway key values).

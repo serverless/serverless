@@ -17,16 +17,17 @@ jobs:
 
       - name: Retrieve dependencies from cache
         uses: actions/cache@v2
+        id: cacheNpm
         with:
           path: |
             ~/.npm
             node_modules
-          key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          key: npm-v16-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
         with:
-          node-version: 14.x
+          node-version: 16.x
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
@@ -64,21 +65,22 @@ jobs:
 
       - name: Retrieve dependencies from cache
         uses: actions/cache@v2
+        id: cacheNpm
         with:
           path: |
             ~/.npm
             node_modules
-          key: npm-v14-${{ runner.os }}-refs/heads/master-${{ hashFiles('package.json') }}
+          key: npm-v16-${{ runner.os }}-refs/heads/main-${{ hashFiles('package.json') }}
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
         with:
-          node-version: 14.x
+          node-version: 16.x
           registry-url: https://registry.npmjs.org
 
       # Normally we have a guarantee that deps are already there, still it may not be the case when:
-      # - `master` build for same commit failed (and we still pushed tag manually)
-      # - We've pushed tag manually before `master` build finalized
+      # - `main` build for same commit failed (and we still pushed tag manually)
+      # - We've pushed tag manually before `main` build finalized
       - name: Install dependencies
         if: steps.cacheNpm.outputs.cache-hit != 'true'
         run: |
@@ -126,16 +128,16 @@ jobs:
           path: |
             ~/.npm
             node_modules
-          key: npm-v14-${{ runner.os }}-refs/heads/master-${{ hashFiles('package.json') }}
+          key: npm-v16-${{ runner.os }}-refs/heads/main-${{ hashFiles('package.json') }}
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
         with:
-          node-version: 14.x
+          node-version: 16.x
           registry-url: https://registry.npmjs.org
 
       # Note: No need to install dependencies as we have retrieved cached `node_modules` for very
-      #       same `package.json` as stored with recent `master `build
+      #       same `package.json` as stored with recent `main` build
 
       - name: Publish to Chocolatey
         shell: bash

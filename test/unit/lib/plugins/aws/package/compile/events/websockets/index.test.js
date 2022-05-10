@@ -4,13 +4,14 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 const AwsProvider = require('../../../../../../../../../lib/plugins/aws/provider');
 const AwsCompileWebsocketsEvents = require('../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/index');
-const Serverless = require('../../../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../../../lib/serverless');
+const runServerless = require('../../../../../../../../utils/run-serverless');
 
 describe('AwsCompileWebsocketsEvents', () => {
   let awsCompileWebsocketsEvents;
 
   beforeEach(() => {
-    const serverless = new Serverless();
+    const serverless = new Serverless({ commands: [], options: {} });
     serverless.service.environment = {
       vars: {},
       stages: {
@@ -108,6 +109,150 @@ describe('AwsCompileWebsocketsEvents', () => {
       awsCompileWebsocketsEvents.serverless.service.functions = {};
 
       return awsCompileWebsocketsEvents.hooks['package:compileEvents']();
+    });
+  });
+});
+
+describe('test/unit/lib/plugins/aws/package/compile/events/websockets/index.test.js', () => {
+  describe('regular configuration', () => {
+    let cfTemplate;
+    let awsNaming;
+    before(async () => {
+      ({ cfTemplate, awsNaming } = await runServerless({
+        fixture: 'function',
+        command: 'package',
+
+        configExt: {
+          provider: {
+            websocket: {
+              useProviderTags: true,
+            },
+          },
+          functions: {
+            basic: {
+              events: [
+                {
+                  websocket: '$connect',
+                },
+              ],
+            },
+          },
+        },
+      }));
+    });
+
+    it('should create a websocket api resource', () => {
+      const websocketsApiName = awsNaming.getWebsocketsApiName();
+      expect(cfTemplate.Resources.WebsocketsApi).to.deep.equal({
+        Type: 'AWS::ApiGatewayV2::Api',
+        Properties: {
+          Name: websocketsApiName,
+          RouteSelectionExpression: '$request.body.action',
+          Description: 'Serverless Websockets',
+          ProtocolType: 'WEBSOCKET',
+        },
+      });
+    });
+
+    it('should configure expected IAM', () => {
+      const id = awsNaming.getRoleLogicalId();
+      expect(
+        cfTemplate.Resources[id].Properties.Policies[0].PolicyDocument.Statement
+      ).to.deep.include({
+        Effect: 'Allow',
+        Action: ['execute-api:ManageConnections'],
+        Resource: [{ 'Fn::Sub': 'arn:${AWS::Partition}:execute-api:*:*:*/@connections/*' }],
+      });
+    });
+  });
+
+  describe('regular configuration with tags', () => {
+    let cfTemplate;
+    let awsNaming;
+    before(async () => {
+      ({ cfTemplate, awsNaming } = await runServerless({
+        fixture: 'function',
+        command: 'package',
+
+        configExt: {
+          provider: {
+            stackTags: {
+              stack_tag: 'foo',
+            },
+            tags: {
+              tag: 'bar',
+            },
+            websocket: {
+              useProviderTags: true,
+            },
+          },
+          functions: {
+            basic: {
+              events: [
+                {
+                  websocket: '$connect',
+                },
+              ],
+            },
+          },
+        },
+      }));
+    });
+
+    it('should create a websocket api resource with tags', () => {
+      const websocketsApiName = awsNaming.getWebsocketsApiName();
+      expect(cfTemplate.Resources.WebsocketsApi).to.deep.equal({
+        Type: 'AWS::ApiGatewayV2::Api',
+        Properties: {
+          Name: websocketsApiName,
+          RouteSelectionExpression: '$request.body.action',
+          Description: 'Serverless Websockets',
+          ProtocolType: 'WEBSOCKET',
+          Tags: {
+            tag: 'bar',
+          },
+        },
+      });
+    });
+  });
+
+  describe('external websocket API', () => {
+    let cfTemplate;
+    let awsNaming;
+    before(async () => {
+      ({ cfTemplate, awsNaming } = await runServerless({
+        fixture: 'function',
+        command: 'package',
+
+        configExt: {
+          provider: {
+            apiGateway: {
+              websocketApiId: '5ezys3sght',
+            },
+            iam: {
+              role: 'arn:aws:iam::123456789012:role/fromProvider',
+            },
+          },
+          functions: {
+            basic: {
+              events: [
+                {
+                  websocket: '$connect',
+                },
+              ],
+            },
+          },
+        },
+      }));
+    });
+
+    it('should not create a websocket api resource', () => {
+      expect(cfTemplate.Resources.WebsocketsApi).to.equal(undefined);
+    });
+
+    it('should not configure IAM policies with custom roles', () => {
+      const id = awsNaming.getRoleLogicalId();
+      expect(cfTemplate.Resources[id]).to.equal(undefined);
     });
   });
 });

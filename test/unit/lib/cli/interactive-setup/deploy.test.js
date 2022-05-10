@@ -1,13 +1,11 @@
 'use strict';
 
-const stripAnsi = require('strip-ansi');
 const chai = require('chai');
 const sinon = require('sinon');
 const configureInquirerStub = require('@serverless/test/configure-inquirer-stub');
 const overrideEnv = require('process-utils/override-env');
 const step = require('../../../../../lib/cli/interactive-setup/deploy');
 const proxyquire = require('proxyquire');
-const overrideStdoutWrite = require('process-utils/override-stdout-write');
 const { StepHistory } = require('@serverless/utils/telemetry');
 
 const { expect } = chai;
@@ -55,7 +53,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
 
   it('Should be applied if service instance has a linked provider', async () => {
     const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/deploy', {
-      '@serverless/dashboard-plugin/lib/isAuthenticated': () => true,
+      '@serverless/dashboard-plugin/lib/is-authenticated': () => true,
       './utils': {
         doesServiceInstanceHaveLinkedProvider: () => true,
       },
@@ -63,7 +61,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
 
     expect(
       await mockedStep.isApplicable({
-        configuration: { provider: { name: 'aws' }, org: 'someorg' },
+        configuration: { provider: { name: 'aws' }, org: 'someorg', app: 'someapp' },
         serviceDir: '/foo',
         options: {},
         history: new Map([['awsCredentials', []]]),
@@ -85,20 +83,13 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         },
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
+        history: new Map(),
         initial: {
           isInServiceContext: false,
         },
       };
-      let stdoutData = '';
-      await overrideStdoutWrite(
-        (data) => (stdoutData += data),
-        async () => await step.run(context)
-      );
+      await step.run(context);
 
-      expect(stripAnsi(stdoutData)).to.include(
-        'Your project is ready for deployment and available in'
-      );
-      expect(stripAnsi(stdoutData)).to.include('Run serverless in the project directory');
       expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['shouldDeploy', false]]));
     });
 
@@ -115,18 +106,13 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         },
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
+        history: new Map(),
         initial: {
           isInServiceContext: true,
         },
       };
-      let stdoutData = '';
-      await overrideStdoutWrite(
-        (data) => (stdoutData += data),
-        async () => await step.run(context)
-      );
+      await step.run(context);
 
-      expect(stripAnsi(stdoutData)).to.include('Your project is ready for deployment\n');
-      expect(stripAnsi(stdoutData)).to.include('Run serverless in the project directory');
       expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['shouldDeploy', false]]));
     });
 
@@ -145,22 +131,13 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         },
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
+        history: new Map(),
         initial: {
           isInServiceContext: false,
         },
       };
-      let stdoutData = '';
-      await overrideStdoutWrite(
-        (data) => (stdoutData += data),
-        async () => await step.run(context)
-      );
+      await step.run(context);
 
-      expect(stripAnsi(stdoutData)).to.include(
-        'Your project is ready for deployment and available in'
-      );
-      expect(stripAnsi(stdoutData)).to.include(
-        'Invoke your functions and view logs in the dashboard'
-      );
       expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['shouldDeploy', false]]));
     });
 
@@ -179,20 +156,13 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         },
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
+        history: new Map(),
         initial: {
           isInServiceContext: true,
         },
       };
-      let stdoutData = '';
-      await overrideStdoutWrite(
-        (data) => (stdoutData += data),
-        async () => await step.run(context)
-      );
+      await step.run(context);
 
-      expect(stripAnsi(stdoutData)).to.include('Your project is ready for deployment\n');
-      expect(stripAnsi(stdoutData)).to.include(
-        'Invoke your functions and view logs in the dashboard'
-      );
       expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['shouldDeploy', false]]));
     });
 
@@ -219,7 +189,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
       }
 
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/deploy', {
-        '../../Serverless': MockedServerless,
+        '../../serverless': MockedServerless,
         '@serverless/dashboard-plugin/lib/dashboard': {
           getDashboardInteractUrl: () => 'https://app.serverless-dev.com/path/to/dashboard',
         },
@@ -239,20 +209,12 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         },
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
+        history: new Map(),
         initial: {
           isInServiceContext: false,
         },
       };
-      let stdoutData = '';
-      await overrideStdoutWrite(
-        (data) => (stdoutData += data),
-        async () => await mockedStep.run(context)
-      );
-
-      expect(stripAnsi(stdoutData)).to.include('Your project is live and available');
-      expect(stripAnsi(stdoutData)).to.include(
-        'Open https://app.serverless-dev.com/path/to/dashboard'
-      );
+      await mockedStep.run(context);
 
       expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['shouldDeploy', true]]));
     });
@@ -280,7 +242,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
       }
 
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/deploy', {
-        '../../Serverless': MockedServerless,
+        '../../serverless': MockedServerless,
         '@serverless/dashboard-plugin/lib/dashboard': {
           getDashboardInteractUrl: () => 'https://app.serverless-dev.com/path/to/dashboard',
         },
@@ -300,20 +262,12 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         },
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
+        history: new Map(),
         initial: {
           isInServiceContext: true,
         },
       };
-      let stdoutData = '';
-      await overrideStdoutWrite(
-        (data) => (stdoutData += data),
-        async () => await mockedStep.run(context)
-      );
-
-      expect(stripAnsi(stdoutData)).to.include('Your project is live\n');
-      expect(stripAnsi(stdoutData)).to.include(
-        'Open https://app.serverless-dev.com/path/to/dashboard'
-      );
+      await mockedStep.run(context);
 
       expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['shouldDeploy', true]]));
     });
@@ -340,7 +294,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
       }
 
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/deploy', {
-        '../../Serverless': MockedServerless,
+        '../../serverless': MockedServerless,
       });
 
       configureInquirerStub(inquirer, {
@@ -355,18 +309,13 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         },
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
+        history: new Map(),
         initial: {
           isInServiceContext: false,
         },
       };
-      let stdoutData = '';
-      await overrideStdoutWrite(
-        (data) => (stdoutData += data),
-        async () => await mockedStep.run(context)
-      );
+      await mockedStep.run(context);
 
-      expect(stripAnsi(stdoutData)).to.include('Your project is live and available');
-      expect(stripAnsi(stdoutData)).to.include('Run serverless');
       expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['shouldDeploy', true]]));
     });
 
@@ -392,7 +341,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
       }
 
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/deploy', {
-        '../../Serverless': MockedServerless,
+        '../../serverless': MockedServerless,
       });
 
       configureInquirerStub(inquirer, {
@@ -407,18 +356,13 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         },
         configurationFilename: 'serverless.yml',
         stepHistory: new StepHistory(),
+        history: new Map(),
         initial: {
           isInServiceContext: true,
         },
       };
-      let stdoutData = '';
-      await overrideStdoutWrite(
-        (data) => (stdoutData += data),
-        async () => await mockedStep.run(context)
-      );
+      await mockedStep.run(context);
 
-      expect(stripAnsi(stdoutData)).to.include('Your project is live\n');
-      expect(stripAnsi(stdoutData)).to.include('Run serverless');
       expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['shouldDeploy', true]]));
     });
   });

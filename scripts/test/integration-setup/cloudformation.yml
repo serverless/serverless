@@ -4,6 +4,26 @@ Parameters:
   ClusterName:
     Type: String
     Description: Name of MSK Cluster
+  ActiveMQBrokerName:
+    Type: String
+    Description: Name of ActiveMQ Broker
+  ActiveMQUser:
+    Type: String
+    Description: Name of ActiveMQ User
+  ActiveMQPassword:
+    Type: String
+    Description: Password of ActiveMQ User
+    NoEcho: true
+  RabbitMQBrokerName:
+    Type: String
+    Description: Name of RabbitMQ Broker
+  RabbitMQUser:
+    Type: String
+    Description: Name of RabbitMQ User
+  RabbitMQPassword:
+    Type: String
+    Description: Password of RabbitMQ User
+    NoEcho: true
   ClusterConfigurationArn:
     Type: String
     Description: MSK Cluster Configuration ARN
@@ -119,6 +139,70 @@ Resources:
       SubnetId: !Ref PrivateSubnetB
       RouteTableId: !Ref PrivateRouteTable
 
+  ActiveMQSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group for ActiveMQ
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 61617
+          ToPort: 61617
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 61614
+          ToPort: 61614
+          CidrIp: 0.0.0.0/0
+
+  ActiveMQBroker:
+    Type: 'AWS::AmazonMQ::Broker'
+    Properties:
+      AutoMinorVersionUpgrade: 'false'
+      BrokerName: !Ref ActiveMQBrokerName
+      DeploymentMode: SINGLE_INSTANCE
+      EngineType: ActiveMQ
+      EngineVersion: '5.15.0'
+      HostInstanceType: mq.t2.micro
+      PubliclyAccessible: 'false'
+      SecurityGroups:
+        - !Ref ActiveMQSecurityGroup
+      SubnetIds:
+        - !Ref PrivateSubnetA
+      Users:
+        - ConsoleAccess: 'true'
+          Password: !Ref ActiveMQPassword
+          Username: !Ref ActiveMQUser
+
+  RabbitMQSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group for RabbitMQ
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5671
+          ToPort: 5671
+          CidrIp: 0.0.0.0/0
+
+  RabbitMQBroker:
+    Type: 'AWS::AmazonMQ::Broker'
+    Properties:
+      AutoMinorVersionUpgrade: 'false'
+      BrokerName: !Ref RabbitMQBrokerName
+      DeploymentMode: SINGLE_INSTANCE
+      EngineType: RABBITMQ
+      EngineVersion: '3.8.11'
+      HostInstanceType: mq.t3.micro
+      PubliclyAccessible: 'false'
+      SecurityGroups:
+        - !Ref RabbitMQSecurityGroup
+      SubnetIds:
+        - !Ref PrivateSubnetA
+      Users:
+        - ConsoleAccess: 'true'
+          Password: !Ref RabbitMQPassword
+          Username: !Ref RabbitMQUser
+
   MSKCluster:
     Type: 'AWS::MSK::Cluster'
     Properties:
@@ -179,6 +263,30 @@ Outputs:
   SecurityGroup:
     Description: Default security for Lambda VPC
     Value: !GetAtt VPC.DefaultSecurityGroup
+
+  ActiveMQBrokerArn:
+    Description: Created ActiveMQ Broker ARN
+    Value: !GetAtt ActiveMQBroker.Arn
+
+  ActiveMQBrokerId:
+    Description: Created ActiveMQ Broker Id
+    Value: !Ref ActiveMQBroker
+
+  ActiveMQSecurityGroup:
+    Description: Security Group for ActiveMQ
+    Value: !Ref ActiveMQSecurityGroup
+
+  RabbitMQBrokerArn:
+    Description: Created RabbitMQ Broker ARN
+    Value: !GetAtt RabbitMQBroker.Arn
+
+  RabbitMQBrokerId:
+    Description: Created RabbitMQ Broker Id
+    Value: !Ref RabbitMQBroker
+
+  RabbitMQSecurityGroup:
+    Description: Security Group for RabbitMQ
+    Value: !Ref RabbitMQSecurityGroup
 
   MSKCluster:
     Description: Created MSK Cluster

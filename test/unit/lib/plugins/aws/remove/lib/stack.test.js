@@ -4,14 +4,14 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 const AwsRemove = require('../../../../../../../lib/plugins/aws/remove/index');
-const Serverless = require('../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../lib/serverless');
 
 describe('removeStack', () => {
   const options = {
     stage: 'dev',
     region: 'us-east-1',
   };
-  const serverless = new Serverless();
+  const serverless = new Serverless({ commands: [], options: {} });
   serverless.service.service = 'removeStack';
   serverless.setProvider('aws', new AwsProvider(serverless, options));
 

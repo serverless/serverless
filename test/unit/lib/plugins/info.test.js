@@ -2,7 +2,7 @@
 
 const chai = require('chai');
 const Info = require('../../../../lib/plugins/info');
-const Serverless = require('../../../../lib/Serverless');
+const Serverless = require('../../../../lib/serverless');
 
 const expect = chai.expect;
 chai.use(require('chai-as-promised'));
@@ -13,7 +13,7 @@ describe('Info', () => {
   let serverless;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     info = new Info(serverless);
   });
 

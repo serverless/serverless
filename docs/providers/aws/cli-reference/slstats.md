@@ -55,6 +55,6 @@ The following is a list of the events that we collect:
 
 ## Signed in to the Dashboard
 
-If you are signed in to the [Serverless Dashboard](https://app.serverless.com), we do receive your userId as part of the event payloads. We can use this information to understand your tenant and users interactions with the CLI and building services.
+If you are signed in to the [Serverless Dashboard](https://app.serverless.com), we do receive your userId as part of the event payloads. We can use this information to understand your org and users interactions with the CLI and building services.
 
 If you are not signed in, we do not send any identifying information, such as an userId, within any of the event payloads.

@@ -59,7 +59,9 @@ Displays all `hello` function metrics for the last 24h.
 ### See metrics for the function `hello` of a specific timespan
 
 ```bash
-serverless metrics --function hello --startTime 2016-01-01 --endTime 2016-01-02
+serverless metrics --function hello \
+  --startTime 2016-01-01 \
+  --endTime 2016-01-02
 ```
 
 Displays all `hello` function metrics for the time between January 1, 2016 and January 2, 2016.

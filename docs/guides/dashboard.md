@@ -1,5 +1,5 @@
 <!--
-title: Serverless - Dashboard
+title: Serverless Dashboard
 menuText: Dashboard
 menuOrder: 1
 layout: Doc
@@ -15,7 +15,7 @@ layout: Doc
 
 The [Serverless Framework Dashboard](https://app.serverless.com/) is a SaaS solution that augments the Serverless Framework open source CLI to provide a powerful, unified experience to develop, deploy, test, secure and monitor your serverless applications.
 
-The Serverless Framework free tier gives developers full access to all features included in the Serverless Framework Dashboard, but is limited to 100,000 function invocations per month. If you are interested in expanding your usage of the Serverless Framework beyond the free tier [contact us](https://serverless.com/enterprise/contact/) for details re available plans and pricing.
+The Serverless Framework free tier gives developers full access to all features included in the Serverless Framework Dashboard, but is limited to 100,000 function invocations per month. If you are interested in expanding your usage of the Serverless Framework beyond the free tier [contact us](https://www.serverless.com/sales) for details re available plans and pricing.
 
 ## Minimum Version Requirements
 
@@ -29,13 +29,13 @@ Currently, the Serverless Framework Dashboard supports the following providers, 
 - Runtimes: Node.js, Python
 - Regions: us-east-1, us-east-2, us-west-1, us-west-2, eu-central-1, eu-west-1, eu-west-2, eu-west-3, ap-northeast-1, ap-south-1, ap-southeast-1, ap-southeast-2, sa-east-1, ca-central-1
 
-Need unsupported providers, runtimes or regions? [Let us know](https://serverless.com/enterprise/) what you need. We are working hard to quickly expand our supported runtimes and regions.
+Need unsupported providers, runtimes or regions? [Let us know](https://www.serverless.com/sales) what you need. We are working hard to quickly expand our supported runtimes and regions.
 
-# Installing
+## Installing
 
 To get started with the Serverless Framework Dashboard, follow the [Getting Started with the Serverless Framework and AWS](/framework/docs/getting-started/) guide. When you run the `serverless` command, you will be asked if you would like to enable dashboard features.
 
-# Enabling the Dashboard on existing Serverless Framework services
+## Enabling the Dashboard on existing Serverless Framework services
 
 If you have an existing Serverless Framework service, it is incredibly easy to enable the Serverless Framework Dashboard features. Just follow the [Getting Started with the Serverless Framework and AWS](/framework/docs/getting-started/) guide to install update the Serverless Framework to the latest release.
 

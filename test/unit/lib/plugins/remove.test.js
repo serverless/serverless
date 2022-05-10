@@ -2,7 +2,7 @@
 
 const chai = require('chai');
 const Remove = require('../../../../lib/plugins/remove');
-const Serverless = require('../../../../lib/Serverless');
+const Serverless = require('../../../../lib/serverless');
 
 const expect = chai.expect;
 
@@ -11,7 +11,7 @@ describe('Remove', () => {
   let serverless;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     remove = new Remove(serverless);
   });
 

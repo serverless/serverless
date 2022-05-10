@@ -4,7 +4,7 @@ const { expect } = require('chai');
 const overrideArgv = require('process-utils/override-argv');
 const ServerlessError = require('../../../../lib/serverless-error');
 const resolveInput = require('../../../../lib/cli/resolve-input');
-const { triggeredDeprecations } = require('../../../../lib/utils/logDeprecation');
+const { triggeredDeprecations } = require('../../../../lib/utils/log-deprecation');
 const ensureSupportedCommand = require('../../../../lib/cli/ensure-supported-command');
 
 describe('test/unit/lib/cli/ensure-supported-command.test.js', () => {
@@ -18,7 +18,6 @@ describe('test/unit/lib/cli/ensure-supported-command.test.js', () => {
       () => resolveInput()
     );
     ensureSupportedCommand();
-    expect(triggeredDeprecations.has('UNSUPPORTED_CLI_OPTIONS')).to.be.false;
   });
 
   it('should do nothing on container commmand', async () => {
@@ -26,12 +25,11 @@ describe('test/unit/lib/cli/ensure-supported-command.test.js', () => {
     triggeredDeprecations.clear();
     overrideArgv(
       {
-        args: ['serverless', 'config', 'tabcompletion'],
+        args: ['serverless', 'plugin'],
       },
       () => resolveInput()
     );
     ensureSupportedCommand();
-    expect(triggeredDeprecations.has('UNSUPPORTED_CLI_OPTIONS')).to.be.false;
   });
 
   it('should reject invalid command', async () => {
@@ -59,7 +57,7 @@ describe('test/unit/lib/cli/ensure-supported-command.test.js', () => {
     );
     expect(() => ensureSupportedCommand())
       .to.throw(ServerlessError)
-      .with.property('code', 'REJECTED_DEPRECATION_UNSUPPORTED_CLI_OPTIONS');
+      .with.property('code', 'UNSUPPORTED_CLI_OPTIONS');
   });
 
   it('should reject missing options', async () => {

@@ -1,295 +1,226 @@
 'use strict';
 
-const expect = require('chai').expect;
-const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
-const AwsCompileScheduledEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/schedule');
-const Serverless = require('../../../../../../../../lib/Serverless');
+const runServerless = require('../../../../../../../utils/run-serverless');
+const ServerlessError = require('../../../../../../../../lib/serverless-error');
+const { use: chaiUse, expect } = require('chai');
+const chaiAsPromised = require('chai-as-promised');
 
-describe('AwsCompileScheduledEvents', () => {
-  let serverless;
-  let awsCompileScheduledEvents;
+chaiUse(chaiAsPromised);
 
-  beforeEach(() => {
-    serverless = new Serverless();
-    serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
-    serverless.setProvider('aws', new AwsProvider(serverless));
-    awsCompileScheduledEvents = new AwsCompileScheduledEvents(serverless);
-    awsCompileScheduledEvents.serverless.service.service = 'new-service';
+async function run(events) {
+  const params = {
+    fixture: 'function',
+    command: 'package',
+    configExt: {
+      functions: {
+        test: {
+          handler: 'index.handler',
+          events,
+        },
+      },
+    },
+  };
+  const { awsNaming, cfTemplate } = await runServerless(params);
+  const cfResources = cfTemplate.Resources;
+
+  const scheduleCfResources = [];
+
+  for (const event of events) {
+    const schedule = event.schedule;
+    let scheduleEvents;
+
+    if (typeof schedule === 'string') {
+      scheduleEvents = [schedule];
+    } else {
+      scheduleEvents = Array.isArray(schedule.rate) ? schedule.rate : [schedule.rate];
+    }
+
+    for (let i = 0; i < scheduleEvents.length; i++) {
+      const index = scheduleCfResources.length + 1;
+
+      const scheduleLogicalId = awsNaming.getScheduleLogicalId('test', index);
+      const scheduleCfResource = cfResources[scheduleLogicalId];
+
+      scheduleCfResources.push(scheduleCfResource);
+    }
+  }
+
+  return scheduleCfResources;
+}
+
+describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', () => {
+  let scheduleCfResources;
+
+  before(async () => {
+    const events = [
+      {
+        schedule: {
+          rate: 'rate(10 minutes)',
+          enabled: false,
+          name: 'your-scheduled-event-name',
+          description: 'your scheduled event description',
+        },
+      },
+      {
+        schedule: {
+          rate: ['rate(1 hour)'],
+          name: 'your-scheduled-event-name-array',
+          inputPath: '$.stageVariables',
+        },
+      },
+      {
+        schedule: {
+          rate: 'rate(10 minutes)',
+          enabled: true,
+          input: '{"key":"array"}',
+        },
+      },
+      {
+        schedule: 'rate(10 minutes)',
+      },
+      {
+        schedule: 'cron(5,35 12 ? * 6l 2002-2005)',
+      },
+      {
+        schedule: {
+          rate: ['cron(0 0/4 ? * MON-FRI *)', 'rate(1 hour)'],
+          enabled: false,
+          description: 'your scheduled event description (array)',
+          input: {
+            key: 'array',
+          },
+        },
+      },
+      {
+        schedule: {
+          rate: 'rate(1 hour)',
+          inputTransformer: {
+            inputPathsMap: {
+              eventTime: '$.time',
+            },
+            inputTemplate: '{"time": <eventTime>, "key": "value"}',
+          },
+        },
+      },
+    ];
+
+    scheduleCfResources = await run(events);
   });
 
-  describe('#constructor()', () => {
-    it('should set the provider variable to an instance of AwsProvider', () =>
-      expect(awsCompileScheduledEvents.provider).to.be.instanceof(AwsProvider));
+  it('should create the corresponding schedule resources when schedule events are given', () => {
+    for (const scheduleCfResource of scheduleCfResources) {
+      expect(scheduleCfResource.Type).to.equal('AWS::Events::Rule');
+    }
   });
 
-  describe('#compileScheduledEvents()', () => {
-    it('should create corresponding resources when schedule events are given', () => {
-      awsCompileScheduledEvents.serverless.service.functions = {
-        first: {
-          events: [
-            {
-              schedule: {
-                rate: 'rate(10 minutes)',
-                enabled: false,
-              },
-            },
-            {
-              schedule: {
-                rate: 'rate(10 minutes)',
-                enabled: true,
-              },
-            },
-            {
-              schedule: 'rate(10 minutes)',
-            },
-            {
-              schedule: 'cron(5,35 12 ? * 6l 2002-2005)',
-            },
-          ],
+  it('should respect the given rate expressions', () => {
+    expect(scheduleCfResources[0].Properties.ScheduleExpression).to.equal('rate(10 minutes)');
+    expect(scheduleCfResources[1].Properties.ScheduleExpression).to.equal('rate(1 hour)');
+    expect(scheduleCfResources[2].Properties.ScheduleExpression).to.equal('rate(10 minutes)');
+    expect(scheduleCfResources[3].Properties.ScheduleExpression).to.equal('rate(10 minutes)');
+    expect(scheduleCfResources[4].Properties.ScheduleExpression).to.equal(
+      'cron(5,35 12 ? * 6l 2002-2005)'
+    );
+    expect(scheduleCfResources[5].Properties.ScheduleExpression).to.equal(
+      'cron(0 0/4 ? * MON-FRI *)'
+    );
+    expect(scheduleCfResources[6].Properties.ScheduleExpression).to.equal('rate(1 hour)');
+    expect(scheduleCfResources[7].Properties.ScheduleExpression).to.equal('rate(1 hour)');
+  });
+
+  it('should respect the "enabled" variable, defaulting to true', () => {
+    expect(scheduleCfResources[0].Properties.State).to.equal('DISABLED');
+    expect(scheduleCfResources[1].Properties.State).to.equal('ENABLED');
+    expect(scheduleCfResources[2].Properties.State).to.equal('ENABLED');
+    expect(scheduleCfResources[3].Properties.State).to.equal('ENABLED');
+    expect(scheduleCfResources[4].Properties.State).to.equal('ENABLED');
+    expect(scheduleCfResources[5].Properties.State).to.equal('DISABLED');
+    expect(scheduleCfResources[6].Properties.State).to.equal('DISABLED');
+    expect(scheduleCfResources[7].Properties.State).to.equal('ENABLED');
+  });
+
+  it('should respect the "name" variable', () => {
+    expect(scheduleCfResources[0].Properties.Name).to.equal('your-scheduled-event-name');
+    expect(scheduleCfResources[1].Properties.Name).to.equal('your-scheduled-event-name-array');
+    expect(scheduleCfResources[2].Properties.Name).to.be.undefined;
+    expect(scheduleCfResources[3].Properties.Name).to.be.undefined;
+    expect(scheduleCfResources[4].Properties.Name).to.be.undefined;
+    expect(scheduleCfResources[5].Properties.Name).to.be.undefined;
+    expect(scheduleCfResources[6].Properties.Name).to.be.undefined;
+    expect(scheduleCfResources[7].Properties.Name).to.be.undefined;
+  });
+
+  it('should throw an error if a "name" variable is specified when defining more than one rate expression', async () => {
+    const events = [
+      {
+        schedule: {
+          rate: ['cron(0 0/4 ? * MON-FRI *)', 'rate(1 hour)'],
+          enabled: false,
+          name: 'your-scheduled-event-name',
         },
-      };
+      },
+    ];
 
-      awsCompileScheduledEvents.compileScheduledEvents();
+    await expect(run(events)).to.be.eventually.rejectedWith(
+      ServerlessError,
+      'You cannot specify a name when defining more than one rate expression'
+    );
+  });
 
-      expect(
-        awsCompileScheduledEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstEventsRuleSchedule1.Type
-      ).to.equal('AWS::Events::Rule');
-      expect(
-        awsCompileScheduledEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstEventsRuleSchedule2.Type
-      ).to.equal('AWS::Events::Rule');
-      expect(
-        awsCompileScheduledEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstEventsRuleSchedule3.Type
-      ).to.equal('AWS::Events::Rule');
-      expect(
-        awsCompileScheduledEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstLambdaPermissionEventsRuleSchedule1.Type
-      ).to.equal('AWS::Lambda::Permission');
-      expect(
-        awsCompileScheduledEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstLambdaPermissionEventsRuleSchedule2.Type
-      ).to.equal('AWS::Lambda::Permission');
-      expect(
-        awsCompileScheduledEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstLambdaPermissionEventsRuleSchedule3.Type
-      ).to.equal('AWS::Lambda::Permission');
-      expect(
-        awsCompileScheduledEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstLambdaPermissionEventsRuleSchedule4.Type
-      ).to.equal('AWS::Lambda::Permission');
+  it('should respect the "description" variable', () => {
+    expect(scheduleCfResources[0].Properties.Description).to.equal(
+      'your scheduled event description'
+    );
+    expect(scheduleCfResources[1].Properties.Description).to.be.undefined;
+    expect(scheduleCfResources[2].Properties.Description).to.be.undefined;
+    expect(scheduleCfResources[3].Properties.Description).to.be.undefined;
+    expect(scheduleCfResources[4].Properties.Description).to.be.undefined;
+    expect(scheduleCfResources[5].Properties.Description).to.equal(
+      'your scheduled event description (array)'
+    );
+    expect(scheduleCfResources[6].Properties.Description).to.equal(
+      'your scheduled event description (array)'
+    );
+    expect(scheduleCfResources[7].Properties.Description).to.be.undefined;
+  });
+
+  it('should respect the "inputPath" variable', () => {
+    expect(scheduleCfResources[0].Properties.Targets[0].InputPath).to.be.undefined;
+    expect(scheduleCfResources[1].Properties.Targets[0].InputPath).to.equal('$.stageVariables');
+    expect(scheduleCfResources[2].Properties.Targets[0].InputPath).to.be.undefined;
+    expect(scheduleCfResources[3].Properties.Targets[0].InputPath).to.be.undefined;
+    expect(scheduleCfResources[4].Properties.Targets[0].InputPath).to.be.undefined;
+    expect(scheduleCfResources[5].Properties.Targets[0].InputPath).to.be.undefined;
+    expect(scheduleCfResources[6].Properties.Targets[0].InputPath).to.be.undefined;
+    expect(scheduleCfResources[7].Properties.Targets[0].InputPath).to.be.undefined;
+  });
+
+  it('should respect the "input" variable', () => {
+    expect(scheduleCfResources[0].Properties.Targets[0].Input).to.be.undefined;
+    expect(scheduleCfResources[1].Properties.Targets[0].Input).to.be.undefined;
+    expect(scheduleCfResources[2].Properties.Targets[0].Input).to.equal('{"key":"array"}');
+    expect(scheduleCfResources[3].Properties.Targets[0].Input).to.be.undefined;
+    expect(scheduleCfResources[4].Properties.Targets[0].Input).to.be.undefined;
+    expect(scheduleCfResources[5].Properties.Targets[0].Input).to.equal('{"key":"array"}');
+    expect(scheduleCfResources[6].Properties.Targets[0].Input).to.equal('{"key":"array"}');
+    expect(scheduleCfResources[7].Properties.Targets[0].Input).to.be.undefined;
+  });
+
+  it('should respect the "inputTransformer" variable', () => {
+    expect(scheduleCfResources[0].Properties.Targets[0].InputTransformer).to.be.undefined;
+    expect(scheduleCfResources[1].Properties.Targets[0].InputTransformer).to.be.undefined;
+    expect(scheduleCfResources[2].Properties.Targets[0].InputTransformer).to.be.undefined;
+    expect(scheduleCfResources[3].Properties.Targets[0].InputTransformer).to.be.undefined;
+    expect(scheduleCfResources[4].Properties.Targets[0].InputTransformer).to.be.undefined;
+    expect(scheduleCfResources[5].Properties.Targets[0].InputTransformer).to.be.undefined;
+    expect(scheduleCfResources[6].Properties.Targets[0].InputTransformer).to.be.undefined;
+    expect(scheduleCfResources[7].Properties.Targets[0].InputTransformer).to.deep.equal({
+      InputTemplate: '{"time": <eventTime>, "key": "value"}',
+      InputPathsMap: { eventTime: '$.time' },
     });
+  });
 
-    it('should respect enabled variable, defaulting to true', () => {
-      awsCompileScheduledEvents.serverless.service.functions = {
-        first: {
-          events: [
-            {
-              schedule: {
-                rate: 'rate(10 minutes)',
-                enabled: false,
-              },
-            },
-            {
-              schedule: {
-                rate: 'rate(10 minutes)',
-                enabled: true,
-              },
-            },
-            {
-              schedule: {
-                rate: 'rate(10 minutes)',
-              },
-            },
-            {
-              schedule: 'rate(10 minutes)',
-            },
-          ],
-        },
-      };
-
-      awsCompileScheduledEvents.compileScheduledEvents();
-
-      expect(
-        awsCompileScheduledEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstEventsRuleSchedule1.Properties.State
-      ).to.equal('DISABLED');
-      expect(
-        awsCompileScheduledEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstEventsRuleSchedule2.Properties.State
-      ).to.equal('ENABLED');
-      expect(
-        awsCompileScheduledEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstEventsRuleSchedule3.Properties.State
-      ).to.equal('ENABLED');
-      expect(
-        awsCompileScheduledEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstEventsRuleSchedule4.Properties.State
-      ).to.equal('ENABLED');
-    });
-
-    it('should respect name variable', () => {
-      awsCompileScheduledEvents.serverless.service.functions = {
-        first: {
-          events: [
-            {
-              schedule: {
-                rate: 'rate(10 minutes)',
-                enabled: false,
-                name: 'your-scheduled-event-name',
-              },
-            },
-          ],
-        },
-      };
-
-      awsCompileScheduledEvents.compileScheduledEvents();
-
-      expect(
-        awsCompileScheduledEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstEventsRuleSchedule1.Properties.Name
-      ).to.equal('your-scheduled-event-name');
-    });
-
-    it('should respect description variable', () => {
-      awsCompileScheduledEvents.serverless.service.functions = {
-        first: {
-          events: [
-            {
-              schedule: {
-                rate: 'rate(10 minutes)',
-                enabled: false,
-                description: 'your scheduled event description',
-              },
-            },
-          ],
-        },
-      };
-
-      awsCompileScheduledEvents.compileScheduledEvents();
-
-      expect(
-        awsCompileScheduledEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstEventsRuleSchedule1.Properties.Description
-      ).to.equal('your scheduled event description');
-    });
-
-    it('should respect inputPath variable', () => {
-      awsCompileScheduledEvents.serverless.service.functions = {
-        first: {
-          events: [
-            {
-              schedule: {
-                rate: 'rate(10 minutes)',
-                enabled: false,
-                inputPath: '$.stageVariables',
-              },
-            },
-          ],
-        },
-      };
-
-      awsCompileScheduledEvents.compileScheduledEvents();
-
-      expect(
-        awsCompileScheduledEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstEventsRuleSchedule1.Properties.Targets[0].InputPath
-      ).to.equal('$.stageVariables');
-    });
-
-    it('should respect input variable', () => {
-      awsCompileScheduledEvents.serverless.service.functions = {
-        first: {
-          events: [
-            {
-              schedule: {
-                rate: 'rate(10 minutes)',
-                enabled: false,
-                input: '{"key":"value"}',
-              },
-            },
-          ],
-        },
-      };
-
-      awsCompileScheduledEvents.compileScheduledEvents();
-
-      expect(
-        awsCompileScheduledEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstEventsRuleSchedule1.Properties.Targets[0].Input
-      ).to.equal('{"key":"value"}');
-    });
-
-    it('should respect input variable as an object', () => {
-      awsCompileScheduledEvents.serverless.service.functions = {
-        first: {
-          events: [
-            {
-              schedule: {
-                rate: 'rate(10 minutes)',
-                enabled: false,
-                input: {
-                  key: 'value',
-                },
-              },
-            },
-          ],
-        },
-      };
-
-      awsCompileScheduledEvents.compileScheduledEvents();
-
-      expect(
-        awsCompileScheduledEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstEventsRuleSchedule1.Properties.Targets[0].Input
-      ).to.equal('{"key":"value"}');
-    });
-
-    it('should respect inputTransformer variable', () => {
-      awsCompileScheduledEvents.serverless.service.functions = {
-        first: {
-          events: [
-            {
-              schedule: {
-                rate: 'rate(10 minutes)',
-                enabled: false,
-                inputTransformer: {
-                  inputPathsMap: {
-                    eventTime: '$.time',
-                  },
-                  inputTemplate: '{"time": <eventTime>, "key1": "value1"}',
-                },
-              },
-            },
-          ],
-        },
-      };
-
-      awsCompileScheduledEvents.compileScheduledEvents();
-
-      expect(
-        awsCompileScheduledEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstEventsRuleSchedule1.Properties.Targets[0].InputTransformer
-      ).to.eql({
-        InputTemplate: '{"time": <eventTime>, "key1": "value1"}',
-        InputPathsMap: { eventTime: '$.time' },
-      });
-    });
-
-    it('should not create corresponding resources when scheduled events are not given', () => {
-      awsCompileScheduledEvents.serverless.service.functions = {
-        first: {
-          events: [],
-        },
-      };
-
-      awsCompileScheduledEvents.compileScheduledEvents();
-
-      expect(
-        awsCompileScheduledEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources
-      ).to.deep.equal({});
-    });
+  it('should not create schedule resources when no scheduled event is given', async () => {
+    expect(await run([])).to.be.empty;
   });
 });

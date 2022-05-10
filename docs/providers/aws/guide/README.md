@@ -1,6 +1,5 @@
 <!--
-title: Serverless - AWS Guide
-menuText: User Guide
+title: Serverless Framework - AWS Guide
 layout: Doc
 -->
 

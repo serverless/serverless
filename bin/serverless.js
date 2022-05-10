@@ -1,53 +1,126 @@
 #!/usr/bin/env node
 
+// WARNING: Do not use syntax not supported by old Node.js versions (v4 lowest)
+// It's to ensure that users running those versions, see properly the error message
+// (as constructed below) instead of the syntax error
+
 'use strict';
 
 // `EvalError` is used to not pollute global namespace but still have the value accessible globally
-EvalError.$serverlessCommandStartTime = process.hrtime();
+// Can already be set, if we're in context of local fallback
+const isMainModule = !EvalError.$serverlessCommandStartTime;
+if (isMainModule) EvalError.$serverlessCommandStartTime = process.hrtime();
 
-const nodeVersion = Number(process.version.split('.')[0].slice(1));
+const nodeVersionMajor = Number(process.version.split('.')[0].slice(1));
+const nodeVersionMinor = Number(process.version.split('.')[1]);
+const minimumSupportedVersionMajor = 12;
+const minimumSupportedVersionMinor = 13;
 
-if (nodeVersion < 12) {
-  if (nodeVersion >= 10) {
-    require('../lib/utils/logDeprecation')(
-      'OUTDATED_NODEJS',
-      'Support for Node.js versions below v12 will be dropped with next major release. Please upgrade at https://nodejs.org/en/'
-    );
-  } else {
-    const serverlessVersion = Number(require('../package.json').version.split('.')[0]);
-    process.stdout.write(
-      `Serverless: \x1b[91mInitialization error: Node.js v${nodeVersion} is not supported by ` +
-        `Serverless Framework v${serverlessVersion}. Please upgrade\x1b[39m\n`
-    );
-    process.exit(1);
-  }
+if (
+  nodeVersionMajor < minimumSupportedVersionMajor ||
+  (nodeVersionMajor === minimumSupportedVersionMajor &&
+    nodeVersionMinor < minimumSupportedVersionMinor)
+) {
+  const serverlessVersion = Number(require('../package.json').version.split('.')[0]);
+  process.stderr.write(
+    `\x1b[91mError: Serverless Framework v${serverlessVersion} does not support ` +
+      `Node.js ${process.version}. Please upgrade Node.js to the latest ` +
+      `LTS version (v${minimumSupportedVersionMajor}.${minimumSupportedVersionMinor}.0 is a minimum supported version)\x1b[39m\n`
+  );
+  process.exit(1);
 }
 
-if (require('../lib/utils/isStandaloneExecutable')) {
-  require('../lib/utils/standalone-patch');
-  if (process.argv[2] === 'binary-postinstall' && process.argv.length === 3) {
-    require('../scripts/postinstall');
-    return;
-  }
-}
-
-// CLI Triage
-(() => {
-  try {
-    const componentsV1 = require('@serverless/cli');
-    const componentsV2 = require('@serverless/components');
-
-    // Serverless Components v1 CLI (deprecated)
-    if (componentsV1.runningComponents()) return () => componentsV1.runComponents();
-
-    // Serverless Components CLI
-    if (componentsV2.runningComponents()) return () => componentsV2.runComponents();
-  } catch (error) {
-    if (process.env.SLS_DEBUG) {
-      require('../lib/classes/Error').logWarning(`CLI triage crashed with: ${error.stack}`);
+if (isMainModule) {
+  if (require('../lib/utils/is-standalone-executable')) {
+    require('../lib/utils/standalone-patch');
+    if (process.argv[2] === 'binary-postinstall' && process.argv.length === 3) {
+      require('../scripts/postinstall');
+      return;
     }
   }
 
-  // Serverless Framework CLI
-  return () => require('../scripts/serverless');
-})()();
+  const path = require('path');
+  const localInstallationPath = require('../lib/cli/local-serverless-path');
+  if (localInstallationPath && localInstallationPath !== path.dirname(__dirname)) {
+    // Local fallback
+    const localServerlessBinPath = (() => {
+      try {
+        return require.resolve(path.resolve(localInstallationPath, 'bin/serverless'));
+      } catch (ignore) {
+        // Unrecognized "serverless" installation, continue with this one
+        return null;
+      }
+    })();
+
+    if (localServerlessBinPath) {
+      EvalError.$serverlessInitInstallationVersion = require('../package').version;
+      const colorSupportLevel = require('supports-color').stdout.level;
+      let message = 'Running "serverless" from node_modules\n';
+      if (colorSupportLevel) {
+        message =
+          colorSupportLevel > 2 ? `\x1b[38;5;145m${message}\x1b[39m` : `\x1b[90m${message}\x1b[39m`;
+      }
+      process.stderr.write(message);
+      require(localServerlessBinPath);
+      return;
+    }
+  }
+}
+
+require('../lib/cli/triage')().then((cliName) => {
+  switch (cliName) {
+    case 'serverless':
+      require('../scripts/serverless');
+      return;
+    case '@serverless/compose':
+      require('../lib/cli/run-compose')().catch((error) => {
+        // Expose eventual resolution error as regular crash, and not unhandled rejection
+        process.nextTick(() => {
+          throw error;
+        });
+      });
+      return;
+    case 'serverless-tencent':
+      require('../lib/cli/run-serverless-tencent')().catch((error) => {
+        // Expose eventual resolution error as regular crash, and not unhandled rejection
+        process.nextTick(() => {
+          throw error;
+        });
+      });
+      return;
+    case '@serverless/components':
+      {
+        const chalk = require('chalk');
+        process.stdout.write(
+          `${[
+            'Serverless Components CLI is no longer bundled with Serverless Framework CLI',
+            '',
+            "To run it, ensure it's installed:",
+            chalk.bold('npm install -g @serverless/components'),
+            '',
+            'Then run:',
+            chalk.bold('components <command> <options>'),
+          ].join('\n')}\n`
+        );
+      }
+      return;
+    case '@serverless/cli':
+      {
+        const chalk = require('chalk');
+        process.stdout.write(
+          `${[
+            'Serverless Components CLI v1 is no longer bundled with Serverless Framework CLI',
+            '',
+            "To run it, ensure it's installed:",
+            chalk.bold('npm install -g @serverless/cli'),
+            '',
+            'Then run:',
+            chalk.bold('components-v1 <command> <options>'),
+          ].join('\n')}\n`
+        );
+      }
+      return;
+    default:
+      throw new Error(`Unrecognized CLI name "${cliName}"`);
+  }
+});

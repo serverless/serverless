@@ -13,7 +13,7 @@ layout: Doc
 
 # Serverless CI/CD Best Practices
 
-Serverless Framework Pro provides a lot of capabilities out of the box to help you manage and deploy
+Serverless Framework provides a lot of capabilities out of the box to help you manage and deploy
 your services. As your teams grow and the number of services grow, it can be difficult to know
 the best way to organize your services for scale.
 

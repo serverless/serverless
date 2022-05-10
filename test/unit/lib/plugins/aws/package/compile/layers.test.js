@@ -49,6 +49,7 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
             description: 'Layer two example',
             path: 'layer',
             compatibleRuntimes: ['nodejs12.x'],
+            compatibleArchitectures: ['arm64'],
             licenseInfo: 'GPL',
             allowedAccounts: ['123456789012', '123456789013'],
           },
@@ -186,6 +187,13 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
 
     expect(layerOne.Type).to.equals('AWS::Lambda::LayerVersion');
     expect(layerOne.Properties.CompatibleRuntimes).to.deep.equals(['nodejs12.x']);
+  });
+
+  it('should support `layers[].compatibleArchitectures`', () => {
+    const layerResourceName = naming.getLambdaLayerLogicalId('LayerTwo');
+    const layerOne = cfResources[layerResourceName];
+
+    expect(layerOne.Properties.CompatibleArchitectures).to.deep.equals(['arm64']);
   });
 
   it('should support `layers[].licenseInfo`', () => {

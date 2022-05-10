@@ -3,7 +3,7 @@
 const chai = require('chai');
 const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
 const validate = require('../../../../../../lib/plugins/aws/lib/validate');
-const Serverless = require('../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../lib/serverless');
 const ServerlessError = require('../../../../../../lib/serverless-error');
 
 chai.use(require('chai-as-promised'));
@@ -11,7 +11,7 @@ chai.use(require('chai-as-promised'));
 const expect = chai.expect;
 
 describe('#validate', () => {
-  const serverless = new Serverless();
+  const serverless = new Serverless({ commands: [], options: {} });
   let provider;
   const awsPlugin = {};
 

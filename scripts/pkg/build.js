@@ -20,7 +20,7 @@ const spawnOptions = { cwd: serverlessPath, stdio: 'inherit' };
   // It's due to fact that npm tends to issue buggy releases
   // Node.js confirms on given version before including it within its bundle
   // Version mappings reference: https://nodejs.org/en/download/releases/
-  await spawn('npm', ['install', '--no-save', 'npm@6.13.4'], spawnOptions);
+  await spawn('npm', ['install', '--no-save', 'npm@8.1.2'], spawnOptions);
 
   try {
     process.stdout.write('Build binaries\n');
@@ -31,7 +31,7 @@ const spawnOptions = { cwd: serverlessPath, stdio: 'inherit' };
         '-c',
         'scripts/pkg/config.js',
         '--targets',
-        'node14-linux-x64,node14-mac-x64,node14-win-x64',
+        'node16-linux-x64,node16-mac-x64,node16-win-x64',
         '--out-path',
         'dist',
         'bin/serverless.js',

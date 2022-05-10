@@ -13,7 +13,7 @@ layout: Doc
 
 # Notifications
 
-Serverless Framework Pro has integrated Slack, email, SNS and webhook notifications for CI/CD status updates.
+Serverless Framework has integrated Slack, email, SNS and webhook notifications for CI/CD status updates.
 
 Notifications for CI/CD events are not setup by default, so you will not get notified of deployments starting,
 completing of failing. These notifications must be added manually.

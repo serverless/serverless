@@ -3,7 +3,7 @@
 const BbPromise = require('bluebird');
 const chai = require('chai');
 const Deploy = require('../../../../lib/plugins/deploy');
-const Serverless = require('../../../../lib/Serverless');
+const Serverless = require('../../../../lib/serverless');
 const sinon = require('sinon');
 
 // Configure chai
@@ -17,7 +17,7 @@ describe('Deploy', () => {
   let options;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     options = {};
     deploy = new Deploy(serverless, options);
     deploy.serverless.providers = { validProvider: true };
@@ -75,22 +75,6 @@ describe('Deploy', () => {
           expect(spawnDeployFunctionStub).to.not.be.called,
           expect(spawnPackageStub).to.be.calledOnce,
           expect(spawnPackageStub).to.be.calledWithExactly('package'),
-        ])
-      );
-    });
-
-    it('should execute deploy function if a function option is given', () => {
-      deploy.options.package = false;
-      deploy.options.function = 'myfunc';
-      deploy.serverless.service.package.path = false;
-
-      return expect(deploy.hooks['before:deploy:deploy']()).to.be.fulfilled.then(() =>
-        BbPromise.all([
-          expect(spawnPackageStub).to.not.be.called,
-          expect(spawnDeployFunctionStub).to.be.calledOnce,
-          expect(spawnDeployFunctionStub).to.be.calledWithExactly('deploy:function', {
-            terminateLifecycleAfterExecution: true,
-          }),
         ])
       );
     });

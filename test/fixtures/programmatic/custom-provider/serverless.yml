@@ -1,0 +1,18 @@
+service: custom
+
+frameworkVersion: '*'
+
+provider:
+  name: customProvider
+  runtime: foo
+
+plugins:
+  - ./custom-provider
+
+functions:
+  someFunction:
+    events:
+      - someEvent:
+          someProp: some string
+  otherFunction:
+    runtime: bar

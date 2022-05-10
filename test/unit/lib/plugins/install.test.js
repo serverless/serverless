@@ -1,10 +1,10 @@
 'use strict';
 
 const chai = require('chai');
-const Serverless = require('../../../../lib/Serverless');
+const Serverless = require('../../../../lib/serverless');
 const Install = require('../../../../lib/plugins/install.js');
 const sinon = require('sinon');
-const download = require('../../../../lib/utils/downloadTemplateFromRepo');
+const download = require('../../../../lib/utils/download-template-from-repo');
 const fse = require('fs-extra');
 const path = require('path');
 const { getTmpDirPath } = require('../../../utils/fs');
@@ -16,7 +16,6 @@ describe('Install', () => {
   let install;
   let serverless;
   let cwd;
-  let logSpy;
 
   let serviceDir;
 
@@ -33,7 +32,6 @@ describe('Install', () => {
     install = new Install(serverless);
     return serverless.init().then(() => {
       install.serverless.cli = new serverless.classes.CLI();
-      logSpy = sinon.spy(install.serverless.cli, 'log');
     });
   });
 
@@ -112,12 +110,7 @@ describe('Install', () => {
       downloadStub.resolves('remote-service');
 
       return install.install().then(() => {
-        const installationMessage = logSpy.args.filter((arg) =>
-          arg[0].includes('installed "remote-service"')
-        );
-
         expect(downloadStub).to.have.been.calledOnce;
-        expect(installationMessage[0]).to.have.lengthOf(1);
       });
     });
 
@@ -127,12 +120,7 @@ describe('Install', () => {
       downloadStub.resolves('remote-service');
 
       return install.install().then(() => {
-        const installationMessage = logSpy.args.filter((arg) =>
-          arg[0].includes('installed "remote-service" as "remote"')
-        );
-
         expect(downloadStub).to.have.been.calledOnce;
-        expect(installationMessage[0]).to.have.lengthOf(1);
       });
     });
   });

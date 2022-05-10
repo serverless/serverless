@@ -2,7 +2,7 @@
 
 const expect = require('chai').expect;
 const AwsCompileWebsocketsEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/index');
-const Serverless = require('../../../../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../../../../lib/serverless');
 const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
 const runServerless = require('../../../../../../../../../utils/run-serverless');
 
@@ -15,7 +15,7 @@ describe('#validate()', () => {
       stage: 'dev',
       region: 'us-east-1',
     };
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.setProvider('aws', new AwsProvider(serverless, options));
     awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless, options);
   });

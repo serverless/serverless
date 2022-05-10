@@ -4,8 +4,8 @@ const chai = require('chai');
 const sinon = require('sinon');
 const BbPromise = require('bluebird');
 const PluginList = require('../../../../../lib/plugins/plugin/list');
-const Serverless = require('../../../../../lib/Serverless');
-const CLI = require('../../../../../lib/classes/CLI');
+const Serverless = require('../../../../../lib/serverless');
+const CLI = require('../../../../../lib/classes/cli');
 chai.use(require('chai-as-promised'));
 const expect = require('chai').expect;
 
@@ -14,7 +14,7 @@ describe('PluginList', () => {
   let serverless;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.cli = new CLI(serverless);
     const options = {};
     pluginList = new PluginList(serverless, options);

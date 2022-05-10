@@ -20,7 +20,4 @@ It will create a new serverless platform account if one doesn't already exist.
 
 ```bash
 serverless login
-
-# Shorthand
-sls login
 ```

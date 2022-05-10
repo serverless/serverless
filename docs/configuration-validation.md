@@ -16,4 +16,14 @@ If you were presented with configuration error (or a warning, depending on `conf
 
 **Note**: In a warning mode (with `configValidationMode: warn` set in configuration) Framework commands are not blocked in any way, e.g. `sls deploy` will still attempt to deploy the service normally (still depending on the source of the warning, success of a deployment may vary)
 
-If you find this functionality problematic, you may also turn it off with `configValidationMode: off` setting.
+When the setting is not explicitly specified, serverless defaults to `configValidationMode: warn`. If you find this functionality problematic, you may also turn it off with `configValidationMode: off` setting.
+
+## Configuration
+
+Add `configValidationMode` to your service configuration with one of the following values:
+
+| Value | Effect                                                |
+| ----- | ----------------------------------------------------- |
+| error | Fail invoked command and output configuration errors. |
+| warn  | Output configuration errors in form of warnings.      |
+| off   | Suppress configuration errors.                        |

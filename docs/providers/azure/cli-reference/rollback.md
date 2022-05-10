@@ -27,7 +27,7 @@ serverless rollback --timestamp timestamp
 - `--region` or `-r` - Specify region name
 - `--subscriptionId` or `-i` - Specify subscription ID
 - `--timestamp` or `-t` The deployment you want to rollback to.
-- `--verbose` or `-v` Shows any Stack Output.
+- `--verbose` Shows any Stack Output.
 
 ## Provided lifecycle events
 

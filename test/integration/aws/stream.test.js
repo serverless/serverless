@@ -68,9 +68,7 @@ describe('AWS - Stream Integration Test', function () {
   describe('DynamoDB Streams', () => {
     it('should invoke on dynamodb messages from the latest position', () => {
       const functionName = 'streamDynamoDb';
-      const item = {
-        id: 'message',
-      };
+      const item = { id: String(Date.now()) };
       return confirmCloudWatchLogs(
         `/aws/lambda/${stackName}-${functionName}`,
         () => {

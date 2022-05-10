@@ -1,0 +1,22 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+functions:
+  foo:
+    handler: index.handler
+    # provisionedConcurrency: 1
+    events:
+      - httpApi: '*'
+
+  other:
+    handler: index.handler
+    events:
+      - httpApi:
+          method: '*'
+          path: /foo

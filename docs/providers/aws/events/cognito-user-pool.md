@@ -134,5 +134,21 @@ resources:
       Type: AWS::Cognito::UserPool
 ```
 
+## Forcing deploying of triggers
+
+A Cognito User Pool with triggers attached may not be correctly updated by AWS Cloudformation on subsequent deployments. To circumvent this issue you can use the `forceDeploy` flag which will try to force Cloudformation to update the triggers no matter what. This flag has to be used in conjuction with the `existing: true` flag.
+
+```yml
+functions:
+  preSignUp:
+    handler: preSignUp.handler
+    events:
+      - cognitoUserPool:
+          pool: MyUserPool1
+          trigger: PreSignUp
+          existing: true
+          forceDeploy: true
+```
+
 [aws-triggers-guide]: http://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-identity-pools-working-with-aws-lambda-triggers.html
 [aws-triggers-list]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-lambdaconfig.html

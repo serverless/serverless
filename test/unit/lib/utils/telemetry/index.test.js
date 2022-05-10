@@ -26,7 +26,7 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
   before(() => {
     ({ storeLocally, send } = proxyquire('../../../../../lib/utils/telemetry/index.js', {
       '@serverless/utils/analytics-and-notfications-url': telemetryUrl,
-      './areDisabled': false,
+      './are-disabled': false,
       'node-fetch': async (url, options) => {
         usedUrl = url;
         usedOptions = options;
@@ -67,7 +67,7 @@ describe('test/unit/lib/utils/telemetry/index.test.js', () => {
     const dirFilenames = await fsp.readdir(cacheDirPath);
     expect(dirFilenames.length).to.equal(1);
     const persistedEvent = await fse.readJson(path.join(cacheDirPath, dirFilenames[0]));
-    expect(persistedEvent.payload).to.deep.equal(payload);
+    expect(persistedEvent.payload).to.deep.equal({ ...payload, id: dirFilenames[0] });
     expect(persistedEvent).to.have.property('timestamp');
   });
 

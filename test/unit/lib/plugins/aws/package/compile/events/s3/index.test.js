@@ -6,7 +6,7 @@ const sinon = require('sinon');
 const chai = require('chai');
 const proxyquire = require('proxyquire').noCallThru();
 const AwsProvider = require('../../../../../../../../../lib/plugins/aws/provider');
-const Serverless = require('../../../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../../../lib/serverless');
 const runServerless = require('../../../../../../../../utils/run-serverless');
 
 const { expect } = chai;
@@ -23,12 +23,12 @@ describe('AwsCompileS3Events', () => {
     const AwsCompileS3Events = proxyquire(
       '../../../../../../../../../lib/plugins/aws/package/compile/events/s3/index',
       {
-        '../../../../customResources': {
+        '../../../../custom-resources': {
           addCustomResourceToService: addCustomResourceToServiceStub,
         },
       }
     );
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
     serverless.setProvider('aws', new AwsProvider(serverless));
     awsCompileS3Events = new AwsCompileS3Events(serverless);
@@ -843,7 +843,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', ()
       fixture: 'function',
       configExt: {
         functions: {
-          foo: {
+          basic: {
             events: [
               {
                 s3: {
@@ -861,6 +861,48 @@ describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', ()
                   bucket: { Ref: 'SomeBucket' },
                   event: 's3:ObjectCreated:*',
                   existing: true,
+                },
+              },
+            ],
+          },
+          withIf: {
+            handler: 'basic.handler',
+            events: [
+              {
+                s3: {
+                  bucket: {
+                    'Fn::If': [
+                      'isFirstBucketEmtpy',
+                      { Ref: 'FirstBucket' },
+                      { Ref: 'SecondBucket' },
+                    ],
+                  },
+                  event: 's3:ObjectCreated:*',
+                  existing: true,
+                },
+              },
+            ],
+          },
+          prefixSuffixWithCfFunction: {
+            handler: 'basic.handler',
+            events: [
+              {
+                s3: {
+                  bucket: 'TestBucket',
+                  event: 's3:ObjectCreated:*',
+                  existing: true,
+                  rules: [
+                    {
+                      prefix: {
+                        'Fn::Join': ['-', ['test', 'join']],
+                      },
+                    },
+                    {
+                      suffix: {
+                        'Fn::Join': ['-', ['test', 'join']],
+                      },
+                    },
+                  ],
                 },
               },
             ],
@@ -919,13 +961,68 @@ describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', ()
     });
   });
 
+  it('should support `bucket` provided as CF If function', () => {
+    expect(cfResources[naming.getCustomResourceS3ResourceLogicalId('withIf')]).to.deep.equal({
+      Type: 'Custom::S3',
+      Version: 1,
+      DependsOn: ['WithIfLambdaFunction', 'CustomDashresourceDashexistingDashs3LambdaFunction'],
+      Properties: {
+        ServiceToken: {
+          'Fn::GetAtt': ['CustomDashresourceDashexistingDashs3LambdaFunction', 'Arn'],
+        },
+        FunctionName: `${serverlessInstance.service.service}-dev-withIf`,
+        BucketName: {
+          'Fn::If': ['isFirstBucketEmtpy', { Ref: 'FirstBucket' }, { Ref: 'SecondBucket' }],
+        },
+        BucketConfigs: [{ Event: 's3:ObjectCreated:*', Rules: [] }],
+      },
+    });
+  });
+
+  it('should support `prefix` and `suffix` provided as CF function', () => {
+    expect(
+      cfResources[naming.getCustomResourceS3ResourceLogicalId('prefixSuffixWithCfFunction')]
+    ).to.deep.equal({
+      Type: 'Custom::S3',
+      Version: 1,
+      DependsOn: [
+        'PrefixSuffixWithCfFunctionLambdaFunction',
+        'CustomDashresourceDashexistingDashs3LambdaFunction',
+      ],
+      Properties: {
+        ServiceToken: {
+          'Fn::GetAtt': ['CustomDashresourceDashexistingDashs3LambdaFunction', 'Arn'],
+        },
+        FunctionName: `${serverlessInstance.service.service}-dev-prefixSuffixWithCfFunction`,
+        BucketName: 'TestBucket',
+        BucketConfigs: [
+          {
+            Event: 's3:ObjectCreated:*',
+            Rules: [
+              {
+                Prefix: {
+                  'Fn::Join': ['-', ['test', 'join']],
+                },
+              },
+              {
+                Suffix: {
+                  'Fn::Join': ['-', ['test', 'join']],
+                },
+              },
+            ],
+          },
+        ],
+      },
+    });
+  });
+
   it('should disallow referencing multiple buckets in context of single function with CF references', async () => {
     await expect(
       runServerless({
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               events: [
                 {
                   s3: {
@@ -956,7 +1053,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', ()
         fixture: 'function',
         configExt: {
           functions: {
-            foo: {
+            basic: {
               events: [
                 {
                   s3: {

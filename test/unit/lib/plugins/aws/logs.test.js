@@ -5,7 +5,7 @@ const sinon = require('sinon');
 const proxyquire = require('proxyquire');
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
 const AwsLogs = require('../../../../../lib/plugins/aws/logs');
-const Serverless = require('../../../../../lib/Serverless');
+const Serverless = require('../../../../../lib/serverless');
 
 // Configure chai
 chai.use(require('chai-as-promised'));
@@ -21,7 +21,7 @@ describe('AwsLogs', () => {
       region: 'us-east-1',
       function: 'first',
     };
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     const provider = new AwsProvider(serverless, options);
     provider.cachedCredentials = {
       credentials: { accessKeyId: 'foo', secretAccessKey: 'bar' },
@@ -335,7 +335,7 @@ describe('AwsLogs', () => {
         region: 'us-east-1',
         function: 'first',
       };
-      serverless = new Serverless();
+      serverless = new Serverless({ commands: [], options: {} });
       const provider = new AwsProvider(serverless, options);
       provider.cachedCredentials = {
         credentials: { accessKeyId: 'foo', secretAccessKey: 'bar' },

@@ -17,7 +17,8 @@ layout: Doc
 Rollback a function service to a specific version.
 
 ```bash
-serverless rollback function --function <name> --function-version <version>
+serverless rollback function --function <name> \
+  --function-version <version>
 ```
 
 **Note:** You can only rollback a function which was previously deployed through `serverless deploy`. Functions are not versioned when running `serverless deploy function`.

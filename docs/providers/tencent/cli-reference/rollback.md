@@ -25,7 +25,7 @@ If `timestamp` is not specified, Framework will show your existing deployments.
 ## Options
 
 - `--timestamp` or `-t` The deployment you want to rollback to.
-- `--verbose` or `-v` Shows any history deployment.
+- `--verbose` Shows any history deployment.
 
 ## Examples
 

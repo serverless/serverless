@@ -1,0 +1,24 @@
+service: aws-nodejs
+
+configValidationMode: error
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+package:
+  individually: true
+
+functions:
+  hello:
+    handler: handler.hello
+    package:
+      patterns:
+        - handler.js
+        - '!handler2.js'
+  hello2:
+    handler: handler2.hello
+    package:
+      patterns:
+        - handler2.js
+        - '!handler.js'

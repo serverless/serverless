@@ -1,0 +1,34 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  logRetentionInDays: 14
+
+functions:
+  foo:
+    handler: index.handler
+    # provisionedConcurrency: 1 # Increases significantly test time
+    events:
+      - httpApi:
+          method: GET
+          path: /foo
+      - httpApi:
+          method: POST
+          path: /some-post
+
+  other:
+    handler: index.handler
+    events:
+      - httpApi:
+          method: get
+          path: /bar/{marko}
+
+  simpleCustomAuthorizer:
+    handler: authorizers.simpleAuthorizer
+
+  standardCustomAuthorizer:
+    handler: authorizers.standardAuthorizer

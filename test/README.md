@@ -15,7 +15,7 @@ npm test
 
 All new tests should be configured with help of [runServerless](./utils/run-serverless.js) util - it's the only way to test functionality against completely intialized `serverless` instance, and it's the only scenario that reflects real world usage.
 
-Check documentation of `runServerless` at [@serverless/test/docs/run-serverless](https://github.com/serverless/test/blob/master/docs/run-serverless.md#run-serverless). Note that `runServerless` as configured at `./utils/run-serverless.js` supports two additional options (`fixture` and `configExt`), which provides out of a box setup to run _Serverless_ instance against prepared fixture with eventually extended service configuration
+Check documentation of `runServerless` at [@serverless/test/docs/run-serverless](https://github.com/serverless/test/blob/main/docs/run-serverless.md#run-serverless). Note that `runServerless` as configured at `./utils/run-serverless.js` supports two additional options (`fixture` and `configExt`), which provides out of a box setup to run _Serverless_ instance against prepared fixture with eventually extended service configuration
 
 As `runServerless` tests are expensive, it's good to ensure a _minimal_ count of `runServerless` runs to test given scope of problems. Ideally with one service example we should cover most of the test cases we can (good example of such approach is [ALB health check tests](https://github.com/serverless/serverless/blob/80e70e7affd54418361c4d54bdef1561af6b8826/lib/plugins/aws/package/compile/events/alb/lib/healthCheck.test.js#L18-L127))
 
@@ -28,7 +28,7 @@ As `runServerless` tests are expensive, it's good to ensure a _minimal_ count of
 
 Example of test files fully backed by `runServerless`:
 
-- [lib/plugins/aws/package/compile/events/httpApi.js](https://github.com/serverless/serverless/blob/master/lib/plugins/aws/package/compile/events/httpApi.js)
+- [lib/plugins/aws/package/compile/events/httpApi.js](https://github.com/serverless/serverless/blob/main/lib/plugins/aws/package/compile/events/httpApi.js)
 
 If we're about to add new tests to an existing test file with tests written old way, then best is to create another `describe` block for new tests at the bottom (as it's done [here](https://github.com/serverless/serverless/blob/74634c3317a116077a008375e20d6a5b99b1256e/lib/plugins/aws/package/compile/functions/index.test.js#L2602))
 
@@ -61,15 +61,15 @@ Check existing set of AWS integration tests at [test/integration](./integration)
 Pass test file to Mocha directly as follows
 
 ```
-AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=xxx npx mocha tests/integration/{chosen}.test.js
+AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=xxx npx mocha test/integration/{chosen}.test.js
 ```
 
 ### Tests that depend on shared infrastructure stack
 
 Due to the fact that some of the tests require a bit more complex infrastructure setup which might be lengthy, two additional commands has been made available:
 
-- `integration-test-setup-infrastructure` - used for setting up all needed intrastructure dependencies
-- `integration-test-teardown-infrastructure` - used for tearing down the infrastructure setup by the above command
+- `integration-test-setup` - used for setting up all needed intrastructure dependencies
+- `integration-test-teardown` - used for tearing down the infrastructure setup by the above command
 
 Such tests take advantage of `isDependencyStackAvailable` util to check if all needed dependencies are ready. If not, it skips the given test suite.
 
@@ -90,13 +90,13 @@ To run all integration tests run:
 To run only a specific integration test run:
 
 ```
-tests/templates/integration-test-template TEMPLATE_NAME BUILD_COMMAND
+test/templates/integration-test-template TEMPLATE_NAME BUILD_COMMAND
 ```
 
 so for example:
 
 ```
-tests/templates/integration-test-template aws-java-maven mvn package
+test/templates/integration-test-template aws-java-maven mvn package
 ```
 
 If you add a new template make sure to add it to the `test-all-templates` file and configure the `docker-compose.yml` file for your template.

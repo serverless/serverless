@@ -2,14 +2,14 @@
 
 const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
 const AwsCommon = require('../../../../../../lib/plugins/aws/common/index');
-const Serverless = require('../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../lib/serverless');
 const expect = require('chai').expect;
 const sinon = require('sinon');
 
 describe('AwsCommon', () => {
   let awsCommon;
   beforeEach(() => {
-    const serverless = new Serverless();
+    const serverless = new Serverless({ commands: [], options: {} });
     const options = {
       stage: 'dev',
       region: 'us-east-1',

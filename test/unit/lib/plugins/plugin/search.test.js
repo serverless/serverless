@@ -4,15 +4,14 @@ const chai = require('chai');
 const sinon = require('sinon');
 const BbPromise = require('bluebird');
 const PluginSearch = require('../../../../../lib/plugins/plugin/search');
-const Serverless = require('../../../../../lib/Serverless');
-const CLI = require('../../../../../lib/classes/CLI');
+const Serverless = require('../../../../../lib/serverless');
+const CLI = require('../../../../../lib/classes/cli');
 chai.use(require('chai-as-promised'));
 const expect = require('chai').expect;
 
 describe('PluginSearch', () => {
   let pluginSearch;
   let serverless;
-  let consoleLogStub;
 
   const plugins = [
     {
@@ -33,15 +32,10 @@ describe('PluginSearch', () => {
   ];
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.cli = new CLI(serverless);
     const options = {};
     pluginSearch = new PluginSearch(serverless, options);
-    consoleLogStub = sinon.stub(serverless.cli, 'consoleLog').returns();
-  });
-
-  afterEach(() => {
-    serverless.cli.consoleLog.restore();
   });
 
   describe('#constructor()', () => {
@@ -98,7 +92,6 @@ describe('PluginSearch', () => {
       pluginSearch.options.query = 'serverless-plugin-1';
 
       return expect(pluginSearch.search()).to.be.fulfilled.then(() => {
-        expect(consoleLogStub.calledOnce).to.equal(true);
         expect(getPluginsStub.calledOnce).to.equal(true);
         expect(displayStub.calledOnce).to.equal(true);
       });
