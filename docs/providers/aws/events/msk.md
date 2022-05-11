@@ -93,9 +93,7 @@ functions:
       - msk:
           arn: arn:aws:kafka:region:XXXXXX:cluster/MyCluster/xxxx-xxxxx-xxxx
           topic: mytopic
-          SourceAccessConfigurations:
-            - Type: SASL_SCRAM_512_AUTH
-              URI: arn:aws:secretsmanager:region:XXXXXX:secret:AmazonMSK_xxxxxx
+          saslScram512: arn:aws:secretsmanager:region:XXXXXX:secret:AmazonMSK_xxxxxx
 ```
 
 ## IAM Permissions

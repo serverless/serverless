@@ -14,10 +14,12 @@ describe('AwsCompileMSKEvents', () => {
   const startingPosition = 'LATEST';
   const batchSize = 5000;
   const maximumBatchingWindow = 10;
+  const saslScram512 =
+    'arn:aws:secretsmanager:us-east-1:111111111111:secret:AmazonMSK_a1a1a1a1a1a1a1a1';
   const sourceAccessConfigurations = [
     {
       Type: 'SASL_SCRAM_512_AUTH',
-      URI: 'arn:aws:secretsmanager:us-east-1:111111111111:secret:AmazonMSK_a1a1a1a1a1a1a1a1',
+      URI: saslScram512,
     },
   ];
 
@@ -52,7 +54,7 @@ describe('AwsCompileMSKEvents', () => {
                     maximumBatchingWindow,
                     enabled,
                     startingPosition,
-                    sourceAccessConfigurations,
+                    saslScram512,
                   },
                 },
               ],
