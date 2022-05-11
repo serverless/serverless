@@ -247,7 +247,6 @@ functions:
             Fn::GetAtt:
               - QueueName
               - Arn
-          retryPolicy:
-            maximumEventAge: 3600
-            maximumRetryAttempts: 3
+    maximumEventAge: 3600
+    maximumRetryAttempts: 3
 ```
