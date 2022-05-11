@@ -16,4 +16,4 @@ Welcome to the Serverless Apache OpenWhisk CLI Reference! Please select a sectio
 
 **Note:** Before continuing [Apache OpenWhisk system credentials](../guide/credentials.md) are required for using the CLI.
 
-If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](http://forum.serverless.com/).
+If you have questions, join the [Slack community](https://serverless.com/slack) or [post over on the forums](http://forum.serverless.com/).

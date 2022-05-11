@@ -195,18 +195,12 @@ We have added configuration for a database, and even written code to talk to the
 In your `serverless.yml`, paste the following block within the functions block:
 
 ```yaml
-provider:
-  iam:
-    role:
-      statements:
-        - Effect: 'Allow'
-          Action:
-            - 'dynamodb:PutItem'
-            - 'dynamodb:Get*'
-            - 'dynamodb:Scan*'
-            - 'dynamodb:UpdateItem'
-            - 'dynamodb:DeleteItem'
-          Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:service}-customerTable-${sls:stage}
+createCustomer:
+  handler: createCustomer.createCustomer
+  events:
+    - httpApi:
+        path: /
+        method: post
 ```
 
 1. The first line allows us to give our specific function a name, in this case `createCustomer`
