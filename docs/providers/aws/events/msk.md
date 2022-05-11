@@ -83,7 +83,7 @@ functions:
 
 ## Enabling authentication
 
-In order to authenticate to the `msk` you can set the `SourceAccessConfigurations`, which sets the authentication protocol.
+In order to authenticate to the `msk` you can set the `saslScram512`, which sets the authentication protocol.
 
 ```yml
 functions:
