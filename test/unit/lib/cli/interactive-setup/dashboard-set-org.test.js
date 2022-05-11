@@ -6,7 +6,6 @@ const sinon = require('sinon');
 const proxyquire = require('proxyquire');
 const fsp = require('fs').promises;
 const yaml = require('js-yaml');
-const log = require('@serverless/utils/log').log.get('test');
 const overrideCwd = require('process-utils/override-cwd');
 const overrideEnv = require('process-utils/override-env');
 const configureInquirerStub = require('@serverless/test/configure-inquirer-stub');
@@ -120,6 +119,19 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
     };
     expect(await step.isApplicable(context)).to.be.false;
     expect(context.inapplicabilityReasonCode).to.equal('NOT_IN_SERVICE_DIRECTORY');
+  });
+
+  it('Should be ineffective, when in console context', async () => {
+    const context = {
+      initial: {},
+      serviceDir: process.cwd(),
+      configuration: {},
+      configurationFilename: 'serverless.yml',
+      options: { console: true },
+      isConsole: true,
+    };
+    expect(await step.isApplicable(context)).to.be.false;
+    expect(context.inapplicabilityReasonCode).to.equal('CONSOLE_CONTEXT');
   });
 
   it('Should be ineffective, when not at AWS service path', async () => {
@@ -593,116 +605,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
   });
 
   describe('Monitoring setup from CLI flags', () => {
-    describe('--console flag', () => {
-      it('Should setup monitoring for chosen org and console', async () => {
-        const { servicePath: serviceDir, serviceConfig: configuration } = await fixtures.setup(
-          'aws-loggedin-service'
-        );
-        const context = {
-          serviceDir,
-          configuration,
-          configurationFilename: 'serverless.yml',
-          options: { org: 'testinteractivecli', console: true },
-          isConsole: true,
-          initial: {},
-          inquirer,
-          history: new Map(),
-          stepHistory: new StepHistory(),
-        };
-
-        await overrideCwd(serviceDir, async () => {
-          const stepData = await step.isApplicable(context);
-          if (!stepData) throw new Error('Step resolved as not applicable');
-          await step.run(context, stepData);
-        });
-        const serviceConfig = yaml.load(
-          String(await fsp.readFile(join(serviceDir, 'serverless.yml')))
-        );
-        expect(serviceConfig.org).to.equal('testinteractivecli');
-        expect(serviceConfig.console).to.be.true;
-        expect(context.configuration.org).to.equal('testinteractivecli');
-        expect(context.configuration.console).to.be.true;
-        expect(context.stepHistory.valuesMap()).to.deep.equal(new Map());
-      });
-
-      it('Should setup monitoring for chosen org and console even if already configured', async () => {
-        configureInquirerStub(inquirer, {
-          confirm: { shouldOverrideDashboardConfig: true },
-        });
-        const { servicePath: serviceDir, serviceConfig: configuration } = await fixtures.setup(
-          'aws-loggedin-console-service'
-        );
-        const context = {
-          serviceDir,
-          configuration,
-          configurationFilename: 'serverless.yml',
-          options: { org: 'otherorg', console: true },
-          isConsole: true,
-          initial: {},
-          inquirer,
-          history: new Map(),
-          stepHistory: new StepHistory(),
-        };
-
-        await overrideCwd(serviceDir, async () => {
-          const stepData = await step.isApplicable(context);
-          if (!stepData) throw new Error('Step resolved as not applicable');
-          await step.run(context, stepData);
-        });
-        const serviceConfig = yaml.load(
-          String(await fsp.readFile(join(serviceDir, 'serverless.yml')))
-        );
-        expect(serviceConfig.org).to.equal('otherorg');
-        expect(serviceConfig.console).to.be.true;
-        expect(context.configuration.org).to.equal('otherorg');
-        expect(context.configuration.console).to.be.true;
-        expect(Array.from(context.stepHistory.valuesMap())).to.deep.equal(
-          Array.from(new Map([['shouldOverrideDashboardConfig', true]]))
-        );
-      });
-
-      it('Should ensure dashboard remains enabled if already configured', async () => {
-        configureInquirerStub(inquirer, {
-          confirm: { shouldOverrideDashboardConfig: true },
-        });
-        const { servicePath: serviceDir, serviceConfig: configuration } = await fixtures.setup(
-          'aws-loggedin-monitored-service'
-        );
-        const context = {
-          serviceDir,
-          configuration,
-          configurationFilename: 'serverless.yml',
-          options: { console: true },
-          isConsole: true,
-          initial: {},
-          inquirer,
-          history: new Map(),
-          stepHistory: new StepHistory(),
-        };
-
-        await overrideCwd(serviceDir, async () => {
-          const stepData = await step.isApplicable(context);
-          if (!stepData) {
-            throw new Error(
-              `Step resolved as not applicable: ${context.inapplicabilityReasonCode}`
-            );
-          }
-          log.debug('step data: %o', stepData);
-          await step.run(context, stepData);
-        });
-        const serviceConfig = yaml.load(
-          String(await fsp.readFile(join(serviceDir, 'serverless.yml')))
-        );
-        expect(serviceConfig.org).to.equal('testinteractivecli');
-        expect(serviceConfig.app).to.equal('some-aws-service-app');
-        expect(serviceConfig.console).to.be.true;
-        expect(context.configuration.org).to.equal('testinteractivecli');
-        expect(context.configuration.app).to.equal('some-aws-service-app');
-        expect(context.configuration.console).to.be.true;
-        expect(Array.from(context.stepHistory.valuesMap())).to.deep.equal(Array.from(new Map()));
-      });
-    });
-
     it('Should setup monitoring for chosen org and app', async () => {
       const { servicePath: serviceDir, serviceConfig: configuration } = await fixtures.setup(
         'aws-loggedin-service'

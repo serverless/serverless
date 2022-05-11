@@ -1,21 +1,38 @@
 'use strict';
 
-const _ = require('lodash');
-const open = require('open');
 const { log, style } = require('@serverless/utils/log');
-const configUtils = require('@serverless/utils/config');
-const { ServerlessSDK } = require('@serverless/platform-client');
 
-module.exports = async ({ configuration, options }) => {
-  const isConsole = Boolean(_.get(configuration, 'console'));
-  log.notice(`Logging into the Serverless ${isConsole ? 'Console' : 'Dashboard'} via the browser`);
+module.exports = async ({ options }) => {
+  if (options.console) {
+    log.notice('Logging into the Serverless Console via the browser');
+    await require('@serverless/utils/auth/login')({
+      clientName: 'cli:serverless',
+      clientVersion: require('../package').version,
+      onLoginUrl: (loginUrl) => {
+        log.notice(
+          style.aside(
+            'If your browser does not open automatically, please open this URL:',
+            loginUrl
+          )
+        );
+      },
+    });
+    log.notice();
+    log.notice.success("You are now logged into the Serverless Console'");
+    log.notice();
+    log.notice('Learn more at https://www.serverless.com/console/docs');
+    return;
+  }
+
+  const open = require('open');
+  const configUtils = require('@serverless/utils/config');
+  const { ServerlessSDK } = require('@serverless/platform-client');
+
+  log.notice('Logging into the Serverless Dashboard via the browser');
 
   const sdk = new ServerlessSDK();
 
-  const loginOptions = {};
-  if (isConsole) loginOptions.app = 'console';
-
-  const { loginUrl, loginData: loginDataDeferred } = await sdk.login(loginOptions);
+  const { loginUrl, loginData: loginDataDeferred } = await sdk.login();
 
   open(loginUrl);
   log.notice(
@@ -50,17 +67,5 @@ module.exports = async ({ configuration, options }) => {
   configUtils.set(loginDataToSaveInConfig);
 
   log.notice();
-  log.notice.success(
-    `You are now logged into the Serverless ${isConsole ? 'Console' : 'Dashboard'}`
-  );
-
-  if (isConsole) {
-    log.notice();
-    log.notice('Learn more at https://www.serverless.com/console/docs');
-    return;
-  }
-  if (!_.get(configuration, 'org', options.org) || !_.get(configuration, 'app', options.app)) {
-    log.notice();
-    log.notice('Run "serverless" to add your service to the Serverless Dashboard');
-  }
+  log.notice.success('You are now logged into the Serverless Dashboard');
 };

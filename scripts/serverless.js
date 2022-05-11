@@ -235,12 +235,6 @@ processSpanPromise = (async () => {
 
         // IIFE for maintenance convenience
         await (async () => {
-          // We do not need to attempt resolution of further variables for login command as the only variable from configuration that we
-          // potentially rely on is `console`
-          // TODO: Remove when dashboard/console triage won't be needed - when that happens
-          // login command should once again be service independent
-          if (command === 'login') return;
-
           processLog.debug('resolve variables meta');
           const resolveVariablesMeta = require('../lib/configuration/variables/resolve-meta');
 
