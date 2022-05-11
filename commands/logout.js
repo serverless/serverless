@@ -1,21 +1,23 @@
 'use strict';
 
-const _ = require('lodash');
 const { log } = require('@serverless/utils/log');
 const accountUtils = require('@serverless/utils/account');
 const configUtils = require('@serverless/utils/config');
+const consoleLogout = require('@serverless/utils/auth/logout');
 
-module.exports = async ({ configuration }) => {
+module.exports = async () => {
+  const wasLoggedIntoConsole = consoleLogout();
+  if (wasLoggedIntoConsole) {
+    log.notice.success('You are now logged out of the Serverless Console');
+  }
+
   const user = configUtils.getLoggedInUser();
 
   if (!user) {
-    log.notice.skip('You are already logged out');
+    if (!wasLoggedIntoConsole) log.notice.skip('You are already logged out');
     return;
   }
 
   accountUtils.logout();
-  const isConsole = Boolean(_.get(configuration, 'console'));
-  log.notice.success(
-    `You are now logged out of the Serverless ${isConsole ? 'Console' : 'Dashboard'}`
-  );
+  log.notice.success('You are now logged out of the Serverless Dashboard');
 };
