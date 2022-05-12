@@ -8,7 +8,7 @@ const logout = require('../../../commands/logout');
 
 describe('test/unit/commands/logout.test.js', async () => {
   before(async () => {
-    const login = proxyquire('../../../commands/login', {
+    const login = proxyquire('../../../lib/commands/login/dashboard', {
       'open': () => {},
       '@serverless/platform-client': {
         ServerlessSDK: class ServerlessSDK {
@@ -32,9 +32,8 @@ describe('test/unit/commands/logout.test.js', async () => {
       },
     });
 
-    const context = { options: {} };
-    await login(context);
-    await logout(context);
+    await login();
+    await logout();
   });
 
   it('should logout', async () => {

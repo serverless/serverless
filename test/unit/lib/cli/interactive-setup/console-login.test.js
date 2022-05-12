@@ -89,7 +89,7 @@ describe('test/unit/lib/cli/interactive-setup/console-login.test.js', function (
       confirm: { shouldLoginOrRegister: true },
     });
     const loginStep = proxyquire('../../../../../lib/cli/interactive-setup/console-login', {
-      '../../../commands/login': loginStub,
+      '../../../lib/commands/login/console': loginStub,
     });
     const context = {
       serviceDir: process.cwd(),
@@ -109,7 +109,7 @@ describe('test/unit/lib/cli/interactive-setup/console-login.test.js', function (
 
   it('Should login and skip question when user providers `org` option', async () => {
     const loginStep = proxyquire('../../../../../lib/cli/interactive-setup/console-login', {
-      '../../../commands/login': loginStub,
+      '../../../lib/commands/login/console': loginStub,
     });
     const context = {
       serviceDir: process.cwd(),
@@ -126,7 +126,7 @@ describe('test/unit/lib/cli/interactive-setup/console-login.test.js', function (
 
   it('Should login and skip question when `org` configured', async () => {
     const loginStep = proxyquire('../../../../../lib/cli/interactive-setup/console-login', {
-      '../../../commands/login': loginStub,
+      '../../../lib/commands/login/console': loginStub,
     });
     const context = {
       serviceDir: process.cwd(),
@@ -146,7 +146,7 @@ describe('test/unit/lib/cli/interactive-setup/console-login.test.js', function (
       confirm: { shouldLoginOrRegister: false },
     });
     const loginStep = proxyquire('../../../../../lib/cli/interactive-setup/console-login', {
-      '../../../commands/login': loginStub,
+      '../../../lib/commands/login/console': loginStub,
     });
     const context = {
       serviceDir: process.cwd(),
