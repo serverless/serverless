@@ -1677,6 +1677,11 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
                 },
               },
             },
+            fnUrlWithProvisioned: {
+              handler: 'target.handler',
+              url: true,
+              provisionedConcurrency: 1,
+            },
           },
           resources: {
             Resources: {
@@ -1898,6 +1903,42 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         FunctionUrlAuthType: 'NONE',
         Principal: '*',
       });
+    });
+
+    it('should support `functions[].url` set to `true` with provisionedConcurrency set', () => {
+      expect(
+        cfResources[naming.getLambdaFunctionUrlLogicalId('fnUrlWithProvisioned')].Properties
+      ).to.deep.equal({
+        AuthType: 'NONE',
+        TargetFunctionArn: {
+          'Fn::Join': [
+            ':',
+            [
+              {
+                'Fn::GetAtt': ['FnUrlWithProvisionedLambdaFunction', 'Arn'],
+              },
+              'provisioned',
+            ],
+          ],
+        },
+      });
+      expect(
+        cfResources[naming.getLambdaFunctionUrlLogicalId('fnUrlWithProvisioned')].DependsOn
+      ).to.equal('FnUrlWithProvisionedProvConcLambdaAlias');
+
+      expect(
+        cfResources[naming.getLambdaFnUrlPermissionLogicalId('fnUrl')].Properties
+      ).to.deep.equal({
+        Action: 'lambda:InvokeFunctionUrl',
+        FunctionName: {
+          'Fn::GetAtt': ['FnUrlLambdaFunction', 'Arn'],
+        },
+        FunctionUrlAuthType: 'NONE',
+        Principal: '*',
+      });
+      expect(
+        cfResources[naming.getLambdaFnUrlPermissionLogicalId('fnUrlWithProvisioned')].DependsOn
+      ).to.equal('FnUrlWithProvisionedProvConcLambdaAlias');
     });
 
     it('should support `functions[].url` set to an object with authorizer and cors', () => {
