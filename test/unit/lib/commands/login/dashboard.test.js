@@ -5,9 +5,9 @@ const proxyquire = require('proxyquire');
 
 const configUtils = require('@serverless/utils/config');
 
-describe('test/unit/commands/login.test.js', async () => {
+describe('test/unit/lib/commands/login/dashboard.test.js', async () => {
   before(async () => {
-    const login = proxyquire('../../../commands/login', {
+    const login = proxyquire('../../../../../lib/commands/login/dashboard', {
       'open': () => {},
       '@serverless/platform-client': {
         ServerlessSDK: class ServerlessSDK {
