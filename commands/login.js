@@ -1,6 +1,50 @@
 'use strict';
 
-module.exports = async ({ options }) => {
-  if (options.console) require('../lib/commands/login/console')();
-  else require('../lib/commands/login/dashboard')();
+const _ = require('lodash');
+
+const resolveIsDashboardEnabled = require('../lib/configuration/is-dashboard-enabled');
+
+module.exports = async (context) => {
+  const { configuration, options } = context;
+  const identityName = await (async () => {
+    if (options.console) return 'console';
+    if (options.dashboard) return 'dashboard';
+
+    const isConsoleEnabled = Boolean(_.get(configuration, 'console'));
+    const isDashboardEnabled = resolveIsDashboardEnabled({ configuration, options });
+
+    if (isConsoleEnabled) {
+      if (!isDashboardEnabled) return 'console';
+    } else if (isDashboardEnabled) {
+      return 'dashboard';
+    }
+
+    const promptWithHistory = require('@serverless/utils/inquirer/prompt-with-history');
+    const { StepHistory } = require('@serverless/utils/telemetry');
+    context.history = new StepHistory();
+    return await promptWithHistory({
+      message: 'Which would you like to log into?',
+      type: 'list',
+      name: 'identityName',
+      choices: [
+        { name: 'Serverless Framework Dashboard', value: 'dashboard' },
+        { name: 'Serverless Console', value: 'console' },
+      ],
+      stepHistory: context.history,
+      recordRawAnswerInHistory: true,
+    });
+  })();
+
+  switch (identityName) {
+    case 'console':
+      await require('../lib/commands/login/console')();
+      break;
+    case 'dashboard':
+      await require('../lib/commands/login/dashboard')();
+      break;
+    default:
+      throw new Error(`Unexpected identityName: ${identityName}`);
+  }
+
+  return context;
 };
