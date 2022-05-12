@@ -433,7 +433,6 @@ describe('AwsCompileS3Events', () => {
             },
             FunctionName: 'first',
             BucketName: 'existing-s3-bucket',
-            ForceDeploy: undefined,
             BucketConfigs: [{ Event: 's3:ObjectCreated:*', Rules: [] }],
           },
         });
@@ -518,7 +517,6 @@ describe('AwsCompileS3Events', () => {
             },
             FunctionName: 'second',
             BucketName: 'existing-s3-bucket',
-            ForceDeploy: undefined,
             BucketConfigs: [
               {
                 Event: 's3:ObjectCreated:Put',
@@ -653,7 +651,6 @@ describe('AwsCompileS3Events', () => {
             },
             FunctionName: 'second',
             BucketName: 'existing-s3-bucket',
-            ForceDeploy: undefined,
             BucketConfigs: [
               {
                 Event: 's3:ObjectCreated:Put',
@@ -788,7 +785,6 @@ describe('AwsCompileS3Events', () => {
             },
             FunctionName: 'first',
             BucketName: 'existing-s3-bucket',
-            ForceDeploy: undefined,
             BucketConfigs: [
               {
                 Event: 's3:ObjectCreated:*',
@@ -820,7 +816,6 @@ describe('AwsCompileS3Events', () => {
             },
             FunctionName: 'second',
             BucketName: 'existing-s3-bucket',
-            ForceDeploy: undefined,
             BucketConfigs: [
               {
                 Event: 's3:ObjectRemoved:*',
@@ -990,7 +985,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', ()
         },
         FunctionName: `${serverlessInstance.service.service}-dev-other`,
         BucketName: { Ref: 'SomeBucket' },
-        ForceDeploy: undefined,
         BucketConfigs: [{ Event: 's3:ObjectCreated:*', Rules: [] }],
       },
     });
@@ -1009,7 +1003,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', ()
         BucketName: {
           'Fn::If': ['isFirstBucketEmtpy', { Ref: 'FirstBucket' }, { Ref: 'SecondBucket' }],
         },
-        ForceDeploy: undefined,
         BucketConfigs: [{ Event: 's3:ObjectCreated:*', Rules: [] }],
       },
     });
@@ -1031,7 +1024,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', ()
         },
         FunctionName: `${serverlessInstance.service.service}-dev-prefixSuffixWithCfFunction`,
         BucketName: 'TestBucket',
-        ForceDeploy: undefined,
         BucketConfigs: [
           {
             Event: 's3:ObjectCreated:*',
