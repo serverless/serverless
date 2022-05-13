@@ -843,6 +843,8 @@ functions:
           # Set to 'true' when using an existing bucket
           # Else the bucket will be automatically created
           existing: true
+          # Optional, for forcing deployment of triggers on existing S3 buckets
+          forceDeploy: true
 ```
 
 ### Schedule
