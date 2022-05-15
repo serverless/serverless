@@ -968,6 +968,8 @@ functions:
           startingPosition: LATEST
           # (default: true)
           enabled: false
+          # Optional, arn of the secret key for authenticating with the brokers in your MSK cluster.
+          saslScram512: arn:aws:secretsmanager:region:XXXXXX:secret:AmazonMSK_xxxxxx
 ```
 
 ### ActiveMQ
