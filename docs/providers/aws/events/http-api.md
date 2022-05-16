@@ -327,6 +327,12 @@ provider:
 
 In such case no API and stage resources are created, therefore extending HTTP API with CORS, access logs settings or authorizers is not supported.
 
+## HTTP API URL
+
+When deploying functions with `httpApi` events, the URL of the HTTP API will be displayed in the `serverless deploy` and `serverless info` output.
+
+The URL is also exported as a CloudFormation output under the `HttpApiUrl` output.
+
 ## Shared Authorizer
 
 For external HTTP API you can use shared authorizer in similar manner to RestApi. When using shared Lambda custom authorizer, you need to set `type` to `request`. Example configuration could look like:
