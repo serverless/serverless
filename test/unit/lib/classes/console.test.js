@@ -624,6 +624,29 @@ describe('test/unit/lib/classes/console.test.js', () => {
     });
   });
 
+  it('should support "console.org"', async () => {
+    const { requests: otelIngenstionRequests, stub: fetchStub } = createFetchStub();
+
+    await runServerless({
+      fixture: 'function',
+      command: 'package',
+      configExt: {
+        console: {
+          org: 'testorg',
+        },
+        org: 'ignore',
+      },
+      env: { SLS_ORG_TOKEN: 'dummy' },
+      modulesCacheStub: {
+        [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
+        [require.resolve('node-fetch')]: fetchStub,
+      },
+    });
+
+    for (const [url] of fetchStub.args) expect(url).to.not.include('/ignoreid/');
+    otelIngenstionRequests.includes('activate-token');
+  });
+
   describe('errors', () => {
     it('should abort when console enabled but not authenticated', async () => {
       await expect(
