@@ -149,6 +149,30 @@ describe('test/unit/lib/cli/interactive-setup/console-set-org.test.js', function
     expect(context.inapplicabilityReasonCode).to.equal('HAS_MONITORING_SETUP');
   });
 
+  it('Should recognize "console.org"', async () => {
+    const { servicePath: serviceDir, serviceConfig: configuration } = await fixtures.setup(
+      'aws-loggedin-console-monitored-service',
+      { configExt: { org: 'foo', console: { org: 'testinteractivecli' } } }
+    );
+    const context = {
+      serviceDir,
+      configuration,
+      configurationFilename: 'serverless.yml',
+      options: { console: true },
+      isConsole: true,
+      initial: {},
+      inquirer,
+    };
+    mockOrgNames = ['testinteractivecli'];
+    await overrideCwd(serviceDir, async () => {
+      expect(await step.isApplicable(context)).to.be.false;
+    });
+    expect(await overrideCwd(serviceDir, async () => await step.isApplicable(context))).to.equal(
+      false
+    );
+    expect(context.inapplicabilityReasonCode).to.equal('HAS_MONITORING_SETUP');
+  });
+
   it('Should recognize an invalid org and allow to opt out', async () => {
     configureInquirerStub(inquirer, {
       confirm: { shouldUpdateOrg: false },
