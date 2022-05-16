@@ -62,6 +62,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
           '${sourceDirect:}|${sourceUnrecognized:}|${sourceDirect(${sourceUnrecognized:})}' +
           '${sourceDirect:${sourceUnrecognized:}}',
       },
+      recognizedInUnrecognized: '${sourceUnrecognized(${sourceDirect:})}',
       erroredParam: '${sourceDirect(${sourceError:})}',
       nestErrored: {
         erroredAddress: '${sourceDirect:${sourceError:}}',
@@ -382,6 +383,11 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       expect(valueMeta).to.have.property('variables');
     });
 
+    it('should not resolve dependencies of unrecognized source', () => {
+      const valueMeta = variablesMeta.get('recognizedInUnrecognized');
+      expect(valueMeta.variables[0].sources[0].params[0]).to.have.property('variables');
+    });
+
     it('should mark dependency on errored property with error', () => {
       const valueMeta = variablesMeta.get('deepPropertyErrored');
       expect(valueMeta).to.not.have.property('variables');
@@ -437,6 +443,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         'missing',
         'nonStringStringPart',
         'nestUnrecognized\0unrecognized',
+        'recognizedInUnrecognized',
         'erroredParam',
         'nestErrored\0erroredAddress',
         'erroredSourceServerlessError',
