@@ -721,6 +721,7 @@ processSpanPromise = (async () => {
         // Do not confirm on unresolved sources with partially resolved configuration
         if (resolverConfiguration.propertyPathsToResolve) return;
 
+        processLog.debug('uresolved variables meta: %o', variablesMeta);
         // Report unrecognized variable sources found in variables configured in service config
         const unresolvedSources =
           require('../lib/configuration/variables/resolve-unresolved-source-types')(variablesMeta);
