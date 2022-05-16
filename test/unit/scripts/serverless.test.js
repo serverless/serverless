@@ -241,6 +241,19 @@ describe('test/unit/scripts/serverless.test.js', () => {
     }
   });
 
+  it('should throw meaningful error on unrecognized command for custom provider', async () => {
+    try {
+      await spawn('node', [serverlessPath, 'foo'], {
+        cwd: (await programmaticFixturesEngine.setup('custom-provider')).servicePath,
+      });
+      throw new Error('Unexpected');
+    } catch (error) {
+      if (!error.code) throw error;
+      expect(error.code).to.equal(1);
+      expect(String(error.stdoutBuffer)).to.include('command "foo" not found');
+    }
+  });
+
   it('should show help when requested and in context of invalid service configuration', async () => {
     const output = String(
       (
