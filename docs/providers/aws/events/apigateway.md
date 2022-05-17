@@ -1,8 +1,8 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - API Gateway
+title: Serverless Framework - AWS Lambda Events - REST API (API Gateway v1)
 menuText: API Gateway
 menuOrder: 1
-description: Setting up AWS API Gateway Events with AWS Lambda via the Serverless Framework
+description: Deploying REST APIs with AWS Lambda and API Gateway v1 via the Serverless Framework
 layout: Doc
 -->
 
@@ -12,7 +12,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# API Gateway REST API
+# REST API (API Gateway v1)
 
 API Gateway lets you deploy HTTP APIs. It comes [in two versions](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html):
 
