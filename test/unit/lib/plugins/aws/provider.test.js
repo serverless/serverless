@@ -1197,6 +1197,30 @@ aws_secret_access_key = CUSTOMSECRET
       });
     });
 
+    describe('with `functions[].image` referencing existing images where ecr uri region is different from the provider region', () => {
+      const imageRegion = 'sa-east-1';
+      const imageWithoutSha = `000000000000.dkr.ecr.${imageRegion}.amazonaws.com/test-lambda-docker`;
+
+      it('should fail when `functions[].image` when image uri region does not match the provider region', async () => {
+        await expect(
+          runServerless({
+            fixture: 'function',
+            command: 'package',
+            configExt: {
+              provider: {
+                region: 'us-east-1',
+              },
+              functions: {
+                fnImageWithExplicitUriInvalidRegion: {
+                  image: imageWithoutSha,
+                },
+              },
+            },
+          })
+        ).to.be.eventually.rejected.and.have.property('code', 'LAMBDA_ECR_REGION_MISMATCH_ERROR');
+      });
+    });
+
     describe('with `functions[].image` referencing images that require building', () => {
       const imageSha = '6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38';
       const repositoryUri = '999999999999.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker';
