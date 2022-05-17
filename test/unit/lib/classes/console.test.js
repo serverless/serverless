@@ -5,7 +5,6 @@ const sinon = require('sinon');
 const path = require('path');
 const fsp = require('fs').promises;
 const _ = require('lodash');
-const fetch = require('node-fetch');
 const log = require('log').get('serverless:test');
 const runServerless = require('../../../utils/run-serverless');
 
@@ -13,57 +12,41 @@ const runServerless = require('../../../utils/run-serverless');
 chai.use(require('chai-as-promised'));
 const expect = require('chai').expect;
 
-const createFetchStub = () => {
-  const requests = [];
-  return {
-    requests,
-    stub: sinon.stub().callsFake(async (url, { method } = { method: 'GET' }) => {
-      log.debug('fetch request %s %o', url, method);
-      if (url.includes('/org/')) {
-        if (method.toUpperCase() === 'GET') {
-          requests.push('get-token');
-          return {
-            ok: true,
-            json: async () => ({
-              status: 'existing_token',
-              token: { accessToken: 'accesss-token' },
-            }),
-          };
-        }
-      } else if (url.endsWith('/token')) {
-        if (method.toUpperCase() === 'PATCH') {
-          requests.push('activate-token');
-          return { ok: true, text: async () => '' };
-        }
-      } else if (url.includes('/tokens?')) {
-        if (method.toUpperCase() === 'DELETE') {
-          requests.push(
-            url.includes('token=') ? 'deactivate-other-tokens' : 'deactivate-all-tokens'
-          );
-          return { ok: true, text: async () => '' };
-        }
-      } else if (url.includes('/token?')) {
-        if (method.toUpperCase() === 'DELETE') {
-          requests.push('deactivate-token');
-          return { ok: true, text: async () => '' };
-        }
-      }
-      if (url.startsWith('https://registry.npmjs.org')) return fetch(url, { method });
-      throw new Error(`Unexpected request: ${url} method: ${method}`);
-    }),
-  };
-};
-
 const createApiStub = () => {
   const requests = [];
   return {
     requests,
-    stub: sinon.stub().callsFake(async (pathname) => {
+    stub: sinon.stub().callsFake(async (pathname, { method } = { method: 'GET' }) => {
       log.debug('api request %s', pathname);
       if (pathname.includes('orgs/name/')) {
         requests.push('/orgs/name/{org}');
         const orgName = pathname.split('/').filter(Boolean).pop();
         return { orgId: `${orgName}id` };
+      } else if (pathname.includes('/org/')) {
+        if (method.toUpperCase() === 'GET') {
+          requests.push('get-token');
+          return {
+            status: 'existing_token',
+            token: { accessToken: 'accesss-token' },
+          };
+        }
+      } else if (pathname.endsWith('/token')) {
+        if (method.toUpperCase() === 'PATCH') {
+          requests.push('activate-token');
+          return '';
+        }
+      } else if (pathname.includes('/tokens?')) {
+        if (method.toUpperCase() === 'DELETE') {
+          requests.push(
+            pathname.includes('token=') ? 'deactivate-other-tokens' : 'deactivate-all-tokens'
+          );
+          return '';
+        }
+      } else if (pathname.includes('/token?')) {
+        if (method.toUpperCase() === 'DELETE') {
+          requests.push('deactivate-token');
+          return '';
+        }
       }
       throw new Error(`Unexpected request: ${pathname}`);
     }),
@@ -153,12 +136,12 @@ describe('test/unit/lib/classes/console.test.js', () => {
       let cfTemplate;
       let awsNaming;
       let uploadStub;
-      let fetchStub;
+      let apiStub;
       let otelIngenstionRequests;
       before(async () => {
         const awsRequestStubMap = createAwsRequestStubMap();
         uploadStub = awsRequestStubMap.S3.upload;
-        ({ requests: otelIngenstionRequests, stub: fetchStub } = createFetchStub());
+        ({ requests: otelIngenstionRequests, stub: apiStub } = createApiStub());
 
         ({
           serverless,
@@ -172,8 +155,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
           configExt: { console: true, org: 'testorg' },
           env: { SLS_ORG_TOKEN: 'dummy' },
           modulesCacheStub: {
-            [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-            [require.resolve('node-fetch')]: fetchStub,
+            [require.resolve('@serverless/utils/api-request')]: apiStub,
           },
           awsRequestStubMap,
         }));
@@ -247,7 +229,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
     describe('package', () => {
       let userSettings;
       before(async () => {
-        const { stub: fetchStub } = createFetchStub();
+        const { stub: apiStub } = createApiStub();
 
         const { cfTemplate, awsNaming } = await runServerless({
           fixture: 'function',
@@ -261,8 +243,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
           },
           env: { SLS_ORG_TOKEN: 'dummy' },
           modulesCacheStub: {
-            [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-            [require.resolve('node-fetch')]: fetchStub,
+            [require.resolve('@serverless/utils/api-request')]: apiStub,
           },
         });
         userSettings = JSON.parse(
@@ -282,7 +263,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
 
     describe('package with "provider.layers" configuration', () => {
       it('should setup console wihout errors', async () => {
-        const fetchStub = createFetchStub().stub;
         const { cfTemplate, awsNaming } = await runServerless({
           fixture: 'function-layers',
           command: 'package',
@@ -301,7 +281,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
           },
           modulesCacheStub: {
             [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-            [require.resolve('node-fetch')]: fetchStub,
           },
           awsRequestStubMap: createAwsRequestStubMap(),
           env: { SLS_ORG_TOKEN: 'dummy' },
@@ -319,7 +298,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
 
     describe('disable logs collection', () => {
       it('should not setup report logs url', async () => {
-        const fetchStub = createFetchStub().stub;
         const { cfTemplate, awsNaming } = await runServerless({
           fixture: 'function',
           command: 'package',
@@ -329,7 +307,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
           },
           modulesCacheStub: {
             [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-            [require.resolve('node-fetch')]: fetchStub,
           },
           awsRequestStubMap: createAwsRequestStubMap(),
           env: { SLS_ORG_TOKEN: 'dummy' },
@@ -348,8 +325,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
       let cfTemplate;
       let awsNaming;
       before(async () => {
-        const { stub: fetchStub } = createFetchStub();
-
         ({ cfTemplate, awsNaming } = await runServerless({
           fixture: 'function',
           command: 'package',
@@ -357,7 +332,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
           env: { SLS_ORG_TOKEN: 'dummy' },
           modulesCacheStub: {
             [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-            [require.resolve('node-fetch')]: fetchStub,
           },
         }));
       });
@@ -379,10 +353,10 @@ describe('test/unit/lib/classes/console.test.js', () => {
     let consoleDeploy;
     let servicePath;
     let uploadStub;
-    let fetchStub;
+    let apiStub;
     let otelIngenstionRequests;
     before(async () => {
-      ({ requests: otelIngenstionRequests, stub: fetchStub } = createFetchStub());
+      ({ requests: otelIngenstionRequests, stub: apiStub } = createApiStub());
 
       ({
         serverless: { console: consolePackage },
@@ -394,8 +368,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
         configExt: { console: true, org: 'testorg' },
         env: { SLS_ORG_TOKEN: 'dummy' },
         modulesCacheStub: {
-          [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-          [require.resolve('node-fetch')]: fetchStub,
+          [require.resolve('@serverless/utils/api-request')]: apiStub,
         },
       }));
 
@@ -412,8 +385,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
         configExt: { console: true, org: 'testorg' },
         env: { SLS_ORG_TOKEN: 'dummy' },
         modulesCacheStub: {
-          [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-          [require.resolve('node-fetch')]: fetchStub,
+          [require.resolve('@serverless/utils/api-request')]: apiStub,
         },
         awsRequestStubMap,
       }));
@@ -439,7 +411,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
     let uploadStub;
     let updateFunctionStub;
     let publishLayerStub;
-    let fetchStub;
+    let apiStub;
     let otelIngenstionRequests;
     before(async () => {
       updateFunctionStub = sinon.stub().resolves({});
@@ -447,7 +419,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
       const awsRequestStubMap = createAwsRequestStubMap();
       uploadStub = awsRequestStubMap.S3.upload;
       let isFirstLayerVersionsQuery = true;
-      ({ requests: otelIngenstionRequests, stub: fetchStub } = createFetchStub());
+      ({ requests: otelIngenstionRequests, stub: apiStub } = createApiStub());
 
       ({ serverless } = await runServerless({
         fixture: 'function',
@@ -456,8 +428,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
         configExt: { console: true, org: 'testorg' },
         env: { SLS_ORG_TOKEN: 'dummy' },
         modulesCacheStub: {
-          [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-          [require.resolve('node-fetch')]: fetchStub,
+          [require.resolve('@serverless/utils/api-request')]: apiStub,
         },
         awsRequestStubMap: {
           ...awsRequestStubMap,
@@ -498,11 +469,11 @@ describe('test/unit/lib/classes/console.test.js', () => {
 
   describe('rollback', () => {
     let slsConsole;
-    let fetchStub;
+    let apiStub;
     let otelIngenstionRequests;
     before(async () => {
       const awsRequestStubMap = createAwsRequestStubMap();
-      ({ requests: otelIngenstionRequests, stub: fetchStub } = createFetchStub());
+      ({ requests: otelIngenstionRequests, stub: apiStub } = createApiStub());
 
       ({
         serverless: { console: slsConsole },
@@ -513,8 +484,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
         configExt: { console: true, org: 'testorg' },
         env: { SLS_ORG_TOKEN: 'dummy' },
         modulesCacheStub: {
-          [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-          [require.resolve('node-fetch')]: fetchStub,
+          [require.resolve('@serverless/utils/api-request')]: apiStub,
         },
         awsRequestStubMap: {
           ...awsRequestStubMap,
@@ -575,10 +545,10 @@ describe('test/unit/lib/classes/console.test.js', () => {
 
   describe('remove', () => {
     let otelIngenstionRequests;
-    let fetchStub;
+    let apiStub;
     before(async () => {
       const awsRequestStubMap = createAwsRequestStubMap();
-      ({ requests: otelIngenstionRequests, stub: fetchStub } = createFetchStub());
+      ({ requests: otelIngenstionRequests, stub: apiStub } = createApiStub());
 
       await runServerless({
         fixture: 'function',
@@ -586,8 +556,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
         configExt: { console: true, org: 'testorg' },
         env: { SLS_ORG_TOKEN: 'dummy' },
         modulesCacheStub: {
-          [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-          [require.resolve('node-fetch')]: fetchStub,
+          [require.resolve('@serverless/utils/api-request')]: apiStub,
         },
         awsRequestStubMap: {
           ...awsRequestStubMap,
@@ -625,7 +594,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
   });
 
   it('should support "console.org"', async () => {
-    const { requests: otelIngenstionRequests, stub: fetchStub } = createFetchStub();
+    const { requests: otelIngenstionRequests, stub: apiStub } = createApiStub();
 
     await runServerless({
       fixture: 'function',
@@ -638,12 +607,11 @@ describe('test/unit/lib/classes/console.test.js', () => {
       },
       env: { SLS_ORG_TOKEN: 'dummy' },
       modulesCacheStub: {
-        [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-        [require.resolve('node-fetch')]: fetchStub,
+        [require.resolve('@serverless/utils/api-request')]: apiStub,
       },
     });
 
-    for (const [url] of fetchStub.args) expect(url).to.not.include('/ignoreid/');
+    for (const [url] of apiStub.args) expect(url).to.not.include('/ignoreid/');
     otelIngenstionRequests.includes('activate-token');
   });
 
@@ -659,7 +627,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
     });
 
     it('should abort when function has already maximum numbers of layers configured', async () => {
-      const fetchStub = createFetchStub().stub;
       await expect(
         runServerless({
           fixture: 'function-layers',
@@ -685,7 +652,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
           },
           modulesCacheStub: {
             [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-            [require.resolve('node-fetch')]: fetchStub,
           },
           awsRequestStubMap: createAwsRequestStubMap(),
           env: { SLS_ORG_TOKEN: 'dummy' },
@@ -697,7 +663,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
       'should throw integration error when attempting to deploy package, ' +
         'packaged with different console integration version',
       async () => {
-        const fetchStub = createFetchStub().stub;
         const {
           fixtureData: { servicePath },
         } = await runServerless({
@@ -708,7 +673,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
           env: { SLS_ORG_TOKEN: 'dummy' },
           modulesCacheStub: {
             [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-            [require.resolve('node-fetch')]: fetchStub,
           },
           awsRequestStubMap: createAwsRequestStubMap(),
         });
@@ -726,7 +690,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
             env: { SLS_ORG_TOKEN: 'dummy' },
             modulesCacheStub: {
               [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-              [require.resolve('node-fetch')]: fetchStub,
             },
             awsRequestStubMap: createAwsRequestStubMap(),
           })
@@ -737,7 +700,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
       'should throw mismatch error when attempting to deploy package, ' +
         'packaged with different org',
       async () => {
-        const fetchStub = createFetchStub().stub;
         const {
           fixtureData: { servicePath, updateConfig },
         } = await runServerless({
@@ -748,7 +710,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
           env: { SLS_ORG_TOKEN: 'dummy' },
           modulesCacheStub: {
             [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-            [require.resolve('node-fetch')]: fetchStub,
           },
         });
 
@@ -763,7 +724,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
             env: { SLS_ORG_TOKEN: 'dummy' },
             modulesCacheStub: {
               [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-              [require.resolve('node-fetch')]: fetchStub,
             },
             awsRequestStubMap: createAwsRequestStubMap(),
           })
@@ -774,7 +734,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
       'should throw mismatch error when attempting to deploy package, ' +
         'packaged with different region',
       async () => {
-        const fetchStub = createFetchStub().stub;
         const {
           fixtureData: { servicePath, updateConfig },
         } = await runServerless({
@@ -785,7 +744,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
           env: { SLS_ORG_TOKEN: 'dummy' },
           modulesCacheStub: {
             [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-            [require.resolve('node-fetch')]: fetchStub,
           },
         });
 
@@ -800,7 +758,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
             env: { SLS_ORG_TOKEN: 'dummy' },
             modulesCacheStub: {
               [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-              [require.resolve('node-fetch')]: fetchStub,
             },
             awsRequestStubMap: createAwsRequestStubMap(),
           })
@@ -811,7 +768,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
       'should throw activation mismatch error when attempting to deploy with ' +
         'console integration off, but packaged with console integration on',
       async () => {
-        const fetchStub = createFetchStub().stub;
         const {
           fixtureData: { servicePath, updateConfig },
         } = await runServerless({
@@ -822,7 +778,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
           env: { SLS_ORG_TOKEN: 'dummy' },
           modulesCacheStub: {
             [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-            [require.resolve('node-fetch')]: fetchStub,
           },
         });
         const stateFilename = path.resolve(servicePath, 'package-dir', 'serverless-state.json');
@@ -839,7 +794,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
             env: { SLS_ORG_TOKEN: 'dummy' },
             modulesCacheStub: {
               [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-              [require.resolve('node-fetch')]: fetchStub,
             },
             awsRequestStubMap: createAwsRequestStubMap(),
           })
@@ -851,7 +805,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
       'should throw integration error when attempting to rollback deployment, ' +
         'to one deployed with different console integration version',
       async () => {
-        const fetchStub = createFetchStub().stub;
         const awsRequestStubMap = createAwsRequestStubMap();
         await expect(
           runServerless({
@@ -863,7 +816,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
             env: { SLS_ORG_TOKEN: 'dummy' },
             modulesCacheStub: {
               [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-              [require.resolve('node-fetch')]: fetchStub,
             },
             awsRequestStubMap: {
               ...awsRequestStubMap,
@@ -921,7 +873,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
       'should throw integration error when attempting to rollback deployment, ' +
         'to one deployed with different org',
       async () => {
-        const fetchStub = createFetchStub().stub;
         const awsRequestStubMap = createAwsRequestStubMap();
         await expect(
           runServerless({
@@ -933,7 +884,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
             env: { SLS_ORG_TOKEN: 'dummy' },
             modulesCacheStub: {
               [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-              [require.resolve('node-fetch')]: fetchStub,
             },
             awsRequestStubMap: {
               ...awsRequestStubMap,
@@ -989,7 +939,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
       'should throw integration error when attempting to rollback deployment, ' +
         'deployed with console, while having console disabled',
       async () => {
-        const fetchStub = createFetchStub().stub;
         const awsRequestStubMap = createAwsRequestStubMap();
         await expect(
           runServerless({
@@ -1000,7 +949,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
             env: { SLS_ORG_TOKEN: 'dummy' },
             modulesCacheStub: {
               [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-              [require.resolve('node-fetch')]: fetchStub,
             },
             awsRequestStubMap: {
               ...awsRequestStubMap,
