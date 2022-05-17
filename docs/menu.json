@@ -15,8 +15,8 @@
     "Events": {
       "Overview": "providers/aws/guide/events",
       "ActiveMQ": "providers/aws/events/activemq",
-      "API Gateway": "providers/aws/events/apigateway",
-      "HTTP API": "providers/aws/events/http-api",
+      "REST (API Gateway v1)": "providers/aws/events/apigateway",
+      "HTTP (API Gateway v2)": "providers/aws/events/http-api",
       "Application Load Balancer": "providers/aws/events/alb",
       "Alexa Skill": "providers/aws/events/alexa-skill",
       "Alexa Smart Home": "providers/aws/events/alexa-smart-home",
