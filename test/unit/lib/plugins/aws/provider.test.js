@@ -1195,13 +1195,10 @@ aws_secret_access_key = CUSTOMSECRET
         const versionCfConfig = findVersionCfConfig(cfResources, functionCfLogicalId);
         expect(versionCfConfig.CodeSha256).to.equal(imageSha);
       });
-    });
-
-    describe('with `functions[].image` referencing existing images where ecr uri region is different from the provider region', () => {
-      const imageRegion = 'sa-east-1';
-      const imageWithoutSha = `000000000000.dkr.ecr.${imageRegion}.amazonaws.com/test-lambda-docker`;
 
       it('should fail when `functions[].image` when image uri region does not match the provider region', async () => {
+        const imageRegion = 'sa-east-1';
+        const imageWithoutSha = `000000000000.dkr.ecr.${imageRegion}.amazonaws.com/test-lambda-docker`;
         await expect(
           runServerless({
             fixture: 'function',
