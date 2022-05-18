@@ -74,7 +74,7 @@ provider:
 
 package:
   patterns:
-    - !layerSourceTarball.tar.gz
+    - '!layerSourceTarball.tar.gz'
 
 layers:
   layerOne:
@@ -95,7 +95,7 @@ layers:
     path: layerOne
     package:
       patterns:
-        - !layerSourceTarball.tar.gz
+        - '!layerSourceTarball.tar.gz'
 ```
 
 Keep in mind that all patterns (even when inherited from the service config) are resolved against the layer's `path` and not the service `path`.
