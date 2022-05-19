@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.18.0](https://github.com/serverless/serverless/compare/v3.17.0...v3.18.0) (2022-05-19)
+
+### Features
+
+- **Console:**
+  - Switch to a new authentication system ([#11060](https://github.com/serverless/serverless/issues/11060)) ([d40866a](https://github.com/serverless/serverless/commit/d40866a0e845123ceecdd5b2b05e96e8dde09b04)) ([Mariusz Nowak](https://github.com/medikoo))
+  - In uneven scenario let user decide whether intent is to login into the Dashboard or the Console([#11045](https://github.com/serverless/serverless/issues/11045)) ([0f21362](https://github.com/serverless/serverless/commit/0f2136209199dad43410b0a71b2fa2c211a027a7)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Report `org` mismatch with a meaningful error ([#11060](https://github.com/serverless/serverless/issues/11060)) ([ecaeb1f](https://github.com/serverless/serverless/commit/ecaeb1f1bb210e8f6eced3011ce54ab854d23ff8)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Support `console.org` setting (so different `org` settings can be used for the Dashboard and the Console) ([#11060](https://github.com/serverless/serverless/issues/11060)) ([3b3cfae](https://github.com/serverless/serverless/commit/3b3cfae4986f0e022b8906ec59743482a5540068)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS MSK:** Add support for SASL/SCRAM authentication ([#11060](https://github.com/serverless/serverless/issues/11060)) ([184cb03](https://github.com/serverless/serverless/commit/184cb030a87a20d0491ee3d79244ca017d44aabf)) ([Ariel Gordone](https://github.com/Arielgordon123))
+- **AWS S3:** Support `forceDeploy` setting ([#11066](https://github.com/serverless/serverless/issues/11066)) ([5af44a4](https://github.com/serverless/serverless/commit/5af44a478e66cb7361dd09a79e9acc1869552f19)) ([Simon Archer](https://github.com/simonarcher99))
+- **AWS Lambda:** Recognize all variants of supported log retention days ([#11076](https://github.com/serverless/serverless/issues/11076)) ([a4d0ad5](https://github.com/serverless/serverless/commit/a4d0ad530b1c473cdb09ac1428717660b8b9ad5c)) ([Brian Celenza](https://github.com/bcelenza))
+
+### Bug Fixes
+
+- **AWS Lambda:** Fix support for lambdas with provisioned concurrency on with `url: true` ([#11045](https://github.com/serverless/serverless/issues/11045)) ([2107aec](https://github.com/serverless/serverless/commit/2107aec965e4e1e0cec98c3e2f0ff8dcc534a333)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:** Fix CLI command validation when using custom providers ([#11080](https://github.com/serverless/serverless/issues/11080)) ([5004fb1](https://github.com/serverless/serverless/commit/5004fb1ea0ba168d6a7ccc0d07070e6b716f78a2)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:** Fix reporting of unresolved sources ([#11080](https://github.com/serverless/serverless/issues/11080)) ([77e21f9](https://github.com/serverless/serverless/commit/77e21f904568db00f6e1491dd0dcdfe605fa592d)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Console:**
+  - Rely on generic `apiRequest` for ingestion tokens rotation ([#11060](https://github.com/serverless/serverless/issues/11060)) ([#11060](https://github.com/serverless/serverless/issues/11060)) ([0cecae7](https://github.com/serverless/serverless/commit/0cecae75ffad4b7b89148b614d0bb82dc3b3501c)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Separate Dashboard & Console login logic ([#11060](https://github.com/serverless/serverless/issues/11060)) ([443fa4b](https://github.com/serverless/serverless/commit/443fa4b74d1fceeb4798ba2b6acb31281b80756e)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI Onboarding:** Generalize `isConsole` resolution ([#11060](https://github.com/serverless/serverless/issues/11060)) ([caaa3c8](https://github.com/serverless/serverless/commit/caaa3c811e9f777c84fe91ea73b63eb609032b3b)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [3.17.0](https://github.com/serverless/serverless/compare/v3.16.0...v3.17.0) (2022-05-10)
 
 ### Features
