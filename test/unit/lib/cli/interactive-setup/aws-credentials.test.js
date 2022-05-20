@@ -98,7 +98,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
 
     const context = {
       serviceDir: process.cwd(),
-      configuration: { provider: { name: 'aws' }, org: 'someorg' },
+      configuration: { provider: { name: 'aws' }, org: 'someorg', app: 'someapp' },
       configurationFilename: 'serverless.yml',
     };
     expect(await mockedStep.isApplicable(context)).to.be.false;
@@ -143,6 +143,53 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
         org: 'someorg',
         app: 'someapp',
         service: 'service',
+      },
+      options: {},
+      configurationFilename: 'serverless.yml',
+    };
+    expect(await mockedStep.isApplicable(context)).to.be.false;
+    expect(context.inapplicabilityReasonCode).to.equal('LINKED_PROVIDER_CONFIGURED');
+  });
+
+  it('Should recognize dashboard providers with console integration on', async () => {
+    const internalMockedSdk = {
+      ...mockedSdk,
+      getProviders: async () => {
+        return {
+          result: [
+            {
+              alias: 'someprovider',
+              providerName: 'aws',
+              providerType: 'roleArn',
+              providerUid: 'provideruid',
+              isDefault: false,
+              providerDetails: {
+                roleArn: 'arn:xxx',
+              },
+            },
+          ],
+        };
+      },
+    };
+    const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/aws-credentials', {
+      '@serverless/dashboard-plugin/lib/client-utils': {
+        getPlatformClientWithAccessKey: async () => internalMockedSdk,
+      },
+      '@serverless/dashboard-plugin/lib/is-authenticated': () => true,
+      './utils': {
+        doesServiceInstanceHaveLinkedProvider: () => true,
+      },
+    });
+
+    const context = {
+      history: new Set(),
+      serviceDir: process.cwd(),
+      configuration: {
+        provider: { name: 'aws' },
+        org: 'someorg',
+        app: 'someapp',
+        service: 'service',
+        console: true,
       },
       options: {},
       configurationFilename: 'serverless.yml',
@@ -216,7 +263,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
     expect(
       await mockedStep.isApplicable({
         serviceDir: process.cwd(),
-        configuration: { provider: { name: 'aws' }, org: 'someorg' },
+        configuration: { provider: { name: 'aws' }, org: 'someorg', app: 'someapp' },
         configurationFilename: 'serverless.yml',
       })
     ).to.be.false;
@@ -733,7 +780,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
 
       await mockedStep.run({
         serviceDir: process.cwd(),
-        configuration: { provider: { name: 'aws' }, org: 'someorg' },
+        configuration: { provider: { name: 'aws' }, org: 'someorg', app: 'someapp' },
         options: {},
         configurationFilename: 'serverless.yml',
       });
