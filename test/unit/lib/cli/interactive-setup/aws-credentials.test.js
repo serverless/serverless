@@ -197,7 +197,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
     ).to.be.true;
   });
 
-  it('Should be ineffective dashboard is not available', async () => {
+  it('Should be ineffective when dashboard is not available', async () => {
     const internalMockedSdk = {
       ...mockedSdk,
       getProviders: async () => {
