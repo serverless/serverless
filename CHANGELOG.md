@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.18.1](https://github.com/serverless/serverless/compare/v3.18.0...v3.18.1) (2022-05-20)
+
+### Bug Fixes
+
+- **CLI Onboarding:**
+  - Recognize Dashboard providers for deployment when Dashboard monitoring is turned off ([#11096](https://github.com/serverless/serverless/issues/11096)) ([38ff287](https://github.com/serverless/serverless/commit/38ff287bc79614803b82ada3728c1432381bc59b)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Support Dashboard providers with the Console enabled ([#11096](https://github.com/serverless/serverless/issues/11096)) ([8825e86](https://github.com/serverless/serverless/commit/8825e867d833a28ace051047ce17bf3cdc3e7526)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Console:** Improve user error message ([#11094](https://github.com/serverless/serverless/issues/11094)) ([6748642](https://github.com/serverless/serverless/commit/67486421235dc8d7a76f760eecb68b1a13b13fb2)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [3.18.0](https://github.com/serverless/serverless/compare/v3.17.0...v3.18.0) (2022-05-19)
 
 ### Features
