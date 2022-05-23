@@ -141,7 +141,7 @@ describe('checkForChanges', () => {
       return expect(awsDeploy.getMostRecentObjects()).to.be.fulfilled.then((result) => {
         expect(listObjectsV2Stub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
           Bucket: awsDeploy.bucketName,
-          Prefix: 'serverless/my-service/dev',
+          Prefix: 'serverless/my-service/dev/',
         });
         expect(result).to.deep.equal([]);
       });
@@ -162,7 +162,7 @@ describe('checkForChanges', () => {
       return expect(awsDeploy.getMostRecentObjects()).to.be.fulfilled.then((result) => {
         expect(listObjectsV2Stub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
           Bucket: awsDeploy.bucketName,
-          Prefix: 'serverless/my-service/dev',
+          Prefix: 'serverless/my-service/dev/',
         });
         expect(result).to.deep.equal([
           { Key: `${s3Key}/151224711231-2016-08-18T15:43:00/cloudformation.json` },
