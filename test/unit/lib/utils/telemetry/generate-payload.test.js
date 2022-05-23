@@ -166,6 +166,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         paramsCount: 0,
       },
       isAutoUpdateEnabled: false,
+      isUsingCompose: false,
       notificationsMode: 'on',
       npmDependencies: ['fooDep', 'barDep', 'fooOpt', 'someDev', 'otherDev'],
       triggeredDeprecations: [],
@@ -230,6 +231,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         paramsCount: 0,
       },
       isAutoUpdateEnabled: false,
+      isUsingCompose: false,
       notificationsMode: 'on',
       npmDependencies: [],
       triggeredDeprecations: [],
@@ -271,6 +273,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       command: 'config',
       commandOptionNames: [],
       isAutoUpdateEnabled: false,
+      isUsingCompose: false,
       notificationsMode: 'on',
       triggeredDeprecations: [],
       installationType: 'global:other',
@@ -325,6 +328,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         paramsCount: 0,
       },
       isAutoUpdateEnabled: false,
+      isUsingCompose: false,
       triggeredDeprecations: [],
       installationType: 'global:other',
       notificationsMode: 'on',
@@ -364,6 +368,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       command: 'plugin list',
       commandOptionNames: [],
       isAutoUpdateEnabled: false,
+      isUsingCompose: false,
       notificationsMode: 'on',
       triggeredDeprecations: [],
       installationType: 'global:other',
@@ -684,5 +689,19 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     });
 
     expect(payload.config.paramsCount).to.equal(4);
+  });
+
+  it('Should correctly resolve `isUsingCompose` property', async () => {
+    let payload;
+    overrideEnv({ variables: { SLS_COMPOSE: '1' } }, () => {
+      payload = getGeneratePayload()({
+        command: 'print',
+        options: {},
+        commandSchema: commandsSchema.get('print'),
+        serviceDir: process.cwd(),
+        configuration: { service: 'foo', provider: 'aws' },
+      });
+    });
+    expect(payload.isUsingCompose).to.be.true;
   });
 });
