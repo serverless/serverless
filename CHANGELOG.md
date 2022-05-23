@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.18.2](https://github.com/serverless/serverless/compare/v3.18.1...v3.18.2) (2022-05-23)
+
+### Bug Fixes
+
+- **AWS Deploy:** Ensure to only remove specific stage deploy artifacts ([#11100](https://github.com/serverless/serverless/pull/11100)) ([9eae965](https://github.com/serverless/serverless/commit/9eae9652bdfca78eeb29bc4e9dfd4f8a12125d56)) ([Ryan Hartkopf](https://github.com/ryanhartkopf))
+
+### Maintenance Improvements
+
+- **Console:** Upgrade `@serverless/aws-lambda-otel-extension` ([#11106](https://github.com/serverless/serverless/pull/11106)) ([5327b70](https://github.com/serverless/serverless/commit/5327b702f755b13283562337c18051d87805916f)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Telemetry:** Recognize `isUsingCompose` ([#11105](https://github.com/serverless/serverless/pull/11105)) ([007c294](https://github.com/serverless/serverless/commit/007c294211954e3fdb034030eacd1f01e63920bf)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ### [3.18.1](https://github.com/serverless/serverless/compare/v3.18.0...v3.18.1) (2022-05-20)
 
 ### Bug Fixes
