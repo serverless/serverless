@@ -213,3 +213,21 @@ custom:
 Thus, most likely, a different set of permissions will be in place, altering the interaction between your lambda functions and other AWS resources.
 
 _Please, refer to the [`invoke local`](https://serverless.com/framework/docs/providers/aws/cli-reference/invoke-local/#aws---invoke-local) CLI command documentation for more details._
+
+## Assuming a role when deploying
+
+It is possible to use local AWS credentials to _assume_ another AWS role.
+
+That allows the deployment (are all other CLI commands) to be performed under a different role. To achieve this, [follow this documentation from AWS](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-role.html).
+
+Note that `serverless.yml` also offers the `provider.iam.deploymentRole` option. This lets us force CloudFormation to use a different role when deploying:
+
+```yml
+provider:
+  iam:
+    deploymentRole: arn:aws:iam::123456789012:role/deploy-role
+```
+
+It is important to understand that `deploymentRole` only affects the role CloudFormation will assume. All other interactions from the `serverless` CLI with AWS will not use that `deploymentRole`.
+
+This is why we usually recommend using the "assume role" method described above instead of `deploymentRole`.
