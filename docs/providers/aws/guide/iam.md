@@ -33,7 +33,6 @@ provider:
       permissionsBoundary: arn:aws:iam::123456789012:policy/boundaries
       tags:
         key: value
-    deploymentRole: arn:aws:iam::123456789012:role/deploy-role
 ```
 
 Note that `provider.iam.role` can be either an object like in example above, or custom role arn:
@@ -42,7 +41,6 @@ Note that `provider.iam.role` can be either an object like in example above, or 
 provider:
   iam:
     role: arn:aws:iam::123456789012:role/execution-role
-    deploymentRole: arn:aws:iam::123456789012:role/deploy-role
 ```
 
 ## The Default IAM Role
