@@ -12,7 +12,11 @@ layout: Doc
 
 # IAM Permissions For Functions
 
-Every AWS Lambda function needs permission to interact with other AWS infrastructure resources within your account. These permissions are set via an AWS IAM Role which the Serverless Framework automatically creates for each Serverless Service, and is shared by all of your Functions. The Framework allows you to modify this Role or create Function-specific Roles, easily.
+AWS Lambda functions need permissions to interact with other AWS services and resources in your account. These permissions are set via an AWS IAM Role, which the Serverless Framework automatically creates for each service, and is shared by all functions in the service. The Framework allows you to modify this Role or create Function-specific Roles, easily.
+
+You can customize that role to add permissions to the code running in your functions.
+
+You can also create function-specific roles to customize permissions per function.
 
 ## At glance
 
@@ -45,9 +49,9 @@ provider:
 
 ## The Default IAM Role
 
-By default, one IAM Role is shared by all of the Lambda functions in your service. Also by default, your Lambda functions have permission to create and write to CloudWatch logs. When VPC configuration is provided the default AWS `AWSLambdaVPCAccessExecutionRole` will be associated in order to communicate with your VPC resources.
+By default, one IAM Role is shared by all the Lambda functions in your service. Also by default, your Lambda functions have permission to create and write to CloudWatch logs. When VPC configuration is provided the default AWS `AWSLambdaVPCAccessExecutionRole` will be associated in order to communicate with your VPC resources.
 
-To add specific rights to this service-wide Role, define statements in `provider.iam.role.statements` which will be merged into the generated policy. As those statements will be merged into the CloudFormation template, you can use `Join`, `Ref` or any other CloudFormation method or feature.
+To add permissions to this role, add IAM statements in `provider.iam.role.statements`. These will be merged into the generated policy. As those statements will be merged into the CloudFormation template, you can use `Join`, `Ref` or any other CloudFormation method or feature.
 
 ```yml
 service: new-service
@@ -57,23 +61,17 @@ provider:
   iam:
     role:
       statements:
-        - Effect: 'Allow'
+        # Allow functions to list all buckets
+        - Effect: Allow
+          Action: 's3:ListBucket'
+          Resource: '*'
+        # Allow functions to read/write objects in a bucket
+        - Effect: Allow
           Action:
-            - 's3:ListBucket'
-          Resource:
-            Fn::Join:
-              - ''
-              - - 'arn:aws:s3:::'
-                - Ref: ServerlessDeploymentBucket
-        - Effect: 'Allow'
-          Action:
+            - 's3:GetObject'
             - 's3:PutObject'
           Resource:
-            Fn::Join:
-              - ''
-              - - 'arn:aws:s3:::'
-                - Ref: ServerlessDeploymentBucket
-                - '/*'
+            - 'arn:aws:s3:::my-bucket-name/*'
 ```
 
 Alongside `provider.iam.role.statements` managed policies can also be added to this service-wide Role, define managed policies in `provider.iam.role.managedPolicies`. These will also be merged into the generated IAM Role so you can use `Join`, `Ref` or any other CloudFormation method or feature here too.
@@ -217,6 +215,10 @@ resources:
 ```
 
 ### Custom IAM Roles For Each Function
+
+It is possible to create one IAM role for each function.
+
+To achieve this, either use the [`serverless-iam-roles-per-function` plugin](https://www.serverless.com/plugins/serverless-iam-roles-per-function), or configure AWS resources manually as shown below:
 
 ```yml
 service: new-service
