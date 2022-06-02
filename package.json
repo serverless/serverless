@@ -91,7 +91,7 @@
     "github-release-from-cc-changelog": "^2.3.0",
     "husky": "^4.3.8",
     "jszip": "^3.10.0",
-    "lint-staged": "^10.5.4",
+    "lint-staged": "^13.0.0",
     "log": "^6.3.1",
     "log-node": "^8.0.3",
     "mocha": "^9.2.2",
