@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.19.0](https://github.com/serverless/serverless/compare/v3.18.2...v3.19.0) (2022-06-02)
+
+### Features
+
+- **Console:** Support new user settings format ([#11115](https://github.com/serverless/serverless/issues/11115)) ([21461b5](https://github.com/serverless/serverless/commit/21461b5581bb759c259e82295fde952d907112b3)) ([Mariusz Nowak](https://github.com/medikoo))
+- Recognize `Fn::Select` in `environment` config schema ([#11114](https://github.com/serverless/serverless/issues/11114)) ([ed111e0](https://github.com/serverless/serverless/commit/ed111e021b286eb4a68f9b2fce7fb641e03340bd)) ([John Minns](https://github.com/Johnogram))
+
+### Maintenance Improvements
+
+- Improve CLI messages when onboarding into Console ([#11123](https://github.com/serverless/serverless/issues/11123)) ([cefb762](https://github.com/serverless/serverless/commit/cefb7623355508aab0fdcbeaa8519c61c8bf6291)) ([Matthieu Napoli](https://github.com/mnapoli))
+
 ### [3.18.2](https://github.com/serverless/serverless/compare/v3.18.1...v3.18.2) (2022-05-23)
 
 ### Bug Fixes
