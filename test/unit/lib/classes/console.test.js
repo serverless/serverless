@@ -169,9 +169,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
             .Variables,
         ];
         for (const fnVariables of fnVariablesList) {
-          expect(fnVariables).to.have.property('SLS_OTEL_REPORT_REQUEST_HEADERS');
-          expect(fnVariables).to.have.property('SLS_OTEL_REPORT_METRICS_URL');
-          expect(fnVariables).to.have.property('SLS_OTEL_REPORT_LOGS_URL');
+          expect(fnVariables).to.have.property('SLS_OTEL_USER_SETTINGS');
           expect(fnVariables).to.have.property('AWS_LAMBDA_EXEC_WRAPPER');
         }
 
@@ -180,17 +178,18 @@ describe('test/unit/lib/classes/console.test.js', () => {
           'Environment.Variables',
           {}
         );
-        expect(notSupportedFnVariables).to.not.have.property('SLS_OTEL_REPORT_REQUEST_HEADERS');
-        expect(notSupportedFnVariables).to.not.have.property('SLS_OTEL_REPORT_METRICS_URL');
+        expect(notSupportedFnVariables).to.not.have.property('SLS_OTEL_USER_SETTINGS');
         expect(notSupportedFnVariables).to.not.have.property('AWS_LAMBDA_EXEC_WRAPPER');
       });
 
       it('should reflect default userSettings', () => {
-        const userSettingsString =
+        const userSettings = JSON.parse(
           cfTemplate.Resources[awsNaming.getLambdaLogicalId('fnService')].Properties.Environment
-            .Variables.SLS_OTEL_USER_SETTINGS;
-        if (!userSettingsString) return;
-        expect(JSON.parse(userSettingsString)).to.deep.equal({});
+            .Variables.SLS_OTEL_USER_SETTINGS
+        );
+        expect(userSettings.logs).to.have.property('destination');
+        expect(userSettings.metrics).to.have.property('destination');
+        expect(userSettings.common.destination).to.have.property('requestHeaders');
       });
 
       it('should package extension layer', async () => {
@@ -236,8 +235,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
           command: 'package',
           configExt: {
             console: {
-              disableLogsCollection: true,
-              disableRequestResponseCollection: true,
+              monitoring: { logs: { disabled: true } },
             },
             org: 'testorg',
           },
@@ -252,12 +250,11 @@ describe('test/unit/lib/classes/console.test.js', () => {
         );
       });
 
-      it('should propagate `disableLogsCollection`', () => {
-        expect(userSettings.disableLogsMonitoring).to.be.true;
-      });
-
-      it('should propagate `disableRequestResponseCollection`', () => {
-        expect(userSettings.disableRequestResponseMonitoring).to.be.true;
+      it('should propagate user settings', () => {
+        expect(userSettings.logs.disabled).to.be.true;
+        expect(userSettings.logs).to.have.property('destination');
+        expect(userSettings.metrics).to.have.property('destination');
+        expect(userSettings.common.destination).to.have.property('requestHeaders');
       });
     });
 
@@ -293,31 +290,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
             ({ Ref: logicalId }) => logicalId === awsNaming.getConsoleExtensionLayerLogicalId()
           )
         ).to.be.true;
-      });
-    });
-
-    describe('disable logs collection', () => {
-      it('should not setup report logs url', async () => {
-        const { cfTemplate, awsNaming } = await runServerless({
-          fixture: 'function',
-          command: 'package',
-          configExt: {
-            console: { disableLogsCollection: true },
-            org: 'testorg',
-          },
-          modulesCacheStub: {
-            [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-          },
-          awsRequestStubMap: createAwsRequestStubMap(),
-          env: { SLS_ORG_TOKEN: 'dummy' },
-        });
-
-        const fnVariables =
-          cfTemplate.Resources[awsNaming.getLambdaLogicalId('basic')].Properties.Environment
-            .Variables;
-        expect(fnVariables).to.have.property('SLS_OTEL_REPORT_REQUEST_HEADERS');
-        expect(fnVariables).to.not.have.property('SLS_OTEL_REPORT_LOGS_URL');
-        expect(fnVariables).to.have.property('AWS_LAMBDA_EXEC_WRAPPER');
       });
     });
 
@@ -451,8 +423,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
 
     it('should setup needed environment variables', () => {
       const fnVariables = updateFunctionStub.args[0][0].Environment.Variables;
-      expect(fnVariables).to.have.property('SLS_OTEL_REPORT_REQUEST_HEADERS');
-      expect(fnVariables).to.have.property('SLS_OTEL_REPORT_METRICS_URL');
+      expect(fnVariables).to.have.property('SLS_OTEL_USER_SETTINGS');
       expect(fnVariables).to.have.property('AWS_LAMBDA_EXEC_WRAPPER');
     });
 
