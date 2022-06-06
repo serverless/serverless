@@ -70,6 +70,12 @@ Deploying myapp to stage dev
 
 ```
 
+In order to limit the number of services that are deployed concurrently, use `--max-concurrency` flag:
+
+```bash
+$ serverless deploy --max-concurrency 5
+```
+
 ### Service dependencies and variables
 
 Service variables let us:
