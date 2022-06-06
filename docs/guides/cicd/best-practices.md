@@ -18,5 +18,5 @@ your services. As your teams grow and the number of services grow, it can be dif
 the best way to organize your services for scale.
 
 To help you manage and deploy your services at scale, check out the
-[Serverless CI/CD Workflow Guide](https://serverless.com/learn/guides/cicd/) for our recommendations
+[Serverless CI/CD Workflow Guide](https://www.serverless.com/guide-ci-cd) for our recommendations
 on organizing your apps, services, repos and automating your release process.
