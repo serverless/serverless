@@ -574,10 +574,10 @@ describe('#naming()', () => {
       expect(sdk.naming.getScheduleLogicalId('functionName', 0)).to.equal(
         'FunctionNameEventsRuleSchedule0'
       );
-      expect(sdk.naming.getScheduleLogicalId('functionName', 1, 'scheduleName')).to.equal(
+      expect(sdk.naming.getScheduleLogicalId('functionName', 'scheduleName')).to.equal(
         'FunctionNameEventsRuleSchedule1ScheduleName'
       );
-      expect(sdk.naming.getScheduleLogicalId('functionName', 2, 'schedule-name')).to.equal(
+      expect(sdk.naming.getScheduleLogicalId('functionName', 'schedule-name')).to.equal(
         'FunctionNameEventsRuleSchedule2Schedulename'
       );
     });
@@ -657,10 +657,10 @@ describe('#naming()', () => {
         'FunctionNameLambdaPermissionEventsRuleSchedule0'
       );
       expect(
-        sdk.naming.getLambdaSchedulePermissionLogicalId('functionName', 1, 'scheduleName')
+        sdk.naming.getLambdaSchedulePermissionLogicalId('functionName', 'scheduleName')
       ).to.equal('FunctionNameLambdaPermissionEventsRuleSchedule1ScheduleName');
       expect(
-        sdk.naming.getLambdaSchedulePermissionLogicalId('functionName', 2, 'schedule-name')
+        sdk.naming.getLambdaSchedulePermissionLogicalId('functionName', 'schedule-name')
       ).to.equal('FunctionNameLambdaPermissionEventsRuleSchedule2Schedulename');
     });
   });
