@@ -114,8 +114,7 @@
     "overrides": [
       {
         "files": [
-          "test/fixtures/**",
-          "lib/utils/load-config-esm.js"
+          "test/fixtures/**"
         ],
         "rules": {
           "no-console": "off"
@@ -141,11 +140,14 @@
       },
       {
         "files": [
-          "lib/utils/load-config-esm.js"
+          "lib/utils/load-config-esm.mjs"
         ],
         "parserOptions": {
           "ecmaVersion": 2022,
           "sourceType": "module"
+        },
+        "rules": {
+          "no-console": "off"
         }
       }
     ]
