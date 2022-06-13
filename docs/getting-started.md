@@ -109,7 +109,7 @@ serverless remove
 
 Now that Serverless Framework is installed, here is what you can do next:
 
-- Follow the [tutorial to create a functional HTTP API with Node](./tutorial.md)
+- Follow the [tutorial to create an example HTTP API with Node](./tutorial.md)
 - Learn about the [core concepts in Serverless Framework](./providers/aws/guide/intro.md)
 - [Redeploy a single function](./providers/aws/guide/deploying.md#deploy-function) for iterating faster while developing
 - Discover all the [events that can trigger Lambda functions](https://www.serverless.com/framework/docs/providers/aws/guide/events)
