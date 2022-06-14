@@ -47,6 +47,7 @@ functions:
               - X-Api-Key
               - X-Amz-Security-Token
               - X-Amz-User-Agent
+              - X-Amzn-Trace-Id
             allowCredentials: true
   customAuthorizers:
     handler: core.customAuthorizers

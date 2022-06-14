@@ -96,6 +96,7 @@ describe('AWS - API Gateway Integration Test', function () {
           'X-Api-Key',
           'X-Amz-Security-Token',
           'X-Amz-User-Agent',
+          'X-Amzn-Trace-Id',
         ].join(',');
         expect(headers.get('access-control-allow-headers')).to.equal(allowHeaders);
         expect(headers.get('access-control-allow-methods')).to.equal('OPTIONS,GET');
@@ -116,6 +117,7 @@ describe('AWS - API Gateway Integration Test', function () {
           'X-Api-Key',
           'X-Amz-Security-Token',
           'X-Amz-User-Agent',
+          'X-Amzn-Trace-Id',
         ].join(',');
         expect(headers.get('access-control-allow-headers')).to.equal(allowHeaders);
         expect(headers.get('access-control-allow-methods')).to.equal('OPTIONS,GET');

@@ -1958,6 +1958,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
             'Authorization',
             'X-Api-Key',
             'X-Amz-Security-Token',
+            'X-Amzn-Trace-Id',
           ],
           MaxAge: 3600,
           AllowCredentials: undefined,
