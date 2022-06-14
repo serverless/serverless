@@ -146,8 +146,19 @@ Now that Serverless Framework is installed, here is what you can do next:
 
 <br>
 
-| <br>**Try Serverless Console**<br><br>Monitor, observe, and trace your serverless architectures.<br>Real-time dev mode provides streaming logs from your AWS Lambda Functions.<br><br>Get started instantly with `serverless --console`<br>-or-<br>[Visit the Docs](https://bit.ly/3kL8ACL)<br><br>![1800x1-ffffff7f](https://user-images.githubusercontent.com/3837103/167449348-bf254fca-9aec-4367-b166-aaa69178f98c.png) |
-| :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+<table>
+  <tr>
+    <td align="center">
+      <br><strong>Try <a href="https://www.serverless.com/console/">Serverless Console</a></strong><br><br>
+      Monitor, observe, and trace your serverless architectures.<br>
+      Real-time dev mode provides streaming logs from your AWS Lambda Functions.<br><br>
+      Get started instantly with <code>serverless --console</code><br>
+      -or-<br>
+      <a href="https://bit.ly/3kL8ACL">Register</a>
+      <img src="https://user-images.githubusercontent.com/3837103/167449348-bf254fca-9aec-4367-b166-aaa69178f98c.png">
+    </td>
+  </tr>
+</table>
 
 <br>
 
