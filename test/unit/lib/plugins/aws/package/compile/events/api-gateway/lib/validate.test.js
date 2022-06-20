@@ -1479,6 +1479,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/valida
           'X-Api-Key',
           'X-Amz-Security-Token',
           'X-Amz-User-Agent',
+          'X-Amzn-Trace-Id',
         ].join(',')}'`,
         'method.response.header.Access-Control-Allow-Methods': `'${['OPTIONS', 'POST'].join(',')}'`,
         'method.response.header.Access-Control-Allow-Origin': "'*'",

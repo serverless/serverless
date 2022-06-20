@@ -89,11 +89,11 @@ provider:
 
 It'll result with headers as:
 
-| Header                       | Value                                                                                       |
-| :--------------------------- | :------------------------------------------------------------------------------------------ |
-| Access-Control-Allow-Origin  | \*                                                                                          |
-| Access-Control-Allow-Headers | Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token, X-Amz-User-Agent) |
-| Access-Control-Allow-Methods | OPTIONS, _(...all defined in endpoints)_                                                    |
+| Header                       | Value                                                                                                       |
+| :--------------------------- | :---------------------------------------------------------------------------------------------------------- |
+| Access-Control-Allow-Origin  | \*                                                                                                          |
+| Access-Control-Allow-Headers | Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token, X-Amz-User-Agent, X-Amzn-Trace-Id |
+| Access-Control-Allow-Methods | OPTIONS, _(...all defined in endpoints)_                                                                    |
 
 If there's a need to fine tune CORS headers, then each can be configured individually as follows:
 
