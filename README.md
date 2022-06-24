@@ -8,7 +8,7 @@
 [![Known Vulnerabilities](https://snyk.io/test/github/serverless/serverless/badge.svg)](https://snyk.io/test/github/serverless/serverless)
 [![license](https://img.shields.io/npm/l/serverless.svg)](https://www.npmjs.com/package/serverless)
 
-[Website](http://www.serverless.com) • [Docs](https://serverless.com/framework/docs/) • [Community Slack](https://join.slack.com/t/serverless-contrib/shared_invite/zt-d5qzowja-pnOerTzAIZUrN18hWYUIHA) • [Forum](http://forum.serverless.com) • [Twitter](https://twitter.com/goserverless) • [Meetups](https://www.meetup.com/pro/serverless/) • [We're Hiring](https://serverless.com/company/jobs/) • [简体中文](./README_CN.md)
+[Website](http://www.serverless.com) • [Docs](https://serverless.com/framework/docs/) • [Community Slack](https://serverless.com/slack) • [Forum](http://forum.serverless.com) • [Twitter](https://twitter.com/goserverless) • [Meetups](https://www.meetup.com/pro/serverless/) • [We're Hiring](https://serverless.com/company/jobs/) • [简体中文](./README_CN.md)
 
 **The Serverless Framework** – Build applications on AWS Lambda and other next-gen cloud services, that auto-scale and only charge you when they run. This lowers the total cost of running and operating your apps, enabling you to build more and manage less.
 
@@ -171,7 +171,7 @@ Check out our [help wanted](https://github.com/serverless/serverless/labels/help
 ## <a name="community"></a>Community
 
 - [Twitter](https://twitter.com/goserverless)
-- [Community Slack](https://join.slack.com/t/serverless-contrib/shared_invite/zt-d5qzowja-pnOerTzAIZUrN18hWYUIHA)
+- [Community Slack](https://serverless.com/slack)
 - [Serverless Meetups](http://www.meetup.com/serverless/)
 - [Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework)
 - [Facebook](https://www.facebook.com/serverless)
