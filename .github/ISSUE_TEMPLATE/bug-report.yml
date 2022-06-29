@@ -17,10 +17,10 @@ body:
           required: true
   - type: checkboxes
     attributes:
-      label: Are you using the latest version?
+      label: Are you using the latest v3 release?
       description: Latest version can be checked at https://github.com/serverless/serverless/releases/latest
       options:
-        - label: Yes, I'm using the latest version
+        - label: Yes, I'm using the latest v3 release
           required: true
   - type: checkboxes
     attributes:
