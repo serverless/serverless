@@ -257,7 +257,7 @@ Deprecation code: `UNSUPPORTED_CLI_OPTIONS`
 
 CLI options validation was introduced to detect typos and mistakes. That required dropping support for _free-form_ CLI options in v3 (because free-form CLI options cannot be validated).
 
-An alternative to free-form CLI options is to use [environment variables](./providers/aws/guide/variables#referencing-environment-variables). Another option is to use [the `--param` option](./parameters.md#cli-parameters) introduced in Serverless Framework **v3.3.0**:
+An alternative to free-form CLI options is to use [environment variables](./providers/aws/guide/variables#referencing-environment-variables). Another option is to use [the `--param` option](./guides/parameters#cli-parameters) introduced in Serverless Framework **v3.3.0**:
 
 ```yaml
 provider:
