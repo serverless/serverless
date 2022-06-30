@@ -123,7 +123,8 @@
       {
         "files": [
           "test/fixtures/programmatic/plugin/local-esm-plugin/**",
-          "test/fixtures/programmatic/plugin/node_modules/esm-plugin/**"
+          "test/fixtures/programmatic/plugin/node_modules/esm-plugin/**",
+          "test/fixtures/programmatic/invocation/esm/**"
         ],
         "parserOptions": {
           "sourceType": "module"
@@ -131,7 +132,8 @@
       },
       {
         "files": [
-          "lib/utils/import-module.js"
+          "lib/utils/import-module.js",
+          "lib/plugins/aws/invoke-local/index.js"
         ],
         "parserOptions": {
           "ecmaVersion": 2020
