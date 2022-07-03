@@ -33,3 +33,31 @@ functions:
           pool: ${self:service} CUP Existing Multi
           trigger: PreAuthentication
           existing: true
+  existingCustomEmailSender:
+    handler: core.existingCustomEmailSender
+    events:
+      - cognitoUserPool:
+          pool: ${self:service} CUP Existing CustomEmailSender
+          trigger: CustomEmailSender
+          kmsKeyId:
+            Fn::GetAtt: ['kmsKey', 'Arn']
+          existing: true
+
+resources:
+  Resources:
+    kmsKey:
+      Type: AWS::KMS::Key
+      Properties:
+        Description: ServerlessIntegrationTestKMSKey
+        Enabled: true
+        KeyPolicy:
+          Version: '2012-10-17'
+          Id: cognito-user-pool-integration-test-key
+          Statement:
+            Sid: Enable IAM User Permissions
+            Principal:
+              AWS:
+                - Fn::Sub: arn:aws:iam::${AWS::AccountId}:root
+            Effect: Allow
+            Action: kms:*
+            Resource: '*'

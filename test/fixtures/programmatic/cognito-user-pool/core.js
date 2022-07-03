@@ -29,4 +29,11 @@ function existingMulti(event, context, callback) {
   return callback(null, event);
 }
 
-module.exports = { basic, existingSimple, existingMulti };
+function existingCustomEmailSender(event, context, callback) {
+  const functionName = 'existingCustomEmailSender';
+
+  log(functionName, JSON.stringify(event));
+  return callback(null, event);
+}
+
+module.exports = { basic, existingSimple, existingMulti, existingCustomEmailSender };
