@@ -12,6 +12,8 @@ functions:
     handler: callback.handler
   async:
     handler: async.handler
+  asyncCjs:
+    handler: async-cjs.handler
   contextDone:
     handler: context-done.handler
   contextSucceed:
