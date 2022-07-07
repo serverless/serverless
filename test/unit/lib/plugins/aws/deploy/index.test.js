@@ -1341,4 +1341,38 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       'DEPLOYMENT_BUCKET_REMOVED_MANUALLY'
     );
   });
+
+  it('should throw when deployment bucket cannot be accessed', async () => {
+    const awsRequestStubMap = {
+      ...baseAwsRequestStubMap,
+      ECR: {
+        describeRepositories: sinon.stub().throws({
+          providerError: { code: 'RepositoryNotFoundException' },
+        }),
+      },
+      S3: {
+        headBucket: () => {
+          const err = new Error();
+          err.code = 'AWS_S3_HEAD_BUCKET_FORBIDDEN';
+          throw err;
+        },
+      },
+      CloudFormation: {
+        describeStacks: { Stacks: [{}] },
+        validateTemplate: {},
+        describeStackResource: {
+          StackResourceDetail: { PhysicalResourceId: 's3-bucket-resource' },
+        },
+      },
+    };
+
+    await expect(
+      runServerless({
+        fixture: 'function',
+        command: 'deploy',
+        awsRequestStubMap,
+        lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      })
+    ).to.eventually.have.been.rejected.and.have.property('code', 'AWS_S3_HEAD_BUCKET_FORBIDDEN');
+  });
 });
