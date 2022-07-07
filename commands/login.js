@@ -37,7 +37,7 @@ module.exports = async (context) => {
 
   switch (identityName) {
     case 'console':
-      await require('../lib/commands/login/console')();
+      await require('../lib/commands/login/console')({ clientOriginCommand: 'login' });
       break;
     case 'dashboard':
       await require('../lib/commands/login/dashboard')();
