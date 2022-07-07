@@ -1,11 +1,17 @@
 'use strict';
 
+const runServerless = require('../../../../utils/run-serverless');
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
 const AwsRollback = require('../../../../../lib/plugins/aws/rollback');
 const Serverless = require('../../../../../lib/serverless');
-const expect = require('chai').expect;
+const chai = require('chai');
 const assert = require('chai').assert;
 const sinon = require('sinon');
+
+chai.use(require('chai-as-promised'));
+chai.use(require('sinon-chai'));
+
+const expect = chai.expect;
 
 describe('AwsRollback', () => {
   let awsRollback;
@@ -199,5 +205,41 @@ describe('AwsRollback', () => {
         awsRollback.provider.request.restore();
       });
     });
+  });
+});
+
+describe('test/unit/lib/plugins/aws/rollback.test.js', () => {
+  it('Should gently handle error of listing objects from S3 bucket', async () => {
+    await expect(
+      runServerless({
+        fixture: 'function',
+        command: 'rollback',
+        awsRequestStubMap: {
+          CloudFormation: {
+            describeStacks: {},
+            describeStackResource: {
+              StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
+            },
+          },
+          STS: {
+            getCallerIdentity: {
+              ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+              UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+              Account: '999999999999',
+              Arn: 'arn:aws:iam::999999999999:user/test',
+            },
+          },
+          S3: {
+            headObject: () => {},
+            headBucket: () => {},
+            listObjectsV2: () => {
+              const err = new Error('error!');
+              err.code = 'AWS_S3_LIST_OBJECTS_V2_ACCESS_DENIED';
+              throw err;
+            },
+          },
+        },
+      })
+    ).to.eventually.be.rejected.and.have.property('code', 'AWS_S3_LIST_OBJECTS_V2_ACCESS_DENIED');
   });
 });

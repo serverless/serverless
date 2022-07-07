@@ -349,4 +349,25 @@ describe('test/unit/lib/plugins/aws/remove/index.test.js', () => {
       })
     ).to.be.eventually.rejected.and.have.property('code', 'CANNOT_DELETE_S3_OBJECTS_ACCESS_DENIED');
   });
+
+  it('should throw an error when cannot list objects from the bucket', async () => {
+    await expect(
+      runServerless({
+        command: 'remove',
+        fixture: 'function',
+        awsRequestStubMap: {
+          ...awsRequestStubMap,
+          S3: {
+            ...awsRequestStubMap.S3,
+            listObjectsV2: () => {
+              const err = new Error('ff');
+              err.code = 'AWS_S3_LIST_OBJECTS_V2_ACCESS_DENIED';
+              throw err;
+            },
+            headBucket: {},
+          },
+        },
+      })
+    ).to.be.eventually.rejected.and.have.property('code', 'AWS_S3_LIST_OBJECTS_V2_ACCESS_DENIED');
+  });
 });
