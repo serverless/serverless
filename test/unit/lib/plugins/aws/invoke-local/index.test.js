@@ -1185,6 +1185,15 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
 
       expect(output).to.include('Invoked');
     });
+    it('should support handlers that are ES modules', async () => {
+      const { output } = await runServerless({
+        fixture: 'invocation',
+        command: 'invoke local',
+        options: { function: 'asyncEsm' },
+      });
+
+      expect(output).to.include('Invoked');
+    });
   });
 
   describe('Python', () => {
