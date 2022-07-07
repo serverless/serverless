@@ -131,10 +131,23 @@
       },
       {
         "files": [
-          "lib/utils/import-module.js"
+          "lib/utils/import-module.js",
+          "lib/utils/load-config.js"
         ],
         "parserOptions": {
           "ecmaVersion": 2020
+        }
+      },
+      {
+        "files": [
+          "lib/utils/load-config-esm.mjs"
+        ],
+        "parserOptions": {
+          "ecmaVersion": 2022,
+          "sourceType": "module"
+        },
+        "rules": {
+          "no-console": "off"
         }
       }
     ]

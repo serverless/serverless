@@ -58,7 +58,7 @@ describe('test/unit/lib/configuration/read.test.js', () => {
     expect(await readConfiguration(configurationPath)).to.deep.equal(configuration);
   });
 
-  it('should read "serverless.js"', async () => {
+  it('should read "serverless.js" as CJS', async () => {
     configurationPath = 'serverless.js';
     const configuration = {
       service: 'test-js',
@@ -68,7 +68,17 @@ describe('test/unit/lib/configuration/read.test.js', () => {
     expect(await readConfiguration(configurationPath)).to.deep.equal(configuration);
   });
 
-  it('should read "serverless.ts"', async () => {
+  it('should read "serverless.js" as ESM', async () => {
+    configurationPath = 'serverless.js';
+    const configuration = {
+      service: 'test-js',
+      provider: { name: 'aws' },
+    };
+    await fsp.writeFile(configurationPath, `export default ${JSON.stringify(configuration)}`);
+    expect(await readConfiguration(configurationPath)).to.deep.equal(configuration);
+  });
+
+  it('should read "serverless.ts" as CJS', async () => {
     await fse.ensureDir('node_modules');
     try {
       await fsp.writeFile('node_modules/ts-node.js', 'module.exports.register = () => null;');
@@ -78,6 +88,22 @@ describe('test/unit/lib/configuration/read.test.js', () => {
         provider: { name: 'aws' },
       };
       await fsp.writeFile(configurationPath, `module.exports = ${JSON.stringify(configuration)}`);
+      expect(await readConfiguration(configurationPath)).to.deep.equal(configuration);
+    } finally {
+      await fse.remove('node_modules');
+    }
+  });
+
+  it('should read "serverless.ts" as ESM', async () => {
+    await fse.ensureDir('node_modules');
+    try {
+      await fsp.writeFile('node_modules/ts-node.js', 'module.exports.register = () => null;');
+      configurationPath = 'serverless.ts';
+      const configuration = {
+        service: 'test-ts',
+        provider: { name: 'aws' },
+      };
+      await fsp.writeFile(configurationPath, `export default ${JSON.stringify(configuration)}`);
       expect(await readConfiguration(configurationPath)).to.deep.equal(configuration);
     } finally {
       await fse.remove('node_modules');
