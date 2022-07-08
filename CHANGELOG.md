@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.20.0](https://github.com/serverless/serverless/compare/v3.19.0...v3.20.0) (2022-07-08)
+
+### Features
+
+- Add `X-Amzn-Trace-Id` to default CORS headers ([#11168](https://github.com/serverless/serverless/issues/11168)) ([9fd56fd](https://github.com/serverless/serverless/commit/9fd56fddbedf85c01d6f4ebd2f63ab26746f6005)) ([Szymon Bartnik](https://github.com/szbartnik))
+- **AWS Local Invocation:**
+  - Support ESM handlers ([#11212](https://github.com/serverless/serverless/issues/11212)) ([675b1db](https://github.com/serverless/serverless/commit/675b1dbed764f70a7443cdd5e4a53c54315fec36)) ([Børge Bardo](https://github.com/borge-bardo-adsk))
+  - Support Node handlers with `.cjs` extension ([#11203](https://github.com/serverless/serverless/pull/11203)) ([688f50d](https://github.com/serverless/serverless/commit/688f50d670b84a1dce097256776651b3138de456)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **AWS Invocation:** Ensure proper log formatting for `invoke` ([#11189](https://github.com/serverless/serverless/pull/11189)) ([c4eb2ad](https://github.com/serverless/serverless/commit/c4eb2ad908cbb4cbf646d9ffc73da31e9db1482f)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Console:** Fix console url for platform dev stage case ([#11219](https://github.com/serverless/serverless/pull/11219)) ([543612a](https://github.com/serverless/serverless/commit/543612acbec08a76c085f84ff18578c3875810c2)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **AWS Deploy:** Improve vague S3-related access errors ([#11217](https://github.com/serverless/serverless/pull/11217)) ([1b2ac24](https://github.com/serverless/serverless/commit/1b2ac245666fdd5b903a2ffb8ba5376ecfaab182)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:** Recognize `--help` for `compose` triage ([#11137](https://github.com/serverless/serverless/pull/11137)) ([37b29b0](https://github.com/serverless/serverless/commit/37b29b029579191e82348afbf855590c2cb37062)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Console:** Report command which originated login operation ([#11220](https://github.com/serverless/serverless/pull/11220)) ([8d4bf4f](https://github.com/serverless/serverless/commit/8d4bf4fbfdf79950e92ad4fbb171f6fa15b11886)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Improve error message for CLI param validation ([#9846](https://github.com/serverless/serverless/issues/9846)) ([a2ea68d](https://github.com/serverless/serverless/commit/a2ea68d5be4583f71400db4fa4fc27575c8c664b)) ([Matthieu Napoli](https://github.com/mnapoli))
+
 ## [3.19.0](https://github.com/serverless/serverless/compare/v3.18.2...v3.19.0) (2022-06-02)
 
 ### Features
