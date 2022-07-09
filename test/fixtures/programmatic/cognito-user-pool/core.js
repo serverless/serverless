@@ -13,6 +13,13 @@ function basic(event, context, callback) {
   return callback(null, nextEvent);
 }
 
+function customEmailSender(event, context, callback) {
+  const functionName = 'customEmailSender';
+
+  log(functionName, JSON.stringify(event));
+  return callback(null, event);
+}
+
 function existingSimple(event, context, callback) {
   const functionName = 'existingSimple';
   const nextEvent = Object.assign({}, event);
@@ -36,4 +43,10 @@ function existingCustomEmailSender(event, context, callback) {
   return callback(null, event);
 }
 
-module.exports = { basic, existingSimple, existingMulti, existingCustomEmailSender };
+module.exports = {
+  basic,
+  customEmailSender,
+  existingSimple,
+  existingMulti,
+  existingCustomEmailSender,
+};

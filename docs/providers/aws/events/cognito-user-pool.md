@@ -93,8 +93,6 @@ functions:
           # Required with CustomSMSSender and CustomEmailSender Triggers
           # Can either be KMS Key ARN string or reference to KMS Key Resource ARN (see customEmailSenderFunction below)
           kmsKeyId: 'arn:aws:kms:eu-west-1:111111111111:key/12345678-9abc-def0-1234-56789abcdef1'
-          # Optional, defaults to 'V1_0'
-          lambdaVersion: 'V1_0'
   customEmailSenderFunction:
     handler: customEmailSender.handler
     events:
@@ -104,9 +102,9 @@ functions:
           kmsKeyId:
             Fn::GetAtt: ['kmsKey', 'Arn']
 
-# Used to show use in supplying kmsKeyId in customEmailSenderFunction, not needed when kmsKeyId is a string as shown in customSMSSenderFunction
 resources:
   Resources:
+    # Used to show use in supplying kmsKeyId in customEmailSenderFunction, not needed when kmsKeyId is a string as shown in customSMSSenderFunction
     kmsKey:
       Type: AWS::KMS::Key
       Properties:
@@ -123,6 +121,19 @@ resources:
             Effect: Allow
             Action: kms:*
             Resource: '*'
+
+    # Used to show how CustomSenderSources can be used with overriding the generated User Pool, as described below
+    # This makes it such that when a user signs up, they are automatically sent a verification email, triggering our
+    # CustomEmailSender
+    CognitoUserPoolMyUserPool2:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UsernameAttributes:
+          - 'email'
+        AutoVerifiedAttributes:
+          - 'email'
+        EmailVerificationMessage: 'email message: {####}'
+        EmailVerificationSubject: 'email subject: {####}'
 ```
 
 **NOTE:** The only supported value for lambdaVersion is `V1_0`, as documented [by AWS](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-customsmssender.html).

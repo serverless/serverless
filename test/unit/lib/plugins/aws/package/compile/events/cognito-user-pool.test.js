@@ -13,10 +13,171 @@ const { expect } = chai;
 chai.use(require('sinon-chai'));
 chai.use(require('chai-as-promised'));
 
+const serverlessConfigurationExtension = {
+  functions: {
+    singleCustomSenderSourceKmsStringARN: {
+      handler: 'index.js',
+      events: [
+        {
+          cognitoUserPool: {
+            pool: 'SingleCustomSenderSourceKmsStringARN',
+            trigger: 'CustomSMSSender',
+            kmsKeyId: 'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
+          },
+        },
+      ],
+    },
+    singleCustomSenderSourceKmsRefARN: {
+      handler: 'index.js',
+      events: [
+        {
+          cognitoUserPool: {
+            pool: 'SingleCustomSenderSourceKmsRefARN',
+            trigger: 'CustomSMSSender',
+            kmsKeyId: {
+              'Fn::GetAtt': ['kmsKey', 'Arn'],
+            },
+          },
+        },
+      ],
+    },
+    multipleCustomSenderSourceForSinglePool: {
+      handler: 'index.js',
+      events: [
+        {
+          cognitoUserPool: {
+            pool: 'MultipleCustomSenderSourceForSinglePool',
+            trigger: 'CustomSMSSender',
+            kmsKeyId: 'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
+          },
+        },
+        {
+          cognitoUserPool: {
+            pool: 'MultipleCustomSenderSourceForSinglePool',
+            trigger: 'CustomEmailSender',
+            kmsKeyId: 'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
+          },
+        },
+      ],
+    },
+    singleCustomSenderSourceForMultiplePools1: {
+      handler: 'index.js',
+      events: [
+        {
+          cognitoUserPool: {
+            pool: 'SingleCustomSenderSourceForMultiplePools1',
+            trigger: 'CustomSMSSender',
+            kmsKeyId: 'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
+          },
+        },
+      ],
+    },
+    singleCustomSenderSourceForMultiplePools2: {
+      handler: 'index.js',
+      events: [
+        {
+          cognitoUserPool: {
+            pool: 'SingleCustomSenderSourceForMultiplePools2',
+            trigger: 'CustomSMSSender',
+            kmsKeyId: 'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
+          },
+        },
+      ],
+    },
+    singleCustomSenderSourceKmsStringARNExisting: {
+      handler: 'index.js',
+      events: [
+        {
+          cognitoUserPool: {
+            pool: 'SingleCustomSenderSourceKmsStringARNExisting',
+            trigger: 'CustomSMSSender',
+            kmsKeyId: 'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
+            existing: true,
+          },
+        },
+      ],
+    },
+    singleCustomSenderSourceKmsRefARNExisting: {
+      handler: 'index.js',
+      events: [
+        {
+          cognitoUserPool: {
+            pool: 'SingleCustomSenderSourceKmsRefARNExisting',
+            trigger: 'CustomSMSSender',
+            kmsKeyId: {
+              'Fn::GetAtt': ['kmsKey', 'Arn'],
+            },
+            existing: true,
+          },
+        },
+      ],
+    },
+    multipleCustomSenderSourceForSinglePoolExisting: {
+      handler: 'index.js',
+      events: [
+        {
+          cognitoUserPool: {
+            pool: 'MultipleCustomSenderSourceForSinglePoolExisting',
+            trigger: 'CustomSMSSender',
+            kmsKeyId: 'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
+            existing: true,
+          },
+        },
+        {
+          cognitoUserPool: {
+            pool: 'MultipleCustomSenderSourceForSinglePoolExisting',
+            trigger: 'CustomEmailSender',
+            kmsKeyId: 'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
+            existing: true,
+          },
+        },
+      ],
+    },
+    singleCustomSenderSourceForMultiplePoolsExisting1: {
+      handler: 'index.js',
+      events: [
+        {
+          cognitoUserPool: {
+            pool: 'SingleCustomSenderSourceForMultiplePoolsExisting1',
+            trigger: 'CustomSMSSender',
+            kmsKeyId: 'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
+            existing: true,
+          },
+        },
+      ],
+    },
+    singleCustomSenderSourceForMultiplePoolsExisting2: {
+      handler: 'index.js',
+      events: [
+        {
+          cognitoUserPool: {
+            pool: 'SingleCustomSenderSourceForMultiplePoolsExisting2',
+            trigger: 'CustomSMSSender',
+            kmsKeyId: 'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
+            existing: true,
+          },
+        },
+      ],
+    },
+  },
+};
+
 describe('AwsCompileCognitoUserPoolEvents', () => {
   let serverless;
   let awsCompileCognitoUserPoolEvents;
   let addCustomResourceToServiceStub;
+
+  let cfResources;
+
+  before(() =>
+    runServerless({
+      fixture: 'function',
+      configExt: serverlessConfigurationExtension,
+      command: 'package',
+    }).then(({ cfTemplate }) => {
+      ({ Resources: cfResources } = cfTemplate);
+    })
+  );
 
   beforeEach(() => {
     addCustomResourceToServiceStub = sinon.stub().resolves();
@@ -41,26 +202,6 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
   });
 
   describe('#newCognitoUserPools()', () => {
-    it('should throw when invalid CUP event is given', () => {
-      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cognitoUserPool: {
-                pool: 'MyUserPool1',
-                trigger: 'INVALID_EVENT',
-              },
-            },
-          ],
-        },
-      };
-
-      return expect(() => awsCompileCognitoUserPoolEvents.newCognitoUserPools()).to.throw(
-        'Invalid trigger source'
-      );
-    });
-
     it('should create resources when CUP events are given as separate functions', () => {
       awsCompileCognitoUserPoolEvents.serverless.service.functions = {
         first: {
@@ -294,439 +435,9 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
           .Resources
       ).to.deep.equal({});
     });
-
-    it('should create resources when a single CUP event that specifies a custom sender source is given', () => {
-      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cognitoUserPool: {
-                pool: 'MyUserPool1',
-                trigger: 'CustomSMSSender',
-                kmsKeyId:
-                  'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
-              },
-            },
-          ],
-        },
-      };
-
-      awsCompileCognitoUserPoolEvents.newCognitoUserPools();
-
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Type
-      ).to.equal('AWS::Cognito::UserPool');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.DependsOn
-      ).to.have.lengthOf(1);
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Properties.LambdaConfig.KMSKeyID
-      ).to.equal('arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Properties.LambdaConfig.CustomSMSSender.LambdaArn
-      ).to.deep.equal({
-        'Fn::GetAtt': ['FirstLambdaFunction', 'Arn'],
-      });
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Properties.LambdaConfig.CustomSMSSender
-          .LambdaVersion
-      ).to.equal('V1_0');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstLambdaPermissionCognitoUserPoolMyUserPool1TriggerSourceCustomSMSSender
-          .Type
-      ).to.equal('AWS::Lambda::Permission');
-    });
-
-    it('should create resources when CUP events that specify multiple custom sender sources are given', () => {
-      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cognitoUserPool: {
-                pool: 'MyUserPool1',
-                trigger: 'CustomSMSSender',
-                kmsKeyId:
-                  'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
-              },
-            },
-            {
-              cognitoUserPool: {
-                pool: 'MyUserPool1',
-                trigger: 'CustomEmailSender',
-                kmsKeyId:
-                  'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
-              },
-            },
-          ],
-        },
-      };
-
-      awsCompileCognitoUserPoolEvents.newCognitoUserPools();
-
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Type
-      ).to.equal('AWS::Cognito::UserPool');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.DependsOn
-      ).to.have.lengthOf(2);
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Properties.LambdaConfig.KMSKeyID
-      ).to.equal('arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Properties.LambdaConfig.CustomSMSSender.LambdaArn
-      ).to.deep.equal({
-        'Fn::GetAtt': ['FirstLambdaFunction', 'Arn'],
-      });
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Properties.LambdaConfig.CustomSMSSender
-          .LambdaVersion
-      ).to.equal('V1_0');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Properties.LambdaConfig.CustomEmailSender.LambdaArn
-      ).to.deep.equal({
-        'Fn::GetAtt': ['FirstLambdaFunction', 'Arn'],
-      });
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Properties.LambdaConfig.CustomEmailSender
-          .LambdaVersion
-      ).to.equal('V1_0');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstLambdaPermissionCognitoUserPoolMyUserPool1TriggerSourceCustomSMSSender
-          .Type
-      ).to.equal('AWS::Lambda::Permission');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstLambdaPermissionCognitoUserPoolMyUserPool1TriggerSourceCustomEmailSender
-          .Type
-      ).to.equal('AWS::Lambda::Permission');
-    });
-
-    it('should create resources when a single KMS Key is configured per new Cognito User Pool', () => {
-      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cognitoUserPool: {
-                pool: 'MyUserPool1',
-                trigger: 'CustomSMSSender',
-                kmsKeyId:
-                  'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
-              },
-            },
-            {
-              cognitoUserPool: {
-                pool: 'MyUserPool2',
-                trigger: 'CustomEmailSender',
-                kmsKeyId:
-                  'arn:aws:kms:eu-west-1:111111111111:key/22222222-9abc-def0-1234-56789abcdef1',
-              },
-            },
-          ],
-        },
-      };
-
-      awsCompileCognitoUserPoolEvents.newCognitoUserPools();
-
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Type
-      ).to.equal('AWS::Cognito::UserPool');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.DependsOn
-      ).to.have.lengthOf(1);
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Properties.LambdaConfig.KMSKeyID
-      ).to.equal('arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Properties.LambdaConfig.CustomSMSSender.LambdaArn
-      ).to.deep.equal({
-        'Fn::GetAtt': ['FirstLambdaFunction', 'Arn'],
-      });
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Properties.LambdaConfig.CustomSMSSender
-          .LambdaVersion
-      ).to.equal('V1_0');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstLambdaPermissionCognitoUserPoolMyUserPool1TriggerSourceCustomSMSSender
-          .Type
-      ).to.equal('AWS::Lambda::Permission');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool2.Type
-      ).to.equal('AWS::Cognito::UserPool');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool2.Properties.LambdaConfig.KMSKeyID
-      ).to.equal('arn:aws:kms:eu-west-1:111111111111:key/22222222-9abc-def0-1234-56789abcdef1');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool2.DependsOn
-      ).to.have.lengthOf(1);
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool2.Properties.LambdaConfig.CustomEmailSender.LambdaArn
-      ).to.deep.equal({
-        'Fn::GetAtt': ['FirstLambdaFunction', 'Arn'],
-      });
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool2.Properties.LambdaConfig.CustomEmailSender
-          .LambdaVersion
-      ).to.equal('V1_0');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstLambdaPermissionCognitoUserPoolMyUserPool2TriggerSourceCustomEmailSender
-          .Type
-      ).to.equal('AWS::Lambda::Permission');
-    });
-
-    it('should create resources when a KMS Key is configured as ARN Reference', () => {
-      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cognitoUserPool: {
-                pool: 'MyUserPool1',
-                trigger: 'CustomSMSSender',
-                kmsKeyId: {
-                  'Fn::GetAtt': ['kmsKey', 'Arn'],
-                },
-              },
-            },
-          ],
-        },
-      };
-
-      awsCompileCognitoUserPoolEvents.newCognitoUserPools();
-
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Type
-      ).to.equal('AWS::Cognito::UserPool');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.DependsOn
-      ).to.have.lengthOf(1);
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Properties.LambdaConfig.KMSKeyID
-      ).to.deep.equal({
-        'Fn::GetAtt': ['kmsKey', 'Arn'],
-      });
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Properties.LambdaConfig.CustomSMSSender.LambdaArn
-      ).to.deep.equal({
-        'Fn::GetAtt': ['FirstLambdaFunction', 'Arn'],
-      });
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Properties.LambdaConfig.CustomSMSSender
-          .LambdaVersion
-      ).to.equal('V1_0');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstLambdaPermissionCognitoUserPoolMyUserPool1TriggerSourceCustomSMSSender
-          .Type
-      ).to.equal('AWS::Lambda::Permission');
-    });
-
-    it('should create resources when CUP events that specify multiple custom sender sources are given', () => {
-      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cognitoUserPool: {
-                pool: 'MyUserPool1',
-                trigger: 'CustomSMSSender',
-                kmsKeyId: {
-                  'Fn::GetAtt': ['kmsKey', 'Arn'],
-                },
-              },
-            },
-            {
-              cognitoUserPool: {
-                pool: 'MyUserPool1',
-                trigger: 'CustomEmailSender',
-                kmsKeyId: {
-                  'Fn::GetAtt': ['kmsKey', 'Arn'],
-                },
-              },
-            },
-          ],
-        },
-      };
-
-      awsCompileCognitoUserPoolEvents.newCognitoUserPools();
-
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Type
-      ).to.equal('AWS::Cognito::UserPool');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.DependsOn
-      ).to.have.lengthOf(2);
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Properties.LambdaConfig.KMSKeyID
-      ).to.deep.equal({
-        'Fn::GetAtt': ['kmsKey', 'Arn'],
-      });
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Properties.LambdaConfig.CustomSMSSender.LambdaArn
-      ).to.deep.equal({
-        'Fn::GetAtt': ['FirstLambdaFunction', 'Arn'],
-      });
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Properties.LambdaConfig.CustomSMSSender
-          .LambdaVersion
-      ).to.equal('V1_0');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Properties.LambdaConfig.CustomEmailSender.LambdaArn
-      ).to.deep.equal({
-        'Fn::GetAtt': ['FirstLambdaFunction', 'Arn'],
-      });
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CognitoUserPoolMyUserPool1.Properties.LambdaConfig.CustomEmailSender
-          .LambdaVersion
-      ).to.equal('V1_0');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstLambdaPermissionCognitoUserPoolMyUserPool1TriggerSourceCustomSMSSender
-          .Type
-      ).to.equal('AWS::Lambda::Permission');
-      expect(
-        awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.FirstLambdaPermissionCognitoUserPoolMyUserPool1TriggerSourceCustomEmailSender
-          .Type
-      ).to.equal('AWS::Lambda::Permission');
-    });
-
-    it('should throw if custom sender source does not contain required attributes', () => {
-      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cognitoUserPool: {
-                pool: 'MyUserPool1',
-                trigger: 'CustomSMSSender',
-              },
-            },
-          ],
-        },
-      };
-
-      return expect(() => awsCompileCognitoUserPoolEvents.newCognitoUserPools()).to.throw(
-        'A KMS Key must be specified'
-      );
-    });
-
-    it('should throw if more than 1 KMS Key is configured per new Cognito User Pool', () => {
-      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cognitoUserPool: {
-                pool: 'MyUserPool1',
-                trigger: 'CustomSMSSender',
-                kmsKeyId:
-                  'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
-              },
-            },
-            {
-              cognitoUserPool: {
-                pool: 'MyUserPool1',
-                trigger: 'CustomEmailSender',
-                kmsKeyId:
-                  'arn:aws:kms:eu-west-1:111111111111:key/22222222-9abc-def0-1234-56789abcdef1',
-              },
-            },
-          ],
-        },
-      };
-
-      return expect(() => awsCompileCognitoUserPoolEvents.newCognitoUserPools()).to.throw(
-        'Only one KMS Key'
-      );
-    });
-
-    it('should throw if invalid lambda version is specified for a custom sender source', () => {
-      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cognitoUserPool: {
-                pool: 'MyUserPool1',
-                trigger: 'CustomSMSSender',
-                kmsKeyId:
-                  'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
-                lambdaVersion: 'V2_0',
-              },
-            },
-          ],
-        },
-      };
-
-      return expect(() => awsCompileCognitoUserPoolEvents.newCognitoUserPools()).to.throw(
-        'Invalid Lambda version'
-      );
-    });
   });
 
   describe('#existingCognitoUserPools()', () => {
-    it('should throw when invalid CUP event is given', () => {
-      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cognitoUserPool: {
-                pool: 'existing-cognito-user-pool',
-                trigger: 'INVALID_EVENT',
-                existing: true,
-              },
-            },
-          ],
-        },
-      };
-
-      return expect(() => awsCompileCognitoUserPoolEvents.existingCognitoUserPools()).to.throw(
-        'Invalid trigger source'
-      );
-    });
-
     it('should create the necessary resources for the most minimal configuration', () => {
       awsCompileCognitoUserPoolEvents.serverless.service.functions = {
         first: {
@@ -805,7 +516,6 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
               events: [
                 {
                   cognitoUserPool: {
-                    trigger: 'PreSignUp',
                     forceDeploy: true,
                   },
                 },
@@ -1072,100 +782,6 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
       });
     });
 
-    it('should create resources for multiple custom sender sources', () => {
-      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cognitoUserPool: {
-                pool: 'existing-cognito-user-pool',
-                trigger: 'CustomSMSSender',
-                existing: true,
-                kmsKeyId:
-                  'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
-              },
-            },
-            {
-              cognitoUserPool: {
-                pool: 'existing-cognito-user-pool',
-                trigger: 'CustomEmailSender',
-                existing: true,
-                kmsKeyId:
-                  'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
-              },
-            },
-          ],
-        },
-      };
-
-      return expect(
-        awsCompileCognitoUserPoolEvents.existingCognitoUserPools()
-      ).to.be.fulfilled.then(() => {
-        const { Resources } =
-          awsCompileCognitoUserPoolEvents.serverless.service.provider
-            .compiledCloudFormationTemplate;
-
-        expect(addCustomResourceToServiceStub).to.have.been.calledOnce;
-        expect(addCustomResourceToServiceStub.args[0][1]).to.equal('cognitoUserPool');
-        expect(addCustomResourceToServiceStub.args[0][2]).to.deep.equal([
-          {
-            Action: ['kms:CreateGrant'],
-            Effect: 'Allow',
-            Resource: 'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
-          },
-          {
-            Action: [
-              'cognito-idp:ListUserPools',
-              'cognito-idp:DescribeUserPool',
-              'cognito-idp:UpdateUserPool',
-            ],
-            Effect: 'Allow',
-            Resource: '*',
-          },
-          {
-            Action: ['lambda:AddPermission', 'lambda:RemovePermission'],
-            Effect: 'Allow',
-            Resource: { 'Fn::Sub': 'arn:${AWS::Partition}:lambda:*:*:function:first' },
-          },
-          {
-            Effect: 'Allow',
-            Resource: {
-              'Fn::Sub': 'arn:${AWS::Partition}:iam::*:role/*',
-            },
-            Action: ['iam:PassRole'],
-          },
-        ]);
-        expect(Resources.FirstCustomCognitoUserPool1).to.deep.equal({
-          Type: 'Custom::CognitoUserPool',
-          Version: 1,
-          DependsOn: ['FirstLambdaFunction', 'CustomDashresourceDashexistingDashcupLambdaFunction'],
-          Properties: {
-            ServiceToken: {
-              'Fn::GetAtt': ['CustomDashresourceDashexistingDashcupLambdaFunction', 'Arn'],
-            },
-            FunctionName: 'first',
-            UserPoolName: 'existing-cognito-user-pool',
-            UserPoolConfigs: [
-              {
-                Trigger: 'CustomSMSSender',
-                LambdaVersion: 'V1_0',
-                KmsKeyId:
-                  'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
-              },
-              {
-                Trigger: 'CustomEmailSender',
-                LambdaVersion: 'V1_0',
-                KmsKeyId:
-                  'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
-              },
-            ],
-            ForceDeploy: undefined,
-          },
-        });
-      });
-    });
-
     it('should throw if more than 1 Cognito User Pool is configured per function', () => {
       awsCompileCognitoUserPoolEvents.serverless.service.functions = {
         first: {
@@ -1191,38 +807,6 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
 
       return expect(() => awsCompileCognitoUserPoolEvents.existingCognitoUserPools()).to.throw(
         'Only one Cognito User Pool'
-      );
-    });
-
-    it('should throw if more than 1 KMS Set is configured per function', () => {
-      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cognitoUserPool: {
-                pool: 'existing-cognito-user-pool',
-                trigger: 'CustomSMSSender',
-                existing: true,
-                kmsKeyId:
-                  'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
-              },
-            },
-            {
-              cognitoUserPool: {
-                pool: 'existing-cognito-user-pool',
-                trigger: 'CustomEmailSender',
-                existing: true,
-                kmsKeyId:
-                  'arn:aws:kms:eu-west-1:111111111111:key/22222222-9abc-def0-1234-56789abcdef1',
-              },
-            },
-          ],
-        },
-      };
-
-      return expect(() => awsCompileCognitoUserPoolEvents.existingCognitoUserPools()).to.throw(
-        'Only one KMS Key'
       );
     });
   });
@@ -1377,6 +961,428 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
         awsCompileCognitoUserPoolEvents.serverless.service.provider.compiledCloudFormationTemplate
           .Resources.FirstLambdaPermissionCognitoUserPoolMyUserPoolTriggerSourcePreSignUp.Type
       ).to.equal('AWS::Lambda::Permission');
+    });
+  });
+
+  describe('Custom Sender Sources', () => {
+    describe('Schema Issues', () => {
+      it('should throw if more than 1 KMS Key is configured per new Cognito User Pool', () => {
+        return expect(
+          runServerless({
+            fixture: 'function',
+            configExt: {
+              functions: {
+                first: {
+                  handler: 'index.js',
+                  events: [
+                    {
+                      cognitoUserPool: {
+                        pool: 'MyUserPool1',
+                        trigger: 'CustomSMSSender',
+                        kmsKeyId:
+                          'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
+                      },
+                    },
+                    {
+                      cognitoUserPool: {
+                        pool: 'MyUserPool1',
+                        trigger: 'CustomEmailSender',
+                        kmsKeyId:
+                          'arn:aws:kms:eu-west-1:111111111111:key/22222222-9abc-def0-1234-56789abcdef1',
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+            command: 'package',
+          })
+        ).to.eventually.be.rejectedWith('Only one KMS Key');
+      });
+
+      it('should throw if more than 1 KMS Key is configured per existing Cognito User Pool', () => {
+        return expect(
+          runServerless({
+            fixture: 'function',
+            configExt: {
+              functions: {
+                first: {
+                  handler: 'index.js',
+                  events: [
+                    {
+                      cognitoUserPool: {
+                        pool: 'MyUserPool1',
+                        trigger: 'CustomSMSSender',
+                        kmsKeyId:
+                          'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
+                        existing: true,
+                      },
+                    },
+                    {
+                      cognitoUserPool: {
+                        pool: 'MyUserPool1',
+                        trigger: 'CustomEmailSender',
+                        kmsKeyId:
+                          'arn:aws:kms:eu-west-1:111111111111:key/22222222-9abc-def0-1234-56789abcdef1',
+                        existing: true,
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+            command: 'package',
+          })
+        ).to.eventually.be.rejectedWith('Only one KMS Key');
+      });
+
+      it('should throw if no KMS Key is configured for a new Cognito User Pool', () => {
+        return expect(
+          runServerless({
+            fixture: 'function',
+            configExt: {
+              functions: {
+                first: {
+                  handler: 'index.js',
+                  events: [
+                    {
+                      cognitoUserPool: {
+                        pool: 'MyUserPool1',
+                        trigger: 'CustomSMSSender',
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+            command: 'package',
+          })
+        ).to.eventually.be.rejectedWith('KMS Key must be set');
+      });
+
+      it('should throw if no KMS Key is configured for an existing Cognito User Pool', () => {
+        return expect(
+          runServerless({
+            fixture: 'function',
+            configExt: {
+              functions: {
+                first: {
+                  handler: 'index.js',
+                  events: [
+                    {
+                      cognitoUserPool: {
+                        pool: 'MyUserPool1',
+                        trigger: 'CustomSMSSender',
+                        existing: true,
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+            command: 'package',
+          })
+        ).to.eventually.be.rejectedWith('KMS Key must be set');
+      });
+    });
+
+    describe('New Pools', () => {
+      it('should create resources when a KMS Key is configured as a string', () => {
+        expect(cfResources.CognitoUserPoolSingleCustomSenderSourceKmsStringARN.Type).to.equal(
+          'AWS::Cognito::UserPool'
+        );
+        expect(
+          cfResources.CognitoUserPoolSingleCustomSenderSourceKmsStringARN.DependsOn
+        ).to.have.lengthOf(1);
+        expect(
+          cfResources.CognitoUserPoolSingleCustomSenderSourceKmsStringARN.Properties.LambdaConfig
+            .KMSKeyID
+        ).to.equal('arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1');
+        expect(
+          cfResources.CognitoUserPoolSingleCustomSenderSourceKmsStringARN.Properties.LambdaConfig
+            .CustomSMSSender.LambdaArn
+        ).to.deep.equal({
+          'Fn::GetAtt': ['SingleCustomSenderSourceKmsStringARNLambdaFunction', 'Arn'],
+        });
+        expect(
+          cfResources
+            .SingleCustomSenderSourceKmsStringARNLambdaPermissionCognitoUserPoolSingleCustomSenderSourceKmsStringARNTriggerSourceCustomSMSSender
+            .Type
+        ).to.equal('AWS::Lambda::Permission');
+      });
+
+      it('should create resources when a KMS Key is configured as ARN Reference', () => {
+        expect(cfResources.CognitoUserPoolSingleCustomSenderSourceKmsRefARN.Type).to.equal(
+          'AWS::Cognito::UserPool'
+        );
+        expect(
+          cfResources.CognitoUserPoolSingleCustomSenderSourceKmsRefARN.DependsOn
+        ).to.have.lengthOf(1);
+        expect(
+          cfResources.CognitoUserPoolSingleCustomSenderSourceKmsRefARN.Properties.LambdaConfig
+            .KMSKeyID
+        ).to.deep.equal({
+          'Fn::GetAtt': ['kmsKey', 'Arn'],
+        });
+        expect(
+          cfResources.CognitoUserPoolSingleCustomSenderSourceKmsRefARN.Properties.LambdaConfig
+            .CustomSMSSender.LambdaArn
+        ).to.deep.equal({
+          'Fn::GetAtt': ['SingleCustomSenderSourceKmsRefARNLambdaFunction', 'Arn'],
+        });
+        expect(
+          cfResources
+            .SingleCustomSenderSourceKmsRefARNLambdaPermissionCognitoUserPoolSingleCustomSenderSourceKmsRefARNTriggerSourceCustomSMSSender
+            .Type
+        ).to.equal('AWS::Lambda::Permission');
+      });
+
+      it('should create resources when CUP events that specify multiple custom sender sources are given', () => {
+        expect(cfResources.CognitoUserPoolMultipleCustomSenderSourceForSinglePool.Type).to.equal(
+          'AWS::Cognito::UserPool'
+        );
+        expect(
+          cfResources.CognitoUserPoolMultipleCustomSenderSourceForSinglePool.DependsOn
+        ).to.have.lengthOf(2);
+        expect(
+          cfResources.CognitoUserPoolMultipleCustomSenderSourceForSinglePool.Properties.LambdaConfig
+            .KMSKeyID
+        ).to.equal('arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1');
+        expect(
+          cfResources.CognitoUserPoolMultipleCustomSenderSourceForSinglePool.Properties.LambdaConfig
+            .CustomSMSSender.LambdaArn
+        ).to.deep.equal({
+          'Fn::GetAtt': ['MultipleCustomSenderSourceForSinglePoolLambdaFunction', 'Arn'],
+        });
+        expect(
+          cfResources.CognitoUserPoolMultipleCustomSenderSourceForSinglePool.Properties.LambdaConfig
+            .CustomEmailSender.LambdaArn
+        ).to.deep.equal({
+          'Fn::GetAtt': ['MultipleCustomSenderSourceForSinglePoolLambdaFunction', 'Arn'],
+        });
+        expect(
+          cfResources
+            .MultipleCustomSenderSourceForSinglePoolLambdaPermissionCognitoUserPoolMultipleCustomSenderSourceForSinglePoolTriggerSourceCustomSMSSender
+            .Type
+        ).to.equal('AWS::Lambda::Permission');
+        expect(
+          cfResources
+            .MultipleCustomSenderSourceForSinglePoolLambdaPermissionCognitoUserPoolMultipleCustomSenderSourceForSinglePoolTriggerSourceCustomEmailSender
+            .Type
+        ).to.equal('AWS::Lambda::Permission');
+      });
+
+      it('should create resources when a single KMS Key is configured per new Cognito User Pool', () => {
+        expect(cfResources.CognitoUserPoolSingleCustomSenderSourceForMultiplePools1.Type).to.equal(
+          'AWS::Cognito::UserPool'
+        );
+        expect(
+          cfResources.CognitoUserPoolSingleCustomSenderSourceForMultiplePools1.DependsOn
+        ).to.have.lengthOf(1);
+        expect(
+          cfResources.CognitoUserPoolSingleCustomSenderSourceForMultiplePools1.Properties
+            .LambdaConfig.KMSKeyID
+        ).to.equal('arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1');
+        expect(
+          cfResources.CognitoUserPoolSingleCustomSenderSourceForMultiplePools1.Properties
+            .LambdaConfig.CustomSMSSender.LambdaArn
+        ).to.deep.equal({
+          'Fn::GetAtt': ['SingleCustomSenderSourceForMultiplePools1LambdaFunction', 'Arn'],
+        });
+        expect(
+          cfResources
+            .SingleCustomSenderSourceForMultiplePools1LambdaPermissionCognitoUserPoolSingleCustomSenderSourceForMultiplePools1TriggerSourceCustomSMSSender
+            .Type
+        ).to.equal('AWS::Lambda::Permission');
+        expect(cfResources.CognitoUserPoolSingleCustomSenderSourceForMultiplePools2.Type).to.equal(
+          'AWS::Cognito::UserPool'
+        );
+        expect(
+          cfResources.CognitoUserPoolSingleCustomSenderSourceForMultiplePools2.Properties
+            .LambdaConfig.KMSKeyID
+        ).to.equal('arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1');
+        expect(
+          cfResources.CognitoUserPoolSingleCustomSenderSourceForMultiplePools2.DependsOn
+        ).to.have.lengthOf(1);
+        expect(
+          cfResources.CognitoUserPoolSingleCustomSenderSourceForMultiplePools2.Properties
+            .LambdaConfig.CustomSMSSender.LambdaArn
+        ).to.deep.equal({
+          'Fn::GetAtt': ['SingleCustomSenderSourceForMultiplePools2LambdaFunction', 'Arn'],
+        });
+        expect(
+          cfResources
+            .SingleCustomSenderSourceForMultiplePools2LambdaPermissionCognitoUserPoolSingleCustomSenderSourceForMultiplePools2TriggerSourceCustomSMSSender
+            .Type
+        ).to.equal('AWS::Lambda::Permission');
+      });
+    });
+
+    describe('Existing Pools', () => {
+      it('should create resources when a KMS Key is configured as a string', () => {
+        const functionName =
+          cfResources.SingleCustomSenderSourceKmsStringARNExistingLambdaFunction.Properties
+            .FunctionName;
+        expect(
+          cfResources.SingleCustomSenderSourceKmsStringARNExistingCustomCognitoUserPool1
+        ).to.deep.equal({
+          Type: 'Custom::CognitoUserPool',
+          Version: 1,
+          DependsOn: [
+            'SingleCustomSenderSourceKmsStringARNExistingLambdaFunction',
+            'CustomDashresourceDashexistingDashcupLambdaFunction',
+          ],
+          Properties: {
+            ServiceToken: {
+              'Fn::GetAtt': ['CustomDashresourceDashexistingDashcupLambdaFunction', 'Arn'],
+            },
+            FunctionName: functionName,
+            UserPoolName: 'SingleCustomSenderSourceKmsStringARNExisting',
+            UserPoolConfigs: [
+              {
+                Trigger: 'CustomSMSSender',
+                KMSKeyID:
+                  'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
+                LambdaVersion: 'V1_0',
+              },
+            ],
+            ForceDeploy: undefined,
+          },
+        });
+      });
+
+      it('should create resources when a KMS Key is configured as ARN Reference', () => {
+        const functionName =
+          cfResources.SingleCustomSenderSourceKmsRefARNExistingLambdaFunction.Properties
+            .FunctionName;
+        expect(
+          cfResources.SingleCustomSenderSourceKmsRefARNExistingCustomCognitoUserPool1
+        ).to.deep.equal({
+          Type: 'Custom::CognitoUserPool',
+          Version: 1,
+          DependsOn: [
+            'SingleCustomSenderSourceKmsRefARNExistingLambdaFunction',
+            'CustomDashresourceDashexistingDashcupLambdaFunction',
+          ],
+          Properties: {
+            ServiceToken: {
+              'Fn::GetAtt': ['CustomDashresourceDashexistingDashcupLambdaFunction', 'Arn'],
+            },
+            FunctionName: functionName,
+            UserPoolName: 'SingleCustomSenderSourceKmsRefARNExisting',
+            UserPoolConfigs: [
+              {
+                Trigger: 'CustomSMSSender',
+                KMSKeyID: {
+                  'Fn::GetAtt': ['kmsKey', 'Arn'],
+                },
+                LambdaVersion: 'V1_0',
+              },
+            ],
+            ForceDeploy: undefined,
+          },
+        });
+      });
+
+      it('should create resources when CUP events that specify multiple custom sender sources are given', () => {
+        const functionName =
+          cfResources.MultipleCustomSenderSourceForSinglePoolExistingLambdaFunction.Properties
+            .FunctionName;
+        expect(
+          cfResources.MultipleCustomSenderSourceForSinglePoolExistingCustomCognitoUserPool1
+        ).to.deep.equal({
+          Type: 'Custom::CognitoUserPool',
+          Version: 1,
+          DependsOn: [
+            'MultipleCustomSenderSourceForSinglePoolExistingLambdaFunction',
+            'CustomDashresourceDashexistingDashcupLambdaFunction',
+          ],
+          Properties: {
+            ServiceToken: {
+              'Fn::GetAtt': ['CustomDashresourceDashexistingDashcupLambdaFunction', 'Arn'],
+            },
+            FunctionName: functionName,
+            UserPoolName: 'MultipleCustomSenderSourceForSinglePoolExisting',
+            UserPoolConfigs: [
+              {
+                Trigger: 'CustomSMSSender',
+                KMSKeyID:
+                  'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
+                LambdaVersion: 'V1_0',
+              },
+              {
+                Trigger: 'CustomEmailSender',
+                KMSKeyID:
+                  'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
+                LambdaVersion: 'V1_0',
+              },
+            ],
+            ForceDeploy: undefined,
+          },
+        });
+      });
+
+      it('should create resources when a single KMS Key is configured per new Cognito User Pool', () => {
+        const functionName1 =
+          cfResources.SingleCustomSenderSourceForMultiplePoolsExisting1LambdaFunction.Properties
+            .FunctionName;
+        expect(
+          cfResources.SingleCustomSenderSourceForMultiplePoolsExisting1CustomCognitoUserPool1
+        ).to.deep.equal({
+          Type: 'Custom::CognitoUserPool',
+          Version: 1,
+          DependsOn: [
+            'SingleCustomSenderSourceForMultiplePoolsExisting1LambdaFunction',
+            'CustomDashresourceDashexistingDashcupLambdaFunction',
+          ],
+          Properties: {
+            ServiceToken: {
+              'Fn::GetAtt': ['CustomDashresourceDashexistingDashcupLambdaFunction', 'Arn'],
+            },
+            FunctionName: functionName1,
+            UserPoolName: 'SingleCustomSenderSourceForMultiplePoolsExisting1',
+            UserPoolConfigs: [
+              {
+                Trigger: 'CustomSMSSender',
+                KMSKeyID:
+                  'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
+                LambdaVersion: 'V1_0',
+              },
+            ],
+            ForceDeploy: undefined,
+          },
+        });
+
+        const functionName2 =
+          cfResources.SingleCustomSenderSourceForMultiplePoolsExisting2LambdaFunction.Properties
+            .FunctionName;
+        expect(
+          cfResources.SingleCustomSenderSourceForMultiplePoolsExisting2CustomCognitoUserPool1
+        ).to.deep.equal({
+          Type: 'Custom::CognitoUserPool',
+          Version: 1,
+          DependsOn: [
+            'SingleCustomSenderSourceForMultiplePoolsExisting2LambdaFunction',
+            'CustomDashresourceDashexistingDashcupLambdaFunction',
+          ],
+          Properties: {
+            ServiceToken: {
+              'Fn::GetAtt': ['CustomDashresourceDashexistingDashcupLambdaFunction', 'Arn'],
+            },
+            FunctionName: functionName2,
+            UserPoolName: 'SingleCustomSenderSourceForMultiplePoolsExisting2',
+            UserPoolConfigs: [
+              {
+                Trigger: 'CustomSMSSender',
+                KMSKeyID:
+                  'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
+                LambdaVersion: 'V1_0',
+              },
+            ],
+            ForceDeploy: undefined,
+          },
+        });
+      });
     });
   });
 });
