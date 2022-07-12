@@ -261,7 +261,7 @@ An alternative to free-form CLI options is to use [environment variables](./prov
 
 ```yaml
 provider:
-  environement:
+  environment:
     APP_DOMAIN: ${param:domain, 'preview.myapp.com'}
 ```
 
