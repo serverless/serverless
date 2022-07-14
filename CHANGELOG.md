@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.21.0](https://github.com/serverless/serverless/compare/v3.20.0...v3.21.0) (2022-07-14)
+
+### Features
+
+- **Console:** Rely on Console ready layers published to AWS ([#11236](https://github.com/serverless/serverless/issues/11236)) ([f9bc405](https://github.com/serverless/serverless/commit/f9bc4051844d1d54259216914fd28048d8749409)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **Console:** Keep currently attached layers with `function deploy` ([#11235](https://github.com/serverless/serverless/issues/11235)) ([198d3b7](https://github.com/serverless/serverless/commit/198d3b7738e36ca1d8e516e257b2be81e04b8e6a)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [3.20.0](https://github.com/serverless/serverless/compare/v3.19.0...v3.20.0) (2022-07-08)
 
 ### Features
