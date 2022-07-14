@@ -69,6 +69,15 @@ const createAwsRequestStubMap = () => ({
     },
   },
   S3: {
+    getObject: async ({ Bucket: bucket, Key: key }) => {
+      if (bucket !== 'sls-layers-registry') throw new Error(`Unexpected bucket "${bucket}"`);
+      if (key !== 'sls-otel-extension-node.json') throw new Error(`Unexpected bucket "${key}"`);
+      return {
+        Body: Buffer.from(
+          JSON.stringify({ 'us-east-1': { '0.5.1': 'latest-sls-otel-layer-arn' } })
+        ),
+      };
+    },
     headObject: async ({ Key: s3Key }) => {
       if (s3Key.includes('sls-otel.')) {
         throw Object.assign(new Error('Not found'), {
@@ -131,24 +140,14 @@ const createAwsRequestStubMap = () => ({
 describe('test/unit/lib/classes/console.test.js', () => {
   describe('enabled', () => {
     describe('deploy', () => {
-      let serverless;
-      let servicePath;
       let cfTemplate;
       let awsNaming;
-      let uploadStub;
       let apiStub;
-      let otelIngenstionRequests;
       before(async () => {
         const awsRequestStubMap = createAwsRequestStubMap();
-        uploadStub = awsRequestStubMap.S3.upload;
-        ({ requests: otelIngenstionRequests, stub: apiStub } = createApiStub());
+        ({ stub: apiStub } = createApiStub());
 
-        ({
-          serverless,
-          cfTemplate,
-          awsNaming,
-          fixtureData: { servicePath },
-        } = await runServerless({
+        ({ cfTemplate, awsNaming } = await runServerless({
           fixture: 'packaging',
           command: 'deploy',
           lastLifecycleHookName: 'aws:deploy:deploy:uploadArtifacts',
@@ -169,7 +168,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
             .Variables,
         ];
         for (const fnVariables of fnVariablesList) {
-          expect(fnVariables).to.have.property('SLS_OTEL_USER_SETTINGS');
+          expect(fnVariables).to.have.property('SLS_EXTENSION');
           expect(fnVariables).to.have.property('AWS_LAMBDA_EXEC_WRAPPER');
         }
 
@@ -178,50 +177,17 @@ describe('test/unit/lib/classes/console.test.js', () => {
           'Environment.Variables',
           {}
         );
-        expect(notSupportedFnVariables).to.not.have.property('SLS_OTEL_USER_SETTINGS');
+        expect(notSupportedFnVariables).to.not.have.property('SLS_EXTENSION');
         expect(notSupportedFnVariables).to.not.have.property('AWS_LAMBDA_EXEC_WRAPPER');
       });
 
       it('should reflect default userSettings', () => {
         const userSettings = JSON.parse(
           cfTemplate.Resources[awsNaming.getLambdaLogicalId('fnService')].Properties.Environment
-            .Variables.SLS_OTEL_USER_SETTINGS
+            .Variables.SLS_EXTENSION
         );
-        expect(userSettings.logs).to.have.property('destination');
-        expect(userSettings.metrics).to.have.property('destination');
-        expect(userSettings.common.destination).to.have.property('requestHeaders');
-      });
-
-      it('should package extension layer', async () => {
-        expect(cfTemplate.Resources).to.have.property(
-          awsNaming.getConsoleExtensionLayerLogicalId()
-        );
-        await fsp.access(
-          path.resolve(
-            servicePath,
-            '.serverless',
-            await serverless.console.deferredExtensionLayerBasename
-          )
-        );
-      });
-
-      it('should upload extension layer to S3', async () => {
-        const consoleExtensionLayerBasename = await serverless.console
-          .deferredExtensionLayerBasename;
-        log.debug(
-          'layer basename: %s, s3Keys: %o',
-          consoleExtensionLayerBasename,
-          uploadStub.args.map(([{ Key: s3Key }]) => s3Key)
-        );
-        const uploadArgs = uploadStub.args.find(([{ Key: s3Key }]) =>
-          s3Key.endsWith(consoleExtensionLayerBasename)
-        )[0];
-        // Confirm that Bucket is properly resolved in outer `uploadZipFile` method
-        expect(typeof uploadArgs.Bucket).to.equal('string');
-      });
-
-      it('should activate otel ingestion token', () => {
-        otelIngenstionRequests.includes('activate-token');
+        expect(userSettings).to.have.property('ingestToken');
+        expect(userSettings).to.have.property('orgId');
       });
     });
 
@@ -243,18 +209,17 @@ describe('test/unit/lib/classes/console.test.js', () => {
           modulesCacheStub: {
             [require.resolve('@serverless/utils/api-request')]: apiStub,
           },
+          awsRequestStubMap: createAwsRequestStubMap(),
         });
         userSettings = JSON.parse(
           cfTemplate.Resources[awsNaming.getLambdaLogicalId('basic')].Properties.Environment
-            .Variables.SLS_OTEL_USER_SETTINGS
+            .Variables.SLS_EXTENSION
         );
       });
 
       it('should propagate user settings', () => {
         expect(userSettings.logs.disabled).to.be.true;
-        expect(userSettings.logs).to.have.property('destination');
-        expect(userSettings.metrics).to.have.property('destination');
-        expect(userSettings.common.destination).to.have.property('requestHeaders');
+        expect(userSettings).to.have.property('ingestToken');
       });
     });
 
@@ -285,37 +250,8 @@ describe('test/unit/lib/classes/console.test.js', () => {
 
         const configuredLayers =
           cfTemplate.Resources[awsNaming.getLambdaLogicalId('layerFunc')].Properties.Layers;
-        expect(
-          configuredLayers.some(
-            ({ Ref: logicalId }) => logicalId === awsNaming.getConsoleExtensionLayerLogicalId()
-          )
-        ).to.be.true;
-      });
-    });
-
-    describe('package for custom deployment bucket', () => {
-      let cfTemplate;
-      let awsNaming;
-      before(async () => {
-        ({ cfTemplate, awsNaming } = await runServerless({
-          fixture: 'function',
-          command: 'package',
-          configExt: { console: true, org: 'testorg', provider: { deploymentBucket: 'custom' } },
-          env: { SLS_ORG_TOKEN: 'dummy' },
-          modulesCacheStub: {
-            [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
-          },
-        }));
-      });
-
-      it('should not reference default deployment bucket anywhere', () => {
-        expect(JSON.stringify(cfTemplate.Resources)).to.not.contain('ServerlessDeploymentBucket');
-      });
-      it('should reference custom S3 bucket at layer version', () => {
-        expect(
-          cfTemplate.Resources[awsNaming.getConsoleExtensionLayerLogicalId()].Properties.Content
-            .S3Bucket
-        ).to.equal('custom');
+        expect(configuredLayers.some((layerArn) => layerArn === 'latest-sls-otel-layer-arn')).to.be
+          .true;
       });
     });
   });
@@ -324,7 +260,6 @@ describe('test/unit/lib/classes/console.test.js', () => {
     let consolePackage;
     let consoleDeploy;
     let servicePath;
-    let uploadStub;
     let apiStub;
     let otelIngenstionRequests;
     before(async () => {
@@ -342,10 +277,10 @@ describe('test/unit/lib/classes/console.test.js', () => {
         modulesCacheStub: {
           [require.resolve('@serverless/utils/api-request')]: apiStub,
         },
+        awsRequestStubMap: createAwsRequestStubMap(),
       }));
 
       const awsRequestStubMap = createAwsRequestStubMap();
-      uploadStub = awsRequestStubMap.S3.upload;
 
       ({
         serverless: { console: consoleDeploy },
@@ -367,20 +302,12 @@ describe('test/unit/lib/classes/console.test.js', () => {
       expect(consoleDeploy.serviceId).to.equal(consolePackage.serviceId);
     });
 
-    it('should upload extension layer to S3', async () => {
-      const extensionLayerFilename = await consoleDeploy.deferredExtensionLayerBasename;
-      expect(uploadStub.args.some(([{ Key: s3Key }]) => s3Key.endsWith(extensionLayerFilename))).to
-        .be.true;
-    });
-
     it('should activate otel ingestion token', () => {
       otelIngenstionRequests.includes('activate-token');
     });
   });
 
   describe('deploy function', () => {
-    let serverless;
-    let uploadStub;
     let updateFunctionStub;
     let publishLayerStub;
     let apiStub;
@@ -389,11 +316,9 @@ describe('test/unit/lib/classes/console.test.js', () => {
       updateFunctionStub = sinon.stub().resolves({});
       publishLayerStub = sinon.stub().resolves({});
       const awsRequestStubMap = createAwsRequestStubMap();
-      uploadStub = awsRequestStubMap.S3.upload;
-      let isFirstLayerVersionsQuery = true;
       ({ requests: otelIngenstionRequests, stub: apiStub } = createApiStub());
 
-      ({ serverless } = await runServerless({
+      await runServerless({
         fixture: 'function',
         command: 'deploy function',
         options: { function: 'basic' },
@@ -411,7 +336,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
                 LastUpdateStatus: 'Successful',
                 Layers: [
                   {
-                    Arn: 'arn:aws:lambda:us-east-1:999999999999:layer:sls-console-otel-extension-0-3-6:1',
+                    Arn: 'arn:aws:lambda:us-east-1:999999999999:layer:sls-otel-extension-node-0-3-6:1',
                     CodeSize: 186038,
                     SigningProfileVersionArn: null,
                     SigningJobArn: null,
@@ -425,36 +350,23 @@ describe('test/unit/lib/classes/console.test.js', () => {
                 ],
               },
             },
-            listLayerVersions() {
-              if (isFirstLayerVersionsQuery) {
-                isFirstLayerVersionsQuery = false;
-                return { LayerVersions: [] };
-              }
-              return { LayerVersions: [{ LayerVersionArn: 'extension-arn' }] };
-            },
             publishLayerVersion: publishLayerStub,
             updateFunctionConfiguration: updateFunctionStub,
             updateFunctionCode: {},
           },
         },
-      }));
+      });
     });
 
     it('should setup needed environment variables', () => {
       const fnVariables = updateFunctionStub.args[0][0].Environment.Variables;
-      expect(fnVariables).to.have.property('SLS_OTEL_USER_SETTINGS');
+      expect(fnVariables).to.have.property('SLS_EXTENSION');
       expect(fnVariables).to.have.property('AWS_LAMBDA_EXEC_WRAPPER');
-    });
-
-    it('should upload extension layer to S3', async () => {
-      const extensionLayerFilename = await serverless.console.deferredExtensionLayerBasename;
-      expect(uploadStub.args.some(([{ Key: s3Key }]) => s3Key.endsWith(extensionLayerFilename))).to
-        .be.true;
     });
 
     it('should keep already attached lambda layers', async () => {
       const layers = updateFunctionStub.args[0][0].Layers;
-      expect(layers.sort()).to.deep.equal(['other-layer', 'extension-arn'].sort());
+      expect(layers.sort()).to.deep.equal(['other-layer', 'latest-sls-otel-layer-arn'].sort());
     });
 
     it('should activate otel ingestion token', () => {
@@ -490,7 +402,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
                 return {
                   Body: JSON.stringify({
                     console: {
-                      schemaVersion: '1',
+                      schemaVersion: '2',
                       otelIngestionToken: 'rollback-token',
                       service: 'test-console',
                       stage: 'dev',
@@ -604,6 +516,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
       modulesCacheStub: {
         [require.resolve('@serverless/utils/api-request')]: apiStub,
       },
+      awsRequestStubMap: createAwsRequestStubMap(),
     });
 
     for (const [url] of apiStub.args) expect(url).to.not.include('/ignoreid/');
@@ -706,6 +619,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
           modulesCacheStub: {
             [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
           },
+          awsRequestStubMap: createAwsRequestStubMap(),
         });
 
         await updateConfig({ org: 'testorg' });
@@ -740,6 +654,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
           modulesCacheStub: {
             [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
           },
+          awsRequestStubMap: createAwsRequestStubMap(),
         });
 
         await updateConfig({ provider: { region: 'us-east-2' } });
@@ -774,6 +689,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
           modulesCacheStub: {
             [require.resolve('@serverless/utils/api-request')]: createApiStub().stub,
           },
+          awsRequestStubMap: createAwsRequestStubMap(),
         });
         const stateFilename = path.resolve(servicePath, 'package-dir', 'serverless-state.json');
         const state = JSON.parse(await fsp.readFile(stateFilename, 'utf-8'));
@@ -821,7 +737,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
                     return {
                       Body: JSON.stringify({
                         console: {
-                          schemaVersion: '2',
+                          schemaVersion: 'other',
                           otelIngestionToken: 'rollback-token',
                           service: 'test-console',
                           stage: 'dev',
@@ -889,7 +805,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
                     return {
                       Body: JSON.stringify({
                         console: {
-                          schemaVersion: '1',
+                          schemaVersion: '2',
                           otelIngestionToken: 'rollback-token',
                           service: 'test-console',
                           stage: 'dev',
@@ -954,7 +870,7 @@ describe('test/unit/lib/classes/console.test.js', () => {
                     return {
                       Body: JSON.stringify({
                         console: {
-                          schemaVersion: '1',
+                          schemaVersion: '2',
                           otelIngestionToken: 'rollback-token',
                           service: 'test-console',
                           stage: 'dev',
