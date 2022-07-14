@@ -405,7 +405,26 @@ describe('test/unit/lib/classes/console.test.js', () => {
         awsRequestStubMap: {
           ...awsRequestStubMap,
           Lambda: {
-            getFunction: { Configuration: { State: 'Active', LastUpdateStatus: 'Successful' } },
+            getFunction: {
+              Configuration: {
+                State: 'Active',
+                LastUpdateStatus: 'Successful',
+                Layers: [
+                  {
+                    Arn: 'arn:aws:lambda:us-east-1:999999999999:layer:sls-console-otel-extension-0-3-6:1',
+                    CodeSize: 186038,
+                    SigningProfileVersionArn: null,
+                    SigningJobArn: null,
+                  },
+                  {
+                    Arn: 'other-layer',
+                    CodeSize: 186038,
+                    SigningProfileVersionArn: null,
+                    SigningJobArn: null,
+                  },
+                ],
+              },
+            },
             listLayerVersions() {
               if (isFirstLayerVersionsQuery) {
                 isFirstLayerVersionsQuery = false;
@@ -431,6 +450,11 @@ describe('test/unit/lib/classes/console.test.js', () => {
       const extensionLayerFilename = await serverless.console.deferredExtensionLayerBasename;
       expect(uploadStub.args.some(([{ Key: s3Key }]) => s3Key.endsWith(extensionLayerFilename))).to
         .be.true;
+    });
+
+    it('should keep already attached lambda layers', async () => {
+      const layers = updateFunctionStub.args[0][0].Layers;
+      expect(layers.sort()).to.deep.equal(['other-layer', 'extension-arn'].sort());
     });
 
     it('should activate otel ingestion token', () => {
