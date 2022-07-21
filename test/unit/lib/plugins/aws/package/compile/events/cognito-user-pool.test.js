@@ -167,18 +167,6 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
   let awsCompileCognitoUserPoolEvents;
   let addCustomResourceToServiceStub;
 
-  let cfResources;
-
-  before(() =>
-    runServerless({
-      fixture: 'function',
-      configExt: serverlessConfigurationExtension,
-      command: 'package',
-    }).then(({ cfTemplate }) => {
-      ({ Resources: cfResources } = cfTemplate);
-    })
-  );
-
   beforeEach(() => {
     addCustomResourceToServiceStub = sinon.stub().resolves();
     const AwsCompileCognitoUserPoolEvents = proxyquire(
@@ -963,17 +951,30 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
       ).to.equal('AWS::Lambda::Permission');
     });
   });
+});
+
+describe('AwsCompileCognitoUserPoolEvents - runServerless', () => {
+  let cfResources;
+
+  before(async () => {
+    const { cfTemplate } = await runServerless({
+      fixture: 'function',
+      configExt: serverlessConfigurationExtension,
+      command: 'package',
+    });
+
+    ({ Resources: cfResources } = cfTemplate);
+  });
 
   describe('Custom Sender Sources', () => {
     describe('Schema Issues', () => {
-      it('should throw if more than 1 KMS Key is configured per new Cognito User Pool', () => {
-        return expect(
+      it('should throw if more than 1 KMS Key is configured per new Cognito User Pool', async () => {
+        return await expect(
           runServerless({
             fixture: 'function',
             configExt: {
               functions: {
-                first: {
-                  handler: 'index.js',
+                basic: {
                   events: [
                     {
                       cognitoUserPool: {
@@ -1000,14 +1001,13 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
         ).to.eventually.be.rejectedWith('Only one KMS Key');
       });
 
-      it('should throw if more than 1 KMS Key is configured per existing Cognito User Pool', () => {
-        return expect(
+      it('should throw if more than 1 KMS Key is configured per existing Cognito User Pool', async () => {
+        return await expect(
           runServerless({
             fixture: 'function',
             configExt: {
               functions: {
-                first: {
-                  handler: 'index.js',
+                basic: {
                   events: [
                     {
                       cognitoUserPool: {
