@@ -1142,6 +1142,14 @@ functions:
           existing: true
           # Optional, for forcing deployment of triggers on existing User Pools
           forceDeploy: true
+      - cognitoUserPool:
+          pool: MyUserPool
+          trigger: CustomEmailSender
+          # Required, if you're using the CustomSMSSender or CustomEmailSender triggers
+          # Can either be KMS Key ARN string or reference to KMS Key Resource ARN
+          kmsKeyId: 'arn:aws:kms:eu-west-1:111111111111:key/12345678-9abc-def0-1234-56789abcdef1'
+          existing: true
+          forceDeploy: true
 ```
 
 ### ALB
