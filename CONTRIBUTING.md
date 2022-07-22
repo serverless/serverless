@@ -12,7 +12,9 @@ Welcome, and thanks in advance for your help!
 
 ## Setup
 
-Once you've cloned forked repository, all is needed is to run `npm install` at its root folder
+First, the preferred node version for development is v14; While v12 is supported on the client-side, developing in v12 can be unexpectdly tricky (see: [11250](https://github.com/serverless/serverless/pull/11250)).
+
+Then, to begin development fork repository and run `npm install` in its root folder.
 
 ## When you propose a new feature or bug fix
 
