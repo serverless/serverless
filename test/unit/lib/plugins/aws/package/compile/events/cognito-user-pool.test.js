@@ -953,7 +953,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
   });
 });
 
-describe('AwsCompileCognitoUserPoolEvents - runServerless', () => {
+describe('lib/plugins/aws/package/compile/events/cognito-user-pool.test.js', () => {
   let cfResources;
 
   before(async () => {
