@@ -78,20 +78,6 @@
     return domNodes;
   };
 
-  const linkToSurvey = () => {
-    const link = document.createElement('a');
-    link.classList.add('list-item');
-    link.style.setProperty('margin-top', '10px');
-    link.style.setProperty('font-style', 'italic');
-    link.href = 'https://slss.io/survey';
-    link.target = '_blank';
-    const span = document.createElement('span');
-    span.classList.add('list-item-label');
-    span.innerHTML = 'Take the Community Survey';
-    link.appendChild(span);
-    return link;
-  };
-
   const renderHits = (tree, selector) => {
     const container = document.querySelector(selector);
     const sidebarList = document.createElement('div');
@@ -108,7 +94,6 @@
     nodes.forEach((node) => {
       sidebarList.appendChild(node);
     });
-    sidebarList.appendChild(linkToSurvey());
     container.replaceChildren(sidebarList);
   };
 
