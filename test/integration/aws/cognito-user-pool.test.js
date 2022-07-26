@@ -24,9 +24,12 @@ describe('AWS - Cognito User Pool Integration Test', function () {
   let stackName;
   let serviceDir;
   let poolBasicSetup;
+  let poolCustomEmailSenderSetup;
   let poolExistingSimpleSetup;
   let poolExistingMultiSetup;
+  let poolExistingCustomEmailSenderSetup;
   let poolExistingSimpleSetupConfig;
+  let poolExistingCustomEmailSenderSetupConfig;
   const stage = 'dev';
 
   before(async () => {
@@ -36,20 +39,30 @@ describe('AWS - Cognito User Pool Integration Test', function () {
     stackName = `${serviceName}-${stage}`;
 
     poolBasicSetup = `${serviceName} CUP Basic`;
+    poolCustomEmailSenderSetup = `${serviceName} CUP CustomEmailSender`;
     poolExistingSimpleSetup = `${serviceName} CUP Existing Simple`;
     poolExistingMultiSetup = `${serviceName} CUP Existing Multi`;
+    poolExistingCustomEmailSenderSetup = `${serviceName} CUP Existing CustomEmailSender`;
 
     // create external Cognito User Pools
     // the simple pool setup has some additional configuration when we set it up
     poolExistingSimpleSetupConfig = {
       EmailVerificationMessage: 'email{####}message',
       EmailVerificationSubject: 'email{####}subject',
+      SmsVerificationMessage: 'sms{####}message',
+    };
+    poolExistingCustomEmailSenderSetupConfig = {
+      UsernameAttributes: ['email'],
+      AutoVerifiedAttributes: ['email'],
+      EmailVerificationMessage: 'email message: {####}',
+      EmailVerificationSubject: 'email subject: {####}',
     };
     // NOTE: deployment can only be done once the Cognito User Pools are created
     log.notice('Creating Cognito User Pools');
     await BbPromise.all([
       createUserPool(poolExistingSimpleSetup, poolExistingSimpleSetupConfig),
       createUserPool(poolExistingMultiSetup),
+      createUserPool(poolExistingCustomEmailSenderSetup, poolExistingCustomEmailSenderSetupConfig),
     ]);
     return deployService(serviceDir);
   });
@@ -64,35 +77,69 @@ describe('AWS - Cognito User Pool Integration Test', function () {
     return BbPromise.all([
       deleteUserPool(poolExistingSimpleSetup),
       deleteUserPool(poolExistingMultiSetup),
+      deleteUserPool(poolExistingCustomEmailSenderSetup),
     ]);
   });
 
-  describe('Basic Setup', () => {
-    it('should invoke function when a user is created', async () => {
-      const functionName = 'basic';
+  describe('New Setup', () => {
+    describe('Basic Setup', () => {
+      it('should invoke function when a user is created', async () => {
+        const functionName = 'basic';
 
-      const { Id: userPoolId } = await findUserPoolByName(poolBasicSetup);
+        const { Id: userPoolId } = await findUserPoolByName(poolBasicSetup);
 
-      let counter = 0;
-      const events = await confirmCloudWatchLogs(
-        `/aws/lambda/${stackName}-${functionName}`,
-        async () => createUser(userPoolId, `johndoe${++counter}`, '!!!wAsD123456wAsD!!!'),
-        {
-          checkIsComplete: (soFarEvents) => {
-            const logs = soFarEvents.reduce((data, event) => data + event.message, '');
-            return logs.includes('userName');
-          },
-        }
-      );
-      const logs = events.reduce((data, event) => data + event.message, '');
-      expect(logs).to.include(`"userPoolId":"${userPoolId}"`);
-      expect(logs).to.include('"userName":"johndoe');
-      expect(logs).to.include('"triggerSource":"PreSignUp_AdminCreateUser"');
+        let counter = 0;
+        const events = await confirmCloudWatchLogs(
+          `/aws/lambda/${stackName}-${functionName}`,
+          async () => createUser(userPoolId, `johndoe${++counter}`, '!!!wAsD123456wAsD!!!'),
+          {
+            checkIsComplete: (soFarEvents) => {
+              const logs = soFarEvents.reduce((data, event) => data + event.message, '');
+              return logs.includes('userName');
+            },
+          }
+        );
+        const logs = events.reduce((data, event) => data + event.message, '');
+        expect(logs).to.include(`"userPoolId":"${userPoolId}"`);
+        expect(logs).to.include('"userName":"johndoe');
+        expect(logs).to.include('"triggerSource":"PreSignUp_AdminCreateUser"');
+      });
+    });
+
+    describe('Custom Sender Trigger', () => {
+      it('should invoke function when a user is created and sent verification code via email', async () => {
+        const functionName = 'customEmailSender';
+
+        const { Id: userPoolId } = await findUserPoolByName(poolCustomEmailSenderSetup);
+
+        let counter = 0;
+        const events = await confirmCloudWatchLogs(
+          `/aws/lambda/${stackName}-${functionName}`,
+          async () =>
+            createUser(
+              userPoolId,
+              `janedoe${++counter}@email.com`,
+              '!!!wAsD123456wAsD!!!',
+              'email'
+            ),
+          {
+            checkIsComplete: (soFarEvents) =>
+              soFarEvents
+                .reduce((data, event) => data + event.message, '')
+                .includes('customEmailSenderRequestV1'),
+          }
+        );
+        const logs = events.reduce((data, event) => data + event.message, '');
+
+        expect(logs).to.include(`"userPoolId":"${userPoolId}"`);
+        expect(logs).to.include('"userName":"janedoe');
+        expect(logs).to.include('"type":"customEmailSenderRequestV1"');
+      });
     });
   });
 
   describe('Existing Setup', () => {
-    describe('single function / single pool setup', () => {
+    describe('single function / single trigger pool setup', () => {
       it('should invoke function when a user is created', async () => {
         const functionName = 'existingSimple';
 
@@ -105,7 +152,7 @@ describe('AWS - Cognito User Pool Integration Test', function () {
           {
             checkIsComplete: (soFarEvents) => {
               const logs = soFarEvents.reduce((data, event) => data + event.message, '');
-              return logs.includes('userName');
+              return logs.includes('PreSignUp_AdminCreateUser');
             },
           }
         );
@@ -128,7 +175,7 @@ describe('AWS - Cognito User Pool Integration Test', function () {
       });
     });
 
-    describe('single function / multi pool setup', () => {
+    describe('single function / multi trigger pool setup', () => {
       it('should invoke function when a user inits auth after being created', async () => {
         const functionName = 'existingMulti';
         const usernamePrefix = 'janedoe';
@@ -160,6 +207,37 @@ describe('AWS - Cognito User Pool Integration Test', function () {
         expect(logs).to.include(`"userName":"${usernamePrefix}`);
         expect(logs).to.include('"triggerSource":"PreSignUp_AdminCreateUser"');
         expect(logs).to.include('"triggerSource":"PreAuthentication_Authentication"');
+      });
+    });
+
+    describe('Custom Sender Trigger', () => {
+      it('should invoke function when a user is created and sent verification code via email', async () => {
+        const functionName = 'existingCustomEmailSender';
+
+        const { Id: userPoolId } = await findUserPoolByName(poolExistingCustomEmailSenderSetup);
+
+        let counter = 0;
+        const events = await confirmCloudWatchLogs(
+          `/aws/lambda/${stackName}-${functionName}`,
+          async () =>
+            createUser(
+              userPoolId,
+              `janedoe${++counter}@email.com`,
+              '!!!wAsD123456wAsD!!!',
+              'email'
+            ),
+          {
+            checkIsComplete: (soFarEvents) =>
+              soFarEvents
+                .reduce((data, event) => data + event.message, '')
+                .includes('customEmailSenderRequestV1'),
+          }
+        );
+        const logs = events.reduce((data, event) => data + event.message, '');
+
+        expect(logs).to.include(`"userPoolId":"${userPoolId}"`);
+        expect(logs).to.include('"userName":"janedoe');
+        expect(logs).to.include('"type":"customEmailSenderRequestV1"');
       });
     });
   });
