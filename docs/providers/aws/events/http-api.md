@@ -73,7 +73,7 @@ functions:
 
 ### Endpoints timeout
 
-Framework ensures that function timeout setting (which defaults to 6 seconds) is respected in HTTP API endpoint configuration. Still note that maximum possible timeout for an endpoint is 29 seconds. Ensure to keep function timeout below that. Otherwise you may observe successful lambda invocations reported with `503` status code.
+The default and maximal API Gateway timeout is used: 30s. Ensure to keep function timeout below 29s. Otherwise, you may observe successful lambda invocations reported with `503` status code.
 
 ### CORS Setup
 
