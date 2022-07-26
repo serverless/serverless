@@ -16,6 +16,10 @@ First, the preferred node version for development is v14; While v12 is supported
 
 Then, to begin development fork repository and run `npm install` in its root folder.
 
+## Getting started
+
+A good first step is to search for open [issues](https://github.com/serverless/serverless/issues). Issues are labeled, and some good issues to start with are labeled: [good first issue](https://github.com/serverless/serverless/labels/good%20first%20issue) and [help wanted](https://github.com/serverless/serverless/labels/help%20wanted).
+
 ## When you propose a new feature or bug fix
 
 Please make sure there is an open issue discussing your contribution before jumping into a Pull Request!
