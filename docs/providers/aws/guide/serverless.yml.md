@@ -1142,6 +1142,12 @@ functions:
           existing: true
           # Optional, for forcing deployment of triggers on existing User Pools
           forceDeploy: true
+          # Mandatory in case trigger is one of CustomSMSSender or CustomeEmailSender
+          # Specify KMS ARN that will be used to encrypt temporary passwords and authorization codes
+          kmsKeyId: arn:aws:kms:eu-west-1:111111111111:key/12345678-9abc-def0-1234-56789abcdef1
+          # Optional, used only in case trigger is one of CustomSMSSender or CustomeEmailSender
+          # Specify lambda version to use. Dkmsefault is V1_0
+          lambdaVersion: V1_0
 ```
 
 ### ALB
