@@ -35,7 +35,7 @@ In non-trivial cases please propose and let us review an implementation spec (in
 
 Do not submit draft PRs. Submit only finalized work which is ready for merge. If you have any doubts related to implementation work please discuss in the corresponding issue.
 
-Once a PR has been reviewed and some changes are suggested, please ensure to re-request review after all new changes are pushed. It's the best and quietest way to inform maintainers that your work is ready to be checked again.
+Once a PR has been reviewed and some changes are suggested, please ensure to **re-request review** after all new changes are pushed. It's the best and quietest way to inform maintainers that your work is ready to be checked again.
 
 ## When you want to work on an existing issue
 
@@ -57,7 +57,7 @@ Our documentation lives on GitHub in the [docs](docs) directory. Do you see a ty
 
 The easiest thing you can do to help us move forward and make an impact on our progress is to simply provide support to other people having difficulties with their Serverless projects.
 
-You can do that by replying to [issues on GitHub](https://github.com/serverless/serverless/issues), chatting with other community members in [our Chat](http://chat.serverless.com), or helping with questions in [our Forum](http://forum.serverless.com).
+You can do that by replying to [issues on GitHub](https://github.com/serverless/serverless/issues), chatting with other community members in [our Community Slack](https://www.serverless.com/slack), or helping with questions in [our Forum](http://forum.serverless.com), or [GitHub Discussions](https://github.com/serverless/serverless/discussions).
 
 ---
 
@@ -100,6 +100,12 @@ This log should be written only if deprecated functionality is used. If applicab
 - `message` Deprecation message to be displayed to the user.
 
 2. Document introduced deprecations at `docs/deprecations.md`. New deprecation should be listed as **first** and follow the format of other documented deprecations.
+
+Example PRs with configured deprecations:
+
+- [Change of default `runtime`](https://github.com/serverless/serverless/pull/9416)
+- [Extending non-existent resources](https://github.com/serverless/serverless/pull/8266)
+- [Deprecate `deploy -f`](https://github.com/serverless/serverless/pull/10346)
 
 ### Service configuration validation
 
