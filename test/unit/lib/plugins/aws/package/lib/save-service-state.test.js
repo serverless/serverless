@@ -66,38 +66,4 @@ describe('#saveServiceState()', () => {
       true
     );
   });
-
-  it('should remove self references correctly', async () => {
-    const filePath = path.join(
-      awsPackage.serverless.serviceDir,
-      '.serverless',
-      'service-state.json'
-    );
-
-    serverless.service.custom = {
-      mySelfRef: serverless.service,
-    };
-
-    await awsPackage.saveServiceState();
-    const expectedStateFileContent = {
-      service: {
-        provider: {
-          compiledCloudFormationTemplate: 'compiled content',
-        },
-        custom: {
-          mySelfRef: '${self:}',
-        },
-      },
-      package: {
-        individually: false,
-        artifactDirectoryName: 'artifact-directory',
-        artifact: 'service.zip',
-      },
-    };
-
-    expect(getServiceStateFileNameStub.calledOnce).to.equal(true);
-    expect(writeFileSyncStub.calledWithExactly(filePath, expectedStateFileContent, true)).to.equal(
-      true
-    );
-  });
 });
