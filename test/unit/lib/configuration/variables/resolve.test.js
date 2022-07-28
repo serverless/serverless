@@ -2,6 +2,7 @@
 
 const { expect } = require('chai');
 
+const wait = require('timers-ext/promise/sleep');
 const ServerlessError = require('../../../../../lib/serverless-error');
 const resolveMeta = require('../../../../../lib/configuration/variables/resolve-meta');
 const resolve = require('../../../../../lib/configuration/variables/resolve');
@@ -78,6 +79,9 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       sharedSourceResolution2: '${sourceProperty(sharedSourceResolution1, sharedFinal)}',
       sharedPropertyResolution1: '${sourceSharedProperty:}',
       sharedPropertyResolution2: '${sourceProperty(sharedPropertyResolution1, sharedFinal)}',
+      sharedPropertyRaceCondition1: '${sourceSharedRaceCondition:}',
+      sharedPropertyRaceCondition2:
+        '${sourceDeferredNull:, sourceProperty(sharedPropertyRaceCondition1, sharedFinal)}',
     };
     let variablesMeta;
     const sources = {
@@ -91,6 +95,12 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       },
       sourceDirect: {
         resolve: () => ({ value: 234 }),
+      },
+      sourceDeferredNull: {
+        resolve: async () => {
+          await wait(0);
+          return { value: null };
+        },
       },
       sourceProperty: {
         resolve: async ({ params, resolveConfigurationProperty }) => {
@@ -178,6 +188,14 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
           value: {
             sharedFinal: 'foo',
             sharedInner: '${sourceProperty(sharedPropertyResolution2)}',
+          },
+        }),
+      },
+      sourceSharedRaceCondition: {
+        resolve: () => ({
+          value: {
+            sharedFinal: 'foo',
+            sharedInner: '${sourceProperty(sharedPropertyRaceCondition2)}',
           },
         }),
       },
@@ -295,6 +313,15 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         sharedInner: 'foo',
       });
       expect(configuration.sharedSourceResolution2).to.equal('foo');
+    });
+
+    // https://github.com/serverless/serverless/issues/11286
+    it('should handle gentle parallel resolution of same variable via different resolution patches', () => {
+      expect(configuration.sharedPropertyRaceCondition1).to.deep.equal({
+        sharedFinal: 'foo',
+        sharedInner: 'foo',
+      });
+      expect(configuration.sharedPropertyRaceCondition2).to.equal('foo');
     });
 
     it('should not resolve variables for unrecognized sources', () => {
@@ -463,6 +490,8 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         'sourceInfinite',
         'sourceShared',
         'sourceSharedProperty',
+        'sourceSharedRaceCondition',
+        'sourceDeferredNull',
       ]);
     });
 
