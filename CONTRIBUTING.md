@@ -12,9 +12,15 @@ Welcome, and thanks in advance for your help!
 
 ## Setup
 
-Once you've cloned forked repository, all is needed is to run `npm install` at its root folder.
+Once you've cloned the repository, all that is needed is to run `npm install` at its root folder.
 
 For best results use a \*nix development environment; If you're using Windows see: [Install Linux on Windows with WSL] (https://docs.microsoft.com/en-us/windows/wsl/install).
+
+The preferred node version for development is v14; While v12 is supported on the client-side, developing in v12 can be unexpectdly tricky (see: [11250](https://github.com/serverless/serverless/pull/11250)).
+
+## Getting started
+
+A good first step is to search for open [issues](https://github.com/serverless/serverless/issues). Issues are labeled, and some good issues to start with are labeled: [good first issue](https://github.com/serverless/serverless/labels/good%20first%20issue) and [help wanted](https://github.com/serverless/serverless/labels/help%20wanted).
 
 ## When you propose a new feature or bug fix
 

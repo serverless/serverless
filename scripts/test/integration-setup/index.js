@@ -9,6 +9,10 @@ const log = require('log').get('serverless');
 const awsRequest = require('@serverless/test/aws-request');
 const fsp = require('fs').promises;
 const path = require('path');
+const CloudFormationService = require('aws-sdk').CloudFormation;
+const SecretsManagerService = require('aws-sdk').SecretsManager;
+const KafkaService = require('aws-sdk').Kafka;
+
 const {
   SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
   SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME,
@@ -22,7 +26,7 @@ const ensureActiveMQCredentialsSecret = async () => {
   };
   log.notice('Creating SecretsManager ActiveMQ Credentials secret...');
   try {
-    await awsRequest('SecretsManager', 'createSecret', {
+    await awsRequest(SecretsManagerService, 'createSecret', {
       Name: SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME,
       SecretString: JSON.stringify(ssmMqCredentials),
     });
@@ -40,7 +44,7 @@ const ensureRabbitMQCredentialsSecret = async () => {
   };
   log.notice('Creating SecretsManager RabbitMQ Credentials secret...');
   try {
-    await awsRequest('SecretsManager', 'createSecret', {
+    await awsRequest(SecretsManagerService, 'createSecret', {
       Name: SHARED_INFRA_TESTS_RABBITMQ_CREDENTIALS_NAME,
       SecretString: JSON.stringify(ssmMqCredentials),
     });
@@ -67,7 +71,7 @@ async function handleInfrastructureCreation() {
   const clusterConfName = 'integration-tests-msk-cluster-configuration';
 
   log.notice('Creating MSK Cluster configuration...');
-  const clusterConfResponse = await awsRequest('Kafka', 'createConfiguration', {
+  const clusterConfResponse = await awsRequest(KafkaService, 'createConfiguration', {
     Name: clusterConfName,
     ServerProperties: kafkaServerProperties,
     KafkaVersions: ['2.2.1'],
@@ -77,7 +81,7 @@ async function handleInfrastructureCreation() {
   const clusterConfigurationRevision = clusterConfResponse.LatestRevision.Revision.toString();
 
   log.notice('Deploying integration tests CloudFormation stack...');
-  await awsRequest('CloudFormation', 'createStack', {
+  await awsRequest(CloudFormationService, 'createStack', {
     StackName: SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
     TemplateBody: cfnTemplate,
     Parameters: [
@@ -108,7 +112,7 @@ async function handleInfrastructureCreation() {
     ],
   });
 
-  await awsRequest('CloudFormation', 'waitFor', 'stackCreateComplete', {
+  await awsRequest(CloudFormationService, 'waitFor', 'stackCreateComplete', {
     StackName: SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
   });
   log.notice('Deployed integration tests CloudFormation stack!');
@@ -123,7 +127,7 @@ async function handleInfrastructureUpdate() {
   const cfnTemplate = await fsp.readFile(path.join(__dirname, 'cloudformation.yml'), 'utf8');
 
   try {
-    await awsRequest('CloudFormation', 'updateStack', {
+    await awsRequest(CloudFormationService, 'updateStack', {
       StackName: SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
       TemplateBody: cfnTemplate,
       Parameters: [
@@ -161,7 +165,7 @@ async function handleInfrastructureUpdate() {
     throw e;
   }
 
-  await awsRequest('CloudFormation', 'waitFor', 'stackUpdateComplete', {
+  await awsRequest(CloudFormationService, 'waitFor', 'stackUpdateComplete', {
     StackName: SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
   });
   log.notice('Updated integration tests CloudFormation stack!');
@@ -206,7 +210,7 @@ async function handleInfrastructureUpdate() {
 
   log.notice('Checking if integration tests CloudFormation stack already exists...');
   try {
-    describeResponse = await awsRequest('CloudFormation', 'describeStacks', {
+    describeResponse = await awsRequest(CloudFormationService, 'describeStacks', {
       StackName: SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
     });
     log.notice('Integration tests CloudFormation stack already exists');
