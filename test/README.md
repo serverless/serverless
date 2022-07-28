@@ -42,6 +42,18 @@ During development, you can easily check coverage by running `npm run coverage`,
 
 ## AWS Integration tests
 
+# Local Testing
+
+By default integration tests run on AWS. This has the potential to accrue (some) cost for running such tests. To avoid this potentiality it is possible to run many of the integration tests locally (see: https://github.com/serverless/serverless/issues/11281#issuecomment-1197993827).
+
+Use this command to run integration testing locally:
+
+```
+AWS_ACCESS_KEY_ID=xxx AWS_SECRET_ACCESS_KEY=xxx npx mocha-isolated --pass-through-aws-creds --skip-fs-cleanup-check --max-workers=20 "test/integration/{*.test.js,aws/*.test.js}"
+```
+
+# Testing on AWS
+
 Run all tests via:
 
 ```
