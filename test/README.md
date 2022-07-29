@@ -42,19 +42,27 @@ During development, you can easily check coverage by running `npm run coverage`,
 
 ## AWS Integration tests
 
+There are two types of integration testing: Local testing (which does not create infrastructure or run any loads on AWS), and AWS Testing (which does make infrastructure on AWS and runs loads on said infrastructure). Note that for AWS Testing there **may** be a cost associated, as work is being done on AWS servers.
+
+How to invoke the different types of testing is discussued below.
+
+## A note about keys
+
+Integration testing requires authenticating with AWS. Authentication is done through keys; Specifically an Access Key and a Secret Key. How to generate such keys can be found here: [AWS Account and Access Keys] (https://docs.aws.amazon.com/powershell/latest/userguide/pstools-appendix-sign-up.html).
+
+The integration tests look for said keys on the environment variables: `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`. These can be defined normally in the environment, however the commands discussed below do not assume this and instead feed the environment variables into npx/npm directly; This is done via command expansion as per Bash/POSIX mechanics (see: [Simple Command Expansion](https://www.gnu.org/software/bash/manual/html_node/Simple-Command-Expansion.html) and [2.9.1 Simple Commands](https://pubs.opengroup.org/onlinepubs/009695399/utilities/xcu_chap02.html)). These commands then indicate the inclusion of these values via: `AWS_ACCESS_KEY_ID=xxx AWS_SECRET_ACCESS_KEY=xxx`; Where you should add your own Access Key and Secret Key, replacing `xxx` in each case.
+
 # Local Testing
 
-By default integration tests run on AWS. This has the potential to accrue (some) cost for running such tests. To avoid this potentiality it is possible to run many of the integration tests locally (see: https://github.com/serverless/serverless/issues/11281#issuecomment-1197993827).
-
-Use this command to run integration testing locally:
+Use this command to run integration testing locally (see: https://github.com/serverless/serverless/issues/11281#issuecomment-1197993827):
 
 ```
 AWS_ACCESS_KEY_ID=xxx AWS_SECRET_ACCESS_KEY=xxx npx mocha-isolated --pass-through-aws-creds --skip-fs-cleanup-check --max-workers=20 "test/integration/{*.test.js,aws/*.test.js}"
 ```
 
-# Testing on AWS
+# AWS Testing
 
-Run all tests via:
+Use this command to run integration testing on AWS:
 
 ```
 AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=xxx npm run integration-test-run-all
@@ -68,13 +76,17 @@ Ideally any feature that integrates with AWS functionality should be backed by i
 
 Check existing set of AWS integration tests at [test/integration](./integration)
 
-### Running specific integration test
+## Running specific integration test
 
 Pass test file to Mocha directly as follows
 
 ```
 AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=xxx npx mocha test/integration/{chosen}.test.js
 ```
+
+## Python environment for integration testing
+
+Note that the integration test `test/integration/curated-plugins-python.test.js` requires a Python environment to run correctly. This include the `python` binary, as well as `pip`; See: https://github.com/serverless/serverless/issues/11297.
 
 ### Tests that depend on shared infrastructure stack
 
