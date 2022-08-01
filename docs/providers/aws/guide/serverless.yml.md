@@ -239,7 +239,7 @@ provider:
   # Use a custom name for the API Gateway API
   apiName: custom-api-name
   # Endpoint type for API Gateway REST API: edge or regional (default: edge)
-  endpointType: regional
+  endpointType: REGIONAL
   # Use a custom name for the websockets API
   websocketsApiName: custom-websockets-api-name
   # custom route selection expression
