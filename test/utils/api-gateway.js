@@ -4,7 +4,7 @@ const _ = require('lodash');
 const awsRequest = require('@serverless/test/aws-request');
 const APIGatewayService = require('aws-sdk').APIGateway;
 
-function createRestApi(name) {
+async function createRestApi(name) {
   const params = {
     name,
   };
@@ -12,7 +12,7 @@ function createRestApi(name) {
   return awsRequest(APIGatewayService, 'createRestApi', params);
 }
 
-function deleteRestApi(restApiId) {
+async function deleteRestApi(restApiId) {
   const params = {
     restApiId,
   };
@@ -20,7 +20,7 @@ function deleteRestApi(restApiId) {
   return awsRequest(APIGatewayService, 'deleteRestApi', params);
 }
 
-function getResources(restApiId) {
+async function getResources(restApiId) {
   const params = {
     restApiId,
   };
@@ -28,12 +28,12 @@ function getResources(restApiId) {
   return awsRequest(APIGatewayService, 'getResources', params).then((data) => data.items);
 }
 
-function findRestApis(name) {
+async function findRestApis(name) {
   const params = {
     limit: 500,
   };
 
-  function recursiveFind(found, position) {
+  async function recursiveFind(found, position) {
     if (position) params.position = position;
     return awsRequest(APIGatewayService, 'getRestApis', params).then((result) => {
       const matches = result.items.filter((restApi) => restApi.name.match(name));

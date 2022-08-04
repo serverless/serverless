@@ -3,19 +3,19 @@
 const awsRequest = require('@serverless/test/aws-request');
 const EventBridgeService = require('aws-sdk').EventBridge;
 
-function createEventBus(name) {
+async function createEventBus(name) {
   return awsRequest(EventBridgeService, 'createEventBus', { Name: name });
 }
 
-function deleteEventBus(name) {
+async function deleteEventBus(name) {
   return awsRequest(EventBridgeService, 'deleteEventBus', { Name: name });
 }
 
-function describeEventBus(name) {
+async function describeEventBus(name) {
   return awsRequest(EventBridgeService, 'describeEventBus', { Name: name });
 }
 
-function putEvents(EventBusName, Entries) {
+async function putEvents(EventBusName, Entries) {
   Entries.map((entry) => (entry.EventBusName = EventBusName));
   const params = {
     Entries,
