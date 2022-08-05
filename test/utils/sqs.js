@@ -3,7 +3,7 @@
 const awsRequest = require('@serverless/test/aws-request');
 const SQSService = require('aws-sdk').SQS;
 
-function createSqsQueue(queueName) {
+async function createSqsQueue(queueName) {
   const params = {
     QueueName: queueName,
   };
@@ -11,7 +11,7 @@ function createSqsQueue(queueName) {
   return awsRequest(SQSService, 'createQueue', params);
 }
 
-function deleteSqsQueue(queueName) {
+async function deleteSqsQueue(queueName) {
   return awsRequest(SQSService, 'getQueueUrl', { QueueName: queueName }).then((data) => {
     const params = {
       QueueUrl: data.QueueUrl,
@@ -20,7 +20,7 @@ function deleteSqsQueue(queueName) {
   });
 }
 
-function sendSqsMessage(queueName, message) {
+async function sendSqsMessage(queueName, message) {
   return awsRequest(SQSService, 'getQueueUrl', { QueueName: queueName }).then((data) => {
     const params = {
       QueueUrl: data.QueueUrl,

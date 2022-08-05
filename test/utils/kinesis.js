@@ -4,7 +4,7 @@ const BbPromise = require('bluebird');
 const awsRequest = require('@serverless/test/aws-request');
 const KinesisService = require('aws-sdk').Kinesis;
 
-function waitForKinesisStream(streamName) {
+async function waitForKinesisStream(streamName) {
   const params = {
     StreamName: streamName,
   };
@@ -22,7 +22,7 @@ function waitForKinesisStream(streamName) {
   });
 }
 
-function createKinesisStream(streamName) {
+async function createKinesisStream(streamName) {
   const params = {
     ShardCount: 1, // prevent complications from shards being processed in parallel
     StreamName: streamName,
@@ -33,7 +33,7 @@ function createKinesisStream(streamName) {
   );
 }
 
-function deleteKinesisStream(streamName) {
+async function deleteKinesisStream(streamName) {
   const params = {
     StreamName: streamName,
   };
@@ -41,7 +41,7 @@ function deleteKinesisStream(streamName) {
   return awsRequest(KinesisService, 'deleteStream', params);
 }
 
-function putKinesisRecord(streamName, message) {
+async function putKinesisRecord(streamName, message) {
   const params = {
     StreamName: streamName,
     Data: message,

@@ -28,7 +28,7 @@ function replaceEnv(values) {
  * This function allows to confirm that new setting (turned on cloudwatch logs)
  * is effective after stack deployment
  */
-function confirmCloudWatchLogs(logGroupName, trigger, options = {}) {
+async function confirmCloudWatchLogs(logGroupName, trigger, options = {}) {
   const startTime = Date.now();
   const timeout = options.timeout || 3 * 60 * 1000;
   return trigger()

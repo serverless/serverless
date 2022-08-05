@@ -9,13 +9,13 @@ const SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME =
 const SHARED_INFRA_TESTS_RABBITMQ_CREDENTIALS_NAME =
   'integration-tests-rabbitmq-broker-credentials';
 
-function findStacks(name, status) {
+async function findStacks(name, status) {
   const params = {};
   if (status) {
     params.StackStatusFilter = status;
   }
 
-  function recursiveFind(found, token) {
+  async function recursiveFind(found, token) {
     if (token) params.NextToken = token;
     return awsRequest(CloudFormationService, 'listStacks', params).then((result) => {
       const matches = result.StackSummaries.filter((stack) => stack.StackName.match(name));
@@ -30,7 +30,7 @@ function findStacks(name, status) {
   return recursiveFind([]);
 }
 
-function deleteStack(stack) {
+async function deleteStack(stack) {
   const params = {
     StackName: stack,
   };
@@ -38,12 +38,12 @@ function deleteStack(stack) {
   return awsRequest(CloudFormationService, 'deleteStack', params);
 }
 
-function listStackResources(stack) {
+async function listStackResources(stack) {
   const params = {
     StackName: stack,
   };
 
-  function recursiveFind(resources, token) {
+  async function recursiveFind(resources, token) {
     if (token) params.NextToken = token;
     return awsRequest(CloudFormationService, 'listStackResources', params).then((result) => {
       resources.push(...result.StackResourceSummaries);
@@ -55,7 +55,7 @@ function listStackResources(stack) {
   return recursiveFind([]);
 }
 
-function listStacks(status) {
+async function listStacks(status) {
   const params = {};
   if (status) {
     params.StackStatusFilter = status;

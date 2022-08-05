@@ -3,11 +3,11 @@
 const awsRequest = require('@serverless/test/aws-request');
 const S3Service = require('aws-sdk').S3;
 
-function createBucket(bucket) {
+async function createBucket(bucket) {
   return awsRequest(S3Service, 'createBucket', { Bucket: bucket });
 }
 
-function createAndRemoveInBucket(bucket, opts = {}) {
+async function createAndRemoveInBucket(bucket, opts = {}) {
   const prefix = opts.prefix || '';
   const suffix = opts.suffix || '';
   const fileName = opts.fileName || 'object';
@@ -24,7 +24,7 @@ function createAndRemoveInBucket(bucket, opts = {}) {
   });
 }
 
-function emptyBucket(bucket) {
+async function emptyBucket(bucket) {
   return awsRequest(S3Service, 'listObjects', { Bucket: bucket }).then((data) => {
     const items = data.Contents;
     const numItems = items.length;
@@ -41,7 +41,7 @@ function emptyBucket(bucket) {
   });
 }
 
-function deleteBucket(bucket) {
+async function deleteBucket(bucket) {
   return emptyBucket(bucket).then(() => awsRequest(S3Service, 'deleteBucket', { Bucket: bucket }));
 }
 

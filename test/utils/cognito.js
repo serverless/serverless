@@ -4,12 +4,12 @@ const awsLog = require('log').get('aws');
 const awsRequest = require('@serverless/test/aws-request');
 const CognitoIdentityServiceProviderService = require('aws-sdk').CognitoIdentityServiceProvider;
 
-function createUserPool(name, config = {}) {
+async function createUserPool(name, config = {}) {
   const params = Object.assign({}, { PoolName: name }, config);
   return awsRequest(CognitoIdentityServiceProviderService, 'createUserPool', params);
 }
 
-function createUserPoolClient(name, userPoolId) {
+async function createUserPoolClient(name, userPoolId) {
   const params = {
     ClientName: name,
     UserPoolId: userPoolId,
@@ -18,19 +18,19 @@ function createUserPoolClient(name, userPoolId) {
   return awsRequest(CognitoIdentityServiceProviderService, 'createUserPoolClient', params);
 }
 
-function deleteUserPool(name) {
+async function deleteUserPool(name) {
   return findUserPoolByName(name).then((pool) =>
     awsRequest(CognitoIdentityServiceProviderService, 'deleteUserPool', { UserPoolId: pool.Id })
   );
 }
 
-function deleteUserPoolById(poolId) {
+async function deleteUserPoolById(poolId) {
   return awsRequest(CognitoIdentityServiceProviderService, 'deleteUserPool', {
     UserPoolId: poolId,
   });
 }
 
-function findUserPoolByName(name) {
+async function findUserPoolByName(name) {
   awsLog.debug('find cognito user pool by name %s', name);
 
   const params = {
@@ -38,7 +38,7 @@ function findUserPoolByName(name) {
   };
 
   const pools = [];
-  function recursiveFind(nextToken) {
+  async function recursiveFind(nextToken) {
     if (nextToken) params.NextToken = nextToken;
     return awsRequest(CognitoIdentityServiceProviderService, 'listUserPools', params).then(
       (result) => {
@@ -59,11 +59,11 @@ function findUserPoolByName(name) {
   return recursiveFind();
 }
 
-function findUserPools() {
+async function findUserPools() {
   const params = { MaxResults: 60 };
 
   const pools = [];
-  function recursiveFind(nextToken) {
+  async function recursiveFind(nextToken) {
     if (nextToken) params.NextToken = nextToken;
     return awsRequest(CognitoIdentityServiceProviderService, 'listUserPools', params).then(
       (result) => {
@@ -77,7 +77,7 @@ function findUserPools() {
   return recursiveFind().then(() => pools);
 }
 
-function describeUserPool(userPoolId) {
+async function describeUserPool(userPoolId) {
   return awsRequest(CognitoIdentityServiceProviderService, 'describeUserPool', {
     UserPoolId: userPoolId,
   }).then((result) => {
@@ -86,7 +86,7 @@ function describeUserPool(userPoolId) {
   });
 }
 
-function createUser(userPoolId, username, password) {
+async function createUser(userPoolId, username, password) {
   const params = {
     UserPoolId: userPoolId,
     Username: username,
@@ -95,7 +95,7 @@ function createUser(userPoolId, username, password) {
   return awsRequest(CognitoIdentityServiceProviderService, 'adminCreateUser', params);
 }
 
-function setUserPassword(userPoolId, username, password) {
+async function setUserPassword(userPoolId, username, password) {
   const params = {
     UserPoolId: userPoolId,
     Username: username,
@@ -105,7 +105,7 @@ function setUserPassword(userPoolId, username, password) {
   return awsRequest(CognitoIdentityServiceProviderService, 'adminSetUserPassword', params);
 }
 
-function initiateAuth(clientId, username, password) {
+async function initiateAuth(clientId, username, password) {
   const params = {
     ClientId: clientId,
     AuthFlow: 'USER_PASSWORD_AUTH',
