@@ -1627,10 +1627,11 @@ functions:
       - http:
           path: /users/{userId}
           ...
-          # Provide both type and authorizerId
-          type: COGNITO_USER_POOLS # TOKEN or REQUEST or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
-          authorizerId:
-            Ref: ApiGatewayAuthorizer # or hard-code Authorizer ID
+          authorizer:
+            # Provide both type and authorizerId
+            type: COGNITO_USER_POOLS # TOKEN or REQUEST or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
+            authorizerId:
+              Ref: ApiGatewayAuthorizer # or hard-code Authorizer ID
 
 resources:
   Resources:
