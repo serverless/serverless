@@ -46,8 +46,6 @@ provider:
   name: aws
   runtime: nodejs14.x
 
-.x
-
 functions:
   hello:
     handler: handler.hello
