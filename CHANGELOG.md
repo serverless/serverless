@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.22.0](https://github.com/serverless/serverless/compare/v3.21.0...v3.22.0) (2022-08-16)
+
+### Features
+
+- **AWS Cognito:** Add Support for Custom Sender Triggers ([#11201](https://github.com/serverless/serverless/issues/11201)) ([22802ef](https://github.com/serverless/serverless/commit/22802efde1d1721404b4e0d704f7806938183522)) ([AustinMathuw](https://github.com/AustinMathuw))
+
+### Bug Fixes
+
+- **AWS HTTP API:** Fix API Gateway timeout resolution ([#11223](https://github.com/serverless/serverless/issues/11223)) ([16b0cd6](https://github.com/serverless/serverless/commit/16b0cd60c9914d871eaa3639562ec580c855af43)) ([Corentin Doue](https://github.com/CorentinDoue))
+- **Variables:** Fix handling of parallel resolution of same variable ([#11299](https://github.com/serverless/serverless/issues/11299)) ([1f9a07f](https://github.com/serverless/serverless/commit/1f9a07f989fc0b56885edf8a271a0bd63cf8911f)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- Remove left over internal `self:` handling ([#11279](https://github.com/serverless/serverless/issues/11279)) ([544717e](https://github.com/serverless/serverless/commit/544717e703c093340b73dcbf94dc40555cda5251)) ([pjmattingly](https://github.com/pjmattingly))
+- **`lodash` replacement:**
+  - Replace `_.flatMap` with `Array.prototype.flatMap` ([#11272](https://github.com/serverless/serverless/issues/11272)) ([4f7e129](https://github.com/serverless/serverless/commit/4f7e12939ced5b269d53624e5643bd5a9173ed7b)) ([pjmattingly](https://github.com/pjmattingly))
+  - Replace `_.flatten` with `Array.prototype.flat` ([#11271](https://github.com/serverless/serverless/issues/11271)) ([b36cdf2](https://github.com/serverless/serverless/commit/b36cdf2db6ee25f7defe6f2c02dd40e1d5cb65c4)) ([pjmattingly](https://github.com/pjmattingly))
+- Ignore `doctor` in Compose triage ([#11283](https://github.com/serverless/serverless/issues/11283)) ([ef2dcb6](https://github.com/serverless/serverless/commit/ef2dcb6df7cf5dd4b82a74613d02f22f04b7147a)) ([](https://github.com/)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [3.21.0](https://github.com/serverless/serverless/compare/v3.20.0...v3.21.0) (2022-07-14)
 
 ### Features
