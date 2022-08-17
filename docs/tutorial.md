@@ -26,7 +26,7 @@ Installing the Serverless Framework is, thankfully, very easy. Since it is an NP
 With Node and NPM installed, it is recommended to install Serverless Framework as a global module. This can be done with:
 
 ```bash
-npm install -g serverless
+npm install --location=global serverless
 ```
 
 ## Create a new service
