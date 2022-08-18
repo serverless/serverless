@@ -685,7 +685,6 @@ service: myService
 provider:
   name: aws
   runtime: nodejs14.x
-  
   tracing:
     lambda: true
 ```
