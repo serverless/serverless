@@ -133,7 +133,6 @@ service: myService
 provider:
   name: aws
   runtime: nodejs14.x
-
   iam:
     role:
       statements: # permissions for all of your functions can be set here
