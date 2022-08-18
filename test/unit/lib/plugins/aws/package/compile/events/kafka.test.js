@@ -518,6 +518,46 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
         command: 'package',
       });
 
+      it('should correctly compile EventSourceMapping resource properties for ConsumerGroupId', async () => {
+        const eventConfig = {
+          event: {
+            topic,
+            bootstrapServers: ['abc.xyz:9092'],
+            accessConfigurations: {
+              clientCertificateTlsAuth: clientCertificateTlsAuthArn,
+            },
+            consumerGroupId: 'my-consumer-group-id',
+          },
+          resource: (awsNaming) => {
+            return {
+              SelfManagedEventSource: {
+                Endpoints: {
+                  KafkaBootstrapServers: ['abc.xyz:9092'],
+                },
+              },
+              SourceAccessConfigurations: [
+                {
+                  Type: 'CLIENT_CERTIFICATE_TLS_AUTH',
+                  URI: clientCertificateTlsAuthArn,
+                },
+              ],
+              StartingPosition: 'TRIM_HORIZON',
+              Topics: [topic],
+              FunctionName: {
+                'Fn::GetAtt': [awsNaming.getLambdaLogicalId('basic'), 'Arn'],
+              },
+              SelfManagedKafkaEventSourceConfig: {
+                ConsumerGroupId: 'my-consumer-group-id',
+              },
+              AmazonManagedKafkaEventSourceConfig: {
+                ConsumerGroupId: 'my-consumer-group-id',
+              },
+            };
+          },
+        };
+        await runCompileEventSourceMappingTest(eventConfig);
+      });
+
       const eventSourceMappingResource =
         cfTemplate.Resources[awsNaming.getKafkaEventLogicalId('basic', 'TestingTopic')];
       expect(eventSourceMappingResource.DependsOn).to.deep.equal([]);
