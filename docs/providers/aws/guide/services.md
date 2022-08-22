@@ -176,7 +176,7 @@ service: users
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
   memorySize: 512
 
 …
@@ -193,7 +193,7 @@ service: users
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
   memorySize: 512
 
 …
