@@ -16,6 +16,7 @@ describe('AwsCompileMSKEvents', () => {
   const maximumBatchingWindow = 10;
   const saslScram512 =
     'arn:aws:secretsmanager:us-east-1:111111111111:secret:AmazonMSK_a1a1a1a1a1a1a1a1';
+  const consumerGroupId = 'TestConsumerGroupId';
   const sourceAccessConfigurations = [
     {
       Type: 'SASL_SCRAM_512_AUTH',
@@ -55,6 +56,7 @@ describe('AwsCompileMSKEvents', () => {
                     enabled,
                     startingPosition,
                     saslScram512,
+                    consumerGroupId,
                   },
                 },
               ],
@@ -121,6 +123,9 @@ describe('AwsCompileMSKEvents', () => {
         Topics: [topic],
         FunctionName: {
           'Fn::GetAtt': [naming.getLambdaLogicalId('other'), 'Arn'],
+        },
+        AmazonManagedKafkaEventSourceConfig: {
+          ConsumerGroupId: consumerGroupId,
         },
       });
     });

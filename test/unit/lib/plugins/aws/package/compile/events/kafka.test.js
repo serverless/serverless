@@ -488,9 +488,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
               SelfManagedKafkaEventSourceConfig: {
                 ConsumerGroupId: 'my-consumer-group-id',
               },
-              AmazonManagedKafkaEventSourceConfig: {
-                ConsumerGroupId: 'my-consumer-group-id',
-              },
             };
           },
         };

@@ -970,6 +970,8 @@ functions:
           enabled: false
           # Optional, arn of the secret key for authenticating with the brokers in your MSK cluster.
           saslScram512: arn:aws:secretsmanager:region:XXXXXX:secret:AmazonMSK_xxxxxx
+          # Optional, specifies the consumer group ID to be used when consuming from Kafka. If not provided, a random UUID will be generated
+          consumerGroupId: MyConsumerGroupId
 ```
 
 ### ActiveMQ
@@ -1025,6 +1027,8 @@ functions:
           startingPosition: LATEST
           # (default: true)
           enabled: false
+          # Optional, specifies the consumer group ID to be used when consuming from Kafka. If not provided, a random UUID will be generated
+          consumerGroupId: MyConsumerGroupId
 ```
 
 ### RabbitMQ
