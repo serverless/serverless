@@ -457,6 +457,43 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
         await runCompileEventSourceMappingTest(eventConfig);
       });
 
+      it('should correctly compile EventSourceMapping resource properties for ConsumerGroupId', async () => {
+        const eventConfig = {
+          event: {
+            topic,
+            bootstrapServers: ['abc.xyz:9092'],
+            accessConfigurations: {
+              clientCertificateTlsAuth: clientCertificateTlsAuthArn,
+            },
+            consumerGroupId: 'my-consumer-group-id',
+          },
+          resource: (awsNaming) => {
+            return {
+              SelfManagedEventSource: {
+                Endpoints: {
+                  KafkaBootstrapServers: ['abc.xyz:9092'],
+                },
+              },
+              SourceAccessConfigurations: [
+                {
+                  Type: 'CLIENT_CERTIFICATE_TLS_AUTH',
+                  URI: clientCertificateTlsAuthArn,
+                },
+              ],
+              StartingPosition: 'TRIM_HORIZON',
+              Topics: [topic],
+              FunctionName: {
+                'Fn::GetAtt': [awsNaming.getLambdaLogicalId('basic'), 'Arn'],
+              },
+              SelfManagedKafkaEventSourceConfig: {
+                ConsumerGroupId: 'my-consumer-group-id',
+              },
+            };
+          },
+        };
+        await runCompileEventSourceMappingTest(eventConfig);
+      });
+
       it('should update default IAM role with EC2 statement when VPC accessConfiguration is provided', async () => {
         const { cfTemplate } = await runServerless({
           fixture: 'function',
