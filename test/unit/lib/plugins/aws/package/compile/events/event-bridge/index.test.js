@@ -25,6 +25,18 @@ const serverlessConfigurationExtension = {
         },
       ],
     },
+    customName: {
+      handler: 'index.handler',
+      events: [
+        {
+          eventBridge: {
+            eventBus: 'arn:aws:events:us-east-1:12345:event-bus/default',
+            schedule: 'rate(10 minutes)',
+            name: 'custom-event-name-test',
+          },
+        },
+      ],
+    },
     [NAME_OVER_64_CHARS]: {
       handler: 'index.handler',
       name: 'one-very-long-and-very-strange-and-very-complicated-function-name-over-64-chars',
@@ -243,6 +255,11 @@ describe('EventBridgeEvents', () => {
       expect(eventBridgeConfig.RuleName).lengthOf.lte(64);
     });
 
+    it('should envsure rule name matches custom name when set', () => {
+      const eventBridgeConfig = getEventBridgeConfigById('customName');
+      expect(eventBridgeConfig.RuleName).be.eq('custom-event-name-test');
+    });
+
     it('should support input configuration', () => {
       const eventBridgeConfig = getEventBridgeConfigById('configureInput');
       expect(eventBridgeConfig.Input.key1).be.eq('value1');
@@ -395,6 +412,7 @@ describe('EventBridgeEvents', () => {
       let ruleTarget;
       const schedule = 'rate(10 minutes)';
       const eventBusName = 'nondefault';
+      const customName = 'custom-event-name-test';
       const pattern = {
         source: ['aws.cloudformation'],
       };
@@ -489,6 +507,14 @@ describe('EventBridgeEvents', () => {
                       deadLetterQueueArn,
                     },
                   },
+                  {
+                    eventBridge: {
+                      eventBus: eventBusName,
+                      schedule,
+                      pattern,
+                      name: customName,
+                    },
+                  },
                 ],
               },
             },
@@ -562,6 +588,11 @@ describe('EventBridgeEvents', () => {
         const deadLetterConfigRuleTarget = getRuleResourceEndingWith(cfResources, '7').Properties
           .Targets[0];
         expect(deadLetterConfigRuleTarget.DeadLetterConfig).to.have.property('Arn');
+      });
+
+      it('should correctly set event name when set', () => {
+        const customNameTarget = getRuleResourceEndingWith(cfResources, 'test').Properties;
+        expect(customNameTarget.Name).to.eq('custom-event-name-test');
       });
 
       it('should create a rule that depends on created EventBus', () => {
