@@ -21,6 +21,10 @@ In order to configure lambda to trigger via `kafka` events, you must provide thr
 - `topic` to consume messages from
 - `bootstrapServers` - an array of bootstrap server addresses for your Kafka cluster
 
+Optionally, you can provide the following properties:
+
+- `consumerGroupId` - the consumer group id to use for consuming messages
+
 ## Authentication
 
 You must authenticate your Lambda with a self-managed Apache Kafka cluster using one of;
@@ -72,6 +76,7 @@ functions:
           accessConfigurations:
             saslScram512Auth: arn:aws:secretsmanager:us-east-1:01234567890:secret:MyBrokerSecretName
           topic: MySelfManagedKafkaTopic
+          consumerGroupId: MyConsumerGroupId
           bootstrapServers:
             - abc3.xyz.com:9092
             - abc2.xyz.com:9092
@@ -91,6 +96,7 @@ functions:
             clientCertificateTlsAuth: arn:aws:secretsmanager:us-east-1:01234567890:secret:ClientCertificateTLS
             serverRootCaCertificate: arn:aws:secretsmanager:us-east-1:01234567890:secret:ServerRootCaCertificate
           topic: MySelfManagedMTLSKafkaTopic
+          consumerGroupId: MyConsumerGroupId
           bootstrapServers:
             - abc3.xyz.com:9092
             - abc2.xyz.com:9092
