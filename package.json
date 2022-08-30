@@ -122,6 +122,15 @@
       },
       {
         "files": [
+          "test/fixtures/programmatic/invocation/cjs/**"
+        ],
+        "parserOptions": {
+          "sourceType": "module",
+          "allowImportExportEverywhere": true
+        }
+      },
+      {
+        "files": [
           "test/fixtures/programmatic/plugin/local-esm-plugin/**",
           "test/fixtures/programmatic/plugin/node_modules/esm-plugin/**",
           "test/fixtures/programmatic/invocation/esm/**"
