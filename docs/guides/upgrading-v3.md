@@ -137,6 +137,19 @@ service: my-service
 
 All options that used to be defined inside the `service` key have been moved to other sections (mentioned below in that document). This change clears up confusion that existed between the `service` and `provider` sections.
 
+### Deployment method
+
+Since Serverless Framework v3, deployments are done using [CloudFormation change sets](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-changesets.html). It is possible to use [CloudFormation direct deployments](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-direct.html) instead.
+
+Direct deployments **are faster** and have no downsides (unless you specifically use the generated change sets). They will become the default in Serverless Framework 4.
+
+You are encouraged to enable direct deployments via the deploymentMethod option:
+
+```yaml
+provider:	
+  deploymentMethod: direct
+```
+
 ### API Gateway
 
 When configuring API Gateway, some configuration options have moved to a dedicated sub-section of `provider`. That will help clear up confusion with similar `httpApi` settings.
