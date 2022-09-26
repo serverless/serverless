@@ -1910,6 +1910,29 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
                 },
               ],
             },
+            fnLegacyCacheSettings: {
+              handler: 'myLambdaAtEdge.handler',
+              events: [
+                {
+                  cloudFront: {
+                    origin: 's3://bucketname.s3.amazonaws.com',
+                    eventType: 'viewer-response',
+                    pathPattern: 'legacyCacheSettings',
+                    behavior: {
+                      MaxTTL: 0,
+                      MinTTL: 0,
+                      DefaultTTL: 0,
+                      ForwardedValues: {
+                        QueryString: true,
+                        Cookies: {
+                          Forward: 'none',
+                        },
+                      },
+                    },
+                  },
+                },
+              ],
+            },
           },
         },
       });
@@ -2052,6 +2075,18 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
       // Default Managed-CachingOptimized Cache Policy id
       const defaultCachePolicyId = '658327ea-f89d-4fab-a63d-7e88639e58f6';
       expect(getAssociatedCacheBehavior('noPolicy').CachePolicyId).to.eq(defaultCachePolicyId);
+    });
+
+    it('Should use legacy cache settings', () => {
+      expect(getAssociatedCacheBehavior('legacyCacheSettings')).not.to.contain.keys(
+        'CachePolicyId'
+      );
+      expect(getAssociatedCacheBehavior('legacyCacheSettings')).to.contain.keys(
+        'MinTTL',
+        'MaxTTL',
+        'DefaultTTL',
+        'ForwardedValues'
+      );
     });
   });
 });
