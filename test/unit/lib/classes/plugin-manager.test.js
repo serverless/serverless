@@ -586,6 +586,19 @@ describe('PluginManager', () => {
 
       expect(pluginManager.plugins[0]).to.be.an.instanceOf(Plugin);
     });
+
+    it('should pass a log writer to external plugins', () => {
+      let log;
+      class Plugin {
+        constructor(_serverless, _options, pluginUtils) {
+          log = pluginUtils.log;
+        }
+      }
+
+      pluginManager.addPlugin(Plugin);
+
+      expect(log).to.have.property('pluginName', 'Plugin');
+    });
   });
 
   describe('#asyncPluginInit()', () => {
