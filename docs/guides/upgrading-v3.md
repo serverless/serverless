@@ -103,7 +103,7 @@ serverless deploy --verbose
 
 This change makes the CLI much more robust at detecting arguments from options and their values.
 
-On that note, the `-v` option is no longer recognized (it was ambiguous with `--version`): use the full `--verbose` option instead.
+On that note, the `-v` option is now a short form for `--version` instead of `--verbose`.
 
 When the `serverless` CLI is installed globally and locally (in the project’s `node_modules`), the local version will always be used. It is no longer possible to disable that behavior ([learn more](../deprecations.md#support-for-enablelocalinstallationfallback-setting-is-to-be-removed)).
 
