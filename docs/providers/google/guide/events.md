@@ -32,7 +32,7 @@ functions:
   first: # Function name
     handler: http # Reference to file index.js & exported function 'http'
     events: # All events associated with this function
-      - http: path
+      - http: true
 ```
 
 **Note:** Currently only one event definition per function is supported.
