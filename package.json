@@ -59,7 +59,7 @@
     "micromatch": "^4.0.5",
     "node-fetch": "^2.6.7",
     "npm-registry-utilities": "^1.0.0",
-    "object-hash": "^2.2.0",
+    "object-hash": "^3.0.0",
     "open": "^7.4.2",
     "path2": "^0.1.0",
     "process-utils": "^4.0.0",
