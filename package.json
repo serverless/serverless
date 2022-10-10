@@ -73,7 +73,7 @@
     "timers-ext": "^0.1.7",
     "type": "^2.7.2",
     "untildify": "^4.0.0",
-    "uuid": "^8.3.2",
+    "uuid": "^9.0.0",
     "yaml-ast-parser": "0.0.43"
   },
   "devDependencies": {
