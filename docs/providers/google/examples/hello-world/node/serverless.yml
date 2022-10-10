@@ -20,4 +20,4 @@ functions:
   helloWorld:
     handler: http
     events:
-      - http: path
+      - http: true

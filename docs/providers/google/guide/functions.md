@@ -34,7 +34,7 @@ functions:
   first:
     handler: http
     events:
-      - http: path
+      - http: true
 ```
 
 You can specify an array of functions, which is useful if you separate your functions in to different files:
@@ -163,13 +163,13 @@ functions:
   first:
     handler: httpFirst
     events:
-      - http: path
+      - http: true
     labels:
       team: gcf-team
   second:
     handler: httpSecond
     events:
-      - http: path
+      - http: true
     labels:
       application: serverless-example_documentation
 ```
