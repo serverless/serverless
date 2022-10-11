@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.23.0](https://github.com/serverless/serverless/compare/v3.22.0...v3.23.0) (2022-10-11)
+
+### Features
+
+- **AWS CloudFront:** Allow legacy behavior configuration ([#11411](https://github.com/serverless/serverless/issues/11411)) ([65e9860](https://github.com/serverless/serverless/commit/65e9860838de40c8ef0189c723e09936c8ca71a7)) ([Arthur Weber](https://github.com/godu))
+- **AWS Kafka:** Support `consumerGroupId` option ([#11345](https://github.com/serverless/serverless/issues/11345)) ([9bb3f11](https://github.com/serverless/serverless/commit/9bb3f1154151b1e1a4ca24addd034cf59deb2037)) ([Phil-Pinkowski](https://github.com/Phil-Pinkowski))
+
+### Bug Fixes
+
+- Ensure to not crash when `~/.serverless` is not accessible ([#11403](https://github.com/serverless/serverless/issues/11403)) ([b95c749](https://github.com/serverless/serverless/commit/b95c7496ec4a49aef756692a1ef59b61e2d95d4b)) ([Thomas Hamer](https://github.com/THOM-AwS))
+
+### Maintenance Improvements
+
+- **AWS Deploy:** Add bucket name to exception ([#11389](https://github.com/serverless/serverless/issues/11389)) ([11b7a05](https://github.com/serverless/serverless/commit/11b7a05fd3db362003412484245cc55bfab70181)) ([Roberto Aguilar](https://github.com/rca))
+- **AWS Deploy:** Bump custom resources to `nodejs16.x` runtime ([#11367](https://github.com/serverless/serverless/issues/11367)) ([93ce41e](https://github.com/serverless/serverless/commit/93ce41e9d8bf29519b043cf3ee2910f02c884eea)) ([Çağrı Atalay](https://github.com/cagriatalay))
+- Upgrade `dotenv-expand` to v9 ([#11433](https://github.com/serverless/serverless/issues/11433)) ([c769c1e](https://github.com/serverless/serverless/commit/c769c1e06dd3529bf7a8a1cda33d54b5a7d12ac7)) ([Mariusz Nowak](https://github.com/medikoo))
+- Upgrade `filesize` to v10 ([#11433](https://github.com/serverless/serverless/issues/11433)) ([9ef5fd2](https://github.com/serverless/serverless/commit/9ef5fd23b123730696d00985988a1bc37a3c10e0)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [3.22.0](https://github.com/serverless/serverless/compare/v3.21.0...v3.22.0) (2022-08-16)
 
 ### Features
