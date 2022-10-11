@@ -37,9 +37,6 @@ describe('test/unit/lib/cli/interactive-setup/index.test.js', () => {
         input: 'n', // Move cursor down by one line
       },
 
-      // console-set-org
-      // Skipped, as internally depends on remote state of data and cannot be easily tested offline
-
       // aws-credentials
       {
         instructionString: 'No AWS credentials found, what credentials do you want to use?',

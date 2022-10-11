@@ -36,6 +36,16 @@ Note:
 - The `serverless.yml` setting is ineffective for deprecations reported before the configuration is read.
 - `SLS_DEPRECATION_DISABLE` and `disabledDeprecations` remain respected, and no errors will be thrown for mentioned deprecation codes.
 
+<a name="CONSOLE_CONFIGURATION"><div>&nbsp;</div></a>
+
+## Property `console`
+
+Deprecation code: `CONSOLE_CONFIGURATION`
+
+Starting with v3.24.0, Serverless will no longer recognize inner `console` configuration. All Serverless Console related configuration is expected to be maintained at https://console.serverless.com
+
+Learn more about configuration validation here: http://slss.io/configuration-validation
+
 <a name="VARIABLES_RESOLUTION_MODE"><div>&nbsp;</div></a>
 
 ## Property `variablesResolutionMode`
