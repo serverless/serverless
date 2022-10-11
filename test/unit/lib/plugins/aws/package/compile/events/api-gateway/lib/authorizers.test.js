@@ -248,7 +248,6 @@ describe('#compileAuthorizers() #2', () => {
       },
       command: 'package',
     }).then(({ awsNaming, cfTemplate }) => {
-      // console.log(cfTemplate.Resources);
       const authorizerLogicalId = awsNaming.getAuthorizerLogicalId('basic');
       const authorizerPermissionLogicalId =
         awsNaming.getLambdaApiGatewayPermissionLogicalId('basic');
