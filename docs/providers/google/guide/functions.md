@@ -159,7 +159,6 @@ functions:
   first:
     handler: httpFirst
     serviceAccountEmail: other-service-account@my-project.iam.gserviceaccount.com # overrides provider serviceAccountEmail
-
 ```
 
 ## Labels
