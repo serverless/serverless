@@ -80,7 +80,6 @@ describe('test/unit/lib/cli/interactive-setup/utils.test.js', () => {
       expect(resolveInitialContext({ configuration, serviceDir })).to.deep.equal({
         hasLocalAwsCredentials: true,
         isLoggedIntoDashboard: true,
-        isConsoleEnabled: false,
         isDashboardEnabled: true,
         isInServiceContext: true,
       });
@@ -99,7 +98,6 @@ describe('test/unit/lib/cli/interactive-setup/utils.test.js', () => {
       expect(resolveInitialContext({ configuration, serviceDir })).to.deep.equal({
         hasLocalAwsCredentials: true,
         isLoggedIntoDashboard: true,
-        isConsoleEnabled: false,
         isDashboardEnabled: false,
         isInServiceContext: false,
       });

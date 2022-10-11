@@ -38,12 +38,6 @@ describe('test/unit/commands/login.test.js', () => {
     expect(loginConsoleStub.notCalled).to.be.true;
   });
 
-  it('Should auto choose console in console enabled service', async () => {
-    await login({ configuration: { console: true }, options: {} });
-    expect(loginConsoleStub.calledOnce).to.be.true;
-    expect(loginDashboardStub.notCalled).to.be.true;
-  });
-
   it('Should auto choose dashboard in dashboard enabled service', async () => {
     await login({ configuration: { org: 'foo', app: 'foo' }, options: {} });
     expect(loginDashboardStub.calledOnce).to.be.true;
@@ -55,19 +49,6 @@ describe('test/unit/commands/login.test.js', () => {
       list: { identityName: 'console' },
     });
     const { history } = await login({ options: {} });
-    expect(loginConsoleStub.calledOnce).to.be.true;
-    expect(loginDashboardStub.notCalled).to.be.true;
-    expect(Array.from(history.valuesMap())).to.deep.equal([['identityName', 'console']]);
-  });
-
-  it('Should prompt user in console and dashbaord enabled service context', async () => {
-    configureInquirerStub(inquirer, {
-      list: { identityName: 'console' },
-    });
-    const { history } = await login({
-      configuration: { org: 'foo', app: 'bar', console: true },
-      options: {},
-    });
     expect(loginConsoleStub.calledOnce).to.be.true;
     expect(loginDashboardStub.notCalled).to.be.true;
     expect(Array.from(history.valuesMap())).to.deep.equal([['identityName', 'console']]);

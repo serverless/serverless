@@ -1,7 +1,5 @@
 'use strict';
 
-const _ = require('lodash');
-
 const resolveIsDashboardEnabled = require('../lib/configuration/is-dashboard-enabled');
 
 module.exports = async (context) => {
@@ -10,14 +8,9 @@ module.exports = async (context) => {
     if (options.console) return 'console';
     if (options.dashboard) return 'dashboard';
 
-    const isConsoleEnabled = Boolean(_.get(configuration, 'console'));
     const isDashboardEnabled = resolveIsDashboardEnabled({ configuration, options });
 
-    if (isConsoleEnabled) {
-      if (!isDashboardEnabled) return 'console';
-    } else if (isDashboardEnabled) {
-      return 'dashboard';
-    }
+    if (isDashboardEnabled) return 'dashboard';
 
     const promptWithHistory = require('@serverless/utils/inquirer/prompt-with-history');
     const { StepHistory } = require('@serverless/utils/telemetry');
