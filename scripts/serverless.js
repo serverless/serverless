@@ -236,7 +236,7 @@ processSpanPromise = (async () => {
         // IIFE for maintenance convenience
         await (async () => {
           // We do not need to attempt resolution of further variables for login command as
-          // the only variable from configuration that we potentially rely on is `console`
+          // the only variables from configuration that we potentially rely on is `app` and `org`
           // TODO: Remove when dashboard/console login prompt won't be needed - when that happens
           // login command should once again be service independent
           if (command === 'login') return;
