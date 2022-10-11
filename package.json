@@ -79,7 +79,7 @@
   "devDependencies": {
     "@commitlint/cli": "^12.1.4",
     "@serverless/eslint-config": "^5.0.1",
-    "@serverless/test": "^11.0.1",
+    "@serverless/test": "^11.0.2",
     "adm-zip": "^0.5.9",
     "aws4": "^1.11.0",
     "chai": "^4.3.6",
