@@ -95,7 +95,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       });
 
       configureInquirerStub(inquirer, {
-        list: { projectType: 'aws-nodejs' },
+        list: { projectType: 'aws-node' },
         input: { projectName: 'test-project' },
       });
       const context = { options: {}, stepHistory: new StepHistory() };
@@ -103,13 +103,13 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       const stats = await fsp.lstat('test-project/serverless.yml');
       expect(stats.isFile()).to.be.true;
       expect(downloadTemplateFromRepoStub).to.have.been.calledWith(
-        'https://github.com/serverless/examples/tree/v3/aws-nodejs',
-        'aws-nodejs',
+        'https://github.com/serverless/examples/tree/v3/aws-node',
+        'aws-node',
         'test-project'
       );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
-          ['projectType', 'aws-nodejs'],
+          ['projectType', 'aws-node'],
           ['projectName', '_user_input_'],
         ])
       );
@@ -136,7 +136,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       });
 
       configureInquirerStub(inquirer, {
-        list: { projectType: 'aws-nodejs' },
+        list: { projectType: 'aws-node' },
         input: { projectName: 'test-project-template' },
       });
       const context = { options: {}, stepHistory: new StepHistory() };
@@ -144,8 +144,8 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       const stats = await fsp.lstat('test-project-template/serverless.yml');
       expect(stats.isFile()).to.be.true;
       expect(downloadTemplateFromRepoStub).to.have.been.calledWith(
-        'https://github.com/serverless/examples/tree/v3/aws-nodejs',
-        'aws-nodejs',
+        'https://github.com/serverless/examples/tree/v3/aws-node',
+        'aws-node',
         'test-project-template'
       );
       await expect(
@@ -154,7 +154,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
-          ['projectType', 'aws-nodejs'],
+          ['projectType', 'aws-node'],
           ['projectName', '_user_input_'],
         ])
       );
@@ -183,7 +183,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       });
 
       configureInquirerStub(inquirer, {
-        list: { projectType: 'aws-nodejs' },
+        list: { projectType: 'aws-node' },
         input: { projectName: 'test-project-package-json' },
       });
       const context = { options: {}, stepHistory: new StepHistory() };
@@ -191,8 +191,8 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       const stats = await fsp.lstat('test-project-package-json/serverless.yml');
       expect(stats.isFile()).to.be.true;
       expect(downloadTemplateFromRepoStub).to.have.been.calledWith(
-        'https://github.com/serverless/examples/tree/v3/aws-nodejs',
-        'aws-nodejs',
+        'https://github.com/serverless/examples/tree/v3/aws-node',
+        'aws-node',
         'test-project-package-json'
       );
       expect(spawnStub).to.have.been.calledWith('npm', ['install'], {
@@ -201,7 +201,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
-          ['projectType', 'aws-nodejs'],
+          ['projectType', 'aws-node'],
           ['projectName', '_user_input_'],
         ])
       );
@@ -229,7 +229,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       });
 
       configureInquirerStub(inquirer, {
-        list: { projectType: 'aws-nodejs' },
+        list: { projectType: 'aws-node' },
         input: { projectName: 'test-project-failed-install' },
       });
 
@@ -241,7 +241,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
-          ['projectType', 'aws-nodejs'],
+          ['projectType', 'aws-node'],
           ['projectName', '_user_input_'],
         ])
       );
@@ -282,7 +282,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
         },
       });
       configureInquirerStub(inquirer, {
-        list: { projectType: 'aws-nodejs' },
+        list: { projectType: 'aws-node' },
       });
       const context = {
         options: { name: 'test-project-from-cli-option' },
@@ -291,9 +291,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       await mockedStep.run(context);
       const stats = await fsp.lstat('test-project-from-cli-option/serverless.yml');
       expect(stats.isFile()).to.be.true;
-      expect(context.stepHistory.valuesMap()).to.deep.equal(
-        new Map([['projectType', 'aws-nodejs']])
-      );
+      expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['projectType', 'aws-node']]));
     });
 
     it('Should create project at not existing directory with provided template', async () => {
@@ -381,7 +379,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
         },
       });
       configureInquirerStub(inquirer, {
-        list: { projectType: 'aws-nodejs' },
+        list: { projectType: 'aws-node' },
         input: { projectName: 'test-error-during-download' },
       });
       const context = { options: {}, stepHistory: new StepHistory() };
@@ -392,7 +390,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
-          ['projectType', 'aws-nodejs'],
+          ['projectType', 'aws-node'],
           ['projectName', '_user_input_'],
         ])
       );
@@ -445,7 +443,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
   it('Should not allow project creation in a directory in which already service is configured', async () => {
     configureInquirerStub(inquirer, {
-      list: { projectType: 'aws-nodejs' },
+      list: { projectType: 'aws-node' },
       input: { projectName: 'existing' },
     });
 
@@ -459,7 +457,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
     expect(context.stepHistory.valuesMap()).to.deep.equal(
       new Map([
-        ['projectType', 'aws-nodejs'],
+        ['projectType', 'aws-node'],
         ['projectName', undefined],
       ])
     );
@@ -467,7 +465,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
   it('Should not allow project creation in a directory in which already service is configured when `name` flag provided', async () => {
     configureInquirerStub(inquirer, {
-      list: { projectType: 'aws-nodejs' },
+      list: { projectType: 'aws-node' },
     });
 
     await fsp.mkdir('anotherexisting');
@@ -478,12 +476,12 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       'TARGET_FOLDER_ALREADY_EXISTS'
     );
 
-    expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['projectType', 'aws-nodejs']]));
+    expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['projectType', 'aws-node']]));
   });
 
   it('Should not allow project creation using an invalid project name', async () => {
     configureInquirerStub(inquirer, {
-      list: { projectType: 'aws-nodejs' },
+      list: { projectType: 'aws-node' },
       input: { projectName: 'elo grzegżółka' },
     });
     const context = { options: {}, stepHistory: new StepHistory() };
@@ -494,7 +492,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
     expect(context.stepHistory.valuesMap()).to.deep.equal(
       new Map([
-        ['projectType', 'aws-nodejs'],
+        ['projectType', 'aws-node'],
         ['projectName', undefined],
       ])
     );
@@ -502,7 +500,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
   it('Should not allow project creation using an invalid project name when `name` flag provided', async () => {
     configureInquirerStub(inquirer, {
-      list: { projectType: 'aws-nodejs' },
+      list: { projectType: 'aws-node' },
     });
     const context = { options: { name: 'elo grzegżółka' }, stepHistory: new StepHistory() };
     await expect(step.run(context)).to.eventually.be.rejected.and.have.property(
@@ -510,7 +508,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       'INVALID_PROJECT_NAME'
     );
 
-    expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['projectType', 'aws-nodejs']]));
+    expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['projectType', 'aws-node']]));
   });
 
   it('Should not allow project creation if multiple template-related options are provided', async () => {
