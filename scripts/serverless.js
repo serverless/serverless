@@ -774,7 +774,7 @@ processSpanPromise = (async () => {
         telemetryData: { outcome: 'success' },
         shouldSendTelemetry: isInteractiveSetup || commands.join(' ') === 'deploy',
       });
-      if (backendNotificationRequest) {
+      if (!isInteractiveSetup && backendNotificationRequest) {
         await processBackendNotificationRequest(backendNotificationRequest);
       }
     } catch (error) {
