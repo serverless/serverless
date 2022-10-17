@@ -129,9 +129,9 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
       expect(resource.Properties.RouteKey).to.equal(routeKey);
     });
 
-    it('should let the default api gateway timeout by not setting the TimeoutInMillis property', () => {
+    it('should set the default api gateway timeout by setting the TimeoutInMillis property', () => {
       const resource = cfResources[naming.getHttpApiIntegrationLogicalId('foo')];
-      expect(resource.Properties.TimeoutInMillis).to.be.undefined;
+      expect(resource.Properties.TimeoutInMillis).to.equal(30000);
     });
 
     it('should configure lambda permissions', () => {
