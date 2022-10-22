@@ -58,6 +58,14 @@ class FakeLambdaContext(object):
     def log(self):
         return sys.stdout.write
 
+    @property
+    def client_context(self):
+        return self.custom 
+
+    @property
+    def custom(self):
+        return {'origin_request_id': '1234567890'}
+
 logging.basicConfig()
 
 parser = argparse.ArgumentParser(
