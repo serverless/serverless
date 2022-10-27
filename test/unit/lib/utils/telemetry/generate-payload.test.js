@@ -127,6 +127,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.timestamp;
     expect(payload).to.have.property('dashboard');
     delete payload.dashboard;
+    expect(payload).to.have.property('console');
+    delete payload.console;
     expect(payload).to.have.property('timezone');
     delete payload.timezone;
     expect(payload).to.have.property('ciName');
@@ -196,6 +198,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.timestamp;
     expect(payload).to.have.property('dashboard');
     delete payload.dashboard;
+    expect(payload).to.have.property('console');
+    delete payload.console;
     expect(payload).to.have.property('timezone');
     delete payload.timezone;
     expect(payload).to.have.property('ciName');
@@ -254,6 +258,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.timestamp;
     expect(payload).to.have.property('dashboard');
     delete payload.dashboard;
+    expect(payload).to.have.property('console');
+    delete payload.console;
     expect(payload).to.have.property('timezone');
     delete payload.timezone;
     expect(payload).to.have.property('ciName');
@@ -292,6 +298,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.timestamp;
     expect(payload).to.have.property('dashboard');
     delete payload.dashboard;
+    expect(payload).to.have.property('console');
+    delete payload.console;
     expect(payload).to.have.property('timezone');
     delete payload.timezone;
     expect(payload).to.have.property('ciName');
@@ -345,6 +353,8 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
     delete payload.timestamp;
     expect(payload).to.have.property('dashboard');
     delete payload.dashboard;
+    expect(payload).to.have.property('console');
+    delete payload.console;
     expect(payload).to.have.property('timezone');
     delete payload.timezone;
     expect(payload).to.have.property('ciName');
