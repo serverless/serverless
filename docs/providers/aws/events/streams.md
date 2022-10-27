@@ -90,6 +90,24 @@ functions:
           enabled: false
 ```
 
+### Setting the Kinesis StartingPosition
+
+This configuration sets up a disabled Kinesis stream event for the `preprocess` function. The starting position is
+`AT_TIMESTAMP` and the timestamp value is `1000000001`.
+
+```yml
+functions:
+  preprocess:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
+          startingPosition: AT_TIMESTAMP
+          startingPositionTimestamp: 1000000001
+          maximumRetryAttempts: 10
+          enabled: false
+```
+
 ## Setting the BatchWindow
 
 The configuration below sets up a Kinesis stream event for the `preprocess` function which has a batch window of `10`.
