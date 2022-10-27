@@ -12,7 +12,7 @@ describe('test/unit/lib/cli/interactive-setup/index.test.js', () => {
   it('should configure interactive setup flow', async () => {
     const slsProcessPromise = spawn(
       'node',
-      [serverlessPath, '--console', '--template-path', path.join(fixturesPath, 'aws')],
+      [serverlessPath, '--template-path', path.join(fixturesPath, 'aws')],
       {
         env: {
           ...process.env,
@@ -31,9 +31,9 @@ describe('test/unit/lib/cli/interactive-setup/index.test.js', () => {
         input: 'interactive-setup-test',
       },
 
-      // console-login
+      // dashboard-login
       {
-        instructionString: 'Do you want to login/register to Serverless Console?',
+        instructionString: 'Do you want to login/register to Serverless Dashboard?',
         input: 'n', // Move cursor down by one line
       },
 

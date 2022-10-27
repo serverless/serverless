@@ -1,5 +1,0 @@
-service: 'some-aws-service'
-provider: 'aws'
-
-org: 'some-other'
-console: true

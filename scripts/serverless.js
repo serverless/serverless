@@ -22,6 +22,7 @@ const {
 const generateTelemetryPayload = require('../lib/utils/telemetry/generate-payload');
 const isTelemetryDisabled = require('../lib/utils/telemetry/are-disabled');
 const logDeprecation = require('../lib/utils/log-deprecation');
+const resolveConsoleAuthMode = require('@serverless/utils/auth/resolve-mode');
 
 let command;
 let isHelpRequest;
@@ -30,6 +31,7 @@ let commandSchema;
 let serviceDir = null;
 let configuration = null;
 let serverless;
+let isConsoleAuthenticated = false;
 const commandUsage = {};
 const variableSourcesInConfig = new Set();
 
@@ -57,7 +59,15 @@ const finalize = async ({ error, shouldBeSync, telemetryData, shouldSendTelemetr
   clearTimeout(keepAliveTimer);
   progress.clear();
   if (error) ({ telemetryData } = await handleError(error, { serverless }));
-  if (!shouldBeSync) await logDeprecation.printSummary();
+  if (!shouldBeSync) {
+    await logDeprecation.printSummary();
+    await resolveConsoleAuthMode().then(
+      (mode) => {
+        isConsoleAuthenticated = Boolean(mode);
+      },
+      () => {}
+    );
+  }
   if (isTelemetryDisabled || !commandSchema) return null;
   if (!error && isHelpRequest) return null;
   storeTelemetryLocally({
@@ -70,6 +80,7 @@ const finalize = async ({ error, shouldBeSync, telemetryData, shouldSendTelemetr
       serverless,
       commandUsage,
       variableSources: variableSourcesInConfig,
+      isConsoleAuthenticated,
     }),
     ...telemetryData,
   });
@@ -95,6 +106,12 @@ processSpanPromise = (async () => {
     const wait = require('timers-ext/promise/sleep');
     await wait(); // Ensure access to "processSpanPromise"
 
+    resolveConsoleAuthMode().then(
+      (mode) => {
+        isConsoleAuthenticated = Boolean(mode);
+      },
+      () => {}
+    );
     require('signal-exit/signals').forEach((signal) => {
       process.once(signal, () => {
         processLog.debug('exit signal %s', signal);

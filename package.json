@@ -24,7 +24,7 @@
   "dependencies": {
     "@serverless/dashboard-plugin": "^6.2.2",
     "@serverless/platform-client": "^4.3.2",
-    "@serverless/utils": "^6.7.0",
+    "@serverless/utils": "^6.8.1",
     "ajv": "^8.11.0",
     "ajv-formats": "^2.1.1",
     "archiver": "^5.3.1",
