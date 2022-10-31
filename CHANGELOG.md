@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.24.0](https://github.com/serverless/serverless/compare/v3.23.0...v3.24.0) (2022-10-31)
+
+### Features
+
+- **Console:** New Serverless Console integration ([#11434](https://github.com/serverless/serverless/issues/11434)) ([9a41468](https://github.com/serverless/serverless/commit/9a414683090cb3edcac61d9a782c4d136f18c6f6)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS API Gateway:** support `provider.apiGateway.stage` ([#11487](https://github.com/serverless/serverless/issues/11487)) ([0a49c4f](https://github.com/serverless/serverless/commit/0a49c4f5df8ef4942ac4758b62a8de5dfc4bf4d8)) ([Pavan Andhukuri](https://github.com/pavanandhukuri))
+- **AWS Kinesis:** Support `AT_TIMESTAMP` starting position ([#11483](https://github.com/serverless/serverless/issues/11483)) ([5d41995](https://github.com/serverless/serverless/commit/5d41995c1939955e48cea0660dac5c32446f7b58)) ([Daniele Iasella](https://github.com/overbit))
+- Support `Fn::ToJsonString` in environment variables ([#11461](https://github.com/serverless/serverless/issues/11461)) ([0c186a6](https://github.com/serverless/serverless/commit/0c186a608fd1a754a65abf63e431ad9c2d13534e)) ([Jurriaan Proos](https://github.com/jurriaanpro))
+
+### Bug Fixes
+
+- **AWS HTTP API:** Ensure maximum API gateway timeout ([#11453](https://github.com/serverless/serverless/issues/11453)) ([c5ca9b7](https://github.com/serverless/serverless/commit/c5ca9b78faef8bc6c23b215f847dc4383b8165e7)) ([Jurriaan Proos](https://github.com/jurriaanpro))
+- **CLI Onboarding:** Ensure to not show backend notification ([#11434](https://github.com/serverless/serverless/issues/11434)) ([ba831b8](https://github.com/serverless/serverless/commit/ba831b8b3e4a9371091db9e709545adba324d822)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **CLI Onboarding:** Improve debug logs ([#11434](https://github.com/serverless/serverless/issues/11434)) ([914d00b](https://github.com/serverless/serverless/commit/914d00b0a9758b4b799242efad6e66c98e1c7160)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [3.23.0](https://github.com/serverless/serverless/compare/v3.22.0...v3.23.0) (2022-10-11)
 
 ### Features
