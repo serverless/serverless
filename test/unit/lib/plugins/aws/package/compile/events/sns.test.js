@@ -193,7 +193,7 @@ describe('AwsCompileSNSEvents', () => {
         Object.keys(
           awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
         )
-      ).to.have.length(2);
+      ).to.have.length(3);
       expect(
         awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
           .SNSTopicTopic1.Type
@@ -202,6 +202,10 @@ describe('AwsCompileSNSEvents', () => {
         awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
           .FirstLambdaPermissionTopic1SNS.Type
       ).to.equal('AWS::Lambda::Permission');
+      expect(
+        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+          .FirstSnsSubscriptionTopic1.Type
+      ).to.equal('AWS::SNS::Subscription');
     });
 
     it('should throw an error when the event an object and the displayName is not given', () => {
@@ -685,7 +689,7 @@ describe('AwsCompileSNSEvents', () => {
       ).to.equal('AWS::SQS::QueuePolicy');
     });
 
-    it('should link topic to corresponding dlq when redrivePolicy is defined with resource ref', () => {
+    it('should link topic to corresponding dlq when redrivePolicy is defined with resource import', () => {
       awsCompileSNSEvents.serverless.service.functions = {
         first: {
           events: [
