@@ -1871,3 +1871,13 @@ provider:
   apiGateway:
     disableDefaultEndpoint: true
 ```
+
+## Providing a custom stage name
+
+By default, the API Gateway stage will be same as the serverless stage. This can be overridden by passing stage under the apiGateway configuration under provider.
+
+```yml
+provider:
+  apiGateway:
+    stage: customStageName
+```
