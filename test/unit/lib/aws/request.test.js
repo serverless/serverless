@@ -11,16 +11,6 @@ chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
 
 describe('#request', () => {
-  it('should enable aws logging when debug log is enabled', () => {
-    const configStub = sinon.stub();
-    overrideEnv(() => {
-      proxyquire('../../../../lib/aws/request', {
-        'aws-sdk': { config: configStub },
-      });
-      expect(typeof configStub.logger.log).to.equal('function');
-    });
-  });
-
   describe('Credentials support', () => {
     // awsRequest supports credentials from two sources:
     // - an AWS credentials object passed as part of params in the call
