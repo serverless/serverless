@@ -126,7 +126,7 @@ provider:
   environment:
     APP_ENV_VARIABLE: FOOBAR
   # Duration for CloudWatch log retention (default: forever)
-  # RetentionInDays value must be one of 1,3,5,7,14,30,60,90,120,150,180,365,400,545,731,1827,3653
+  # Valid values: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-loggroup.html
   logRetentionInDays: 14
   # KMS key ARN to use for encryption for all functions
   kmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
