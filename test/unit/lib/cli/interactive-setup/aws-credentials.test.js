@@ -151,53 +151,6 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
     expect(context.inapplicabilityReasonCode).to.equal('LINKED_PROVIDER_CONFIGURED');
   });
 
-  it('Should recognize dashboard providers with console integration on', async () => {
-    const internalMockedSdk = {
-      ...mockedSdk,
-      getProviders: async () => {
-        return {
-          result: [
-            {
-              alias: 'someprovider',
-              providerName: 'aws',
-              providerType: 'roleArn',
-              providerUid: 'provideruid',
-              isDefault: false,
-              providerDetails: {
-                roleArn: 'arn:xxx',
-              },
-            },
-          ],
-        };
-      },
-    };
-    const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/aws-credentials', {
-      '@serverless/dashboard-plugin/lib/client-utils': {
-        getPlatformClientWithAccessKey: async () => internalMockedSdk,
-      },
-      '@serverless/dashboard-plugin/lib/is-authenticated': () => true,
-      './utils': {
-        doesServiceInstanceHaveLinkedProvider: () => true,
-      },
-    });
-
-    const context = {
-      history: new Set(),
-      serviceDir: process.cwd(),
-      configuration: {
-        provider: { name: 'aws' },
-        org: 'someorg',
-        app: 'someapp',
-        service: 'service',
-        console: true,
-      },
-      options: {},
-      configurationFilename: 'serverless.yml',
-    };
-    expect(await mockedStep.isApplicable(context)).to.be.false;
-    expect(context.inapplicabilityReasonCode).to.equal('LINKED_PROVIDER_CONFIGURED');
-  });
-
   it('Should be effective, when existing service instance does not have a provider set', async () => {
     const internalMockedSdk = {
       ...mockedSdk,

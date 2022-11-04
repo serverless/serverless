@@ -396,7 +396,6 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       configuration: { service: 'foo', provider: 'aws' },
     });
     expect(payload.dashboard.userId).to.equal('some-user-id');
-    expect(payload.console.userId).to.equal('some-user-id');
     expect(payload.frameworkLocalUserId).to.equal('123');
     expect(payload.firstLocalInstallationTimestamp).to.equal(1616151998);
   });
@@ -422,7 +421,6 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
       });
     });
     expect(payload.dashboard.userId).to.be.null;
-    expect(payload.console.userId).to.be.null;
     expect(payload.frameworkLocalUserId).to.equal('123');
   });
 

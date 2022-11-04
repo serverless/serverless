@@ -1030,6 +1030,8 @@ describe('AwsCompileStreamEvents', () => {
                 stream: {
                   arn: 'arn:aws:kinesis:region:account:stream/abc',
                   consumer: true,
+                  startingPosition: 'AT_TIMESTAMP',
+                  startingPositionTimestamp: 123,
                 },
               },
               {
@@ -1252,7 +1254,11 @@ describe('AwsCompileStreamEvents', () => {
         expect(
           awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
             .Resources.FirstEventSourceMappingKinesisAbc.Properties.StartingPosition
-        ).to.equal('TRIM_HORIZON');
+        ).to.equal('AT_TIMESTAMP');
+        expect(
+          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources.FirstEventSourceMappingKinesisAbc.Properties.StartingPositionTimestamp
+        ).to.equal(123);
         expect(
           awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
             .Resources.FirstEventSourceMappingKinesisAbc.Properties.Enabled
@@ -1420,6 +1426,28 @@ describe('AwsCompileStreamEvents', () => {
           awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
             .Resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement
         ).to.deep.equal(iamRoleStatements);
+      });
+
+      it('should fail to compile EventSourceMapping resource properties for startingPosition AT_TIMESTAMP with no startingPositionTimestamp', () => {
+        expect(() => {
+          awsCompileStreamEvents.serverless.service.functions = {
+            first: {
+              events: [
+                {
+                  stream: {
+                    arn: 'arn:aws:kinesis:region:account:stream/abc',
+                    consumer: true,
+                    startingPosition: 'AT_TIMESTAMP',
+                  },
+                },
+              ],
+            },
+          };
+
+          awsCompileStreamEvents.compileStreamEvents();
+        }).to.throw(
+          'You must specify startingPositionTimestamp for function: first when startingPosition is AT_TIMESTAMP'
+        );
       });
     });
 

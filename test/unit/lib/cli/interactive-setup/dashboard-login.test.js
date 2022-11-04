@@ -54,13 +54,13 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
   });
 
   it('Should be ineffective in console context', async () => {
-    const context = { isConsole: true };
+    const context = { isConsole: true, options: { console: true } };
     expect(await step.isApplicable(context)).to.be.false;
     expect(context.inapplicabilityReasonCode).to.equal('CONSOLE_CONTEXT');
   });
 
   it('Should be ineffective, when not at service path', async () => {
-    const context = {};
+    const context = { options: {} };
     expect(await step.isApplicable(context)).to.be.false;
     expect(context.inapplicabilityReasonCode).to.equal('NOT_IN_SERVICE_DIRECTORY');
   });

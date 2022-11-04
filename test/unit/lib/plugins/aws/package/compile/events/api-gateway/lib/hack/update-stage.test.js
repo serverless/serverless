@@ -884,4 +884,170 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/hack/u
     expect(getDeploymentsStub).to.have.been.calledOnce;
     expect(getDeploymentsStub.args[0][0].restApiId).to.equal('api-id');
   });
+
+  it('should use stage defined under apiGateway config if passed', async () => {
+    const { serviceConfig, servicePath, updateConfig } = await fixtures.setup('api-gateway');
+    const getDeploymentsStub = sinon.stub().returns({ items: [{ id: 'deployment-id' }] });
+    const getStageStub = sinon.stub().resolves({});
+    const createStageStub = sinon.stub();
+    const updateStageStub = sinon.stub();
+    const stage = 'dev';
+
+    await updateConfig({
+      provider: {
+        stage,
+        apiGateway: {
+          shouldStartNameWithService: true,
+          stage: 'customStage',
+        },
+        stackTags: { key: 'value' },
+        logs: { restApi: true },
+      },
+    });
+
+    await runServerless({
+      command: 'deploy',
+      cwd: servicePath,
+      lastLifecycleHookName: 'after:deploy:deploy',
+      awsRequestStubMap: {
+        APIGateway: {
+          createStage: createStageStub,
+          getStage: getStageStub,
+          updateStage: updateStageStub,
+          getDeployments: getDeploymentsStub,
+          getRestApis: { items: [{ id: 'api-id', name: `${serviceConfig.service}-${stage}` }] },
+          tagResource: {},
+        },
+        CloudFormation: {
+          describeStacks: { Stacks: [{}] },
+          describeStackEvents: {
+            StackEvents: [
+              {
+                ResourceStatus: 'UPDATE_COMPLETE',
+                ResourceType: 'AWS::CloudFormation::Stack',
+              },
+            ],
+          },
+          describeStackResource: {
+            StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
+          },
+          listStackResources: {},
+          validateTemplate: {},
+          deleteChangeSet: {},
+          createChangeSet: {},
+          executeChangeSet: {},
+          describeChangeSet: {
+            ChangeSetName: 'new-service-dev-change-set',
+            ChangeSetId: 'some-change-set-id',
+            StackName: 'new-service-dev',
+            Status: 'CREATE_COMPLETE',
+          },
+        },
+        S3: {
+          listObjectsV2: { Contents: [] },
+          upload: {},
+          headBucket: {},
+        },
+        STS: {
+          getCallerIdentity: {
+            ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+            UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+            Account: '999999999999',
+            Arn: 'arn:aws-us-gov:iam::999999999999:user/test',
+          },
+        },
+      },
+    });
+
+    expect(getStageStub.args[0][0].stageName).to.be.equal('customStage');
+    expect(createStageStub.args[0][0].stageName).to.be.equal('customStage');
+    expect(updateStageStub.args[0][0].stageName).to.be.equal('customStage');
+    const accessLogSettingsDestinationArn = updateStageStub.args[0][0].patchOperations.filter(
+      (op) => op.path === '/accessLogSettings/destinationArn'
+    )[0].value;
+    expect(accessLogSettingsDestinationArn)
+      .to.be.a('string')
+      .and.satisfy((arn) => arn.endsWith('customStage'));
+  });
+
+  it('should update stage, and remove log group using stage defined under apiGateway config if configured such', async () => {
+    const { serviceConfig, servicePath, updateConfig } = await fixtures.setup('api-gateway');
+    const getDeploymentsStub = sinon.stub().returns({ items: [{ id: 'deployment-id' }] });
+    const updateStageStub = sinon.stub();
+    const deleteLogGroupStub = sinon.stub();
+    const stage = 'dev';
+
+    await updateConfig({
+      provider: {
+        stage,
+        apiGateway: {
+          shouldStartNameWithService: true,
+          stage: 'customStage',
+        },
+        stackTags: { key: 'value' },
+        tracing: { apiGateway: true },
+      },
+    });
+
+    await runServerless({
+      command: 'deploy',
+      cwd: servicePath,
+      lastLifecycleHookName: 'after:deploy:deploy',
+      awsRequestStubMap: {
+        APIGateway: {
+          updateStage: updateStageStub,
+          getStage: 'dev',
+          getDeployments: getDeploymentsStub,
+          getRestApis: { items: [{ id: 'api-id', name: `${serviceConfig.service}-${stage}` }] },
+          tagResource: {},
+        },
+        CloudFormation: {
+          describeStacks: { Stacks: [{}] },
+          describeStackEvents: {
+            StackEvents: [
+              {
+                ResourceStatus: 'UPDATE_COMPLETE',
+                ResourceType: 'AWS::CloudFormation::Stack',
+              },
+            ],
+          },
+          describeStackResource: {
+            StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
+          },
+          listStackResources: {},
+          validateTemplate: {},
+          deleteChangeSet: {},
+          createChangeSet: {},
+          executeChangeSet: {},
+          describeChangeSet: {
+            ChangeSetName: 'new-service-dev-change-set',
+            ChangeSetId: 'some-change-set-id',
+            StackName: 'new-service-dev',
+            Status: 'CREATE_COMPLETE',
+          },
+        },
+        S3: {
+          listObjectsV2: { Contents: [] },
+          upload: {},
+          headBucket: {},
+        },
+        STS: {
+          getCallerIdentity: {
+            ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+            UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+            Account: '999999999999',
+            Arn: 'arn:aws-us-gov:iam::999999999999:user/test',
+          },
+        },
+        CloudWatchLogs: {
+          deleteLogGroup: deleteLogGroupStub,
+        },
+      },
+    });
+
+    expect(updateStageStub.args[0][0].stageName).to.be.equal('customStage');
+    expect(deleteLogGroupStub.args[0][0].logGroupName)
+      .to.be.a('string')
+      .and.satisfy((logGroupName) => logGroupName.endsWith('customStage'));
+  });
 });

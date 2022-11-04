@@ -4,6 +4,7 @@ const chai = require('chai');
 const sinon = require('sinon');
 const proxyquire = require('proxyquire');
 const overrideCwd = require('process-utils/override-cwd');
+const requireUncached = require('ncjsm/require-uncached');
 const configureInquirerStub = require('@serverless/test/configure-inquirer-stub');
 const { StepHistory } = require('@serverless/utils/telemetry');
 const inquirer = require('@serverless/utils/inquirer');
@@ -31,40 +32,6 @@ describe('test/unit/lib/cli/interactive-setup/console-login.test.js', function (
     expect(context.inapplicabilityReasonCode).to.equal('NON_CONSOLE_CONTEXT');
   });
 
-  it('Should be ineffective, when not at service path', async () => {
-    const context = { isConsole: true };
-    expect(await step.isApplicable(context)).to.be.false;
-    expect(context.inapplicabilityReasonCode).to.equal('NOT_IN_SERVICE_DIRECTORY');
-  });
-
-  it('Should be ineffective, when not at AWS service path', async () => {
-    const context = {
-      isConsole: true,
-      serviceDir: process.cwd(),
-      configuration: {},
-      configurationFilename: 'serverless.yml',
-      options: { console: true },
-      initial: {},
-      inquirer,
-    };
-    expect(await step.isApplicable(context)).to.equal(false);
-    expect(context.inapplicabilityReasonCode).to.equal('NON_AWS_PROVIDER');
-  });
-
-  it('Should be ineffective, when not at supported runtime service path', async () => {
-    const context = {
-      isConsole: true,
-      serviceDir: process.cwd(),
-      configuration: { provider: { name: 'aws', runtime: 'java8' } },
-      configurationFilename: 'serverless.yml',
-      options: { console: true },
-      initial: {},
-      inquirer,
-    };
-    expect(await step.isApplicable(context)).to.equal(false);
-    expect(context.inapplicabilityReasonCode).to.equal('UNSUPPORTED_RUNTIME');
-  });
-
   it('Should be ineffective, when logged in', async () => {
     const { servicePath: serviceDir, serviceConfig: configuration } = await fixtures.setup(
       'aws-loggedin-console-service'
@@ -78,9 +45,13 @@ describe('test/unit/lib/cli/interactive-setup/console-login.test.js', function (
       initial: {},
       inquirer,
     };
-    expect(await overrideCwd(serviceDir, async () => await step.isApplicable(context))).to.equal(
-      false
-    );
+    expect(
+      await overrideCwd(serviceDir, async () =>
+        requireUncached(async () =>
+          require('../../../../../lib/cli/interactive-setup/console-login').isApplicable(context)
+        )
+      )
+    ).to.equal(false);
     expect(context.inapplicabilityReasonCode).to.equal('ALREADY_LOGGED_IN');
   });
 

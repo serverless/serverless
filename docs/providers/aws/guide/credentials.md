@@ -223,7 +223,7 @@ _Please, refer to the [`invoke local`](https://serverless.com/framework/docs/pro
 
 It is possible to use local AWS credentials to _assume_ another AWS role.
 
-That allows the deployment (are all other CLI commands) to be performed under a different role. To achieve this, [follow this documentation from AWS](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-role.html).
+That allows the deployment (and all other CLI commands) to be performed under a different role. To achieve this, [follow this documentation from AWS](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-role.html).
 
 Note that `serverless.yml` also offers the `provider.iam.deploymentRole` option. This lets us force CloudFormation to use a different role when deploying:
 
