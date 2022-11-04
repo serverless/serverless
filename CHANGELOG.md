@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.24.1](https://github.com/serverless/serverless/compare/v3.24.0...v3.24.1) (2022-11-04)
+
+### Bug Fixes
+
+- **Console:** Ensure errorneus resolution of url to not break deploys ([#11501](https://github.com/serverless/serverless/issues/11501)) ([f72c595](https://github.com/serverless/serverless/commit/f72c5958c354c47123427988f6a48528987c45cb)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [3.24.0](https://github.com/serverless/serverless/compare/v3.23.0...v3.24.0) (2022-10-31)
 
 ### Features
