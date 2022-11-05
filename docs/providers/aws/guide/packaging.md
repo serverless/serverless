@@ -67,7 +67,7 @@ Exclude all files but `handler.js`
 package:
   patterns:
     - '!src/**'
-    - src/function/handler.js
+    - 'src/function/handler.js'
 ```
 
 **Note:** Don't forget to use the correct glob syntax if you want to exclude directories
