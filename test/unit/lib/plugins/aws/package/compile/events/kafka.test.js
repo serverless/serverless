@@ -533,6 +533,65 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
       });
     });
 
+    describe('startingPositionTimestamp', () => {
+      it('should fail to compile EventSourceMapping resource properties for startingPosition AT_TIMESTAMP with no startingPositionTimestamp', async () => {
+        await expect(
+          runServerless({
+            fixture: 'function',
+            configExt: {
+              functions: {
+                basic: {
+                  role: { 'Fn::ImportValue': 'MyImportedRole' },
+                  events: [
+                    {
+                      kafka: {
+                        topic,
+                        bootstrapServers: ['abc.xyz:9092'],
+                        accessConfigurations: { saslScram256Auth: saslScram256AuthArn },
+                        startingPosition: 'AT_TIMESTAMP',
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+            command: 'package',
+          })
+        ).to.be.rejected.and.eventually.contain({
+          code: 'FUNCTION_KAFKA_STARTING_POSITION_TIMESTAMP_INVALID',
+        });
+      });
+
+      it('should correctly compile EventSourceMapping resource properties for startingPosition', async () => {
+        const { awsNaming, cfTemplate } = await runServerless({
+          fixture: 'function',
+          configExt: {
+            functions: {
+              basic: {
+                role: { 'Fn::ImportValue': 'MyImportedRole' },
+                events: [
+                  {
+                    kafka: {
+                      topic,
+                      bootstrapServers: ['abc.xyz:9092'],
+                      accessConfigurations: { saslScram256Auth: saslScram256AuthArn },
+                      startingPosition: 'AT_TIMESTAMP',
+                      startingPositionTimestamp: 123,
+                    },
+                  },
+                ],
+              },
+            },
+          },
+          command: 'package',
+        });
+
+        const eventSourceMappingResource =
+          cfTemplate.Resources[awsNaming.getKafkaEventLogicalId('basic', 'TestingTopic')];
+        expect(eventSourceMappingResource.Properties.StartingPositionTimestamp).to.deep.equal(123);
+      });
+    });
+
     it('should not add dependsOn for imported role', async () => {
       const { awsNaming, cfTemplate } = await runServerless({
         fixture: 'function',

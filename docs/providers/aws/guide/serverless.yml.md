@@ -1024,8 +1024,10 @@ functions:
           batchSize: 100
           # Optional, must be in 0-300 range (seconds)
           maximumBatchingWindow: 30
-          # Optional, can be set to LATEST or TRIM_HORIZON
+          # Optional, can be set to LATEST, AT_TIMESTAMP or TRIM_HORIZON
           startingPosition: LATEST
+          # Mandatory when startingPosition is AT_TIMESTAMP
+          startingPositionTimestamp: 10000123
           # (default: true)
           enabled: false
           # Optional, specifies the consumer group ID to be used when consuming from Kafka. If not provided, a random UUID will be generated
