@@ -749,6 +749,38 @@ describe('#compileMethods()', () => {
     ).to.not.have.property('AuthorizationScopes');
   });
 
+  it('should pass on import functions for a cognito user pool authorizer scopes', () => {
+    awsCompileApigEvents.validated.events = [
+      {
+        functionName: 'First',
+        http: {
+          authorizer: {
+            name: 'authorizer',
+            type: 'COGNITO_USER_POOLS',
+            authorizerId: { Ref: 'CognitoAuthorizer' },
+            scopes: [
+              {
+                'Fn::ImportValue': 'ImportedScope',
+              },
+            ],
+          },
+          integration: 'AWS',
+          path: 'users/create',
+          method: 'post',
+        },
+      },
+    ];
+
+    awsCompileApigEvents.compileMethods();
+    const resource =
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost;
+
+    expect(resource.Properties.AuthorizationScopes[0]).to.deep.equal({
+      'Fn::ImportValue': 'ImportedScope',
+    });
+  });
+
   it('should set claims for a cognito user pool', () => {
     awsCompileApigEvents.validated.events = [
       {
