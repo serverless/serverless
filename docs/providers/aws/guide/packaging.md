@@ -45,6 +45,7 @@ By default, serverless will exclude the following patterns:
 - .gitignore
 - .DS_Store
 - npm-debug.log
+- yarn-\*.log
 - .serverless/\*\*
 - .serverless_plugins/\*\*
 
