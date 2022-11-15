@@ -74,6 +74,7 @@
     "type": "^2.7.2",
     "untildify": "^4.0.0",
     "uuid": "^9.0.0",
+    "yaml": "^2.1.3",
     "yaml-ast-parser": "0.0.43"
   },
   "devDependencies": {
