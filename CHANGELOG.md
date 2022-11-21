@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.25.0](https://github.com/serverless/serverless/compare/v3.24.1...v3.25.0) (2022-11-21)
+
+### Features
+
+- **AWS Deploy:**
+  - Recognize `nodejs.18.x` runtime ([#11526](https://github.com/serverless/serverless/issues/11526)) ([c25f854](https://github.com/serverless/serverless/commit/c25f854f29204d1fb6c6254ae89d020751aa8198)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Recognize `eu-central-2`, `eu-south-1` and `me-central-1` regions ([#11524](https://github.com/serverless/serverless/issues/11524)) ([54f4fc7](https://github.com/serverless/serverless/commit/54f4fc73b4a2277c7485b877e57ec9ced6e66d1a)) ([Umut Uzgur](https://github.com/umutuzgur))
+- **AWS API Gateway:** Allow CloudFormation intrinsic functions in `authorizer.scopes` ([#11505](https://github.com/serverless/serverless/issues/11505)) ([4169ae1](https://github.com/serverless/serverless/commit/4169ae183f64c5c580d90e653e23cc3c52a6f971)) ([franzmango](https://github.com/franzmango))
+- **AWS Kafka:** Support `startingPositionTimestamp` ([#11479](https://github.com/serverless/serverless/issues/11479)) ([858758e](https://github.com/serverless/serverless/commit/858758ea1efed07f38e491d21ecfd9873f07b4dd)) ([Daniele Iasella](https://github.com/overbit))
+
+### Bug Fixes
+
+- **AWS Deploy:** Respect existing CloudFormation templates in YAML format ([#11521](https://github.com/serverless/serverless/issues/11521)) ([20d79a2](https://github.com/serverless/serverless/commit/20d79a2876875f73755ccae4e1e2c2a9c02c9ad7)) ([Nick Graffis](https://github.com/nickgraffis))
+- Do not crash on `null` value ([#11506](https://github.com/serverless/serverless/issues/11506)) ([c4902f3](https://github.com/serverless/serverless/commit/c4902f3b103e3c683eb2a8dd04acc4e217a4d276)) ([Shogo Hida](https://github.com/shogohida))
+
 ### [3.24.1](https://github.com/serverless/serverless/compare/v3.24.0...v3.24.1) (2022-11-04)
 
 ### Bug Fixes
