@@ -598,6 +598,7 @@ processSpanPromise = (async () => {
         commands[0] === 'plugin' || Boolean(variablesMeta && !variablesMeta.size),
       commands,
       options,
+      variablesMeta,
     });
 
     try {
@@ -643,7 +644,7 @@ processSpanPromise = (async () => {
         // Validate result command and options
         if (hasFinalCommandSchema) require('../lib/cli/ensure-supported-command')(configuration);
         if (isHelpRequest) return;
-        if (!_.get(variablesMeta, 'size')) return;
+        if (!_.get(serverless.variablesMeta, 'size')) return;
 
         if (commandSchema) {
           resolverConfiguration.options = filterSupportedOptions(options, {
@@ -678,12 +679,12 @@ processSpanPromise = (async () => {
           // Pre-resolve to eventually pick not yet resolved AWS auth related properties
           processLog.debug('resolve variables');
           await resolveVariables(resolverConfiguration);
-          if (!variablesMeta.size) return;
+          if (!serverless.variablesMeta.size) return;
           if (
             eventuallyReportVariableResolutionErrors(
               configurationPath,
               configuration,
-              variablesMeta
+              serverless.variablesMeta
             )
           ) {
             return;
@@ -727,9 +728,13 @@ processSpanPromise = (async () => {
         // Having all source resolvers configured, resolve variables
         processLog.debug('resolve all variables');
         await resolveVariables(resolverConfiguration);
-        if (!variablesMeta.size) return;
+        if (!serverless.variablesMeta.size) return;
         if (
-          eventuallyReportVariableResolutionErrors(configurationPath, configuration, variablesMeta)
+          eventuallyReportVariableResolutionErrors(
+            configurationPath,
+            configuration,
+            serverless.variablesMeta
+          )
         ) {
           return;
         }
@@ -737,10 +742,12 @@ processSpanPromise = (async () => {
         // Do not confirm on unresolved sources with partially resolved configuration
         if (resolverConfiguration.propertyPathsToResolve) return;
 
-        processLog.debug('uresolved variables meta: %o', variablesMeta);
+        processLog.debug('uresolved variables meta: %o', serverless.variablesMeta);
         // Report unrecognized variable sources found in variables configured in service config
         const unresolvedSources =
-          require('../lib/configuration/variables/resolve-unresolved-source-types')(variablesMeta);
+          require('../lib/configuration/variables/resolve-unresolved-source-types')(
+            serverless.variablesMeta
+          );
         const recognizedSourceNames = new Set(Object.keys(resolverConfiguration.sources));
 
         const unrecognizedSourceNames = Array.from(unresolvedSources.keys()).filter(
