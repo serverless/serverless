@@ -1,8 +1,11 @@
 'use strict';
 
 const chai = require('chai');
+const sinon = require('sinon');
+const proxyquire = require('proxyquire').noCallThru();
 
 chai.use(require('chai-as-promised'));
+chai.use(require('sinon-chai'));
 
 const { expect } = chai;
 
@@ -172,6 +175,183 @@ describe('test/unit/lib/serverless.test.js', () => {
 
     it('Ensure config.servicePath', async () => {
       expect(serverless.config).to.have.property('servicePath');
+    });
+  });
+
+  describe('Extend configuration', () => {
+    let serverless;
+    let parseEntriesStub;
+
+    before(() => {
+      parseEntriesStub = sinon.stub().returns(new Map([]));
+      const ServerlessProxy = proxyquire('../../../lib/serverless.js', {
+        './configuration/variables/resolve-meta': {
+          parseEntries: parseEntriesStub,
+        },
+      });
+
+      serverless = new ServerlessProxy({
+        commands: ['print'],
+        options: {},
+        serviceDir: null,
+        variablesMeta: new Map([]),
+      });
+
+      serverless.pluginManager = sinon.createStubInstance(PluginManager);
+      serverless.classes.CLI = sinon.stub(serverless.classes.CLI);
+    });
+
+    after(() => {
+      sinon.restore();
+    });
+
+    beforeEach(async () => {
+      serverless.isConfigurationExtendable = true;
+      serverless.variablesMeta = new Map([]);
+    });
+
+    it('Should add configuration path if it not exists', async () => {
+      const initialConfig = {
+        'pre-existing': {
+          path: true,
+        },
+      };
+
+      const path = 'path.to.insert';
+      const value = {
+        newKey: 'value',
+      };
+      serverless.configurationInput = JSON.parse(JSON.stringify(initialConfig));
+      serverless.extendConfiguration(path, value);
+
+      expect(serverless.configurationInput).to.deep.include(initialConfig);
+      expect(serverless.configurationInput).to.deep.nested.include({ [path]: value });
+    });
+
+    it('Should merge configuration object if it exists', async () => {
+      const path = 'pre-existing';
+      const initialConfig = {
+        [path]: {
+          path: true,
+        },
+      };
+
+      const value = {
+        newKey: 'value',
+      };
+      serverless.configurationInput = JSON.parse(JSON.stringify(initialConfig));
+      serverless.extendConfiguration(path, value);
+
+      expect(serverless.configurationInput[path]).to.deep.include(
+        Object.assign(initialConfig[path], value)
+      );
+    });
+
+    it('Should extend configuration array if it exists', async () => {
+      const path = 'pre-existing';
+      const initialConfig = {
+        [path]: [1, 2, 3, 4],
+      };
+
+      const value = [4, 5, 6];
+      serverless.configurationInput = JSON.parse(JSON.stringify(initialConfig));
+      serverless.extendConfiguration(path, value);
+
+      expect(serverless.configurationInput[path])
+        .to.be.an('array')
+        .that.includes.members(initialConfig[path]);
+      expect(serverless.configurationInput[path]).to.include.members(value);
+      expect(serverless.configurationInput[path]).to.have.length(
+        value.length + initialConfig[path].length
+      );
+    });
+
+    it('Should assign trivial types', async () => {
+      const path = 'pre-existing';
+      const initialConfig = {
+        [path]: 'some string',
+      };
+      const value = 'other string';
+      serverless.configurationInput = JSON.parse(JSON.stringify(initialConfig));
+      serverless.extendConfiguration(path, value);
+      expect(serverless.configurationInput[path]).to.equal(value);
+    });
+
+    it('Should deeply copy the new value', async () => {
+      const path = 'level1';
+      const subpath = 'level2';
+      const subvalue = {
+        level3: 'copy',
+      };
+      const value = {
+        [subpath]: subvalue,
+      };
+      serverless.configurationInput = {};
+      serverless.extendConfiguration(path, value);
+
+      expect(serverless.configurationInput[path]).to.not.equal(value);
+      expect(serverless.configurationInput[path][subpath]).to.not.equal(subvalue);
+    });
+
+    it('Should throw if types do not match', async () => {
+      const path = 'pre-existing';
+      const initialConfig = {
+        [path]: [1, 2, 3, 4],
+      };
+      const value = {};
+      serverless.configurationInput = JSON.parse(JSON.stringify(initialConfig));
+
+      expect(() => serverless.extendConfiguration(path, value)).to.throw(ServerlessError);
+    });
+
+    it('Should throw if called after init', async () => {
+      await serverless.init();
+      expect(() => serverless.extendConfiguration('', {})).to.throw(ServerlessError);
+    });
+
+    it('Should clean variables meta in configurationPath', async () => {
+      const path = 'path.to.insert';
+      const value = {
+        newKey: 'value',
+      };
+      serverless.configurationInput = {};
+      const metaToKeep = ['path.to.keep'].map((_) => _.replace(/\./g, '\0'));
+      const metaToDelete = [path, `${path}.child`].map((_) => _.replace(/\./g, '\0'));
+      const variablesMeta = metaToKeep.concat(metaToDelete);
+
+      const keyStub = sinon.stub(serverless.variablesMeta, 'keys');
+      keyStub.returns(variablesMeta);
+
+      const deleteStub = sinon.stub(serverless.variablesMeta, 'delete');
+
+      serverless.extendConfiguration(path, value);
+
+      metaToDelete.forEach((meta) => {
+        expect(deleteStub).to.have.been.calledWith(meta);
+      });
+    });
+
+    it('Should add variables to variables meta', async () => {
+      const path = 'path.to.insert';
+      const value = {
+        newKey: 'value',
+      };
+      serverless.configurationInput = {};
+
+      const resolvedVariables = {
+        var1: {},
+        var2: {},
+      };
+      const fakeReturn = new Map(Object.entries(resolvedVariables));
+      parseEntriesStub.returns(fakeReturn);
+
+      const setStub = sinon.stub(serverless.variablesMeta, 'set');
+
+      serverless.extendConfiguration(path, value);
+
+      Object.getOwnPropertyNames(resolvedVariables).forEach((varName) => {
+        expect(setStub).to.have.been.calledWith(varName, sinon.match.any);
+      });
     });
   });
 });
