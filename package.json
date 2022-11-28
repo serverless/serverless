@@ -28,7 +28,7 @@
     "ajv": "^8.11.2",
     "ajv-formats": "^2.1.1",
     "archiver": "^5.3.1",
-    "aws-sdk": "^2.1258.0",
+    "aws-sdk": "2.1259.0",
     "bluebird": "^3.7.2",
     "cachedir": "^2.3.0",
     "chalk": "^4.1.2",
