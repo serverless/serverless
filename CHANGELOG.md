@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.25.1](https://github.com/serverless/serverless/compare/v3.25.0...v3.25.1) (2022-11-28)
+
+### Maintenance Improvements
+
+- Wokaround AWS-SDK issue by temporarily pinning v2 version ([cb81085](https://github.com/serverless/serverless/commit/cb810854a619429b8ec2a4c1dbbd77bb273d015d)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Local Invocation:** Upgrade Java dependencies ([#11535](https://github.com/serverless/serverless/issues/11535)) ([eb741fe](https://github.com/serverless/serverless/commit/eb741fed22773f6b4b08a67837ab39a518101825)) ([xiaokang](https://github.com/pen4))
+
 ## [3.25.0](https://github.com/serverless/serverless/compare/v3.24.1...v3.25.0) (2022-11-21)
 
 ### Features
