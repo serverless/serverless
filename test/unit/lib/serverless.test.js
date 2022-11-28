@@ -222,7 +222,7 @@ describe('test/unit/lib/serverless.test.js', () => {
         newKey: 'value',
       };
       serverless.configurationInput = JSON.parse(JSON.stringify(initialConfig));
-      serverless.extendConfiguration(path, value);
+      serverless.extendConfiguration(path.split('.'), value);
 
       expect(serverless.configurationInput).to.deep.include(initialConfig);
       expect(serverless.configurationInput).to.deep.nested.include({ [path]: value });
@@ -240,7 +240,7 @@ describe('test/unit/lib/serverless.test.js', () => {
         newKey: 'value',
       };
       serverless.configurationInput = JSON.parse(JSON.stringify(initialConfig));
-      serverless.extendConfiguration(path, value);
+      serverless.extendConfiguration(path.split('.'), value);
 
       expect(serverless.configurationInput[path]).to.deep.include(
         Object.assign(initialConfig[path], value)
@@ -255,7 +255,7 @@ describe('test/unit/lib/serverless.test.js', () => {
 
       const value = [4, 5, 6];
       serverless.configurationInput = JSON.parse(JSON.stringify(initialConfig));
-      serverless.extendConfiguration(path, value);
+      serverless.extendConfiguration(path.split('.'), value);
 
       expect(serverless.configurationInput[path])
         .to.be.an('array')
@@ -273,7 +273,7 @@ describe('test/unit/lib/serverless.test.js', () => {
       };
       const value = 'other string';
       serverless.configurationInput = JSON.parse(JSON.stringify(initialConfig));
-      serverless.extendConfiguration(path, value);
+      serverless.extendConfiguration(path.split('.'), value);
       expect(serverless.configurationInput[path]).to.equal(value);
     });
 
@@ -287,7 +287,7 @@ describe('test/unit/lib/serverless.test.js', () => {
         [subpath]: subvalue,
       };
       serverless.configurationInput = {};
-      serverless.extendConfiguration(path, value);
+      serverless.extendConfiguration(path.split('.'), value);
 
       expect(serverless.configurationInput[path]).to.not.equal(value);
       expect(serverless.configurationInput[path][subpath]).to.not.equal(subvalue);
@@ -301,7 +301,9 @@ describe('test/unit/lib/serverless.test.js', () => {
       const value = {};
       serverless.configurationInput = JSON.parse(JSON.stringify(initialConfig));
 
-      expect(() => serverless.extendConfiguration(path, value)).to.throw(ServerlessError);
+      expect(() => serverless.extendConfiguration(path.split('.'), value)).to.throw(
+        ServerlessError
+      );
     });
 
     it('Should throw if called after init', async () => {
@@ -324,7 +326,7 @@ describe('test/unit/lib/serverless.test.js', () => {
 
       const deleteStub = sinon.stub(serverless.variablesMeta, 'delete');
 
-      serverless.extendConfiguration(path, value);
+      serverless.extendConfiguration(path.split('.'), value);
 
       metaToDelete.forEach((meta) => {
         expect(deleteStub).to.have.been.calledWith(meta);
@@ -347,7 +349,7 @@ describe('test/unit/lib/serverless.test.js', () => {
 
       const setStub = sinon.stub(serverless.variablesMeta, 'set');
 
-      serverless.extendConfiguration(path, value);
+      serverless.extendConfiguration(path.split('.'), value);
 
       Object.getOwnPropertyNames(resolvedVariables).forEach((varName) => {
         expect(setStub).to.have.been.calledWith(varName, sinon.match.any);
