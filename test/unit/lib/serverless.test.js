@@ -2,7 +2,6 @@
 
 const chai = require('chai');
 const sinon = require('sinon');
-const proxyquire = require('proxyquire').noCallThru();
 
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
@@ -182,20 +181,27 @@ describe('test/unit/lib/serverless.test.js', () => {
     let serverless;
     let parseEntriesStub;
 
-    before(() => {
+    before(async () => {
       parseEntriesStub = sinon.stub().returns(new Map([]));
-      const ServerlessProxy = proxyquire('../../../lib/serverless.js', {
-        './configuration/variables/resolve-meta': {
-          parseEntries: parseEntriesStub,
-        },
-      });
-
-      serverless = new ServerlessProxy({
-        commands: ['print'],
-        options: {},
-        serviceDir: null,
-        variablesMeta: new Map([]),
-      });
+      try {
+        await runServerless({
+          noService: true,
+          command: 'info',
+          modulesCacheStub: {
+            './lib/configuration/variables/resolve-meta': {
+              parseEntries: parseEntriesStub,
+            },
+          },
+          hooks: {
+            beforeInstanceInit: (serverlessInstance) => {
+              serverless = serverlessInstance;
+              throw Error('Stop serverless before init.');
+            },
+          },
+        });
+      } catch (error) {
+        // Not an error
+      }
 
       serverless.pluginManager = sinon.createStubInstance(PluginManager);
       serverless.classes.CLI = sinon.stub(serverless.classes.CLI);
@@ -228,7 +234,7 @@ describe('test/unit/lib/serverless.test.js', () => {
       expect(serverless.configurationInput).to.deep.nested.include({ [path]: value });
     });
 
-    it('Should merge configuration object if it exists', async () => {
+    it('Should assign configuration object if it exists', async () => {
       const path = 'pre-existing';
       const initialConfig = {
         [path]: {
@@ -242,28 +248,7 @@ describe('test/unit/lib/serverless.test.js', () => {
       serverless.configurationInput = JSON.parse(JSON.stringify(initialConfig));
       serverless.extendConfiguration(path.split('.'), value);
 
-      expect(serverless.configurationInput[path]).to.deep.include(
-        Object.assign(initialConfig[path], value)
-      );
-    });
-
-    it('Should extend configuration array if it exists', async () => {
-      const path = 'pre-existing';
-      const initialConfig = {
-        [path]: [1, 2, 3, 4],
-      };
-
-      const value = [4, 5, 6];
-      serverless.configurationInput = JSON.parse(JSON.stringify(initialConfig));
-      serverless.extendConfiguration(path.split('.'), value);
-
-      expect(serverless.configurationInput[path])
-        .to.be.an('array')
-        .that.includes.members(initialConfig[path]);
-      expect(serverless.configurationInput[path]).to.include.members(value);
-      expect(serverless.configurationInput[path]).to.have.length(
-        value.length + initialConfig[path].length
-      );
+      expect(serverless.configurationInput[path]).to.deep.include(value);
     });
 
     it('Should assign trivial types', async () => {
@@ -293,24 +278,6 @@ describe('test/unit/lib/serverless.test.js', () => {
       expect(serverless.configurationInput[path][subpath]).to.not.equal(subvalue);
     });
 
-    it('Should throw if types do not match', async () => {
-      const path = 'pre-existing';
-      const initialConfig = {
-        [path]: [1, 2, 3, 4],
-      };
-      const value = {};
-      serverless.configurationInput = JSON.parse(JSON.stringify(initialConfig));
-
-      expect(() => serverless.extendConfiguration(path.split('.'), value)).to.throw(
-        ServerlessError
-      );
-    });
-
-    it('Should throw if called after init', async () => {
-      await serverless.init();
-      expect(() => serverless.extendConfiguration('', {})).to.throw(ServerlessError);
-    });
-
     it('Should clean variables meta in configurationPath', async () => {
       const path = 'path.to.insert';
       const value = {
@@ -333,27 +300,27 @@ describe('test/unit/lib/serverless.test.js', () => {
       });
     });
 
-    it('Should add variables to variables meta', async () => {
-      const path = 'path.to.insert';
-      const value = {
-        newKey: 'value',
-      };
-      serverless.configurationInput = {};
-
-      const resolvedVariables = {
-        var1: {},
-        var2: {},
-      };
-      const fakeReturn = new Map(Object.entries(resolvedVariables));
-      parseEntriesStub.returns(fakeReturn);
-
-      const setStub = sinon.stub(serverless.variablesMeta, 'set');
-
-      serverless.extendConfiguration(path.split('.'), value);
-
-      Object.getOwnPropertyNames(resolvedVariables).forEach((varName) => {
-        expect(setStub).to.have.been.calledWith(varName, sinon.match.any);
+    it('Should throw if called after init', async () => {
+      let localServerless;
+      await runServerless({
+        config: {
+          service: 'test',
+          provider: {
+            name: 'aws',
+          },
+        },
+        command: 'print',
+        hooks: {
+          beforeInstanceInit: (serverlessInstance) => {
+            localServerless = serverlessInstance;
+            const { hooks: lifecycleHooks } = serverlessInstance.pluginManager;
+            for (const hookName of Object.keys(lifecycleHooks)) {
+              delete lifecycleHooks[hookName];
+            }
+          },
+        },
       });
+      expect(() => localServerless.extendConfiguration([], {})).to.throw(ServerlessError);
     });
   });
 });
