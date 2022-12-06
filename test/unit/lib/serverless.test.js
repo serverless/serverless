@@ -284,7 +284,7 @@ describe('test/unit/lib/serverless.test.js', () => {
         newKey: 'value',
       };
       serverless.configurationInput = {};
-      const metaToKeep = ['path.to.keep'].map((_) => _.replace(/\./g, '\0'));
+      const metaToKeep = ['path.to.keep', `${path}suffix`].map((_) => _.replace(/\./g, '\0'));
       const metaToDelete = [path, `${path}.child`, `${path}.zero\0`].map((_) =>
         _.replace(/\./g, '\0')
       );
