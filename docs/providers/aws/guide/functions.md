@@ -409,8 +409,7 @@ functions:
   hello:
     ...
     runtime: java11
-    snapStart:
-      applyOn: PublishedVersions
+    snapStart: true
 ```
 
 **Note:** Lambda SnapStart only supports the Java 11 runtime and does not support provisioned concurrency, the arm64 architecture, the Lambda Extensions API, Amazon Elastic File System (Amazon EFS), AWS X-Ray, or ephemeral storage greater than 512 MB.
