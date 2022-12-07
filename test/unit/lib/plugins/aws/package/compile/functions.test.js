@@ -931,6 +931,40 @@ describe('AwsCompileFunctions', () => {
         ).to.deep.equal(compiledFunction);
       });
     });
+
+    it('should set function SnapStart ApplyOn to PublishedVersions when enabled', () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'func.function.handler',
+          name: 'new-service-dev-func',
+          snapStart: true,
+        },
+      };
+
+      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
+        expect(
+          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
+            .FuncLambdaFunction.Properties.SnapStart
+        ).to.deep.equal({ ApplyOn: 'PublishedVersions' });
+      });
+    });
+
+    it('should set function SnapStart ApplyOn to None when disabled', () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'func.function.handler',
+          name: 'new-service-dev-func',
+          snapStart: false,
+        },
+      };
+
+      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
+        expect(
+          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
+            .FuncLambdaFunction.Properties.SnapStart
+        ).to.deep.equal({ ApplyOn: 'None' });
+      });
+    });
   });
 
   describe('#compileRole()', () => {
