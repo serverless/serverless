@@ -127,7 +127,7 @@ Check out the [deploy command docs](../cli-reference/deploy.md) for all details 
 
 ## Deploying a package
 
-This deployment option takes a deployment directory that has already been created with `serverless package` and deploys it to the cloud provider. This allows you to easier integrate CI / CD workflows with the Serverless Framework.
+This deployment option takes a deployment directory that has already been created with `serverless package` and deploys it to the cloud provider. This allows you to easily integrate CI / CD workflows with the Serverless Framework.
 
 ```bash
 serverless deploy --package path-to-package
