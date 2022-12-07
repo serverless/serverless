@@ -132,8 +132,7 @@
       },
       {
         "files": [
-          "lib/utils/import-esm.js",
-          "lib/configuration/read.js"
+          "lib/utils/import-esm.js"
         ],
         "parserOptions": {
           "ecmaVersion": 2020
