@@ -2313,6 +2313,26 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         expect(error).to.have.property('code', 'LAMBDA_FILE_SYSTEM_CONFIG_MISSING_VPC');
       });
     });
+
+    it('should throw error when `SnapStart` and `ProvisionedConcurrency` is enabled on the function', () => {
+      return runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            basic: {
+              snapStart: true,
+              provisionedConcurrency: 10,
+            },
+          },
+        },
+        command: 'package',
+      }).catch((error) => {
+        expect(error).to.have.property(
+          'code',
+          'FUNCTION_BOTH_PROVISIONED_CONCURRENCY_AND_SNAPSTART_ENABLED_ERROR'
+        );
+      });
+    });
   });
 
   describe('Version hash resolution', () => {
