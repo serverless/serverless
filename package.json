@@ -132,7 +132,7 @@
       },
       {
         "files": [
-          "lib/utils/import-module.js",
+          "lib/utils/require-with-import-fallback.js",
           "lib/plugins/aws/invoke-local/index.js"
         ],
         "parserOptions": {
