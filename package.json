@@ -132,8 +132,7 @@
       },
       {
         "files": [
-          "lib/utils/require-with-import-fallback.js",
-          "lib/plugins/aws/invoke-local/index.js"
+          "lib/utils/import-esm.js"
         ],
         "parserOptions": {
           "ecmaVersion": 2020
