@@ -932,38 +932,38 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should set function SnapStart ApplyOn to PublishedVersions when enabled', () => {
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func',
-          snapStart: true,
+    it('should set function SnapStart ApplyOn to PublishedVersions when enabled', async () => {
+      const { cfTemplate } = await runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            basic: {
+              snapStart: true,
+            },
+          },
         },
-      };
+        command: 'package',
+      });
 
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction.Properties.SnapStart
-        ).to.deep.equal({ ApplyOn: 'PublishedVersions' });
+      expect(cfTemplate.Resources.BasicLambdaFunction.Properties.SnapStart).to.deep.equal({
+        ApplyOn: 'PublishedVersions',
       });
     });
 
-    it('should set function SnapStart ApplyOn to None when disabled', () => {
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func',
-          snapStart: false,
+    it('should not configure function SnapStart ApplyOn when disabled', async () => {
+      const { cfTemplate } = await runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            basic: {
+              snapStart: false,
+            },
+          },
         },
-      };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction.Properties.SnapStart
-        ).to.deep.equal({ ApplyOn: 'None' });
+        command: 'package',
       });
+
+      expect(cfTemplate.Resources.BasicLambdaFunction.Properties).to.not.have.property('SnapStart');
     });
   });
 
