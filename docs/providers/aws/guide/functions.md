@@ -402,7 +402,7 @@ functions:
 
 [Lambda SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html) for Java can improve startup performance for latency-sensitive applications.
 
-To enable SnapStart for your lambda function you can add the `snapStart` object property in the function configuration which should contain the `applyOn` with value `None` or `PublishedVersions`.
+To enable SnapStart for your lambda function you can add the `snapStart` object property in the function configuration which can be put to true and will result in the value `PublishedVersions` for this function.
 
 ```yaml
 functions:
