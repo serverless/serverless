@@ -59,6 +59,18 @@ describe('test/unit/lib/cli/resolve-configuration-path.test.js', () => {
     expect(await resolveServerlessConfigPath()).to.equal(configurationPath);
   });
 
+  it('should recognize "serverless.cjs"', async () => {
+    configurationPath = path.resolve('serverless.cjs');
+    await fse.ensureFile(configurationPath);
+    expect(await resolveServerlessConfigPath()).to.equal(configurationPath);
+  });
+
+  it('should recognize "serverless.mjs"', async () => {
+    configurationPath = path.resolve('serverless.mjs');
+    await fse.ensureFile(configurationPath);
+    expect(await resolveServerlessConfigPath()).to.equal(configurationPath);
+  });
+
   describe('"--config" param support', () => {
     before(async () =>
       Promise.all([

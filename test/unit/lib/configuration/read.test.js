@@ -84,6 +84,26 @@ describe('test/unit/lib/configuration/read.test.js', () => {
     }
   });
 
+  it('should read "serverless.cjs"', async () => {
+    configurationPath = 'serverless.cjs';
+    const configuration = {
+      service: 'test-js',
+      provider: { name: 'aws' },
+    };
+    await fsp.writeFile(configurationPath, `module.exports = ${JSON.stringify(configuration)}`);
+    expect(await readConfiguration(configurationPath)).to.deep.equal(configuration);
+  });
+
+  it('should read "serverless.mjs"', async () => {
+    configurationPath = 'serverless.mjs';
+    const configuration = {
+      service: 'test-js',
+      provider: { name: 'aws' },
+    };
+    await fsp.writeFile(configurationPath, `export default ${JSON.stringify(configuration)}`);
+    expect(await readConfiguration(configurationPath)).to.deep.equal(configuration);
+  });
+
   it('should register ts-node only if it is not already registered', async () => {
     try {
       expect(process[Symbol.for('ts-node.register.instance')]).to.be.undefined;
