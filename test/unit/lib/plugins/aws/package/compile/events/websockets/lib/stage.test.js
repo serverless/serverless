@@ -149,6 +149,29 @@ describe('#compileStage()', () => {
       });
     });
 
+    it('should set a DataProtectionPolicy in a Log Group if provider has logDataProtectionPolicy', () => {
+      const policy = {
+        Name: 'data-protection-policy',
+        Version: '2021-06-01',
+        Statement: [],
+      };
+      awsCompileWebsocketsEvents.serverless.service.provider.logDataProtectionPolicy = policy;
+
+      return awsCompileWebsocketsEvents.compileStage().then(() => {
+        const resources =
+          awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources;
+
+        expect(resources[logGroupLogicalId]).to.deep.equal({
+          Type: 'AWS::Logs::LogGroup',
+          Properties: {
+            LogGroupName: '/aws/websocket/my-service-dev',
+            DataProtectionPolicy: policy,
+          },
+        });
+      });
+    });
+
     it('should use valid logging level', () => {
       awsCompileWebsocketsEvents.serverless.service.provider.logs = {
         websocket: {

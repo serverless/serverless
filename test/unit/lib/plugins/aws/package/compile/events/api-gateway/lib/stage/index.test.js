@@ -379,4 +379,32 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/stage/
       },
     });
   });
+
+  it('should set DataProtectionPolicy if provider.logDataProtectionPolicy is set', async () => {
+    const policy = {
+      Name: 'data-protection-policy',
+      Version: '2021-06-01',
+      Statement: [],
+    };
+    const { cfTemplate, awsNaming, serverless } = await runServerless({
+      fixture: 'api-gateway',
+      command: 'package',
+      configExt: {
+        provider: {
+          logs: {
+            restApi: true,
+          },
+          logDataProtectionPolicy: policy,
+        },
+      },
+    });
+
+    expect(cfTemplate.Resources[awsNaming.getApiGatewayLogGroupLogicalId()]).to.deep.equal({
+      Type: 'AWS::Logs::LogGroup',
+      Properties: {
+        LogGroupName: `/aws/api-gateway/${serverless.service.service}-dev`,
+        DataProtectionPolicy: policy,
+      },
+    });
+  });
 });
