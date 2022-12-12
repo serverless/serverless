@@ -435,8 +435,8 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       });
 
       it('should support `provider.logDataProtectionPolicy`', () => {
-        const IamRoleLambdaExecution = naming.getRoleLogicalId();
-        const iamResource = cfResources[IamRoleLambdaExecution];
+        const normalizedName = naming.getLogGroupLogicalId('basic');
+        const iamResource = cfResources[normalizedName];
         expect(iamResource.Properties.DataProtectionPolicy.Name).to.equal('data-protection-policy');
       });
 
@@ -550,7 +550,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         );
       });
 
-      it('should support `functions[].logRetentionInDays`', async () => {
+      it('should support `functions[].logDataProtectionPolicy`', async () => {
         const functionName = serverless.service.getFunction('fnLogDataProtectionPolicy').name;
         const normalizedName = naming.getLogGroupLogicalId('fnLogDataProtectionPolicy');
         const logResource = cfResources[normalizedName];
