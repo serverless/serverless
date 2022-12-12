@@ -1,10 +1,8 @@
 'use strict';
 
 const chai = require('chai');
-const sinon = require('sinon');
 
 chai.use(require('chai-as-promised'));
-chai.use(require('sinon-chai'));
 
 const { expect } = chai;
 
@@ -19,6 +17,11 @@ const ConfigSchemaHandler = require('../../../lib/classes/config-schema-handler'
 const CLI = require('../../../lib/classes/cli');
 const ServerlessError = require('../../../lib/serverless-error');
 const runServerless = require('../../utils/run-serverless');
+const spawn = require('child-process-ext/spawn');
+const programmaticFixturesEngine = require('../../fixtures/programmatic');
+const path = require('path');
+const yaml = require('js-yaml');
+const _ = require('lodash');
 
 describe('Serverless', () => {
   let serverless;
@@ -178,151 +181,121 @@ describe('test/unit/lib/serverless.test.js', () => {
   });
 
   describe('Extend configuration', () => {
-    let serverless;
-    let parseEntriesStub;
+    let awsRegion;
+    const serverlessPath = path.resolve(__dirname, '../../../scripts/serverless.js');
 
-    before(async () => {
-      parseEntriesStub = sinon.stub().returns(new Map([]));
+    const runFixture = async (extendConfig, customExt) => {
+      const configExt = {
+        plugins: ['./extend-config-plugin/index.js'],
+        provider: {
+          stage: 'dev',
+        },
+        custom: Object.assign(
+          {
+            extendConfig,
+          },
+          customExt
+        ),
+      };
+
+      const { servicePath: serviceDir } = await programmaticFixturesEngine.setup('plugin', {
+        configExt,
+      });
       try {
-        await runServerless({
-          noService: true,
-          command: 'info',
-          modulesCacheStub: {
-            './lib/configuration/variables/resolve-meta': {
-              parseEntries: parseEntriesStub,
-            },
-          },
-          hooks: {
-            beforeInstanceInit: (serverlessInstance) => {
-              serverless = serverlessInstance;
-              throw Error('Stop serverless before init.');
-            },
-          },
+        const serverlessProcess = await spawn('node', [serverlessPath, 'print'], {
+          cwd: serviceDir,
         });
+        return yaml.load(String(serverlessProcess.stdoutBuffer));
       } catch (error) {
-        // Not an error
+        return String(error.stdoutBuffer);
       }
+    };
 
-      serverless.pluginManager = sinon.createStubInstance(PluginManager);
-      serverless.classes.CLI = sinon.stub(serverless.classes.CLI);
+    before(() => {
+      awsRegion = process.env.AWS_REGION;
+      process.env.AWS_REGION = 'us-east-1';
     });
 
     after(() => {
-      sinon.restore();
+      process.env.AWS_REGION = awsRegion;
     });
 
-    beforeEach(async () => {
-      serverless.isConfigurationExtendable = true;
-      serverless.variablesMeta = new Map([]);
+    it('Extends configuration with given values', async () => {
+      const extendConfig = {
+        value: {
+          deep: 'config',
+        },
+        target: ['custom', 'target', 'value'],
+      };
+
+      const configuration = await runFixture(extendConfig, {});
+      expect(configuration).to.be.an('object', configuration);
+
+      const targetValue = _.get(configuration, extendConfig.target);
+      expect(targetValue).to.deep.equal(extendConfig.value);
     });
 
-    it('Should add configuration path if it not exists', async () => {
-      const initialConfig = {
-        'pre-existing': {
-          path: true,
+    it('Overwrites existing values', async () => {
+      const customExt = {
+        target: {
+          someProperty: 'value',
         },
       };
 
-      const path = 'path.to.insert';
-      const value = {
-        newKey: 'value',
-      };
-      serverless.configurationInput = JSON.parse(JSON.stringify(initialConfig));
-      serverless.extendConfiguration(path.split('.'), value);
-
-      expect(serverless.configurationInput).to.deep.include(initialConfig);
-      expect(serverless.configurationInput).to.deep.nested.include({ [path]: value });
-    });
-
-    it('Should assign configuration object if it exists', async () => {
-      const path = 'pre-existing';
-      const initialConfig = {
-        [path]: {
-          path: true,
+      const extendConfig = {
+        value: {
+          deep: 'config',
         },
+        target: ['custom', 'target', 'value'],
       };
 
-      const value = {
-        newKey: 'value',
-      };
-      serverless.configurationInput = JSON.parse(JSON.stringify(initialConfig));
-      serverless.extendConfiguration(path.split('.'), value);
+      const configuration = await runFixture(extendConfig, customExt);
+      expect(configuration).to.be.an('object', configuration);
 
-      expect(serverless.configurationInput[path]).to.deep.include(value);
+      const targetValue = _.get(configuration, extendConfig.target);
+      expect(targetValue).to.deep.equal(extendConfig.value);
     });
 
-    it('Should assign trivial types', async () => {
-      const path = 'pre-existing';
-      const initialConfig = {
-        [path]: 'some string',
+    it('Resolves variables in extended values', async () => {
+      const extendConfig = {
+        value: '%{self:custom.extendConfig.target}',
+        target: ['custom', 'target'],
       };
-      const value = 'other string';
-      serverless.configurationInput = JSON.parse(JSON.stringify(initialConfig));
-      serverless.extendConfiguration(path.split('.'), value);
-      expect(serverless.configurationInput[path]).to.equal(value);
+
+      const configuration = await runFixture(extendConfig, {});
+      expect(configuration).to.be.an('object', configuration);
+
+      const targetValue = _.get(configuration, extendConfig.target);
+      expect(targetValue).to.deep.equal(extendConfig.target);
     });
 
-    it('Should deeply copy the new value', async () => {
-      const path = 'level1';
-      const subpath = 'level2';
-      const subvalue = {
-        level3: 'copy',
-      };
-      const value = {
-        [subpath]: subvalue,
-      };
-      serverless.configurationInput = {};
-      serverless.extendConfiguration(path.split('.'), value);
-
-      expect(serverless.configurationInput[path]).to.not.equal(value);
-      expect(serverless.configurationInput[path][subpath]).to.not.equal(subvalue);
-    });
-
-    it('Should clean variables meta in configurationPath', async () => {
-      const path = 'path.to.insert';
-      const value = {
-        newKey: 'value',
-      };
-      serverless.configurationInput = {};
-      const metaToKeep = ['path.to.keep', `${path}suffix`].map((_) => _.replace(/\./g, '\0'));
-      const metaToDelete = [path, `${path}.child`, `${path}.zero\0`].map((_) =>
-        _.replace(/\./g, '\0')
-      );
-      const variablesMeta = metaToKeep.concat(metaToDelete);
-
-      const keyStub = sinon.stub(serverless.variablesMeta, 'keys');
-      keyStub.returns(variablesMeta);
-
-      const deleteStub = sinon.stub(serverless.variablesMeta, 'delete');
-
-      serverless.extendConfiguration(path.split('.'), value);
-
-      metaToDelete.forEach((meta) => {
-        expect(deleteStub).to.have.been.calledWith(meta);
-      });
-    });
-
-    it('Should throw if called after init', async () => {
-      let localServerless;
-      await runServerless({
-        config: {
-          service: 'test',
-          provider: {
-            name: 'aws',
-          },
+    it('Throws when extending at root', async () => {
+      const extendConfig = {
+        value: {
+          deep: 'config',
         },
-        command: 'print',
-        hooks: {
-          beforeInstanceInit: (serverlessInstance) => {
-            localServerless = serverlessInstance;
-            const { hooks: lifecycleHooks } = serverlessInstance.pluginManager;
-            for (const hookName of Object.keys(lifecycleHooks)) {
-              delete lifecycleHooks[hookName];
-            }
-          },
+        target: [],
+      };
+
+      const configuration = await runFixture(extendConfig, {});
+      expect(configuration).to.be.a('string', configuration);
+
+      expect(configuration).to.include('needs to contain at least one element', configuration);
+    });
+
+    it('Throws when called after init', async () => {
+      const extendConfig = {
+        hook: 'initialize',
+        value: {
+          deep: 'config',
         },
-      });
-      expect(() => localServerless.extendConfiguration([], {})).to.throw(ServerlessError);
+        target: ['custom', 'target'],
+      };
+
+      const configuration = await runFixture(extendConfig, {});
+      expect(configuration).to.be.a('string', configuration);
+
+      expect(configuration).to.include('cannot be used after init', configuration);
     });
   });
 });
