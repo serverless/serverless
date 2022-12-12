@@ -225,6 +225,20 @@ describe('test/unit/scripts/serverless.test.js', () => {
     }
   });
 
+  it('should support custom variable soruces', async () => {
+    const { servicePath: serviceDir } = await programmaticFixturesEngine.setup('plugin', {
+      configExt: {
+        custom: {
+          otherVar: '${other:addressValue}',
+        },
+        plugins: ['./custom-variable-source'],
+      },
+    });
+    expect(
+      String((await spawn('node', [serverlessPath, 'print'], { cwd: serviceDir })).stdoutBuffer)
+    ).to.include('otherVar: Resolving variable addressValue');
+  });
+
   it('should reject unresolved "plugins" property', async () => {
     try {
       await spawn('node', [serverlessPath, 'print'], {
