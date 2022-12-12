@@ -296,29 +296,31 @@ processSpanPromise = (async () => {
           }
 
           let envVarNamesNeededForDotenvResolution;
+          resolverConfiguration = {
+            serviceDir,
+            configuration,
+            variablesMeta,
+            sources: {
+              env: require('../lib/configuration/variables/sources/env'),
+              file: require('../lib/configuration/variables/sources/file'),
+              opt: require('../lib/configuration/variables/sources/opt'),
+              self: require('../lib/configuration/variables/sources/self'),
+              strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
+              sls: require('../lib/configuration/variables/sources/instance-dependent/get-sls')(),
+            },
+            options: filterSupportedOptions(options, { commandSchema, providerName }),
+            fulfilledSources: new Set(['file', 'self', 'strToBool']),
+            propertyPathsToResolve: new Set(['provider\0name', 'provider\0stage', 'useDotenv']),
+            variableSourcesInConfig,
+          };
+
           if (variablesMeta.size) {
             processLog.debug('resolve variables in core properties');
             // Some properties are configured with variables
 
             // Resolve eventual variables in `provider.stage` and `useDotEnv`
             // (required for reliable .env resolution)
-            resolverConfiguration = {
-              serviceDir,
-              configuration,
-              variablesMeta,
-              sources: {
-                env: require('../lib/configuration/variables/sources/env'),
-                file: require('../lib/configuration/variables/sources/file'),
-                opt: require('../lib/configuration/variables/sources/opt'),
-                self: require('../lib/configuration/variables/sources/self'),
-                strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
-                sls: require('../lib/configuration/variables/sources/instance-dependent/get-sls')(),
-              },
-              options: filterSupportedOptions(options, { commandSchema, providerName }),
-              fulfilledSources: new Set(['file', 'self', 'strToBool']),
-              propertyPathsToResolve: new Set(['provider\0name', 'provider\0stage', 'useDotenv']),
-              variableSourcesInConfig,
-            };
+
             if (isInteractiveSetup) resolverConfiguration.fulfilledSources.add('opt');
             await resolveVariables(resolverConfiguration);
 
@@ -589,6 +591,10 @@ processSpanPromise = (async () => {
       }
     }
 
+    const isConfigurationExtended = function (oldSize) {
+      return oldSize < variablesMeta.size;
+    }.bind(null, variablesMeta.size);
+
     processLog.debug('construct Serverless instance');
     serverless = new Serverless({
       configuration,
@@ -604,6 +610,11 @@ processSpanPromise = (async () => {
       serverless.invocationId = uuid.v4();
       processLog.debug('initialize Serverless instance');
       await serverless.init();
+
+      if (isConfigurationExtended() && resolverConfiguration.propertyPathsToResolve) {
+        processLog.debug('resolve variables in all properties');
+        delete resolverConfiguration.propertyPathsToResolve;
+      }
 
       // IIFE for maintenance convenience
       await (async () => {
