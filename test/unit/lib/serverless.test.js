@@ -295,7 +295,10 @@ describe('test/unit/lib/serverless.test.js', () => {
       const configuration = await runFixture(extendConfig, {});
       expect(configuration).to.be.a('string', configuration);
 
-      expect(configuration).to.include('cannot be used after init', configuration);
+      expect(configuration).to.include(
+        'It can only be extended during initialization phase',
+        configuration
+      );
     });
   });
 });
