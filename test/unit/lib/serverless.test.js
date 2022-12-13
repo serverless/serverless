@@ -182,11 +182,8 @@ describe('test/unit/lib/serverless.test.js', () => {
 
   describe('Extend configuration', () => {
     let awsRegion;
-    // see fixture plugin in ./test/fixtures/programmatic/plugin/extend-config-plugin/index.js
-    const targetValuePath = ['custom', 'extend', 'value'];
-    const targetValuePreexistPath = ['custom', 'extend', 'preexist'];
-    const targetValueAfterInitPath = ['custom', 'extend', 'afterInit'];
-    const targetRefPath = ['custom', 'extend', 'ref'];
+    const pluginConfig =
+      require('../../fixtures/programmatic/plugin/extend-config-plugin').pluginConfig;
 
     const serverlessPath = path.resolve(__dirname, '../../../scripts/serverless.js');
 
@@ -208,7 +205,7 @@ describe('test/unit/lib/serverless.test.js', () => {
         },
         custom: {},
       };
-      _.set(customExt, targetValuePreexistPath, 'test_value');
+      _.set(customExt, pluginConfig.overwriteValuePath, 'test_value');
 
       const { servicePath: serviceDir } = await programmaticFixturesEngine.setup('plugin', {
         configExt,
@@ -226,17 +223,17 @@ describe('test/unit/lib/serverless.test.js', () => {
 
       expect(configuration).to.be.an('object', configuration);
 
-      const targetValue = _.get(configuration, targetValuePath);
-      expect(targetValue).to.not.be.undefined;
+      const targetValue = _.get(configuration, pluginConfig.targetValuePath);
+      expect(targetValue, 'Target value should not be undefined').to.not.be.undefined;
 
-      const targetValueAfterInit = _.get(configuration, targetValueAfterInitPath);
-      expect(targetValueAfterInit).to.be.undefined;
+      const afterInitValue = _.get(configuration, pluginConfig.afterInitValuePath);
+      expect(afterInitValue, 'afterInitValue should be undefined').to.be.undefined;
 
-      const refValue = _.get(configuration, targetRefPath);
-      expect(refValue).to.deep.equal(targetValue);
+      const refValue = _.get(configuration, pluginConfig.refValuePath);
+      expect(refValue).to.deep.equal(targetValue, 'refValue should equal targetValue');
 
-      const preexistValue = _.get(configuration, targetValuePreexistPath);
-      expect(preexistValue).to.deep.equal(targetValue);
+      const overwriteValue = _.get(configuration, pluginConfig.overwriteValuePath);
+      expect(overwriteValue).to.deep.equal(targetValue, 'overwriteValue should equal targetValue');
     });
   });
 });
