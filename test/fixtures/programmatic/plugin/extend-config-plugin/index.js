@@ -31,6 +31,12 @@ module.exports = class TestPlugin {
     } catch (error) {
       // ignore this
     }
+
+    try {
+      this.serverless.extendConfiguration('custom.target.invalid', {});
+    } catch (error) {
+      // ignore this
+    }
   }
 
   extendAfterInit() {
