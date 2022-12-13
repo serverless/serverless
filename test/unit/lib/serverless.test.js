@@ -4,7 +4,7 @@ const chai = require('chai');
 
 chai.use(require('chai-as-promised'));
 
-const { expect } = chai;
+const { expect, assert } = chai;
 
 const Serverless = require('../../../lib/serverless');
 const semverRegex = require('semver-regex');
@@ -182,34 +182,13 @@ describe('test/unit/lib/serverless.test.js', () => {
 
   describe('Extend configuration', () => {
     let awsRegion;
+    // see fixture plugin in ./test/fixtures/programmatic/plugin/extend-config-plugin/index.js
+    const targetValuePath = ['custom', 'extend', 'value'];
+    const targetValuePreexistPath = ['custom', 'extend', 'preexist'];
+    const targetValueAfterInitPath = ['custom', 'extend', 'afterInit'];
+    const targetRefPath = ['custom', 'extend', 'ref'];
+
     const serverlessPath = path.resolve(__dirname, '../../../scripts/serverless.js');
-
-    const runFixture = async (extendConfig, customExt) => {
-      const configExt = {
-        plugins: ['./extend-config-plugin/index.js'],
-        provider: {
-          stage: 'dev',
-        },
-        custom: Object.assign(
-          {
-            extendConfig,
-          },
-          customExt
-        ),
-      };
-
-      const { servicePath: serviceDir } = await programmaticFixturesEngine.setup('plugin', {
-        configExt,
-      });
-      try {
-        const serverlessProcess = await spawn('node', [serverlessPath, 'print'], {
-          cwd: serviceDir,
-        });
-        return yaml.load(String(serverlessProcess.stdoutBuffer));
-      } catch (error) {
-        return String(error.stdoutBuffer);
-      }
-    };
 
     before(() => {
       awsRegion = process.env.AWS_REGION;
@@ -221,84 +200,43 @@ describe('test/unit/lib/serverless.test.js', () => {
     });
 
     it('Extends configuration with given values', async () => {
-      const extendConfig = {
-        value: {
-          deep: 'config',
+      const customExt = { custom: {} };
+      const configExt = {
+        plugins: ['./extend-config-plugin/index.js'],
+        provider: {
+          stage: 'dev',
         },
-        target: ['custom', 'target', 'value'],
+        custom: {},
       };
+      _.set(customExt, targetValuePreexistPath, 'test_value');
 
-      const configuration = await runFixture(extendConfig, {});
+      const { servicePath: serviceDir } = await programmaticFixturesEngine.setup('plugin', {
+        configExt,
+      });
+      let configuration;
+      try {
+        const serverlessProcess = await spawn('node', [serverlessPath, 'print'], {
+          cwd: serviceDir,
+        });
+        configuration = yaml.load(String(serverlessProcess.stdoutBuffer));
+      } catch (error) {
+        const errorMessage = String(error.stdoutBuffer);
+        assert.fail(errorMessage);
+      }
+
       expect(configuration).to.be.an('object', configuration);
 
-      const targetValue = _.get(configuration, extendConfig.target);
-      expect(targetValue).to.deep.equal(extendConfig.value);
-    });
+      const targetValue = _.get(configuration, targetValuePath);
+      expect(targetValue).to.not.be.undefined;
 
-    it('Overwrites existing values', async () => {
-      const customExt = {
-        target: {
-          someProperty: 'value',
-        },
-      };
+      const targetValueAfterInit = _.get(configuration, targetValueAfterInitPath);
+      expect(targetValueAfterInit).to.be.undefined;
 
-      const extendConfig = {
-        value: {
-          deep: 'config',
-        },
-        target: ['custom', 'target', 'value'],
-      };
+      const refValue = _.get(configuration, targetRefPath);
+      expect(refValue).to.deep.equal(targetValue);
 
-      const configuration = await runFixture(extendConfig, customExt);
-      expect(configuration).to.be.an('object', configuration);
-
-      const targetValue = _.get(configuration, extendConfig.target);
-      expect(targetValue).to.deep.equal(extendConfig.value);
-    });
-
-    it('Resolves variables in extended values', async () => {
-      const extendConfig = {
-        value: '%{self:custom.extendConfig.target}',
-        target: ['custom', 'target'],
-      };
-
-      const configuration = await runFixture(extendConfig, {});
-      expect(configuration).to.be.an('object', configuration);
-
-      const targetValue = _.get(configuration, extendConfig.target);
-      expect(targetValue).to.deep.equal(extendConfig.target);
-    });
-
-    it('Throws when extending at root', async () => {
-      const extendConfig = {
-        value: {
-          deep: 'config',
-        },
-        target: [],
-      };
-
-      const configuration = await runFixture(extendConfig, {});
-      expect(configuration).to.be.a('string', configuration);
-
-      expect(configuration).to.include('needs to contain at least one element', configuration);
-    });
-
-    it('Throws when called after init', async () => {
-      const extendConfig = {
-        hook: 'initialize',
-        value: {
-          deep: 'config',
-        },
-        target: ['custom', 'target'],
-      };
-
-      const configuration = await runFixture(extendConfig, {});
-      expect(configuration).to.be.a('string', configuration);
-
-      expect(configuration).to.include(
-        'It can only be extended during initialization phase',
-        configuration
-      );
+      const preexistValue = _.get(configuration, targetValuePreexistPath);
+      expect(preexistValue).to.deep.equal(targetValue);
     });
   });
 });

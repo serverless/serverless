@@ -6,30 +6,31 @@ module.exports = class TestPlugin {
     this.options = options;
     this.utils = utils;
 
-    this.target = this.serverless.configurationInput.custom.extendConfig.target;
-    this.value = this.serverless.configurationInput.custom.extendConfig.value;
-    if (typeof this.value === 'string') {
-      this.value = this.value.replace(/%/g, '$');
-    }
-
-    this.hook = this.serverless.configurationInput.custom.extendConfig.hook;
-    if (this.hook !== undefined) {
-      this.hooks = {
-        [this.hook]: () => this.extend(),
-      };
-    } else {
-      this.hook = 'async init';
-    }
+    this.hooks = {
+      initialize: () => this.extendAfterInit(),
+    };
   }
 
   async asyncInit() {
-    if (this.hooks === undefined) {
-      this.extend();
+    const configExt = {
+      var: 'value',
+    };
+    this.serverless.extendConfiguration(['custom', 'extend', 'value'], configExt);
+    this.serverless.extendConfiguration(['custom', 'extend', 'preexist'], configExt);
+    this.serverless.extendConfiguration(['custom', 'extend', 'ref'], '${self:custom.extend.value}');
+
+    try {
+      this.serverless.extendConfiguration([], { custom: {} });
+    } catch (error) {
+      // ignore this
     }
   }
 
-  extend() {
-    this.utils.log(`Excuting "${this.hook}" for extension of "${this.target}" with: ${this.value}`);
-    this.serverless.extendConfiguration(this.target, this.value);
+  extendAfterInit() {
+    try {
+      this.serverless.extendConfiguration(['custom', 'extend', 'afterInit'], 'value');
+    } catch (error) {
+      // ignore this
+    }
   }
 };
