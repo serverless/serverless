@@ -594,8 +594,6 @@ processSpanPromise = (async () => {
       configuration,
       serviceDir,
       configurationFilename,
-      isConfigurationResolved:
-        commands[0] === 'plugin' || Boolean(variablesMeta && !variablesMeta.size),
       commands,
       options,
     });
