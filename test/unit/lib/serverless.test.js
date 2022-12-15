@@ -200,16 +200,10 @@ describe('test/unit/lib/serverless.test.js', () => {
       const { servicePath: serviceDir } = await programmaticFixturesEngine.setup('plugin', {
         configExt,
       });
-      let configuration;
-      try {
-        const serverlessProcess = await spawn('node', [serverlessPath, 'print'], {
-          cwd: serviceDir,
-        });
-        configuration = yaml.load(String(serverlessProcess.stdoutBuffer));
-      } catch (error) {
-        const errorMessage = String(error.stdoutBuffer);
-        throw Error(errorMessage);
-      }
+      const serverlessProcess = await spawn('node', [serverlessPath, 'print'], {
+        cwd: serviceDir,
+      });
+      const configuration = yaml.load(String(serverlessProcess.stdoutBuffer));
 
       expect(configuration).to.be.an('object', configuration);
 
