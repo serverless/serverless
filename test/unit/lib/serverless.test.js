@@ -205,8 +205,6 @@ describe('test/unit/lib/serverless.test.js', () => {
       });
       const configuration = yaml.load(String(serverlessProcess.stdoutBuffer));
 
-      expect(configuration).to.be.an('object', configuration);
-
       const targetValue = _.get(configuration, pluginConfig.targetValuePath);
       expect(targetValue, 'Target value should not be undefined').to.not.be.undefined;
 
