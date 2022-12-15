@@ -4,7 +4,7 @@ const chai = require('chai');
 
 chai.use(require('chai-as-promised'));
 
-const { expect, assert } = chai;
+const { expect } = chai;
 
 const Serverless = require('../../../lib/serverless');
 const semverRegex = require('semver-regex');
@@ -218,7 +218,7 @@ describe('test/unit/lib/serverless.test.js', () => {
         configuration = yaml.load(String(serverlessProcess.stdoutBuffer));
       } catch (error) {
         const errorMessage = String(error.stdoutBuffer);
-        assert.fail(errorMessage);
+        throw Error(errorMessage);
       }
 
       expect(configuration).to.be.an('object', configuration);
