@@ -664,7 +664,7 @@ processSpanPromise = (async () => {
             fulfilledSources: new Set(['env', 'file', 'self', 'strToBool']),
             propertyPathsToResolve:
               commands[0] === 'plugin'
-                ? new Set(['plugin', 'provider\0name', 'provider\0stage', 'useDotenv'])
+                ? new Set(['plugins', 'provider\0name', 'provider\0stage', 'useDotenv'])
                 : null,
             variableSourcesInConfig,
           };
