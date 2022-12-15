@@ -181,20 +181,10 @@ describe('test/unit/lib/serverless.test.js', () => {
   });
 
   describe('Extend configuration', () => {
-    let awsRegion;
     const pluginConfig =
       require('../../fixtures/programmatic/plugin/extend-config-plugin').pluginConfig;
 
     const serverlessPath = path.resolve(__dirname, '../../../scripts/serverless.js');
-
-    before(() => {
-      awsRegion = process.env.AWS_REGION;
-      process.env.AWS_REGION = 'us-east-1';
-    });
-
-    after(() => {
-      process.env.AWS_REGION = awsRegion;
-    });
 
     it('Extends configuration with given values', async () => {
       const customExt = { custom: {} };
