@@ -58,7 +58,7 @@ The dashboard is free for single developer use and we will be using it for the p
 
 For all these reasons, lets choose Y (or just press Enter), to get ourselves set up with the dashboard. This will then open a window in your browser.
 
-Let's click the “Register” link near the bottom to create our account, either using GiHub, Google or your own email address and password. Clicking register, when prompted for a username, go ahead and use a unique username that contains only numbers and lowercase letters.
+Let's click the “Register” link near the bottom to create our account, either using GitHub, Google or your own email address and password. Clicking register, when prompted for a username, go ahead and use a unique username that contains only numbers and lowercase letters.
 
 Once the account is created, the CLI will then do one of two things:
 
