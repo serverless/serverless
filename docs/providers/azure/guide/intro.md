@@ -57,16 +57,16 @@ functions: # Your "Functions"
     events: # The "Events" that trigger this function
       - http: true
         name: req
-          methods:
-            - post
-          route: /users/create
+        methods:
+          - post
+        route: /users/create
   usersDelete:
     events:
       - http: true
         name: req
-          methods:
-            - delete
-          route: /users/delete
+        methods:
+          - delete
+        route: /users/delete
 ```
 
 When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` (or the file specified with the `--config` option) is deployed at once.
