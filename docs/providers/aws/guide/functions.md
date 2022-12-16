@@ -398,6 +398,22 @@ functions:
     architecture: arm64
 ```
 
+## SnapStart
+
+[Lambda SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html) for Java can improve startup performance for latency-sensitive applications.
+
+To enable SnapStart for your lambda function you can add the `snapStart` object property in the function configuration which can be put to true and will result in the value `PublishedVersions` for this function.
+
+```yaml
+functions:
+  hello:
+    ...
+    runtime: java11
+    snapStart: true
+```
+
+**Note:** Lambda SnapStart only supports the Java 11 runtime and does not support provisioned concurrency, the arm64 architecture, the Lambda Extensions API, Amazon Elastic File System (Amazon EFS), AWS X-Ray, or ephemeral storage greater than 512 MB.
+
 ## VPC Configuration
 
 You can add VPC configuration to a specific function in `serverless.yml` by adding a `vpc` object property in the function configuration. This object should contain the `securityGroupIds` and `subnetIds` array properties needed to construct VPC for this function. Here's an example configuration:
