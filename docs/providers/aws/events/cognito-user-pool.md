@@ -216,7 +216,7 @@ resources:
 
 ## Forcing deploying of triggers
 
-A Cognito User Pool with triggers attached may not be correctly updated by AWS Cloudformation on subsequent deployments. To circumvent this issue you can use the `forceDeploy` flag which will try to force Cloudformation to update the triggers no matter what. This flag has to be used in conjuction with the `existing: true` flag.
+A Cognito User Pool with triggers attached may not be correctly updated by AWS Cloudformation on subsequent deployments. To circumvent this issue you can use the `forceDeploy` flag which will try to force Cloudformation to update the triggers no matter what. This flag has to be used in conjunction with the `existing: true` flag.
 
 ```yml
 functions:
