@@ -30,15 +30,13 @@ The `serverless.extendConfiguration(configurationPathKeys, value)` method takes 
 If configuration in `configurationPathKeys` **does exist** the value will be overwritten.  
 If configuration in `configurationPathKeys` **does not exist** the whole path will be created.
 
-You can use it in the `asyncInit()` method of your plugin.
+You can use it in plugin constructor, or if for some reason configuration extension is resolved asynchronously you may resort to `asyncInit()` method
 
 ```js
 class MyPlugin {
   constructor(serverless) {
     this.serverless = serverless;
-  }
 
-  async asyncInit() {
     const value = {
       myKey: 'myValue',
     };
@@ -55,9 +53,7 @@ If your plugin needs merging you need to take care of it yourself.
 class MyPlugin {
   constructor(serverless) {
     this.serverless = serverless;
-  }
 
-  async asyncInit() {
     const currentConfig = this.serverless.configurationInput.custom.myPlugin;
     const value = Object.assign(currentConfig, {
       myKey: 'myValue',
