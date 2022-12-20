@@ -319,6 +319,7 @@ processSpanPromise = (async () => {
               propertyPathsToResolve: new Set(['provider\0name', 'provider\0stage', 'useDotenv']),
               variableSourcesInConfig,
             };
+
             if (isInteractiveSetup) resolverConfiguration.fulfilledSources.add('opt');
             await resolveVariables(resolverConfiguration);
 
@@ -596,6 +597,7 @@ processSpanPromise = (async () => {
       configurationFilename,
       commands,
       options,
+      variablesMeta,
     });
 
     try {
@@ -642,6 +644,31 @@ processSpanPromise = (async () => {
         if (hasFinalCommandSchema) require('../lib/cli/ensure-supported-command')(configuration);
         if (isHelpRequest) return;
         if (!_.get(variablesMeta, 'size')) return;
+        if (!resolverConfiguration) {
+          // There were no variables in the initial configuration, yet it was extended by
+          // the plugins with ones.
+          // In this case we need to ensure `resolverConfiguration` which initially was not setup
+          resolverConfiguration = {
+            serviceDir,
+            configuration,
+            variablesMeta,
+            sources: {
+              env: require('../lib/configuration/variables/sources/env'),
+              file: require('../lib/configuration/variables/sources/file'),
+              opt: require('../lib/configuration/variables/sources/opt'),
+              self: require('../lib/configuration/variables/sources/self'),
+              strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
+              sls: require('../lib/configuration/variables/sources/instance-dependent/get-sls')(),
+            },
+            options: filterSupportedOptions(options, { commandSchema, providerName }),
+            fulfilledSources: new Set(['env', 'file', 'self', 'strToBool']),
+            propertyPathsToResolve:
+              commands[0] === 'plugin'
+                ? new Set(['plugins', 'provider\0name', 'provider\0stage', 'useDotenv'])
+                : null,
+            variableSourcesInConfig,
+          };
+        }
 
         if (commandSchema) {
           resolverConfiguration.options = filterSupportedOptions(options, {

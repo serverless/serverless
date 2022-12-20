@@ -50,7 +50,8 @@
       "CLI Output": "guides/plugins/cli-output",
       "Custom Commands": "guides/plugins/custom-commands",
       "Custom Variables": "guides/plugins/custom-variables",
-      "Extending the Configuration": "guides/plugins/custom-configuration"
+      "Extending the Configuration schema": "guides/plugins/custom-configuration",
+      "Extending and overriding configuration": "guides/plugins/extending-configuration"
     }
   },
   "Examples and Tutorials": "examples-and-tutorials",
