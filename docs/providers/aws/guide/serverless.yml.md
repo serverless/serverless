@@ -128,6 +128,10 @@ provider:
   # Duration for CloudWatch log retention (default: forever)
   # Valid values: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-loggroup.html
   logRetentionInDays: 14
+  # Policy defining how to monitor and mask sensitive data in CloudWatch logs
+  # Policy format: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data-start.html
+  logDataProtectionPolicy:
+    Name: data-protection-policy
   # KMS key ARN to use for encryption for all functions
   kmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
   # Version of hashing algorithm used by Serverless Framework for function packaging

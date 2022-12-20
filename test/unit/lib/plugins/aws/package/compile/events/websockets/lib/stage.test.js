@@ -247,7 +247,13 @@ describe('lib/plugins/aws/package/compile/events/websockets/lib/stage.test.js', 
 
   describe('logs with full custom options', () => {
     let resource;
+    let logGroupResource;
     const customLogFormat = ['$context.identity.sourceIp', '$context.requestId'].join(' ');
+    const logDataProtectionPolicy = {
+      Name: 'data-protection-policy',
+      Version: '2021-06-01',
+      Statement: [],
+    };
 
     before(async () => {
       const { cfTemplate, awsNaming } = await runServerless({
@@ -263,12 +269,14 @@ describe('lib/plugins/aws/package/compile/events/websockets/lib/stage.test.js', 
                 format: customLogFormat,
               },
             },
+            logDataProtectionPolicy,
           },
         },
         command: 'package',
       });
       const stageLogicalId = awsNaming.getWebsocketsStageLogicalId();
       resource = cfTemplate.Resources[stageLogicalId];
+      logGroupResource = cfTemplate.Resources[awsNaming.getWebsocketsLogGroupLogicalId()];
     });
 
     it('should set accessLogging off', async () => {
@@ -281,6 +289,12 @@ describe('lib/plugins/aws/package/compile/events/websockets/lib/stage.test.js', 
 
     it('should set fullExecutionData true', async () => {
       expect(resource.Properties.DefaultRouteSettings.DataTraceEnabled).to.equal(true);
+    });
+
+    it('should set DataProtectionPolicy', () => {
+      expect(logGroupResource.Properties.DataProtectionPolicy).to.deep.equal(
+        logDataProtectionPolicy
+      );
     });
   });
 });
