@@ -12,9 +12,11 @@ describe('test/unit/lib/configuration/variables/sources/env.test.js', () => {
   let variablesMeta;
   before(async () => {
     process.env.ENV_SOURCE_TEST = 'foobar';
+    process.env.ENV_SOURCE_TEST_EMPTY = '';
     configuration = {
       env: '${env:ENV_SOURCE_TEST}',
       envMissing: "${env:ENV_SOURCE_TEST_MISSING, 'fallback'}",
+      envEmpty: '${env:ENV_SOURCE_TEST_EMPTY}',
       noAddress: '${env:}',
       nonStringAddress: '${env:${self:someObject}}',
       someObject: {},
@@ -33,6 +35,9 @@ describe('test/unit/lib/configuration/variables/sources/env.test.js', () => {
   it('should resolve environment variable', () => expect(configuration.env).to.equal('foobar'));
   it('should resolve null on missing environment variable', () =>
     expect(configuration.envMissing).to.equal('fallback'));
+
+  it('should resolve environment variable that is empty', () =>
+    expect(configuration.envEmpty).to.equal(''));
 
   it('should report with an error missing address argument', () =>
     expect(variablesMeta.get('noAddress').error.code).to.equal('VARIABLE_RESOLUTION_ERROR'));
