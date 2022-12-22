@@ -46,6 +46,10 @@ describe('test/unit/lib/plugins/aws/package/lib/stripNullPropsFromTemplateResour
                 Runtime: 'nodejs12.x',
               },
             },
+            anotherLambdaFunction: {
+              Type: 'AWS::Lambda::Function',
+              Properties: null,
+            },
           },
         },
       },
@@ -65,5 +69,9 @@ describe('test/unit/lib/plugins/aws/package/lib/stripNullPropsFromTemplateResour
 
   it('Should not affect resources without null props', async () => {
     expect(Object.keys(finalTemplate.Resources.anotherBucket.Properties).length).to.equal(1);
+  });
+
+  it('Should not remove null properties when Properties is null', async () => {
+    expect(finalTemplate.Resources.anotherLambdaFunction.Properties).to.be.null;
   });
 });
