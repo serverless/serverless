@@ -40,6 +40,4 @@ if (!/^v\d+\.\d+\.\d+$/.test(versionTag)) {
   return;
 }
 
-const chinaUploadDeferred = require('./china')(versionTag, { isLegacyVersion: argv.legacy });
-// Ensure eventual error in Tencent upload does not break regular standalone upload
-require('./world')(versionTag, { isLegacyVersion: argv.legacy }).then(() => chinaUploadDeferred);
+require('./world')(versionTag, { isLegacyVersion: argv.legacy });
