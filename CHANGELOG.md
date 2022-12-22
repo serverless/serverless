@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.26.0](https://github.com/serverless/serverless/compare/v3.25.1...v3.26.0) (2022-12-22)
+
+### Features
+
+- **Plugins:** Support variables in configuration extensions ([#11558](https://github.com/serverless/serverless/issues/11558)) ([968ddd5](https://github.com/serverless/serverless/commit/968ddd5994750a6d1677f195f7a86a823c558d16)) ([Marco Kleinlein](https://github.com/mklenbw))
+- **AWS Lambda:** `functions[].snapStart` support ([#11576](https://github.com/serverless/serverless/issues/11576)) ([adf11b7](https://github.com/serverless/serverless/commit/adf11b75e51aefe468005d9daa656377f02ae5ac)) ([Baerten Dennis](https://github.com/debae))
+- `provider.logDataProtectionPolicy` and `functions[].logDataProtectionPolicy` ([#11599](https://github.com/serverless/serverless/issues/11599)) ([2a5e11a](https://github.com/serverless/serverless/commit/2a5e11a9977708504e95e011f1cf401a43b94237)) ([timo92](https://github.com/timo92))
+- Support `.cjs` and `.mjs` configuration extensions ([#11586](https://github.com/serverless/serverless/issues/11586)) ([9d57933](https://github.com/serverless/serverless/commit/9d579336fadea1080f86f85e3fc304a102ab07f6)) ([Florian Proksch](https://github.com/RianFuro))
+
+### Bug Fixes
+
+- **Variables:** Support empty string environment variables ([#11629](https://github.com/serverless/serverless/issues/11629)) ([022db9c](https://github.com/serverless/serverless/commit/022db9c8a309fcd7cd58bf7d6fc066acd411a679)) ([Jason Rowsell](https://github.com/jasonrowsell))
+- **AWS Local Invoke:** Revert breaking jackson-databind upgrade ([#11589](https://github.com/serverless/serverless/issues/11589)) ([f00eb82](https://github.com/serverless/serverless/commit/f00eb824c201a09206337a34aab700500314fe50)) ([Geoff Denning](https://github.com/gdenning))
+
+### Maintenance Improvements
+
+- Isolate `import` invocations ([#11587](https://github.com/serverless/serverless/issues/11587)) ([fe62096](https://github.com/serverless/serverless/commit/fe620965838b2fce2a0aa3f9c8aaaf47e4faf755)) ([Mariusz Nowak](https://github.com/medikoo))
+- Remove no longer applicable setting ([#11608](https://github.com/serverless/serverless/issues/11608)) ([dd5b8f6](https://github.com/serverless/serverless/commit/dd5b8f61de487d67f0cc15036be754816f7fa234)) ([Mariusz Nowak](https://github.com/medikoo))
+- Support relative paths in `import-esm` util ([#11593](https://github.com/serverless/serverless/issues/11593)) ([fcf17a6](https://github.com/serverless/serverless/commit/fcf17a608d3a24d18cac4705d412366e27a1f2d1)) ([Mariusz Nowak](https://github.com/medikoo))
+- Improve module name ([#11587](https://github.com/serverless/serverless/issues/11587)) ([ac1e0db](https://github.com/serverless/serverless/commit/ac1e0dbfa1f507e1bcdc30163e238bd412274a5d)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [3.25.1](https://github.com/serverless/serverless/compare/v3.25.0...v3.25.1) (2022-11-28)
 
 ### Maintenance Improvements
