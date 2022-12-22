@@ -7,10 +7,6 @@ provider:
   name: aws
   runtime: nodejs12.x
   logRetentionInDays: 14
-  logDataProtectionPolicy:
-    Name: data-protection-policy
-    Version: 2021-06-01
-    Statement: []
 
 functions:
   foo:
