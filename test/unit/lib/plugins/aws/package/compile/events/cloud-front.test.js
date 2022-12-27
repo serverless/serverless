@@ -1775,6 +1775,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
         },
       },
     };
+    const responseHeadersPolicyId = '5cc3b908-e619-4b99-88e5-2cf7f45965bd';
 
     const getAssociatedCacheBehavior = (pathPattern) =>
       cfResources.CloudFrontDistribution.Properties.DistributionConfig.CacheBehaviors.find(
@@ -1869,6 +1870,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
                     pathPattern: 'managedPolicySetViaBehavior',
                     behavior: {
                       CachePolicyId: cachePolicyId,
+                      ResponseHeadersPolicyId: responseHeadersPolicyId,
                     },
                   },
                 },
@@ -2054,6 +2056,12 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
       expect(getAssociatedCacheBehavior('managedPolicySetViaBehavior').CachePolicyId).to.eq(
         cachePolicyId
       );
+    });
+
+    it('Should attach a response headers policy to a cloudfront behavior when specified by id via `behavior.ResponseHeadersPolicyId` in lambda config', () => {
+      expect(
+        getAssociatedCacheBehavior('managedPolicySetViaBehavior').ResponseHeadersPolicyId
+      ).to.eq(responseHeadersPolicyId);
     });
 
     it('Should attach a cache policy specified via `cachePolicy.id` to a cloudfront behavior when specified via both of `cachePolicy.id` and `behavior.CachePolicyId` in lambda config', () => {
