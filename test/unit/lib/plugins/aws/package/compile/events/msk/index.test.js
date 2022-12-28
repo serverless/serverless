@@ -129,18 +129,20 @@ describe('AwsCompileMSKEvents', () => {
         AmazonManagedKafkaEventSourceConfig: {
           ConsumerGroupId: consumerGroupId,
         },
-        Filters: [
-          {
-            Pattern: JSON.stringify({
-              value: { a: [1, 2] },
-            }),
-          },
-          {
-            Pattern: JSON.stringify({
-              value: [3],
-            }),
-          },
-        ],
+        FilterCriteria: {
+          Filters: [
+            {
+              Pattern: JSON.stringify({
+                value: { a: [1, 2] },
+              }),
+            },
+            {
+              Pattern: JSON.stringify({
+                value: [3],
+              }),
+            },
+          ],
+        },
       });
     });
   });
