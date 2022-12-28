@@ -979,6 +979,10 @@ functions:
           saslScram512: arn:aws:secretsmanager:region:XXXXXX:secret:AmazonMSK_xxxxxx
           # Optional, specifies the consumer group ID to be used when consuming from Kafka. If not provided, a random UUID will be generated
           consumerGroupId: MyConsumerGroupId
+          # Optional, specifies event pattern content filtering
+          filterPatterns:
+            - value:
+                a: [1, 2]
 ```
 
 ### ActiveMQ
