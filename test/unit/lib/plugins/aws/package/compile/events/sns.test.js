@@ -4,6 +4,7 @@ const expect = require('chai').expect;
 const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
 const AwsCompileSNSEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/sns');
 const Serverless = require('../../../../../../../../lib/serverless');
+const runServerless = require('../../../../../../../utils/run-serverless');
 
 describe('AwsCompileSNSEvents', () => {
   let serverless;
@@ -192,7 +193,7 @@ describe('AwsCompileSNSEvents', () => {
         Object.keys(
           awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
         )
-      ).to.have.length(2);
+      ).to.have.length(3);
       expect(
         awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
           .SNSTopicTopic1.Type
@@ -201,6 +202,10 @@ describe('AwsCompileSNSEvents', () => {
         awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
           .FirstLambdaPermissionTopic1SNS.Type
       ).to.equal('AWS::Lambda::Permission');
+      expect(
+        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+          .FirstSnsSubscriptionTopic1.Type
+      ).to.equal('AWS::SNS::Subscription');
     });
 
     it('should throw an error when the event an object and the displayName is not given', () => {
@@ -684,7 +689,7 @@ describe('AwsCompileSNSEvents', () => {
       ).to.equal('AWS::SQS::QueuePolicy');
     });
 
-    it('should link topic to corresponding dlq when redrivePolicy is defined with resource ref', () => {
+    it('should link topic to corresponding dlq when redrivePolicy is defined with resource import', () => {
       awsCompileSNSEvents.serverless.service.functions = {
         first: {
           events: [
@@ -726,6 +731,99 @@ describe('AwsCompileSNSEvents', () => {
         awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
           .Topic1ToFirstDLQPolicy.Type
       ).to.equal('AWS::SQS::QueuePolicy');
+    });
+  });
+});
+
+describe('#compileSNSEvents() #2', () => {
+  describe('given a function configured with provisionedConcurrency', () => {
+    let naming;
+    let snsSubscriptionResource;
+
+    const exampleTopicName = 'exampleTopicName';
+
+    before(async () => {
+      const { awsNaming, cfTemplate } = await runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            basic: {
+              provisionedConcurrency: 1,
+              events: [
+                {
+                  sns: {
+                    arn: 'arn:aws:sns:region:account:ExampleTopicArn',
+                    topicName: exampleTopicName,
+                  },
+                },
+              ],
+            },
+          },
+        },
+        command: 'package',
+      });
+
+      naming = awsNaming;
+      const snsSubscriptionLogicalId = awsNaming.getLambdaSnsSubscriptionLogicalId(
+        'basic',
+        exampleTopicName
+      );
+      snsSubscriptionResource = cfTemplate.Resources[snsSubscriptionLogicalId];
+    });
+
+    it('should reference the provisioned alias', () => {
+      expect(JSON.stringify(snsSubscriptionResource.Properties.Endpoint['Fn::Join'])).to.include(
+        'provisioned'
+      );
+    });
+
+    it('should depend on the provisioned alias', () => {
+      const aliasLogicalId = naming.getLambdaProvisionedConcurrencyAliasLogicalId('basic');
+      expect(snsSubscriptionResource.DependsOn).to.include(aliasLogicalId);
+    });
+  });
+
+  describe('given a custom IAM role is defined', () => {
+    let snsSubscriptionResource;
+
+    const exampleTopicName = 'exampleTopicName';
+
+    before(async () => {
+      const { awsNaming, cfTemplate } = await runServerless({
+        fixture: 'function',
+        configExt: {
+          provider: {
+            iam: {
+              role: {
+                'Fn::Sub': 'arn:aws:iam::${AWS::AccountId}:role/iam-role-name',
+              },
+            },
+          },
+          functions: {
+            basic: {
+              events: [
+                {
+                  sns: {
+                    arn: 'arn:aws:sns:region:account:ExampleTopicArn',
+                    topicName: exampleTopicName,
+                  },
+                },
+              ],
+            },
+          },
+        },
+        command: 'package',
+      });
+
+      const snsSubscriptionLogicalId = awsNaming.getLambdaSnsSubscriptionLogicalId(
+        'basic',
+        exampleTopicName
+      );
+      snsSubscriptionResource = cfTemplate.Resources[snsSubscriptionLogicalId];
+    });
+
+    it('should not depend on the default IAM role', async () => {
+      expect(snsSubscriptionResource.DependsOn).to.deep.equal([]);
     });
   });
 });
