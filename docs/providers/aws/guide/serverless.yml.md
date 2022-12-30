@@ -899,6 +899,7 @@ functions:
             pet:
               - dog
               - cat
+          filterPolicyScope: MessageAttributes
           redrivePolicy:
             # (1) ARN
             deadLetterTargetArn: arn:aws:sqs:us-east-1:11111111111:myDLQ
