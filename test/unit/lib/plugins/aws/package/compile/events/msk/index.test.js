@@ -23,6 +23,7 @@ describe('AwsCompileMSKEvents', () => {
       URI: saslScram512,
     },
   ];
+  const filterPatterns = [{ value: { a: [1, 2] } }, { value: [3] }];
 
   describe('when there are msk events defined', () => {
     let minimalEventSourceMappingResource;
@@ -57,6 +58,7 @@ describe('AwsCompileMSKEvents', () => {
                     startingPosition,
                     saslScram512,
                     consumerGroupId,
+                    filterPatterns,
                   },
                 },
               ],
@@ -126,6 +128,20 @@ describe('AwsCompileMSKEvents', () => {
         },
         AmazonManagedKafkaEventSourceConfig: {
           ConsumerGroupId: consumerGroupId,
+        },
+        FilterCriteria: {
+          Filters: [
+            {
+              Pattern: JSON.stringify({
+                value: { a: [1, 2] },
+              }),
+            },
+            {
+              Pattern: JSON.stringify({
+                value: [3],
+              }),
+            },
+          ],
         },
       });
     });
