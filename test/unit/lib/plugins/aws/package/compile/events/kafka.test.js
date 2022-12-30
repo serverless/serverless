@@ -20,6 +20,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
   const startingPosition = 'LATEST';
   const batchSize = 5000;
   const maximumBatchingWindow = 20;
+  const filterPatterns = [{ eventName: 'INSERT' }];
 
   describe('when there are kafka events defined', () => {
     let minimalEventSourceMappingResource;
@@ -54,6 +55,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
                     maximumBatchingWindow,
                     enabled,
                     startingPosition,
+                    filterPatterns,
                   },
                 },
               ],
@@ -124,6 +126,15 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
         Topics: [topic],
         FunctionName: {
           'Fn::GetAtt': [naming.getLambdaLogicalId('other'), 'Arn'],
+        },
+        FilterCriteria: {
+          Filters: [
+            {
+              Pattern: JSON.stringify({
+                eventName: 'INSERT',
+              }),
+            },
+          ],
         },
       });
     });
@@ -617,6 +628,48 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
       const eventSourceMappingResource =
         cfTemplate.Resources[awsNaming.getKafkaEventLogicalId('basic', 'TestingTopic')];
       expect(eventSourceMappingResource.DependsOn).to.deep.equal([]);
+    });
+
+    it('should correctly compile EventSourceMapping resource properties for filterPatterns', async () => {
+      const { awsNaming, cfTemplate } = await runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            basic: {
+              role: { 'Fn::ImportValue': 'MyImportedRole' },
+              events: [
+                {
+                  kafka: {
+                    topic,
+                    bootstrapServers: ['abc.xyz:9092'],
+                    accessConfigurations: { saslScram256Auth: saslScram256AuthArn },
+                    filterPatterns: [{ value: { a: [1, 2] } }, { value: [3] }],
+                  },
+                },
+              ],
+            },
+          },
+        },
+        command: 'package',
+      });
+
+      const eventSourceMappingResource =
+        cfTemplate.Resources[awsNaming.getKafkaEventLogicalId('basic', 'TestingTopic')];
+
+      expect(eventSourceMappingResource.Properties.FilterCriteria).to.deep.equal({
+        Filters: [
+          {
+            Pattern: JSON.stringify({
+              value: { a: [1, 2] },
+            }),
+          },
+          {
+            Pattern: JSON.stringify({
+              value: [3],
+            }),
+          },
+        ],
+      });
     });
   });
 
