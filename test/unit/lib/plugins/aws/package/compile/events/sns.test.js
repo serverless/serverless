@@ -50,6 +50,7 @@ describe('AwsCompileSNSEvents', () => {
                 filterPolicy: {
                   pet: ['dog', 'cat'],
                 },
+                filterPolicyScope: 'MessageBody',
               },
             },
             {
@@ -85,6 +86,10 @@ describe('AwsCompileSNSEvents', () => {
         awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
           .FirstSnsSubscriptionTopic1.Properties.FilterPolicy
       ).to.eql({ pet: ['dog', 'cat'] });
+      expect(
+        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+          .FirstSnsSubscriptionTopic1.Properties.FilterPolicyScope
+      ).to.eql('MessageBody');
     });
 
     it('should allow SNS topic without displayName', () => {
