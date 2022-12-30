@@ -147,6 +147,29 @@ functions:
               - cat
 ```
 
+## Setting a filter policy scope
+
+This event definition specifies the scope for a filter policy by setting it to one of the following values:
+
+- `MessageAttributes`: The filter policy will be applied to the message attributes. This is the default if no scope is defined for an existing filter policy.
+- `MessageBody`: The filter policy will be applied to the message body.
+
+Note: If no filter policy scope is defined for an existing filter policy, the scope defaults to MessageAttributes. For more information, see [SNS Message Filtering](https://docs.aws.amazon.com/sns/latest/dg/sns-message-filtering.html).
+
+```yml
+functions:
+  pets:
+    handler: pets.handler
+    events:
+      - sns:
+          topicName: pets
+          filterPolicyScope: MessageBody
+          filterPolicy:
+            pet:
+              - dog
+              - cat
+```
+
 ## Setting a redrive policy
 
 This event definition creates an SNS topic that sends messages to a Dead Letter Queue (defined by its ARN) when the associated lambda is not available. In this example, messages that aren't delivered to the `dispatcher` Lambda (because the lambda service is down or irresponsive) will end in `myDLQ`.
