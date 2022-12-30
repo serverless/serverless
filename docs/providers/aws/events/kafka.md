@@ -144,6 +144,28 @@ functions:
           enabled: false
 ```
 
+## Setting filter patterns
+
+This configuration allows to filter events before they are passed to a Lambda function for processing. By default, it accepts up to 5 filter criteria, but this can be increased to a maximum of 10 with a quota extension. If an event matches at least one of the specified filter patterns, the Lambda function will process it. For more information, see the [AWS Event Filtering](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventfiltering.html).
+
+The following example demonstrates using this property to only process records that are published in the Kafka cluster where field `eventName` is equal to `INSERT`.
+
+```yml
+functions:
+  compute:
+    handler: handler.compute
+    events:
+      - kafka:
+          accessConfigurations:
+            saslScram512Auth: arn:aws:secretsmanager:us-east-1:01234567890:secret:MyBrokerSecretName
+          topic: MySelfManagedKafkaTopic
+          bootstrapServers:
+            - abc3.xyz.com:9092
+            - abc2.xyz.com:9092
+          filterPatterns:
+            - eventName: INSERT
+```
+
 ## IAM Permissions
 
 The Serverless Framework will automatically configure the most minimal set of IAM permissions for you. However you can still add additional permissions if you need to. Read the official [AWS documentation](https://docs.aws.amazon.com/lambda/latest/dg/kafka-smaa.html) for more information about IAM Permissions for Kafka events.
