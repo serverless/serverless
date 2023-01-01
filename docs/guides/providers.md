@@ -61,7 +61,7 @@ To add a provider to an instance, navigate to the instance details page for that
 
 If you are deploying a traditional Serverless Framework app, an instance of the service is created for that stage and region. If you are using a Component-based service, then an instance is created for each stage of the service.
 
-Serverless Framework, on deployment, will use the provider associate with the Instance, Service, or Organization Default Provider, in priority order. In other words, the providers are inherited and can be overridden at each level.
+Serverless Framework, on deployment, will use the provider associated with the Instance, Service, or Organization Default Provider, in priority order. In other words, the providers are inherited and can be overridden at each level.
 
 The organization default provider enables you to deploy using that organization default provider without needing to set a provider at the service or instance level. Similarly, setting a provider at the service level enables you to create new instances and deploy right away without needing to set a provider on the instance.
 
@@ -83,7 +83,7 @@ Now if you deploy to a preview stage, like `feature-x` it will automatically use
 
 ## Using providers in serverless.yml
 
-To use providers with serverless.yml you do not need to do anything. Upon deployment the Serverless Framework will retrieve the necessary credentials from the provider associate with the instance or service, and it will use those credentials to deploy.
+To use providers with serverless.yml you do not need to do anything. Upon deployment the Serverless Framework will retrieve the necessary credentials from the provider associated with the instance or service, and it will use those credentials to deploy.
 
 If the providers are not found, then the Serverless Framework will look for credentials locally.
 
