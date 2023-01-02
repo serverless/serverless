@@ -7,6 +7,7 @@
 [![gitter](https://img.shields.io/gitter/room/serverless/serverless.svg)](https://gitter.im/serverless/serverless)
 [![Known Vulnerabilities](https://snyk.io/test/github/serverless/serverless/badge.svg)](https://snyk.io/test/github/serverless/serverless)
 [![license](https://img.shields.io/npm/l/serverless.svg)](https://www.npmjs.com/package/serverless)
+[![Unzip.dev](https://img.shields.io/badge/Featured%20on-Unzip.dev-fa2367)](https://unzip.dev/0x004-infrastructure-as-code/#tools-players-%F0%9F%9B%A0%EF%B8%8F)
 
 [Website](http://www.serverless.com) • [Docs](https://serverless.com/framework/docs/) • [Community Slack](https://serverless.com/slack) • [Forum](http://forum.serverless.com) • [Twitter](https://twitter.com/goserverless) • [Meetups](https://www.meetup.com/pro/serverless/) • [We're Hiring](https://serverless.com/company/jobs/) • [简体中文](./README_CN.md)
 
