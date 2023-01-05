@@ -1078,6 +1078,10 @@ functions:
           startingPosition: LATEST
           # (default: true)
           enabled: false
+          # Optional, specifies event pattern content filtering
+          filterPatterns:
+            - value:
+                a: [1, 2]
 ```
 
 ### Alexa

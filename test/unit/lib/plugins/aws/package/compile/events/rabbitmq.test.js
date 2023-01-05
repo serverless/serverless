@@ -15,6 +15,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
   const enabled = false;
   const batchSize = 5000;
   const maximumBatchingWindow = 20;
+  const filterPatterns = [{ value: { a: [1, 2] } }, { value: [3] }];
 
   describe('when there are rabbitmq events defined', () => {
     let minimalEventSourceMappingResource;
@@ -49,6 +50,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
                     batchSize,
                     maximumBatchingWindow,
                     enabled,
+                    filterPatterns,
                   },
                 },
               ],
@@ -121,6 +123,20 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
         Queues: [queue],
         FunctionName: {
           'Fn::GetAtt': [naming.getLambdaLogicalId('other'), 'Arn'],
+        },
+        FilterCriteria: {
+          Filters: [
+            {
+              Pattern: JSON.stringify({
+                value: { a: [1, 2] },
+              }),
+            },
+            {
+              Pattern: JSON.stringify({
+                value: [3],
+              }),
+            },
+          ],
         },
       });
     });
