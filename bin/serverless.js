@@ -81,12 +81,17 @@ require('../lib/cli/triage')().then((cliName) => {
       });
       return;
     case 'serverless-tencent':
-      require('../lib/cli/run-serverless-tencent')().catch((error) => {
-        // Expose eventual resolution error as regular crash, and not unhandled rejection
-        process.nextTick(() => {
-          throw error;
-        });
-      });
+      {
+        const chalk = require('chalk');
+        process.stdout.write(
+          `${[
+            'Serverless Framework CLI no longer supports Serverless Tencent CLI',
+            '',
+            'To run Serverless Framework without issues in China region, ' +
+              `ensure: ${chalk.bold('SLS_GEO_LOCATION=no-cn')} environment variable`,
+          ].join('\n')}\n`
+        );
+      }
       return;
     case '@serverless/components':
       {
