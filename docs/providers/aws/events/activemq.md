@@ -72,6 +72,28 @@ functions:
           basicAuthArn: arn:aws:secretsmanager:us-east-1:01234567890:secret:MySecret
 ```
 
+## Setting filter patterns
+
+This configuration allows customers to filter event before lambda invocation. It accepts up to 5 filter criterion by default and up to 10 with quota extension. If one event matches at least 1 pattern, lambda will process it.
+
+For more details and examples of filter patterns, please see the [AWS event filtering documentation](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventfiltering.html)
+
+Note: Serverless only sets this property if you explicitly add it to the `activemqmsk` configuration (see an example below). The following example will only process records that are published in to Amazon MQ for Apache ActiveMQ where field `a` is equal to 1 or 2.
+
+```yml
+functions:
+  compute:
+    handler: handler.compute
+    events:
+      - activemq:
+          arn: arn:aws:mq:us-east-1:0000:broker:ExampleMQBroker:b-xxx-xxx
+          queue: queue-name
+          basicAuthArn: arn:aws:secretsmanager:us-east-1:01234567890:secret:MySecret
+          filterPatterns:
+            - value:
+                a: [1]
+```
+
 ## IAM Permissions
 
 The Serverless Framework will automatically configure the most minimal set of IAM permissions for you. However you can still add additional permissions if you need to. Read the official [AWS documentation](https://docs.aws.amazon.com/lambda/latest/dg/with-mq.html#events-mq-permissions) for more information about IAM Permissions for Amazon MQ events.
