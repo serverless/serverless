@@ -126,14 +126,15 @@ Note: Serverless only sets this property if you explicitly add it to the `msk` c
 
 ```yml
 functions:
-  handleInsertedDynamoDBItem:
-    handler: handler.preprocess
+  compute:
+    handler: handler.compute
     events:
-      - stream:
-          arn: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+      - msk:
+          arn: arn:aws:kafka:region:XXXXXX:cluster/MyCluster/xxxx-xxxxx-xxxx
+          topic: mytopic
           filterPatterns:
             - value:
-                a: [1, 2]
+                a: [1]
 ```
 
 ## IAM Permissions
