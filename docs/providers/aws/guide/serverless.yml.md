@@ -1043,6 +1043,9 @@ functions:
           enabled: false
           # Optional, specifies the consumer group ID to be used when consuming from Kafka. If not provided, a random UUID will be generated
           consumerGroupId: MyConsumerGroupId
+          # Optional, specifies event pattern content filtering
+          filterPatterns:
+            - eventName: INSERT
 ```
 
 ### RabbitMQ
