@@ -1,77 +1,67 @@
 #!/usr/bin/env node
 
-// WARNING: Do not use syntax not supported by old Node.js versions (v4 lowest)
-// It's to ensure that users running those versions, see properly the error message
-// (as constructed below) instead of the syntax error
-
 'use strict';
 
-// `EvalError` is used to not pollute global namespace but still have the value accessible globally
-// Can already be set, if we're in context of local fallback
-const isMainModule = !EvalError.$serverlessCommandStartTime;
+const path = require('path');
+const { version: serverlessVersion } = require('../package.json');
+const { stderr, stdout } = process;
+const { level: colorSupportLevel } = require('supports-color').stdout;
+const chalk = require('chalk');
+
+const { $serverlessCommandStartTime } = EvalError;
+const isMainModule = !$serverlessCommandStartTime;
 if (isMainModule) EvalError.$serverlessCommandStartTime = process.hrtime();
 
-const nodeVersionMajor = Number(process.version.split('.')[0].slice(1));
-const nodeVersionMinor = Number(process.version.split('.')[1]);
-const minimumSupportedVersionMajor = 12;
-const minimumSupportedVersionMinor = 13;
+const [ major, minor ] = process.version.slice(1).split('.').map(Number);
+const minimumSupportedMajor = 12;
+const minimumSupportedMinor = 13;
 
-if (
-  nodeVersionMajor < minimumSupportedVersionMajor ||
-  (nodeVersionMajor === minimumSupportedVersionMajor &&
-    nodeVersionMinor < minimumSupportedVersionMinor)
-) {
-  const serverlessVersion = Number(require('../package.json').version.split('.')[0]);
-  process.stderr.write(
-    `\x1b[91mError: Serverless Framework v${serverlessVersion} does not support ` +
-      `Node.js ${process.version}. Please upgrade Node.js to the latest ` +
-      `LTS version (v${minimumSupportedVersionMajor}.${minimumSupportedVersionMinor}.0 is a minimum supported version)\x1b[39m\n`
-  );
-  process.exit(1);
+if (major < minimumSupportedMajor || (major === minimumSupportedMajor && minor < minimumSupportedMinor)) {
+    stderr.write(
+        `\x1b[91mError: Serverless Framework v${serverlessVersion} does not support ` +
+        `Node.js ${process.version}. Please upgrade Node.js to the latest ` +
+        `LTS version (v${minimumSupportedMajor}.${minimumSupportedMinor}.0 is a minimum supported version)\x1b[39m\n`
+    );
+    process.exit(1);
 }
 
 if (isMainModule) {
-  if (require('../lib/utils/is-standalone-executable')) {
-    require('../lib/utils/standalone-patch');
-    if (process.argv[2] === 'binary-postinstall' && process.argv.length === 3) {
-      require('../scripts/postinstall');
-      return;
+    if (require('../lib/utils/is-standalone-executable')) {
+        require('../lib/utils/standalone-patch');
+        if (process.argv[2] === 'binary-postinstall' && process.argv.length === 3) {
+            require('../scripts/postinstall');
+            return;
+        }
     }
-  }
 
-  const path = require('path');
-  const localInstallationPath = require('../lib/cli/local-serverless-path');
-  if (localInstallationPath && localInstallationPath !== path.dirname(__dirname)) {
-    // Local fallback
-    const localServerlessBinPath = (() => {
-      try {
-        return require.resolve(path.resolve(localInstallationPath, 'bin/serverless'));
-      } catch (ignore) {
-        // Unrecognized "serverless" installation, continue with this one
-        return null;
-      }
-    })();
+    const localInstallationPath = require('../lib/cli/local-serverless-path');
+    if (localInstallationPath && localInstallationPath !== path.dirname(__dirname)) {
+        const localServerlessBinPath = (() => {
+            try {
+                return require.resolve(path.resolve(localInstallationPath, 'bin/serverless'));
+            } catch (ignore) {
+                return null;
+            }
+        })();
 
-    if (localServerlessBinPath) {
-      EvalError.$serverlessInitInstallationVersion = require('../package').version;
-      const colorSupportLevel = require('supports-color').stdout.level;
-      let message = 'Running "serverless" from node_modules\n';
-      if (colorSupportLevel) {
-        message =
-          colorSupportLevel > 2 ? `\x1b[38;5;145m${message}\x1b[39m` : `\x1b[90m${message}\x1b[39m`;
-      }
-      process.stderr.write(message);
-      require(localServerlessBinPath);
-      return;
+        if (localServerlessBinPath) {
+            EvalError.$serverlessInitInstallationVersion = require('../package').version;
+            let message = 'Running "serverless" from node_modules\n';
+            if (colorSupportLevel) {
+                message = colorSupportLevel > 2 ? `\x1b[38;5;145m${message}\x1b[39m` : `\x1b[90m${message}\x1b[39m`;
+            }
+            stderr.write(message);
+            require(localServerlessBinPath);
+            return;
+        }
     }
-  }
 }
 
 require('../lib/cli/triage')().then((cliName) => {
   switch (cliName) {
     case 'serverless':
       require('../scripts/serverless');
-      return;
+      break;
     case '@serverless/compose':
       require('../lib/cli/run-compose')().catch((error) => {
         // Expose eventual resolution error as regular crash, and not unhandled rejection
@@ -79,10 +69,9 @@ require('../lib/cli/triage')().then((cliName) => {
           throw error;
         });
       });
-      return;
+      break;
     case 'serverless-tencent':
       {
-        const chalk = require('chalk');
         process.stdout.write(
           `${[
             'Serverless Framework CLI no longer supports Serverless Tencent CLI',
@@ -91,41 +80,68 @@ require('../lib/cli/triage')().then((cliName) => {
               `ensure: ${chalk.bold('SLS_GEO_LOCATION=no-cn')} environment variable`,
           ].join('\n')}\n`
         );
+        process.exit(1);
       }
-      return;
-    case '@serverless/components':
-      {
-        const chalk = require('chalk');
-        process.stdout.write(
-          `${[
-            'Serverless Components CLI is no longer bundled with Serverless Framework CLI',
-            '',
-            "To run it, ensure it's installed:",
-            chalk.bold('npm install -g @serverless/components'),
-            '',
-            'Then run:',
-            chalk.bold('components <command> <options>'),
-          ].join('\n')}\n`
-        );
-      }
-      return;
-    case '@serverless/cli':
-      {
-        const chalk = require('chalk');
-        process.stdout.write(
-          `${[
-            'Serverless Components CLI v1 is no longer bundled with Serverless Framework CLI',
-            '',
-            "To run it, ensure it's installed:",
-            chalk.bold('npm install -g @serverless/cli'),
-            '',
-            'Then run:',
-            chalk.bold('components-v1 <command> <options>'),
-          ].join('\n')}\n`
-        );
-      }
-      return;
+      break;
     default:
-      throw new Error(`Unrecognized CLI name "${cliName}"`);
+      break;
   }
 });
+
+ const input = process.argv.slice(2);
+  let command = input[0];
+
+  // handle custom commands
+  if (command === 'my-custom-command') {
+    // do something
+    return;
+  }
+
+  // handle invalid commands
+  if (!['serverless', '@serverless/compose'].includes(command)) {
+    stderr.write(`Error: Invalid command "${command}". Please use a valid command.\n`);
+    process.exit(1);
+  }
+  // additional code here
+  const input = process.argv.slice(2);
+  let command = input[0];
+  let options;
+  let flags;
+
+  try {
+    // use a library to parse input
+    const { options: parsedOptions, flags: parsedFlags } = require('minimist')(input);
+    options = parsedOptions;
+    flags = parsedFlags;
+  } catch (err) {
+    stderr.write(`Error: Failed to parse input options and flags: ${err.message}\n`);
+    process.exit(1);
+  }
+
+  // handle custom commands
+  if (command === 'my-custom-command') {
+    if (flags.debug) {
+      // do something with debug flag
+    } else {
+      // do something without debug flag
+    }
+    return;
+  }
+
+  // handle invalid commands
+  if (!['serverless', '@serverless/compose'].includes(command)) {
+    stderr.write(`Error: Invalid command "${command}". Please use a valid command.\n`);
+    process.exit(1);
+  }
+
+  // handle flags and options
+  if (command === 'serverless') {
+    if (flags.verbose) {
+      // enable verbose logging
+    }
+    // do something with options
+  }
+
+
+
+
