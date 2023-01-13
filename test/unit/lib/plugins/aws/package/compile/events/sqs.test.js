@@ -218,6 +218,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
                     batchSize: 10,
                     maximumBatchingWindow: 100,
                     filterPatterns: [{ a: [1, 2] }, { b: [3, 4] }],
+                    maximumConcurrency: 250,
                   },
                 },
               ],
@@ -260,6 +261,12 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
             Pattern: JSON.stringify({ b: [3, 4] }),
           },
         ],
+      });
+    });
+
+    it('should have correct maximum concurrency', () => {
+      expect(eventSourceMappingResource.Properties.ScalingConfig).to.deep.equal({
+        MaximumConcurrency: 250,
       });
     });
   });
