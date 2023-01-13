@@ -80,6 +80,7 @@ describe('AwsCompileCloudFrontEvents', () => {
   });
 
   describe('#validate()', () => {
+    // @follow-up
     it('should throw if memorySize is greater than 128 for viewer-request or viewer-response functions', () => {
       awsCompileCloudFrontEvents.serverless.service.functions = {
         first: {
@@ -1573,16 +1574,55 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
   });
 
   describe('Validation', () => {
-    it.skip('TODO: should throw if function `memorySize` is greater than 128 for `functions[].events.cloudfront.evenType: "viewer-request"`', async () => {
+    it('should throw if function `memorySize` is greater than 128 for `functions[].events.cloudfront.evenType: "viewer-request"`', async () => {
+      // TODO: remove comment after draft pr
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L131-L167
-
-      return expect(
-        runServerless({ fixture: 'function', command: 'package' })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+      expect(
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              basic: {
+                memorySize: 129,
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'UNEXPECTED_VIEWER_REQUEST_MEMORY_GREATER_THAN_128MB');
       // Ensure ServerlessError is thrown and that it has some meaningful code
       // Then test like here:
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/httpApi/index.test.js#L455-L458
+      expect(
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              basic: {
+                memorySize: 129,
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-response',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'UNEXPECTED_VIEWER_RESPONSE_MEMORY_GREATER_THAN_128MB');
     });
 
     it.skip('TODO: should throw if function `timeout` is greater than 5 for for `functions[].events.cloudfront.evenType: "viewer-request"', async () => {
