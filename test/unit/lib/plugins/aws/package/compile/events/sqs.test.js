@@ -7,10 +7,17 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
   describe('regular configuration', () => {
     let directArnEventSourceMappingResource;
     let basicEventSourceMappingResource;
+    let allParamsEventSourceMappingResource;
     let arnCfGetAttEventSourceMappingResource;
     let arnCfImportEventSourceMappingResource;
     let arnCfJoinEventSourceMappingResource;
     let iamRoleLambdaExecution;
+    const arn = 'arn:aws:sqs:region:account:some-queue-name';
+    const batchSize = 10;
+    const maximumBatchingWindow = 100;
+    const functionResponseType = 'ReportBatchItemFailures';
+    const filterPatterns = [{ a: [1, 2] }, { b: [3, 4] }];
+    const maximumConcurrency = 10;
 
     before(async () => {
       const { awsNaming, cfTemplate } = await runServerless({
@@ -21,10 +28,21 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
               events: [
                 {
                   sqs: {
-                    arn: 'arn:aws:sqs:region:account:some-queue-name',
-                    batchSize: 10,
-                    maximumBatchingWindow: 100,
-                    functionResponseType: 'ReportBatchItemFailures',
+                    arn,
+                  },
+                },
+              ],
+            },
+            other: {
+              events: [
+                {
+                  sqs: {
+                    arn,
+                    batchSize,
+                    maximumBatchingWindow,
+                    functionResponseType,
+                    filterPatterns,
+                    scalingConfig: { maximumConcurrency },
                   },
                 },
               ],
@@ -77,6 +95,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
       const basicFunctionLogicalId = awsNaming.getQueueLogicalId('basic', 'some-queue-name');
       basicEventSourceMappingResource = cfTemplate.Resources[basicFunctionLogicalId];
 
+      const allParamsFunctionLogicalId = awsNaming.getQueueLogicalId('other', 'some-queue-name');
+      allParamsEventSourceMappingResource = cfTemplate.Resources[allParamsFunctionLogicalId];
+
       const arnCfGetAttLogicalId = awsNaming.getQueueLogicalId('arnCfGetAtt', 'SomeQueue');
       arnCfGetAttEventSourceMappingResource = cfTemplate.Resources[arnCfGetAttLogicalId];
 
@@ -95,7 +116,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
     });
 
     it('should support `arn` (string)', () => {
-      const basicSqsArn = 'arn:aws:sqs:region:account:some-queue-name';
+      const basicSqsArn = arn;
       expect(basicEventSourceMappingResource.Properties.EventSourceArn).to.equal(basicSqsArn);
     });
 
@@ -136,16 +157,43 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
       ).to.deep.equal(cfJoinArn['Fn::Join']);
     });
 
-    it('should suport `batchSize`', () => {
+    it('should support batchSize', () => {
       const requestedBatchSize = 10;
-      expect(basicEventSourceMappingResource.Properties.BatchSize).to.equal(requestedBatchSize);
+      expect(allParamsEventSourceMappingResource.Properties.BatchSize).to.equal(requestedBatchSize);
+    });
+
+    it('should support batchingWindowSize', () => {
+      const requestedBatchingWindowSize = 100;
+      expect(
+        allParamsEventSourceMappingResource.Properties.MaximumBatchingWindowInSeconds
+      ).to.equal(requestedBatchingWindowSize);
+    });
+
+    it('should support filterPatterns', () => {
+      expect(allParamsEventSourceMappingResource.Properties.FilterCriteria).to.deep.equal({
+        Filters: [
+          {
+            Pattern: JSON.stringify({ a: [1, 2] }),
+          },
+          {
+            Pattern: JSON.stringify({ b: [3, 4] }),
+          },
+        ],
+      });
+    });
+
+    it('should support scalingConfig', () => {
+      const requestedMaximumConcurrency = 10;
+      expect(allParamsEventSourceMappingResource.Properties.ScalingConfig).to.deep.equal({
+        MaximumConcurrency: requestedMaximumConcurrency,
+      });
     });
 
     it('should suport `functionResponseType`', () => {
       const requestedFunctionResponseType = 'ReportBatchItemFailures';
-      expect(basicEventSourceMappingResource.Properties.FunctionResponseTypes).to.include.members([
-        requestedFunctionResponseType,
-      ]);
+      expect(
+        allParamsEventSourceMappingResource.Properties.FunctionResponseTypes
+      ).to.include.members([requestedFunctionResponseType]);
     });
 
     it('should ensure necessary IAM statememnts', () => {
@@ -153,7 +201,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
         {
           Effect: 'Allow',
           Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
-          Resource: ['arn:aws:sqs:region:account:some-queue-name'],
+          Resource: [arn],
         },
         {
           Effect: 'Allow',
@@ -215,9 +263,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
                 {
                   sqs: {
                     arn: 'arn:aws:sqs:region:account:MyQueue',
-                    batchSize: 10,
-                    maximumBatchingWindow: 100,
-                    filterPatterns: [{ a: [1, 2] }, { b: [3, 4] }],
                   },
                 },
               ],
@@ -241,58 +286,39 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
       const aliasLogicalId = naming.getLambdaProvisionedConcurrencyAliasLogicalId('basic');
       expect(eventSourceMappingResource.DependsOn).to.include(aliasLogicalId);
     });
-
-    it('should have correct batch size', () => {
-      expect(eventSourceMappingResource.Properties.BatchSize).to.equal(10);
-    });
-
-    it('should have correct batching window size', () => {
-      expect(eventSourceMappingResource.Properties.MaximumBatchingWindowInSeconds).to.equal(100);
-    });
-
-    it('should have correct filtering patterns', () => {
-      expect(eventSourceMappingResource.Properties.FilterCriteria).to.deep.equal({
-        Filters: [
-          {
-            Pattern: JSON.stringify({ a: [1, 2] }),
-          },
-          {
-            Pattern: JSON.stringify({ b: [3, 4] }),
-          },
-        ],
-      });
-    });
   });
 
-  it('should not depend on default IAM role when custom role defined', async () => {
-    const { awsNaming, cfTemplate } = await runServerless({
-      fixture: 'function',
-      configExt: {
-        provider: {
-          iam: {
-            role: {
-              'Fn::Sub': 'arn:aws:iam::${AWS::AccountId}:role/iam-role-name',
+  describe('when custom role is defined', () => {
+    it('should not depend on default IAM role', async () => {
+      const { awsNaming, cfTemplate } = await runServerless({
+        fixture: 'function',
+        configExt: {
+          provider: {
+            iam: {
+              role: {
+                'Fn::Sub': 'arn:aws:iam::${AWS::AccountId}:role/iam-role-name',
+              },
+            },
+          },
+          functions: {
+            basic: {
+              events: [
+                {
+                  sqs: {
+                    arn: 'arn:aws:sqs:region:account:MyQueue',
+                  },
+                },
+              ],
             },
           },
         },
-        functions: {
-          basic: {
-            events: [
-              {
-                sqs: {
-                  arn: 'arn:aws:sqs:region:account:MyQueue',
-                },
-              },
-            ],
-          },
-        },
-      },
-      command: 'package',
+        command: 'package',
+      });
+
+      const queueLogicalId = awsNaming.getQueueLogicalId('basic', 'MyQueue');
+      const eventSourceMappingResource = cfTemplate.Resources[queueLogicalId];
+
+      expect(eventSourceMappingResource.DependsOn).to.deep.equal([]);
     });
-
-    const queueLogicalId = awsNaming.getQueueLogicalId('basic', 'MyQueue');
-    const eventSourceMappingResource = cfTemplate.Resources[queueLogicalId];
-
-    expect(eventSourceMappingResource.DependsOn).to.deep.equal([]);
   });
 });
