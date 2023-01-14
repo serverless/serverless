@@ -931,6 +931,8 @@ functions:
           functionResponseType: ReportBatchItemFailures
           filterPatterns:
             - a: [1, 2]
+          scalingConfig:
+            maximumConcurrency: 10
 ```
 
 ### Streams

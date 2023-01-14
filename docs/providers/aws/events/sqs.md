@@ -88,6 +88,25 @@ functions:
             - a: [1, 2]
 ```
 
+## Setting the ScalingConfig
+
+This configuration allows customers to control the maximum concurrent invokes by the Amazon SQS event source. When multiple Amazon SQS event sources are configured to a function, customers can control the maximum concurrent invokes of individual SQS event source.
+
+Note: `maximumConcurrency` must be set to at least 2 to 2000
+
+For more information, read the [AWS release announcement](https://aws.amazon.com/blogs/compute/introducing-maximum-concurrency-of-aws-lambda-functions-when-using-amazon-sqs-as-an-event-source/)
+
+```yml
+functions:
+  onlyOneOrTwo:
+    handler: handler.preprocess
+    events:
+      - sqs:
+          arn: arn:aws:sqs:region:XXXXXX:myQueue
+          scalingConfig:
+            maximumConcurrency: 10
+```
+
 ## IAM Permissions
 
 The Serverless Framework will automatically configure the most minimal set of IAM permissions for you. However you can still add additional permissions if you need to. Read the official [AWS documentation](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-configure-lambda-function-trigger.html) for more information about IAM Permissions for SQS events.
