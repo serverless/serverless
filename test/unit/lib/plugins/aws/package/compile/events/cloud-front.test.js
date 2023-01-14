@@ -333,29 +333,6 @@ describe('AwsCompileCloudFrontEvents', () => {
       });
     });
 
-    it('should not create cloudfront distribution when no cloudFront events are given', () => {
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-        },
-        second: {
-          name: 'second',
-          events: [
-            {
-              http: 'GET /',
-            },
-          ],
-        },
-      };
-
-      awsCompileCloudFrontEvents.compileCloudFrontEvents();
-
-      expect(
-        awsCompileCloudFrontEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources
-      ).to.not.have.any.keys('CloudFrontDistribution');
-    });
-
     it('should create different origins for different domains with the same path', () => {
       awsCompileCloudFrontEvents.serverless.service.functions = {
         first: {
@@ -1603,9 +1580,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
 
   describe('Alternative cases', () => {
     it('should not create cloudfront distribution when no cloudFront events are given', async () => {
-      // Replaces
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L572-L593
-
       return expect(
         await runServerless({
           fixture: 'function',
