@@ -1573,88 +1573,298 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
   });
 
   describe('Validation', () => {
-    it.skip('TODO: should throw if function `memorySize` is greater than 128 for `functions[].events.cloudfront.evenType: "viewer-request"`', async () => {
-      // Replaces
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L131-L167
-
+    it('should throw if function `memorySize` is greater than 128 for `functions[].events.cloudfront.evenType: "viewer-request"`', async () => {
       return expect(
-        runServerless({ fixture: 'function', command: 'package' })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
-      // Ensure ServerlessError is thrown and that it has some meaningful code
-      // Then test like here:
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/httpApi/index.test.js#L455-L458
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              basic: {
+                memorySize: 129,
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'LAMBDA_EDGE_UNSUPPORTED_MEMORY_SIZE');
     });
 
-    it.skip('TODO: should throw if function `timeout` is greater than 5 for for `functions[].events.cloudfront.evenType: "viewer-request"', async () => {
+    it('should throw if function `timeout` is greater than 5 for for `functions[].events.cloudfront.evenType: "viewer-request"', async () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L169-L204
 
       return expect(
-        runServerless({ fixture: 'function', command: 'package' })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              first: {
+                timeout: 6,
+                handler: 'index.handler',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'LAMBDA_EDGE_UNSUPPORTED_TIMEOUT_VALUE'
+      );
     });
 
-    it.skip('TODO: should throw if function `memorySize` is greater than 3008 for `functions[].events.cloudfront.evenType: "origin-request"`', async () => {
+    // TODO: remove comments
+    // TODO: remove old test cases
+
+    it.skip('should throw if function `memorySize` is greater than 10240 for `functions[].events.cloudfront.evenType: "origin-request"`', async () => {
+      // TODO seems like max memory limit is changes to 10240
       // Replaces partially
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L206-L242
 
       return expect(
-        runServerless({ fixture: 'function', command: 'package' })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              basic: {
+                memorySize: 10241,
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'origin-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'LAMBDA_EDGE_UNSUPPORTED_MEMORY_SIZE');
     });
 
-    it.skip('TODO: should throw if function `memorySize` is greater than 3008 for `functions[].events.cloudfront.evenType: "origin-response"`', async () => {
+    it.skip('should throw if function `memorySize` is greater than 10240 for `functions[].events.cloudfront.evenType: "origin-response"`', async () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L206-L242
 
       return expect(
-        runServerless({ fixture: 'function', command: 'package' })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              first: {
+                handler: 'index.handler',
+                memorySize: 3009,
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'origin-response',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'LAMBDA_EDGE_UNSUPPORTED_MEMORY_SIZE');
     });
 
-    it.skip('TODO: should throw if function `timeout` is greater than 30 for `functions[].events.cloudfront.evenType: "origin-request"`', async () => {
+    it('should throw if function `timeout` is greater than 30 for `functions[].events.cloudfront.evenType: "origin-request"`', async () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L244-L280
 
       return expect(
-        runServerless({ fixture: 'function', command: 'package' })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              first: {
+                handler: 'index.handler',
+                timeout: 31,
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'origin-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'LAMBDA_EDGE_UNSUPPORTED_TIMEOUT_VALUE'
+      );
     });
 
-    it.skip('TODO: should throw if function `timeout` is greater than 30 for `functions[].events.cloudfront.evenType: "origin-response"`', async () => {
+    it('should throw if function `timeout` is greater than 30 for `functions[].events.cloudfront.evenType: "origin-response"`', async () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L244-L280
 
       return expect(
-        runServerless({ fixture: 'function', command: 'package' })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              first: {
+                handler: 'index.handler',
+                timeout: 31,
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'origin-response',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'LAMBDA_EDGE_UNSUPPORTED_TIMEOUT_VALUE'
+      );
     });
 
-    it.skip('TODO: should throw an error if the region is not us-east-1', async () => {
+    it('should throw an error if the region is not us-east-1', async () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L355-L430
-
       return expect(
-        runServerless({ fixture: 'function', command: 'package' })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          options: {
+            region: 'eu-central-1',
+          },
+          configExt: {
+            functions: {
+              basic: {
+                name: 'first',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'CLOUDFRONT_INVALID_REGION');
     });
 
-    it.skip('TODO: should throw if more than one cloudfront event with different origins were defined as a default', async () => {
+    it('should throw if more than one cloudfront event with different origins were defined as a default', async () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L988-L1034
-
       return expect(
-        runServerless({ fixture: 'function', command: 'package' })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              first: {
+                name: 'first',
+                handler: 'first.handler',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                      isDefaultOrigin: true,
+                    },
+                  },
+                ],
+              },
+              second: {
+                name: 'second',
+                handler: 'second.handler',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://anotherbucket.s3.amazonaws.com/files',
+                      isDefaultOrigin: true,
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'CLOUDFRONT_MULTIPLE_DEFAULT_ORIGIN_EVENTS'
+      );
     });
-
-    it.skip('TODO: should throw if none of the cloudfront events with different origins were defined as a default', async () => {
+    it('should throw if none of the cloudfront events with different origins were defined as a default', async () => {
+      // TODO: revisit
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L1308-L1369
 
       return expect(
-        runServerless({ fixture: 'function', command: 'package' })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              first: {
+                name: 'first',
+                handler: 'first.handler',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                      pathPattern: '/files/*',
+                    },
+                  },
+                ],
+              },
+              second: {
+                name: 'second',
+                handler: 'second.handler',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://anotherbucket.s3.amazonaws.com/files',
+                      pathPattern: '/anotherfiles/*',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'CLOUDFRONT_MULTIPLE_DEFAULT_ORIGIN_EVENTS'
+      );
     });
 
     it('Should throw if lambda config refers a non-existing cache policy by name', () => {
@@ -1720,7 +1930,27 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L572-L593
 
-      await runServerless({ fixture: 'function', command: 'package' });
+      return expect(
+        await runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              first: {
+                name: 'first',
+              },
+              second: {
+                name: 'second',
+                events: [
+                  {
+                    http: 'GET /',
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.not.have.any.keys('CloudFrontDistribution');
     });
 
     it('should create DefaultCacheBehavior if there are no events without PathPattern configured', async () => {
