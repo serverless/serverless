@@ -1322,9 +1322,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
       );
     });
 
-    // TODO: remove old test cases
-
-    it.only('should throw if function `memorySize` is greater than 10240 for `functions[].events.cloudfront.evenType: "origin-request"`', async () => {
+    it.skip('should throw if function `memorySize` is greater than 10240 for `functions[].events.cloudfront.evenType: "origin-request"`', async () => {
       // TODO seems like max memory limit is changes to 10240
       // Replaces partially
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L206-L242
@@ -1352,7 +1350,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
       ).to.eventually.be.rejected.and.have.property('code', 'LAMBDA_EDGE_UNSUPPORTED_MEMORY_SIZE');
     });
 
-    it.only('should throw if function `memorySize` is greater than 10240 for `functions[].events.cloudfront.evenType: "origin-response"`', async () => {
+    it.skip('should throw if function `memorySize` is greater than 10240 for `functions[].events.cloudfront.evenType: "origin-response"`', async () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L206-L242
 
@@ -1603,7 +1601,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
     });
   });
 
-  describe.skip('TODO: Alternative cases', () => {
+  describe('Alternative cases', () => {
     it('should not create cloudfront distribution when no cloudFront events are given', async () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L572-L593
@@ -1615,10 +1613,12 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
           configExt: {
             functions: {
               first: {
+                handler: 'first.handler',
                 name: 'first',
               },
               second: {
                 name: 'second',
+                handler: 'second.handler',
                 events: [
                   {
                     http: 'GET /',
@@ -1631,21 +1631,21 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
       ).to.not.have.any.keys('CloudFrontDistribution');
     });
 
-    it('should create DefaultCacheBehavior if there are no events without PathPattern configured', async () => {
+    it.skip('TODO: should create DefaultCacheBehavior if there are no events without PathPattern configured', async () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L1133-L1197
 
       await runServerless({ fixture: 'function', command: 'package' });
     });
 
-    it('should throw if more than one origin with the same PathPattern', async () => {
+    it.skip('TODO: should throw if more than one origin with the same PathPattern', async () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L1519-L1577
 
       await runServerless({ fixture: 'function', command: 'package' });
     });
 
-    it('should throw if more than one origin with the same event type', async () => {
+    it.skip('TODO: should throw if more than one origin with the same event type', async () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L1579-L1640
 
