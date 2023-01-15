@@ -1091,70 +1091,6 @@ describe('AwsCompileCloudFrontEvents', () => {
           .Resources.CloudFrontDistribution.Properties.DistributionConfig
       ).to.not.have.any.keys('CacheBehaviors');
     });
-
-    it('should throw if some of the event type in any behavior is not unique', () => {
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cloudFront: {
-                eventType: 'viewer-request',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-                pathPattern: '/files/*',
-              },
-            },
-          ],
-        },
-        second: {
-          name: 'second',
-          events: [
-            {
-              cloudFront: {
-                eventType: 'viewer-request',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-                pathPattern: '/files/*',
-              },
-            },
-          ],
-        },
-      };
-
-      awsCompileCloudFrontEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources =
-        {
-          FirstLambdaFunction: {
-            Type: 'AWS::Lambda::Function',
-            Properties: {
-              FunctionName: 'first',
-            },
-          },
-          FirstLambdaVersion: {
-            Type: 'AWS::Lambda::Version',
-            Properties: {
-              FunctionName: { Ref: 'FirstLambdaFunction' },
-            },
-          },
-          SecondLambdaFunction: {
-            Type: 'AWS::Lambda::Function',
-            Properties: {
-              FunctionName: 'second',
-            },
-          },
-          SecondLambdaVersion: {
-            Type: 'AWS::Lambda::Version',
-            Properties: {
-              FunctionName: { Ref: 'SecondLambdaFunction' },
-            },
-          },
-        };
-
-      expect(() => {
-        awsCompileCloudFrontEvents.compileCloudFrontEvents();
-      }).to.throw(
-        Error,
-        'The event type of a function association must be unique in the cache behavior'
-      );
-    });
   });
 });
 
@@ -1594,11 +1530,46 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
       );
     });
 
-    it.skip('TODO: should throw if more than one origin with the same event type', async () => {
-      // Replaces
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L1579-L1640
-
-      await runServerless({ fixture: 'function', command: 'package' });
+    it('should throw if more than one origin with the same event type', async () => {
+      return expect(
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              first: {
+                name: 'first',
+                handler: 'first.handler',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                      pathPattern: '/files/*',
+                    },
+                  },
+                ],
+              },
+              second: {
+                name: 'second',
+                handler: 'second.handler',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                      pathPattern: '/files/*',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'CLOUDFRONT_EVENT_TYPE_NON_UNIQUE_CACHE_BEHAVIOR'
+      );
     });
   });
 
