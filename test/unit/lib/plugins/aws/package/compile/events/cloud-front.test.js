@@ -1092,67 +1092,6 @@ describe('AwsCompileCloudFrontEvents', () => {
       ).to.not.have.any.keys('CacheBehaviors');
     });
 
-    it('should throw if more than one behavior with the same PathPattern', () => {
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cloudFront: {
-                eventType: 'viewer-request',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-                pathPattern: '/files/*',
-              },
-            },
-          ],
-        },
-        second: {
-          name: 'second',
-          events: [
-            {
-              cloudFront: {
-                eventType: 'origin-request',
-                origin: 's3://anotherbucket.s3.amazonaws.com/files',
-                pathPattern: '/files/*',
-              },
-            },
-          ],
-        },
-      };
-
-      awsCompileCloudFrontEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources =
-        {
-          FirstLambdaFunction: {
-            Type: 'AWS::Lambda::Function',
-            Properties: {
-              FunctionName: 'first',
-            },
-          },
-          FirstLambdaVersion: {
-            Type: 'AWS::Lambda::Version',
-            Properties: {
-              FunctionName: { Ref: 'FirstLambdaFunction' },
-            },
-          },
-          SecondLambdaFunction: {
-            Type: 'AWS::Lambda::Function',
-            Properties: {
-              FunctionName: 'second',
-            },
-          },
-          SecondLambdaVersion: {
-            Type: 'AWS::Lambda::Version',
-            Properties: {
-              FunctionName: { Ref: 'SecondLambdaFunction' },
-            },
-          },
-        };
-
-      expect(() => {
-        awsCompileCloudFrontEvents.compileCloudFrontEvents();
-      }).to.throw(Error, 'Found more than one behavior with the same PathPattern');
-    });
-
     it('should throw if some of the event type in any behavior is not unique', () => {
       awsCompileCloudFrontEvents.serverless.service.functions = {
         first: {
@@ -1301,6 +1240,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
 
     it.skip('should throw if function `memorySize` is greater than 10240 for `functions[].events.cloudfront.evenType: "origin-request"`', async () => {
       // TODO seems like max memory limit is changes to 10240
+      // NOTE: this config is failed to validate.
       // Replaces partially
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L206-L242
 
@@ -1612,11 +1552,46 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
       await runServerless({ fixture: 'function', command: 'package' });
     });
 
-    it.skip('TODO: should throw if more than one origin with the same PathPattern', async () => {
-      // Replaces
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L1519-L1577
-
-      await runServerless({ fixture: 'function', command: 'package' });
+    it('should throw if more than one origin with the same PathPattern', async () => {
+      return expect(
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              first: {
+                name: 'first',
+                handler: 'first.handler',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                      pathPattern: '/files/*',
+                    },
+                  },
+                ],
+              },
+              second: {
+                name: 'second',
+                handler: 'second.handler',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'origin-request',
+                      origin: 's3://anotherbucket.s3.amazonaws.com/files',
+                      pathPattern: '/files/*',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'CLOUDFRONT_MULTIPLE_BEHAVIORS_FOR_SINGLE_PATH_PATTERN'
+      );
     });
 
     it.skip('TODO: should throw if more than one origin with the same event type', async () => {
