@@ -79,46 +79,6 @@ describe('AwsCompileCloudFrontEvents', () => {
     awsCompileCloudFrontEvents = new AwsCompileCloudFrontEvents(serverless, options);
   });
 
-  describe('#validate()', () => {
-    it('should throw if memorySize is greater than 10240 for origin-request or origin-response functions', () => {
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          memorySize: 10241,
-          events: [
-            {
-              cloudFront: {
-                eventType: 'origin-request',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-              },
-            },
-          ],
-        },
-      };
-
-      expect(() => {
-        awsCompileCloudFrontEvents.validate();
-      }).to.throw(Error, 'greater than 10240');
-
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          memorySize: 10241,
-          events: [
-            {
-              cloudFront: {
-                eventType: 'origin-response',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-              },
-            },
-          ],
-        },
-      };
-
-      expect(() => {
-        awsCompileCloudFrontEvents.validate();
-      }).to.throw(Error, 'greater than 10240');
-    });
-  });
-
   describe('#prepareFunctions()', () => {
     it('should enable function versioning and set the necessary default configs for functions', () => {
       awsCompileCloudFrontEvents.serverless.service.provider.versionFunctions = false;
@@ -1172,62 +1132,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
         'code',
         'LAMBDA_EDGE_UNSUPPORTED_TIMEOUT_VALUE'
       );
-    });
-
-    it.skip('should throw if function `memorySize` is greater than 10240 for `functions[].events.cloudfront.evenType: "origin-request"`', async () => {
-      // TODO seems like max memory limit is changes to 10240
-      // NOTE: this config is failed to validate.
-      // Replaces partially
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L206-L242
-
-      return expect(
-        runServerless({
-          fixture: 'function',
-          command: 'package',
-          configExt: {
-            functions: {
-              basic: {
-                memorySize: 10241,
-                events: [
-                  {
-                    cloudFront: {
-                      eventType: 'origin-request',
-                      origin: 's3://bucketname.s3.amazonaws.com/files',
-                    },
-                  },
-                ],
-              },
-            },
-          },
-        })
-      ).to.eventually.be.rejected.and.have.property('code', 'LAMBDA_EDGE_UNSUPPORTED_MEMORY_SIZE');
-    });
-
-    it.skip('should throw if function `memorySize` is greater than 10240 for `functions[].events.cloudfront.evenType: "origin-response"`', async () => {
-      // Replaces partially
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L206-L242
-
-      return expect(
-        runServerless({
-          fixture: 'function',
-          command: 'package',
-          configExt: {
-            functions: {
-              basic: {
-                memorySize: 10241,
-                events: [
-                  {
-                    cloudFront: {
-                      eventType: 'origin-response',
-                      origin: 's3://bucketname.s3.amazonaws.com/files',
-                    },
-                  },
-                ],
-              },
-            },
-          },
-        })
-      ).to.eventually.be.rejected.and.have.property('code', 'LAMBDA_EDGE_UNSUPPORTED_MEMORY_SIZE');
     });
 
     it('should throw if function `timeout` is greater than 30 for `functions[].events.cloudfront.evenType: "origin-request"`', async () => {
