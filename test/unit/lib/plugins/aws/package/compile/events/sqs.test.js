@@ -153,27 +153,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
         {
           Effect: 'Allow',
           Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
-          Resource: ['arn:aws:sqs:region:account:some-queue-name'],
-        },
-        {
-          Effect: 'Allow',
-          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
-          Resource: ['arn:aws:sqs:region:account:MyQueue'],
-        },
-        {
-          Effect: 'Allow',
-          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
-          Resource: [{ 'Fn::GetAtt': ['SomeQueue', 'Arn'] }],
-        },
-        {
-          Effect: 'Allow',
-          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
-          Resource: [{ 'Fn::ImportValue': 'ForeignQueue' }],
-        },
-        {
-          Effect: 'Allow',
-          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
           Resource: [
+            'arn:aws:sqs:region:account:some-queue-name',
+            'arn:aws:sqs:region:account:MyQueue',
+            { 'Fn::GetAtt': ['SomeQueue', 'Arn'] },
+            { 'Fn::ImportValue': 'ForeignQueue' },
             {
               'Fn::Join': [
                 ':',
