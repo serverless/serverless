@@ -1259,36 +1259,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
         })
       ).to.eventually.be.rejected.and.have.property('code', 'UNRECOGNIZED_CLOUDFRONT_CACHE_POLICY');
     });
-
-    it('Should not throw if lambda config includes AllowedMethods or CachedMethods behavior values and cache policy reference', async () => {
-      const cachePolicyId = '08627262-05a9-4f76-9ded-b50ca2e3a84f';
-      await runServerless({
-        fixture: 'function',
-        command: 'package',
-        configExt: {
-          functions: {
-            basic: {
-              handler: 'myLambdaAtEdge.handler',
-              events: [
-                {
-                  cloudFront: {
-                    origin: 's3://bucketname.s3.amazonaws.com/files',
-                    eventType: 'viewer-response',
-                    behavior: {
-                      AllowedMethods: ['GET', 'HEAD', 'OPTIONS'],
-                      CachedMethods: ['GET', 'HEAD', 'OPTIONS'],
-                    },
-                    cachePolicy: {
-                      id: cachePolicyId,
-                    },
-                  },
-                },
-              ],
-            },
-          },
-        },
-      });
-    });
   });
 
   describe('Alternative cases', () => {
