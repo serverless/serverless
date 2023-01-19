@@ -5,8 +5,9 @@ const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
 const AwsCompileCloudFrontEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/cloud-front');
 const Serverless = require('../../../../../../../../lib/serverless');
 const runServerless = require('../../../../../../../utils/run-serverless');
+const sandbox = require('sinon-chai');
 
-chai.use(require('sinon-chai'));
+chai.use(sandbox);
 chai.use(require('chai-as-promised'));
 
 const { expect } = chai;
@@ -1095,20 +1096,26 @@ describe('AwsCompileCloudFrontEvents', () => {
 });
 
 describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', () => {
-  describe.skip('TODO: Removal notice', () => {
-    it('should show preconfigured notice on "sls remove" if service has cloudFront event', async () => {
+  describe('TODO: Removal notice', () => {
+    it.skip('should show preconfigured notice on "sls remove" if service has cloudFront event', async () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L88-L109
-
+      // const validateStub = sinon.stub(validate, 'validate').returns();
       // Inspect result.stdoutData
-      await runServerless({
-        fixture: 'function',
-        command: 'remove',
-        lastLifecycleHookName: 'before:remove:remove',
-      });
+      // const result = await runServerless({
+      //   fixture: 'function',
+      //   command: 'remove',
+      //   lastLifecycleHookName: 'before:remove:remove',
+      // });
+      // const keys  = Object.keys(result.serverless.cli.);
+      // console.log({keys});
+      // expect(result).to.have.been.calledOnce;
+      // expect(result.serverless.cli.log.args[0][0]).to.include(
+      //   'remove your Lambda@Edge functions'
+      // );
     });
 
-    it('should not show preconfigured notice on "sls remove" if service doesn\'t have cloudFront event', async () => {
+    it.skip('should not show preconfigured notice on "sls remove" if service doesn\'t have cloudFront event', async () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L113-L118
 
@@ -1652,6 +1659,26 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
                 subnetIds: ['subnet-978ffXXX', 'subnet-5e59fXXX'],
               },
             },
+            fnCustomOriginRequest: {
+              handler: 'index.handler',
+              events: [
+                {
+                  cloudFront: {
+                    eventType: 'viewer-request',
+                    pathPattern: 'noCustomOriginPolicy',
+                    origin: {
+                      DomainName: 'amazonaws.com',
+                      // Id: 'id-to-overwrite',
+                      CustomOriginConfig: {
+                        OriginKeepaliveTimeout: 1,
+                        OriginReadTimeout: 2,
+                        OriginProtocolPolicy: 'http-only',
+                      },
+                    },
+                  },
+                },
+              ],
+            },
             fnOriginResponse: {
               handler: 'index.handler',
               events: [
@@ -1763,6 +1790,27 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
                 },
               ],
             },
+            fnCachePolicyManagedSetViaBehaviorRequest: {
+              handler: 'myLambdaAtEdge.handler',
+              events: [
+                {
+                  cloudFront: {
+                    eventType: 'viewer-request',
+                    origin: 's3://bucketname.s3.amazonaws.com/files',
+                    pathPattern: 'managedPolicySetViaBehaviorRequest',
+                    behavior: {
+                      ForwardedValues: {
+                        QueryString: true,
+                        Headers: ['*'],
+                      },
+                      ViewerProtocolPolicy: 'https-only',
+                      AllowedMethods: ['GET', 'HEAD', 'OPTIONS'],
+                      CachedMethods: ['GET', 'HEAD', 'OPTIONS'],
+                    },
+                  },
+                },
+              ],
+            },
           },
         },
       });
@@ -1786,21 +1834,28 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
       // Replaces partially
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L283-L315
     });
-    it.skip('TODO: should ensure that triggered functions have 128MB as default `memorySize`', () => {
+    it('should ensure that triggered functions have 128MB as default `memorySize`', () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L283-L315
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L317-L352
+      const edgeResolvedName = naming.getLambdaLogicalId('fnOriginRequest');
+      expect(cfResources[edgeResolvedName].Properties.MemorySize).to.equal(128);
     });
 
-    it.skip('TODO: should ensure that triggered functions have 5s for default `timeout`', () => {
+    it('should ensure that triggered functions have 5s for default `timeout`', () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L283-L315
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L317-L352
+      const edgeResolvedName = naming.getLambdaLogicalId('fnOriginRequest');
+      expect(cfResources[edgeResolvedName].Properties.Timeout).to.equal(5);
     });
 
     it.skip('TODO: should create different origins for different domains with the same path', () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L595-L663
+      // const edgeResolvedName = naming.getLambdaLogicalId('fnOriginRequest');
+      // console.log(cfResources.CloudFrontDistribution.Properties.DistributionConfig.Origins)
+      // expect(cfResources[edgeResolvedName].Properties.Timeout).to.equal(5);
     });
 
     it.skip('TODO: should create different origins for the same domains with the same path but different protocols', () => {
@@ -1818,10 +1873,24 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L796-L853
     });
 
-    it.skip('TODO: should support origin customization', () => {
+    it('should support origin customization', () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L855-L901
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L903-L986
+      // TODO: https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L903-L986
+      expect(
+        cfResources[naming.getCloudFrontDistributionLogicalId()].Properties.DistributionConfig
+          .Origins
+      ).to.deep.include.members([
+        {
+          DomainName: 'amazonaws.com',
+          CustomOriginConfig: {
+            OriginKeepaliveTimeout: 1,
+            OriginReadTimeout: 2,
+            OriginProtocolPolicy: 'http-only',
+          },
+          Id: 'custom/amazonaws.com',
+        },
+      ]);
     });
 
     it.skip('TODO: should assign a DefaultCacheBehavior behavior to event without PathPattern', () => {
@@ -1833,11 +1902,22 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
     it.skip('TODO: should create DefaultCacheBehavior if there are no events without PathPattern configured and isDefaultOrigin flag was set', async () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L1199-L1306
+      const edgeResolvedName = naming.getLambdaLogicalId('fnOriginRequest');
+      expect(cfResources[edgeResolvedName].Properties).not.to.contain.keys('Environment');
     });
 
-    it.skip('TODO: should support behavior customization', () => {
+    it('should support behavior customization', () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L1455-L1517
+      expect(
+        getAssociatedCacheBehavior('managedPolicySetViaBehaviorRequest')
+      ).to.have.deep.includes({
+        TargetOriginId: 's3/bucketname.s3.amazonaws.com/files',
+        ViewerProtocolPolicy: 'https-only',
+        ForwardedValues: { QueryString: true, Headers: ['*'] },
+        AllowedMethods: ['GET', 'HEAD', 'OPTIONS'],
+        CachedMethods: ['GET', 'HEAD', 'OPTIONS'],
+      });
     });
 
     it('should ignore environment variables if provided in function properties', () => {
