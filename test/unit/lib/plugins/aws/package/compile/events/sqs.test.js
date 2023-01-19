@@ -153,27 +153,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
         {
           Effect: 'Allow',
           Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
-          Resource: ['arn:aws:sqs:region:account:some-queue-name'],
-        },
-        {
-          Effect: 'Allow',
-          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
-          Resource: ['arn:aws:sqs:region:account:MyQueue'],
-        },
-        {
-          Effect: 'Allow',
-          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
-          Resource: [{ 'Fn::GetAtt': ['SomeQueue', 'Arn'] }],
-        },
-        {
-          Effect: 'Allow',
-          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
-          Resource: [{ 'Fn::ImportValue': 'ForeignQueue' }],
-        },
-        {
-          Effect: 'Allow',
-          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
           Resource: [
+            'arn:aws:sqs:region:account:some-queue-name',
+            'arn:aws:sqs:region:account:MyQueue',
+            { 'Fn::GetAtt': ['SomeQueue', 'Arn'] },
+            { 'Fn::ImportValue': 'ForeignQueue' },
             {
               'Fn::Join': [
                 ':',
@@ -218,6 +202,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
                     batchSize: 10,
                     maximumBatchingWindow: 100,
                     filterPatterns: [{ a: [1, 2] }, { b: [3, 4] }],
+                    maximumConcurrency: 250,
                   },
                 },
               ],
@@ -260,6 +245,12 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
             Pattern: JSON.stringify({ b: [3, 4] }),
           },
         ],
+      });
+    });
+
+    it('should have correct maximum concurrency', () => {
+      expect(eventSourceMappingResource.Properties.ScalingConfig).to.deep.equal({
+        MaximumConcurrency: 250,
       });
     });
   });

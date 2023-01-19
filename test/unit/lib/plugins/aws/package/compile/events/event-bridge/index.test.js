@@ -593,6 +593,7 @@ describe('EventBridgeEvents', () => {
           configExt: {
             functions: {
               basic: {
+                name: 'event-bridge-lambda',
                 events: [
                   {
                     eventBridge: {
@@ -615,6 +616,14 @@ describe('EventBridgeEvents', () => {
                   {
                     eventBridge: {
                       schedule: 'rate(10 minutes)',
+                    },
+                  },
+                  {
+                    eventBridge: {
+                      eventBus: 'default',
+                      schedule: 'rate(10 minutes)',
+                      name: 'custom-event-name-test',
+                      enabled: false,
                     },
                   },
                 ],
@@ -665,6 +674,14 @@ describe('EventBridgeEvents', () => {
         expect(
           lambdaPermissionResource.Properties.SourceArn['Fn::Join'][1][5]['Fn::Join'][1]
         ).not.to.include('default');
+      });
+
+      it('should correctly set event name when set', () => {
+        const eventBridgeResource =
+          cfResources[naming.getEventBridgeRuleLogicalId('Eventbridgelambdarule5')];
+
+        const customName = 'custom-event-name-test';
+        expect(eventBridgeResource.Properties.Name).to.eq(customName);
       });
     });
   });
