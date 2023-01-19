@@ -25,18 +25,6 @@ const serverlessConfigurationExtension = {
         },
       ],
     },
-    customName: {
-      handler: 'index.handler',
-      events: [
-        {
-          eventBridge: {
-            eventBus: 'arn:aws:events:us-east-1:12345:event-bus/default',
-            schedule: 'rate(10 minutes)',
-            name: 'custom-event-name-test',
-          },
-        },
-      ],
-    },
     [NAME_OVER_64_CHARS]: {
       handler: 'index.handler',
       name: 'one-very-long-and-very-strange-and-very-complicated-function-name-over-64-chars',
@@ -590,11 +578,6 @@ describe('EventBridgeEvents', () => {
         expect(deadLetterConfigRuleTarget.DeadLetterConfig).to.have.property('Arn');
       });
 
-      it('should correctly set event name when set', () => {
-        const customNameTarget = getRuleResourceEndingWith(cfResources, 'test').Properties;
-        expect(customNameTarget.Name).to.eq('custom-event-name-test');
-      });
-
       it('should create a rule that depends on created EventBus', () => {
         expect(ruleResource.DependsOn).to.equal(eventBusLogicalId);
       });
@@ -717,5 +700,44 @@ describe('EventBridgeEvents', () => {
       'code',
       'REJECTED_DEPRECATION_AWS_EVENT_BRIDGE_CUSTOM_RESOURCE_LEGACY_OPT_IN'
     );
+  });
+});
+
+describe('test/unit/lib/plugins/aws/package/compile/events/event-bridge/index.test.js', () => {
+  describe('regular configuration', () => {
+    let customNameEventBridgeResource;
+
+    before(async () => {
+      const { awsNaming, cfTemplate } = await runServerless({
+        fixture: 'function',
+        command: 'package',
+        configExt: {
+          functions: {
+            customName: {
+              handler: 'basic.handler',
+              name: 'custom-name-lambda',
+              events: [
+                {
+                  eventBridge: {
+                    eventBus: 'arn:aws:events:us-east-1:12345:event-bus/default',
+                    schedule: 'rate(10 minutes)',
+                    name: 'custom-event-name-test',
+                  },
+                },
+              ],
+            },
+          },
+        },
+      });
+
+      const customNameFunctionLogicalId =
+        awsNaming.getEventBridgeRuleLogicalId('Customnamelambdarule1');
+      customNameEventBridgeResource = cfTemplate.Resources[customNameFunctionLogicalId];
+    });
+
+    it('should correctly set event name when set', () => {
+      const customName = 'custom-event-name-test';
+      expect(customNameEventBridgeResource.Properties.Name).to.eq(customName);
+    });
   });
 });
