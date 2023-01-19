@@ -79,158 +79,6 @@ describe('AwsCompileCloudFrontEvents', () => {
     awsCompileCloudFrontEvents = new AwsCompileCloudFrontEvents(serverless, options);
   });
 
-  describe('#validate()', () => {
-    it('should throw if memorySize is greater than 128 for viewer-request or viewer-response functions', () => {
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          memorySize: 129,
-          events: [
-            {
-              cloudFront: {
-                eventType: 'viewer-request',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-              },
-            },
-          ],
-        },
-      };
-
-      expect(() => {
-        awsCompileCloudFrontEvents.validate();
-      }).to.throw(Error, 'greater than 128');
-
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          memorySize: 129,
-          events: [
-            {
-              cloudFront: {
-                eventType: 'viewer-response',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-              },
-            },
-          ],
-        },
-      };
-
-      expect(() => {
-        awsCompileCloudFrontEvents.validate();
-      }).to.throw(Error, 'greater than 128');
-    });
-
-    it('should throw if timeout is greater than 5 for viewer-request or viewer response functions', () => {
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          timeout: 6,
-          events: [
-            {
-              cloudFront: {
-                eventType: 'viewer-request',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-              },
-            },
-          ],
-        },
-      };
-
-      expect(() => {
-        awsCompileCloudFrontEvents.validate();
-      }).to.throw(Error, 'greater than 5');
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          timeout: 6,
-          events: [
-            {
-              cloudFront: {
-                eventType: 'viewer-response',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-              },
-            },
-          ],
-        },
-      };
-
-      expect(() => {
-        awsCompileCloudFrontEvents.validate();
-      }).to.throw(Error, 'greater than 5');
-    });
-
-    it('should throw if memorySize is greater than 10240 for origin-request or origin-response functions', () => {
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          memorySize: 10241,
-          events: [
-            {
-              cloudFront: {
-                eventType: 'origin-request',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-              },
-            },
-          ],
-        },
-      };
-
-      expect(() => {
-        awsCompileCloudFrontEvents.validate();
-      }).to.throw(Error, 'greater than 10240');
-
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          memorySize: 10241,
-          events: [
-            {
-              cloudFront: {
-                eventType: 'origin-response',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-              },
-            },
-          ],
-        },
-      };
-
-      expect(() => {
-        awsCompileCloudFrontEvents.validate();
-      }).to.throw(Error, 'greater than 10240');
-    });
-
-    it('should throw if timeout is greater than 30 for origin-request or origin response functions', () => {
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          timeout: 31,
-          events: [
-            {
-              cloudFront: {
-                eventType: 'origin-request',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-              },
-            },
-          ],
-        },
-      };
-
-      expect(() => {
-        awsCompileCloudFrontEvents.validate();
-      }).to.throw(Error, 'greater than 30');
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          timeout: 31,
-          events: [
-            {
-              cloudFront: {
-                eventType: 'origin-response',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-              },
-            },
-          ],
-        },
-      };
-
-      expect(() => {
-        awsCompileCloudFrontEvents.validate();
-      }).to.throw(Error, 'greater than 30');
-    });
-  });
-
   describe('#prepareFunctions()', () => {
     it('should enable function versioning and set the necessary default configs for functions', () => {
       awsCompileCloudFrontEvents.serverless.service.provider.versionFunctions = false;
@@ -304,84 +152,6 @@ describe('AwsCompileCloudFrontEvents', () => {
   });
 
   describe('#compileCloudFrontEvents()', () => {
-    it('should throw an error if the region is not us-east-1', () => {
-      options.region = 'eu-central-1';
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cloudFront: {
-                eventType: 'viewer-request',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-              },
-            },
-          ],
-        },
-      };
-      awsCompileCloudFrontEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources =
-        {
-          FirstLambdaFunction: {
-            Type: 'AWS::Lambda::Function',
-            Properties: {
-              FunctionName: 'first',
-            },
-          },
-          FirstLambdaVersion: {
-            Type: 'AWS::Lambda::Version',
-            Properties: {
-              FunctionName: { Ref: 'FirstLambdaFunction' },
-            },
-          },
-          IamRoleLambdaExecution: {
-            Type: 'AWS::IAM::Role',
-            Properties: {
-              AssumeRolePolicyDocument: {
-                Version: '2012-10-17',
-                Statement: [
-                  {
-                    Effect: 'Allow',
-                    Principal: {
-                      Service: ['lambda.amazonaws.com'],
-                    },
-                    Action: ['sts:AssumeRole'],
-                  },
-                ],
-              },
-              Policies: [
-                {
-                  PolicyName: {
-                    'Fn::Join': ['-', ['dev', 'first', 'lambda']],
-                  },
-                  PolicyDocument: {
-                    Version: '2012-10-17',
-                    Statement: [],
-                  },
-                },
-              ],
-              Path: '/',
-              RoleName: {
-                'Fn::Join': [
-                  '-',
-                  [
-                    'first',
-                    'dev',
-                    {
-                      Ref: 'AWS::Region',
-                    },
-                    'lambdaRole',
-                  ],
-                ],
-              },
-            },
-          },
-        };
-
-      expect(() => awsCompileCloudFrontEvents.compileCloudFrontEvents()).to.throw(
-        /to the us-east-1 region/
-      );
-    });
-
     it('should create corresponding resources when cloudFront events are given', () => {
       awsCompileCloudFrontEvents.serverless.service.functions = {
         first: {
@@ -521,29 +291,6 @@ describe('AwsCompileCloudFrontEvents', () => {
         OriginPath: '/files',
         S3OriginConfig: {},
       });
-    });
-
-    it('should not create cloudfront distribution when no cloudFront events are given', () => {
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-        },
-        second: {
-          name: 'second',
-          events: [
-            {
-              http: 'GET /',
-            },
-          ],
-        },
-      };
-
-      awsCompileCloudFrontEvents.compileCloudFrontEvents();
-
-      expect(
-        awsCompileCloudFrontEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources
-      ).to.not.have.any.keys('CloudFrontDistribution');
     });
 
     it('should create different origins for different domains with the same path', () => {
@@ -945,55 +692,6 @@ describe('AwsCompileCloudFrontEvents', () => {
       ).to.equal(1);
     });
 
-    it('should throw if more than one cloudfront event with different origins were defined as a default', () => {
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cloudFront: {
-                eventType: 'viewer-request',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-                isDefaultOrigin: true,
-              },
-            },
-          ],
-        },
-        second: {
-          name: 'second',
-          events: [
-            {
-              cloudFront: {
-                eventType: 'viewer-request',
-                origin: 's3://anotherbucket.s3.amazonaws.com/files',
-                isDefaultOrigin: true,
-              },
-            },
-          ],
-        },
-      };
-
-      awsCompileCloudFrontEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources =
-        {
-          FirstLambdaFunction: {
-            Type: 'AWS::Lambda::Function',
-            Properties: {
-              FunctionName: 'first',
-            },
-          },
-          SecondLambdaFunction: {
-            Type: 'AWS::Lambda::Function',
-            Properties: {
-              FunctionName: 'second',
-            },
-          },
-        };
-
-      expect(() => {
-        awsCompileCloudFrontEvents.compileCloudFrontEvents();
-      }).to.throw(Error, 'Found more than one cloudfront event with "isDefaultOrigin" defined');
-    });
-
     it('should use behavior without PathPattern as a DefaultCacheBehavior', () => {
       awsCompileCloudFrontEvents.serverless.service.functions = {
         first: {
@@ -1066,73 +764,6 @@ describe('AwsCompileCloudFrontEvents', () => {
             },
           },
         ],
-      });
-
-      expect(
-        awsCompileCloudFrontEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CloudFrontDistribution.Properties.DistributionConfig.CacheBehaviors[0]
-      ).to.eql({
-        CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6',
-        TargetOriginId: 's3/bucketname.s3.amazonaws.com/files',
-        ViewerProtocolPolicy: 'allow-all',
-        PathPattern: '/files/*',
-        LambdaFunctionAssociations: [
-          {
-            EventType: 'viewer-request',
-            LambdaFunctionARN: {
-              Ref: 'FirstLambdaVersion',
-            },
-          },
-        ],
-      });
-
-      expect(
-        awsCompileCloudFrontEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CloudFrontDistribution.Properties.DistributionConfig.CacheBehaviors.length
-      ).to.equal(1);
-    });
-
-    it('should create DefaultCacheBehavior if non behavior without PathPattern were defined', () => {
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cloudFront: {
-                eventType: 'viewer-request',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-                pathPattern: '/files/*',
-              },
-            },
-          ],
-        },
-      };
-
-      awsCompileCloudFrontEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources =
-        {
-          FirstLambdaFunction: {
-            Type: 'AWS::Lambda::Function',
-            Properties: {
-              FunctionName: 'first',
-            },
-          },
-          FirstLambdaVersion: {
-            Type: 'AWS::Lambda::Version',
-            Properties: {
-              FunctionName: { Ref: 'FirstLambdaFunction' },
-            },
-          },
-        };
-
-      awsCompileCloudFrontEvents.compileCloudFrontEvents();
-
-      expect(
-        awsCompileCloudFrontEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources.CloudFrontDistribution.Properties.DistributionConfig.DefaultCacheBehavior
-      ).to.eql({
-        CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6',
-        TargetOriginId: 's3/bucketname.s3.amazonaws.com/files',
-        ViewerProtocolPolicy: 'allow-all',
       });
 
       expect(
@@ -1269,70 +900,6 @@ describe('AwsCompileCloudFrontEvents', () => {
       ).to.equal(2);
     });
 
-    it('should throw if non of the cloudfront event with different origins were defined as a default', () => {
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cloudFront: {
-                eventType: 'viewer-request',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-                pathPattern: '/files/*',
-              },
-            },
-          ],
-        },
-        second: {
-          name: 'second',
-          events: [
-            {
-              cloudFront: {
-                eventType: 'viewer-request',
-                origin: 's3://anotherbucket.s3.amazonaws.com/files',
-                pathPattern: '/anotherfiles/*',
-              },
-            },
-          ],
-        },
-      };
-
-      awsCompileCloudFrontEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources =
-        {
-          FirstLambdaFunction: {
-            Type: 'AWS::Lambda::Function',
-            Properties: {
-              FunctionName: 'first',
-            },
-          },
-          FirstLambdaVersion: {
-            Type: 'AWS::Lambda::Version',
-            Properties: {
-              FunctionName: { Ref: 'FirstLambdaFunction' },
-            },
-          },
-          SecondLambdaFunction: {
-            Type: 'AWS::Lambda::Function',
-            Properties: {
-              FunctionName: 'second',
-            },
-          },
-          SecondLambdaVersion: {
-            Type: 'AWS::Lambda::Version',
-            Properties: {
-              FunctionName: { Ref: 'SecondLambdaFunction' },
-            },
-          },
-        };
-
-      expect(() => {
-        awsCompileCloudFrontEvents.compileCloudFrontEvents();
-      }).to.throw(
-        Error,
-        'Found more than one origin but none of the cloudfront event has "isDefaultOrigin" defined'
-      );
-    });
-
     it('should use previous created behavior for the same params and different event types', () => {
       awsCompileCloudFrontEvents.serverless.service.functions = {
         first: {
@@ -1417,131 +984,6 @@ describe('AwsCompileCloudFrontEvents', () => {
           .Resources.CloudFrontDistribution.Properties.DistributionConfig
       ).to.not.have.any.keys('CacheBehaviors');
     });
-
-    it('should throw if more than one behavior with the same PathPattern', () => {
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cloudFront: {
-                eventType: 'viewer-request',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-                pathPattern: '/files/*',
-              },
-            },
-          ],
-        },
-        second: {
-          name: 'second',
-          events: [
-            {
-              cloudFront: {
-                eventType: 'origin-request',
-                origin: 's3://anotherbucket.s3.amazonaws.com/files',
-                pathPattern: '/files/*',
-              },
-            },
-          ],
-        },
-      };
-
-      awsCompileCloudFrontEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources =
-        {
-          FirstLambdaFunction: {
-            Type: 'AWS::Lambda::Function',
-            Properties: {
-              FunctionName: 'first',
-            },
-          },
-          FirstLambdaVersion: {
-            Type: 'AWS::Lambda::Version',
-            Properties: {
-              FunctionName: { Ref: 'FirstLambdaFunction' },
-            },
-          },
-          SecondLambdaFunction: {
-            Type: 'AWS::Lambda::Function',
-            Properties: {
-              FunctionName: 'second',
-            },
-          },
-          SecondLambdaVersion: {
-            Type: 'AWS::Lambda::Version',
-            Properties: {
-              FunctionName: { Ref: 'SecondLambdaFunction' },
-            },
-          },
-        };
-
-      expect(() => {
-        awsCompileCloudFrontEvents.compileCloudFrontEvents();
-      }).to.throw(Error, 'Found more than one behavior with the same PathPattern');
-    });
-
-    it('should throw if some of the event type in any behavior is not unique', () => {
-      awsCompileCloudFrontEvents.serverless.service.functions = {
-        first: {
-          name: 'first',
-          events: [
-            {
-              cloudFront: {
-                eventType: 'viewer-request',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-                pathPattern: '/files/*',
-              },
-            },
-          ],
-        },
-        second: {
-          name: 'second',
-          events: [
-            {
-              cloudFront: {
-                eventType: 'viewer-request',
-                origin: 's3://bucketname.s3.amazonaws.com/files',
-                pathPattern: '/files/*',
-              },
-            },
-          ],
-        },
-      };
-
-      awsCompileCloudFrontEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources =
-        {
-          FirstLambdaFunction: {
-            Type: 'AWS::Lambda::Function',
-            Properties: {
-              FunctionName: 'first',
-            },
-          },
-          FirstLambdaVersion: {
-            Type: 'AWS::Lambda::Version',
-            Properties: {
-              FunctionName: { Ref: 'FirstLambdaFunction' },
-            },
-          },
-          SecondLambdaFunction: {
-            Type: 'AWS::Lambda::Function',
-            Properties: {
-              FunctionName: 'second',
-            },
-          },
-          SecondLambdaVersion: {
-            Type: 'AWS::Lambda::Version',
-            Properties: {
-              FunctionName: { Ref: 'SecondLambdaFunction' },
-            },
-          },
-        };
-
-      expect(() => {
-        awsCompileCloudFrontEvents.compileCloudFrontEvents();
-      }).to.throw(
-        Error,
-        'The event type of a function association must be unique in the cache behavior'
-      );
-    });
   });
 });
 
@@ -1573,88 +1015,222 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
   });
 
   describe('Validation', () => {
-    it.skip('TODO: should throw if function `memorySize` is greater than 128 for `functions[].events.cloudfront.evenType: "viewer-request"`', async () => {
-      // Replaces
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L131-L167
-
+    it('should throw if function `memorySize` is greater than 128 for `functions[].events.cloudfront.evenType: "viewer-request"`', async () => {
       return expect(
-        runServerless({ fixture: 'function', command: 'package' })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
-      // Ensure ServerlessError is thrown and that it has some meaningful code
-      // Then test like here:
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/httpApi/index.test.js#L455-L458
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              basic: {
+                memorySize: 129,
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'LAMBDA_EDGE_UNSUPPORTED_MEMORY_SIZE');
     });
 
-    it.skip('TODO: should throw if function `timeout` is greater than 5 for for `functions[].events.cloudfront.evenType: "viewer-request"', async () => {
-      // Replaces
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L169-L204
-
+    it('should throw if function `timeout` is greater than 5 for for `functions[].events.cloudfront.evenType: "viewer-request"', async () => {
       return expect(
-        runServerless({ fixture: 'function', command: 'package' })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              first: {
+                timeout: 6,
+                handler: 'index.handler',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'LAMBDA_EDGE_UNSUPPORTED_TIMEOUT_VALUE'
+      );
     });
 
-    it.skip('TODO: should throw if function `memorySize` is greater than 3008 for `functions[].events.cloudfront.evenType: "origin-request"`', async () => {
-      // Replaces partially
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L206-L242
-
+    it('should throw if function `timeout` is greater than 30 for `functions[].events.cloudfront.evenType: "origin-request"`', async () => {
       return expect(
-        runServerless({ fixture: 'function', command: 'package' })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              first: {
+                handler: 'index.handler',
+                timeout: 31,
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'origin-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'LAMBDA_EDGE_UNSUPPORTED_TIMEOUT_VALUE'
+      );
     });
 
-    it.skip('TODO: should throw if function `memorySize` is greater than 3008 for `functions[].events.cloudfront.evenType: "origin-response"`', async () => {
-      // Replaces partially
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L206-L242
-
+    it('should throw if function `timeout` is greater than 30 for `functions[].events.cloudfront.evenType: "origin-response"`', async () => {
       return expect(
-        runServerless({ fixture: 'function', command: 'package' })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              first: {
+                handler: 'index.handler',
+                timeout: 31,
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'origin-response',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'LAMBDA_EDGE_UNSUPPORTED_TIMEOUT_VALUE'
+      );
     });
 
-    it.skip('TODO: should throw if function `timeout` is greater than 30 for `functions[].events.cloudfront.evenType: "origin-request"`', async () => {
-      // Replaces partially
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L244-L280
-
+    it('should throw an error if the region is not us-east-1', async () => {
       return expect(
-        runServerless({ fixture: 'function', command: 'package' })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          options: {
+            region: 'eu-central-1',
+          },
+          configExt: {
+            functions: {
+              basic: {
+                name: 'first',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'CLOUDFRONT_INVALID_REGION');
     });
 
-    it.skip('TODO: should throw if function `timeout` is greater than 30 for `functions[].events.cloudfront.evenType: "origin-response"`', async () => {
-      // Replaces partially
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L244-L280
-
+    it('should throw if more than one cloudfront event with different origins were defined as a default', async () => {
       return expect(
-        runServerless({ fixture: 'function', command: 'package' })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              first: {
+                name: 'first',
+                handler: 'first.handler',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                      isDefaultOrigin: true,
+                    },
+                  },
+                ],
+              },
+              second: {
+                name: 'second',
+                handler: 'second.handler',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://anotherbucket.s3.amazonaws.com/files',
+                      isDefaultOrigin: true,
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'CLOUDFRONT_MULTIPLE_DEFAULT_ORIGIN_EVENTS'
+      );
     });
-
-    it.skip('TODO: should throw an error if the region is not us-east-1', async () => {
-      // Replaces
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L355-L430
-
+    it('should throw if none of the cloudfront events with different origins were defined as a default', async () => {
       return expect(
-        runServerless({ fixture: 'function', command: 'package' })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
-    });
-
-    it.skip('TODO: should throw if more than one cloudfront event with different origins were defined as a default', async () => {
-      // Replaces
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L988-L1034
-
-      return expect(
-        runServerless({ fixture: 'function', command: 'package' })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
-    });
-
-    it.skip('TODO: should throw if none of the cloudfront events with different origins were defined as a default', async () => {
-      // Replaces
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L1308-L1369
-
-      return expect(
-        runServerless({ fixture: 'function', command: 'package' })
-      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              first: {
+                name: 'first',
+                handler: 'first.handler',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                      pathPattern: '/files/*',
+                    },
+                  },
+                ],
+              },
+              second: {
+                name: 'second',
+                handler: 'second.handler',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://anotherbucket.s3.amazonaws.com/files',
+                      pathPattern: '/anotherfiles/*',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'CLOUDFRONT_MULTIPLE_DEFAULT_ORIGIN_EVENTS'
+      );
     });
 
     it('Should throw if lambda config refers a non-existing cache policy by name', () => {
@@ -1683,28 +1259,50 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
         })
       ).to.eventually.be.rejected.and.have.property('code', 'UNRECOGNIZED_CLOUDFRONT_CACHE_POLICY');
     });
+  });
 
-    it('Should not throw if lambda config includes AllowedMethods or CachedMethods behavior values and cache policy reference', async () => {
-      const cachePolicyId = '08627262-05a9-4f76-9ded-b50ca2e3a84f';
-      await runServerless({
+  describe('Alternative cases', () => {
+    it('should not create cloudfront distribution when no cloudFront events are given', async () => {
+      return expect(
+        await runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              first: {
+                handler: 'first.handler',
+                name: 'first',
+              },
+              second: {
+                name: 'second',
+                handler: 'second.handler',
+                events: [
+                  {
+                    http: 'GET /',
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.not.have.any.keys('CloudFrontDistribution');
+    });
+
+    it('should create DefaultCacheBehavior if there are no events without PathPattern configured', async () => {
+      const { cfTemplate } = await runServerless({
         fixture: 'function',
         command: 'package',
         configExt: {
           functions: {
-            basic: {
-              handler: 'myLambdaAtEdge.handler',
+            first: {
+              name: 'first',
+              handler: 'first.handler',
               events: [
                 {
                   cloudFront: {
+                    eventType: 'viewer-request',
                     origin: 's3://bucketname.s3.amazonaws.com/files',
-                    eventType: 'viewer-response',
-                    behavior: {
-                      AllowedMethods: ['GET', 'HEAD', 'OPTIONS'],
-                      CachedMethods: ['GET', 'HEAD', 'OPTIONS'],
-                    },
-                    cachePolicy: {
-                      id: cachePolicyId,
-                    },
+                    pathPattern: '/files/*',
                   },
                 },
               ],
@@ -1712,36 +1310,104 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
           },
         },
       });
-    });
-  });
-
-  describe.skip('TODO: Alternative cases', () => {
-    it('should not create cloudfront distribution when no cloudFront events are given', async () => {
-      // Replaces
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L572-L593
-
-      await runServerless({ fixture: 'function', command: 'package' });
-    });
-
-    it('should create DefaultCacheBehavior if there are no events without PathPattern configured', async () => {
-      // Replaces
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L1133-L1197
-
-      await runServerless({ fixture: 'function', command: 'package' });
+      const cfCloudFrontDistributionConfig =
+        cfTemplate.Resources.CloudFrontDistribution.Properties.DistributionConfig;
+      expect(cfCloudFrontDistributionConfig.DefaultCacheBehavior).to.eql({
+        CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6',
+        TargetOriginId: 's3/bucketname.s3.amazonaws.com/files',
+        ViewerProtocolPolicy: 'allow-all',
+      });
+      expect(cfCloudFrontDistributionConfig.CacheBehaviors.length).to.equal(1);
+      expect(cfCloudFrontDistributionConfig.CacheBehaviors[0]).to.have.deep.include({
+        CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6',
+        TargetOriginId: 's3/bucketname.s3.amazonaws.com/files',
+        ViewerProtocolPolicy: 'allow-all',
+        PathPattern: '/files/*',
+      });
     });
 
     it('should throw if more than one origin with the same PathPattern', async () => {
-      // Replaces
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L1519-L1577
-
-      await runServerless({ fixture: 'function', command: 'package' });
+      return expect(
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              first: {
+                name: 'first',
+                handler: 'first.handler',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                      pathPattern: '/files/*',
+                    },
+                  },
+                ],
+              },
+              second: {
+                name: 'second',
+                handler: 'second.handler',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'origin-request',
+                      origin: 's3://anotherbucket.s3.amazonaws.com/files',
+                      pathPattern: '/files/*',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'CLOUDFRONT_MULTIPLE_BEHAVIORS_FOR_SINGLE_PATH_PATTERN'
+      );
     });
 
     it('should throw if more than one origin with the same event type', async () => {
-      // Replaces
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L1579-L1640
-
-      await runServerless({ fixture: 'function', command: 'package' });
+      return expect(
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              first: {
+                name: 'first',
+                handler: 'first.handler',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                      pathPattern: '/files/*',
+                    },
+                  },
+                ],
+              },
+              second: {
+                name: 'second',
+                handler: 'second.handler',
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'viewer-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                      pathPattern: '/files/*',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'CLOUDFRONT_EVENT_TYPE_NON_UNIQUE_CACHE_BEHAVIOR'
+      );
     });
   });
 
