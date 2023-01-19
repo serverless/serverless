@@ -593,7 +593,7 @@ describe('EventBridgeEvents', () => {
           configExt: {
             functions: {
               basic: {
-                name: 'custom-name-lambda',
+                name: 'event-bridge-lambda',
                 events: [
                   {
                     eventBridge: {
@@ -678,7 +678,7 @@ describe('EventBridgeEvents', () => {
 
       it('should correctly set event name when set', () => {
         const eventBridgeResource =
-          cfResources[naming.getEventBridgeRuleLogicalId('Customnamelambdarule5')];
+          cfResources[naming.getEventBridgeRuleLogicalId('Eventbridgelambdarule5')];
 
         const customName = 'custom-event-name-test';
         expect(eventBridgeResource.Properties.Name).to.eq(customName);
