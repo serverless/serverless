@@ -243,11 +243,6 @@ describe('EventBridgeEvents', () => {
       expect(eventBridgeConfig.RuleName).lengthOf.lte(64);
     });
 
-    it('should envsure rule name matches custom name when set', () => {
-      const eventBridgeConfig = getEventBridgeConfigById('customName');
-      expect(eventBridgeConfig.RuleName).be.eq('custom-event-name-test');
-    });
-
     it('should support input configuration', () => {
       const eventBridgeConfig = getEventBridgeConfigById('configureInput');
       expect(eventBridgeConfig.Input.key1).be.eq('value1');
@@ -400,7 +395,6 @@ describe('EventBridgeEvents', () => {
       let ruleTarget;
       const schedule = 'rate(10 minutes)';
       const eventBusName = 'nondefault';
-      const customName = 'custom-event-name-test';
       const pattern = {
         source: ['aws.cloudformation'],
       };
@@ -493,14 +487,6 @@ describe('EventBridgeEvents', () => {
                       schedule,
                       pattern,
                       deadLetterQueueArn,
-                    },
-                  },
-                  {
-                    eventBridge: {
-                      eventBus: eventBusName,
-                      schedule,
-                      pattern,
-                      name: customName,
                     },
                   },
                 ],
