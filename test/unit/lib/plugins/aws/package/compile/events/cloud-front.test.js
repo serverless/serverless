@@ -1294,40 +1294,43 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
         })
       ).to.not.have.any.keys('CloudFrontDistribution');
     });
-  });
 
-  describe('Alternative cases', () => {
-    it('should not create cloudfront distribution when no cloudFront events are given', async () => {
-      return expect(
-        await runServerless({
-          fixture: 'function',
-          command: 'package',
-          configExt: {
-            functions: {
-              first: {
-                handler: 'first.handler',
-                name: 'first',
-              },
-              second: {
-                name: 'second',
-                handler: 'second.handler',
-                events: [
-                  {
-                    http: 'GET /',
+    it('should create DefaultCacheBehavior if there are no events without PathPattern configured', async () => {
+      const { cfTemplate } = await runServerless({
+        fixture: 'function',
+        command: 'package',
+        configExt: {
+          functions: {
+            first: {
+              name: 'first',
+              handler: 'first.handler',
+              events: [
+                {
+                  cloudFront: {
+                    eventType: 'viewer-request',
+                    origin: 's3://bucketname.s3.amazonaws.com/files',
+                    pathPattern: '/files/*',
                   },
-                ],
-              },
+                },
+              ],
             },
           },
-        })
-      ).to.not.have.any.keys('CloudFrontDistribution');
-    });
-
-    it.skip('TODO: should create DefaultCacheBehavior if there are no events without PathPattern configured', async () => {
-      // Replaces
-      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L1133-L1197
-
-      await runServerless({ fixture: 'function', command: 'package' });
+        },
+      });
+      const cfCloudFrontDistributionConfig =
+        cfTemplate.Resources.CloudFrontDistribution.Properties.DistributionConfig;
+      expect(cfCloudFrontDistributionConfig.DefaultCacheBehavior).to.eql({
+        CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6',
+        TargetOriginId: 's3/bucketname.s3.amazonaws.com/files',
+        ViewerProtocolPolicy: 'allow-all',
+      });
+      expect(cfCloudFrontDistributionConfig.CacheBehaviors.length).to.equal(1);
+      expect(cfCloudFrontDistributionConfig.CacheBehaviors[0]).to.have.deep.include({
+        CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6',
+        TargetOriginId: 's3/bucketname.s3.amazonaws.com/files',
+        ViewerProtocolPolicy: 'allow-all',
+        PathPattern: '/files/*',
+      });
     });
 
     it('should throw if more than one origin with the same PathPattern', async () => {
