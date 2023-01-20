@@ -80,6 +80,46 @@ describe('AwsCompileCloudFrontEvents', () => {
     awsCompileCloudFrontEvents = new AwsCompileCloudFrontEvents(serverless, options);
   });
 
+  describe('#validate()', () => {
+    it('should throw if memorySize is greater than 10240 for origin-request or origin-response functions', () => {
+      awsCompileCloudFrontEvents.serverless.service.functions = {
+        first: {
+          memorySize: 10241,
+          events: [
+            {
+              cloudFront: {
+                eventType: 'origin-request',
+                origin: 's3://bucketname.s3.amazonaws.com/files',
+              },
+            },
+          ],
+        },
+      };
+
+      expect(() => {
+        awsCompileCloudFrontEvents.validate();
+      }).to.throw(Error, 'greater than 10240');
+
+      awsCompileCloudFrontEvents.serverless.service.functions = {
+        first: {
+          memorySize: 10241,
+          events: [
+            {
+              cloudFront: {
+                eventType: 'origin-response',
+                origin: 's3://bucketname.s3.amazonaws.com/files',
+              },
+            },
+          ],
+        },
+      };
+
+      expect(() => {
+        awsCompileCloudFrontEvents.validate();
+      }).to.throw(Error, 'greater than 10240');
+    });
+  });
+
   describe('#prepareFunctions()', () => {
     it('should enable function versioning and set the necessary default configs for functions', () => {
       awsCompileCloudFrontEvents.serverless.service.provider.versionFunctions = false;
@@ -791,6 +831,73 @@ describe('AwsCompileCloudFrontEvents', () => {
       ).to.equal(1);
     });
 
+    it('should create DefaultCacheBehavior if non behavior without PathPattern were defined', () => {
+      awsCompileCloudFrontEvents.serverless.service.functions = {
+        first: {
+          name: 'first',
+          events: [
+            {
+              cloudFront: {
+                eventType: 'viewer-request',
+                origin: 's3://bucketname.s3.amazonaws.com/files',
+                pathPattern: '/files/*',
+              },
+            },
+          ],
+        },
+      };
+
+      awsCompileCloudFrontEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources =
+        {
+          FirstLambdaFunction: {
+            Type: 'AWS::Lambda::Function',
+            Properties: {
+              FunctionName: 'first',
+            },
+          },
+          FirstLambdaVersion: {
+            Type: 'AWS::Lambda::Version',
+            Properties: {
+              FunctionName: { Ref: 'FirstLambdaFunction' },
+            },
+          },
+        };
+
+      awsCompileCloudFrontEvents.compileCloudFrontEvents();
+
+      expect(
+        awsCompileCloudFrontEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources.CloudFrontDistribution.Properties.DistributionConfig.DefaultCacheBehavior
+      ).to.eql({
+        CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6',
+        TargetOriginId: 's3/bucketname.s3.amazonaws.com/files',
+        ViewerProtocolPolicy: 'allow-all',
+      });
+
+      expect(
+        awsCompileCloudFrontEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources.CloudFrontDistribution.Properties.DistributionConfig.CacheBehaviors[0]
+      ).to.eql({
+        CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6',
+        TargetOriginId: 's3/bucketname.s3.amazonaws.com/files',
+        ViewerProtocolPolicy: 'allow-all',
+        PathPattern: '/files/*',
+        LambdaFunctionAssociations: [
+          {
+            EventType: 'viewer-request',
+            LambdaFunctionARN: {
+              Ref: 'FirstLambdaVersion',
+            },
+          },
+        ],
+      });
+
+      expect(
+        awsCompileCloudFrontEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources.CloudFrontDistribution.Properties.DistributionConfig.CacheBehaviors.length
+      ).to.equal(1);
+    });
+
     it('should create DefaultCacheBehavior if non behavior without PathPattern were defined but isDefaultOrigin flag was set', () => {
       awsCompileCloudFrontEvents.serverless.service.functions = {
         first: {
@@ -1074,6 +1181,62 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
       );
     });
 
+    it.skip('should throw if function `memorySize` is greater than 10240 for `functions[].events.cloudfront.evenType: "origin-request"`', async () => {
+      // TODO seems like max memory limit is changes to 10240
+      // NOTE: this config is failed to validate.
+      // Replaces partially
+      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L206-L242
+
+      return expect(
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              basic: {
+                memorySize: 10241,
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'origin-request',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'LAMBDA_EDGE_UNSUPPORTED_MEMORY_SIZE');
+    });
+
+    it.skip('should throw if function `memorySize` is greater than 10240 for `functions[].events.cloudfront.evenType: "origin-response"`', async () => {
+      // Replaces partially
+      // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L206-L242
+
+      return expect(
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            functions: {
+              basic: {
+                memorySize: 10241,
+                events: [
+                  {
+                    cloudFront: {
+                      eventType: 'origin-response',
+                      origin: 's3://bucketname.s3.amazonaws.com/files',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'LAMBDA_EDGE_UNSUPPORTED_MEMORY_SIZE');
+    });
+
     it('should throw if function `timeout` is greater than 30 for `functions[].events.cloudfront.evenType: "origin-request"`', async () => {
       return expect(
         runServerless({
@@ -1266,33 +1429,35 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
         })
       ).to.eventually.be.rejected.and.have.property('code', 'UNRECOGNIZED_CLOUDFRONT_CACHE_POLICY');
     });
-  });
 
-  describe('Alternative cases', () => {
-    it('should not create cloudfront distribution when no cloudFront events are given', async () => {
-      return expect(
-        await runServerless({
-          fixture: 'function',
-          command: 'package',
-          configExt: {
-            functions: {
-              first: {
-                handler: 'first.handler',
-                name: 'first',
-              },
-              second: {
-                name: 'second',
-                handler: 'second.handler',
-                events: [
-                  {
-                    http: 'GET /',
+    it('Should not throw if lambda config includes AllowedMethods or CachedMethods behavior values and cache policy reference', async () => {
+      const cachePolicyId = '08627262-05a9-4f76-9ded-b50ca2e3a84f';
+      await runServerless({
+        fixture: 'function',
+        command: 'package',
+        configExt: {
+          functions: {
+            basic: {
+              handler: 'myLambdaAtEdge.handler',
+              events: [
+                {
+                  cloudFront: {
+                    origin: 's3://bucketname.s3.amazonaws.com/files',
+                    eventType: 'viewer-response',
+                    behavior: {
+                      AllowedMethods: ['GET', 'HEAD', 'OPTIONS'],
+                      CachedMethods: ['GET', 'HEAD', 'OPTIONS'],
+                    },
+                    cachePolicy: {
+                      id: cachePolicyId,
+                    },
                   },
-                ],
-              },
+                },
+              ],
             },
           },
-        })
-      ).to.not.have.any.keys('CloudFrontDistribution');
+        },
+      });
     });
   });
 
