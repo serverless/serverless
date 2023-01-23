@@ -214,6 +214,12 @@ To execute the locally installed Serverless executable you have to reference the
 
 Example:
 
+```bash
+npx serverless deploy
 ```
+
+or
+
+```bash
 node ./node_modules/serverless/bin/serverless deploy
 ```
