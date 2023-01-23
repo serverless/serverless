@@ -1709,9 +1709,69 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
       cfDistribution = cfResources[naming.getCloudFrontDistributionLogicalId()];
     });
 
-    it.skip('TODO: should configure needed resources', () => {
+    it('should configure needed resources', () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L432-L570
+      const edgeResolvedName = naming.getLambdaLogicalId('fnOriginRequest');
+      const iamRoleDocument = cfResources[naming.getRoleLogicalId()];
+
+      expect(cfDistribution.Type).to.equal('AWS::CloudFront::Distribution');
+
+      expect(cfDistribution.Properties.DistributionConfig.Enabled).to.equal(true);
+
+      expect(
+        cfDistribution.Properties.DistributionConfig.DefaultCacheBehavior.ViewerProtocolPolicy
+      ).to.equal('allow-all');
+
+      expect(
+        cfDistribution.Properties.DistributionConfig.DefaultCacheBehavior.TargetOriginId
+      ).to.equal('custom/example.com');
+
+      expect(
+        cfDistribution.Properties.DistributionConfig.DefaultCacheBehavior
+          .LambdaFunctionAssociations[0]
+      ).to.includes({
+        EventType: 'origin-response',
+      });
+      expect(
+        cfDistribution.Properties.DistributionConfig.DefaultCacheBehavior
+          .LambdaFunctionAssociations[0]
+      ).to.includes({
+        EventType: 'origin-response',
+      });
+
+      expect(cfDistribution.Properties.DistributionConfig.DefaultCacheBehavior)
+        .to.have.nested.property('LambdaFunctionAssociations[0].LambdaFunctionARN.Ref')
+        .to.be.a('string')
+        .and.match(/^FnOriginResponseLambdaVersion.*$/);
+
+      expect(cfDistribution.Properties.DistributionConfig.Origins).to.deep.include.members([
+        {
+          DomainName: 'example.com',
+          CustomOriginConfig: {
+            OriginProtocolPolicy: 'match-viewer',
+          },
+          Id: 'custom/example.com',
+        },
+      ]);
+
+      expect(iamRoleDocument.Properties.AssumeRolePolicyDocument.Statement[0]).to.deep.eql({
+        Effect: 'Allow',
+        Principal: {
+          Service: ['lambda.amazonaws.com', 'edgelambda.amazonaws.com'],
+        },
+        Action: ['sts:AssumeRole'],
+      });
+      expect(
+        iamRoleDocument.Properties.Policies[0].PolicyDocument.Statement
+      ).to.deep.include.members([
+        {
+          Effect: 'Allow',
+          Action: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+          Resource: [{ 'Fn::Sub': 'arn:${AWS::Partition}:logs:*:*:*' }],
+        },
+      ]);
+      expect(cfResources[edgeResolvedName].DeletionPolicy).to.equal('Retain');
     });
 
     it('should configure distribution config comment', () => {
@@ -1842,9 +1902,10 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
         CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6',
         TargetOriginId: 'custom/example.com',
       });
-      expect(cfDistribution.Properties.DistributionConfig.DefaultCacheBehavior).to.have.nested.property(
-        'LambdaFunctionAssociations[0].LambdaFunctionARN.Ref'
-      ).to.be.a('string').and.match(/^FnOriginResponseLambdaVersion.*$/);
+      expect(cfDistribution.Properties.DistributionConfig.DefaultCacheBehavior)
+        .to.have.nested.property('LambdaFunctionAssociations[0].LambdaFunctionARN.Ref')
+        .to.be.a('string')
+        .and.match(/^FnOriginResponseLambdaVersion.*$/);
     });
 
     it('should create DefaultCacheBehavior if there are no events without PathPattern configured and isDefaultOrigin flag was set', async () => {
