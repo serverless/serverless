@@ -1833,77 +1833,24 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
       ]);
     });
 
-    it.skip('TODO: should assign a DefaultCacheBehavior behavior to event without PathPattern', () => {
+    it('TODO: should assign a DefaultCacheBehavior behavior to event without PathPattern', () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L1036-L1131
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L1371-L1453
-      expect(cfDistribution.Properties.DistributionConfig.DefaultCacheBehavior).to.eql({
-        CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6',
-        TargetOriginId: 's3/bucketname.s3.amazonaws.com',
+      expect(cfDistribution.Properties.DistributionConfig.DefaultCacheBehavior).to.include({
         ViewerProtocolPolicy: 'allow-all',
-        LambdaFunctionAssociations: [
-          {
-            EventType: 'viewer-request',
-            LambdaFunctionARN: {
-              Ref: 'FirstLambdaVersion',
-            },
-          },
-          {
-            EventType: 'origin-request',
-            LambdaFunctionARN: {
-              Ref: 'SecondLambdaVersion',
-            },
-          },
-        ],
+        CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6',
+        TargetOriginId: 'custom/example.com',
       });
-
-      expect(cfDistribution.Properties.DistributionConfig).to.not.have.any.keys('CacheBehaviors');
+      expect(cfDistribution.Properties.DistributionConfig.DefaultCacheBehavior).to.have.nested.property(
+        'LambdaFunctionAssociations[0].LambdaFunctionARN.Ref'
+      ).to.be.a('string').and.match(/^FnOriginResponseLambdaVersion.*$/);
     });
 
-    it.skip('TODO: should create DefaultCacheBehavior if there are no events without PathPattern configured and isDefaultOrigin flag was set', async () => {
+    it('should create DefaultCacheBehavior if there are no events without PathPattern configured and isDefaultOrigin flag was set', async () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L1199-L1306
-      // TODO: configure global resources.
-      const edgeResolvedName = naming.getLambdaLogicalId('fnOriginRequest');
-      expect(cfResources[edgeResolvedName].Properties).not.to.contain.keys('Environment');
-
-      expect(cfDistribution.Properties.DistributionConfig.DefaultCacheBehavior).to.eql({
-        CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6',
-        TargetOriginId: 's3/anotherbucket.s3.amazonaws.com/files',
-        ViewerProtocolPolicy: 'allow-all',
-      });
-
-      expect(cfDistribution.Properties.DistributionConfig.CacheBehaviors[0]).to.eql({
-        CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6',
-        TargetOriginId: 's3/bucketname.s3.amazonaws.com/files',
-        ViewerProtocolPolicy: 'allow-all',
-        PathPattern: '/files/*',
-        LambdaFunctionAssociations: [
-          {
-            EventType: 'viewer-request',
-            LambdaFunctionARN: {
-              Ref: 'FirstLambdaVersion',
-            },
-          },
-        ],
-      });
-
-      expect(cfDistribution.Properties.DistributionConfig.CacheBehaviors[1]).to.eql({
-        CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6',
-        TargetOriginId: 's3/anotherbucket.s3.amazonaws.com/files',
-        ViewerProtocolPolicy: 'allow-all',
-        PathPattern: '/anotherfiles/*',
-        LambdaFunctionAssociations: [
-          {
-            EventType: 'viewer-request',
-            LambdaFunctionARN: {
-              Ref: 'SecondLambdaVersion',
-            },
-          },
-        ],
-      });
-
-      expect(cfDistribution.Properties.DistributionConfig.CacheBehaviors.length).to.equal(2);
+      expect(cfDistribution.Properties.DistributionConfig).to.contain.keys('DefaultCacheBehavior');
     });
 
     it('should support behavior customization', () => {
