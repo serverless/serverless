@@ -989,8 +989,8 @@ describe('AwsCompileCloudFrontEvents', () => {
 });
 
 describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', () => {
-  describe('TODO: Removal notice', () => {
-    it.skip('should show preconfigured notice on "sls remove" if service has cloudFront event', async () => {
+  describe.skip('TODO: Removal notice', () => {
+    it('should show preconfigured notice on "sls remove" if service has cloudFront event', async () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L88-L109
       // const validateStub = sinon.stub(validate, 'validate').returns();
@@ -1000,7 +1000,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
       //   command: 'remove',
       //   lastLifecycleHookName: 'before:remove:remove',
       // });
-      // const keys  = Object.keys(result.serverless.cli.);
+      // console.log(result.cli);
       // console.log({keys});
       // expect(result).to.have.been.calledOnce;
       // expect(result.serverless.cli.log.args[0][0]).to.include(
@@ -1008,7 +1008,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
       // );
     });
 
-    it.skip('should not show preconfigured notice on "sls remove" if service doesn\'t have cloudFront event', async () => {
+    it('should not show preconfigured notice on "sls remove" if service doesn\'t have cloudFront event', async () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L113-L118
 
@@ -1420,6 +1420,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
 
   describe('Resource generation', () => {
     let cfResources;
+    let cfOutputs;
     let naming;
     let serviceName;
     let cfDistribution;
@@ -1704,6 +1705,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
         },
       });
       cfResources = cfTemplate.Resources;
+      cfOutputs = cfTemplate.Outputs;
       naming = awsNaming;
       serviceName = service;
       cfDistribution = cfResources[naming.getCloudFrontDistributionLogicalId()];
@@ -1780,9 +1782,40 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
       expect(distributionConfig.Comment).to.equal(`${serviceName} ${stage}`);
     });
 
-    it.skip('TODO: should ensure that triggered functions are versioned', () => {
+    it('should ensure that triggered functions are versioned', () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L283-L315
+      expect(cfOutputs).to.have.property(naming.getLambdaVersionOutputLogicalId('fnOriginRequest'));
+      expect(cfOutputs).to.have.property(
+        naming.getLambdaVersionOutputLogicalId('fnCustomOriginRequest')
+      );
+      expect(cfOutputs).to.have.property(
+        naming.getLambdaVersionOutputLogicalId('fnOriginResponse')
+      );
+      expect(cfOutputs).to.have.property(naming.getLambdaVersionOutputLogicalId('fnCachePolicy'));
+      expect(cfOutputs).to.have.property(
+        naming.getLambdaVersionOutputLogicalId('fnCachePolicyManaged')
+      );
+      expect(cfOutputs).to.have.property(
+        naming.getLambdaVersionOutputLogicalId('fnCachePolicyManagedSetViaBehavior')
+      );
+      expect(cfOutputs).to.have.property(
+        naming.getLambdaVersionOutputLogicalId('fnCachePolicySetViaCachePolicyIdAndBehavior')
+      );
+      expect(cfOutputs).to.have.property(
+        naming.getLambdaVersionOutputLogicalId('fnCachePolicySetViaCachePolicyNameAndBehavior')
+      );
+      expect(cfOutputs).to.have.property(
+        naming.getLambdaVersionOutputLogicalId('fnLegacyCacheSettings')
+      );
+      expect(cfOutputs).to.have.property(
+        naming.getLambdaVersionOutputLogicalId('fnCachePolicyManagedSetViaBehaviorRequest')
+      );
+      expect(cfOutputs).to.have.property(naming.getLambdaVersionOutputLogicalId('fnOrginPath'));
+      expect(cfOutputs).to.have.property(naming.getLambdaVersionOutputLogicalId('fnMultiOrigin'));
+      expect(cfOutputs).to.have.property(
+        naming.getLambdaVersionOutputLogicalId('fnSameOriginDifferentProtcol')
+      );
     });
     it('should ensure that triggered functions have 128MB as default `memorySize`', () => {
       // Replaces partially
