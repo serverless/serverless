@@ -657,12 +657,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
             },
           },
           functions: {
-            fnOriginResponse: {
-              handler: 'index.handler',
-              events: [
-                { cloudFront: { eventType: 'origin-response', origin: 'https://example.com' } },
-              ],
-            },
             fnOriginRequest: {
               handler: 'index.handler',
               events: [
@@ -679,6 +673,12 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
                 securityGroupIds: ['sg-98f38XXX'],
                 subnetIds: ['subnet-978ffXXX', 'subnet-5e59fXXX'],
               },
+            },
+            fnOriginResponse: {
+              handler: 'index.handler',
+              events: [
+                { cloudFront: { eventType: 'origin-response', origin: 'https://example.com' } },
+              ],
             },
             fnCustomOriginRequest: {
               handler: 'index.handler',
@@ -699,7 +699,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
                 },
               ],
             },
-
             fnCachePolicy: {
               handler: 'myLambdaAtEdge.handler',
               events: [
