@@ -11,7 +11,7 @@ chai.use(require('chai-as-promised'));
 
 const { expect } = chai;
 
-describe('AwsCompileCloudFrontEvents', () => {
+describe.only('AwsCompileCloudFrontEvents', () => {
   let serverless;
   let awsCompileCloudFrontEvents;
   let options;
@@ -168,7 +168,7 @@ describe('AwsCompileCloudFrontEvents', () => {
   });
 });
 
-describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', () => {
+describe.only('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', () => {
   describe.skip('TODO: Removal notice', () => {
     it('should show preconfigured notice on "sls remove" if service has cloudFront event', async () => {
       // Replaces
@@ -657,6 +657,12 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
             },
           },
           functions: {
+            fnOriginResponse: {
+              handler: 'index.handler',
+              events: [
+                { cloudFront: { eventType: 'origin-response', origin: 'https://example.com' } },
+              ],
+            },
             fnOriginRequest: {
               handler: 'index.handler',
               events: [
@@ -693,12 +699,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
                 },
               ],
             },
-            fnOriginResponse: {
-              handler: 'index.handler',
-              events: [
-                { cloudFront: { eventType: 'origin-response', origin: 'https://example.com' } },
-              ],
-            },
+
             fnCachePolicy: {
               handler: 'myLambdaAtEdge.handler',
               events: [
@@ -863,14 +864,14 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
                   cloudFront: {
                     eventType: 'viewer-request',
                     origin: 'https://protocol.s3.amazonaws.com/files',
-                    pathPattern: 'fnSameOriginDifferentProtcol',
+                    pathPattern: '/fnSameOriginDifferentProtcol1*',
                   },
                 },
                 {
                   cloudFront: {
                     eventType: 'viewer-request',
                     origin: 's3://protocol.s3.amazonaws.com/files',
-                    pathPattern: '/fnSameOriginDifferentProtcol*',
+                    pathPattern: '/fnSameOriginDifferentProtcol2*',
                   },
                 },
               ],
