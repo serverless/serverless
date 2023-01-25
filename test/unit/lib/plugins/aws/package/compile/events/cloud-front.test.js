@@ -11,7 +11,7 @@ chai.use(require('chai-as-promised'));
 
 const { expect } = chai;
 
-describe.only('AwsCompileCloudFrontEvents', () => {
+describe('AwsCompileCloudFrontEvents', () => {
   let serverless;
   let awsCompileCloudFrontEvents;
   let options;
@@ -168,7 +168,7 @@ describe.only('AwsCompileCloudFrontEvents', () => {
   });
 });
 
-describe.only('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', () => {
+describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', () => {
   describe.skip('TODO: Removal notice', () => {
     it('should show preconfigured notice on "sls remove" if service has cloudFront event', async () => {
       // Replaces
