@@ -5,9 +5,8 @@ const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
 const AwsCompileCloudFrontEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/cloud-front');
 const Serverless = require('../../../../../../../../lib/serverless');
 const runServerless = require('../../../../../../../utils/run-serverless');
-const sandbox = require('sinon-chai');
 
-chai.use(sandbox);
+chai.use(require('sinon-chai'));
 chai.use(require('chai-as-promised'));
 
 const { expect } = chai;
@@ -1018,8 +1017,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
     });
 
     it('should create different origins for the same domains with the same path but different protocols', () => {
-      // Replaces
-      // -- https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L665-L735
       expect(cfDistribution.Properties.DistributionConfig.Origins).to.deep.include.members([
         {
           DomainName: 'protocol.s3.amazonaws.com',
@@ -1067,9 +1064,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
     });
 
     it('should support origin customization', () => {
-      // Replaces
-      // -- https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L855-L901
-      // -- https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L903-L986
       expect(
         cfResources[naming.getCloudFrontDistributionLogicalId()].Properties.DistributionConfig
           .Origins
