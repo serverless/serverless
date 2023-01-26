@@ -73,6 +73,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
           rate: 'rate(10 minutes)',
           enabled: true,
           input: '{"key":"array"}',
+          method: 'eventBus',
         },
       },
       {
@@ -102,15 +103,38 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
           },
         },
       },
+      {
+        schedule: {
+          rate: 'rate(15 minutes)',
+          method: 'scheduler',
+          name: 'scheduler-scheduled-event',
+          description: 'Scheduler Scheduled Event',
+          input: '{"key":"array"}',
+        },
+      },
+      {
+        schedule: {
+          rate: 'cron(15 10 ? * SAT-SUN *)',
+          enabled: false,
+          method: 'scheduler',
+        },
+      },
     ];
 
     scheduleCfResources = await run(events);
   });
 
-  it('should create the corresponding schedule resources when schedule events are given', () => {
-    for (const scheduleCfResource of scheduleCfResources) {
-      expect(scheduleCfResource.Type).to.equal('AWS::Events::Rule');
-    }
+  it('should respect the "method" variable when creating the resource', () => {
+    expect(scheduleCfResources[0].Type).to.equal('AWS::Events::Rule');
+    expect(scheduleCfResources[1].Type).to.equal('AWS::Events::Rule');
+    expect(scheduleCfResources[2].Type).to.equal('AWS::Events::Rule');
+    expect(scheduleCfResources[3].Type).to.equal('AWS::Events::Rule');
+    expect(scheduleCfResources[4].Type).to.equal('AWS::Events::Rule');
+    expect(scheduleCfResources[5].Type).to.equal('AWS::Events::Rule');
+    expect(scheduleCfResources[6].Type).to.equal('AWS::Events::Rule');
+    expect(scheduleCfResources[7].Type).to.equal('AWS::Events::Rule');
+    expect(scheduleCfResources[8].Type).to.equal('AWS::Scheduler::Schedule');
+    expect(scheduleCfResources[9].Type).to.equal('AWS::Scheduler::Schedule');
   });
 
   it('should respect the given rate expressions', () => {
@@ -126,6 +150,10 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
     );
     expect(scheduleCfResources[6].Properties.ScheduleExpression).to.equal('rate(1 hour)');
     expect(scheduleCfResources[7].Properties.ScheduleExpression).to.equal('rate(1 hour)');
+    expect(scheduleCfResources[8].Properties.ScheduleExpression).to.equal('rate(15 minutes)');
+    expect(scheduleCfResources[9].Properties.ScheduleExpression).to.equal(
+      'cron(15 10 ? * SAT-SUN *)'
+    );
   });
 
   it('should respect the "enabled" variable, defaulting to true', () => {
@@ -137,6 +165,8 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
     expect(scheduleCfResources[5].Properties.State).to.equal('DISABLED');
     expect(scheduleCfResources[6].Properties.State).to.equal('DISABLED');
     expect(scheduleCfResources[7].Properties.State).to.equal('ENABLED');
+    expect(scheduleCfResources[8].Properties.State).to.equal('ENABLED');
+    expect(scheduleCfResources[9].Properties.State).to.equal('DISABLED');
   });
 
   it('should respect the "name" variable', () => {
@@ -148,6 +178,8 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
     expect(scheduleCfResources[5].Properties.Name).to.be.undefined;
     expect(scheduleCfResources[6].Properties.Name).to.be.undefined;
     expect(scheduleCfResources[7].Properties.Name).to.be.undefined;
+    expect(scheduleCfResources[8].Properties.Name).to.equal('scheduler-scheduled-event');
+    expect(scheduleCfResources[9].Properties.Name).to.be.undefined;
   });
 
   it('should throw an error if a "name" variable is specified when defining more than one rate expression', async () => {
@@ -182,6 +214,8 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
       'your scheduled event description (array)'
     );
     expect(scheduleCfResources[7].Properties.Description).to.be.undefined;
+    expect(scheduleCfResources[8].Properties.Description).to.equal('Scheduler Scheduled Event');
+    expect(scheduleCfResources[9].Properties.Description).to.be.undefined;
   });
 
   it('should respect the "inputPath" variable', () => {
@@ -193,6 +227,8 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
     expect(scheduleCfResources[5].Properties.Targets[0].InputPath).to.be.undefined;
     expect(scheduleCfResources[6].Properties.Targets[0].InputPath).to.be.undefined;
     expect(scheduleCfResources[7].Properties.Targets[0].InputPath).to.be.undefined;
+    expect(scheduleCfResources[8].Properties.Target.InputPath).to.be.undefined;
+    expect(scheduleCfResources[9].Properties.Target.InputPath).to.be.undefined;
   });
 
   it('should respect the "input" variable', () => {
@@ -204,6 +240,8 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
     expect(scheduleCfResources[5].Properties.Targets[0].Input).to.equal('{"key":"array"}');
     expect(scheduleCfResources[6].Properties.Targets[0].Input).to.equal('{"key":"array"}');
     expect(scheduleCfResources[7].Properties.Targets[0].Input).to.be.undefined;
+    expect(scheduleCfResources[8].Properties.Target.Input).to.equal('{"key":"array"}');
+    expect(scheduleCfResources[9].Properties.Target.Input).to.be.undefined;
   });
 
   it('should respect the "inputTransformer" variable', () => {
@@ -218,6 +256,40 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
       InputTemplate: '{"time": <eventTime>, "key": "value"}',
       InputPathsMap: { eventTime: '$.time' },
     });
+    expect(scheduleCfResources[8].Properties.Target.InputTransformer).to.be.undefined;
+    expect(scheduleCfResources[9].Properties.Target.InputTransformer).to.be.undefined;
+  });
+
+  it('should throw when passing "inputPath" or "inputTransformer" to method:schedule resources', async () => {
+    const events = [
+      {
+        schedule: {
+          rate: 'rate(15 minutes)',
+          method: 'scheduler',
+          inputPath: '$.stageVariables',
+        },
+      },
+      {
+        schedule: {
+          rate: 'rate(15 minutes)',
+          method: 'scheduler',
+          inputTransformer: {
+            inputPathsMap: { eventTime: '$.time' },
+            inputTemplate: '{"time": <eventTime>, "key": "value"}',
+          },
+        },
+      },
+    ];
+
+    await expect(run([events[0]])).to.be.eventually.rejectedWith(
+      ServerlessError,
+      'InputPath is not supported for Scheduler::Schedule resources'
+    );
+
+    await expect(run([events[1]])).to.be.eventually.rejectedWith(
+      ServerlessError,
+      'InputTransformer is not supported for Scheduler::Schedule resources'
+    );
   });
 
   it('should not create schedule resources when no scheduled event is given', async () => {
