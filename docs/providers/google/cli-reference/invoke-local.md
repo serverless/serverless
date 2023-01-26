@@ -16,6 +16,8 @@ layout: Doc
 
 Invokes deployed function locally. It allows to send event data to the function, read logs and display other important information of the function invocation.
 
+**Note: Invoke Local is only supported for the `nodejs` runtime.**
+
 ```bash
 serverless invoke local -f functionName
 ```

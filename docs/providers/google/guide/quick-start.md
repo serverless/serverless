@@ -10,6 +10,8 @@ layout: Doc
 
 This guide is designed to help you get started as quick as possible.
 
+**Note: Google Cloud support is currently experimental and may not yet be appropriate for production usage.**
+
 ## 1. Create a new service
 
 1. Create a new service with the [`google-nodejs`](https://github.com/serverless/serverless/tree/master/lib/plugins/create/templates/google-nodejs) template

@@ -14,7 +14,7 @@ layout: Doc
 
 # Google - Invoke
 
-Invokes a deployed function. You can send event data, read logs and display other important information of the function invocation.
+Invokes a deployed function using a `POST` request. You can send event data, read logs and display other important information of the function invocation.
 
 ```bash
 serverless invoke --function functionName
