@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.27.0](https://github.com/serverless/serverless/compare/v3.26.0...v3.27.0) (2023-01-26)
+
+### Features
+
+- **AWS EventBridge:** Support `functions[].events[].eventBridge.name` ([#11690](https://github.com/serverless/serverless/issues/11690)) ([b925c4c](https://github.com/serverless/serverless/commit/b925c4cf9c2f6a2dddf9eae10b0e62a88f40ff41)) ([ROSeaboyer](https://github.com/ROSeaboyer))
+- **AWS ActiveMQ:** Support `functions[].events[].filterPatterns` ([#11656](https://github.com/serverless/serverless/issues/11656)) ([1b55710](https://github.com/serverless/serverless/commit/1b55710f0a869aff2b0d5dfc499a487eb62d204d)) ([Shreyance Jain](https://github.com/shreyance-jain))
+- **AWS Kafka:** Support `functions[].events[].filterPatterns` ([#11645](https://github.com/serverless/serverless/issues/11645)) ([6a5e8d9](https://github.com/serverless/serverless/commit/6a5e8d9ff3ce3cd526470ef3418f3e08c9d3dc76)) ([Jason Rowsell](https://github.com/jasonrowsell))
+- **AWS MSK:** Support `functions[].events[].filterPatterns` ([#11636](https://github.com/serverless/serverless/issues/11636)) ([63584a9](https://github.com/serverless/serverless/commit/63584a9a0d1a9523c23367de47e7fe575c5cf12b)) ([Shreyance Jain](https://github.com/shreyance-jain))
+- **AWS RabbitMQ:** Support `functions[].events[].filterPatterns` ([#11659](https://github.com/serverless/serverless/issues/11659)) ([e769570](https://github.com/serverless/serverless/commit/e769570704fee372c2fa849c332d476d38e858be)) ([Shreyance Jain](https://github.com/shreyance-jain))
+- **AWS CloudFront:** Recognize `behavior.ResponseHeadersPolicyId` ([#11633](https://github.com/serverless/serverless/issues/11633)) ([906ea31](https://github.com/serverless/serverless/commit/906ea319dd1486f79d6e088a999fd5634526c4bc)) ([Jason Rowsell](https://github.com/jasonrowsell))
+- **AWS SNS:** Support `functions[].events[].filterPolicyScope` ([#11644](https://github.com/serverless/serverless/issues/11644)) ([b7d6af6](https://github.com/serverless/serverless/commit/b7d6af6b1309a5b4fbfac54265e7900196416976)) ([Jason Rowsell](https://github.com/jasonrowsell))
+- **AWS SQS:** Support `functions[].events[].sqs.maximumConcurrency` ([#11678](https://github.com/serverless/serverless/issues/11678)) ([57f2719](https://github.com/serverless/serverless/commit/57f27193e052b01cd67745c7576f77b2d8988a6f)) ([Jason Rowsell](https://github.com/jasonrowsell))
+- **AWS Lambda:** Recognize `ap-southeast-4` Melbourne region ([#11700](https://github.com/serverless/serverless/issues/11700)) ([6591504](https://github.com/serverless/serverless/commit/6591504000f16974f83db1fb0b599fdacf688c52)) ([Sam Chung](https://github.com/samchungy))
+- Recognize `Fn::Base64` as CloudFormation instruction ([#11671](https://github.com/serverless/serverless/issues/11671)) ([f020bd8](https://github.com/serverless/serverless/commit/f020bd823905f012d2936a876e0ea841f5688883)) ([Ron Korving](https://github.com/mt-ronkorving))
+- Remove support for Serverless Tencent CLI ([#11658](https://github.com/serverless/serverless/issues/11658)) ([0a148b4](https://github.com/serverless/serverless/commit/0a148b444c535df262bf79111066df03216f2f58)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **AWS SQS:** Optimize IAM permissions generation ([#11685](https://github.com/serverless/serverless/issues/11685)) ([99cd9e6](https://github.com/serverless/serverless/commit/99cd9e69c14583c428c4fdb01496151c9582eb5b)) ([ROSeaboyer](https://github.com/ROSeaboyer))
+- **Console:** Improve warning message ([#117009](https://github.com/serverless/serverless/issues/11709)) ([2198799](https://github.com/serverless/serverless/commit/2198799f73e9fdbbdc377c8effcea8f1a933eff7)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [3.26.0](https://github.com/serverless/serverless/compare/v3.25.1...v3.26.0) (2022-12-22)
 
 ### Features
