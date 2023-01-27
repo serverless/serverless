@@ -102,6 +102,14 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
           },
         },
       },
+      {
+        schedule: { 'Fn::If': ['Condition', 'cron(0 0/4 ? * MON-FRI *)', 'rate(1 hour)'] },
+      },
+      {
+        schedule: {
+          rate: [{ 'Fn::If': ['Condition', 'cron(0 0/4 ? * MON-FRI *)', 'rate(1 hour)'] }],
+        },
+      },
     ];
 
     scheduleCfResources = await run(events);
