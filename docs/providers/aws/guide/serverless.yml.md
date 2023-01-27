@@ -286,7 +286,7 @@ provider:
       - '*/*'
     # Optional detailed Cloud Watch Metrics
     metrics: false
-    # Use `${service}-${stage}` naming for API Gateway. Will be `true` by default in v3.
+    # Use `${service}-${stage}` naming for API Gateway.
     shouldStartNameWithService: false
     resourcePolicy:
       - Effect: Allow
