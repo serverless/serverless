@@ -283,12 +283,12 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
 
     await expect(run([events[0]])).to.be.eventually.rejectedWith(
       ServerlessError,
-      'InputPath is not supported for Scheduler::Schedule resources'
+      'Cannot setup "schedule" event: "inputPath" is not supported with "scheduler" mode'
     );
 
     await expect(run([events[1]])).to.be.eventually.rejectedWith(
       ServerlessError,
-      'InputTransformer is not supported for Scheduler::Schedule resources'
+      'Cannot setup "schedule" event: "inputTransformer" is not supported with "scheduler" mode'
     );
   });
 
