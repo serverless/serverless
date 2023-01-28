@@ -337,6 +337,9 @@ describe('AwsCompileFunctions', () => {
           MemorySize: 1024,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
           Runtime: 'nodejs14.x',
+          RuntimeManagementConfig: {
+            UpdateRuntimeOn: 'Auto',
+          },
           Timeout: 6,
         },
       };
@@ -397,6 +400,9 @@ describe('AwsCompileFunctions', () => {
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
               Runtime: 'nodejs14.x',
+              RuntimeManagementConfig: {
+                UpdateRuntimeOn: 'Auto',
+              },
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: 'arn:aws:sns:region:accountid:foo',
@@ -448,6 +454,9 @@ describe('AwsCompileFunctions', () => {
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
               Runtime: 'nodejs14.x',
+              RuntimeManagementConfig: {
+                UpdateRuntimeOn: 'Auto',
+              },
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: {
@@ -490,6 +499,9 @@ describe('AwsCompileFunctions', () => {
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
               Runtime: 'nodejs14.x',
+              RuntimeManagementConfig: {
+                UpdateRuntimeOn: 'Auto',
+              },
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: {
@@ -532,6 +544,9 @@ describe('AwsCompileFunctions', () => {
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
               Runtime: 'nodejs14.x',
+              RuntimeManagementConfig: {
+                UpdateRuntimeOn: 'Auto',
+              },
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: {
@@ -574,6 +589,9 @@ describe('AwsCompileFunctions', () => {
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
               Runtime: 'nodejs14.x',
+              RuntimeManagementConfig: {
+                UpdateRuntimeOn: 'Auto',
+              },
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: 'arn:aws:sns:region:accountid:foo',
@@ -641,6 +659,9 @@ describe('AwsCompileFunctions', () => {
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
               Runtime: 'nodejs14.x',
+              RuntimeManagementConfig: {
+                UpdateRuntimeOn: 'Auto',
+              },
               Timeout: 6,
               TracingConfig: {
                 Mode: 'Active',
@@ -698,6 +719,9 @@ describe('AwsCompileFunctions', () => {
           MemorySize: 1024,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
           Runtime: 'nodejs14.x',
+          RuntimeManagementConfig: {
+            UpdateRuntimeOn: 'Auto',
+          },
           Timeout: 6,
           Environment: {
             Variables: {
@@ -765,6 +789,9 @@ describe('AwsCompileFunctions', () => {
           MemorySize: 128,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
           Runtime: 'nodejs14.x',
+          RuntimeManagementConfig: {
+            UpdateRuntimeOn: 'Auto',
+          },
           Timeout: 10,
         },
       };
@@ -864,6 +891,9 @@ describe('AwsCompileFunctions', () => {
           ReservedConcurrentExecutions: 5,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
           Runtime: 'nodejs14.x',
+          RuntimeManagementConfig: {
+            UpdateRuntimeOn: 'Auto',
+          },
           Timeout: 6,
         },
       };
@@ -920,6 +950,9 @@ describe('AwsCompileFunctions', () => {
           ReservedConcurrentExecutions: 0,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
           Runtime: 'nodejs14.x',
+          RuntimeManagementConfig: {
+            UpdateRuntimeOn: 'Auto',
+          },
           Timeout: 6,
         },
       };
@@ -993,6 +1026,9 @@ describe('AwsCompileFunctions', () => {
           MemorySize: 1024,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
           Runtime: 'nodejs14.x',
+          RuntimeManagementConfig: {
+            UpdateRuntimeOn: 'Auto',
+          },
           Timeout: 6,
         },
       };
@@ -1031,6 +1067,9 @@ describe('AwsCompileFunctions', () => {
           MemorySize: 1024,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
           Runtime: 'nodejs14.x',
+          RuntimeManagementConfig: {
+            UpdateRuntimeOn: 'Auto',
+          },
           Timeout: 6,
           Layers: ['arn:aws:xxx:*:*'],
         },
@@ -1118,6 +1157,10 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
             },
             memorySize: 4096,
             runtime: 'nodejs14.x',
+            runtimeManagement: {
+              mode: 'manual',
+              arn: 'arn:aws:lambda:us-east-1:111111111111::runtime:7b620fc2e66107a1046b140b9d320295811af3ad5d4c6a011fad1fa65127e9e6I',
+            },
             deploymentBucket: 'com.serverless.deploys',
             versionFunctions: false,
           },
@@ -1137,6 +1180,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               },
               memorySize: 2048,
               runtime: 'nodejs12.x',
+              runtimeManagement: 'auto',
               versionFunction: true,
             },
             fnFileSystemConfig: {
@@ -1331,6 +1375,24 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       const { Runtime } = cfResources[naming.getLambdaLogicalId('foo')].Properties;
 
       expect(Runtime).to.equal(fooFunctionConfig.runtime);
+    });
+
+    it('should support `provider.runtimeManagement`', () => {
+      const providerConfig = serviceConfig.provider;
+
+      const { UpdateRuntimeOn } =
+        cfResources[naming.getLambdaLogicalId('other')].Properties.RuntimeManagementConfig;
+
+      expect(UpdateRuntimeOn.toLowerCase()).to.equal(providerConfig.runtimeManagement.mode);
+    });
+
+    it('should prefer `functions[].runtimeManagement` over `provider.runtimeManagement`', () => {
+      const fooFunctionConfig = serviceConfig.functions.foo;
+
+      const { UpdateRuntimeOn } =
+        cfResources[naming.getLambdaLogicalId('foo')].Properties.RuntimeManagementConfig;
+
+      expect(UpdateRuntimeOn.toLowerCase()).to.equal(fooFunctionConfig.runtimeManagement);
     });
 
     it('should support `provider.versionFunctions: false`', () => {
