@@ -1348,12 +1348,10 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
     });
 
     it('should prefer `functions[].runtimeManagement` over `provider.runtimeManagement`', () => {
-      const fooFunctionConfig = serviceConfig.functions.foo;
-
       const { UpdateRuntimeOn } =
         cfResources[naming.getLambdaLogicalId('foo')].Properties.RuntimeManagementConfig;
 
-      expect(UpdateRuntimeOn.toLowerCase()).to.equal(fooFunctionConfig.runtimeManagement);
+      expect(UpdateRuntimeOn.toLowerCase()).to.equal('Function update');
     });
 
     it('should support `provider.versionFunctions: false`', () => {
