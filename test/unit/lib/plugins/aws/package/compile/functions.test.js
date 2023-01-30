@@ -1141,7 +1141,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               },
               memorySize: 2048,
               runtime: 'nodejs12.x',
-              runtimeManagement: 'auto',
+              runtimeManagement: 'onFunctionUpdate',
               versionFunction: true,
             },
             fnFileSystemConfig: {
