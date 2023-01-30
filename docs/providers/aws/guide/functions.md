@@ -25,6 +25,7 @@ service: myService
 provider:
   name: aws
   runtime: nodejs14.x
+  runtimeManagement: auto #optional, set how Lambda controls all functions runtime. AWS default is auto; this can either be 'auto' or 'onFunctionUpdate'. For 'manual', see example in hello function below (syntax for both is identical)
   memorySize: 512 # optional, in MB, default is 1024
   timeout: 10 # optional, in seconds, default is 6
   versionFunctions: false # optional, default is true
@@ -37,6 +38,9 @@ functions:
     name: ${sls:stage}-lambdaName # optional, Deployed Lambda name
     description: Description of what the lambda function does # optional, Description to publish to AWS
     runtime: python2.7 # optional overwrite, default is provider runtime
+    runtime:
+      mode: manual # syntax required for manual, mode property also supports 'auto' or 'onFunctionUpdate' (see provider.runtimeManagement)
+      arn: <aws runtime arn> # required when mode is manual
     memorySize: 512 # optional, in MB, default is 1024
     timeout: 10 # optional, in seconds, default is 6
     provisionedConcurrency: 3 # optional, Count of provisioned lambda instances
