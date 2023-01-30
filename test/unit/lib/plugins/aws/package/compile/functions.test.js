@@ -337,9 +337,6 @@ describe('AwsCompileFunctions', () => {
           MemorySize: 1024,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
           Runtime: 'nodejs14.x',
-          RuntimeManagementConfig: {
-            UpdateRuntimeOn: 'Auto',
-          },
           Timeout: 6,
         },
       };
@@ -400,9 +397,6 @@ describe('AwsCompileFunctions', () => {
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
               Runtime: 'nodejs14.x',
-              RuntimeManagementConfig: {
-                UpdateRuntimeOn: 'Auto',
-              },
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: 'arn:aws:sns:region:accountid:foo',
@@ -454,9 +448,6 @@ describe('AwsCompileFunctions', () => {
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
               Runtime: 'nodejs14.x',
-              RuntimeManagementConfig: {
-                UpdateRuntimeOn: 'Auto',
-              },
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: {
@@ -499,9 +490,6 @@ describe('AwsCompileFunctions', () => {
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
               Runtime: 'nodejs14.x',
-              RuntimeManagementConfig: {
-                UpdateRuntimeOn: 'Auto',
-              },
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: {
@@ -544,9 +532,6 @@ describe('AwsCompileFunctions', () => {
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
               Runtime: 'nodejs14.x',
-              RuntimeManagementConfig: {
-                UpdateRuntimeOn: 'Auto',
-              },
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: {
@@ -589,9 +574,6 @@ describe('AwsCompileFunctions', () => {
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
               Runtime: 'nodejs14.x',
-              RuntimeManagementConfig: {
-                UpdateRuntimeOn: 'Auto',
-              },
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: 'arn:aws:sns:region:accountid:foo',
@@ -659,9 +641,6 @@ describe('AwsCompileFunctions', () => {
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
               Runtime: 'nodejs14.x',
-              RuntimeManagementConfig: {
-                UpdateRuntimeOn: 'Auto',
-              },
               Timeout: 6,
               TracingConfig: {
                 Mode: 'Active',
@@ -719,9 +698,6 @@ describe('AwsCompileFunctions', () => {
           MemorySize: 1024,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
           Runtime: 'nodejs14.x',
-          RuntimeManagementConfig: {
-            UpdateRuntimeOn: 'Auto',
-          },
           Timeout: 6,
           Environment: {
             Variables: {
@@ -789,9 +765,6 @@ describe('AwsCompileFunctions', () => {
           MemorySize: 128,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
           Runtime: 'nodejs14.x',
-          RuntimeManagementConfig: {
-            UpdateRuntimeOn: 'Auto',
-          },
           Timeout: 10,
         },
       };
@@ -891,9 +864,6 @@ describe('AwsCompileFunctions', () => {
           ReservedConcurrentExecutions: 5,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
           Runtime: 'nodejs14.x',
-          RuntimeManagementConfig: {
-            UpdateRuntimeOn: 'Auto',
-          },
           Timeout: 6,
         },
       };
@@ -950,9 +920,6 @@ describe('AwsCompileFunctions', () => {
           ReservedConcurrentExecutions: 0,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
           Runtime: 'nodejs14.x',
-          RuntimeManagementConfig: {
-            UpdateRuntimeOn: 'Auto',
-          },
           Timeout: 6,
         },
       };
@@ -1026,9 +993,6 @@ describe('AwsCompileFunctions', () => {
           MemorySize: 1024,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
           Runtime: 'nodejs14.x',
-          RuntimeManagementConfig: {
-            UpdateRuntimeOn: 'Auto',
-          },
           Timeout: 6,
         },
       };
@@ -1067,9 +1031,6 @@ describe('AwsCompileFunctions', () => {
           MemorySize: 1024,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
           Runtime: 'nodejs14.x',
-          RuntimeManagementConfig: {
-            UpdateRuntimeOn: 'Auto',
-          },
           Timeout: 6,
           Layers: ['arn:aws:xxx:*:*'],
         },
