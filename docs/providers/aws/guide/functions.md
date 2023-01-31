@@ -38,7 +38,7 @@ functions:
     name: ${sls:stage}-lambdaName # optional, Deployed Lambda name
     description: Description of what the lambda function does # optional, Description to publish to AWS
     runtime: python2.7 # optional overwrite, default is provider runtime
-    runtime:
+    runtimeManagement:
       mode: manual # syntax required for manual, mode property also supports 'auto' or 'onFunctionUpdate' (see provider.runtimeManagement)
       arn: <aws runtime arn> # required when mode is manual
     memorySize: 512 # optional, in MB, default is 1024
