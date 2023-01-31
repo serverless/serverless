@@ -110,6 +110,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
           name: 'scheduler-scheduled-event',
           description: 'Scheduler Scheduled Event',
           input: '{"key":"array"}',
+          roleArn: 'arn:xxx',
         },
       },
       {
@@ -117,6 +118,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
           rate: 'cron(15 10 ? * SAT-SUN *)',
           enabled: false,
           method: 'scheduler',
+          roleArn: 'arn:xxx',
         },
       },
     ];
@@ -289,6 +291,28 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
     await expect(run([events[1]])).to.be.eventually.rejectedWith(
       ServerlessError,
       'Cannot setup "schedule" event: "inputTransformer" is not supported with "scheduler" mode'
+    );
+  });
+
+  it('should respect the roleArn variable for method:schedule resources', () => {
+    expect(scheduleCfResources[8].Properties.Target.RoleArn).to.equal('arn:xxx');
+    expect(scheduleCfResources[9].Properties.Target.RoleArn).to.equal('arn:xxx');
+  });
+
+  it('should throw when roleArn is not passed to method:schedule resources', async () => {
+    const event = {
+      schedule: {
+        schedule: {
+          rate: 'rate(15 minutes)',
+          method: 'scheduler',
+          inputPath: '$.stageVariables',
+        },
+      },
+    };
+
+    await expect(run([event])).to.be.eventually.rejectedWith(
+      ServerlessError,
+      'Cannot setup "schedule" event: parameter "roleArn" is required'
     );
   });
 
