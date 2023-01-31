@@ -269,12 +269,14 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
           rate: 'rate(15 minutes)',
           method: 'scheduler',
           inputPath: '$.stageVariables',
+          roleArn: 'arn:xxx',
         },
       },
       {
         schedule: {
           rate: 'rate(15 minutes)',
           method: 'scheduler',
+          roleArn: 'arn:xxx',
           inputTransformer: {
             inputPathsMap: { eventTime: '$.time' },
             inputTemplate: '{"time": <eventTime>, "key": "value"}',
@@ -302,11 +304,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
   it('should throw when roleArn is not passed to method:schedule resources', async () => {
     const event = {
       schedule: {
-        schedule: {
-          rate: 'rate(15 minutes)',
-          method: 'scheduler',
-          inputPath: '$.stageVariables',
-        },
+        rate: 'rate(15 minutes)',
+        method: 'scheduler',
+        inputPath: '$.stageVariables',
       },
     };
 
