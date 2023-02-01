@@ -402,6 +402,42 @@ functions:
     architecture: arm64
 ```
 
+## Runtime Management
+
+[Runtime Management](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html) allows for fine-grained control of the runtime being used for a lambda function in the rare event of compatibility issues with a function.
+
+For automatic updates, set `runtimeManagement` to `auto`, and set it to `onFunctionUpdate`
+
+To configure runtime management for all functions, configure `runtimeManagement` at `provider` level as follows:
+
+```yml
+provider:
+  ...
+  runtimeManagement: auto
+```
+
+To toggle instruction set architecture per function individually, set it directly at `functions[]` context:
+
+```yml
+functions:
+  hello:
+    ...
+    runtimeManagement: onFunctionUpdate
+```
+
+Alternatively, when wanting manual control, you can configure it as such (for both the provider configuration and per-function):
+
+```yml
+functions:
+  hello:
+    ...
+    runtimeManagement:
+      mode: manual
+      arn: <aws runtime arn>
+```
+
+Finally, `auto` and `onFunctionUpdate` can be set as the `mode` property as well for completedness (and to allow for the scenario where this value comes from another variable source, for example).
+
 ## SnapStart
 
 [Lambda SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html) for Java can improve startup performance for latency-sensitive applications.
