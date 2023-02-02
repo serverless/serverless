@@ -117,7 +117,7 @@ Some function settings can be defined for all functions inside the `provider` ke
 
 provider:
   runtime: nodejs14.x
-  runtimeManagement: auto #optional, set how Lambda controls all functions runtime. AWS default is auto; this can either be 'auto' or 'onFunctionUpdate'. For 'manual', see example in hello function below (syntax for both is identical
+  runtimeManagement: auto # optional, set how Lambda controls all functions runtime. AWS default is auto; this can either be 'auto' or 'onFunctionUpdate'. For 'manual', see example in hello function below (syntax for both is identical
   # Default memory size for functions (default: 1024MB)
   memorySize: 512
   # Default timeout for functions (default: 6 seconds)
