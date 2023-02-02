@@ -406,26 +406,17 @@ functions:
 
 [Runtime Management](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html) allows for fine-grained control of the runtime being used for a lambda function in the rare event of compatibility issues with a function.
 
-For automatic updates, set `runtimeManagement` to `auto`, and set it to `onFunctionUpdate`
+If you wish to keep `runtimeManagement` set to `auto`, that's the default so you don't need to specify it explicitly. If you wish for the runtime to only be updated when the function is redeployed, set it to `onFunctionUpdate`.
 
 To configure runtime management for all functions, configure `runtimeManagement` at `provider` level as follows:
 
 ```yml
 provider:
   ...
-  runtimeManagement: auto
+  runtimeManagement: onFunctionUpdate
 ```
 
 To toggle instruction set architecture per function individually, set it directly at `functions[]` context:
-
-```yml
-functions:
-  hello:
-    ...
-    runtimeManagement: onFunctionUpdate
-```
-
-Alternatively, when wanting manual control, you can configure it as such (for both the provider configuration and per-function):
 
 ```yml
 functions:
@@ -436,7 +427,7 @@ functions:
       arn: <aws runtime arn>
 ```
 
-Finally, `auto` and `onFunctionUpdate` can be set as the `mode` property as well for completedness (and to allow for the scenario where this value comes from another variable source, for example).
+Finally, `auto` and `onFunctionUpdate` can be set as the `mode` property as well for completeness (and to allow for the scenario where this value comes from another variable source, for example).
 
 ## SnapStart
 
