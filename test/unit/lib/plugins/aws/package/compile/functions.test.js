@@ -1118,6 +1118,10 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
             },
             memorySize: 4096,
             runtime: 'nodejs14.x',
+            runtimeManagement: {
+              mode: 'manual',
+              arn: 'arn:aws:lambda:us-east-1:111111111111::runtime:7b620fc2e66107a1046b140b9d320295811af3ad5d4c6a011fad1fa65127e9e6I',
+            },
             deploymentBucket: 'com.serverless.deploys',
             versionFunctions: false,
           },
@@ -1137,6 +1141,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               },
               memorySize: 2048,
               runtime: 'nodejs12.x',
+              runtimeManagement: 'onFunctionUpdate',
               versionFunction: true,
             },
             fnFileSystemConfig: {
@@ -1331,6 +1336,22 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       const { Runtime } = cfResources[naming.getLambdaLogicalId('foo')].Properties;
 
       expect(Runtime).to.equal(fooFunctionConfig.runtime);
+    });
+
+    it('should support `provider.runtimeManagement`', () => {
+      const providerConfig = serviceConfig.provider;
+
+      const { UpdateRuntimeOn } =
+        cfResources[naming.getLambdaLogicalId('other')].Properties.RuntimeManagementConfig;
+
+      expect(UpdateRuntimeOn.toLowerCase()).to.equal(providerConfig.runtimeManagement.mode);
+    });
+
+    it('should prefer `functions[].runtimeManagement` over `provider.runtimeManagement`', () => {
+      const { UpdateRuntimeOn } =
+        cfResources[naming.getLambdaLogicalId('foo')].Properties.RuntimeManagementConfig;
+
+      expect(UpdateRuntimeOn).to.equal('Function update');
     });
 
     it('should support `provider.versionFunctions: false`', () => {
