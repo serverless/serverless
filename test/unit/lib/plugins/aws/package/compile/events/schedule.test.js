@@ -40,6 +40,7 @@ async function run(events) {
 
       const scheduleLogicalId = awsNaming.getScheduleLogicalId('test', index);
       const scheduleCfResource = cfResources[scheduleLogicalId];
+      scheduleCfResource.serviceName = awsNaming.provider.serverless.service.service;
 
       scheduleCfResources.push(scheduleCfResource);
     }
@@ -110,7 +111,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
           name: 'scheduler-scheduled-event',
           description: 'Scheduler Scheduled Event',
           input: '{"key":"array"}',
-          roleArn: 'arn:xxx',
         },
       },
       {
@@ -118,7 +118,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
           rate: 'cron(15 10 ? * SAT-SUN *)',
           enabled: false,
           method: 'scheduler',
-          roleArn: 'arn:xxx',
         },
       },
       {
@@ -274,14 +273,12 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
           rate: 'rate(15 minutes)',
           method: 'scheduler',
           inputPath: '$.stageVariables',
-          roleArn: 'arn:xxx',
         },
       },
       {
         schedule: {
           rate: 'rate(15 minutes)',
           method: 'scheduler',
-          roleArn: 'arn:xxx',
           inputTransformer: {
             inputPathsMap: { eventTime: '$.time' },
             inputTemplate: '{"time": <eventTime>, "key": "value"}',
@@ -301,24 +298,43 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
     );
   });
 
-  it('should respect the roleArn variable for method:schedule resources', () => {
-    expect(scheduleCfResources[8].Properties.Target.RoleArn).to.equal('arn:xxx');
-    expect(scheduleCfResources[9].Properties.Target.RoleArn).to.equal('arn:xxx');
-  });
-
-  it('should throw when roleArn is not passed to method:schedule resources', async () => {
-    const event = {
-      schedule: {
-        rate: 'rate(15 minutes)',
-        method: 'scheduler',
-        inputPath: '$.stageVariables',
-      },
-    };
-
-    await expect(run([event])).to.be.eventually.rejectedWith(
-      ServerlessError,
-      'Cannot setup "schedule" event: parameter "roleArn" is required'
-    );
+  it('should pass the roleArn to method:schedule resources', () => {
+    expect(scheduleCfResources[8].Properties.Target.RoleArn).to.deep.equal({
+      'Fn::GetAtt': [
+        {
+          'Fn::Join': [
+            '-',
+            [
+              scheduleCfResources[8].serviceName,
+              'dev',
+              {
+                Ref: 'AWS::Region',
+              },
+              'lambdaRole',
+            ],
+          ],
+        },
+        'Arn',
+      ],
+    });
+    expect(scheduleCfResources[9].Properties.Target.RoleArn).to.deep.equal({
+      'Fn::GetAtt': [
+        {
+          'Fn::Join': [
+            '-',
+            [
+              scheduleCfResources[8].serviceName,
+              'dev',
+              {
+                Ref: 'AWS::Region',
+              },
+              'lambdaRole',
+            ],
+          ],
+        },
+        'Arn',
+      ],
+    });
   });
 
   it('should not create schedule resources when no scheduled event is given', async () => {
