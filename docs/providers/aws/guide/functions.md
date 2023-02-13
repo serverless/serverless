@@ -700,22 +700,22 @@ We're working on a fix so that SQS queue arns will be supported in the future.
 
 [AWS Lambda](https://serverless.com/aws-lambda/) uses [AWS Key Management Service (KMS)](https://aws.amazon.com/kms/) to encrypt your environment variables at rest.
 
-The `awsKmsKeyArn` config variable enables you a way to define your own KMS key which should be used for encryption.
+The `kmsKeyArn` config variable enables you a way to define your own KMS key which should be used for encryption.
 
 ```yml
 service:
   name: service-name
-  awsKmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
 
 provider:
   name: aws
+  kmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
   environment:
     TABLE_NAME: tableName1
 
 functions:
   hello: # this function will OVERWRITE the service level environment config above
     handler: handler.hello
-    awsKmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
+    kmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
     environment:
       TABLE_NAME: tableName2
   goodbye: # this function will INHERIT the service level environment config above
