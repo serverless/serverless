@@ -1,5 +1,4 @@
-'use strict';
-
+'use strict';;
 const path = require('path');
 const fs = require('fs');
 const fse = require('fs-extra');
@@ -10,7 +9,6 @@ const spawn = require('child-process-ext/spawn');
 const resolveAwsEnv = require('@serverless/test/resolve-aws-env');
 const hasFailed = require('@serverless/test/has-failed');
 const awsRequest = require('@serverless/test/aws-request');
-const CloudFormationService = require('aws-sdk').CloudFormation;
 const { getTmpDirPath } = require('./utils/fs');
 
 const serverlessExec = require('./serverless-binary');

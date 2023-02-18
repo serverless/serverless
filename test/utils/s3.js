@@ -1,7 +1,5 @@
-'use strict';
-
+'use strict';;
 const awsRequest = require('@serverless/test/aws-request');
-const S3Service = require('aws-sdk').S3;
 
 async function createBucket(bucket) {
   return awsRequest(S3Service, 'createBucket', { Bucket: bucket });

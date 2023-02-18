@@ -1,8 +1,6 @@
-'use strict';
-
+'use strict';;
 const _ = require('lodash');
 const awsRequest = require('@serverless/test/aws-request');
-const APIGatewayService = require('aws-sdk').APIGateway;
 
 async function createRestApi(name) {
   const params = {

@@ -1,7 +1,5 @@
-'use strict';
-
+'use strict';;
 const awsRequest = require('@serverless/test/aws-request');
-const CloudWatchLogsService = require('aws-sdk').CloudWatchLogs;
 const wait = require('timers-ext/promise/sleep');
 
 const logger = console;

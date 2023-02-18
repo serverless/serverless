@@ -1,15 +1,9 @@
-#!/usr/bin/env node
-
-'use strict';
-
-require('essentials');
+'use strict';;
+#!/usr/bin/env noderequire('essentials');
 require('log-node')();
 
 const log = require('log').get('serverless');
 const awsRequest = require('@serverless/test/aws-request');
-const CloudFormationService = require('aws-sdk').CloudFormation;
-const EC2Service = require('aws-sdk').EC2;
-const KafkaService = require('aws-sdk').Kafka;
 
 const {
   SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,

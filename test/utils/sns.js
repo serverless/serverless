@@ -1,7 +1,5 @@
-'use strict';
-
+'use strict';;
 const awsRequest = require('@serverless/test/aws-request');
-const SNSService = require('aws-sdk').SNS;
 
 async function createSnsTopic(topicName) {
   const params = {

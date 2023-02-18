@@ -1,7 +1,5 @@
-'use strict';
-
+'use strict';;
 const awsRequest = require('@serverless/test/aws-request');
-const ApiGatewayV2Service = require('aws-sdk').ApiGatewayV2;
 
 async function createApi(name) {
   return awsRequest(ApiGatewayV2Service, 'createApi', {

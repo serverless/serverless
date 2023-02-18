@@ -1,8 +1,6 @@
-'use strict';
-
+'use strict';;
 const awsLog = require('log').get('aws');
 const awsRequest = require('@serverless/test/aws-request');
-const CognitoIdentityServiceProviderService = require('aws-sdk').CognitoIdentityServiceProvider;
 
 async function createUserPool(name, config = {}) {
   const params = Object.assign({}, { PoolName: name }, config);

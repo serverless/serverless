@@ -1,7 +1,5 @@
-'use strict';
-
+'use strict';;
 const awsRequest = require('@serverless/test/aws-request');
-const EventBridgeService = require('aws-sdk').EventBridge;
 
 async function createEventBus(name) {
   return awsRequest(EventBridgeService, 'createEventBus', { Name: name });

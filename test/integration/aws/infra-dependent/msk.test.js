@@ -1,5 +1,4 @@
-'use strict';
-
+'use strict';;
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 const fixtures = require('../../../fixtures/programmatic');
@@ -10,8 +9,6 @@ const {
 } = require('../../../utils/cloudformation');
 
 const awsRequest = require('@serverless/test/aws-request');
-const LambdaService = require('aws-sdk').Lambda;
-const KafkaService = require('aws-sdk').Kafka;
 const crypto = require('crypto');
 const { deployService, removeService } = require('../../../utils/integration');
 

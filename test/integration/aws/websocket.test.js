@@ -1,9 +1,7 @@
-'use strict';
-
+'use strict';;
 const WebSocket = require('ws');
 const { expect } = require('chai');
 const awsRequest = require('@serverless/test/aws-request');
-const CloudFormationService = require('aws-sdk').CloudFormation;
 const log = require('log').get('serverless:test');
 const wait = require('timers-ext/promise/sleep');
 const fixtures = require('../../fixtures/programmatic');

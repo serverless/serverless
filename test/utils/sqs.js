@@ -1,7 +1,5 @@
-'use strict';
-
+'use strict';;
 const awsRequest = require('@serverless/test/aws-request');
-const SQSService = require('aws-sdk').SQS;
 
 async function createSqsQueue(queueName) {
   const params = {
