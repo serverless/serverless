@@ -119,7 +119,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         expect(createLogStatement.Action).to.be.deep.equal([
           'logs:CreateLogStream',
           'logs:CreateLogGroup',
-          'logs:TagResource'
+          'logs:TagResource',
         ]);
         expect(createLogStatement.Resource).to.deep.includes({
           'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/${service}-dev*:*`,
@@ -142,7 +142,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         expect(createLogStatement.Action).to.be.deep.equal([
           'logs:CreateLogStream',
           'logs:CreateLogGroup',
-          'logs:TagResource'
+          'logs:TagResource',
         ]);
         expect(createLogStatement.Resource).to.deep.includes({
           'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/myCustomName:*`,
