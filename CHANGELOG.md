@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.28.0](https://github.com/serverless/serverless/compare/v3.27.0...v3.28.0) (2023-02-28)
+
+### Features
+
+- **AWS Lambda:**
+  - Ensure `logs:TagResource` permission to IAM role ([#11766](https://github.com/serverless/serverless/issues/11766)) ([7410275](https://github.com/serverless/serverless/commit/7410275f66292a67a2d4972d43542f450a687477)) ([Martin Gerlach](https://github.com/mgerlach))
+  - Recognize CF functions at `.provisionedConcurrency` ([#11760](https://github.com/serverless/serverless/issues/11760)) ([56d8bec](https://github.com/serverless/serverless/commit/56d8bec84981952497e6db1858af80dd9cf224f1)) ([ROSeaboyer](https://github.com/ROSeaboyer))
+  - Support `runtimeManagement` config ([#11715](https://github.com/serverless/serverless/issues/11715)) ([18d4d69](https://github.com/serverless/serverless/commit/18d4d69eb3b1220814ab031690b6ef899280a93a)) ([ROSeaboyer](https://github.com/ROSeaboyer))
+- **AWS Schedule:** Support CF instrinsic functions at `.rate` ([#11714](https://github.com/serverless/serverless/issues/11714)) ([fc6bd57](https://github.com/serverless/serverless/commit/fc6bd57bbf18898976f6caa18e310cbd921a7270)) ([ROSeaboyer](https://github.com/ROSeaboyer))
+
+### Bug Fixes
+
+- **CLI Onboarding:** Don't crash if Dashboard server is inaccessible ([#11712](https://github.com/serverless/serverless/issues/11712)) ([983a3b9](https://github.com/serverless/serverless/commit/983a3b9be6af1e156b0793afbf19f1d81282e6d1)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [3.27.0](https://github.com/serverless/serverless/compare/v3.26.0...v3.27.0) (2023-01-26)
 
 ### Features
