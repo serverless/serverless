@@ -941,7 +941,12 @@ describe('test/unit/lib/plugins/aws/package/compile/events/cloudFront.test.js', 
       ).to.deep.include.members([
         {
           Effect: 'Allow',
-          Action: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+          Action: [
+            'logs:CreateLogGroup',
+            'logs:CreateLogStream',
+            'logs:PutLogEvents',
+            'logs:TagResource',
+          ],
           Resource: [{ 'Fn::Sub': 'arn:${AWS::Partition}:logs:*:*:*' }],
         },
       ]);

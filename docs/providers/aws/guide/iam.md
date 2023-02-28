@@ -196,6 +196,7 @@ resources:
                     - logs:CreateLogGroup
                     - logs:CreateLogStream
                     - logs:PutLogEvents
+                    - logs:TagResource
                   Resource:
                     - 'Fn::Join':
                       - ':'
@@ -260,6 +261,7 @@ resources:
                     - logs:CreateLogGroup
                     - logs:CreateLogStream
                     - logs:PutLogEvents
+                    - logs:TagResource
                   Resource:
                     - 'Fn::Join':
                       - ':'
@@ -298,6 +300,7 @@ resources:
                     - logs:CreateLogGroup
                     - logs:CreateLogStream
                     - logs:PutLogEvents
+                    - logs:TagResource
                   Resource:
                     - 'Fn::Join':
                       - ':'
@@ -358,6 +361,7 @@ resources:
                     - logs:CreateLogGroup
                     - logs:CreateLogStream
                     - logs:PutLogEvents
+                    - logs:TagResource
                   Resource:
                     - 'Fn::Join':
                       - ':'
@@ -397,6 +401,7 @@ resources:
                     - logs:CreateLogGroup
                     - logs:CreateLogStream
                     - logs:PutLogEvents
+                    - logs:TagResource
                   Resource:
                     - 'Fn::Join':
                       - ':'

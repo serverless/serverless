@@ -140,6 +140,7 @@ If you are create a custom IAM Role with this policy, you will need to add a Tru
                 "iam:UpdateAssumeRolePolicy",
                 "s3:DeleteBucketPolicy",
                 "logs:CreateLogGroup",
+                "logs:TagResource",
                 "cloudformation:DescribeStacks",
                 "lambda:UpdateFunctionCode",
                 "s3:PutObject",
