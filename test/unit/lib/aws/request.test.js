@@ -73,7 +73,7 @@ describe('#request', () => {
       }
     }
     const awsRequest = proxyquire('../../../../lib/aws/request', {
-      'aws-sdk': { S3: FakeS3 },
+      './sdk-v2': { S3: FakeS3 },
     });
     const res = await awsRequest({ name: 'S3' }, 'putObject');
     expect(res.called).to.equal(true);
@@ -90,7 +90,7 @@ describe('#request', () => {
       }
     }
     const awsRequest = proxyquire('../../../../lib/aws/request', {
-      'aws-sdk': { S3: FakeS3 },
+      './sdk-v2': { S3: FakeS3 },
     });
     const res = await awsRequest('S3', 'putObject', {});
     return expect(res.called).to.equal(true);
@@ -107,7 +107,7 @@ describe('#request', () => {
       }
     }
     const awsRequest = proxyquire('../../../../lib/aws/request', {
-      'aws-sdk': { DynamoDB: { DocumentClient } },
+      './sdk-v2': { DynamoDB: { DocumentClient } },
     });
     const res = await awsRequest({ name: 'DynamoDB.DocumentClient' }, 'put', {});
     return expect(res.called).to.equal(true);
@@ -128,7 +128,7 @@ describe('#request', () => {
       }
     }
     const awsRequest = proxyquire('../../../../lib/aws/request', {
-      'aws-sdk': { CloudFormation: FakeCloudFormation },
+      './sdk-v2': { CloudFormation: FakeCloudFormation },
     });
     const res = await awsRequest(
       { name: 'CloudFormation', params: { credentials: {}, region: 'ap-northeast-1' } },
@@ -156,7 +156,7 @@ describe('#request', () => {
         }
       }
       const awsRequest = proxyquire('../../../../lib/aws/request', {
-        'aws-sdk': { S3: FakeS3 },
+        './sdk-v2': { S3: FakeS3 },
         'timers-ext/promise/sleep': () => Promise.resolve(),
       });
       const res = await awsRequest({ name: 'S3' }, 'error');
@@ -181,7 +181,7 @@ describe('#request', () => {
         }
       }
       const awsRequest = proxyquire('../../../../lib/aws/request', {
-        'aws-sdk': { S3: FakeS3 },
+        './sdk-v2': { S3: FakeS3 },
         'timers-ext/promise/sleep': () => Promise.resolve(),
       });
       const res = await awsRequest({ name: 'S3' }, 'error');
@@ -209,7 +209,7 @@ describe('#request', () => {
         }
       }
       const awsRequest = proxyquire('../../../../lib/aws/request', {
-        'aws-sdk': { S3: FakeS3 },
+        './sdk-v2': { S3: FakeS3 },
       });
       expect(awsRequest({ name: 'S3' }, 'error')).to.be.rejected;
       return expect(sendFake.promise).to.have.been.calledOnce;
@@ -235,7 +235,7 @@ describe('#request', () => {
         }
       }
       const awsRequest = proxyquire('../../../../lib/aws/request', {
-        'aws-sdk': { S3: FakeS3 },
+        './sdk-v2': { S3: FakeS3 },
       });
       expect(awsRequest({ name: 'S3' }, 'error')).to.be.rejected;
       return expect(sendFake.promise).to.have.been.calledOnce;
@@ -257,7 +257,7 @@ describe('#request', () => {
         }
       }
       const awsRequest = proxyquire('../../../../lib/aws/request', {
-        'aws-sdk': { S3: FakeS3 },
+        './sdk-v2': { S3: FakeS3 },
       });
       await expect(awsRequest({ name: 'S3' }, 'test')).to.eventually.be.rejected.and.have.property(
         'code',
@@ -281,7 +281,7 @@ describe('#request', () => {
         }
       }
       const awsRequest = proxyquire('../../../../lib/aws/request', {
-        'aws-sdk': { S3: FakeS3 },
+        './sdk-v2': { S3: FakeS3 },
       });
       await expect(awsRequest({ name: 'S3' }, 'test')).to.eventually.be.rejected.and.have.property(
         'code',
@@ -310,7 +310,7 @@ describe('#request', () => {
       }
     }
     const awsRequest = proxyquire('../../../../lib/aws/request', {
-      'aws-sdk': { S3: FakeS3 },
+      './sdk-v2': { S3: FakeS3 },
     });
     return expect(awsRequest({ name: 'S3' }, 'error')).to.be.rejectedWith(awsErrorResponse.message);
   });
@@ -335,7 +335,7 @@ describe('#request', () => {
       }
     }
     const awsRequest = proxyquire('../../../../lib/aws/request', {
-      'aws-sdk': { S3: FakeS3 },
+      './sdk-v2': { S3: FakeS3 },
     });
     return expect(awsRequest({ name: 'S3' }, 'error')).to.be.rejectedWith(awsErrorResponse.code);
   });
@@ -353,7 +353,7 @@ describe('#request', () => {
       }
     }
     const awsRequest = proxyquire('../../../../lib/aws/request', {
-      'aws-sdk': { S3: FakeS3 },
+      './sdk-v2': { S3: FakeS3 },
     });
     const service = await awsRequest(
       { name: 'S3', params: { isS3TransferAccelerationEnabled: true } },
@@ -376,7 +376,7 @@ describe('#request', () => {
         }
       }
       const awsRequest = proxyquire('../../../../lib/aws/request', {
-        'aws-sdk': { CloudFormation: FakeCF },
+        './sdk-v2': { CloudFormation: FakeCF },
       });
       const numTests = 100;
       const executeRequest = () =>
@@ -414,7 +414,7 @@ describe('#request', () => {
       }
 
       const awsRequest = proxyquire('../../../../lib/aws/request', {
-        'aws-sdk': { CloudFormation: FakeCF },
+        './sdk-v2': { CloudFormation: FakeCF },
       });
 
       const executeRequestWithRegion = (region) =>
