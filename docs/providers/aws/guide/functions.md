@@ -630,8 +630,7 @@ functions:
       - arn:aws:lambda:region:XXXXXX:layer:LayerName:Y
 ```
 
-Layers can be used in combination with `runtime: provided` or `runtime: provided.al2` to implement your own custom runtime on
-AWS Lambda.
+Layers can be used in combination with `runtime: provided` or `runtime: provided.al2` to implement your own custom [runtime](#runtime) on AWS Lambda.
 
 To publish Lambda Layers, check out the [Layers](./layers.md) documentation.
 
