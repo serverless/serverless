@@ -88,7 +88,7 @@ functions:
             - a: [1, 2]
 ```
 
-## Setting the Maximum Concurrency
+## Setting the Maximum Concurrency
 
 The maximum concurrency setting limits the number of concurrent instances of the function that an Amazon SQS event source can invoke. The minimum limit of concurrent functions that the event source can invoke is `2`, and the maximum is `1000`. To turn off maximum concurrency, leave this field empty.
 
