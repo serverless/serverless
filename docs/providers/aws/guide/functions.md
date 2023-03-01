@@ -406,6 +406,23 @@ functions:
 
 The `runtime` configuration is required and specifies which [AWS Runtime](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html) your functions use. If you set `runtime` to `provided` or `provided.al2`, include your provided runtime as a [layer](#layers). 
 
+You can configure `runtime` for all functions at the `provider` level:
+
+```yml
+provider:
+  ...
+  runtime: nodejs14.x
+```
+
+To set the `runtime` per function individually, set it directly at `functions[]` context:
+
+```yml
+functions:
+  hello:
+    ...
+    runtime: python3.9
+```
+
 
 ## Runtime Management
 
