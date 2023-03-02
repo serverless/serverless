@@ -404,7 +404,7 @@ functions:
 
 ## Runtime
 
-The `runtime` configuration is required and specifies which [AWS Runtime](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html) your functions use. If you set `runtime` to `provided` or `provided.al2`, include your provided runtime as a [layer](#layers). 
+The `runtime` configuration specifies which [AWS Runtime](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html) your functions use. If you set `runtime` to `provided` or `provided.al2`, include your provided runtime as a [layer](#layers). 
 
 You can configure `runtime` for all functions at the `provider` level:
 
