@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.28.1](https://github.com/serverless/serverless/compare/v3.28.0...v3.28.1) (2023-03-02)
+
+### Maintenance Improvements
+
+- Supress AWS SDK v2 deprecation message ([#11769](https://github.com/serverless/serverless/issues/11769)) ([74c3ae0](https://github.com/serverless/serverless/commit/74c3ae004c7166c76fe5355a778fe1f5f9c401b0)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [3.28.0](https://github.com/serverless/serverless/compare/v3.27.0...v3.28.0) (2023-02-28)
 
 ### Features
