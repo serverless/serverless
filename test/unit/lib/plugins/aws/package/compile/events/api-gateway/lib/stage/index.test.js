@@ -408,7 +408,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/stage/
     });
   });
 
-  it.only('should use stage name from provider if provider.apiGateway.stage is configured', async () => {
+  it('should use stage name from provider if provider.apiGateway.stage is configured', async () => {
     // https://github.com/serverless/serverless/issues/11675
     const { cfTemplate, awsNaming } = await runServerless({
       fixture: 'api-gateway',
@@ -421,7 +421,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/stage/
         },
       },
     });
-    expect(cfTemplate).to.be.ok;
     expect(awsNaming.provider.getApiGatewayStage()).to.equal('foo');
     const [apiGatewayDeploymentKey] = Object.keys(cfTemplate.Resources).filter((k) =>
       k.startsWith('ApiGatewayDeployment')
