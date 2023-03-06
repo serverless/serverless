@@ -29,7 +29,7 @@ There are just a few situations (listed below) in which it is fine to submit PR 
 - Obvious bug fix
 - Maintenance improvement
 
-In all other cases please check if there's an open an issue discussing the given proposal, if there is not, create an issue respecting all its template remarks.
+In all other cases please check if there's an open issue discussing the given proposal, if there is not, create an issue respecting all its template remarks.
 
 In non-trivial cases please propose and let us review an implementation spec (in the corresponding issue) before jumping into implementation.
 
