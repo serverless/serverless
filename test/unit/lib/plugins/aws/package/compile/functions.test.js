@@ -1351,7 +1351,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       const { UpdateRuntimeOn } =
         cfResources[naming.getLambdaLogicalId('foo')].Properties.RuntimeManagementConfig;
 
-      expect(UpdateRuntimeOn).to.equal('Function update');
+      expect(UpdateRuntimeOn).to.equal('FunctionUpdate');
     });
 
     it('should support `provider.versionFunctions: false`', () => {
