@@ -57,6 +57,7 @@
     "lodash": "^4.17.21",
     "memoizee": "^0.4.15",
     "micromatch": "^4.0.5",
+    "ms": "^2.1.3",
     "node-fetch": "^2.6.9",
     "npm-registry-utilities": "^1.0.0",
     "object-hash": "^3.0.0",
