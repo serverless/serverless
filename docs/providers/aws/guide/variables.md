@@ -85,7 +85,7 @@ custom:
   # the following example purposely demonstrates the ability for a variable to cross reference another one
   serviceName: ${self:service}
   exportName: ${self:custom.serviceName}-export
-  # or simply 
+  # or simply
   # exportName: ${self:service}-export
 
 functions:
