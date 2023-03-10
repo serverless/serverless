@@ -221,7 +221,7 @@ describe('#compileAuthorizers()', () => {
 });
 
 describe('#compileAuthorizers() #2', () => {
-  it('Should reference provisioned alias when pointing local lambda authorizer', () =>
+  it('Should reference provisioned alias when pointing local lambda authorizer', async () =>
     runServerless({
       fixture: 'function',
       configExt: {

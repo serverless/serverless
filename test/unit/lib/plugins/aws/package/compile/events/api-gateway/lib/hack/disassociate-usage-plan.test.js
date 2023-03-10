@@ -62,7 +62,7 @@ describe('#disassociateUsagePlan()', () => {
     awsProvider.request.restore();
   });
 
-  it('should remove association from the usage plan', () => {
+  it('should remove association from the usage plan', async () => {
     disassociateUsagePlan.serverless.service.provider.apiGateway = { apiKeys: ['apiKey1'] };
 
     return disassociateUsagePlan.disassociateUsagePlan().then(() => {
@@ -94,7 +94,7 @@ describe('#disassociateUsagePlan()', () => {
     });
   });
 
-  it('should resolve if no api keys are given', () => {
+  it('should resolve if no api keys are given', async () => {
     disassociateUsagePlan.serverless.service.provider.apiGateway = { apiKeys: [] };
 
     return disassociateUsagePlan.disassociateUsagePlan().then(() => {

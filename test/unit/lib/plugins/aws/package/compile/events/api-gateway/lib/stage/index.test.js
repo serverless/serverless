@@ -60,7 +60,7 @@ describe('#compileStage()', () => {
       };
     });
 
-    it.skip('should create a dedicated stage resource if tracing is configured', () =>
+    it.skip('should create a dedicated stage resource if tracing is configured', async () =>
       awsCompileApigEvents.compileStage().then(() => {
         const resources =
           awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources;
@@ -85,7 +85,7 @@ describe('#compileStage()', () => {
         });
       }));
 
-    it('should NOT create a dedicated stage resource if tracing is not enabled', () => {
+    it('should NOT create a dedicated stage resource if tracing is not enabled', async () => {
       awsCompileApigEvents.serverless.service.provider.tracing = {};
 
       return awsCompileApigEvents.compileStage().then(() => {
@@ -105,7 +105,7 @@ describe('#compileStage()', () => {
   });
 
   describe('tags', () => {
-    it.skip('should create a dedicated stage resource if provider.stackTags is configured', () => {
+    it.skip('should create a dedicated stage resource if provider.stackTags is configured', async () => {
       awsCompileApigEvents.serverless.service.provider.stackTags = {
         foo: '1',
       };
@@ -134,7 +134,7 @@ describe('#compileStage()', () => {
       });
     });
 
-    it.skip('should create a dedicated stage resource if provider.tags is configured', () => {
+    it.skip('should create a dedicated stage resource if provider.tags is configured', async () => {
       awsCompileApigEvents.serverless.service.provider.tags = {
         foo: '1',
       };
@@ -163,7 +163,7 @@ describe('#compileStage()', () => {
       });
     });
 
-    it.skip('should override provider.stackTags by provider.tags', () => {
+    it.skip('should override provider.stackTags by provider.tags', async () => {
       awsCompileApigEvents.serverless.service.provider.stackTags = {
         foo: 'from-stackTags',
         bar: 'from-stackTags',
@@ -209,7 +209,7 @@ describe('#compileStage()', () => {
       };
     });
 
-    it.skip('should create a dedicated stage resource if logs are configured', () =>
+    it.skip('should create a dedicated stage resource if logs are configured', async () =>
       awsCompileApigEvents.compileStage().then(() => {
         const resources =
           awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources;
@@ -250,7 +250,7 @@ describe('#compileStage()', () => {
         });
       }));
 
-    it('should create a Log Group resource', () => {
+    it('should create a Log Group resource', async () => {
       return awsCompileApigEvents.compileStage().then(() => {
         const resources =
           awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources;
@@ -264,7 +264,7 @@ describe('#compileStage()', () => {
       });
     });
 
-    it('should set log retention if provider.logRetentionInDays is set', () => {
+    it('should set log retention if provider.logRetentionInDays is set', async () => {
       serverless.service.provider.logRetentionInDays = 30;
 
       return awsCompileApigEvents.compileStage().then(() => {
@@ -281,7 +281,7 @@ describe('#compileStage()', () => {
       });
     });
 
-    it('should ensure CloudWatch role custom resource', () => {
+    it('should ensure CloudWatch role custom resource', async () => {
       return awsCompileApigEvents.compileStage().then(() => {
         const resources =
           awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources;
@@ -296,7 +296,7 @@ describe('#compileStage()', () => {
       });
     });
 
-    it('should skip CloudWatch role custom resource when restApi.roleManagedExternally is set', () => {
+    it('should skip CloudWatch role custom resource when restApi.roleManagedExternally is set', async () => {
       awsCompileApigEvents.serverless.service.provider.logs.restApi = {
         roleManagedExternally: true,
       };
