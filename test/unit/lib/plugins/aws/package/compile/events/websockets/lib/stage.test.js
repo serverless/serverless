@@ -39,7 +39,7 @@ describe('#compileStage()', () => {
       awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
   });
 
-  it('should create a stage resource if no websocketApiId specified', () =>
+  it('should create a stage resource if no websocketApiId specified', async () =>
     awsCompileWebsocketsEvents.compileStage().then(() => {
       const resources =
         awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
@@ -57,7 +57,7 @@ describe('#compileStage()', () => {
       );
     }));
 
-  it('should not create a stage resource if a websocketApiId is specified', () => {
+  it('should not create a stage resource if a websocketApiId is specified', async () => {
     awsCompileWebsocketsEvents.serverless.service.provider.apiGateway = {
       websocketApiId: 'xyz123abc',
     };
@@ -81,7 +81,7 @@ describe('#compileStage()', () => {
       };
     });
 
-    it('should create a dedicated stage resource if logs are configured', () =>
+    it('should create a dedicated stage resource if logs are configured', async () =>
       awsCompileWebsocketsEvents.compileStage().then(() => {
         const resources =
           awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
@@ -117,7 +117,7 @@ describe('#compileStage()', () => {
         });
       }));
 
-    it('should create a Log Group resource', () =>
+    it('should create a Log Group resource', async () =>
       awsCompileWebsocketsEvents.compileStage().then(() => {
         const resources =
           awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
@@ -131,7 +131,7 @@ describe('#compileStage()', () => {
         });
       }));
 
-    it('should set a RetentionInDays in a Log Group if provider has logRetentionInDays', () => {
+    it('should set a RetentionInDays in a Log Group if provider has logRetentionInDays', async () => {
       awsCompileWebsocketsEvents.serverless.service.provider.logRetentionInDays = 42;
 
       return awsCompileWebsocketsEvents.compileStage().then(() => {
@@ -149,7 +149,7 @@ describe('#compileStage()', () => {
       });
     });
 
-    it('should use valid logging level', () => {
+    it('should use valid logging level', async () => {
       awsCompileWebsocketsEvents.serverless.service.provider.logs = {
         websocket: {
           level: 'ERROR',
@@ -177,7 +177,7 @@ describe('#compileStage()', () => {
       expect(awsCompileWebsocketsEvents.compileStage()).to.be.rejectedWith('invalid value');
     });
 
-    it('should ensure ClousWatch role custom resource', () => {
+    it('should ensure ClousWatch role custom resource', async () => {
       return awsCompileWebsocketsEvents.compileStage().then(() => {
         const resources =
           awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
@@ -200,7 +200,7 @@ describe('lib/plugins/aws/package/compile/events/websockets/lib/stage.test.js', 
     let resource;
     const customLogFormat = ['$context.identity.sourceIp', '$context.requestId'].join(' ');
 
-    before(() =>
+    before(async () =>
       runServerless({
         fixture: 'websocket',
         configExt: {

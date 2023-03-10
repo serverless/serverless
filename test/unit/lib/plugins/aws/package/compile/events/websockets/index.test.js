@@ -80,7 +80,7 @@ describe('AwsCompileWebsocketsEvents', () => {
         awsCompileWebsocketsEvents.validate.restore();
       });
 
-      it('should run the promise chain in order', () => {
+      it('should run the promise chain in order', async () => {
         const validateStub = sinon.stub(awsCompileWebsocketsEvents, 'validate').returns({
           events: [
             {
