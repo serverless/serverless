@@ -46,6 +46,14 @@ describe('test/unit/lib/plugins/aws/package/lib/stripNullPropsFromTemplateResour
                 Runtime: 'nodejs12.x',
               },
             },
+            resourceWithEmptyProperties: {
+              Type: 'AWS::S3::Bucket',
+              Properties: {},
+            },
+            resourceWithNullProperties: {
+              Type: 'AWS::S3::Bucket',
+              Properties: null,
+            },
           },
         },
       },
@@ -65,5 +73,26 @@ describe('test/unit/lib/plugins/aws/package/lib/stripNullPropsFromTemplateResour
 
   it('Should not affect resources without null props', async () => {
     expect(Object.keys(finalTemplate.Resources.anotherBucket.Properties).length).to.equal(1);
+  });
+
+  it('Should leave Properties as is if it is an empty object', async () => {
+    expect(
+      Object.prototype.hasOwnProperty.call(
+        finalTemplate.Resources.resourceWithEmptyProperties,
+        'Properties'
+      )
+    ).to.equal(true);
+    expect(
+      Object.keys(finalTemplate.Resources.resourceWithEmptyProperties.Properties).length
+    ).to.equal(0);
+  });
+
+  it('Should strip out Properties if it is defined with null value', async () => {
+    expect(
+      Object.prototype.hasOwnProperty.call(
+        finalTemplate.Resources.resourceWithNullProperties,
+        'Properties'
+      )
+    ).to.equal(false);
   });
 });
