@@ -34,8 +34,51 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alias.test.js', () =>
             conditions: { path: '/' },
           },
         },
-        { httpApi: `POST /users/create${index}` },
-        { http: { path: '/{proxy+}', method: 'any' } },
+        { httpApi: { path: `/httpApi/noAuth/${index}`, method: 'POST' } },
+        {
+          httpApi: {
+            path: `/httpApi/provisionedAuth/${index}`,
+            method: 'POST',
+            authorizer: { name: 'ProvisionedFnAuthorizer' },
+          },
+        },
+        {
+          httpApi: {
+            path: `/httpApi/snapStartAuth/${index}`,
+            method: 'POST',
+            authorizer: { name: 'SnapStartFnAuthorizer' },
+          },
+        },
+        {
+          httpApi: {
+            path: `/httpApi/noAliasAuth/${index}`,
+            method: 'POST',
+            authorizer: { name: 'NoAliasFnAuthorizer' },
+          },
+        },
+        { http: { path: `/http/noAuth/${index}`, method: 'POST' } },
+        {
+          http: {
+            path: `/http/provisionedAuth/${index}`,
+            method: 'POST',
+            authorizer: { name: 'ProvisionedFn' },
+          },
+        },
+        {
+          http: {
+            path: `/http/snapStartAuth/${index}`,
+            method: 'POST',
+            authorizer: { name: 'SnapStartFn' },
+          },
+        },
+        {
+          http: {
+            path: `/http/noAliasAuth/${index}`,
+            method: 'POST',
+            authorizer: { name: 'NoAliasFn' },
+          },
+        },
+
         { schedule: { rate: 'rate(10 minutes)' } },
         { sns: `Topic${index}` },
         {
@@ -104,6 +147,25 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alias.test.js', () =>
     const { cfTemplate } = await runServerless({
       fixture: 'function',
       configExt: {
+        provider: {
+          name: 'aws',
+          httpApi: {
+            authorizers: {
+              ProvisionedFnAuthorizer: {
+                type: 'request',
+                functionName: 'ProvisionedFn',
+              },
+              SnapStartFnAuthorizer: {
+                type: 'request',
+                functionName: 'SnapStartFn',
+              },
+              NoAliasFnAuthorizer: {
+                type: 'request',
+                functionName: 'NoAliasFn',
+              },
+            },
+          },
+        },
         functions: {
           ProvisionedFn: {
             handler: 'index.handler',
@@ -132,7 +194,14 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alias.test.js', () =>
         uri['Fn::Join'][0] === '' &&
         uri['Fn::Join'][1][2] === ':apigateway:'
       ) {
-        return uri['Fn::Join'][1][5];
+        const base = uri['Fn::Join'][1][5];
+        // Support both embedded Fn::Join format and expanded
+        if (base['Fn::GetAtt'] && uri['Fn::Join'][1][6] === ':') {
+          return {
+            'Fn::Join': [':', [base, uri['Fn::Join'][1][7]]],
+          };
+        }
+        return base;
       }
       return uri;
     };
@@ -154,6 +223,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alias.test.js', () =>
       'AWS::Cognito::UserPool': (r) => r.Properties.LambdaConfig.CustomSMSSender.LambdaArn,
       'AWS::ApiGateway::Method': (r) => unwrapApiGateway(r.Properties.Integration.Uri),
       'AWS::IoT::TopicRule': (r) => r.Properties.TopicRulePayload.Actions[0].Lambda.FunctionArn,
+      'AWS::ApiGateway::Authorizer': (r) => unwrapApiGateway(r.Properties.AuthorizerUri),
     };
 
     const functionsToCheck = [

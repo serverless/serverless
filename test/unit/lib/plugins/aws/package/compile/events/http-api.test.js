@@ -460,6 +460,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     it('should configure authorizer resource that references function from service', () => {
       expect(cfResources[naming.getHttpApiAuthorizerLogicalId('someAuthorizer')]).to.deep.equal({
         Type: 'AWS::ApiGatewayV2::Authorizer',
+        DependsOn: undefined,
         Properties: {
           ApiId: { Ref: naming.getHttpApiLogicalId() },
           AuthorizerPayloadFormatVersion: '2.0',
@@ -534,6 +535,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
         cfResources[naming.getHttpApiAuthorizerLogicalId('authorizerWithExternalFunction')]
       ).to.deep.equal({
         Type: 'AWS::ApiGatewayV2::Authorizer',
+        DependsOn: undefined,
         Properties: {
           ApiId: { Ref: naming.getHttpApiLogicalId() },
           AuthorizerPayloadFormatVersion: '2.0',
