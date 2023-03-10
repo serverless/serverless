@@ -3,7 +3,6 @@
 const AWS = require('aws-sdk');
 const fse = require('fs-extra');
 const fsp = require('fs').promises;
-const _ = require('lodash');
 const path = require('path');
 const chai = require('chai');
 const sinon = require('sinon');
@@ -826,7 +825,7 @@ describe('AwsCompileFunctions', () => {
 
       return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
         let versionDescription;
-        for (const [key, value] of _.entries(
+        for (const [key, value] of Object.entries(
           awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
         )) {
           if (key.startsWith('FuncLambdaVersion')) {
