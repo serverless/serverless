@@ -54,6 +54,9 @@ describe('test/unit/lib/plugins/aws/package/lib/stripNullPropsFromTemplateResour
               Type: 'AWS::S3::Bucket',
               Properties: null,
             },
+            resourceWithNoProperties: {
+              Type: 'AWS::S3::Bucket',
+            },
           },
         },
       },
@@ -91,6 +94,15 @@ describe('test/unit/lib/plugins/aws/package/lib/stripNullPropsFromTemplateResour
     expect(
       Object.prototype.hasOwnProperty.call(
         finalTemplate.Resources.resourceWithNullProperties,
+        'Properties'
+      )
+    ).to.equal(false);
+  });
+
+  it('Should skip if Properties is not defined', async () => {
+    expect(
+      Object.prototype.hasOwnProperty.call(
+        finalTemplate.Resources.resourceWithNoProperties,
         'Properties'
       )
     ).to.equal(false);
