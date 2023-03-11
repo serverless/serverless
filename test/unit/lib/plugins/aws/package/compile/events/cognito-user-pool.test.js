@@ -426,7 +426,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
   });
 
   describe('#existingCognitoUserPools()', () => {
-    it('should create the necessary resources for the most minimal configuration', () => {
+    it('should create the necessary resources for the most minimal configuration', async () => {
       awsCompileCognitoUserPoolEvents.serverless.service.functions = {
         first: {
           name: 'first',
@@ -523,7 +523,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
       expect(typeof customResource.Properties.ForceDeploy).to.equal('number');
     });
 
-    it('should create the necessary resources for a service using multiple event definitions', () => {
+    it('should create the necessary resources for a service using multiple event definitions', async () => {
       awsCompileCognitoUserPoolEvents.serverless.service.functions = {
         first: {
           name: 'first',
@@ -612,7 +612,7 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
       });
     });
 
-    it('should create DependsOn clauses when one cognito user pool is used in more than 1 custom resources', () => {
+    it('should create DependsOn clauses when one cognito user pool is used in more than 1 custom resources', async () => {
       awsCompileCognitoUserPoolEvents.serverless.service.functions = {
         first: {
           name: 'first',
