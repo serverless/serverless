@@ -5,7 +5,7 @@ const BbPromise = require('bluebird');
 const resolveCfImportValue = require('../../../../../../lib/plugins/aws/utils/resolve-cf-import-value');
 
 describe('#resolveCfImportValue', () => {
-  it('should return matching exported value if found', () => {
+  it('should return matching exported value if found', async () => {
     const provider = {
       request: () =>
         BbPromise.resolve({
