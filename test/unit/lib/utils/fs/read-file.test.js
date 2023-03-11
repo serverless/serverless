@@ -35,13 +35,10 @@ describe('#readFile()', () => {
     );
   });
 
-  it('should throw YAMLException with filename if yml file is invalid format', () => {
+  it('should throw YAMLException with filename if yml file is invalid format', async () => {
     const tmpFilePath = getTmpFilePath('invalid.yml');
-    return writeFile(tmpFilePath, ': a')
-      .then(() => readFile(tmpFilePath))
-      .catch((e) => {
-        expect(e.name).to.equal('YAMLException');
-        expect(e.message).to.match(new RegExp('.*invalid.yml'));
-      });
+    await expect(writeFile(tmpFilePath, ': a').then(() => readFile(tmpFilePath)))
+      .to.eventually.be.rejectedWith(/.*invalid.yml/)
+      .and.have.property('name', 'YAMLException');
   });
 });

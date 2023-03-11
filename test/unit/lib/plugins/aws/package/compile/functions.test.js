@@ -2315,43 +2315,46 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
   });
 
   describe('Validation', () => {
-    it('should throw error when `functions[].fileSystemConfig` is configured with no vpc', () => {
-      return runServerless({
-        fixture: 'function',
-        configExt: {
-          functions: {
-            basic: {
-              fileSystemConfig: {
-                localMountPath: '/mnt/path',
-                arn: 'arn:aws:elasticfilesystem:us-east-1:111111111111:access-point/fsap-a1a1a1a1a1a1a1a1a',
+    it('should throw error when `functions[].fileSystemConfig` is configured with no vpc', async () => {
+      await expect(
+        runServerless({
+          fixture: 'function',
+          configExt: {
+            functions: {
+              basic: {
+                fileSystemConfig: {
+                  localMountPath: '/mnt/path',
+                  arn: 'arn:aws:elasticfilesystem:us-east-1:111111111111:access-point/fsap-a1a1a1a1a1a1a1a1a',
+                },
               },
             },
           },
-        },
-        command: 'package',
-      }).catch((error) => {
-        expect(error).to.have.property('code', 'LAMBDA_FILE_SYSTEM_CONFIG_MISSING_VPC');
-      });
+          command: 'package',
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'LAMBDA_FILE_SYSTEM_CONFIG_MISSING_VPC'
+      );
     });
 
-    it('should throw error when `SnapStart` and `ProvisionedConcurrency` is enabled on the function', () => {
-      return runServerless({
-        fixture: 'function',
-        configExt: {
-          functions: {
-            basic: {
-              snapStart: true,
-              provisionedConcurrency: 10,
+    it('should throw error when `SnapStart` and `ProvisionedConcurrency` is enabled on the function', async () => {
+      expect(
+        runServerless({
+          fixture: 'function',
+          configExt: {
+            functions: {
+              basic: {
+                snapStart: true,
+                provisionedConcurrency: 10,
+              },
             },
           },
-        },
-        command: 'package',
-      }).catch((error) => {
-        expect(error).to.have.property(
-          'code',
-          'FUNCTION_BOTH_PROVISIONED_CONCURRENCY_AND_SNAPSTART_ENABLED_ERROR'
-        );
-      });
+          command: 'package',
+        })
+      ).to.eventually.be.rejected.and.have.property(
+        'code',
+        'FUNCTION_BOTH_PROVISIONED_CONCURRENCY_AND_SNAPSTART_ENABLED_ERROR'
+      );
     });
   });
 

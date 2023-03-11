@@ -1,11 +1,14 @@
 'use strict';
 
-const expect = require('chai').expect;
+const chai = require('chai');
 const sinon = require('sinon');
 const Serverless = require('../../../../../lib/serverless');
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
 const CLI = require('../../../../../lib/classes/cli');
 const proxyquire = require('proxyquire');
+
+chai.use(require('chai-as-promised'));
+const expect = require('chai').expect;
 
 describe('AwsRollbackFunction', () => {
   let serverless;
@@ -120,20 +123,21 @@ describe('AwsRollbackFunction', () => {
         awsRollbackFunction.provider.request.restore();
       });
 
-      it('should translate the error message to a custom error message', () => {
+      it('should translate the error message to a custom error message', async () => {
         awsRollbackFunction.options.function = 'hello';
         awsRollbackFunction.options['function-version'] = '4711';
 
-        return awsRollbackFunction.getFunctionToBeRestored().catch((error) => {
-          expect(error.message.match(/Function "hello" with version "4711" not found/));
-          expect(getFunctionStub.calledOnce).to.equal(true);
-          expect(
-            getFunctionStub.calledWithExactly('Lambda', 'getFunction', {
-              FunctionName: 'service-dev-hello',
-              Qualifier: '4711',
-            })
-          ).to.equal(true);
-        });
+        await expect(awsRollbackFunction.getFunctionToBeRestored())
+          .to.eventually.be.rejectedWith('Function "hello" with version "4711" not found')
+          .then(() => {
+            expect(getFunctionStub.calledOnce).to.equal(true);
+            expect(
+              getFunctionStub.calledWithExactly('Lambda', 'getFunction', {
+                FunctionName: 'service-dev-hello',
+                Qualifier: '4711',
+              })
+            ).to.equal(true);
+          });
       });
     });
 
@@ -154,16 +158,17 @@ describe('AwsRollbackFunction', () => {
         awsRollbackFunction.options.function = 'hello';
         awsRollbackFunction.options['function-version'] = '4711';
 
-        return awsRollbackFunction.getFunctionToBeRestored().catch((error) => {
-          expect(error.message.match(/something went wrong/));
-          expect(getFunctionStub.calledOnce).to.equal(true);
-          expect(
-            getFunctionStub.calledWithExactly('Lambda', 'getFunction', {
-              FunctionName: 'service-dev-hello',
-              Qualifier: '4711',
-            })
-          ).to.equal(true);
-        });
+        expect(awsRollbackFunction.getFunctionToBeRestored())
+          .to.eventually.be.rejectedWith('something went wrong')
+          .then(() => {
+            expect(getFunctionStub.calledOnce).to.equal(true);
+            expect(
+              getFunctionStub.calledWithExactly('Lambda', 'getFunction', {
+                FunctionName: 'service-dev-hello',
+                Qualifier: '4711',
+              })
+            ).to.equal(true);
+          });
       });
     });
   });

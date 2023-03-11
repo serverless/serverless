@@ -118,19 +118,19 @@ describe('AwsRollback', () => {
       });
     });
 
-    it('should reject in case no deployments are available', () => {
+    it('should reject in case no deployments are available', async () => {
       const s3Response = {
         Contents: [],
       };
       const listObjectsStub = sinon.stub(awsRollback.provider, 'request').resolves(s3Response);
 
-      return awsRollback
-        .setStackToUpdate()
-        .then(() => {
+      await expect(
+        awsRollback.setStackToUpdate().then(() => {
           assert.isNotOk(true, 'setStackToUpdate should not resolve');
         })
-        .catch((error) => {
-          expect(error.code).to.equal('ROLLBACK_DEPLOYMENTS_NOT_FOUND');
+      )
+        .to.eventually.be.rejected.and.have.property('code', 'ROLLBACK_DEPLOYMENTS_NOT_FOUND')
+        .then(() => {
           expect(listObjectsStub.calledOnce).to.be.equal(true);
           expect(
             listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
@@ -138,11 +138,12 @@ describe('AwsRollback', () => {
               Prefix: `${s3Key}`,
             })
           ).to.be.equal(true);
-          awsRollback.provider.request.restore();
         });
+
+      awsRollback.provider.request.restore();
     });
 
-    it('should reject in case this specific deployments is not available', () => {
+    it('should reject in case this specific deployments is not available', async () => {
       const s3Objects = [
         {
           // eslint-disable-next-line max-len
@@ -158,13 +159,13 @@ describe('AwsRollback', () => {
 
       const listObjectsStub = sinon.stub(awsRollback.provider, 'request').resolves(s3Response);
 
-      return awsRollback
-        .setStackToUpdate()
-        .then(() => {
+      await expect(
+        awsRollback.setStackToUpdate().then(() => {
           assert.isNotOk(true, 'setStackToUpdate should not resolve');
         })
-        .catch((error) => {
-          expect(error.code).to.equal('ROLLBACK_DEPLOYMENT_NOT_FOUND');
+      )
+        .to.eventually.be.rejected.and.have.property('code', 'ROLLBACK_DEPLOYMENT_NOT_FOUND')
+        .then(() => {
           expect(listObjectsStub.calledOnce).to.be.equal(true);
           expect(
             listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
@@ -172,8 +173,9 @@ describe('AwsRollback', () => {
               Prefix: `${s3Key}`,
             })
           ).to.be.equal(true);
-          awsRollback.provider.request.restore();
         });
+
+      awsRollback.provider.request.restore();
     });
 
     it('should resolve set the artifactDirectoryName and resolve', () => {
