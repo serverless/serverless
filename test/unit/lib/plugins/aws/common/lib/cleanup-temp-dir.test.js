@@ -25,7 +25,7 @@ describe('#cleanupTempDir()', () => {
     );
     serverless.utils.writeFileSync(serverlessTmpDirPath, 'Some README content');
 
-    return packageService.cleanupTempDir().then(() => {
+    return packageService.cleanupTempDir().then(async () => {
       expect(
         serverless.utils.dirExistsSync(
           path.join(packageService.serverless.serviceDir, '.serverless')
@@ -34,14 +34,14 @@ describe('#cleanupTempDir()', () => {
     });
   });
 
-  it('should resolve if servicePath is not present', (done) => {
+  it('should resolve if servicePath is not present', async (done) => {
     delete serverless.serviceDir;
     packageService.cleanupTempDir().then(() => {
       done();
     });
   });
 
-  it('should resolve if the .serverless directory is not present', (done) => {
+  it('should resolve if the .serverless directory is not present', async (done) => {
     packageService.cleanupTempDir().then(() => {
       done();
     });
