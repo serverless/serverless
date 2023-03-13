@@ -1,10 +1,14 @@
 'use strict';
 
-const expect = require('chai').expect;
+const chai = require('chai');
 const path = require('path');
 const Package = require('../../../../../../../lib/plugins/aws/common/index');
 const Serverless = require('../../../../../../../lib/serverless');
 const { getTmpDirPath } = require('../../../../../../utils/fs');
+
+chai.use(require('chai-as-promised'));
+
+const expect = chai.expect;
 
 describe('#cleanupTempDir()', () => {
   let serverless;
@@ -17,7 +21,7 @@ describe('#cleanupTempDir()', () => {
     serverless.serviceDir = getTmpDirPath();
   });
 
-  it('should remove .serverless in the service directory', () => {
+  it('should remove .serverless in the service directory', async () => {
     const serverlessTmpDirPath = path.join(
       packageService.serverless.serviceDir,
       '.serverless',
@@ -25,7 +29,7 @@ describe('#cleanupTempDir()', () => {
     );
     serverless.utils.writeFileSync(serverlessTmpDirPath, 'Some README content');
 
-    return packageService.cleanupTempDir().then(async () => {
+    return packageService.cleanupTempDir().then(() => {
       expect(
         serverless.utils.dirExistsSync(
           path.join(packageService.serverless.serviceDir, '.serverless')
@@ -34,16 +38,12 @@ describe('#cleanupTempDir()', () => {
     });
   });
 
-  it('should resolve if servicePath is not present', async (done) => {
+  it('should resolve if servicePath is not present', async () => {
     delete serverless.serviceDir;
-    packageService.cleanupTempDir().then(() => {
-      done();
-    });
+    return expect(packageService.cleanupTempDir()).to.eventually.be.fulfilled;
   });
 
-  it('should resolve if the .serverless directory is not present', async (done) => {
-    packageService.cleanupTempDir().then(() => {
-      done();
-    });
+  it('should resolve if the .serverless directory is not present', async () => {
+    return expect(packageService.cleanupTempDir()).to.eventually.be.fulfilled;
   });
 });
