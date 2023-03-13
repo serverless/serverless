@@ -35,7 +35,7 @@ describe('#saveCompiledTemplate()', () => {
     awsPackage.serverless.utils.writeFileSync.restore();
   });
 
-  it('should write the compiled template to disk', () => {
+  it('should write the compiled template to disk', async () => {
     const filePath = path.join(awsPackage.serverless.serviceDir, '.serverless', 'compiled.json');
 
     return awsPackage.saveCompiledTemplate().then(() => {
