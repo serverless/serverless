@@ -70,7 +70,7 @@ describe('AwsInfo', () => {
       expect(awsInfoWithEmptyOptions.options).to.deep.equal({});
     });
 
-    it('should run promise chain in order for "info:info" hook', () =>
+    it('should run promise chain in order for "info:info" hook', async () =>
       awsInfo.hooks['info:info']().then(() => {
         expect(validateStub.calledOnce).to.equal(true);
         expect(getStackInfoStub.calledAfter(validateStub)).to.equal(true);
@@ -84,7 +84,7 @@ describe('AwsInfo', () => {
       }));
 
     describe('when running "deploy:deploy" hook', () => {
-      it('should run promise chain in order if no deploy is not set', () =>
+      it('should run promise chain in order if no deploy is not set', async () =>
         awsInfo.hooks['deploy:deploy']().then(() => {
           expect(validateStub.calledOnce).to.equal(true);
           expect(getStackInfoStub.calledAfter(validateStub)).to.equal(true);

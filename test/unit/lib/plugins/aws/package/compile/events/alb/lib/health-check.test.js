@@ -115,7 +115,7 @@ describe('ALB TargetGroup Health Checks', () => {
   let cfResources;
   let naming;
 
-  before(() =>
+  before(async () =>
     runServerless({
       fixture: 'function',
       configExt: serverlessConfigurationExtension,
