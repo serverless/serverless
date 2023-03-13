@@ -15,7 +15,6 @@ describe('#compileIntegrations()', () => {
     serverless.service.functions = {
       First: {},
       Second: {},
-      // 'AuthLambdaPermissionWebsockets':{}
     };
     awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless);
 
