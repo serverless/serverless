@@ -1,11 +1,3 @@
-<!--
-title: Serverless Framework Commands - Huawei Cloud Function Compute - Create
-menuText: create
-menuOrder: 1
-description: Creates a new Service in your current working directory
-layout: Doc
--->
-
 # Huawei Cloud - Create
 
 Creates a new service in the current working directory based on the specified template.
