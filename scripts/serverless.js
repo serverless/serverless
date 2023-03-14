@@ -135,6 +135,7 @@ processSpanPromise = (async () => {
 
     (() => {
       // Rewrite eventual `sls deploy -f` into `sls deploy function -f`
+      // Also rewrite `serverless dev` to `serverless --dev``
       const isParamName = RegExp.prototype.test.bind(require('../lib/cli/param-reg-exp'));
 
       const args = process.argv.slice(2);
