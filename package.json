@@ -39,7 +39,7 @@
     "dayjs": "^1.11.7",
     "decompress": "^4.2.1",
     "dotenv": "^16.0.3",
-    "dotenv-expand": "^9.0.0",
+    "dotenv-expand": "^10.0.0",
     "essentials": "^1.2.0",
     "ext": "^1.7.0",
     "fastest-levenshtein": "^1.0.16",
