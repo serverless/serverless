@@ -27,7 +27,7 @@ describe('#getApiKeyValues()', () => {
     awsInfo.provider.request.restore();
   });
 
-  it('should add API Key values to this.gatheredData if API key names are available', () => {
+  it('should add API Key values to this.gatheredData if API key names are available', async () => {
     // set the API Keys for the service
     awsInfo.serverless.service.provider.apiGateway = {
       apiKeys: ['foo', 'bar'],
@@ -89,7 +89,7 @@ describe('#getApiKeyValues()', () => {
     });
   });
 
-  it('should resolve if AWS does not return API key values', () => {
+  it('should resolve if AWS does not return API key values', async () => {
     // set the API Keys for the service
     awsInfo.serverless.service.provider.apiGateway = { apiKeys: ['foo', 'bar'] };
 
@@ -115,7 +115,7 @@ describe('#getApiKeyValues()', () => {
     });
   });
 
-  it('should resolve if API key names are not available', () => {
+  it('should resolve if API key names are not available', async () => {
     awsInfo.serverless.service.provider.apiGateway = {};
 
     awsInfo.gatheredData = {

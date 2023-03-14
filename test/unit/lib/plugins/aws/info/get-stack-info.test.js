@@ -33,7 +33,7 @@ describe('#getStackInfo()', () => {
     awsInfo.provider.request.restore();
   });
 
-  it('attach info from describeStack call to this.gatheredData if result is available', () => {
+  it('attach info from describeStack call to this.gatheredData if result is available', async () => {
     const describeStacksResponse = {
       Stacks: [
         {
@@ -162,7 +162,7 @@ describe('#getStackInfo()', () => {
     });
   });
 
-  it('should resolve if result is empty', () => {
+  it('should resolve if result is empty', async () => {
     const describeStacksResponse = null;
 
     describeStacksStub.resolves(describeStacksResponse);
@@ -192,7 +192,7 @@ describe('#getStackInfo()', () => {
     });
   });
 
-  it('should attach info from api gateway if httpApi is used', () => {
+  it('should attach info from api gateway if httpApi is used', async () => {
     serverless.service.provider.httpApi = {
       id: 'http-api-id',
     };

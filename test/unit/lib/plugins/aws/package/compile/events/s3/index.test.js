@@ -357,7 +357,7 @@ describe('AwsCompileS3Events', () => {
   });
 
   describe('#existingS3Buckets()', () => {
-    it('should create the necessary resources for the most minimal configuration', () => {
+    it('should create the necessary resources for the most minimal configuration', async () => {
       awsCompileS3Events.serverless.service.functions = {
         first: {
           name: 'first',
@@ -439,7 +439,7 @@ describe('AwsCompileS3Events', () => {
       });
     });
 
-    it('should create the necessary resources for a service using different config parameters', () => {
+    it('should create the necessary resources for a service using different config parameters', async () => {
       awsCompileS3Events.serverless.service.functions = {
         first: {
           name: 'second',
@@ -557,7 +557,7 @@ describe('AwsCompileS3Events', () => {
       expect(typeof customResource.Properties.ForceDeploy).to.equal('number');
     });
 
-    it('should create the necessary resources for a service using multiple event definitions', () => {
+    it('should create the necessary resources for a service using multiple event definitions', async () => {
       awsCompileS3Events.serverless.service.functions = {
         first: {
           name: 'second',
@@ -672,7 +672,7 @@ describe('AwsCompileS3Events', () => {
       });
     });
 
-    it('should create a valid policy for an S3 bucket using !ImportValue', () => {
+    it('should create a valid policy for an S3 bucket using !ImportValue', async () => {
       awsCompileS3Events.serverless.service.functions = {
         first: {
           name: 'first',
@@ -708,7 +708,7 @@ describe('AwsCompileS3Events', () => {
       });
     });
 
-    it('should create DependsOn clauses when one bucket is used in more than 1 custom resources', () => {
+    it('should create DependsOn clauses when one bucket is used in more than 1 custom resources', async () => {
       awsCompileS3Events.serverless.service.functions = {
         first: {
           name: 'first',
