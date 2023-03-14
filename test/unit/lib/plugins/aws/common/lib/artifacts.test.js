@@ -36,7 +36,7 @@ describe('#moveArtifactsToPackage()', () => {
 
   it('should resolve if no package is set', () => awsCommon.moveArtifactsToPackage());
 
-  it('should use package option as target', () => {
+  it('should use package option as target', async () => {
     const testFileSource = path.join(moveServerlessPath, 'moveTestFile.tmp');
     const targetPath = path.join(moveBasePath, 'target');
 
@@ -50,7 +50,7 @@ describe('#moveArtifactsToPackage()', () => {
     });
   });
 
-  it('should use service package path as target', () => {
+  it('should use service package path as target', async () => {
     const testFileSource = path.join(moveServerlessPath, 'moveTestFile.tmp');
     const targetPath = path.join(moveBasePath, 'target');
 
@@ -64,7 +64,7 @@ describe('#moveArtifactsToPackage()', () => {
     });
   });
 
-  it('should not fail with non existing temp dir', () => {
+  it('should not fail with non existing temp dir', async () => {
     const targetPath = path.join(moveBasePath, 'target');
 
     if (serverless.utils.dirExistsSync(moveServerlessPath)) {
@@ -77,7 +77,7 @@ describe('#moveArtifactsToPackage()', () => {
     });
   });
 
-  it('should not fail with existing package dir', () => {
+  it('should not fail with existing package dir', async () => {
     const testFileSource = path.join(moveServerlessPath, 'moveTestFile.tmp');
     const targetPath = path.join(moveBasePath, 'target');
     const testFileTarget = path.join(targetPath, 'moveTestFile.tmp');
@@ -126,7 +126,7 @@ describe('#moveArtifactsToTemp()', () => {
 
   it('should resolve if no package is set', () => awsCommon.moveArtifactsToTemp());
 
-  it('should use package option as source path', () => {
+  it('should use package option as source path', async () => {
     const testFileSource = path.join(moveTargetPath, 'moveTestFile.tmp');
 
     serverless.utils.writeFileSync(testFileSource, '!!!MOVE TEST FILE!!!');
@@ -139,7 +139,7 @@ describe('#moveArtifactsToTemp()', () => {
     });
   });
 
-  it('should use package option as source path', () => {
+  it('should use package option as source path', async () => {
     const testFileSource = path.join(moveTargetPath, 'moveTestFile.tmp');
 
     serverless.utils.writeFileSync(testFileSource, '!!!MOVE TEST FILE!!!');
@@ -152,7 +152,7 @@ describe('#moveArtifactsToTemp()', () => {
     });
   });
 
-  it('should not fail with non existing source path', () => {
+  it('should not fail with non existing source path', async () => {
     if (serverless.utils.dirExistsSync(moveTargetPath)) {
       fse.removeSync(moveTargetPath);
     }
@@ -163,7 +163,7 @@ describe('#moveArtifactsToTemp()', () => {
     });
   });
 
-  it('should not fail with existing temp dir', () => {
+  it('should not fail with existing temp dir', async () => {
     const testFileSource = path.join(moveServerlessPath, 'moveTestFile.tmp');
     const testFileTarget = path.join(moveTargetPath, 'moveTestFile.tmp');
 
