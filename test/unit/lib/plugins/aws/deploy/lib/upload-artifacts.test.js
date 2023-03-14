@@ -75,7 +75,7 @@ describe('uploadArtifacts', () => {
       uploadStub.restore();
     });
 
-    it('should upload the CloudFormation file to the S3 bucket', () => {
+    it('should upload the CloudFormation file to the S3 bucket', async () => {
       crypto.createHash().update().digest.onCall(0).returns('local-hash-cf-template');
 
       return awsDeploy.uploadCloudFormationFile().then(() => {
@@ -94,7 +94,7 @@ describe('uploadArtifacts', () => {
       });
     });
 
-    it('should upload the CloudFormation file to a bucket with SSE bucket policy', () => {
+    it('should upload the CloudFormation file to a bucket with SSE bucket policy', async () => {
       crypto.createHash().update().digest.onCall(0).returns('local-hash-cf-template');
       awsDeploy.serverless.service.provider.deploymentBucketObject = {
         serverSideEncryption: 'AES256',
@@ -136,7 +136,7 @@ describe('uploadArtifacts', () => {
       await expect(awsDeploy.uploadZipFile(null)).to.be.rejectedWith(Error);
     });
 
-    it('should upload the .zip file to the S3 bucket', () => {
+    it('should upload the .zip file to the S3 bucket', async () => {
       crypto.createHash().update().digest.onCall(0).returns('local-hash-zip-file');
 
       const tmpDirPath = getTmpDirPath();
@@ -163,7 +163,7 @@ describe('uploadArtifacts', () => {
         });
     });
 
-    it('should upload the .zip file to a bucket with SSE bucket policy', () => {
+    it('should upload the .zip file to a bucket with SSE bucket policy', async () => {
       crypto.createHash().update().digest.onCall(0).returns('local-hash-zip-file');
 
       const tmpDirPath = getTmpDirPath();
@@ -199,17 +199,17 @@ describe('uploadArtifacts', () => {
   describe('#uploadFunctionsAndLayers()', () => {
     let uploadZipFileStub;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       sinon.stub(fs.promises, 'stat').resolves({ size: 1024 });
       uploadZipFileStub = sinon.stub(awsDeploy, 'uploadZipFile').resolves();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
       fs.promises.stat.restore();
       uploadZipFileStub.restore();
     });
 
-    it('should upload the service artifact file to the S3 bucket', () => {
+    it('should upload the service artifact file to the S3 bucket', async () => {
       awsDeploy.serverless.serviceDir = 'some/path';
       awsDeploy.serverless.service.service = 'new-service';
 
@@ -220,7 +220,7 @@ describe('uploadArtifacts', () => {
       });
     });
 
-    it('should upload a single .zip file to the S3 bucket when not packaging individually', () => {
+    it('should upload a single .zip file to the S3 bucket when not packaging individually', async () => {
       awsDeploy.serverless.service.functions = {
         first: {
           package: {
@@ -240,7 +240,7 @@ describe('uploadArtifacts', () => {
       });
     });
 
-    it('should upload the function .zip files to the S3 bucket', () => {
+    it('should upload the function .zip files to the S3 bucket', async () => {
       awsDeploy.serverless.service.package.individually = true;
       awsDeploy.serverless.service.functions = {
         first: {
@@ -266,7 +266,7 @@ describe('uploadArtifacts', () => {
       });
     });
 
-    it('should upload single function artifact and service artifact', () => {
+    it('should upload single function artifact and service artifact', async () => {
       awsDeploy.serverless.service.package.artifact = 'second-artifact.zip';
       awsDeploy.serverless.service.functions = {
         first: {
@@ -315,13 +315,13 @@ describe('uploadArtifacts', () => {
       sinon.restore();
     });
 
-    it('should not attempt to upload a custom resources if the artifact does not exist', () => {
+    it('should not attempt to upload a custom resources if the artifact does not exist', async () => {
       return expect(awsDeploy.uploadCustomResources()).to.eventually.be.fulfilled.then(() => {
         expect(uploadStub).not.to.be.calledOnce;
       });
     });
 
-    it('should upload the custom resources .zip file to the S3 bucket', () => {
+    it('should upload the custom resources .zip file to the S3 bucket', async () => {
       fse.ensureFileSync(customResourcesFilePath);
 
       crypto.createHash().update().digest.onCall(0).returns('local-hash-zip-file');

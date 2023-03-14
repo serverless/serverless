@@ -90,7 +90,7 @@ describe('checkForChanges', () => {
       checkLogGroupSubscriptionFilterResourceLimitExceededStub.restore();
     });
 
-    it('should resolve if the "force" option is used', () => {
+    it('should resolve if the "force" option is used', async () => {
       awsDeploy.options.force = true;
 
       return expect(awsDeploy.checkForChanges()).to.be.fulfilled.then(() => {
@@ -131,7 +131,7 @@ describe('checkForChanges', () => {
       return expect(awsDeploy.getMostRecentObjects()).to.be.rejectedWith('Other reason');
     });
 
-    it('should resolve if result array is empty', () => {
+    it('should resolve if result array is empty', async () => {
       const serviceObjects = {
         Contents: [],
       };
@@ -147,7 +147,7 @@ describe('checkForChanges', () => {
       });
     });
 
-    it('should resolve with the most recently deployed objects', () => {
+    it('should resolve with the most recently deployed objects', async () => {
       const serviceObjects = {
         Contents: [
           { Key: `${s3Key}/151224711231-2016-08-18T15:43:00/artifact.zip` },
@@ -183,7 +183,7 @@ describe('checkForChanges', () => {
       awsDeploy.provider.request.restore();
     });
 
-    it('should resolve if no objects are provided as input', () => {
+    it('should resolve if no objects are provided as input', async () => {
       const input = [];
 
       return expect(awsDeploy.getObjectMetadata(input)).to.be.fulfilled.then((result) => {
@@ -192,7 +192,7 @@ describe('checkForChanges', () => {
       });
     });
 
-    it('should request the object detailed information', () => {
+    it('should request the object detailed information', async () => {
       const input = [
         { Key: `${s3Key}/151224711231-2016-08-18T15:43:00/artifact.zip` },
         { Key: `${s3Key}/151224711231-2016-08-18T15:43:00/cloudformation.json` },
@@ -227,7 +227,7 @@ describe('checkForChanges', () => {
     let globbySyncStub;
     let readFileStub;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       normalizeCloudFormationTemplateStub = sandbox
         .stub(normalizeFiles, 'normalizeCloudFormationTemplate')
         .returns();
@@ -243,14 +243,14 @@ describe('checkForChanges', () => {
       fsp.readFile.restore();
     });
 
-    it('should resolve if no input is provided', () =>
+    it('should resolve if no input is provided', async () =>
       expect(awsDeploy.checkIfDeploymentIsNecessary([])).to.be.fulfilled.then(() => {
         expect(normalizeCloudFormationTemplateStub).to.not.have.been.called;
         expect(globbySyncStub).to.not.have.been.called;
         expect(readFileStub).to.not.have.been.called;
       }));
 
-    it('should resolve if no objects are provided as input', () => {
+    it('should resolve if no objects are provided as input', async () => {
       const input = [];
 
       return expect(awsDeploy.checkIfDeploymentIsNecessary(input)).to.be.fulfilled.then(() => {
@@ -283,7 +283,7 @@ describe('checkForChanges', () => {
       expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(false);
     });
 
-    it('should not set a flag if there are more remote hashes', () => {
+    it('should not set a flag if there are more remote hashes', async () => {
       globbySyncStub.returns(['my-service.zip']);
       cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-cf-template');
       cryptoStub.createHash().update().digest.onCall(1).returns('local-hash-zip-file-1');
@@ -316,7 +316,7 @@ describe('checkForChanges', () => {
       });
     });
 
-    it('should not set a flag if remote and local hashes are different', () => {
+    it('should not set a flag if remote and local hashes are different', async () => {
       globbySyncStub.returns(['my-service.zip']);
       cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-cf-template');
       cryptoStub.createHash().update().digest.onCall(1).returns('local-hash-zip-file-1');
@@ -344,7 +344,7 @@ describe('checkForChanges', () => {
       });
     });
 
-    it('should not set a flag if remote and local hashes are the same but are duplicated', () => {
+    it('should not set a flag if remote and local hashes are the same but are duplicated', async () => {
       globbySyncStub.returns(['func1.zip', 'func2.zip']);
       cryptoStub.createHash().update().digest.onCall(0).returns('remote-hash-cf-template');
       // happens when package.individually is used
@@ -377,7 +377,7 @@ describe('checkForChanges', () => {
       });
     });
 
-    it('should not set a flag if the hashes are equal, but the objects were modified after their functions', () => {
+    it('should not set a flag if the hashes are equal, but the objects were modified after their functions', async () => {
       globbySyncStub.returns(['my-service.zip']);
       cryptoStub.createHash().update().digest.onCall(0).returns('hash-cf-template');
       cryptoStub.createHash().update().digest.onCall(1).returns('hash-zip-file-1');
@@ -409,7 +409,7 @@ describe('checkForChanges', () => {
       });
     });
 
-    it('should set a flag if the remote and local hashes are equal', () => {
+    it('should set a flag if the remote and local hashes are equal', async () => {
       globbySyncStub.returns(['my-service.zip']);
       cryptoStub.createHash().update().digest.onCall(0).returns('hash-cf-template');
       cryptoStub.createHash().update().digest.onCall(1).returns('hash-state');
@@ -440,7 +440,7 @@ describe('checkForChanges', () => {
       });
     });
 
-    it('should set a flag if the remote and local hashes are equal, and the edit times are ordered', () => {
+    it('should set a flag if the remote and local hashes are equal, and the edit times are ordered', async () => {
       globbySyncStub.returns(['my-service.zip']);
       cryptoStub.createHash().update().digest.onCall(0).returns('hash-cf-template');
       cryptoStub.createHash().update().digest.onCall(1).returns('hash-state');
@@ -488,7 +488,7 @@ describe('checkForChanges', () => {
       );
     });
 
-    it('should set a flag if the remote and local hashes are duplicated and equal', () => {
+    it('should set a flag if the remote and local hashes are duplicated and equal', async () => {
       globbySyncStub.returns(['func1.zip', 'func2.zip']);
       cryptoStub.createHash().update().digest.onCall(0).returns('hash-cf-template');
       cryptoStub.createHash().update().digest.onCall(1).returns('hash-state');
@@ -525,7 +525,7 @@ describe('checkForChanges', () => {
       });
     });
 
-    it('should not set a flag if the remote and local hashes are different for package.artifact', () => {
+    it('should not set a flag if the remote and local hashes are different for package.artifact', async () => {
       awsDeploy.serverless.service.package = {
         artifact: 'foo/bar/my-own.zip',
       };
@@ -563,7 +563,7 @@ describe('checkForChanges', () => {
 });
 
 describe('checkForChanges #2', () => {
-  it('Should recognize package.artifact', () =>
+  it('Should recognize package.artifact', async () =>
     runServerless({
       fixture: 'package-artifact',
       command: 'deploy',
