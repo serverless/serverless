@@ -36,7 +36,13 @@ describe('AWS - IoT Integration Test', function () {
       // NOTE: This test may fail on fresh accounts where the IoT endpoint has not completed provisioning
       const events = await confirmCloudWatchLogs(
         `/aws/lambda/${stackName}-${functionName}`,
-        async () => publishIotData(iotTopic, message)
+        async () => publishIotData(iotTopic, message),
+        {
+          checkIsComplete: (soFarEvents) => {
+            const logs = soFarEvents.reduce((data, event) => data + event.message, '');
+            return logs.includes(message);
+          },
+        }
       );
       const logs = events.reduce((data, event) => data + event.message, '');
       expect(logs).to.include(message);

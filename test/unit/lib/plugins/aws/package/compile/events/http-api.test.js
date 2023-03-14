@@ -8,7 +8,7 @@ chai.use(require('chai-as-promised'));
 const { expect } = chai;
 
 describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
-  it('should not configure HTTP API resources when no events are configured', () =>
+  it('should not configure HTTP API resources when no events are configured', async () =>
     runServerless({
       config: { service: 'irrelevant', provider: 'aws' },
       command: 'package',
@@ -25,7 +25,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     let cfOutputs;
     let naming;
 
-    before(() =>
+    before(async () =>
       runServerless({
         fixture: 'http-api',
         command: 'package',
@@ -173,7 +173,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     let cfCors;
     let serviceConfig;
 
-    before(() =>
+    before(async () =>
       runServerless({
         fixture: 'http-api',
         configExt: {
@@ -295,7 +295,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
       });
 
       describe('Object configuration #1', () => {
-        before(() =>
+        before(async () =>
           runServerless({
             fixture: 'http-api',
             configExt: {
@@ -335,7 +335,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
       });
 
       describe('Object configuration #2', () => {
-        before(() =>
+        before(async () =>
           runServerless({
             fixture: 'http-api',
             configExt: {
@@ -368,7 +368,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
       });
 
       describe('With a catch-all route', () => {
-        before(() =>
+        before(async () =>
           runServerless({
             fixture: 'http-api-catch-all',
             configExt: {
@@ -833,7 +833,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
   describe('Authorizers: JWT', () => {
     let cfResources;
     let naming;
-    before(() =>
+    before(async () =>
       runServerless({
         fixture: 'http-api',
         configExt: {
@@ -1076,7 +1076,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     const apiId = 'external-api-id';
 
     describe('correct configuration', () => {
-      before(() =>
+      before(async () =>
         runServerless({
           fixture: 'http-api',
           configExt: { provider: { httpApi: { id: apiId } } },
