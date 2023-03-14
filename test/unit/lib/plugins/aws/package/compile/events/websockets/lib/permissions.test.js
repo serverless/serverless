@@ -12,6 +12,11 @@ describe('#compilePermissions()', () => {
     const serverless = new Serverless({ commands: [], options: {} });
     serverless.setProvider('aws', new AwsProvider(serverless));
     serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
+    serverless.service.functions = {
+      First: {},
+      Second: {},
+      auth: {},
+    };
 
     awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless);
 
@@ -72,7 +77,7 @@ describe('#compilePermissions()', () => {
           route: '$connect',
           authorizer: {
             name: 'auth',
-            permission: 'AuthLambdaPermissionWebsockets',
+            permission: 'AuthLambdaFunction',
           },
         },
       ],
@@ -97,10 +102,10 @@ describe('#compilePermissions()', () => {
       },
       AuthLambdaPermissionWebsockets: {
         Type: 'AWS::Lambda::Permission',
-        DependsOn: ['WebsocketsApi', 'AuthLambdaPermissionWebsockets'],
+        DependsOn: ['WebsocketsApi', 'AuthLambdaFunction'],
         Properties: {
           FunctionName: {
-            'Fn::GetAtt': ['AuthLambdaPermissionWebsockets', 'Arn'],
+            'Fn::GetAtt': ['AuthLambdaFunction', 'Arn'],
           },
           Action: 'lambda:InvokeFunction',
           Principal: 'apigateway.amazonaws.com',
