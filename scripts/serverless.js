@@ -140,6 +140,12 @@ processSpanPromise = (async () => {
       const args = process.argv.slice(2);
       const firstParamIndex = args.findIndex(isParamName);
       const commands = args.slice(0, firstParamIndex === -1 ? Infinity : firstParamIndex);
+
+      if (commands.join('') === 'dev') {
+        process.argv[2] = '--dev';
+        return;
+      }
+
       if (commands.join(' ') !== 'deploy') return;
       if (!args.includes('-f') && !args.includes('--function')) return;
       logDeprecation(
