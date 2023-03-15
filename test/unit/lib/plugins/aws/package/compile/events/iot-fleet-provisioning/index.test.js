@@ -97,6 +97,7 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
         cfResources[naming.getLambdaIotFleetProvisioningPermissionLogicalId(functionName)];
       expect(lambdaPermissionResource).to.deep.equal({
         Type: 'AWS::Lambda::Permission',
+        DependsOn: undefined,
         Properties: {
           FunctionName: {
             'Fn::GetAtt': [naming.getLambdaLogicalId(functionName), 'Arn'],

@@ -13,7 +13,9 @@ describe('#compileAuthorizers()', () => {
       const serverless = new Serverless({ commands: [], options: {} });
       serverless.setProvider('aws', new AwsProvider(serverless));
       serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
-
+      serverless.service.functions = {
+        auth: {},
+      };
       awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless);
 
       awsCompileWebsocketsEvents.websocketsApiLogicalId =
@@ -55,6 +57,7 @@ describe('#compileAuthorizers()', () => {
 
       expect(resources).to.deep.equal({
         AuthWebsocketsAuthorizer: {
+          DependsOn: undefined,
           Type: 'AWS::ApiGatewayV2::Authorizer',
           Properties: {
             ApiId: {
