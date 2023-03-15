@@ -24,7 +24,7 @@
   "dependencies": {
     "@serverless/dashboard-plugin": "^6.2.3",
     "@serverless/platform-client": "^4.3.2",
-    "@serverless/utils": "^6.8.2",
+    "@serverless/utils": "^6.9.0",
     "ajv": "^8.12.0",
     "ajv-formats": "^2.1.1",
     "archiver": "^5.3.1",
@@ -67,6 +67,7 @@
     "require-from-string": "^2.0.2",
     "semver": "^7.3.8",
     "signal-exit": "^3.0.7",
+    "stream-buffers": "^3.0.2",
     "strip-ansi": "^6.0.1",
     "supports-color": "^8.1.1",
     "tar": "^6.1.13",
@@ -74,6 +75,7 @@
     "type": "^2.7.2",
     "untildify": "^4.0.0",
     "uuid": "^9.0.0",
+    "ws": "^7.5.9",
     "yaml-ast-parser": "0.0.43"
   },
   "devDependencies": {
@@ -105,7 +107,6 @@
     "sinon": "^13.0.2",
     "sinon-chai": "^3.7.0",
     "standard-version": "^9.5.0",
-    "ws": "^7.5.9",
     "xml2js": "^0.4.23"
   },
   "eslintConfig": {
