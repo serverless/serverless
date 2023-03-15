@@ -57,7 +57,7 @@ describe('validateTemplate', () => {
       );
     });
 
-    it('should throw an error if the CloudFormation template is invalid', () => {
+    it('should throw an error if the CloudFormation template is invalid', async () => {
       validateTemplateStub.rejects({ message: 'Some error while validating' });
 
       return expect(awsDeploy.validateTemplate()).to.be.rejected.then((error) => {

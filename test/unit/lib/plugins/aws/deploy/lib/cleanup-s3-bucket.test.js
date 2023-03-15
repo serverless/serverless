@@ -37,7 +37,7 @@ describe('cleanupS3Bucket', () => {
   });
 
   describe('#getObjectsToRemove()', () => {
-    it('should resolve if no objects are found', () => {
+    it('should resolve if no objects are found', async () => {
       const serviceObjects = {
         Contents: [],
       };
@@ -54,7 +54,7 @@ describe('cleanupS3Bucket', () => {
       });
     });
 
-    it('should return all to be removed service objects (except the last 4)', () => {
+    it('should return all to be removed service objects (except the last 4)', async () => {
       const serviceObjects = {
         Contents: [
           { Key: `${s3Key}/151224711231-2016-08-18T15:42:00/artifact.zip` },
@@ -108,7 +108,7 @@ describe('cleanupS3Bucket', () => {
       });
     });
 
-    it('should return an empty array if there are less than 4 directories available', () => {
+    it('should return an empty array if there are less than 4 directories available', async () => {
       const serviceObjects = {
         Contents: [
           { Key: `${s3Key}151224711231-2016-08-18T15:42:00/artifact.zip` },
@@ -133,7 +133,7 @@ describe('cleanupS3Bucket', () => {
       });
     });
 
-    it('should return an empty array if there are exactly 4 directories available', () => {
+    it('should return an empty array if there are exactly 4 directories available', async () => {
       const serviceObjects = {
         Contents: [
           { Key: `${s3Key}151224711231-2016-08-18T15:42:00/artifact.zip` },
@@ -166,7 +166,7 @@ describe('cleanupS3Bucket', () => {
         delete serverless.service.provider.deploymentBucketObject;
       });
 
-      it('should allow configuring the number of artifacts to preserve', () => {
+      it('should allow configuring the number of artifacts to preserve', async () => {
         // configure the provider to allow only a single artifact
         serverless.service.provider.deploymentBucketObject = {
           maxPreviousDeploymentArtifacts: 1,
@@ -219,13 +219,13 @@ describe('cleanupS3Bucket', () => {
       deleteObjectsStub = sinon.stub(awsDeploy.provider, 'request').resolves();
     });
 
-    it('should resolve if no service objects are found in the S3 bucket', () =>
+    it('should resolve if no service objects are found in the S3 bucket', async () =>
       awsDeploy.removeObjects().then(() => {
         expect(deleteObjectsStub.calledOnce).to.be.equal(false);
         awsDeploy.provider.request.restore();
       }));
 
-    it('should remove all old service files from the S3 bucket if available', () => {
+    it('should remove all old service files from the S3 bucket if available', async () => {
       const objectsToRemove = [
         { Key: `${s3Key}113304333331-2016-08-18T13:40:06/artifact.zip` },
         { Key: `${s3Key}113304333331-2016-08-18T13:40:06/cloudformation.json` },
@@ -247,7 +247,7 @@ describe('cleanupS3Bucket', () => {
   });
 
   describe('#cleanupS3Bucket()', () => {
-    it('should run promise chain in order', () => {
+    it('should run promise chain in order', async () => {
       const getObjectsToRemoveStub = sinon.stub(awsDeploy, 'getObjectsToRemove').resolves();
       const removeObjectsStub = sinon.stub(awsDeploy, 'removeObjects').resolves();
 

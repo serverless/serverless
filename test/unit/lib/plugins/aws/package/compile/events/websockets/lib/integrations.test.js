@@ -12,7 +12,10 @@ describe('#compileIntegrations()', () => {
     const serverless = new Serverless({ commands: [], options: {} });
     serverless.setProvider('aws', new AwsProvider(serverless));
     serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
-
+    serverless.service.functions = {
+      First: {},
+      Second: {},
+    };
     awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless);
 
     awsCompileWebsocketsEvents.websocketsApiLogicalId =
@@ -41,6 +44,7 @@ describe('#compileIntegrations()', () => {
     expect(resources).to.deep.equal({
       FirstWebsocketsIntegration: {
         Type: 'AWS::ApiGatewayV2::Integration',
+        DependsOn: undefined,
         Properties: {
           ApiId: {
             Ref: 'WebsocketsApi',
@@ -70,6 +74,7 @@ describe('#compileIntegrations()', () => {
       },
       SecondWebsocketsIntegration: {
         Type: 'AWS::ApiGatewayV2::Integration',
+        DependsOn: undefined,
         Properties: {
           ApiId: {
             Ref: 'WebsocketsApi',
