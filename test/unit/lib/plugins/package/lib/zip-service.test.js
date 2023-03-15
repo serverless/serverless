@@ -55,7 +55,7 @@ describe('zipService', () => {
       packagePlugin.zip.restore();
     });
 
-    it('should run promise chain in order', () => {
+    it('should run promise chain in order', async () => {
       const exclude = params.exclude;
       const include = params.include;
       const zipFileName = params.zipFileName;
@@ -77,7 +77,7 @@ describe('zipService', () => {
       fs.mkdirSync(serviceDir);
     });
 
-    it('should keep the file content as is', () => {
+    it('should keep the file content as is', async () => {
       const buf = Buffer.from([10, 20, 30, 40, 50]);
       const filePath = path.join(serviceDir, 'bin-file');
 
@@ -99,7 +99,7 @@ describe('zipService', () => {
       fs.mkdirSync(serviceDir);
     });
 
-    it('should keep the file content as is', () => {
+    it('should keep the file content as is', async () => {
       const buf = Buffer.from([10, 20, 30, 40, 50]);
       const filePath = path.join(serviceDir, 'bin-file');
 
@@ -112,7 +112,7 @@ describe('zipService', () => {
   });
 
   describe('#excludeDevDependencies()', () => {
-    it('should resolve when opted out of dev dependency exclusion', () => {
+    it('should resolve when opted out of dev dependency exclusion', async () => {
       packagePlugin.serverless.service.package.excludeDevDependencies = false;
 
       return expect(packagePlugin.excludeDevDependencies(params)).to.be.fulfilled.then(
@@ -141,7 +141,7 @@ describe('zipService', () => {
         fs.readFileAsync.restore();
       });
 
-      it('should do nothing if no packages are used', () => {
+      it('should do nothing if no packages are used', async () => {
         const filePaths = [];
 
         globbySyncStub.returns(filePaths);
@@ -165,7 +165,7 @@ describe('zipService', () => {
         );
       });
 
-      it('should do nothing if no dependencies are found', () => {
+      it('should do nothing if no dependencies are found', async () => {
         const filePaths = ['package.json', 'node_modules'];
 
         globbySyncStub.returns(filePaths);
@@ -215,7 +215,7 @@ describe('zipService', () => {
         );
       });
 
-      it('should return excludes and includes if a exec Promise is rejected', () => {
+      it('should return excludes and includes if a exec Promise is rejected', async () => {
         const filePaths = ['package.json', 'node_modules'];
 
         globbySyncStub.returns(filePaths);
@@ -235,7 +235,7 @@ describe('zipService', () => {
         );
       });
 
-      it('should return excludes and includes if a readFile Promise is rejected', () => {
+      it('should return excludes and includes if a readFile Promise is rejected', async () => {
         const filePaths = ['package.json', 'node_modules'];
 
         globbySyncStub.returns(filePaths);
@@ -256,7 +256,7 @@ describe('zipService', () => {
         );
       });
 
-      it('should fail silently and continue if "npm ls" call throws an error', () => {
+      it('should fail silently and continue if "npm ls" call throws an error', async () => {
         const filePaths = [
           // root of the service
           'package.json',
@@ -351,7 +351,7 @@ describe('zipService', () => {
         );
       });
 
-      it('should exclude dev dependencies in the services root directory', () => {
+      it('should exclude dev dependencies in the services root directory', async () => {
         const filePaths = ['package.json', 'node_modules'];
 
         globbySyncStub.returns(filePaths);
@@ -402,7 +402,7 @@ describe('zipService', () => {
         );
       });
 
-      it('should exclude dev dependencies in deeply nested services directories', () => {
+      it('should exclude dev dependencies in deeply nested services directories', async () => {
         const filePaths = [
           // root of the service
           'package.json',
@@ -485,7 +485,7 @@ describe('zipService', () => {
         );
       });
 
-      it('should not include packages if in both dependencies and devDependencies', () => {
+      it('should not include packages if in both dependencies and devDependencies', async () => {
         const filePaths = ['package.json', 'node_modules'];
 
         globbySyncStub.returns(filePaths);
@@ -534,7 +534,7 @@ describe('zipService', () => {
         );
       });
 
-      it('should exclude dev dependency executables in node_modules/.bin', () => {
+      it('should exclude dev dependency executables in node_modules/.bin', async () => {
         const devPaths = [
           'node_modules/bro-module',
           'node_modules/node-dude',
@@ -598,7 +598,7 @@ describe('zipService', () => {
         );
       });
 
-      it('should exclude .bin executables in deeply nested folders', () => {
+      it('should exclude .bin executables in deeply nested folders', async () => {
         const filePaths = [
           'package.json',
           'node_modules',
@@ -750,7 +750,7 @@ describe('zipService', () => {
       });
     });
 
-    it('should zip a whole service (without include / exclude usage)', () => {
+    it('should zip a whole service (without include / exclude usage)', async () => {
       params.zipFileName = getTestArtifactFileName('whole-service');
 
       return expect(packagePlugin.zip(params))
@@ -798,7 +798,7 @@ describe('zipService', () => {
         });
     });
 
-    it('should keep file permissions', () => {
+    it('should keep file permissions', async () => {
       params.zipFileName = getTestArtifactFileName('file-permissions');
 
       return expect(packagePlugin.zip(params))
@@ -825,7 +825,7 @@ describe('zipService', () => {
         });
     });
 
-    it('should exclude with globs', () => {
+    it('should exclude with globs', async () => {
       params.zipFileName = getTestArtifactFileName('exclude-with-globs');
       params.exclude = ['event.json', 'lib/**', 'node_modules/directory-1/**'];
 
@@ -861,7 +861,7 @@ describe('zipService', () => {
         });
     });
 
-    it('should re-include files using ! glob pattern', () => {
+    it('should re-include files using ! glob pattern', async () => {
       params.zipFileName = getTestArtifactFileName('re-include-with-globs');
       params.exclude = [
         'event.json',
@@ -911,7 +911,7 @@ describe('zipService', () => {
         });
     });
 
-    it('should re-include files using include config', () => {
+    it('should re-include files using include config', async () => {
       params.zipFileName = getTestArtifactFileName('re-include-with-include');
       params.exclude = ['event.json', 'lib/**', 'node_modules/directory-1/**'];
       params.include = ['event.json', 'lib/**'];
@@ -955,7 +955,7 @@ describe('zipService', () => {
         });
     });
 
-    it('should include files even if outside working dir', () => {
+    it('should include files even if outside working dir', async () => {
       params.zipFileName = getTestArtifactFileName('include-outside-working-dir');
       serverless.serviceDir = path.join(serverless.serviceDir, 'lib');
       params.exclude = ['./**'];
@@ -976,7 +976,7 @@ describe('zipService', () => {
         });
     });
 
-    it('should include files only once', () => {
+    it('should include files only once', async () => {
       params.zipFileName = getTestArtifactFileName('include-outside-working-dir');
       serverless.serviceDir = path.join(serverless.serviceDir, 'lib');
       params.exclude = ['./**'];

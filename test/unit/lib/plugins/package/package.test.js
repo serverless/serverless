@@ -15,7 +15,7 @@ describe('Package', () => {
   let options;
   let pkg;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     serverless = new Serverless({ commands: ['print'], options: {}, serviceDir: null });
     return serverless.init().then(() => {
       options = {
@@ -61,14 +61,14 @@ describe('Package', () => {
       expect(pkg.hooks).to.have.property('package:function:package'));
 
     describe('package:createDeploymentArtifacts', () => {
-      it('should call packageService', () =>
+      it('should call packageService', async () =>
         expect(pkg.hooks['package:createDeploymentArtifacts']()).to.be.fulfilled.then(
           () => expect(packageServiceStub).to.be.calledOnce
         ));
     });
 
     describe('package:function:package', () => {
-      it('should call packageFunction', () => {
+      it('should call packageFunction', async () => {
         pkg.options.function = 'myFunction';
 
         return expect(pkg.hooks['package:function:package']()).to.be.fulfilled.then(
@@ -76,7 +76,7 @@ describe('Package', () => {
         );
       });
 
-      it('should fail without function option', () => {
+      it('should fail without function option', async () => {
         pkg.options.function = false;
 
         return expect(pkg.hooks['package:function:package']())
