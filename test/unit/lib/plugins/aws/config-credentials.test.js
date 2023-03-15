@@ -123,10 +123,10 @@ describe('AwsConfigCredentials', () => {
         expect(awsConfigCredentials.options.profile).to.equal('default');
       }));
 
-    it('should resolve if the provider option is not "aws"', async (done) => {
+    it('should resolve if the provider option is not "aws"', async () => {
       awsConfigCredentials.options.provider = 'invalid-provider';
 
-      awsConfigCredentials.configureCredentials().then(() => done());
+      expect(awsConfigCredentials.configureCredentials()).to.be.eventually.fulfilled;
     });
 
     it('should throw an error if the "key" and "secret" options are not given', async () => {
