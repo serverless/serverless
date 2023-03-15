@@ -86,7 +86,7 @@ describe('AwsCompileApigEvents', () => {
     it('should setup an empty array to gather the method logical ids', () =>
       expect(awsCompileApigEvents.apiGatewayMethodLogicalIds).to.deep.equal([]));
 
-    it('should run "package:compileEvents" promise chain in order', () => {
+    it('should run "package:compileEvents" promise chain in order', async () => {
       const validateStub = sinon.stub(awsCompileApigEvents, 'validate').returns({
         events: [
           {
@@ -125,7 +125,7 @@ describe('AwsCompileApigEvents', () => {
         getServiceState.getServiceState.restore();
       });
 
-      it('should run the promise chain in order', () => {
+      it('should run the promise chain in order', async () => {
         getServiceStateStub.returns({
           service: {
             functions: {
@@ -148,7 +148,7 @@ describe('AwsCompileApigEvents', () => {
         });
       });
 
-      it('should not skip the updateStage step when no http events are found', () => {
+      it('should not skip the updateStage step when no http events are found', async () => {
         getServiceStateStub.returns({
           service: {
             functions: {
@@ -165,7 +165,7 @@ describe('AwsCompileApigEvents', () => {
       });
     });
 
-    it('should run "before:remove:remove" promise chain in order', () => {
+    it('should run "before:remove:remove" promise chain in order', async () => {
       const validateStub = sinon.stub(validate, 'validate').returns();
 
       return awsCompileApigEvents.hooks['before:remove:remove']().then(() => {

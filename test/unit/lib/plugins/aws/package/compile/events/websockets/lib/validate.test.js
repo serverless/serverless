@@ -62,6 +62,9 @@ describe('#validate()', () => {
 
   it('should add authorizer config when authorizer is specified as a string', () => {
     awsCompileWebsocketsEvents.serverless.service.functions = {
+      auth: {
+        events: [],
+      },
       first: {
         events: [
           {
@@ -144,6 +147,9 @@ describe('#validate()', () => {
 
   it('should add authorizer config when authorizer is specified as an object', () => {
     awsCompileWebsocketsEvents.serverless.service.functions = {
+      auth: {
+        events: [],
+      },
       first: {
         events: [
           {
@@ -271,11 +277,13 @@ describe('#validate()', () => {
 describe('#validate() using runServerless util', () => {
   it('should use provided authorizer name when name field is supplied', async () => {
     const nameField = 'authName';
-
     const { cfTemplate, awsNaming } = await runServerless({
       fixture: 'function',
       configExt: {
         functions: {
+          [nameField]: {
+            handler: 'index.handler',
+          },
           first: {
             handler: 'index.handler',
             events: [

@@ -8,7 +8,7 @@ chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
 
 describe('#generateCoreTemplate()', () => {
-  it('should reject non-HTTPS requests to the deployment bucket', () =>
+  it('should reject non-HTTPS requests to the deployment bucket', async () =>
     runServerless({
       config: { service: 'irrelevant', provider: 'aws' },
       command: 'package',
@@ -56,7 +56,7 @@ describe('#generateCoreTemplate()', () => {
       });
     }));
 
-  it('should use a custom bucket if specified', () => {
+  it('should use a custom bucket if specified', async () => {
     const bucketName = 'com.serverless.deploys';
 
     return runServerless({
@@ -73,7 +73,7 @@ describe('#generateCoreTemplate()', () => {
     });
   });
 
-  it('should enable S3 Block Public Access & versioning if specified', () =>
+  it('should enable S3 Block Public Access & versioning if specified', async () =>
     runServerless({
       config: {
         service: 'irrelevant',
@@ -100,7 +100,7 @@ describe('#generateCoreTemplate()', () => {
       });
     }));
 
-  it('should add resource tags to the bucket if present', () =>
+  it('should add resource tags to the bucket if present', async () =>
     runServerless({
       config: {
         service: 'irrelevant',
@@ -169,7 +169,7 @@ describe('#generateCoreTemplate()', () => {
     );
   });
 
-  it('should use a auto generated bucket if you does not specify deploymentBucket', () =>
+  it('should use a auto generated bucket if you does not specify deploymentBucket', async () =>
     runServerless({
       config: { service: 'irrelevant', provider: 'aws' },
       command: 'package',
@@ -190,7 +190,7 @@ describe('#generateCoreTemplate()', () => {
       });
     }));
 
-  it('should add a custom output if S3 Transfer Acceleration is enabled', () =>
+  it('should add a custom output if S3 Transfer Acceleration is enabled', async () =>
     runServerless({
       config: { service: 'irrelevant', provider: 'aws' },
       command: 'deploy',
@@ -211,7 +211,7 @@ describe('#generateCoreTemplate()', () => {
       expect(template.Outputs.ServerlessDeploymentBucketAccelerated.Value).to.equal(true);
     }));
 
-  it('should explicitly disable S3 Transfer Acceleration, if requested', () =>
+  it('should explicitly disable S3 Transfer Acceleration, if requested', async () =>
     runServerless({
       config: { service: 'irrelevant', provider: 'aws' },
       command: 'deploy',
@@ -247,7 +247,7 @@ describe('#generateCoreTemplate()', () => {
       });
     }));
 
-  it('should exclude AccelerateConfiguration for govcloud region', () =>
+  it('should exclude AccelerateConfiguration for govcloud region', async () =>
     runServerless({
       config: { service: 'irrelevant', provider: { name: 'aws', region: 'us-gov-west-1' } },
       command: 'deploy',

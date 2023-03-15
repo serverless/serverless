@@ -98,8 +98,8 @@ describe('test/unit/lib/plugins/aws/package/compile/events/activemq.test.js', ()
     });
 
     it('should correctly compile EventSourceMapping resource DependsOn ', () => {
-      expect(minimalEventSourceMappingResource.DependsOn).to.equal('IamRoleLambdaExecution');
-      expect(allParamsEventSourceMappingResource.DependsOn).to.equal('IamRoleLambdaExecution');
+      expect(minimalEventSourceMappingResource.DependsOn).to.include('IamRoleLambdaExecution');
+      expect(allParamsEventSourceMappingResource.DependsOn).to.include('IamRoleLambdaExecution');
     });
 
     it('should correctly compile EventSourceMapping resource with all parameters', () => {

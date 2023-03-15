@@ -3,7 +3,6 @@
 const AWS = require('aws-sdk');
 const fse = require('fs-extra');
 const fsp = require('fs').promises;
-const _ = require('lodash');
 const path = require('path');
 const chai = require('chai');
 const sinon = require('sinon');
@@ -96,7 +95,7 @@ describe('AwsCompileFunctions', () => {
       AWS.S3.restore();
     });
 
-    it('should download the file and replace the artifact path for function packages', () => {
+    it('should download the file and replace the artifact path for function packages', async () => {
       awsCompileFunctions.serverless.service.package.individually = true;
       awsCompileFunctions.serverless.service.functions[
         functionName
@@ -114,7 +113,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should download the file and replace the artifact path for service-wide packages', () => {
+    it('should download the file and replace the artifact path for service-wide packages', async () => {
       awsCompileFunctions.serverless.service.package.individually = false;
       awsCompileFunctions.serverless.service.functions[functionName].package.artifact = false;
       awsCompileFunctions.serverless.service.package.artifact = `https://s3.amazonaws.com/${s3BucketName}/${s3ArtifactName}`;
@@ -129,7 +128,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should not access AWS.S3 if URL is not an S3 URl', () => {
+    it('should not access AWS.S3 if URL is not an S3 URl', async () => {
       AWS.S3.restore();
       const myRequestStub = sinon.stub(AWS, 'S3').returns({
         getObject: () => {
@@ -145,7 +144,7 @@ describe('AwsCompileFunctions', () => {
   });
 
   describe('#compileFunctions()', () => {
-    it('should use function artifact if individually', () => {
+    it('should use function artifact if individually', async () => {
       awsCompileFunctions.serverless.service.package.individually = true;
 
       return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
@@ -165,7 +164,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should add an ARN function role', () => {
+    it('should add an ARN function role', async () => {
       awsCompileFunctions.serverless.service.provider.name = 'aws';
       awsCompileFunctions.serverless.service.functions = {
         func: {
@@ -205,7 +204,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should add a logical role name function role', () => {
+    it('should add a logical role name function role', async () => {
       awsCompileFunctions.serverless.service.provider.name = 'aws';
       awsCompileFunctions.serverless.service.functions = {
         func: {
@@ -229,7 +228,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should add a "Fn::GetAtt" Object function role', () => {
+    it('should add a "Fn::GetAtt" Object function role', async () => {
       awsCompileFunctions.serverless.service.provider.name = 'aws';
       awsCompileFunctions.serverless.service.functions = {
         func: {
@@ -253,7 +252,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should add a "Fn::ImportValue" Object function role', () => {
+    it('should add a "Fn::ImportValue" Object function role', async () => {
       awsCompileFunctions.serverless.service.provider.name = 'aws';
       awsCompileFunctions.serverless.service.functions = {
         func: {
@@ -277,7 +276,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should add function declared roles', () => {
+    it('should add function declared roles', async () => {
       awsCompileFunctions.serverless.service.provider.name = 'aws';
       awsCompileFunctions.serverless.service.functions = {
         func0: {
@@ -313,7 +312,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should create a simple function resource', () => {
+    it('should create a simple function resource', async () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
@@ -375,7 +374,7 @@ describe('AwsCompileFunctions', () => {
             };
         });
 
-        it('should create necessary resources if a SNS arn is provided', () => {
+        it('should create necessary resources if a SNS arn is provided', async () => {
           awsCompileFunctions.serverless.service.functions = {
             func: {
               handler: 'func.function.handler',
@@ -424,7 +423,7 @@ describe('AwsCompileFunctions', () => {
           });
         });
 
-        it('should create necessary resources if a Ref is provided', () => {
+        it('should create necessary resources if a Ref is provided', async () => {
           awsCompileFunctions.serverless.service.functions = {
             func: {
               handler: 'func.function.handler',
@@ -466,7 +465,7 @@ describe('AwsCompileFunctions', () => {
           });
         });
 
-        it('should create necessary resources if a Fn::ImportValue is provided', () => {
+        it('should create necessary resources if a Fn::ImportValue is provided', async () => {
           awsCompileFunctions.serverless.service.functions = {
             func: {
               handler: 'func.function.handler',
@@ -508,7 +507,7 @@ describe('AwsCompileFunctions', () => {
           });
         });
 
-        it('should create necessary resources if a Fn::GetAtt is provided', () => {
+        it('should create necessary resources if a Fn::GetAtt is provided', async () => {
           awsCompileFunctions.serverless.service.functions = {
             func: {
               handler: 'func.function.handler',
@@ -552,7 +551,7 @@ describe('AwsCompileFunctions', () => {
       });
 
       describe('when IamRoleLambdaExecution is not used', () => {
-        it('should create necessary function resources if a SNS arn is provided', () => {
+        it('should create necessary function resources if a SNS arn is provided', async () => {
           awsCompileFunctions.serverless.service.functions = {
             func: {
               handler: 'func.function.handler',
@@ -619,7 +618,7 @@ describe('AwsCompileFunctions', () => {
             };
         });
 
-        it('should create necessary resources if a tracing config is provided', () => {
+        it('should create necessary resources if a tracing config is provided', async () => {
           awsCompileFunctions.serverless.service.functions = {
             func: {
               handler: 'func.function.handler',
@@ -670,7 +669,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should create a function resource with function level environment config', () => {
+    it('should create a function resource with function level environment config', async () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
@@ -715,7 +714,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should accept an environment variable with CF ref and functions', () => {
+    it('should accept an environment variable with CF ref and functions', async () => {
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -739,7 +738,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should consider function based config when creating a function resource', () => {
+    it('should consider function based config when creating a function resource', async () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
@@ -777,7 +776,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should include description if specified', () => {
+    it('should include description if specified', async () => {
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -793,7 +792,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should create corresponding function output and version objects', () => {
+    it('should create corresponding function output and version objects', async () => {
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -815,7 +814,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should include description under version too if function is specified', () => {
+    it('should include description under version too if function is specified', async () => {
       const lambdaDescription = 'Lambda function description';
       awsCompileFunctions.serverless.service.functions = {
         func: {
@@ -826,7 +825,7 @@ describe('AwsCompileFunctions', () => {
 
       return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
         let versionDescription;
-        for (const [key, value] of _.entries(
+        for (const [key, value] of Object.entries(
           awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
         )) {
           if (key.startsWith('FuncLambdaVersion')) {
@@ -838,7 +837,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should set function declared reserved concurrency limit', () => {
+    it('should set function declared reserved concurrency limit', async () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
@@ -876,7 +875,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should set function declared provisioned concurrency limit', () => {
+    it('should set function declared provisioned concurrency limit', async () => {
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -894,7 +893,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should set function declared reserved concurrency limit even if it is zero', () => {
+    it('should set function declared reserved concurrency limit even if it is zero', async () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
@@ -968,7 +967,7 @@ describe('AwsCompileFunctions', () => {
   });
 
   describe('#compileRole()', () => {
-    it('should not set unset properties when not specified in yml (layers, vpc, etc)', () => {
+    it('should not set unset properties when not specified in yml (layers, vpc, etc)', async () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
@@ -1005,7 +1004,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should set Layers when specified', () => {
+    it('should set Layers when specified', async () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
@@ -1044,7 +1043,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should set Condition when specified', () => {
+    it('should set Condition when specified', async () => {
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -1061,7 +1060,7 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should include DependsOn when specified', () => {
+    it('should include DependsOn when specified', async () => {
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',

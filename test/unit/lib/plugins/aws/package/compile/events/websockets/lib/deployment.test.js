@@ -123,7 +123,7 @@ describe('#compileDeployment()', () => {
     });
   });
 
-  it('should add deployment logical id to stage if no websocketApiId specified', () => {
+  it('should add deployment logical id to stage if no websocketApiId specified', async () => {
     awsCompileWebsocketsEvents.validated = {
       events: [
         {

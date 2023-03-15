@@ -135,7 +135,7 @@ describe('#updateStage()', () => {
     awsProvider.request.restore();
   });
 
-  it('should update the stage based on the serverless file configuration', () => {
+  it('should update the stage based on the serverless file configuration', async () => {
     context.state.service.provider.tags = {
       'Containing Space': 'bar',
       'bar': 'high-priority',
@@ -213,7 +213,7 @@ describe('#updateStage()', () => {
     });
   });
 
-  it('should support gov regions', () => {
+  it('should support gov regions', async () => {
     options.region = 'us-gov-east-1';
     awsProvider.getAccountInfo.restore();
     providerGetAccountInfoStub = sinon.stub(awsProvider, 'getAccountInfo').resolves({
@@ -298,7 +298,7 @@ describe('#updateStage()', () => {
     });
   });
 
-  it('should support all partitions', () => {
+  it('should support all partitions', async () => {
     options.region = 'cn-northwest-1';
     awsProvider.getAccountInfo.restore();
     providerGetAccountInfoStub = sinon.stub(awsProvider, 'getAccountInfo').resolves({
@@ -382,7 +382,7 @@ describe('#updateStage()', () => {
     });
   });
 
-  it('should not perform any actions if settings are not configure', () => {
+  it('should not perform any actions if settings are not configure', async () => {
     context.state.service.provider.tags = {
       old: 'tag',
     };
@@ -409,7 +409,7 @@ describe('#updateStage()', () => {
     });
   });
 
-  it('should create a new stage and proceed as usual if none can be found', () => {
+  it('should create a new stage and proceed as usual if none can be found', async () => {
     context.state.service.provider.tracing = { apiGateway: false };
     providerRequestStub
       .withArgs('APIGateway', 'getStage', {
@@ -480,7 +480,7 @@ describe('#updateStage()', () => {
     });
   });
 
-  it('should ignore external api gateway', () => {
+  it('should ignore external api gateway', async () => {
     context.state.service.provider.apiGateway = { restApiId: 'foobarfoo1' };
     context.state.service.provider.tracing = { apiGateway: false };
     return updateStage.call(context).then(() => {
@@ -489,7 +489,7 @@ describe('#updateStage()', () => {
     });
   });
 
-  it('should resolve custom APIGateway name', () => {
+  it('should resolve custom APIGateway name', async () => {
     context.state.service.provider.tracing = { apiGateway: false };
     providerRequestStub
       .withArgs('APIGateway', 'getRestApis', {
@@ -525,7 +525,7 @@ describe('#updateStage()', () => {
     });
   });
 
-  it('should resolve custom APIGateway resource', () => {
+  it('should resolve custom APIGateway resource', async () => {
     context.state.service.provider.tracing = { apiGateway: false };
     const resources = context.serverless.service.provider.compiledCloudFormationTemplate.Resources;
     resources.CustomApiGatewayRestApi = resources.ApiGatewayRestApi;
@@ -545,7 +545,7 @@ describe('#updateStage()', () => {
     });
   });
 
-  it('should not resolve if the AWS::ApiGateway::Resource is not present', () => {
+  it('should not resolve if the AWS::ApiGateway::Resource is not present', async () => {
     context.state.service.provider.tracing = { apiGateway: false };
     const resources = context.serverless.service.provider.compiledCloudFormationTemplate.Resources;
     delete resources.ApiGatewayRestApi;
@@ -555,7 +555,7 @@ describe('#updateStage()', () => {
     });
   });
 
-  it('should resolve expected restApiId when beyond 500 APIs are deployed', () => {
+  it('should resolve expected restApiId when beyond 500 APIs are deployed', async () => {
     context.state.service.provider.tracing = { apiGateway: false };
     providerRequestStub
       .withArgs('APIGateway', 'getRestApis', {
@@ -605,7 +605,7 @@ describe('#updateStage()', () => {
     }
   );
 
-  it('should update the stage with a custom APIGW log format if given', () => {
+  it('should update the stage with a custom APIGW log format if given', async () => {
     context.state.service.provider.logs = {
       restApi: {
         format: 'requestId: $context.requestId',
@@ -657,7 +657,7 @@ describe('#updateStage()', () => {
     expect(patchOperations).to.include.deep.members([patchOperation]);
   }
 
-  function checkLogLevel(setLevel, expectedLevel) {
+  async function checkLogLevel(setLevel, expectedLevel) {
     if (setLevel) {
       context.state.service.provider.logs = {
         restApi: {
@@ -686,7 +686,7 @@ describe('#updateStage()', () => {
     });
   });
 
-  it('should disable execution logging when executionLogging is set to false', () => {
+  it('should disable execution logging when executionLogging is set to false', async () => {
     context.state.service.provider.logs = {
       restApi: {
         executionLogging: false,
@@ -698,7 +698,7 @@ describe('#updateStage()', () => {
     });
   });
 
-  it('should disable existing access log settings when accessLogging is set to false', () => {
+  it('should disable existing access log settings when accessLogging is set to false', async () => {
     context.state.service.provider.logs = {
       restApi: {
         accessLogging: false,
@@ -711,7 +711,7 @@ describe('#updateStage()', () => {
     });
   });
 
-  it('should delete any existing CloudWatch LogGroup when accessLogging is set to false', () => {
+  it('should delete any existing CloudWatch LogGroup when accessLogging is set to false', async () => {
     context.state.service.provider.logs = {
       restApi: {
         accessLogging: false,
@@ -727,7 +727,7 @@ describe('#updateStage()', () => {
     });
   });
 
-  function checkDataTrace(value) {
+  async function checkDataTrace(value) {
     context.state.service.provider.logs = {
       restApi: {
         fullExecutionData: value,

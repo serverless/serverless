@@ -34,7 +34,7 @@ describe('#getResourceCount()', () => {
     awsInfo.provider.request.restore();
   });
 
-  it('attach resourceCount to this.gatheredData after listStackResources call', () => {
+  it('attach resourceCount to this.gatheredData after listStackResources call', async () => {
     const listStackResourcesResponse = {
       ResponseMetadata: { RequestId: '81386aed-258b-11e8-b3e8-a937105b7db3' },
       StackResourceSummaries: [
