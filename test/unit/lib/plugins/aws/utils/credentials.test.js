@@ -12,7 +12,7 @@ describe('#credentials', () => {
   const credentialsDirPath = path.join(os.homedir(), '.aws');
   const credentialsFilePath = path.join(credentialsDirPath, 'credentials');
 
-  before(() => {
+  before(async () => {
     // Abort if credentials are found in home directory
     // (it should not be the case, as home directory is mocked to point temp dir)
     return lstat(credentialsDirPath).then(
@@ -28,7 +28,7 @@ describe('#credentials', () => {
 
   afterEach(() => rmDir(credentialsDirPath));
 
-  it('should resolve file profiles', () => {
+  it('should resolve file profiles', async () => {
     const profiles = new Map([
       [
         'my-profile1',
@@ -79,7 +79,7 @@ describe('#credentials', () => {
       });
     }));
 
-  it('should save file profiles', () => {
+  it('should save file profiles', async () => {
     const profiles = new Map([
       [
         'my-profileA',

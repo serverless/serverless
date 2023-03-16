@@ -56,7 +56,7 @@ describe('AwsRollback', () => {
   });
 
   describe('hooks', () => {
-    it('should run "before:rollback:initialize" hook promise chain in order', () => {
+    it('should run "before:rollback:initialize" hook promise chain in order', async () => {
       const validateStub = sinon.stub(awsRollback, 'validate').resolves();
 
       return awsRollback.hooks['before:rollback:initialize']().then(() => {
@@ -64,7 +64,7 @@ describe('AwsRollback', () => {
       });
     });
 
-    it('should run "rollback:rollback" promise chain in order', () => {
+    it('should run "rollback:rollback" promise chain in order', async () => {
       const setBucketNameStub = sinon.stub(awsRollback, 'setBucketName').resolves();
       const setStackToUpdateStub = sinon.stub(awsRollback, 'setStackToUpdate').resolves();
       const updateStackStub = sinon.stub(awsRollback, 'updateStack').resolves();
@@ -76,7 +76,7 @@ describe('AwsRollback', () => {
       });
     });
 
-    it('should run "deploy:list" if timestamp is not specified', () => {
+    it('should run "deploy:list" if timestamp is not specified', async () => {
       const spawnDeployListStub = spawnStub.withArgs('deploy:list').resolves();
       awsRollback.options.timestamp = undefined;
 
@@ -87,7 +87,7 @@ describe('AwsRollback', () => {
   });
 
   describe('#setStackToUpdate()', () => {
-    it('should resolve when the timestamp argument is passed as a string', () => {
+    it('should resolve when the timestamp argument is passed as a string', async () => {
       createInstance({
         stage: 'dev',
         region: 'us-east-1',
@@ -178,7 +178,7 @@ describe('AwsRollback', () => {
       awsRollback.provider.request.restore();
     });
 
-    it('should resolve set the artifactDirectoryName and resolve', () => {
+    it('should resolve set the artifactDirectoryName and resolve', async () => {
       const s3Objects = [
         {
           // eslint-disable-next-line max-len
