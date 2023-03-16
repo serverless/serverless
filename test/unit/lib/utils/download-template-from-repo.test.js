@@ -50,7 +50,7 @@ describe('downloadTemplateFromRepo', () => {
     const downloadTemplateFromRepoModule = proxyquire(
       '../../../../lib/utils/download-template-from-repo',
       {
-        'node-fetch': (url) => {
+        'node-fetch': async (url) => {
           if (url.indexOf('mybitbucket.server.ltd') > -1) {
             return fetchStub();
           }
@@ -93,7 +93,7 @@ describe('downloadTemplateFromRepo', () => {
       ).to.be.eventually.rejected.and.have.property('code', 'TARGET_FOLDER_ALREADY_EXISTS');
     });
 
-    it('should download the service based on a regular .git URL', () => {
+    it('should download the service based on a regular .git URL', async () => {
       const url = 'https://example.com/sample-service.git';
 
       return expect(downloadTemplateFromRepo(url)).to.be.fulfilled.then(() => {
@@ -105,7 +105,7 @@ describe('downloadTemplateFromRepo', () => {
       });
     });
 
-    it('should download and rename the service based on a regular .git URL', () => {
+    it('should download and rename the service based on a regular .git URL', async () => {
       const url = 'https://example.com/sample-service.git';
       const name = 'new-service-name';
 
@@ -129,7 +129,7 @@ describe('downloadTemplateFromRepo', () => {
       });
     });
 
-    it('should download the service based on a regular .git URL start with git@', () => {
+    it('should download the service based on a regular .git URL start with git@', async () => {
       const url = 'git@example.com/sample-service.git';
 
       return expect(downloadTemplateFromRepo(url)).to.be.fulfilled.then(() => {
@@ -141,7 +141,7 @@ describe('downloadTemplateFromRepo', () => {
       });
     });
 
-    it('should download and rename the service based on a regular .git URL start with git@', () => {
+    it('should download and rename the service based on a regular .git URL start with git@', async () => {
       const url = 'git@example.com/sample-service.git';
       const name = 'new-service-name';
 
@@ -165,7 +165,7 @@ describe('downloadTemplateFromRepo', () => {
       });
     });
 
-    it('should download the service based on the GitHub URL', () => {
+    it('should download the service based on the GitHub URL', async () => {
       const url = 'https://github.com/johndoe/service-to-be-downloaded';
 
       return expect(downloadTemplateFromRepo(url)).to.be.fulfilled.then(() => {
@@ -174,7 +174,7 @@ describe('downloadTemplateFromRepo', () => {
       });
     });
 
-    it('should download and rename the service based on the GitHub URL', () => {
+    it('should download and rename the service based on the GitHub URL', async () => {
       const url = 'https://github.com/johndoe/service-to-be-downloaded';
       const name = 'new-service-name';
 
@@ -196,7 +196,7 @@ describe('downloadTemplateFromRepo', () => {
       });
     });
 
-    it('should download and rename the service based directories in the GitHub URL', () => {
+    it('should download and rename the service based directories in the GitHub URL', async () => {
       const url = 'https://github.com/serverless/examples/tree/master/rest-api-with-dynamodb';
       const name = 'new-service-name';
 
@@ -252,7 +252,7 @@ describe('downloadTemplateFromRepo', () => {
       ).to.be.eventually.rejected.and.have.property('code', 'INVALID_TEMPLATE_PROVIDER');
     });
 
-    it('should parse a valid GitHub URL', () => {
+    it('should parse a valid GitHub URL', async () => {
       return expect(parseRepoURL('https://github.com/serverless/serverless')).to.be.fulfilled.then(
         (output) => {
           expect(output).to.deep.eq({
@@ -269,7 +269,7 @@ describe('downloadTemplateFromRepo', () => {
       );
     });
 
-    it('should parse a valid GitHub URL with subdirectory', () => {
+    it('should parse a valid GitHub URL with subdirectory', async () => {
       return expect(
         parseRepoURL('https://github.com/serverless/serverless/tree/master/assets')
       ).to.be.fulfilled.then((output) => {
@@ -286,7 +286,7 @@ describe('downloadTemplateFromRepo', () => {
       });
     });
 
-    it('should parse a valid GitHub Entreprise URL', () => {
+    it('should parse a valid GitHub Entreprise URL', async () => {
       return expect(
         parseRepoURL('https://github.mydomain.com/serverless/serverless')
       ).to.be.fulfilled.then((output) => {
@@ -303,7 +303,7 @@ describe('downloadTemplateFromRepo', () => {
       });
     });
 
-    it('should parse a valid GitHub Entreprise with subdirectory', () => {
+    it('should parse a valid GitHub Entreprise with subdirectory', async () => {
       return expect(
         parseRepoURL('https://github.mydomain.com/serverless/serverless/tree/master/assets')
       ).to.be.fulfilled.then((output) => {
@@ -320,7 +320,7 @@ describe('downloadTemplateFromRepo', () => {
       });
     });
 
-    it('should parse a valid GitHub Entreprise URL with authentication', () => {
+    it('should parse a valid GitHub Entreprise URL with authentication', async () => {
       return expect(
         parseRepoURL('https://username:password@github.com/serverless/serverless/')
       ).to.be.fulfilled.then((output) => {
@@ -337,7 +337,7 @@ describe('downloadTemplateFromRepo', () => {
       });
     });
 
-    it('should parse a valid BitBucket URL', () => {
+    it('should parse a valid BitBucket URL', async () => {
       return parseRepoURL('https://bitbucket.org/atlassian/localstack').then((output) => {
         expect(output).to.deep.eq({
           owner: 'atlassian',
@@ -352,7 +352,7 @@ describe('downloadTemplateFromRepo', () => {
       });
     });
 
-    it('should parse a valid BitBucket URL with subdirectory', () => {
+    it('should parse a valid BitBucket URL with subdirectory', async () => {
       return parseRepoURL(
         'https://bitbucket.org/atlassian/localstack/src/85870856fd6941ae75c0fa946a51cf756ff2f53a/localstack/dashboard/?at=mvn'
       ).then((output) => {
@@ -369,7 +369,7 @@ describe('downloadTemplateFromRepo', () => {
       });
     });
 
-    it('should parse a valid Bitbucket Server URL', () => {
+    it('should parse a valid Bitbucket Server URL', async () => {
       return parseRepoURL(
         'https://user:pass@mybitbucket.server.ltd/rest/api/latest/projects/myproject/repos/myrepo/archive?at=refs%2Fheads%2Fdevelop'
       ).then((output) => {
@@ -387,7 +387,7 @@ describe('downloadTemplateFromRepo', () => {
       });
     });
 
-    it('should parse a valid GitLab URL ', () => {
+    it('should parse a valid GitLab URL ', async () => {
       return parseRepoURL('https://gitlab.com/serverless/serverless').then((output) => {
         expect(output).to.deep.eq({
           owner: 'serverless',
@@ -403,7 +403,7 @@ describe('downloadTemplateFromRepo', () => {
       });
     });
 
-    it('should parse a valid GitLab URL with subdirectory', () => {
+    it('should parse a valid GitLab URL with subdirectory', async () => {
       return parseRepoURL('https://gitlab.com/serverless/serverless/tree/dev/subdir').then(
         (output) => {
           expect(output).to.deep.eq({
