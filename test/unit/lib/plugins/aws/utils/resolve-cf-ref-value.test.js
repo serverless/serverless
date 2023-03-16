@@ -5,7 +5,7 @@ const BbPromise = require('bluebird');
 const resolveCfRefValue = require('../../../../../../lib/plugins/aws/utils/resolve-cf-ref-value');
 
 describe('#resolveCfRefValue', () => {
-  it('should return matching exported value if found', () => {
+  it('should return matching exported value if found', async () => {
     const provider = {
       naming: {
         getStackName: () => 'stack-name',
