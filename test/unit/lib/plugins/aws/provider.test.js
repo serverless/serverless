@@ -202,13 +202,13 @@ describe('AwsProvider', () => {
       });
     });
 
-    it('should trigger the expected AWS SDK invokation', () => {
+    it('should trigger the expected AWS SDK invokation', async () => {
       return awsProviderProxied.request('S3', 'getObject', {}).then(() => {
         expect(awsRequestStub).to.have.been.calledOnce;
       });
     });
 
-    it('should use local cache when using {useCache: true}', () => {
+    it('should use local cache when using {useCache: true}', async () => {
       return awsProviderProxied
         .request('S3', 'getObject', {}, { useCache: true })
         .then(() => awsProviderProxied.request('S3', 'getObject', {}, { useCache: true }))
@@ -220,7 +220,7 @@ describe('AwsProvider', () => {
   });
 
   describe('#getServerlessDeploymentBucketName()', () => {
-    it('should return the name of the serverless deployment bucket', () => {
+    it('should return the name of the serverless deployment bucket', async () => {
       const describeStackResourcesStub = sinon.stub(awsProvider, 'request').resolves({
         StackResourceDetail: {
           PhysicalResourceId: 'serverlessDeploymentBucketName',
@@ -240,7 +240,7 @@ describe('AwsProvider', () => {
       });
     });
 
-    it('should return the name of the custom deployment bucket', () => {
+    it('should return the name of the custom deployment bucket', async () => {
       awsProvider.serverless.service.provider.deploymentBucket = 'custom-bucket';
 
       const describeStackResourcesStub = sinon.stub(awsProvider, 'request').resolves({
@@ -258,7 +258,7 @@ describe('AwsProvider', () => {
   });
 
   describe('#getAccountInfo()', () => {
-    it('should return the AWS account id and partition', () => {
+    it('should return the AWS account id and partition', async () => {
       const accountId = '12345678';
       const partition = 'aws';
 
@@ -279,7 +279,7 @@ describe('AwsProvider', () => {
   });
 
   describe('#getAccountId()', () => {
-    it('should return the AWS account id', () => {
+    it('should return the AWS account id', async () => {
       const accountId = '12345678';
 
       const stsGetCallerIdentityStub = sinon.stub(awsProvider, 'request').resolves({

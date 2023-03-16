@@ -26,7 +26,7 @@ describe('#setBucketName()', () => {
       .resolves('bucket-name');
   });
 
-  it('should store the name of the Serverless deployment bucket', () =>
+  it('should store the name of the Serverless deployment bucket', async () =>
     awsDeploy.setBucketName().then(() => {
       expect(awsDeploy.bucketName).to.equal('bucket-name');
       expect(getServerlessDeploymentBucketNameStub.calledOnce).to.be.equal(true);
@@ -34,7 +34,7 @@ describe('#setBucketName()', () => {
       awsDeploy.provider.getServerlessDeploymentBucketName.restore();
     }));
 
-  it('should resolve if the bucketName is already set', () => {
+  it('should resolve if the bucketName is already set', async () => {
     const bucketName = 'someBucket';
     awsDeploy.bucketName = bucketName;
     return awsDeploy

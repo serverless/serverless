@@ -27,7 +27,7 @@ describe('AwsConfigCredentials', () => {
     'aws_secret_access_key = my-old-profile-secret',
   ].join('\n');
 
-  before(() => {
+  before(async () => {
     // Abort if credentials are found in home directory
     // (it should not be the case, as home directory is mocked to point temp dir)
     return fsp.lstat(awsDirectoryPath).then(
@@ -41,7 +41,7 @@ describe('AwsConfigCredentials', () => {
     );
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     serverless = new Serverless({ commands: ['print'], options: {}, serviceDir: null });
     return serverless.init().then(() => {
       const options = {
@@ -87,7 +87,7 @@ describe('AwsConfigCredentials', () => {
       expect(awsConfigCredentials.hooks['config:credentials:config']).to.not.equal(undefined);
     });
 
-    it('should run promise chain in order for "config:credentials:config" hook', () => {
+    it('should run promise chain in order for "config:credentials:config" hook', async () => {
       const awsConfigCredentialsStub = sandbox
         .stub(awsConfigCredentials, 'configureCredentials')
         .resolves();
@@ -110,7 +110,7 @@ describe('AwsConfigCredentials', () => {
   });
 
   describe('#configureCredentials()', () => {
-    it('should lowercase the provider option', () => {
+    it('should lowercase the provider option', async () => {
       awsConfigCredentials.options.provider = 'SOMEPROVIDER';
 
       return awsConfigCredentials.configureCredentials().then(() => {
@@ -118,18 +118,18 @@ describe('AwsConfigCredentials', () => {
       });
     });
 
-    it('should use the "default" profile if option is not given', () =>
+    it('should use the "default" profile if option is not given', async () =>
       awsConfigCredentials.configureCredentials().then(() => {
         expect(awsConfigCredentials.options.profile).to.equal('default');
       }));
 
-    it('should resolve if the provider option is not "aws"', (done) => {
+    it('should resolve if the provider option is not "aws"', async () => {
       awsConfigCredentials.options.provider = 'invalid-provider';
 
-      awsConfigCredentials.configureCredentials().then(() => done());
+      return expect(awsConfigCredentials.configureCredentials()).to.be.eventually.fulfilled;
     });
 
-    it('should throw an error if the "key" and "secret" options are not given', () => {
+    it('should throw an error if the "key" and "secret" options are not given', async () => {
       awsConfigCredentials.options.key = false;
       awsConfigCredentials.options.secret = false;
       return awsConfigCredentials.configureCredentials().then(
@@ -141,7 +141,7 @@ describe('AwsConfigCredentials', () => {
       );
     });
 
-    it('should update the profile', () => {
+    it('should update the profile', async () => {
       awsConfigCredentials.options.profile = 'my-profile';
       awsConfigCredentials.options.key = 'my-new-profile-key';
       awsConfigCredentials.options.secret = 'my-new-profile-secret';
@@ -159,7 +159,7 @@ describe('AwsConfigCredentials', () => {
       });
     });
 
-    it('should not alter other profiles when updating a profile', () => {
+    it('should not alter other profiles when updating a profile', async () => {
       awsConfigCredentials.options.profile = 'my-profile';
       awsConfigCredentials.options.key = 'my-new-profile-key';
       awsConfigCredentials.options.secret = 'my-new-profile-secret';
@@ -185,7 +185,7 @@ describe('AwsConfigCredentials', () => {
       });
     });
 
-    it('should add the missing credentials to the updated profile', () => {
+    it('should add the missing credentials to the updated profile', async () => {
       const newCredentialsFileContent = [
         credentialsFileContent,
         '[my-profile]',
@@ -209,7 +209,7 @@ describe('AwsConfigCredentials', () => {
       });
     });
 
-    it('should append the profile to the credentials file', () => {
+    it('should append the profile to the credentials file', async () => {
       awsConfigCredentials.options.profile = 'my-profile';
       awsConfigCredentials.options.key = 'my-profile-key';
       awsConfigCredentials.options.secret = 'my-profile-secret';
@@ -225,7 +225,7 @@ describe('AwsConfigCredentials', () => {
     });
 
     if (os.platform() !== 'win32') {
-      it('should set the permissions of the credentials file to be owner-only read/write', () =>
+      it('should set the permissions of the credentials file to be owner-only read/write', async () =>
         awsConfigCredentials.configureCredentials().then(() => {
           const fileMode = fs.statSync(credentialsFilePath).mode;
           const filePermissions = fileMode & ~(fs.constants || constants).S_IFMT;
