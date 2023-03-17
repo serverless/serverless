@@ -8,7 +8,9 @@ const CLI = require('../../../../../lib/classes/cli');
 const proxyquire = require('proxyquire');
 
 chai.use(require('chai-as-promised'));
-const expect = require('chai').expect;
+chai.use(require('sinon-chai'));
+
+const expect = chai.expect;
 
 describe('AwsRollbackFunction', () => {
   let serverless;
@@ -131,8 +133,8 @@ describe('AwsRollbackFunction', () => {
           'Function "hello" with version "4711" not found'
         );
 
-        expect(getFunctionStub).to.be.calledOnce;
-        expect(getFunctionStub).to.be.calledWithExactly('Lambda', 'getFunction', {
+        expect(getFunctionStub).to.have.been.calledOnce;
+        expect(getFunctionStub).to.have.been.calledWithExactly('Lambda', 'getFunction', {
           FunctionName: 'service-dev-hello',
           Qualifier: '4711',
         });
@@ -160,8 +162,8 @@ describe('AwsRollbackFunction', () => {
           'something went wrong'
         );
 
-        expect(getFunctionStub).to.be.calledOnce;
-        expect(getFunctionStub).to.be.calledWithExactly('Lambda', 'getFunction', {
+        expect(getFunctionStub).to.have.been.calledOnce;
+        expect(getFunctionStub).to.have.been.calledWithExactly('Lambda', 'getFunction', {
           FunctionName: 'service-dev-hello',
           Qualifier: '4711',
         });

@@ -130,8 +130,8 @@ describe('AwsRollback', () => {
         })
       ).to.eventually.be.rejected.and.have.property('code', 'ROLLBACK_DEPLOYMENTS_NOT_FOUND');
 
-      expect(listObjectsStub).to.becalledOnce;
-      expect(listObjectsStub).to.be.calledWithExactly('S3', 'listObjectsV2', {
+      expect(listObjectsStub).to.have.been.calledOnce;
+      expect(listObjectsStub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
         Bucket: awsRollback.bucketName,
         Prefix: `${s3Key}`,
       });
@@ -161,8 +161,8 @@ describe('AwsRollback', () => {
         })
       ).to.eventually.be.rejected.and.have.property('code', 'ROLLBACK_DEPLOYMENT_NOT_FOUND');
 
-      expect(listObjectsStub).to.be.calledOnce;
-      expect(listObjectsStub).to.be.calledWithExactly('S3', 'listObjectsV2', {
+      expect(listObjectsStub).to.have.been.calledOnce;
+      expect(listObjectsStub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
         Bucket: awsRollback.bucketName,
         Prefix: `${s3Key}`,
       });

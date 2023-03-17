@@ -8,7 +8,8 @@ const { getTmpFilePath } = require('../../../../utils/fs');
 // Configure chai
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
-const expect = require('chai').expect;
+
+const expect = chai.expect;
 
 describe('#readFile()', () => {
   it('should read a file asynchronously', () => {
