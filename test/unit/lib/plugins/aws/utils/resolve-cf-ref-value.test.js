@@ -1,7 +1,6 @@
 'use strict';
 
 const expect = require('chai').expect;
-const BbPromise = require('bluebird');
 const resolveCfRefValue = require('../../../../../../lib/plugins/aws/utils/resolve-cf-ref-value');
 
 describe('#resolveCfRefValue', () => {
@@ -11,7 +10,7 @@ describe('#resolveCfRefValue', () => {
         getStackName: () => 'stack-name',
       },
       request: () =>
-        BbPromise.resolve({
+        Promise.resolve({
           StackResourceSummaries: [
             {
               LogicalResourceId: 'myS3',

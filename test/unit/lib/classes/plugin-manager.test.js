@@ -20,7 +20,6 @@ const fse = require('fs-extra');
 const mockRequire = require('mock-require');
 const sinon = require('sinon');
 const proxyquire = require('proxyquire');
-const BbPromise = require('bluebird');
 const { installPlugin } = require('../../../utils/plugins');
 const { getTmpDirPath } = require('../../../utils/fs');
 
@@ -75,14 +74,14 @@ class PromisePluginMock {
   }
 
   functions() {
-    return new BbPromise((resolve) => {
+    return new Promise((resolve) => {
       this.deployedFunctions += 1;
       return resolve();
     });
   }
 
   resources() {
-    return new BbPromise((resolve) => {
+    return new Promise((resolve) => {
       this.deployedResources += 1;
       return resolve();
     });
@@ -591,7 +590,7 @@ describe('PluginManager', () => {
   describe('#asyncPluginInit()', () => {
     it('should call async init on plugins that have it', () => {
       const plugin1 = new ServicePluginMock1();
-      plugin1.asyncInit = sinon.stub().returns(BbPromise.resolve());
+      plugin1.asyncInit = sinon.stub().returns(Promise.resolve());
       pluginManager.plugins = [plugin1];
       return pluginManager.asyncPluginInit().then(() => {
         expect(plugin1.asyncInit.calledOnce).to.equal(true);
