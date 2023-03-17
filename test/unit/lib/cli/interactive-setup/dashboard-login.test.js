@@ -53,12 +53,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
     loginStub.resetHistory();
   });
 
-  it('Should be ineffective in console context', async () => {
-    const context = { isConsole: true, options: { console: true } };
-    expect(await step.isApplicable(context)).to.be.false;
-    expect(context.inapplicabilityReasonCode).to.equal('CONSOLE_CONTEXT');
-  });
-
   it('Should be ineffective, when not at service path', async () => {
     const context = { options: {} };
     expect(await step.isApplicable(context)).to.be.false;
@@ -75,7 +69,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       inquirer,
     };
     expect(await step.isApplicable(context)).to.equal(false);
-    expect(context.inapplicabilityReasonCode).to.equal('MISSING_DASHBOARD_CONTEXT');
+    expect(context.inapplicabilityReasonCode).to.equal('CONSOLE_CONTEXT');
   });
 
   it('Should be ineffective, when not at AWS service path', async () => {

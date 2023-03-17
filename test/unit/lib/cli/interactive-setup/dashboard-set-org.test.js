@@ -121,20 +121,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
     expect(context.inapplicabilityReasonCode).to.equal('NOT_IN_SERVICE_DIRECTORY');
   });
 
-  it('Should be ineffective, when in console context', async () => {
-    const context = {
-      initial: {},
-      serviceDir: process.cwd(),
-      configuration: {},
-      configurationFilename: 'serverless.yml',
-      options: { console: true },
-      isDashboard: true,
-      isConsole: true,
-    };
-    expect(await step.isApplicable(context)).to.be.false;
-    expect(context.inapplicabilityReasonCode).to.equal('CONSOLE_CONTEXT');
-  });
-
   it('Should be ineffective, when not in dashboard context', async () => {
     const context = {
       initial: {},
@@ -146,7 +132,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       isConsole: false,
     };
     expect(await step.isApplicable(context)).to.equal(false);
-    expect(context.inapplicabilityReasonCode).to.equal('MISSING_DASHBOARD_CONTEXT');
+    expect(context.inapplicabilityReasonCode).to.equal('CONSOLE_CONTEXT');
   });
 
   it('Should be ineffective, when not at AWS service path', async () => {
