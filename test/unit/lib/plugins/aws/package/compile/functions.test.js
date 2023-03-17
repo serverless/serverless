@@ -2316,7 +2316,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
 
   describe('Validation', () => {
     it('should throw error when `functions[].fileSystemConfig` is configured with no vpc', async () => {
-      await expect(
+      return expect(
         runServerless({
           fixture: 'function',
           configExt: {
@@ -2338,7 +2338,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
     });
 
     it('should throw error when `SnapStart` and `ProvisionedConcurrency` is enabled on the function', async () => {
-      expect(
+      return expect(
         runServerless({
           fixture: 'function',
           configExt: {

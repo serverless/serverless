@@ -128,17 +128,13 @@ describe('AwsRollback', () => {
         awsRollback.setStackToUpdate().then(() => {
           assert.isNotOk(true, 'setStackToUpdate should not resolve');
         })
-      )
-        .to.eventually.be.rejected.and.have.property('code', 'ROLLBACK_DEPLOYMENTS_NOT_FOUND')
-        .then(() => {
-          expect(listObjectsStub.calledOnce).to.be.equal(true);
-          expect(
-            listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
-              Bucket: awsRollback.bucketName,
-              Prefix: `${s3Key}`,
-            })
-          ).to.be.equal(true);
-        });
+      ).to.eventually.be.rejected.and.have.property('code', 'ROLLBACK_DEPLOYMENTS_NOT_FOUND');
+
+      expect(listObjectsStub).to.becalledOnce;
+      expect(listObjectsStub).to.be.calledWithExactly('S3', 'listObjectsV2', {
+        Bucket: awsRollback.bucketName,
+        Prefix: `${s3Key}`,
+      });
 
       awsRollback.provider.request.restore();
     });
@@ -163,17 +159,13 @@ describe('AwsRollback', () => {
         awsRollback.setStackToUpdate().then(() => {
           assert.isNotOk(true, 'setStackToUpdate should not resolve');
         })
-      )
-        .to.eventually.be.rejected.and.have.property('code', 'ROLLBACK_DEPLOYMENT_NOT_FOUND')
-        .then(() => {
-          expect(listObjectsStub.calledOnce).to.be.equal(true);
-          expect(
-            listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
-              Bucket: awsRollback.bucketName,
-              Prefix: `${s3Key}`,
-            })
-          ).to.be.equal(true);
-        });
+      ).to.eventually.be.rejected.and.have.property('code', 'ROLLBACK_DEPLOYMENT_NOT_FOUND');
+
+      expect(listObjectsStub).to.be.calledOnce;
+      expect(listObjectsStub).to.be.calledWithExactly('S3', 'listObjectsV2', {
+        Bucket: awsRollback.bucketName,
+        Prefix: `${s3Key}`,
+      });
 
       awsRollback.provider.request.restore();
     });
@@ -212,7 +204,7 @@ describe('AwsRollback', () => {
 
 describe('test/unit/lib/plugins/aws/rollback.test.js', () => {
   it('Should gently handle error of listing objects from S3 bucket', async () => {
-    await expect(
+    return expect(
       runServerless({
         fixture: 'function',
         command: 'rollback',

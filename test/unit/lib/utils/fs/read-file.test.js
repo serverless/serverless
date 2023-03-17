@@ -37,7 +37,7 @@ describe('#readFile()', () => {
 
   it('should throw YAMLException with filename if yml file is invalid format', async () => {
     const tmpFilePath = getTmpFilePath('invalid.yml');
-    await expect(writeFile(tmpFilePath, ': a').then(() => readFile(tmpFilePath)))
+    return expect(writeFile(tmpFilePath, ': a').then(() => readFile(tmpFilePath)))
       .to.eventually.be.rejectedWith(/.*invalid.yml/)
       .and.have.property('name', 'YAMLException');
   });

@@ -127,17 +127,15 @@ describe('AwsRollbackFunction', () => {
         awsRollbackFunction.options.function = 'hello';
         awsRollbackFunction.options['function-version'] = '4711';
 
-        await expect(awsRollbackFunction.getFunctionToBeRestored())
-          .to.eventually.be.rejectedWith('Function "hello" with version "4711" not found')
-          .then(() => {
-            expect(getFunctionStub.calledOnce).to.equal(true);
-            expect(
-              getFunctionStub.calledWithExactly('Lambda', 'getFunction', {
-                FunctionName: 'service-dev-hello',
-                Qualifier: '4711',
-              })
-            ).to.equal(true);
-          });
+        await expect(awsRollbackFunction.getFunctionToBeRestored()).to.eventually.be.rejectedWith(
+          'Function "hello" with version "4711" not found'
+        );
+
+        expect(getFunctionStub).to.be.calledOnce;
+        expect(getFunctionStub).to.be.calledWithExactly('Lambda', 'getFunction', {
+          FunctionName: 'service-dev-hello',
+          Qualifier: '4711',
+        });
       });
     });
 
@@ -154,21 +152,19 @@ describe('AwsRollbackFunction', () => {
         awsRollbackFunction.provider.request.restore();
       });
 
-      it('should re-throw the error without translating it to a custom error message', () => {
+      it('should re-throw the error without translating it to a custom error message', async () => {
         awsRollbackFunction.options.function = 'hello';
         awsRollbackFunction.options['function-version'] = '4711';
 
-        expect(awsRollbackFunction.getFunctionToBeRestored())
-          .to.eventually.be.rejectedWith('something went wrong')
-          .then(() => {
-            expect(getFunctionStub.calledOnce).to.equal(true);
-            expect(
-              getFunctionStub.calledWithExactly('Lambda', 'getFunction', {
-                FunctionName: 'service-dev-hello',
-                Qualifier: '4711',
-              })
-            ).to.equal(true);
-          });
+        await expect(awsRollbackFunction.getFunctionToBeRestored()).to.eventually.be.rejectedWith(
+          'something went wrong'
+        );
+
+        expect(getFunctionStub).to.be.calledOnce;
+        expect(getFunctionStub).to.be.calledWithExactly('Lambda', 'getFunction', {
+          FunctionName: 'service-dev-hello',
+          Qualifier: '4711',
+        });
       });
     });
   });

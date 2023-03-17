@@ -444,19 +444,19 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(2).resolves(updateRollbackEvent);
       describeStackEventsStub.onCall(3).resolves(updateRollbackComplete);
 
-      await expect(awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 }))
-        .to.eventually.be.rejectedWith(
-          ServerlessError,
-          'An error occurred: mochaS3 - Bucket already exists.'
-        )
-        .then(() => {
-          expect(describeStackEventsStub.callCount).to.be.equal(4);
-          expect(
-            describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
-              StackName: cfDataMock.StackId,
-            })
-          ).to.be.equal(true);
-        });
+      await expect(
+        awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 })
+      ).to.eventually.be.rejectedWith(
+        ServerlessError,
+        'An error occurred: mochaS3 - Bucket already exists.'
+      );
+
+      expect(describeStackEventsStub.callCount).to.be.equal(4);
+      expect(describeStackEventsStub).to.be.calledWithExactly(
+        'CloudFormation',
+        'describeStackEvents',
+        { StackName: cfDataMock.StackId }
+      );
 
       awsPlugin.provider.request.restore();
     });
@@ -527,16 +527,16 @@ describe('monitorStack', () => {
 
       describeStackEventsStub.onCall(0).rejects(failedDescribeStackEvents);
 
-      await expect(awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 }))
-        .to.eventually.be.rejectedWith('Something went wrong.')
-        .then(() => {
-          expect(describeStackEventsStub.callCount).to.be.equal(1);
-          expect(
-            describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
-              StackName: cfDataMock.StackId,
-            })
-          ).to.be.equal(true);
-        });
+      await expect(
+        awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 })
+      ).to.eventually.be.rejectedWith('Something went wrong.');
+
+      expect(describeStackEventsStub).to.be.calledOnce;
+      expect(describeStackEventsStub).to.be.calledWithExactly(
+        'CloudFormation',
+        'describeStackEvents',
+        { StackName: cfDataMock.StackId }
+      );
 
       awsPlugin.provider.request.restore();
     });
@@ -597,20 +597,20 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(2).resolves(updateRollbackEvent);
       describeStackEventsStub.onCall(3).resolves(updateRollbackFailedEvent);
 
-      await expect(awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 }))
-        .to.eventually.be.rejectedWith(
-          ServerlessError,
-          'An error occurred: mochaS3 - Bucket already exists.'
-        )
-        .then(() => {
-          // callCount is 2 because Serverless will immediately exits and shows the error
-          expect(describeStackEventsStub.callCount).to.be.equal(2);
-          expect(
-            describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
-              StackName: cfDataMock.StackId,
-            })
-          ).to.be.equal(true);
-        });
+      await expect(
+        awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 })
+      ).to.eventually.be.rejectedWith(
+        ServerlessError,
+        'An error occurred: mochaS3 - Bucket already exists.'
+      );
+
+      // callCount is 2 because Serverless will immediately exits and shows the error
+      expect(describeStackEventsStub.callCount).to.be.equal(2);
+      expect(describeStackEventsStub).to.be.calledWithExactly(
+        'CloudFormation',
+        'describeStackEvents',
+        { StackName: cfDataMock.StackId }
+      );
 
       awsPlugin.provider.request.restore();
     });
@@ -675,20 +675,20 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(2).resolves(deleteItemFailedEvent);
       describeStackEventsStub.onCall(3).resolves(deleteFailedEvent);
 
-      await expect(awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 }))
-        .to.eventually.be.rejectedWith(
-          ServerlessError,
-          'An error occurred: mochaLambda - You are not authorized to perform this operation.'
-        )
-        .then(() => {
-          // TODO why this is 3?
-          expect(describeStackEventsStub.callCount).to.be.equal(3);
-          expect(
-            describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
-              StackName: cfDataMock.StackId,
-            })
-          ).to.be.equal(true);
-        });
+      await expect(
+        awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 })
+      ).to.eventually.be.rejectedWith(
+        ServerlessError,
+        'An error occurred: mochaLambda - You are not authorized to perform this operation.'
+      );
+
+      // TODO: why this is 3?
+      expect(describeStackEventsStub.callCount).to.be.equal(3);
+      expect(describeStackEventsStub).to.be.calledWithExactly(
+        'CloudFormation',
+        'describeStackEvents',
+        { StackName: cfDataMock.StackId }
+      );
 
       awsPlugin.provider.request.restore();
     });
@@ -757,19 +757,19 @@ describe('monitorStack', () => {
         describeStackEventsStub.onCall(2).resolves(deleteItemFailedEvent);
         describeStackEventsStub.onCall(3).resolves(deleteFailedEvent);
 
-        await expect(awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 }))
-          .to.eventually.be.rejectedWith(
-            ServerlessError,
-            'An error occurred: mochaLambda - You are not authorized to perform this operation.'
-          )
-          .then(() => {
-            expect(describeStackEventsStub.callCount).to.be.equal(4);
-            expect(
-              describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
-                StackName: cfDataMock.StackId,
-              })
-            ).to.be.equal(true);
-          });
+        await expect(
+          awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 })
+        ).to.eventually.be.rejectedWith(
+          ServerlessError,
+          'An error occurred: mochaLambda - You are not authorized to perform this operation.'
+        );
+
+        expect(describeStackEventsStub.callCount).to.be.equal(4);
+        expect(describeStackEventsStub).to.be.calledWithExactly(
+          'CloudFormation',
+          'describeStackEvents',
+          { StackName: cfDataMock.StackId }
+        );
 
         awsPlugin.provider.request.restore();
       }
@@ -841,6 +841,7 @@ describe('monitorStack', () => {
         await expect(
           awsPlugin.monitorStack('create', cfDataMock, { frequency: 10 })
         ).to.eventually.be.rejectedWith('myBucket - Invalid Property for X.');
+
         awsPlugin.provider.request.restore();
       }
     );
@@ -903,6 +904,7 @@ describe('monitorStack', () => {
       await expect(
         awsPlugin.monitorStack('create', cfDataMock, { frequency: 10 })
       ).to.eventually.be.rejectedWith('myBucket - Invalid Property for X.');
+
       awsPlugin.provider.request.restore();
     });
 
@@ -949,20 +951,20 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(1).resolves(updateRollbackEvent);
       describeStackEventsStub.onCall(2).resolves(updateRollbackCompleteEvent);
 
-      await expect(awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 }))
-        .to.eventually.be.rejectedWith(
-          ServerlessError,
-          'An error occurred: mocha - UPDATE_ROLLBACK_IN_PROGRESS.'
-        )
-        .then(() => {
-          // callCount is 2 because Serverless will immediately exits and shows the error
-          expect(describeStackEventsStub.callCount).to.be.equal(2);
-          expect(
-            describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
-              StackName: cfDataMock.StackId,
-            })
-          ).to.be.equal(true);
-        });
+      await expect(
+        awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 })
+      ).to.eventually.be.rejectedWith(
+        ServerlessError,
+        'An error occurred: mocha - UPDATE_ROLLBACK_IN_PROGRESS.'
+      );
+
+      // callCount is 2 because Serverless will immediately exits and shows the error
+      expect(describeStackEventsStub.callCount).to.be.equal(2);
+      expect(describeStackEventsStub).to.be.calledWithExactly(
+        'CloudFormation',
+        'describeStackEvents',
+        { StackName: cfDataMock.StackId }
+      );
 
       awsPlugin.provider.request.restore();
     });
