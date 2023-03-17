@@ -128,10 +128,25 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       configuration: {},
       configurationFilename: 'serverless.yml',
       options: { console: true },
+      isDashboard: true,
       isConsole: true,
     };
     expect(await step.isApplicable(context)).to.be.false;
     expect(context.inapplicabilityReasonCode).to.equal('CONSOLE_CONTEXT');
+  });
+
+  it('Should be ineffective, when not in dashboard context', async () => {
+    const context = {
+      initial: {},
+      serviceDir: process.cwd(),
+      configuration: {},
+      configurationFilename: 'serverless.yml',
+      options: {},
+      isDashboard: false,
+      isConsole: false,
+    };
+    expect(await step.isApplicable(context)).to.equal(false);
+    expect(context.inapplicabilityReasonCode).to.equal('MISSING_DASHBOARD_CONTEXT');
   });
 
   it('Should be ineffective, when not at AWS service path', async () => {
@@ -141,6 +156,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
+      isDashboard: true,
       inquirer,
     };
     expect(await step.isApplicable(context)).to.equal(false);
@@ -154,6 +170,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
+      isDashboard: true,
       inquirer,
     };
     expect(await step.isApplicable(context)).to.equal(false);
@@ -170,6 +187,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
+      isDashboard: true,
       inquirer,
     };
     expect(await step.isApplicable(context)).to.equal(false);
@@ -208,6 +226,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
+      isDashboard: true,
       inquirer,
     };
     await overrideCwd(serviceDir, async () => {
@@ -226,6 +245,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
+      isDashboard: true,
       inquirer,
     };
     await overrideCwd(serviceDir, async () => {
@@ -251,6 +271,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
+      isDashboard: true,
       inquirer,
       stepHistory: new StepHistory(),
     };
@@ -283,6 +304,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
+      isDashboard: true,
       inquirer,
       stepHistory: new StepHistory(),
     };
@@ -309,6 +331,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
+      isDashboard: true,
       inquirer,
       stepHistory: new StepHistory(),
     };
@@ -336,6 +359,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         options: {},
         initial: {},
+        isDashboard: true,
         inquirer,
         stepHistory: new StepHistory(),
       };
@@ -373,6 +397,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         options: {},
         initial: {},
+        isDashboard: true,
         inquirer,
         stepHistory: new StepHistory(),
       };
@@ -411,6 +436,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         options: {},
         initial: {},
+        isDashboard: true,
         inquirer,
         stepHistory: new StepHistory(),
       };
@@ -444,6 +470,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         options: {},
         initial: {},
+        isDashboard: true,
         inquirer,
         stepHistory: new StepHistory(),
       };
@@ -489,6 +516,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         options: {},
         initial: {},
+        isDashboard: true,
         inquirer,
         stepHistory: new StepHistory(),
       };
@@ -520,6 +548,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         options: {},
         initial: {},
+        isDashboard: true,
         inquirer,
         stepHistory: new StepHistory(),
       };
@@ -551,6 +580,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         options: {},
         initial: {},
+        isDashboard: true,
         inquirer,
         history: new Map([['dashboardLogin', []]]),
         stepHistory: new StepHistory(),
@@ -580,6 +610,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         options: {},
         initial: {},
+        isDashboard: true,
         inquirer,
         history: new Map([
           ['dashboardLogin', []],
@@ -615,6 +646,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         options: { org: 'testinteractivecli', app: 'other-app' },
         initial: {},
+        isDashboard: true,
         inquirer,
         history: new Map(),
         stepHistory: new StepHistory(),
@@ -648,6 +680,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         options: { org: 'otherorg', app: 'app-from-flag' },
         initial: {},
+        isDashboard: true,
         inquirer,
         history: new Map(),
         stepHistory: new StepHistory(),
@@ -684,6 +717,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         options: { org: 'otherorg', app: 'app-from-flag' },
         initial: {},
+        isDashboard: true,
         inquirer,
         history: new Map(),
         stepHistory: new StepHistory(),
@@ -714,6 +748,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         options: { org: 'invalid-testinteractivecli', app: 'irrelevant' },
         initial: {},
+        isDashboard: true,
         inquirer,
         history: new Map(),
         stepHistory: new StepHistory(),
@@ -755,6 +790,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         options: { org: 'invalid-testinteractivecli', app: 'irrelevant' },
         initial: {},
+        isDashboard: true,
         inquirer,
         history: new Map(),
         stepHistory: new StepHistory(),
@@ -796,6 +832,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         options: { org: 'invalid-testinteractivecli', app: 'irrelevant' },
         initial: {},
+        isDashboard: true,
         inquirer,
         history: new Map(),
         stepHistory: new StepHistory(),
@@ -834,6 +871,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         configurationFilename: 'serverless.yml',
         options: { org: 'testinteractivecli', app: 'invalid' },
         initial: {},
+        isDashboard: true,
         inquirer,
         history: new Map(),
         stepHistory: new StepHistory(),
@@ -872,6 +910,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         inquirer,
         options: {},
         initial: {},
+        isDashboard: true,
         history: new Map(),
         stepHistory: new StepHistory(),
       };
@@ -914,6 +953,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         inquirer,
         options: {},
         initial: {},
+        isDashboard: true,
         history: new Map(),
         stepHistory: new StepHistory(),
       };
@@ -954,6 +994,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         inquirer,
         options: {},
         initial: {},
+        isDashboard: true,
         history: new Map(),
         stepHistory: new StepHistory(),
       };
@@ -988,6 +1029,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         inquirer,
         options: { app: 'app-from-flag' },
         initial: {},
+        isDashboard: true,
         history: new Map(),
         stepHistory: new StepHistory(),
       };
@@ -1019,6 +1061,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         inquirer,
         options: {},
         initial: {},
+        isDashboard: true,
         history: new Map(),
         stepHistory: new StepHistory(),
       };
@@ -1052,6 +1095,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         inquirer,
         options: { app: 'invalid-app-from-flag' },
         initial: {},
+        isDashboard: true,
         history: new Map(),
         stepHistory: new StepHistory(),
       };
@@ -1095,6 +1139,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         inquirer,
         options: {},
         initial: {},
+        isDashboard: true,
         history: new Map(),
         stepHistory: new StepHistory(),
       };
@@ -1136,6 +1181,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
         inquirer,
         options: {},
         initial: {},
+        isDashboard: true,
         history: new Map(),
         stepHistory: new StepHistory(),
       };

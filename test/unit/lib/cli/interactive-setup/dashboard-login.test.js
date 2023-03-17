@@ -65,6 +65,19 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
     expect(context.inapplicabilityReasonCode).to.equal('NOT_IN_SERVICE_DIRECTORY');
   });
 
+  it('Should be ineffective, when not in dashboard context', async () => {
+    const context = {
+      serviceDir: process.cwd(),
+      configuration: {},
+      configurationFilename: 'serverless.yml',
+      options: {},
+      initial: {},
+      inquirer,
+    };
+    expect(await step.isApplicable(context)).to.equal(false);
+    expect(context.inapplicabilityReasonCode).to.equal('MISSING_DASHBOARD_CONTEXT');
+  });
+
   it('Should be ineffective, when not at AWS service path', async () => {
     const context = {
       serviceDir: process.cwd(),
@@ -72,6 +85,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
+      isDashboard: true,
       inquirer,
     };
     expect(await step.isApplicable(context)).to.equal(false);
@@ -85,6 +99,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
+      isDashboard: true,
       inquirer,
     };
     expect(await step.isApplicable(context)).to.equal(false);
@@ -101,6 +116,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
+      isDashboard: true,
       inquirer,
     };
     expect(await overrideCwd(serviceDir, async () => await step.isApplicable(context))).to.equal(
@@ -125,6 +141,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
+      isDashboard: true,
       inquirer,
       stepHistory: new StepHistory(),
     };
@@ -148,6 +165,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configurationFilename: 'serverless.yml',
       options: { org: 'someorg' },
       initial: {},
+      isDashboard: true,
       inquirer,
       stepHistory: new StepHistory(),
     };
@@ -168,6 +186,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
+      isDashboard: true,
       inquirer,
       stepHistory: new StepHistory(),
     };
@@ -191,6 +210,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
+      isDashboard: true,
       inquirer,
       stepHistory: new StepHistory(),
     };
