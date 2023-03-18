@@ -29,7 +29,7 @@ describe('monitorStack', () => {
   });
 
   describe('#monitorStack()', () => {
-    it('should skip monitoring if the stack was already created', () => {
+    it('should skip monitoring if the stack was already created', async () => {
       const describeStackEventsStub = sinon.stub(awsPlugin.provider, 'request');
 
       return awsPlugin.monitorStack('update', 'alreadyCreated', { frequency: 10 }).then(() => {
@@ -38,7 +38,7 @@ describe('monitorStack', () => {
       });
     });
 
-    it('should keep monitoring until CREATE_COMPLETE stack status', () => {
+    it('should keep monitoring until CREATE_COMPLETE stack status', async () => {
       const describeStackEventsStub = sinon.stub(awsPlugin.provider, 'request');
       const cfDataMock = {
         StackId: 'new-service-dev',
@@ -83,7 +83,7 @@ describe('monitorStack', () => {
       });
     });
 
-    it('should keep monitoring until UPDATE_COMPLETE stack status', () => {
+    it('should keep monitoring until UPDATE_COMPLETE stack status', async () => {
       const describeStackEventsStub = sinon.stub(awsPlugin.provider, 'request');
       const cfDataMock = {
         StackId: 'new-service-dev',
@@ -128,7 +128,7 @@ describe('monitorStack', () => {
       });
     });
 
-    it('should keep monitoring until DELETE_COMPLETE stack status', () => {
+    it('should keep monitoring until DELETE_COMPLETE stack status', async () => {
       const describeStackEventsStub = sinon.stub(awsPlugin.provider, 'request');
       const cfDataMock = {
         StackId: 'new-service-dev',
@@ -173,7 +173,7 @@ describe('monitorStack', () => {
       });
     });
 
-    it('should not stop monitoring on CREATE_COMPLETE nested stack status', () => {
+    it('should not stop monitoring on CREATE_COMPLETE nested stack status', async () => {
       const describeStackEventsStub = sinon.stub(awsPlugin.provider, 'request');
       const cfDataMock = {
         StackId: 'new-service-dev',
@@ -231,7 +231,7 @@ describe('monitorStack', () => {
       });
     });
 
-    it('should not stop monitoring on UPDATE_COMPLETE nested stack status', () => {
+    it('should not stop monitoring on UPDATE_COMPLETE nested stack status', async () => {
       const describeStackEventsStub = sinon.stub(awsPlugin.provider, 'request');
       const cfDataMock = {
         StackId: 'new-service-dev',
@@ -289,7 +289,7 @@ describe('monitorStack', () => {
       });
     });
 
-    it('should not stop monitoring on DELETE_COMPLETE nested stack status', () => {
+    it('should not stop monitoring on DELETE_COMPLETE nested stack status', async () => {
       const describeStackEventsStub = sinon.stub(awsPlugin.provider, 'request');
       const cfDataMock = {
         StackId: 'new-service-dev',
@@ -347,7 +347,7 @@ describe('monitorStack', () => {
       });
     });
 
-    it('should keep monitoring until DELETE_COMPLETE or stack not found catch', () => {
+    it('should keep monitoring until DELETE_COMPLETE or stack not found catch', async () => {
       const describeStackEventsStub = sinon.stub(awsPlugin.provider, 'request');
       const cfDataMock = {
         StackId: 'new-service-dev',
@@ -459,7 +459,7 @@ describe('monitorStack', () => {
       });
     });
 
-    it('should keep monitoring when 1st ResourceType is not "AWS::CloudFormation::Stack"', () => {
+    it('should keep monitoring when 1st ResourceType is not "AWS::CloudFormation::Stack"', async () => {
       const describeStackEventsStub = sinon.stub(awsPlugin.provider, 'request');
       const cfDataMock = {
         StackId: 'new-service-dev',

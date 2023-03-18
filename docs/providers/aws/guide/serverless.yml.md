@@ -1224,6 +1224,7 @@ functions:
     events:
       # Use the default AWS event bus
       - eventBridge:
+          description: a description of my eventBridge event's purpose
           schedule: rate(10 minutes)
       # Create a custom event bus
       - eventBridge:

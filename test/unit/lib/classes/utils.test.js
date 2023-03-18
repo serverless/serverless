@@ -78,7 +78,7 @@ describe('Utils', () => {
       expect(obj.foo).to.equal('bar');
     });
 
-    it('should write a .yml file synchronously', () => {
+    it('should write a .yml file synchronously', async () => {
       const tmpFilePath = getTmpFilePath('anything.yml');
 
       serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
@@ -88,7 +88,7 @@ describe('Utils', () => {
       });
     });
 
-    it('should write a .yaml file synchronously', () => {
+    it('should write a .yaml file synchronously', async () => {
       const tmpFilePath = getTmpFilePath('anything.yaml');
 
       serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
@@ -106,7 +106,7 @@ describe('Utils', () => {
   });
 
   describe('#writeFile()', () => {
-    it('should write a file asynchronously', () => {
+    it('should write a file asynchronously', async () => {
       const tmpFilePath = getTmpFilePath('anything.json');
 
       // note: use return when testing promises otherwise you'll have unhandled rejection errors
@@ -178,7 +178,7 @@ describe('Utils', () => {
   });
 
   describe('#readFile()', () => {
-    it('should read a file asynchronously', () => {
+    it('should read a file asynchronously', async () => {
       const tmpFilePath = getTmpFilePath('anything.json');
 
       serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });

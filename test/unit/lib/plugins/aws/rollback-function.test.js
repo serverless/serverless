@@ -67,7 +67,7 @@ describe('AwsRollbackFunction', () => {
       expect(awsRollbackFunctionWithEmptyOptions.options).to.deep.equal({});
     });
 
-    it('should run promise chain in order', () =>
+    it('should run promise chain in order', async () =>
       awsRollbackFunction.hooks['rollback:function:rollback']().then(() => {
         expect(validateStub.calledOnce).to.equal(true);
         expect(getFunctionToBeRestoredStub.calledAfter(validateStub)).to.equal(true);
@@ -90,7 +90,7 @@ describe('AwsRollbackFunction', () => {
         awsRollbackFunction.provider.request.restore();
       });
 
-      it('should return the requested function', () => {
+      it('should return the requested function', async () => {
         awsRollbackFunction.options.function = 'hello';
         awsRollbackFunction.options['function-version'] = '4711';
 
@@ -169,7 +169,7 @@ describe('AwsRollbackFunction', () => {
   });
 
   describe('#fetchFunctionCode()', () => {
-    it('should fetch the zip file content of the previously requested function', () => {
+    it('should fetch the zip file content of the previously requested function', async () => {
       const func = {
         Code: {
           Location: 'https://foo.com/bar',
@@ -193,7 +193,7 @@ describe('AwsRollbackFunction', () => {
       awsRollbackFunction.provider.request.restore();
     });
 
-    it('should restore the provided function', () => {
+    it('should restore the provided function', async () => {
       awsRollbackFunction.options.function = 'hello';
       const zipBuffer = Buffer.from('');
 
