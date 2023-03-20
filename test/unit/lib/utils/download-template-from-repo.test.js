@@ -54,7 +54,7 @@ describe('downloadTemplateFromRepo', () => {
             return fetchStub();
           }
 
-          return Promise.reject(Error('unknown server type'));
+          throw Error('unknown server type');
         },
         '@serverless/utils/download': downloadStub,
         'child-process-ext/spawn': spawnStub,
