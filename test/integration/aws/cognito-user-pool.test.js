@@ -67,7 +67,8 @@ describe('AWS - Cognito User Pool Integration Test', function () {
     return deployService(serviceDir);
   });
 
-  after(async () => {
+  // NOTE: do not refactor below into array function since we need `this` context
+  after(async function () {
     if (!serviceDir) return null;
     // Do not clean on fail, to allow further state investigation
     if (hasFailed(this.test.parent)) return null;
