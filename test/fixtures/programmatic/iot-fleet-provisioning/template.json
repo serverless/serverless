@@ -11,7 +11,7 @@
     "policy": {
       "Type": "AWS::IoT::Policy",
       "Properties": {
-        "PolicyName": "${self:service}-${opt:stage, self:provider.stage, 'dev'}-iot-policy"
+        "PolicyName": "${self:service}-${sls:stage}-iot-policy"
       }
     },
     "thing": {
