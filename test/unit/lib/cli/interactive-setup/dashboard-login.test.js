@@ -54,7 +54,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
   });
 
   it('Should be ineffective, when not at service path', async () => {
-    const context = { options: {} };
+    const context = { options: {}, isDashboard: true };
     expect(await step.isApplicable(context)).to.be.false;
     expect(context.inapplicabilityReasonCode).to.equal('NOT_IN_SERVICE_DIRECTORY');
   });
