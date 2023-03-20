@@ -683,7 +683,6 @@ describe('monitorStack', () => {
         'An error occurred: mochaLambda - You are not authorized to perform this operation.'
       );
 
-      // TODO: why this is 3?
       expect(describeStackEventsStub).to.have.callCount(3);
       expect(describeStackEventsStub).to.have.been.calledWithExactly(
         'CloudFormation',
