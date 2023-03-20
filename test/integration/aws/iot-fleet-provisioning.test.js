@@ -12,9 +12,9 @@ const { resolveIotEndpoint } = require('../../utils/iot');
 
 describe('test/integration/aws/iotFleetProvisioning.test.js', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
-  const thingName = 'IotDevice';
   const stage = 'dev';
   let stackName;
+  let thingName;
   let serviceDir;
   let certificateId;
   let isDeployed = false;
@@ -39,7 +39,7 @@ describe('test/integration/aws/iotFleetProvisioning.test.js', function () {
     let serviceConfig;
     ({ serviceConfig, servicePath: serviceDir } = await fixtures.setup('iot-fleet-provisioning'));
     const serviceName = serviceConfig.service;
-    stackName = `${serviceName}-${stage}`;
+    thingName = stackName = `${serviceName}-${stage}`;
     await deployService(serviceDir);
     isDeployed = true;
   });

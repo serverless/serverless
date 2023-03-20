@@ -17,7 +17,7 @@
     "thing": {
       "Type": "AWS::IoT::Thing",
       "Properties": {
-        "ThingName": "IotDevice"
+        "ThingName": "${self:service}-${sls:stage}"
       }
     }
   }
