@@ -50,7 +50,7 @@ describe('AWS - API Gateway Integration Test', function () {
   describe('Minimal Setup', () => {
     const expectedMessage = 'Hello from API Gateway! - (minimal)';
 
-    it('should expose an accessible GET HTTP endpoint', () => {
+    it('should expose an accessible GET HTTP endpoint', async () => {
       const testEndpoint = `${endpoint}`;
 
       return fetch(testEndpoint, { method: 'GET' })
@@ -58,7 +58,7 @@ describe('AWS - API Gateway Integration Test', function () {
         .then((json) => expect(json.message).to.equal(expectedMessage));
     });
 
-    it('should expose an accessible POST HTTP endpoint', () => {
+    it('should expose an accessible POST HTTP endpoint', async () => {
       const testEndpoint = `${endpoint}/minimal-1`;
 
       return fetch(testEndpoint, { method: 'POST' })
@@ -66,7 +66,7 @@ describe('AWS - API Gateway Integration Test', function () {
         .then((json) => expect(json.message).to.equal(expectedMessage));
     });
 
-    it('should expose an accessible PUT HTTP endpoint', () => {
+    it('should expose an accessible PUT HTTP endpoint', async () => {
       const testEndpoint = `${endpoint}/minimal-2`;
 
       return fetch(testEndpoint, { method: 'PUT' })
@@ -74,7 +74,7 @@ describe('AWS - API Gateway Integration Test', function () {
         .then((json) => expect(json.message).to.equal(expectedMessage));
     });
 
-    it('should expose an accessible DELETE HTTP endpoint', () => {
+    it('should expose an accessible DELETE HTTP endpoint', async () => {
       const testEndpoint = `${endpoint}/minimal-3`;
 
       return fetch(testEndpoint, { method: 'DELETE' })
@@ -84,7 +84,7 @@ describe('AWS - API Gateway Integration Test', function () {
   });
 
   describe('CORS', () => {
-    it('should setup simple CORS support via cors: true config', () => {
+    it('should setup simple CORS support via cors: true config', async () => {
       const testEndpoint = `${endpoint}/simple-cors`;
 
       return fetch(testEndpoint, { method: 'OPTIONS' }).then((response) => {
@@ -105,7 +105,7 @@ describe('AWS - API Gateway Integration Test', function () {
       });
     });
 
-    it('should setup CORS support with complex object config', () => {
+    it('should setup CORS support with complex object config', async () => {
       const testEndpoint = `${endpoint}/complex-cors`;
 
       return fetch(testEndpoint, { method: 'OPTIONS' }).then((response) => {
@@ -134,13 +134,13 @@ describe('AWS - API Gateway Integration Test', function () {
       testEndpoint = `${endpoint}/custom-auth`;
     });
 
-    it('should reject requests without authorization', () => {
+    it('should reject requests without authorization', async () => {
       return fetch(testEndpoint).then((response) => {
         expect(response.status).to.equal(401);
       });
     });
 
-    it('should reject requests with wrong authorization', () => {
+    it('should reject requests with wrong authorization', async () => {
       return fetch(testEndpoint, {
         headers: { Authorization: 'Bearer ShouldNotBeAuthorized' },
       }).then((response) => {
@@ -148,7 +148,7 @@ describe('AWS - API Gateway Integration Test', function () {
       });
     });
 
-    it('should authorize requests with correct authorization', () => {
+    it('should authorize requests with correct authorization', async () => {
       return fetch(testEndpoint, { headers: { Authorization: 'Bearer ShouldBeAuthorized' } })
         .then((response) => response.json())
         .then((json) => {
@@ -181,7 +181,7 @@ describe('AWS - API Gateway Integration Test', function () {
       return null;
     });
 
-    it('should reject a request with an invalid API Key', () => {
+    it('should reject a request with an invalid API Key', async () => {
       return fetch(testEndpoint).then((response) => {
         expect(response.status).to.equal(403);
       });
@@ -207,7 +207,7 @@ describe('AWS - API Gateway Integration Test', function () {
       await deployService(serviceDir);
     });
 
-    it('should update the stage without service interruptions', () => {
+    it('should update the stage without service interruptions', async () => {
       // re-using the endpoint from the "minimal" test case
       const testEndpoint = `${endpoint}`;
 
@@ -224,7 +224,7 @@ describe('AWS - API Gateway Integration Test', function () {
   });
 
   describe('Integration Lambda Timeout', () => {
-    it('should result with 504 status code', () =>
+    it('should result with 504 status code', async () =>
       fetch(`${endpoint}/integration-lambda-timeout`).then((response) =>
         expect(response.status).to.equal(504)
       ));

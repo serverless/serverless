@@ -62,7 +62,7 @@ describe('AWS - SNS Integration Test', function () {
   });
 
   describe('Multiple and Filtered Setup', async () => {
-    it('should invoke on a topic message that matches filter', () => {
+    it('should invoke on a topic message that matches filter', async () => {
       const leftFunctionName = 'snsMultipleFilteredLeft';
       const rightFunctionName = 'snsMultipleFilteredRight';
       const leftMessage = 'Hello to the left-side from SNS!';
