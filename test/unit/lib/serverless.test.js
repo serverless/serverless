@@ -97,17 +97,17 @@ describe('Serverless', () => {
   });
 
   describe('#init()', () => {
-    it('should set an instanceId', () =>
+    it('should set an instanceId', async () =>
       serverless.init().then(() => {
         expect(serverless.instanceId).to.match(/\d/);
       }));
 
-    it('should create a new CLI instance', () =>
+    it('should create a new CLI instance', async () =>
       serverless.init().then(() => {
         expect(serverless.cli).to.be.instanceof(CLI);
       }));
 
-    it('should allow a custom CLI instance', () => {
+    it('should allow a custom CLI instance', async () => {
       class CustomCLI extends CLI {}
       serverless.classes.CLI = CustomCLI;
 
@@ -119,7 +119,7 @@ describe('Serverless', () => {
 
     // note: we just test that the processedInput variable is set (not the content of it)
     // the test for the correct input is done in the CLI class test file
-    it('should receive the processed input form the CLI instance', () =>
+    it('should receive the processed input form the CLI instance', async () =>
       serverless.init().then(() => {
         expect(serverless.processedInput).to.not.deep.equal({});
       }));
