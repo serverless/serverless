@@ -7,7 +7,7 @@ const { expect } = chai;
 chai.use(require('chai-as-promised'));
 
 let step;
-describe('test/unit/lib/cli/interactive-setup/console-login.test.js', () => {
+describe('test/unit/lib/cli/interactive-setup/console-enable-dev-mode.test.js', () => {
   let fakeOrgId;
   let expectedFunctionCount;
   let fakeRegion;
