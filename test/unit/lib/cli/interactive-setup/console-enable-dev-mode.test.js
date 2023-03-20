@@ -29,7 +29,7 @@ describe('test/unit/lib/cli/interactive-setup/console-login.test.js', () => {
   const configureStep = ({
     functionExistResponse,
     checkInstrumentationResponse,
-    instrumentFunctionResponse,
+    instrumentFunctionResponse = { success: true },
   }) => {
     step = proxyquire('../../../../../lib/cli/interactive-setup/console-enable-dev-mode', {
       '@serverless/utils/api-request': async (pathname, options) => {
@@ -60,7 +60,6 @@ describe('test/unit/lib/cli/interactive-setup/console-login.test.js', () => {
     configureStep({
       functionExistResponse: {},
       checkInstrumentationResponse: {},
-      instrumentFunctionResponse: {},
     });
     const context = { isConsoleDevMode: false, options: {} };
     expect(await step.isApplicable(context)).to.be.false;
@@ -71,7 +70,6 @@ describe('test/unit/lib/cli/interactive-setup/console-login.test.js', () => {
     configureStep({
       functionExistResponse: {},
       checkInstrumentationResponse: {},
-      instrumentFunctionResponse: {},
     });
     const context = { isConsoleDevMode: true, options: {}, org: null };
     expect(await step.isApplicable(context)).to.be.false;
@@ -88,7 +86,6 @@ describe('test/unit/lib/cli/interactive-setup/console-login.test.js', () => {
         total: expectedFunctionCount,
         hits: expectedFunctionHits,
       },
-      instrumentFunctionResponse: {},
     });
 
     const context = {
@@ -123,7 +120,6 @@ describe('test/unit/lib/cli/interactive-setup/console-login.test.js', () => {
         total: 0,
         hits: [],
       },
-      instrumentFunctionResponse: {},
     });
 
     const context = {
@@ -149,6 +145,9 @@ describe('test/unit/lib/cli/interactive-setup/console-login.test.js', () => {
   });
 
   it('Should be effective and only update functions that were found in the integration', async () => {
+    // Add a function that is not in the integration to the serverless service
+    expectedServiceFunctionNames.push('function2');
+    // Set up the expected responses from the API
     const functionExistResponse = {
       total: expectedFunctionCount,
       hits: expectedFunctionHits,
@@ -160,7 +159,6 @@ describe('test/unit/lib/cli/interactive-setup/console-login.test.js', () => {
     configureStep({
       functionExistResponse,
       checkInstrumentationResponse,
-      instrumentFunctionResponse: {},
     });
 
     const context = {
@@ -190,7 +188,6 @@ describe('test/unit/lib/cli/interactive-setup/console-login.test.js', () => {
         total: expectedFunctionCount,
         hits: expectedFunctionHits,
       },
-      instrumentFunctionResponse: {},
     });
 
     expect(await step.run(context)).to.be.true;
@@ -208,7 +205,6 @@ describe('test/unit/lib/cli/interactive-setup/console-login.test.js', () => {
     configureStep({
       functionExistResponse,
       checkInstrumentationResponse,
-      instrumentFunctionResponse: {},
     });
 
     const context = {
@@ -243,7 +239,6 @@ describe('test/unit/lib/cli/interactive-setup/console-login.test.js', () => {
         total: expectedFunctionCount,
         hits: expectedFunctionHits,
       },
-      instrumentFunctionResponse: {},
     });
 
     expect(await step.run(context)).to.be.true;
@@ -266,7 +261,6 @@ describe('test/unit/lib/cli/interactive-setup/console-login.test.js', () => {
     configureStep({
       functionExistResponse,
       checkInstrumentationResponse,
-      instrumentFunctionResponse: {},
     });
 
     const context = {
@@ -297,7 +291,6 @@ describe('test/unit/lib/cli/interactive-setup/console-login.test.js', () => {
         total: expectedFunctionCount,
         hits: expectedFunctionHits,
       },
-      instrumentFunctionResponse: {},
     });
 
     expect(await step.run(context)).to.be.true;
