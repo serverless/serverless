@@ -19,7 +19,12 @@ describe('#yamlAstParser', () => {
   });
 
   describe('#addNewArrayItem()', () => {
-    const addNewArrayItemAndVerifyResult = (yamlContent, pathInYaml, newItem, expectedResult) => {
+    const addNewArrayItemAndVerifyResult = async (
+      yamlContent,
+      pathInYaml,
+      newItem,
+      expectedResult
+    ) => {
       const yamlFilePath = path.join(tmpDirPath, 'test.yaml');
       writeFileSync(yamlFilePath, yamlContent);
       return expect(
@@ -169,7 +174,7 @@ describe('#yamlAstParser', () => {
   });
 
   describe('#removeExistingArrayItem()', () => {
-    const removeExistingArrayItemAndVerifyResult = (
+    const removeExistingArrayItemAndVerifyResult = async (
       yamlContent,
       pathInYaml,
       removeItem,
