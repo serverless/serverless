@@ -44,7 +44,7 @@ describe('test/integration/aws/iotFleetProvisioning.test.js', function () {
     isDeployed = true;
   });
 
-  after(async function () {
+  after(async () => {
     if (!isDeployed) return;
     if (hasFailed(this.test.parent)) return;
     if (certificateId) {
