@@ -44,7 +44,6 @@ describe('test/integration/aws/iotFleetProvisioning.test.js', function () {
     isDeployed = true;
   });
 
-  // NOTE: do not refactor below into array function since we need `this` context
   after(async function () {
     if (!isDeployed) return;
     if (hasFailed(this.test.parent)) return;
