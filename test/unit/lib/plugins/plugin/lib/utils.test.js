@@ -44,7 +44,7 @@ describe('PluginUtils', () => {
     let fetchStub;
     let pluginWithFetchStub;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       fetchStub = sinon.stub().returns(
         Promise.resolve({
           json: sinon.stub().returns(Promise.resolve(plugins)),
@@ -55,7 +55,7 @@ describe('PluginUtils', () => {
       });
     });
 
-    it('should fetch and return the plugins from the plugins repository', () => {
+    it('should fetch and return the plugins from the plugins repository', async () => {
       const endpoint = 'https://raw.githubusercontent.com/serverless/plugins/master/plugins.json';
 
       return pluginWithFetchStub.getPlugins().then((result) => {

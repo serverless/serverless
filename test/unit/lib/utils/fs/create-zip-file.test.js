@@ -11,7 +11,7 @@ chai.use(require('sinon-chai'));
 const expect = require('chai').expect;
 
 describe('#createZipFile()', () => {
-  it('should create a zip file with the source directory content', () => {
+  it('should create a zip file with the source directory content', async () => {
     const toZipFilePath = createTmpFile('foo.json');
     const zipFilePath = createTmpFile('package.zip');
 
