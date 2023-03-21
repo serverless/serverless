@@ -1,6 +1,5 @@
 'use strict';
 
-const BbPromise = require('bluebird');
 const awsRequest = require('@serverless/test/aws-request');
 const KinesisService = require('aws-sdk').Kinesis;
 
@@ -8,7 +7,7 @@ async function waitForKinesisStream(streamName) {
   const params = {
     StreamName: streamName,
   };
-  return new BbPromise((resolve) => {
+  return new Promise((resolve) => {
     const interval = setInterval(() => {
       awsRequest(KinesisService, 'describeStream', params).then((data) => {
         const status = data.StreamDescription.StreamStatus;

@@ -1,12 +1,15 @@
 'use strict';
 
-const expect = require('chai').expect;
-const BbPromise = require('bluebird');
+const chai = require('chai');
 const os = require('os');
 const path = require('path');
 const { outputFile, lstat, remove: rmDir } = require('fs-extra');
 const overrideEnv = require('process-utils/override-env');
 const credentials = require('../../../../../../lib/plugins/aws/utils/credentials');
+
+chai.use(require('chai-as-promised'));
+
+const expect = chai.expect;
 
 describe('#credentials', () => {
   const credentialsDirPath = path.join(os.homedir(), '.aws');
@@ -57,16 +60,10 @@ describe('#credentials', () => {
       `aws_secret_access_key = ${profile2.secretAccessKey}`,
     ].join('\n')}\n`;
 
-    return new BbPromise((resolve, reject) => {
-      outputFile(credentialsFilePath, credentialsFileContent, (error) => {
-        if (error) reject(error);
-        else resolve();
-      });
-    }).then(() =>
-      credentials
-        .resolveFileProfiles()
-        .then((resolvedProfiles) => expect(resolvedProfiles).to.deep.equal(profiles))
-    );
+    await expect(outputFile(credentialsFilePath, credentialsFileContent)).to.be.fulfilled;
+    const resolvedProfiles = await expect(credentials.resolveFileProfiles()).to.be.fulfilled;
+
+    expect(resolvedProfiles).to.deep.equal(profiles);
   });
 
   it('should resolve env credentials', () =>

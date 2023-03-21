@@ -1,8 +1,11 @@
 'use strict';
 
-const expect = require('chai').expect;
-const BbPromise = require('bluebird');
+const chai = require('chai');
 const resolveCfRefValue = require('../../../../../../lib/plugins/aws/utils/resolve-cf-ref-value');
+
+chai.use(require('chai-as-promised'));
+
+const expect = chai.expect;
 
 describe('#resolveCfRefValue', () => {
   it('should return matching exported value if found', async () => {
@@ -10,22 +13,20 @@ describe('#resolveCfRefValue', () => {
       naming: {
         getStackName: () => 'stack-name',
       },
-      request: () =>
-        BbPromise.resolve({
-          StackResourceSummaries: [
-            {
-              LogicalResourceId: 'myS3',
-              PhysicalResourceId: 'stack-name-s3-id',
-            },
-            {
-              LogicalResourceId: 'myDB',
-              PhysicalResourceId: 'stack-name-db-id',
-            },
-          ],
-        }),
+      request: async () => ({
+        StackResourceSummaries: [
+          {
+            LogicalResourceId: 'myS3',
+            PhysicalResourceId: 'stack-name-s3-id',
+          },
+          {
+            LogicalResourceId: 'myDB',
+            PhysicalResourceId: 'stack-name-db-id',
+          },
+        ],
+      }),
     };
-    return resolveCfRefValue(provider, 'myDB').then((result) => {
-      expect(result).to.equal('stack-name-db-id');
-    });
+    const result = await expect(resolveCfRefValue(provider, 'myDB')).to.be.fulfilled;
+    expect(result).to.equal('stack-name-db-id');
   });
 });
