@@ -19,7 +19,7 @@ describe('Install', () => {
 
   let serviceDir;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     const tmpDir = getTmpDirPath();
     cwd = process.cwd();
 
@@ -55,7 +55,7 @@ describe('Install', () => {
 
     it('should have hooks', () => expect(install.hooks).to.be.not.empty);
 
-    it('should run promise chain in order for "install:install" hook', () =>
+    it('should run promise chain in order for "install:install" hook', async () =>
       install.hooks['install:install']().then(() => {
         expect(installStub.calledOnce).to.be.equal(true);
       }));
@@ -105,7 +105,7 @@ describe('Install', () => {
       }
     });
 
-    it('should succeed if template can be downloaded and installed', () => {
+    it('should succeed if template can be downloaded and installed', async () => {
       install.options = { url: 'https://github.com/johndoe/remote-service' };
       downloadStub.resolves('remote-service');
 
@@ -114,7 +114,7 @@ describe('Install', () => {
       });
     });
 
-    it('should succeed and print out the desired service name', () => {
+    it('should succeed and print out the desired service name', async () => {
       install.options = { url: 'https://github.com/johndoe/remote-service' };
       install.options.name = 'remote';
       downloadStub.resolves('remote-service');

@@ -13,7 +13,7 @@ const FUNCTION_NAME_PATTERN = '^[a-zA-Z0-9-_]+$';
 
 describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
   describe('#constructor', () => {
-    it('should freeze parts of schema for service', () => {
+    it('should freeze parts of schema for service', async () => {
       return runServerless({
         fixture: 'config-schema-extensions',
         command: 'info',
@@ -24,7 +24,7 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
       });
     });
 
-    it('should freeze parts of schema for plugins', () => {
+    it('should freeze parts of schema for plugins', async () => {
       return runServerless({
         fixture: 'config-schema-extensions',
         command: 'info',
@@ -35,7 +35,7 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
       });
     });
 
-    it('should freeze parts of schema for resources', () => {
+    it('should freeze parts of schema for resources', async () => {
       return runServerless({
         fixture: 'config-schema-extensions',
         command: 'info',
@@ -46,7 +46,7 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
       });
     });
 
-    it('should freeze parts of schema for package', () => {
+    it('should freeze parts of schema for package', async () => {
       return runServerless({
         fixture: 'config-schema-extensions',
         command: 'info',
@@ -59,7 +59,7 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
       });
     });
 
-    it('should freeze parts of schema for layers', () => {
+    it('should freeze parts of schema for layers', async () => {
       return runServerless({
         fixture: 'config-schema-extensions',
         command: 'info',
@@ -82,7 +82,7 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
   });
 
   describe('#defineFunctionEvent', () => {
-    it('should extend schema with defineFunctionEvent method', () => {
+    it('should extend schema with defineFunctionEvent method', async () => {
       return runServerless({
         fixture: 'config-schema-extensions',
         command: 'info',
@@ -217,7 +217,7 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
   });
 
   describe('#defineFunctionProperties', () => {
-    it('should extend schema with defineFunctionProperties method', () => {
+    it('should extend schema with defineFunctionProperties method', async () => {
       return runServerless({
         fixture: 'config-schema-extensions',
         command: 'info',
@@ -253,7 +253,7 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
   });
 
   describe('#defineCustomProperties', () => {
-    it('should extend schema with defineCustomProperties method', () => {
+    it('should extend schema with defineCustomProperties method', async () => {
       return runServerless({
         fixture: 'config-schema-extensions',
         command: 'info',
@@ -283,7 +283,7 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
   });
 
   describe('#defineTopLevelProperty', () => {
-    it('should extend schema with defineTopLevelProperty method', () => {
+    it('should extend schema with defineTopLevelProperty method', async () => {
       return runServerless({
         fixture: 'config-schema-extensions',
         command: 'info',
@@ -312,7 +312,7 @@ describe('test/unit/lib/classes/ConfigSchemaHandler/index.test.js', () => {
   });
 
   describe('#defineProvider', () => {
-    it('should extend schema with defineProvider method', () => {
+    it('should extend schema with defineProvider method', async () => {
       return runServerless({
         fixture: 'config-schema-extensions',
         command: 'info',

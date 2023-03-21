@@ -20,14 +20,14 @@ describe('#writeFile()', function () {
     serverless = new Serverless({ commands: [], options: {} });
   });
 
-  it('should write a .json file asynchronously', () => {
+  it('should write a .json file asynchronously', async () => {
     const tmpFilePath = getTmpFilePath('anything.json');
     return writeFile(tmpFilePath, { foo: 'bar' }).then(() =>
       expect(readFile(tmpFilePath)).to.eventually.deep.equal({ foo: 'bar' })
     );
   });
 
-  it('should write a .yml file synchronously', () => {
+  it('should write a .yml file synchronously', async () => {
     const tmpFilePath = getTmpFilePath('anything.yml');
 
     return writeFile(tmpFilePath, { foo: 'bar' }).then(() =>
@@ -35,7 +35,7 @@ describe('#writeFile()', function () {
     );
   });
 
-  it('should write a .yaml file synchronously', () => {
+  it('should write a .yaml file synchronously', async () => {
     const tmpFilePath = getTmpFilePath('anything.yaml');
 
     return writeFile(tmpFilePath, { foo: 'bar' }).then(() =>
@@ -43,7 +43,7 @@ describe('#writeFile()', function () {
     );
   });
 
-  it('should be able to write an object with circular references', () => {
+  it('should be able to write an object with circular references', async () => {
     const tmpFilePath = getTmpFilePath('anything.json');
     const bar = {};
     bar.foo = bar;

@@ -74,14 +74,14 @@ class PromisePluginMock {
     this.deployedResources = 0;
   }
 
-  functions() {
+  async functions() {
     return new BbPromise((resolve) => {
       this.deployedFunctions += 1;
       return resolve();
     });
   }
 
-  resources() {
+  async resources() {
     return new BbPromise((resolve) => {
       this.deployedResources += 1;
       return resolve();
@@ -589,7 +589,7 @@ describe('PluginManager', () => {
   });
 
   describe('#asyncPluginInit()', () => {
-    it('should call async init on plugins that have it', () => {
+    it('should call async init on plugins that have it', async () => {
       const plugin1 = new ServicePluginMock1();
       plugin1.asyncInit = sinon.stub().returns(BbPromise.resolve());
       pluginManager.plugins = [plugin1];
@@ -1176,7 +1176,7 @@ describe('PluginManager', () => {
       return expect(pluginManager.run(commandsArray)).to.be.rejectedWith(Error);
     });
 
-    it('should run the hooks in the correct order', () => {
+    it('should run the hooks in the correct order', async () => {
       class CorrectHookOrderPluginMock {
         constructor() {
           this.commands = {
@@ -1230,7 +1230,7 @@ describe('PluginManager', () => {
       });
 
       describe('when running a simple command', () => {
-        it('should run a simple command', () => {
+        it('should run a simple command', async () => {
           const commandsArray = ['deploy'];
           return pluginManager
             .run(commandsArray)
@@ -1239,7 +1239,7 @@ describe('PluginManager', () => {
       });
 
       describe('when running a nested command', () => {
-        it('should run the nested command', () => {
+        it('should run the nested command', async () => {
           const commandsArray = ['deploy', 'onpremises'];
           return pluginManager
             .run(commandsArray)
@@ -1254,7 +1254,7 @@ describe('PluginManager', () => {
       });
 
       describe('when running a simple command', () => {
-        it('should run the simple command', () => {
+        it('should run the simple command', async () => {
           const commandsArray = ['deploy'];
           return pluginManager
             .run(commandsArray)
@@ -1263,7 +1263,7 @@ describe('PluginManager', () => {
       });
 
       describe('when running a nested command', () => {
-        it('should run the nested command', () => {
+        it('should run the nested command', async () => {
           const commandsArray = ['deploy', 'onpremises'];
           return pluginManager
             .run(commandsArray)
@@ -1283,7 +1283,7 @@ describe('PluginManager', () => {
         pluginManager.addPlugin(SynchronousPluginMock);
       });
 
-      it('should load only the providers plugins (if the provider is specified)', () => {
+      it('should load only the providers plugins (if the provider is specified)', async () => {
         const commandsArray = ['deploy'];
         return pluginManager.run(commandsArray).then(() => {
           expect(pluginManager.plugins.length).to.equal(2);
@@ -1295,7 +1295,7 @@ describe('PluginManager', () => {
       });
     });
 
-    it('should run commands with internal lifecycles', () => {
+    it('should run commands with internal lifecycles', async () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       const commandsArray = ['mycmd', 'spawncmd'];
@@ -1406,7 +1406,7 @@ describe('PluginManager', () => {
     });
 
     describe('when invoking a command', () => {
-      it('should succeed', () => {
+      it('should succeed', async () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['mycmd'];
@@ -1416,7 +1416,7 @@ describe('PluginManager', () => {
         });
       });
 
-      it('should spawn nested commands', () => {
+      it('should spawn nested commands', async () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['mycmd', 'mysubcmd'];
@@ -1426,7 +1426,7 @@ describe('PluginManager', () => {
         });
       });
 
-      it('should terminate the hook chain if requested', () => {
+      it('should terminate the hook chain if requested', async () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['mycmd', 'mysubcmd'];
@@ -1442,7 +1442,7 @@ describe('PluginManager', () => {
     });
 
     describe('when invoking a container', () => {
-      it('should spawn nested commands', () => {
+      it('should spawn nested commands', async () => {
         pluginManager.addPlugin(ContainerPluginMock);
 
         const commandsArray = ['mycontainer', 'mysubcmd'];
@@ -1454,7 +1454,7 @@ describe('PluginManager', () => {
     });
 
     describe('when invoking an entrypoint', () => {
-      it('should succeed', () => {
+      it('should succeed', async () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['myep'];
@@ -1464,7 +1464,7 @@ describe('PluginManager', () => {
         });
       });
 
-      it('should spawn nested entrypoints', () => {
+      it('should spawn nested entrypoints', async () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['myep', 'mysubep'];
@@ -1475,7 +1475,7 @@ describe('PluginManager', () => {
       });
 
       describe('with string formatted syntax', () => {
-        it('should succeed', () => {
+        it('should succeed', async () => {
           pluginManager.addPlugin(EntrypointPluginMock);
 
           return pluginManager.spawn('myep').then(() => {
@@ -1483,7 +1483,7 @@ describe('PluginManager', () => {
           });
         });
 
-        it('should spawn nested entrypoints', () => {
+        it('should spawn nested entrypoints', async () => {
           pluginManager.addPlugin(EntrypointPluginMock);
 
           return pluginManager.spawn('myep:mysubep').then(() => {
@@ -1493,7 +1493,7 @@ describe('PluginManager', () => {
       });
     });
 
-    it('should spawn entrypoints with internal lifecycles', () => {
+    it('should spawn entrypoints with internal lifecycles', async () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       const commandsArray = ['myep', 'spawnep'];

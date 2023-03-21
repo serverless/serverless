@@ -23,7 +23,7 @@ describe('AWS - Schedule Integration Test', function () {
   });
 
   describe('Minimal Setup', () => {
-    it('should invoke every minute', () => {
+    it('should invoke every minute', async () => {
       const functionName = 'scheduleMinimal';
 
       return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, async () => {}, {
@@ -39,7 +39,7 @@ describe('AWS - Schedule Integration Test', function () {
   });
 
   describe('Extended Setup', () => {
-    it('should invoke every minute with transformed input', () => {
+    it('should invoke every minute with transformed input', async () => {
       const functionName = 'scheduleExtended';
 
       return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, async () => {}, {
@@ -55,7 +55,7 @@ describe('AWS - Schedule Integration Test', function () {
     });
   });
 
-  describe('Extended Setup (array)', () => {
+  describe('Extended Setup (array)', async () => {
     it('should invoke every minute with transformed input', () => {
       const functionName = 'scheduleExtendedArray';
 

@@ -12,7 +12,7 @@ chai.use(require('sinon-chai'));
 const expect = chai.expect;
 
 describe('#readFile()', () => {
-  it('should read a file asynchronously', () => {
+  it('should read a file asynchronously', async () => {
     const tmpFilePath = getTmpFilePath('anything.json');
 
     return writeFile(tmpFilePath, { foo: 'bar' }).then(() =>
@@ -20,7 +20,7 @@ describe('#readFile()', () => {
     );
   });
 
-  it('should read a filename extension .yml', () => {
+  it('should read a filename extension .yml', async () => {
     const tmpFilePath = getTmpFilePath('anything.yml');
 
     return writeFile(tmpFilePath, { foo: 'bar' }).then(() =>
@@ -28,7 +28,7 @@ describe('#readFile()', () => {
     );
   });
 
-  it('should read a filename extension .yaml', () => {
+  it('should read a filename extension .yaml', async () => {
     const tmpFilePath = getTmpFilePath('anything.yaml');
 
     return writeFile(tmpFilePath, { foo: 'bar' }).then(() =>

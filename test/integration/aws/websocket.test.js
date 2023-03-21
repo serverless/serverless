@@ -95,7 +95,7 @@ describe('AWS - API Gateway Websocket Integration Test', function () {
   });
 
   describe('Minimal Setup', () => {
-    it('should expose an accessible websocket endpoint', async function () {
+    it('should expose an accessible websocket endpoint', async () => {
       if (!twoWayPassed) this.skip();
       const webSocketServerUrl = await getWebSocketServerUrl();
 
