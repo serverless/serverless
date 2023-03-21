@@ -41,7 +41,7 @@ describe('PluginSearch', () => {
   describe('#constructor()', () => {
     let searchStub;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       searchStub = sinon.stub(pluginSearch, 'search').returns(BbPromise.resolve());
     });
 
@@ -68,7 +68,7 @@ describe('PluginSearch', () => {
       expect(pluginSearch.hooks['plugin:search:search']).to.not.equal(undefined);
     });
 
-    it('should run promise chain in order for "plugin:search:search" hook', () =>
+    it('should run promise chain in order for "plugin:search:search" hook', async () =>
       expect(pluginSearch.hooks['plugin:search:search']()).to.be.fulfilled.then(() => {
         expect(searchStub.calledOnce).to.equal(true);
       }));
@@ -78,7 +78,7 @@ describe('PluginSearch', () => {
     let getPluginsStub;
     let displayStub;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       getPluginsStub = sinon.stub(pluginSearch, 'getPlugins').returns(BbPromise.resolve(plugins));
       displayStub = sinon.stub(pluginSearch, 'display').returns(BbPromise.resolve());
     });
@@ -88,7 +88,7 @@ describe('PluginSearch', () => {
       pluginSearch.display.restore();
     });
 
-    it('should return a list of plugins based on the search query', () => {
+    it('should return a list of plugins based on the search query', async () => {
       pluginSearch.options.query = 'serverless-plugin-1';
 
       return expect(pluginSearch.search()).to.be.fulfilled.then(() => {

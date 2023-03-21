@@ -43,7 +43,7 @@ describe('PluginList', () => {
       expect(pluginList.hooks['plugin:list:list']).to.not.equal(undefined);
     });
 
-    it('should run promise chain in order for "plugin:list:list" hook', () =>
+    it('should run promise chain in order for "plugin:list:list" hook', async () =>
       expect(pluginList.hooks['plugin:list:list']()).to.be.fulfilled.then(() => {
         expect(listStub.calledOnce).to.equal(true);
       }));
@@ -53,7 +53,7 @@ describe('PluginList', () => {
     let getPluginsStub;
     let displayStub;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       getPluginsStub = sinon.stub(pluginList, 'getPlugins').returns(BbPromise.resolve());
       displayStub = sinon.stub(pluginList, 'display').returns(BbPromise.resolve());
     });
@@ -63,7 +63,7 @@ describe('PluginList', () => {
       pluginList.display.restore();
     });
 
-    it('should print a list with all available plugins', () =>
+    it('should print a list with all available plugins', async () =>
       pluginList.list().then(() => {
         expect(getPluginsStub.calledOnce).to.equal(true);
         expect(displayStub.calledOnce).to.equal(true);
