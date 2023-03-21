@@ -11,6 +11,7 @@ const { expect } = chai;
 chai.use(require('chai-as-promised'));
 
 let step;
+const originalSetInterval = setInterval;
 describe('test/unit/lib/cli/interactive-setup/console-dev-mode-feed.test.js', function () {
   this.timeout(1000 * 60 * 3);
   const fakeOrgId = '123';
@@ -30,6 +31,7 @@ describe('test/unit/lib/cli/interactive-setup/console-dev-mode-feed.test.js', fu
   const fakeErrorWriter = sinon.fake.returns('');
   let socketConnection;
   let socketServer;
+  let timers = [];
 
   before(() => {
     step = proxyquire('../../../../../lib/cli/interactive-setup/console-dev-mode-feed', {
@@ -69,6 +71,14 @@ describe('test/unit/lib/cli/interactive-setup/console-dev-mode-feed.test.js', fu
     });
   });
 
+  beforeEach(() => {
+    timers = [];
+    // eslint-disable-next-line no-global-assign
+    setInterval = (cb) => {
+      timers.push(cb);
+    };
+  });
+
   afterEach(() => {
     if (socketConnection) {
       socketConnection.terminate();
@@ -76,6 +86,8 @@ describe('test/unit/lib/cli/interactive-setup/console-dev-mode-feed.test.js', fu
     if (socketServer) {
       socketServer.close();
     }
+    // eslint-disable-next-line no-global-assign
+    setInterval = originalSetInterval;
   });
 
   it('Should be ineffective, when not in console dev mode context', async () => {
@@ -313,6 +325,9 @@ describe('test/unit/lib/cli/interactive-setup/console-dev-mode-feed.test.js', fu
     // Wait for all messages to be processed
     await sleep(600);
 
+    // Publish dev mode events
+    await timers[1]();
+
     // Close connection to socket
     socketConnection.terminate();
 
@@ -360,5 +375,12 @@ describe('test/unit/lib/cli/interactive-setup/console-dev-mode-feed.test.js', fu
     expect(fakeErrorWriter.getCall(0).args[0]).to.equal(
       `${fakeTime} • example-dev-function1 • ERROR • fake\n`
     );
+
+    // Validate publish event was called
+    expect(publishFake.callCount).to.equal(1);
+    expect(publishFake.getCall(0).args[0].body.event.logBatches).to.equal(3);
+    expect(publishFake.getCall(0).args[0].body.event.responses).to.equal(1);
+    expect(publishFake.getCall(0).args[0].body.event.events).to.equal(2);
+    expect(publishFake.getCall(0).args[0].body.event.source).to.equal('cli:serverless');
   });
 });
