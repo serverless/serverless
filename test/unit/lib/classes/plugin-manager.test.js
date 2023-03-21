@@ -73,18 +73,12 @@ class PromisePluginMock {
     this.deployedResources = 0;
   }
 
-  functions() {
-    return new Promise((resolve) => {
-      this.deployedFunctions += 1;
-      return resolve();
-    });
+  async functions() {
+    this.deployedFunctions += 1;
   }
 
-  resources() {
-    return new Promise((resolve) => {
-      this.deployedResources += 1;
-      return resolve();
-    });
+  async resources() {
+    this.deployedResources += 1;
   }
 }
 
