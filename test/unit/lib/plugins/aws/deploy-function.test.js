@@ -823,6 +823,83 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     expect(updateFunctionConfigurationStub).not.to.be.called;
   });
 
+  it('should update function configuration if configuration removes a layer', async () => {
+    await runServerless({
+      fixture: 'function',
+      command: 'deploy function',
+      options: { function: 'basic' },
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        Lambda: {
+          ...awsRequestStubMap.Lambda,
+          getFunction: {
+            Configuration: {
+              LastModified: '2020-05-20T15:34:16.494+0000',
+              PackageType: 'Zip',
+              KMSKeyArn: kmsKeyArn,
+              Description: description,
+              Handler: handler,
+              State: 'Active',
+              LastUpdateStatus: 'Successful',
+
+              Environment: {
+                Variables: {
+                  ANOTHERVAR: 'anothervalue',
+                  VARIABLE: 'value',
+                },
+              },
+              FunctionName: functionName,
+              MemorySize: memorySize,
+              DeadLetterConfig: {
+                TargetArn: onErrorHandler,
+              },
+              Timeout: timeout,
+              Layers: [{ Arn: secondLayerArn }, { Arn: layerArn }],
+              Role: role,
+              VpcConfig: {
+                VpcId: 'vpc-xxxx',
+                SecurityGroupIds: ['sg-111', 'sg-222'],
+                SubnetIds: ['subnet-222', 'subnet-111'],
+              },
+            },
+          },
+        },
+      },
+      configExt: {
+        provider: {
+          environment: {
+            ANOTHERVAR: 'anothervalue',
+          },
+        },
+        functions: {
+          basic: {
+            kmsKeyArn,
+            description,
+            handler,
+            environment: {
+              VARIABLE: 'value',
+            },
+            name: functionName,
+            memorySize,
+            onError: onErrorHandler,
+            role,
+            timeout,
+            vpc: {
+              securityGroupIds: ['sg-111', 'sg-222'],
+              subnetIds: ['subnet-111', 'subnet-222'],
+            },
+            layers: [],
+          },
+        },
+      },
+    });
+
+    expect(updateFunctionConfigurationStub).to.be.calledWithExactly({
+      FunctionName: functionName,
+      Layers: [],
+    });
+  });
+
   it('should not update function configuration if configuration did not change when console layers are included remotely', async () => {
     await runServerless({
       fixture: 'function',
