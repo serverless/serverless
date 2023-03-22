@@ -15,6 +15,8 @@ chai.use(require('sinon-chai'));
 
 const expect = chai.expect;
 
+const consoleLayerArn = 'arn:aws:lambda:us-east-1:321667558080:layer:sls-sdk:1';
+const customerLayerArn = 'arn:aws:lambda:us-east-1:111111111111:layer:something:1';
 describe('AwsDeployFunction', () => {
   let AwsDeployFunction;
   let serverless;
@@ -301,6 +303,327 @@ describe('AwsDeployFunction', () => {
             ZipFile: data,
           })
         ).to.be.equal(true);
+      });
+    });
+  });
+
+  describe('#mergeEnvironmentVariablesWithRemove', () => {
+    describe('without console environment', () => {
+      it('should return undefined environment variables both remote and local environment is empty', () => {
+        const remoteFunctionConfiguration = {
+          Layers: [],
+          Environment: {
+            Variables: {},
+          },
+        };
+        const params = {
+          Layers: [],
+          Environment: {
+            Variables: {},
+          },
+        };
+        AwsDeployFunction.mergeEnvironmentVariablesWithRemote(params, remoteFunctionConfiguration);
+        expect(params.Environment).to.equal(undefined);
+      });
+
+      it('should return undefined environment variables when both local and remote match', () => {
+        const remoteFunctionConfiguration = {
+          Layers: [],
+          Environment: {
+            Variables: {
+              foo: 'bar',
+            },
+          },
+        };
+        const params = {
+          Layers: [],
+          Environment: {
+            Variables: {
+              foo: 'bar',
+            },
+          },
+        };
+        AwsDeployFunction.mergeEnvironmentVariablesWithRemote(params, remoteFunctionConfiguration);
+        expect(params.Environment).to.equal(undefined);
+      });
+
+      it('should add environment variables when local contains new variable', () => {
+        const remoteFunctionConfiguration = {
+          Layers: [],
+          Environment: {
+            Variables: {
+              foo: 'bar',
+            },
+          },
+        };
+        const params = {
+          Layers: [],
+          Environment: {
+            Variables: {
+              foo: 'bar',
+              foo2: 'bar2',
+            },
+          },
+        };
+        AwsDeployFunction.mergeEnvironmentVariablesWithRemote(params, remoteFunctionConfiguration);
+        expect(params.Environment).to.deep.equal(params.Environment);
+      });
+
+      it('should remove environment variables when local does not contain a variable contained in remote', () => {
+        const remoteFunctionConfiguration = {
+          Layers: [],
+          Environment: {
+            Variables: {
+              foo: 'bar',
+              foo2: 'bar2',
+            },
+          },
+        };
+        const params = {
+          Layers: [],
+          Environment: {
+            Variables: {
+              foo: 'bar',
+            },
+          },
+        };
+        AwsDeployFunction.mergeEnvironmentVariablesWithRemote(params, remoteFunctionConfiguration);
+        expect(params.Environment).to.deep.equal(params.Environment);
+      });
+    });
+
+    describe('with console environment', () => {
+      it('should return undefined environment variables when local is empty and remote is empty', () => {
+        const remoteFunctionConfiguration = {
+          Layers: [
+            {
+              Arn: consoleLayerArn,
+            },
+          ],
+          Environment: {
+            Variables: {
+              AWS_LAMBDA_EXEC_WRAPPER: '/opt/awslambda/bin/awslambda',
+              SLS_ORG_ID: '123',
+            },
+          },
+        };
+        const params = {
+          Layers: [],
+          Environment: {
+            Variables: {},
+          },
+        };
+        AwsDeployFunction.mergeEnvironmentVariablesWithRemote(params, remoteFunctionConfiguration);
+        expect(params.Environment).to.equal(undefined);
+      });
+
+      it('should add environment variables when local contains a new variable', () => {
+        const remoteFunctionConfiguration = {
+          Layers: [
+            {
+              Arn: consoleLayerArn,
+            },
+          ],
+          Environment: {
+            Variables: {
+              AWS_LAMBDA_EXEC_WRAPPER: '/opt/awslambda/bin/awslambda',
+              SLS_ORG_ID: '123',
+              foo: 'bar',
+            },
+          },
+        };
+        const params = {
+          Layers: [],
+          Environment: {
+            Variables: {
+              foo: 'bar',
+              foo2: 'bar2',
+            },
+          },
+        };
+        AwsDeployFunction.mergeEnvironmentVariablesWithRemote(params, remoteFunctionConfiguration);
+        expect(params.Environment).to.deep.equal(params.Environment);
+      });
+
+      it('should remove environment variables when local does not contain a variable contained in remote', () => {
+        const remoteFunctionConfiguration = {
+          Layers: [
+            {
+              Arn: consoleLayerArn,
+            },
+          ],
+          Environment: {
+            Variables: {
+              AWS_LAMBDA_EXEC_WRAPPER: '/opt/awslambda/bin/awslambda',
+              SLS_ORG_ID: '123',
+              foo: 'bar',
+              foo2: 'bar2',
+            },
+          },
+        };
+        const params = {
+          Layers: [],
+          Environment: {
+            Variables: {
+              foo: 'bar',
+            },
+          },
+        };
+        AwsDeployFunction.mergeEnvironmentVariablesWithRemote(params, remoteFunctionConfiguration);
+        expect(params.Environment.Variables).to.deep.equal({
+          ...params.Environment.Variables,
+          AWS_LAMBDA_EXEC_WRAPPER: '/opt/awslambda/bin/awslambda',
+          SLS_ORG_ID: '123',
+        });
+      });
+    });
+  });
+
+  describe('#mergeLayerConfigurationWithRemote', () => {
+    describe('with out console', () => {
+      it('should set Layers to undefined if remote and local layers are empty', () => {
+        const remoteFunctionConfiguration = {};
+        const params = {};
+        AwsDeployFunction.mergeLayerConfigurationWithRemote(params, remoteFunctionConfiguration);
+        expect(params.Layers).to.equal(undefined);
+      });
+
+      it('should set Layers to undefined if remote and local layers are equal', () => {
+        const remoteFunctionConfiguration = {
+          Layers: [
+            {
+              Arn: customerLayerArn,
+            },
+          ],
+        };
+        const params = {
+          Layers: [customerLayerArn],
+        };
+        AwsDeployFunction.mergeLayerConfigurationWithRemote(params, remoteFunctionConfiguration);
+        expect(params.Layers).to.equal(undefined);
+      });
+
+      it('should set Layers to an empty array to remove existing layers', () => {
+        const remoteFunctionConfiguration = {
+          Layers: [
+            {
+              Arn: customerLayerArn,
+            },
+          ],
+        };
+        const params = {
+          Layers: [],
+        };
+        AwsDeployFunction.mergeLayerConfigurationWithRemote(params, remoteFunctionConfiguration);
+        expect(params.Layers).to.equal(params.Layers);
+      });
+
+      it('should leave param.Layers alone to add layer', () => {
+        const remoteFunctionConfiguration = {
+          Layers: [],
+        };
+        const params = {
+          Layers: [customerLayerArn],
+        };
+        AwsDeployFunction.mergeLayerConfigurationWithRemote(params, remoteFunctionConfiguration);
+        expect(params.Layers).to.equal(params.Layers);
+      });
+    });
+
+    describe('with console', () => {
+      it('should set Layers to undefined if remote and local layers are equal', () => {
+        const remoteFunctionConfiguration = {
+          Layers: [
+            {
+              Arn: customerLayerArn,
+            },
+            {
+              Arn: consoleLayerArn,
+            },
+          ],
+        };
+        const params = {
+          Layers: [customerLayerArn],
+        };
+        AwsDeployFunction.mergeLayerConfigurationWithRemote(params, remoteFunctionConfiguration);
+        expect(params.Layers).to.equal(undefined);
+      });
+
+      it('should set Layers to undefined if remote and local layers are both empty', () => {
+        const remoteFunctionConfiguration = {
+          Layers: [
+            {
+              Arn: consoleLayerArn,
+            },
+          ],
+        };
+        const params = {};
+        AwsDeployFunction.mergeLayerConfigurationWithRemote(params, remoteFunctionConfiguration);
+        expect(params.Layers).to.equal(undefined);
+      });
+
+      it('should set Layers to undefined if console layer is included in local and both remote and local are equal', () => {
+        const remoteFunctionConfiguration = {
+          Layers: [
+            {
+              Arn: customerLayerArn,
+            },
+            {
+              Arn: consoleLayerArn,
+            },
+          ],
+        };
+        const params = {
+          Layers: [consoleLayerArn, customerLayerArn],
+        };
+        AwsDeployFunction.mergeLayerConfigurationWithRemote(params, remoteFunctionConfiguration);
+        expect(params.Layers).to.equal(undefined);
+      });
+
+      it('should add a new local layer', () => {
+        const remoteFunctionConfiguration = {
+          Layers: [
+            {
+              Arn: consoleLayerArn,
+            },
+          ],
+        };
+        const params = {
+          Layers: [customerLayerArn],
+        };
+        AwsDeployFunction.mergeLayerConfigurationWithRemote(params, remoteFunctionConfiguration);
+        expect(params.Layers).to.deep.equal([customerLayerArn, consoleLayerArn]);
+      });
+
+      it('should add new local layer if console layer is included in local config', () => {
+        const remoteFunctionConfiguration = {
+          Layers: [
+            {
+              Arn: consoleLayerArn,
+            },
+          ],
+        };
+        const params = {
+          Layers: [consoleLayerArn, customerLayerArn],
+        };
+        AwsDeployFunction.mergeLayerConfigurationWithRemote(params, remoteFunctionConfiguration);
+        expect(params.Layers).to.deep.equal([consoleLayerArn, customerLayerArn]);
+      });
+
+      it('should remove a remote layer', () => {
+        const remoteFunctionConfiguration = {
+          Layers: [
+            {
+              Arn: customerLayerArn,
+            },
+            {
+              Arn: consoleLayerArn,
+            },
+          ],
+        };
+        const params = {};
+        AwsDeployFunction.mergeLayerConfigurationWithRemote(params, remoteFunctionConfiguration);
+        expect(params.Layers).to.deep.equal([consoleLayerArn]);
       });
     });
   });
@@ -814,6 +1137,160 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
               subnetIds: ['subnet-111', 'subnet-222'],
             },
             layers: [layerArn, secondLayerArn],
+          },
+        },
+      },
+    });
+
+    expect(updateFunctionConfigurationStub).not.to.be.called;
+  });
+
+  it('should not update function configuration if configuration did not change when console layers are included remotely', async () => {
+    await runServerless({
+      fixture: 'function',
+      command: 'deploy function',
+      options: { function: 'basic' },
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        Lambda: {
+          ...awsRequestStubMap.Lambda,
+          getFunction: {
+            Configuration: {
+              LastModified: '2020-05-20T15:34:16.494+0000',
+              PackageType: 'Zip',
+              KMSKeyArn: kmsKeyArn,
+              Description: description,
+              Handler: handler,
+              State: 'Active',
+              LastUpdateStatus: 'Successful',
+
+              Environment: {
+                Variables: {
+                  ANOTHERVAR: 'anothervalue',
+                  VARIABLE: 'value',
+                  AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
+                  SLS_ORG_ID: '123',
+                },
+              },
+              FunctionName: functionName,
+              MemorySize: memorySize,
+              DeadLetterConfig: {
+                TargetArn: onErrorHandler,
+              },
+              Timeout: timeout,
+              Layers: [{ Arn: secondLayerArn }, { Arn: layerArn }, { Arn: consoleLayerArn }],
+              Role: role,
+              VpcConfig: {
+                VpcId: 'vpc-xxxx',
+                SecurityGroupIds: ['sg-111', 'sg-222'],
+                SubnetIds: ['subnet-222', 'subnet-111'],
+              },
+            },
+          },
+        },
+      },
+      configExt: {
+        provider: {
+          environment: {
+            ANOTHERVAR: 'anothervalue',
+          },
+        },
+        functions: {
+          basic: {
+            kmsKeyArn,
+            description,
+            handler,
+            environment: {
+              VARIABLE: 'value',
+            },
+            name: functionName,
+            memorySize,
+            onError: onErrorHandler,
+            role,
+            timeout,
+            vpc: {
+              securityGroupIds: ['sg-111', 'sg-222'],
+              subnetIds: ['subnet-111', 'subnet-222'],
+            },
+            layers: [layerArn, secondLayerArn],
+          },
+        },
+      },
+    });
+
+    expect(updateFunctionConfigurationStub).not.to.be.called;
+  });
+
+  it('should not update function configuration if configuration did not change when console layers are included both locally and remotely', async () => {
+    await runServerless({
+      fixture: 'function',
+      command: 'deploy function',
+      options: { function: 'basic' },
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        Lambda: {
+          ...awsRequestStubMap.Lambda,
+          getFunction: {
+            Configuration: {
+              LastModified: '2020-05-20T15:34:16.494+0000',
+              PackageType: 'Zip',
+              KMSKeyArn: kmsKeyArn,
+              Description: description,
+              Handler: handler,
+              State: 'Active',
+              LastUpdateStatus: 'Successful',
+
+              Environment: {
+                Variables: {
+                  ANOTHERVAR: 'anothervalue',
+                  VARIABLE: 'value',
+                  AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
+                  SLS_ORG_ID: '123',
+                },
+              },
+              FunctionName: functionName,
+              MemorySize: memorySize,
+              DeadLetterConfig: {
+                TargetArn: onErrorHandler,
+              },
+              Timeout: timeout,
+              Layers: [{ Arn: secondLayerArn }, { Arn: layerArn }, { Arn: consoleLayerArn }],
+              Role: role,
+              VpcConfig: {
+                VpcId: 'vpc-xxxx',
+                SecurityGroupIds: ['sg-111', 'sg-222'],
+                SubnetIds: ['subnet-222', 'subnet-111'],
+              },
+            },
+          },
+        },
+      },
+      configExt: {
+        provider: {
+          environment: {
+            ANOTHERVAR: 'anothervalue',
+          },
+        },
+        functions: {
+          basic: {
+            kmsKeyArn,
+            description,
+            handler,
+            environment: {
+              VARIABLE: 'value',
+              AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
+              SLS_ORG_ID: '123',
+            },
+            name: functionName,
+            memorySize,
+            onError: onErrorHandler,
+            role,
+            timeout,
+            vpc: {
+              securityGroupIds: ['sg-111', 'sg-222'],
+              subnetIds: ['subnet-111', 'subnet-222'],
+            },
+            layers: [layerArn, secondLayerArn, consoleLayerArn],
           },
         },
       },
