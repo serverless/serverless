@@ -567,7 +567,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
   });
 
   it('should update function configuration if configuration changed', async () => {
-    await runServerless({
+    const runServerlessConfig = {
       fixture: 'function',
       command: 'deploy function',
       options: { function: 'basic' },
@@ -575,13 +575,113 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
         ...awsRequestStubMap,
         Lambda: {
           ...awsRequestStubMap.Lambda,
-          getFunction: {
-            Configuration: {
-              LastModified: '2020-05-20T15:34:16.494+0000',
-              PackageType: 'Zip',
-              State: 'Active',
-              LastUpdateStatus: 'Successful',
-            },
+          getFunction: (params) => {
+            if (params.FunctionName === 'noLayers') {
+              return {
+                Configuration: {
+                  LastModified: '2020-05-20T15:34:16.494+0000',
+                  PackageType: 'Zip',
+                  KMSKeyArn: kmsKeyArn,
+                  Description: description,
+                  Handler: handler,
+                  State: 'Active',
+                  LastUpdateStatus: 'Successful',
+                  Environment: {
+                    Variables: {
+                      ANOTHERVAR: 'anothervalue',
+                      VARIABLE: 'value',
+                    },
+                  },
+                  FunctionName: functionName,
+                  MemorySize: memorySize,
+                  DeadLetterConfig: {
+                    TargetArn: onErrorHandler,
+                  },
+                  Timeout: timeout,
+                  Layers: [{ Arn: secondLayerArn }, { Arn: layerArn }],
+                  Role: role,
+                  VpcConfig: {
+                    VpcId: 'vpc-xxxx',
+                    SecurityGroupIds: ['sg-111', 'sg-222'],
+                    SubnetIds: ['subnet-222', 'subnet-111'],
+                  },
+                },
+              };
+            } else if (params.FunctionName === 'consoleAddLayerAndEnvironment') {
+              return {
+                Configuration: {
+                  LastModified: '2020-05-20T15:34:16.494+0000',
+                  PackageType: 'Zip',
+                  KMSKeyArn: kmsKeyArn,
+                  Description: description,
+                  Handler: handler,
+                  State: 'Active',
+                  LastUpdateStatus: 'Successful',
+                  Environment: {
+                    Variables: {
+                      ANOTHERVAR: 'anothervalue',
+                      VARIABLE: 'value',
+                      AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
+                      SLS_ORG_ID: '123',
+                    },
+                  },
+                  FunctionName: functionName,
+                  MemorySize: memorySize,
+                  DeadLetterConfig: {
+                    TargetArn: onErrorHandler,
+                  },
+                  Timeout: timeout,
+                  Layers: [{ Arn: layerArn }, { Arn: consoleLayerArn }],
+                  Role: role,
+                  VpcConfig: {
+                    VpcId: 'vpc-xxxx',
+                    SecurityGroupIds: ['sg-111', 'sg-222'],
+                    SubnetIds: ['subnet-222', 'subnet-111'],
+                  },
+                },
+              };
+            } else if (params.FunctionName === 'consoleRemoveLayerAndEnvironment') {
+              return {
+                Configuration: {
+                  LastModified: '2020-05-20T15:34:16.494+0000',
+                  PackageType: 'Zip',
+                  KMSKeyArn: kmsKeyArn,
+                  Description: description,
+                  Handler: handler,
+                  State: 'Active',
+                  LastUpdateStatus: 'Successful',
+                  Environment: {
+                    Variables: {
+                      ANOTHERVAR: 'anothervalue',
+                      VARIABLE: 'value',
+                      AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
+                      SLS_ORG_ID: '123',
+                    },
+                  },
+                  FunctionName: functionName,
+                  MemorySize: memorySize,
+                  DeadLetterConfig: {
+                    TargetArn: onErrorHandler,
+                  },
+                  Timeout: timeout,
+                  Layers: [{ Arn: layerArn }, { Arn: consoleLayerArn }],
+                  Role: role,
+                  VpcConfig: {
+                    VpcId: 'vpc-xxxx',
+                    SecurityGroupIds: ['sg-111', 'sg-222'],
+                    SubnetIds: ['subnet-222', 'subnet-111'],
+                  },
+                },
+              };
+            }
+            return {
+              Configuration: {
+                LastModified: '2020-05-20T15:34:16.494+0000',
+                PackageType: 'Zip',
+                State: 'Active',
+                LastUpdateStatus: 'Successful',
+              },
+            };
           },
         },
       },
@@ -610,10 +710,63 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
             },
             layers: [layerArn, secondLayerArn],
           },
+          noLayers: {
+            kmsKeyArn,
+            description,
+            handler,
+            environment: {
+              VARIABLE: 'value',
+            },
+            name: 'noLayers',
+            memorySize,
+            onError: onErrorHandler,
+            role,
+            timeout,
+            vpc: {
+              securityGroupIds: ['sg-111', 'sg-222'],
+              subnetIds: ['subnet-111', 'subnet-222'],
+            },
+            layers: [],
+          },
+          consoleAddLayerAndEnvironment: {
+            kmsKeyArn,
+            description,
+            handler,
+            environment: {
+              VARIABLE: 'value',
+              VARIABLE2: 'value2',
+            },
+            name: 'consoleAddLayerAndEnvironment',
+            memorySize,
+            onError: onErrorHandler,
+            role,
+            timeout,
+            vpc: {
+              securityGroupIds: ['sg-111', 'sg-222'],
+              subnetIds: ['subnet-111', 'subnet-222'],
+            },
+            layers: [layerArn, secondLayerArn],
+          },
+          consoleRemoveLayerAndEnvironment: {
+            kmsKeyArn,
+            description,
+            handler,
+            environment: {},
+            name: 'consoleRemoveLayerAndEnvironment',
+            memorySize,
+            onError: onErrorHandler,
+            role,
+            timeout,
+            vpc: {
+              securityGroupIds: ['sg-111', 'sg-222'],
+              subnetIds: ['subnet-111', 'subnet-222'],
+            },
+            layers: [],
+          },
         },
       },
-    });
-
+    };
+    await runServerless(runServerlessConfig);
     expect(updateFunctionConfigurationStub).to.be.calledWithExactly({
       FunctionName: functionName,
       KMSKeyArn: kmsKeyArn,
@@ -636,6 +789,46 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
         SubnetIds: ['subnet-111', 'subnet-222'],
       },
       Layers: [layerArn, secondLayerArn],
+    });
+
+    // Remove all arn layers
+    runServerlessConfig.options.function = 'noLayers';
+    await runServerless(runServerlessConfig);
+    expect(updateFunctionConfigurationStub).to.be.calledWithExactly({
+      FunctionName: 'noLayers',
+      Layers: [],
+    });
+
+    // Add layer and environment variables when console layer is present
+    runServerlessConfig.options.function = 'consoleAddLayerAndEnvironment';
+    await runServerless(runServerlessConfig);
+    expect(updateFunctionConfigurationStub).to.be.calledWithExactly({
+      FunctionName: 'consoleAddLayerAndEnvironment',
+      Environment: {
+        Variables: {
+          ANOTHERVAR: 'anothervalue',
+          VARIABLE: 'value',
+          VARIABLE2: 'value2',
+          AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
+          SLS_ORG_ID: '123',
+        },
+      },
+      Layers: [layerArn, secondLayerArn, consoleLayerArn],
+    });
+
+    // Remove all arn layers and remove environment variable when console layer is present
+    runServerlessConfig.options.function = 'consoleRemoveLayerAndEnvironment';
+    await runServerless(runServerlessConfig);
+    expect(updateFunctionConfigurationStub).to.be.calledWithExactly({
+      FunctionName: 'consoleRemoveLayerAndEnvironment',
+      Environment: {
+        Variables: {
+          ANOTHERVAR: 'anothervalue',
+          AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
+          SLS_ORG_ID: '123',
+        },
+      },
+      Layers: [consoleLayerArn],
     });
   });
 
@@ -823,8 +1016,8 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     expect(updateFunctionConfigurationStub).not.to.be.called;
   });
 
-  it('should update function configuration if configuration removes a layer', async () => {
-    await runServerless({
+  it('should not update function configuration if configuration includes console managed functions', async () => {
+    const runServerlessConfig = {
       fixture: 'function',
       command: 'deploy function',
       options: { function: 'basic' },
@@ -832,115 +1025,75 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
         ...awsRequestStubMap,
         Lambda: {
           ...awsRequestStubMap.Lambda,
-          getFunction: {
-            Configuration: {
-              LastModified: '2020-05-20T15:34:16.494+0000',
-              PackageType: 'Zip',
-              KMSKeyArn: kmsKeyArn,
-              Description: description,
-              Handler: handler,
-              State: 'Active',
-              LastUpdateStatus: 'Successful',
+          getFunction: (params) => {
+            if (params.FunctionName === 'consoleLayersIncluded') {
+              return {
+                Configuration: {
+                  LastModified: '2020-05-20T15:34:16.494+0000',
+                  PackageType: 'Zip',
+                  KMSKeyArn: kmsKeyArn,
+                  Description: description,
+                  Handler: handler,
+                  State: 'Active',
+                  LastUpdateStatus: 'Successful',
 
-              Environment: {
-                Variables: {
-                  ANOTHERVAR: 'anothervalue',
-                  VARIABLE: 'value',
+                  Environment: {
+                    Variables: {
+                      ANOTHERVAR: 'anothervalue',
+                      VARIABLE: 'value',
+                      AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
+                      SLS_ORG_ID: '123',
+                    },
+                  },
+                  FunctionName: functionName,
+                  MemorySize: memorySize,
+                  DeadLetterConfig: {
+                    TargetArn: onErrorHandler,
+                  },
+                  Timeout: timeout,
+                  Layers: [{ Arn: secondLayerArn }, { Arn: layerArn }, { Arn: consoleLayerArn }],
+                  Role: role,
+                  VpcConfig: {
+                    VpcId: 'vpc-xxxx',
+                    SecurityGroupIds: ['sg-111', 'sg-222'],
+                    SubnetIds: ['subnet-222', 'subnet-111'],
+                  },
+                },
+              };
+            }
+            return {
+              Configuration: {
+                LastModified: '2020-05-20T15:34:16.494+0000',
+                PackageType: 'Zip',
+                KMSKeyArn: kmsKeyArn,
+                Description: description,
+                Handler: handler,
+                State: 'Active',
+                LastUpdateStatus: 'Successful',
+
+                Environment: {
+                  Variables: {
+                    ANOTHERVAR: 'anothervalue',
+                    VARIABLE: 'value',
+                    AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
+                    SLS_ORG_ID: '123',
+                  },
+                },
+                FunctionName: functionName,
+                MemorySize: memorySize,
+                DeadLetterConfig: {
+                  TargetArn: onErrorHandler,
+                },
+                Timeout: timeout,
+                Layers: [{ Arn: secondLayerArn }, { Arn: layerArn }, { Arn: consoleLayerArn }],
+                Role: role,
+                VpcConfig: {
+                  VpcId: 'vpc-xxxx',
+                  SecurityGroupIds: ['sg-111', 'sg-222'],
+                  SubnetIds: ['subnet-222', 'subnet-111'],
                 },
               },
-              FunctionName: functionName,
-              MemorySize: memorySize,
-              DeadLetterConfig: {
-                TargetArn: onErrorHandler,
-              },
-              Timeout: timeout,
-              Layers: [{ Arn: secondLayerArn }, { Arn: layerArn }],
-              Role: role,
-              VpcConfig: {
-                VpcId: 'vpc-xxxx',
-                SecurityGroupIds: ['sg-111', 'sg-222'],
-                SubnetIds: ['subnet-222', 'subnet-111'],
-              },
-            },
-          },
-        },
-      },
-      configExt: {
-        provider: {
-          environment: {
-            ANOTHERVAR: 'anothervalue',
-          },
-        },
-        functions: {
-          basic: {
-            kmsKeyArn,
-            description,
-            handler,
-            environment: {
-              VARIABLE: 'value',
-            },
-            name: functionName,
-            memorySize,
-            onError: onErrorHandler,
-            role,
-            timeout,
-            vpc: {
-              securityGroupIds: ['sg-111', 'sg-222'],
-              subnetIds: ['subnet-111', 'subnet-222'],
-            },
-            layers: [],
-          },
-        },
-      },
-    });
-
-    expect(updateFunctionConfigurationStub).to.be.calledWithExactly({
-      FunctionName: functionName,
-      Layers: [],
-    });
-  });
-
-  it('should not update function configuration if configuration did not change when console layers are included remotely', async () => {
-    await runServerless({
-      fixture: 'function',
-      command: 'deploy function',
-      options: { function: 'basic' },
-      awsRequestStubMap: {
-        ...awsRequestStubMap,
-        Lambda: {
-          ...awsRequestStubMap.Lambda,
-          getFunction: {
-            Configuration: {
-              LastModified: '2020-05-20T15:34:16.494+0000',
-              PackageType: 'Zip',
-              KMSKeyArn: kmsKeyArn,
-              Description: description,
-              Handler: handler,
-              State: 'Active',
-              LastUpdateStatus: 'Successful',
-
-              Environment: {
-                Variables: {
-                  ANOTHERVAR: 'anothervalue',
-                  VARIABLE: 'value',
-                  AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
-                  SLS_ORG_ID: '123',
-                },
-              },
-              FunctionName: functionName,
-              MemorySize: memorySize,
-              DeadLetterConfig: {
-                TargetArn: onErrorHandler,
-              },
-              Timeout: timeout,
-              Layers: [{ Arn: secondLayerArn }, { Arn: layerArn }, { Arn: consoleLayerArn }],
-              Role: role,
-              VpcConfig: {
-                VpcId: 'vpc-xxxx',
-                SecurityGroupIds: ['sg-111', 'sg-222'],
-                SubnetIds: ['subnet-222', 'subnet-111'],
-              },
-            },
+            };
           },
         },
       },
@@ -969,65 +1122,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
             },
             layers: [layerArn, secondLayerArn],
           },
-        },
-      },
-    });
-
-    expect(updateFunctionConfigurationStub).not.to.be.called;
-  });
-
-  it('should not update function configuration if configuration did not change when console layers are included both locally and remotely', async () => {
-    await runServerless({
-      fixture: 'function',
-      command: 'deploy function',
-      options: { function: 'basic' },
-      awsRequestStubMap: {
-        ...awsRequestStubMap,
-        Lambda: {
-          ...awsRequestStubMap.Lambda,
-          getFunction: {
-            Configuration: {
-              LastModified: '2020-05-20T15:34:16.494+0000',
-              PackageType: 'Zip',
-              KMSKeyArn: kmsKeyArn,
-              Description: description,
-              Handler: handler,
-              State: 'Active',
-              LastUpdateStatus: 'Successful',
-
-              Environment: {
-                Variables: {
-                  ANOTHERVAR: 'anothervalue',
-                  VARIABLE: 'value',
-                  AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
-                  SLS_ORG_ID: '123',
-                },
-              },
-              FunctionName: functionName,
-              MemorySize: memorySize,
-              DeadLetterConfig: {
-                TargetArn: onErrorHandler,
-              },
-              Timeout: timeout,
-              Layers: [{ Arn: secondLayerArn }, { Arn: layerArn }, { Arn: consoleLayerArn }],
-              Role: role,
-              VpcConfig: {
-                VpcId: 'vpc-xxxx',
-                SecurityGroupIds: ['sg-111', 'sg-222'],
-                SubnetIds: ['subnet-222', 'subnet-111'],
-              },
-            },
-          },
-        },
-      },
-      configExt: {
-        provider: {
-          environment: {
-            ANOTHERVAR: 'anothervalue',
-          },
-        },
-        functions: {
-          basic: {
+          consoleLayersIncluded: {
             kmsKeyArn,
             description,
             handler,
@@ -1036,7 +1131,7 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
               AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
               SLS_ORG_ID: '123',
             },
-            name: functionName,
+            name: 'consoleLayersIncluded',
             memorySize,
             onError: onErrorHandler,
             role,
@@ -1049,7 +1144,10 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
           },
         },
       },
-    });
+    };
+    await runServerless(runServerlessConfig);
+    runServerlessConfig.options.function = 'consoleLayersIncluded';
+    await runServerless(runServerlessConfig);
 
     expect(updateFunctionConfigurationStub).not.to.be.called;
   });
