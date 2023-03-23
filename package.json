@@ -52,6 +52,7 @@
     "https-proxy-agent": "^5.0.1",
     "is-docker": "^2.2.1",
     "js-yaml": "^4.1.0",
+    "json-colorizer": "^2.2.2",
     "json-cycle": "^1.3.0",
     "json-refs": "^3.0.15",
     "lodash": "^4.17.21",
@@ -67,6 +68,7 @@
     "require-from-string": "^2.0.2",
     "semver": "^7.3.8",
     "signal-exit": "^3.0.7",
+    "stream-buffers": "^3.0.2",
     "strip-ansi": "^6.0.1",
     "supports-color": "^8.1.1",
     "tar": "^6.1.13",
@@ -74,6 +76,7 @@
     "type": "^2.7.2",
     "untildify": "^4.0.0",
     "uuid": "^9.0.0",
+    "ws": "^7.5.9",
     "yaml-ast-parser": "0.0.43"
   },
   "devDependencies": {
@@ -105,7 +108,6 @@
     "sinon": "^13.0.2",
     "sinon-chai": "^3.7.0",
     "standard-version": "^9.5.0",
-    "ws": "^7.5.9",
     "xml2js": "^0.4.23"
   },
   "eslintConfig": {
