@@ -1,11 +1,7 @@
 'use strict';
 
-const chai = require('chai');
+const expect = require('chai').expect;
 const resolveCfRefValue = require('../../../../../../lib/plugins/aws/utils/resolve-cf-ref-value');
-
-chai.use(require('chai-as-promised'));
-
-const expect = chai.expect;
 
 describe('#resolveCfRefValue', () => {
   it('should return matching exported value if found', async () => {
@@ -26,7 +22,7 @@ describe('#resolveCfRefValue', () => {
         ],
       }),
     };
-    const result = await expect(resolveCfRefValue(provider, 'myDB')).to.be.fulfilled;
+    const result = await resolveCfRefValue(provider, 'myDB');
     expect(result).to.equal('stack-name-db-id');
   });
 });
