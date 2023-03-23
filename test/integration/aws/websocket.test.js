@@ -24,8 +24,6 @@ describe('AWS - API Gateway Websocket Integration Test', function () {
   let serviceName;
   let serviceDir;
   let updateConfig;
-  // TODO: Remove once occasional test fail is debugged
-  let twoWayPassed;
   const stage = 'dev';
 
   before(async () => {
@@ -36,10 +34,7 @@ describe('AWS - API Gateway Websocket Integration Test', function () {
     return deployService(serviceDir);
   });
 
-  after(() => {
-    if (!twoWayPassed) return null;
-    return removeService(serviceDir);
-  });
+  after(() => removeService(serviceDir));
 
   async function getWebSocketServerUrl() {
     const result = await awsRequest(CloudFormationService, 'describeStacks', {
@@ -81,7 +76,6 @@ describe('AWS - API Gateway Websocket Integration Test', function () {
         ws.on('close', resolve);
 
         ws.on('message', (event) => {
-          twoWayPassed = true;
           clearTimeout(timeoutId);
           try {
             log.debug(`Received WebSocket message: ${event}`);
@@ -95,8 +89,7 @@ describe('AWS - API Gateway Websocket Integration Test', function () {
   });
 
   describe('Minimal Setup', () => {
-    it('should expose an accessible websocket endpoint', async function () {
-      if (!twoWayPassed) this.skip();
+    it('should expose an accessible websocket endpoint', async () => {
       const webSocketServerUrl = await getWebSocketServerUrl();
 
       log.debug(`WebSocket Server URL ${webSocketServerUrl}`);
@@ -137,8 +130,7 @@ describe('AWS - API Gateway Websocket Integration Test', function () {
     // NOTE: this test should  be at the very end because we're using an external REST API here
     describe('when using an existing websocket API', () => {
       let websocketApiId;
-      before(async function () {
-        if (!twoWayPassed) this.skip();
+      before(async () => {
         // create an external websocket API
         const externalWebsocketApiName = `${stage}-${serviceName}-ext-api`;
         const wsApiMeta = await createApi(externalWebsocketApiName);
@@ -154,7 +146,6 @@ describe('AWS - API Gateway Websocket Integration Test', function () {
 
       after(async () => {
         // NOTE: deleting the references to the old, external websocket API
-        if (!twoWayPassed) return;
         await updateConfig({
           provider: {
             apiGateway: { websocketApiId: null },
