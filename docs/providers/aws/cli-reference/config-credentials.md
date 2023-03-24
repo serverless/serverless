@@ -49,6 +49,7 @@ serverless config credentials \
   --secret 5678 \
   --profile custom-profile
 ```
+Remove the \ when executing this commands
 
 This example create and configure a `custom-profile` profile with the `aws_access_key_id` of `1234` and the `aws_secret_access_key` of `5678`.
 
@@ -60,7 +61,7 @@ serverless config credentials \
   --key 1234 \
   --secret 5678 \
   --profile custom-profile \
-  --overwrite
+  --overwrite 
 ```
 
 This example overwrite `custom-profile` profile with the `aws_access_key_id` of `1234` and the `aws_secret_access_key` of `5678`.
