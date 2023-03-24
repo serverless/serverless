@@ -2,7 +2,6 @@
 
 /* eslint-disable no-unused-expressions */
 
-const chai = require('chai');
 const overrideEnv = require('process-utils/override-env');
 const overrideArgv = require('process-utils/override-argv');
 const runServerless = require('../../../utils/run-serverless');
@@ -23,8 +22,8 @@ const proxyquire = require('proxyquire');
 const { installPlugin } = require('../../../utils/plugins');
 const { getTmpDirPath } = require('../../../utils/fs');
 
+const chai = require('chai');
 chai.use(require('chai-as-promised'));
-chai.use(require('sinon-chai'));
 
 const expect = chai.expect;
 
@@ -64,8 +63,8 @@ class PromisePluginMock {
     };
 
     this.hooks = {
-      'deploy:functions': this.functions.bind(this),
-      'before:deploy:onpremises:functions': this.resources.bind(this),
+      'deploy:functions': () => this.functions(),
+      'before:deploy:onpremises:functions': () => this.resources(),
     };
 
     // used to test if the function was executed correctly
@@ -118,8 +117,8 @@ class SynchronousPluginMock {
     };
 
     this.hooks = {
-      'deploy:functions': this.functions.bind(this),
-      'before:deploy:onpremises:functions': this.resources.bind(this),
+      'deploy:functions': () => this.functions(),
+      'before:deploy:onpremises:functions': () => this.resources(),
     };
 
     // used to test if the function was executed correctly
@@ -164,7 +163,7 @@ describe('PluginManager', () => {
       };
 
       this.hooks = {
-        'deploy:functions': this.functions.bind(this),
+        'deploy:functions': () => this.functions(),
       };
 
       // used to test if the function was executed correctly
@@ -187,7 +186,7 @@ describe('PluginManager', () => {
       };
 
       this.hooks = {
-        'deploy:functions': this.functions.bind(this),
+        'deploy:functions': () => this.functions(),
       };
 
       // used to test if the function was executed correctly
@@ -236,8 +235,8 @@ describe('PluginManager', () => {
       };
 
       this.hooks = {
-        'deploy:functions': this.functions.bind(this),
-        'before:deploy:onpremises:functions': this.resources.bind(this),
+        'deploy:functions': () => this.functions(),
+        'before:deploy:onpremises:functions': () => this.resources(),
       };
 
       // used to test if the function was executed correctly
@@ -292,13 +291,13 @@ describe('PluginManager', () => {
       };
 
       this.hooks = {
-        'myep:initialize': this.initialize.bind(this),
-        'myep:finalize': this.finalize.bind(this),
-        'myep:mysubep:initialize': this.subEPInitialize.bind(this),
-        'myep:mysubep:finalize': this.subEPFinalize.bind(this),
-        'mycmd:mysubcmd:initialize': this.subInitialize.bind(this),
-        'mycmd:mysubcmd:finalize': this.subFinalize.bind(this),
-        'mycmd:run': this.run.bind(this),
+        'myep:initialize': () => this.initialize(),
+        'myep:finalize': () => this.finalize(),
+        'myep:mysubep:initialize': () => this.subEPInitialize(),
+        'myep:mysubep:finalize': () => this.subEPFinalize(),
+        'mycmd:mysubcmd:initialize': () => this.subInitialize(),
+        'mycmd:mysubcmd:finalize': () => this.subFinalize(),
+        'mycmd:run': () => this.run(),
         // Event1 spawns mysubcmd, then myep
         // Event2 spawns mycmd, then mysubep
         'myep:spawnep:event1': async () =>
@@ -359,8 +358,8 @@ describe('PluginManager', () => {
       };
 
       this.hooks = {
-        'mycontainer:mysubcmd:event1': this.eventOne.bind(this),
-        'mycontainer:mysubcmd:event2': this.eventTwo.bind(this),
+        'mycontainer:mysubcmd:event1': () => this.eventOne(),
+        'mycontainer:mysubcmd:event2': () => this.eventTwo(),
       };
 
       this.callResult = '';
@@ -378,8 +377,8 @@ describe('PluginManager', () => {
   class DeprecatedLifecycleEventsPluginMock {
     constructor() {
       this.hooks = {
-        'deprecated:deprecated': this.deprecated, // NOTE: we assume that this is deprecated
-        'untouched:untouched': this.untouched,
+        'deprecated:deprecated': () => this.deprecated(), // NOTE: we assume that this is deprecated
+        'untouched:untouched': () => this.untouched(),
       };
     }
 
@@ -479,7 +478,6 @@ describe('PluginManager', () => {
       };
       pluginManager.setCliCommands(cliCommandsMock);
       pluginManager.setCliOptions(cliOptionsMock);
-
       pluginManager.convertShortcutsIntoOptions(commandMock);
 
       expect(pluginManager.cliOptions.region).to.equal(cliOptionsMock.r);
@@ -495,7 +493,6 @@ describe('PluginManager', () => {
       };
       pluginManager.setCliCommands(cliCommandsMock);
       pluginManager.setCliOptions(cliOptionsMock);
-
       pluginManager.convertShortcutsIntoOptions(commandMock);
 
       expect(pluginManager.cliOptions.region).to.equal(cliOptionsMock.region);
@@ -558,7 +555,7 @@ describe('PluginManager', () => {
 
       pluginManager.addPlugin(Plugin);
 
-      expect(pluginManager.plugins[0]).to.be.an.instanceOf(Plugin);
+      expect(pluginManager.plugins[0]).to.be.instanceOf(Plugin);
     });
 
     it('should add service related plugins when provider propery is provider plugin', () => {
@@ -577,7 +574,7 @@ describe('PluginManager', () => {
 
       pluginManager.addPlugin(Plugin);
 
-      expect(pluginManager.plugins[0]).to.be.an.instanceOf(Plugin);
+      expect(pluginManager.plugins[0]).to.be.instanceOf(Plugin);
     });
   });
 
@@ -587,8 +584,8 @@ describe('PluginManager', () => {
       plugin1.asyncInit = sinon.stub().returns(Promise.resolve());
       pluginManager.plugins = [plugin1];
 
-      await expect(pluginManager.asyncPluginInit()).to.be.fulfilled;
-      expect(plugin1.asyncInit).to.have.been.calledOnce;
+      await pluginManager.asyncPluginInit();
+      expect(plugin1.asyncInit.calledOnce).to.be.true;
     });
   });
 
@@ -613,15 +610,12 @@ describe('PluginManager', () => {
       const servicePlugins = ['ServicePluginMock1', 'ServicePluginMock2'];
       await pluginManager.loadAllPlugins(servicePlugins);
 
-      expect(pluginManager.plugins.some((plugin) => plugin instanceof ServicePluginMock1)).to.equal(
-        true
-      );
-      expect(pluginManager.plugins.some((plugin) => plugin instanceof ServicePluginMock2)).to.equal(
-        true
-      );
-      expect(
-        pluginManager.plugins.some((plugin) => plugin instanceof EnterprisePluginMock)
-      ).to.equal(true);
+      expect(pluginManager.plugins.some((plugin) => plugin instanceof ServicePluginMock1)).to.be
+        .true;
+      expect(pluginManager.plugins.some((plugin) => plugin instanceof ServicePluginMock2)).to.be
+        .true;
+      expect(pluginManager.plugins.some((plugin) => plugin instanceof EnterprisePluginMock)).to.be
+        .true;
       // note: this test will be refactored as the Create plugin will be moved
       // to another directory
       expect(pluginManager.plugins.length).to.be.above(2);
@@ -647,10 +641,10 @@ describe('PluginManager', () => {
       expect(pluginManager.plugins.length).to.be.above(1);
     });
 
-    it('should throw an error when trying to load unknown plugin', () => {
+    it('should throw an error when trying to load unknown plugin', async () => {
       const servicePlugins = ['ServicePluginMock3', 'ServicePluginMock1'];
 
-      return expect(pluginManager.loadAllPlugins(servicePlugins)).to.be.rejectedWith(
+      await expect(pluginManager.loadAllPlugins(servicePlugins)).to.eventually.be.rejectedWith(
         ServerlessError
       );
     });
@@ -661,27 +655,25 @@ describe('PluginManager', () => {
       pluginManager.setCliOptions({ help: true });
 
       resolveInput.clear();
-      return overrideArgv({ args: ['serverless', '--help'] }, () => {
-        return expect(pluginManager.loadAllPlugins(servicePlugins)).to.not.be.rejectedWith(
-          ServerlessError
-        );
-      });
+      await overrideArgv({ args: ['serverless', '--help'] });
+
+      await expect(pluginManager.loadAllPlugins(servicePlugins)).not.to.eventually.be.rejectedWith(ServerlessError);
     });
 
-    it('should pass through an error when plugin load fails', () => {
+    it('should pass through an error when plugin load fails', async () => {
       const servicePlugins = ['BrokenPluginMock'];
 
-      return expect(pluginManager.loadAllPlugins(servicePlugins)).to.be.rejectedWith(
+      await expect(pluginManager.loadAllPlugins(servicePlugins)).to.eventually.be.rejectedWith(
         brokenPluginError
       );
     });
 
-    it('should not throw error when running the plugin commands and given plugins does not exist', () => {
+    it('should not throw error when running the plugin commands and given plugins does not exist', async () => {
       const servicePlugins = ['ServicePluginMock3'];
       const cliCommandsMock = ['plugin'];
       pluginManager.setCliCommands(cliCommandsMock);
 
-      return expect(pluginManager.loadAllPlugins(servicePlugins)).to.not.be.rejectedWith(
+      await expect(pluginManager.loadAllPlugins(servicePlugins)).not.to.eventually.be.rejectedWith(
         ServerlessError
       );
     });
@@ -703,22 +695,21 @@ describe('PluginManager', () => {
 
     it('should resolve the service plugins', async () => {
       const servicePlugins = ['ServicePluginMock1', './RelativePath/ServicePluginMock2'];
-      expect(await pluginManager.resolveServicePlugins(servicePlugins)).to.deep.equal([
-        ServicePluginMock1,
-        ServicePluginMock2,
-      ]);
+      const plugins = await pluginManager.resolveServicePlugins(servicePlugins);
+
+      expect(plugins).to.deep.equal([ServicePluginMock1, ServicePluginMock2]);
     });
 
-    it('should not error if plugins = null', () => {
+    it('should not error if plugins = null', async () => {
       // Happens when `plugins` property exists but is empty
       const servicePlugins = null;
-      return expect(pluginManager.resolveServicePlugins(servicePlugins)).to.not.be.rejected;
+      await expect(pluginManager.resolveServicePlugins(servicePlugins)).not.to.eventually.be.rejected;
     });
 
-    it('should not error if plugins = undefined', () => {
+    it('should not error if plugins = undefined', async () => {
       // Happens when `plugins` property does not exist
       const servicePlugins = undefined;
-      return expect(pluginManager.resolveServicePlugins(servicePlugins)).to.not.be.rejected;
+      await expect(pluginManager.resolveServicePlugins(servicePlugins)).not.to.eventually.be.rejected;
     });
 
     afterEach(() => {
@@ -852,7 +843,7 @@ describe('PluginManager', () => {
           },
         };
         expect(() => pluginManager.createCommandAlias('cmd1:alias2', 'mycmd')).to.throw(
-          /Alias "cmd1:alias2" is already defined/
+          'Alias "cmd1:alias2" is already defined'
         );
       });
 
@@ -860,7 +851,7 @@ describe('PluginManager', () => {
         const synchronousPluginMockInstance = new SynchronousPluginMock();
         pluginManager.loadCommands(synchronousPluginMockInstance);
         expect(() => pluginManager.createCommandAlias('deploy', 'mycmd')).to.throw(
-          /Command "deploy" cannot be overriden/
+          'Command "deploy" cannot be overriden'
         );
       });
 
@@ -868,7 +859,7 @@ describe('PluginManager', () => {
         const synchronousPluginMockInstance = new SynchronousPluginMock();
         synchronousPluginMockInstance.commands.deploy.commands.onpremises.aliases = ['deploy'];
         expect(() => pluginManager.loadCommands(synchronousPluginMockInstance)).to.throw(
-          /Command "deploy" cannot be overriden/
+          'Command "deploy" cannot be overriden'
         );
       });
     });
@@ -927,7 +918,7 @@ describe('PluginManager', () => {
 
       const synchronousPluginMockInstance = new SynchronousPluginMock();
       expect(() => pluginManager.loadCommands(synchronousPluginMockInstance)).to.throw(
-        /Command "deploy" cannot override an existing alias/
+        'Command "deploy" cannot override an existing alias'
       );
     });
   });
@@ -949,7 +940,7 @@ describe('PluginManager', () => {
     it('should replace deprecated events with the new ones', () => {
       pluginManager.loadHooks(deprecatedPluginInstance);
 
-      expect(pluginManager.hooks['deprecated:deprecated']).to.equal(undefined);
+      expect(pluginManager.hooks['deprecated:deprecated']).to.be.undefined;
       expect(pluginManager.hooks['new:new'][0].pluginName).to.equal(
         'DeprecatedLifecycleEventsPluginMock'
       );
@@ -1137,36 +1128,32 @@ describe('PluginManager', () => {
   });
 
   describe('#run()', () => {
-    it('should throw an error when the given command is not available', () => {
+    it('should throw an error when the given command is not available', async () => {
       pluginManager.addPlugin(SynchronousPluginMock);
 
       const commandsArray = ['foo'];
-
-      return expect(pluginManager.run(commandsArray)).to.be.rejectedWith(Error);
+      await expect(pluginManager.run(commandsArray)).to.eventually.be.rejectedWith(Error);
     });
 
-    it('should throw an error when the given command is an entrypoint', () => {
+    it('should throw an error when the given command is an entrypoint', async () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       const commandsArray = ['myep'];
-
-      return expect(pluginManager.run(commandsArray)).to.be.rejectedWith(Error);
+      await expect(pluginManager.run(commandsArray)).to.eventually.be.rejectedWith(Error);
     });
 
-    it('should NOT throw an error when the given command is a child of a container', () => {
+    it('should NOT throw an error when the given command is a child of a container', async () => {
       pluginManager.addPlugin(ContainerPluginMock);
 
       const commandsArray = ['mycontainer', 'mysubcmd'];
-
-      return expect(pluginManager.run(commandsArray)).to.not.be.rejectedWith(Error);
+      await expect(pluginManager.run(commandsArray)).not.to.eventually.be.rejectedWith(Error);
     });
 
-    it('should throw an error when the given command is a child of an entrypoint', () => {
+    it('should throw an error when the given command is a child of an entrypoint', async () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       const commandsArray = ['mysubcmd'];
-
-      return expect(pluginManager.run(commandsArray)).to.be.rejectedWith(Error);
+      await expect(pluginManager.run(commandsArray)).to.eventually.be.rejectedWith(Error);
     });
 
     it('should run the hooks in the correct order', async () => {
@@ -1180,10 +1167,10 @@ describe('PluginManager', () => {
           };
 
           this.hooks = {
-            'initialize': this.initializeHookStatus.bind(this),
-            'before:run:beforeHookStatus': this.beforeHookStatus.bind(this),
-            'run:midHookStatus': this.midHookStatus.bind(this),
-            'after:run:afterHookStatus': this.afterHookStatus.bind(this),
+            'initialize': () => this.initializeHookStatus(),
+            'before:run:beforeHookStatus': () => this.beforeHookStatus(),
+            'run:midHookStatus': () => this.midHookStatus(),
+            'after:run:afterHookStatus': () => this.afterHookStatus(),
           };
 
           // used to test if the hooks were run in the correct order
@@ -1209,7 +1196,7 @@ describe('PluginManager', () => {
 
       pluginManager.addPlugin(CorrectHookOrderPluginMock);
       const commandsArray = ['run'];
-      await expect(pluginManager.run(commandsArray)).to.be.fulfilled;
+      await pluginManager.run(commandsArray);
       expect(pluginManager.plugins[0].hookStatus[0]).to.equal('initialize');
       expect(pluginManager.plugins[0].hookStatus[1]).to.equal('before');
       expect(pluginManager.plugins[0].hookStatus[2]).to.equal('mid');
@@ -1224,7 +1211,7 @@ describe('PluginManager', () => {
       describe('when running a simple command', () => {
         it('should run a simple command', async () => {
           const commandsArray = ['deploy'];
-          await expect(pluginManager.run(commandsArray)).to.be.fulfilled;
+          await pluginManager.run(commandsArray);
           expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
         });
       });
@@ -1232,7 +1219,7 @@ describe('PluginManager', () => {
       describe('when running a nested command', () => {
         it('should run the nested command', async () => {
           const commandsArray = ['deploy', 'onpremises'];
-          await expect(pluginManager.run(commandsArray)).to.be.fulfilled;
+          await pluginManager.run(commandsArray);
           expect(pluginManager.plugins[0].deployedResources).to.equal(1);
         });
       });
@@ -1246,7 +1233,7 @@ describe('PluginManager', () => {
       describe('when running a simple command', () => {
         it('should run the simple command', async () => {
           const commandsArray = ['deploy'];
-          await expect(pluginManager.run(commandsArray)).to.be.fulfilled;
+          await pluginManager.run(commandsArray);
           expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
         });
       });
@@ -1254,7 +1241,7 @@ describe('PluginManager', () => {
       describe('when running a nested command', () => {
         it('should run the nested command', async () => {
           const commandsArray = ['deploy', 'onpremises'];
-          await expect(pluginManager.run(commandsArray)).to.be.fulfilled;
+          await pluginManager.run(commandsArray);
           expect(pluginManager.plugins[0].deployedResources).to.equal(1);
         });
       });
@@ -1273,12 +1260,13 @@ describe('PluginManager', () => {
 
       it('should load only the providers plugins (if the provider is specified)', async () => {
         const commandsArray = ['deploy'];
-        await expect(pluginManager.run(commandsArray)).to.be.fulfilled;
+        await pluginManager.run(commandsArray);
+
         expect(pluginManager.plugins.length).to.equal(2);
         expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
         expect(pluginManager.plugins[0].provider).to.equal('provider1');
         expect(pluginManager.plugins[1].deployedFunctions).to.equal(1);
-        expect(pluginManager.plugins[1].provider).to.equal(undefined);
+        expect(pluginManager.plugins[1].provider).to.be.undefined;
       });
     });
 
@@ -1286,8 +1274,8 @@ describe('PluginManager', () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       const commandsArray = ['mycmd', 'spawncmd'];
+      await pluginManager.run(commandsArray);
 
-      await expect(pluginManager.run(commandsArray)).to.be.fulfilled;
       expect(pluginManager.plugins[0].callResult).to.equal(
         '>subInitialize>subFinalize>initialize>finalize>run>subEPInitialize>subEPFinalize'
       );
@@ -1387,8 +1375,7 @@ describe('PluginManager', () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       const commandsArray = ['foo'];
-
-      return expect(pluginManager.spawn(commandsArray)).to.eventually.be.rejectedWith(Error);
+      await expect(pluginManager.spawn(commandsArray)).to.eventually.be.rejectedWith(Error);
     });
 
     describe('when invoking a command', () => {
@@ -1396,8 +1383,7 @@ describe('PluginManager', () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['mycmd'];
-
-        await expect(pluginManager.spawn(commandsArray)).to.be.fulfilled;
+        await pluginManager.spawn(commandsArray);
         expect(pluginManager.plugins[0].callResult).to.equal('>run');
       });
 
@@ -1405,8 +1391,7 @@ describe('PluginManager', () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['mycmd', 'mysubcmd'];
-
-        await expect(pluginManager.spawn(commandsArray)).to.be.fulfilled;
+        await pluginManager.spawn(commandsArray);
         expect(pluginManager.plugins[0].callResult).to.equal('>subInitialize>subFinalize');
       });
 
@@ -1414,10 +1399,9 @@ describe('PluginManager', () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['mycmd', 'mysubcmd'];
-
         await expect(
           pluginManager.spawn(commandsArray, { terminateLifecycleAfterExecution: true })
-        ).to.be.rejectedWith('Terminating mycmd:mysubcmd');
+        ).to.eventually.be.rejectedWith('Terminating mycmd:mysubcmd');
         expect(pluginManager.plugins[0].callResult).to.equal('>subInitialize>subFinalize');
       });
     });
@@ -1427,8 +1411,7 @@ describe('PluginManager', () => {
         pluginManager.addPlugin(ContainerPluginMock);
 
         const commandsArray = ['mycontainer', 'mysubcmd'];
-
-        await expect(pluginManager.spawn(commandsArray)).to.be.fulfilled;
+        await pluginManager.spawn(commandsArray);
         expect(pluginManager.plugins[0].callResult).to.equal('>mysubcmdEvent1>mysubcmdEvent2');
       });
     });
@@ -1438,8 +1421,7 @@ describe('PluginManager', () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['myep'];
-
-        await expect(pluginManager.spawn(commandsArray)).to.be.fulfilled;
+        await pluginManager.spawn(commandsArray);
         expect(pluginManager.plugins[0].callResult).to.equal('>initialize>finalize');
       });
 
@@ -1447,8 +1429,7 @@ describe('PluginManager', () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['myep', 'mysubep'];
-
-        await expect(pluginManager.spawn(commandsArray)).to.be.fulfilled;
+        await pluginManager.spawn(commandsArray);
         expect(pluginManager.plugins[0].callResult).to.equal('>subEPInitialize>subEPFinalize');
       });
 
@@ -1456,14 +1437,14 @@ describe('PluginManager', () => {
         it('should succeed', async () => {
           pluginManager.addPlugin(EntrypointPluginMock);
 
-          await expect(pluginManager.spawn('myep')).to.be.fulfilled;
+          await pluginManager.spawn('myep');
           expect(pluginManager.plugins[0].callResult).to.equal('>initialize>finalize');
         });
 
         it('should spawn nested entrypoints', async () => {
           pluginManager.addPlugin(EntrypointPluginMock);
 
-          await expect(pluginManager.spawn('myep:mysubep')).to.be.fulfilled;
+          await pluginManager.spawn('myep:mysubep');
           expect(pluginManager.plugins[0].callResult).to.equal('>subEPInitialize>subEPFinalize');
         });
       });
@@ -1474,7 +1455,7 @@ describe('PluginManager', () => {
 
       const commandsArray = ['myep', 'spawnep'];
 
-      await expect(pluginManager.spawn(commandsArray)).to.be.fulfilled;
+      await pluginManager.spawn(commandsArray);
       expect(pluginManager.plugins[0].callResult).to.equal(
         '>subInitialize>subFinalize>initialize>finalize>run>subEPInitialize>subEPFinalize'
       );
@@ -1484,6 +1465,7 @@ describe('PluginManager', () => {
   describe('Plugin / Load local plugins', () => {
     const cwd = process.cwd();
     let tmpDir;
+
     beforeEach(() => {
       tmpDir = getTmpDirPath();
       serviceDir = path.join(tmpDir, 'service');
