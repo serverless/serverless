@@ -657,7 +657,9 @@ describe('PluginManager', () => {
       resolveInput.clear();
       await overrideArgv({ args: ['serverless', '--help'] });
 
-      await expect(pluginManager.loadAllPlugins(servicePlugins)).not.to.eventually.be.rejectedWith(ServerlessError);
+      await expect(pluginManager.loadAllPlugins(servicePlugins)).not.to.eventually.be.rejectedWith(
+        ServerlessError
+      );
     });
 
     it('should pass through an error when plugin load fails', async () => {
@@ -703,13 +705,15 @@ describe('PluginManager', () => {
     it('should not error if plugins = null', async () => {
       // Happens when `plugins` property exists but is empty
       const servicePlugins = null;
-      await expect(pluginManager.resolveServicePlugins(servicePlugins)).not.to.eventually.be.rejected;
+      await expect(pluginManager.resolveServicePlugins(servicePlugins)).not.to.eventually.be
+        .rejected;
     });
 
     it('should not error if plugins = undefined', async () => {
       // Happens when `plugins` property does not exist
       const servicePlugins = undefined;
-      await expect(pluginManager.resolveServicePlugins(servicePlugins)).not.to.eventually.be.rejected;
+      await expect(pluginManager.resolveServicePlugins(servicePlugins)).not.to.eventually.be
+        .rejected;
     });
 
     afterEach(() => {
@@ -1558,9 +1562,9 @@ describe('test/unit/lib/classes/PluginManager.test.js', () => {
     const plugin = Array.from(serverless.pluginManager.externalPlugins).find(
       (externalPlugin) => externalPlugin.constructor.name === 'TestPlugin'
     );
-    expect(typeof plugin.utils.log).to.equal('function');
-    expect(typeof plugin.utils.progress.create).to.equal('function');
-    expect(typeof plugin.utils.writeText).to.equal('function');
+    expect(plugin.utils.log).to.be.a('function');
+    expect(plugin.utils.progress.create).to.be.a('function');
+    expect(plugin.utils.writeText).to.be.a('function');
   });
 
   it('should error out for duplicate plugin definiton', async () =>
