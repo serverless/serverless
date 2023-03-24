@@ -2,12 +2,13 @@
 
 const chai = require('chai');
 const sinon = require('sinon');
-const BbPromise = require('bluebird');
 const PluginList = require('../../../../../lib/plugins/plugin/list');
 const Serverless = require('../../../../../lib/serverless');
 const CLI = require('../../../../../lib/classes/cli');
-chai.use(require('chai-as-promised'));
-const expect = require('chai').expect;
+
+chai.use(require('sinon-chai'));
+
+const expect = chai.expect;
 
 describe('PluginList', () => {
   let pluginList;
@@ -24,7 +25,7 @@ describe('PluginList', () => {
     let listStub;
 
     beforeEach(() => {
-      listStub = sinon.stub(pluginList, 'list').returns(BbPromise.resolve());
+      listStub = sinon.stub(pluginList, 'list').returns(Promise.resolve());
     });
 
     afterEach(() => {
@@ -43,19 +44,19 @@ describe('PluginList', () => {
       expect(pluginList.hooks['plugin:list:list']).to.not.equal(undefined);
     });
 
-    it('should run promise chain in order for "plugin:list:list" hook', async () =>
-      expect(pluginList.hooks['plugin:list:list']()).to.be.fulfilled.then(() => {
-        expect(listStub.calledOnce).to.equal(true);
-      }));
+    it('should run promise chain in order for "plugin:list:list" hook', async () => {
+      await pluginList.hooks['plugin:list:list']();
+      expect(listStub).to.have.been.calledOnce;
+    });
   });
 
   describe('#list()', () => {
     let getPluginsStub;
     let displayStub;
 
-    beforeEach(async () => {
-      getPluginsStub = sinon.stub(pluginList, 'getPlugins').returns(BbPromise.resolve());
-      displayStub = sinon.stub(pluginList, 'display').returns(BbPromise.resolve());
+    beforeEach(() => {
+      getPluginsStub = sinon.stub(pluginList, 'getPlugins').returns(Promise.resolve());
+      displayStub = sinon.stub(pluginList, 'display').returns(Promise.resolve());
     });
 
     afterEach(() => {
