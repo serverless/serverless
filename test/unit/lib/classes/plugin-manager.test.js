@@ -301,13 +301,13 @@ describe('PluginManager', () => {
         'mycmd:run': this.run.bind(this),
         // Event1 spawns mysubcmd, then myep
         // Event2 spawns mycmd, then mysubep
-        'myep:spawnep:event1': () =>
+        'myep:spawnep:event1': async () =>
           pluginManager.spawn(['mycmd', 'mysubcmd']).then(() => pluginManager.spawn(['myep'])),
-        'myep:spawnep:event2': () =>
+        'myep:spawnep:event2': async () =>
           pluginManager.spawn(['mycmd']).then(() => pluginManager.spawn(['myep', 'mysubep'])),
-        'mycmd:spawncmd:event1': () =>
+        'mycmd:spawncmd:event1': async () =>
           pluginManager.spawn(['mycmd', 'mysubcmd']).then(() => pluginManager.spawn(['myep'])),
-        'mycmd:spawncmd:event2': () =>
+        'mycmd:spawncmd:event2': async () =>
           pluginManager.spawn(['mycmd']).then(() => pluginManager.spawn(['myep', 'mysubep'])),
       };
 

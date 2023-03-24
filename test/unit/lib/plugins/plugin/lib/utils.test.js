@@ -2,15 +2,15 @@
 
 const chai = require('chai');
 const sinon = require('sinon');
-const BbPromise = require('bluebird');
 const proxyquire = require('proxyquire');
 const PluginList = require('../../../../../../lib/plugins/plugin/list');
 const Serverless = require('../../../../../../lib/serverless');
 const CLI = require('../../../../../../lib/classes/cli');
-const { expect } = require('chai');
 const observeOutput = require('@serverless/test/observe-output');
 
 chai.use(require('chai-as-promised'));
+
+const expect = chai.expect;
 
 describe('PluginUtils', () => {
   let pluginUtils;
@@ -46,8 +46,8 @@ describe('PluginUtils', () => {
 
     beforeEach(async () => {
       fetchStub = sinon.stub().returns(
-        BbPromise.resolve({
-          json: sinon.stub().returns(BbPromise.resolve(plugins)),
+        Promise.resolve({
+          json: sinon.stub().returns(Promise.resolve(plugins)),
         })
       );
       pluginWithFetchStub = proxyquire('../../../../../../lib/plugins/plugin/lib/utils.js', {
