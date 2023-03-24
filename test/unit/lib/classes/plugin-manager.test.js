@@ -20,7 +20,6 @@ const fse = require('fs-extra');
 const mockRequire = require('mock-require');
 const sinon = require('sinon');
 const proxyquire = require('proxyquire');
-const BbPromise = require('bluebird');
 const { installPlugin } = require('../../../utils/plugins');
 const { getTmpDirPath } = require('../../../utils/fs');
 
@@ -75,17 +74,11 @@ class PromisePluginMock {
   }
 
   async functions() {
-    return new BbPromise((resolve) => {
-      this.deployedFunctions += 1;
-      return resolve();
-    });
+    this.deployedFunctions += 1;
   }
 
   async resources() {
-    return new BbPromise((resolve) => {
-      this.deployedResources += 1;
-      return resolve();
-    });
+    this.deployedResources += 1;
   }
 }
 
@@ -308,13 +301,13 @@ describe('PluginManager', () => {
         'mycmd:run': this.run.bind(this),
         // Event1 spawns mysubcmd, then myep
         // Event2 spawns mycmd, then mysubep
-        'myep:spawnep:event1': () =>
+        'myep:spawnep:event1': async () =>
           pluginManager.spawn(['mycmd', 'mysubcmd']).then(() => pluginManager.spawn(['myep'])),
-        'myep:spawnep:event2': () =>
+        'myep:spawnep:event2': async () =>
           pluginManager.spawn(['mycmd']).then(() => pluginManager.spawn(['myep', 'mysubep'])),
-        'mycmd:spawncmd:event1': () =>
+        'mycmd:spawncmd:event1': async () =>
           pluginManager.spawn(['mycmd', 'mysubcmd']).then(() => pluginManager.spawn(['myep'])),
-        'mycmd:spawncmd:event2': () =>
+        'mycmd:spawncmd:event2': async () =>
           pluginManager.spawn(['mycmd']).then(() => pluginManager.spawn(['myep', 'mysubep'])),
       };
 
@@ -591,7 +584,7 @@ describe('PluginManager', () => {
   describe('#asyncPluginInit()', () => {
     it('should call async init on plugins that have it', async () => {
       const plugin1 = new ServicePluginMock1();
-      plugin1.asyncInit = sinon.stub().returns(BbPromise.resolve());
+      plugin1.asyncInit = sinon.stub().returns(Promise.resolve());
       pluginManager.plugins = [plugin1];
       return pluginManager.asyncPluginInit().then(() => {
         expect(plugin1.asyncInit.calledOnce).to.equal(true);
