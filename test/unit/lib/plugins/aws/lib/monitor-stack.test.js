@@ -9,7 +9,6 @@ const CLI = require('../../../../../../lib/classes/cli');
 const monitorStack = require('../../../../../../lib/plugins/aws/lib/monitor-stack');
 
 chai.use(require('chai-as-promised'));
-chai.use(require('sinon-chai'));
 
 const expect = chai.expect;
 
@@ -452,12 +451,12 @@ describe('monitorStack', () => {
         'An error occurred: mochaS3 - Bucket already exists.'
       );
 
-      expect(describeStackEventsStub).to.have.callCount(4);
-      expect(describeStackEventsStub).to.have.been.calledWithExactly(
-        'CloudFormation',
-        'describeStackEvents',
-        { StackName: cfDataMock.StackId }
-      );
+      expect(describeStackEventsStub.callCount).to.be.equal(4);
+      expect(
+        describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
+          StackName: cfDataMock.StackId,
+        })
+      ).to.be.equal(true);
 
       awsPlugin.provider.request.restore();
     });
@@ -532,12 +531,12 @@ describe('monitorStack', () => {
         awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 })
       ).to.eventually.be.rejectedWith('Something went wrong.');
 
-      expect(describeStackEventsStub).to.have.been.calledOnce;
-      expect(describeStackEventsStub).to.have.been.calledWithExactly(
-        'CloudFormation',
-        'describeStackEvents',
-        { StackName: cfDataMock.StackId }
-      );
+      expect(describeStackEventsStub.callCount).to.be.equal(1);
+      expect(
+        describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
+          StackName: cfDataMock.StackId,
+        })
+      ).to.be.equal(true);
 
       awsPlugin.provider.request.restore();
     });
@@ -606,12 +605,12 @@ describe('monitorStack', () => {
       );
 
       // callCount is 2 because Serverless will immediately exits and shows the error
-      expect(describeStackEventsStub).to.have.callCount(2);
-      expect(describeStackEventsStub).to.have.been.calledWithExactly(
-        'CloudFormation',
-        'describeStackEvents',
-        { StackName: cfDataMock.StackId }
-      );
+      expect(describeStackEventsStub.callCount).to.be.equal(2);
+      expect(
+        describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
+          StackName: cfDataMock.StackId,
+        })
+      ).to.be.equal(true);
 
       awsPlugin.provider.request.restore();
     });
@@ -683,13 +682,12 @@ describe('monitorStack', () => {
         'An error occurred: mochaLambda - You are not authorized to perform this operation.'
       );
 
-      expect(describeStackEventsStub).to.have.callCount(3);
-      expect(describeStackEventsStub).to.have.been.calledWithExactly(
-        'CloudFormation',
-        'describeStackEvents',
-        { StackName: cfDataMock.StackId }
-      );
-
+      expect(describeStackEventsStub.callCount).to.be.equal(3);
+      expect(
+        describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
+          StackName: cfDataMock.StackId,
+        })
+      ).to.be.equal(true);
       awsPlugin.provider.request.restore();
     });
 
@@ -764,12 +762,12 @@ describe('monitorStack', () => {
           'An error occurred: mochaLambda - You are not authorized to perform this operation.'
         );
 
-        expect(describeStackEventsStub).to.have.callCount(4);
-        expect(describeStackEventsStub).to.have.been.calledWithExactly(
-          'CloudFormation',
-          'describeStackEvents',
-          { StackName: cfDataMock.StackId }
-        );
+        expect(describeStackEventsStub.callCount).to.be.equal(4);
+        expect(
+          describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
+            StackName: cfDataMock.StackId,
+          })
+        ).to.be.equal(true);
 
         awsPlugin.provider.request.restore();
       }
@@ -959,12 +957,12 @@ describe('monitorStack', () => {
       );
 
       // callCount is 2 because Serverless will immediately exits and shows the error
-      expect(describeStackEventsStub).to.have.callCount(2);
-      expect(describeStackEventsStub).to.have.been.calledWithExactly(
-        'CloudFormation',
-        'describeStackEvents',
-        { StackName: cfDataMock.StackId }
-      );
+      expect(describeStackEventsStub.callCount).to.be.equal(2);
+      expect(
+        describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
+          StackName: cfDataMock.StackId,
+        })
+      ).to.be.equal(true);
 
       awsPlugin.provider.request.restore();
     });
