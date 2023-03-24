@@ -1,7 +1,6 @@
 'use strict';
 
 const expect = require('chai').expect;
-const BbPromise = require('bluebird');
 const os = require('os');
 const path = require('path');
 const { outputFile, lstat, remove: rmDir } = require('fs-extra');
@@ -57,16 +56,10 @@ describe('#credentials', () => {
       `aws_secret_access_key = ${profile2.secretAccessKey}`,
     ].join('\n')}\n`;
 
-    return new BbPromise((resolve, reject) => {
-      outputFile(credentialsFilePath, credentialsFileContent, (error) => {
-        if (error) reject(error);
-        else resolve();
-      });
-    }).then(() =>
-      credentials
-        .resolveFileProfiles()
-        .then((resolvedProfiles) => expect(resolvedProfiles).to.deep.equal(profiles))
-    );
+    await outputFile(credentialsFilePath, credentialsFileContent);
+    const resolvedProfiles = await credentials.resolveFileProfiles();
+
+    expect(resolvedProfiles).to.deep.equal(profiles);
   });
 
   it('should resolve env credentials', () =>

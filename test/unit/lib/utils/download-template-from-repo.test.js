@@ -1,7 +1,6 @@
 'use strict';
 
 const sinon = require('sinon');
-const BbPromise = require('bluebird');
 const fse = require('fs-extra');
 const path = require('path');
 const os = require('os');
@@ -55,7 +54,7 @@ describe('downloadTemplateFromRepo', () => {
             return fetchStub();
           }
 
-          return BbPromise.reject(Error('unknown server type'));
+          throw Error('unknown server type');
         },
         '@serverless/utils/download': downloadStub,
         'child-process-ext/spawn': spawnStub,
