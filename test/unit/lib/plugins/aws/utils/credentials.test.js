@@ -56,9 +56,8 @@ describe('#credentials', () => {
       `aws_secret_access_key = ${profile2.secretAccessKey}`,
     ].join('\n')}\n`;
 
-    const resolvedProfiles = await outputFile(credentialsFilePath, credentialsFileContent).then(
-      () => credentials.resolveFileProfiles()
-    );
+    await outputFile(credentialsFilePath, credentialsFileContent);
+    const resolvedProfiles = await credentials.resolveFileProfiles();
 
     expect(resolvedProfiles).to.deep.equal(profiles);
   });
