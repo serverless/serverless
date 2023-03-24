@@ -8,7 +8,6 @@ const CLI = require('../../../../../lib/classes/cli');
 const proxyquire = require('proxyquire');
 
 chai.use(require('chai-as-promised'));
-chai.use(require('sinon-chai'));
 
 const expect = chai.expect;
 
@@ -133,11 +132,13 @@ describe('AwsRollbackFunction', () => {
           'Function "hello" with version "4711" not found'
         );
 
-        expect(getFunctionStub).to.have.been.calledOnce;
-        expect(getFunctionStub).to.have.been.calledWithExactly('Lambda', 'getFunction', {
-          FunctionName: 'service-dev-hello',
-          Qualifier: '4711',
-        });
+        expect(getFunctionStub.calledOnce).to.equal(true);
+        expect(
+          getFunctionStub.calledWithExactly('Lambda', 'getFunction', {
+            FunctionName: 'service-dev-hello',
+            Qualifier: '4711',
+          })
+        ).to.be.equal(true);
       });
     });
 
@@ -162,11 +163,13 @@ describe('AwsRollbackFunction', () => {
           'something went wrong'
         );
 
-        expect(getFunctionStub).to.have.been.calledOnce;
-        expect(getFunctionStub).to.have.been.calledWithExactly('Lambda', 'getFunction', {
-          FunctionName: 'service-dev-hello',
-          Qualifier: '4711',
-        });
+        expect(getFunctionStub.calledOnce).to.equal(true);
+        expect(
+          getFunctionStub.calledWithExactly('Lambda', 'getFunction', {
+            FunctionName: 'service-dev-hello',
+            Qualifier: '4711',
+          })
+        ).to.be.equal(true);
       });
     });
   });

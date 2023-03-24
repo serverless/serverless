@@ -7,7 +7,6 @@ const { getTmpFilePath } = require('../../../../utils/fs');
 
 // Configure chai
 chai.use(require('chai-as-promised'));
-chai.use(require('sinon-chai'));
 
 const expect = chai.expect;
 
