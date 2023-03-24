@@ -53,23 +53,16 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
     loginStub.resetHistory();
   });
 
-  it('Should be ineffective, when not at service path', async () => {
-    const context = { options: {}, isDashboard: true };
+  it('Should be ineffective in console context', async () => {
+    const context = { isConsole: true, options: { console: true } };
     expect(await step.isApplicable(context)).to.be.false;
-    expect(context.inapplicabilityReasonCode).to.equal('NOT_IN_SERVICE_DIRECTORY');
+    expect(context.inapplicabilityReasonCode).to.equal('CONSOLE_CONTEXT');
   });
 
-  it('Should be ineffective, when not in dashboard context', async () => {
-    const context = {
-      serviceDir: process.cwd(),
-      configuration: {},
-      configurationFilename: 'serverless.yml',
-      options: {},
-      initial: {},
-      inquirer,
-    };
-    expect(await step.isApplicable(context)).to.equal(false);
-    expect(context.inapplicabilityReasonCode).to.equal('CONSOLE_CONTEXT');
+  it('Should be ineffective, when not at service path', async () => {
+    const context = { options: {} };
+    expect(await step.isApplicable(context)).to.be.false;
+    expect(context.inapplicabilityReasonCode).to.equal('NOT_IN_SERVICE_DIRECTORY');
   });
 
   it('Should be ineffective, when not at AWS service path', async () => {
@@ -79,7 +72,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
-      isDashboard: true,
       inquirer,
     };
     expect(await step.isApplicable(context)).to.equal(false);
@@ -93,7 +85,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
-      isDashboard: true,
       inquirer,
     };
     expect(await step.isApplicable(context)).to.equal(false);
@@ -110,7 +101,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
-      isDashboard: true,
       inquirer,
     };
     expect(await overrideCwd(serviceDir, async () => await step.isApplicable(context))).to.equal(
@@ -135,7 +125,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
-      isDashboard: true,
       inquirer,
       stepHistory: new StepHistory(),
     };
@@ -159,7 +148,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configurationFilename: 'serverless.yml',
       options: { org: 'someorg' },
       initial: {},
-      isDashboard: true,
       inquirer,
       stepHistory: new StepHistory(),
     };
@@ -180,7 +168,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
-      isDashboard: true,
       inquirer,
       stepHistory: new StepHistory(),
     };
@@ -204,7 +191,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
-      isDashboard: true,
       inquirer,
       stepHistory: new StepHistory(),
     };
