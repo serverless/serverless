@@ -702,19 +702,13 @@ describe('PluginManager', () => {
       expect(plugins).to.deep.equal([ServicePluginMock1, ServicePluginMock2]);
     });
 
-    it('should not error if plugins = null', async () => {
-      // Happens when `plugins` property exists but is empty
-      const servicePlugins = null;
-      await expect(pluginManager.resolveServicePlugins(servicePlugins)).not.to.eventually.be
-        .rejected;
-    });
+    // Happens when `plugins` property exists but is empty
+    it('should not error if plugins = null', async () =>
+      expect(pluginManager.resolveServicePlugins(null)).to.eventually.be.fulfilled);
 
-    it('should not error if plugins = undefined', async () => {
-      // Happens when `plugins` property does not exist
-      const servicePlugins = undefined;
-      await expect(pluginManager.resolveServicePlugins(servicePlugins)).not.to.eventually.be
-        .rejected;
-    });
+    // Happens when `plugins` property does not exist
+    it('should not error if plugins = undefined', async () =>
+      expect(pluginManager.resolveServicePlugins(undefined)).to.eventually.be.fulfilled);
 
     afterEach(() => {
       mockRequire.stop('ServicePluginMock1');
@@ -1136,28 +1130,28 @@ describe('PluginManager', () => {
       pluginManager.addPlugin(SynchronousPluginMock);
 
       const commandsArray = ['foo'];
-      await expect(pluginManager.run(commandsArray)).to.eventually.be.rejectedWith(Error);
+      await expect(pluginManager.run(commandsArray)).to.eventually.be.rejected;
     });
 
     it('should throw an error when the given command is an entrypoint', async () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       const commandsArray = ['myep'];
-      await expect(pluginManager.run(commandsArray)).to.eventually.be.rejectedWith(Error);
+      await expect(pluginManager.run(commandsArray)).to.eventually.be.rejected;
     });
 
     it('should NOT throw an error when the given command is a child of a container', async () => {
       pluginManager.addPlugin(ContainerPluginMock);
 
       const commandsArray = ['mycontainer', 'mysubcmd'];
-      await expect(pluginManager.run(commandsArray)).not.to.eventually.be.rejectedWith(Error);
+      await expect(pluginManager.run(commandsArray)).to.eventually.be.fulfilled;
     });
 
     it('should throw an error when the given command is a child of an entrypoint', async () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       const commandsArray = ['mysubcmd'];
-      await expect(pluginManager.run(commandsArray)).to.eventually.be.rejectedWith(Error);
+      await expect(pluginManager.run(commandsArray)).to.eventually.be.rejected;
     });
 
     it('should run the hooks in the correct order', async () => {
@@ -1379,7 +1373,7 @@ describe('PluginManager', () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       const commandsArray = ['foo'];
-      await expect(pluginManager.spawn(commandsArray)).to.eventually.be.rejectedWith(Error);
+      await expect(pluginManager.spawn(commandsArray)).to.eventually.be.rejected;
     });
 
     describe('when invoking a command', () => {
