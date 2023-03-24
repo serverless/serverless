@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.29.0](https://github.com/serverless/serverless/compare/v3.28.1...v3.29.0) (2023-03-24)
+
+### Features
+
+- **Console:** Retain console properties on function deploy ([#11849](https://github.com/serverless/serverless/issues/11849)) ([4ee5505](https://github.com/serverless/serverless/commit/4ee5505b18bf6ca4ac83f411d76d71c45dc9fb18)) ([](https://github.com/)) ([Dan Jarvis](https://github.com/Danwakeem))
+- **AWS CLoudFront:** Recognize `OriginAccessControlId` field ([#11855](https://github.com/serverless/serverless/issues/11855)) ([9339377](https://github.com/serverless/serverless/commit/93393777cb5e170bedb5f1a390a544c300ed4101)) ([Jonathan Keslin](https://github.com/decompil3d))
+- **AWS EventBridge:** Support `description` property ([#11821](https://github.com/serverless/serverless/issues/11821)) ([2efe816](https://github.com/serverless/serverless/commit/2efe8169c9abf5f4f3652774f5055e60b21dd721)) ([Anthony Roussel](https://github.com/anthonyroussel))
+
+### Bug Fixes
+
+- **AWS Lambda:**
+  - Fix function references when represented by alias ([#11788](https://github.com/serverless/serverless/issues/11788)) ([16dd286](https://github.com/serverless/serverless/commit/16dd286a1d8aa764003565bcd6d7334be290e9bf)) ([Rob Nielsen](https://github.com/rnielsen))
+  - Fix `runtimeManagment` handling ([#11778](https://github.com/serverless/serverless/issues/11778)) ([8db2f4c](https://github.com/serverless/serverless/commit/8db2f4cbc56a46110d82e3d36e8a63f50e06d495)) ([Himanshu Pant](https://github.com/KillDozerX2))
+- **AWS API Gateway:** Fix support for `provider.apiGateway.stage` ([#11772](https://github.com/serverless/serverless/issues/11772)) ([6fe2ea5](https://github.com/serverless/serverless/commit/6fe2ea5bc84c01434ba6f044d8ab3623dea85574)) ([Charlie Benger-Stevenson](https://github.com/suityou01))
+- Do not crash on `null` resource properties input ([#11789](https://github.com/serverless/serverless/issues/11789)) ([86bb67d](https://github.com/serverless/serverless/commit/86bb67d15fe611cdaffb6aea57d25cb0cfc51029)) ([SleepWithCoffee](https://github.com/sleepwithcoffee))
+
+### Maintenance Improvements
+
+- **AWS Lambda:** Improve function deploy skip message ([#11779](https://github.com/serverless/serverless/issues/11779)) ([ad8c24e](https://github.com/serverless/serverless/commit/ad8c24ecfca4ec9dea87d9114ad3f2afcab85ae2)) ([Midhun Rajendran](https://github.com/rmidhun23))
+- **`lodash` replacement:**
+  - Replace `_.entries` with `Object.entries` ([#11793](https://github.com/serverless/serverless/issues/11793)) ([1181780](https://github.com/serverless/serverless/commit/11817802654a8bb28e8664ab6d9f346ebaf97e1e)) ([SleepWithCoffee](https://github.com/sleepwithcoffee))
+  - Replace `_.fromPairs` with `Object.fromEntries` ([#11794](https://github.com/serverless/serverless/issues/11794)) ([03d3ab3](https://github.com/serverless/serverless/commit/03d3ab39da1096aae4d797675793523726f6c1b6)) ([SleepWithCoffee](https://github.com/sleepwithcoffee))
+- **`bluebird` replacement:**
+  - Replace `BbPromise.each` with native counterpart ([#11797](https://github.com/serverless/serverless/issues/11797)) ([5068516](https://github.com/serverless/serverless/commit/5068516f0424ab1b8c94f4b698234ace36a674cd)) ([SleepWithCoffee](https://github.com/sleepwithcoffee))
+- ** `async/await` refactor:**
+  - In `lib/classes` convert promise returning functions to async functions ([#11851](https://github.com/serverless/serverless/issues/11851)) ([77c91f2](https://github.com/serverless/serverless/commit/77c91f27d6f3234853550febfb7f14a32a69cc60)) ([SleepWithCoffee](https://github.com/sleepwithcoffee))
+
 ### [3.28.1](https://github.com/serverless/serverless/compare/v3.28.0...v3.28.1) (2023-03-02)
 
 ### Maintenance Improvements
