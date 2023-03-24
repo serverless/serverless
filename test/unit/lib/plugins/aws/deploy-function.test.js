@@ -15,6 +15,7 @@ chai.use(require('sinon-chai'));
 
 const expect = chai.expect;
 
+const consoleLayerArn = 'arn:aws:lambda:us-east-1:321667558080:layer:sls-sdk:1';
 describe('AwsDeployFunction', () => {
   let AwsDeployFunction;
   let serverless;
@@ -612,7 +613,6 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
         },
       },
     });
-
     expect(updateFunctionConfigurationStub).to.be.calledWithExactly({
       FunctionName: functionName,
       KMSKeyArn: kmsKeyArn,
@@ -635,6 +635,194 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
         SubnetIds: ['subnet-111', 'subnet-222'],
       },
       Layers: [layerArn, secondLayerArn],
+    });
+  });
+
+  it('should update function configuration if configuration changed where all arn layers were removed', async () => {
+    await runServerless({
+      fixture: 'function',
+      command: 'deploy function',
+      options: { function: 'basic' },
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        Lambda: {
+          ...awsRequestStubMap.Lambda,
+          getFunction: {
+            Configuration: {
+              LastModified: '2020-05-20T15:34:16.494+0000',
+              PackageType: 'Zip',
+              Description: description,
+              Handler: handler,
+              State: 'Active',
+              LastUpdateStatus: 'Successful',
+              Environment: {
+                Variables: {
+                  ANOTHERVAR: 'anothervalue',
+                  VARIABLE: 'value',
+                },
+              },
+              FunctionName: functionName,
+              MemorySize: memorySize,
+              Layers: [{ Arn: secondLayerArn }, { Arn: layerArn }],
+            },
+          },
+        },
+      },
+      configExt: {
+        provider: {
+          environment: {
+            ANOTHERVAR: 'anothervalue',
+          },
+        },
+        functions: {
+          basic: {
+            description,
+            handler,
+            environment: {
+              VARIABLE: 'value',
+            },
+            name: functionName,
+            memorySize,
+            layers: [],
+          },
+        },
+      },
+    });
+    expect(updateFunctionConfigurationStub).to.be.calledWithExactly({
+      FunctionName: functionName,
+      Layers: [],
+    });
+  });
+
+  it('should update function configuration if the configuration changed and is managed by serverless console', async () => {
+    await runServerless({
+      fixture: 'function',
+      command: 'deploy function',
+      options: { function: 'basic' },
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        Lambda: {
+          ...awsRequestStubMap.Lambda,
+          getFunction: {
+            Configuration: {
+              LastModified: '2020-05-20T15:34:16.494+0000',
+              PackageType: 'Zip',
+              Description: description,
+              Handler: handler,
+              State: 'Active',
+              LastUpdateStatus: 'Successful',
+              Environment: {
+                Variables: {
+                  ANOTHERVAR: 'anothervalue',
+                  VARIABLE: 'value',
+                  AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
+                  SLS_ORG_ID: '123',
+                },
+              },
+              FunctionName: functionName,
+              MemorySize: memorySize,
+              Layers: [{ Arn: layerArn }, { Arn: consoleLayerArn }],
+            },
+          },
+        },
+      },
+      configExt: {
+        provider: {
+          environment: {
+            ANOTHERVAR: 'anothervalue',
+          },
+        },
+        functions: {
+          basic: {
+            description,
+            handler,
+            environment: {
+              VARIABLE: 'value',
+              VARIABLE2: 'value2',
+            },
+            name: functionName,
+            memorySize,
+            layers: [layerArn, secondLayerArn],
+          },
+        },
+      },
+    });
+    expect(updateFunctionConfigurationStub).to.be.calledWithExactly({
+      FunctionName: functionName,
+      Environment: {
+        Variables: {
+          ANOTHERVAR: 'anothervalue',
+          VARIABLE: 'value',
+          VARIABLE2: 'value2',
+          AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
+          SLS_ORG_ID: '123',
+        },
+      },
+      Layers: [layerArn, secondLayerArn, consoleLayerArn],
+    });
+  });
+
+  it('should update function configuration and remove local arn layers if the configuration changed and is managed by serverless console', async () => {
+    await runServerless({
+      fixture: 'function',
+      command: 'deploy function',
+      options: { function: 'basic' },
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        Lambda: {
+          ...awsRequestStubMap.Lambda,
+          getFunction: {
+            Configuration: {
+              LastModified: '2020-05-20T15:34:16.494+0000',
+              PackageType: 'Zip',
+              Description: description,
+              Handler: handler,
+              State: 'Active',
+              LastUpdateStatus: 'Successful',
+              Environment: {
+                Variables: {
+                  ANOTHERVAR: 'anothervalue',
+                  VARIABLE: 'value',
+                  AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
+                  SLS_ORG_ID: '123',
+                },
+              },
+              FunctionName: functionName,
+              MemorySize: memorySize,
+              Layers: [{ Arn: layerArn }, { Arn: consoleLayerArn }],
+            },
+          },
+        },
+      },
+      configExt: {
+        provider: {
+          environment: {
+            ANOTHERVAR: 'anothervalue',
+          },
+        },
+        functions: {
+          basic: {
+            description,
+            handler,
+            environment: {},
+            name: functionName,
+            memorySize,
+            layers: [],
+          },
+        },
+      },
+    });
+
+    expect(updateFunctionConfigurationStub).to.be.calledWithExactly({
+      FunctionName: functionName,
+      Environment: {
+        Variables: {
+          ANOTHERVAR: 'anothervalue',
+          AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
+          SLS_ORG_ID: '123',
+        },
+      },
+      Layers: [consoleLayerArn],
     });
   });
 
@@ -819,6 +1007,251 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       },
     });
 
+    expect(updateFunctionConfigurationStub).not.to.be.called;
+  });
+
+  it('should not update function configuration if configuration includes console managed functions', async () => {
+    await runServerless({
+      fixture: 'function',
+      command: 'deploy function',
+      options: { function: 'basic' },
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        Lambda: {
+          ...awsRequestStubMap.Lambda,
+          getFunction: {
+            Configuration: {
+              LastModified: '2020-05-20T15:34:16.494+0000',
+              PackageType: 'Zip',
+              KMSKeyArn: kmsKeyArn,
+              Description: description,
+              Handler: handler,
+              State: 'Active',
+              LastUpdateStatus: 'Successful',
+
+              Environment: {
+                Variables: {
+                  ANOTHERVAR: 'anothervalue',
+                  VARIABLE: 'value',
+                  AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
+                  SLS_ORG_ID: '123',
+                },
+              },
+              FunctionName: functionName,
+              MemorySize: memorySize,
+              DeadLetterConfig: {
+                TargetArn: onErrorHandler,
+              },
+              Timeout: timeout,
+              Layers: [{ Arn: secondLayerArn }, { Arn: layerArn }, { Arn: consoleLayerArn }],
+              Role: role,
+              VpcConfig: {
+                VpcId: 'vpc-xxxx',
+                SecurityGroupIds: ['sg-111', 'sg-222'],
+                SubnetIds: ['subnet-222', 'subnet-111'],
+              },
+            },
+          },
+        },
+      },
+      configExt: {
+        provider: {
+          environment: {
+            ANOTHERVAR: 'anothervalue',
+          },
+        },
+        functions: {
+          basic: {
+            kmsKeyArn,
+            description,
+            handler,
+            environment: {
+              VARIABLE: 'value',
+            },
+            name: functionName,
+            memorySize,
+            onError: onErrorHandler,
+            role,
+            timeout,
+            vpc: {
+              securityGroupIds: ['sg-111', 'sg-222'],
+              subnetIds: ['subnet-111', 'subnet-222'],
+            },
+            layers: [layerArn, secondLayerArn],
+          },
+        },
+      },
+    });
+    expect(updateFunctionConfigurationStub).not.to.be.called;
+  });
+
+  it('should not update function configuration if configuration includes console managed layers locally', async () => {
+    await runServerless({
+      fixture: 'function',
+      command: 'deploy function',
+      options: { function: 'basic' },
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        Lambda: {
+          ...awsRequestStubMap.Lambda,
+          getFunction: {
+            Configuration: {
+              LastModified: '2020-05-20T15:34:16.494+0000',
+              PackageType: 'Zip',
+              Description: description,
+              Handler: handler,
+              State: 'Active',
+              LastUpdateStatus: 'Successful',
+
+              Environment: {
+                Variables: {
+                  ANOTHERVAR: 'anothervalue',
+                  VARIABLE: 'value',
+                  AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
+                  SLS_ORG_ID: '123',
+                },
+              },
+              FunctionName: functionName,
+              MemorySize: memorySize,
+              Layers: [{ Arn: secondLayerArn }, { Arn: layerArn }, { Arn: consoleLayerArn }],
+            },
+          },
+        },
+      },
+      configExt: {
+        provider: {
+          environment: {
+            ANOTHERVAR: 'anothervalue',
+          },
+        },
+        functions: {
+          basic: {
+            description,
+            handler,
+            environment: {
+              VARIABLE: 'value',
+              AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
+              SLS_ORG_ID: '123',
+            },
+            name: functionName,
+            memorySize,
+            layers: [layerArn, secondLayerArn, consoleLayerArn],
+          },
+        },
+      },
+    });
+    expect(updateFunctionConfigurationStub).not.to.be.called;
+  });
+
+  it('should not update function configuration if function is console managed and has reference layers', async () => {
+    const runServerlessConfig = {
+      fixture: 'function',
+      command: 'deploy function',
+      options: { function: 'basic' },
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        Lambda: {
+          ...awsRequestStubMap.Lambda,
+          getFunction: {
+            Configuration: {
+              LastModified: '2020-05-20T15:34:16.494+0000',
+              PackageType: 'Zip',
+              Description: description,
+              Handler: handler,
+              State: 'Active',
+              LastUpdateStatus: 'Successful',
+              Environment: {
+                Variables: {
+                  ANOTHERVAR: 'anothervalue',
+                  VARIABLE: 'value',
+                  AWS_LAMBDA_EXEC_WRAPPER: '/opt/lib/libthundra-wrapper.so',
+                  SLS_ORG_ID: '123',
+                },
+              },
+              FunctionName: functionName,
+              MemorySize: memorySize,
+              Layers: [{ Arn: layerArn }, { Arn: consoleLayerArn }],
+            },
+          },
+        },
+      },
+      configExt: {
+        provider: {
+          environment: {
+            ANOTHERVAR: 'anothervalue',
+          },
+        },
+        functions: {
+          basic: {
+            description,
+            handler,
+            environment: {
+              VARIABLE: 'value',
+            },
+            name: functionName,
+            memorySize,
+            layers: [layerArn, { Ref: 'TestLambdaLayer' }],
+          },
+        },
+      },
+    };
+
+    await runServerless(runServerlessConfig);
+    expect(updateFunctionConfigurationStub).not.to.be.called;
+  });
+
+  it('should not update function configuration if function has reference layers', async () => {
+    const runServerlessConfig = {
+      fixture: 'function',
+      command: 'deploy function',
+      options: { function: 'basic' },
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        Lambda: {
+          ...awsRequestStubMap.Lambda,
+          getFunction: {
+            Configuration: {
+              LastModified: '2020-05-20T15:34:16.494+0000',
+              PackageType: 'Zip',
+              Description: description,
+              Handler: handler,
+              State: 'Active',
+              LastUpdateStatus: 'Successful',
+              Environment: {
+                Variables: {
+                  ANOTHERVAR: 'anothervalue',
+                  VARIABLE: 'value',
+                },
+              },
+              FunctionName: functionName,
+              MemorySize: memorySize,
+              Layers: [{ Arn: layerArn }],
+            },
+          },
+        },
+      },
+      configExt: {
+        provider: {
+          environment: {
+            ANOTHERVAR: 'anothervalue',
+          },
+        },
+        functions: {
+          basic: {
+            description,
+            handler,
+            environment: {
+              VARIABLE: 'value',
+            },
+            name: functionName,
+            memorySize,
+            layers: [layerArn, { Ref: 'TestLambdaLayer' }],
+          },
+        },
+      },
+    };
+
+    await runServerless(runServerlessConfig);
     expect(updateFunctionConfigurationStub).not.to.be.called;
   });
 
