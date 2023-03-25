@@ -156,7 +156,7 @@ describe('#request', () => {
       }
       const awsRequest = proxyquire('../../../../lib/aws/request', {
         './sdk-v2': { S3: FakeS3 },
-        'timers-ext/promise/sleep': async () => Promise.resolve(),
+        'timers-ext/promise/sleep': async () => {},
       });
       const res = await awsRequest({ name: 'S3' }, 'error');
       expect(sendFake.promise).to.have.been.calledTwice;
@@ -181,7 +181,7 @@ describe('#request', () => {
       }
       const awsRequest = proxyquire('../../../../lib/aws/request', {
         './sdk-v2': { S3: FakeS3 },
-        'timers-ext/promise/sleep': async () => Promise.resolve(),
+        'timers-ext/promise/sleep': async () => {},
       });
       const res = await awsRequest({ name: 'S3' }, 'error');
       expect(res).to.exist;
@@ -347,7 +347,7 @@ describe('#request', () => {
       }
       putObject() {
         return {
-          promise: async () => Promise.resolve(this),
+          promise: async () => this,
         };
       }
     }
