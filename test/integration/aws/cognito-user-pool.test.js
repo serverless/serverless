@@ -1,6 +1,5 @@
 'use strict';
 
-const BbPromise = require('bluebird');
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 const hasFailed = require('@serverless/test/has-failed');
@@ -59,7 +58,7 @@ describe('AWS - Cognito User Pool Integration Test', function () {
     };
     // NOTE: deployment can only be done once the Cognito User Pools are created
     log.notice('Creating Cognito User Pools');
-    await BbPromise.all([
+    await Promise.all([
       createUserPool(poolExistingSimpleSetup, poolExistingSimpleSetupConfig),
       createUserPool(poolExistingMultiSetup),
       createUserPool(poolExistingCustomEmailSenderSetup, poolExistingCustomEmailSenderSetupConfig),
@@ -74,7 +73,7 @@ describe('AWS - Cognito User Pool Integration Test', function () {
     log.notice('Removing service...');
     await removeService(serviceDir);
     log.notice('Deleting Cognito User Pools');
-    return BbPromise.all([
+    return Promise.all([
       deleteUserPool(poolExistingSimpleSetup),
       deleteUserPool(poolExistingMultiSetup),
       deleteUserPool(poolExistingCustomEmailSenderSetup),
