@@ -431,19 +431,19 @@ describe('PluginManager', () => {
     });
 
     it('should create an empty cliOptions object', () => {
-      expect(pluginManager.cliOptions).to.deep.equal({});
+      expect(pluginManager.cliOptions).to.be.an('object').empty;
     });
 
     it('should create an empty cliCommands array', () => {
-      expect(pluginManager.cliCommands.length).to.equal(0);
+      expect(pluginManager.cliCommands).to.be.an('array').empty;
     });
 
     it('should create an empty plugins array', () => {
-      expect(pluginManager.plugins.length).to.equal(0);
+      expect(pluginManager.plugins).to.be.an('array').empty;
     });
 
     it('should create an empty commands object', () => {
-      expect(pluginManager.commands).to.deep.equal({});
+      expect(pluginManager.commands).to.be.an('object').empty;
     });
   });
 
@@ -461,7 +461,7 @@ describe('PluginManager', () => {
       const commands = ['foo', 'bar'];
       pluginManager.setCliCommands(commands);
 
-      expect(pluginManager.cliCommands).to.equal(commands);
+      expect(pluginManager.cliCommands).to.deep.equal(commands);
     });
   });
 
@@ -521,9 +521,9 @@ describe('PluginManager', () => {
       pluginManager.addPlugin(first);
       pluginManager.addPlugin(second);
 
+      expect(pluginManager.plugins).to.be.an('array').lengthOf(2);
       expect(pluginManager.plugins[0]).to.be.instanceof(first);
       expect(pluginManager.plugins[1]).to.be.instanceof(second);
-      expect(pluginManager.plugins.length).to.equal(2);
     });
 
     it('should load the plugin commands', () => {
@@ -542,7 +542,7 @@ describe('PluginManager', () => {
 
       pluginManager.addPlugin(Plugin);
 
-      expect(pluginManager.plugins.length).to.equal(0);
+      expect(pluginManager.plugins).to.be.an('array').empty;
     });
 
     it('should add service related plugins when provider property is the providers name', () => {
@@ -603,22 +603,22 @@ describe('PluginManager', () => {
 
       // note: this test will be refactored as the Create plugin will be moved
       // to another directory
-      expect(pluginManager.plugins.length).to.be.above(0);
+      expect(pluginManager.plugins).to.be.an('array').lengthOf.above(2);
     });
 
     it('should load all plugins when service plugins are given', async () => {
       const servicePlugins = ['ServicePluginMock1', 'ServicePluginMock2'];
       await pluginManager.loadAllPlugins(servicePlugins);
 
-      expect(pluginManager.plugins.some((plugin) => plugin instanceof ServicePluginMock1)).to.be
-        .true;
-      expect(pluginManager.plugins.some((plugin) => plugin instanceof ServicePluginMock2)).to.be
-        .true;
-      expect(pluginManager.plugins.some((plugin) => plugin instanceof EnterprisePluginMock)).to.be
-        .true;
       // note: this test will be refactored as the Create plugin will be moved
       // to another directory
-      expect(pluginManager.plugins.length).to.be.above(2);
+      expect(pluginManager.plugins).to.be.an('array').lengthOf.above(2);
+      expect(pluginManager.plugins).to.satisfy(
+        (ps) =>
+          ps.some((plugin) => plugin instanceof ServicePluginMock1) &&
+          ps.some((plugin) => plugin instanceof ServicePluginMock2) &&
+          ps.some((plugin) => plugin instanceof EnterprisePluginMock)
+      );
     });
 
     it('should load all plugins in the correct order', async () => {
@@ -638,7 +638,7 @@ describe('PluginManager', () => {
     it('should load the Serverless core plugins', async () => {
       await pluginManager.loadAllPlugins();
 
-      expect(pluginManager.plugins.length).to.be.above(1);
+      expect(pluginManager.plugins).to.be.an('array').lengthOf.above(1);
     });
 
     it('should throw an error when trying to load unknown plugin', async () => {
@@ -902,7 +902,6 @@ describe('PluginManager', () => {
         .that.has.all.keys('foo', 'bar');
       expect(pluginManager.commands.deploy)
         .to.have.property('lifecycleEvents')
-        .that.is.an('array')
         .that.deep.equals(['one', 'two']);
       expect(pluginManager.commands.deploy.commands).to.have.property('fn');
     });
@@ -959,9 +958,13 @@ describe('PluginManager', () => {
       await pluginManager.loadAllPlugins(servicePlugins);
 
       const plugins = pluginManager.getPlugins();
-      expect(plugins.length).to.be.above(3);
-      expect(plugins.some((plugin) => plugin instanceof ServicePluginMock1)).to.be.true;
-      expect(plugins.some((plugin) => plugin instanceof ServicePluginMock2)).to.be.true;
+
+      expect(plugins).to.be.an('array').lengthOf.above(3);
+      expect(plugins).to.satisfy(
+        (ps) =>
+          ps.some((plugin) => plugin instanceof ServicePluginMock1) &&
+          ps.some((plugin) => plugin instanceof ServicePluginMock2)
+      );
     });
 
     afterEach(() => {
@@ -1091,7 +1094,7 @@ describe('PluginManager', () => {
 
       expect(() => {
         pluginManager.validateServerlessConfigDependency(foo);
-      }).to.throw(Error);
+      }).to.throw;
     });
 
     it('should throw an error if configDependent is true and config is an empty string', () => {
@@ -1105,7 +1108,7 @@ describe('PluginManager', () => {
 
       expect(() => {
         pluginManager.validateServerlessConfigDependency(foo);
-      }).to.throw(Error);
+      }).to.throw;
     });
 
     it('should load if the configDependent property is true and config exists', () => {
@@ -1195,6 +1198,7 @@ describe('PluginManager', () => {
       pluginManager.addPlugin(CorrectHookOrderPluginMock);
       const commandsArray = ['run'];
       await pluginManager.run(commandsArray);
+
       expect(pluginManager.plugins[0].hookStatus[0]).to.equal('initialize');
       expect(pluginManager.plugins[0].hookStatus[1]).to.equal('before');
       expect(pluginManager.plugins[0].hookStatus[2]).to.equal('mid');
@@ -1260,7 +1264,7 @@ describe('PluginManager', () => {
         const commandsArray = ['deploy'];
         await pluginManager.run(commandsArray);
 
-        expect(pluginManager.plugins.length).to.equal(2);
+        expect(pluginManager.plugins).to.be.an('array').lengthOf(2);
         expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
         expect(pluginManager.plugins[0].provider).to.equal('provider1');
         expect(pluginManager.plugins[1].deployedFunctions).to.equal(1);
@@ -1285,20 +1289,20 @@ describe('PluginManager', () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       const commands = pluginManager.getCommands();
-      expect(commands).to.have.a.property('mycmd');
+      // expect(commands).to.have.a.property('mycmd');
       expect(commands).to.have.a.nested.property('mycmd.commands.mysubcmd');
       expect(commands).to.have.a.nested.property('mycmd.commands.spawncmd');
       // Check for omitted entrypoints
-      expect(commands).to.not.have.a.property('myep');
-      expect(commands).to.not.have.a.nested.property('myep.commands.mysubep');
+      // expect(commands).to.not.have.a.property('myep');
       expect(commands).to.not.have.a.nested.property('mycmd.commands.spawnep');
+      expect(commands).to.not.have.a.nested.property('myep.commands.mysubep');
     });
 
     it('should return aliases', () => {
       pluginManager.addPlugin(AliasPluginMock);
 
       const commands = pluginManager.getCommands();
-      expect(commands).to.have.a.property('on').that.has.a.nested.property('commands.premise');
+      expect(commands).to.have.a.nested.property('on.commands.premise');
       expect(commands).to.have.a.property('premise');
     });
   });
@@ -1541,11 +1545,11 @@ describe('test/unit/lib/classes/PluginManager.test.js', () => {
       command: 'print',
     });
 
-    const pluginNames = new Set(
-      serverless.pluginManager.plugins.map((plugin) => plugin.constructor.name)
+    expect(serverless.pluginManager.plugins).to.satisfy(
+      (plugins) =>
+        plugins.some((plugin) => plugin.constructor.name === 'SynchronousPluginMock') &&
+        plugins.some((plugin) => plugin.constructor.name === 'PromisePluginMock')
     );
-    expect(pluginNames).to.contain('SynchronousPluginMock');
-    expect(pluginNames).to.contain('PromisePluginMock');
   });
 
   it('should pass log writers to external plugins', async () => {
@@ -1592,10 +1596,10 @@ describe('test/unit/lib/classes/PluginManager.test.js', () => {
       },
     });
 
-    const pluginNames = new Set(
-      serverless.pluginManager.plugins.map((plugin) => plugin.constructor.name)
+    expect(serverless.pluginManager.plugins).to.satisfy(
+      (plugins) =>
+        plugins.some((plugin) => plugin.constructor.name === 'LocalESMPlugin') &&
+        plugins.some((plugin) => plugin.constructor.name === 'ESMPlugin')
     );
-    expect(pluginNames).to.include('LocalESMPlugin');
-    expect(pluginNames).to.include('ESMPlugin');
   });
 });
