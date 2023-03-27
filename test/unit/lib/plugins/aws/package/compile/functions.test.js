@@ -2315,8 +2315,8 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
   });
 
   describe('Validation', () => {
-    it('should throw error when `functions[].fileSystemConfig` is configured with no vpc', async () => {
-      return expect(
+    it('should throw error when `functions[].fileSystemConfig` is configured with no vpc', async () =>
+      expect(
         runServerless({
           fixture: 'function',
           configExt: {
@@ -2334,11 +2334,10 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       ).to.eventually.be.rejected.and.have.property(
         'code',
         'LAMBDA_FILE_SYSTEM_CONFIG_MISSING_VPC'
-      );
-    });
+      ));
 
-    it('should throw error when `SnapStart` and `ProvisionedConcurrency` is enabled on the function', async () => {
-      return expect(
+    it('should throw error when `SnapStart` and `ProvisionedConcurrency` is enabled on the function', async () =>
+      expect(
         runServerless({
           fixture: 'function',
           configExt: {
@@ -2354,8 +2353,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       ).to.eventually.be.rejected.and.have.property(
         'code',
         'FUNCTION_BOTH_PROVISIONED_CONCURRENCY_AND_SNAPSTART_ENABLED_ERROR'
-      );
-    });
+      ));
   });
 
   describe('Version hash resolution', () => {

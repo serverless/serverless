@@ -4,14 +4,12 @@ const runServerless = require('../../../../utils/run-serverless');
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
 const AwsRollback = require('../../../../../lib/plugins/aws/rollback');
 const Serverless = require('../../../../../lib/serverless');
-const chai = require('chai');
-const assert = require('chai').assert;
 const sinon = require('sinon');
-
+const chai = require('chai');
 chai.use(require('chai-as-promised'));
-chai.use(require('sinon-chai'));
 
 const expect = chai.expect;
+const assert = chai.assert;
 
 describe('AwsRollback', () => {
   let awsRollback;
@@ -130,11 +128,13 @@ describe('AwsRollback', () => {
         })
       ).to.eventually.be.rejected.and.have.property('code', 'ROLLBACK_DEPLOYMENTS_NOT_FOUND');
 
-      expect(listObjectsStub).to.have.been.calledOnce;
-      expect(listObjectsStub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
-        Bucket: awsRollback.bucketName,
-        Prefix: `${s3Key}`,
-      });
+      expect(listObjectsStub.calledOnce).to.be.true;
+      expect(
+        listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
+          Bucket: awsRollback.bucketName,
+          Prefix: s3Key,
+        })
+      ).to.be.true;
 
       awsRollback.provider.request.restore();
     });
@@ -161,11 +161,13 @@ describe('AwsRollback', () => {
         })
       ).to.eventually.be.rejected.and.have.property('code', 'ROLLBACK_DEPLOYMENT_NOT_FOUND');
 
-      expect(listObjectsStub).to.have.been.calledOnce;
-      expect(listObjectsStub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
-        Bucket: awsRollback.bucketName,
-        Prefix: `${s3Key}`,
-      });
+      expect(listObjectsStub.calledOnce).to.be.true;
+      expect(
+        listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
+          Bucket: awsRollback.bucketName,
+          Prefix: s3Key,
+        })
+      ).to.be.true;
 
       awsRollback.provider.request.restore();
     });

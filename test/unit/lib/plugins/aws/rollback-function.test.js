@@ -132,13 +132,13 @@ describe('AwsRollbackFunction', () => {
           'Function "hello" with version "4711" not found'
         );
 
-        expect(getFunctionStub.calledOnce).to.equal(true);
+        expect(getFunctionStub.calledOnce).to.be.true;
         expect(
           getFunctionStub.calledWithExactly('Lambda', 'getFunction', {
             FunctionName: 'service-dev-hello',
             Qualifier: '4711',
           })
-        ).to.be.equal(true);
+        ).to.be.true;
       });
     });
 
@@ -163,13 +163,13 @@ describe('AwsRollbackFunction', () => {
           'something went wrong'
         );
 
-        expect(getFunctionStub.calledOnce).to.equal(true);
+        expect(getFunctionStub.calledOnce).to.be.true;
         expect(
           getFunctionStub.calledWithExactly('Lambda', 'getFunction', {
             FunctionName: 'service-dev-hello',
             Qualifier: '4711',
           })
-        ).to.be.equal(true);
+        ).to.be.true;
       });
     });
   });

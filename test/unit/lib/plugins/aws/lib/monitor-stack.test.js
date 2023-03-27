@@ -456,7 +456,7 @@ describe('monitorStack', () => {
         describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
           StackName: cfDataMock.StackId,
         })
-      ).to.be.equal(true);
+      ).to.be.true;
 
       awsPlugin.provider.request.restore();
     });
@@ -536,7 +536,7 @@ describe('monitorStack', () => {
         describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
           StackName: cfDataMock.StackId,
         })
-      ).to.be.equal(true);
+      ).to.be.true;
 
       awsPlugin.provider.request.restore();
     });
@@ -610,7 +610,7 @@ describe('monitorStack', () => {
         describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
           StackName: cfDataMock.StackId,
         })
-      ).to.be.equal(true);
+      ).to.be.true;
 
       awsPlugin.provider.request.restore();
     });
@@ -687,7 +687,7 @@ describe('monitorStack', () => {
         describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
           StackName: cfDataMock.StackId,
         })
-      ).to.be.equal(true);
+      ).to.be.true;
       awsPlugin.provider.request.restore();
     });
 
@@ -767,7 +767,7 @@ describe('monitorStack', () => {
           describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
             StackName: cfDataMock.StackId,
           })
-        ).to.be.equal(true);
+        ).to.be.true;
 
         awsPlugin.provider.request.restore();
       }
@@ -962,7 +962,7 @@ describe('monitorStack', () => {
         describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
           StackName: cfDataMock.StackId,
         })
-      ).to.be.equal(true);
+      ).to.be.true;
 
       awsPlugin.provider.request.restore();
     });
