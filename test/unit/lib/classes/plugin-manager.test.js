@@ -2,7 +2,6 @@
 
 /* eslint-disable no-unused-expressions */
 
-const chai = require('chai');
 const overrideEnv = require('process-utils/override-env');
 const overrideArgv = require('process-utils/override-argv');
 const runServerless = require('../../../utils/run-serverless');
@@ -23,8 +22,8 @@ const proxyquire = require('proxyquire');
 const { installPlugin } = require('../../../utils/plugins');
 const { getTmpDirPath } = require('../../../utils/fs');
 
+const chai = require('chai');
 chai.use(require('chai-as-promised'));
-chai.use(require('sinon-chai'));
 
 const expect = chai.expect;
 
@@ -586,9 +585,9 @@ describe('PluginManager', () => {
       const plugin1 = new ServicePluginMock1();
       plugin1.asyncInit = sinon.stub().returns(Promise.resolve());
       pluginManager.plugins = [plugin1];
-      return pluginManager.asyncPluginInit().then(() => {
-        expect(plugin1.asyncInit.calledOnce).to.equal(true);
-      });
+
+      await pluginManager.asyncPluginInit();
+      expect(plugin1.asyncInit.calledOnce).to.be.true;
     });
   });
 
@@ -647,10 +646,10 @@ describe('PluginManager', () => {
       expect(pluginManager.plugins.length).to.be.above(1);
     });
 
-    it('should throw an error when trying to load unknown plugin', () => {
+    it('should throw an error when trying to load unknown plugin', async () => {
       const servicePlugins = ['ServicePluginMock3', 'ServicePluginMock1'];
 
-      return expect(pluginManager.loadAllPlugins(servicePlugins)).to.be.rejectedWith(
+      await expect(pluginManager.loadAllPlugins(servicePlugins)).to.eventually.be.rejectedWith(
         ServerlessError
       );
     });
@@ -662,26 +661,26 @@ describe('PluginManager', () => {
 
       resolveInput.clear();
       return overrideArgv({ args: ['serverless', '--help'] }, () => {
-        return expect(pluginManager.loadAllPlugins(servicePlugins)).to.not.be.rejectedWith(
+        return expect(pluginManager.loadAllPlugins(servicePlugins)).not.eventually.be.rejectedWith(
           ServerlessError
         );
       });
     });
 
-    it('should pass through an error when plugin load fails', () => {
+    it('should pass through an error when plugin load fails', async () => {
       const servicePlugins = ['BrokenPluginMock'];
 
-      return expect(pluginManager.loadAllPlugins(servicePlugins)).to.be.rejectedWith(
+      await expect(pluginManager.loadAllPlugins(servicePlugins)).to.eventually.be.rejectedWith(
         brokenPluginError
       );
     });
 
-    it('should not throw error when running the plugin commands and given plugins does not exist', () => {
+    it('should not throw error when running the plugin commands and given plugins does not exist', async () => {
       const servicePlugins = ['ServicePluginMock3'];
       const cliCommandsMock = ['plugin'];
       pluginManager.setCliCommands(cliCommandsMock);
 
-      return expect(pluginManager.loadAllPlugins(servicePlugins)).to.not.be.rejectedWith(
+      await expect(pluginManager.loadAllPlugins(servicePlugins)).not.eventually.be.rejectedWith(
         ServerlessError
       );
     });
@@ -703,23 +702,18 @@ describe('PluginManager', () => {
 
     it('should resolve the service plugins', async () => {
       const servicePlugins = ['ServicePluginMock1', './RelativePath/ServicePluginMock2'];
-      expect(await pluginManager.resolveServicePlugins(servicePlugins)).to.deep.equal([
-        ServicePluginMock1,
-        ServicePluginMock2,
-      ]);
+      const plugins = await pluginManager.resolveServicePlugins(servicePlugins);
+
+      expect(plugins).to.deep.equal([ServicePluginMock1, ServicePluginMock2]);
     });
 
-    it('should not error if plugins = null', () => {
-      // Happens when `plugins` property exists but is empty
-      const servicePlugins = null;
-      return expect(pluginManager.resolveServicePlugins(servicePlugins)).to.not.be.rejected;
-    });
+    // Happens when `plugins` property exists but is empty
+    it('should not error if plugins = null', async () =>
+      expect(pluginManager.resolveServicePlugins(null)).to.eventually.be.fulfilled);
 
-    it('should not error if plugins = undefined', () => {
-      // Happens when `plugins` property does not exist
-      const servicePlugins = undefined;
-      return expect(pluginManager.resolveServicePlugins(servicePlugins)).to.not.be.rejected;
-    });
+    // Happens when `plugins` property does not exist
+    it('should not error if plugins = undefined', async () =>
+      expect(pluginManager.resolveServicePlugins(undefined)).to.eventually.be.fulfilled);
 
     afterEach(() => {
       mockRequire.stop('ServicePluginMock1');
@@ -852,7 +846,7 @@ describe('PluginManager', () => {
           },
         };
         expect(() => pluginManager.createCommandAlias('cmd1:alias2', 'mycmd')).to.throw(
-          /Alias "cmd1:alias2" is already defined/
+          'Alias "cmd1:alias2" is already defined'
         );
       });
 
@@ -860,7 +854,7 @@ describe('PluginManager', () => {
         const synchronousPluginMockInstance = new SynchronousPluginMock();
         pluginManager.loadCommands(synchronousPluginMockInstance);
         expect(() => pluginManager.createCommandAlias('deploy', 'mycmd')).to.throw(
-          /Command "deploy" cannot be overriden/
+          'Command "deploy" cannot be overriden'
         );
       });
 
@@ -868,7 +862,7 @@ describe('PluginManager', () => {
         const synchronousPluginMockInstance = new SynchronousPluginMock();
         synchronousPluginMockInstance.commands.deploy.commands.onpremises.aliases = ['deploy'];
         expect(() => pluginManager.loadCommands(synchronousPluginMockInstance)).to.throw(
-          /Command "deploy" cannot be overriden/
+          'Command "deploy" cannot be overriden'
         );
       });
     });
@@ -927,7 +921,7 @@ describe('PluginManager', () => {
 
       const synchronousPluginMockInstance = new SynchronousPluginMock();
       expect(() => pluginManager.loadCommands(synchronousPluginMockInstance)).to.throw(
-        /Command "deploy" cannot override an existing alias/
+        'Command "deploy" cannot override an existing alias'
       );
     });
   });
@@ -1137,36 +1131,32 @@ describe('PluginManager', () => {
   });
 
   describe('#run()', () => {
-    it('should throw an error when the given command is not available', () => {
+    it('should throw an error when the given command is not available', async () => {
       pluginManager.addPlugin(SynchronousPluginMock);
 
       const commandsArray = ['foo'];
-
-      return expect(pluginManager.run(commandsArray)).to.be.rejectedWith(Error);
+      await expect(pluginManager.run(commandsArray)).to.eventually.be.rejected;
     });
 
-    it('should throw an error when the given command is an entrypoint', () => {
+    it('should throw an error when the given command is an entrypoint', async () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       const commandsArray = ['myep'];
-
-      return expect(pluginManager.run(commandsArray)).to.be.rejectedWith(Error);
+      await expect(pluginManager.run(commandsArray)).to.eventually.be.rejected;
     });
 
-    it('should NOT throw an error when the given command is a child of a container', () => {
+    it('should NOT throw an error when the given command is a child of a container', async () => {
       pluginManager.addPlugin(ContainerPluginMock);
 
       const commandsArray = ['mycontainer', 'mysubcmd'];
-
-      return expect(pluginManager.run(commandsArray)).to.not.be.rejectedWith(Error);
+      await expect(pluginManager.run(commandsArray)).to.eventually.be.fulfilled;
     });
 
-    it('should throw an error when the given command is a child of an entrypoint', () => {
+    it('should throw an error when the given command is a child of an entrypoint', async () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       const commandsArray = ['mysubcmd'];
-
-      return expect(pluginManager.run(commandsArray)).to.be.rejectedWith(Error);
+      await expect(pluginManager.run(commandsArray)).to.eventually.be.rejected;
     });
 
     it('should run the hooks in the correct order', async () => {
@@ -1209,12 +1199,12 @@ describe('PluginManager', () => {
 
       pluginManager.addPlugin(CorrectHookOrderPluginMock);
       const commandsArray = ['run'];
-      return pluginManager.run(commandsArray).then(() => {
-        expect(pluginManager.plugins[0].hookStatus[0]).to.equal('initialize');
-        expect(pluginManager.plugins[0].hookStatus[1]).to.equal('before');
-        expect(pluginManager.plugins[0].hookStatus[2]).to.equal('mid');
-        expect(pluginManager.plugins[0].hookStatus[3]).to.equal('after');
-      });
+      await pluginManager.run(commandsArray);
+
+      expect(pluginManager.plugins[0].hookStatus[0]).to.equal('initialize');
+      expect(pluginManager.plugins[0].hookStatus[1]).to.equal('before');
+      expect(pluginManager.plugins[0].hookStatus[2]).to.equal('mid');
+      expect(pluginManager.plugins[0].hookStatus[3]).to.equal('after');
     });
 
     describe('when using a synchronous hook function', () => {
@@ -1225,18 +1215,16 @@ describe('PluginManager', () => {
       describe('when running a simple command', () => {
         it('should run a simple command', async () => {
           const commandsArray = ['deploy'];
-          return pluginManager
-            .run(commandsArray)
-            .then(() => expect(pluginManager.plugins[0].deployedFunctions).to.equal(1));
+          await pluginManager.run(commandsArray);
+          expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
         });
       });
 
       describe('when running a nested command', () => {
         it('should run the nested command', async () => {
           const commandsArray = ['deploy', 'onpremises'];
-          return pluginManager
-            .run(commandsArray)
-            .then(() => expect(pluginManager.plugins[0].deployedResources).to.equal(1));
+          await pluginManager.run(commandsArray);
+          expect(pluginManager.plugins[0].deployedResources).to.equal(1);
         });
       });
     });
@@ -1249,18 +1237,16 @@ describe('PluginManager', () => {
       describe('when running a simple command', () => {
         it('should run the simple command', async () => {
           const commandsArray = ['deploy'];
-          return pluginManager
-            .run(commandsArray)
-            .then(() => expect(pluginManager.plugins[0].deployedFunctions).to.equal(1));
+          await pluginManager.run(commandsArray);
+          expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
         });
       });
 
       describe('when running a nested command', () => {
         it('should run the nested command', async () => {
           const commandsArray = ['deploy', 'onpremises'];
-          return pluginManager
-            .run(commandsArray)
-            .then(() => expect(pluginManager.plugins[0].deployedResources).to.equal(1));
+          await pluginManager.run(commandsArray);
+          expect(pluginManager.plugins[0].deployedResources).to.equal(1);
         });
       });
     });
@@ -1278,13 +1264,13 @@ describe('PluginManager', () => {
 
       it('should load only the providers plugins (if the provider is specified)', async () => {
         const commandsArray = ['deploy'];
-        return pluginManager.run(commandsArray).then(() => {
-          expect(pluginManager.plugins.length).to.equal(2);
-          expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
-          expect(pluginManager.plugins[0].provider).to.equal('provider1');
-          expect(pluginManager.plugins[1].deployedFunctions).to.equal(1);
-          expect(pluginManager.plugins[1].provider).to.equal(undefined);
-        });
+        await pluginManager.run(commandsArray);
+
+        expect(pluginManager.plugins).to.be.an('array').lengthOf(2);
+        expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
+        expect(pluginManager.plugins[0].provider).to.equal('provider1');
+        expect(pluginManager.plugins[1].deployedFunctions).to.equal(1);
+        expect(pluginManager.plugins[1].provider).to.be.undefined;
       });
     });
 
@@ -1292,12 +1278,11 @@ describe('PluginManager', () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       const commandsArray = ['mycmd', 'spawncmd'];
+      await pluginManager.run(commandsArray);
 
-      return pluginManager.run(commandsArray).then(() => {
-        expect(pluginManager.plugins[0].callResult).to.equal(
-          '>subInitialize>subFinalize>initialize>finalize>run>subEPInitialize>subEPFinalize'
-        );
-      });
+      expect(pluginManager.plugins[0].callResult).to.equal(
+        '>subInitialize>subFinalize>initialize>finalize>run>subEPInitialize>subEPFinalize'
+      );
     });
   });
 
@@ -1394,8 +1379,7 @@ describe('PluginManager', () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       const commandsArray = ['foo'];
-
-      return expect(pluginManager.spawn(commandsArray)).to.eventually.be.rejectedWith(Error);
+      await expect(pluginManager.spawn(commandsArray)).to.eventually.be.rejected;
     });
 
     describe('when invoking a command', () => {
@@ -1403,34 +1387,26 @@ describe('PluginManager', () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['mycmd'];
-
-        return pluginManager.spawn(commandsArray).then(() => {
-          expect(pluginManager.plugins[0].callResult).to.equal('>run');
-        });
+        await pluginManager.spawn(commandsArray);
+        expect(pluginManager.plugins[0].callResult).to.equal('>run');
       });
 
       it('should spawn nested commands', async () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['mycmd', 'mysubcmd'];
-
-        return pluginManager.spawn(commandsArray).then(() => {
-          expect(pluginManager.plugins[0].callResult).to.equal('>subInitialize>subFinalize');
-        });
+        await pluginManager.spawn(commandsArray);
+        expect(pluginManager.plugins[0].callResult).to.equal('>subInitialize>subFinalize');
       });
 
       it('should terminate the hook chain if requested', async () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['mycmd', 'mysubcmd'];
-
-        return expect(
+        await expect(
           pluginManager.spawn(commandsArray, { terminateLifecycleAfterExecution: true })
-        )
-          .to.be.rejectedWith('Terminating mycmd:mysubcmd')
-          .then(() => {
-            expect(pluginManager.plugins[0].callResult).to.equal('>subInitialize>subFinalize');
-          });
+        ).to.eventually.be.rejectedWith('Terminating mycmd:mysubcmd');
+        expect(pluginManager.plugins[0].callResult).to.equal('>subInitialize>subFinalize');
       });
     });
 
@@ -1439,10 +1415,8 @@ describe('PluginManager', () => {
         pluginManager.addPlugin(ContainerPluginMock);
 
         const commandsArray = ['mycontainer', 'mysubcmd'];
-
-        return pluginManager.spawn(commandsArray).then(() => {
-          expect(pluginManager.plugins[0].callResult).to.equal('>mysubcmdEvent1>mysubcmdEvent2');
-        });
+        await pluginManager.spawn(commandsArray);
+        expect(pluginManager.plugins[0].callResult).to.equal('>mysubcmdEvent1>mysubcmdEvent2');
       });
     });
 
@@ -1451,37 +1425,31 @@ describe('PluginManager', () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['myep'];
-
-        return pluginManager.spawn(commandsArray).then(() => {
-          expect(pluginManager.plugins[0].callResult).to.equal('>initialize>finalize');
-        });
+        await pluginManager.spawn(commandsArray);
+        expect(pluginManager.plugins[0].callResult).to.equal('>initialize>finalize');
       });
 
       it('should spawn nested entrypoints', async () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['myep', 'mysubep'];
-
-        return pluginManager.spawn(commandsArray).then(() => {
-          expect(pluginManager.plugins[0].callResult).to.equal('>subEPInitialize>subEPFinalize');
-        });
+        await pluginManager.spawn(commandsArray);
+        expect(pluginManager.plugins[0].callResult).to.equal('>subEPInitialize>subEPFinalize');
       });
 
       describe('with string formatted syntax', () => {
         it('should succeed', async () => {
           pluginManager.addPlugin(EntrypointPluginMock);
 
-          return pluginManager.spawn('myep').then(() => {
-            expect(pluginManager.plugins[0].callResult).to.equal('>initialize>finalize');
-          });
+          await pluginManager.spawn('myep');
+          expect(pluginManager.plugins[0].callResult).to.equal('>initialize>finalize');
         });
 
         it('should spawn nested entrypoints', async () => {
           pluginManager.addPlugin(EntrypointPluginMock);
 
-          return pluginManager.spawn('myep:mysubep').then(() => {
-            expect(pluginManager.plugins[0].callResult).to.equal('>subEPInitialize>subEPFinalize');
-          });
+          await pluginManager.spawn('myep:mysubep');
+          expect(pluginManager.plugins[0].callResult).to.equal('>subEPInitialize>subEPFinalize');
         });
       });
     });
@@ -1491,11 +1459,10 @@ describe('PluginManager', () => {
 
       const commandsArray = ['myep', 'spawnep'];
 
-      return pluginManager.spawn(commandsArray).then(() => {
-        expect(pluginManager.plugins[0].callResult).to.equal(
-          '>subInitialize>subFinalize>initialize>finalize>run>subEPInitialize>subEPFinalize'
-        );
-      });
+      await pluginManager.spawn(commandsArray);
+      expect(pluginManager.plugins[0].callResult).to.equal(
+        '>subInitialize>subFinalize>initialize>finalize>run>subEPInitialize>subEPFinalize'
+      );
     });
   });
 
@@ -1599,8 +1566,8 @@ describe('test/unit/lib/classes/PluginManager.test.js', () => {
     expect(typeof plugin.utils.writeText).to.equal('function');
   });
 
-  it('should error out for duplicate plugin definiton', async () => {
-    await expect(
+  it('should error out for duplicate plugin definiton', async () =>
+    expect(
       runServerless({
         fixture: 'plugin',
         command: 'print',
@@ -1608,11 +1575,10 @@ describe('test/unit/lib/classes/PluginManager.test.js', () => {
           plugins: ['./plugin', './plugin'],
         },
       })
-    ).to.be.eventually.rejected.and.have.property('code', 'DUPLICATE_PLUGIN_DEFINITION');
-  });
+    ).to.be.eventually.rejected.and.have.property('code', 'DUPLICATE_PLUGIN_DEFINITION'));
 
-  it('should pass through an error when trying to load a plugin with error', async () => {
-    await expect(
+  it('should pass through an error when trying to load a plugin with error', async () =>
+    expect(
       runServerless({
         fixture: 'plugin',
         command: 'print',
@@ -1620,8 +1586,7 @@ describe('test/unit/lib/classes/PluginManager.test.js', () => {
           plugins: ['./broken-plugin'],
         },
       })
-    ).to.be.eventually.rejectedWith(Error, 'failed to load plugin');
-  });
+    ).to.be.eventually.rejectedWith(Error, 'failed to load plugin'));
 
   it('should load ESM plugins', async () => {
     const { serverless } = await runServerless({
