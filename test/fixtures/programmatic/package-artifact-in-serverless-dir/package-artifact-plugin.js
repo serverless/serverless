@@ -15,7 +15,7 @@ class PackageArtifactPlugin {
   constructor(serverless) {
     this.serverless = serverless;
     this.hooks = {
-      'before:package:createDeploymentArtifacts': this.package.bind(this),
+      'before:package:createDeploymentArtifacts': async () => this.package(),
     };
   }
 
