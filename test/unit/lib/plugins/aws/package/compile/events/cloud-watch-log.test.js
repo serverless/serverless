@@ -48,8 +48,16 @@ describe('AwsCompileCloudWatchLogEvents', () => {
       ).to.equal('AWS::Logs::SubscriptionFilter');
       expect(
         awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources.FirstLogsSubscriptionFilterCloudWatchLog1.DependsOn
+      ).to.eql(['FirstLambdaPermissionLogsSubscriptionFilterCloudWatchLog']);
+      expect(
+        awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
           .Resources.FirstLogsSubscriptionFilterCloudWatchLog2.Type
       ).to.equal('AWS::Logs::SubscriptionFilter');
+      expect(
+        awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources.FirstLogsSubscriptionFilterCloudWatchLog2.DependsOn
+      ).to.eql(['FirstLambdaPermissionLogsSubscriptionFilterCloudWatchLog']);
       expect(
         awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
           .Resources.FirstLogsSubscriptionFilterCloudWatchLog1.Properties.LogGroupName
@@ -70,6 +78,10 @@ describe('AwsCompileCloudWatchLogEvents', () => {
         awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
           .Resources.FirstLambdaPermissionLogsSubscriptionFilterCloudWatchLog.Type
       ).to.equal('AWS::Lambda::Permission');
+      expect(
+        awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources.FirstLambdaPermissionLogsSubscriptionFilterCloudWatchLog.DependsOn
+      ).to.be.undefined;
     });
 
     it('should respect 2 cloudwatchLog events for log group', () => {
@@ -101,6 +113,10 @@ describe('AwsCompileCloudWatchLogEvents', () => {
       ).to.equal('AWS::Logs::SubscriptionFilter');
       expect(
         awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources.FirstLogsSubscriptionFilterCloudWatchLog1.DependsOn
+      ).to.eql(['FirstLambdaPermissionLogsSubscriptionFilterCloudWatchLog']);
+      expect(
+        awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
           .Resources.FirstLogsSubscriptionFilterCloudWatchLog1.Properties.LogGroupName
       ).to.equal('/aws/lambda/hello1');
       expect(
@@ -113,8 +129,16 @@ describe('AwsCompileCloudWatchLogEvents', () => {
       ).to.equal('AWS::Lambda::Permission');
       expect(
         awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources.FirstLambdaPermissionLogsSubscriptionFilterCloudWatchLog.DependsOn
+      ).to.be.undefined;
+      expect(
+        awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
           .Resources.SecondLogsSubscriptionFilterCloudWatchLog1.Type
       ).to.equal('AWS::Logs::SubscriptionFilter');
+      expect(
+        awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources.SecondLogsSubscriptionFilterCloudWatchLog1.DependsOn
+      ).to.eql(['SecondLambdaPermissionLogsSubscriptionFilterCloudWatchLog']);
       expect(
         awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
           .Resources.SecondLogsSubscriptionFilterCloudWatchLog1.Properties.LogGroupName
@@ -127,6 +151,10 @@ describe('AwsCompileCloudWatchLogEvents', () => {
         awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
           .Resources.SecondLambdaPermissionLogsSubscriptionFilterCloudWatchLog.Type
       ).to.equal('AWS::Lambda::Permission');
+      expect(
+        awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources.SecondLambdaPermissionLogsSubscriptionFilterCloudWatchLog.DependsOn
+      ).to.be.undefined;
     });
 
     it('should respect "filter" variable', () => {
