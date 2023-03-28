@@ -705,7 +705,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           command: 'deploy',
           awsRequestStubMap,
         })
-      ).to.have.been.eventually.rejected.with.property('code', 'INVALID_REVIEW_IN_PROGRESS_ERROR');
+      ).to.have.been.eventually.rejected.with.property('code', 'AWS_CLOUDFORMATION_INACTIVE_STACK');
     });
 
     it('with existing stack - subsequent deploy', async () => {
