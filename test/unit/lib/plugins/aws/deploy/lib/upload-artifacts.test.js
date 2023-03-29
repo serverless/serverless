@@ -307,7 +307,10 @@ describe('uploadArtifacts', () => {
       // There were observed race conditions (mostly in Node.js v6) where this temporary home
       // folder was cleaned before stream initialized fully, hence throwing uncaught
       // ENOENT exception into the air.
-      sinon.stub(fs, 'createReadStream').returns({ path: customResourcesFilePath, on: () => {} });
+      sinon.stub(fs, 'createReadStream').returns({
+        path: customResourcesFilePath,
+        on: () => {},
+      });
       serverless.serviceDir = serviceDirPath;
     });
 
@@ -351,7 +354,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/upload-artifacts.test.js', () => 
       lastLifecycleHookName: 'aws:deploy:deploy:uploadArtifacts',
       awsRequestStubMap: {
         CloudFormation: {
-          describeStacks: {},
+          describeStacks: { Stacks: [{}] },
           describeStackResource: {
             StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
           },
