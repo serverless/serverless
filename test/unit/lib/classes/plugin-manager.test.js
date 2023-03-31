@@ -64,8 +64,8 @@ class PromisePluginMock {
     };
 
     this.hooks = {
-      'deploy:functions': this.functions.bind(this),
-      'before:deploy:onpremises:functions': this.resources.bind(this),
+      'deploy:functions': async () => this.functions(),
+      'before:deploy:onpremises:functions': async () => this.resources(),
     };
 
     // used to test if the function was executed correctly
@@ -118,8 +118,8 @@ class SynchronousPluginMock {
     };
 
     this.hooks = {
-      'deploy:functions': this.functions.bind(this),
-      'before:deploy:onpremises:functions': this.resources.bind(this),
+      'deploy:functions': async () => this.functions(),
+      'before:deploy:onpremises:functions': async () => this.resources(),
     };
 
     // used to test if the function was executed correctly
@@ -164,7 +164,7 @@ describe('PluginManager', () => {
       };
 
       this.hooks = {
-        'deploy:functions': this.functions.bind(this),
+        'deploy:functions': async () => this.functions(),
       };
 
       // used to test if the function was executed correctly
@@ -187,7 +187,7 @@ describe('PluginManager', () => {
       };
 
       this.hooks = {
-        'deploy:functions': this.functions.bind(this),
+        'deploy:functions': async () => this.functions(),
       };
 
       // used to test if the function was executed correctly
@@ -236,8 +236,8 @@ describe('PluginManager', () => {
       };
 
       this.hooks = {
-        'deploy:functions': this.functions.bind(this),
-        'before:deploy:onpremises:functions': this.resources.bind(this),
+        'deploy:functions': async () => this.functions(),
+        'before:deploy:onpremises:functions': async () => this.resources(),
       };
 
       // used to test if the function was executed correctly
@@ -292,13 +292,13 @@ describe('PluginManager', () => {
       };
 
       this.hooks = {
-        'myep:initialize': this.initialize.bind(this),
-        'myep:finalize': this.finalize.bind(this),
-        'myep:mysubep:initialize': this.subEPInitialize.bind(this),
-        'myep:mysubep:finalize': this.subEPFinalize.bind(this),
-        'mycmd:mysubcmd:initialize': this.subInitialize.bind(this),
-        'mycmd:mysubcmd:finalize': this.subFinalize.bind(this),
-        'mycmd:run': this.run.bind(this),
+        'myep:initialize': async () => this.initialize(),
+        'myep:finalize': async () => this.finalize(),
+        'myep:mysubep:initialize': async () => this.subEPInitialize(),
+        'myep:mysubep:finalize': async () => this.subEPFinalize(),
+        'mycmd:mysubcmd:initialize': async () => this.subInitialize(),
+        'mycmd:mysubcmd:finalize': async () => this.subFinalize(),
+        'mycmd:run': async () => this.run(),
         // Event1 spawns mysubcmd, then myep
         // Event2 spawns mycmd, then mysubep
         'myep:spawnep:event1': async () =>
@@ -359,8 +359,8 @@ describe('PluginManager', () => {
       };
 
       this.hooks = {
-        'mycontainer:mysubcmd:event1': this.eventOne.bind(this),
-        'mycontainer:mysubcmd:event2': this.eventTwo.bind(this),
+        'mycontainer:mysubcmd:event1': async () => this.eventOne(),
+        'mycontainer:mysubcmd:event2': async () => this.eventTwo(),
       };
 
       this.callResult = '';
@@ -378,8 +378,8 @@ describe('PluginManager', () => {
   class DeprecatedLifecycleEventsPluginMock {
     constructor() {
       this.hooks = {
-        'deprecated:deprecated': this.deprecated, // NOTE: we assume that this is deprecated
-        'untouched:untouched': this.untouched,
+        'deprecated:deprecated': async () => this.deprecated(), // NOTE: we assume that this is deprecated
+        'untouched:untouched': async () => this.untouched(),
       };
     }
 
@@ -1180,10 +1180,10 @@ describe('PluginManager', () => {
           };
 
           this.hooks = {
-            'initialize': this.initializeHookStatus.bind(this),
-            'before:run:beforeHookStatus': this.beforeHookStatus.bind(this),
-            'run:midHookStatus': this.midHookStatus.bind(this),
-            'after:run:afterHookStatus': this.afterHookStatus.bind(this),
+            'initialize': async () => this.initializeHookStatus(),
+            'before:run:beforeHookStatus': async () => this.beforeHookStatus(),
+            'run:midHookStatus': async () => this.midHookStatus(),
+            'after:run:afterHookStatus': async () => this.afterHookStatus(),
           };
 
           // used to test if the hooks were run in the correct order
