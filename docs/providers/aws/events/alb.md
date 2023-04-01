@@ -57,6 +57,9 @@ functions:
                 - bar
             query:
               bar: true
+              foo:
+                - bar
+                - baz
             ip:
               - fe80:0000:0000:0000:0204:61ff:fe9d:f156/6
               - 192.168.0.1/0
