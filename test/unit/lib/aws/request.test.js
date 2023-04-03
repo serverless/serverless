@@ -120,10 +120,9 @@ describe('#request', () => {
       }
       describeStacks() {
         return {
-          promise: () =>
-            Promise.resolve({
-              region: this.config.region,
-            }),
+          promise: async () => ({
+            region: this.config.region,
+          }),
         };
       }
     }
@@ -157,7 +156,7 @@ describe('#request', () => {
       }
       const awsRequest = proxyquire('../../../../lib/aws/request', {
         './sdk-v2': { S3: FakeS3 },
-        'timers-ext/promise/sleep': () => Promise.resolve(),
+        'timers-ext/promise/sleep': async () => {},
       });
       const res = await awsRequest({ name: 'S3' }, 'error');
       expect(sendFake.promise).to.have.been.calledTwice;
@@ -182,7 +181,7 @@ describe('#request', () => {
       }
       const awsRequest = proxyquire('../../../../lib/aws/request', {
         './sdk-v2': { S3: FakeS3 },
-        'timers-ext/promise/sleep': () => Promise.resolve(),
+        'timers-ext/promise/sleep': async () => {},
       });
       const res = await awsRequest({ name: 'S3' }, 'error');
       expect(res).to.exist;
@@ -305,7 +304,7 @@ describe('#request', () => {
     class FakeS3 {
       error() {
         return {
-          promise: () => Promise.reject(awsErrorResponse),
+          promise: async () => Promise.reject(awsErrorResponse),
         };
       }
     }
@@ -330,7 +329,7 @@ describe('#request', () => {
     class FakeS3 {
       error() {
         return {
-          promise: () => Promise.reject(awsErrorResponse),
+          promise: async () => Promise.reject(awsErrorResponse),
         };
       }
     }
@@ -348,7 +347,7 @@ describe('#request', () => {
       }
       putObject() {
         return {
-          promise: () => Promise.resolve(this),
+          promise: async () => this,
         };
       }
     }

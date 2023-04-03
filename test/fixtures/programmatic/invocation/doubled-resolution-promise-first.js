@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports.handler = (event, context, callback) => {
+module.exports.handler = async (event, context, callback) => {
   setTimeout(() =>
     callback(null, {
       statusCode: 200,
@@ -9,10 +9,10 @@ module.exports.handler = (event, context, callback) => {
       }),
     })
   );
-  return Promise.resolve({
+  return {
     statusCode: 200,
     body: JSON.stringify({
       mode: 'promise',
     }),
-  });
+  };
 };
