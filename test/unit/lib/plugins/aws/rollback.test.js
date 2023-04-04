@@ -34,15 +34,13 @@ describe('AwsRollback', () => {
     s3Key = `${prefix}/${serverless.service.service}/${provider.getStage()}`;
   };
 
-  beforeEach(() => {
+  beforeEach(() =>
     createInstance({
       stage: 'dev',
       region: 'us-east-1',
       timestamp: 1476779096930,
-    });
-
-    return Promise.resolve();
-  });
+    })
+  );
 
   afterEach(() => {
     serverless.pluginManager.spawn.restore();
