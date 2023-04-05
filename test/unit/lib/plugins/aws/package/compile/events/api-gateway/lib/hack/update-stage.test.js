@@ -771,7 +771,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/hack/u
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
       awsRequestStubMap: {
         CloudFormation: {
-          describeStacks: {},
+          describeStacks: { Stacks: [{}] },
           describeStackResource: {
             StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
           },

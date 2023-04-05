@@ -651,6 +651,63 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       expect(deleteObjectsStub).not.to.be.called;
     });
 
+    it('with nonexistent stack - should output an appropriate error message for an abnormal stack state', async () => {
+      const describeStacksStub = sinon
+        .stub()
+        .onFirstCall()
+        .resolves({
+          Stacks: [
+            {
+              StackStatus: 'REVIEW_IN_PROGRESS',
+            },
+          ],
+        });
+      const createChangeSetStub = sinon.stub().resolves({});
+      const executeChangeSetStub = sinon.stub().resolves({});
+      const s3UploadStub = sinon.stub().resolves();
+      const deleteObjectsStub = sinon.stub().resolves({});
+      const awsRequestStubMap = {
+        ...baseAwsRequestStubMap,
+        ECR: {
+          describeRepositories: sinon.stub().throws({
+            providerError: { code: 'RepositoryNotFoundException' },
+          }),
+        },
+        S3: {
+          deleteObjects: deleteObjectsStub,
+          listObjectsV2: { Contents: [] },
+          upload: s3UploadStub,
+          headBucket: {},
+        },
+        CloudFormation: {
+          describeStacks: describeStacksStub,
+          createChangeSet: createChangeSetStub,
+          executeChangeSet: executeChangeSetStub,
+          deleteChangeSet: {},
+          describeChangeSet: {
+            ChangeSetName: 'new-service-dev-change-set',
+            ChangeSetId: 'some-change-set-id',
+            StackName: 'new-service-dev',
+            Status: 'CREATE_COMPLETE',
+          },
+          describeStackEvents: {},
+          describeStackResource: {
+            StackResourceDetail: { PhysicalResourceId: 's3-bucket-resource' },
+          },
+          validateTemplate: {},
+          listStackResources: {},
+        },
+      };
+
+      await expect(
+        runServerless({
+          fixture: 'function',
+          command: 'deploy',
+          awsRequestStubMap,
+        })
+      ).to.have.been.eventually.rejected.with.property('code', 'AWS_CLOUDFORMATION_INACTIVE_STACK');
+    });
+
     it('with existing stack - subsequent deploy', async () => {
       const s3BucketPrefix = 'serverless/test-aws-deploy-with-existing-stack/dev';
       const s3UploadStub = sinon.stub().resolves();

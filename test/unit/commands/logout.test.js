@@ -12,7 +12,7 @@ describe('test/unit/commands/logout.test.js', async () => {
       'open': () => {},
       '@serverless/platform-client': {
         ServerlessSDK: class ServerlessSDK {
-          login() {
+          async login() {
             return {
               loginUrl: 'http://',
               loginData: Promise.resolve({

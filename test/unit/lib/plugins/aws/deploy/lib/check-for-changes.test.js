@@ -571,7 +571,7 @@ describe('checkForChanges #2', () => {
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
       awsRequestStubMap: {
         CloudFormation: {
-          describeStacks: {},
+          describeStacks: { Stacks: [{}] },
           describeStackResource: {
             StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
           },
@@ -617,7 +617,7 @@ describe('checkForChanges #2', () => {
 
 const commonAwsSdkMock = {
   CloudFormation: {
-    describeStacks: {},
+    describeStacks: { Stacks: [{}] },
     describeStackResource: {
       StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
     },
