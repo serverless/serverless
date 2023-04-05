@@ -29,10 +29,38 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
       configuration: { provider: { name: 'notaws' } },
       serviceDir: '/foo',
       options: {},
+      isOnboarding: true,
       history: new Map([['service', []]]),
     };
     expect(await step.isApplicable(context)).to.equal(false);
     expect(context.inapplicabilityReasonCode).to.equal('NON_AWS_PROVIDER');
+  });
+
+  it('Should be not applied, when service is not in onboarding context', async () => {
+    const context = {
+      configuration: { provider: { name: 'aws' } },
+      serviceDir: '/foo',
+      options: {},
+      isOnboarding: false,
+      history: new Map([['awsCredentials', []]]),
+      initial: { isInServiceContext: true },
+    };
+    expect(await step.isApplicable(context)).to.equal(false);
+    expect(context.inapplicabilityReasonCode).to.equal('CONSOLE_INTEGRATION');
+  });
+
+  it('Should be not applied, when in console context', async () => {
+    const context = {
+      configuration: { provider: { name: 'aws' } },
+      serviceDir: '/foo',
+      options: {},
+      isOnboarding: true,
+      isConsole: true,
+      history: new Map([['awsCredentials', []]]),
+      initial: { isInServiceContext: true },
+    };
+    expect(await step.isApplicable(context)).to.equal(false);
+    expect(context.inapplicabilityReasonCode).to.equal('CONSOLE_INTEGRATION');
   });
 
   it('Should be applied if user configured local credentials', async () => {
@@ -44,6 +72,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
             configuration: { provider: { name: 'aws' } },
             serviceDir: '/foo',
             options: {},
+            isOnboarding: true,
             history: new Map([['awsCredentials', []]]),
           })
         ).to.equal(true);
@@ -64,6 +93,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         configuration: { provider: { name: 'aws' }, org: 'someorg', app: 'someapp' },
         serviceDir: '/foo',
         options: {},
+        isOnboarding: true,
         history: new Map([['awsCredentials', []]]),
       })
     ).to.equal(true);
@@ -87,6 +117,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         },
         serviceDir: '/foo',
         options: {},
+        isOnboarding: true,
         history: new Map([['awsCredentials', []]]),
       })
     ).to.equal(true);
@@ -110,6 +141,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         initial: {
           isInServiceContext: false,
         },
+        isOnboarding: true,
       };
       await step.run(context);
 
@@ -133,6 +165,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         initial: {
           isInServiceContext: true,
         },
+        isOnboarding: true,
       };
       await step.run(context);
 
@@ -158,6 +191,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         initial: {
           isInServiceContext: false,
         },
+        isOnboarding: true,
       };
       await step.run(context);
 
@@ -183,6 +217,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         initial: {
           isInServiceContext: true,
         },
+        isOnboarding: true,
       };
       await step.run(context);
 
@@ -236,6 +271,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         initial: {
           isInServiceContext: false,
         },
+        isOnboarding: true,
       };
       await mockedStep.run(context);
 
@@ -289,6 +325,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         initial: {
           isInServiceContext: true,
         },
+        isOnboarding: true,
       };
       await mockedStep.run(context);
 
@@ -336,6 +373,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         initial: {
           isInServiceContext: false,
         },
+        isOnboarding: true,
       };
       await mockedStep.run(context);
 
@@ -383,6 +421,7 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
         initial: {
           isInServiceContext: true,
         },
+        isOnboarding: true,
       };
       await mockedStep.run(context);
 
