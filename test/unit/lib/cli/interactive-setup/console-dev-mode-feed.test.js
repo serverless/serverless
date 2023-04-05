@@ -327,7 +327,7 @@ describe('test/unit/lib/cli/interactive-setup/console-dev-mode-feed.test.js', fu
     socketConnection.terminate();
 
     // Assert that each message had a header and our text log was written
-    expect(fakeGreyWriter.callCount).to.equal(11);
+    expect(fakeGreyWriter.callCount).to.equal(12);
     expect(fakeGreyWriter.getCall(0).args[0]).to.equal(
       `\n${fakeTime} • example-dev-function1 • Invocation Started\n`
     );
