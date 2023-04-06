@@ -61,7 +61,7 @@ const finalize = async ({ error, shouldBeSync, telemetryData, shouldSendTelemetr
   if (error) ({ telemetryData } = await handleError(error, { serverless }));
   if (!shouldBeSync) {
     await logDeprecation.printSummary();
-    await resolveConsoleAuthMode().then(
+    await resolveConsoleAuthMode({ skipTokenRefresh: true }).then(
       (mode) => {
         isConsoleAuthenticated = Boolean(mode);
       },
@@ -106,7 +106,7 @@ processSpanPromise = (async () => {
     const wait = require('timers-ext/promise/sleep');
     await wait(); // Ensure access to "processSpanPromise"
 
-    resolveConsoleAuthMode().then(
+    resolveConsoleAuthMode({ skipTokenRefresh: true }).then(
       (mode) => {
         isConsoleAuthenticated = Boolean(mode);
       },
