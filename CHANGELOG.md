@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.30.1](https://github.com/serverless/serverless/compare/v3.30.0...v3.30.1) (2023-04-06)
+
+### Bug Fixes
+
+- Ensure to not login back accidentaly on logout operation ([#11900](https://github.com/serverless/serverless/issues/11900)) ([ec9eac4](https://github.com/serverless/serverless/commit/ec9eac4edc6ebeded0276eeb12c7f77a7a7f7eda)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [3.30.0](https://github.com/serverless/serverless/compare/v3.29.0...v3.30.0) (2023-04-05)
 
 ### Features
