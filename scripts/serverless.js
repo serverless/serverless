@@ -61,7 +61,7 @@ const finalize = async ({ error, shouldBeSync, telemetryData, shouldSendTelemetr
   if (error) ({ telemetryData } = await handleError(error, { serverless }));
   if (!shouldBeSync) {
     await logDeprecation.printSummary();
-    await resolveConsoleAuthMode().then(
+    await resolveConsoleAuthMode({ skipTokenRefresh: true }).then(
       (mode) => {
         isConsoleAuthenticated = Boolean(mode);
       },
@@ -106,7 +106,7 @@ processSpanPromise = (async () => {
     const wait = require('timers-ext/promise/sleep');
     await wait(); // Ensure access to "processSpanPromise"
 
-    resolveConsoleAuthMode().then(
+    resolveConsoleAuthMode({ skipTokenRefresh: true }).then(
       (mode) => {
         isConsoleAuthenticated = Boolean(mode);
       },
@@ -135,11 +135,18 @@ processSpanPromise = (async () => {
 
     (() => {
       // Rewrite eventual `sls deploy -f` into `sls deploy function -f`
+      // Also rewrite `serverless dev` to `serverless --dev``
       const isParamName = RegExp.prototype.test.bind(require('../lib/cli/param-reg-exp'));
 
       const args = process.argv.slice(2);
       const firstParamIndex = args.findIndex(isParamName);
       const commands = args.slice(0, firstParamIndex === -1 ? Infinity : firstParamIndex);
+
+      if (commands.join('') === 'dev') {
+        process.argv[2] = '--dev';
+        return;
+      }
+
       if (commands.join(' ') !== 'deploy') return;
       if (!args.includes('-f') && !args.includes('--function')) return;
       logDeprecation(
