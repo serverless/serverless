@@ -120,6 +120,9 @@
         ],
         "rules": {
           "no-console": "off"
+        },
+        "globals": {
+          "awslambda": "readonly"
         }
       },
       {

@@ -16,6 +16,7 @@ describe('test/integration/aws/function-url.test.js', function () {
   let basicEndpoint;
   let otherEndpoint;
   let authedEndpoint;
+  let streamedEndpoint;
   const stage = 'dev';
 
   before(async () => {
@@ -40,6 +41,12 @@ describe('test/integration/aws/function-url.test.js', function () {
               authorizer: 'aws_iam',
             },
           },
+          streamed: {
+            handler: 'stream.handler',
+            url: {
+              invokeMode: 'RESPONSE_STREAM',
+            },
+          },
         },
       },
     });
@@ -58,6 +65,9 @@ describe('test/integration/aws/function-url.test.js', function () {
     ).OutputValue;
     authedEndpoint = describeStacksResponse.Stacks[0].Outputs.find(
       (output) => output.OutputKey === 'AuthedLambdaFunctionUrl'
+    ).OutputValue;
+    streamedEndpoint = describeStacksResponse.Stacks[0].Outputs.find(
+      (output) => output.OutputKey === 'StreamedLambdaFunctionUrl'
     ).OutputValue;
   });
 
@@ -109,5 +119,15 @@ describe('test/integration/aws/function-url.test.js', function () {
     const headers = response.headers;
     expect(headers.get('access-control-expose-headers')).to.equal('x-foo');
     expect(headers.get('access-control-allow-credentials')).to.equal('true');
+  });
+
+  it('should return streaming invoke mode Lambda URL', async () => {
+    const expectedMessage = 'Hello';
+    let responseMessage = '';
+    const response = await fetch(streamedEndpoint, { method: 'GET' });
+    for await (const chunk of response.body) {
+      responseMessage += chunk.toString();
+    }
+    expect(responseMessage).to.equal(expectedMessage);
   });
 });
