@@ -185,7 +185,6 @@ processSpanPromise = (async () => {
 
     const path = require('path');
     const uuid = require('uuid');
-    const _ = require('lodash');
     const clear = require('ext/object/clear');
     const Serverless = require('../lib/serverless');
     const resolveVariables = require('../lib/configuration/variables/resolve');
@@ -193,6 +192,7 @@ processSpanPromise = (async () => {
     const eventuallyReportVariableResolutionErrors = require('../lib/configuration/variables/eventually-report-resolution-errors');
     const filterSupportedOptions = require('../lib/cli/filter-supported-options');
     const isDashboardEnabled = require('../lib/configuration/is-dashboard-enabled');
+    const _get = require('../lib/utils/purekit/get');
 
     let configurationPath = null;
     let providerName;
@@ -650,7 +650,7 @@ processSpanPromise = (async () => {
         // Validate result command and options
         if (hasFinalCommandSchema) require('../lib/cli/ensure-supported-command')(configuration);
         if (isHelpRequest) return;
-        if (!_.get(variablesMeta, 'size')) return;
+        if (!_get(variablesMeta, 'size')) return;
         if (!resolverConfiguration) {
           // There were no variables in the initial configuration, yet it was extended by
           // the plugins with ones.
@@ -830,7 +830,7 @@ processSpanPromise = (async () => {
       processLog.debug('handle error');
       // If Dashboard Plugin, capture error
       const dashboardPlugin = serverless.pluginManager.dashboardPlugin;
-      const dashboardErrorHandler = _.get(dashboardPlugin, 'enterprise.errorHandler');
+      const dashboardErrorHandler = _get(dashboardPlugin, 'enterprise.errorHandler');
       if (!dashboardErrorHandler) throw error;
       try {
         await dashboardErrorHandler(error, serverless.invocationId);
