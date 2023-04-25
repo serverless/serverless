@@ -289,12 +289,12 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
 
     await expect(run([events[0]])).to.be.eventually.rejectedWith(
       ServerlessError,
-      'Cannot setup "schedule" event: "inputPath" is not supported with "scheduler" mode'
+      "Configuration error at 'functions.test.events.0.schedule.method': must be equal to one of the allowed values [eventBus]\n\nLearn more about configuration validation here: http://slss.io/configuration-validation"
     );
 
     await expect(run([events[1]])).to.be.eventually.rejectedWith(
       ServerlessError,
-      'Cannot setup "schedule" event: "inputTransformer" is not supported with "scheduler" mode'
+      "Configuration error at 'functions.test.events.0.schedule.method': must be equal to one of the allowed values [eventBus]\n\nLearn more about configuration validation here: http://slss.io/configuration-validation"
     );
   });
 
