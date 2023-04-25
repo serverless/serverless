@@ -289,7 +289,7 @@ describe('test/unit/lib/plugins/package/lib/packageService.test.js', () => {
           headBucket: {},
         },
         CloudFormation: {
-          describeStacks: {},
+          describeStacks: { Stacks: [{}] },
           describeStackResource: { StackResourceDetail: { PhysicalResourceId: 'resource-id' } },
         },
         STS: {

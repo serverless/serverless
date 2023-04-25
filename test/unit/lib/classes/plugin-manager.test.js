@@ -20,7 +20,6 @@ const fse = require('fs-extra');
 const mockRequire = require('mock-require');
 const sinon = require('sinon');
 const proxyquire = require('proxyquire');
-const BbPromise = require('bluebird');
 const { installPlugin } = require('../../../utils/plugins');
 const { getTmpDirPath } = require('../../../utils/fs');
 
@@ -65,8 +64,8 @@ class PromisePluginMock {
     };
 
     this.hooks = {
-      'deploy:functions': this.functions.bind(this),
-      'before:deploy:onpremises:functions': this.resources.bind(this),
+      'deploy:functions': async () => this.functions(),
+      'before:deploy:onpremises:functions': async () => this.resources(),
     };
 
     // used to test if the function was executed correctly
@@ -74,18 +73,12 @@ class PromisePluginMock {
     this.deployedResources = 0;
   }
 
-  functions() {
-    return new BbPromise((resolve) => {
-      this.deployedFunctions += 1;
-      return resolve();
-    });
+  async functions() {
+    this.deployedFunctions += 1;
   }
 
-  resources() {
-    return new BbPromise((resolve) => {
-      this.deployedResources += 1;
-      return resolve();
-    });
+  async resources() {
+    this.deployedResources += 1;
   }
 }
 
@@ -125,8 +118,8 @@ class SynchronousPluginMock {
     };
 
     this.hooks = {
-      'deploy:functions': this.functions.bind(this),
-      'before:deploy:onpremises:functions': this.resources.bind(this),
+      'deploy:functions': async () => this.functions(),
+      'before:deploy:onpremises:functions': async () => this.resources(),
     };
 
     // used to test if the function was executed correctly
@@ -171,7 +164,7 @@ describe('PluginManager', () => {
       };
 
       this.hooks = {
-        'deploy:functions': this.functions.bind(this),
+        'deploy:functions': async () => this.functions(),
       };
 
       // used to test if the function was executed correctly
@@ -194,7 +187,7 @@ describe('PluginManager', () => {
       };
 
       this.hooks = {
-        'deploy:functions': this.functions.bind(this),
+        'deploy:functions': async () => this.functions(),
       };
 
       // used to test if the function was executed correctly
@@ -243,8 +236,8 @@ describe('PluginManager', () => {
       };
 
       this.hooks = {
-        'deploy:functions': this.functions.bind(this),
-        'before:deploy:onpremises:functions': this.resources.bind(this),
+        'deploy:functions': async () => this.functions(),
+        'before:deploy:onpremises:functions': async () => this.resources(),
       };
 
       // used to test if the function was executed correctly
@@ -299,22 +292,22 @@ describe('PluginManager', () => {
       };
 
       this.hooks = {
-        'myep:initialize': this.initialize.bind(this),
-        'myep:finalize': this.finalize.bind(this),
-        'myep:mysubep:initialize': this.subEPInitialize.bind(this),
-        'myep:mysubep:finalize': this.subEPFinalize.bind(this),
-        'mycmd:mysubcmd:initialize': this.subInitialize.bind(this),
-        'mycmd:mysubcmd:finalize': this.subFinalize.bind(this),
-        'mycmd:run': this.run.bind(this),
+        'myep:initialize': async () => this.initialize(),
+        'myep:finalize': async () => this.finalize(),
+        'myep:mysubep:initialize': async () => this.subEPInitialize(),
+        'myep:mysubep:finalize': async () => this.subEPFinalize(),
+        'mycmd:mysubcmd:initialize': async () => this.subInitialize(),
+        'mycmd:mysubcmd:finalize': async () => this.subFinalize(),
+        'mycmd:run': async () => this.run(),
         // Event1 spawns mysubcmd, then myep
         // Event2 spawns mycmd, then mysubep
-        'myep:spawnep:event1': () =>
+        'myep:spawnep:event1': async () =>
           pluginManager.spawn(['mycmd', 'mysubcmd']).then(() => pluginManager.spawn(['myep'])),
-        'myep:spawnep:event2': () =>
+        'myep:spawnep:event2': async () =>
           pluginManager.spawn(['mycmd']).then(() => pluginManager.spawn(['myep', 'mysubep'])),
-        'mycmd:spawncmd:event1': () =>
+        'mycmd:spawncmd:event1': async () =>
           pluginManager.spawn(['mycmd', 'mysubcmd']).then(() => pluginManager.spawn(['myep'])),
-        'mycmd:spawncmd:event2': () =>
+        'mycmd:spawncmd:event2': async () =>
           pluginManager.spawn(['mycmd']).then(() => pluginManager.spawn(['myep', 'mysubep'])),
       };
 
@@ -366,8 +359,8 @@ describe('PluginManager', () => {
       };
 
       this.hooks = {
-        'mycontainer:mysubcmd:event1': this.eventOne.bind(this),
-        'mycontainer:mysubcmd:event2': this.eventTwo.bind(this),
+        'mycontainer:mysubcmd:event1': async () => this.eventOne(),
+        'mycontainer:mysubcmd:event2': async () => this.eventTwo(),
       };
 
       this.callResult = '';
@@ -385,8 +378,8 @@ describe('PluginManager', () => {
   class DeprecatedLifecycleEventsPluginMock {
     constructor() {
       this.hooks = {
-        'deprecated:deprecated': this.deprecated, // NOTE: we assume that this is deprecated
-        'untouched:untouched': this.untouched,
+        'deprecated:deprecated': async () => this.deprecated(), // NOTE: we assume that this is deprecated
+        'untouched:untouched': async () => this.untouched(),
       };
     }
 
@@ -589,9 +582,9 @@ describe('PluginManager', () => {
   });
 
   describe('#asyncPluginInit()', () => {
-    it('should call async init on plugins that have it', () => {
+    it('should call async init on plugins that have it', async () => {
       const plugin1 = new ServicePluginMock1();
-      plugin1.asyncInit = sinon.stub().returns(BbPromise.resolve());
+      plugin1.asyncInit = sinon.stub().returns(Promise.resolve());
       pluginManager.plugins = [plugin1];
       return pluginManager.asyncPluginInit().then(() => {
         expect(plugin1.asyncInit.calledOnce).to.equal(true);
@@ -1176,7 +1169,7 @@ describe('PluginManager', () => {
       return expect(pluginManager.run(commandsArray)).to.be.rejectedWith(Error);
     });
 
-    it('should run the hooks in the correct order', () => {
+    it('should run the hooks in the correct order', async () => {
       class CorrectHookOrderPluginMock {
         constructor() {
           this.commands = {
@@ -1187,10 +1180,10 @@ describe('PluginManager', () => {
           };
 
           this.hooks = {
-            'initialize': this.initializeHookStatus.bind(this),
-            'before:run:beforeHookStatus': this.beforeHookStatus.bind(this),
-            'run:midHookStatus': this.midHookStatus.bind(this),
-            'after:run:afterHookStatus': this.afterHookStatus.bind(this),
+            'initialize': async () => this.initializeHookStatus(),
+            'before:run:beforeHookStatus': async () => this.beforeHookStatus(),
+            'run:midHookStatus': async () => this.midHookStatus(),
+            'after:run:afterHookStatus': async () => this.afterHookStatus(),
           };
 
           // used to test if the hooks were run in the correct order
@@ -1230,7 +1223,7 @@ describe('PluginManager', () => {
       });
 
       describe('when running a simple command', () => {
-        it('should run a simple command', () => {
+        it('should run a simple command', async () => {
           const commandsArray = ['deploy'];
           return pluginManager
             .run(commandsArray)
@@ -1239,7 +1232,7 @@ describe('PluginManager', () => {
       });
 
       describe('when running a nested command', () => {
-        it('should run the nested command', () => {
+        it('should run the nested command', async () => {
           const commandsArray = ['deploy', 'onpremises'];
           return pluginManager
             .run(commandsArray)
@@ -1254,7 +1247,7 @@ describe('PluginManager', () => {
       });
 
       describe('when running a simple command', () => {
-        it('should run the simple command', () => {
+        it('should run the simple command', async () => {
           const commandsArray = ['deploy'];
           return pluginManager
             .run(commandsArray)
@@ -1263,7 +1256,7 @@ describe('PluginManager', () => {
       });
 
       describe('when running a nested command', () => {
-        it('should run the nested command', () => {
+        it('should run the nested command', async () => {
           const commandsArray = ['deploy', 'onpremises'];
           return pluginManager
             .run(commandsArray)
@@ -1283,7 +1276,7 @@ describe('PluginManager', () => {
         pluginManager.addPlugin(SynchronousPluginMock);
       });
 
-      it('should load only the providers plugins (if the provider is specified)', () => {
+      it('should load only the providers plugins (if the provider is specified)', async () => {
         const commandsArray = ['deploy'];
         return pluginManager.run(commandsArray).then(() => {
           expect(pluginManager.plugins.length).to.equal(2);
@@ -1295,7 +1288,7 @@ describe('PluginManager', () => {
       });
     });
 
-    it('should run commands with internal lifecycles', () => {
+    it('should run commands with internal lifecycles', async () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       const commandsArray = ['mycmd', 'spawncmd'];
@@ -1406,7 +1399,7 @@ describe('PluginManager', () => {
     });
 
     describe('when invoking a command', () => {
-      it('should succeed', () => {
+      it('should succeed', async () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['mycmd'];
@@ -1416,7 +1409,7 @@ describe('PluginManager', () => {
         });
       });
 
-      it('should spawn nested commands', () => {
+      it('should spawn nested commands', async () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['mycmd', 'mysubcmd'];
@@ -1426,7 +1419,7 @@ describe('PluginManager', () => {
         });
       });
 
-      it('should terminate the hook chain if requested', () => {
+      it('should terminate the hook chain if requested', async () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['mycmd', 'mysubcmd'];
@@ -1442,7 +1435,7 @@ describe('PluginManager', () => {
     });
 
     describe('when invoking a container', () => {
-      it('should spawn nested commands', () => {
+      it('should spawn nested commands', async () => {
         pluginManager.addPlugin(ContainerPluginMock);
 
         const commandsArray = ['mycontainer', 'mysubcmd'];
@@ -1454,7 +1447,7 @@ describe('PluginManager', () => {
     });
 
     describe('when invoking an entrypoint', () => {
-      it('should succeed', () => {
+      it('should succeed', async () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['myep'];
@@ -1464,7 +1457,7 @@ describe('PluginManager', () => {
         });
       });
 
-      it('should spawn nested entrypoints', () => {
+      it('should spawn nested entrypoints', async () => {
         pluginManager.addPlugin(EntrypointPluginMock);
 
         const commandsArray = ['myep', 'mysubep'];
@@ -1475,7 +1468,7 @@ describe('PluginManager', () => {
       });
 
       describe('with string formatted syntax', () => {
-        it('should succeed', () => {
+        it('should succeed', async () => {
           pluginManager.addPlugin(EntrypointPluginMock);
 
           return pluginManager.spawn('myep').then(() => {
@@ -1483,7 +1476,7 @@ describe('PluginManager', () => {
           });
         });
 
-        it('should spawn nested entrypoints', () => {
+        it('should spawn nested entrypoints', async () => {
           pluginManager.addPlugin(EntrypointPluginMock);
 
           return pluginManager.spawn('myep:mysubep').then(() => {
@@ -1493,7 +1486,7 @@ describe('PluginManager', () => {
       });
     });
 
-    it('should spawn entrypoints with internal lifecycles', () => {
+    it('should spawn entrypoints with internal lifecycles', async () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       const commandsArray = ['myep', 'spawnep'];

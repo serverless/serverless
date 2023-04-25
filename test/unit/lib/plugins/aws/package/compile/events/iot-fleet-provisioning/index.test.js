@@ -85,8 +85,8 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
           },
           ProvisioningRoleArn: 'arn:aws:iam::123456789:role/provisioning-role',
           TemplateBody: JSON.stringify(templateBody)
-            .replace('${self:service}', serviceName)
-            .replace("${opt:stage, self:provider.stage, 'dev'}", stage),
+            .replace(/\$\{self:service}/g, serviceName)
+            .replace(/\$\{sls:stage}/g, stage),
         },
         DependsOn: [naming.getLambdaIotFleetProvisioningPermissionLogicalId(functionName)],
       });
@@ -97,6 +97,7 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
         cfResources[naming.getLambdaIotFleetProvisioningPermissionLogicalId(functionName)];
       expect(lambdaPermissionResource).to.deep.equal({
         Type: 'AWS::Lambda::Permission',
+        DependsOn: undefined,
         Properties: {
           FunctionName: {
             'Fn::GetAtt': [naming.getLambdaLogicalId(functionName), 'Arn'],

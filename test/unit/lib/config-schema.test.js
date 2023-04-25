@@ -86,7 +86,7 @@ describe('test/unit/lib/configSchema.test.js', () => {
 
   for (const someCase of cases) {
     const passOrFail = someCase.isValid ? 'pass' : 'fail';
-    it(`should ${passOrFail} validation for ${someCase.description}`, () =>
+    it(`should ${passOrFail} validation for ${someCase.description}`, async () =>
       runServerless({
         fixture: 'config-schema-extensions',
         configExt: someCase.mutation,

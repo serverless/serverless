@@ -21,6 +21,8 @@ The Serverless Framework is different than other application frameworks because:
 - It manages your code as well as your infrastructure
 - It supports multiple languages (Node.js, Python, Java, and more)
 
+**Note: Google Cloud support is currently experimental and may not yet be appropriate for production usage.**
+
 ## Core Concepts
 
 Here are the Framework's main concepts and how they pertain to Google Cloud Functions...

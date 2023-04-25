@@ -25,6 +25,7 @@ service: myService
 provider:
   name: aws
   runtime: nodejs14.x
+  runtimeManagement: auto # optional, set how Lambda controls all functions runtime. AWS default is auto; this can either be 'auto' or 'onFunctionUpdate'. For 'manual', see example in hello function below (syntax for both is identical)
   memorySize: 512 # optional, in MB, default is 1024
   timeout: 10 # optional, in seconds, default is 6
   versionFunctions: false # optional, default is true
@@ -37,6 +38,9 @@ functions:
     name: ${sls:stage}-lambdaName # optional, Deployed Lambda name
     description: Description of what the lambda function does # optional, Description to publish to AWS
     runtime: python2.7 # optional overwrite, default is provider runtime
+    runtimeManagement:
+      mode: manual # syntax required for manual, mode property also supports 'auto' or 'onFunctionUpdate' (see provider.runtimeManagement)
+      arn: <aws runtime arn> # required when mode is manual
     memorySize: 512 # optional, in MB, default is 1024
     timeout: 10 # optional, in seconds, default is 6
     provisionedConcurrency: 3 # optional, Count of provisioned lambda instances
@@ -398,6 +402,33 @@ functions:
     architecture: arm64
 ```
 
+## Runtime Management
+
+[Runtime Management](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html) allows for fine-grained control of the runtime being used for a lambda function in the rare event of compatibility issues with a function.
+
+If you wish to keep `runtimeManagement` set to `auto`, that's the default so you don't need to specify it explicitly. If you wish for the runtime to only be updated when the function is redeployed, set it to `onFunctionUpdate`.
+
+To configure runtime management for all functions, configure `runtimeManagement` at `provider` level as follows:
+
+```yml
+provider:
+  ...
+  runtimeManagement: onFunctionUpdate
+```
+
+To toggle instruction set architecture per function individually, set it directly at `functions[]` context:
+
+```yml
+functions:
+  hello:
+    ...
+    runtimeManagement:
+      mode: manual
+      arn: <aws runtime arn>
+```
+
+Finally, `auto` and `onFunctionUpdate` can be set as the `mode` property as well for completeness (and to allow for the scenario where this value comes from another variable source, for example).
+
 ## SnapStart
 
 [Lambda SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html) for Java can improve startup performance for latency-sensitive applications.
@@ -669,22 +700,22 @@ We're working on a fix so that SQS queue arns will be supported in the future.
 
 [AWS Lambda](https://serverless.com/aws-lambda/) uses [AWS Key Management Service (KMS)](https://aws.amazon.com/kms/) to encrypt your environment variables at rest.
 
-The `awsKmsKeyArn` config variable enables you a way to define your own KMS key which should be used for encryption.
+The `kmsKeyArn` config variable enables you a way to define your own KMS key which should be used for encryption.
 
 ```yml
 service:
   name: service-name
-  awsKmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
 
 provider:
   name: aws
+  kmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
   environment:
     TABLE_NAME: tableName1
 
 functions:
   hello: # this function will OVERWRITE the service level environment config above
     handler: handler.hello
-    awsKmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
+    kmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
     environment:
       TABLE_NAME: tableName2
   goodbye: # this function will INHERIT the service level environment config above

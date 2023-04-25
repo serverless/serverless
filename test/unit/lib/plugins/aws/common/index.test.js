@@ -31,7 +31,7 @@ describe('AwsCommon', () => {
 
   describe('hooks', () => {
     describe('aws:common:validate:validate', () => {
-      it('should call validate', () => {
+      it('should call validate', async () => {
         const validateStub = sinon.stub(awsCommon, 'validate').resolves();
 
         return awsCommon.hooks['aws:common:validate:validate']().then(() => {
@@ -41,7 +41,7 @@ describe('AwsCommon', () => {
     });
 
     describe('aws:common:cleanupTempDir:cleanup', () => {
-      it('should call cleanupTempDir', () => {
+      it('should call cleanupTempDir', async () => {
         const cleanupTempDirStub = sinon.stub(awsCommon, 'cleanupTempDir').resolves();
 
         return awsCommon.hooks['aws:common:cleanupTempDir:cleanup']().then(() => {
@@ -51,7 +51,7 @@ describe('AwsCommon', () => {
     });
 
     describe('aws:common:moveArtifactsToPackage:move', () => {
-      it('should call cleanupTempDir', () => {
+      it('should call cleanupTempDir', async () => {
         const moveArtifactsToPackageStub = sinon
           .stub(awsCommon, 'moveArtifactsToPackage')
           .resolves();
@@ -63,7 +63,7 @@ describe('AwsCommon', () => {
     });
 
     describe('aws:common:moveArtifactsToTemp:move', () => {
-      it('should call cleanupTempDir', () => {
+      it('should call cleanupTempDir', async () => {
         const moveArtifactsToTempStub = sinon.stub(awsCommon, 'moveArtifactsToTemp').resolves();
 
         return awsCommon.hooks['aws:common:moveArtifactsToTemp:move']().then(() => {

@@ -299,7 +299,7 @@ describe('#addCustomResourceToService()', () => {
       expect(RoleProps.Policies[0].PolicyDocument.Statement).to.include.deep.members([
         {
           Effect: 'Allow',
-          Action: ['logs:CreateLogStream', 'logs:CreateLogGroup'],
+          Action: ['logs:CreateLogStream', 'logs:CreateLogGroup', 'logs:TagResource'],
           Resource: [
             {
               'Fn::Sub':

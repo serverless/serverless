@@ -88,6 +88,22 @@ functions:
             - a: [1, 2]
 ```
 
+## Setting the Maximum Concurrency
+
+The maximum concurrency setting limits the number of concurrent instances of the function that an Amazon SQS event source can invoke. The minimum limit of concurrent functions that the event source can invoke is `2`, and the maximum is `1000`. To turn off maximum concurrency, leave this field empty.
+
+For more details, see the [AWS SQS max concurrency documentation](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html#events-sqs-max-concurrency).
+
+```yml
+functions:
+  onlyOneOrTwo:
+    handler: handler.preprocess
+    events:
+      - sqs:
+          arn: arn:aws:sqs:region:XXXXXX:myQueue
+          maximumConcurrency: 250
+```
+
 ## IAM Permissions
 
 The Serverless Framework will automatically configure the most minimal set of IAM permissions for you. However you can still add additional permissions if you need to. Read the official [AWS documentation](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-configure-lambda-function-trigger.html) for more information about IAM Permissions for SQS events.

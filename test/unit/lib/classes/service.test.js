@@ -36,7 +36,7 @@ describe('Service', () => {
         })
       ).to.eventually.be.rejected.and.have.property('code', 'FRAMEWORK_VERSION_MISMATCH'));
 
-    it('should pass if frameworkVersion is satisfied', () =>
+    it('should pass if frameworkVersion is satisfied', async () =>
       runServerless({
         fixture: 'aws',
         configExt: { frameworkVersion: version },
@@ -59,7 +59,7 @@ describe('Service', () => {
   });
 
   describe('#mergeArrays', () => {
-    it('should merge resources given as an array', () =>
+    it('should merge resources given as an array', async () =>
       runServerless({
         fixture: 'aws',
         configExt: {
@@ -87,7 +87,7 @@ describe('Service', () => {
         expect(Resources.resource2).to.deep.equal({ Type: 'value2' });
       }));
 
-    it('should merge functions given as an array', () =>
+    it('should merge functions given as an array', async () =>
       runServerless({
         fixture: 'aws',
         configExt: {

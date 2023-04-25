@@ -195,7 +195,7 @@ describe('AWS - S3 Integration Test', function () {
           expect(logs.includes(expectedMessage)).to.equal(true);
         });
       });
-      it('should invoke function when a .png object is created', () => {
+      it('should invoke function when a .png object is created', async () => {
         const functionName = 'existingCreated';
         const expectedMessage = `Hello from S3! - (${functionName})`;
 
@@ -219,7 +219,7 @@ describe('AWS - S3 Integration Test', function () {
           expect(logs.includes(expectedMessage)).to.equal(true);
         });
       });
-      it('should invoke function when a .png object is removed', () => {
+      it('should invoke function when a .png object is removed', async () => {
         const functionName = 'existingRemoved';
         const expectedMessage = `Hello from S3! - (${functionName})`;
 

@@ -47,6 +47,25 @@ functions:
             key1: value1
 ```
 
+## Setting a custom name and description
+
+**Note:** `eventBridge` events by default are named with the lambda function's name with a suffix for the rule position. Set the `name` property within `eventBridge` to change this functionality.
+
+A description can also be specified. These are not required properties.
+
+```yml
+functions:
+  myFunction:
+    handler: index.handler
+    events:
+      - eventBridge:
+          name: event-bridge-custom-name
+          description: a description of my eventBridge event's purpose
+          schedule: rate(10 minutes)
+          input:
+            key1: value1
+```
+
 ## Setting up event pattern matching
 
 ```yml

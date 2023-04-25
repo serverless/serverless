@@ -117,6 +117,7 @@ Some function settings can be defined for all functions inside the `provider` ke
 
 provider:
   runtime: nodejs14.x
+  runtimeManagement: auto # optional, set how Lambda controls all functions runtime. AWS default is auto; this can either be 'auto' or 'onFunctionUpdate'. For 'manual', see example in hello function below (syntax for both is identical
   # Default memory size for functions (default: 1024MB)
   memorySize: 512
   # Default timeout for functions (default: 6 seconds)
@@ -125,7 +126,8 @@ provider:
   # Function environment variables
   environment:
     APP_ENV_VARIABLE: FOOBAR
-  # Duration for CloudWatch log retention (default: forever)
+  # Duration for CloudWatch log retention (default: forever).
+  # Can be overridden for each function separately inside the functions block, see below on page.
   # Valid values: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-loggroup.html
   logRetentionInDays: 14
   # Policy defining how to monitor and mask sensitive data in CloudWatch logs
@@ -620,6 +622,9 @@ functions:
     # Can be the URI of an image in ECR, or the name of an image defined in 'provider.ecr.images'
     image: baseimage
     runtime: nodejs14.x
+    runtimeManagement:
+      mode: manual # syntax required for manual, mode property also supports 'auto' or 'onFunctionUpdate' (see provider.runtimeManagement)
+      arn: <aws runtime arn> # required when mode is manual
     # Memory size (default: 1024MB)
     memorySize: 512
     # Timeout (default: 6 seconds)
@@ -649,7 +654,7 @@ functions:
     snapStart: true
     # Disable the creation of the CloudWatch log group
     disableLogs: false
-    # Duration for CloudWatch log retention (default: forever).
+    # Duration for CloudWatch log retention (default: forever). Overrides provider setting.
     logRetentionInDays: 14
     tags: # Function specific tags
       foo: bar
@@ -1219,6 +1224,7 @@ functions:
     events:
       # Use the default AWS event bus
       - eventBridge:
+          description: a description of my eventBridge event's purpose
           schedule: rate(10 minutes)
       # Create a custom event bus
       - eventBridge:

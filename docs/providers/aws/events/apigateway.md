@@ -1599,7 +1599,7 @@ functions:
 
 we encounter error from cloudformation as reported [here](https://github.com/serverless/serverless/issues/4711).
 
-A proper fix for this is work is using [Share Authorizer](#share-authorizer) or you can add a unique `name` attribute to `authorizer` in each function. This creates different API Gateway authorizer for each function, bound to the same API Gateway. However, there is a limit of 10 authorizers per RestApi, and they are forced to contact AWS to request a limit increase to unblock development.
+A proper fix for this to work is using [Share Authorizer](#share-authorizer) or you can add a unique `name` attribute to `authorizer` in each function. This creates different API Gateway authorizer for each function, bound to the same API Gateway. However, there is a limit of 10 authorizers per RestApi, and they are forced to contact AWS to request a limit increase to unblock development.
 
 ## Share Authorizer
 
