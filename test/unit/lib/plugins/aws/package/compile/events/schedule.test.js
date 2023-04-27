@@ -38,7 +38,10 @@ async function run(events) {
     for (let i = 0; i < scheduleEvents.length; i++) {
       const index = scheduleCfResources.length + 1;
 
-      const scheduleLogicalId = awsNaming.getScheduleLogicalId('test', index);
+      const scheduleLogicalId =
+        schedule.method === 'scheduler'
+          ? awsNaming.getSchedulerScheduleLogicalId('test', index)
+          : awsNaming.getScheduleLogicalId('test', index);
       const scheduleCfResource = cfResources[scheduleLogicalId];
       scheduleCfResource.serviceName = awsNaming.provider.serverless.service.service;
 
@@ -300,40 +303,10 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
 
   it('should pass the roleArn to method:schedule resources', () => {
     expect(scheduleCfResources[8].Properties.Target.RoleArn).to.deep.equal({
-      'Fn::GetAtt': [
-        {
-          'Fn::Join': [
-            '-',
-            [
-              scheduleCfResources[8].serviceName,
-              'dev',
-              {
-                Ref: 'AWS::Region',
-              },
-              'lambdaRole',
-            ],
-          ],
-        },
-        'Arn',
-      ],
+      'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'],
     });
     expect(scheduleCfResources[9].Properties.Target.RoleArn).to.deep.equal({
-      'Fn::GetAtt': [
-        {
-          'Fn::Join': [
-            '-',
-            [
-              scheduleCfResources[8].serviceName,
-              'dev',
-              {
-                Ref: 'AWS::Region',
-              },
-              'lambdaRole',
-            ],
-          ],
-        },
-        'Arn',
-      ],
+      'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'],
     });
   });
 

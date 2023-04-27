@@ -577,6 +577,14 @@ describe('#naming()', () => {
     });
   });
 
+  describe('#getSchedulerScheduleLogicalId()', () => {
+    it('should normalize the function name and add the standard suffix for scheduler schedules including the index', () => {
+      expect(sdk.naming.getSchedulerScheduleLogicalId('functionName', 0)).to.equal(
+        'FunctionNameSchedulerSchedule0'
+      );
+    });
+  });
+
   describe('#getStreamConsumerName()', () => {
     it('should add the standard suffix', () => {
       expect(sdk.naming.getStreamConsumerName('functionName', 'streamName')).to.equal(
