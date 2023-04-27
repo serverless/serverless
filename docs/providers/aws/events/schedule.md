@@ -99,7 +99,8 @@ AWS has account-wide limits on the number of `AWS::Event::Rule` triggers per bus
 This can lead to a situation where large projects hit the limit with no ability to schedule more events.
 
 However, `AWS::Scheduler::Schedule` has much higher limits (1,000,000 events), and is configured identically.
-`method` can be set in order to migrate to this trigger type seamlessly. The default is `eventBus`, which configures an `AWS::Event::Rule`.
+`method` can be set in order to migrate to this trigger type seamlessly. It also allows you to specify a timezone to run your event based on local time.
+The default method is `eventBus`, which configures an `AWS::Event::Rule`.
 
 ```yaml
 functions:
@@ -110,6 +111,7 @@ functions:
           method: scheduler
           rate:
             - cron(0 0/4 ? * MON-FRI *)
+          timezone: America/New_York
           input:
             key1: value1
             key2: value2
