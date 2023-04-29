@@ -26,7 +26,7 @@ service: my-service
 
 provider:
   name: kubeless
-  runtime: python2.7
+  runtime: python3.9
   memorySize: 512M # optional, maximum memory
   timeout: 10 # optional, in seconds, default is 180
   namespace: funcions # optional, deployment namespace if not specified it uses "default"
@@ -80,7 +80,7 @@ service: my-service
 
 provider:
   name: kubeless
-  runtime: python2.7
+  runtime: python3.9
 
 plugins:
   - serverless-kubeless
@@ -340,7 +340,7 @@ service: hello
 
 provider:
   name: kubeless
-  runtime: python2.7
+  runtime: python3.9
 
 plugins:
   - serverless-kubeless
