@@ -96,7 +96,7 @@ describe('#addCustomResourceToService()', () => {
     const { Resources } = serverless.service.provider.compiledCloudFormationTemplate;
 
     // S3 Lambda Function
-    expect(Resources.CustomDashresourceDashexistingDashs3LambdaFunction).to.be.eql({
+    expect(Resources.CustomDashresourceDashexistingDashs3LambdaFunction).to.deep.equal({
       Type: 'AWS::Lambda::Function',
       Properties: {
         Code: {
@@ -115,7 +115,7 @@ describe('#addCustomResourceToService()', () => {
       DependsOn: ['IamRoleCustomResourcesLambdaExecution'],
     });
     // Cognito User Pool Lambda Function
-    expect(Resources.CustomDashresourceDashexistingDashcupLambdaFunction).to.be.eql({
+    expect(Resources.CustomDashresourceDashexistingDashcupLambdaFunction).to.deep.equal({
       Type: 'AWS::Lambda::Function',
       Properties: {
         Code: {
@@ -134,7 +134,7 @@ describe('#addCustomResourceToService()', () => {
       DependsOn: ['IamRoleCustomResourcesLambdaExecution'],
     });
     // Event Bridge Lambda Function
-    expect(Resources.CustomDashresourceDasheventDashbridgeLambdaFunction).to.be.eql({
+    expect(Resources.CustomDashresourceDasheventDashbridgeLambdaFunction).to.deep.equal({
       Type: 'AWS::Lambda::Function',
       Properties: {
         Code: {
@@ -154,7 +154,7 @@ describe('#addCustomResourceToService()', () => {
     });
     // Iam Role
     const RoleProps = Resources.IamRoleCustomResourcesLambdaExecution.Properties;
-    expect(RoleProps.AssumeRolePolicyDocument).to.be.eql({
+    expect(RoleProps.AssumeRolePolicyDocument).to.deep.equal({
       Statement: [
         {
           Action: ['sts:AssumeRole'],

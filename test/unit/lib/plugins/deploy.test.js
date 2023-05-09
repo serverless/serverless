@@ -22,11 +22,11 @@ describe('Deploy', () => {
   });
 
   describe('#constructor()', () => {
-    it('should have commands', () => expect(deploy.commands).not.be.empty);
-    it('should have hooks', () => expect(deploy.hooks).not.be.empty);
+    it('should have commands', () => expect(deploy.commands).to.be.not.empty);
+    it('should have hooks', () => expect(deploy.hooks).to.be.not.empty);
     it('should work without options', () => {
       const noOptionDeploy = new Deploy(serverless);
-      expect(noOptionDeploy.options).to.be.eql({});
+      expect(noOptionDeploy).to.have.property('options').to.be.eql({});
     });
   });
 
@@ -74,7 +74,7 @@ describe('Deploy', () => {
       expect(spawnPackageStub.calledWithExactly('package')).to.be.true;
     });
 
-    it('should throw an error if provider does not exist', () => {
+    it('should throw an error if provider does not exist', async () => {
       deploy.serverless.service.provider.name = 'nonExistentProvider';
 
       return expect(deploy.hooks['before:deploy:deploy']()).to.eventually.be.rejectedWith(

@@ -50,7 +50,7 @@ describe('ensureApiGatewayCloudWatchRole', () => {
 
       await ensureApiGatewayCloudWatchRole(provider);
 
-      expect(resources[customResourceLogicalId]).to.be.eql({
+      expect(resources[customResourceLogicalId]).to.deep.equal({
         Type: 'Custom::ApiGatewayAccountRole',
         Version: 1,
         Properties: {
@@ -91,7 +91,7 @@ describe('ensureApiGatewayCloudWatchRole', () => {
     it('Should ensure custom resource on template', async () => {
       await ensureApiGatewayCloudWatchRole(provider);
 
-      expect(resources[customResourceLogicalId]).to.be.eql({
+      expect(resources[customResourceLogicalId]).to.deep.equal({
         Type: 'Custom::ApiGatewayAccountRole',
         Version: 1,
         Properties: {
