@@ -4,6 +4,7 @@ const expect = require('chai').expect;
 const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
 const AwsCompileCloudWatchLogEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/cloud-watch-log');
 const Serverless = require('../../../../../../../../lib/serverless');
+const runServerless = require('../../../../../../../utils/run-serverless');
 
 describe('AwsCompileCloudWatchLogEvents', () => {
   let serverless;
@@ -424,6 +425,78 @@ describe('AwsCompileCloudWatchLogEvents', () => {
         awsCompileCloudWatchLogEvents.serverless.service.provider.compiledCloudFormationTemplate
           .Resources
       ).to.deep.equal({});
+    });
+  });
+});
+
+describe('test/unit/lib/plugins/aws/package/compile/events/cloud-watch-log.test.js', () => {
+  describe('when there are cloud watch log events defined', () => {
+    let cfResources;
+
+    before(async () => {
+      const { cfTemplate } = await runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            basic: {
+              events: [
+                {
+                  cloudwatchLog: {
+                    logGroup: '/aws/lambda/hello1',
+                  },
+                },
+              ],
+            },
+            other: {
+              provisionedConcurrency: 1,
+              events: [
+                {
+                  cloudwatchLog: {
+                    logGroup: '/aws/lambda/hello1',
+                  },
+                },
+              ],
+            },
+          },
+        },
+        command: 'package',
+      });
+      cfResources = cfTemplate.Resources;
+    });
+    it('should have the filter depend on the cloud watch log', () => {
+      expect(cfResources.BasicLogsSubscriptionFilterCloudWatchLog1.Type).to.equal(
+        'AWS::Logs::SubscriptionFilter'
+      );
+      expect(cfResources.BasicLogsSubscriptionFilterCloudWatchLog1.DependsOn).to.eql([
+        'BasicLambdaPermissionLogsSubscriptionFilterCloudWatchLog',
+      ]);
+    });
+
+    it('should have the filter depend on the cloud watch log and the lambda alias', () => {
+      expect(cfResources.OtherLogsSubscriptionFilterCloudWatchLog1.Type).to.equal(
+        'AWS::Logs::SubscriptionFilter'
+      );
+      expect(cfResources.OtherLogsSubscriptionFilterCloudWatchLog1.DependsOn).to.eql([
+        'OtherLambdaPermissionLogsSubscriptionFilterCloudWatchLog',
+        'OtherProvConcLambdaAlias',
+      ]);
+    });
+
+    it('should not have the permission depend on the cloud watch log', () => {
+      expect(cfResources.BasicLambdaPermissionLogsSubscriptionFilterCloudWatchLog.Type).to.equal(
+        'AWS::Lambda::Permission'
+      );
+      expect(cfResources.BasicLambdaPermissionLogsSubscriptionFilterCloudWatchLog.DependsOn).to.be
+        .undefined;
+    });
+
+    it('should not have the permission depend on the cloud watch log but should depend on the lambda alias', () => {
+      expect(cfResources.OtherLambdaPermissionLogsSubscriptionFilterCloudWatchLog.Type).to.equal(
+        'AWS::Lambda::Permission'
+      );
+      expect(cfResources.OtherLambdaPermissionLogsSubscriptionFilterCloudWatchLog.DependsOn).to.eql(
+        ['OtherProvConcLambdaAlias']
+      );
     });
   });
 });
