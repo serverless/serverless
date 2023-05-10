@@ -290,15 +290,39 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
       },
     ];
 
-    await expect(run([events[0]])).to.be.eventually.rejectedWith(
-      ServerlessError,
-      "Configuration error at 'functions.test.events.0.schedule.method': must be equal to one of the allowed values [eventBus]\n\nLearn more about configuration validation here: http://slss.io/configuration-validation"
-    );
+    await expect(run([events[0]]))
+      .to.be.eventually.rejectedWith(ServerlessError)
+      .and.have.property('code', 'SCHEDULE_PARAMETER_NOT_SUPPORTED');
 
-    await expect(run([events[1]])).to.be.eventually.rejectedWith(
-      ServerlessError,
-      "Configuration error at 'functions.test.events.0.schedule.method': must be equal to one of the allowed values [eventBus]\n\nLearn more about configuration validation here: http://slss.io/configuration-validation"
-    );
+    await expect(run([events[1]]))
+      .to.be.eventually.rejectedWith(ServerlessError)
+      .and.have.property('code', 'SCHEDULE_PARAMETER_NOT_SUPPORTED');
+  });
+
+  it('should throw when passing "timezone" to method:eventBus resources', async () => {
+    const events = [
+      {
+        schedule: {
+          rate: 'rate(15 minutes)',
+          method: 'eventBus',
+          timezone: 'America/New_York',
+        },
+      },
+      {
+        schedule: {
+          rate: 'rate(15 minutes)',
+          timezone: 'America/New_York',
+        },
+      },
+    ];
+
+    await expect(run([events[0]]))
+      .to.be.eventually.rejectedWith(ServerlessError)
+      .and.have.property('code', 'SCHEDULE_PARAMETER_NOT_SUPPORTED');
+
+    await expect(run([events[1]]))
+      .to.be.eventually.rejectedWith(ServerlessError)
+      .and.have.property('code', 'SCHEDULE_PARAMETER_NOT_SUPPORTED');
   });
 
   it('should pass the roleArn to method:schedule resources', () => {
