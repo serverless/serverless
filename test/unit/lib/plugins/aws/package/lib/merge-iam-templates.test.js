@@ -80,7 +80,6 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       let cfResources;
       let service;
       const arnLogPrefix = 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}';
-      const arnFunctionPrefix = 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}';
 
       before(async () => {
         const test = await runServerless({
@@ -171,43 +170,6 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         expect(myFunctionResource.Properties.LogGroupName).to.be.equal(
           `/aws/lambda/${service}-dev-myFunction`
         );
-      });
-
-      it('should allow scheduler to assume role', () => {
-        const IamRoleLambdaExecution = naming.getRoleLogicalId();
-        const { Properties } = cfResources[IamRoleLambdaExecution];
-
-        const assumeRoleStatement = Properties.AssumeRolePolicyDocument.Statement[0];
-
-        expect(assumeRoleStatement.Effect).to.be.equal('Allow');
-        expect(assumeRoleStatement.Action).to.include('sts:AssumeRole');
-        expect(assumeRoleStatement.Principal.Service).to.include('scheduler.amazonaws.com');
-      });
-
-      it('should allow role to invoke functions', () => {
-        const IamRoleLambdaExecution = naming.getRoleLogicalId();
-        const { Properties } = cfResources[IamRoleLambdaExecution];
-
-        const invokeFunctionStatement = Properties.Policies[0].PolicyDocument.Statement[2];
-
-        expect(invokeFunctionStatement.Effect).to.be.equal('Allow');
-        expect(invokeFunctionStatement.Action).to.include('lambda:InvokeFunction');
-        expect(invokeFunctionStatement.Resource).to.deep.include({
-          'Fn::Sub': `${arnFunctionPrefix}:function:*`,
-        });
-      });
-
-      it('should allow role to invoke function versions and aliases', () => {
-        const IamRoleLambdaExecution = naming.getRoleLogicalId();
-        const { Properties } = cfResources[IamRoleLambdaExecution];
-
-        const invokeFunctionStatement = Properties.Policies[0].PolicyDocument.Statement[2];
-
-        expect(invokeFunctionStatement.Effect).to.be.equal('Allow');
-        expect(invokeFunctionStatement.Action).to.include('lambda:InvokeFunction');
-        expect(invokeFunctionStatement.Resource).to.deep.include({
-          'Fn::Sub': `${arnFunctionPrefix}:function:*:*`,
-        });
       });
     });
 

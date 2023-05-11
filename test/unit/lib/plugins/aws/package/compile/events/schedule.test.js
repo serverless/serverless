@@ -5,6 +5,9 @@ const ServerlessError = require('../../../../../../../../lib/serverless-error');
 const { use: chaiUse, expect } = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 
+const METHOD_SCHEDULER = 'scheduler';
+const METHOD_EVENT_BUS = 'eventBus';
+
 chaiUse(chaiAsPromised);
 
 async function run(events) {
@@ -24,6 +27,8 @@ async function run(events) {
   const cfResources = cfTemplate.Resources;
 
   const scheduleCfResources = [];
+  const iamRoleLambdaExecution = awsNaming.getRoleLogicalId();
+  const iamResource = cfResources[iamRoleLambdaExecution];
 
   for (const event of events) {
     const schedule = event.schedule;
@@ -39,7 +44,7 @@ async function run(events) {
       const index = scheduleCfResources.length + 1;
 
       const scheduleLogicalId =
-        schedule.method === 'scheduler'
+        schedule.method === METHOD_SCHEDULER
           ? awsNaming.getSchedulerScheduleLogicalId('test', index)
           : awsNaming.getScheduleLogicalId('test', index);
       const scheduleCfResource = cfResources[scheduleLogicalId];
@@ -49,11 +54,12 @@ async function run(events) {
     }
   }
 
-  return scheduleCfResources;
+  return { scheduleCfResources, iamResource };
 }
 
 describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', () => {
   let scheduleCfResources;
+  let iamResource;
 
   before(async () => {
     const events = [
@@ -77,7 +83,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
           rate: 'rate(10 minutes)',
           enabled: true,
           input: '{"key":"array"}',
-          method: 'eventBus',
+          method: METHOD_EVENT_BUS,
         },
       },
       {
@@ -110,7 +116,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
       {
         schedule: {
           rate: 'rate(15 minutes)',
-          method: 'scheduler',
+          method: METHOD_SCHEDULER,
           name: 'scheduler-scheduled-event',
           description: 'Scheduler Scheduled Event',
           input: '{"key":"array"}',
@@ -120,7 +126,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
         schedule: {
           rate: 'cron(15 10 ? * SAT-SUN *)',
           enabled: false,
-          method: 'scheduler',
+          method: METHOD_SCHEDULER,
         },
       },
       {
@@ -130,7 +136,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
       },
     ];
 
-    scheduleCfResources = await run(events);
+    ({ scheduleCfResources, iamResource } = await run(events));
   });
 
   it('should respect the "method" variable when creating the resource', () => {
@@ -274,14 +280,14 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
       {
         schedule: {
           rate: 'rate(15 minutes)',
-          method: 'scheduler',
+          method: METHOD_SCHEDULER,
           inputPath: '$.stageVariables',
         },
       },
       {
         schedule: {
           rate: 'rate(15 minutes)',
-          method: 'scheduler',
+          method: METHOD_SCHEDULER,
           inputTransformer: {
             inputPathsMap: { eventTime: '$.time' },
             inputTemplate: '{"time": <eventTime>, "key": "value"}',
@@ -304,7 +310,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
       {
         schedule: {
           rate: 'rate(15 minutes)',
-          method: 'eventBus',
+          method: METHOD_EVENT_BUS,
           timezone: 'America/New_York',
         },
       },
@@ -334,7 +340,59 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
     });
   });
 
+  it('should have scheduler policies when there are scheduler schedules', () => {
+    const arnFunctionPrefix = 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}';
+    const assumeRoleStatement = iamResource.Properties.AssumeRolePolicyDocument.Statement[0];
+
+    expect(assumeRoleStatement.Effect).to.be.equal('Allow');
+    expect(assumeRoleStatement.Action).to.include('sts:AssumeRole');
+    expect(assumeRoleStatement.Principal.Service).to.include('scheduler.amazonaws.com');
+
+    const policyStatements = iamResource.Properties.Policies[0].PolicyDocument.Statement;
+
+    const invokeFunctionStatement = policyStatements.find((statement) =>
+      statement.Action.includes('lambda:InvokeFunction')
+    );
+
+    expect(invokeFunctionStatement.Effect).to.be.equal('Allow');
+    expect(invokeFunctionStatement.Resource).to.deep.include({
+      'Fn::Sub': `${arnFunctionPrefix}:function:*`,
+    });
+    expect(invokeFunctionStatement.Resource).to.deep.include({
+      'Fn::Sub': `${arnFunctionPrefix}:function:*:*`,
+    });
+  });
+
+  it('should have not scheduler policies when there are no scheduler schedules', async () => {
+    const events = [
+      {
+        schedule: {
+          rate: 'rate(15 minutes)',
+          method: METHOD_EVENT_BUS,
+        },
+      },
+      {
+        schedule: {
+          rate: 'rate(15 minutes)',
+        },
+      },
+    ];
+
+    const { iamResource: thisIamResource } = await run(events);
+
+    const assumeRoleStatement = thisIamResource.Properties.AssumeRolePolicyDocument.Statement[0];
+
+    expect(assumeRoleStatement.Principal.Service).to.not.include('scheduler.amazonaws.com');
+
+    const policyStatements = thisIamResource.Properties.Policies[0].PolicyDocument.Statement;
+    const invokeFunctionStatement = policyStatements.find((statement) =>
+      statement.Action.includes('lambda:InvokeFunction')
+    );
+
+    expect(invokeFunctionStatement).to.be.undefined;
+  });
+
   it('should not create schedule resources when no scheduled event is given', async () => {
-    expect(await run([])).to.be.empty;
+    expect((await run([])).scheduleCfResources).to.be.empty;
   });
 });
