@@ -11,7 +11,7 @@ describe('ApiGatewayEvents', () => {
   describe('Request parameters', () => {
     let cfResources;
     let naming;
-    before(() =>
+    before(async () =>
       runServerless({
         fixture: 'api-gateway',
         configExt: {

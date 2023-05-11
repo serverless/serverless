@@ -45,7 +45,7 @@ describe('AWS - Stream Integration Test', function () {
   });
 
   describe('Kinesis Streams', () => {
-    it('should invoke on kinesis messages from the trim horizon', () => {
+    it('should invoke on kinesis messages from the trim horizon', async () => {
       const functionName = 'streamKinesis';
       const message = 'Hello from Kinesis!';
 
@@ -66,7 +66,7 @@ describe('AWS - Stream Integration Test', function () {
   });
 
   describe('DynamoDB Streams', () => {
-    it('should invoke on dynamodb messages from the latest position', () => {
+    it('should invoke on dynamodb messages from the latest position', async () => {
       const functionName = 'streamDynamoDb';
       const item = { id: String(Date.now()) };
       return confirmCloudWatchLogs(

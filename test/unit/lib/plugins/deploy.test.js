@@ -48,7 +48,7 @@ describe('Deploy', () => {
       serverless.pluginManager.spawn.restore();
     });
 
-    it('should resolve if the package option is set', () => {
+    it('should resolve if the package option is set', async () => {
       deploy.options.package = false;
       deploy.serverless.service.package.path = 'some_path';
 
@@ -57,7 +57,7 @@ describe('Deploy', () => {
       );
     });
 
-    it('should resolve if the service package path is set', () => {
+    it('should resolve if the service package path is set', async () => {
       deploy.options.package = 'some_path';
       deploy.serverless.service.package.path = false;
 
@@ -66,7 +66,7 @@ describe('Deploy', () => {
       );
     });
 
-    it('should use the default packaging mechanism if no packaging config is provided', () => {
+    it('should use the default packaging mechanism if no packaging config is provided', async () => {
       deploy.options.package = false;
       deploy.serverless.service.package.path = false;
 

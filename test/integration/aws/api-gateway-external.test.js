@@ -64,13 +64,13 @@ describe('AWS - API Gateway with External REST API Integration Test', function (
     await deleteRestApi(restApiId);
   });
 
-  it('should expose an accessible GET HTTP endpoint', () => {
+  it('should expose an accessible GET HTTP endpoint', async () => {
     return fetch(endpoint, { method: 'GET' })
       .then((response) => response.json())
       .then((json) => expect(json.message).to.equal('Hello from API Gateway! - (minimal)'));
   });
 
-  it('should expose an accessible POST HTTP endpoint', () => {
+  it('should expose an accessible POST HTTP endpoint', async () => {
     const testEndpoint = `${endpoint}/minimal-1`;
 
     return fetch(testEndpoint, { method: 'POST' })

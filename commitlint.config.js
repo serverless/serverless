@@ -17,6 +17,7 @@ module.exports = {
         'AWS API Gateway',
         'AWS CloudFormation',
         'AWS CloudFront',
+        'AWS CloudWatch',
         'AWS Cognito',
         'AWS Credentials',
         'AWS Deploy',

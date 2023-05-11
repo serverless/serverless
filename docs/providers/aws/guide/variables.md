@@ -82,10 +82,11 @@ service: new-service
 provider: aws
 custom:
   globalSchedule: rate(10 minutes)
-  newService: ${self:}
-  # the following will resolve identically in other serverless.yml files so long as they define
-  # `custom.newService: ${file(<relative-path-to-this-file>/serverless.yml)}`
-  exportName: ${self:custom.newService.service}-export
+  # the following example purposely demonstrates the ability for a variable to cross reference another one
+  serviceName: ${self:service}
+  exportName: ${self:custom.serviceName}-export
+  # or simply
+  # exportName: ${self:service}-export
 
 functions:
   hello:
@@ -134,7 +135,7 @@ The stage used by the Serverless CLI. The `${sls:stage}` variable is a shortcut 
 
 ## Referencing Environment Variables
 
-To reference environment variables, use the `${env:SOME_VAR}` syntax in your `serverless.yml` configuration file. It is valid to use the empty string in place of `SOME_VAR`. This looks like "`${env:}`" and the result of declaring this in your `serverless.yml` is to embed the complete `process.env` object (i.e. all the variables defined in your environment).
+To reference environment variables, use the `${env:SOME_VAR}` syntax in your `serverless.yml` configuration file.
 
 **Note:**
 

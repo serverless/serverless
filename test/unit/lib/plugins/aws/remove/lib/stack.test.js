@@ -25,7 +25,7 @@ describe('removeStack', () => {
   });
 
   describe('#remove()', () => {
-    it('should remove a stack', () =>
+    it('should remove a stack', async () =>
       awsRemove.remove().then(() => {
         expect(removeStackStub.calledOnce).to.be.equal(true);
         expect(
@@ -36,7 +36,7 @@ describe('removeStack', () => {
         awsRemove.provider.request.restore();
       }));
 
-    it('should use CloudFormation service role if it is specified', () => {
+    it('should use CloudFormation service role if it is specified', async () => {
       awsRemove.serverless.service.provider.cfnRole = 'arn:aws:iam::123456789012:role/myrole';
 
       return awsRemove.remove().then(() => {
@@ -49,7 +49,7 @@ describe('removeStack', () => {
   });
 
   describe('#removeStack()', () => {
-    it('should run promise chain in order', () => {
+    it('should run promise chain in order', async () => {
       const removeStub = sinon.stub(awsRemove, 'remove').resolves();
 
       return awsRemove.removeStack().then(() => {

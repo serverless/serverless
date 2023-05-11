@@ -45,7 +45,7 @@ describe('ensureApiGatewayCloudWatchRole', () => {
   });
 
   describe('when using a custom REST API role', () => {
-    it('should add the custom REST API role to the resources', () => {
+    it('should add the custom REST API role to the resources', async () => {
       provider.serverless.service.provider.logs = {
         restApi: {
           role: 'arn:aws:iam::XXXXX:role/api-gateway-role',
@@ -70,7 +70,7 @@ describe('ensureApiGatewayCloudWatchRole', () => {
   });
 
   describe('when role assignment is managed externally', () => {
-    it('should not add any custom resources', () => {
+    it('should not add any custom resources', async () => {
       provider.serverless.service.provider.logs = {
         restApi: {
           role: 'arn:aws:iam::XXXXX:role/api-gateway-role',
@@ -87,7 +87,7 @@ describe('ensureApiGatewayCloudWatchRole', () => {
   });
 
   describe('when leveraging custom resources', () => {
-    it('Should memoize custom resource generator', () => {
+    it('Should memoize custom resource generator', async () => {
       return expect(
         BbPromise.all([
           ensureApiGatewayCloudWatchRole(provider),
@@ -98,7 +98,7 @@ describe('ensureApiGatewayCloudWatchRole', () => {
       });
     });
 
-    it('Should ensure custom resource on template', () => {
+    it('Should ensure custom resource on template', async () => {
       return expect(ensureApiGatewayCloudWatchRole(provider)).to.eventually.be.fulfilled.then(
         () => {
           expect(resources[customResourceLogicalId]).to.deep.equal({

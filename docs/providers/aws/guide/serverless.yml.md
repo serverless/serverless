@@ -126,7 +126,8 @@ provider:
   # Function environment variables
   environment:
     APP_ENV_VARIABLE: FOOBAR
-  # Duration for CloudWatch log retention (default: forever)
+  # Duration for CloudWatch log retention (default: forever).
+  # Can be overridden for each function separately inside the functions block, see below on page.
   # Valid values: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-loggroup.html
   logRetentionInDays: 14
   # Policy defining how to monitor and mask sensitive data in CloudWatch logs
@@ -653,7 +654,7 @@ functions:
     snapStart: true
     # Disable the creation of the CloudWatch log group
     disableLogs: false
-    # Duration for CloudWatch log retention (default: forever).
+    # Duration for CloudWatch log retention (default: forever). Overrides provider setting.
     logRetentionInDays: 14
     tags: # Function specific tags
       foo: bar
@@ -1223,6 +1224,7 @@ functions:
     events:
       # Use the default AWS event bus
       - eventBridge:
+          description: a description of my eventBridge event's purpose
           schedule: rate(10 minutes)
       # Create a custom event bus
       - eventBridge:

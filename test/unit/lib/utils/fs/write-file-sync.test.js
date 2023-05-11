@@ -23,7 +23,7 @@ describe('#writeFileSync()', () => {
     expect(obj.foo).to.equal('bar');
   });
 
-  it('should write a .yml file synchronously', () => {
+  it('should write a .yml file synchronously', async () => {
     const tmpFilePath = getTmpFilePath('anything.yml');
 
     writeFileSync(tmpFilePath, { foo: 'bar' });
@@ -33,7 +33,7 @@ describe('#writeFileSync()', () => {
     });
   });
 
-  it('should write a .yaml file synchronously', () => {
+  it('should write a .yaml file synchronously', async () => {
     const tmpFilePath = getTmpFilePath('anything.yaml');
 
     writeFileSync(tmpFilePath, { foo: 'bar' });
@@ -49,7 +49,7 @@ describe('#writeFileSync()', () => {
     }).to.throw(Error);
   });
 
-  it('should be able to write an object with circular references', () => {
+  it('should be able to write an object with circular references', async () => {
     const tmpFilePath = getTmpFilePath('anything.json');
     const bar = {};
     bar.foo = bar;

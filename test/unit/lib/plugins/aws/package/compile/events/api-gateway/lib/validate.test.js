@@ -1141,7 +1141,7 @@ describe('#validate()', () => {
     expect(validated.events[0].http.async);
   });
 
-  it('should not show a warning message when using request.parameter with LAMBDA-PROXY', () => {
+  it('should not show a warning message when using request.parameter with LAMBDA-PROXY', async () => {
     awsCompileApigEvents.serverless.service.functions = {
       first: {
         events: [
@@ -1181,7 +1181,7 @@ describe('#validate()', () => {
     });
   });
 
-  it('should remove non-parameter request/response config with LAMBDA-PROXY', () => {
+  it('should remove non-parameter request/response config with LAMBDA-PROXY', async () => {
     awsCompileApigEvents.serverless.service.functions = {
       first: {
         events: [
