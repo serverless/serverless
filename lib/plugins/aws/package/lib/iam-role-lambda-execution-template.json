@@ -7,7 +7,7 @@
         {
           "Effect": "Allow",
           "Principal": {
-            "Service": ["lambda.amazonaws.com", "scheduler.amazonaws.com"]
+            "Service": ["lambda.amazonaws.com"]
           },
           "Action": ["sts:AssumeRole"]
         }
@@ -27,11 +27,6 @@
             {
               "Effect": "Allow",
               "Action": ["logs:PutLogEvents"],
-              "Resource": []
-            },
-            {
-              "Effect": "Allow",
-              "Action": ["lambda:InvokeFunction"],
               "Resource": []
             }
           ]
