@@ -1,15 +1,12 @@
 'use strict';
 
-const BbPromise = require('bluebird');
-const chai = require('chai');
 const Deploy = require('../../../../lib/plugins/deploy');
 const Serverless = require('../../../../lib/serverless');
 const sinon = require('sinon');
-
-// Configure chai
+const chai = require('chai');
 chai.use(require('chai-as-promised'));
-chai.use(require('sinon-chai'));
-const expect = require('chai').expect;
+
+const expect = chai.expect;
 
 describe('Deploy', () => {
   let deploy;
@@ -52,37 +49,35 @@ describe('Deploy', () => {
       deploy.options.package = false;
       deploy.serverless.service.package.path = 'some_path';
 
-      return expect(deploy.hooks['before:deploy:deploy']()).to.be.fulfilled.then(
-        () => expect(spawnPackageStub).to.be.not.called
-      );
+      await deploy.hooks['before:deploy:deploy']();
+
+      expect(spawnPackageStub.called).to.be.false;
     });
 
     it('should resolve if the service package path is set', async () => {
       deploy.options.package = 'some_path';
       deploy.serverless.service.package.path = false;
 
-      return expect(deploy.hooks['before:deploy:deploy']()).to.be.fulfilled.then(
-        () => expect(spawnPackageStub).to.be.not.called
-      );
+      await deploy.hooks['before:deploy:deploy']();
+
+      expect(spawnPackageStub.called).to.be.false;
     });
 
     it('should use the default packaging mechanism if no packaging config is provided', async () => {
       deploy.options.package = false;
       deploy.serverless.service.package.path = false;
 
-      return expect(deploy.hooks['before:deploy:deploy']()).to.be.fulfilled.then(() =>
-        BbPromise.all([
-          expect(spawnDeployFunctionStub).to.not.be.called,
-          expect(spawnPackageStub).to.be.calledOnce,
-          expect(spawnPackageStub).to.be.calledWithExactly('package'),
-        ])
-      );
+      await deploy.hooks['before:deploy:deploy']();
+
+      expect(spawnDeployFunctionStub.called).to.be.false;
+      expect(spawnPackageStub.calledOnce).to.be.true;
+      expect(spawnPackageStub.calledWithExactly('package')).to.be.true;
     });
 
-    it('should throw an error if provider does not exist', () => {
+    it('should throw an error if provider does not exist', async () => {
       deploy.serverless.service.provider.name = 'nonExistentProvider';
 
-      return expect(deploy.hooks['before:deploy:deploy']()).to.be.rejectedWith(
+      return expect(deploy.hooks['before:deploy:deploy']()).to.eventually.be.rejectedWith(
         'The specified provider "nonExistentProvider" does not exist.'
       );
     });
