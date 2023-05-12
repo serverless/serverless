@@ -30,7 +30,6 @@ describe('monitorStack', () => {
   });
 
   describe('#monitorStack()', () => {
-
     afterEach(() => {
       console.log(awsPlugin.provider.request);
       awsPlugin.provider.request.restore();
@@ -77,7 +76,7 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(1).resolves(updateFinishedEvent);
 
       const stackStatus = await awsPlugin.monitorStack('create', cfDataMock, { frequency: 10 });
-      
+
       expect(describeStackEventsStub.callCount).to.be.equal(2);
       expect(
         describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
@@ -121,7 +120,7 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(1).resolves(updateFinishedEvent);
 
       const stackStatus = await awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 });
-      
+
       expect(describeStackEventsStub.callCount).to.be.equal(2);
       expect(
         describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
@@ -165,7 +164,7 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(1).resolves(updateFinishedEvent);
 
       const stackStatus = await awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 });
-      
+
       expect(describeStackEventsStub.callCount).to.be.equal(2);
       expect(
         describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
@@ -279,7 +278,7 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(2).resolves(updateFinishedEvent);
 
       const stackStatus = await awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 });
-      
+
       expect(describeStackEventsStub.callCount).to.be.equal(3);
       expect(
         describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
@@ -336,7 +335,7 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(2).resolves(updateFinishedEvent);
 
       const stackStatus = await awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 });
-      
+
       expect(describeStackEventsStub.callCount).to.be.equal(3);
       expect(
         describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
@@ -441,10 +440,9 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(2).resolves(updateRollbackEvent);
       describeStackEventsStub.onCall(3).resolves(updateRollbackComplete);
 
-      await expect(
-        awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 })
-      ).to.eventually.be.rejectedWith('An error occurred: mochaS3 - Bucket already exists.')
-      .and.have.property('name', 'ServerlessError');
+      await expect(awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 }))
+        .to.eventually.be.rejectedWith('An error occurred: mochaS3 - Bucket already exists.')
+        .and.have.property('name', 'ServerlessError');
 
       expect(describeStackEventsStub.callCount).to.be.equal(4);
       expect(
@@ -499,7 +497,7 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(2).resolves(updateComplete);
 
       await awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 });
-      
+
       expect(describeStackEventsStub.callCount).to.be.equal(3);
       expect(
         describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
@@ -587,10 +585,9 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(2).resolves(updateRollbackEvent);
       describeStackEventsStub.onCall(3).resolves(updateRollbackFailedEvent);
 
-      await expect(
-        awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 })
-      ).to.eventually.be.rejectedWith('An error occurred: mochaS3 - Bucket already exists.')
-      .and.have.property('name', 'ServerlessError');
+      await expect(awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 }))
+        .to.eventually.be.rejectedWith('An error occurred: mochaS3 - Bucket already exists.')
+        .and.have.property('name', 'ServerlessError');
 
       // callCount is 2 because Serverless will immediately exits and shows the error
       expect(describeStackEventsStub.callCount).to.be.equal(2);
@@ -661,10 +658,11 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(2).resolves(deleteItemFailedEvent);
       describeStackEventsStub.onCall(3).resolves(deleteFailedEvent);
 
-      await expect(
-        awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 })
-      ).to.eventually.be.rejectedWith('An error occurred: mochaLambda - You are not authorized to perform this operation.')
-      .and.have.property('name', 'ServerlessError');
+      await expect(awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 }))
+        .to.eventually.be.rejectedWith(
+          'An error occurred: mochaLambda - You are not authorized to perform this operation.'
+        )
+        .and.have.property('name', 'ServerlessError');
 
       expect(describeStackEventsStub.callCount).to.be.equal(3);
       expect(
@@ -738,11 +736,12 @@ describe('monitorStack', () => {
         describeStackEventsStub.onCall(2).resolves(deleteItemFailedEvent);
         describeStackEventsStub.onCall(3).resolves(deleteFailedEvent);
 
-        await expect(
-          awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 })
-        ).to.eventually.be.rejectedWith('An error occurred: mochaLambda - You are not authorized to perform this operation.')
-        .and.have.property('name', 'ServerlessError');
-  
+        await expect(awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 }))
+          .to.eventually.be.rejectedWith(
+            'An error occurred: mochaLambda - You are not authorized to perform this operation.'
+          )
+          .and.have.property('name', 'ServerlessError');
+
         expect(describeStackEventsStub.callCount).to.be.equal(4);
         expect(
           describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
@@ -815,10 +814,9 @@ describe('monitorStack', () => {
         describeStackEventsStub.onCall(0).resolves(createStartEvent);
         describeStackEventsStub.onCall(1).resolves(createItemFailedEvent);
 
-        await expect(
-          awsPlugin.monitorStack('create', cfDataMock, { frequency: 10 })
-        ).to.eventually.be.rejectedWith('myBucket - Invalid Property for X.')
-        .and.have.property('name', 'ServerlessError');
+        await expect(awsPlugin.monitorStack('create', cfDataMock, { frequency: 10 }))
+          .to.eventually.be.rejectedWith('myBucket - Invalid Property for X.')
+          .and.have.property('name', 'ServerlessError');
       }
     );
 
@@ -877,10 +875,9 @@ describe('monitorStack', () => {
 
       describeStackEventsStub.onCall(0).resolves(createStartEvent);
 
-      await expect(
-        awsPlugin.monitorStack('create', cfDataMock, { frequency: 10 })
-      ).to.eventually.be.rejectedWith('myBucket - Invalid Property for X.')
-      .and.have.property('name', 'ServerlessError');
+      await expect(awsPlugin.monitorStack('create', cfDataMock, { frequency: 10 }))
+        .to.eventually.be.rejectedWith('myBucket - Invalid Property for X.')
+        .and.have.property('name', 'ServerlessError');
     });
 
     it('should record an error and fail if status is UPDATE_ROLLBACK_IN_PROGRESS', async () => {
@@ -926,10 +923,9 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(1).resolves(updateRollbackEvent);
       describeStackEventsStub.onCall(2).resolves(updateRollbackCompleteEvent);
 
-      await expect(
-        awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 })
-      ).to.eventually.be.rejectedWith('An error occurred: mocha - UPDATE_ROLLBACK_IN_PROGRESS.')
-      .and.have.property('name', 'ServerlessError');
+      await expect(awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 }))
+        .to.eventually.be.rejectedWith('An error occurred: mocha - UPDATE_ROLLBACK_IN_PROGRESS.')
+        .and.have.property('name', 'ServerlessError');
 
       // callCount is 2 because Serverless will immediately exits and shows the error
       expect(describeStackEventsStub.callCount).to.be.equal(2);
