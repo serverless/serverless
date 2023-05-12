@@ -443,7 +443,7 @@ functions:
     snapStart: true
 ```
 
-**Note:** Lambda SnapStart only supports the Java 11 runtime and does not support provisioned concurrency, the arm64 architecture, the Lambda Extensions API, Amazon Elastic File System (Amazon EFS), AWS X-Ray, or ephemeral storage greater than 512 MB.
+**Note:** Lambda SnapStart only supports the Java 11 and Java 17 runtimes and does not support provisioned concurrency, the arm64 architecture, the Lambda Extensions API, Amazon Elastic File System (Amazon EFS), AWS X-Ray, or ephemeral storage greater than 512 MB.
 
 ## VPC Configuration
 
