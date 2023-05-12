@@ -38,7 +38,7 @@ async function run(events) {
     for (let i = 0; i < scheduleEvents.length; i++) {
       const index = scheduleCfResources.length + 1;
 
-      const scheduleLogicalId = awsNaming.getScheduleLogicalId('test', index);
+      const scheduleLogicalId = awsNaming.getScheduleLogicalId('test', schedule.name || index);
       const scheduleCfResource = cfResources[scheduleLogicalId];
 
       scheduleCfResources.push(scheduleCfResource);
