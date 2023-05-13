@@ -54,12 +54,13 @@ async function run(events) {
     }
   }
 
-  return { scheduleCfResources, iamResource };
+  return { scheduleCfResources, iamResource, cfResources };
 }
 
 describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', () => {
   let scheduleCfResources;
   let iamResource;
+  let cfResources;
 
   before(async () => {
     const events = [
@@ -136,7 +137,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
       },
     ];
 
-    ({ scheduleCfResources, iamResource } = await run(events));
+    ({ scheduleCfResources, iamResource, cfResources } = await run(events));
   });
 
   it('should respect the "method" variable when creating the resource', () => {
@@ -355,11 +356,13 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
     );
 
     expect(invokeFunctionStatement.Effect).to.be.equal('Allow');
+
+    const functionName = cfResources.TestLambdaFunction.Properties.FunctionName;
     expect(invokeFunctionStatement.Resource).to.deep.include({
-      'Fn::Sub': `${arnFunctionPrefix}:function:*`,
+      'Fn::Sub': `${arnFunctionPrefix}:function:${functionName}`,
     });
     expect(invokeFunctionStatement.Resource).to.deep.include({
-      'Fn::Sub': `${arnFunctionPrefix}:function:*:*`,
+      'Fn::Sub': `${arnFunctionPrefix}:function:${functionName}:*`,
     });
   });
 
