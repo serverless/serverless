@@ -144,6 +144,78 @@ describe('#validate()', () => {
       },
     });
   });
+  it('should accept alb header as both array and key-value object', () => {
+    awsCompileAlbEvents.serverless.service.functions = {
+      first: {
+        events: [
+          {
+            alb: {
+              listenerArn:
+                'arn:aws:elasticloadbalancing:' +
+                'us-east-1:123456789012:listener/app/my-load-balancer/' +
+                '50dc6c495c0c9188/f2f7dc8efc522ab2',
+              priority: 1,
+              conditions: {
+                path: '/hello',
+                method: 'GET',
+                header: {
+                  name: 'dummyHeader',
+                  values: ['a', 'b'],
+                },
+              },
+            },
+          },
+        ],
+      },
+      second: {
+        events: [
+          {
+            alb: {
+              listenerArn:
+                'arn:aws:elasticloadbalancing:' +
+                'us-east-1:123456789012:listener/app/my-load-balancer/' +
+                '50dc6c495c0c9188/f2f7dc8efc522ab2',
+              priority: 2,
+              conditions: {
+                path: '/hello',
+                method: 'GET',
+                header: [
+                  {
+                    name: 'dummyHeader',
+                    values: ['a', 'b'],
+                  },
+                  {
+                    name: 'dummyHeader2',
+                    values: ['c', 'd'],
+                  },
+                ],
+              },
+            },
+          },
+        ],
+      },
+    };
+
+    const [first, second] = awsCompileAlbEvents.validate().events;
+
+    expect(first.conditions.header).to.deep.eq([
+      {
+        name: 'dummyHeader',
+        values: ['a', 'b'],
+      },
+    ]);
+
+    expect(second.conditions.header).to.deep.eq([
+      {
+        name: 'dummyHeader',
+        values: ['a', 'b'],
+      },
+      {
+        name: 'dummyHeader2',
+        values: ['c', 'd'],
+      },
+    ]);
+  });
 
   describe('#validateListenerArnAndExtractAlbId()', () => {
     it('returns the alb ID when given a valid listener ARN', () => {
