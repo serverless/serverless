@@ -27,7 +27,7 @@ service: testing-pkg
 
 provider:
   name: kubeless
-  runtime: python2.7
+  runtime: python3.9
 
 plugins:
   - serverless-kubeless

@@ -20,7 +20,16 @@ const ServerlessSDKMock = class ServerlessSDK {
       get: async () => {
         return {
           awsAccountId: '377024778620',
-          supportedRuntimes: ['nodejs10.x', 'nodejs12.x', 'python2.7', 'python3.6', 'python3.7'],
+          supportedRuntimes: [
+            'nodejs12.x',
+            'nodejs14.x',
+            'nodejs16.x',
+            'nodejs18.x',
+            'python3.7',
+            'python3.8',
+            'python3.9',
+            'python3.10',
+          ],
           supportedRegions: [
             'us-east-1',
             'us-east-2',
