@@ -27,3 +27,9 @@ Add `configValidationMode` to your service configuration with one of the followi
 | error | Fail invoked command and output configuration errors. |
 | warn  | Output configuration errors in form of warnings.      |
 | off   | Suppress configuration errors.                        |
+
+_e.g. in serverless.yml:_
+```
+service: my-project
+configValidationMode: 'error'
+```
