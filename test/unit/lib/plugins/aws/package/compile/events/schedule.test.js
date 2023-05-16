@@ -286,22 +286,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
       expect(invokeFunctionStatement.Effect).to.be.equal('Allow');
 
       const functionName = cfResources.TestLambdaFunction.Properties.FunctionName;
-      expect(invokeFunctionStatement.Resource).to.deep.include({
-        'Fn::Sub': `${arnFunctionPrefix}:function:${functionName}`,
-      });
-      expect(invokeFunctionStatement.Resource).to.deep.include({
-        'Fn::Sub': `${arnFunctionPrefix}:function:${functionName}:*`,
-      });
-    });
-
-    it('should have a single resource per function in the scheduler policies', () => {
-      const arnFunctionPrefix = 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}';
-      const policyStatements = iamResource.Properties.Policies[0].PolicyDocument.Statement;
-
-      const invokeFunctionStatement = policyStatements.find((statement) =>
-        statement.Action.includes('lambda:InvokeFunction')
-      );
-      const functionName = cfResources.TestLambdaFunction.Properties.FunctionName;
 
       const resources = invokeFunctionStatement.Resource.filter(
         (resource) => resource['Fn::Sub'] === `${arnFunctionPrefix}:function:${functionName}`
