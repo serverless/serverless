@@ -293,6 +293,26 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
         'Fn::Sub': `${arnFunctionPrefix}:function:${functionName}:*`,
       });
     });
+
+    it('should have a single resource per function in the scheduler policies', () => {
+      const arnFunctionPrefix = 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}';
+      const policyStatements = iamResource.Properties.Policies[0].PolicyDocument.Statement;
+
+      const invokeFunctionStatement = policyStatements.find((statement) =>
+        statement.Action.includes('lambda:InvokeFunction')
+      );
+      const functionName = cfResources.TestLambdaFunction.Properties.FunctionName;
+
+      const resources = invokeFunctionStatement.Resource.filter(
+        (resource) => resource['Fn::Sub'] === `${arnFunctionPrefix}:function:${functionName}`
+      );
+      const versionResources = invokeFunctionStatement.Resource.filter(
+        (resource) => resource['Fn::Sub'] === `${arnFunctionPrefix}:function:${functionName}:*`
+      );
+
+      expect(resources).to.have.lengthOf(1);
+      expect(versionResources).to.have.lengthOf(1);
+    });
   });
 
   it('should throw an error if a "name" variable is specified when defining more than one rate expression', async () => {
