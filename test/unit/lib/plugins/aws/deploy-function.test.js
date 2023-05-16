@@ -638,6 +638,78 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     });
   });
 
+  it('should recognize layers at `provider.layers`', async () => {
+    await runServerless({
+      fixture: 'function',
+      command: 'deploy function',
+      options: { function: 'basic' },
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        Lambda: {
+          ...awsRequestStubMap.Lambda,
+          getFunction: {
+            Configuration: {
+              LastModified: '2020-05-20T15:34:16.494+0000',
+              PackageType: 'Zip',
+              State: 'Active',
+              LastUpdateStatus: 'Successful',
+            },
+          },
+        },
+      },
+      configExt: {
+        provider: {
+          environment: {
+            ANOTHERVAR: 'anothervalue',
+          },
+          layers: [layerArn, secondLayerArn],
+        },
+        functions: {
+          basic: {
+            kmsKeyArn,
+            description,
+            handler,
+            environment: {
+              VARIABLE: 'value',
+            },
+            name: functionName,
+            memorySize,
+            onError: onErrorHandler,
+            role,
+            timeout,
+            vpc: {
+              securityGroupIds: ['sg-111', 'sg-222'],
+              subnetIds: ['subnet-111', 'subnet-222'],
+            },
+          },
+        },
+      },
+    });
+    expect(updateFunctionConfigurationStub).to.be.calledWithExactly({
+      FunctionName: functionName,
+      KMSKeyArn: kmsKeyArn,
+      Description: description,
+      Handler: handler,
+      Environment: {
+        Variables: {
+          ANOTHERVAR: 'anothervalue',
+          VARIABLE: 'value',
+        },
+      },
+      MemorySize: memorySize,
+      Timeout: timeout,
+      DeadLetterConfig: {
+        TargetArn: onErrorHandler,
+      },
+      Role: role,
+      VpcConfig: {
+        SecurityGroupIds: ['sg-111', 'sg-222'],
+        SubnetIds: ['subnet-111', 'subnet-222'],
+      },
+      Layers: [layerArn, secondLayerArn],
+    });
+  });
+
   it('should update function configuration if configuration changed where all arn layers were removed', async () => {
     await runServerless({
       fixture: 'function',
