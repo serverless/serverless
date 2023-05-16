@@ -1479,6 +1479,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
       const { awsNaming, cfTemplate } = await runServerless({
         fixture: 'function',
         configExt: {
+          provider: {
+            kinesis: {
+              consumerNamingMode: 'serviceSpecific',
+            },
+          },
           functions: {
             basic: {
               events: [
