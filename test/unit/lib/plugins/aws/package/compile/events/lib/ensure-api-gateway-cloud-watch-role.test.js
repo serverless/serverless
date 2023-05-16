@@ -1,12 +1,8 @@
 'use strict';
 
-const BbPromise = require('bluebird');
-const chai = require('chai');
+const { expect } = require('chai');
 const sinon = require('sinon');
 const proxyquire = require('proxyquire').noCallThru();
-const { expect } = require('chai');
-
-chai.use(require('chai-as-promised'));
 
 describe('ensureApiGatewayCloudWatchRole', () => {
   let provider;
@@ -52,20 +48,18 @@ describe('ensureApiGatewayCloudWatchRole', () => {
         },
       };
 
-      return expect(ensureApiGatewayCloudWatchRole(provider)).to.eventually.be.fulfilled.then(
-        () => {
-          expect(resources[customResourceLogicalId]).to.deep.equal({
-            Type: 'Custom::ApiGatewayAccountRole',
-            Version: 1,
-            Properties: {
-              ServiceToken: {
-                'Fn::GetAtt': ['bar', 'Arn'],
-              },
-              RoleArn: 'arn:aws:iam::XXXXX:role/api-gateway-role',
-            },
-          });
-        }
-      );
+      await ensureApiGatewayCloudWatchRole(provider);
+
+      expect(resources[customResourceLogicalId]).to.deep.equal({
+        Type: 'Custom::ApiGatewayAccountRole',
+        Version: 1,
+        Properties: {
+          ServiceToken: {
+            'Fn::GetAtt': ['bar', 'Arn'],
+          },
+          RoleArn: 'arn:aws:iam::XXXXX:role/api-gateway-role',
+        },
+      });
     });
   });
 
@@ -78,41 +72,35 @@ describe('ensureApiGatewayCloudWatchRole', () => {
         },
       };
 
-      return expect(ensureApiGatewayCloudWatchRole(provider)).to.eventually.be.fulfilled.then(
-        () => {
-          expect(resources[customResourceLogicalId]).to.be.undefined;
-        }
-      );
+      await ensureApiGatewayCloudWatchRole(provider);
+
+      expect(resources[customResourceLogicalId]).to.be.undefined;
     });
   });
 
   describe('when leveraging custom resources', () => {
     it('Should memoize custom resource generator', async () => {
-      return expect(
-        BbPromise.all([
-          ensureApiGatewayCloudWatchRole(provider),
-          ensureApiGatewayCloudWatchRole(provider),
-        ])
-      ).to.eventually.be.fulfilled.then(() => {
-        expect(addCustomResourceToServiceStub.calledOnce).to.equal(true);
-      });
+      await Promise.all([
+        ensureApiGatewayCloudWatchRole(provider),
+        ensureApiGatewayCloudWatchRole(provider),
+      ]);
+
+      expect(addCustomResourceToServiceStub.calledOnce).to.be.true;
     });
 
     it('Should ensure custom resource on template', async () => {
-      return expect(ensureApiGatewayCloudWatchRole(provider)).to.eventually.be.fulfilled.then(
-        () => {
-          expect(resources[customResourceLogicalId]).to.deep.equal({
-            Type: 'Custom::ApiGatewayAccountRole',
-            Version: 1,
-            Properties: {
-              RoleArn: undefined,
-              ServiceToken: {
-                'Fn::GetAtt': ['bar', 'Arn'],
-              },
-            },
-          });
-        }
-      );
+      await ensureApiGatewayCloudWatchRole(provider);
+
+      expect(resources[customResourceLogicalId]).to.deep.equal({
+        Type: 'Custom::ApiGatewayAccountRole',
+        Version: 1,
+        Properties: {
+          RoleArn: undefined,
+          ServiceToken: {
+            'Fn::GetAtt': ['bar', 'Arn'],
+          },
+        },
+      });
     });
   });
 });

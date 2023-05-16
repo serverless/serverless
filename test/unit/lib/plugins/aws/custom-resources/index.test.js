@@ -3,7 +3,6 @@
 /* eslint-disable no-unused-expressions */
 
 const chai = require('chai');
-const BbPromise = require('bluebird');
 const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
 const Serverless = require('../../../../../../lib/serverless');
 const CLI = require('../../../../../../lib/classes/cli');
@@ -49,8 +48,8 @@ describe('#addCustomResourceToService()', () => {
     serverless.service.package.artifactDirectoryName = 'artifact-dir-name';
   });
 
-  it('should add one IAM role and the custom resources to the service', () =>
-    BbPromise.all([
+  it('should add one IAM role and the custom resources to the service', async () => {
+    await Promise.all([
       // add the custom S3 resource
       addCustomResourceToService(provider, 's3', [
         ...iamRoleStatements,
@@ -92,117 +91,118 @@ describe('#addCustomResourceToService()', () => {
           Resource: 'arn:aws:events:*:*:event-bus/some-event-bus',
         },
       ]),
-    ]).then(() => {
-      const { Resources } = serverless.service.provider.compiledCloudFormationTemplate;
+    ]);
 
-      // S3 Lambda Function
-      expect(Resources.CustomDashresourceDashexistingDashs3LambdaFunction).to.deep.equal({
-        Type: 'AWS::Lambda::Function',
-        Properties: {
-          Code: {
-            S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-            S3Key: 'artifact-dir-name/custom-resources.zip',
-          },
-          FunctionName: `${serviceName}-dev-custom-resource-existing-s3`,
-          Handler: 's3/handler.handler',
-          MemorySize: 1024,
-          Role: {
-            'Fn::GetAtt': ['IamRoleCustomResourcesLambdaExecution', 'Arn'],
-          },
-          Runtime: 'nodejs16.x',
-          Timeout: 180,
+    const { Resources } = serverless.service.provider.compiledCloudFormationTemplate;
+
+    // S3 Lambda Function
+    expect(Resources.CustomDashresourceDashexistingDashs3LambdaFunction).to.deep.equal({
+      Type: 'AWS::Lambda::Function',
+      Properties: {
+        Code: {
+          S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
+          S3Key: 'artifact-dir-name/custom-resources.zip',
         },
-        DependsOn: ['IamRoleCustomResourcesLambdaExecution'],
-      });
-      // Cognito User Pool Lambda Function
-      expect(Resources.CustomDashresourceDashexistingDashcupLambdaFunction).to.deep.equal({
-        Type: 'AWS::Lambda::Function',
-        Properties: {
-          Code: {
-            S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-            S3Key: 'artifact-dir-name/custom-resources.zip',
-          },
-          FunctionName: `${serviceName}-dev-custom-resource-existing-cup`,
-          Handler: 'cognito-user-pool/handler.handler',
-          MemorySize: 1024,
-          Role: {
-            'Fn::GetAtt': ['IamRoleCustomResourcesLambdaExecution', 'Arn'],
-          },
-          Runtime: 'nodejs16.x',
-          Timeout: 180,
+        FunctionName: `${serviceName}-dev-custom-resource-existing-s3`,
+        Handler: 's3/handler.handler',
+        MemorySize: 1024,
+        Role: {
+          'Fn::GetAtt': ['IamRoleCustomResourcesLambdaExecution', 'Arn'],
         },
-        DependsOn: ['IamRoleCustomResourcesLambdaExecution'],
-      });
-      // Event Bridge Lambda Function
-      expect(Resources.CustomDashresourceDasheventDashbridgeLambdaFunction).to.deep.equal({
-        Type: 'AWS::Lambda::Function',
-        Properties: {
-          Code: {
-            S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-            S3Key: 'artifact-dir-name/custom-resources.zip',
-          },
-          FunctionName: `${serviceName}-dev-custom-resource-event-bridge`,
-          Handler: 'event-bridge/handler.handler',
-          MemorySize: 1024,
-          Role: {
-            'Fn::GetAtt': ['IamRoleCustomResourcesLambdaExecution', 'Arn'],
-          },
-          Runtime: 'nodejs16.x',
-          Timeout: 180,
+        Runtime: 'nodejs16.x',
+        Timeout: 180,
+      },
+      DependsOn: ['IamRoleCustomResourcesLambdaExecution'],
+    });
+    // Cognito User Pool Lambda Function
+    expect(Resources.CustomDashresourceDashexistingDashcupLambdaFunction).to.deep.equal({
+      Type: 'AWS::Lambda::Function',
+      Properties: {
+        Code: {
+          S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
+          S3Key: 'artifact-dir-name/custom-resources.zip',
         },
-        DependsOn: ['IamRoleCustomResourcesLambdaExecution'],
-      });
-      // Iam Role
-      const RoleProps = Resources.IamRoleCustomResourcesLambdaExecution.Properties;
-      expect(RoleProps.AssumeRolePolicyDocument).to.deep.equal({
-        Statement: [
-          {
-            Action: ['sts:AssumeRole'],
-            Effect: 'Allow',
-            Principal: {
-              Service: ['lambda.amazonaws.com'],
-            },
+        FunctionName: `${serviceName}-dev-custom-resource-existing-cup`,
+        Handler: 'cognito-user-pool/handler.handler',
+        MemorySize: 1024,
+        Role: {
+          'Fn::GetAtt': ['IamRoleCustomResourcesLambdaExecution', 'Arn'],
+        },
+        Runtime: 'nodejs16.x',
+        Timeout: 180,
+      },
+      DependsOn: ['IamRoleCustomResourcesLambdaExecution'],
+    });
+    // Event Bridge Lambda Function
+    expect(Resources.CustomDashresourceDasheventDashbridgeLambdaFunction).to.deep.equal({
+      Type: 'AWS::Lambda::Function',
+      Properties: {
+        Code: {
+          S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
+          S3Key: 'artifact-dir-name/custom-resources.zip',
+        },
+        FunctionName: `${serviceName}-dev-custom-resource-event-bridge`,
+        Handler: 'event-bridge/handler.handler',
+        MemorySize: 1024,
+        Role: {
+          'Fn::GetAtt': ['IamRoleCustomResourcesLambdaExecution', 'Arn'],
+        },
+        Runtime: 'nodejs16.x',
+        Timeout: 180,
+      },
+      DependsOn: ['IamRoleCustomResourcesLambdaExecution'],
+    });
+    // Iam Role
+    const RoleProps = Resources.IamRoleCustomResourcesLambdaExecution.Properties;
+    expect(RoleProps.AssumeRolePolicyDocument).to.deep.equal({
+      Statement: [
+        {
+          Action: ['sts:AssumeRole'],
+          Effect: 'Allow',
+          Principal: {
+            Service: ['lambda.amazonaws.com'],
           },
+        },
+      ],
+      Version: '2012-10-17',
+    });
+    expect(RoleProps.Policies[0].PolicyDocument.Statement).to.have.deep.members([
+      {
+        Effect: 'Allow',
+        Resource: 'arn:aws:lambda:*:*:function:custom-resource-func',
+        Action: ['lambda:AddPermission', 'lambda:RemovePermission'],
+      },
+      {
+        Effect: 'Allow',
+        Resource: 'arn:aws:s3:::some-bucket',
+        Action: ['s3:PutBucketNotification', 's3:GetBucketNotification'],
+      },
+      {
+        Effect: 'Allow',
+        Resource: '*',
+        Action: [
+          'cognito-idp:ListUserPools',
+          'cognito-idp:DescribeUserPool',
+          'cognito-idp:UpdateUserPool',
         ],
-        Version: '2012-10-17',
-      });
-      expect(RoleProps.Policies[0].PolicyDocument.Statement).to.have.deep.members([
-        {
-          Effect: 'Allow',
-          Resource: 'arn:aws:lambda:*:*:function:custom-resource-func',
-          Action: ['lambda:AddPermission', 'lambda:RemovePermission'],
-        },
-        {
-          Effect: 'Allow',
-          Resource: 'arn:aws:s3:::some-bucket',
-          Action: ['s3:PutBucketNotification', 's3:GetBucketNotification'],
-        },
-        {
-          Effect: 'Allow',
-          Resource: '*',
-          Action: [
-            'cognito-idp:ListUserPools',
-            'cognito-idp:DescribeUserPool',
-            'cognito-idp:UpdateUserPool',
-          ],
-        },
-        {
-          Action: [
-            'events:PutRule',
-            'events:RemoveTargets',
-            'events:PutTargets',
-            'events:DeleteRule',
-          ],
-          Effect: 'Allow',
-          Resource: 'arn:aws:events:*:*:rule/some-rule',
-        },
-        {
-          Action: ['events:CreateEventBus', 'events:DeleteEventBus'],
-          Resource: 'arn:aws:events:*:*:event-bus/some-event-bus',
-          Effect: 'Allow',
-        },
-      ]);
-    }));
+      },
+      {
+        Action: [
+          'events:PutRule',
+          'events:RemoveTargets',
+          'events:PutTargets',
+          'events:DeleteRule',
+        ],
+        Effect: 'Allow',
+        Resource: 'arn:aws:events:*:*:rule/some-rule',
+      },
+      {
+        Action: ['events:CreateEventBus', 'events:DeleteEventBus'],
+        Resource: 'arn:aws:events:*:*:event-bus/some-event-bus',
+        Effect: 'Allow',
+      },
+    ]);
+  });
 
   it('should use custom role when deployment role is provided', async () => {
     const role = 'arn:aws:iam::999999999999:role/my-role';
@@ -234,9 +234,9 @@ describe('#addCustomResourceToService()', () => {
     ]).to.eql([role, role]);
   });
 
-  it('should setup CloudWatch Logs when logs.frameworkLambda is true', () => {
+  it('should setup CloudWatch Logs when logs.frameworkLambda is true', async () => {
     serverless.service.provider.logs = { frameworkLambda: true };
-    return BbPromise.all([
+    await Promise.all([
       // add the custom S3 resource
       addCustomResourceToService(provider, 's3', [
         ...iamRoleStatements,
@@ -278,49 +278,49 @@ describe('#addCustomResourceToService()', () => {
           Resource: 'arn:aws:events:*:*:event-bus/some-event-bus',
         },
       ]),
-    ]).then(() => {
-      const { Resources } = serverless.service.provider.compiledCloudFormationTemplate;
+    ]);
 
-      // S3 Lambda Function
-      expect(Resources.CustomDashresourceDashexistingDashs3LambdaFunction.DependsOn).to.include(
-        'CustomDashresourceDashexistingDashs3LogGroup'
-      );
-      // Cognito User Pool Lambda Function
-      expect(Resources.CustomDashresourceDashexistingDashcupLambdaFunction.DependsOn).to.include(
-        'CustomDashresourceDashexistingDashcupLogGroup'
-      );
-      // Event Bridge Lambda Function
-      expect(Resources.CustomDashresourceDasheventDashbridgeLambdaFunction.DependsOn).to.include(
-        'CustomDashresourceDasheventDashbridgeLogGroup'
-      );
-      // Iam Role
-      const RoleProps = Resources.IamRoleCustomResourcesLambdaExecution.Properties;
+    const { Resources } = serverless.service.provider.compiledCloudFormationTemplate;
 
-      expect(RoleProps.Policies[0].PolicyDocument.Statement).to.include.deep.members([
-        {
-          Effect: 'Allow',
-          Action: ['logs:CreateLogStream', 'logs:CreateLogGroup', 'logs:TagResource'],
-          Resource: [
-            {
-              'Fn::Sub':
-                'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
-                ':log-group:/aws/lambda/some-service-dev*:*',
-            },
-          ],
-        },
-        {
-          Effect: 'Allow',
-          Action: ['logs:PutLogEvents'],
-          Resource: [
-            {
-              'Fn::Sub':
-                'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
-                ':log-group:/aws/lambda/some-service-dev*:*:*',
-            },
-          ],
-        },
-      ]);
-    });
+    // S3 Lambda Function
+    expect(Resources.CustomDashresourceDashexistingDashs3LambdaFunction.DependsOn).to.include(
+      'CustomDashresourceDashexistingDashs3LogGroup'
+    );
+    // Cognito User Pool Lambda Function
+    expect(Resources.CustomDashresourceDashexistingDashcupLambdaFunction.DependsOn).to.include(
+      'CustomDashresourceDashexistingDashcupLogGroup'
+    );
+    // Event Bridge Lambda Function
+    expect(Resources.CustomDashresourceDasheventDashbridgeLambdaFunction.DependsOn).to.include(
+      'CustomDashresourceDasheventDashbridgeLogGroup'
+    );
+    // Iam Role
+    const RoleProps = Resources.IamRoleCustomResourcesLambdaExecution.Properties;
+
+    expect(RoleProps.Policies[0].PolicyDocument.Statement).to.include.deep.members([
+      {
+        Effect: 'Allow',
+        Action: ['logs:CreateLogStream', 'logs:CreateLogGroup', 'logs:TagResource'],
+        Resource: [
+          {
+            'Fn::Sub':
+              'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+              ':log-group:/aws/lambda/some-service-dev*:*',
+          },
+        ],
+      },
+      {
+        Effect: 'Allow',
+        Action: ['logs:PutLogEvents'],
+        Resource: [
+          {
+            'Fn::Sub':
+              'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+              ':log-group:/aws/lambda/some-service-dev*:*:*',
+          },
+        ],
+      },
+    ]);
   });
 
   it('should throw when an unknown custom resource is used', () => {
@@ -329,25 +329,23 @@ describe('#addCustomResourceToService()', () => {
     );
   });
 
-  it("should ensure function name doesn't extend maximum length", () => {
+  it("should ensure function name doesn't extend maximum length", async () => {
     serverless.service.service = 'some-unexpectedly-long-service-name';
-    return BbPromise.all([
-      // add the custom S3 resource
-      addCustomResourceToService(provider, 's3', [
-        ...iamRoleStatements,
-        {
-          Effect: 'Allow',
-          Resource: 'arn:aws:s3:::some-bucket',
-          Action: ['s3:PutBucketNotification', 's3:GetBucketNotification'],
-        },
-      ]),
-    ]).then(() => {
-      const { Resources } = serverless.service.provider.compiledCloudFormationTemplate;
-      // S3 Lambda Function
-      expect(
-        Resources.CustomDashresourceDashexistingDashs3LambdaFunction.Properties.FunctionName.length
-      ).to.be.below(65);
-    });
+    // add the custom S3 resource
+    await addCustomResourceToService(provider, 's3', [
+      ...iamRoleStatements,
+      {
+        Effect: 'Allow',
+        Resource: 'arn:aws:s3:::some-bucket',
+        Action: ['s3:PutBucketNotification', 's3:GetBucketNotification'],
+      },
+    ]);
+
+    const { Resources } = serverless.service.provider.compiledCloudFormationTemplate;
+    // S3 Lambda Function
+    expect(
+      Resources.CustomDashresourceDashexistingDashs3LambdaFunction.Properties.FunctionName.length
+    ).to.be.below(65);
   });
 });
 

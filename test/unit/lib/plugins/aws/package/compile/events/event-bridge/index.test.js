@@ -152,6 +152,26 @@ const serverlessConfigurationExtension = {
         },
       ],
     },
+    orPattern: {
+      handler: 'index.handler',
+      events: [
+        {
+          eventBridge: {
+            eventBus: 'arn:aws:events:us-east-1:12345:event-bus/default',
+            pattern: {
+              $or: [
+                {
+                  detail: {
+                    eventSource: ['saas.external'],
+                  },
+                },
+                { source: ['aws.cloudformation'] },
+              ],
+            },
+          },
+        },
+      ],
+    },
   },
 };
 
@@ -271,6 +291,16 @@ describe('EventBridgeEvents', () => {
       } = eventBridgeConfig.InputTransformer;
       expect(InputTemplate).be.eq('{"time": <eventTime>, "key1": "value1"}');
       expect(eventTime).be.eq('$.time');
+    });
+
+    it('should support $or pattern in event pattern', () => {
+      const eventBridgeConfig = getEventBridgeConfigById('orPattern');
+      expect(eventBridgeConfig.Pattern.$or[0]).to.deep.equal({
+        detail: {
+          eventSource: ['saas.external'],
+        },
+      });
+      expect(eventBridgeConfig.Pattern.$or[1]).to.deep.equal({ source: ['aws.cloudformation'] });
     });
 
     it('should register created and delete event bus permissions for non default event bus', () => {

@@ -53,7 +53,7 @@ Most commonly used templates:
 - tencent-php
 - tencent-go
 
-**Note:** The templates will deploy the latest version of runtime by default. When you want to configure specific version of runtime, like `Node.js6`, `Python2.7` or `PHP5`, you have to configure the `runtime` property in `serverless.yml`.
+**Note:** The templates will deploy the latest version of runtime by default. When you want to configure specific version of runtime, like `Node.js18`, `Python3.9` or `PHP5`, you have to configure the `runtime` property in `serverless.yml`.
 
 ## Examples
 
