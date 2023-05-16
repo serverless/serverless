@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Google Cloud Functions - Plugin Uninstall
 menuText: Plugin Uninstall
-menuOrder: 12
+menuOrder: 14
 description: Uninstall a Serverless plugin
 layout: Doc
 -->

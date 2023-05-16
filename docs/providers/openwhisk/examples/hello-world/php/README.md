@@ -29,7 +29,7 @@ Run `npm install` in the service directory.
 
 ## 4. Invoke deployed function
 
-`serverless invoke --function helloWorld` or `serverless invoke -f helloWorld`
+`serverless invoke --function hello` or `serverless invoke -f hello`
 
 `-f` is shorthand for `--function`
 
@@ -37,7 +37,7 @@ In your terminal window you should see the response from Apache OpenWhisk
 
 ```bash
 {
-    "payload": "Hello, World!"
+    "greeting": "Hello, stranger!"
 }
 ```
 

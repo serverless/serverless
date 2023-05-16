@@ -1,17 +1,18 @@
 'use strict';
 
 const awsRequest = require('@serverless/test/aws-request');
+const SNSService = require('aws-sdk').SNS;
 
-function createSnsTopic(topicName) {
+async function createSnsTopic(topicName) {
   const params = {
     Name: topicName,
   };
 
-  return awsRequest('SNS', 'createTopic', params);
+  return awsRequest(SNSService, 'createTopic', params);
 }
 
-function resolveTopicArn(topicName, nextToken = null) {
-  return awsRequest('SNS', 'listTopics', { NextToken: nextToken }).then((data) => {
+async function resolveTopicArn(topicName, nextToken = null) {
+  return awsRequest(SNSService, 'listTopics', { NextToken: nextToken }).then((data) => {
     const targetTopic = data.Topics.find((topic) => RegExp(topicName, 'g').test(topic.TopicArn));
 
     if (targetTopic) return targetTopic.TopicArn;
@@ -21,17 +22,17 @@ function resolveTopicArn(topicName, nextToken = null) {
   });
 }
 
-function removeSnsTopic(topicName) {
+async function removeSnsTopic(topicName) {
   return resolveTopicArn(topicName).then((topicArn) => {
     const params = {
       TopicArn: topicArn,
     };
 
-    return awsRequest('SNS', 'deleteTopic', params);
+    return awsRequest(SNSService, 'deleteTopic', params);
   });
 }
 
-function publishSnsMessage(topicName, message, messageAttributes = null) {
+async function publishSnsMessage(topicName, message, messageAttributes = null) {
   return resolveTopicArn(topicName).then((topicArn) => {
     const params = {
       Message: message,
@@ -41,7 +42,7 @@ function publishSnsMessage(topicName, message, messageAttributes = null) {
       params.MessageAttributes = messageAttributes;
     }
 
-    return awsRequest('SNS', 'publish', params);
+    return awsRequest(SNSService, 'publish', params);
   });
 }
 

@@ -6,11 +6,10 @@ const sinon = require('sinon');
 const configureInquirerStub = require('@serverless/test/configure-inquirer-stub');
 const step = require('../../../../../lib/cli/interactive-setup/service');
 const proxyquire = require('proxyquire');
-const overrideStdoutWrite = require('process-utils/override-stdout-write');
 const ServerlessError = require('../../../../../lib/serverless-error');
 const { StepHistory } = require('@serverless/utils/telemetry');
 
-const templatesPath = path.resolve(__dirname, '../../../../../lib/plugins/create/templates');
+const fixturesPath = path.resolve(__dirname, '../../../../fixtures/programmatic');
 
 const { expect } = chai;
 
@@ -79,7 +78,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
     it('Should create project at not existing directory', async () => {
       const downloadTemplateFromRepoStub = sinon.stub();
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: downloadTemplateFromRepoStub.callsFake(
             async (templateUrl, projectType, projectName) => {
               await fsp.mkdir(projectName);
@@ -96,7 +95,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       });
 
       configureInquirerStub(inquirer, {
-        list: { projectType: 'aws-nodejs' },
+        list: { projectType: 'aws-node' },
         input: { projectName: 'test-project' },
       });
       const context = { options: {}, stepHistory: new StepHistory() };
@@ -104,13 +103,13 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       const stats = await fsp.lstat('test-project/serverless.yml');
       expect(stats.isFile()).to.be.true;
       expect(downloadTemplateFromRepoStub).to.have.been.calledWith(
-        'https://github.com/serverless/examples/tree/master/aws-nodejs',
-        'aws-nodejs',
+        'https://github.com/serverless/examples/tree/v3/aws-node',
+        'aws-node',
         'test-project'
       );
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
-          ['projectType', 'aws-nodejs'],
+          ['projectType', 'aws-node'],
           ['projectName', '_user_input_'],
         ])
       );
@@ -119,7 +118,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
     it('Should remove `serverless.template.yml` if its a part of the template', async () => {
       const downloadTemplateFromRepoStub = sinon.stub();
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: downloadTemplateFromRepoStub.callsFake(
             async (templateUrl, projectType, projectName) => {
               await fsp.mkdir(projectName);
@@ -137,7 +136,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       });
 
       configureInquirerStub(inquirer, {
-        list: { projectType: 'aws-nodejs' },
+        list: { projectType: 'aws-node' },
         input: { projectName: 'test-project-template' },
       });
       const context = { options: {}, stepHistory: new StepHistory() };
@@ -145,8 +144,8 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       const stats = await fsp.lstat('test-project-template/serverless.yml');
       expect(stats.isFile()).to.be.true;
       expect(downloadTemplateFromRepoStub).to.have.been.calledWith(
-        'https://github.com/serverless/examples/tree/master/aws-nodejs',
-        'aws-nodejs',
+        'https://github.com/serverless/examples/tree/v3/aws-node',
+        'aws-node',
         'test-project-template'
       );
       await expect(
@@ -155,7 +154,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
-          ['projectType', 'aws-nodejs'],
+          ['projectType', 'aws-node'],
           ['projectName', '_user_input_'],
         ])
       );
@@ -166,7 +165,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       const spawnStub = sinon.stub();
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
         'child-process-ext/spawn': spawnStub,
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: downloadTemplateFromRepoStub.callsFake(
             async (templateUrl, projectType, projectName) => {
               await fsp.mkdir(projectName);
@@ -184,7 +183,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       });
 
       configureInquirerStub(inquirer, {
-        list: { projectType: 'aws-nodejs' },
+        list: { projectType: 'aws-node' },
         input: { projectName: 'test-project-package-json' },
       });
       const context = { options: {}, stepHistory: new StepHistory() };
@@ -192,8 +191,8 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       const stats = await fsp.lstat('test-project-package-json/serverless.yml');
       expect(stats.isFile()).to.be.true;
       expect(downloadTemplateFromRepoStub).to.have.been.calledWith(
-        'https://github.com/serverless/examples/tree/master/aws-nodejs',
-        'aws-nodejs',
+        'https://github.com/serverless/examples/tree/v3/aws-node',
+        'aws-node',
         'test-project-package-json'
       );
       expect(spawnStub).to.have.been.calledWith('npm', ['install'], {
@@ -202,52 +201,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
-          ['projectType', 'aws-nodejs'],
-          ['projectName', '_user_input_'],
-        ])
-      );
-    });
-
-    it('Should emit warning if npm installation not found', async () => {
-      const downloadTemplateFromRepoStub = sinon.stub();
-      const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
-        'child-process-ext/spawn': sinon.stub().rejects({ code: 'ENOENT' }),
-        '../../utils/downloadTemplateFromRepo': {
-          downloadTemplateFromRepo: downloadTemplateFromRepoStub.callsFake(
-            async (templateUrl, projectType, projectName) => {
-              await fsp.mkdir(projectName);
-              const serverlessYmlContent = `
-            service: service
-            provider:
-              name: aws
-           `;
-
-              await fsp.writeFile(path.join(projectName, 'serverless.yml'), serverlessYmlContent);
-              await fsp.writeFile(path.join(projectName, 'package.json'), '{}');
-            }
-          ),
-        },
-      });
-
-      configureInquirerStub(inquirer, {
-        list: { projectType: 'aws-nodejs' },
-        input: { projectName: 'test-project-missing-npm' },
-      });
-
-      const context = { options: {}, stepHistory: new StepHistory() };
-      let stdoutData = '';
-      await overrideStdoutWrite(
-        (data) => (stdoutData += data),
-        async () => mockedStep.run(context)
-      );
-
-      const stats = await fsp.lstat('test-project-missing-npm/serverless.yml');
-      expect(stats.isFile()).to.be.true;
-      expect(stdoutData).to.include('Cannot install dependencies');
-
-      expect(context.stepHistory.valuesMap()).to.deep.equal(
-        new Map([
-          ['projectType', 'aws-nodejs'],
+          ['projectType', 'aws-node'],
           ['projectName', '_user_input_'],
         ])
       );
@@ -257,7 +211,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       const downloadTemplateFromRepoStub = sinon.stub();
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
         'child-process-ext/spawn': sinon.stub().rejects({ message: 'Error message' }),
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: downloadTemplateFromRepoStub.callsFake(
             async (templateUrl, projectType, projectName) => {
               await fsp.mkdir(projectName);
@@ -275,7 +229,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       });
 
       configureInquirerStub(inquirer, {
-        list: { projectType: 'aws-nodejs' },
+        list: { projectType: 'aws-node' },
         input: { projectName: 'test-project-failed-install' },
       });
 
@@ -287,7 +241,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
-          ['projectType', 'aws-nodejs'],
+          ['projectType', 'aws-node'],
           ['projectName', '_user_input_'],
         ])
       );
@@ -298,7 +252,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
         input: { projectName: 'test-project-from-local-template' },
       });
       const context = {
-        options: { 'template-path': path.join(templatesPath, 'aws-nodejs') },
+        options: { 'template-path': path.join(fixturesPath, 'aws') },
         stepHistory: new StepHistory(),
       };
       await step.run(context);
@@ -312,7 +266,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
     it('Should create project at not existing directory with provided `name`', async () => {
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: sinon
             .stub()
             .callsFake(async (templateUrl, projectType, projectName) => {
@@ -328,7 +282,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
         },
       });
       configureInquirerStub(inquirer, {
-        list: { projectType: 'aws-nodejs' },
+        list: { projectType: 'aws-node' },
       });
       const context = {
         options: { name: 'test-project-from-cli-option' },
@@ -337,15 +291,13 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       await mockedStep.run(context);
       const stats = await fsp.lstat('test-project-from-cli-option/serverless.yml');
       expect(stats.isFile()).to.be.true;
-      expect(context.stepHistory.valuesMap()).to.deep.equal(
-        new Map([['projectType', 'aws-nodejs']])
-      );
+      expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['projectType', 'aws-node']]));
     });
 
     it('Should create project at not existing directory with provided template', async () => {
       const downloadTemplateFromRepoStub = sinon.stub();
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: downloadTemplateFromRepoStub.callsFake(
             async (templateUrl, projectType, projectName) => {
               const serverlessYmlContent = `
@@ -368,7 +320,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       const stats = await fsp.lstat('test-project-from-provided-template/serverless.yml');
       expect(stats.isFile()).to.be.true;
       expect(downloadTemplateFromRepoStub).to.have.been.calledWith(
-        'https://github.com/serverless/examples/tree/master/test-template',
+        'https://github.com/serverless/examples/tree/v3/test-template',
         'test-template',
         'test-project-from-provided-template'
       );
@@ -379,11 +331,10 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
     });
 
     it('Should create project at not existing directory with provided `template-url`', async () => {
-      const providedTemplateUrl =
-        'https://github.com/serverless/examples/tree/master/test-template';
+      const providedTemplateUrl = 'https://github.com/serverless/examples/tree/v3/test-template';
       const downloadTemplateFromRepoStub = sinon.stub();
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: downloadTemplateFromRepoStub.callsFake(
             async (templateUrl, projectType, projectName) => {
               const serverlessYmlContent = `
@@ -421,14 +372,14 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
     it('Should throw an error when template cannot be downloaded', async () => {
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: sinon.stub().callsFake(async () => {
             throw new ServerlessError();
           }),
         },
       });
       configureInquirerStub(inquirer, {
-        list: { projectType: 'aws-nodejs' },
+        list: { projectType: 'aws-node' },
         input: { projectName: 'test-error-during-download' },
       });
       const context = { options: {}, stepHistory: new StepHistory() };
@@ -439,7 +390,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
       expect(context.stepHistory.valuesMap()).to.deep.equal(
         new Map([
-          ['projectType', 'aws-nodejs'],
+          ['projectType', 'aws-node'],
           ['projectName', '_user_input_'],
         ])
       );
@@ -447,7 +398,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
     it('Should throw an error when provided template cannot be found', async () => {
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: sinon.stub().rejects({ code: 'ENOENT' }),
         },
       });
@@ -466,7 +417,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
     it('Should throw an error when template provided with url cannot be found', async () => {
       const mockedStep = proxyquire('../../../../../lib/cli/interactive-setup/service', {
-        '../../utils/downloadTemplateFromRepo': {
+        '../../utils/download-template-from-repo': {
           downloadTemplateFromRepo: sinon.stub().callsFake(async () => {
             throw new ServerlessError();
           }),
@@ -492,7 +443,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
   it('Should not allow project creation in a directory in which already service is configured', async () => {
     configureInquirerStub(inquirer, {
-      list: { projectType: 'aws-nodejs' },
+      list: { projectType: 'aws-node' },
       input: { projectName: 'existing' },
     });
 
@@ -506,7 +457,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
     expect(context.stepHistory.valuesMap()).to.deep.equal(
       new Map([
-        ['projectType', 'aws-nodejs'],
+        ['projectType', 'aws-node'],
         ['projectName', undefined],
       ])
     );
@@ -514,7 +465,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
   it('Should not allow project creation in a directory in which already service is configured when `name` flag provided', async () => {
     configureInquirerStub(inquirer, {
-      list: { projectType: 'aws-nodejs' },
+      list: { projectType: 'aws-node' },
     });
 
     await fsp.mkdir('anotherexisting');
@@ -525,12 +476,12 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       'TARGET_FOLDER_ALREADY_EXISTS'
     );
 
-    expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['projectType', 'aws-nodejs']]));
+    expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['projectType', 'aws-node']]));
   });
 
   it('Should not allow project creation using an invalid project name', async () => {
     configureInquirerStub(inquirer, {
-      list: { projectType: 'aws-nodejs' },
+      list: { projectType: 'aws-node' },
       input: { projectName: 'elo grzegżółka' },
     });
     const context = { options: {}, stepHistory: new StepHistory() };
@@ -541,7 +492,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
     expect(context.stepHistory.valuesMap()).to.deep.equal(
       new Map([
-        ['projectType', 'aws-nodejs'],
+        ['projectType', 'aws-node'],
         ['projectName', undefined],
       ])
     );
@@ -549,7 +500,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
 
   it('Should not allow project creation using an invalid project name when `name` flag provided', async () => {
     configureInquirerStub(inquirer, {
-      list: { projectType: 'aws-nodejs' },
+      list: { projectType: 'aws-node' },
     });
     const context = { options: { name: 'elo grzegżółka' }, stepHistory: new StepHistory() };
     await expect(step.run(context)).to.eventually.be.rejected.and.have.property(
@@ -557,7 +508,7 @@ describe('test/unit/lib/cli/interactive-setup/service.test.js', () => {
       'INVALID_PROJECT_NAME'
     );
 
-    expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['projectType', 'aws-nodejs']]));
+    expect(context.stepHistory.valuesMap()).to.deep.equal(new Map([['projectType', 'aws-node']]));
   });
 
   it('Should not allow project creation if multiple template-related options are provided', async () => {

@@ -2,6 +2,7 @@
 
 const { expect } = require('chai');
 
+const wait = require('timers-ext/promise/sleep');
 const ServerlessError = require('../../../../../lib/serverless-error');
 const resolveMeta = require('../../../../../lib/configuration/variables/resolve-meta');
 const resolve = require('../../../../../lib/configuration/variables/resolve');
@@ -40,6 +41,12 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       resolvesResultVariablesStringInvalid: '${sourceResultVariables(stringInvalid)}',
       resolveDeepVariablesConcat:
         '${sourceResultVariables(string)}foo${sourceResultVariables(string)}',
+      resolveDeepVariablesConcatInParam:
+        '${sourceParam(${sourceResultVariables(string)}foo${sourceResultVariables(string)})}',
+      resolveDeepVariablesConcatInAddress:
+        '${sourceAddress:${sourceResultVariables(string)}foo${sourceResultVariables(string)}}',
+      infiniteDeepVariablesConcat:
+        '${sourceAddress:${sourceInfiniteString:}foo${sourceResultVariables(string)}}',
       resolveVariablesInString: "${sourceResolveVariablesInString('${sourceProperty(foo)}')}",
       resolvesVariables: '${sourceResolveVariable("sourceParam(${sourceDirect:})")}',
       resolvesVariablesFallback: '${sourceResolveVariable("sourceMissing:, null"), null}',
@@ -56,6 +63,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
           '${sourceDirect:}|${sourceUnrecognized:}|${sourceDirect(${sourceUnrecognized:})}' +
           '${sourceDirect:${sourceUnrecognized:}}',
       },
+      recognizedInUnrecognized: '${sourceUnrecognized(${sourceDirect:})}',
       erroredParam: '${sourceDirect(${sourceError:})}',
       nestErrored: {
         erroredAddress: '${sourceDirect:${sourceError:}}',
@@ -72,17 +80,32 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       sharedSourceResolution2: '${sourceProperty(sharedSourceResolution1, sharedFinal)}',
       sharedPropertyResolution1: '${sourceSharedProperty:}',
       sharedPropertyResolution2: '${sourceProperty(sharedPropertyResolution1, sharedFinal)}',
+      sharedPropertyRaceCondition1: '${sourceSharedRaceCondition:}',
+      sharedPropertyRaceCondition2:
+        '${sourceDeferredNull:, sourceProperty(sharedPropertyRaceCondition1, sharedFinal)}',
+      nullWithCustomErrorMessage: '${sourceDirectNull:}',
     };
     let variablesMeta;
     const sources = {
       sourceParam: {
-        resolve: ({ params }) => ({ value: params.join('|') }),
+        resolve: ({ params }) => ({ value: params.join('|').split('').reverse().join('') }),
       },
       sourceAddress: {
-        resolve: ({ address }) => ({ value: address }),
+        resolve: ({ address }) => ({
+          value: typeof address === 'string' ? address.split('').reverse().join('') : address,
+        }),
       },
       sourceDirect: {
         resolve: () => ({ value: 234 }),
+      },
+      sourceDirectNull: {
+        resolve: () => ({ value: null, eventualErrorMessage: 'Custom error message from source' }),
+      },
+      sourceDeferredNull: {
+        resolve: async () => {
+          await wait(0);
+          return { value: null };
+        },
       },
       sourceProperty: {
         resolve: async ({ params, resolveConfigurationProperty }) => {
@@ -154,6 +177,9 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       sourceInfinite: {
         resolve: () => ({ value: { nest: '${sourceInfinite:}' } }),
       },
+      sourceInfiniteString: {
+        resolve: () => ({ value: '${sourceInfiniteString:}' }),
+      },
       sourceShared: {
         resolve: () => ({
           value: {
@@ -167,6 +193,14 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
           value: {
             sharedFinal: 'foo',
             sharedInner: '${sourceProperty(sharedPropertyResolution2)}',
+          },
+        }),
+      },
+      sourceSharedRaceCondition: {
+        resolve: () => ({
+          value: {
+            sharedFinal: 'foo',
+            sharedInner: '${sourceProperty(sharedPropertyRaceCondition2)}',
           },
         }),
       },
@@ -196,15 +230,15 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     });
 
     it('should pass params to source resolvers', () => {
-      expect(configuration.foo.params).to.equal('param1|param2');
+      expect(configuration.foo.params).to.equal('2marap|1marap');
     });
 
     it('should pass address to source resolvers', () => {
-      expect(configuration.address).to.equal('fooaddress-result');
+      expect(configuration.address).to.equal('footluser-sserdda');
     });
 
     it('should resolve variables in params', () => {
-      expect(configuration.foo.varParam).to.equal('234');
+      expect(configuration.foo.varParam).to.equal('432');
     });
 
     it('should resolve variables in address', () => {
@@ -216,14 +250,14 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       expect(configuration.otherProperty).to.equal('foo234');
       expect(configuration.static).to.equal(true);
       expect(configuration.deepProperty).to.deep.equal({
-        params: 'param1|param2',
-        varParam: '234',
+        params: '2marap|1marap',
+        varParam: '432',
       });
     });
 
     it('should clear escapes', () => {
       expect(configuration.escape).to.equal(
-        'e${sourceDirect:}n\\$fooaddress-resultqe\\${sourceProperty(direct)}qn\\fooaddress-result'
+        'e${sourceDirect:}n\\$footluser-sserddaqe\\${sourceProperty(direct)}qn\\footluser-sserdda'
       );
     });
 
@@ -257,12 +291,14 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
 
     it('should resolve variables in resolved strings which are subject to concatenation', () => {
       expect(configuration.resolveDeepVariablesConcat).to.equal('234foo234');
+      expect(configuration.resolveDeepVariablesConcatInParam).to.equal('432oof432');
+      expect(configuration.resolveDeepVariablesConcatInAddress).to.equal('432oof432');
     });
 
     it('should provide working resolveVariablesInString util', () => {
       expect(configuration.resolveVariablesInString).to.deep.equal({
-        params: 'param1|param2',
-        varParam: '234',
+        params: '2marap|1marap',
+        varParam: '432',
       });
     });
 
@@ -282,6 +318,15 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         sharedInner: 'foo',
       });
       expect(configuration.sharedSourceResolution2).to.equal('foo');
+    });
+
+    // https://github.com/serverless/serverless/issues/11286
+    it('should handle gentle parallel resolution of same variable via different resolution patches', () => {
+      expect(configuration.sharedPropertyRaceCondition1).to.deep.equal({
+        sharedFinal: 'foo',
+        sharedInner: 'foo',
+      });
+      expect(configuration.sharedPropertyRaceCondition2).to.equal('foo');
     });
 
     it('should not resolve variables for unrecognized sources', () => {
@@ -342,6 +387,12 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       expect(valueMeta.error.code).to.equal('VARIABLE_RESOLUTION_ERROR');
     });
 
+    it('should error on infinite variables resolution recursion', () => {
+      const valueMeta = variablesMeta.get('infiniteDeepVariablesConcat');
+      expect(valueMeta).to.not.have.property('variables');
+      expect(valueMeta.error.code).to.equal('EXCESSIVE_RESOLVED_VARIABLES_NEST_DEPTH');
+    });
+
     it('should mark deep circular dependency among properties with error', () => {
       const valueMeta = variablesMeta.get('propertyDeepCircularA');
       expect(valueMeta).to.not.have.property('variables');
@@ -357,6 +408,11 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     it('should not resolve dependency on unresolved property', () => {
       const valueMeta = variablesMeta.get('deepPropertyUnrecognized');
       expect(valueMeta).to.have.property('variables');
+    });
+
+    it('should not resolve dependencies of unrecognized source', () => {
+      const valueMeta = variablesMeta.get('recognizedInUnrecognized');
+      expect(valueMeta.variables[0].sources[0].params[0]).to.have.property('variables');
     });
 
     it('should mark dependency on errored property with error', () => {
@@ -408,11 +464,13 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         'propertyDeepCircularC',
         'propertyRoot',
         'resolvesResultVariablesStringInvalid',
+        'infiniteDeepVariablesConcat',
         'resolvesVariablesInvalid1',
         'resolvesVariablesInvalid2',
         'missing',
         'nonStringStringPart',
         'nestUnrecognized\0unrecognized',
+        'recognizedInUnrecognized',
         'erroredParam',
         'nestErrored\0erroredAddress',
         'erroredSourceServerlessError',
@@ -422,34 +480,37 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         'invalidResultNonJson',
         'invalidResultNonJsonCircular',
         'invalidResultValue',
+        'nullWithCustomErrorMessage',
         `infiniteResolutionRecursion${'\0nest'.repeat(10)}`,
       ]);
     });
 
     it('should correctly record encountered variable sources', () => {
-      expect(variableSourcesInConfig).to.deep.equal(
-        new Set([
-          'sourceParam',
-          'sourceDirect',
-          'sourceAddress',
-          'sourceProperty',
-          'sourceResultVariables',
-          'sourceResolveVariablesInString',
-          'sourceResolveVariable',
-          'sourceIncomplete',
-          'sourceMissing',
-          'sourceUnrecognized',
-          'sourceError',
-          'sourceInfinite',
-          'sourceShared',
-          'sourceSharedProperty',
-        ])
-      );
+      expect(Array.from(variableSourcesInConfig)).to.deep.equal([
+        'sourceParam',
+        'sourceDirect',
+        'sourceAddress',
+        'sourceProperty',
+        'sourceResultVariables',
+        'sourceInfiniteString',
+        'sourceResolveVariablesInString',
+        'sourceResolveVariable',
+        'sourceIncomplete',
+        'sourceMissing',
+        'sourceUnrecognized',
+        'sourceError',
+        'sourceInfinite',
+        'sourceShared',
+        'sourceSharedProperty',
+        'sourceSharedRaceCondition',
+        'sourceDeferredNull',
+        'sourceDirectNull',
+      ]);
     });
 
     describe('"resolveVariable" source util', () => {
       it('should resolve variable', () => {
-        expect(configuration.resolvesVariables).to.equal('234');
+        expect(configuration.resolvesVariables).to.equal('432');
       });
       it('should support multiple sources', () => {
         expect(configuration.resolvesVariablesFallback).to.equal(null);
@@ -464,6 +525,13 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         expect(valueMeta).to.not.have.property('variables');
         expect(valueMeta.error.code).to.equal('VARIABLE_RESOLUTION_ERROR');
       });
+    });
+
+    it('should recognize custom error message for null values', () => {
+      const valueMeta = variablesMeta.get('nullWithCustomErrorMessage');
+      expect(valueMeta).to.not.have.property('variables');
+      expect(valueMeta.error.code).to.equal('MISSING_VARIABLE_RESULT');
+      expect(valueMeta.error.message).to.include('Custom error message from source');
     });
   });
 

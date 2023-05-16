@@ -3,7 +3,7 @@
 const chai = require('chai');
 const overrideEnv = require('process-utils/override-env');
 const Invoke = require('../../../../lib/plugins/invoke');
-const Serverless = require('../../../../lib/Serverless');
+const Serverless = require('../../../../lib/serverless');
 
 chai.use(require('chai-as-promised'));
 
@@ -16,7 +16,7 @@ describe('Invoke', () => {
 
   beforeEach(() => {
     ({ restoreEnv } = overrideEnv());
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     invoke = new Invoke(serverless);
   });
 
@@ -46,27 +46,27 @@ describe('Invoke', () => {
         expect(invoke.commands.invoke.commands.local.lifecycleEvents).to.contain('loadEnvVars');
       });
 
-      it('should set IS_LOCAL', () =>
+      it('should set IS_LOCAL', async () =>
         expect(invoke.hooks['invoke:local:loadEnvVars']()).to.be.fulfilled.then(() => {
           expect(process.env.IS_LOCAL).to.equal('true');
           expect(serverless.service.provider.environment.IS_LOCAL).to.equal('true');
         }));
 
-      it('should leave provider env variable untouched if already defined', () => {
+      it('should leave provider env variable untouched if already defined', async () => {
         serverless.service.provider.environment = { IS_LOCAL: 'false' };
         return expect(invoke.hooks['invoke:local:loadEnvVars']()).to.be.fulfilled.then(() => {
           expect(serverless.service.provider.environment.IS_LOCAL).to.equal('false');
         });
       });
 
-      it('should accept a single env option', () => {
+      it('should accept a single env option', async () => {
         invoke.options = { env: 'NAME=value' };
         return expect(invoke.hooks['invoke:local:loadEnvVars']()).to.be.fulfilled.then(() =>
           expect(process.env.NAME).to.equal('value')
         );
       });
 
-      it('should accept multiple env options', () => {
+      it('should accept multiple env options', async () => {
         invoke.options = { env: ['NAME1=val1', 'NAME2=val2'] };
 
         return expect(invoke.hooks['invoke:local:loadEnvVars']())

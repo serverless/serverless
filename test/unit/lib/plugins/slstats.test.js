@@ -3,14 +3,14 @@
 const expect = require('chai').expect;
 const sinon = require('sinon');
 const SlStats = require('../../../../lib/plugins/slstats');
-const Serverless = require('../../../../lib/Serverless');
+const Serverless = require('../../../../lib/serverless');
 const config = require('@serverless/utils/config');
 
 describe('SlStats', () => {
   let slStats;
   let serverless;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     serverless = new Serverless({ commands: ['print'], options: {}, serviceDir: null });
     return serverless.init().then(() => {
       slStats = new SlStats(serverless);

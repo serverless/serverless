@@ -41,4 +41,3 @@ if (!/^v\d+\.\d+\.\d+$/.test(versionTag)) {
 }
 
 require('./world')(versionTag, { isLegacyVersion: argv.legacy });
-require('./china')(versionTag, { isLegacyVersion: argv.legacy });

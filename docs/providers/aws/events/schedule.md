@@ -69,3 +69,24 @@ events:
       description: 'your scheduled rate event description'
       rate: rate(2 hours)
 ```
+
+## Specify multiple schedule expressions
+
+An array of schedule expressions (i.e. using either `rate` or `cron` syntax) can be specified, in order to avoid repeating other configuration variables.
+This is specially useful in situations in which there's no other way than using multiple cron expressions to schedule a function.
+
+This will trigger the function at certain times on weekdays and on different times on weekends, using the same input:
+
+```yaml
+functions:
+  foo:
+    handler: foo.handler
+    events:
+      - schedule:
+          rate:
+            - cron(0 0/4 ? * MON-FRI *)
+            - cron(0 2 ? * SAT-SUN *)
+          input:
+            key1: value1
+            key2: value2
+```

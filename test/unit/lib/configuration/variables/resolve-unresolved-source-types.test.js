@@ -50,33 +50,48 @@ describe('test/unit/lib/configuration/variables/resolve-unresolved-source-types.
   });
 
   it('should resolve all not resolved sources', () => {
-    expect(resultMap).to.deep.equal(
-      new Map([
+    expect(
+      Array.from(resultMap).map(([name, set]) => [name, Array.from(set).sort()])
+    ).to.deep.equal([
+      [
+        'unrecognized',
         [
           'unrecognized',
-          new Set([
-            'unrecognized',
-            'unrecognizedInParens',
-            'unrecognizedInAddress',
-            'unrecognizedInParensAndAddress',
-            'otherUnrecognizedFallback',
-            'deep\0unrecognized',
-            'deep\0unrecognizedInParens',
-            'deep\0unrecognizedInAddress',
-            'deep\0unrecognizedInParensAndAddress',
-            'deep\0otherUnrecognizedFallback',
-          ]),
-        ],
+          'unrecognizedInParens',
+          'unrecognizedInAddress',
+          'unrecognizedInParensAndAddress',
+          'otherUnrecognizedFallback',
+          'deep\0unrecognized',
+          'deep\0unrecognizedInParens',
+          'deep\0unrecognizedInAddress',
+          'deep\0unrecognizedInParensAndAddress',
+          'deep\0otherUnrecognizedFallback',
+        ].sort(),
+      ],
+      [
+        'unrecognized2',
         [
-          'unrecognized2',
-          new Set([
-            'unrecognizedInParens',
-            'unrecognizedInParensAndAddress',
-            'deep\0unrecognizedInParens',
-            'deep\0unrecognizedInParensAndAddress',
-          ]),
-        ],
-      ])
-    );
+          'unrecognizedInParens',
+          'unrecognizedInParensAndAddress',
+          'deep\0unrecognizedInParens',
+          'deep\0unrecognizedInParensAndAddress',
+        ].sort(),
+      ],
+      [
+        'recognized',
+        [
+          'unrecognizedInAddress',
+          'unrecognizedInParens',
+          'unrecognizedInParensAndAddress',
+          'deep\0unrecognizedInAddress',
+          'deep\0unrecognizedInParens',
+          'deep\0unrecognizedInParensAndAddress',
+        ].sort(),
+      ],
+      [
+        'unrecognized3',
+        ['unrecognizedInParensAndAddress', 'deep\0unrecognizedInParensAndAddress'].sort(),
+      ],
+    ]);
   });
 });

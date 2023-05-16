@@ -1,0 +1,511 @@
+{
+  "Overview": "",
+  "Get Started": {
+    "Setup": "getting-started",
+    "Tutorial": "tutorial",
+    "Concepts": "providers/aws/guide/intro",
+    "AWS Credentials": "providers/aws/guide/credentials"
+  },
+  "Usage": {
+    "Deploying": "providers/aws/guide/deploying",
+    "Packaging": "providers/aws/guide/packaging",
+    "Testing": "providers/aws/guide/testing",
+    "Services": "providers/aws/guide/services",
+    "Functions": "providers/aws/guide/functions",
+    "Events": {
+      "Overview": "providers/aws/guide/events",
+      "HTTP (API Gateway v2)": "providers/aws/events/http-api",
+      "REST (API Gateway v1)": "providers/aws/events/apigateway",
+      "ActiveMQ": "providers/aws/events/activemq",
+      "Application Load Balancer": "providers/aws/events/alb",
+      "Alexa Skill": "providers/aws/events/alexa-skill",
+      "Alexa Smart Home": "providers/aws/events/alexa-smart-home",
+      "CloudWatch Event": "providers/aws/events/cloudwatch-event",
+      "CloudWatch Log": "providers/aws/events/cloudwatch-log",
+      "CloudFront": "providers/aws/events/cloudfront",
+      "Cognito User Pool": "providers/aws/events/cognito-user-pool",
+      "EventBridge Event": "providers/aws/events/event-bridge",
+      "IoT": "providers/aws/events/iot",
+      "IoT Fleet Provisioning": "providers/aws/events/iot-fleet-provisioning",
+      "Kafka": "providers/aws/events/kafka",
+      "Kinesis & DynamoDB": "providers/aws/events/streams",
+      "MSK": "providers/aws/events/msk",
+      "RabbitMQ": "providers/aws/events/rabbitmq",
+      "S3": "providers/aws/events/s3",
+      "Schedule": "providers/aws/events/schedule",
+      "SNS": "providers/aws/events/sns",
+      "SQS": "providers/aws/events/sqs",
+      "Websocket": "providers/aws/events/websocket"
+    },
+    "Layers": "providers/aws/guide/layers",
+    "IAM Function Permissions": "providers/aws/guide/iam",
+    "Parameters": "guides/parameters",
+    "Variables": "providers/aws/guide/variables",
+    "Resources": "providers/aws/guide/resources",
+    "Composing services": "guides/compose",
+    "Workflow Tips": "providers/aws/guide/workflow",
+    "Plugins": {
+      "Overview": "guides/plugins",
+      "Creating Plugins": "guides/plugins/creating-plugins",
+      "CLI Output": "guides/plugins/cli-output",
+      "Custom Commands": "guides/plugins/custom-commands",
+      "Custom Variables": "guides/plugins/custom-variables",
+      "Extending the Configuration schema": "guides/plugins/custom-configuration",
+      "Extending and overriding configuration": "guides/plugins/extending-configuration"
+    }
+  },
+  "Examples and Tutorials": "examples-and-tutorials",
+  "Cloud Providers": {
+    "Overview": "providers",
+    "AWS": "providers/aws",
+    "Azure": {
+      "Overview": "providers/azure",
+      "CLI Reference": {
+        "Overview": "providers/azure/cli-reference",
+        "create": "providers/azure/cli-reference/create",
+        "deploy": "providers/azure/cli-reference/deploy",
+        "deploy list": "providers/azure/cli-reference/deploy-list",
+        "invoke": "providers/azure/cli-reference/invoke",
+        "deploy function": "providers/azure/cli-reference/deploy-function",
+        "remove": "providers/azure/cli-reference/remove",
+        "install": "providers/azure/cli-reference/install",
+        "logs": "providers/azure/cli-reference/logs",
+        "Plugin List": "providers/azure/cli-reference/plugin-list",
+        "Plugin Search": "providers/azure/cli-reference/plugin-search",
+        "Plugin Install": "providers/azure/cli-reference/plugin-install",
+        "Plugin Uninstall": "providers/azure/cli-reference/plugin-uninstall",
+        "Print": "providers/azure/cli-reference/print"
+      },
+      "Events": {
+        "Overview": "providers/azure/events",
+        "HTTP": "providers/azure/events/http",
+        "Timer": "providers/azure/events/timer",
+        "Queue Storage": "providers/azure/events/queuestorage",
+        "Service Bus": "providers/azure/events/servicebus",
+        "Event Hubs": "providers/azure/events/eventhubs",
+        "Blob Storage": "providers/azure/events/blobstorage",
+        "Cosmos DB": "providers/azure/events/cosmosdb",
+        "Other Bindings": "providers/azure/events/other"
+      },
+      "Examples": "providers/azure/examples",
+      "Guide": {
+        "Overview": "providers/azure/guide",
+        "Intro": "providers/azure/guide/intro",
+        "Quick Start": "providers/azure/guide/quick-start",
+        "Installation": "providers/azure/guide/installation",
+        "Credentials": "providers/azure/guide/credentials",
+        "Function Apps": "providers/azure/guide/function-apps",
+        "Functions": "providers/azure/guide/functions",
+        "Events": "providers/azure/guide/events",
+        "Deploying": "providers/azure/guide/deploying",
+        "Testing": "providers/azure/guide/testing",
+        "Packaging": "providers/azure/guide/packaging",
+        "Workflow": "providers/azure/guide/workflow",
+        "Serverless.yml": "providers/azure/guide/serverless.yml"
+      }
+    },
+    "Tencent": {
+      "Overview": "providers/tencent",
+      "CLI Reference": {
+        "Overview": "providers/tencent/cli-reference",
+        "create": "providers/tencent/cli-reference/create",
+        "install": "providers/tencent/cli-reference/install",
+        "deploy function": "providers/tencent/cli-reference/deploy-function",
+        "deploy": "providers/tencent/cli-reference/deploy",
+        "invoke": "providers/tencent/cli-reference/invoke",
+        "deploy list": "providers/tencent/cli-reference/deploy-list",
+        "logs": "providers/tencent/cli-reference/logs",
+        "metrics": "providers/tencent/cli-reference/metrics",
+        "info": "providers/tencent/cli-reference/info",
+        "remove": "providers/tencent/cli-reference/remove"
+      },
+      "Events": {
+        "Overview": "providers/tencent/events",
+        "API Gateway": "providers/tencent/events/apigateway",
+        "Cloud Kafka": "providers/tencent/events/cloud-kafka",
+        "CMQ": "providers/tencent/events/cmq",
+        "cos": "providers/tencent/events/cos",
+        "Timer": "providers/tencent/events/timer"
+      },
+      "Guide": {
+        "Overview": "providers/tencent/guide",
+        "Intro": "providers/tencent/guide/intro",
+        "Installation": "providers/tencent/guide/installation",
+        "Quick Start": "providers/tencent/guide/quick-start",
+        "Credentials": "providers/tencent/guide/credentials",
+        "Services": "providers/tencent/guide/services",
+        "Functions": "providers/tencent/guide/functions",
+        "Events": "providers/tencent/guide/events",
+        "Deploying": "providers/tencent/guide/deploying",
+        "Packaging": "providers/tencent/guide/packaging",
+        "Variables": "providers/tencent/guide/variables",
+        "Workflow": "providers/tencent/guide/workflow"
+      }
+    },
+    "Google": {
+      "Overview": "providers/google",
+      "CLI Reference": {
+        "Overview": "providers/google/cli-reference",
+        "create": "providers/google/cli-reference/create",
+        "install": "providers/google/cli-reference/install",
+        "package": "providers/google/cli-reference/package",
+        "deploy": "providers/google/cli-reference/deploy",
+        "info": "providers/google/cli-reference/info",
+        "invoke": "providers/google/cli-reference/invoke",
+        "invoke local": "providers/google/cli-reference/invoke-local",
+        "logs": "providers/google/cli-reference/logs",
+        "remove": "providers/google/cli-reference/remove",
+        "Plugin List": "providers/google/cli-reference/plugin-list",
+        "Plugin Search": "providers/google/cli-reference/plugin-search",
+        "Plugin Install": "providers/google/cli-reference/plugin-install",
+        "Plugin Uninstall": "providers/google/cli-reference/plugin-uninstall",
+        "Print": "providers/google/cli-reference/print"
+      },
+      "Events": {
+        "Overview": "providers/google/events",
+        "HTTP": "providers/google/events/http",
+        "Event": "providers/google/events/event"
+      },
+      "Examples": "providers/google/examples",
+      "Guide": {
+        "Overview": "providers/google/guide",
+        "Intro": "providers/google/guide/intro",
+        "Installation": "providers/google/guide/installation",
+        "Quick Start": "providers/google/guide/quick-start",
+        "Credentials": "providers/google/guide/credentials",
+        "Services": "providers/google/guide/services",
+        "Functions": "providers/google/guide/functions",
+        "Events": "providers/google/guide/events",
+        "Deploying": "providers/google/guide/deploying",
+        "Packaging": "providers/google/guide/packaging",
+        "Workflow": "providers/google/guide/workflow"
+      }
+    },
+    "Knative": {
+      "Overview": "providers/knative",
+      "CLI Reference": {
+        "Overview": "providers/knative/cli-reference",
+        "create": "providers/knative/cli-reference/create",
+        "install": "providers/knative/cli-reference/install",
+        "deploy": "providers/knative/cli-reference/deploy",
+        "invoke": "providers/knative/cli-reference/invoke",
+        "info": "providers/knative/cli-reference/info",
+        "remove": "providers/knative/cli-reference/remove"
+      },
+      "Events": {
+        "Overview": "providers/knative/events",
+        "Custom": "providers/knative/events/custom",
+        "Kafka": "providers/knative/events/kafka",
+        "Google Cloud PubSub": "providers/knative/events/gcp-pub-sub",
+        "AWS SQS": "providers/knative/events/aws-sqs",
+        "CronJob": "providers/knative/events/cron"
+      },
+      "Guide": {
+        "Overview": "providers/knative/guide",
+        "Intro": "providers/knative/guide/intro",
+        "Installation": "providers/knative/guide/installation",
+        "Quick Start": "providers/knative/guide/quick-start",
+        "Credentials": "providers/knative/guide/credentials",
+        "Services": "providers/knative/guide/services",
+        "Functions": "providers/knative/guide/functions",
+        "Events": "providers/knative/guide/events",
+        "Deploying": "providers/knative/guide/deploying",
+        "Variables": "providers/knative/guide/variables",
+        "Packaging": "providers/knative/guide/packaging",
+        "Workflow": "providers/knative/guide/workflow"
+      }
+    },
+    "Alibaba Cloud": {
+      "Overview": "providers/aliyun",
+      "CLI Reference": {
+        "Overview": "providers/aliyun/cli-reference",
+        "create": "providers/aliyun/cli-reference/create",
+        "install": "providers/aliyun/cli-reference/install",
+        "package": "providers/aliyun/cli-reference/package",
+        "deploy": "providers/aliyun/cli-reference/deploy",
+        "info": "providers/aliyun/cli-reference/info",
+        "invoke": "providers/aliyun/cli-reference/invoke",
+        "login": "providers/aliyun/cli-reference/login",
+        "logs": "providers/aliyun/cli-reference/logs",
+        "remove": "providers/aliyun/cli-reference/remove"
+      },
+      "Events": {
+        "Overview": "providers/aliyun/events",
+        "HTTP": "providers/aliyun/events/http",
+        "OSS": "providers/aliyun/events/oss"
+      },
+      "Guide": {
+        "Overview": "providers/aliyun/guide",
+        "Intro": "providers/aliyun/guide/intro",
+        "Installation": "providers/aliyun/guide/installation",
+        "Quick Start": "providers/aliyun/guide/quick-start",
+        "Credentials": "providers/aliyun/guide/credentials",
+        "Services": "providers/aliyun/guide/services",
+        "Functions": "providers/aliyun/guide/functions",
+        "Events": "providers/aliyun/guide/events",
+        "Deploying": "providers/aliyun/guide/deploying",
+        "Packaging": "providers/aliyun/guide/packaging",
+        "Variables": "providers/aliyun/guide/variables",
+        "Workflow": "providers/aliyun/guide/workflow"
+      }
+    },
+    "Cloudflare Workers": {
+      "Overview": "providers/cloudflare",
+      "CLI Reference": {
+        "Overview": "providers/cloudflare/cli-reference",
+        "create": "providers/cloudflare/cli-reference/create",
+        "deploy": "providers/cloudflare/cli-reference/deploy",
+        "invoke": "providers/cloudflare/cli-reference/invoke",
+        "remove": "providers/cloudflare/cli-reference/remove",
+        "Plugin List": "providers/cloudflare/cli-reference/plugin-list",
+        "Plugin Search": "providers/cloudflare/cli-reference/plugin-search",
+        "Plugin Install": "providers/cloudflare/cli-reference/plugin-install",
+        "Plugin Uninstall": "providers/cloudflare/cli-reference/plugin-uninstall"
+      },
+      "Events": {
+        "Overview": "providers/cloudflare/events",
+        "HTTP Events": "providers/cloudflare/events/http"
+      },
+      "Guide": {
+        "Overview": "providers/cloudflare/guide",
+        "Intro": "providers/cloudflare/guide/intro",
+        "Quick Start": "providers/cloudflare/guide/quick-start",
+        "Installation": "providers/cloudflare/guide/installation",
+        "Services": "providers/cloudflare/guide/services",
+        "Functions": "providers/cloudflare/guide/functions",
+        "Events": "providers/cloudflare/guide/events",
+        "Deploying": "providers/cloudflare/guide/deploying",
+        "Debugging": "providers/cloudflare/guide/debugging",
+        "Workflow": "providers/cloudflare/guide/workflow"
+      }
+    },
+    "Fn": {
+      "Overview": "providers/fn",
+      "CLI Reference": {
+        "Overview": "providers/fn/cli-reference",
+        "create": "providers/fn/cli-reference/create",
+        "deploy": "providers/fn/cli-reference/deploy",
+        "invoke": "providers/fn/cli-reference/invoke",
+        "logs": "providers/fn/cli-reference/logs",
+        "info": "providers/fn/cli-reference/info",
+        "remove": "providers/fn/cli-reference/remove",
+        "Plugin List": "providers/fn/cli-reference/plugin-list",
+        "Plugin Search": "providers/fn/cli-reference/plugin-search",
+        "Plugin Install": "providers/fn/cli-reference/plugin-install",
+        "Plugin Uninstall": "providers/fn/cli-reference/plugin-uninstall"
+      },
+      "Fn Events": {
+        "Overview": "providers/fn/events",
+        "HTTP Events": "providers/fn/events/http"
+      },
+      "Guide": {
+        "Overview": "providers/fn/guide",
+        "Intro": "providers/fn/guide/intro",
+        "Quick Start": "providers/fn/guide/quick-start",
+        "Installation": "providers/fn/guide/installation",
+        "Events": "providers/fn/guide/events",
+        "Deploying": "providers/fn/guide/deploying",
+        "Debugging": "providers/fn/guide/debugging",
+        "Workflow": "providers/fn/guide/workflow"
+      }
+    },
+    "Kubeless": {
+      "Overview": "providers/kubeless",
+      "CLI Reference": {
+        "Overview": "providers/kubeless/cli-reference",
+        "create": "providers/kubeless/cli-reference/create",
+        "deploy": "providers/kubeless/cli-reference/deploy",
+        "invoke": "providers/kubeless/cli-reference/invoke",
+        "logs": "providers/kubeless/cli-reference/logs",
+        "info": "providers/kubeless/cli-reference/info",
+        "remove": "providers/kubeless/cli-reference/remove",
+        "Plugin List": "providers/kubeless/cli-reference/plugin-list",
+        "Plugin Search": "providers/kubeless/cli-reference/plugin-search",
+        "Plugin Install": "providers/kubeless/cli-reference/plugin-install",
+        "Plugin Uninstall": "providers/kubeless/cli-reference/plugin-uninstall"
+      },
+      "Kubeless Events": {
+        "Overview": "providers/kubeless/events",
+        "HTTP Events": "providers/kubeless/events/http",
+        "PubSub": "providers/kubeless/events/pubsub",
+        "Schedule": "providers/kubeless/events/scheduler"
+      },
+      "Guide": {
+        "Overview": "providers/kubeless/guide",
+        "Intro": "providers/kubeless/guide/intro",
+        "Quick Start": "providers/kubeless/guide/quick-start",
+        "Installation": "providers/kubeless/guide/installation",
+        "Services": "providers/kubeless/guide/services",
+        "Functions": "providers/kubeless/guide/functions",
+        "Events": "providers/kubeless/guide/events",
+        "Deploying": "providers/kubeless/guide/deploying",
+        "Debugging": "providers/kubeless/guide/debugging",
+        "Workflow": "providers/kubeless/guide/workflow",
+        "Packaging": "providers/kubeless/guide/packaging"
+      }
+    },
+    "OpenWhisk": {
+      "Overview": "providers/openwhisk",
+      "CLI Reference": {
+        "Overview": "providers/openwhisk/cli-reference",
+        "config credentials": "providers/openwhisk/cli-reference/config-credentials",
+        "create": "providers/openwhisk/cli-reference/create",
+        "install": "providers/openwhisk/cli-reference/install",
+        "deploy": "providers/openwhisk/cli-reference/deploy",
+        "deploy function": "providers/openwhisk/cli-reference/deploy-function",
+        "invoke": "providers/openwhisk/cli-reference/invoke",
+        "invoke local": "providers/openwhisk/cli-reference/invoke-local",
+        "logs": "providers/openwhisk/cli-reference/logs",
+        "info": "providers/openwhisk/cli-reference/info",
+        "remove": "providers/openwhisk/cli-reference/remove",
+        "Plugin List": "providers/openwhisk/cli-reference/plugin-list",
+        "Plugin Search": "providers/openwhisk/cli-reference/plugin-search",
+        "Plugin Install": "providers/openwhisk/cli-reference/plugin-install",
+        "Plugin Uninstall": "providers/openwhisk/cli-reference/plugin-uninstall",
+        "Print": "providers/openwhisk/cli-reference/print",
+        "serverless stats": "providers/openwhisk/cli-reference/slstats"
+      },
+      "OpenWhisk Events": {
+        "Overview": "providers/openwhisk/events",
+        "API Gateway": "providers/openwhisk/events/apigateway",
+        "Triggers": "providers/openwhisk/events/triggers",
+        "Cloudant": "providers/openwhisk/events/cloudant",
+        "Message Hub": "providers/openwhisk/events/messagehub",
+        "Schedule": "providers/openwhisk/events/schedule"
+      },
+      "Examples": {
+        "Overview": "providers/openwhisk/examples",
+        "Hello World Java Example": {
+          "Overview": "providers/openwhisk/examples/hello-world/java",
+          "Hello World Java Example": "providers/openwhisk/examples/hello-world/java",
+          "Hello World PHP Example": "providers/openwhisk/examples/hello-world/php",
+          "Hello World Swift Example": "providers/openwhisk/examples/hello-world/swift"
+        }
+      },
+      "Guide": {
+        "Overview": "providers/openwhisk/guide",
+        "Intro": "providers/openwhisk/guide/intro",
+        "Quick Start": "providers/openwhisk/guide/quick-start",
+        "Installation": "providers/openwhisk/guide/installation",
+        "Credentials": "providers/openwhisk/guide/credentials",
+        "Services": "providers/openwhisk/guide/services",
+        "Functions": "providers/openwhisk/guide/functions",
+        "Events": "providers/openwhisk/guide/events",
+        "Web Actions": "providers/openwhisk/guide/web-actions",
+        "Deploying": "providers/openwhisk/guide/deploying",
+        "Testing": "providers/openwhisk/guide/testing",
+        "Packaging": "providers/openwhisk/guide/packaging",
+        "Workflow": "providers/openwhisk/guide/workflow",
+        "Serverless.yml": "providers/openwhisk/guide/serverless.yml"
+      }
+    },
+    "Spotinst": {
+      "Overview": "providers/spotinst",
+      "CLI Reference": {
+        "Overview": "providers/spotinst/cli-reference",
+        "config credentials": "providers/spotinst/cli-reference/config-credentials",
+        "create": "providers/spotinst/cli-reference/create",
+        "deploy": "providers/spotinst/cli-reference/deploy",
+        "deploy function": "providers/spotinst/cli-reference/deploy-function",
+        "invoke": "providers/spotinst/cli-reference/invoke",
+        "logs": "providers/spotinst/cli-reference/logs",
+        "Stage Variables": "providers/spotinst/cli-reference/stage",
+        "info": "providers/spotinst/cli-reference/info",
+        "remove": "providers/spotinst/cli-reference/remove",
+        "Plugin List": "providers/spotinst/cli-reference/plugin-list",
+        "Plugin Install": "providers/spotinst/cli-reference/plugin-install",
+        "Plugin Search": "providers/spotinst/cli-reference/plugin-search",
+        "Plugin Uninstall": "providers/spotinst/cli-reference/plugin-uninstall"
+      },
+      "Events": {
+        "Overview": "providers/spotinst/events",
+        "API Gateway": "providers/spotinst/events/http",
+        "Schedule": "providers/spotinst/events/schedule"
+      },
+      "Java8": {
+        "Overview": "providers/spotinst/examples/java8",
+        "Java8": "providers/spotinst/examples/java8",
+        "JavaScript": "providers/spotinst/examples/node"
+      },
+      "User Guide": {
+        "Overview": "providers/spotinst/guide",
+        "Intro": "providers/spotinst/guide/intro",
+        "Quick Start": "providers/spotinst/guide/quick-start",
+        "Create Token": "providers/spotinst/guide/create-token",
+        "Credentials": "providers/spotinst/guide/credentials",
+        "Serverless.yml": "providers/spotinst/guide/serverless.yml",
+        "Endpoint Set Up": "providers/spotinst/guide/endpoints",
+        "Variables": "providers/spotinst/guide/variables",
+        "CORS": "providers/spotinst/guide/cors",
+        "Active Versions": "providers/spotinst/guide/active-versions",
+        "IAM Role": "providers/spotinst/guide/iam-roles"
+      }
+    }
+  },
+  "Dashboard": {
+    "Overview": "guides/dashboard",
+    "Monitoring": {
+      "Overview": "guides/monitoring",
+      "Alerts": "guides/monitoring/alerts",
+      "Metrics": "guides/monitoring/metrics",
+      "Notifications": "guides/monitoring/notifications"
+    },
+    "Outputs": "guides/output-variables",
+    "Providers": "guides/providers",
+    "CI/CD": {
+      "Overview": "guides/cicd",
+      "Branch Deployments": "guides/cicd/branch-deployments",
+      "Preview Deployments": "guides/cicd/preview-deployments",
+      "Custom Scripts": "guides/cicd/custom-scripts",
+      "Testing": "guides/cicd/running-tests",
+      "Private Packages": "guides/cicd/private-packages",
+      "Notifications": "guides/cicd/notifications",
+      "Mono Repos": "guides/cicd/mono-repo",
+      "Deploy in your own CI/CD": "guides/cicd/running-in-your-own-cicd",
+      "Best Practices": "guides/cicd/best-practices",
+      "Troubleshooting": "guides/cicd/troubleshooting",
+      "FAQ": "guides/cicd/faq"
+    },
+    "SDK": {
+      "Overview": "guides/sdk",
+      "nodejs": "guides/sdk/nodejs",
+      "python": "guides/sdk/python"
+    },
+    "Testing": "guides/testing"
+  },
+  "Serverless.yml Reference": "providers/aws/guide/serverless.yml",
+  "CLI Reference": {
+    "Overview": "providers/aws/cli-reference",
+    "config": "providers/aws/cli-reference/config",
+    "config credentials": "providers/aws/cli-reference/config-credentials",
+    "create": "providers/aws/cli-reference/create",
+    "install": "providers/aws/cli-reference/install",
+    "package": "providers/aws/cli-reference/package",
+    "deploy": "providers/aws/cli-reference/deploy",
+    "deploy function": "providers/aws/cli-reference/deploy-function",
+    "deploy list": "providers/aws/cli-reference/deploy-list",
+    "invoke": "providers/aws/cli-reference/invoke",
+    "invoke local": "providers/aws/cli-reference/invoke-local",
+    "logs": "providers/aws/cli-reference/logs",
+    "login": "providers/aws/cli-reference/login",
+    "metrics": "providers/aws/cli-reference/metrics",
+    "info": "providers/aws/cli-reference/info",
+    "rollback": "providers/aws/cli-reference/rollback",
+    "rollback function": "providers/aws/cli-reference/rollback-function",
+    "remove": "providers/aws/cli-reference/remove",
+    "plugin list": "providers/aws/cli-reference/plugin-list",
+    "plugin search": "providers/aws/cli-reference/plugin-search",
+    "plugin install": "providers/aws/cli-reference/plugin-install",
+    "plugin uninstall": "providers/aws/cli-reference/plugin-uninstall",
+    "generate event": "providers/aws/cli-reference/generate-event",
+    "print": "providers/aws/cli-reference/print",
+    "serverless stats": "providers/aws/cli-reference/slstats"
+  },
+  "Learn More": {
+    "Upgrading to v3": "guides/upgrading-v3",
+    "Configuration Validation": "configuration-validation",
+    "Resolution of Environment Variables": "environment-variables",
+    "Deprecations": "deprecations",
+    "Telemetry and Notifications": "telemetry"
+  }
+}

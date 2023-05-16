@@ -30,6 +30,9 @@ fi
 MACHINE_TYPE=`uname -m`
 if [[ $MACHINE_TYPE == "x86_64" ]]; then
   ARCH='x64'
+elif [[ $OSTYPE == "darwin"* ]] && [[ $MACHINE_TYPE == "arm64" ]]; then
+  ARCH='x64'
+  echo "There is no native binary installer available for $MACHINE_TYPE architecture. Version for x86_64 architecture will be installed instead. In order to use it, you need to have Rosetta installed."
 else
   echo "$red Sorry, there's no serverless binary installer available for $MACHINE_TYPE architecture. Please open request for it at https://github.com/serverless/serverless/issues.$reset"
   exit 1

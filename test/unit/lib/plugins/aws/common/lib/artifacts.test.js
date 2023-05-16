@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const path = require('path');
 const fse = require('fs-extra');
 const AWSCommon = require('../../../../../../../lib/plugins/aws/common/index');
-const Serverless = require('../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../lib/serverless');
 const { getTmpDirPath } = require('../../../../../../utils/fs');
 
 describe('#moveArtifactsToPackage()', () => {
@@ -14,7 +14,7 @@ describe('#moveArtifactsToPackage()', () => {
   const moveServerlessPath = path.join(moveBasePath, '.serverless');
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     awsCommon = new AWSCommon(serverless, {});
 
     serverless.serviceDir = moveBasePath;
@@ -36,7 +36,7 @@ describe('#moveArtifactsToPackage()', () => {
 
   it('should resolve if no package is set', () => awsCommon.moveArtifactsToPackage());
 
-  it('should use package option as target', () => {
+  it('should use package option as target', async () => {
     const testFileSource = path.join(moveServerlessPath, 'moveTestFile.tmp');
     const targetPath = path.join(moveBasePath, 'target');
 
@@ -50,7 +50,7 @@ describe('#moveArtifactsToPackage()', () => {
     });
   });
 
-  it('should use service package path as target', () => {
+  it('should use service package path as target', async () => {
     const testFileSource = path.join(moveServerlessPath, 'moveTestFile.tmp');
     const targetPath = path.join(moveBasePath, 'target');
 
@@ -64,7 +64,7 @@ describe('#moveArtifactsToPackage()', () => {
     });
   });
 
-  it('should not fail with non existing temp dir', () => {
+  it('should not fail with non existing temp dir', async () => {
     const targetPath = path.join(moveBasePath, 'target');
 
     if (serverless.utils.dirExistsSync(moveServerlessPath)) {
@@ -77,7 +77,7 @@ describe('#moveArtifactsToPackage()', () => {
     });
   });
 
-  it('should not fail with existing package dir', () => {
+  it('should not fail with existing package dir', async () => {
     const testFileSource = path.join(moveServerlessPath, 'moveTestFile.tmp');
     const targetPath = path.join(moveBasePath, 'target');
     const testFileTarget = path.join(targetPath, 'moveTestFile.tmp');
@@ -104,7 +104,7 @@ describe('#moveArtifactsToTemp()', () => {
   const moveTargetPath = path.join(moveBasePath, 'target');
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     awsCommon = new AWSCommon(serverless, {});
 
     serverless.serviceDir = moveBasePath;
@@ -126,7 +126,7 @@ describe('#moveArtifactsToTemp()', () => {
 
   it('should resolve if no package is set', () => awsCommon.moveArtifactsToTemp());
 
-  it('should use package option as source path', () => {
+  it('should use package option as source path', async () => {
     const testFileSource = path.join(moveTargetPath, 'moveTestFile.tmp');
 
     serverless.utils.writeFileSync(testFileSource, '!!!MOVE TEST FILE!!!');
@@ -139,7 +139,7 @@ describe('#moveArtifactsToTemp()', () => {
     });
   });
 
-  it('should use package option as source path', () => {
+  it('should use package option as source path', async () => {
     const testFileSource = path.join(moveTargetPath, 'moveTestFile.tmp');
 
     serverless.utils.writeFileSync(testFileSource, '!!!MOVE TEST FILE!!!');
@@ -152,7 +152,7 @@ describe('#moveArtifactsToTemp()', () => {
     });
   });
 
-  it('should not fail with non existing source path', () => {
+  it('should not fail with non existing source path', async () => {
     if (serverless.utils.dirExistsSync(moveTargetPath)) {
       fse.removeSync(moveTargetPath);
     }
@@ -163,7 +163,7 @@ describe('#moveArtifactsToTemp()', () => {
     });
   });
 
-  it('should not fail with existing temp dir', () => {
+  it('should not fail with existing temp dir', async () => {
     const testFileSource = path.join(moveServerlessPath, 'moveTestFile.tmp');
     const testFileTarget = path.join(moveTargetPath, 'moveTestFile.tmp');
 

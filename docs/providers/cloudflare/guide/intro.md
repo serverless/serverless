@@ -183,7 +183,7 @@ Each event implements two behaviors:
 
 On Cloudflare, every script will have a script-name. The plugin generates a name for you using the `service.name` `provider.stage` and `function` to compose a name `service-stage-foo`.
 
-###Plugins
+### Plugins
 
 You can overwrite or extend the functionality of the Framework using **Plugins**.
 Every `serverless.yml` can contain a `plugins:` property, which features multiple

@@ -1,0 +1,24 @@
+{
+  "Parameters": {},
+  "Resources": {
+    "certificate": {
+      "Type": "AWS::IoT::Certificate",
+      "Properties": {
+        "CertificateId": { "Ref": "AWS::IoT::Certificate::Id" },
+        "Status": "Active"
+      }
+    },
+    "policy": {
+      "Type": "AWS::IoT::Policy",
+      "Properties": {
+        "PolicyName": "${self:service}-${sls:stage}-iot-policy"
+      }
+    },
+    "thing": {
+      "Type": "AWS::IoT::Thing",
+      "Properties": {
+        "ThingName": "${self:service}-${sls:stage}"
+      }
+    }
+  }
+}

@@ -77,8 +77,6 @@ functions:
 This configuration sets up a disabled Kinesis stream event for the `preprocess` function which has a batch size of `100`. The starting position is
 `LATEST`.
 
-**Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
-
 ```yml
 functions:
   preprocess:
@@ -88,6 +86,24 @@ functions:
           arn: arn:aws:kinesis:region:XXXXXX:stream/foo
           batchSize: 100
           startingPosition: LATEST
+          maximumRetryAttempts: 10
+          enabled: false
+```
+
+### Setting the Kinesis StartingPosition
+
+This configuration sets up a disabled Kinesis stream event for the `preprocess` function. The starting position is
+`AT_TIMESTAMP` and the timestamp value is `1000000001`.
+
+```yml
+functions:
+  preprocess:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
+          startingPosition: AT_TIMESTAMP
+          startingPositionTimestamp: 1000000001
           maximumRetryAttempts: 10
           enabled: false
 ```
@@ -105,8 +121,6 @@ The `batchWindow` property specifies a maximum amount of time to wait before tri
 3. the `batchSize` reaches it maximum value.
 
 For more information, read the [AWS release announcement](https://aws.amazon.com/about-aws/whats-new/2019/09/aws-lambda-now-supports-custom-batch-window-for-kinesis-and-dynamodb-event-sources/) for this property.
-
-**Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
 
 ```yml
 functions:
@@ -126,8 +140,6 @@ This configuration provides the ability to recursively split a failed batch and 
 
 [Related AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-bisectbatchonfunctionerror)
 
-**Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
-
 ```yml
 functions:
   preprocess:
@@ -145,8 +157,6 @@ This configuration sets up the maximum number of times to retry when the functio
 **Note:** Serverless only sets this property if you explicitly add it to the stream configuration (see example below).
 
 [Related AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-maximumretryattempts)
-
-**Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
 
 ```yml
 functions:
@@ -168,8 +178,6 @@ This configuration sets up the maximum age of a record that Lambda sends to a fu
 **Note:** Serverless only sets this property if you explicitly add it to the stream configuration (see example below).
 
 [Related AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-maximumrecordageinseconds)
-
-**Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
 
 ```yml
 functions:
@@ -255,8 +263,6 @@ The `parallelizationFactor` property specifies the number of concurrent Lambda i
 
 For more information, read the [AWS release announcement](https://aws.amazon.com/blogs/compute/new-aws-lambda-scaling-controls-for-kinesis-and-dynamodb-event-sources/) for this property.
 
-**Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
-
 ```yml
 functions:
   preprocess:
@@ -272,8 +278,6 @@ functions:
 This configuration allows customers to automatically checkpoint records that have been successfully processed for Amazon Kinesis and Amazon DynamoDB Streams.
 
 For more information, read the [AWS release announcement](https://aws.amazon.com/about-aws/whats-new/2020/12/aws-lambda-launches-checkpointing-for-amazon-kinesis-and-amazon-dynamodb-streams/)
-
-Note: Serverless only sets this property if you explicitly add it to the stream configuration (see example below).
 
 ```yml
 functions:
@@ -320,3 +324,45 @@ functions:
 ```
 
 For more information, read this [AWS blog post](https://aws.amazon.com/blogs/compute/increasing-real-time-stream-processing-performance-with-amazon-kinesis-data-streams-enhanced-fan-out-and-aws-lambda/) or this [AWS documentation](https://docs.aws.amazon.com/streams/latest/dev/introduction-to-enhanced-consumers.html).
+
+## Setting TumblingWindowInSeconds
+
+This configuration allows customers to aggregate values in near-realtime, allowing state to by passed forward by Lambda invocations. A event source created with this property adds several new attributes to the events delivered to the Lambda function.
+
+- **window**: beginning and ending timestamps of the tumbling window;
+- **state**: an object containing state of a previous execution. Initially empty can contain up to **1mb** of data;
+- **isFinalInvokeForWindow**: indicates if this is the last execution for the tumbling window;
+- **isWindowTerminatedEarly**: happens only when the state object exceeds maximum allowed size of 1mb.
+
+For more information and examples, read the [AWS release announcement](https://aws.amazon.com/blogs/compute/using-aws-lambda-for-streaming-analytics/)
+
+Note: Serverless only sets this property if you explicitly add it to the stream configuration (see example below).
+
+```yml
+functions:
+  preprocess:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+          tumblingWindowInSeconds: 30
+```
+
+## Setting filter patterns
+
+This configuration allows customers to filter event before lambda invocation. It accepts up to 5 filter patterns by default and up to 10 with quota extension. If one event matches at least 1 pattern, lambda will process it.
+
+For more details and examples of filter patterns, please see the [AWS event filtering documentation](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventfiltering.html)
+
+Note: Serverless only sets this property if you explicitly add it to the stream configuration (see an example below). The following example will only process inserted items in the DynamoDB table (it will skip removed and modified items).
+
+```yml
+functions:
+  handleInsertedDynamoDBItem:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+          filterPatterns:
+            - eventName: [INSERT]
+```

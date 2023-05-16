@@ -1,0 +1,18 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+functions:
+  fn1:
+    handler: fn.handler
+  fn2:
+    handler: fn.handler
+  fnIndividually:
+    handler: fn-individually.handler
+    package:
+      patterns: '!fn.js'

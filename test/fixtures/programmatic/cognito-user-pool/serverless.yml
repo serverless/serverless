@@ -1,0 +1,85 @@
+service: service
+
+configValidationMode: error
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  versionFunctions: false
+
+functions:
+  basic:
+    handler: core.basic
+    events:
+      - cognitoUserPool:
+          pool: ${self:service} CUP Basic
+          trigger: PreSignUp
+  customEmailSender:
+    handler: core.customEmailSender
+    events:
+      - cognitoUserPool:
+          # ${self:service} is purposefully omitted here. It causes the custom resource
+          # override below to select the wrong user pool when the resources get merged.
+          # The name is updated during the merge as defined in the resource below.
+          # This also allows us to include the resource merge operations in our integration tests.
+          pool: CUP CustomEmailSender
+          trigger: CustomEmailSender
+          kmsKeyId:
+            Fn::GetAtt: ['kmsKey', 'Arn']
+  existingSimple:
+    handler: core.existingSimple
+    events:
+      - cognitoUserPool:
+          pool: ${self:service} CUP Existing Simple
+          trigger: PreSignUp
+          existing: true
+  # testing if two functions share one cognito user pool with multiple configs
+  existingMulti:
+    handler: core.existingMulti
+    events:
+      - cognitoUserPool:
+          pool: ${self:service} CUP Existing Multi
+          trigger: PreSignUp
+          existing: true
+      - cognitoUserPool:
+          pool: ${self:service} CUP Existing Multi
+          trigger: PreAuthentication
+          existing: true
+  existingCustomEmailSender:
+    handler: core.existingCustomEmailSender
+    events:
+      - cognitoUserPool:
+          pool: ${self:service} CUP Existing CustomEmailSender
+          trigger: CustomEmailSender
+          kmsKeyId:
+            Fn::GetAtt: ['kmsKey', 'Arn']
+          existing: true
+
+resources:
+  Resources:
+    CognitoUserPoolCUPCustomEmailSender:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: ${self:service} CUP CustomEmailSender
+        UsernameAttributes:
+          - 'email'
+        AutoVerifiedAttributes:
+          - 'email'
+        EmailVerificationMessage: 'email message: {####}'
+        EmailVerificationSubject: 'email subject: {####}'
+    kmsKey:
+      Type: AWS::KMS::Key
+      Properties:
+        Description: ServerlessIntegrationTestKMSKey
+        Enabled: true
+        KeyPolicy:
+          Version: '2012-10-17'
+          Id: cognito-user-pool-integration-test-key
+          Statement:
+            Sid: Enable IAM User Permissions
+            Principal:
+              AWS:
+                - Fn::Sub: arn:aws:iam::${AWS::AccountId}:root
+            Effect: Allow
+            Action: kms:*
+            Resource: '*'

@@ -1,0 +1,57 @@
+service: service
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  apiGateway:
+    request:
+      schemas:
+        test-model:
+          name: 'TestModel'
+          description: 'Test Description'
+          schema: '${file(dummy-schema.json)}'
+        test-model-simple:
+          schema: '${file(dummy-schema.json)}'
+        unused-model:
+          name: 'UnusedModel'
+          description: 'I should not be created'
+          schema: '${file(dummy-schema.json)}'
+
+functions:
+  target:
+    handler: target.handler
+    events:
+      - http:
+          path: test-model-full
+          method: get
+          request:
+            schemas:
+              application/json: test-model
+      - http:
+          path: test-model-simple
+          method: get
+          request:
+            schemas:
+              application/json: test-model-simple
+      - http:
+          path: test-direct-simple
+          method: get
+          request:
+            schemas:
+              application/json: '${file(dummy-schema.json)}'
+      - http:
+          path: test-direct-full
+          method: get
+          request:
+            schemas:
+              application/json:
+                name: TestMethodModel
+                description: 'Test Method Model Desc'
+                schema: '${file(dummy-schema.json)}'
+      - http:
+          path: test-multiple
+          method: get
+          request:
+            schemas:
+              application/json: '${file(dummy-schema.json)}'
+              text/plain: 'foo'

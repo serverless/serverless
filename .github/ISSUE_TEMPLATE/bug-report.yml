@@ -1,0 +1,75 @@
+name: 🐛 Bug report
+description: Create a bug report
+body:
+  - type: checkboxes
+    attributes:
+      label: Are you certain it's a bug?
+      description: If you're uncertain, please report at https://github.com/serverless/serverless/discussions instead
+      options:
+        - label: Yes, it looks like a bug
+          required: true
+  - type: checkboxes
+    attributes:
+      label: Is the issue caused by a plugin?
+      description: If it comes from an external plugin, please report in the plugin issue tracker
+      options:
+        - label: It is not a plugin issue
+          required: true
+  - type: checkboxes
+    attributes:
+      label: Are you using the latest v3 release?
+      description: Latest version can be checked at https://github.com/serverless/serverless/releases/latest
+      options:
+        - label: Yes, I'm using the latest v3 release
+          required: true
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists
+      options:
+        - label: I have searched existing issues, it hasn't been reported yet
+          required: true
+  - type: textarea
+    attributes:
+      label: Issue description
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Service configuration (serverless.yml) content
+      description: |
+        Provide  COMPLETE content of serverless.yml, ensuring that:
+        • It consistently reproduces described issue
+        • It's as minimal as possible
+        • Ideally with no plugins involved (plugin related issues need to be reported at plugin repositories)
+        • Has sensitive parts masked out
+
+        If not applicable, fill with "N/A"
+      render: yaml
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Command name and used flags
+      description: |
+        Full command name with used flags (If not applicable, fill with "N/A")
+      placeholder: serverless <command name> [...flags]
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Command output
+      description: |
+        COMPLETE command output.
+
+        If not applicable, fill with "N/A"
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Environment information
+      description: '"serverless --version" output'
+      render: shell
+    validations:
+      required: true

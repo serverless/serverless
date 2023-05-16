@@ -1,21 +1,25 @@
 'use strict';
 
 const awsRequest = require('@serverless/test/aws-request');
+const IotService = require('aws-sdk').Iot;
+const IotDataService = require('aws-sdk').IotData;
 
-function resolveIotEndpoint() {
-  return awsRequest('Iot', 'describeEndpoint').then((data) => {
-    return data.endpointAddress;
-  });
+async function resolveIotEndpoint() {
+  return awsRequest(IotService, 'describeEndpoint', { endpointType: 'iot:Data-ATS' }).then(
+    (data) => {
+      return data.endpointAddress;
+    }
+  );
 }
 
-function publishIotData(topic, message) {
+async function publishIotData(topic, message) {
   return resolveIotEndpoint().then((endpoint) => {
     const params = {
       topic,
       payload: Buffer.from(message),
     };
 
-    return awsRequest({ name: 'IotData', params: { endpoint } }, 'publish', params);
+    return awsRequest({ client: IotDataService, params: { endpoint } }, 'publish', params);
   });
 }
 

@@ -1,0 +1,11 @@
+{
+  "frameworkId": "00000000-0000-0000-0000-000000000000",
+  "meta": {
+    "created_at": 1560000000,
+    "updated_at": 1560000000
+  },
+  "auth": {
+    "refreshToken": "foo",
+    "idToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJTTFMiLCJpYXQiOjE2MTE3NDAzNTgsImV4cCI6MTk1ODgwOTE1OCwiYXVkIjoic2xzIiwic3ViIjoic2xzQHNscy5jb20ifQ.fy_DY4cWWADDREVYrSy3U5-p7cKT4evEOCjQtQJl9ww"
+  }
+}

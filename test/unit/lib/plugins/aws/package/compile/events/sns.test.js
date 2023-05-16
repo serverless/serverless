@@ -3,14 +3,14 @@
 const expect = require('chai').expect;
 const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
 const AwsCompileSNSEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/sns');
-const Serverless = require('../../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../../lib/serverless');
 
 describe('AwsCompileSNSEvents', () => {
   let serverless;
   let awsCompileSNSEvents;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     const options = {
       region: 'some-region',
     };
@@ -50,6 +50,7 @@ describe('AwsCompileSNSEvents', () => {
                 filterPolicy: {
                   pet: ['dog', 'cat'],
                 },
+                filterPolicyScope: 'MessageBody',
               },
             },
             {
@@ -85,6 +86,10 @@ describe('AwsCompileSNSEvents', () => {
         awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
           .FirstSnsSubscriptionTopic1.Properties.FilterPolicy
       ).to.eql({ pet: ['dog', 'cat'] });
+      expect(
+        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+          .FirstSnsSubscriptionTopic1.Properties.FilterPolicyScope
+      ).to.eql('MessageBody');
     });
 
     it('should allow SNS topic without displayName', () => {

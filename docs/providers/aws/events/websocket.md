@@ -75,9 +75,10 @@ service: serverless-ws-test
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
   websocketsApiName: custom-websockets-api-name
   websocketsApiRouteSelectionExpression: $request.body.action # custom routes are selected by the value of the action property in the body
+  websocketsDescription: Custom Serverless Websockets
 
 functions:
   connectionHandler:
@@ -261,3 +262,51 @@ provider:
 ```
 
 Valid values are INFO, ERROR.
+
+You can specify your own [format for API Gateway Access Logs](https://docs.aws.amazon.com/apigateway/latest/developerguide/websocket-api-logging.html) by including your preferred string in the `format` property:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    websocket:
+      format: '{ "requestId":"$context.requestId",   "ip": "$context.identity.sourceIp" }'
+```
+
+The existence of the `logs` property enables both access and execution logging. If you want to disable one or both of them, you can do so with the following:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    websocket:
+      accessLogging: false
+      executionLogging: false
+```
+
+By default, the full requests and responses data will be logged. If you want to disable like so:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    websocket:
+      fullExecutionData: false
+```
+
+## Tags
+
+When using Websocket API, it is possible to tag the corresponding API Gateway resources. By setting `provider.websocket.useProviderTags` to `true`, all tags defined on `provider.tags` will be applied to API Gateway and API Gateway Stage.
+
+```yaml
+provider:
+  tags:
+    project: myProject
+  websocket:
+    useProviderTags: true
+```
+
+In the above example, the tag project: myProject will be applied to API Gateway and API Gateway Stage.

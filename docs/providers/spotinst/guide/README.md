@@ -17,7 +17,7 @@ Welcome to the Serverless Spotinst Functions Guide!
 
 Get started with the [Introduction to the framework](./intro.md)
 
-If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://forum.serverless.com/)
+If you have questions, join the [Slack community](https://serverless.com/slack) or [post over on the forums](https://forum.serverless.com/)
 
 ## Enjoy Spotinst Functions' Core Benefits
 

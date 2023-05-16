@@ -1,0 +1,12 @@
+# The resolve nest depth is 10, so we have to resolve at least 10 files to ensure it's not being hit.
+result:
+  - ${file(./file.yml):result}
+  - ${file(./file.yml):result}
+  - ${file(./file.yml):result}
+  - ${file(./file.yml):result}
+  - ${file(./file.yml):result}
+  - ${file(./file.yml):result}
+  - ${file(./file.yml):result}
+  - ${file(./file.yml):result}
+  - ${file(./file.yml):result}
+  - ${file(./file.yml):result}

@@ -2,20 +2,19 @@
 
 const chai = require('chai');
 const sinon = require('sinon');
-const BbPromise = require('bluebird');
 const proxyquire = require('proxyquire');
-const chalk = require('chalk');
-const PluginInstall = require('../../../../../../lib/plugins/plugin/install');
-const Serverless = require('../../../../../../lib/Serverless');
-const CLI = require('../../../../../../lib/classes/CLI');
-const { expect } = require('chai');
+const PluginList = require('../../../../../../lib/plugins/plugin/list');
+const Serverless = require('../../../../../../lib/serverless');
+const CLI = require('../../../../../../lib/classes/cli');
+const observeOutput = require('@serverless/test/observe-output');
 
 chai.use(require('chai-as-promised'));
+
+const expect = chai.expect;
 
 describe('PluginUtils', () => {
   let pluginUtils;
   let serverless;
-  let consoleLogStub;
   const plugins = [
     {
       name: 'serverless-plugin-1',
@@ -35,32 +34,20 @@ describe('PluginUtils', () => {
   ];
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.cli = new CLI(serverless);
     const options = {};
-    pluginUtils = new PluginInstall(serverless, options);
-    consoleLogStub = sinon.stub(serverless.cli, 'consoleLog').returns();
-  });
-
-  afterEach(() => {
-    serverless.cli.consoleLog.restore();
-  });
-
-  describe('#getServerlessFilePath()', () => {
-    it('should reject if no configuration file exists', () =>
-      expect(pluginUtils.getServerlessFilePath.bind(pluginUtils)).to.throw(
-        'Could not find any serverless service definition file.'
-      ));
+    pluginUtils = new PluginList(serverless, options);
   });
 
   describe('#getPlugins()', () => {
     let fetchStub;
     let pluginWithFetchStub;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       fetchStub = sinon.stub().returns(
-        BbPromise.resolve({
-          json: sinon.stub().returns(BbPromise.resolve(plugins)),
+        Promise.resolve({
+          json: sinon.stub().returns(Promise.resolve(plugins)),
         })
       );
       pluginWithFetchStub = proxyquire('../../../../../../lib/plugins/plugin/lib/utils.js', {
@@ -68,7 +55,7 @@ describe('PluginUtils', () => {
       });
     });
 
-    it('should fetch and return the plugins from the plugins repository', () => {
+    it('should fetch and return the plugins from the plugins repository', async () => {
       const endpoint = 'https://raw.githubusercontent.com/serverless/plugins/master/plugins.json';
 
       return pluginWithFetchStub.getPlugins().then((result) => {
@@ -79,46 +66,18 @@ describe('PluginUtils', () => {
     });
   });
 
-  describe('#getPluginInfo()', () => {
-    it('should return the plugins name', () => {
-      expect(pluginUtils.getPluginInfo('some-plugin')).to.deep.equal(['some-plugin']);
-    });
-
-    it('should return the plugins name and version', () => {
-      expect(pluginUtils.getPluginInfo('some-plugin@0.1.0')).to.deep.equal([
-        'some-plugin',
-        '0.1.0',
-      ]);
-    });
-
-    it('should support scoped names', () => {
-      expect(pluginUtils.getPluginInfo('@acme/some-plugin')).to.deep.equal(['@acme/some-plugin']);
-    });
-  });
-
   describe('#display()', () => {
-    it('should display the plugins if present', () => {
+    it('should display the plugins if present', async () => {
+      const output = await observeOutput(() => pluginUtils.display(plugins));
       let expectedMessage = '';
-      expectedMessage += `${chalk.yellow.underline('serverless-existing-plugin')}`;
-      expectedMessage += ' - Serverless Existing plugin\n';
-      expectedMessage += `${chalk.yellow.underline('serverless-plugin-1')}`;
-      expectedMessage += ' - Serverless Plugin 1\n';
-      expectedMessage += `${chalk.yellow.underline('serverless-plugin-2')}`;
-      expectedMessage += ' - Serverless Plugin 2\n';
-      expectedMessage = expectedMessage.slice(0, -2);
-      return expect(pluginUtils.display(plugins)).to.be.fulfilled.then((message) => {
-        expect(consoleLogStub.calledTwice).to.equal(true);
-        expect(message).to.equal(expectedMessage);
-      });
-    });
-
-    it('should print a message when no plugins are available to display', () => {
-      const expectedMessage = 'There are no plugins available to display';
-
-      return pluginUtils.display([]).then((message) => {
-        expect(consoleLogStub.calledOnce).to.equal(true);
-        expect(message).to.equal(expectedMessage);
-      });
+      expectedMessage += 'serverless-existing-plugin Serverless Existing plugin\n';
+      expectedMessage += 'serverless-plugin-1 Serverless Plugin 1\n';
+      expectedMessage += 'serverless-plugin-2 Serverless Plugin 2\n\n';
+      expectedMessage += 'Install a plugin by running:\n';
+      expectedMessage += '  serverless plugin install --name ...\n\n';
+      expectedMessage +=
+        'It will be automatically downloaded and added to package.json and serverless.yml\n';
+      expect(output).to.equal(expectedMessage);
     });
   });
 });

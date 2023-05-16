@@ -24,18 +24,17 @@ serverless invoke local --function functionName
 
 ## Options
 
-- `--function` or `-f` The name of the function in your service that you want to invoke locally. **Required**.
-- `--path` or `-p` The path to a json file holding input data to be passed to the invoked function as the `event`. This path is relative to the root directory of the service.
-- `--data` or `-d` String data to be passed as an event to your function. Keep in mind that if you pass both `--path` and `--data`, the data included in the `--path` file will overwrite the data you passed with the `--data` flag.
-- `--raw` Pass data as a raw string even if it is JSON. If not set, JSON data are parsed and passed as an object.
-- `--contextPath` or `-x`, The path to a json file holding input context to be passed to the invoked function. This path is relative to the root directory of the service.
-- `--context` or `-c`, String data to be passed as a context to your function. Same like with `--data`, context included in `--contextPath` will overwrite the context you passed with `--context` flag.
+- `--function` or `-f`: The name of the function in your service that you want to invoke locally. **Required**.
+- `--path` or `-p`: The path to a JSON file holding input data to be passed to the invoked function as the `event`. This path is relative to the root directory of the service.
+- `--data` or `-d`: String containing data to be passed as an event to your function. Keep in mind that if you pass both `--path` and `--data`, the data included in the `--path` file will overwrite the data you passed with the `--data` flag.
+- `--contextPath` or `-x`: The path to a JSON file holding input context to be passed to the invoked function. This path is relative to the root directory of the service.
+- `--context` or `-c`: String containing data to be passed as a context to your function. You can use this to overwrite specific parts of the default fake AWS context. As with `--data`, context included in `--contextPath` will overwrite the context you passed with `--context` flag.
+- `--raw`: By default, your input `data` and `context` strings are parsed as a JSON object. Set this option if you want them to be treated as raw strings instead.
 
 * `--env` or `-e` String representing an environment variable to set when invoking your function, in the form `<name>=<value>`. Can be repeated for more than one environment variable.
 * `--docker` Enable docker support for NodeJS/Python/Ruby/Java. Enabled by default for other
   runtimes.
 * `--docker-arg` Pass additional arguments to docker run command when `--docker` is option used. e.g. `--docker-arg '-p 9229:9229' --docker-arg '-v /var:/host_var'`
-* `--skip-package` Use the last packaged files from `.serverless` directory. This will speed up invocation significantly as we can skip the packaging of all files before every invoke
 
 ## Environment
 
@@ -57,11 +56,11 @@ This example will locally invoke your function.
 ### Local function invocation with data
 
 ```bash
-serverless invoke local --function functionName --data "hello world"
+serverless invoke local --function functionName --data '{"a":"bar"}'
 ```
 
 ```bash
-serverless invoke local --function functionName --data '{"a":"bar"}'
+serverless invoke local --function functionName --raw --data "hello world"
 ```
 
 ### Local function invocation with data from standard input
@@ -70,15 +69,15 @@ serverless invoke local --function functionName --data '{"a":"bar"}'
 node dataGenerator.js | serverless invoke local --function functionName
 ```
 
-### Local function invocation with data passing
+### Local function invocation with a data file
 
 ```bash
 serverless invoke local --function functionName --path lib/data.json
 ```
 
-This example will pass the json data in the `lib/data.json` file (relative to the root of the service) while invoking the specified/deployed function.
+This example will pass the JSON data in the `lib/data.json` file (relative to the root of the service) while invoking the specified/deployed function.
 
-### Example `data.json`
+Example `data.json`:
 
 ```json
 {
@@ -92,16 +91,17 @@ This example will pass the json data in the `lib/data.json` file (relative to th
 ### Local function invocation with custom context
 
 ```bash
-serverless invoke local --function functionName --context "hello world"
+serverless invoke local --function functionName --context '{"timeout":120}'
 ```
 
-### Local function invocation with context passing
+### Local function invocation with context file
 
 ```bash
-serverless invoke local --function functionName --contextPath lib/context.json
+serverless invoke local --function functionName \
+  --contextPath lib/context.json
 ```
 
-This example will pass the json context in the `lib/context.json` file (relative to the root of the service) while invoking the specified/deployed function.
+This example will pass the JSON context in the `lib/context.json` file (relative to the root of the service) while invoking the specified/deployed function.
 
 ### Local function invocation, setting environment variables
 
@@ -110,7 +110,9 @@ serverless invoke local -f functionName -e VAR1=value1
 
 # Or more than one variable
 
-serverless invoke local -f functionName -e VAR1=value1 -e VAR2=value2
+serverless invoke local -f functionName \
+  -e VAR1=value1 \
+  -e VAR2=value2
 ```
 
 When using [AWS CloudFormation intrinsic functions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html) as environment variables value, **only Fn::ImportValue and Ref** will be automatically resolved for function invocation. Other intrinsic functions use will result in the corresponding configuration object passed in the function as environment variable.
@@ -147,7 +149,7 @@ They _will not_ be set during the parsing of the `serverless.yml` file.
 
 ## Resource permissions
 
-Lambda functions assume an _IAM role_ during execution: the framework creates this role, and set all the permission provided in the `iamRoleStatements` section of `serverless.yml`.
+Lambda functions assume an _IAM role_ during execution: the framework creates this role, and set all the permission provided in the `provider.iam.role.statements` section of `serverless.yml`.
 
 Unless you explicitly state otherwise, every call to the AWS SDK inside the lambda function is made using this role (a temporary pair of key / secret is generated and set by AWS as environment variables, `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`).
 

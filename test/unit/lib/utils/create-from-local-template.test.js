@@ -7,7 +7,7 @@ const { load: yamlParse } = require('js-yaml');
 const createFromLocalTemplate = require('../../../../lib/utils/create-from-local-template');
 const { getTmpDirPath } = require('../../../utils/fs');
 
-const templatesPath = path.resolve(__dirname, '../../../../lib/plugins/create/templates');
+const fixturesPath = path.resolve(__dirname, '../../../fixtures/programmatic');
 
 chai.use(require('chai-as-promised'));
 
@@ -18,7 +18,7 @@ describe('test/unit/lib/utils/create-from-local-template.test.js', () => {
     it('should create from template referenced locally', async () => {
       const tmpDirPath = path.join(getTmpDirPath(), 'some-service');
       await createFromLocalTemplate({
-        templatePath: path.join(templatesPath, 'aws-nodejs'),
+        templatePath: path.join(fixturesPath, 'function'),
         projectDir: tmpDirPath,
       });
       const stats = await fsp.lstat(path.join(tmpDirPath, 'serverless.yml'));
@@ -31,7 +31,7 @@ describe('test/unit/lib/utils/create-from-local-template.test.js', () => {
       const tmpDirPath = path.join(getTmpDirPath(), 'some-service');
       await expect(
         createFromLocalTemplate({
-          templatePath: path.join(templatesPath, 'nonexistent'),
+          templatePath: path.join(fixturesPath, 'nonexistent'),
           projectDir: tmpDirPath,
         })
       ).to.eventually.be.rejected.and.have.property('code', 'INVALID_TEMPLATE_PATH');
@@ -44,7 +44,7 @@ describe('test/unit/lib/utils/create-from-local-template.test.js', () => {
     before(async () => {
       tmpDirPath = path.join(getTmpDirPath(), 'some-service');
       await createFromLocalTemplate({
-        templatePath: path.join(templatesPath, 'fn-nodejs'),
+        templatePath: path.join(fixturesPath, 'function-msk'),
         projectDir: tmpDirPath,
         projectName: 'testproj',
       });

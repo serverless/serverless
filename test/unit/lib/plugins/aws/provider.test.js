@@ -12,7 +12,7 @@ const sinon = require('sinon');
 const overrideEnv = require('process-utils/override-env');
 
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
-const Serverless = require('../../../../../lib/Serverless');
+const Serverless = require('../../../../../lib/serverless');
 const runServerless = require('../../../../utils/run-serverless');
 
 chai.use(require('chai-as-promised'));
@@ -31,7 +31,7 @@ describe('AwsProvider', () => {
 
   beforeEach(() => {
     ({ restoreEnv } = overrideEnv());
-    serverless = new Serverless(options);
+    serverless = new Serverless({ ...options, commands: [], options: {} });
     serverless.cli = new serverless.classes.CLI();
     awsProvider = new AwsProvider(serverless, options);
   });
@@ -53,6 +53,8 @@ describe('AwsProvider', () => {
             even if http event is present and stage is ${stage}`, () => {
           const config = {
             stage,
+            commands: [],
+            options: {},
           };
           serverless = new Serverless(config);
 
@@ -164,17 +166,19 @@ describe('AwsProvider', () => {
   describe('#request()', () => {
     let awsRequestStub;
     let awsProviderProxied;
-    let logStub;
 
     beforeEach(() => {
-      logStub = sinon.stub();
       awsRequestStub = sinon.stub().resolves();
       awsRequestStub.memoized = sinon.stub().resolves();
       const AwsProviderProxyquired = proxyquire
         .noCallThru()
         .load('../../../../../lib/plugins/aws/provider.js', {
           '../../aws/request': awsRequestStub,
-          '@serverless/utils/log': logStub,
+          '@serverless/utils/log': {
+            log: {
+              debug: sinon.stub(),
+            },
+          },
         });
       awsProviderProxied = new AwsProviderProxyquired(serverless, options);
     });
@@ -198,13 +202,13 @@ describe('AwsProvider', () => {
       });
     });
 
-    it('should trigger the expected AWS SDK invokation', () => {
+    it('should trigger the expected AWS SDK invokation', async () => {
       return awsProviderProxied.request('S3', 'getObject', {}).then(() => {
         expect(awsRequestStub).to.have.been.calledOnce;
       });
     });
 
-    it('should use local cache when using {useCache: true}', () => {
+    it('should use local cache when using {useCache: true}', async () => {
       return awsProviderProxied
         .request('S3', 'getObject', {}, { useCache: true })
         .then(() => awsProviderProxied.request('S3', 'getObject', {}, { useCache: true }))
@@ -213,25 +217,10 @@ describe('AwsProvider', () => {
           expect(awsRequestStub.memoized).to.have.been.calledTwice;
         });
     });
-
-    it('should detect incompatible legacy use of aws request and print a debug warning', () => {
-      // Enable debug log
-      process.env.SLS_DEBUG = true;
-      return awsProviderProxied
-        .request('S3', 'getObject', {}, 'incompatible string option')
-        .then(() => {
-          expect(logStub).to.have.been.calledWith(
-            'WARNING: Inappropriate call of provider.request()'
-          );
-        })
-        .finally(() => {
-          process.env.SLS_DEBUG = false;
-        });
-    });
   });
 
   describe('#getServerlessDeploymentBucketName()', () => {
-    it('should return the name of the serverless deployment bucket', () => {
+    it('should return the name of the serverless deployment bucket', async () => {
       const describeStackResourcesStub = sinon.stub(awsProvider, 'request').resolves({
         StackResourceDetail: {
           PhysicalResourceId: 'serverlessDeploymentBucketName',
@@ -251,7 +240,7 @@ describe('AwsProvider', () => {
       });
     });
 
-    it('should return the name of the custom deployment bucket', () => {
+    it('should return the name of the custom deployment bucket', async () => {
       awsProvider.serverless.service.provider.deploymentBucket = 'custom-bucket';
 
       const describeStackResourcesStub = sinon.stub(awsProvider, 'request').resolves({
@@ -269,7 +258,7 @@ describe('AwsProvider', () => {
   });
 
   describe('#getAccountInfo()', () => {
-    it('should return the AWS account id and partition', () => {
+    it('should return the AWS account id and partition', async () => {
       const accountId = '12345678';
       const partition = 'aws';
 
@@ -290,7 +279,7 @@ describe('AwsProvider', () => {
   });
 
   describe('#getAccountId()', () => {
-    it('should return the AWS account id', () => {
+    it('should return the AWS account id', async () => {
       const accountId = '12345678';
 
       const stsGetCallerIdentityStub = sinon.stub(awsProvider, 'request').resolves({
@@ -366,6 +355,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
           SharedIniFileCredentials,
           EnvironmentCredentials,
           CloudFormation: FakeCloudFormation,
+          config: {},
         },
         'aws-sdk/lib/metadata_service': FakeMetadataService,
       };
@@ -834,6 +824,95 @@ aws_secret_access_key = CUSTOMSECRET
       );
     });
 
+    it('should fail if `functions[].image` references image with both buildArgs and uri', async () => {
+      await expect(
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            provider: {
+              ecr: {
+                images: {
+                  invalidimage: {
+                    buildArgs: {
+                      TESTKEY: 'TESTVAL',
+                    },
+                    uri: '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38',
+                  },
+                },
+              },
+            },
+            functions: {
+              fnProviderInvalidImage: {
+                image: 'invalidimage',
+              },
+            },
+          },
+        })
+      ).to.be.eventually.rejected.and.have.property(
+        'code',
+        'ECR_IMAGE_BOTH_URI_AND_BUILDARGS_DEFINED_ERROR'
+      );
+    });
+
+    it('should fail if `functions[].image` references image with both cacheFrom and uri', async () => {
+      await expect(
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            provider: {
+              ecr: {
+                images: {
+                  invalidimage: {
+                    cacheFrom: ['my-image:latest'],
+                    uri: '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38',
+                  },
+                },
+              },
+            },
+            functions: {
+              fnProviderInvalidImage: {
+                image: 'invalidimage',
+              },
+            },
+          },
+        })
+      ).to.be.eventually.rejected.and.have.property(
+        'code',
+        'ECR_IMAGE_BOTH_URI_AND_CACHEFROM_DEFINED_ERROR'
+      );
+    });
+
+    it('should fail if `functions[].image` references image with both platform and uri', async () => {
+      await expect(
+        runServerless({
+          fixture: 'function',
+          command: 'package',
+          configExt: {
+            provider: {
+              ecr: {
+                images: {
+                  invalidimage: {
+                    platform: 'TESTVAL',
+                    uri: '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38',
+                  },
+                },
+              },
+            },
+            functions: {
+              fnProviderInvalidImage: {
+                image: 'invalidimage',
+              },
+            },
+          },
+        })
+      ).to.be.eventually.rejected.and.have.property(
+        'code',
+        'ECR_IMAGE_BOTH_URI_AND_PLATFORM_DEFINED_ERROR'
+      );
+    });
+
     it('should fail if `functions[].image` references image without path and uri', async () => {
       await expect(
         runServerless({
@@ -955,7 +1034,7 @@ aws_secret_access_key = CUSTOMSECRET
       let naming;
       let serviceConfig;
       const imageSha = '6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38';
-      const imageWithSha = `000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:${imageSha}`;
+      const imageWithSha = `000000000000.dkr.ecr.us-east-1.amazonaws.com/test-lambda-docker@sha256:${imageSha}`;
       const imageDigestFromECR =
         'sha256:2e6b10a4b1ca0f6d3563a8a1f034dde7c4d7c93b50aa91f24311765d0822186b';
       const describeImagesStub = sinon
@@ -987,11 +1066,11 @@ aws_secret_access_key = CUSTOMSECRET
                 image: imageWithSha,
               },
               fnImageWithTag: {
-                image: '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker:stable',
+                image: '000000000000.dkr.ecr.us-east-1.amazonaws.com/test-lambda-docker:stable',
               },
               fnImageWithTagAndRepoWithSlashes: {
                 image:
-                  '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda/repo-docker:stable',
+                  '000000000000.dkr.ecr.us-east-1.amazonaws.com/test-lambda/repo-docker:stable',
               },
               fnImageWithExplicitUri: {
                 image: {
@@ -1116,6 +1195,27 @@ aws_secret_access_key = CUSTOMSECRET
         const versionCfConfig = findVersionCfConfig(cfResources, functionCfLogicalId);
         expect(versionCfConfig.CodeSha256).to.equal(imageSha);
       });
+
+      it('should fail when `functions[].image` when image uri region does not match the provider region', async () => {
+        const imageRegion = 'sa-east-1';
+        const imageWithoutSha = `000000000000.dkr.ecr.${imageRegion}.amazonaws.com/test-lambda-docker`;
+        await expect(
+          runServerless({
+            fixture: 'function',
+            command: 'package',
+            configExt: {
+              provider: {
+                region: 'us-east-1',
+              },
+              functions: {
+                fnImageWithExplicitUriInvalidRegion: {
+                  image: imageWithoutSha,
+                },
+              },
+            },
+          })
+        ).to.be.eventually.rejected.and.have.property('code', 'LAMBDA_ECR_REGION_MISMATCH_ERROR');
+      });
     });
 
     describe('with `functions[].image` referencing images that require building', () => {
@@ -1154,7 +1254,7 @@ aws_secret_access_key = CUSTOMSECRET
       });
       const modulesCacheStub = {
         'child-process-ext/spawn': spawnExtStub,
-        './lib/utils/telemetry/generatePayload.js': () => ({}),
+        './lib/utils/telemetry/generate-payload.js': () => ({}),
       };
 
       beforeEach(() => {
@@ -1404,41 +1504,6 @@ aws_secret_access_key = CUSTOMSECRET
         ]);
       });
 
-      it('should emit warning if docker login stores unencrypted credentials', async () => {
-        const awsRequestStubMap = {
-          ...baseAwsRequestStubMap,
-          ECR: {
-            ...baseAwsRequestStubMap.ECR,
-            describeRepositories: describeRepositoriesStub.resolves({
-              repositories: [{ repositoryUri }],
-            }),
-            createRepository: createRepositoryStub,
-          },
-        };
-
-        const { stdoutData } = await runServerless({
-          fixture: 'ecr',
-          command: 'package',
-          awsRequestStubMap,
-          modulesCacheStub: {
-            ...modulesCacheStub,
-            'child-process-ext/spawn': sinon
-              .stub()
-              .returns({
-                stdBuffer: `digest: sha256:${imageSha} size: 1787`,
-              })
-              .onCall(3)
-              .throws({ stdBuffer: 'no basic auth credentials' })
-              .onCall(4)
-              .returns({ stdBuffer: 'your password will be stored unencrypted' }),
-          },
-        });
-
-        expect(stdoutData).to.include(
-          'WARNING: Docker authentication token will be stored unencrypted in docker config.'
-        );
-      });
-
       it('should work correctly when image is defined with implicit path in provider', async () => {
         const awsRequestStubMap = {
           ...baseAwsRequestStubMap,
@@ -1653,6 +1718,64 @@ aws_secret_access_key = CUSTOMSECRET
           '--build-arg',
           'TESTKEY=TESTVAL',
           './',
+        ]);
+      });
+
+      it('should work correctly when image is defined with `platform` set', async () => {
+        const awsRequestStubMap = {
+          ...baseAwsRequestStubMap,
+          ECR: {
+            ...baseAwsRequestStubMap.ECR,
+            describeRepositories: describeRepositoriesStub.resolves({
+              repositories: [{ repositoryUri }],
+            }),
+            createRepository: createRepositoryStub,
+          },
+        };
+        const {
+          awsNaming,
+          cfTemplate,
+          fixtureData: { servicePath: serviceDir },
+        } = await runServerless({
+          fixture: 'ecr',
+          command: 'package',
+          awsRequestStubMap,
+          modulesCacheStub,
+          configExt: {
+            provider: {
+              ecr: {
+                images: {
+                  baseimage: {
+                    path: './',
+                    file: 'Dockerfile.dev',
+                    platform: 'TESTVAL',
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        const functionCfLogicalId = awsNaming.getLambdaLogicalId('foo');
+        const functionCfConfig = cfTemplate.Resources[functionCfLogicalId].Properties;
+        const versionCfConfig = Object.values(cfTemplate.Resources).find(
+          (resource) =>
+            resource.Type === 'AWS::Lambda::Version' &&
+            resource.Properties.FunctionName.Ref === functionCfLogicalId
+        ).Properties;
+
+        expect(functionCfConfig.Code.ImageUri).to.deep.equal(`${repositoryUri}@sha256:${imageSha}`);
+        expect(versionCfConfig.CodeSha256).to.equal(imageSha);
+        expect(describeRepositoriesStub).to.be.calledOnce;
+        expect(createRepositoryStub.notCalled).to.be.true;
+        expect(spawnExtStub).to.be.calledWith('docker', [
+          'build',
+          '-t',
+          `${awsNaming.getEcrRepositoryName()}:baseimage`,
+          '-f',
+          path.join(serviceDir, 'Dockerfile.dev'),
+          './',
+          '--platform=TESTVAL',
         ]);
       });
 

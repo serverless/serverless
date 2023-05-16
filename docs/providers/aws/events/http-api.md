@@ -1,8 +1,8 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - HTTP API
+title: Serverless Framework - AWS Lambda Events - HTTP API (API Gateway v2)
 menuText: HTTP API
 menuOrder: 2
-description: Setting up API Gateway HTTP APIs with AWS Lambda via the Serverless Framework
+description: Deploying HTTP APIs with AWS Lambda and API Gateway v2 via the Serverless Framework
 layout: Doc
 -->
 
@@ -12,11 +12,18 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# HTTP API
+# HTTP API (API Gateway v2)
 
-HTTP APIs are a special flavored [API Gateway](https://aws.amazon.com/api-gateway/) implementation which offer more features and improved performance. They have some benefits and drawbacks compared to the traditional API Gateway REST APIs. Read the differences in the [AWS Documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html).
+API Gateway lets you deploy HTTP APIs. It comes [in two versions](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html):
 
-The Serverless Framework makes it possible to setup [API Gateway](https://aws.amazon.com/api-gateway/) HTTP APIs via the `httpApi` event.
+- v1, also called **REST API**
+- v2, also called **HTTP API**, which is faster and cheaper than v1
+
+Despite their confusing name, both versions allow deploying any HTTP API (like REST, GraphQL, etc.). Read the full comparison [in the AWS documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html).
+
+This guide documents using API Gateway **v2 HTTP API** via the `httpApi` event.
+
+To use API Gateway **v1 REST API** instead, follow the [API Gateway REST API guide](apigateway.md).
 
 ## Event Definition
 
@@ -66,7 +73,7 @@ functions:
 
 ### Endpoints timeout
 
-Framework ensures that function timeout setting (which defaults to 6 seconds) is respected in HTTP API endpoint configuration. Still note that maximum possible timeout for an endpoint is 29 seconds. Ensure to keep function timeout below that. Otherwise you may observe successful lambda invocations reported with `503` status code.
+The default and maximal API Gateway timeout is used: 30s. Ensure to keep function timeout below 29s. Otherwise, you may observe successful lambda invocations reported with `503` status code.
 
 ### CORS Setup
 
@@ -82,11 +89,11 @@ provider:
 
 It'll result with headers as:
 
-| Header                       | Value                                                                                       |
-| :--------------------------- | :------------------------------------------------------------------------------------------ |
-| Access-Control-Allow-Origin  | \*                                                                                          |
-| Access-Control-Allow-Headers | Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token, X-Amz-User-Agent) |
-| Access-Control-Allow-Methods | OPTIONS, _(...all defined in endpoints)_                                                    |
+| Header                       | Value                                                                                                       |
+| :--------------------------- | :---------------------------------------------------------------------------------------------------------- |
+| Access-Control-Allow-Origin  | \*                                                                                                          |
+| Access-Control-Allow-Headers | Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token, X-Amz-User-Agent, X-Amzn-Trace-Id |
+| Access-Control-Allow-Methods | OPTIONS, _(...all defined in endpoints)_                                                                    |
 
 If there's a need to fine tune CORS headers, then each can be configured individually as follows:
 
@@ -320,6 +327,12 @@ provider:
 
 In such case no API and stage resources are created, therefore extending HTTP API with CORS, access logs settings or authorizers is not supported.
 
+## HTTP API URL
+
+When deploying functions with `httpApi` events, the URL of the HTTP API will be displayed in the `serverless deploy` and `serverless info` output.
+
+The URL is also exported as a CloudFormation output under the `HttpApiUrl` output.
+
 ## Shared Authorizer
 
 For external HTTP API you can use shared authorizer in similar manner to RestApi. When using shared Lambda custom authorizer, you need to set `type` to `request`. Example configuration could look like:
@@ -452,4 +465,58 @@ You can use the `shouldStartNameWithService` option to change the naming scheme 
 provider:
   httpApi:
     shouldStartNameWithService: true
+```
+
+## Custom domains
+
+API Gateway generates URLs for HTTP APIs in the following format:
+
+```
+https://<random>.execute-api.<region>.amazonaws.com/
+```
+
+It is possible to replace those URLs by a custom domain.
+
+Step 1, create an HTTPS certificate in AWS ACM:
+
+- Open [AWS ACM](https://console.aws.amazon.com/acm/home) (AWS Certificate Manager)
+- Switch to the region of your application
+- Click "Request a certificate"
+- Select "Request a public certificate" and continue
+- Add your domain and continue
+- Choose the domain validation of your choice:
+  - Email validation will require you to click a link you will receive in an email sent to admin@your-domain.com
+  - Domain validation will require you to add CNAME entries to your DNS configuration
+- Validate the domain via the method chosen above
+
+Step 2, set up the custom domain in API Gateway:
+
+- Open [API Gateway's "Custom Domain" configuration](https://console.aws.amazon.com/apigateway/main/publish/domain-names)
+- Switch to the region of your application
+- Click "Create"
+- Enter your domain name, select the certificate you created above and validate the page
+- After the domain is created, click the "API mappings" tab
+- Click "Configure API mappings" and "Add new mapping"
+- Select your HTTP API and the `$default` stage
+- Click "Save"
+
+Step 3, configure the DNS of the domain:
+
+- If using Route53:
+  - Open the Hosted Zone in the [Route53 console](https://console.aws.amazon.com/route53/v2/hostedzones)
+  - Click "Create record"
+  - Select "Record type" of type "A"
+  - "Route traffic to": select "Alias", and then select your API Gateway
+  - Finish the record creation
+- If using any other domain registrar
+  - Open the "Configurations" tab on the custom domain name you just created
+  - Note the "API Gateway domain name" which should look like this: `d-1234567890.execute-api.us-east-1.amazonaws.com`
+  - Create a CNAME entry to point your domain name to the API Gateway domain
+
+Once a custom domain is set up, you can [disable the default API Gateway endpoint](#disable-default-endpoint):
+
+```yaml
+provider:
+  httpApi:
+    disableDefaultEndpoint: true
 ```

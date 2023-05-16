@@ -7,7 +7,7 @@ const resolveMeta = require('../../../../../../../lib/configuration/variables/re
 const resolve = require('../../../../../../../lib/configuration/variables/resolve');
 const selfSource = require('../../../../../../../lib/configuration/variables/sources/self');
 const getSlsSource = require('../../../../../../../lib/configuration/variables/sources/instance-dependent/get-sls');
-const Serverless = require('../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../lib/serverless');
 
 describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-sls.test.js', () => {
   let configuration;
@@ -37,8 +37,6 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
       configuration,
       serviceDir: process.cwd(),
       configurationFilename: 'serverless.yml',
-      isConfigurationResolved: true,
-      hasResolvedCommandsExternally: true,
       commands: ['package'],
       options: {},
     });

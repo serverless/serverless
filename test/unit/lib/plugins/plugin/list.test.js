@@ -2,19 +2,20 @@
 
 const chai = require('chai');
 const sinon = require('sinon');
-const BbPromise = require('bluebird');
 const PluginList = require('../../../../../lib/plugins/plugin/list');
-const Serverless = require('../../../../../lib/Serverless');
-const CLI = require('../../../../../lib/classes/CLI');
-chai.use(require('chai-as-promised'));
-const expect = require('chai').expect;
+const Serverless = require('../../../../../lib/serverless');
+const CLI = require('../../../../../lib/classes/cli');
+
+chai.use(require('sinon-chai'));
+
+const expect = chai.expect;
 
 describe('PluginList', () => {
   let pluginList;
   let serverless;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.cli = new CLI(serverless);
     const options = {};
     pluginList = new PluginList(serverless, options);
@@ -24,7 +25,7 @@ describe('PluginList', () => {
     let listStub;
 
     beforeEach(() => {
-      listStub = sinon.stub(pluginList, 'list').returns(BbPromise.resolve());
+      listStub = sinon.stub(pluginList, 'list').returns(Promise.resolve());
     });
 
     afterEach(() => {
@@ -43,10 +44,10 @@ describe('PluginList', () => {
       expect(pluginList.hooks['plugin:list:list']).to.not.equal(undefined);
     });
 
-    it('should run promise chain in order for "plugin:list:list" hook', () =>
-      expect(pluginList.hooks['plugin:list:list']()).to.be.fulfilled.then(() => {
-        expect(listStub.calledOnce).to.equal(true);
-      }));
+    it('should run promise chain in order for "plugin:list:list" hook', async () => {
+      await pluginList.hooks['plugin:list:list']();
+      expect(listStub).to.have.been.calledOnce;
+    });
   });
 
   describe('#list()', () => {
@@ -54,8 +55,8 @@ describe('PluginList', () => {
     let displayStub;
 
     beforeEach(() => {
-      getPluginsStub = sinon.stub(pluginList, 'getPlugins').returns(BbPromise.resolve());
-      displayStub = sinon.stub(pluginList, 'display').returns(BbPromise.resolve());
+      getPluginsStub = sinon.stub(pluginList, 'getPlugins').returns(Promise.resolve());
+      displayStub = sinon.stub(pluginList, 'display').returns(Promise.resolve());
     });
 
     afterEach(() => {
@@ -63,7 +64,7 @@ describe('PluginList', () => {
       pluginList.display.restore();
     });
 
-    it('should print a list with all available plugins', () =>
+    it('should print a list with all available plugins', async () =>
       pluginList.list().then(() => {
         expect(getPluginsStub.calledOnce).to.equal(true);
         expect(displayStub.calledOnce).to.equal(true);

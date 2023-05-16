@@ -10,7 +10,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
     let data;
     before(() => {
       resolveInput.clear();
-      delete require.cache[require.resolve('../../../../lib/utils/logDeprecation')];
+      delete require.cache[require.resolve('../../../../lib/utils/log-deprecation')];
       process.env.SLS_DEPRECATION_DISABLE = 'CLI_OPTIONS_BEFORE_COMMAND';
       data = overrideArgv(
         {
@@ -33,7 +33,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
     });
 
     it('should resolve commands', async () => {
-      expect(data.commands).to.deep.equal(['cmd1', 'cmd2', 'ver', 'h', 'elo', 'other']);
+      expect(data.commands).to.deep.equal(['cmd1', 'cmd2']);
     });
 
     it('should recognize --version as boolean', async () => {
@@ -46,46 +46,6 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
 
     it('should recognize --config', async () => {
       expect(data.options.config).to.equal('conf');
-    });
-
-    describe('"-v" handling', () => {
-      before(() => {
-        resolveInput.clear();
-        data = overrideArgv(
-          {
-            args: ['serverless', 'cmd1', 'cmd2', '-v', 'ver', 'other'],
-          },
-          () => resolveInput()
-        );
-      });
-      it('should not recognize as version alias', async () => {
-        expect(data.options).to.not.have.property('version');
-      });
-      it('should recognize as boolean', async () => {
-        expect(data.options.v).to.equal(true);
-      });
-    });
-
-    describe('Command with initially not recognized boolean', () => {
-      before(() => {
-        resolveInput.clear();
-        data = overrideArgv(
-          {
-            args: ['serverless', 'deploy', '--force', 'function', '-f', 'foo'],
-          },
-          () => resolveInput()
-        );
-      });
-
-      it('should recognize target command', async () => {
-        expect(data).to.deep.equal({
-          commandSchema: commandsSchema.get('deploy function'),
-          command: 'deploy function',
-          commands: ['deploy', 'function'],
-          options: { force: true, function: 'foo' },
-          commandsSchema,
-        });
-      });
     });
   });
 

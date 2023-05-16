@@ -1,5 +1,5 @@
 <!--
-title: Serverless Framework Guide - AWS Lambda - Workflow
+title: Serverless Framework - AWS Lambda - Workflow Tips
 menuText: Workflow
 menuOrder: 15
 description: A guide and cheatsheet containing CLI commands and workflow recommendations.
@@ -45,7 +45,7 @@ A handy list of commands to use when developing with the Serverless Framework.
 
 Creates a new Service
 
-```
+```bash
 serverless create -p [SERVICE NAME] -t aws-nodejs
 ```
 
@@ -53,7 +53,7 @@ serverless create -p [SERVICE NAME] -t aws-nodejs
 
 This is a convenience method to install a pre-made Serverless Service locally by downloading the Github repo and unzipping it.
 
-```
+```bash
 serverless install -u [GITHUB URL OF SERVICE]
 ```
 
@@ -61,7 +61,7 @@ serverless install -u [GITHUB URL OF SERVICE]
 
 Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
 
-```
+```bash
 serverless deploy -s [STAGE NAME] -r [REGION NAME] -v
 ```
 
@@ -69,7 +69,7 @@ serverless deploy -s [STAGE NAME] -r [REGION NAME] -v
 
 Use this to quickly overwrite your AWS Lambda code on AWS, allowing you to develop faster.
 
-```
+```bash
 serverless deploy function -f [FUNCTION NAME] -s [STAGE NAME] -r [REGION NAME]
 ```
 
@@ -77,14 +77,17 @@ serverless deploy function -f [FUNCTION NAME] -s [STAGE NAME] -r [REGION NAME]
 
 Invokes an AWS Lambda Function on AWS and returns logs.
 
-```
-serverless invoke -f [FUNCTION NAME] -s [STAGE NAME] -r [REGION NAME] -l
+```bash
+serverless invoke -f [FUNCTION NAME] \
+  -s [STAGE NAME] \
+  -r [REGION NAME] \
+  -l
 ```
 
 ##### Streaming Logs
 
 Open up a separate tab in your console and stream all logs for a specific Function using this command.
 
-```
+```bash
 serverless logs -f [FUNCTION NAME] -s [STAGE NAME] -r [REGION NAME]
 ```

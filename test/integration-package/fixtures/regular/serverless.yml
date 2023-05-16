@@ -1,0 +1,14 @@
+service: aws-nodejs
+
+configValidationMode: error
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+functions:
+  hello:
+    handler: handler.hello
+  custom-name:
+    name: ${self:service}-${opt:region, self:provider.region, 'us-east-1'}-custom-name
+    handler: handler.hello

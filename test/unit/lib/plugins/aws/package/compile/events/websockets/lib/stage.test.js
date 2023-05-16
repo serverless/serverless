@@ -8,9 +8,10 @@ const BbPromise = require('bluebird');
 const _ = require('lodash');
 const childProcess = BbPromise.promisifyAll(require('child_process'));
 const AwsCompileWebsocketsEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/index');
-const Serverless = require('../../../../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../../../../lib/serverless');
 const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
 const { createTmpDir } = require('../../../../../../../../../utils/fs');
+const runServerless = require('../../../../../../../../../utils/run-serverless');
 
 chai.use(require('chai-as-promised'));
 
@@ -24,7 +25,7 @@ describe('#compileStage()', () => {
       stage: 'dev',
       region: 'us-east-1',
     };
-    const serverless = new Serverless();
+    const serverless = new Serverless({ commands: [], options: {} });
     serverless.setProvider('aws', new AwsProvider(serverless));
     serverless.service.service = 'my-service';
     serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
@@ -38,7 +39,7 @@ describe('#compileStage()', () => {
       awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
   });
 
-  it('should create a stage resource if no websocketApiId specified', () =>
+  it('should create a stage resource if no websocketApiId specified', async () =>
     awsCompileWebsocketsEvents.compileStage().then(() => {
       const resources =
         awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
@@ -56,7 +57,7 @@ describe('#compileStage()', () => {
       );
     }));
 
-  it('should not create a stage resource if a websocketApiId is specified', () => {
+  it('should not create a stage resource if a websocketApiId is specified', async () => {
     awsCompileWebsocketsEvents.serverless.service.provider.apiGateway = {
       websocketApiId: 'xyz123abc',
     };
@@ -80,7 +81,7 @@ describe('#compileStage()', () => {
       };
     });
 
-    it('should create a dedicated stage resource if logs are configured', () =>
+    it('should create a dedicated stage resource if logs are configured', async () =>
       awsCompileWebsocketsEvents.compileStage().then(() => {
         const resources =
           awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
@@ -116,7 +117,7 @@ describe('#compileStage()', () => {
         });
       }));
 
-    it('should create a Log Group resource', () =>
+    it('should create a Log Group resource', async () =>
       awsCompileWebsocketsEvents.compileStage().then(() => {
         const resources =
           awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
@@ -130,7 +131,7 @@ describe('#compileStage()', () => {
         });
       }));
 
-    it('should set a RetentionInDays in a Log Group if provider has logRetentionInDays', () => {
+    it('should set a RetentionInDays in a Log Group if provider has logRetentionInDays', async () => {
       awsCompileWebsocketsEvents.serverless.service.provider.logRetentionInDays = 42;
 
       return awsCompileWebsocketsEvents.compileStage().then(() => {
@@ -148,7 +149,7 @@ describe('#compileStage()', () => {
       });
     });
 
-    it('should use valid logging level', () => {
+    it('should use valid logging level', async () => {
       awsCompileWebsocketsEvents.serverless.service.provider.logs = {
         websocket: {
           level: 'ERROR',
@@ -176,7 +177,7 @@ describe('#compileStage()', () => {
       expect(awsCompileWebsocketsEvents.compileStage()).to.be.rejectedWith('invalid value');
     });
 
-    it('should ensure ClousWatch role custom resource', () => {
+    it('should ensure ClousWatch role custom resource', async () => {
       return awsCompileWebsocketsEvents.compileStage().then(() => {
         const resources =
           awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
@@ -190,6 +191,110 @@ describe('#compileStage()', () => {
           )
         ).to.equal(true);
       });
+    });
+  });
+});
+
+describe('lib/plugins/aws/package/compile/events/websockets/lib/stage.test.js', () => {
+  describe('logs with several custom options', () => {
+    let resource;
+    const customLogFormat = ['$context.identity.sourceIp', '$context.requestId'].join(' ');
+
+    before(async () =>
+      runServerless({
+        fixture: 'websocket',
+        configExt: {
+          provider: {
+            logs: {
+              websocket: {
+                format: customLogFormat,
+                fullExecutionData: false,
+                level: 'ERROR',
+              },
+            },
+          },
+        },
+        command: 'package',
+      }).then(({ cfTemplate, awsNaming }) => {
+        const stageLogicalId = awsNaming.getWebsocketsStageLogicalId();
+        resource = cfTemplate.Resources[stageLogicalId];
+      })
+    );
+
+    it('should set a specific log Format if provider has format option', async () => {
+      expect(resource.Properties.AccessLogSettings.Format).to.equal(customLogFormat);
+    });
+
+    it('should set DataTraceEnabled if provider has fullExecutionData option', async () => {
+      expect(resource.Properties.DefaultRouteSettings.DataTraceEnabled).to.equal(false);
+    });
+
+    it('should set LoggingLevel if provider has level option', async () => {
+      expect(resource.Properties.DefaultRouteSettings.LoggingLevel).to.equal('ERROR');
+    });
+
+    it('should set accessLogging true as default value', async () => {
+      expect(resource.Properties.AccessLogSettings.DestinationArn).to.deep.equal({
+        'Fn::Sub':
+          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${WebsocketsLogGroup}',
+      });
+    });
+
+    it('should set executionLogging true as default value', async () => {
+      expect(resource.Properties.DefaultRouteSettings.LoggingLevel).to.not.equal('OFF');
+    });
+  });
+
+  describe('logs with full custom options', () => {
+    let resource;
+    let logGroupResource;
+    const customLogFormat = ['$context.identity.sourceIp', '$context.requestId'].join(' ');
+    const logDataProtectionPolicy = {
+      Name: 'data-protection-policy',
+      Version: '2021-06-01',
+      Statement: [],
+    };
+
+    before(async () => {
+      const { cfTemplate, awsNaming } = await runServerless({
+        fixture: 'websocket',
+        configExt: {
+          provider: {
+            logs: {
+              websocket: {
+                accessLogging: false,
+                executionLogging: false,
+                fullExecutionData: true,
+                level: 'ERROR',
+                format: customLogFormat,
+              },
+            },
+            logDataProtectionPolicy,
+          },
+        },
+        command: 'package',
+      });
+      const stageLogicalId = awsNaming.getWebsocketsStageLogicalId();
+      resource = cfTemplate.Resources[stageLogicalId];
+      logGroupResource = cfTemplate.Resources[awsNaming.getWebsocketsLogGroupLogicalId()];
+    });
+
+    it('should set accessLogging off', async () => {
+      expect(resource.Properties.AccessLogSettings).to.be.undefined;
+    });
+
+    it('should set executionLogging off', async () => {
+      expect(resource.Properties.DefaultRouteSettings.LoggingLevel).to.equal('OFF');
+    });
+
+    it('should set fullExecutionData true', async () => {
+      expect(resource.Properties.DefaultRouteSettings.DataTraceEnabled).to.equal(true);
+    });
+
+    it('should set DataProtectionPolicy', () => {
+      expect(logGroupResource.Properties.DataProtectionPolicy).to.deep.equal(
+        logDataProtectionPolicy
+      );
     });
   });
 });

@@ -6,7 +6,6 @@ frameworkVersion: '*'
 provider:
   name: aws
   runtime: python3.8
-  lambdaHashingVersion: 20201221
 
 functions:
   function:

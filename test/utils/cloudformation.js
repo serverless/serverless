@@ -1,18 +1,23 @@
 'use strict';
 
 const awsRequest = require('@serverless/test/aws-request');
+const CloudFormationService = require('aws-sdk').CloudFormation;
 
 const SHARED_INFRA_TESTS_CLOUDFORMATION_STACK = 'integration-tests-deps-stack';
+const SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME =
+  'integration-tests-active-mq-broker-credentials';
+const SHARED_INFRA_TESTS_RABBITMQ_CREDENTIALS_NAME =
+  'integration-tests-rabbitmq-broker-credentials';
 
-function findStacks(name, status) {
+async function findStacks(name, status) {
   const params = {};
   if (status) {
     params.StackStatusFilter = status;
   }
 
-  function recursiveFind(found, token) {
+  async function recursiveFind(found, token) {
     if (token) params.NextToken = token;
-    return awsRequest('CloudFormation', 'listStacks', params).then((result) => {
+    return awsRequest(CloudFormationService, 'listStacks', params).then((result) => {
       const matches = result.StackSummaries.filter((stack) => stack.StackName.match(name));
       if (matches.length) {
         found.push(...matches);
@@ -25,22 +30,22 @@ function findStacks(name, status) {
   return recursiveFind([]);
 }
 
-function deleteStack(stack) {
+async function deleteStack(stack) {
   const params = {
     StackName: stack,
   };
 
-  return awsRequest('CloudFormation', 'deleteStack', params);
+  return awsRequest(CloudFormationService, 'deleteStack', params);
 }
 
-function listStackResources(stack) {
+async function listStackResources(stack) {
   const params = {
     StackName: stack,
   };
 
-  function recursiveFind(resources, token) {
+  async function recursiveFind(resources, token) {
     if (token) params.NextToken = token;
-    return awsRequest('CloudFormation', 'listStackResources', params).then((result) => {
+    return awsRequest(CloudFormationService, 'listStackResources', params).then((result) => {
       resources.push(...result.StackResourceSummaries);
       if (result.NextToken) return recursiveFind(resources, result.NextToken);
       return resources;
@@ -50,17 +55,17 @@ function listStackResources(stack) {
   return recursiveFind([]);
 }
 
-function listStacks(status) {
+async function listStacks(status) {
   const params = {};
   if (status) {
     params.StackStatusFilter = status;
   }
 
-  return awsRequest('CloudFormation', 'listStacks', params);
+  return awsRequest(CloudFormationService, 'listStacks', params);
 }
 
 async function getStackOutputMap(name) {
-  const describeStackResponse = await awsRequest('CloudFormation', 'describeStacks', {
+  const describeStackResponse = await awsRequest(CloudFormationService, 'describeStacks', {
     StackName: name,
   });
 
@@ -75,7 +80,7 @@ async function isDependencyStackAvailable() {
   const validStatuses = ['CREATE_COMPLETE', 'UPDATE_COMPLETE'];
 
   try {
-    const describeStacksResponse = await awsRequest('CloudFormation', 'describeStacks', {
+    const describeStacksResponse = await awsRequest(CloudFormationService, 'describeStacks', {
       StackName: SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
     });
     if (validStatuses.includes(describeStacksResponse.Stacks[0].StackStatus)) {
@@ -101,6 +106,8 @@ module.exports = {
   listStacks,
   getStackOutputMap,
   SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
+  SHARED_INFRA_TESTS_ACTIVE_MQ_CREDENTIALS_NAME,
+  SHARED_INFRA_TESTS_RABBITMQ_CREDENTIALS_NAME,
   isDependencyStackAvailable,
   getDependencyStackOutputMap,
 };

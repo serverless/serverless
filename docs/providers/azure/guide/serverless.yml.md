@@ -20,12 +20,12 @@ Here is a list of all available properties in `serverless.yml` when the provider
 # serverless.yml
 service: azure-nodejs
 
-frameworkVersion: '2'
+frameworkVersion: '3'
 
 provider:
   name: azure
   region: West US 2
-  runtime: nodejs12.x
+  runtime: nodejs14.x
   prefix: sample # prefix of generated resource name
   subscriptionId: 00000000-0000-0000-0000-000000000000
   stage: dev # Default stage to be used

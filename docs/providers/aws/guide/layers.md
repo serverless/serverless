@@ -1,7 +1,5 @@
 <!--
-title: Serverless Framework - AWS Lambda Guide - Layers
-menuText: Layers
-menuOrder: 7
+title: Serverless Framework - AWS Lambda Layers
 description: How to configure AWS Lambda layers in the Serverless Framework
 layout: Doc
 -->
@@ -12,7 +10,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS - Layers
+# AWS Lambda Layers
 
 If you are using AWS as a provider, all _layers_ inside the service are [AWS Lambda
 layers](https://aws.amazon.com/blogs/aws/new-for-aws-lambda-use-any-programming-language-and-share-common-components/).
@@ -35,6 +33,9 @@ layers:
     description: Description of what the lambda layer does # optional, Description to publish to AWS
     compatibleRuntimes: # optional, a list of runtimes this layer is compatible with
       - python3.8
+    compatibleArchitectures: # optional, a list of architectures this layer is compatible with
+      - x86_64
+      - arm64
     licenseInfo: GPLv3 # optional, a string specifying license information
     # allowedAccounts: # optional, a list of AWS account IDs allowed to access this layer.
     #   - '*'
@@ -72,8 +73,8 @@ provider:
   name: aws
 
 package:
-  exclude:
-    - layerSourceTarball.tar.gz
+  patterns:
+    - '!layerSourceTarball.tar.gz'
 
 layers:
   layerOne:
@@ -93,11 +94,11 @@ layers:
   layerOne:
     path: layerOne
     package:
-      exclude:
-        - layerSourceTarball.tar.gz
+      patterns:
+        - '!layerSourceTarball.tar.gz'
 ```
 
-Keep in mind that all `include` and `exclude` patterns (even when inherited from the service config) are resolved against the layer's `path` and not the service `path`.
+Keep in mind that all patterns (even when inherited from the service config) are resolved against the layer's `path` and not the service `path`.
 
 You can also specify a prebuilt archive to create your layer. When you do this, you do not need to specify the `path` element of your layer.
 
@@ -174,7 +175,7 @@ functions:
   hello:
     handler: handler.hello
     layers:
-      - { Ref: TestLambdaLayer }
+      - !Ref TestLambdaLayer
 ```
 
 You can also configure layers at the service level. EG:

@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 const AwsInfo = require('../../../../../../lib/plugins/aws/info/index');
 const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
-const Serverless = require('../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../lib/serverless');
 
 describe('AwsInfo', () => {
   let serverless;
@@ -25,7 +25,7 @@ describe('AwsInfo', () => {
       stage: 'dev',
       region: 'us-east-1',
     };
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.setProvider('aws', new AwsProvider(serverless, options));
     serverless.cli = {
       log: sinon.stub().returns(),
@@ -70,7 +70,7 @@ describe('AwsInfo', () => {
       expect(awsInfoWithEmptyOptions.options).to.deep.equal({});
     });
 
-    it('should run promise chain in order for "info:info" hook', () =>
+    it('should run promise chain in order for "info:info" hook', async () =>
       awsInfo.hooks['info:info']().then(() => {
         expect(validateStub.calledOnce).to.equal(true);
         expect(getStackInfoStub.calledAfter(validateStub)).to.equal(true);
@@ -84,7 +84,7 @@ describe('AwsInfo', () => {
       }));
 
     describe('when running "deploy:deploy" hook', () => {
-      it('should run promise chain in order if no deploy is not set', () =>
+      it('should run promise chain in order if no deploy is not set', async () =>
         awsInfo.hooks['deploy:deploy']().then(() => {
           expect(validateStub.calledOnce).to.equal(true);
           expect(getStackInfoStub.calledAfter(validateStub)).to.equal(true);

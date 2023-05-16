@@ -6,13 +6,16 @@ frameworkVersion: '*'
 provider:
   name: aws
   runtime: nodejs12.x
-  lambdaHashingVersion: 20201221
 
 functions:
   callback:
     handler: callback.handler
   async:
     handler: async.handler
+  asyncCjs:
+    handler: async-cjs.handler
+  asyncEsm:
+    handler: esm/async-esm.handler
   contextDone:
     handler: context-done.handler
   contextSucceed:
@@ -28,3 +31,23 @@ functions:
   remainingTime:
     handler: remaining-time.handler
     timeout: 3
+  python:
+    runtime: python3.8
+    handler: handler.handler
+  pythonRemainingTime:
+    runtime: python3.8
+    handler: remaining_time.handler
+    timeout: 3
+  ruby:
+    runtime: ruby2.7
+    handler: handler.handler
+  rubyRemainingTime:
+    runtime: ruby2.7
+    handler: remaining_time.handler
+    timeout: 3
+  rubyDeadline:
+    runtime: ruby2.7
+    handler: deadline_ms.handler
+  rubyClass:
+    runtime: ruby2.7
+    handler: class.MyModule::MyClass.my_class_method

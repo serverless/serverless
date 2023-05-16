@@ -44,7 +44,7 @@ custom:
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
 
 functions:
   hello:
@@ -67,7 +67,7 @@ custom:
   bucketName: test
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
   stage: dev # <-- Resolved
 functions:
   hello:

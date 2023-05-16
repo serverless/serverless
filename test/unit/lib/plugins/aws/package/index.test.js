@@ -2,8 +2,8 @@
 
 const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
 const AwsPackage = require('../../../../../../lib/plugins/aws/package/index');
-const Serverless = require('../../../../../../lib/Serverless');
-const CLI = require('../../../../../../lib/classes/CLI');
+const Serverless = require('../../../../../../lib/serverless');
+const CLI = require('../../../../../../lib/classes/cli');
 const expect = require('chai').expect;
 const sinon = require('sinon');
 const path = require('path');
@@ -14,7 +14,7 @@ describe('AwsPackage', () => {
   let options;
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     options = {
       stage: 'dev',
       region: 'us-east-1',
@@ -108,7 +108,7 @@ describe('AwsPackage', () => {
       awsPackage.saveServiceState.restore();
     });
 
-    it('should run "package:cleanup" hook', () => {
+    it('should run "package:cleanup" hook', async () => {
       const spawnAwsCommonValidateStub = spawnStub.withArgs('aws:common:validate').resolves();
       const spawnAwsCommonCleanupTempDirStub = spawnStub
         .withArgs('aws:common:cleanupTempDir')
@@ -122,7 +122,7 @@ describe('AwsPackage', () => {
       });
     });
 
-    it('should run "package:initialize" hook', () =>
+    it('should run "package:initialize" hook', async () =>
       awsPackage.hooks['package:initialize']().then(() => {
         expect(generateCoreTemplateStub.calledOnce).to.equal(true);
       }));
@@ -132,12 +132,12 @@ describe('AwsPackage', () => {
       expect(mergeIamTemplatesStub.calledOnce).to.equal(true);
     });
 
-    it('should run "before:package:compileFunctions" hook', () =>
+    it('should run "before:package:compileFunctions" hook', async () =>
       awsPackage.hooks['before:package:compileFunctions']().then(() => {
         expect(generateArtifactDirectoryNameStub.calledOnce).to.equal(true);
       }));
 
-    it('should run "package:finalize" hook', () => {
+    it('should run "package:finalize" hook', async () => {
       const spawnAwsPackageFinalzeStub = spawnStub.withArgs('aws:package:finalize').resolves();
 
       return awsPackage.hooks['package:finalize']().then(() => {
@@ -145,12 +145,12 @@ describe('AwsPackage', () => {
       });
     });
 
-    it('should run "aws:package:finalize:mergeCustomProviderResources" hook', () =>
+    it('should run "aws:package:finalize:mergeCustomProviderResources" hook', async () =>
       awsPackage.hooks['aws:package:finalize:mergeCustomProviderResources']().then(() => {
         expect(mergeCustomProviderResourcesStub.calledOnce).to.equal(true);
       }));
 
-    it('should run "aws:package:finalize:saveServiceState" hook', () => {
+    it('should run "aws:package:finalize:saveServiceState" hook', async () => {
       const spawnAwsCommonMoveArtifactsToPackageStub = spawnStub
         .withArgs('aws:common:moveArtifactsToPackage')
         .resolves();

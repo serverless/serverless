@@ -1,10 +1,10 @@
 'use strict';
 
 const chai = require('chai');
-const Serverless = require('../../../../lib/Serverless');
+const Serverless = require('../../../../lib/serverless');
 const Install = require('../../../../lib/plugins/install.js');
 const sinon = require('sinon');
-const download = require('../../../../lib/utils/downloadTemplateFromRepo');
+const download = require('../../../../lib/utils/download-template-from-repo');
 const fse = require('fs-extra');
 const path = require('path');
 const { getTmpDirPath } = require('../../../utils/fs');
@@ -16,11 +16,10 @@ describe('Install', () => {
   let install;
   let serverless;
   let cwd;
-  let logSpy;
 
   let serviceDir;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     const tmpDir = getTmpDirPath();
     cwd = process.cwd();
 
@@ -33,7 +32,6 @@ describe('Install', () => {
     install = new Install(serverless);
     return serverless.init().then(() => {
       install.serverless.cli = new serverless.classes.CLI();
-      logSpy = sinon.spy(install.serverless.cli, 'log');
     });
   });
 
@@ -57,7 +55,7 @@ describe('Install', () => {
 
     it('should have hooks', () => expect(install.hooks).to.be.not.empty);
 
-    it('should run promise chain in order for "install:install" hook', () =>
+    it('should run promise chain in order for "install:install" hook', async () =>
       install.hooks['install:install']().then(() => {
         expect(installStub.calledOnce).to.be.equal(true);
       }));
@@ -107,32 +105,22 @@ describe('Install', () => {
       }
     });
 
-    it('should succeed if template can be downloaded and installed', () => {
+    it('should succeed if template can be downloaded and installed', async () => {
       install.options = { url: 'https://github.com/johndoe/remote-service' };
       downloadStub.resolves('remote-service');
 
       return install.install().then(() => {
-        const installationMessage = logSpy.args.filter((arg) =>
-          arg[0].includes('installed "remote-service"')
-        );
-
         expect(downloadStub).to.have.been.calledOnce;
-        expect(installationMessage[0]).to.have.lengthOf(1);
       });
     });
 
-    it('should succeed and print out the desired service name', () => {
+    it('should succeed and print out the desired service name', async () => {
       install.options = { url: 'https://github.com/johndoe/remote-service' };
       install.options.name = 'remote';
       downloadStub.resolves('remote-service');
 
       return install.install().then(() => {
-        const installationMessage = logSpy.args.filter((arg) =>
-          arg[0].includes('installed "remote-service" as "remote"')
-        );
-
         expect(downloadStub).to.have.been.calledOnce;
-        expect(installationMessage[0]).to.have.lengthOf(1);
       });
     });
   });

@@ -15,9 +15,11 @@ npm test
 
 All new tests should be configured with help of [runServerless](./utils/run-serverless.js) util - it's the only way to test functionality against completely intialized `serverless` instance, and it's the only scenario that reflects real world usage.
 
-Check documentation of `runServerless` at [@serverless/test/docs/run-serverless](https://github.com/serverless/test/blob/master/docs/run-serverless.md#run-serverless). Note that `runServerless` as configured at `./utils/run-serverless.js` supports two additional options (`fixture` and `configExt`), which provides out of a box setup to run _Serverless_ instance against prepared fixture with eventually extended service configuration
+Check documentation of `runServerless` at [@serverless/test/docs/run-serverless](https://github.com/serverless/test/blob/main/docs/run-serverless.md#run-serverless). Note that `runServerless` as configured at `./utils/run-serverless.js` supports two additional options (`fixture` and `configExt`), which provides out of a box setup to run _Serverless_ instance against prepared fixture with eventually extended service configuration
 
 As `runServerless` tests are expensive, it's good to ensure a _minimal_ count of `runServerless` runs to test given scope of problems. Ideally with one service example we should cover most of the test cases we can (good example of such approach is [ALB health check tests](https://github.com/serverless/serverless/blob/80e70e7affd54418361c4d54bdef1561af6b8826/lib/plugins/aws/package/compile/events/alb/lib/healthCheck.test.js#L18-L127))
+
+When creating a new test, it is an established practice to name the top-level describe after the path to the file, as shown in [AWS Kafka tests](https://github.com/serverless/serverless/blob/b36cdf2db6ee25f7defe6f2c02dd40e1d5cb65c4/test/unit/lib/plugins/aws/package/compile/events/kafka.test.js#L10).
 
 ### Existing test examples:
 
@@ -28,9 +30,9 @@ As `runServerless` tests are expensive, it's good to ensure a _minimal_ count of
 
 Example of test files fully backed by `runServerless`:
 
-- [lib/plugins/aws/package/compile/events/httpApi.js](https://github.com/serverless/serverless/blob/master/lib/plugins/aws/package/compile/events/httpApi.js)
+- [lib/plugins/aws/package/compile/events/httpApi.js](https://github.com/serverless/serverless/blob/main/lib/plugins/aws/package/compile/events/httpApi.js)
 
-If we're about to add new tests to an existing test file with tests written old way, then best is to create another `describe` block for new tests at the bottom (as it's done [here](https://github.com/serverless/serverless/blob/74634c3317a116077a008375e20d6a5b99b1256e/lib/plugins/aws/package/compile/functions/index.test.js#L2602))
+If we're about to add new tests to an existing test file with tests written old way, then best is to create another `describe` block for new tests at the bottom (as it's done [here](https://github.com/serverless/serverless/blob/main/test/unit/lib/plugins/aws/package/compile/functions.test.js#L1049))
 
 _Note: PR's which rewrite existing tests into new method are very welcome! (but, ideally each PR should cover single test file rewrite)_
 
@@ -61,42 +63,21 @@ Check existing set of AWS integration tests at [test/integration](./integration)
 Pass test file to Mocha directly as follows
 
 ```
-AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=xxx npx mocha tests/integration/{chosen}.test.js
+AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=xxx npx mocha test/integration/{chosen}.test.js
 ```
 
 ### Tests that depend on shared infrastructure stack
 
 Due to the fact that some of the tests require a bit more complex infrastructure setup which might be lengthy, two additional commands has been made available:
 
-- `integration-test-setup-infrastructure` - used for setting up all needed intrastructure dependencies
-- `integration-test-teardown-infrastructure` - used for tearing down the infrastructure setup by the above command
+- `integration-test-setup` - used for setting up all needed intrastructure dependencies
+- `integration-test-teardown` - used for tearing down the infrastructure setup by the above command
 
 Such tests take advantage of `isDependencyStackAvailable` util to check if all needed dependencies are ready. If not, it skips the given test suite.
 
 Examples of such tests:
 
-- [MSK](./integration/infra-dependent/msk.test.js)
-
-## Testing templates
-
-If you add a new template or want to test a template after changing it you can run the template integration tests. Make sure you have `docker` and `docker-compose` installed as they are required. The `docker` containers we're using through compose are automatically including your `$HOME/.aws` folder so you can deploy to AWS.
-
-To run all integration tests run:
-
-```
-./test/templates/test-all-templates
-```
-
-To run only a specific integration test run:
-
-```
-tests/templates/integration-test-template TEMPLATE_NAME BUILD_COMMAND
-```
-
-so for example:
-
-```
-tests/templates/integration-test-template aws-java-maven mvn package
-```
-
-If you add a new template make sure to add it to the `test-all-templates` file and configure the `docker-compose.yml` file for your template.
+- [MSK](./integration/aws/infra-dependent/msk.test.js)
+- [ActiveMQ](./integration/infra-dependent/active-mq.test.js)
+- [RabbitMQ](./integration/infra-dependent/rabbit-mq.test.js)
+- [FileSystemConfig](./integration/infra-dependent/file-system-config.test.js)

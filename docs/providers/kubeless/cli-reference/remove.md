@@ -24,7 +24,7 @@ It will remove the Kubeless Function objects from your Kubernetes cluster, the K
 
 ## Options
 
-- `--verbose` or `-v` Shows additional information during the removal.
+- `--verbose` Shows additional information during the removal.
 
 ## Provided lifecycle events
 

@@ -1,7 +1,5 @@
 <!--
-title: Serverless Framework - AWS Lambda Guide - Functions
-menuText: Functions
-menuOrder: 5
+title: Serverless Framework - AWS Lambda Functions
 description: How to configure AWS Lambda functions in the Serverless Framework
 layout: Doc
 -->
@@ -12,7 +10,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS - Functions
+# AWS Lambda Functions
 
 If you are using AWS as a provider, all _functions_ inside the service are AWS Lambda functions.
 
@@ -26,7 +24,8 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
+  runtimeManagement: auto # optional, set how Lambda controls all functions runtime. AWS default is auto; this can either be 'auto' or 'onFunctionUpdate'. For 'manual', see example in hello function below (syntax for both is identical)
   memorySize: 512 # optional, in MB, default is 1024
   timeout: 10 # optional, in seconds, default is 6
   versionFunctions: false # optional, default is true
@@ -38,7 +37,10 @@ functions:
     handler: handler.hello # required, handler set in AWS Lambda
     name: ${sls:stage}-lambdaName # optional, Deployed Lambda name
     description: Description of what the lambda function does # optional, Description to publish to AWS
-    runtime: python2.7 # optional overwrite, default is provider runtime
+    runtime: python3.9 # optional overwrite, default is provider runtime
+    runtimeManagement:
+      mode: manual # syntax required for manual, mode property also supports 'auto' or 'onFunctionUpdate' (see provider.runtimeManagement)
+      arn: <aws runtime arn> # required when mode is manual
     memorySize: 512 # optional, in MB, default is 1024
     timeout: 10 # optional, in seconds, default is 6
     provisionedConcurrency: 3 # optional, Count of provisioned lambda instances
@@ -62,7 +64,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
 
 functions:
   functionOne:
@@ -82,7 +84,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
   memorySize: 512 # will be inherited by all functions
 
 functions:
@@ -98,7 +100,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
 
 functions:
   functionOne:
@@ -134,7 +136,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
   iam:
     role:
       statements: # permissions for all of your functions can be set here
@@ -187,17 +189,103 @@ functions:
     memorySize: 512
 ```
 
-You can also use an existing IAM role by adding your IAM Role ARN in the `role` property. For example:
+You can also use an existing IAM role by adding your IAM Role ARN in the `iam.role` property. For example:
 
 ```yml
 # serverless.yml
 service: new-service
 provider:
   name: aws
-  role: arn:aws:iam::YourAccountNumber:role/YourIamRole
+  iam:
+    role: arn:aws:iam::YourAccountNumber:role/YourIamRole
 ```
 
 See the documentation about [IAM](./iam.md) for function level IAM roles.
+
+## Lambda Function URLs
+
+A [Lambda Function URL](https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-urls.html) is a simple solution to create HTTP endpoints with AWS Lambda. Function URLs are ideal for getting started with AWS Lambda, or for single-function applications like webhooks or APIs built with web frameworks.
+
+You can create a function URL via the `url` property in the function configuration in `serverless.yml`. By setting `url` to `true`, as shown below, the URL will be public without CORS configuration.
+
+```yaml
+functions:
+  func:
+    handler: index.handler
+    url: true
+```
+
+Alternatively, you can configure it as an object with the `authorizer` and/or `cors` properties. The `authorizer` property can be set to `aws_iam` to enable AWS IAM authorization on your function URL.
+
+```yaml
+functions:
+  func:
+    handler: index.handler
+    url:
+      authorizer: aws_iam
+```
+
+When using IAM authorization, the URL will only accept HTTP requests with AWS credentials allowing `lambda:InvokeFunctionUrl` (similar to [API Gateway IAM authentication](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-access-control-iam.html)).
+
+You can also configure [CORS headers](https://developer.mozilla.org/docs/Web/HTTP/CORS) so that your function URL can be called from other domains in browsers. Setting `cors` to `true` will allow all domains via the following CORS headers:
+
+```yaml
+functions:
+  func:
+    handler: index.handler
+    url:
+      cors: true
+```
+
+| Header                       | Value                                                                    |
+| :--------------------------- | :----------------------------------------------------------------------- |
+| Access-Control-Allow-Origin  | \*                                                                       |
+| Access-Control-Allow-Headers | Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token |
+| Access-Control-Allow-Methods | \*                                                                       |
+
+You can also additionally adjust your CORS configuration by setting `allowedOrigins`, `allowedHeaders`, `allowedMethods`, `allowCredentials`, `exposedResponseHeaders`, and `maxAge` properties as shown in example below.
+
+```yaml
+functions:
+  func:
+    handler: index.handler
+    url:
+      cors:
+        allowedOrigins:
+          - https://url1.com
+          - https://url2.com
+        allowedHeaders:
+          - Content-Type
+          - Authorization
+        allowedMethods:
+          - GET
+        allowCredentials: true
+        exposedResponseHeaders:
+          - Special-Response-Header
+        maxAge: 6000 # In seconds
+```
+
+In the table below you can find how the `cors` properties map to CORS headers
+
+| Configuration property | CORS Header                      |
+| :--------------------- | :------------------------------- |
+| allowedOrigins         | Access-Control-Allow-Origin      |
+| allowedHeaders         | Access-Control-Allow-Headers     |
+| allowedMethods         | Access-Control-Allow-Methods     |
+| allowCredentials       | Access-Control-Allow-Credentials |
+| exposedResponseHeaders | Access-Control-Expose-Headers    |
+| maxAge                 | Access-Control-Max-Age           |
+
+It is also possible to remove the values in CORS configuration that are set by default by setting them to `null` instead.
+
+```yaml
+functions:
+  func:
+    handler: index.handler
+    url:
+      cors:
+        allowedHeaders: null
+```
 
 ## Referencing container image as a target
 
@@ -205,7 +293,15 @@ Alternatively lambda environment can be configured through docker images. Image 
 
 Serverless will create an ECR repository for your image, but it currently does not manage updates to it. An ECR repository is created only for new services or the first time that a function configured with an `image` is deployed. In service configuration, you can configure the ECR repository to scan for CVEs via the `provider.ecr.scanOnPush` property, which is `false` by default. (See [documentation](https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html))
 
-In service configuration, images can be configured via `provider.ecr.images`. To define an image that will be built locally, you need to specify `path` property, which should point to valid docker context directory. Optionally, you can also set `file` to specify Dockerfile that should be used when building an image. It is also possible to define images that already exist in AWS ECR repository. In order to do that, you need to define `uri` property, which should follow `<account>.dkr.ecr.<region>.amazonaws.com/<repository>@<digest>` or `<account>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>` format. Additionally, with `buildArgs` property, you can define arguments that will be passed to `docker build` command with `--build-arg` flag. They might be later referenced via `ARG` within your `Dockerfile`. The `cacheFrom` property can be used to specify which images to use as a source for layer caching in the `docker build` command with `--cache-from` flag. When `uri` is defined for an image, `buildArgs` and `cacheFrom` cannot be defined.
+In service configuration, images can be configured via `provider.ecr.images`. To define an image that will be built locally, you need to specify `path` property, which should point to valid docker context directory. Optionally, you can also set `file` to specify Dockerfile that should be used when building an image. It is also possible to define images that already exist in AWS ECR repository. In order to do that, you need to define `uri` property, which should follow `<account>.dkr.ecr.<region>.amazonaws.com/<repository>@<digest>` or `<account>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>` format.
+
+Additionally, you can define arguments that will be passed to the `docker build` command via the following properties:
+
+- `buildArgs`: With the `buildArgs` property, you can define arguments that will be passed to `docker build` command with `--build-arg` flag. They might be later referenced via `ARG` within your `Dockerfile`. (See [Documentation](https://docs.docker.com/engine/reference/builder/#arg))
+- `cacheFrom`: The `cacheFrom` property can be used to specify which images to use as a source for layer caching in the `docker build` command with `--cache-from` flag. (See [Documentation](https://docs.docker.com/engine/reference/builder/#usage))
+- `platform`: The `platform` property can be used to specify the architecture target in the `docker build` command with the `--platform` flag. If not specified, Docker will build for your computer's architecture by default. AWS Lambda typically uses `x86` architecture unless otherwise specified in the Lambda's runtime settings. In order to avoid runtime errors when building on an ARM-based machine (e.g. Apple M1 Mac), `linux/amd64` must be used here. The options for this flag are `linux/amd64` (`x86`-based Lambdas), `linux/arm64` (`arm`-based Lambdas), or `windows/amd64`. (See [Documentation](https://docs.docker.com/engine/reference/builder/#from))
+
+When `uri` is defined for an image, `buildArgs`, `cacheFrom`, and `platform` cannot be defined.
 
 Example configuration
 
@@ -223,6 +319,7 @@ provider:
           STAGE: ${opt:stage}
         cacheFrom:
           - my-image:latest
+        platform: linux/amd64
       anotherimage:
         uri: 000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38
 ```
@@ -284,6 +381,70 @@ functions:
 
 During the first deployment when locally built images are used, Framework will automatically create a dedicated ECR repository to store these images, with name `serverless-<service>-<stage>`. Currently, the Framework will not remove older versions of images uploaded to ECR as they still might be in use by versioned functions. During `sls remove`, the created ECR repository will be removed. During deployment, Framework will attempt to `docker login` to ECR if needed. Depending on your local configuration, docker authorization token might be stored unencrypted. Please refer to documentation for more details: https://docs.docker.com/engine/reference/commandline/login/#credentials-store
 
+## Instruction set architecture
+
+By default, Lambda functions are run by 64-bit x86 architecture CPUs. However, [using arm64 architecture](https://docs.aws.amazon.com/lambda/latest/dg/foundation-arch.html) (AWS Graviton2 processor) may result in better pricing and performance.
+
+To switch all functions to AWS Graviton2 processor, configure `architecture` at `provider` level as follows:
+
+```yml
+provider:
+  ...
+  architecture: arm64
+```
+
+To toggle instruction set architecture per function individually, set it directly at `functions[]` context:
+
+```yaml
+functions:
+  hello:
+    ...
+    architecture: arm64
+```
+
+## Runtime Management
+
+[Runtime Management](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html) allows for fine-grained control of the runtime being used for a lambda function in the rare event of compatibility issues with a function.
+
+If you wish to keep `runtimeManagement` set to `auto`, that's the default so you don't need to specify it explicitly. If you wish for the runtime to only be updated when the function is redeployed, set it to `onFunctionUpdate`.
+
+To configure runtime management for all functions, configure `runtimeManagement` at `provider` level as follows:
+
+```yml
+provider:
+  ...
+  runtimeManagement: onFunctionUpdate
+```
+
+To toggle instruction set architecture per function individually, set it directly at `functions[]` context:
+
+```yml
+functions:
+  hello:
+    ...
+    runtimeManagement:
+      mode: manual
+      arn: <aws runtime arn>
+```
+
+Finally, `auto` and `onFunctionUpdate` can be set as the `mode` property as well for completeness (and to allow for the scenario where this value comes from another variable source, for example).
+
+## SnapStart
+
+[Lambda SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html) for Java can improve startup performance for latency-sensitive applications.
+
+To enable SnapStart for your lambda function you can add the `snapStart` object property in the function configuration which can be put to true and will result in the value `PublishedVersions` for this function.
+
+```yaml
+functions:
+  hello:
+    ...
+    runtime: java11
+    snapStart: true
+```
+
+**Note:** Lambda SnapStart only supports the Java 11 and Java 17 runtimes and does not support provisioned concurrency, the arm64 architecture, the Lambda Extensions API, Amazon Elastic File System (Amazon EFS), AWS X-Ray, or ephemeral storage greater than 512 MB.
+
 ## VPC Configuration
 
 You can add VPC configuration to a specific function in `serverless.yml` by adding a `vpc` object property in the function configuration. This object should contain the `securityGroupIds` and `subnetIds` array properties needed to construct VPC for this function. Here's an example configuration:
@@ -335,6 +496,29 @@ functions:
 ```
 
 Then, when you run `serverless deploy`, VPC configuration will be deployed along with your lambda function.
+
+If you have a provider VPC set but wish to have specific functions with no VPC, you can set the `vpc` value for these functions to `~` (null). For example:
+
+```yml
+# serverless.yml
+service: service-name
+provider:
+  name: aws
+  vpc:
+    securityGroupIds:
+      - securityGroupId1
+      - securityGroupId2
+    subnetIds:
+      - subnetId1
+      - subnetId2
+
+functions:
+  hello: # this function will have no vpc configured
+    handler: handler.hello
+    vpc: ~
+  users: # this function will inherit the service level vpc config above
+    handler: handler.users
+```
 
 **VPC IAM permissions**
 
@@ -452,11 +636,20 @@ By default, the framework will create LogGroups for your Lambdas. This makes it 
 
 You can opt out of the default behavior by setting `disableLogs: true`
 
+You can also specify the duration for CloudWatch log retention by setting `logRetentionInDays`.
+
+You can specify the DataProtectionPolicy for the LogGroup by setting `logDataProtectionPolicy`. On how to define the policy consult the [aws docs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data-start.html).
+
 ```yml
 functions:
   hello:
     handler: handler.hello
     disableLogs: true
+  goodBye:
+    handler: handler.goodBye
+    logRetentionInDays: 14
+    logDataProtectionPolicy:
+      Name: data-protection-policy
 ```
 
 ## Versioning Deployed Functions
@@ -489,7 +682,7 @@ service: service
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
 
 functions:
   hello:
@@ -507,22 +700,22 @@ We're working on a fix so that SQS queue arns will be supported in the future.
 
 [AWS Lambda](https://serverless.com/aws-lambda/) uses [AWS Key Management Service (KMS)](https://aws.amazon.com/kms/) to encrypt your environment variables at rest.
 
-The `awsKmsKeyArn` config variable enables you a way to define your own KMS key which should be used for encryption.
+The `kmsKeyArn` config variable enables you a way to define your own KMS key which should be used for encryption.
 
 ```yml
 service:
   name: service-name
-  awsKmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
 
 provider:
   name: aws
+  kmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
   environment:
     TABLE_NAME: tableName1
 
 functions:
   hello: # this function will OVERWRITE the service level environment config above
     handler: handler.hello
-    awsKmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
+    kmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
     environment:
       TABLE_NAME: tableName2
   goodbye: # this function will INHERIT the service level environment config above
@@ -542,7 +735,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
   tracing:
     lambda: true
 ```
@@ -567,7 +760,7 @@ When intention is to invoke function asynchronously you may want to configure fo
 
 [destination targets](https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html#invocation-async-destinations)
 
-Target can be the other lambdas you also deploy with a service or other qualified target (externally managed lambda, EventBridge event bus, SQS queue or SNS topic) which you can address via its ARN
+Target can be the other lambdas you also deploy with a service or other qualified target (externally managed lambda, EventBridge event bus, SQS queue or SNS topic) which you can address via its ARN or reference
 
 ```yml
 functions:
@@ -576,6 +769,14 @@ functions:
     destinations:
       onSuccess: otherFunctionInService
       onFailure: arn:aws:sns:us-east-1:xxxx:some-topic-name
+  asyncGoodBye:
+    handler: handler.asyncGoodBye
+    destinations:
+      onFailure:
+        # For the case using CF intrinsic function for `arn`, to ensure target execution permission exactly, you have to specify `type` from 'sns', 'sqs', 'eventBus', 'function'.
+        type: sns
+        arn:
+          Ref: SomeTopicName
 ```
 
 ### Maximum Event Age and Maximum Retry Attempts
@@ -612,3 +813,36 @@ functions:
       subnetIds:
         - subnetId1
 ```
+
+## Ephemeral storage
+
+By default, Lambda [allocates 512 MB of ephemeral storage](https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-common.html#configuration-ephemeral-storage) in functions under the `/tmp` directory.
+
+You can increase its size via the `ephemeralStorageSize` property. It should be a numerical value in MBs, between 512 and 10240.
+
+```yml
+functions:
+  helloEphemeral:
+    handler: handler.handler
+    ephemeralStorageSize: 1024
+```
+
+## Lambda Hashing Algorithm migration
+
+**Note** Below migration guide is intended to be used if you are already using `v3` version of the Framework and you have `provider.lambdaHashingVersion` property set to `20200924` in your configuration file. If you are still on v2 and want to upgrade to v3, please refer to [V3 Upgrade docs](../../../guides/upgrading-v3.md#lambda-hashing-algorithm).
+
+In `v3`, Lambda version hashes are generated using an improved algorithm that fixes determinism issues. If you are still using the old hashing algorithm, you can follow the guide below to migrate to new default version.
+
+Please keep in mind that these changes require two deployments with manual configuration adjustment between them. It also creates two additional versions and temporarily overrides descriptions of your functions. Migration will need to be done separately for each of your environments/stages.
+
+1. Run `sls deploy` with additional `--enforce-hash-update` flag: that flag will override the description for Lambda functions, which will force the creation of new versions.
+2. Remove `provider.lambdaHashingVersion` setting from your configuration: your service will now always deploy with the new Lambda version hashes (which is the new default in v3).
+3. Run `sls deploy`, this time without additional `--enforce-hash-update` flag: that will restore the original descriptions on all Lambda functions.
+
+Now your whole service is fully migrated to the new Lambda Hashing Algorithm.
+
+If you do not want to temporarily override descriptions of your functions or would like to avoid creating unnecessary versions of your functions, you might want to use one of the following approaches:
+
+- Ensure that code for all your functions will change during deployment, remove `provider.lambdaHashingVersion` from your configuration, and run `sls deploy`. Due to the fact that all functions have code changed, all your functions will be migrated to new hashing algorithm. Please note that the change can be caused by e.g. upgrading a dependency used by all your functions so you can pair it with regular chores.
+- Add a dummy file that will be included in deployment artifacts for all your functions, remove `provider.lambdaHashingVersion` from your configuration, and run `sls deploy`. Due to the fact that all functions have code changed, all your functions will be migrated to new hashing algorithm.
+- If it is safe in your case (e.g. it's only development sandbox), you can also tear down the whole service by `sls remove`, remove `provider.lambdaHashingVersion` from your configuration, and run `sls deploy`. Newly recreated environment will be using new hashing algorithm.

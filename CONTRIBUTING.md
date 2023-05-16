@@ -12,11 +12,13 @@ Welcome, and thanks in advance for your help!
 
 ## Setup
 
-Once you've cloned forked repository, all is needed is to run `npm install` at its root folder
+First, the preferred node version for development is v14; While v12 is supported on the client-side, developing in v12 can be unexpectedly tricky (see: [11250](https://github.com/serverless/serverless/pull/11250)).
 
-## Anatomy of a Framework
+Then, to begin development fork repository and run `npm install` in its root folder.
 
-Check [docs/anatomy.md](./docs/anatomy.md)
+## Getting started
+
+A good first step is to search for open [issues](https://github.com/serverless/serverless/issues). Issues are labeled, and some good issues to start with are labeled: [good first issue](https://github.com/serverless/serverless/labels/good%20first%20issue) and [help wanted](https://github.com/serverless/serverless/labels/help%20wanted).
 
 ## When you propose a new feature or bug fix
 
@@ -27,13 +29,13 @@ There are just a few situations (listed below) in which it is fine to submit PR 
 - Obvious bug fix
 - Maintenance improvement
 
-In all other cases please check if there's an open an issue discussing the given proposal, if there is not, create an issue respecting all its template remarks.
+In all other cases please check if there's an open issue discussing the given proposal, if there is not, create an issue respecting all its template remarks.
 
 In non-trivial cases please propose and let us review an implementation spec (in the corresponding issue) before jumping into implementation.
 
 Do not submit draft PRs. Submit only finalized work which is ready for merge. If you have any doubts related to implementation work please discuss in the corresponding issue.
 
-Once PR was reviewed and some changes were suggested, please ensure to re-request review after all new changes were pushed. It's the best, noiseless way to inform maintainers that your work is ready to be checked again
+Once a PR has been reviewed and some changes are suggested, please ensure to **re-request review** after all new changes are pushed. It's the best and quietest way to inform maintainers that your work is ready to be checked again.
 
 ## When you want to work on an existing issue
 
@@ -55,7 +57,7 @@ Our documentation lives on GitHub in the [docs](docs) directory. Do you see a ty
 
 The easiest thing you can do to help us move forward and make an impact on our progress is to simply provide support to other people having difficulties with their Serverless projects.
 
-You can do that by replying to [issues on Github](https://github.com/serverless/serverless/issues), chatting with other community members in [our Chat](http://chat.serverless.com), or helping with questions in [our Forum](http://forum.serverless.com).
+You can do that by replying to [issues on GitHub](https://github.com/serverless/serverless/issues), chatting with other community members in [our Community Slack](https://www.serverless.com/slack), or helping with questions in [our Forum](http://forum.serverless.com), or [GitHub Discussions](https://github.com/serverless/serverless/discussions).
 
 ---
 
@@ -80,7 +82,7 @@ npm run lint
 ## Other guidelines
 
 - Minimize [lodash](https://lodash.com/) usage - resort to it, only if given part of logic cannot be expressed easily with native language constructs
-- When writing asynchronous code, ensure to take advantage of [async functions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function) and native `Promise` API. Do not rely on [Bluebird](http://bluebirdjs.com) even though still large parts of old code rely on it. We're looking forward to drop this dependency in next months.
+- When writing asynchronous code, ensure to take advantage of [async functions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function) and native `Promise` API. Do not rely on [Bluebird](http://bluebirdjs.com) even though still large parts of old code rely on it. We're looking forward to drop this dependency in the near future.
 
 ### Configuring deprecations
 
@@ -90,14 +92,20 @@ Deprecation log can be configured with the following steps:
 
 1. Write a deprecation log with help of `serverless._logDeprecation` util.
 
-Log should be written only if deprecated functionality is used. If applicable (to given case) deprecation log should be reported, after service configuration is fully resolved, but before any command logic is run. This can be achieved by attaching to `initialize` hook ([example](https://github.com/serverless/serverless/blob/134db21ed27874ae64db1c8964523b5b5ae6c2bf/lib/plugins/aws/package/compile/events/cloudFront.js#L197-L222)).
+This log should be written only if deprecated functionality is used. If applicable (to a given case) the deprecation log should be reported, after service configuration is fully resolved, but before any command logic is run. This can be achieved by attaching to the `initialize` hook ([example](https://github.com/serverless/serverless/blob/134db21ed27874ae64db1c8964523b5b5ae6c2bf/lib/plugins/aws/package/compile/events/cloudFront.js#L197-L222)).
 
 `serverless._logDeprecation` accepts two arguments:
 
-- `code` (e.g. `DEPRECATED_FEATURE_NAME`). Created to identify log programmatically, also used to construct link on documentation page
-- `message` Deprecation message to be displayed to the user
+- `code` (e.g. `DEPRECATED_FEATURE_NAME`). Created to identify the log programmatically. This is also used to construct a link on the documentation page.
+- `message` Deprecation message to be displayed to the user.
 
-2. Document introduced deprecation at `docs/deprecations.md` (new deprecation should be listed as **first** and follow the format of other documented deprecations)
+2. Document introduced deprecations at `docs/deprecations.md`. New deprecation should be listed as **first** and follow the format of other documented deprecations.
+
+Example PRs with configured deprecations:
+
+- [Change of default `runtime`](https://github.com/serverless/serverless/pull/9416)
+- [Extending non-existent resources](https://github.com/serverless/serverless/pull/8266)
+- [Deprecate `deploy -f`](https://github.com/serverless/serverless/pull/10346)
 
 ### Service configuration validation
 
@@ -109,7 +117,7 @@ See [test/README](test/README.md)
 
 # Our Code of Conduct
 
-Finally, to make sure you have a pleasant experience while being in our welcoming community, please read our [code of conduct](CODE_OF_CONDUCT.md). It outlines our core values and believes and will make working together with a happier experience.
+Finally, to make sure you have a pleasant experience while being in our welcoming community, please read our [code of conduct](CODE_OF_CONDUCT.md). It outlines our core values and beliefs and will make working together a happier experience.
 
 Thanks again for being a contributor to the Serverless Community :tada:!
 

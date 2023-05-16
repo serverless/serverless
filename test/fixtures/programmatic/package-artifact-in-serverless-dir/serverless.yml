@@ -1,0 +1,18 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+plugins:
+  # Mutates `package.artifact` to point to copied `.serverless/NAME.zip`
+  - ./package-artifact-plugin
+
+functions:
+  foo:
+    handler: index.handler
+  other:
+    handler: index.handler

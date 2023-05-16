@@ -43,7 +43,9 @@ serverless deploy function --function helloWorld
 ### Deployment with stage and region options
 
 ```bash
-serverless deploy function --function helloWorld --stage dev --region us-east-1
+serverless deploy function --function helloWorld \
+  --stage dev \
+  --region us-east-1
 ```
 
 ### Deploy only configuration changes

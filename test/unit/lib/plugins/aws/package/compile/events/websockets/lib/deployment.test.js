@@ -2,7 +2,7 @@
 
 const expect = require('chai').expect;
 const AwsCompileWebsocketsEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/index');
-const Serverless = require('../../../../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../../../../lib/serverless');
 const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
 
 describe('#compileDeployment()', () => {
@@ -13,7 +13,7 @@ describe('#compileDeployment()', () => {
       stage: 'dev',
       region: 'us-east-1',
     };
-    const serverless = new Serverless();
+    const serverless = new Serverless({ commands: [], options: {} });
     serverless.setProvider('aws', new AwsProvider(serverless));
     serverless.service.provider.compiledCloudFormationTemplate = {
       Resources: {},
@@ -123,7 +123,7 @@ describe('#compileDeployment()', () => {
     });
   });
 
-  it('should add deployment logical id to stage if no websocketApiId specified', () => {
+  it('should add deployment logical id to stage if no websocketApiId specified', async () => {
     awsCompileWebsocketsEvents.validated = {
       events: [
         {

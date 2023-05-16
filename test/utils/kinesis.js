@@ -1,15 +1,15 @@
 'use strict';
 
-const BbPromise = require('bluebird');
 const awsRequest = require('@serverless/test/aws-request');
+const KinesisService = require('aws-sdk').Kinesis;
 
-function waitForKinesisStream(streamName) {
+async function waitForKinesisStream(streamName) {
   const params = {
     StreamName: streamName,
   };
-  return new BbPromise((resolve) => {
+  return new Promise((resolve) => {
     const interval = setInterval(() => {
-      awsRequest('Kinesis', 'describeStream', params).then((data) => {
+      awsRequest(KinesisService, 'describeStream', params).then((data) => {
         const status = data.StreamDescription.StreamStatus;
         if (status === 'ACTIVE') {
           clearInterval(interval);
@@ -21,31 +21,33 @@ function waitForKinesisStream(streamName) {
   });
 }
 
-function createKinesisStream(streamName) {
+async function createKinesisStream(streamName) {
   const params = {
     ShardCount: 1, // prevent complications from shards being processed in parallel
     StreamName: streamName,
   };
 
-  return awsRequest('Kinesis', 'createStream', params).then(() => waitForKinesisStream(streamName));
+  return awsRequest(KinesisService, 'createStream', params).then(() =>
+    waitForKinesisStream(streamName)
+  );
 }
 
-function deleteKinesisStream(streamName) {
+async function deleteKinesisStream(streamName) {
   const params = {
     StreamName: streamName,
   };
 
-  return awsRequest('Kinesis', 'deleteStream', params);
+  return awsRequest(KinesisService, 'deleteStream', params);
 }
 
-function putKinesisRecord(streamName, message) {
+async function putKinesisRecord(streamName, message) {
   const params = {
     StreamName: streamName,
     Data: message,
     PartitionKey: streamName, // test streams are single shards
   };
 
-  return awsRequest('Kinesis', 'putRecord', params);
+  return awsRequest(KinesisService, 'putRecord', params);
 }
 
 module.exports = {

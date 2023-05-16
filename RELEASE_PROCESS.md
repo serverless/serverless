@@ -16,10 +16,9 @@ Releases are triggered manually by preparing a release PRs
 
 #### Preparation steps:
 
-1. Create the `release` branch (should derive from the current `master` state)
+1. Create the `release` branch (should derive from the current `main` state)
 2. Bump version ranges of _all_ dependencies to the latest supported versions (e.g. if the latest version of a dependency is `2.3.5` and the range in a `package.json` is `^2.2.4` then it should be updated to `^2.3.5`)  
-   _Note: Unfortunately there seems no reliable utility to automate that (there's a [request at `npm-check-updates`](https://github.com/tjunnone/npm-check-updates/issues/581))  
-   If you handle the installation of dependencies through [npm-cross-link](https://github.com/medikoo/npm-cross-link#npm-cross-link) then [`--bump-deps`](https://github.com/medikoo/npm-cross-link#general-options) option will bump version ranges as expected_
+   _Note: If can handle it with a tool like [ncu](https://github.com/raineorshine/npm-check-updates) (`ncu --target minor --upgrade`) or if you handle the installation of dependencies through [npm-cross-link](https://github.com/medikoo/npm-cross-link#npm-cross-link) then [`--bump-deps`](https://github.com/medikoo/npm-cross-link#general-options) option will bump version ranges as expected_
 3. Commit eventual dependency version updates with the following commit message:  
    `chore: Bump dependencies`
 4. Run `npm run prepare-release` command.  
@@ -27,7 +26,7 @@ Releases are triggered manually by preparing a release PRs
 5. Improve generated changelog entry in `CHANGELOG.md`:
 
    - Ensure to remove eventual items that were already published with patch releases
-   - Improve formatting and messages if applicable
+   - Improve formatting and messages if applicable (each entry should have an issue/pr, commit, and author associated with it)
    - Ensure that updated `CHANGELOG.md` follows prettier formatting
 
 6. Commit `package.json` and `CHANGELOG.md` changes with the following commit message:
@@ -38,13 +37,13 @@ Releases are triggered manually by preparing a release PRs
 
 _Further actions are automated in CI context:_
 
-9. _`master` CI build detects that release PR was merged (by fact that it covers change of `version` field in `package.json` file). Having that (after successful tests pass) version tag is created and pushed to the repository._
+9. _`main` CI build detects that release PR was merged (by fact that it covers change of `version` field in `package.json` file). Having that (after successful tests pass) version tag is created and pushed to the repository._
 10. _Tag CI build publishes a new version to npm, also it retrieves release notes from CHANGELOG.md and publishes them to GitHub._
 
 ### Updating release notes for already published versions
 
 Improvements to release notes can be done at any time to any already published version:
 
-1. Update `CHANGELOG.md` with desired changes (ensure they'd also end in `master`)
+1. Update `CHANGELOG.md` with desired changes (ensure they'd also end in `main`)
 2. Push updated release notes to GitHub by running:  
    `npx github-release-from-cc-changelog <version>`

@@ -35,7 +35,7 @@ functions:
       - http: true
 ```
 
-The events property is an array, in this case, because I can also use it do define my input and output bindings.
+The events property is an array, in this case, because I can also use it to define my input and output bindings.
 
 ```yml
 queuejs:

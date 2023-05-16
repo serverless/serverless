@@ -1,106 +1,154 @@
 <!--
-title: Serverless Getting Started Guide
-menuText: Get Started
+title: Setting Up Serverless Framework With AWS
 layout: Doc
-menuOrder: 0
-menuItems:
-  - {menuText: AWS Guide, path: /framework/docs/providers/aws/guide/quick-start}
-  - {menuText: Azure Functions Guide, path: /framework/docs/providers/azure/guide/quick-start}
-  - {menuText: Apache OpenWhisk Guide, path: /framework/docs/providers/openwhisk/guide/quick-start}
-  - {menuText: Google Functions Guide, path: /framework/docs/providers/google/guide/quick-start}
-  - {menuText: Kubeless Guide, path: /framework/docs/providers/kubeless/guide/quick-start}
-  - {menuText: Knative Guide, path: /framework/docs/providers/knative/guide/quick-start}
-  - {menuText: Spotinst Guide, path: /framework/docs/providers/spotinst/guide/quick-start}
-  - {menuText: Fn Guide, path: /framework/docs/providers/fn/guide/quick-start}
-  - {menuText: Cloudflare Workers Guide, path: /framework/docs/providers/cloudflare/guide/quick-start}
-  - {menuText: Alibaba Guide , path: /framework/docs/providers/aliyun/guide/quick-start}
-  - {menuText: Tencent Guide , path: /framework/docs/providers/tencent/guide/quick-start}
 -->
 
-# Get started with Serverless Framework Open Source & AWS
+# Setting Up Serverless Framework With AWS
 
-Getting started with Serverless Framework’s Open Source CLI and AWS takes only a few minutes. Install as a standalone binary, or with npm.
+Get started with Serverless Framework’s open-source CLI and Amazon Web Services in minutes.
 
-## Install as a standalone binary
+## Installation
 
-### MacOS/Linux
-
-To install the latest version, run this command in your terminal:
-
-```bash
-curl -o- -L https://slss.io/install | bash
-```
-
-To install an specific version you may set a VERSION variable, for example:
-
-```bash
-curl -o- -L https://slss.io/install | VERSION=2.21.1 bash
-```
-
-Then, open another terminal window to run the `serverless` program.
-
-### Windows
-
-Install with [Chocolatey](https://chocolatey.org/):
-
-```bash
-choco install serverless
-```
-
-### via npm
-
-_Note: If you don’t already have [Node](https://nodejs.org/en/download/package-manager/) on your machine, you’ll need to install it first. We suggest using the latest LTS version of NodeJS._
-
-Install the serverless CLI:
+Install `serverless` module via NPM:
 
 ```bash
 npm install -g serverless
 ```
 
-## Initial setup
+_If you don’t already have Node.js on your machine, [install it first](https://nodejs.org/). If you don't want to install Node or NPM, you can [install `serverless` as a standalone binary](https://www.serverless.com/framework/docs/install-standalone)._
 
-Run the command below and follow the prompts:
+## Creating A Service
+
+To create your first project (known as a Serverless Framework "Service"), run the `serverless` command below, then follow the prompts.
 
 ```bash
+# Create a new serverless project
 serverless
+
+# Move into the newly created directory
+cd your-service-name
 ```
 
-The command will guide you to create a new serverless project.
+The `serverless` command will guide you to:
 
-_Note: Users in China are presented with a setup centered around the chinese [Tencent](https://intl.cloud.tencent.com/) provider. If you're based in China and prefer to be presented with steps as outside of China, set the following environment variable: `SERVERLESS_PLATFORM_VENDOR=aws`_
+1. Create a new project
+2. Configure your [AWS credentials](https://serverless.com/framework/docs/providers/aws/guide/credentials/)
+3. Optionally set up a free Serverless Framework account with additional features.
 
-## Upgrade
+Your new serverless project will contain a `serverless.yml` file. This file features simple syntax for deploying infrastructure to AWS, such as AWS Lambda functions, infrastructure that triggers those functions with events, and additional infrastructure your AWS Lambda functions may need for various use-cases. You can learn more about this in the [Core Concepts documentation](https://www.serverless.com/framework/docs/providers/aws/guide/intro).
 
-### MacOS/Linux
+The `serverless` command will give you a variety of templates to choose from. If those do not fit your needs, check out the [project examples from Serverless Inc. and our community](https://github.com/serverless/examples). You can install any example by passing a GitHub URL using the `--template-url` option:
+
+```base
+serverless --template-url=https://github.com/serverless/examples/tree/v3/...
+```
+
+Please note that you can use `serverless` or `sls` to run Serverless Framework commands.
+
+## Deploying
+
+If you haven't done so already within the `serverless` command, you can deploy the project at any time by running:
 
 ```bash
-serverless upgrade
+sls deploy
 ```
 
-### Windows
+The deployed AWS Lambda functions and other essential information such as API Endpoint URLs will be displayed in the command output.
+
+More details on deploying can be found [here](https://www.serverless.com/framework/docs/providers/aws/guide/deploying).
+
+## Developing On The Cloud
+
+Many Serverless Framework users choose to develop on the cloud, since it matches reality and emulating Lambda locally can be complex. To develop on the cloud quickly, without sacrificing speed, we recommend the following workflow...
+
+To deploy code changes quickly, skip the `serverless deploy` command which is much slower since it triggers a full AWS CloudFormation update. Instead, deploy code and configuration changes to individual AWS Lambda functions in seconds via the `deploy function` command, with `-f [function name in serverless.yml]` set to the function you want to deploy.
 
 ```bash
-choco upgrade serverless
+sls deploy function -f my-api
 ```
 
-### via npm
+More details on the `deploy function` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/deploy-function).
+
+To invoke your AWS Lambda function on the cloud, you can find URLs for your functions w/ API endpoints in the `serverless deploy` output, or retrieve them via `serverless info`. If your functions do not have API endpoints, you can use the `invoke` command, like this:
 
 ```bash
-npm update -g serverless
+sls invoke -f hello
+
+# Invoke and display logs:
+serverless invoke -f hello --log
 ```
 
-## Set up your free Pro account
+More details on the `invoke` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke).
 
-Learn more about [Serverless Framework Pro](https://serverless.com/pro/) and [sign up for free](https://app.serverless.com).
-
-Once you’ve signed up for Pro, login to your Pro dashboard from the CLI:
+If you want to open a session that streams logs from one or multiple AWS Lambda functions, use the new Serverless Framework `dev` command. Instead of relying on AWS Cloudwatch (which is slow) this leverages our new [Serverless Console](https://serverless.com/console) to stream logs and more in less than 1 second to your CLI. It's free, it supports streaming from multiple AWS Lambda functions simultaneously, and it also will stream inputs and outputs your AWS Lambda functions and their SDK calls.
 
 ```bash
-serverless login
+sls dev
 ```
 
-You can either add a new service in your dashboard, or with the CLI, using the command:
+If you use the `--verbose` flag, the `dev` command will stream requests and responses of your AWS Lambda functions, as well as your AWS SDK calls, so you can inspect what's happening with AWS DynamoDB, AWS S3, and much more.
 
 ```bash
-serverless
+sls dev --verbose
 ```
+
+By default, `dev` streams logs from all functions in your Serverless Framework Service. But you can target a specific function like this:
+
+```bash
+sls dev -f my-function
+```
+
+Please note, the `dev` command currently only supports Node.js and Python AWS Lambda runtimes. If you want to stream from AWS Cloudwatch instead, you can use the `tail` command: `serverless logs -f hello --tail`. Please note, this is much slower.
+
+## Developing Locally
+
+Many Serverless Framework users rely on local emulation to develop more quickly. Please note, emulating AWS Lambda and other cloud services is never accurate and the process can be complex. We recommend the following workflow to develop locally...
+
+Use the `invoke local` command to invoke your function locally:
+
+```bash
+sls invoke local -f my-api
+```
+
+You can also pass data to this local invocation via a variety of ways. Here's one of them:
+
+```bash
+serverless invoke local --function functionName --data '{"a":"bar"}'
+```
+
+More details on the `invoke local` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local)
+
+Serverless Framework also has a great plugin that allows you to run a server locally and emulate AWS API Gateway. This is the `serverless-offline` command.
+
+More details on the **serverless-offline** plugins command can be found [here](https://github.com/dherault/serverless-offline)
+
+## Monitoring & Observability
+
+Monitoring AWS Lambda and its other resources dependencies can be challenging (especially as your number of resources grow). This generally involves jumping around various services and products within AWS Cloudwatch.
+
+Fortunately, we've delivered a consolidated and elegant solution to monitoring AWS Lambda in [Serverless Console](https://console.serverless.com). You'll get a bunch of delightful features out of the box:
+
+- Start monitoring automatically, with no code instrumentation required.
+- Monitor everything via a consolidated Metrics view for all of your AWS Lambda functions across AWS accounts, regions and more.
+- Troubleshoot any invocation by querying rich tags that are automatically added by Serverless Console.
+- Understand issues via detailed Traces detailing what happened within your AWS Lambda invocation.
+- Capture Errors, Warnings and more.
+- Stream Logs and other telemetry instantly while you develop via the Dev Mode user interface.
+
+To set up Serverless Console automatically, run:
+
+```bash
+sls --console
+```
+
+Serverless Console is designed for developers, and it moves at their speed.
+
+## Remove Your Service
+
+If you want to delete your service, run `remove`. This will delete all the AWS resources created by your project and ensure that you don't incur any unexpected charges. It will also remove the service from Serverless Dashboard.
+
+```bash
+sls remove
+```
+
+More details on the `remove` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/remove).

@@ -22,7 +22,7 @@ serverless info
 
 ## Options
 
-- `--verbose` or `-v` Shows displays any Stack Output.
+- `--verbose` Shows displays any Stack Output.
 
 ## Provided lifecycle events
 

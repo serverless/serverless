@@ -39,7 +39,7 @@ describe('AWS - SQS Integration Test', function () {
   });
 
   describe('Basic Setup', () => {
-    it('should invoke on queue message(s)', () => {
+    it('should invoke on queue message(s)', async () => {
       const functionName = 'sqsBasic';
       const message = 'Hello from SQS!';
 

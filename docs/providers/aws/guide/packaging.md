@@ -1,7 +1,5 @@
 <!--
-title: Serverless Framework Guide - AWS Lambda Guide - Packaging
-menuText: Packaging
-menuOrder: 12
+title: Serverless Framework - Packaging
 description: How the Serverless Framework packages your AWS Lambda functions and other available options
 layout: Doc
 -->
@@ -12,7 +10,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS - Packaging
+# Packaging
 
 ## Package CLI Command
 
@@ -47,6 +45,7 @@ By default, serverless will exclude the following patterns:
 - .gitignore
 - .DS_Store
 - npm-debug.log
+- yarn-\*.log
 - .serverless/\*\*
 - .serverless_plugins/\*\*
 
@@ -109,12 +108,10 @@ package:
 functions:
   hello:
     handler: com.serverless.Handler
-  package:
-    artifact: hello.jar
-  events:
-    - http:
-        path: hello
-        method: get
+    package:
+      artifact: hello.jar
+    events:
+      - httpApi: 'GET /hello'
 ```
 
 #### Artifacts hosted on S3
@@ -143,8 +140,8 @@ package:
 functions:
   hello:
     handler: com.serverless.Handler
-  package:
-    artifact: s3://some-bucket/path/to/service-artifact.zip
+    package:
+      artifact: s3://some-bucket/path/to/service-artifact.zip
 ```
 
 ### Packaging functions separately

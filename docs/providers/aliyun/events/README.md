@@ -16,6 +16,6 @@ Welcome to the Serverless Alibaba Cloud Function Compute Events Glossary!
 
 Please select a section on the left to get started.
 
-If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](http://forum.serverless.com/)
+If you have questions, join the [Slack community](https://serverless.com/slack) or [post over on the forums](http://forum.serverless.com/)
 
 **Note:** Before continuing [Alibaba Cloud system credentials](../guide/credentials.md) are required for using the CLI.

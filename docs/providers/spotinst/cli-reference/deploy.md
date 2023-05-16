@@ -24,4 +24,4 @@ serverless deploy -v
 
 - `--config` or `-c` Name of your configuration file, if other than `serverless.yml|.yaml|.js|.json`.
 - `--package` or `-p` path to a pre-packaged directory and skip packaging step.
-- `--verbose` or `-v` Shows all stack events during deployment, and display any Stack Output.
+- `--verbose` Shows all stack events during deployment, and display any Stack Output.

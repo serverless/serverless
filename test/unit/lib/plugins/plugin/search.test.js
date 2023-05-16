@@ -2,17 +2,15 @@
 
 const chai = require('chai');
 const sinon = require('sinon');
-const BbPromise = require('bluebird');
 const PluginSearch = require('../../../../../lib/plugins/plugin/search');
-const Serverless = require('../../../../../lib/Serverless');
-const CLI = require('../../../../../lib/classes/CLI');
+const Serverless = require('../../../../../lib/serverless');
+const CLI = require('../../../../../lib/classes/cli');
 chai.use(require('chai-as-promised'));
 const expect = require('chai').expect;
 
 describe('PluginSearch', () => {
   let pluginSearch;
   let serverless;
-  let consoleLogStub;
 
   const plugins = [
     {
@@ -33,22 +31,17 @@ describe('PluginSearch', () => {
   ];
 
   beforeEach(() => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.cli = new CLI(serverless);
     const options = {};
     pluginSearch = new PluginSearch(serverless, options);
-    consoleLogStub = sinon.stub(serverless.cli, 'consoleLog').returns();
-  });
-
-  afterEach(() => {
-    serverless.cli.consoleLog.restore();
   });
 
   describe('#constructor()', () => {
     let searchStub;
 
     beforeEach(() => {
-      searchStub = sinon.stub(pluginSearch, 'search').returns(BbPromise.resolve());
+      searchStub = sinon.stub(pluginSearch, 'search').returns(Promise.resolve());
     });
 
     afterEach(() => {
@@ -74,7 +67,7 @@ describe('PluginSearch', () => {
       expect(pluginSearch.hooks['plugin:search:search']).to.not.equal(undefined);
     });
 
-    it('should run promise chain in order for "plugin:search:search" hook', () =>
+    it('should run promise chain in order for "plugin:search:search" hook', async () =>
       expect(pluginSearch.hooks['plugin:search:search']()).to.be.fulfilled.then(() => {
         expect(searchStub.calledOnce).to.equal(true);
       }));
@@ -85,8 +78,8 @@ describe('PluginSearch', () => {
     let displayStub;
 
     beforeEach(() => {
-      getPluginsStub = sinon.stub(pluginSearch, 'getPlugins').returns(BbPromise.resolve(plugins));
-      displayStub = sinon.stub(pluginSearch, 'display').returns(BbPromise.resolve());
+      getPluginsStub = sinon.stub(pluginSearch, 'getPlugins').returns(Promise.resolve(plugins));
+      displayStub = sinon.stub(pluginSearch, 'display').returns(Promise.resolve());
     });
 
     afterEach(() => {
@@ -94,11 +87,10 @@ describe('PluginSearch', () => {
       pluginSearch.display.restore();
     });
 
-    it('should return a list of plugins based on the search query', () => {
+    it('should return a list of plugins based on the search query', async () => {
       pluginSearch.options.query = 'serverless-plugin-1';
 
       return expect(pluginSearch.search()).to.be.fulfilled.then(() => {
-        expect(consoleLogStub.calledOnce).to.equal(true);
         expect(getPluginsStub.calledOnce).to.equal(true);
         expect(displayStub.calledOnce).to.equal(true);
       });

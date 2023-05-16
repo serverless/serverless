@@ -1,0 +1,16 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+functions:
+  foo:
+    handler: index.handler
+    events:
+      - cloudFront:
+          eventType: origin-request
+          origin: https://example.com

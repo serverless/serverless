@@ -5,7 +5,6 @@ const sinon = require('sinon');
 const proxyquire = require('proxyquire');
 const overrideCwd = require('process-utils/override-cwd');
 const configureInquirerStub = require('@serverless/test/configure-inquirer-stub');
-const overrideStdoutWrite = require('process-utils/override-stdout-write');
 const { StepHistory } = require('@serverless/utils/telemetry');
 const inquirer = require('@serverless/utils/inquirer');
 
@@ -21,7 +20,16 @@ const ServerlessSDKMock = class ServerlessSDK {
       get: async () => {
         return {
           awsAccountId: '377024778620',
-          supportedRuntimes: ['nodejs10.x', 'nodejs12.x', 'python2.7', 'python3.6', 'python3.7'],
+          supportedRuntimes: [
+            'nodejs12.x',
+            'nodejs14.x',
+            'nodejs16.x',
+            'nodejs18.x',
+            'python3.7',
+            'python3.8',
+            'python3.9',
+            'python3.10',
+          ],
           supportedRegions: [
             'us-east-1',
             'us-east-2',
@@ -55,9 +63,22 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
   });
 
   it('Should be ineffective, when not at service path', async () => {
-    const context = {};
+    const context = { options: {}, isDashboard: true };
     expect(await step.isApplicable(context)).to.be.false;
     expect(context.inapplicabilityReasonCode).to.equal('NOT_IN_SERVICE_DIRECTORY');
+  });
+
+  it('Should be ineffective, when not in dashboard context', async () => {
+    const context = {
+      serviceDir: process.cwd(),
+      configuration: {},
+      configurationFilename: 'serverless.yml',
+      options: {},
+      initial: {},
+      inquirer,
+    };
+    expect(await step.isApplicable(context)).to.equal(false);
+    expect(context.inapplicabilityReasonCode).to.equal('CONSOLE_CONTEXT');
   });
 
   it('Should be ineffective, when not at AWS service path', async () => {
@@ -66,6 +87,8 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configuration: {},
       configurationFilename: 'serverless.yml',
       options: {},
+      initial: {},
+      isDashboard: true,
       inquirer,
     };
     expect(await step.isApplicable(context)).to.equal(false);
@@ -78,6 +101,8 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configuration: { provider: { name: 'aws', runtime: 'java8' } },
       configurationFilename: 'serverless.yml',
       options: {},
+      initial: {},
+      isDashboard: true,
       inquirer,
     };
     expect(await step.isApplicable(context)).to.equal(false);
@@ -93,6 +118,8 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configuration,
       configurationFilename: 'serverless.yml',
       options: {},
+      initial: {},
+      isDashboard: true,
       inquirer,
     };
     expect(await overrideCwd(serviceDir, async () => await step.isApplicable(context))).to.equal(
@@ -106,7 +133,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       confirm: { shouldLoginOrRegister: true },
     });
     const loginStep = proxyquire('../../../../../lib/cli/interactive-setup/dashboard-login', {
-      '@serverless/dashboard-plugin/lib/login': loginStub,
+      '../../../lib/commands/login/dashboard': loginStub,
       '@serverless/platform-client': {
         ServerlessSDK: ServerlessSDKMock,
       },
@@ -116,23 +143,58 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configuration: { provider: { name: 'aws', runtime: 'nodejs12.x' } },
       configurationFilename: 'serverless.yml',
       options: {},
+      initial: {},
+      isDashboard: true,
       inquirer,
       stepHistory: new StepHistory(),
     };
-    let stdoutData = '';
-    await overrideStdoutWrite(
-      (data) => (stdoutData += data),
-      async () => {
-        await loginStep.run(context);
-      }
-    );
+    await loginStep.run(context);
     expect(loginStub.calledOnce).to.be.true;
     expect(context.stepHistory.valuesMap()).to.deep.equal(
       new Map([['shouldLoginOrRegister', true]])
     );
-    expect(stdoutData).to.include(
-      'Enable Serverless Dashboard to get enhanced monitoring, logs and secrets management: https://serverless.com/monitoring'
-    );
+  });
+
+  it('Should login and skip question when user providers `org` option', async () => {
+    const loginStep = proxyquire('../../../../../lib/cli/interactive-setup/dashboard-login', {
+      '../../../lib/commands/login/dashboard': loginStub,
+      '@serverless/platform-client': {
+        ServerlessSDK: ServerlessSDKMock,
+      },
+    });
+    const context = {
+      serviceDir: process.cwd(),
+      configuration: { provider: { name: 'aws', runtime: 'nodejs12.x' } },
+      configurationFilename: 'serverless.yml',
+      options: { org: 'someorg' },
+      initial: {},
+      isDashboard: true,
+      inquirer,
+      stepHistory: new StepHistory(),
+    };
+    await loginStep.run(context);
+    expect(loginStub.calledOnce).to.be.true;
+  });
+
+  it('Should login and skip question when `org` configured', async () => {
+    const loginStep = proxyquire('../../../../../lib/cli/interactive-setup/dashboard-login', {
+      '../../../lib/commands/login/dashboard': loginStub,
+      '@serverless/platform-client': {
+        ServerlessSDK: ServerlessSDKMock,
+      },
+    });
+    const context = {
+      serviceDir: process.cwd(),
+      configuration: { org: 'someorg', provider: { name: 'aws', runtime: 'nodejs12.x' } },
+      configurationFilename: 'serverless.yml',
+      options: {},
+      initial: {},
+      isDashboard: true,
+      inquirer,
+      stepHistory: new StepHistory(),
+    };
+    await loginStep.run(context);
+    expect(loginStub.calledOnce).to.be.true;
   });
 
   it('Should not login when user decides not to login/register', async () => {
@@ -140,7 +202,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       confirm: { shouldLoginOrRegister: false },
     });
     const loginStep = proxyquire('../../../../../lib/cli/interactive-setup/dashboard-login', {
-      '@serverless/dashboard-plugin/lib/login': loginStub,
+      '../../../lib/commands/login/dashboard': loginStub,
       '@serverless/platform-client': {
         ServerlessSDK: ServerlessSDKMock,
       },
@@ -150,22 +212,15 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
       configuration: { provider: { name: 'aws', runtime: 'nodejs12.x' } },
       configurationFilename: 'serverless.yml',
       options: {},
+      initial: {},
+      isDashboard: true,
       inquirer,
       stepHistory: new StepHistory(),
     };
-    let stdoutData = '';
-    await overrideStdoutWrite(
-      (data) => (stdoutData += data),
-      async () => {
-        await loginStep.run(context);
-      }
-    );
+    await loginStep.run(context);
     expect(loginStub.called).to.be.false;
     expect(context.stepHistory.valuesMap()).to.deep.equal(
       new Map([['shouldLoginOrRegister', false]])
-    );
-    expect(stdoutData).to.include(
-      'Enable Serverless Dashboard to get enhanced monitoring, logs and secrets management: https://serverless.com/monitoring'
     );
   });
 });

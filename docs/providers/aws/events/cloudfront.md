@@ -35,7 +35,9 @@ Lambda@Edge has four options when the Lambda function is triggered
 
 **MEMORY AND TIMEOUT LIMITS:** According to [AWS Limits on Lambda@Edge](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html#limits-lambda-at-edge) the limits for viewer-request and viewer-response are 128MB memory and 5 seconds timeout and for origin-request and origin-response are 3008MB memory and 30 seconds timeout.
 
-**RUNTIME LIMITS:** According to [AWS Requirements on Lambda@Edge](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-requirements-limits.html) the runtimes supported by Lambda@Edge functions are: `Python 3.8`, `Python 3.7`, `Node.js 14.x`, `Node.js 12.x`, `Node.js 10.x`.
+**RUNTIME LIMITS:** According to [AWS Requirements on Lambda@Edge](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-requirements-limits.html) the runtimes supported by Lambda@Edge functions are: `Python 3.9`, `Python 3.8`, `Python 3.7`, `Node.js 16.x`, `Node.js 14.x`, `Node.js 12.x`, `Node.js 10.x`.
+
+**FUNCTION SIZE LIMITS:** According to [AWS Quotas on CloudFront](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html#limits-functions), Lambda@Edge functions mustn't exceed the maximum size of 10KB. An easy way of reducing the size of a function is through bundling and minification via e.g. the plugin [serverless-esbuild](https://www.serverless.com/plugins/serverless-esbuild).
 
 ## Simple event definition
 

@@ -1,11 +1,17 @@
 'use strict';
 
+const runServerless = require('../../../../utils/run-serverless');
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
 const AwsRollback = require('../../../../../lib/plugins/aws/rollback');
-const Serverless = require('../../../../../lib/Serverless');
-const expect = require('chai').expect;
+const Serverless = require('../../../../../lib/serverless');
+const chai = require('chai');
 const assert = require('chai').assert;
 const sinon = require('sinon');
+
+chai.use(require('chai-as-promised'));
+chai.use(require('sinon-chai'));
+
+const expect = chai.expect;
 
 describe('AwsRollback', () => {
   let awsRollback;
@@ -15,7 +21,7 @@ describe('AwsRollback', () => {
   let provider;
 
   const createInstance = (options) => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     provider = new AwsProvider(serverless, options);
     serverless.setProvider('aws', provider);
     serverless.service.service = 'rollback';
@@ -28,15 +34,13 @@ describe('AwsRollback', () => {
     s3Key = `${prefix}/${serverless.service.service}/${provider.getStage()}`;
   };
 
-  beforeEach(() => {
+  beforeEach(() =>
     createInstance({
       stage: 'dev',
       region: 'us-east-1',
       timestamp: 1476779096930,
-    });
-
-    return Promise.resolve();
-  });
+    })
+  );
 
   afterEach(() => {
     serverless.pluginManager.spawn.restore();
@@ -50,7 +54,7 @@ describe('AwsRollback', () => {
   });
 
   describe('hooks', () => {
-    it('should run "before:rollback:initialize" hook promise chain in order', () => {
+    it('should run "before:rollback:initialize" hook promise chain in order', async () => {
       const validateStub = sinon.stub(awsRollback, 'validate').resolves();
 
       return awsRollback.hooks['before:rollback:initialize']().then(() => {
@@ -58,7 +62,7 @@ describe('AwsRollback', () => {
       });
     });
 
-    it('should run "rollback:rollback" promise chain in order', () => {
+    it('should run "rollback:rollback" promise chain in order', async () => {
       const setBucketNameStub = sinon.stub(awsRollback, 'setBucketName').resolves();
       const setStackToUpdateStub = sinon.stub(awsRollback, 'setStackToUpdate').resolves();
       const updateStackStub = sinon.stub(awsRollback, 'updateStack').resolves();
@@ -70,7 +74,7 @@ describe('AwsRollback', () => {
       });
     });
 
-    it('should run "deploy:list" if timestamp is not specified', () => {
+    it('should run "deploy:list" if timestamp is not specified', async () => {
       const spawnDeployListStub = spawnStub.withArgs('deploy:list').resolves();
       awsRollback.options.timestamp = undefined;
 
@@ -81,7 +85,7 @@ describe('AwsRollback', () => {
   });
 
   describe('#setStackToUpdate()', () => {
-    it('should resolve when the timestamp argument is passed as a string', () => {
+    it('should resolve when the timestamp argument is passed as a string', async () => {
       createInstance({
         stage: 'dev',
         region: 'us-east-1',
@@ -112,7 +116,7 @@ describe('AwsRollback', () => {
       });
     });
 
-    it('should reject in case no deployments are available', () => {
+    it('should reject in case no deployments are available', async () => {
       const s3Response = {
         Contents: [],
       };
@@ -136,7 +140,7 @@ describe('AwsRollback', () => {
         });
     });
 
-    it('should reject in case this specific deployments is not available', () => {
+    it('should reject in case this specific deployments is not available', async () => {
       const s3Objects = [
         {
           // eslint-disable-next-line max-len
@@ -170,7 +174,7 @@ describe('AwsRollback', () => {
         });
     });
 
-    it('should resolve set the artifactDirectoryName and resolve', () => {
+    it('should resolve set the artifactDirectoryName and resolve', async () => {
       const s3Objects = [
         {
           // eslint-disable-next-line max-len
@@ -190,7 +194,6 @@ describe('AwsRollback', () => {
         expect(awsRollback.serverless.service.package.artifactDirectoryName).to.be.equal(
           'serverless/rollback/dev/1476779096930-2016-10-18T08:24:56.930Z'
         );
-        expect(listObjectsStub.calledOnce).to.be.equal(true);
         expect(
           listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
             Bucket: awsRollback.bucketName,
@@ -200,5 +203,41 @@ describe('AwsRollback', () => {
         awsRollback.provider.request.restore();
       });
     });
+  });
+});
+
+describe('test/unit/lib/plugins/aws/rollback.test.js', () => {
+  it('Should gently handle error of listing objects from S3 bucket', async () => {
+    await expect(
+      runServerless({
+        fixture: 'function',
+        command: 'rollback',
+        awsRequestStubMap: {
+          CloudFormation: {
+            describeStacks: {},
+            describeStackResource: {
+              StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
+            },
+          },
+          STS: {
+            getCallerIdentity: {
+              ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+              UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+              Account: '999999999999',
+              Arn: 'arn:aws:iam::999999999999:user/test',
+            },
+          },
+          S3: {
+            headObject: () => {},
+            headBucket: () => {},
+            listObjectsV2: () => {
+              const err = new Error('error!');
+              err.code = 'AWS_S3_LIST_OBJECTS_V2_ACCESS_DENIED';
+              throw err;
+            },
+          },
+        },
+      })
+    ).to.eventually.be.rejected.and.have.property('code', 'AWS_S3_LIST_OBJECTS_V2_ACCESS_DENIED');
   });
 });
