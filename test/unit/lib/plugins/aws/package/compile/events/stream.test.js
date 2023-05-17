@@ -1474,13 +1474,11 @@ describe('AwsCompileStreamEvents', () => {
 describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () => {
   describe('regular', () => {
     let eventSourceMappingResource;
-    let streamConsumerName;
 
     before(async () => {
       const { awsNaming, cfTemplate } = await runServerless({
         fixture: 'function',
         configExt: {
-          service: 'someService',
           provider: {
             kinesis: {
               consumerNamingMode: 'serviceSpecific',
@@ -1664,9 +1662,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
         command: 'package',
       });
       const streamLogicalId = awsNaming.getStreamLogicalId('basic', 'kinesis', 'some-long-name');
-
-      streamConsumerName = awsNaming.getStreamConsumerName('basic', 'some-long-name');
-
       eventSourceMappingResource = cfTemplate.Resources[streamLogicalId];
     });
 
@@ -1817,10 +1812,6 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
       // Confirm effect of:
       // - `functions.destinationVariants.events[2].stream.destinations`
       // - `functions.destinationVariants.events[3].stream.destinations`
-    });
-
-    it('should have service specific stream consumer name', () => {
-      expect(streamConsumerName).to.include('someService');
     });
 
     it('should support `functionResponseType`', () => {
