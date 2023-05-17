@@ -1474,11 +1474,19 @@ describe('AwsCompileStreamEvents', () => {
 describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () => {
   describe('regular', () => {
     let eventSourceMappingResource;
+    let streamConsumerResource;
+    let serviceName;
+    let stage;
 
     before(async () => {
-      const { awsNaming, cfTemplate } = await runServerless({
+      const { awsNaming, cfTemplate, serverless } = await runServerless({
         fixture: 'function',
         configExt: {
+          provider: {
+            kinesis: {
+              consumerNamingMode: 'serviceSpecific',
+            },
+          },
           functions: {
             basic: {
               events: [
@@ -1658,6 +1666,12 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
       });
       const streamLogicalId = awsNaming.getStreamLogicalId('basic', 'kinesis', 'some-long-name');
       eventSourceMappingResource = cfTemplate.Resources[streamLogicalId];
+
+      const consumerName = awsNaming.getStreamConsumerName('basic', 'some-long-name');
+      const streamConsumerLogicalId = awsNaming.getStreamConsumerLogicalId(consumerName);
+      streamConsumerResource = cfTemplate.Resources[streamConsumerLogicalId];
+      serviceName = serverless.service.service;
+      stage = serverless.service.provider.stage;
     });
 
     it.skip('TODO: should support ARN String for `arn`', () => {
@@ -1813,6 +1827,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
       expect(eventSourceMappingResource.Properties.FunctionResponseTypes).to.include.members([
         'ReportBatchItemFailures',
       ]);
+    });
+
+    it('should have service and stage specific stream consumer name', () => {
+      expect(streamConsumerResource.Properties.ConsumerName).to.include(serviceName);
+      expect(streamConsumerResource.Properties.ConsumerName).to.include(stage);
     });
 
     it('should support `tumblingWindowInSeconds`', () => {
