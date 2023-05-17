@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.31.0](https://github.com/serverless/serverless/compare/v3.30.1...v3.31.0) (2023-05-17)
+
+### Features
+
+- **AWS Schedule:** `AWS::Scheduler::Schedule` based triggers ([#11935](https://github.com/serverless/serverless/issues/11935)) ([34d922d](https://github.com/serverless/serverless/commit/34d922d3d8d33f6e17e697610fdef7f13003a2f3)) ([Tie](https://github.com/tie624))
+- **AWS Kinesis:** More reliable consumer naming mode ([#9706](https://github.com/serverless/serverless/issues/9706)) ([9d7b121](https://github.com/serverless/serverless/commit/9d7b121bd1b1ff0f3adcc14bf3dfecf27d589c0f)) ([Peter Reshetin](https://github.com/preshetin))
+- **AWS Lambda:**
+  - Recognize `java17` runtime ([#11938](https://github.com/serverless/serverless/issues/11938)) ([e1703c8](https://github.com/serverless/serverless/commit/e1703c8551eaa7051274cf83f302de20264f345e)) ([Baerten Dennis](https://github.com/debae))
+  - Recognize `python3.10` runtime ([#11922](https://github.com/serverless/serverless/issues/11922)) ([8341d7a](https://github.com/serverless/serverless/commit/8341d7ae736e9e79b83027e5b160307a3641e94a)) ([t3yamoto](https://github.com/t3yamoto))
+  - Recognize new .NET runtimes ([#11941](https://github.com/serverless/serverless/issues/11941)) ([314f32c](https://github.com/serverless/serverless/commit/314f32cd2bc249ddeae9e6fe2cd00c59be515796)) ([Graham Campbell](https://github.com/GrahamCampbell))
+- **AWS EventBridge:** Recognize `$or` in pattern property ([#11967](https://github.com/serverless/serverless/issues/11967)) ([d6de334](https://github.com/serverless/serverless/commit/d6de3346ce962392c053f7f6480f52dcdb918624)) ([Mitch Dempsey](https://github.com/webdestroya))
+
+### Bug Fixes
+
+- **AWS CloudWatch:** Ensure no circular resource references ([#11893](https://github.com/serverless/serverless/issues/11893)) ([75ce58b](https://github.com/serverless/serverless/commit/75ce58b194f19b4fc5a37a7a437733befefccf06)) ([Rob Nielsen](https://github.com/rnielsen))
+- **AWS Deploy:** Fix `provider.layers` support in `deploy function` cmd ([#11972](https://github.com/serverless/serverless/issues/11972)) ([ed15cb2](https://github.com/serverless/serverless/commit/ed15cb27aee68954c93d875da96274914943ad71)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **AWS Lambda:** Remove references to deprecated runtimes ([#11940](https://github.com/serverless/serverless/issues/11940)) ([fe6e0a6](https://github.com/serverless/serverless/commit/fe6e0a69ee167f52d036e8fde405184961a04a42)) ([Bartłomiej Szostek](https://github.com/bartelemi))
+
 ### [3.30.1](https://github.com/serverless/serverless/compare/v3.30.0...v3.30.1) (2023-04-06)
 
 ### Bug Fixes
