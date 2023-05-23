@@ -47,4 +47,16 @@ describe('#saveCompiledTemplate()', () => {
       );
     });
   });
+
+  it('should minify compiled template if --minify-template is set', async () => {
+    awsPackage.options['minify-template'] = true;
+
+    const filePath = path.join(awsPackage.serverless.serviceDir, '.serverless', 'compiled.json');
+
+    return awsPackage.saveCompiledTemplate().then(() => {
+      expect(getCompiledTemplateFileNameStub.calledOnce).to.equal(true);
+
+      expect(writeFileStub.calledWithExactly(filePath, '{"compiled":"content"}')).to.equal(true);
+    });
+  });
 });
