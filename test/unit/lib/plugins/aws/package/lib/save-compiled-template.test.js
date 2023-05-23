@@ -6,12 +6,13 @@ const path = require('path');
 const AwsPackage = require('../../../../../../../lib/plugins/aws/package/index');
 const Serverless = require('../../../../../../../lib/serverless');
 const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
+const fs = require('fs');
 
 describe('#saveCompiledTemplate()', () => {
   let serverless;
   let awsPackage;
   let getCompiledTemplateFileNameStub;
-  let writeFileSyncStub;
+  let writeFileStub;
 
   beforeEach(() => {
     const options = {};
@@ -21,18 +22,18 @@ describe('#saveCompiledTemplate()', () => {
     serverless.serviceDir = 'my-service';
     serverless.service = {
       provider: {
-        compiledCloudFormationTemplate: 'compiled content',
+        compiledCloudFormationTemplate: { compiled: 'content' },
       },
     };
     getCompiledTemplateFileNameStub = sinon
       .stub(awsPackage.provider.naming, 'getCompiledTemplateFileName')
       .returns('compiled.json');
-    writeFileSyncStub = sinon.stub(awsPackage.serverless.utils, 'writeFileSync').returns();
+    writeFileStub = sinon.stub(fs.promises, 'writeFile').returns();
   });
 
   afterEach(() => {
     awsPackage.provider.naming.getCompiledTemplateFileName.restore();
-    awsPackage.serverless.utils.writeFileSync.restore();
+    fs.promises.writeFile.restore();
   });
 
   it('should write the compiled template to disk', async () => {
@@ -40,7 +41,10 @@ describe('#saveCompiledTemplate()', () => {
 
     return awsPackage.saveCompiledTemplate().then(() => {
       expect(getCompiledTemplateFileNameStub.calledOnce).to.equal(true);
-      expect(writeFileSyncStub.calledWithExactly(filePath, 'compiled content')).to.equal(true);
+
+      expect(writeFileStub.calledWithExactly(filePath, '{\n  "compiled": "content"\n}')).to.equal(
+        true
+      );
     });
   });
 });

@@ -52,6 +52,7 @@ describe('test/unit/lib/cli/filter-supported-options.test.js', () => {
       'region': 'elo',
       'aws-profile': null,
       'help': null,
+      'minify-template': null,
       'version': null,
       'config': null,
       'stage': 'marko',
