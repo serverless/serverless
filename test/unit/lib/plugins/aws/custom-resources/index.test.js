@@ -347,6 +347,48 @@ describe('#addCustomResourceToService()', () => {
       Resources.CustomDashresourceDashexistingDashs3LambdaFunction.Properties.FunctionName.length
     ).to.be.below(65);
   });
+
+  it('should configure vpc configs for the custom resource lambda function if vpc is configured', async () => {
+    serverless.service.provider.vpc = {
+      securityGroupIds: ['sg-0a0a0a0a'],
+      subnetIds: ['subnet-01010101'],
+    };
+    // add the custom S3 resource
+    await addCustomResourceToService(provider, 's3', [
+      ...iamRoleStatements,
+      {
+        Effect: 'Allow',
+        Resource: 'arn:aws:s3:::some-bucket',
+        Action: ['s3:PutBucketNotification', 's3:GetBucketNotification'],
+      },
+    ]);
+
+    const { Resources } = serverless.service.provider.compiledCloudFormationTemplate;
+
+    // S3 Lambda Function
+    expect(Resources.CustomDashresourceDashexistingDashs3LambdaFunction).to.deep.equal({
+      Type: 'AWS::Lambda::Function',
+      Properties: {
+        Code: {
+          S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
+          S3Key: 'artifact-dir-name/custom-resources.zip',
+        },
+        FunctionName: `${serviceName}-dev-custom-resource-existing-s3`,
+        Handler: 's3/handler.handler',
+        MemorySize: 1024,
+        Role: {
+          'Fn::GetAtt': ['IamRoleCustomResourcesLambdaExecution', 'Arn'],
+        },
+        Runtime: 'nodejs16.x',
+        Timeout: 180,
+        VpcConfig: {
+          SecurityGroupIds: ['sg-0a0a0a0a'],
+          SubnetIds: ['subnet-01010101'],
+        },
+      },
+      DependsOn: ['IamRoleCustomResourcesLambdaExecution'],
+    });
+  });
 });
 
 describe('test/unit/lib/plugins/aws/customResources/index.test.js', () => {
