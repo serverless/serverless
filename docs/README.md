@@ -20,7 +20,7 @@ Here are the Serverless Framework's highlights:
 - **Empowering** - Build more and manage less with serverless architectures.
 - **Many Use-Cases** - Choose from tons of efficient serverless use-cases (APIs, Scheduled Tasks, Event Handlers, Streaming Data Pipelines, Web Sockets & more).
 - **Automated** - Deploys both code and infrastructure together, resulting in out-of-the-box serverless apps.
-- **Easy** - Enjoy simple syntax to safely deploy deploy AWS Lambda functions, event sources and more without being a cloud expert.
+- **Easy** - Enjoy simple syntax to safely deploy AWS Lambda functions, event sources and more without being a cloud expert.
 - **Multi-Language** - Supports Node.js, Python, Java, Go, C#, Ruby, Swift, Kotlin, PHP, Scala, & F#
 - **Full Lifecycle** - Manages the lifecycle of your serverless architecture (build, deploy, update, monitor, troubleshoot).
 - **Multi-Domains** - Group domains into Serverless Services for easy management of code, resources & processes, across large projects & teams.
