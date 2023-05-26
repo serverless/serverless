@@ -1363,7 +1363,11 @@ describe('AwsCompileStreamEvents', () => {
                 stream: 'arn:aws:kinesis:region:account:stream/foo',
               },
               {
-                stream: 'arn:aws:kinesis:region:account:stream/bar',
+                stream: {
+                  type: 'kinesis',
+                  arn: 'arn:aws:kinesis:region:account:stream/bar',
+                  consumer: false,
+                },
               },
               {
                 stream: {
