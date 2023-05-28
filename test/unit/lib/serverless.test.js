@@ -22,6 +22,7 @@ const programmaticFixturesEngine = require('../../fixtures/programmatic');
 const path = require('path');
 const yaml = require('js-yaml');
 const _ = require('lodash');
+const _get = require('../../../lib/utils/purekit/get');
 
 describe('Serverless', () => {
   let serverless;
@@ -205,16 +206,16 @@ describe('test/unit/lib/serverless.test.js', () => {
       });
       const configuration = yaml.load(String(serverlessProcess.stdoutBuffer));
 
-      const targetValue = _.get(configuration, pluginConfig.targetValuePath);
+      const targetValue = _get(configuration, pluginConfig.targetValuePath);
       expect(targetValue, 'Target value should not be undefined').to.not.be.undefined;
 
-      const afterInitValue = _.get(configuration, pluginConfig.afterInitValuePath);
+      const afterInitValue = _get(configuration, pluginConfig.afterInitValuePath);
       expect(afterInitValue, 'afterInitValue should be undefined').to.be.undefined;
 
-      const refValue = _.get(configuration, pluginConfig.refValuePath);
+      const refValue = _get(configuration, pluginConfig.refValuePath);
       expect(refValue).to.deep.equal(targetValue, 'refValue should equal targetValue');
 
-      const overwriteValue = _.get(configuration, pluginConfig.overwriteValuePath);
+      const overwriteValue = _get(configuration, pluginConfig.overwriteValuePath);
       expect(overwriteValue).to.deep.equal(targetValue, 'overwriteValue should equal targetValue');
     });
   });

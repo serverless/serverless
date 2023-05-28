@@ -12,6 +12,7 @@ const { log, progress, style } = require('@serverless/utils/log');
 const ServerlessError = require('../lib/serverless-error');
 const yamlAstParser = require('../lib/utils/yaml-ast-parser');
 const npmCommandDeferred = require('../lib/utils/npm-command-deferred');
+const _get = require('../lib/utils/purekit/get');
 const {
   getPluginInfo,
   getServerlessFilePath,
@@ -37,8 +38,7 @@ module.exports = async ({ configuration, serviceDir, configurationFilename, opti
   await installPlugin(context);
   // Check if plugin is already added
   const pluginAlreadyPresentInConfig =
-    (_.get(configuration, 'plugins.modules') &&
-      configuration.plugin.modules.includes(pluginName)) ||
+    (_get(configuration, 'plugins.modules') && configuration.plugin.modules.includes(pluginName)) ||
     (configuration.plugins && configuration.plugins.includes(pluginName));
   if (!pluginAlreadyPresentInConfig) {
     await addPluginToServerlessFile(context);
