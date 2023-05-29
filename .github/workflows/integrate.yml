@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Node.js and npm
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
           registry-url: https://registry.npmjs.org
@@ -37,7 +37,7 @@ jobs:
 
       - name: Retrieve dependencies from cache
         id: cacheNpm
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.npm
@@ -62,11 +62,11 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Retrieve dependencies from cache
         id: cacheNpm
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.npm
@@ -75,7 +75,7 @@ jobs:
           restore-keys: npm-v16-${{ runner.os }}-${{ github.ref }}-
 
       - name: Install Node.js and npm
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
 
@@ -92,11 +92,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Retrieve dependencies from cache
         id: cacheNpm
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.npm
@@ -105,7 +105,7 @@ jobs:
           restore-keys: npm-v14-${{ runner.os }}-${{ github.ref }}-
 
       - name: Install Node.js and npm
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 14.x
 
@@ -124,11 +124,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Retrieve dependencies from cache
         id: cacheNpm
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.npm
@@ -137,7 +137,7 @@ jobs:
           restore-keys: npm-v12-${{ runner.os }}-${{ github.ref }}-
 
       - name: Install Node.js and npm
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 12.x
 
@@ -158,10 +158,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Node.js and npm
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 4.x
 
@@ -180,7 +180,7 @@ jobs:
       SERVERLESS_BINARY_PATH: ./dist/serverless-linux
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           # Ensure to have complete history of commits pushed with given push operation
           # It's loose and imperfect assumption that no more than 30 commits will be pushed at once
@@ -190,7 +190,7 @@ jobs:
           token: ${{ secrets.USER_GITHUB_TOKEN }}
 
       - name: Retrieve dependencies from cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.npm
@@ -204,7 +204,7 @@ jobs:
           python-version: '3.8'
 
       - name: Install Node.js and npm
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
 

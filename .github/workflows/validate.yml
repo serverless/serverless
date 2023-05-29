@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           # For commitlint purpose ensure to have complete list of PR commits
           # It's loose and imperfect assumption that PR has no more than 30 commits
@@ -32,7 +32,7 @@ jobs:
 
       - name: Retrieve dependencies from cache
         id: cacheNpm
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.npm
@@ -43,7 +43,7 @@ jobs:
             npm-v16-${{ runner.os }}-refs/heads/main-
 
       - name: Install Node.js and npm
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
 
@@ -78,11 +78,11 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Retrieve dependencies from cache
         id: cacheNpm
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.npm
@@ -93,7 +93,7 @@ jobs:
             npm-v16-${{ runner.os }}-refs/heads/main-
 
       - name: Install Node.js and npm
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
 
@@ -110,11 +110,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Retrieve dependencies from cache
         id: cacheNpm
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.npm
@@ -125,7 +125,7 @@ jobs:
             npm-v14-${{ runner.os }}-refs/heads/main-
 
       - name: Install Node.js and npm
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 14.x
 
@@ -144,11 +144,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Retrieve dependencies from cache
         id: cacheNpm
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.npm
@@ -159,7 +159,7 @@ jobs:
             npm-v12-${{ runner.os }}-refs/heads/main-
 
       - name: Install Node.js and npm
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 12.x
 
@@ -180,10 +180,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Node.js and npm
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 4.x
 

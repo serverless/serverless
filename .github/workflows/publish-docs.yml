@@ -15,6 +15,6 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.DOCS_ASSETS_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.DOCS_ASSETS_AWS_SECRET_ACCESS_KEY }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       # Upload menu.json with a cache of 60 seconds (instead of the default 24h on the CloudFront distribution)
       - run: 'aws s3 cp docs/menu.json s3://assets.public.serverless/website/framework/docs/menu.json --cache-control max-age=60 --region us-east-2'
