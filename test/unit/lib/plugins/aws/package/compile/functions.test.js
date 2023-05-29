@@ -1713,13 +1713,14 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               handler: 'target.handler',
               url: true,
             },
-            fnUrlWithAuthAndCors: {
+            fnUrlWithAuthCorsAndInvokeMode: {
               handler: 'target.handler',
               url: {
                 authorizer: 'aws_iam',
                 cors: {
                   maxAge: 3600,
                 },
+                invokeMode: 'RESPONSE_STREAM',
               },
             },
             fnUrlNullifyDefaultCorsValue: {
@@ -1995,13 +1996,14 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       ).to.equal('FnUrlWithProvisionedProvConcLambdaAlias');
     });
 
-    it('should support `functions[].url` set to an object with authorizer and cors', () => {
+    it('should support `functions[].url` set to an object with values', () => {
       expect(
-        cfResources[naming.getLambdaFunctionUrlLogicalId('fnUrlWithAuthAndCors')].Properties
+        cfResources[naming.getLambdaFunctionUrlLogicalId('fnUrlWithAuthCorsAndInvokeMode')]
+          .Properties
       ).to.deep.equal({
         AuthType: 'AWS_IAM',
         TargetFunctionArn: {
-          'Fn::GetAtt': [naming.getLambdaLogicalId('fnUrlWithAuthAndCors'), 'Arn'],
+          'Fn::GetAtt': [naming.getLambdaLogicalId('fnUrlWithAuthCorsAndInvokeMode'), 'Arn'],
         },
         Cors: {
           AllowMethods: ['*'],
@@ -2018,12 +2020,13 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           AllowCredentials: undefined,
           ExposeHeaders: undefined,
         },
+        InvokeMode: 'RESPONSE_STREAM',
       });
       expect(
-        cfOutputs[naming.getLambdaFunctionUrlLogicalId('fnUrlWithAuthAndCors')].Value
+        cfOutputs[naming.getLambdaFunctionUrlLogicalId('fnUrlWithAuthCorsAndInvokeMode')].Value
       ).to.deep.equal({
         'Fn::GetAtt': [
-          naming.getLambdaFunctionUrlOutputLogicalId('fnUrlWithAuthAndCors'),
+          naming.getLambdaFunctionUrlOutputLogicalId('fnUrlWithAuthCorsAndInvokeMode'),
           'FunctionUrl',
         ],
       });

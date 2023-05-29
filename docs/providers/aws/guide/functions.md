@@ -215,7 +215,9 @@ functions:
     url: true
 ```
 
-Alternatively, you can configure it as an object with the `authorizer` and/or `cors` properties. The `authorizer` property can be set to `aws_iam` to enable AWS IAM authorization on your function URL.
+Alternatively, you can configure it as an object, and provide values for `authorizer`, `cors` and `invokeMode` options.
+
+The `authorizer` property can be set to `aws_iam` to enable AWS IAM authorization on your function URL.
 
 ```yaml
 functions:
@@ -285,6 +287,16 @@ functions:
     url:
       cors:
         allowedHeaders: null
+```
+
+The `invokeMode` property can be set to `RESPONSE_STREAM` to enable streaming response. If not specified, `BUFFERED` invoke mode is assumed.
+
+```yaml
+functions:
+  func:
+    handler: index.handler
+    url:
+      invokeMode: RESPONSE_STREAM
 ```
 
 ## Referencing container image as a target
