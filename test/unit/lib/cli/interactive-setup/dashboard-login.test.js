@@ -21,7 +21,6 @@ const ServerlessSDKMock = class ServerlessSDK {
         return {
           awsAccountId: '377024778620',
           supportedRuntimes: [
-            'nodejs12.x',
             'nodejs14.x',
             'nodejs16.x',
             'nodejs18.x',
@@ -140,7 +139,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
     });
     const context = {
       serviceDir: process.cwd(),
-      configuration: { provider: { name: 'aws', runtime: 'nodejs12.x' } },
+      configuration: { provider: { name: 'aws', runtime: 'nodejs16.x' } },
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
@@ -164,7 +163,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
     });
     const context = {
       serviceDir: process.cwd(),
-      configuration: { provider: { name: 'aws', runtime: 'nodejs12.x' } },
+      configuration: { provider: { name: 'aws', runtime: 'nodejs16.x' } },
       configurationFilename: 'serverless.yml',
       options: { org: 'someorg' },
       initial: {},
@@ -185,7 +184,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
     });
     const context = {
       serviceDir: process.cwd(),
-      configuration: { org: 'someorg', provider: { name: 'aws', runtime: 'nodejs12.x' } },
+      configuration: { org: 'someorg', provider: { name: 'aws', runtime: 'nodejs16.x' } },
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},
@@ -209,7 +208,7 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-login.test.js', function
     });
     const context = {
       serviceDir: process.cwd(),
-      configuration: { provider: { name: 'aws', runtime: 'nodejs12.x' } },
+      configuration: { provider: { name: 'aws', runtime: 'nodejs16.x' } },
       configurationFilename: 'serverless.yml',
       options: {},
       initial: {},

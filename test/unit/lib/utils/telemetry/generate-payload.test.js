@@ -318,7 +318,7 @@ describe('test/unit/lib/utils/telemetry/generate-payload.test.js', () => {
         variableSources: [],
         provider: {
           name: 'aws',
-          runtime: 'nodejs12.x',
+          runtime: 'nodejs14.x',
           stage: 'dev',
           region: 'us-east-1',
         },

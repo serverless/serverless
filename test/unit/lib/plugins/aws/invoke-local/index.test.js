@@ -421,7 +421,7 @@ describe('AwsInvokeLocal', () => {
         it(`should call invokeLocalNodeJs for any node.js runtime version for ${item.path}`, async () => {
           awsInvokeLocal.options.functionObj.handler = item.path;
 
-          awsInvokeLocal.options.functionObj.runtime = 'nodejs12.x';
+          awsInvokeLocal.options.functionObj.runtime = 'nodejs16.x';
           await awsInvokeLocal.invokeLocal();
           expect(invokeLocalNodeJsStub.calledOnce).to.be.equal(true);
           expect(
@@ -486,8 +486,8 @@ describe('AwsInvokeLocal', () => {
       expect(invokeLocalDockerStub.calledWithExactly()).to.be.equal(true);
     });
 
-    it('should call invokeLocalDocker if using --docker option with nodejs12.x', async () => {
-      awsInvokeLocal.options.functionObj.runtime = 'nodejs12.x';
+    it('should call invokeLocalDocker if using --docker option with nodejs16.x', async () => {
+      awsInvokeLocal.options.functionObj.runtime = 'nodejs16.x';
       awsInvokeLocal.options.functionObj.handler = 'handler.foobar';
       awsInvokeLocal.options.docker = true;
       await awsInvokeLocal.invokeLocal();
@@ -629,7 +629,7 @@ describe('AwsInvokeLocal', () => {
           handler: 'handler.hello',
           name: 'hello',
           timeout: 4,
-          runtime: 'nodejs12.x',
+          runtime: 'nodejs16.x',
           environment: {
             functionVar: 'functionValue',
           },
@@ -657,7 +657,7 @@ describe('AwsInvokeLocal', () => {
       expect(spawnExtStub.getCall(0).args).to.deep.equal(['docker', ['version']]);
       expect(spawnExtStub.getCall(1).args).to.deep.equal([
         'docker',
-        ['images', '-q', 'lambci/lambda:nodejs12.x'],
+        ['images', '-q', 'lambci/lambda:nodejs16.x'],
       ]);
       expect(spawnExtStub.getCall(3).args).to.deep.equal([
         'docker',
@@ -688,7 +688,7 @@ describe('AwsInvokeLocal', () => {
           'commandLineEnvVar=commandLineEnvVarValue',
           '-p',
           '9292:9292',
-          'sls-docker-nodejs12.x',
+          'sls-docker-nodejs16.x',
           'handler.hello',
           '{}',
         ],

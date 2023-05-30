@@ -121,7 +121,7 @@ describe('test/unit/lib/cli/interactive-setup/console-login.test.js', function (
     });
     const context = {
       serviceDir: process.cwd(),
-      configuration: { provider: { name: 'aws', runtime: 'nodejs12.x' } },
+      configuration: { provider: { name: 'aws', runtime: 'nodejs16.x' } },
       configurationFilename: 'serverless.yml',
       options: { console: true },
       initial: {},
