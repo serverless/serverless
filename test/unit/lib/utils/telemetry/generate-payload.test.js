@@ -21,7 +21,7 @@ const getGeneratePayload = () =>
     '@serverless/utils/get-notifications-mode': () => 'on',
   });
 
-describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
+describe('test/unit/lib/utils/telemetry/generate-payload.test.js', () => {
   let isTTYCache;
   let originalModulesCache;
   before(() => {
