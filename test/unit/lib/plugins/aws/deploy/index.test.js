@@ -1225,7 +1225,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json',
       })
       .returns({
-        Metadata: { filesha256: 'ehiUQMDbrQnzl3h86rfG0T6nICXzNTiQ0xXZSuIw98s=' },
+        Metadata: { filesha256: 'sazQTKx8BgZJIMV2cJhXcOT68Q8KaP9mHdI9C2dST40=' },
       });
     s3HeadObjectStub
       .withArgs({
@@ -1233,7 +1233,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/serverless-state.json',
       })
       .returns({
-        Metadata: { filesha256: 'JZ0oWM9ZWnYOxa3CRNeBRE5HAg+Q9RSwdxcKbik33d8=' },
+        Metadata: { filesha256: 'fSU2tLfTe72BW+k8hJvm6VkzHtssCtrTG+uqGGg4YzI=' },
       });
 
     s3HeadObjectStub

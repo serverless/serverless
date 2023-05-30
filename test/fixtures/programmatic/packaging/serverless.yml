@@ -6,7 +6,7 @@ disabledDeprecations: LOAD_VARIABLES_FROM_ENV_FILES
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs16.x
 
 functions:
   fnService:

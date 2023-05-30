@@ -1139,7 +1139,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
                 sharedEnvVar: 'valueFromFunction',
               },
               memorySize: 2048,
-              runtime: 'nodejs12.x',
+              runtime: 'nodejs16.x',
               runtimeManagement: 'onFunctionUpdate',
               versionFunction: true,
             },
@@ -1743,7 +1743,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               ExternalLambdaLayer: {
                 Type: 'AWS::Lambda::LayerVersion',
                 Properties: {
-                  CompatibleRuntimes: ['nodejs12.x'],
+                  CompatibleRuntimes: ['nodejs16.x'],
                   Content: {
                     S3Bucket: 'bucket',
                     S3Key: 'key',
