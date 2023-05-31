@@ -32,6 +32,7 @@ let serviceDir = null;
 let configuration = null;
 let serverless;
 let isConsoleAuthenticated = false;
+let isDockerInstalled;
 const commandUsage = {};
 const variableSourcesInConfig = new Set();
 
@@ -81,6 +82,7 @@ const finalize = async ({ error, shouldBeSync, telemetryData, shouldSendTelemetr
       commandUsage,
       variableSources: variableSourcesInConfig,
       isConsoleAuthenticated,
+      isDockerInstalled,
     }),
     ...telemetryData,
   });
@@ -814,6 +816,14 @@ processSpanPromise = (async () => {
           serverless = interactiveContext.serverless;
         }
       } else {
+        if (commands.join(' ') === 'deploy') {
+          const spawn = require('child-process-ext/spawn');
+          spawn('docker', ['--version']).then(
+            () => (isDockerInstalled = true),
+            () => (isDockerInstalled = false)
+          );
+        }
+
         processLog.debug('run Serverless instance');
         // Run command
         await serverless.run();
