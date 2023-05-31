@@ -150,7 +150,6 @@ module.exports.createCustomer = async (event) => {
 You may have noticed we include an npm module to help us talk to AWS, so lets make sure we install this required npm module as a part of our service with the following command:
 
 ```bash
-npm init
 npm install aws-sdk
 ```
 
