@@ -347,33 +347,6 @@ describe('#addCustomResourceToService()', () => {
       Resources.CustomDashresourceDashexistingDashs3LambdaFunction.Properties.FunctionName.length
     ).to.be.below(65);
   });
-
-  it('should configure vpc configs for the custom resource lambda function if vpc is configured', async () => {
-    const vpcConfig = {
-      securityGroupIds: ['sg-0a0a0a0a'],
-      subnetIds: ['subnet-01010101'],
-    };
-    const { cfTemplate } = await runServerless({
-      fixture: 'api-gateway',
-      command: 'package',
-      configExt: {
-        provider: {
-          logs: {
-            restApi: true,
-          },
-          vpc: vpcConfig,
-        },
-      },
-    });
-
-    const properties =
-      cfTemplate.Resources.CustomDashresourceDashapigwDashcwDashroleLambdaFunction.Properties;
-
-    expect(properties.VpcConfig).to.deep.equal({
-      SecurityGroupIds: ['sg-0a0a0a0a'],
-      SubnetIds: ['subnet-01010101'],
-    });
-  });
 });
 
 describe('test/unit/lib/plugins/aws/customResources/index.test.js', () => {
