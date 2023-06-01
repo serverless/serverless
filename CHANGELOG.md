@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.32.1](https://github.com/serverless/serverless/compare/v3.32.0...v3.32.1) (2023-06-01)
+
+### Bug Fixes
+
+- **AWS Deploy:** Revert broken `vpc` configuration on custom resources ([#12001](https://github.com/serverless/serverless/issues/12001)) ([d0e3056](https://github.com/serverless/serverless/commit/d0e3056b77ba295adb87ceeca9a49a26b315f083)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [3.32.0](https://github.com/serverless/serverless/compare/v3.31.0...v3.32.0) (2023-05-31)
 
 ### Features
