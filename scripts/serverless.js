@@ -32,7 +32,7 @@ let serviceDir = null;
 let configuration = null;
 let serverless;
 let isConsoleAuthenticated = false;
-let isDockerInstalled;
+let dockerVersion;
 const commandUsage = {};
 const variableSourcesInConfig = new Set();
 
@@ -82,7 +82,7 @@ const finalize = async ({ error, shouldBeSync, telemetryData, shouldSendTelemetr
       commandUsage,
       variableSources: variableSourcesInConfig,
       isConsoleAuthenticated,
-      isDockerInstalled,
+      dockerVersion,
     }),
     ...telemetryData,
   });
@@ -819,8 +819,13 @@ processSpanPromise = (async () => {
         if (commands.join(' ') === 'deploy') {
           const spawn = require('child-process-ext/spawn');
           spawn('docker', ['--version']).then(
-            () => (isDockerInstalled = true),
-            () => (isDockerInstalled = false)
+            ({ stdoutBuffer }) => {
+              dockerVersion = null;
+              const matcher = String(stdoutBuffer).match(/(?<version>\d+\.\d+\.\d+),/);
+              if (!matcher) return;
+              dockerVersion = matcher.groups.version;
+            },
+            () => (dockerVersion = null)
           );
         }
 
