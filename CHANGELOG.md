@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.32.2](https://github.com/serverless/serverless/compare/v3.32.1...v3.32.2) (2023-06-02)
+
+### Maintenance Improvements
+
+- **Telemetry:** Report installed `docker` version ([39806d6](https://github.com/serverless/serverless/commit/39806d622fdc1d8dae7618394ffe12bbe702675d)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [3.32.1](https://github.com/serverless/serverless/compare/v3.32.0...v3.32.1) (2023-06-01)
 
 ### Bug Fixes
