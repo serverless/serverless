@@ -265,7 +265,7 @@ describe('mergeCustomProviderResources', () => {
       });
     });
 
-    it('should append for resources.extensions.*.DependsOn', () => {
+    it('should merge for resources.extensions.*.DependsOn when destination is a list and source is a list', () => {
       awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources = {
         SampleResource: {
           DependsOn: ['a'],
@@ -276,6 +276,72 @@ describe('mergeCustomProviderResources', () => {
         extensions: {
           SampleResource: {
             DependsOn: ['b'],
+          },
+        },
+      };
+
+      awsPackage.mergeCustomProviderResources();
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
+          .SampleResource.DependsOn
+      ).to.deep.equal(['a', 'b']);
+    });
+
+    it('should merge for resources.extensions.*.DependsOn when destination is a string and source is a string', () => {
+      awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources = {
+        SampleResource: {
+          DependsOn: 'a',
+        },
+      };
+
+      awsPackage.serverless.service.resources = {
+        extensions: {
+          SampleResource: {
+            DependsOn: 'b',
+          },
+        },
+      };
+
+      awsPackage.mergeCustomProviderResources();
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
+          .SampleResource.DependsOn
+      ).to.deep.equal(['a', 'b']);
+    });
+
+    it('should merge for resources.extensions.*.DependsOn when destination is a string and source is a list', () => {
+      awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources = {
+        SampleResource: {
+          DependsOn: 'a',
+        },
+      };
+
+      awsPackage.serverless.service.resources = {
+        extensions: {
+          SampleResource: {
+            DependsOn: ['b'],
+          },
+        },
+      };
+
+      awsPackage.mergeCustomProviderResources();
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
+          .SampleResource.DependsOn
+      ).to.deep.equal(['a', 'b']);
+    });
+
+    it('should merge for resources.extensions.*.DependsOn when destination is a list and source is a string', () => {
+      awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources = {
+        SampleResource: {
+          DependsOn: ['a'],
+        },
+      };
+
+      awsPackage.serverless.service.resources = {
+        extensions: {
+          SampleResource: {
+            DependsOn: 'b',
           },
         },
       };
