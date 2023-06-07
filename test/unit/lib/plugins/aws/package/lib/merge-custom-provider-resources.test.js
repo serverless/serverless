@@ -5,6 +5,7 @@ const expect = require('chai').expect;
 const AwsPackage = require('../../../../../../../lib/plugins/aws/package/index');
 const Serverless = require('../../../../../../../lib/serverless');
 const ServerlessError = require('../../../../../../../lib/serverless-error');
+const runServerless = require('../../../../../../utils/run-serverless');
 
 describe('mergeCustomProviderResources', () => {
   let serverless;
@@ -265,26 +266,53 @@ describe('mergeCustomProviderResources', () => {
       });
     });
 
-    it('should append for resources.extensions.*.DependsOn', () => {
-      awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources = {
-        SampleResource: {
-          DependsOn: ['a'],
-        },
-      };
-
-      awsPackage.serverless.service.resources = {
-        extensions: {
-          SampleResource: {
-            DependsOn: ['b'],
+    it('should merge for resources.extensions.*.DependsOn', async () => {
+      const { cfTemplate } = await runServerless({
+        config: {
+          service: 'extensions-depends-on',
+          provider: 'aws',
+          resources: {
+            Resources: {
+              ListList: {
+                Type: 'AWS::Type',
+                DependsOn: ['a'],
+              },
+              StringString: {
+                Type: 'AWS::Type',
+                DependsOn: 'b',
+              },
+              StringList: {
+                Type: 'AWS::Type',
+                DependsOn: 'c',
+              },
+              ListString: {
+                Type: 'AWS::Type',
+                DependsOn: ['d'],
+              },
+            },
+            extensions: {
+              ListList: {
+                DependsOn: ['e'],
+              },
+              StringString: {
+                DependsOn: 'f',
+              },
+              StringList: {
+                DependsOn: ['g'],
+              },
+              ListString: {
+                DependsOn: 'h',
+              },
+            },
           },
         },
-      };
+        command: 'package',
+      });
 
-      awsPackage.mergeCustomProviderResources();
-      expect(
-        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .SampleResource.DependsOn
-      ).to.deep.equal(['a', 'b']);
+      expect(cfTemplate.Resources.ListList.DependsOn).to.deep.equal(['a', 'e']);
+      expect(cfTemplate.Resources.StringString.DependsOn).to.deep.equal(['b', 'f']);
+      expect(cfTemplate.Resources.StringList.DependsOn).to.deep.equal(['c', 'g']);
+      expect(cfTemplate.Resources.ListString.DependsOn).to.deep.equal(['d', 'h']);
     });
 
     it('should throw error for unsupported resources.extensions.*.*', () => {
