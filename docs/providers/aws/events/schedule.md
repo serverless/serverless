@@ -90,3 +90,29 @@ functions:
             key1: value1
             key2: value2
 ```
+
+## Use AWS::Scheduler::Schedule instead of AWS::Event::Rule
+
+**Note**: `scheduler` does not accept the `inputPath` or `inputTransformer` options. If you need these, use the default `eventBus` option
+
+AWS has account-wide limits on the number of `AWS::Event::Rule` triggers per bus (300 events), and all Lambda schedules go into a single bus with no way to override it.
+This can lead to a situation where large projects hit the limit with no ability to schedule more events.
+
+However, `AWS::Scheduler::Schedule` has much higher limits (1,000,000 events), and is configured identically.
+`method` can be set in order to migrate to this trigger type seamlessly. It also allows you to specify a timezone to run your event based on local time.
+The default method is `eventBus`, which configures an `AWS::Event::Rule`.
+
+```yaml
+functions:
+  foo:
+    handler: foo.handler
+    events:
+      - schedule:
+          method: scheduler
+          rate:
+            - cron(0 0/4 ? * MON-FRI *)
+          timezone: America/New_York
+          input:
+            key1: value1
+            key2: value2
+```

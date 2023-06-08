@@ -85,7 +85,7 @@ You can see the name of the service, the provider configuration and the first fu
 service: new-project
 provider:
   name: kubeless
-  runtime: python2.7
+  runtime: python3.9
 
 plugins:
   - serverless-kubeless
@@ -151,7 +151,7 @@ service: users
 
 provider:
   name: kubeless
-  runtime: python2.7
+  runtime: python3.9
 …
 ```
 
@@ -166,7 +166,7 @@ service: users
 
 provider:
   name: kubeless
-  runtime: python2.7
+  runtime: python3.9
 
 …
 ```

@@ -11,19 +11,33 @@ layout: Doc
 
 # Serverless Framework Documentation
 
-Develop, deploy, troubleshoot and secure your serverless applications with radically less overhead and cost by using the Serverless Framework. The Serverless Framework consists of an open source CLI and a hosted dashboard. Together, they provide you with full serverless application lifecycle management.
+**Deliver software with radically less overhead.**
 
-**Are you new to serverless application development?**
+This is the guiding principle behind the Serverless Framework, which was developed following the release of AWS Lambda in 2014. The Serverless Framework pioneered serverless architecture on AWS, a transformative approach to building applications on cloud infrastructure that auto-scales, incurs no charges when idle, and typically demands minimal maintenance. Today, it continues to be the leading developer tool for deploying serverless architectures.
 
-Sign up for our [hosted dashboard](https://app.serverless.com) (it’s free) and we’ll help deploy your first serverless app in minutes.
+Here are the Serverless Framework's highlights:
 
-If you prefer to start on the CLI, use our [get started](https://serverless.com/framework/docs/getting-started/) guide.
+- **Empowering** - Build more and manage less with serverless architectures.
+- **Many Use-Cases** - Choose from tons of efficient serverless use-cases (APIs, Scheduled Tasks, Event Handlers, Streaming Data Pipelines, Web Sockets & more).
+- **Automated** - Deploys both code and infrastructure together, resulting in out-of-the-box serverless apps.
+- **Easy** - Enjoy simple syntax to safely deploy AWS Lambda functions, event sources and more without being a cloud expert.
+- **Multi-Language** - Supports Node.js, Python, Java, Go, C#, Ruby, Swift, Kotlin, PHP, Scala, & F#
+- **Full Lifecycle** - Manages the lifecycle of your serverless architecture (build, deploy, update, monitor, troubleshoot).
+- **Multi-Domains** - Group domains into Serverless Services for easy management of code, resources & processes, across large projects & teams.
+- **Multi-Environments** - Built-in support for multiple stages (e.g. development, staging, production).
+- **Guardrails** - Loaded with automation, optimization and best practices.
+- **Extensible** - Extend or modify the Framework and its operations via Plugins.
+- **Plugin Ecosystem** - Extend or modify the Framework and its operations via Plugins.
+- **Welcoming** - A passionate and welcoming community!
 
-**If you are an experienced user of the Serverless Framework**
+Get started via the Serverless Framework CLI using [this guide](https://serverless.com/framework/docs/getting-started/).
 
-Our [hosted dashboard](https://app.serverless.com/) allows you to import existing projects. Track performance, troubleshoot, configure CI/CD and deployment policies, and get end-to-end serverless application lifecycle management.
-[Get started](https://app.serverless.com) for free.
+Have questions? Join thousands of other users in our [Slack Channel](https://serverless.com/slack).
 
-Have questions? Visit our [Forum](https://forum.serverless.com/).
+After that, we recommend you...
 
-For inspiration, check out [example code](https://serverless.com/examples/), [guides](https://serverless.com/blog/category/guides-and-tutorials/) and [use cases](https://serverless.com/learn/use-cases/).
+- [Study Serverless Framework's core concepts](https://www.serverless.com/framework/docs/providers/aws/guide/intro)
+- [Get inspiration from these Serverless Framework templates](https://github.com/serverless/examples)
+- [Discover all of the events that can trigger AWS Lambda functions](https://www.serverless.com/framework/docs/providers/aws/guide/events)
+- [Bookmark Serverless Framework's `serverless.yml` guide](https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml)
+- [Search the plugins registry to extend Serverless Framework](https://www.serverless.com/plugins)

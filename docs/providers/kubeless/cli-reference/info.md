@@ -52,7 +52,7 @@ Metadata
   Timestamp:  2017-08-25T09:19:24Z
 Function Info
 Handler:  handler.hello
-Runtime:  python2.7
+Runtime:  python3.9
 Trigger:  HTTP
 Dependencies:
 Metadata:

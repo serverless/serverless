@@ -93,6 +93,36 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
               },
             ],
           },
+          fnSingleHeaderCondition: {
+            handler: 'index.handler',
+            events: [
+              {
+                alb: {
+                  ...validBaseEventConfig,
+                  priority: 8,
+                  conditions: { header: { name: 'dummyName', values: ['dummyValue'] } },
+                },
+              },
+            ],
+          },
+          fnMultiHeaderCondition: {
+            handler: 'index.handler',
+            events: [
+              {
+                alb: {
+                  ...validBaseEventConfig,
+                  priority: 9,
+                  conditions: {
+                    header: [
+                      { name: 'dummyName1', values: ['dummyValue1'] },
+                      { name: 'dummyName2', values: ['dummyValue2'] },
+                      { name: 'dummyName3', values: ['dummyMultiValue1', 'dummyMultiValue2'] },
+                    ],
+                  },
+                },
+              },
+            ],
+          },
         },
       },
     });
@@ -274,6 +304,47 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
       await expect(runServerlessAction())
         .to.eventually.be.rejectedWith(ServerlessError)
         .and.have.property('code', 'ALB_TARGET_GROUP_NAME_EXCLUSIVE');
+    });
+  });
+
+  describe('should set alb header conditions', () => {
+    it('should convert single header condition to array', () => {
+      const albListenerRuleLogicalId = naming.getAlbListenerRuleLogicalId(
+        'fnSingleHeaderCondition',
+        8
+      );
+      const conditions = cfResources[albListenerRuleLogicalId].Properties.Conditions;
+      expect(conditions).to.have.length(1);
+      const config = conditions[0].HttpHeaderConfig;
+      expect(config.HttpHeaderName).to.equal('dummyName');
+      expect(config.Values).to.have.length(1);
+      expect(config.Values[0]).to.equal('dummyValue');
+    });
+
+    it('should support multi header conditions', () => {
+      const albListenerRuleLogicalId = naming.getAlbListenerRuleLogicalId(
+        'fnMultiHeaderCondition',
+        9
+      );
+      const conditions = cfResources[albListenerRuleLogicalId].Properties.Conditions;
+      expect(conditions).to.have.length(3);
+      const [cond1, cond2, cond3] = conditions;
+
+      const config1 = cond1.HttpHeaderConfig;
+      expect(config1.HttpHeaderName).to.equal('dummyName1');
+      expect(config1.Values).to.have.length(1);
+      expect(config1.Values[0]).to.equal('dummyValue1');
+
+      const config2 = cond2.HttpHeaderConfig;
+      expect(config2.HttpHeaderName).to.equal('dummyName2');
+      expect(config2.Values).to.have.length(1);
+      expect(config2.Values[0]).to.equal('dummyValue2');
+
+      const config3 = cond3.HttpHeaderConfig;
+      expect(config3.HttpHeaderName).to.equal('dummyName3');
+      expect(config3.Values).to.have.length(2);
+      expect(config3.Values[0]).to.equal('dummyMultiValue1');
+      expect(config3.Values[1]).to.equal('dummyMultiValue2');
     });
   });
 });

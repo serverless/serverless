@@ -34,7 +34,7 @@ serverless invoke --function hello
 In your terminal window you should see the response
 
 ```bash
-'{"hello":"from Python2.7 function"}'
+'{"hello":"from Python3.9 function"}'
 ```
 
 Congrats you have deployed and ran your Hello World function!

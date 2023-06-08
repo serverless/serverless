@@ -1,6 +1,5 @@
 'use strict';
 
-const BbPromise = require('bluebird');
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 const fixtures = require('../../fixtures/programmatic');
@@ -33,17 +32,16 @@ describe('AWS - S3 Integration Test', function () {
     // create external S3 buckets
     // NOTE: deployment can only be done once the S3 buckets are created
     log.notice('Creating S3 buckets...');
-    return BbPromise.all([
+    await Promise.all([
       createBucket(bucketExistingSimpleSetup),
       createBucket(bucketExistingComplexSetup),
-    ]).then(() => {
-      return deployService(serviceDir);
-    });
+    ]);
+    return deployService(serviceDir);
   });
 
   after(async () => {
     await removeService(serviceDir);
-    return BbPromise.all([
+    return Promise.all([
       deleteBucket(bucketExistingSimpleSetup),
       deleteBucket(bucketExistingComplexSetup),
     ]);

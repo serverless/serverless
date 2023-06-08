@@ -65,7 +65,7 @@ These are the current available templates for Kubeless:
 serverless create --template kubeless-python --name my-special-service
 ```
 
-This example will generate scaffolding for a service with `kubeless` as a provider and `python2.7` as runtime. The scaffolding will be generated in the current working directory.
+This example will generate scaffolding for a service with `kubeless` as a provider and `python3.9` as runtime. The scaffolding will be generated in the current working directory.
 
 The provider which is used for deployment later on is Kubeless.
 
@@ -75,7 +75,7 @@ The provider which is used for deployment later on is Kubeless.
 serverless create --template kubeless-python --path my-new-service
 ```
 
-This example will generate scaffolding for a service with `kubeless` as a provider and `python2.7` as runtime. The scaffolding will be generated in the `my-new-service` directory. This directory will be created if not present. Otherwise Serverless will use the already present directory.
+This example will generate scaffolding for a service with `kubeless` as a provider and `python3.9` as runtime. The scaffolding will be generated in the `my-new-service` directory. This directory will be created if not present. Otherwise Serverless will use the already present directory.
 
 Additionally Serverless will rename the service according to the path you provide. In this example the service will be renamed to `my-new-service`.
 

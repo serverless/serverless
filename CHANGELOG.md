@@ -2,6 +2,83 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.32.2](https://github.com/serverless/serverless/compare/v3.32.1...v3.32.2) (2023-06-02)
+
+### Maintenance Improvements
+
+- **Telemetry:** Report installed `docker` version ([39806d6](https://github.com/serverless/serverless/commit/39806d622fdc1d8dae7618394ffe12bbe702675d)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### [3.32.1](https://github.com/serverless/serverless/compare/v3.32.0...v3.32.1) (2023-06-01)
+
+### Bug Fixes
+
+- **AWS Deploy:** Revert broken `vpc` configuration on custom resources ([#12001](https://github.com/serverless/serverless/issues/12001)) ([d0e3056](https://github.com/serverless/serverless/commit/d0e3056b77ba295adb87ceeca9a49a26b315f083)) ([Mariusz Nowak](https://github.com/medikoo))
+
+## [3.32.0](https://github.com/serverless/serverless/compare/v3.31.0...v3.32.0) (2023-05-31)
+
+### Features
+
+- **AWS Lambda:**
+  - Response streaming for Lambda URL ([#11907](https://github.com/serverless/serverless/issues/11907)) ([3afb71e](https://github.com/serverless/serverless/commit/3afb71e39d144e8ed6b7634f50a3d8fe8e27daed)) ([Goran Rakic](https://github.com/grakic))
+  - Do not recognize dropped `nodejs12.x` runtime ([#11995](https://github.com/serverless/serverless/issues/11995)) ([032e43c](https://github.com/serverless/serverless/commit/032e43c77d935b398b162311fa8c37d79a62b20e)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Deploy:** `--minify-template` CLI param ([#11980](https://github.com/serverless/serverless/issues/11980)) ([4d64730](https://github.com/serverless/serverless/commit/4d64730130c44cdfbb872f8a16111df409135dc8)) ([Mieszko Kycermann](https://github.com/Kycermann))
+
+### Bug Fixes
+
+- **AWS ALB:** Allow multiple http-header conditions ([#11888](https://github.com/serverless/serverless/issues/11888)) ([72b27cb](https://github.com/serverless/serverless/commit/72b27cb4fe0e17bf980fcc441808f4db6939e545)) ([Inqnuam](https://github.com/Inqnuam))
+- **AWS CloudFront:** Accept CF intrinsic functions in `behavior` ([#11994](https://github.com/serverless/serverless/issues/11994)) ([41e90c3](https://github.com/serverless/serverless/commit/41e90c304306aabca1879ebba542328460bf2133)) ([antoniogomezm](https://github.com/AntonioGM))
+- **AWS Deploy:**
+  - Ensure `vpc` configuration on custom resources ([#11985](https://github.com/serverless/serverless/issues/11985)) ([f2d1e23](https://github.com/serverless/serverless/commit/f2d1e23f591a8cae2d41a93ca476b135dfcdac68)) ([Lokesh Jawale](https://github.com/Lokesh-Jawale))
+  - Fix default runtime resolution ([#11995](https://github.com/serverless/serverless/issues/11995)) ([943bf6d](https://github.com/serverless/serverless/commit/943bf6dfad3750dabd4754708a3649da9798984c)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Lambda:** Recognize only valid .NET runtimes ([#11960](https://github.com/serverless/serverless/issues/11960)) ([dd081bb](https://github.com/serverless/serverless/commit/dd081bbc4189e3b4757b8e704d048191e59a932f)) ([Stuart Lang](https://github.com/slang25))
+
+### Maintenance Improvements
+
+- **Telemetry:** Inspect `docker` availability ([#11999](https://github.com/serverless/serverless/issues/11999)) ([83670f9](https://github.com/serverless/serverless/commit/83670f98c54b71670d0f6d677b1f23b0fb5200ce)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Console:** Added warning about dev mode ([#11975](https://github.com/serverless/serverless/issues/11975)) ([e5cb8ac](https://github.com/serverless/serverless/commit/e5cb8acbf238d3a31ca6ae98283b6edc1734098e)) ([Dan Jarvis](https://github.com/Danwakeem))
+- **Packaging:** Warn on inffective `functions[].package` config ([#11974](https://github.com/serverless/serverless/issues/11974)) ([88099ad](https://github.com/serverless/serverless/commit/88099ad98c33ed97b1cf0471de03247c33928af0)) ([Lokesh Jawale](https://github.com/Lokesh-Jawale))
+
+## [3.31.0](https://github.com/serverless/serverless/compare/v3.30.1...v3.31.0) (2023-05-17)
+
+### Features
+
+- **AWS Schedule:** `AWS::Scheduler::Schedule` based triggers ([#11935](https://github.com/serverless/serverless/issues/11935)) ([34d922d](https://github.com/serverless/serverless/commit/34d922d3d8d33f6e17e697610fdef7f13003a2f3)) ([Tie](https://github.com/tie624))
+- **AWS Kinesis:** More reliable consumer naming mode ([#9706](https://github.com/serverless/serverless/issues/9706)) ([9d7b121](https://github.com/serverless/serverless/commit/9d7b121bd1b1ff0f3adcc14bf3dfecf27d589c0f)) ([Peter Reshetin](https://github.com/preshetin))
+- **AWS Lambda:**
+  - Recognize `java17` runtime ([#11938](https://github.com/serverless/serverless/issues/11938)) ([e1703c8](https://github.com/serverless/serverless/commit/e1703c8551eaa7051274cf83f302de20264f345e)) ([Baerten Dennis](https://github.com/debae))
+  - Recognize `python3.10` runtime ([#11922](https://github.com/serverless/serverless/issues/11922)) ([8341d7a](https://github.com/serverless/serverless/commit/8341d7ae736e9e79b83027e5b160307a3641e94a)) ([t3yamoto](https://github.com/t3yamoto))
+  - Recognize new .NET runtimes ([#11941](https://github.com/serverless/serverless/issues/11941)) ([314f32c](https://github.com/serverless/serverless/commit/314f32cd2bc249ddeae9e6fe2cd00c59be515796)) ([Graham Campbell](https://github.com/GrahamCampbell))
+- **AWS EventBridge:** Recognize `$or` in pattern property ([#11967](https://github.com/serverless/serverless/issues/11967)) ([d6de334](https://github.com/serverless/serverless/commit/d6de3346ce962392c053f7f6480f52dcdb918624)) ([Mitch Dempsey](https://github.com/webdestroya))
+
+### Bug Fixes
+
+- **AWS CloudWatch:** Ensure no circular resource references ([#11893](https://github.com/serverless/serverless/issues/11893)) ([75ce58b](https://github.com/serverless/serverless/commit/75ce58b194f19b4fc5a37a7a437733befefccf06)) ([Rob Nielsen](https://github.com/rnielsen))
+- **AWS Deploy:** Fix `provider.layers` support in `deploy function` cmd ([#11972](https://github.com/serverless/serverless/issues/11972)) ([ed15cb2](https://github.com/serverless/serverless/commit/ed15cb27aee68954c93d875da96274914943ad71)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **AWS Lambda:** Remove references to deprecated runtimes ([#11940](https://github.com/serverless/serverless/issues/11940)) ([fe6e0a6](https://github.com/serverless/serverless/commit/fe6e0a69ee167f52d036e8fde405184961a04a42)) ([Bartłomiej Szostek](https://github.com/bartelemi))
+
+### [3.30.1](https://github.com/serverless/serverless/compare/v3.30.0...v3.30.1) (2023-04-06)
+
+### Bug Fixes
+
+- Ensure to not login back accidentaly on logout operation ([#11900](https://github.com/serverless/serverless/issues/11900)) ([ec9eac4](https://github.com/serverless/serverless/commit/ec9eac4edc6ebeded0276eeb12c7f77a7a7f7eda)) ([Mariusz Nowak](https://github.com/medikoo))
+
+## [3.30.0](https://github.com/serverless/serverless/compare/v3.29.0...v3.30.0) (2023-04-05)
+
+### Features
+
+- Console Dev Mode onboarding via `dev` command ([#11896](https://github.com/serverless/serverless/issues/11896)) ([73d0dc6](https://github.com/serverless/serverless/commit/73d0dc6cf4e98d9c27f3fd6edb439d36e030c051))
+
+### Bug Fixes
+
+- **AWS Deploy:** Fix handling of inactive CloudFormation stack state ([0d850fc](https://github.com/serverless/serverless/commit/0d850fcca70d329a0d597d29cb985abd418bd955)), closes [#11863](https://github.com/serverless/serverless/issues/11863)
+
+### Maintenance Improvements
+
+- Remove `BbPromise.bind` usage ([#11875](https://github.com/serverless/serverless/issues/11875)) ([30dd50a](https://github.com/serverless/serverless/commit/30dd50a90cf5ae32ae87b85aae31c2d29cf464d5))
+
 ## [3.29.0](https://github.com/serverless/serverless/compare/v3.28.1...v3.29.0) (2023-03-24)
 
 ### Features

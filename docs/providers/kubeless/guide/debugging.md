@@ -44,7 +44,7 @@ And its corresponding Serverless YAML file:
 service: bikesearch
 provider:
   name: kubeless
-  runtime: python2.7
+  runtime: python3.9
 
 plugins:
   - serverless-kubeless
@@ -120,9 +120,9 @@ Hit Ctrl-C to quit.
 172.17.0.1 - - [25/Aug/2017:08:46:04 +0000] "GET /healthz HTTP/1.1" 200 2 "" "Go-http-client/1.1" 0/82
 172.17.0.1 - - [25/Aug/2017:08:46:07 +0000] "POST / HTTP/1.1" 200 459 "" "" 1/957186
 Traceback (most recent call last):
-  File "/usr/local/lib/python2.7/site-packages/bottle.py", line 862, in _handle
+  File "/usr/local/lib/python3.9/site-packages/bottle.py", line 862, in _handle
     return route.call(**args)
-  File "/usr/local/lib/python2.7/site-packages/bottle.py", line 1740, in wrapper
+  File "/usr/local/lib/python3.9/site-packages/bottle.py", line 1740, in wrapper
     rv = callback(*a, **ka)
   File "/kubeless.py", line 35, in handler
     return func(bottle.request)
@@ -139,9 +139,9 @@ KeyError: 'term'
 172.17.0.1 - - [25/Aug/2017:08:49:04 +0000] "GET /healthz HTTP/1.1" 200 2 "" "Go-http-client/1.1" 0/98
 172.17.0.1 - - [25/Aug/2017:08:49:23 +0000] "POST / HTTP/1.1" 500 746 "" "" 0/655
 Traceback (most recent call last):
-  File "/usr/local/lib/python2.7/site-packages/bottle.py", line 862, in _handle
+  File "/usr/local/lib/python3.9/site-packages/bottle.py", line 862, in _handle
     return route.call(**args)
-  File "/usr/local/lib/python2.7/site-packages/bottle.py", line 1740, in wrapper
+  File "/usr/local/lib/python3.9/site-packages/bottle.py", line 1740, in wrapper
     rv = callback(*a, **ka)
   File "/kubeless.py", line 35, in handler
     return func(bottle.request)

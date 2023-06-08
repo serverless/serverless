@@ -150,7 +150,7 @@ module.exports.createCustomer = async (event) => {
 You may have noticed we include an npm module to help us talk to AWS, so lets make sure we install this required npm module as a part of our service with the following command:
 
 ```bash
-npm install --save-dev aws-sdk
+npm install aws-sdk
 ```
 
 Note: If you would like this entire project as a reference to clone, you can find this on [GitHub](https://github.com/serverless/tutorial/tree/main/getting-started) but just remember to add your own org and app names to `serverless.yml` to connect to your Serverless Dashboard account before deploying.
@@ -227,7 +227,7 @@ getCustomers:
   handler: getCustomers.getCustomers
   events:
     - httpApi:
-        path: /
+        path: /customers
         method: get
 ```
 
@@ -273,7 +273,7 @@ You may have noticed that in our final version of the project, we removed the de
 After a `serverless deploy` we now have our brand new endpoint. And if we run a curl command against it we should get the item we inserted previously:
 
 ```bash
-curl –url [insert url here]
+curl –-url [insert url here]/customers
 ```
 
 ## Final thoughts

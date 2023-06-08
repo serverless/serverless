@@ -37,7 +37,7 @@ functions:
     handler: handler.hello # required, handler set in AWS Lambda
     name: ${sls:stage}-lambdaName # optional, Deployed Lambda name
     description: Description of what the lambda function does # optional, Description to publish to AWS
-    runtime: python2.7 # optional overwrite, default is provider runtime
+    runtime: python3.9 # optional overwrite, default is provider runtime
     runtimeManagement:
       mode: manual # syntax required for manual, mode property also supports 'auto' or 'onFunctionUpdate' (see provider.runtimeManagement)
       arn: <aws runtime arn> # required when mode is manual
@@ -215,7 +215,9 @@ functions:
     url: true
 ```
 
-Alternatively, you can configure it as an object with the `authorizer` and/or `cors` properties. The `authorizer` property can be set to `aws_iam` to enable AWS IAM authorization on your function URL.
+Alternatively, you can configure it as an object, and provide values for `authorizer`, `cors` and `invokeMode` options.
+
+The `authorizer` property can be set to `aws_iam` to enable AWS IAM authorization on your function URL.
 
 ```yaml
 functions:
@@ -285,6 +287,16 @@ functions:
     url:
       cors:
         allowedHeaders: null
+```
+
+The `invokeMode` property can be set to `RESPONSE_STREAM` to enable streaming response. If not specified, `BUFFERED` invoke mode is assumed.
+
+```yaml
+functions:
+  func:
+    handler: index.handler
+    url:
+      invokeMode: RESPONSE_STREAM
 ```
 
 ## Referencing container image as a target
@@ -443,7 +455,7 @@ functions:
     snapStart: true
 ```
 
-**Note:** Lambda SnapStart only supports the Java 11 runtime and does not support provisioned concurrency, the arm64 architecture, the Lambda Extensions API, Amazon Elastic File System (Amazon EFS), AWS X-Ray, or ephemeral storage greater than 512 MB.
+**Note:** Lambda SnapStart only supports the Java 11 and Java 17 runtimes and does not support provisioned concurrency, the arm64 architecture, the Lambda Extensions API, Amazon Elastic File System (Amazon EFS), AWS X-Ray, or ephemeral storage greater than 512 MB.
 
 ## VPC Configuration
 
