@@ -123,6 +123,20 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
               },
             ],
           },
+          fnIpCondition: {
+            handler: 'index.handler',
+            events: [
+              {
+                alb: {
+                  ...validBaseEventConfig,
+                  priority: 10,
+                  conditions: {
+                    ip: ['fe80:0000:0000:0000:0204:61ff:fe9d:f156/6', '192.168.0.1/0'],
+                  },
+                },
+              },
+            ],
+          },
         },
       },
     });
@@ -345,6 +359,20 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alb/index.test.js', (
       expect(config3.Values).to.have.length(2);
       expect(config3.Values[0]).to.equal('dummyMultiValue1');
       expect(config3.Values[1]).to.equal('dummyMultiValue2');
+    });
+  });
+
+  describe('should set alb ip conditions', () => {
+    it('should allow IP CIDR format', () => {
+      const albListenerRuleLogicalId = naming.getAlbListenerRuleLogicalId('fnIpCondition', 10);
+      const conditions = cfResources[albListenerRuleLogicalId].Properties.Conditions;
+
+      expect(conditions).to.have.length(1);
+      const config = conditions[0].SourceIpConfig;
+      expect(config.Values).to.deep.equal([
+        'fe80:0000:0000:0000:0204:61ff:fe9d:f156/6',
+        '192.168.0.1/0',
+      ]);
     });
   });
 });
