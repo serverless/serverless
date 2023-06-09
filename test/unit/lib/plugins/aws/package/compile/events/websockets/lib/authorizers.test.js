@@ -1,6 +1,7 @@
 'use strict';
 
 const expect = require('chai').expect;
+const assert = require('chai').assert;
 const AwsCompileWebsocketsEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/index');
 const Serverless = require('../../../../../../../../../../lib/serverless');
 const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
@@ -47,6 +48,112 @@ describe('#compileAuthorizers()', () => {
           },
         ],
       };
+    });
+
+    it('should create authorizer for externally managed authorizer function', () => {
+      awsCompileWebsocketsEvents.validated = {
+        events: [
+          {
+            functionName: 'First',
+            route: '$connect',
+            authorizer: {
+              name: 'external-authorizer',
+              managedExternally: true,
+              identitySource: ['route.request.header.Auth'],
+              uri: {
+                'Fn::Join': [
+                  '',
+                  [
+                    'arn:',
+                    { Ref: 'AWS::Partition' },
+                    ':apigateway:',
+                    { Ref: 'AWS::Region' },
+                    ':lambda:path/2015-03-31/functions/',
+                    {
+                      'Fn::GetAtt': ['ExternalDashauthorizerLambdaFunction', 'Arn'],
+                    },
+                    '/invocations',
+                  ],
+                ],
+              },
+            },
+          },
+        ],
+      };
+      awsCompileWebsocketsEvents.compileAuthorizers();
+      const resources =
+        awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources;
+
+      expect(resources).to.deep.equal({
+        ExternalDashauthorizerWebsocketsAuthorizer: {
+          DependsOn: [],
+          Type: 'AWS::ApiGatewayV2::Authorizer',
+          Properties: {
+            ApiId: {
+              Ref: 'WebsocketsApi',
+            },
+            Name: 'external-authorizer',
+            AuthorizerType: 'REQUEST',
+            AuthorizerUri: {
+              'Fn::Join': [
+                '',
+                [
+                  'arn:',
+                  {
+                    Ref: 'AWS::Partition',
+                  },
+                  ':apigateway:',
+                  {
+                    Ref: 'AWS::Region',
+                  },
+                  ':lambda:path/2015-03-31/functions/',
+                  {
+                    'Fn::GetAtt': ['ExternalDashauthorizerLambdaFunction', 'Arn'],
+                  },
+                  '/invocations',
+                ],
+              ],
+            },
+            IdentitySource: ['route.request.header.Auth'],
+          },
+        },
+      });
+    });
+
+    it.only('should fail when managedExternally is not set and authorizer is not defined', () => {
+      awsCompileWebsocketsEvents.validated = {
+        events: [
+          {
+            functionName: 'First',
+            route: '$connect',
+            authorizer: {
+              name: 'external-authorizer',
+              identitySource: ['route.request.header.Auth'],
+              uri: {
+                'Fn::Join': [
+                  '',
+                  [
+                    'arn:',
+                    { Ref: 'AWS::Partition' },
+                    ':apigateway:',
+                    { Ref: 'AWS::Region' },
+                    ':lambda:path/2015-03-31/functions/',
+                    {
+                      'Fn::GetAtt': ['ExternalDashauthorizerLambdaFunction', 'Arn'],
+                    },
+                    '/invocations',
+                  ],
+                ],
+              },
+            },
+          },
+        ],
+      };
+      assert.throws(
+        () => awsCompileWebsocketsEvents.compileAuthorizers(),
+        /Function "external-authorizer" doesn't exist in this Service/
+      );
     });
 
     it('should create an authorizer resource', () => {
