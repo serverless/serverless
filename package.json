@@ -236,7 +236,7 @@
     "prettier-check:updated": "pipe-git-updated --ext=css --ext=html --ext=js --ext=json --ext=md --ext=yaml --ext=yml --base=main -- prettier -c",
     "prettify": "prettier --write \"**/*.{css,html,js,json,md,yaml,yml}\"",
     "prettify:updated": "pipe-git-updated --ext=css --ext=html --ext=js --ext=json --ext=md --ext=yaml --ext=yml --base=main -- prettier --write",
-    "test": "mocha \"test/unit/lib/configuration/variables/sources/json-parse.test.js\"",
+    "test": "mocha \"test/unit/**/*.test.js\"",
     "test:ci": "npm run prettier-check:updated && npm run lint:updated && npm run test:isolated",
     "test:isolated": "mocha-isolated \"test/unit/**/*.test.js\""
   },
