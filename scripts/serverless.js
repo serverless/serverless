@@ -321,10 +321,11 @@ processSpanPromise = (async () => {
                 opt: require('../lib/configuration/variables/sources/opt'),
                 self: require('../lib/configuration/variables/sources/self'),
                 strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
+                jsonParse: require('../lib/configuration/variables/sources/json-parse'),
                 sls: require('../lib/configuration/variables/sources/instance-dependent/get-sls')(),
               },
               options: filterSupportedOptions(options, { commandSchema, providerName }),
-              fulfilledSources: new Set(['file', 'self', 'strToBool']),
+              fulfilledSources: new Set(['file', 'self', 'strToBool', 'jsonParse']),
               propertyPathsToResolve: new Set(['provider\0name', 'provider\0stage', 'useDotenv']),
               variableSourcesInConfig,
             };
@@ -667,10 +668,11 @@ processSpanPromise = (async () => {
               opt: require('../lib/configuration/variables/sources/opt'),
               self: require('../lib/configuration/variables/sources/self'),
               strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
+              jsonParse: require('../lib/configuration/variables/sources/json-parse'),
               sls: require('../lib/configuration/variables/sources/instance-dependent/get-sls')(),
             },
             options: filterSupportedOptions(options, { commandSchema, providerName }),
-            fulfilledSources: new Set(['env', 'file', 'self', 'strToBool']),
+            fulfilledSources: new Set(['env', 'file', 'self', 'strToBool', 'jsonParse']),
             propertyPathsToResolve:
               commands[0] === 'plugin'
                 ? new Set(['plugins', 'provider\0name', 'provider\0stage', 'useDotenv'])
