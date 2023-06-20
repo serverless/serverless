@@ -93,7 +93,7 @@ Of course, if you don’t want to set-up a provider on a dashboard account, you 
 
 ## What have we just done?
 
-After a successful deployment you should see, either in the dashboard or on the CLI, that you have an HTTP endpoint you can call. Also, if you open the service we just created in your favourite IDE or text editor and look at the contents of the `serverless.yml`, this is what controls pretty much everything in our service. You will notice a section where the functions you have are defined with events attached to them. Also take note that the code that executes when this HTTP endpoint is called is defined in the `handler.js` file in a function called `hello`. If you edit this file then run `serverless deploy` your changes will be pushed to your AWS account and when you next call that endpoint either in the browser or using curl, you should see your changes reflected:
+After a successful deployment you should see, either in the dashboard or on the CLI, that you have an HTTP endpoint you can call. Also, if you open the service we just created in your favourite IDE or text editor and look at the contents of the `serverless.yml`, this is what controls pretty much everything in our service. You will notice a section where the functions you have are defined with events attached to them. Also take note that the code that executes when this HTTP endpoint is called is defined in the `index.js` file. If you edit this file then run `serverless deploy` your changes will be pushed to your AWS account and when you next call that endpoint either in the browser or using curl, you should see your changes reflected:
 
 ```bash
 curl [your endpoint address]
