@@ -977,8 +977,10 @@ functions:
           batchSize: 100
           # Optional, must be in 0-300 range (seconds)
           maximumBatchingWindow: 30
-          # Optional, can be set to LATEST or TRIM_HORIZON
+          # Optional, can be set to LATEST, AT_TIMESTAMP or TRIM_HORIZON
           startingPosition: LATEST
+          # Mandatory when startingPosition is AT_TIMESTAMP, must be in Unix time seconds
+          startingPositionTimestamp: 10000123
           # (default: true)
           enabled: false
           # Optional, arn of the secret key for authenticating with the brokers in your MSK cluster.
