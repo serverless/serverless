@@ -11,7 +11,8 @@ describe('AwsCompileMSKEvents', () => {
   const arn = 'arn:aws:kafka:us-east-1:111111111111:cluster/ClusterName/a1a1a1a1a1a1a1a1a';
   const topic = 'TestingTopic';
   const enabled = false;
-  const startingPosition = 'LATEST';
+  const startingPosition = 'AT_TIMESTAMP';
+  const startingPositionTimestamp = 123;
   const batchSize = 5000;
   const maximumBatchingWindow = 10;
   const saslScram512 =
@@ -56,6 +57,7 @@ describe('AwsCompileMSKEvents', () => {
                     maximumBatchingWindow,
                     enabled,
                     startingPosition,
+                    startingPositionTimestamp,
                     saslScram512,
                     consumerGroupId,
                     filterPatterns,
@@ -121,6 +123,7 @@ describe('AwsCompileMSKEvents', () => {
         Enabled: enabled,
         EventSourceArn: arn,
         StartingPosition: startingPosition,
+        StartingPositionTimestamp: startingPositionTimestamp,
         SourceAccessConfigurations: sourceAccessConfigurations,
         Topics: [topic],
         FunctionName: {
@@ -143,6 +146,40 @@ describe('AwsCompileMSKEvents', () => {
             },
           ],
         },
+      });
+    });
+
+    describe('when startingPosition is AT_TIMESTAMP', () => {
+      it('if startingPosition is not provided, it should fail to compile EventSourceMapping resource properties', async () => {
+        await expect(
+          runServerless({
+            fixture: 'function',
+            configExt: {
+              functions: {
+                other: {
+                  events: [
+                    {
+                      msk: {
+                        topic,
+                        arn,
+                        batchSize,
+                        maximumBatchingWindow,
+                        enabled,
+                        startingPosition,
+                        saslScram512,
+                        consumerGroupId,
+                        filterPatterns,
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+            command: 'package',
+          })
+        ).to.be.rejected.and.eventually.contain({
+          code: 'FUNCTION_MSK_STARTING_POSITION_TIMESTAMP_INVALID',
+        });
       });
     });
   });
