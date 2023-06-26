@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.33.0](https://github.com/serverless/serverless/compare/v3.32.2...v3.33.0) (2023-06-26)
+
+### Features
+
+- **AWS Deploy:** Recognize `ruby3.2` runtime ([#12004](https://github.com/serverless/serverless/issues/12004)) ([0a0a4fc](https://github.com/serverless/serverless/commit/0a0a4fc8af4c88a2a2d85401b3fb89341b927f47)) ([Ryan Rickerts](https://github.com/theRocket))
+- **AWS MSK:** Support `AT_TIMESTAMP` starting position ([#12034](https://github.com/serverless/serverless/issues/12034)) ([483ea16](https://github.com/serverless/serverless/commit/483ea166fc6af2bed363a2a9ebf3ec8d06900618)) ([Ben](https://github.com/griffithsbs))
+
+### Bug Fixes
+
+- **AWS ALB:** Recognize CIDR format at `ip` configuration ([#11889](https://github.com/serverless/serverless/issues/11889)) ([04db0f0](https://github.com/serverless/serverless/commit/04db0f045c3d6e3772ef9f82ca4d51ac1aa5bbb8)) ([Inqnuam](https://github.com/Inqnuam))
+- **AWS Websocket:** Fix internal authorizers handling ([#11871](https://github.com/serverless/serverless/issues/11871)) ([a50773b](https://github.com/serverless/serverless/commit/a50773b60d0c528ad7734dfa4a84cd9dc109f7e1)) ([James Kyburz](https://github.com/JamesKyburz))
+- **Packaging:** Fix merging `DependsOn` from user resources ([#12009](https://github.com/serverless/serverless/issues/12009)) ([4582913](https://github.com/serverless/serverless/commit/4582913214e1c9d6f4324ff6a507dd09a2fd4e1b)) ([Kirill Khoroshilov](https://github.com/Hokid))
+
 ### [3.32.2](https://github.com/serverless/serverless/compare/v3.32.1...v3.32.2) (2023-06-02)
 
 ### Maintenance Improvements
