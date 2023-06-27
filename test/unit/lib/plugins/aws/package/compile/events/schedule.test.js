@@ -10,17 +10,16 @@ const METHOD_EVENT_BUS = 'eventBus';
 
 chaiUse(chaiAsPromised);
 
-async function run(events, providerRole, functionRole) {
+async function run(events, options = {}) {
   const params = {
     fixture: 'function',
     command: 'package',
     configExt: {
-      provider: providerRole ? { iam: { role: providerRole } } : undefined,
       functions: {
         test: {
           handler: 'index.handler',
           events,
-          role: functionRole,
+          role: options.functionRole,
         },
       },
     },
@@ -430,41 +429,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
       },
     ];
 
-    const { scheduleCfResources, iamResource } = await run(events, 'customRole');
+    const { scheduleCfResources } = await run(events, { functionRole: 'customRole' });
 
     expect(scheduleCfResources[0].Properties.Target.RoleArn).to.deep.equal({
-      'Fn::GetAtt': ['customRole', 'Arn'],
-    });
-
-    expect(iamResource).to.be.undefined;
-  });
-
-  it('should not pass the custom roleArn to method:schedule resources', async () => {
-    const events = [
-      {
-        schedule: {
-          rate: 'rate(15 minutes)',
-          method: METHOD_SCHEDULER,
-          name: 'scheduler-scheduled-event',
-          description: 'Scheduler Scheduled Event',
-          input: '{"key":"array"}',
-        },
-      },
-    ];
-
-    const { scheduleCfResources, iamResource, cfResources } = await run(
-      events,
-      undefined,
-      'customRole'
-    );
-
-    expect(scheduleCfResources[0].Properties.Target.RoleArn).to.deep.equal({
-      'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'],
-    });
-
-    expect(iamResource).to.exist;
-
-    expect(cfResources.TestLambdaFunction.Properties.Role).to.deep.equal({
       'Fn::GetAtt': ['customRole', 'Arn'],
     });
   });
