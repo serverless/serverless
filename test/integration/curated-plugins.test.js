@@ -4,7 +4,7 @@ const { expect } = require('chai');
 const path = require('path');
 const fsp = require('fs').promises;
 const spawn = require('child-process-ext/spawn');
-const got = require('got');
+const fetch = require('node-fetch');
 const AdmZip = require('adm-zip');
 const { deployService, removeService } = require('../utils/integration');
 const fixturesEngine = require('../fixtures/programmatic');
@@ -46,9 +46,9 @@ describe('test/integration/curated-plugins.test.js', function () {
       output += data;
       if (output.includes('Server ready:')) {
         slsProcess.stderr.off('data', self);
-        got('http://localhost:3000/dev/foo')
-          .json()
-          .then(async (responseBody) => {
+        fetch('http://localhost:3000/dev/foo')
+          .then(async (response) => {
+            const responseBody = await response.json();
             expect(responseBody.message).to.equal('Test');
           })
           .finally(() => slsProcess.kill('SIGINT'));
