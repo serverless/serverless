@@ -150,7 +150,7 @@ describe('AwsCompileMSKEvents', () => {
     });
 
     describe('when startingPosition is AT_TIMESTAMP', () => {
-      it('if startingPosition is not provided, it should fail to compile EventSourceMapping resource properties', async () => {
+      it('if startingPositionTimestamp is not provided, it should fail to compile EventSourceMapping resource properties', async () => {
         await expect(
           runServerless({
             fixture: 'function',
