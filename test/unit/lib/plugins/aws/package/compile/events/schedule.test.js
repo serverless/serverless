@@ -10,7 +10,7 @@ const METHOD_EVENT_BUS = 'eventBus';
 
 chaiUse(chaiAsPromised);
 
-async function run(events) {
+async function run(events, options = {}) {
   const params = {
     fixture: 'function',
     command: 'package',
@@ -19,6 +19,7 @@ async function run(events) {
         test: {
           handler: 'index.handler',
           events,
+          role: options.functionRole,
         },
       },
     },
@@ -413,5 +414,25 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
 
   it('should not create schedule resources when no scheduled event is given', async () => {
     expect((await run([])).scheduleCfResources).to.be.empty;
+  });
+
+  it('should pass the custom roleArn to method:schedule resources', async () => {
+    const events = [
+      {
+        schedule: {
+          rate: 'rate(15 minutes)',
+          method: METHOD_SCHEDULER,
+          name: 'scheduler-scheduled-event',
+          description: 'Scheduler Scheduled Event',
+          input: '{"key":"array"}',
+        },
+      },
+    ];
+
+    const { scheduleCfResources } = await run(events, { functionRole: 'customRole' });
+
+    expect(scheduleCfResources[0].Properties.Target.RoleArn).to.deep.equal({
+      'Fn::GetAtt': ['customRole', 'Arn'],
+    });
   });
 });
