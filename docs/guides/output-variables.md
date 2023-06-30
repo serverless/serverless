@@ -13,6 +13,8 @@ layout: Doc
 
 # Outputs
 
+The outputs feature referenced here relates to the outputs feature for the Serverless Framewrk Dashboard. CloudFormation also provides its own `Outputs` feature that is entirely seperate. Documentation for that is available here: https://www.serverless.com/framework/docs/providers/aws/guide/variables/#reference-cloudformation-outputs
+
 The Serverless Framework Dashboard helps you refactor large serverless applications by decoupling the shared services from the dependent services. The new outputs feature allows you to define output key/values in a `serverless.yml` and then reference those key/values in other `serverless.yml` files. The key/values are published to Serverless Framework Dashboard when you deploy, and they are loaded in other services when they are deployed.
 
 ## Define outputs for shared services
