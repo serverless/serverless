@@ -8,11 +8,11 @@
 [![Known Vulnerabilities](https://snyk.io/test/github/serverless/serverless/badge.svg)](https://snyk.io/test/github/serverless/serverless)
 [![license](https://img.shields.io/npm/l/serverless.svg)](https://www.npmjs.com/package/serverless)
 
-[Website](http://www.serverless.com) • [Docs](https://serverless.com/framework/docs/) • [Community Slack](https://serverless.com/slack) • [Forum](http://forum.serverless.com) • [Twitter](https://twitter.com/goserverless) • [Meetups](https://www.meetup.com/pro/serverless/) • [We're Hiring](https://serverless.com/company/jobs/)
+[Website](http://www.serverless.com) • [Docs](https://serverless.com/framework/docs/) • [Community Slack](https://serverless.com/slack) • [Forum](http://forum.serverless.com) • [Twitter](https://twitter.com/goserverless) • [Meetups](https://www.meetup.com/pro/serverless/)
 
 **The Serverless Framework** – Build applications on AWS Lambda and other next-gen cloud services, that auto-scale and only charge you when they run. This lowers the total cost of running and operating your apps, enabling you to build more and manage less.
 
-The Serverless Framework is a command-line tool that uses easy and approachable YAML syntax to deploy both your code and cloud infrastructure needed to make tons of serverless application use-cases. It's a multi-language framework that supports Node.js, Typescript, Python, Go, Java, and more. It's also completely extensible via over 1,000 plugins that can add more serverless use-cases and workflows to the Framework.
+The Serverless Framework is a command-line tool with an easy and approachable YAML syntax to deploy both your code and cloud infrastructure needed to make tons of serverless application use-cases. It's a multi-language framework that supports Node.js, Typescript, Python, Go, Java, and more. It's also completely extensible via over 1,000 plugins which add more serverless use-cases and workflows to the Framework.
 
 Actively maintained by [Serverless Inc](https://www.serverless.com).
 
@@ -27,9 +27,9 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 # <a name="features"></a>Features
 
-- **Empowering** - Build more and manage less with serverless architectures.
-- **Many Use-Cases** - Choose from tons of efficient serverless use-cases (APIs, Scheduled Tasks, Event Handlers, Streaming Data Pipelines, Web Sockets & more).
-- **Automated** - Deploys both code and infrastructure together, resulting in out-of-the-box serverless apps.
+- **Hyper-Productive** - Build more and manage less with serverless architectures.
+- **Multiple Use-Cases** - Choose from tons of efficient serverless use-cases (APIs, Scheduled Tasks, Event Handlers, Streaming Data Pipelines, Web Sockets & more).
+- **Infra & Code** - Deploys both code and infrastructure together, resulting in out-of-the-box serverless apps.
 - **Easy** - Enjoy simple syntax to safely deploy deploy AWS Lambda functions, event sources and more without being a cloud expert.
 - **Multi-Language** - Supports Node.js, Python, Java, Go, C#, Ruby, Swift, Kotlin, PHP, Scala, & F#
 - **Full Lifecycle** - Manages the lifecycle of your serverless architecture (build, deploy, update, monitor, troubleshoot).
@@ -117,31 +117,13 @@ serverless invoke -f hello --log
 
 More details on the `invoke` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke).
 
-If you want to open a session that streams logs from one or multiple AWS Lambda functions, use the new Serverless Framework `dev` command. Instead of relying on AWS Cloudwatch (which is slow) this leverages our new [Serverless Console](https://serverless.com/console) to stream logs and more in less than 1 second to your CLI. It's free, it supports streaming from multiple AWS Lambda functions simultaneously, and it also will stream inputs and outputs your AWS Lambda functions and their SDK calls.
+To stream your logs while you work, use the `sls logs` command in a separate terminal window:
 
 ```bash
-sls dev
+sls logs -f [Function name in serverless.yml] -t
 ```
 
-If you use the `--verbose` flag, the `dev` command will stream requests and responses of your AWS Lambda functions, as well as your AWS SDK calls, so you can inspect what's happening with AWS DynamoDB, AWS S3, and much more.
-
-```bash
-sls dev --verbose
-```
-
-By default, `dev` streams logs from all functions in your Serverless Framework Service. But you can target a specific function like this:
-
-```bash
-sls dev -f my-function
-```
-
-You can also target a specific Stage, like this (we do not recommend using Dev Mode in production or with a high volume of AWS Lambda invocations):
-
-```bash
-sls dev -s dev
-```
-
-Please note, the `dev` command currently only supports Node.js and Python AWS Lambda runtimes. If you want to stream from AWS Cloudwatch instead, you can use the `tail` command: `serverless logs -f hello --tail`. Please note, this is much slower.
+Target a specific function via the `-f` option and enable streaming via the `-t` option.
 
 ## Developing Locally
 
@@ -165,26 +147,13 @@ Serverless Framework also has a great plugin that allows you to run a server loc
 
 More details on the **serverless-offline** plugins command can be found [here](https://github.com/dherault/serverless-offline)
 
-## Monitoring & Observability
+## Monitoring, Secrets & Collaboration
 
-Monitoring AWS Lambda and its other resources dependencies can be challenging (especially as your number of resources grow). This generally involves jumping around various services and products within AWS Cloudwatch.
-
-Fortunately, we've delivered a consolidated and elegant solution to monitoring AWS Lambda in [Serverless Console](https://console.serverless.com). You'll get a bunch of delightful features out of the box:
-
-- Start monitoring automatically, with no code instrumentation required.
-- Monitor everything via a consolidated Metrics view for all of your AWS Lambda functions across AWS accounts, regions and more.
-- Troubleshoot any invocation by querying rich tags that are automatically added by Serverless Console.
-- Understand issues via detailed Traces detailing what happened within your AWS Lambda invocation.
-- Capture Errors, Warnings and more.
-- Stream Logs and other telemetry instantly while you develop via the Dev Mode user interface.
-
-To set up Serverless Console automatically, run:
+If you're looking for easy, out-of-the-box monitoring, secrets management and collaboration features, sign into the Serverless Framework Dashboard. It's free!
 
 ```bash
-sls --console
+sls login
 ```
-
-Serverless Console is designed for developers, and it moves at their speed.
 
 ## Remove your service
 
