@@ -1409,7 +1409,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
                 sharedEnvVar: 'valueFromFunction',
               },
               memorySize: 2048,
-              Runtime: 'nodejs16.x',
+              runtime: 'nodejs16.x',
               versionFunction: true,
             },
             fnFileSystemConfig: {
