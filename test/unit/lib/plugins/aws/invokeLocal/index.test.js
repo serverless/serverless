@@ -687,7 +687,7 @@ describe('AwsInvokeLocal', () => {
           'commandLineEnvVar=commandLineEnvVarValue',
           '-p',
           '9292:9292',
-          'sls-docker-nodejs12.x',
+          'sls-docker-nodejs16.x',
           'handler.hello',
           '{}',
         ],
