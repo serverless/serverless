@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.72.4](https://github.com/serverless/serverless/compare/v2.72.3...v2.72.4) (2023-07-10)
+
+### Bug Fixes
+
+- custom resource runtime upgrade ([#12055](https://github.com/serverless/serverless/issues/12055)) ([fb1d29c](https://github.com/serverless/serverless/commit/fb1d29ca243b88bf3206e1b05f5a69eccae29052))
+
 ### [2.72.3](https://github.com/serverless/serverless/compare/v2.72.2...v2.72.3) (2022-02-22)
 
 ### Maintenance Improvements
