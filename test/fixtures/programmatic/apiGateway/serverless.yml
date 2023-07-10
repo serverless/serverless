@@ -6,7 +6,7 @@ frameworkVersion: '*'
 provider:
   name: aws
   lambdaHashingVersion: 20201221
-  runtime: nodejs12.x
+  runtime: nodejs16.x
   apiGateway:
     shouldStartNameWithService: true
 
