@@ -269,7 +269,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         configValidationMode: 'error',
         provider: {
           name: 'aws',
-          runtime: 'nodejs12.x',
+          runtime: 'nodejs16.x',
           stage: 'dev',
           region: 'us-east-1',
         },
@@ -364,7 +364,7 @@ describe('test/unit/lib/utils/telemetry/generatePayload.test.js', () => {
         variableSources: [],
         provider: {
           name: 'aws',
-          runtime: 'nodejs12.x',
+          runtime: 'nodejs16.x',
           stage: 'dev',
           region: 'us-east-1',
         },
