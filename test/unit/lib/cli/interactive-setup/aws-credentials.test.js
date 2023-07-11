@@ -8,6 +8,8 @@ const { StepHistory } = require('@serverless/utils/telemetry');
 
 const { expect } = chai;
 
+const { join, resolve } = require('path');
+const { remove: rmDir } = require('fs-extra');
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
 
@@ -251,6 +253,17 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
   });
 
   describe('AWS config handling', () => {
+    let credentialsDirPath;
+    // eslint-disable-next-line no-unused-vars
+    let credentialsFilePath;
+
+    before(() => {
+      credentialsDirPath = resolve('.aws');
+      credentialsFilePath = join(credentialsDirPath, 'credentials');
+    });
+
+    afterEach(() => rmDir(credentialsDirPath));
+
     it('Should setup credentials for users not having an AWS account', async () => {
       configureInquirerStub(inquirer, {
         list: { credentialsSetupChoice: '_local_' },
