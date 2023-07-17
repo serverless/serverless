@@ -6,6 +6,15 @@ const _ = require('lodash');
 const SDK = require('../../../../../../lib/plugins/aws/provider');
 const Serverless = require('../../../../../../lib/serverless');
 
+function doWithCamelCase(sdk, fn) {
+  try {
+    sdk.naming.provider.camelCaseNormalization = true;
+    return fn();
+  } finally {
+    sdk.naming.provider.camelCaseNormalization = false;
+  }
+}
+
 describe('#naming()', () => {
   let options;
   let serverless;
@@ -67,6 +76,12 @@ describe('#naming()', () => {
 
     it('converts variable declarations in center to `PathvariableVardir`', () => {
       expect(sdk.naming.normalizePathPart('path${variable}Dir')).to.equal('PathvariableVardir');
+    });
+
+    it('converts `-` to camel case without separators', () => {
+      doWithCamelCase(sdk, () => {
+        expect(sdk.naming.normalizePathPart('a-two-part-path')).to.equal('ATwoPartPath');
+      });
     });
   });
 
@@ -190,8 +205,20 @@ describe('#naming()', () => {
       expect(sdk.naming.getNormalizedFunctionName('hello_world')).to.equal('HelloUnderscoreworld');
     });
 
+    it('should normalize the given functonName with underscore to camel case instead of text replacement', () => {
+      doWithCamelCase(sdk, () => {
+        expect(sdk.naming.getNormalizedFunctionName('hello_world')).to.equal('HelloWorld');
+      });
+    });
+
     it('should normalize the given functionName with a dash', () => {
       expect(sdk.naming.getNormalizedFunctionName('hello-world')).to.equal('HelloDashworld');
+    });
+
+    it('should normalize the given functonName with dash to camel case instead of text replacement', () => {
+      doWithCamelCase(sdk, () => {
+        expect(sdk.naming.getNormalizedFunctionName('hello-world')).to.equal('HelloWorld');
+      });
     });
   });
 
@@ -290,6 +317,20 @@ describe('#naming()', () => {
       expect(sdk.naming.getNormalizedWebsocketsRouteKey('foo_bar')).to.equal('fooUnderscorebar');
 
       expect(sdk.naming.getNormalizedWebsocketsRouteKey('foo.bar')).to.equal('fooPeriodbar');
+    });
+
+    it('should return a normalized version of the route key using camel case instead of text replacement', () => {
+      doWithCamelCase(sdk, () => {
+        expect(sdk.naming.getNormalizedWebsocketsRouteKey('$connect')).to.equal('Sconnect');
+
+        expect(sdk.naming.getNormalizedWebsocketsRouteKey('foo/bar')).to.equal('fooBar');
+
+        expect(sdk.naming.getNormalizedWebsocketsRouteKey('foo-bar')).to.equal('fooBar');
+
+        expect(sdk.naming.getNormalizedWebsocketsRouteKey('foo_bar')).to.equal('fooBar');
+
+        expect(sdk.naming.getNormalizedWebsocketsRouteKey('foo.bar')).to.equal('fooBar');
+      });
     });
 
     it('converts multiple `-` correctly', () => {
@@ -406,6 +447,14 @@ describe('#naming()', () => {
         'MyPathToADashvarVarDashresource'
       );
     });
+
+    it('should camel case each part of the resource path and remove non-alpha-numeric characters', () => {
+      doWithCamelCase(sdk, () => {
+        expect(sdk.naming.normalizePath('my/path/to/a-${var}-resource')).to.equal(
+          'MyPathToAvarVarResource'
+        );
+      });
+    });
   });
 
   describe('#getResourceLogicalId()', () => {
@@ -413,6 +462,14 @@ describe('#naming()', () => {
       expect(sdk.naming.getResourceLogicalId('my/path/to/a-${var}-resource')).to.equal(
         'ApiGatewayResourceMyPathToADashvarVarDashresource'
       );
+    });
+
+    it('should normalize the resource with camel case and add the standard suffix', () => {
+      doWithCamelCase(sdk, () => {
+        expect(sdk.naming.getResourceLogicalId('my/path/to/a-${var}-resource')).to.equal(
+          'ApiGatewayResourceMyPathToAvarVarResource'
+        );
+      });
     });
   });
 
@@ -873,6 +930,14 @@ describe('#naming()', () => {
         'CustomDashresourceDashexistingDashs3LambdaFunction'
       );
     });
+
+    it('should return the camel case logical id of the S3 custom resource handler function', () => {
+      doWithCamelCase(sdk, () => {
+        expect(sdk.naming.getCustomResourceS3HandlerFunctionLogicalId()).to.equal(
+          'CustomResourceExistingS3LambdaFunction'
+        );
+      });
+    });
   });
 
   describe('#getCustomResourceS3ResourceLogicalId()', () => {
@@ -898,6 +963,14 @@ describe('#naming()', () => {
         'CustomDashresourceDashexistingDashcupLambdaFunction'
       );
     });
+
+    it('should return the camel case logical id of the Cognito User Pool custom resource handler function', () => {
+      doWithCamelCase(sdk, () => {
+        expect(sdk.naming.getCustomResourceCognitoUserPoolHandlerFunctionLogicalId()).to.equal(
+          'CustomResourceExistingCupLambdaFunction'
+        );
+      });
+    });
   });
 
   describe('#getCustomResourceCognitoUserPoolResourceLogicalId()', () => {
@@ -906,6 +979,15 @@ describe('#naming()', () => {
       expect(sdk.naming.getCustomResourceCognitoUserPoolResourceLogicalId(functionName)).to.equal(
         'MyDashfunctionCustomCognitoUserPool1'
       );
+    });
+
+    it('should return the camel case logical id of the Cognito User Pool custom resource', () => {
+      doWithCamelCase(sdk, () => {
+        const functionName = 'my-function';
+        expect(sdk.naming.getCustomResourceCognitoUserPoolResourceLogicalId(functionName)).to.equal(
+          'MyFunctionCustomCognitoUserPool1'
+        );
+      });
     });
   });
 
@@ -923,6 +1005,14 @@ describe('#naming()', () => {
         'CustomDashresourceDasheventDashbridgeLambdaFunction'
       );
     });
+
+    it('should return the camel case logical id of the Event Bridge custom resource handler function', () => {
+      doWithCamelCase(sdk, () => {
+        expect(sdk.naming.getCustomResourceEventBridgeHandlerFunctionLogicalId()).to.equal(
+          'CustomResourceEventBridgeLambdaFunction'
+        );
+      });
+    });
   });
 
   describe('#getCustomResourceEventBridgeResourceLogicalId()', () => {
@@ -932,6 +1022,16 @@ describe('#naming()', () => {
       expect(
         sdk.naming.getCustomResourceEventBridgeResourceLogicalId(functionName, index)
       ).to.equal('MyDashfunctionCustomEventBridge1');
+    });
+
+    it('should return the camel case logical id of the Event Bridge custom resource', () => {
+      doWithCamelCase(sdk, () => {
+        const functionName = 'my-function';
+        const index = 1;
+        expect(
+          sdk.naming.getCustomResourceEventBridgeResourceLogicalId(functionName, index)
+        ).to.equal('MyFunctionCustomEventBridge1');
+      });
     });
   });
 
@@ -948,6 +1048,14 @@ describe('#naming()', () => {
       expect(
         sdk.naming.getCustomResourceApiGatewayAccountCloudWatchRoleHandlerFunctionLogicalId()
       ).to.equal('CustomDashresourceDashapigwDashcwDashroleLambdaFunction');
+    });
+
+    it('should return the camel case logical id of the APIGW Account CloudWatch role custom resource handler function', () => {
+      doWithCamelCase(sdk, () => {
+        expect(
+          sdk.naming.getCustomResourceApiGatewayAccountCloudWatchRoleHandlerFunctionLogicalId()
+        ).to.equal('CustomResourceApigwCwRoleLambdaFunction');
+      });
     });
   });
 
