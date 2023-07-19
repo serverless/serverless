@@ -14,225 +14,98 @@ layout: Doc
 
 The Serverless Framework needs access to your cloud provider account so that it can create and manage resources on your behalf.
 
-This guide is for the Amazon Web Services (AWS) provider, so we'll step through the process of setting up credentials for AWS and using them with Serverless.
+This guide is for the Amazon Web Services (AWS) provider, so we'll step through the process of setting up a connection to AWS for the Serverless Framework.
 
-## Sign up for an AWS account
+The Serverless Framework provides multiple methods to connect to AWS. However, the recommended configuration can be time consuming. Below we describe a quick way to get Serverless Framework connected to AWS securely. After that we provide the preferred configuration using multiple accounts to manage production and development deployments of your Serverless application.
 
-If you already have an AWS account, skip to the next step to [create an IAM User and Access Key](#create-an-iam-user-and-access-key)
+## Quick Connect
 
-To create an AWS account:
+If you want a quick way to get Serverless Framework connected to your AWS account, the easiest and simplest way is to use Serverless Dashboard and its Providers feature.
 
-1. Open https://aws.amazon.com/, and then choose Create an AWS Account.
-2. Follow the online instructions.
+### Serverless Provider
 
-- Part of the sign-up procedure involves receiving a phone call and entering a PIN using the phone keypad.
+If you are attempting to add an existing service to the Serverless Dashboard and want to find out more about adding a Provider, we recommend looking at the [Provider specific documentation](https://serverless.com/framework/docs/guides/providers) or skip to the next sections that discusses the recommended configuration of AWS accounts for production use.
 
-Note your AWS account ID, because you'll need it for the next task.
+If you are new to Serverless and adding credentials for your Serverless Framework service, please continue with the steps below:
 
-All AWS users get access to the Free Tier for [AWS Lambda](https://aws.amazon.com/lambda/pricing/). AWS Lambda is part of the non-expiring [AWS Free Tier](https://aws.amazon.com/free/#AWS_FREE_TIER). While in the AWS Free Tier, you can build an entire application on AWS Lambda, AWS API Gateway, and more, without getting charged for one year or longer, in some cases, as long as you don't exceed the resources in the free tier.
+1. Start by opening your terminal to an empty folder where we will install our first Serverless service.
+2. Run the command “serverless”.
+3. You will be prompted to choose a new template. If this is your first time, we recommend choosing the “AWS - Node.js - Starter”.
+4. When prompted for a name for this new service, you can choose your own name or just leave the default of “aws-node-project”.
+5. This will create a new folder with the same name as your new service and add some new files to it.
+6. You will then be prompted to login/register for Serverless Dashboard. Just hit enter to choose the default of Y.
+7. Your browser window should then open to the login and registration page of Serverless Dashboard. Go ahead and create your account here (Do not worry about creating an org with the right name for now. You can create a new org later to use with the right name).
+8. Once you are logged into the Dashboard, return the terminal.
+9. Here you should be prompted regarding AWS Credentials. We recommend choosing the “AWS Access Role” option.
+10. Once selected this will open your browser once again to the “Add Providers” screen with the “Simple” provider option selected. Click “Connect AWS Provider”.
+11. This will open a new browser tab to your AWS account and the CloudFormation service. Just accept the defaults and click “Create Stack” at the bottom.
+12. Once the CloudFormation stack is created, switch back to the terminal tab that will detect the Provider has been created.
+13. You will then be prompted to deploy. Say “Y” to deploy your first Serverless Framework service.
 
-If you're new to Amazon Web Services, make sure you put in a credit card. If you don't have a credit card set up, you may not be able to deploy your resources and you may run into this error:
+Note: If you already had AWS credentials on your local machine, the Serverless Framework may have skipped all steps and prompted to do a deployment using those credentials instead of prompting to create a Provider. However, if you just create a provider in your Dashboard account, run “serverless login” and then “serverless deploy” it will use the Dashboard Provider instead.
 
-```
-AWS Access Key Id needs a subscription for the service
-```
+### AWS Access Key and Secret
 
-## Create an IAM User and Access Key
+The alternative to using the AWS IAM Role provider is to rather use an access key and secret generated in AWS IAM. These are generally considered insecure since if anyone gained access to those credentials, they have access to your AWS account.
 
-Now that you have an AWS account, you need to configure AWS credentials so that `serverless` can deploy to AWS. You can:
+However, if you must use an access key and secret pair, these can be added as a provider in Serverless Dashboard by choosing the “Access/Secret Keys” tab and inserting the credentials to be used.
 
-- either use Serverless Dashboard to manage AWS credentials,
-- or create AWS access keys and configure them on your machine.
+## Production Configuration
 
-### Use Serverless Dashboard to manage AWS credentials
+While you might be able to get up and running with a single account quickly to try out Serverless Framework, the recommended configuration when setting up a Serverless application is a little different and consists of using multiple AWS accounts.
 
-Serverless Dashboard lets you manage AWS credentials with Serverless Framework.
+### Management account
 
-How it works: Serverless Dashboard uses an AWS Access Role to access your AWS account. Then, it creates temporary AWS access keys to authenticate the `serverless` CLI on every command.
+Starting off with a single AWS account that is only used as a way to help manage the creation of additional AWS accounts for various purposes. This account will not have anything else deployed to it.
 
-The Serverless Framework leverages AWS Security Token Service and the AssumeRole API to automate the creation and usage of temporary credentials (which expire after one hour).
+1. After creating the initial AWS account, usually using an alias email address for your organization or team, search for the “Organizations” service.
+   ![img](https://s3.us-east-2.amazonaws.com/assets.public.serverless/website/framework/docs/aws-credentials/create-an-organization-pre.png)
+2. Click the “Create an Organization” button and you should see the view change and the account you are currently logged in on listed.
+   ![img](https://s3.us-east-2.amazonaws.com/assets.public.serverless/website/framework/docs/aws-credentials/create-an-organization-post.png)
+3. Search for the IAM identity center service and click “Enable” to activate it for the management service.
+   ![img](https://s3.us-east-2.amazonaws.com/assets.public.serverless/website/framework/docs/aws-credentials/iam-identity-center-enable-pre.png)
+   a. You will notice you will now have a unique URL for users to log in with that can be edited later to make it more unique for your use.
+   ![img](https://s3.us-east-2.amazonaws.com/assets.public.serverless/website/framework/docs/aws-credentials/iam-identity-center-url.png)
+4. Now we want to create a new user account for you to use from this point on, so click “Users” to the left and then “Add user”. Enter your own email address and all the other details required.
+   ![img](https://s3.us-east-2.amazonaws.com/assets.public.serverless/website/framework/docs/aws-credentials/iam-identity-center-add-user-details.png)
+5. Do not worry about adding the user to groups for now, just finish using “Next” to review and confirm with “Add user” at the bottom.
+6. To setup permissions, click “AWS Accounts” to the left.
+   ![img](https://s3.us-east-2.amazonaws.com/assets.public.serverless/website/framework/docs/aws-credentials/iam-identity-center-menu.png)
+7. After ensuring your management account is selected, click on “Assign users or groups”
+   ![img](https://s3.us-east-2.amazonaws.com/assets.public.serverless/website/framework/docs/aws-credentials/iam-identity-center-assign-users-or-groups.png)
+8. Select the “User” tab, check the box next to the user you just created and then “Next”.
+   ![img](https://s3.us-east-2.amazonaws.com/assets.public.serverless/website/framework/docs/aws-credentials/organizations-assign-users-and-groups-to-account.png)
+9. Click on “Create permission set” so we can assign the right permissions to your user. This will open a new tab.
+   ![img](https://s3.us-east-2.amazonaws.com/assets.public.serverless/website/framework/docs/aws-credentials/assign-permission-sets.png)
+10. For now, we will recommend choosing the default of “AdminstratorAccess” under the “Predefined permissions set”, but this can be changed later if need be.
+    ![img](https://s3.us-east-2.amazonaws.com/assets.public.serverless/website/framework/docs/aws-credentials/pre-defined-permission-set.png)
+11. Choosing how long the session lasts only affects the user when they are logged into the AWS Console and has no impact on the use of Providers when deploying the Serverless Framework so choose any session length you wish. Click “Next” on “Permission set details”, then “Create” on the “Review and create” page.
+    ![img](https://s3.us-east-2.amazonaws.com/assets.public.serverless/website/framework/docs/aws-credentials/permission-set-review.png)
+12. Now that the permissions set is done, we can close this tab to go back. If you do not see the updated permissions just refresh, then choose AdminstratorAccess, Next and Submit.
+    ![img](https://s3.us-east-2.amazonaws.com/assets.public.serverless/website/framework/docs/aws-credentials/user-assigned-to-account.png)
 
-To get started with Serverless Dashboard, either run `serverless` in an existing project or [follow this documentation](https://serverless.com/framework/docs/guides/providers).
+You can add additional users in future in this way. You should have also received an email to activate the new account that was created. Just complete the process to sign up the new user account and we are ready to continue.
 
-### Creating AWS Access Keys
+### Stage accounts for production and development
 
-If you do not wish to use Serverless Dashboard, then you need to configure the Serverless Framework CLI to use AWS access keys.
+Now that we have the basics done for the management account and at least one user that is not the root user, we likely want to setup additional AWS accounts for production and development. This is done so that we can ensure that developers are not deploying experimental code and changes into the same account where your application is provisioned for use for customers.
 
-[Watch the video guide on setting up credentials](https://www.youtube.com/watch?v=KngM5bfpttA)
+1. Return the Organizations service and click “Add an AWS Account”
+2. Try to name the new account uniquely to indicate it is your dev account
+3. When asked what email address to use, use an alias of some kind as individual user accounts added via the management account will be given access to the new development account.
+4. When done, click “Create AWS account”
+5. Repeat this process for a production account as well
 
-Follow these steps to create new AWS access keys:
+You can of course create as many of these accounts as you need, which is why it may even be useful to consider the next section.
 
-1. Login to your AWS account and go to the Identity & Access Management (IAM) page.
+### Developer accounts
 
-2. Click on **Users** and then **Add user**. Enter a name in the first field to remind you this user is related to the Serverless Framework, like `serverless-admin`. Enable **Programmatic access** by clicking the checkbox. Click **Next** to go through to the Permissions page. Click on **Attach existing policies directly**. Search for and select **AdministratorAccess** then click **Next: Review**. Check to make sure everything looks good and click **Create user**.
+When developing Serverless applications, often developers need to have the ability to deploy changes they have made to a service or to test out a new service. While providing development accounts is great, this may not be enough as there is a risk of overriding work d0ne by others or even causing disruptions to the team.
 
-3. View and copy the **API Key** & **Secret** to a temporary place. These are your AWS access keys.
+Using the methods described above, you can create individual AWS account per developer. This provides a good level of isolation, and can be easily managed through the Organizations service as team members are onboarded and offboarded.
 
-Note that the above steps grant Serverless Framework administrative access to your account. While this makes things simple when starting out, we recommend that you create and use more fine-grained permissions once you determine the scope of your serverless applications and move them into production.
+### Combine with Serverless Provider
 
-To limit the Serverless Framework’s access your AWS account, follow these steps to **create an IAM User** and attach a custom JSON file policy to your new IAM User. This IAM User will have its own set of AWS Access Keys.
+Now that the AWS accounts are structured as needed, you can also combine the use of Providers in the Serverless Dashboard as described earlier to create specific connections to those AWS account for specific stages.
 
-1. Login to your AWS Account and go to the Identity & Access Management (IAM) page.
-
-2. Click on **Users** and then **Add user**. Enter a name in the first field to remind you this User is related to the Service you are deploying with the Serverless Framework, like `serverless-servicename-agent`. Enable **Programmatic access** by clicking the checkbox. Click **Next** to go through to the Permissions page. Click on **Create policy**. Select the **JSON** tab, and add a JSON file. You can use [this gist](https://gist.github.com/ServerlessBot/7618156b8671840a539f405dea2704c8) as a guide.
-
-When you are finished, select **Review policy**. You can assign this policy a **Name** and **Description**, then choose **Create Policy**. Check to make sure everything looks good and click **Create user**. Later, you can create different IAM Users for different apps and different stages of those apps. That is, if you don't use separate AWS accounts for stages/apps, which is most common.
-
-3. View and copy the **API Key** & **Secret** to a temporary place. These are your AWS access keys.
-
-### Using AWS Access Keys
-
-You can configure the Serverless Framework to use your AWS access keys in two ways:
-
-#### Quick Setup
-
-As a quick setup to get started you can export them as environment variables so they would be accessible to Serverless and the AWS SDK in your shell:
-
-```bash
-export AWS_ACCESS_KEY_ID=<your-key-here>
-export AWS_SECRET_ACCESS_KEY=<your-secret-key-here>
-# AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are now available for serverless to use
-serverless deploy
-
-# 'export' command is valid only for unix shells
-# In Windows use 'set' instead of 'export'
-```
-
-**Please note:** _If you are using a self-signed certificate you'll need to do one of the following:_
-
-```bash
-# String example:
-# if using the 'ca' variable, your certificate contents should replace the newline character with '\n'
-export ca="-----BEGIN CERTIFICATE-----...-----END CERTIFICATE-----"
-# or multiple, comma separated
-export ca="-----BEGIN CERTIFICATE-----...-----END CERTIFICATE-----,-----BEGIN CERTIFICATE-----...-----END CERTIFICATE-----"
-
-# File example:
-# if using the 'cafile' variable, your certificate contents should not contain '\n'
-export cafile="/path/to/cafile.pem"
-# or multiple, comma separated
-export cafile="/path/to/cafile1.pem,/path/to/cafile2.pem"
-
-# 'export' command is valid only for unix shells
-# In Windows use 'set' instead of 'export'
-```
-
-#### Using AWS Profiles
-
-For a more permanent solution you can also set up credentials through AWS profiles. Here are different methods you can use to do so.
-
-##### Setup with `serverless config credentials` command
-
-Serverless provides a convenient way to configure AWS profiles with the help of the `serverless config credentials` command.
-
-Here's an example how you can configure the `default` AWS profile:
-
-```bash
-serverless config credentials \
-  --provider aws \
-  --key AKIAIOSFODNN7EXAMPLE \
-  --secret wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-```
-
-Take a look at the [`config` CLI reference](../cli-reference/config-credentials.md) for more information about credential configuration.
-
-##### Setup with the `aws-cli`
-
-To set them up through the `aws-cli` [install it first](http://docs.aws.amazon.com/cli/latest/userguide/installing.html) then run `aws configure` [to configure the aws-cli and credentials](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html):
-
-```bash
-$ aws configure
-AWS Access Key ID [None]: AKIAIOSFODNN7EXAMPLE
-AWS Secret Access Key [None]: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-Default region name [None]: us-west-2
-Default output format [None]: ENTER
-```
-
-Credentials are stored in INI format in `~/.aws/credentials`, which you can edit directly if needed. You can change the path to the credentials file via the AWS_SHARED_CREDENTIALS_FILE environment variable. Read more about that file in the [AWS documentation](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files)
-
-You can even set up different profiles for different accounts, which can be used by Serverless as well. To specify a default profile to use, you can add a `profile` setting to your `provider` configuration in `serverless.yml`:
-
-```yml
-service: new-service
-provider:
-  name: aws
-  runtime: nodejs14.x
-  stage: dev
-  profile: devProfile
-```
-
-##### Use an existing AWS Profile
-
-To easily switch between projects without the need to do `aws configure` every time you can use environment variables.
-For example you define different profiles in `~/.aws/credentials`
-
-```ini
-[profileName1]
-aws_access_key_id=***************
-aws_secret_access_key=***************
-
-[profileName2]
-aws_access_key_id=***************
-aws_secret_access_key=***************
-```
-
-Now you can switch per project (/ API) by executing once when you start your project:
-
-`export AWS_PROFILE="profileName2"`.
-
-in the Terminal. Now everything is set to execute all the `serverless` CLI options like `sls deploy`.
-
-##### Using the `aws-profile` option
-
-You can always specify the profile which should be used via the `aws-profile` option like this:
-
-```bash
-serverless deploy --aws-profile devProfile
-```
-
-##### Using web identity token
-
-To use web identity token authentication the `AWS_WEB_IDENTITY_TOKEN_FILE` and `AWS_ROLE_ARN` environment need to be set. It is automatically set if you specify a service account in AWS EKS.
-
-#### Per Stage Profiles
-
-As an advanced use-case, you can deploy different stages to different accounts by using different profiles per stage. In order to use different profiles per stage, you must leverage [variables](https://serverless.com/framework/docs/providers/aws/guide/variables) and the provider profile setting.
-
-This example `serverless.yml` snippet will load the profile depending upon the stage specified in the command line options (or default to 'dev' if unspecified);
-
-```yml
-service: new-service
-provider:
-  name: aws
-  runtime: nodejs14.x
-  profile: ${self:custom.profiles.${sls:stage}}
-custom:
-  profiles:
-    dev: devProfile
-    prod: prodProfile
-```
-
-#### Profile in place with the 'invoke local' command
-
-**Be aware!** Due to the way AWS IAM and the local environment works, if you invoke your lambda functions locally using the CLI command `serverless invoke local -f ...` the IAM role/profile could be (and probably is) different from the one set in the `serverless.yml` configuration file.
-Thus, most likely, a different set of permissions will be in place, altering the interaction between your lambda functions and other AWS resources.
-
-_Please, refer to the [`invoke local`](https://serverless.com/framework/docs/providers/aws/cli-reference/invoke-local/#aws---invoke-local) CLI command documentation for more details._
-
-## Assuming a role when deploying
-
-It is possible to use local AWS credentials to _assume_ another AWS role.
-
-That allows the deployment (and all other CLI commands) to be performed under a different role. To achieve this, [follow this documentation from AWS](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-role.html).
-
-Note that `serverless.yml` also offers the `provider.iam.deploymentRole` option. This lets us force CloudFormation to use a different role when deploying:
-
-```yml
-provider:
-  iam:
-    deploymentRole: arn:aws:iam::123456789012:role/deploy-role
-```
-
-It is important to understand that `deploymentRole` only affects the role CloudFormation will assume. All other interactions from the `serverless` CLI with AWS will not use that `deploymentRole`.
-
-This is why we usually recommend using the "assume role" method described above instead of `deploymentRole`.
+Providers has its own documentation which provides a lot more detail: https://www.serverless.com/framework/docs/guides/providers
