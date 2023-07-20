@@ -81,7 +81,7 @@ custom:
 
 ### Uploading Source Map
 
-The [New Error Alert](#new-error) and the [Error Metrics](#errors) can be used to view the stack trace for the occurrence of an error. Tools like Webpack and Typescript generate the packaged code and therefore may obfuscate the stack trace. The Serverless Framework Enterprise Plugin and SDK support sourcemaps to properly generate the stack trace.
+The [New Error Alert](#new-error) and the [Error Metrics](#errors) can be used to view the stack trace for the occurrence of an error. Tools like Webpack and Typescript generate the packaged code and therefore may obfuscate the stack trace. The Serverless Framework Dashboard Plugin and SDK support sourcemaps to properly generate the stack trace.
 
 To use a sourcemap, ensure that your packaging directory includes the compiled source, original source, and the source maps.
 
