@@ -525,6 +525,8 @@ Adapt to this convention now by setting `provider.kinesis.consumerNamingMode` to
 
 The consequence for consumer name change is there will be some downtime during deployment between the time the old consumer is deleted and the new consumer is created. While no data is supposed to be lost, there may be a delay in consuming stream data.
 
+> Changing your kinesis consumer name will make the stream think there is a new consumer and deliver messages currently in the stream again.  Make sure your cosumers handle duplicate messages accordingly before changing your consumer name
+
 <a name="ALEXA_SKILL_EVENT_WITHOUT_APP_ID"><div>&nbsp;</div></a>
 
 ## Support for `alexaSkill` event without `appId` is to be removed
