@@ -6,8 +6,8 @@ const fse = require('fs-extra');
 // mock to test functionality bound to a serverless plugin
 class ServerlessPlugin {
   constructor(serverless, options, testSubject) {
-    this.options = options;
     this.serverless = serverless;
+    this.options = Object.assign({}, options);
 
     Object.assign(this, testSubject);
   }

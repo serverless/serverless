@@ -3,7 +3,7 @@
 module.exports = class TestPlugin {
   constructor(serverless, options, utils) {
     this.serverless = serverless;
-    this.options = options;
+    this.options = Object.assign({}, options);
     this.utils = utils;
     this.commands = {
       customCommand: {

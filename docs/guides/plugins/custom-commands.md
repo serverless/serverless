@@ -86,7 +86,8 @@ Options can be specified in the command definition. The value of the CLI option 
 ```javascript
 class MyPlugin {
   constructor(serverless, options) {
-    this.options = options;
+    // Make a clone to avoid modifying the input param and null-proof the input options
+    this.options = Object.assign({}, options);
 
     this.commands = {
       'my-command': {
