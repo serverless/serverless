@@ -5,7 +5,7 @@ frameworkVersion: '*'
 
 provider:
   name: aws
-  runtime: python3.8
+  runtime: python3.11
 
 functions:
   function:
