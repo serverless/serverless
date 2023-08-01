@@ -447,11 +447,14 @@
     "Monitoring": {
       "Overview": "guides/monitoring",
       "Alerts": "guides/monitoring/alerts",
+      "Instrumentation": "guides/monitoring/instrumentation",
       "Metrics": "guides/monitoring/metrics",
-      "Notifications": "guides/monitoring/notifications"
+      "Notifications": "guides/monitoring/notifications",
+      "Trace Explorer": "guides/monitoring/trace-explorer"
     },
     "Outputs": "guides/output-variables",
     "Providers": "guides/providers",
+    "Orgs & Members": "guides/orgs",
     "CI/CD": {
       "Overview": "guides/cicd",
       "Branch Deployments": "guides/cicd/branch-deployments",
@@ -471,7 +474,8 @@
       "nodejs": "guides/sdk/nodejs",
       "python": "guides/sdk/python"
     },
-    "Testing": "guides/testing"
+    "Testing": "guides/testing",
+    "Upgrading": "guides/upgrade"
   },
   "Serverless.yml Reference": "providers/aws/guide/serverless.yml",
   "CLI Reference": {
