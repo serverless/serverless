@@ -78,8 +78,9 @@ monitor: false
 ## Updating Node.js SDK
 
 The Serverless Framework Dashboard SDK has been deprecated and replaced with the
-Serverless SDK. The Serverless SDK is a drop-in replacement for the Dashboard
-SDK, in most cases; however, some changes may be necessary depending on usage.
+Serverless SDK. The new Serverless SDK provides support for additional features.
+In most cases the methods are drop-in replacements; however, some methods have
+been replaced with new methods.
 
 ### Loading SDK
 
@@ -102,8 +103,8 @@ const serverlessSdk = require('@serverless/sdk');
 
 ### Replace captureError()
 
-The `captureError` method for capturing errors is now available on the
-`serverlessSdk` object.
+The `captureError` method for capturing errors in Dashboard SDK is available as
+a drop-in replacement in the Serverless SDK.
 
 ```javascript
 // Replace this
@@ -116,15 +117,56 @@ serverlessSdk.captureError(ex);
 
 ### Replace tagEvents()
 
-Placeholder
+The `tagEvents` method was available in Dashboard SDK for tagging the Traces.
+The `setTag` has been introduced to support tagging of both Traces and Events.
+To replace `tagEvents` use `setTag` to tag the Trace.
+
+```javascript
+// Replace this
+context.serverlessSdk.tagEvents('someKey', 'someValue', { demoUser: true });
+
+// with this
+const serverlessSdk = require('@serverless/sdk');
+serverlessSdk.setTag('someKey', 'someValue');
+serverlessSdk.setTag('demoUser', true);
+```
+
+The third parameter in `tagEvents` allowed for adding additional context that
+was not searchable in Dashboard. The Serverless SDK does not support such a
+parameter and instead, it is recommended that you add this additional context as
+new tags.
 
 ### Replace span()
 
-Placeholder
+The `span` method for creating spans in Dashboard SDK is available as
+a drop-in replacement in the Serverless SDK using the `createSpan` method.
+
+```javascript
+// Replace this
+context.serverlessSdk.span('some-label', () => {
+  // Some work
+});
+
+// with this
+const serverlessSdk = require('@serverless/sdk');
+serverlessSdk.createSpan('some-label', () => {
+  // Some work
+});
+```
 
 ### Replace setEndpoint()
 
-Placeholder
+The `setEndpoint()` method for setting the endpoint in Dashboard SDK is
+available as a drop-in replacement in the Serverless SDK.
+
+```javascript
+// Repalce this
+context.serverlessSdk.setEndpoint('/api/foo');
+
+// with this
+const serverlessSdk = require('@serverless/sdk');
+serverlessSdk.setEndpoint('/api/foo');
+```
 
 ## Updating Python SDK
 

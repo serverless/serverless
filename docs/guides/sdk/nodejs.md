@@ -324,3 +324,20 @@ const span1 = serverlessSdk.createSpan('Span1');
 span1.captureError('Some error');
 span1.captureWarning('Some warning');
 ```
+
+### Setting a custom endpoint
+
+When using a mono-lambda architecture, in which a single lambda function with a
+framework like Express.js is routed from a single API Gateway endpoint, the
+request on API Gateway is captured as a proxy endpoint. As a result, the request
+may appear as `/{proxy+}` instead of the intended path. The Serverless SDK
+automatically instruments frameworks like Express.js, KOA, etc. to capture the
+correct endpoint. This enables you to filter for HTTP requests using the
+inteded path.
+
+In some cases, it may be necessary to manually set the endpoint. In such cases
+you can use the `setEndpoint` method to customize the endpoint path.
+
+```javascript
+serverlessSdk.setEndpoint('/my/custom/endpoint');
+```
