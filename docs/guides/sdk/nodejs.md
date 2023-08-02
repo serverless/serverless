@@ -253,3 +253,74 @@ To disable the output of the structured logs with `captureError` and
 ```bash
 SLS_DISABLE_CAPTURED_EVENTS_STDOUT=true
 ```
+
+### Creating Custom Spans
+
+Spans are part of the Trace that show when something started and stopped. Spans
+can be nested and they can contain Events. Spans are automatically created by
+the Serverless SDK for AWS and HTTP requests. These methods show you how you can
+create your own custom spans and nest them.
+
+#### Create a Custom Span
+
+```javascript
+const customSpan1 = serverlessSdk.createSpan('mySpan');
+// do some work
+customSpan1.stop();
+```
+
+#### Creating a Custom Span with a callback
+
+Instead of creating a span and stopping it using `stop()`, you can also pass a
+callback method to `createSpan` to automatically start/stop the span when the
+callback starts/stops.
+
+```javascript
+serverlessSdk.createSpan('mySpan', () => {
+  // do some work
+});
+```
+
+This also supports `async` callbacks.
+
+```javascript
+serverlessSdk.createSpan('mySpan', async () => {
+  // do some work
+});
+```
+
+#### Creating Nested Spans
+
+Spans can also be nested by calling the `createSpan` method on a Span.
+
+```javascript
+const span1 = serverlessSdk.createSpan('span1');
+const span2 = span1.createSpan('span2');
+// do some work
+span2.stop();
+// do additional work
+span1.stop();
+```
+
+Child spans must be stopped via `stop()` before the parent Span is stopped. If
+a parent span is stopped, then all child spans will be stopped.
+
+#### Capturing Errors/Warnings in a Span
+
+The Servleress SDK automatically tracks the Span that is currently in context.
+The most recently cureated Span, automatic or manual, is typically the current
+Span.
+
+When you create Events, like captured errors or warnings, they are created as
+child Events of the current Span. This helps attribute the Event to the Span
+when using the Trace Details.
+
+If you do not want to use the current Span for creating new Events, you can use
+the `captureError` and `captureWarning` methods on the Span to specify the Span
+to use for the new Events.
+
+```javascript
+const span1 = serverlessSdk.createSpan('Span1');
+span1.captureError('Some error');
+span1.captureWarning('Some warning');
+```
