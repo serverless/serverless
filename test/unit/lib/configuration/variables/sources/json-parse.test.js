@@ -8,7 +8,7 @@ const selfSource = require('../../../../../../lib/configuration/variables/source
 const jsonParseSource = require('../../../../../../lib/configuration/variables/sources/json-parse');
 
 describe('test/unit/lib/configuration/variables/sources/json-parse.test.js', () => {
-  const fooJson = { foo: 'bar' };
+  const fooJson = { foo: 'bar', foo2: { foo: 'bar2'} };
 
   let configuration;
   let variablesMeta;
@@ -19,13 +19,14 @@ describe('test/unit/lib/configuration/variables/sources/json-parse.test.js', () 
       fooJsonString: JSON.stringify(fooJson),
 
       jsonValFromString: '${jsonParse(${self:fooJsonString}):foo}',
+      jsonValFromStringNested: '${jsonParse(${self:fooJsonString}):foo2.foo}',
       jsonObjFromString: '${jsonParse(${self:fooJsonString})}',
-
-      jsonValFromObject: '${jsonParse(${self:fooJson}):foo}',
-      jsonObjFromObject: '${jsonParse(${self:fooJson})}',
+      jsonObjParse: '${jsonParse(${self:fooJson})}', // handle json object
+      jsonObjParseKey: '${jsonParse(${self:fooJson}):foo}', // handle json object
 
       errorFromMalformedString: '${jsonParse("bad json value...")}',
       errorFromEmptyString: '${jsonParse()}',
+      errorFromBadNested: '${jsonParse(fooJson):foo.foo2}',
     };
     variablesMeta = resolveMeta(configuration);
     await resolve({
@@ -38,17 +39,21 @@ describe('test/unit/lib/configuration/variables/sources/json-parse.test.js', () 
     });
   });
 
-  it("should extract 'bar' value from json string", () =>
+  it('should extract \'bar\' value from json string', () =>
     expect(configuration.jsonValFromString).to.equal('bar'));
+
+  it('should extract \'bar2\' value from json string', () =>
+    expect(configuration.jsonValFromStringNested).to.equal('bar2'));
 
   it('should extract object from json string', () =>
     expect(configuration.jsonObjFromString).to.deep.equal(fooJson));
 
-  it("should extract 'bar' value from json object", () =>
-    expect(configuration.jsonValFromObject).to.equal('bar'));
+  it('should extract object from object', () =>
+    expect(configuration.jsonObjParse).to.deep.equal(fooJson));
 
-  it('should extract object from json object', () =>
-    expect(configuration.jsonObjFromObject).to.deep.equal(fooJson));
+  it('should extract key from object', () =>
+    expect(configuration.jsonObjParseKey).to.deep.equal('bar'));
+
 
   it('should report error on invalid json string', () =>
     expect(variablesMeta.get('errorFromMalformedString').error.code).to.equal(
@@ -57,6 +62,11 @@ describe('test/unit/lib/configuration/variables/sources/json-parse.test.js', () 
 
   it('should report error on empty json / json string', () =>
     expect(variablesMeta.get('errorFromEmptyString').error.code).to.equal(
+      'VARIABLE_RESOLUTION_ERROR'
+    ));
+
+  it('should report error on bad nested path', () =>
+    expect(variablesMeta.get('errorFromBadNested').error.code).to.equal(
       'VARIABLE_RESOLUTION_ERROR'
     ));
 });

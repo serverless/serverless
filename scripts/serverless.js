@@ -318,14 +318,14 @@ processSpanPromise = (async () => {
               sources: {
                 env: require('../lib/configuration/variables/sources/env'),
                 file: require('../lib/configuration/variables/sources/file'),
+                jsonParse: require('../lib/configuration/variables/sources/json-parse'),
                 opt: require('../lib/configuration/variables/sources/opt'),
                 self: require('../lib/configuration/variables/sources/self'),
                 strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
-                jsonParse: require('../lib/configuration/variables/sources/json-parse'),
                 sls: require('../lib/configuration/variables/sources/instance-dependent/get-sls')(),
               },
               options: filterSupportedOptions(options, { commandSchema, providerName }),
-              fulfilledSources: new Set(['file', 'self', 'strToBool', 'jsonParse']),
+              fulfilledSources: new Set(['file', 'self', 'strToBool']),
               propertyPathsToResolve: new Set(['provider\0name', 'provider\0stage', 'useDotenv']),
               variableSourcesInConfig,
             };
