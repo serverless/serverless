@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.34.0](https://github.com/serverless/serverless/compare/v3.33.0...v3.34.0) (2023-08-03)
+
+### Features
+
+- Python 3.11 support ([#12085](https://github.com/serverless/serverless/issues/12085)) ([f5d143a](https://github.com/serverless/serverless/commit/f5d143ac3935260dc0f647a541f22dbbd583095f))
+
+### Bug Fixes
+
+- **AWS Schedule:** Fix IAM role assignment ([#12030](https://github.com/serverless/serverless/issues/12030)) ([e1039de](https://github.com/serverless/serverless/commit/e1039ded5c5e35595b5d4c59e81d480a16c4dd67))
+
+### Maintenance Improvements
+
+- Remove `got` dependency ([#12040](https://github.com/serverless/serverless/issues/12040)) ([1775c90](https://github.com/serverless/serverless/commit/1775c90a72ec321af8673bcdd1901cb1e48b9169))
+
 ## [3.33.0](https://github.com/serverless/serverless/compare/v3.32.2...v3.33.0) (2023-06-26)
 
 ### Features
