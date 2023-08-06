@@ -170,4 +170,90 @@ serverlessSdk.setEndpoint('/api/foo');
 
 ## Updating Python SDK
 
-Placeholder
+The Serverless Framework Dashboard SDK has been deprecated and replaced with the
+Serverless SDK. The new Serverless SDK provides support for additional features.
+In most cases the methods are drop-in replacements; however, some methods have
+been replaced with new methods.
+
+### Loading SDK
+
+The Dashboard SDK can be loaded adding the `serverless_sdk` module or by
+using the methods automatically loaded in `context.serverless_sdk`.
+
+The `context.serverless_sdk` methods are now deprecated and therefore you will
+need to load the SDK by adding the `serverless_sdk` module.
+
+If you load the module you'll need to replace `serverless_sdk` with `sls_sdk`.
+
+```python
+# Replace this
+from serverless_sdk import capture_exception, span, tag_event, set_endpoint
+
+# with this
+from sls_sdk import serverlessSdk
+```
+
+### Replace capture_error()
+
+The `capture_error` method for capturing errors in Dashboard SDK is available as
+a drop-in replacement in the Serverless SDK.
+
+```python
+# Replace this
+context.serverless_sdk.capture_error(Exception("Unexpected"));
+
+# with this
+from sls_sdk import serverlessSdk;
+serverlessSdk.capture_error(Exception("Unexpected"));
+```
+
+### Replace tag_event()
+
+The `tag_event` method was available in Dashboard SDK for tagging the Traces.
+The `set_tag` has been introduced to support tagging of both Traces and Events.
+To replace `tag_event` use `set_tag` to tag the Trace.
+
+```python
+# Replace this
+context.serverless_sdk.tag_event('someKey', 'someValue', { 'demoUser': 'true' });
+
+# with this
+from sls_sdk import serverlessSdk
+serverlessSdk.set_tag('someKey', 'someValue');
+serverlessSdk.set_tag('demoUser', 'true');
+```
+
+The third parameter in `tag_event` allowed for adding additional context that
+was not searchable in Dashboard. The Serverless SDK does not support such a
+parameter and instead, it is recommended that you add this additional context as
+new tags.
+
+### Replace span()
+
+The `span` method for creating spans in Dashboard SDK is available as
+a drop-in replacement in the Serverless SDK using the `create_span` method.
+
+```python
+# Replace this
+with context.serverless_sdk.span('some-label'):
+  pass # some work
+
+# with this
+from sls_sdk import serverlessSdk
+with serverlessSdk.create_span('some-label'):
+  pass # some work
+```
+
+### Replace set_endpoint()
+
+The `set_endpoint()` method for setting the endpoint in Dashboard SDK is
+available as a drop-in replacement in the Serverless SDK.
+
+```python
+# Repalce this
+context.serverless_sdk.set_endpoint('/api/foo');
+
+# with this
+from sls_sdk import serverlessSdk
+serverlessSdk.set_endpoint('/api/foo');
+```
