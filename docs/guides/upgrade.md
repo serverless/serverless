@@ -36,11 +36,12 @@ custom:
     logIngestMode: pull
 ```
 
-### Remove reference to disableAwsSpan and disableHttpSpan
+### Replace reference to disableAwsSpan and disableHttpSpan
 
 These two options disable the automatic collection of AWS and HTTP Spans in
-traces. These two options have been deprecated. To disable AWS and HTTP Spans,
-monitoring must be disabled completely.
+traces. Previous these options were avilable in `custom.enterprise` in the
+`serverless.yml` file. These options have been replaced with environment
+variables that must be set on the lambda function.
 
 ```yaml
 custom:
@@ -49,10 +50,13 @@ custom:
     disableHttpSpans: true
 ```
 
-Use the `monitor` option to disable monitoring.
+Set the environment variables on all the functions in the `serverless.yml`
 
 ```yaml
-monitor: false
+provider:
+  environment:
+    SLS_DISABLE_HTTP_MONITORING: true
+    SLS_DISABLE_AWS_SDK_MONITORING: true
 ```
 
 ### Replace collectLambdaLogs
