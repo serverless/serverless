@@ -305,26 +305,6 @@ span1.stop();
 Child spans must be stopped via `stop()` before the parent Span is stopped. If
 a parent span is stopped, then all child spans will be stopped.
 
-#### Capturing Errors/Warnings in a Span
-
-The Servleress SDK automatically tracks the Span that is currently in context.
-The most recently cureated Span, automatic or manual, is typically the current
-Span.
-
-When you create Events, like captured errors or warnings, they are created as
-child Events of the current Span. This helps attribute the Event to the Span
-when using the Trace Details.
-
-If you do not want to use the current Span for creating new Events, you can use
-the `captureError` and `captureWarning` methods on the Span to specify the Span
-to use for the new Events.
-
-```javascript
-const span1 = serverlessSdk.createSpan('Span1');
-span1.captureError('Some error');
-span1.captureWarning('Some warning');
-```
-
 ### Setting a custom endpoint
 
 When using a mono-lambda architecture, in which a single lambda function with a
