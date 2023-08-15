@@ -266,12 +266,12 @@ create your own custom spans and nest them.
 ```javascript
 const customSpan1 = serverlessSdk.createSpan('mySpan');
 // do some work
-customSpan1.stop();
+customSpan1.close();
 ```
 
 #### Creating a Custom Span with a callback
 
-Instead of creating a span and stopping it using `stop()`, you can also pass a
+Instead of creating a span and stopping it using `close()`, you can also pass a
 callback method to `createSpan` to automatically start/stop the span when the
 callback starts/stops.
 
@@ -297,12 +297,12 @@ Spans can also be nested by calling the `createSpan` method on a Span.
 const span1 = serverlessSdk.createSpan('span1');
 const span2 = span1.createSpan('span2');
 // do some work
-span2.stop();
+span2.close();
 // do additional work
-span1.stop();
+span1.close();
 ```
 
-Child spans must be stopped via `stop()` before the parent Span is stopped. If
+Child spans must be stopped via `close()` before the parent Span is stopped. If
 a parent span is stopped, then all child spans will be stopped.
 
 ### Setting a custom endpoint

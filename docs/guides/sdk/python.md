@@ -263,7 +263,7 @@ span.close()
 
 #### Create a Custom Span using `with`
 
-Instead of creating a span and stopping it using `stop()`, you can also use
+Instead of creating a span and stopping it using `close()`, you can also use
 `with` to automatically stop the span.
 
 ```python
@@ -284,12 +284,12 @@ span1 = serverlessSdk.create_span('span1')
 span2 = span1.create_span('span2')
 
 # do some work
-span2.stop();
+span2.close();
 # do additional work
-span1.stop();
+span1.close();
 ```
 
-Child spans must be stopped via `stop()` before the parent Span is stopped. If
+Child spans must be stopped via `close()` before the parent Span is stopped. If
 a parent span is stopped, then all child spans will be stopped.
 
 ### Setting a custom endpoint
