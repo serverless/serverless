@@ -40,7 +40,7 @@ For example, let's take the following example `serverless.yml` file:
 service: new-project
 provider:
   name: kubeless
-  runtime: python3.9
+  runtime: python3.11
 
 plugins:
   - serverless-kubeless
@@ -86,7 +86,7 @@ In order to overcome this limitation, function code can be fetched from [externa
 ```yaml
 provider:
   name: kubeless
-  runtime: python3.9
+  runtime: python3.11
   deploy:
     strategy: S3ZipContent
     options:

@@ -26,8 +26,8 @@ service: my-service
 
 provider:
   name: kubeless
-  runtime: python3.9
-  memorySize: 512M # optional, maximum memory
+  runtime: python3.11
+  memorySize: 512 # optional, maximum memory
   timeout: 10 # optional, in seconds, default is 180
   namespace: funcions # optional, deployment namespace if not specified it uses "default"
   ingress: # optional, ingress configuration if not using nginx
@@ -46,7 +46,7 @@ functions:
     # The function to call as a response to the HTTP event
     handler: handler.hello # required, handler set
     description: Description of what the function does # optional, to set the description as an annotation
-    memorySize: 512M # optional, maximum memory
+    memorySize: 512 # optional, maximum memory
     timeout: 10 # optional, in seconds, default is 180
     namespace: funcions # optional, deployment namespace, if not specified "default" will be used
     port: 8081 # optional, deploy http-based function with a custom port, default is 8080
@@ -80,7 +80,7 @@ service: my-service
 
 provider:
   name: kubeless
-  runtime: python3.9
+  runtime: python3.11
 
 plugins:
   - serverless-kubeless
@@ -340,7 +340,7 @@ service: hello
 
 provider:
   name: kubeless
-  runtime: python3.9
+  runtime: python3.11
 
 plugins:
   - serverless-kubeless

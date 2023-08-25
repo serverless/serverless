@@ -32,10 +32,10 @@ functions:
     handler: remaining-time.handler
     timeout: 3
   python:
-    runtime: python3.8
+    runtime: python3.11
     handler: handler.handler
   pythonRemainingTime:
-    runtime: python3.8
+    runtime: python3.11
     handler: remaining_time.handler
     timeout: 3
   ruby:

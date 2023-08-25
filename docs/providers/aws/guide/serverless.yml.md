@@ -1334,7 +1334,7 @@ layers:
     description: Description of what the lambda layer does
     # optional, a list of runtimes this layer is compatible with
     compatibleRuntimes:
-      - python3.8
+      - python3.11
     # optional, a list of architectures this layer is compatible with
     compatibleArchitectures:
       - x86_64
