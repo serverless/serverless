@@ -180,21 +180,19 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
     expect(configuration.custom.existingVersionStage).to.equal('secretString');
   });
 
+  it('should resolve with secret binary', () => {
+    if (variablesMeta.get('custom\0existingSecretBinary')) {
+      throw variablesMeta.get('custom\0existingSecretBinary').error;
+    }
+    expect(configuration.custom.existingSecretBinary).to.equal('secretBinary');
+  });
+
   it('should report an error when not existing param', () => {
     expect(variablesMeta.get('custom\0notExisting').error.code).to.equal(
       'VARIABLE_RESOLUTION_ERROR'
     );
     expect(variablesMeta.get('custom\0notExisting').error.message).to.contain(
       'Error: InvalidParameterException: An error occurred (InvalidParameterException) when referencing Secrets Manager'
-    );
-  });
-
-  it('should report an error with secret binary', () => {
-    expect(variablesMeta.get('custom\0existingSecretBinary').error.code).to.equal(
-      'VARIABLE_RESOLUTION_ERROR'
-    );
-    expect(variablesMeta.get('custom\0existingSecretBinary').error.message).to.contain(
-      'Error: SecretsManager binary secret values are not supported'
     );
   });
 
