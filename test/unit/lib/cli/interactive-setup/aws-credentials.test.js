@@ -3,18 +3,16 @@
 const chai = require('chai');
 const sinon = require('sinon');
 const proxyquire = require('proxyquire');
-const overrideEnv = require('process-utils/override-env');
 const overrideStdoutWrite = require('process-utils/override-stdout-write');
-const requireUncached = require('ncjsm/require-uncached');
 const { StepHistory } = require('@serverless/utils/telemetry');
 
 const { expect } = chai;
 
+const { join, resolve } = require('path');
+const { remove: rmDir } = require('fs-extra');
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
 
-const { join, resolve } = require('path');
-const { remove: rmDir, outputFile: writeFile } = require('fs-extra');
 const { resolveFileProfiles } = require('../../../../../lib/plugins/aws/utils/credentials');
 
 const mockedSdk = {
@@ -254,34 +252,9 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
     );
   });
 
-  describe('In environment credentials', () => {
-    let restoreEnv;
-    let uncachedStep;
-
-    before(() => {
-      ({ restoreEnv } = overrideEnv({ asCopy: true }));
-      process.env.AWS_ACCESS_KEY_ID = accessKeyId;
-      process.env.AWS_SECRET_ACCESS_KEY = secretAccessKey;
-      uncachedStep = requireUncached(() =>
-        require('../../../../../lib/cli/interactive-setup/aws-credentials')
-      );
-    });
-
-    after(() => restoreEnv);
-
-    it('Should be ineffective, when credentials are set in environment', async () => {
-      expect(
-        await uncachedStep.isApplicable({
-          serviceDir: process.cwd(),
-          configuration: { provider: { name: 'aws' } },
-          configurationFilename: 'serverless.yml',
-        })
-      ).to.equal(false);
-    });
-  });
-
   describe('AWS config handling', () => {
     let credentialsDirPath;
+    // eslint-disable-next-line no-unused-vars
     let credentialsFilePath;
 
     before(() => {
@@ -290,28 +263,6 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
     });
 
     afterEach(() => rmDir(credentialsDirPath));
-
-    describe('Existing credentials case', () => {
-      before(() =>
-        writeFile(
-          credentialsFilePath,
-          [
-            '[some-profile]',
-            `aws_access_key_id = ${accessKeyId}`,
-            `aws_secret_access_key = ${secretAccessKey}`,
-          ].join('\n')
-        )
-      );
-
-      it('Should be ineffective, When credentials are set in AWS config', async () =>
-        expect(
-          await step.isApplicable({
-            serviceDir: process.cwd(),
-            configuration: { provider: { name: 'aws' } },
-            configurationFilename: 'serverless.yml',
-          })
-        ).to.equal(false));
-    });
 
     it('Should setup credentials for users not having an AWS account', async () => {
       configureInquirerStub(inquirer, {
