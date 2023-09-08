@@ -14,6 +14,61 @@ layout: Doc
 
 # Upgrade Guide
 
+## Connect AWS & Add Instrumentation
+
+The new monitoring features require an integration with AWS. The previous
+version of Serverless Dashboard created this integration from the CLI when a
+service was deployed. The new version of Serverless Dashboard provides two
+options for adding the integration, you can use the Dashboard UI or the CLI.
+
+The Dashboard UI is the easier method of the two, as it does not require
+the Serverless Framework to be upgrade, and it does not require redeployment.
+
+### Using the Dashboard UI
+
+To enable the new monitoring, you must first create an integration with AWS in
+Serverless Dashboard, and instrument each AWS Lambda function.
+
+When you visit any of the monitoring features in Dashboard, you will be prompted
+to add the Integration if one doesn't already exist. You can also visit
+**Settings > Integrations** to create the integration.
+
+Once the integration is created, you will be prompted on the app view page to
+add the instrumentation. You can also visit **Settings > Instrumentation**, and
+click **Edit** on the Integration to enable instrumentation on functions
+one-by-one or in bulk.
+
+### Using the CLI
+
+Update the Serverless Framework CLI to version 3.35.0 or higher.
+
+```
+npm install serverless --global
+```
+
+As an existing Serverless Dashboard user, the `serverless.yml` will already
+contain `org` and `app` properties. These properties are required for Serverless
+Dashboard to continue working.
+
+Redeploy your service.
+
+```
+serverless deploy
+```
+
+The first time you deploy your service after upgrading the Serverless Framework,
+the CLI will create the Dashboard integration, including the necessary IAM Role.
+
+Additionally, the service must be instrumented, which is done automatically
+upon deployment. The instrumentation adds the AWS CloudWatch Log subscription
+and adds the necessary AWS Lambda layer.
+
+To use the new monitoring, you must redeploy each service with this version.
+
+Alternatively, you can use the Dashboard UI to both add the integration and
+the instrumentation to each function. This does not require upgrade or
+deployment.
+
 ## Updating serverless.yml
 
 For majority of users no changes are necessary to the `serverless.yml`; however,
@@ -81,16 +136,25 @@ monitor: false
 
 ### Remove Dashboard SDK Wrapping (optional)
 
-The Serverless Framework automatically includes the Dashboard SDK in the Lambda package by wrpaping the AWS Lambda function handler on deployment. As of version 3.35.0+ of the Serverless Framework, the Dashboard SDK has been replaced with no-op methods as to not break deployments. The next major release of the Serverless Framework will fully deprecate the Dashboard SDK and disable wrapping.
+The Serverless Framework automatically includes the Dashboard SDK in the Lambda
+package by wrpaping the AWS Lambda function handler on deployment. As of version
+3.35.0+ of the Serverless Framework, the Dashboard SDK has been replaced with
+no-op methods as to not break deployments. The next major release of the
+Serverless Framework will fully deprecate the Dashboard SDK and disable
+wrapping.
 
-If you used the Dashboard SDK, you'll need to follow the "Update Node.js SDK" and "Update Python SDK" sections to update the SDK usage.
+If you used the Dashboard SDK, you'll need to follow the "Update Node.js SDK"
+and "Update Python SDK" sections to update the SDK usage.
 
-In some cases, the Dashboard SDK wrapping may break your code. In these cases wrapping is automatically disabled:
+In some cases, the Dashboard SDK wrapping may break your code. In these cases
+wrapping is automatically disabled:
+
 - You are using `.mjs` files
 - You have set `"type": "module"` in `package.json`
 - You are using Python version 3.11 or higher
 
-You can also manually disable the Wrapping by including the following in your `serverless.yml`.
+You can also manually disable the Wrapping by including the following in your
+`serverless.yml`.
 
 ```yaml
 custom:

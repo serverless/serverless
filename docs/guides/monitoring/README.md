@@ -76,6 +76,7 @@ provider:
 In addition to the automatic instrumentation provided by Serverless Framework Dashboard, you can also add custom instrumentation using the Serverless SDK.
 
 You can use the Serverless SDK for a few use cases:
+
 - Capturing handled errors
 - Capturing custom spans
 - Capturing error and warnings events
