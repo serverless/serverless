@@ -79,6 +79,25 @@ Use the `monitor` option to disable monitoring instead:
 monitor: false
 ```
 
+### Remove Dashboard SDK Wrapping (optional)
+
+The Serverless Framework automatically includes the Dashboard SDK in the Lambda package by wrpaping the AWS Lambda function handler on deployment. As of version 3.35.0+ of the Serverless Framework, the Dashboard SDK has been replaced with no-op methods as to not break deployments. The next major release of the Serverless Framework will fully deprecate the Dashboard SDK and disable wrapping.
+
+If you used the Dashboard SDK, you'll need to follow the "Update Node.js SDK" and "Update Python SDK" sections to update the SDK usage.
+
+In some cases, the Dashboard SDK wrapping may break your code. In these cases wrapping is automatically disabled:
+- You are using `.mjs` files
+- You have set `"type": "module"` in `package.json`
+- You are using Python version 3.11 or higher
+
+You can also manually disable the Wrapping by including the following in your `serverless.yml`.
+
+```yaml
+custom:
+  enterprise:
+    disableWrapping: true
+```
+
 ## Updating Node.js SDK
 
 The Serverless Framework Dashboard SDK has been deprecated and replaced with the
