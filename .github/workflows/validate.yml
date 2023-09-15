@@ -69,7 +69,9 @@ jobs:
       - name: Unit tests
         # Some tests depend on TTY support, which is missing in GA runner
         # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
-        run: script -e -c "npm test -- -b"
+        run: script -e -c "npm run coverage -- -b"
+      - name: Push coverage
+        run: npx codecov
       - name: Packaging tests
         run: npm run integration-test-run-package
 
@@ -103,11 +105,7 @@ jobs:
           npm update --no-save
           npm update --save-dev --no-save
       - name: Unit tests
-        # Some tests depend on TTY support, which is missing in GA runner
-        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
-        run: script -e -c "npm run coverage -- -b"
-      - name: Push coverage
-        run: npx codecov
+        run: npm test -- -b
 
   linuxNode14:
     name: '[Linux] Node.js 14: Isolated unit tests'
