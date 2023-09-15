@@ -53,7 +53,9 @@ jobs:
       - name: Unit tests
         # Some tests depend on TTY support, which is missing in GA runner
         # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
-        run: script -e -c "npm test -- -b"
+        run: script -e -c "npm run coverage -- -b"
+      - name: Push coverage
+        run: npx codecov
       - name: Packaging tests
         run: npm run integration-test-run-package
 
@@ -120,38 +122,19 @@ jobs:
         run: script -e -c "npm run test:isolated -- -b"
 
   linuxNode12:
-    name: '[Linux] Node.js 12: Unit tests with coverage'
+    name: '[Linux] Node.js v12: Node version validation test'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
-      - name: Retrieve dependencies from cache
-        id: cacheNpm
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.npm
-            node_modules
-          key: npm-v12-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
-          restore-keys: npm-v12-${{ runner.os }}-${{ github.ref }}-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v3
         with:
           node-version: 12.x
 
-      - name: Install dependencies
-        if: steps.cacheNpm.outputs.cache-hit != 'true'
-        run: |
-          npm update --no-save
-          npm update --save-dev --no-save
-      - name: Unit tests
-        # Some tests depend on TTY support, which is missing in GA runner
-        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
-        run: script -e -c "npm run coverage"
-      - name: Push coverage
-        run: npx codecov
+      - name: Node version validation test
+        run: ./bin/serverless.js 2>&1 | grep -q "does not support"
 
   linuxNode4:
     name: '[Linux] Node.js v4: Node version validation test'
