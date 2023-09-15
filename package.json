@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@serverless/dashboard-plugin": "^7.0.1",
-    "@serverless/platform-client": "^4.3.2",
+    "@serverless/platform-client": "^4.4.0",
     "@serverless/utils": "^6.13.1",
     "abort-controller": "^3.0.0",
     "ajv": "^8.12.0",
