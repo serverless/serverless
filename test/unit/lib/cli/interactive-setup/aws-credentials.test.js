@@ -439,13 +439,7 @@ describe('test/unit/lib/cli/interactive-setup/aws-credentials.test.js', () => {
       const internalMockedSdk = {
         ...mockedSdk,
         connect: ({ onEvent }) => {
-          onEvent({
-            data: {
-              object: {
-                provider_uid: providerUid,
-              },
-            },
-          });
+          onEvent({ providerUid });
         },
         getProviders: async () => {
           return {
