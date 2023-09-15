@@ -12,130 +12,298 @@ layout: Doc
 
 # Python SDK
 
-## `capture_exception`
+Serverless Console, when Instrumentation is enabled on an AWS Lambda function,
+will hook into the AWS Lambda runtime environment and automatically report
+metrics, traces, spans, and events. To capture handled errors, warnings, and to
+set custom tags, the SDK library must be added and instrumented in your AWS
+Lambda function handler.
 
-Your lambda function may throw an exception, but your function handles it in order to respond to
-the requester without throwing the error. One very common example is functions tied to HTTP
-endpoints. Those usually should still return JSON, even if there is an error since the API Gateway
-integration will fail rather than returning a meaningful error.
+## Key terms
 
-For this case, we provide a `captureError` function available on either the `context.serverless_sdk` or on the
-module imported from `'serverless_sdk'`. This will cause the invocation to still display as an
-error in the serverless dashboard while allowing you to return an error to the user.
+- An **Event** is an instance of an error, warning, or notice that is captured
+  as a part of a Trace. Multiple events can be captured in a single trace.
+- A **Captured Error** is an instance of an error that is sent to Serverless
+  Console as an Event. It can be viewed in Dev Mode or the Trace Explorer Details.
+- A **Captured Warning** is one instance of a string in Python that is sent to
+  Serverless Console as an Event, much like a Captured Error.
+- A **Tag** is a key/value-pair that can be set on the Trace or an individual
+  Event, and sent to Serverless Console. Tags can be viewed on the Trace Explorer
+  Details and Dev Mode.
 
-Here is an example of how to use it from the `context` object:
+## Compatibility
 
-```python
-def hello(event, context):
-    try:
-        # do some real stuff but it throws an error, oh no!
-        raise Exception('aa')
-    except Exception as exc:
-        context.serverless_sdk.capture_exception(exc)
-    return {
-        'statusCode': 500,
-        'body': '{"name": "bob"}',
-    }
+While Serverless Console is developed by the makers of the Serverless Framework,
+the entire Serverless Console product and this SDK are 100% agnostic of the
+deployment tool you use. Serverless Console and this SDK work just as well with
+Terraform, CDK, SAM, Pulumi, etc, as as they do with Serverless Framework.
+
+## Installation
+
+### Install the package
+
+When Tracing is enabled in Serverless Console, an AWS Lambda Layer is added to
+your AWS Lambda function with the `sls_sdk` package. While the AWS
+Lambda layer is added by Serverless Console, it is possible for the layer to be
+removed temporarily if you deploy manually or with some infrastructure as code
+tools. As such, we recommend bundling the SDK with your handler to avoid
+unresolved references to the SDK.
+
+```
+pip install serverless-sdk
 ```
 
-And to import it instead, import with
-`from serverless_sdk import capture_exception` then call `capture_exception` instead of
-`context.serverless_sdk.capture_exception`.
+### Enable Instrumentation
+
+The SDK will merely generate the necessary Tags, Spans, and Events; however,
+you must [Enable Instrumentation](/console/docs/instrumentation) for each of
+your functions for Serverless Console to ingest the data.
+
+## Usage
+
+The package does not require any configuration as the credentials are
+automatically set on the AWS Lambda function environment variables when Tracing
+is enabled in Serverless Console.
+
+To use the Serverless SDK you must import the `sls_sdk` package in your
+AWS Lambda function handler.
 
 ```python
-from serverless_sdk import capture_exception
-
-def hello(event, context):
-    try:
-        # do some real stuff but it throws an error, oh no!
-        raise Exception('aa')
-    except Exception as exc:
-        capture_exception(exc)
-    return {
-        'statusCode': 500,
-        'body': '{"name": "bob"}',
-    }
+from sls_sdk import serverlessSdk
 ```
 
-## `span`
+### Capturing Errors
 
-While the `serverless_sdk` automatically instruments AWS SDK and HTTP spans, you may be interested
-in capturing span data for functions that do numerical computation or functions making database
-queries. For this use-case, you can use the `span` context manager provided by `serverless_sdk`.
-It accepts one argument of a label. The code within the `with` statement using the context manager
-will be captured as a span in the Dashboard.
+The most common use case for the Serverless SDK is to capture handled errors.
+There are two mechanisms for capturing handled errors.
+
+#### Using capture_error
 
 ```python
-def handler(event, context):
-    with context.serverless_sdk.span('some-label'):
-        pass # the execution of this `with` statement will be captured as a span
+serverlessSdk.capture_error(Exception("Unexpected"))
 ```
 
-You can also import the function from `serverless_sdk`
+#### Using logging
 
 ```python
-from serverless_sdk import span
-def handler(event, context):
-    with span('some-label'):
-        pass # the execution of this `with` statement will be captured as a span
+import logging
+
+logging.error("Logged error")
 ```
 
-It also works as an async context manager for use with `async with`.
+The Serverless SDK automatically instruments the `logging.error` method to
+capture errors. This makes instrumentation much easier as you may already be
+using `logging.error` to display the errors.
 
-## `tag_event`
+This method can be used to capture `Exception` objects, as well as any
+combination of strings. If only an `Exception` object is provided, then the
+stack trace in Console will show the stack trace of the error object. If a
+string, or a combination of a string and `Exception`, are provided, then the
+stack trace of the `logging.error` will be captured.
 
-Busy applications can invoke hundreds of thousands of requests per minute! At these rates, finding specific invocations can be like
-searching for a needle in a haystack. We've felt this pain, which is why we've introduced tagged events.
-Tagged Events are a simple way to identify invocations in the Serverless Dashboard. You can tag an invocation with any string you like, and find
-all invocations associated with that tag. To provide extra context, you can specify a tag value to optionally filter on. If you're accustomed to
-logging out a debugging object, you can pass a third `custom` attribute that will be surfaced in the dashboard as well.
+### Capturing Warnings
 
-The `tag_event` function is available on either the `context.serverless_sdk` or on the
-module imported from `'./serverless_sdk'`.
-
-Here is an example of how to use it from the `context.serverless_sdk` object:
+#### Using capture_warning
 
 ```python
-def hello(event, context):
-    # ... set up some state/custom logic
-    context.serverless_sdk.tagEvent(
-        'customer-id',
-        event.body.customerId,
-        { 'demoUser': 'true', 'freeTrialExpires': '2020-09-01' }
-    )
-    return {
-        'statusCode': 500,
-        'body': '{"name": "bob"}',
-    }
+serverlessSdk.capture_warning("Captured warning")
 ```
 
-## Automatic route instrumentation with application middleware
-
-Faced with practical considerations (a big one being CloudFormation stack resource limit), developers often reach for a single function solution with routing being handled by the application layer. This is typically accomplished by leveraging the [serverless-wsgi](https://github.com/logandk/serverless-wsgi) plugin to deploy existing WSGI applications (Flask/Django/Pyramid etc). Rolling your own custom router is another option as well.
-
-An unfortunate downside of this approach is the loss of visibility into the mapped route for invocations. Instead, you're left with either the catch-all API Gateway resource path (`/{proxy+}`) or the raw request url itself (e.g. `/org/foo/user/bar/orders`). Neither of which are conducive for exploration and debugging invocations. The former is not very useful and the latter wouldn't let you group invocations by their routed endpoints to bubble up say, performance issues.
-
-To alleviate this issue, when deploying a [Flask](https://flask.palletsprojects.com/en/1.1.x/) application, the SDK will automatically instrument incoming invocations to set the routed endpoint. There's zero setup required!
-
-If your application is using a custom-built router, you can still work around this issue by calling the `set_endpoint` SDK function described below.
-
-Once set, invocations can be explored and inspected by endpoint in the Dashboard.
-
-## `set_endpoint`
-
-Allows the application to explicitly set the routed endpoint for an invocation. Like the other SDK methods, `setEndpoint` is available on either the context object: `context.serverless_sdk`.
+#### Using logging.warning
 
 ```python
-def handler(event, context):
-  context.serverless_sdk.set_endpoint('/api/foo')
-  # application code...
+import logging
+
+logging.warning("Logged warning %s %s", 12, True)
 ```
 
-You can also import the function from `serverless_sdk`
+The Serverless SDK automatically instruments the `logging.warning` method to
+capture warnings. This makes instrumentation easier as you may already be using
+`logging.warning` to display warnings.
+
+This method only supports capturing strings.
+
+We recommend avoiding using unique instance values for the strings. For example,
+if you need to include a userId, email, request ID, or any ID that may be unique
+to the individual invocation, we recommend using Tagging instead.
+
+This method will capture the stack trace of the `logging.warning` call so it
+is easy to identify in Console.
+
+### Tagging
+
+#### Setting Tags on the Trace
 
 ```python
-from serverless_sdk import set_endpoint
-def handler(event, context):
-  set_endpoint('/api/foo')
-  # application code...
+serverlessSdk.set_tag("userId", user_id)
+```
+
+Using the `set_tag` method will create Tags associated with the entire Trace.
+You'll be able to see the Tags on the Trace Details page in the Trace Explorer.
+
+All Tags set with `set_tag` are also inherited by all the Captured Errors and
+Captured Warnings.
+
+Tag keys may only contain alphanumeric, `.`, `-`, and `_` characters. Tag values
+may contain any string value. Invalid tag keys will not throw errors, instead,
+an SDK error will be made available in Dev Mode and Trace Details.
+
+#### Settings Tags with console.error and console.warn
+
+```python
+import logging
+
+serverlessSdk.set_tag("userId", user_id)
+
+logging.error("Logged error")
+logging.warning("Logged warning %s %s", 12, True)
+```
+
+Using `set_tag` sets the Tag values on both the Trace and all Captured Errors
+and Captured Warnings. Captured Errors and Captured Warnings can be created
+using the `logging.error` and `logging.warning` methods. Therefore, Tags set
+with `set_tag` will apply to all Captured Errors and Captured Warnings
+created using `logging.error` and `logging.warning`.
+
+#### Setting Tags on Captured Errors
+
+```python
+serverlessSdk.capture_error(
+    Exception("Captured error"),
+    tags={"userId": "example", "invocationId": invocation_id},
+)
+```
+
+Tags can also be set on the individual error. If you previously set a Tag using
+`set_tag` then the Tags set on `capture_error` will override the Tags on the
+Captured Error, while keeping the Tag on the trace unmodified.
+
+Tag keys on `capture_error` are validated the same way as tag keys on
+`set_tag`.
+
+#### Setting Tags on Captured Warnings
+
+```python
+serverlessSdk.capture_warning(
+    "Captured warning",
+    tags={"userId": "example", "invocationid": invocation_id},
+)
+```
+
+Tags can also be added on the individual Captured Warnings, just like Captured
+Errors.
+
+Tag keys on `capture_warning` are validated the same way as tag keys on
+`set_tag`.
+
+### Capturing Unhandled Exceptions with Flask
+
+Serverless Console will capture unhandled exceptions thrown from the handler
+method. This can be achieved without including the `sls_sdk` package, as
+it is provided by the AWS Lambda Layer added to your Lambda function when
+instrumentation is enabled.
+
+If you are using Flask, it will automatically handle unhandled exceptions. As a
+result, the exceptions do not propagate to the handler or the Serverless Console
+instrumentation layer. You can set the `PROPAGATE_EXCEPTIONS` configuration
+property in Flask for it to propagate the exception and make it available to
+Serverless Console. This will enable you to search for traces with unhandled
+exceptions in Serverless Console.
+
+```python
+app.config['PROPAGATE_EXCEPTIONS'] = True
+```
+
+Note, changing this behavior changes the behavior of the handler response so
+other updates may be necessary.
+
+### Structured Logs with capture_error and capture_warning
+
+The `capture_warning` and `capture_error` methods will send the content to
+Serverless Console in a binary format. To enable human-readability these
+methods will also output a structured-log JSON string, like the one shown
+below.
+
+This string is easier to read, and can also be used with other tools like
+CloudWatch Log Insights to parse and search.
+
+```json
+{
+  "source": "serverlessSdk",
+  "type": "ERROR_TYPE_CAUGHT_USER",
+  "message": "User not found",
+  "stackTrace": "...",
+  "tags": {
+    "userId": "eb661c69405c"
+  }
+}
+```
+
+To disable the output of the structured logs with `capture_error` and
+`capture_warning`, set this environment variable in the runtime.
+
+```bash
+SLS_DISABLE_CAPTURED_EVENTS_STDOUT=true
+```
+
+### Custom Spans
+
+Spans are part of the Trace that show when something started and stopped. Spans
+can be nested and they can contain Events. Spans are automatically created by
+the Serverless SDK for AWS and HTTP requests. These methods show you how you can
+create your own custom spans and nest them.
+
+#### Creating a Custom Span
+
+```python
+from sls_sdk import serverlessSdk
+span = serverlessSdk.create_span('some-label')
+# some work
+span.close()
+```
+
+#### Create a Custom Span using `with`
+
+Instead of creating a span and stopping it using `close()`, you can also use
+`with` to automatically stop the span.
+
+```python
+from sls_sdk import serverlessSdk
+
+with serverlessSdk.create_span('some-label'):
+    pass # the execution of this `with` statement will be captured as a span
+```
+
+#### Create a nested Span
+
+Spans can also be nested by calling the `create_span` method inside another.
+
+```python
+from sls_sdk import serverlessSdk
+
+span1 = serverlessSdk.create_span('span1')
+span2 = span1.create_span('span2')
+
+# do some work
+span2.close();
+# do additional work
+span1.close();
+```
+
+Child spans must be stopped via `close()` before the parent Span is stopped. If
+a parent span is stopped, then all child spans will be stopped.
+
+### Setting a custom endpoint
+
+When using a mono-lambda architecture, in which a single lambda function with a
+framework like Flask is routed from a single API Gateway endpoint, the
+request on API Gateway is captured as a proxy endpoint. As a result, the request
+may appear as `/{proxy+}` instead of the intended path. The Serverless SDK
+automatically instruments Flask to capture the correct endpoint. This enables
+you to filter for HTTP requests using the inteded path.
+
+In some cases, it may be necessary to manually set the endpoint. In such cases
+you can use the `set_endpoint` method to customize the endpoint path.
+
+```python
+serverlessSdk.set_endpoing('/my/custom/endpoint');
 ```

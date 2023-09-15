@@ -10,146 +10,314 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Node.js SDK
+Serverless Dashboard, when Instrumentation is enabled on an AWS Lambda function,
+will hook into the AWS Lambda runtime environment and automatically report
+metrics, traces, spans, and events. To capture handled errors, warnings, and to
+set custom tags, the SDK library must be added and instrumented in your AWS
+Lambda function handler.
 
-## `captureError`
+## Key terms
 
-Your lambda function may throw an exception, but your function handles it in order to respond to
-the requester without throwing the error. One very common example is functions tied to HTTP
-endpoints. Those usually should still return JSON, even if there is an error since the API Gateway
-integration will fail rather than returning a meaningful error.
+- An **Event** is an instance of an error, warning, or notice that is captured
+  as a part of a Trace. Multiple events can be captured in a single trace.
+- A **Captured Error** is an instance of an error that is sent to Serverless
+  Dashboard as an Event. It can be viewed in the Trace Explorer Details.
+- A **Captured Warning** is one instance of a string in Node.js that is sent to
+  Serverless Dashboard as an Event, much like a Captured Error.
+- A **Tag** is a key/value-pair that can be set on the Trace or an individual
+  Event, and sent to Serverless Dashboard. Tags can be viewed on the Trace
+  Explorer Details.
 
-For this case, we provide a `captureError` function available on either the `context.serverlessSdk` or on the
-module imported from `'./serverless_sdk'`. This will cause the invocation to still display as an
-error in the serverless dashboard while allowing you to return an error to the user.
+## Installation
 
-Here is an example of how to use it from the `context` object:
+### Install the package
 
-```javascript
-module.exports.hello = async (event, context) => {
-  try {
-    // do some real stuff but it throws an error, oh no!
-    throw new Error('aa');
-  } catch (error) {
-    context.serverlessSdk.captureError(error);
-  }
-  return {
-    statusCode: 500,
-    body: JSON.stringify({ name: 'bob' }),
-  };
-};
+When Tracing is enabled in Serverless Dashboard, an AWS Lambda Layer is added
+to your AWS Lambda function with the `@serverless/sdk` package. While the AWS
+Lambda layer is added by Serverless Dashboard, it is possible for the layer to
+be removed temporarily if you deploy manually or with some infrastructure as
+code tools. As such, we recommend bundling the SDK with your handler to avoid
+unresolved references to the SDK.
+
+```
+npm install @serverless/sdk --save
+# or
+yarn add @serverless/sdk
 ```
 
-And to import it instead, import with
-`const { captureError } = require('./serverless_sdk')` then call `captureError` instead of
-`context.serverlessSdk.captureError`.
+### Using a bundler
 
-```javascript
-const { captureError } = require('./serverless_sdk');
+If you use a bundler, like esbuild, the AWS Lambda Layer for Serverless
+Dashboard will instrument native Node.js APIs like `http` and `console`, and
+APIs available on the runtime like the AWS SDK; however, if the handler bundles
+APIs, like `express` or the AWS SDK, then Serverless Dashboard will not be able
+to auto-instrument. To enable auto-instrumentation for these APIs, you will need
+to manually add the AWS-specific auto-instrumentation library and initiate
+auto-instrumentation.
 
-module.exports.hello = async (event) => {
-  try {
-    // do some real stuff but it throws an error, oh no!
-    throw new Error('aa');
-  } catch (error) {
-    captureError(error);
-  }
-  return {
-    statusCode: 500,
-    body: JSON.stringify({ name: 'bob' }),
-  };
-};
+Install the `@serverless/aws-lambda-sdk` package locally. This replaces the need
+for the `@serverless/sdk` package, so you do not need both.
+
+```
+npm install @serverless/aws-lambda-sdk --save
+# or
+yarn add @serverless/aws-lambda-sdk
 ```
 
-## `span`
-
-While the `serverless_sdk` automatically instruments AWS SDK and HTTP spans, you may be interested
-in capturing span data for functions that do numerical computation or functions making database
-queries. For this use-case, you can use the `span` function provided by `serverless_sdk`. The first
-argument is a string, which will be used as the label of your span in the Dashboard. And the second
-argument is a function. If it returns a `Promise`, then so will `span` if it does not, `span` will
-return nothing.
-
-Example from context with an async function:
+Use the following methods to instrument the AWS client libraries and Express.js.
 
 ```javascript
-module.exports.handler = async (event, context) => {
-  await context.serverlessSdk.span('some-label', async () => {
-    // The execution of this function is captured as a span.
-    // It is automatically invoked with no arguments and awaited.
-  });
-};
+const express = require('express');
+const serverlessSdk = require('@serverless/aws-lambda-sdk');
+
+// Instrument AWS SDK v2
+serverlessSdk.instrumentation.awsSdkV2.install(AWS);
+
+// Instrument AWS SDK v3 client
+serverlessSdk.instrumentation.awsSdkV3Client.install(client);
+
+// Instruments Express.js
+const expressApp = express();
+// Ensure you install the SDK instrumentation before
+// installing any express middleware
+serverlessSdk.instrumentation.expressApp.install(expressApp);
 ```
 
-Example from context with a sync function:
+Additionally, in some instrumentation cases, it's important to ensure that
+the bundler doesn't change the function names, as span names and tags are
+resolved from them. In [esbuild](https://esbuild.github.io/) this can be ensured
+with [`--keep-names`](https://esbuild.github.io/api/#keep-names) option.
+
+### Enable Instrumentation
+
+The SDK will merely generate the necessary Tags, Spans, and Events; however,
+you must [Enable Instrumentation](/framework/docs/guide/monitoring/instrumentation)
+for each of your functions for Serverless Dashboard to ingest the data.
+
+## Usage
+
+The package does not require any configuration as the credentials are
+automatically set on the AWS Lambda function environment variables when Tracing
+is enabled in Serverless Dashboard.
+
+To use the Serverless SDK you must require the `@serverless/sdk` method in your
+AWS Lambda function handler.
 
 ```javascript
-module.exports.handler = async (event, context) => {
-  context.serverlessSdk.span('some-label', () => {
-    // The execution of this function is captured as a span.
-    // It is automatically invoked with no arguments.
-  });
-};
+const serverlessSdk = require('@serverless/sdk');
 ```
 
-You can also import the function from `'./serverless_sdk'`
+### Capturing Errors
+
+The most common use case for the Serverless SDK is to capture handled errors.
+There are two mechanisms for capturing handled errors.
+
+#### Using captureError
 
 ```javascript
-const { span } = require('./serverless_sdk');
-module.exports.handler = async (event, context) => {
-  span('some-label', () => {
-    // The execution of this function is captured as a span.
-    // It is automatically invoked with no arguments.
-  });
-};
+try {
+  // an error is thrown
+} catch (ex) {
+  serverlessSdk.captureError(ex);
+}
 ```
 
-## `tagEvent`
-
-Busy applications can invoke hundreds of thousands of requests per minute! At these rates, finding specific invocations can be like
-searching for a needle in a haystack. We've felt this pain, which is why we've introduced tagged events.
-Tagged Events are a simple way to identify invocations in the Serverless Dashboard. You can tag an invocation with any string you like, and find
-all invocations associated with that tag. To provide extra context, you can specify a tag value to optionally filter on. If you're accustomed to
-logging out a debugging object, you can pass a third `custom` attribute that will be surfaced in the dashboard as well.
-
-The `tagEvent` function is available on either the `context.serverlessSdk` or on the
-module imported from `'./serverless_sdk'`.
-
-Here is an example of how to use it from the `context.serverlessSdk` object:
+#### Using console.error
 
 ```javascript
-module.exports.hello = async (event, context) => {
-  // ... set up some state/custom logic
-  context.serverlessSdk.tagEvent('customer-id', event.body.customerId, {
-    demoUser: true,
-    freeTrialExpires: '2020-09-01',
-  });
-  return {
-    statusCode: 200,
-    body: JSON.stringify({ name: 'bob' }),
-  };
-};
+try {
+  // an error is thrown
+} catch (ex) {
+  console.error(ex);
+}
 ```
 
-## Automatic route instrumentation with application middleware
+The Serverless SDK automatically instruments the `console.error` method to
+capture errors. This makes instrumentation much easier as you may already be
+using `console.error` to display the errors.
 
-Faced with practical considerations (a big one being CloudFormation stack resource limit), developers often reach for a single function solution with routing being handled by the application layer. This is usually accomplished either by leveraging plugins that extend popular application frameworks to play nicely with the Lambda runtime (e.g. [serverless-express](https://serverless.com/plugins/serverless-express/)), using a purpose-built one (like [lambda-api](https://github.com/jeremydaly/lambda-api)), or even rolling their own (via [lambda-router](https://github.com/trek10inc/lambda-router)).
+This method can be used to capture `Error` objects, as well as any combination
+of strings. If only an `Error` object is provided, then the stack trace in
+Console will show the stack trace of the error object. If a string, or a
+combination of a string and `Error`, are provided, then the stack trace of the
+`console.error` will be captured.
 
-An unfortunate downside of this approach is the loss of visibility into the mapped route for invocations. Instead, you're left with either the catch-all API Gateway resource path (`/{proxy+}`) or the raw request url itself (e.g. `/org/foo/user/bar/orders`). Neither of which are conducive for exploration and debugging invocations. The former is not very useful and the latter wouldn't let you group invocations by their routed endpoints to bubble up say, performance issues.
+### Capturing Warnings
 
-To alleviate these issues, for an application using `serverless-express` or `lambda-api`, the SDK will automatically instrument incoming invocations to set the routed endpoint. There's zero setup required!
-
-If your application is using a custom-built router, you can still work around this issue by calling the `setEndpoint` SDK function described below.
-
-Once set, invocations can be explored and inspected by endpoint in the Dashboard.
-
-## `setEndpoint`
-
-Allows the application to explicitly set the routed endpoint for an invocation. Like the other SDK methods, `setEndpoint` is available on either the context object: `context.serverlessSdk`, or can be imported manually from the base directory: `const { setEndpoint } = require('./serverless_sdk')`. Example usage:
+#### Using captureWarning
 
 ```javascript
-module.exports.api = async (event, context) => {
-  context.serverlessSdk.setEndpoint('/api/foo');
-  // application code...
-};
+serverlessSdk.captureWarning('Something bad will happen soon');
+```
+
+#### Using console.warn
+
+```javascript
+console.warn('My Warning');
+```
+
+The Serverless SDK automatically instruments the `console.warn` method to
+capture warnings. This makes instrumentation easier as you may already be using
+`console.warn` to display warnings.
+
+This method only supports capturing strings.
+
+We recommend avoiding using unique instance values for the strings. For example,
+if you need to include a userId, email, request ID, or any ID that may be unique
+to the individual invocation, we recommend using Tagging instead.
+
+This method will capture the stack trace of the `console.warn` call so it
+is easy to identify in Serverless Dashboard.
+
+### Tagging
+
+#### Setting Tags on the Trace
+
+```javascript
+serverlessSdk.setTag('userId', 'bd86489cf036');
+```
+
+Using the `setTag` method will create Tags associated with the entire Trace.
+You'll be able to see the Tags on the Trace Details page in the Trace Explorer.
+
+All Tags set with `setTag` are also inherited by all the Captured Errors and
+Captured Warnings.
+
+Tag keys may only contain alphanumeric, `.`, `-`, and `_` characters. Tag values
+may contain any string value. Invalid tag keys will not throw errors, instead,
+an SDK error will be made available in Trace Details.
+
+#### Settings Tags with console.error and console.warn
+
+```javascript
+serverlessSdk.setTag('userId', 'bd86489cf036');
+console.warn('warning message');
+console.error(new Error('some error'));
+```
+
+Using `setTag` sets the Tag values on both the Trace and all Captured Errors
+and Captured Warnings. Captured Errors and Captured Warnings can be created
+using the `console.error` and `console.warn` methods. Therefore, Tags set with
+`setTag` will apply to all Captured Errors and Captured Warnings created using
+`console.error` and `console.warn`.
+
+#### Setting Tags on Captured Errors
+
+```javascript
+serverlessSdk.captureError(ex, { tags: { userId: '1b8b4c6b4b14' } });
+```
+
+Tags can also be set on the individual error. If you previously set a Tag using
+`setTag` then the Tags set on `captureError` will override the Tags on the
+Captured Error, while keeping the Tag on the trace unmodified.
+
+Tag keys on `captureError` are validated the same way as tag keys on `setTag`.
+
+#### Setting Tags on Captured Warnings
+
+```javascript
+serverlessSdk.captureWarning('warning message', { tags: { userId: 'eb661c69405c' } });
+```
+
+Tags can also be added on the individual Captured Warnings, just like Captured
+Errors.
+
+Tag keys on `captureWarning` are validated the same way as tag keys on
+`setTag`.
+
+### Structured Logs with captureError and captureWarning
+
+The `captureWarning` and `captureError` methods will send the content to
+Serverless Console in a binary format. To enable human-readability these
+methods will also output a structured-log JSON string, like the one shown
+below.
+
+This string is easier to read, and can also be used with other tools like
+CloudWatch Log Insights to parse and search.
+
+```javascript
+{
+  "source": "serverlessSdk",
+  "type": "ERROR_TYPE_CAUGHT_USER",
+  "message": "User not found",
+  "stackTrace": "...",
+  "tags": {
+    "userId": "eb661c69405c"
+   }
+}
+```
+
+To disable the output of the structured logs with `captureError` and
+`captureWarning`, set this environment variable in the runtime.
+
+```bash
+SLS_DISABLE_CAPTURED_EVENTS_STDOUT=true
+```
+
+### Creating Custom Spans
+
+Spans are part of the Trace that show when something started and stopped. Spans
+can be nested and they can contain Events. Spans are automatically created by
+the Serverless SDK for AWS and HTTP requests. These methods show you how you can
+create your own custom spans and nest them.
+
+#### Create a Custom Span
+
+```javascript
+const customSpan1 = serverlessSdk.createSpan('mySpan');
+// do some work
+customSpan1.close();
+```
+
+#### Creating a Custom Span with a callback
+
+Instead of creating a span and stopping it using `close()`, you can also pass a
+callback method to `createSpan` to automatically start/stop the span when the
+callback starts/stops.
+
+```javascript
+serverlessSdk.createSpan('mySpan', () => {
+  // do some work
+});
+```
+
+This also supports `async` callbacks.
+
+```javascript
+serverlessSdk.createSpan('mySpan', async () => {
+  // do some work
+});
+```
+
+#### Creating Nested Spans
+
+Spans can also be nested by calling the `createSpan` method on a Span.
+
+```javascript
+const span1 = serverlessSdk.createSpan('span1');
+const span2 = span1.createSpan('span2');
+// do some work
+span2.close();
+// do additional work
+span1.close();
+```
+
+Child spans must be stopped via `close()` before the parent Span is stopped. If
+a parent span is stopped, then all child spans will be stopped.
+
+### Setting a custom endpoint
+
+When using a mono-lambda architecture, in which a single lambda function with a
+framework like Express.js is routed from a single API Gateway endpoint, the
+request on API Gateway is captured as a proxy endpoint. As a result, the request
+may appear as `/{proxy+}` instead of the intended path. The Serverless SDK
+automatically instruments frameworks like Express.js, KOA, etc. to capture the
+correct endpoint. This enables you to filter for HTTP requests using the
+inteded path.
+
+In some cases, it may be necessary to manually set the endpoint. In such cases
+you can use the `setEndpoint` method to customize the endpoint path.
+
+```javascript
+serverlessSdk.setEndpoint('/my/custom/endpoint');
 ```
