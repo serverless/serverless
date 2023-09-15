@@ -17,11 +17,7 @@ Serverless Monitoring help you monitor, develop and optimize your serverless app
 
 ## Installing
 
-To enable monitoring update your service with the following in the `serverless.yml` and deploy.
-
-```yaml
-monitor: true
-```
+Monitoring is enabled by default if `org` and `app` are defined in the `serverless.yml`, you just need to deploy your service once those lines are added. 
 
 ## Configuration
 
@@ -39,7 +35,12 @@ When deploying, Serverless Framework will also create an IAM role in your accoun
 
 ## Disabling log collection
 
-If you wish to disable log collection, simply remove `monitoring: true` from the `serverless.yml`.
+If you wish to disable log collection, simply add this to `serverless.yml`.
+
+```yaml
+dashboard:
+  disableMonitoring: true
+```
 
 **AWS Spans**
 
