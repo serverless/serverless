@@ -17,7 +17,7 @@ Serverless Monitoring help you monitor, develop and optimize your serverless app
 
 ## Installing
 
-Monitoring is enabled by default if `org` and `app` are defined in the `serverless.yml`, you just need to deploy your service once those lines are added. 
+Monitoring is enabled by default if `org` and `app` are defined in the `serverless.yml`, you just need to deploy your service once those lines are added.
 
 ## Configuration
 
