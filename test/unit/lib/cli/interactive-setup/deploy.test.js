@@ -36,33 +36,6 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
     expect(context.inapplicabilityReasonCode).to.equal('NON_AWS_PROVIDER');
   });
 
-  it('Should be not applied, when service is not in onboarding context', async () => {
-    const context = {
-      configuration: { provider: { name: 'aws' } },
-      serviceDir: '/foo',
-      options: {},
-      isOnboarding: false,
-      history: new Map([['awsCredentials', []]]),
-      initial: { isInServiceContext: true },
-    };
-    expect(await step.isApplicable(context)).to.equal(false);
-    expect(context.inapplicabilityReasonCode).to.equal('CONSOLE_INTEGRATION');
-  });
-
-  it('Should be not applied, when in console context', async () => {
-    const context = {
-      configuration: { provider: { name: 'aws' } },
-      serviceDir: '/foo',
-      options: {},
-      isOnboarding: true,
-      isConsole: true,
-      history: new Map([['awsCredentials', []]]),
-      initial: { isInServiceContext: true },
-    };
-    expect(await step.isApplicable(context)).to.equal(false);
-    expect(context.inapplicabilityReasonCode).to.equal('CONSOLE_INTEGRATION');
-  });
-
   it('Should be applied if user configured local credentials', async () => {
     await overrideEnv(
       { variables: { AWS_ACCESS_KEY_ID: 'somekey', AWS_SECRET_ACCESS_KEY: 'somesecret' } },
