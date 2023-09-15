@@ -131,7 +131,8 @@ custom:
 Use the `monitor` option to disable monitoring instead:
 
 ```yaml
-monitor: false
+dashboard:
+  disableMonitoring: true
 ```
 
 ### Remove Dashboard SDK Wrapping (optional)
