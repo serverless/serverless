@@ -133,7 +133,6 @@ describe('test/unit/lib/cli/interactive-setup/dashboard-set-org.test.js', functi
       configurationFilename: 'serverless.yml',
       options: {},
       isDashboard: false,
-      isConsole: false,
     };
     expect(await step.isApplicable(context)).to.equal(false);
     expect(context.inapplicabilityReasonCode).to.equal('CONSOLE_CONTEXT');

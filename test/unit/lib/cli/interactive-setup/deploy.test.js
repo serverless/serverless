@@ -55,7 +55,6 @@ describe('test/unit/lib/cli/interactive-setup/deploy.test.js', () => {
       serviceDir: '/foo',
       options: {},
       isOnboarding: true,
-      isConsole: true,
       history: new Map([['awsCredentials', []]]),
       initial: { isInServiceContext: true },
     };
