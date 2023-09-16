@@ -30,6 +30,10 @@ describe('test/unit/lib/cli/interactive-setup/index.test.js', () => {
         instructionString: 'What do you want to call this project?',
         input: 'interactive-setup-test',
       },
+      {
+        instructionString: 'Register or Login to Serverless Framework',
+        input: 'n',
+      },
 
       // aws-credentials
       {
