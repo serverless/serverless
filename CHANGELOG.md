@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.35.1](https://github.com/serverless/serverless/compare/v3.35.0...v3.35.1) (2023-09-16)
+
+### Bug Fixes
+
+- Do not use isDashboard in onboarding flow ([#12160](https://github.com/serverless/serverless/issues/12160)) ([1f8d786](https://github.com/serverless/serverless/commit/1f8d786b16d7682912c464d67add589f48666987))
+
 ## [3.35.0](https://github.com/serverless/serverless/compare/v3.34.0...v3.35.0) (2023-09-15)
 
 ### Features
