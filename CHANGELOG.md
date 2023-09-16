@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.35.2](https://github.com/serverless/serverless/compare/v3.35.1...v3.35.2) (2023-09-16)
+
+### Bug Fixes
+
+- Adjust copy for clarity ([#12162](https://github.com/serverless/serverless/issues/12162)) ([101ce53](https://github.com/serverless/serverless/commit/101ce53c18bae3709d5cc70a483cce81206752ec))
+
 ### [3.35.1](https://github.com/serverless/serverless/compare/v3.35.0...v3.35.1) (2023-09-16)
 
 ### Bug Fixes
