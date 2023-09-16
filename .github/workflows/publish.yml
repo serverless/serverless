@@ -144,4 +144,4 @@ jobs:
           cd `npm run pkg:generate-choco-package $TAG | tail -1`
           choco apikey --key $CHOCO_API_KEY --source https://push.chocolatey.org/
           choco pack
-          choco push serverless.${TAG:1}.nupkg
+          choco push --source https://push.chocolatey.org/ serverless.${TAG:1}.nupkg
