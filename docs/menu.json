@@ -446,10 +446,8 @@
     "Overview": "guides/dashboard",
     "Monitoring": {
       "Overview": "guides/monitoring",
-      "Alerts": "guides/monitoring/alerts",
       "Instrumentation": "guides/monitoring/instrumentation",
       "Metrics": "guides/monitoring/metrics",
-      "Notifications": "guides/monitoring/notifications",
       "Trace Explorer": "guides/monitoring/trace-explorer"
     },
     "Outputs": "guides/output-variables",
@@ -462,7 +460,6 @@
       "Custom Scripts": "guides/cicd/custom-scripts",
       "Testing": "guides/cicd/running-tests",
       "Private Packages": "guides/cicd/private-packages",
-      "Notifications": "guides/cicd/notifications",
       "Mono Repos": "guides/cicd/mono-repo",
       "Deploy in your own CI/CD": "guides/cicd/running-in-your-own-cicd",
       "Best Practices": "guides/cicd/best-practices",
