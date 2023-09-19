@@ -10,6 +10,8 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
+# Node.js SDK
+
 Serverless Dashboard, when Instrumentation is enabled on an AWS Lambda function,
 will hook into the AWS Lambda runtime environment and automatically report
 metrics, traces, spans, and events. To capture handled errors, warnings, and to
