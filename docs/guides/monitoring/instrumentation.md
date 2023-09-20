@@ -1,6 +1,7 @@
 <!--
 title: Serverless Dashboard - Instrumentation
 menuText: Instrumentation
+menuOrder: 1
 layout: Doc
 -->
 

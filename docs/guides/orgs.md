@@ -1,8 +1,8 @@
 <!--
-title: Serverless Framework - Orgs & Members
-menuText: Serverless Orgs & Members
-menuOrder: 12
-description: Orgs & Members in Serverless Framework Dashboard
+title: Serverless Framework Dashboard - Concepts
+menuText: Concepts
+menuOrder: 2
+description: The Concepts within Serverless Framework Dashboard
 layout: Doc
 -->
 

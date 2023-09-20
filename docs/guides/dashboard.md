@@ -2,6 +2,7 @@
 title: Serverless Framework Dashboard
 menuText: Setup & Overview
 menuOrder: 1
+description: An overview and set-up guide for Serverless Framework Dashboard
 layout: Doc
 -->
 
