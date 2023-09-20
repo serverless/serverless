@@ -1,6 +1,6 @@
 <!--
-title: Serverless Dashboard
-menuText: Dashboard
+title: Serverless Framework Dashboard
+menuText: Setup & Overview
 menuOrder: 1
 layout: Doc
 -->
@@ -11,49 +11,47 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Serverless Dashboard
+# Serverless Framework Dashboard
 
-The [Serverless Framework Dashboard](https://app.serverless.com/) is a SaaS solution that augments the Serverless Framework open source CLI to provide a powerful, unified experience to develop, deploy, test, secure and monitor your serverless applications.
+The [Serverless Framework Dashboard](https://app.serverless.com/) is a SaaS solution that augments the Serverless Framework CLI to provide a powerful, unified experience to develop, deploy, test, secure and monitor your serverless applications, across all AWS accounts.
 
-The Serverless Framework free tier gives developers full access to all features included in the Serverless Framework Dashboard, but is limited to 100,000 function invocations per month. If you are interested in expanding your usage of the Serverless Framework beyond the free tier [contact us](https://www.serverless.com/sales) for details re available plans and pricing.
+The aim of the Serverless Framework and its Dashboard is to offer a seamless, integrated development experience for you and your team throughout the entire lifecycle of your serverless applications. We hope it's a breath of fresh air compared to the complexity of interacting with the AWS Console across several accounts, directly.
+
+## Features
+
+- **Deployments:** Easily see all Serverless Framework deployments made by you and your team, via CI/CD or local installations of the CLI, across all of your AWS accounts, in one place. Quickly check who made the deployment, what the status is, how it may have failed, see git metadata, serverless.yml, outputs, and much more.
+
+- **Secrets:** Set and share secrets in one place, for use within your Serverless Framework `serverless.yml` files. This works across all AWS accounts, so it's ideal for making secrets easy to use without wrestling with AWS permissions to access them. Secrets are encrypted and secure by default.
+
+- **Observability:** The richest and slickest observability solution for AWS Lambda on the market. We've spent years crafting an observability solution that developers love, specializing in AWS Lambda. Set-up requires zero effort and you will instantly get rich Metrics, Traces, Logs and Alerts, just deploy with the Serverless Framework. The Observability features also support non-Serverless Framework deployed AWS Lambda functions. Simply connect your AWS accounts and you'll be able to instrument all of the AWS Lambda functions in them.
+
+- **Providers:** Providers make it easy to manage deployment access to your AWS accounts. Each Provider connects to 1 AWS account, and you can assign it to specific Services, Stages, or set a Provider as a default across an entire AWS account. This enables your team to never have to deal with local AWS credentials. Providers use an AWS IAM Role to connect to your account and provide short-term credentials for every deployment, which is more secure by default.
+
+- **CI/CD:** CI/CD optimized for Serverless Framework that works out-of-the-box. Simply connect it to Github or BitBucket to enable automated deployments. Set up preview deployments for branches, and much more.
 
 ## Minimum Version Requirements
 
-To take full advantage of the Serverless Framework Dashboard you must be using Serverless Framework open-source CLI version 1.48.0 or later.
+To use Serverless Framework Dashboard, you must be using Serverless Framework CLI version 1.48.0 or later.
 
-## Supported Runtimes and Regions
+For Serverless Framework's new Observability offering, you must use version 3.35.0 or later.
 
-Currently, the Serverless Framework Dashboard supports the following providers, runtimes and regions.
+## Quick-Start
 
-- Provider: AWS
-- Runtimes: Node.js, Python
-- Regions: us-east-1, us-east-2, us-west-1, us-west-2, eu-central-1, eu-west-1, eu-west-2, eu-west-3, ap-northeast-1, ap-south-1, ap-southeast-1, ap-southeast-2, sa-east-1, ca-central-1
+If you don't already have a Serverless Framework account, create a new account at [https://app.serverless.com](https://app.serverless.com).
 
-Need unsupported providers, runtimes or regions? [Let us know](https://www.serverless.com/sales) what you need. We are working hard to quickly expand our supported runtimes and regions.
+If you don't have existing Serverless Framework Services, follow the [Getting Started with the Serverless Framework and AWS](/framework/docs/getting-started/) guide. This will help you get a Serverless Framework Service deployed to AWS, and enabled with the Dashboard.
 
-## Installing
+If you have existing Serverless Framework Services, in the directory with your Service's `serverless.yml` file, run the `serverless` command. This will walk you through the setup process, including setting up your AWS account credentials and creating an organization and application from the Dashboard. Once completed, you'll notice that the `org` and `app` fields will be added to your `serverless.yml` to indicate the org/app to which this service belongs.
 
-To get started with the Serverless Framework Dashboard, follow the [Getting Started with the Serverless Framework and AWS](/framework/docs/getting-started/) guide. When you run the `serverless` command, you will be asked if you would like to enable dashboard features.
+You can also add the configuration manually to your `serverless.yml` files within your Serverless Framework Services to connect to the Dashboard.
 
-## Enabling the Dashboard on existing Serverless Framework services
+```YAML
 
-If you have an existing Serverless Framework service, it is incredibly easy to enable the Serverless Framework Dashboard features. Just follow the [Getting Started with the Serverless Framework and AWS](/framework/docs/getting-started/) guide to install update the Serverless Framework to the latest release.
+org: # Your Serverless Framework Org name (e.g. acme-inc)
+app: # A parent namespce for this Service and related Services App name (e.g. mobile-app), to improve Serverless Framework Dashboard organization
 
-If you don't already have a Serverless account, create a new account at [https://app.serverless.com](https://app.serverless.com).
-
-After you create your account, run `serverless login` on the CLI to authenticate your CLI with the dashboard.
-
-In your working directory with your `serverless.yml` file, run `serverless`. This will walk you through the setup process, including setting up your AWS account credentials and selecting your organization and application from the dashboard. Once completed, you'll notice that the `org` and `app` fields will be added to your `serverless.yml` to indicate the org/app to which this service belongs.
-
-You can also integrate the dashboard manually simply by adding `org` and `app` to your `serverless.yml` in your favorite IDE using the org and app name from the dashboard.
-
-```yaml
-org: <org>
-app: <app>
 ```
 
-Once the `org` and `app` fields are set, just run `serverless deploy` to redeploy your service with the instrumentation needed for the Dashboard.
+You must deploy your Service to have it show in the Dashboard with the following configuration in your YAML file. Run `serverless deploy` to do this.
 
-## Moving Between Dashboard Apps
-
-You can associate each service with its own app or group them into specific apps. If you already added your service to an app and want to add it to a different app, you need to create that app in the Dashboard before changing the `app` in `serverless.yml` if it doesn't already exist. Then, simply change the app name in `serverless.yml`.
+By default, Deployment history and Observability will be set up automatically. To enable Observability, Serverless Framework will automatically create an AWS IAM Role within the AWS account you deployed to, giving Serverless Inc permission to AWS Cloudwatch and more. [You can transparently see the permissions this role requires in Github](https://github.com/serverless/console/blob/main/instrumentation/aws/iam-role-cfn-template.yaml).
