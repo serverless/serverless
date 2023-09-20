@@ -33,9 +33,7 @@ To use providers you must add the providers to your organization and then link t
 
 ### Adding providers to your organization
 
-To add a provider to your organization go the **org** section of the [dashboard](https://app.serverless.com). Under the **providers** tab, click **add** and follow the instructions.
-
-You’ll be able to select the provider, like AWS, Stripe, and Twilio, name the provider, and set the credentials.
+To add a provider to your organization go the **Org Settings** section of the [dashboard](https://app.serverless.com). Under the **Providers** tab, click **Add** and follow the instructions.
 
 It is recommended that you deploy your Serverless Framework apps to different accounts for each stage. To accomplish this we recommend adding a `dev` and `prod` provider to decouple the prod environment from all other environments.
 
