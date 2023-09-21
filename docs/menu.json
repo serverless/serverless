@@ -401,15 +401,15 @@
     }
   },
   "Dashboard": {
-    "Overview": "guides/dashboard/overview-and-setup",
-    "Monitoring": {
+    "Overview": "guides/dashboard",
+    "Monitoring & Observability": {
       "Overview": "guides/dashboard/monitoring",
       "Metrics": "guides/dashboard/monitoring/metrics",
       "Traces": "guides/dashboard/monitoring/traces",
       "SDK": {
         "Overview": "guides/dashboard/sdk",
-        "nodejs": "guides/dashboard/sdk/nodejs",
-        "python": "guides/dashboard/sdk/python"
+        "Node.js": "guides/dashboard/sdk/nodejs",
+        "Python": "guides/dashboard/sdk/python"
       }
     },
     "Parameters": "guides/dashboard/parameters",
