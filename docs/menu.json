@@ -407,9 +407,9 @@
       "Metrics": "guides/dashboard/monitoring/metrics",
       "Traces": "guides/dashboard/monitoring/traces",
       "SDK": {
-        "Overview": "guides/dashboard/sdk",
-        "Node.js": "guides/dashboard/sdk/nodejs",
-        "Python": "guides/dashboard/sdk/python"
+        "Overview": "guides/dashboard/monitoring/sdk",
+        "Node.js": "guides/dashboard/monitoring/sdk/nodejs",
+        "Python": "guides/dashboard/monitoring/sdk/python"
       }
     },
     "Parameters": "guides/dashboard/parameters",
