@@ -1,7 +1,7 @@
 <!--
-title: Serverless Dashboard - Providers
+title: Serverless Framework Dashboard - Providers
 menuText: Providers
-menuOrder: 8
+menuOrder: 5
 layout: Doc
 -->
 

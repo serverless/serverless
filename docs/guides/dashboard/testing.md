@@ -1,7 +1,7 @@
 <!--
-title: Serverless Dashboard - Testing
+title: Serverless Framework Dashboard - Testing
 menuText: Testing
-menuOrder: 11
+menuOrder: 7
 layout: Doc
 -->
 
@@ -14,9 +14,7 @@ layout: Doc
 # Testing
 
 Serverless Framework supports defining and running integration tests against lambdas
-with HTTP integrations. To get started, assuming we have the default configuration in from the
-[enterprise-template](https://github.com/serverless/enterprise-template), you can define a test for
-it as follows with a `serverless.test.yml` file:
+with HTTP integrations. To get started, assuming we have the default configuration in from the [enterprise-template](https://github.com/serverless/enterprise-template), you can define a test for it as follows with a `serverless.test.yml` file:
 
 ```yml
 - name: hello endpoint returns 200
@@ -26,8 +24,7 @@ it as follows with a `serverless.test.yml` file:
     status: 200
 ```
 
-Then, when you run `sls test` (your function must already have been deployed) it will make an HTTP
-request against the `hello` function and pass if the response has a status code of 200:
+Then, when you run `sls test` (your function must already have been deployed) it will make an HTTP request against the `hello` function and pass if the response has a status code of 200:
 
 ```
 $ sls test

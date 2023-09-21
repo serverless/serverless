@@ -1,6 +1,7 @@
 <!--
-title: Serverless SDK - Python
-menuText: python
+title: Serverless Framework - SDK - Python
+menuText: Python
+menuOrder: 2
 layout: Doc
 -->
 
@@ -12,8 +13,7 @@ layout: Doc
 
 # Python SDK
 
-Serverless Console, when Instrumentation is enabled on an AWS Lambda function,
-will hook into the AWS Lambda runtime environment and automatically report
+Serverless Framework Dashboard, when Instrumentation is enabled on an AWS Lambda function, will hook into the AWS Lambda runtime environment and automatically report
 metrics, traces, spans, and events. To capture handled errors, warnings, and to
 set custom tags, the SDK library must be added and instrumented in your AWS
 Lambda function handler.
@@ -23,29 +23,23 @@ Lambda function handler.
 - An **Event** is an instance of an error, warning, or notice that is captured
   as a part of a Trace. Multiple events can be captured in a single trace.
 - A **Captured Error** is an instance of an error that is sent to Serverless
-  Console as an Event. It can be viewed in Dev Mode or the Trace Explorer Details.
+  Framework Dashboard as an Event. It can be viewed in Dev Mode or the Trace Explorer Details.
 - A **Captured Warning** is one instance of a string in Python that is sent to
-  Serverless Console as an Event, much like a Captured Error.
+  Serverless Framework Dashboard as an Event, much like a Captured Error.
 - A **Tag** is a key/value-pair that can be set on the Trace or an individual
-  Event, and sent to Serverless Console. Tags can be viewed on the Trace Explorer
+  Event, and sent to Serverless Framework Dashboard. Tags can be viewed on the Trace Explorer
   Details and Dev Mode.
 
 ## Compatibility
 
-While Serverless Console is developed by the makers of the Serverless Framework,
-the entire Serverless Console product and this SDK are 100% agnostic of the
-deployment tool you use. Serverless Console and this SDK work just as well with
-Terraform, CDK, SAM, Pulumi, etc, as as they do with Serverless Framework.
+While Serverless Framework Dashboard is developed by the makers of the Serverless Framework, the entire Serverless Framework Dashboard product and this SDK are 100% agnostic of the deployment tool you use. Serverless Framework Dashboard and this SDK work just as well with Terraform, CDK, SAM, Pulumi, etc, as as they do with Serverless Framework.
 
 ## Installation
 
 ### Install the package
 
-When Tracing is enabled in Serverless Console, an AWS Lambda Layer is added to
-your AWS Lambda function with the `sls_sdk` package. While the AWS
-Lambda layer is added by Serverless Console, it is possible for the layer to be
-removed temporarily if you deploy manually or with some infrastructure as code
-tools. As such, we recommend bundling the SDK with your handler to avoid
+When Tracing is enabled in Serverless Framework Dashboard, an AWS Lambda Layer is added to your AWS Lambda function with the `sls_sdk` package. While the AWS
+Lambda layer is added by Serverless Framework Dashboard, it is possible for the layer to be removed temporarily if you deploy manually or with some infrastructure as code tools. As such, we recommend bundling the SDK with your handler to avoid
 unresolved references to the SDK.
 
 ```
@@ -55,14 +49,14 @@ pip install serverless-sdk
 ### Enable Instrumentation
 
 The SDK will merely generate the necessary Tags, Spans, and Events; however,
-you must [Enable Instrumentation](/console/docs/instrumentation) for each of
-your functions for Serverless Console to ingest the data.
+you must [Enable Instrumentation](/framework/docs/monitoring) for each of
+your functions for Serverless Framework Dashboard to ingest the data.
 
 ## Usage
 
 The package does not require any configuration as the credentials are
 automatically set on the AWS Lambda function environment variables when Tracing
-is enabled in Serverless Console.
+is enabled in Serverless Framework Dashboard.
 
 To use the Serverless SDK you must import the `sls_sdk` package in your
 AWS Lambda function handler.
@@ -96,9 +90,7 @@ using `logging.error` to display the errors.
 
 This method can be used to capture `Exception` objects, as well as any
 combination of strings. If only an `Exception` object is provided, then the
-stack trace in Console will show the stack trace of the error object. If a
-string, or a combination of a string and `Exception`, are provided, then the
-stack trace of the `logging.error` will be captured.
+stack trace in Serverless Framework Dashboard will show the stack trace of the error object. If a string, or a combination of a string and `Exception`, are provided, then the stack trace of the `logging.error` will be captured.
 
 ### Capturing Warnings
 
@@ -127,7 +119,7 @@ if you need to include a userId, email, request ID, or any ID that may be unique
 to the individual invocation, we recommend using Tagging instead.
 
 This method will capture the stack trace of the `logging.warning` call so it
-is easy to identify in Console.
+is easy to identify in Serverless Framework Dashboard.
 
 ### Tagging
 
@@ -177,8 +169,7 @@ Tags can also be set on the individual error. If you previously set a Tag using
 `set_tag` then the Tags set on `capture_error` will override the Tags on the
 Captured Error, while keeping the Tag on the trace unmodified.
 
-Tag keys on `capture_error` are validated the same way as tag keys on
-`set_tag`.
+Tag keys on `capture_error` are validated the same way as tag keys on `set_tag`.
 
 #### Setting Tags on Captured Warnings
 
@@ -197,29 +188,25 @@ Tag keys on `capture_warning` are validated the same way as tag keys on
 
 ### Capturing Unhandled Exceptions with Flask
 
-Serverless Console will capture unhandled exceptions thrown from the handler
-method. This can be achieved without including the `sls_sdk` package, as
+Serverless Framework Dashboard will capture unhandled exceptions thrown from the handler method. This can be achieved without including the `sls_sdk` package, as
 it is provided by the AWS Lambda Layer added to your Lambda function when
 instrumentation is enabled.
 
 If you are using Flask, it will automatically handle unhandled exceptions. As a
-result, the exceptions do not propagate to the handler or the Serverless Console
-instrumentation layer. You can set the `PROPAGATE_EXCEPTIONS` configuration
+result, the exceptions do not propagate to the handler or the Serverless Framework Dashboard instrumentation layer. You can set the `PROPAGATE_EXCEPTIONS` configuration
 property in Flask for it to propagate the exception and make it available to
-Serverless Console. This will enable you to search for traces with unhandled
-exceptions in Serverless Console.
+Serverless Framework Dashboard. This will enable you to search for traces with unhandled exceptions in Serverless Framework Dashboard.
 
 ```python
 app.config['PROPAGATE_EXCEPTIONS'] = True
 ```
 
-Note, changing this behavior changes the behavior of the handler response so
-other updates may be necessary.
+Note, changing this behavior changes the behavior of the handler response so other updates may be necessary.
 
 ### Structured Logs with capture_error and capture_warning
 
 The `capture_warning` and `capture_error` methods will send the content to
-Serverless Console in a binary format. To enable human-readability these
+Serverless Framework Dashboard in a binary format. To enable human-readability these
 methods will also output a structured-log JSON string, like the one shown
 below.
 
@@ -284,9 +271,9 @@ span1 = serverlessSdk.create_span('span1')
 span2 = span1.create_span('span2')
 
 # do some work
-span2.close();
+span2.close()
 # do additional work
-span1.close();
+span1.close()
 ```
 
 Child spans must be stopped via `close()` before the parent Span is stopped. If
@@ -305,5 +292,5 @@ In some cases, it may be necessary to manually set the endpoint. In such cases
 you can use the `set_endpoint` method to customize the endpoint path.
 
 ```python
-serverlessSdk.set_endpoing('/my/custom/endpoint');
+serverlessSdk.set_endpoint('/my/custom/endpoint')
 ```

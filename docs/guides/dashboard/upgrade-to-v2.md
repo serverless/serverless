@@ -1,8 +1,8 @@
 <!--
-title: Serverless Framework Dashboard - Upgrade Guide
-menuText: Upgrade Guide
-menuOrder: 12
-description: Upgrading Serverless Framework Dashboard
+title: Serverless Framework Dashboard - V.2 Upgrade Guide
+menuText: V2 Upgrade Guide
+menuOrder: 8
+description: Upgrading to Serverless Framework Dashboard V.2
 layout: Doc
 -->
 

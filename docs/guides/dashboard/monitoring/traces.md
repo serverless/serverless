@@ -1,6 +1,7 @@
 <!--
-title: Serverless Dashboard - Trace Explorer
-menuText: Trace Explorer
+title: Serverless Framework - Monitoring & Observability - Traces
+menuText: Traces
+menuOrder: 3
 layout: Doc
 -->
 
@@ -10,7 +11,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Trace Explorer
+# Traces
 
 Traces, Spans, Logs, and Events are captured and made available in Trace
 Explorer for your AWS Lambda functions when [Instrumentation](./instrumentation.md)

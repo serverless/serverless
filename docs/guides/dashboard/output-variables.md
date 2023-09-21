@@ -1,7 +1,7 @@
 <!--
-title: Serverless Dashboard - Outputs
+title: Serverless Fraemwork Dashboard - Outputs
 menuText: Outputs
-menuOrder: 5
+menuOrder: 4
 layout: Doc
 -->
 

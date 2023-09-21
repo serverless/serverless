@@ -1,5 +1,5 @@
 <!--
-title: Serverless Framework Dashboard
+title: Serverless Framework Dashboard - Setup & Overview
 menuText: Setup & Overview
 menuOrder: 1
 description: An overview and set-up guide for Serverless Framework Dashboard
@@ -36,7 +36,7 @@ To use Serverless Framework Dashboard, you must be using Serverless Framework CL
 
 For Serverless Framework's new Observability offering, you must use version 3.35.0 or later.
 
-## Quick-Start
+## Set-Up
 
 If you don't already have a Serverless Framework account, create a new account at [https://app.serverless.com](https://app.serverless.com).
 

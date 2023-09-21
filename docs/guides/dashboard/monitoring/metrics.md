@@ -1,6 +1,7 @@
 <!--
-title: Serverless Dashboard - Metrics
+title: Serverless Framework - Monitoring & Observability - Metrics
 menuText: Metrics
+menuOrder: 2
 layout: Doc
 -->
 
