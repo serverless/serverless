@@ -123,23 +123,23 @@ Our AWS Lambda Layer is not an External Extension. Through extensive research an
 
 Additionally, our integration will listen to CloudTrail events and will automatically check to ensure our AWS Lambda Layer and Environment Variables are still attached every time each function has been updated. This only happens for AWS Lambda functions with "Instrument" enabled. This allows you to use any deployment tool with Serverless Framework's Observability & Monitoring features. It also ensures that if you set "Instrument", we guarantee those AWS Lambda functions will be instrumented, mitigating deployment and configuration mistakes.
 
-### Debugging Integration & Instrumentation Issues
+## Debugging Integration & Instrumentation Issues
 
 Serverless Framework seeks to automate all aspects of integrating into AWS accounts and instrumenting your AWS Lambda functions, saving you time and effort required when doing this manually. However, this can be a complex operation depending on how your AWS accounts and functions are configured.
 
 If you do not see Metrics or Traces within Serverless Framework Dashboard, or these are missing for some AWS Lambda functions, here is a runbook to debug any issues:
 
-#### Create Invocations
+### Create Invocations
 
 Metrics and Traces will only show up after the Integration has been created and your AWS Lambda functions have been set to "Instrumented". After that, ensure your AWS Lambda functions have been invoked to get Metrics and Traces to appear. Metrics and Traces for invocations that happened before the Integration was fully set up will not show in Serverless Framework Dashboard.
 
-#### Wait 10 Minutes
+### Wait 10 Minutes
 
 Wait at least 10 minutes for Metrics & Traces to show up after creating the Integration. Be sure to trigger AWS Lambda invocations after that 10 minute period to creat Metrics and Traces.
 
 If you have just removed the Integration and have immediately created a new one in the same AWS account. It may take up to 20 minutes for the Integration to finish set-up. This is due to some resources taking a while to be deleted and then re-created on the AWS account.
 
-#### Check To See If Traces Aren't Being Sampled
+### Check To See If Traces Aren't Being Sampled
 
 Trace Sampling may be the reason some AWS Lambda Traces are missing.
 
@@ -147,21 +147,21 @@ Trace Sampling happens automatically for individual AWS Lambda functions (i.e. s
 
 There is also an Environment Variable to disable Trace Sampling for an individual AWS Lambda function. It is `SLS_DISABLE_TRACE_SAMPLING`. You will have to set this manually.
 
-#### Check The AWS Integration Cloudformation Stack Exists
+### Check The AWS Integration Cloudformation Stack Exists
 
 Check the AWS Integration Cloudformation Stack was created within your AWS account. The Stack Name should resemble "Serverless-Inc-Role-Stack".
 
-#### Check The AWS Integration Cloudformation Stack Is In us-east-1
+### Check The AWS Integration Cloudformation Stack Is In us-east-1
 
 Check the AWS Integration Cloudformation Stack was created within us-east-1 in your AWS account. The Stack Name should resemble "Serverless-Inc-Role-Stack".
 
-#### Check For Account Integration Errors
+### Check For Account Integration Errors
 
 In Serverless Framework Dashboard, go to "Settings" > "Integrations" and see if there are any errors on the AWS Account Integration. If an error occurred during integration, you should be able to see it within this view, on the AWS account integration tile.
 
 If you see an error here, please contact our support team by using the support widget within [Serverless Framework Dashboard](https://app.serverless.com).
 
-#### Check AWS Lambda Functions Are Instrumented
+### Check AWS Lambda Functions Are Instrumented
 
 In Serverless Framework Dashboard, go to "Settings" > "Integrations" and click the "Edit" button on the AWS Account Integration containing the AWS Lambda functions that are missing data.
 
@@ -169,7 +169,7 @@ If AWS Lambda functions are missing from this view, but you know they exist with
 
 Next, ensure the "Instrument" toggle is enabled for the function(s) you expect to see Metrics and Traces for. If it's not enabled Metrics and Traces will not show up withing Dashboard. Enable it, then ensure your functions are invoked, and check Dashboard to see if it Metrics & Traces appear.
 
-#### Check for Function Instrumentation Errors
+### Check for Function Instrumentation Errors
 
 If within Serverless Framework Dashboard's "Settings" > "Integrations" > "Edit" view, you can see errors listed on one or multiple AWS Lambda functions, this means that the AWS Lambda function(s) were not successfully instrumented and Metrics and Traces will not appear.
 
@@ -185,13 +185,13 @@ This means that the AWS Lambda function has hit its individual code size limit, 
 
 If there is another type of error here, please contact our support team by using the support widget within [Serverless Framework Dashboard](https://app.serverless.com).
 
-#### Manually Check For The Trace Payload
+### Manually Check For The Trace Payload
 
 When an AWS Lambda function is instrumented correctly with the Serverless Framework Platform, it will log a large, compressed payload in the AWS Cloudwatch Logs for your AWS Lambda function, which you can identify easily because it starts with `SERVERLESS_TELEMETRY`. This payload contains Trace data for that AWS Lambda function invocation. If this is not being published, Traces will not show up within the Serverless Framework Dashboard.
 
 To resolve this, review the section on **Manually Checking For Instrumentation Issues**, since these instrumentation issues would most likely result in the Telemetry Payload not being logged.
 
-#### Manually Check For Instrumentation Issues
+### Manually Check For Instrumentation Issues
 
 If there aren't any errors reported in Serverless Framework Dashboard, look in your AWS account and inspect each AWS Lambda function not reporting Metrics and Traces for the following issues:
 
