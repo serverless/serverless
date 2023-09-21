@@ -123,7 +123,7 @@ Our AWS Lambda Layer is not an External Extension. Through extensive research an
 
 Additionally, our integration will listen to CloudTrail events and will automatically check to ensure our AWS Lambda Layer and Environment Variables are still attached every time each function has been updated. This only happens for AWS Lambda functions with "Instrument" enabled. This allows you to use any deployment tool with Serverless Framework's Observability & Monitoring features. It also ensures that if you set "Instrument", we guarantee those AWS Lambda functions will be instrumented, mitigating deployment and configuration mistakes.
 
-## Debugging Integration & Instrumentation Issues
+## Debugging Integration And Instrumentation Issues
 
 Serverless Framework seeks to automate all aspects of integrating into AWS accounts and instrumenting your AWS Lambda functions, saving you time and effort required when doing this manually. However, this can be a complex operation depending on how your AWS accounts and functions are configured.
 
