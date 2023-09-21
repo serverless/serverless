@@ -1,5 +1,5 @@
 <!--
-title: Serverless Fraemwork Dashboard - Outputs
+title: Serverless Framework Dashboard - Outputs
 menuText: Outputs
 menuOrder: 4
 layout: Doc
