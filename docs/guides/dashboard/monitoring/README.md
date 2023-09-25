@@ -123,6 +123,18 @@ Our AWS Lambda Layer is not an External Extension. Through extensive research an
 
 Additionally, our integration will listen to CloudTrail events and will automatically check to ensure our AWS Lambda Layer and Environment Variables are still attached every time each function has been updated. This only happens for AWS Lambda functions with "Instrument" enabled. This allows you to use any deployment tool with Serverless Framework's Observability & Monitoring features. It also ensures that if you set "Instrument", we guarantee those AWS Lambda functions will be instrumented, mitigating deployment and configuration mistakes.
 
+## How Trace Sampling Works
+
+Serverless Framework Dashboard trace sampling is designed to sample at a default rate of 20% for high volume lambda functions, and disable sampling at lower volumes. This is achieved by disabling trace sampling on invocations where the average duration between invocations in the same AWS Lambda function container is less than one per second for 5 consecutive invocations.
+
+These are some common use cases in which trace sampling will be disabled:
+
+- After a cold start the first 5 invocations will not be sampled.
+- There are less than 1 invocations per second on average with consistent (not spiky) invocations.
+- There are far less than 1 invocations per second on average, and there is a spike of up to 5 invocations in less than 5 seconds.
+- Invocation generates an error or warning events are never sampled.
+- Sampling is disabled using the `SLS_DISABLE_TRACE_SAMPLING` environment variable.
+
 ## Disabling Monitoring & Observability
 
 ### Disabling An AWS Account
