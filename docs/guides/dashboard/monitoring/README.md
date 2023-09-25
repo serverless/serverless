@@ -130,10 +130,12 @@ Serverless Framework Dashboard trace sampling is designed to sample at a default
 These are some common use cases in which trace sampling will be disabled:
 
 - After a cold start the first 5 invocations will not be sampled.
-- There are less than 1 invocations per second on average with consistent (not spiky) invocations.
-- There are far less than 1 invocations per second on average, and there is a spike of up to 5 invocations in less than 5 seconds.
+- There are less than 1.0 invocations per second on average with consistent (not spiky) invocations.
+- There are far less than 1.0 invocations per second on average, and there is a spike of up to 5 invocations in less than 5 seconds.
 - Invocation generates an error or warning events are never sampled.
 - Sampling is disabled using the `SLS_DISABLE_TRACE_SAMPLING` environment variable.
+
+On average trace sampling will be disabled in most cases where there are fewer than 2.5 million invocations per month, but may vary depending on the distribution of invocations, cold start rates, and error/warning rates.
 
 ## Disabling Monitoring & Observability
 
