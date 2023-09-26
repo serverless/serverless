@@ -406,6 +406,7 @@
       "Overview": "guides/dashboard/monitoring",
       "Metrics": "guides/dashboard/monitoring/metrics",
       "Traces": "guides/dashboard/monitoring/traces",
+      "Troubleshoot": "guides/dashboard/monitoring/troubleshoot",
       "SDK": {
         "Overview": "guides/dashboard/monitoring/sdk",
         "Node.js": "guides/dashboard/monitoring/sdk/nodejs",
