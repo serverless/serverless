@@ -1315,6 +1315,12 @@ aws_secret_access_key = CUSTOMSECRET
           `${awsNaming.getEcrRepositoryName()}:baseimage`,
           `${repositoryUri}:baseimage`,
         ]);
+        expect(spawnExtStub).to.be.calledWith('docker', [
+          'images',
+          '--digests',
+          `--filter "reference=${awsNaming.getEcrRepositoryName()}:baseimage"`,
+          '--format "{{.Digest}}"',
+        ]);
         expect(spawnExtStub).to.be.calledWith('docker', ['push', `${repositoryUri}:baseimage`]);
       });
 
@@ -1408,9 +1414,9 @@ aws_secret_access_key = CUSTOMSECRET
         const innerSpawnExtStub = sinon
           .stub()
           .returns({
-            stdBuffer: `digest: sha256:${imageSha} size: 1787`,
+            stdBuffer: `sha256:${imageSha}`,
           })
-          .onCall(3)
+          .onCall(4)
           .throws({ stdBuffer: 'no basic auth credentials' });
         const {
           awsNaming,
@@ -1449,6 +1455,12 @@ aws_secret_access_key = CUSTOMSECRET
           `${repositoryUri}:baseimage`,
         ]);
         expect(innerSpawnExtStub).to.be.calledWith('docker', [
+          'images',
+          '--digests',
+          `--filter "reference=${awsNaming.getEcrRepositoryName()}:baseimage"`,
+          '--format "{{.Digest}}"',
+        ]);
+        expect(innerSpawnExtStub).to.be.calledWith('docker', [
           'push',
           `${repositoryUri}:baseimage`,
         ]);
@@ -1476,9 +1488,9 @@ aws_secret_access_key = CUSTOMSECRET
         const innerSpawnExtStub = sinon
           .stub()
           .returns({
-            stdBuffer: `digest: sha256:${imageSha} size: 1787`,
+            stdBuffer: `sha256:${imageSha}`,
           })
-          .onCall(3)
+          .onCall(4)
           .throws({ stdBuffer: 'authorization token has expired' });
         await runServerless({
           fixture: 'ecr',
@@ -1861,7 +1873,7 @@ aws_secret_access_key = CUSTOMSECRET
         ).to.be.eventually.rejected.and.have.property('code', 'DOCKER_TAG_ERROR');
       });
 
-      it('should fail when docker push fails', async () => {
+      it('should fail when docker images fails', async () => {
         await expect(
           runServerless({
             fixture: 'ecr',
@@ -1870,6 +1882,20 @@ aws_secret_access_key = CUSTOMSECRET
             modulesCacheStub: {
               ...modulesCacheStub,
               'child-process-ext/spawn': sinon.stub().returns({}).onCall(3).throws(),
+            },
+          })
+        ).to.be.eventually.rejected.and.have.property('code', 'DOCKER_IMAGES_ERROR');
+      });
+
+      it('should fail when docker push fails', async () => {
+        await expect(
+          runServerless({
+            fixture: 'ecr',
+            command: 'package',
+            awsRequestStubMap: baseAwsRequestStubMap,
+            modulesCacheStub: {
+              ...modulesCacheStub,
+              'child-process-ext/spawn': sinon.stub().returns({}).onCall(4).throws(),
             },
           })
         ).to.be.eventually.rejected.and.have.property('code', 'DOCKER_PUSH_ERROR');
@@ -1886,9 +1912,9 @@ aws_secret_access_key = CUSTOMSECRET
               'child-process-ext/spawn': sinon
                 .stub()
                 .returns({})
-                .onCall(3)
-                .throws({ stdBuffer: 'no basic auth credentials' })
                 .onCall(4)
+                .throws({ stdBuffer: 'no basic auth credentials' })
+                .onCall(5)
                 .throws(),
             },
           })
