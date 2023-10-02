@@ -1318,8 +1318,10 @@ aws_secret_access_key = CUSTOMSECRET
         expect(spawnExtStub).to.be.calledWith('docker', [
           'images',
           '--digests',
-          `--filter "reference=${awsNaming.getEcrRepositoryName()}:baseimage"`,
-          '--format "{{.Digest}}"',
+          '--filter',
+          `reference=${awsNaming.getEcrRepositoryName()}:baseimage`,
+          '--format',
+          '{{.Digest}}',
         ]);
         expect(spawnExtStub).to.be.calledWith('docker', ['push', `${repositoryUri}:baseimage`]);
       });
@@ -1457,8 +1459,10 @@ aws_secret_access_key = CUSTOMSECRET
         expect(innerSpawnExtStub).to.be.calledWith('docker', [
           'images',
           '--digests',
-          `--filter "reference=${awsNaming.getEcrRepositoryName()}:baseimage"`,
-          '--format "{{.Digest}}"',
+          '--filter',
+          `reference=${awsNaming.getEcrRepositoryName()}:baseimage`,
+          '--format',
+          '{{.Digest}}',
         ]);
         expect(innerSpawnExtStub).to.be.calledWith('docker', [
           'push',
