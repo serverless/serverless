@@ -398,80 +398,40 @@
         "Workflow": "providers/openwhisk/guide/workflow",
         "Serverless.yml": "providers/openwhisk/guide/serverless.yml"
       }
-    },
-    "Spotinst": {
-      "Overview": "providers/spotinst",
-      "CLI Reference": {
-        "Overview": "providers/spotinst/cli-reference",
-        "config credentials": "providers/spotinst/cli-reference/config-credentials",
-        "create": "providers/spotinst/cli-reference/create",
-        "deploy": "providers/spotinst/cli-reference/deploy",
-        "deploy function": "providers/spotinst/cli-reference/deploy-function",
-        "invoke": "providers/spotinst/cli-reference/invoke",
-        "logs": "providers/spotinst/cli-reference/logs",
-        "Stage Variables": "providers/spotinst/cli-reference/stage",
-        "info": "providers/spotinst/cli-reference/info",
-        "remove": "providers/spotinst/cli-reference/remove",
-        "Plugin List": "providers/spotinst/cli-reference/plugin-list",
-        "Plugin Install": "providers/spotinst/cli-reference/plugin-install",
-        "Plugin Search": "providers/spotinst/cli-reference/plugin-search",
-        "Plugin Uninstall": "providers/spotinst/cli-reference/plugin-uninstall"
-      },
-      "Events": {
-        "Overview": "providers/spotinst/events",
-        "API Gateway": "providers/spotinst/events/http",
-        "Schedule": "providers/spotinst/events/schedule"
-      },
-      "Java8": {
-        "Overview": "providers/spotinst/examples/java8",
-        "Java8": "providers/spotinst/examples/java8",
-        "JavaScript": "providers/spotinst/examples/node"
-      },
-      "User Guide": {
-        "Overview": "providers/spotinst/guide",
-        "Intro": "providers/spotinst/guide/intro",
-        "Quick Start": "providers/spotinst/guide/quick-start",
-        "Create Token": "providers/spotinst/guide/create-token",
-        "Credentials": "providers/spotinst/guide/credentials",
-        "Serverless.yml": "providers/spotinst/guide/serverless.yml",
-        "Endpoint Set Up": "providers/spotinst/guide/endpoints",
-        "Variables": "providers/spotinst/guide/variables",
-        "CORS": "providers/spotinst/guide/cors",
-        "Active Versions": "providers/spotinst/guide/active-versions",
-        "IAM Role": "providers/spotinst/guide/iam-roles"
-      }
     }
   },
   "Dashboard": {
     "Overview": "guides/dashboard",
-    "Monitoring": {
-      "Overview": "guides/monitoring",
-      "Alerts": "guides/monitoring/alerts",
-      "Metrics": "guides/monitoring/metrics",
-      "Notifications": "guides/monitoring/notifications"
+    "Monitoring & Observability": {
+      "Overview": "guides/dashboard/monitoring",
+      "Metrics": "guides/dashboard/monitoring/metrics",
+      "Traces": "guides/dashboard/monitoring/traces",
+      "Troubleshoot": "guides/dashboard/monitoring/troubleshoot",
+      "SDK": {
+        "Overview": "guides/dashboard/monitoring/sdk",
+        "Node.js": "guides/dashboard/monitoring/sdk/nodejs",
+        "Python": "guides/dashboard/monitoring/sdk/python"
+      }
     },
-    "Outputs": "guides/output-variables",
-    "Providers": "guides/providers",
+    "Parameters": "guides/dashboard/parameters",
+    "Outputs": "guides/dashboard/output-variables",
+    "Providers": "guides/dashboard/providers",
     "CI/CD": {
-      "Overview": "guides/cicd",
-      "Branch Deployments": "guides/cicd/branch-deployments",
-      "Preview Deployments": "guides/cicd/preview-deployments",
-      "Custom Scripts": "guides/cicd/custom-scripts",
-      "Testing": "guides/cicd/running-tests",
-      "Private Packages": "guides/cicd/private-packages",
-      "Notifications": "guides/cicd/notifications",
-      "Mono Repos": "guides/cicd/mono-repo",
-      "Deploy in your own CI/CD": "guides/cicd/running-in-your-own-cicd",
-      "Best Practices": "guides/cicd/best-practices",
-      "Troubleshooting": "guides/cicd/troubleshooting",
-      "FAQ": "guides/cicd/faq"
+      "Overview": "guides/dashboard/cicd",
+      "Branch Deployments": "guides/dashboard/cicd/branch-deployments",
+      "Preview Deployments": "guides/dashboard/cicd/preview-deployments",
+      "Custom Scripts": "guides/dashboard/cicd/custom-scripts",
+      "Testing": "guides/dashboard/cicd/running-tests",
+      "Private Packages": "guides/dashboard/cicd/private-packages",
+      "Notifications": "guides/dashboard/cicd/notifications",
+      "Mono Repos": "guides/dashboard/cicd/mono-repo",
+      "Deploy in your own CI/CD": "guides/dashboard/cicd/running-in-your-own-cicd",
+      "Best Practices": "guides/dashboard/cicd/best-practices",
+      "Troubleshooting": "guides/dashboard/cicd/troubleshooting",
+      "FAQ": "guides/dashboard/cicd/faq"
     },
-    "SDK": {
-      "Overview": "guides/sdk",
-      "nodejs": "guides/sdk/nodejs",
-      "python": "guides/sdk/python"
-    },
-    "Testing": "guides/testing"
+    "Testing": "guides/dashboard/testing",
+    "Upgrading To V2": "guides/dashboard/upgrade-to-v2"
   },
   "Serverless.yml Reference": "providers/aws/guide/serverless.yml",
   "CLI Reference": {

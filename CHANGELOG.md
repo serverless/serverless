@@ -2,6 +2,50 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.35.2](https://github.com/serverless/serverless/compare/v3.35.1...v3.35.2) (2023-09-16)
+
+### Bug Fixes
+
+- Adjust copy for clarity ([#12162](https://github.com/serverless/serverless/issues/12162)) ([101ce53](https://github.com/serverless/serverless/commit/101ce53c18bae3709d5cc70a483cce81206752ec))
+
+### [3.35.1](https://github.com/serverless/serverless/compare/v3.35.0...v3.35.1) (2023-09-16)
+
+### Bug Fixes
+
+- Do not use isDashboard in onboarding flow ([#12160](https://github.com/serverless/serverless/issues/12160)) ([1f8d786](https://github.com/serverless/serverless/commit/1f8d786b16d7682912c464d67add589f48666987))
+
+## [3.35.0](https://github.com/serverless/serverless/compare/v3.34.0...v3.35.0) (2023-09-15)
+
+### Features
+
+- Make dashboard monitoring opt-out ([#12138](https://github.com/serverless/serverless/issues/12138)) ([45cbd52](https://github.com/serverless/serverless/commit/45cbd525014ad3bf60aac3d482ec76ce68b51820))
+- Post deploy serverless dashboard integration ([#12063](https://github.com/serverless/serverless/issues/12063)) ([66e3107](https://github.com/serverless/serverless/commit/66e31077a71c61854db3246a50ddd2c1c303c110)), closes [#12059](https://github.com/serverless/serverless/issues/12059)
+- Remove Console Login ([#12153](https://github.com/serverless/serverless/issues/12153)) ([590bb7e](https://github.com/serverless/serverless/commit/590bb7e17717253bfa37b1b511e5a6610c5657cb))
+- Remove Dashboard onboarding from framework ([#12151](https://github.com/serverless/serverless/issues/12151)) ([6ee277d](https://github.com/serverless/serverless/commit/6ee277dfcb0d9055a3b20cbf493b1fd79b524fd2))
+- Upgrade to @serverless/dashboard-plugin ([#12157](https://github.com/serverless/serverless/issues/12157)) ([f057629](https://github.com/serverless/serverless/commit/f057629cbebf07f3415ef996ecbc10c7c7b866d4))
+
+### Bug Fixes
+
+- Adjust providers endpoint ([#12154](https://github.com/serverless/serverless/issues/12154)) ([9b770a2](https://github.com/serverless/serverless/commit/9b770a27dc0a093d05d36e58f077b3a527565718)), closes [#12151](https://github.com/serverless/serverless/issues/12151)
+- Check for Serverless Dashboard IAM stack prior to creation ([#12147](https://github.com/serverless/serverless/issues/12147)) ([bf518b9](https://github.com/serverless/serverless/commit/bf518b9135997c67ea940ff396af14a4b4b62948))
+- Handle account being integrated with an existing org ([#12149](https://github.com/serverless/serverless/issues/12149)) ([561a875](https://github.com/serverless/serverless/commit/561a875da767a23e6bc1cc314e726ff674ab9df1))
+- Local credentials should be resolved in onboarding command ([#12148](https://github.com/serverless/serverless/issues/12148)) ([307865d](https://github.com/serverless/serverless/commit/307865d0525d551f188a1c86399533f78d7b15c3))
+- recognize ap-south-2 as a valid AWS region ([#12129](https://github.com/serverless/serverless/issues/12129)) ([b09d0d6](https://github.com/serverless/serverless/commit/b09d0d62677c09c4905b65bcaf6ba61aa8d8204c))
+
+### [3.34.0](https://github.com/serverless/serverless/compare/v3.33.0...v3.34.0) (2023-08-03)
+
+### Features
+
+- Python 3.11 support ([#12085](https://github.com/serverless/serverless/issues/12085)) ([f5d143a](https://github.com/serverless/serverless/commit/f5d143ac3935260dc0f647a541f22dbbd583095f))
+
+### Bug Fixes
+
+- **AWS Schedule:** Fix IAM role assignment ([#12030](https://github.com/serverless/serverless/issues/12030)) ([e1039de](https://github.com/serverless/serverless/commit/e1039ded5c5e35595b5d4c59e81d480a16c4dd67))
+
+### Maintenance Improvements
+
+- Remove `got` dependency ([#12040](https://github.com/serverless/serverless/issues/12040)) ([1775c90](https://github.com/serverless/serverless/commit/1775c90a72ec321af8673bcdd1901cb1e48b9169))
+
 ## [3.33.0](https://github.com/serverless/serverless/compare/v3.32.2...v3.33.0) (2023-06-26)
 
 ### Features
