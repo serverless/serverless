@@ -122,41 +122,28 @@ a few steps are required to generate the Source Map files, include them in the
 package, and configure Node to use them with captured Errors in the Serverless
 SDK.
 
-#### Configure your transpilre to generate the source map files
+#### Generate the source map files
 
-You will need to configure your transpiler to generate the Source Map files
-(`.js.map`). Below are examples of configuration for TypeScript and ESBuild.
-
-**Typescript**
-
-We recommend using the [serverless-plugin-typescript](https://www.serverless.com/plugins/serverless-plugin-typescript)
-Serverless Plugin to add support for Typescript. Once you add the plugin, add
-the `sourceMaps` option to the `tsconfig.json` file.
-
-```json
-{
-  "compilerOptions": {
-    "sourceMaps": true
-  }
-}
-```
-
-**ESBuild**
-
-We recommend using the [serverless-esbuild](https://www.serverless.com/plugins/serverless-esbuild)
+You will need to configure your transpiler/bundler to generate the Source Map
+files (`.js.map`). We recommend using the [serverless-esbuild](https://www.serverless.com/plugins/serverless-esbuild)
 Serverless Plugin to add support for ESBuild. Once you add the plugin, add the
 `sourcemap` configuration option in `serverless.yml`.
 
 ```yaml
+plugins:
+  - serverless-esbuild
+
 custom:
   esbuild:
+    bundle: true
+    minify: true
     sourcemap: true
 ```
 
-#### Package the map files
+#### Package the Source Map files
 
 In the Serverless Framework, by default, all files and directories in your
-service directory, including the generated `.map` files, get packaged except
+service directory, including the generated `.js.map` files, get packaged except
 for those specified in `.gitignore` and `.npmignore`. If you use
 `package.include` or `package.explude` in the `serverless.yml`, then ensure that
 `*.js.map` files are included.
