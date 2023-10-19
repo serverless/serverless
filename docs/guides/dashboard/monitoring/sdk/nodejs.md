@@ -155,7 +155,7 @@ custom:
 In the Serverless Framework, by default, all files and directories in your
 service directory, including the generated `.js.map` files, get packaged except
 for those specified in `.gitignore` and `.npmignore`. If you use
-`package.include` or `package.explude` in the `serverless.yml`, then ensure that
+`package.include` or `package.exclude` in the `serverless.yml`, then ensure that
 `*.js.map` files are included.
 
 ### Configure Node to use the Source Maps
