@@ -318,7 +318,7 @@ The following variables are available:
 
 **accountId**
 
-Account ID of you AWS Account, based on the AWS Credentials that you have configured.
+Account ID of your AWS Account, based on the AWS Credentials that you have configured.
 
 ```yml
 service: new-service
