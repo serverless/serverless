@@ -161,9 +161,6 @@ provider:
     NODE_OPTIONS: --enable-source-maps
 ```
 
-**Note**: This Node.js feature is experimental and may be subject to change. As
-an alterative you can use the [source-maps package](https://www.npmjs.com/package/source-map).
-
 ### Capturing Errors
 
 The most common use case for the Serverless SDK is to capture handled errors.
