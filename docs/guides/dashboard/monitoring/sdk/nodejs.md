@@ -122,7 +122,7 @@ a few steps are required to generate the Source Map files, include them in the
 package, and configure Node to use them with captured Errors in the Serverless
 SDK.
 
-If you are on a version of the Serverless Framework prior to 3.35.3, you will
+If you are on a version of the Serverless Framework prior to 3.36.0, you will
 need to remove the Dashboard SDK Wrapper by setting `disableWrapping`. More
 details about wrapping are in the [Upgrade to V2 guide](https://www.serverless.com/framework/docs/guides/dashboard/upgrade-to-v2#remove-dashboard-sdk-wrapping-optional).
 
