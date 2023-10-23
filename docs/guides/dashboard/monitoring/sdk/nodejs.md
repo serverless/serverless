@@ -110,6 +110,67 @@ AWS Lambda function handler.
 const serverlessSdk = require('@serverless/sdk');
 ```
 
+### Setting up Source Maps
+
+Source maps are files that map code between the original source code and its
+transformed or compiled version. When code is minified, transpiled, or bundled,
+with popular tools like TypeScript, ESBuild, or Babel, it often becomes
+difficult to read the transpiled code, and therefore the stack traces in Errors.
+
+Serverless Framework Dashboard supports capturing errors using Source Maps, but
+a few steps are required to generate the Source Map files, include them in the
+package, and configure Node to use them with captured Errors in the Serverless
+SDK.
+
+If you are on a version of the Serverless Framework prior to 3.36.0, you will
+need to remove the Dashboard SDK Wrapper by setting `disableWrapping`. More
+details about wrapping are in the [Upgrade to V2 guide](https://www.serverless.com/framework/docs/guides/dashboard/upgrade-to-v2#remove-dashboard-sdk-wrapping-optional).
+
+```yaml
+custom:
+  enterprise:
+    disableWrapping: true
+```
+
+#### Generate the source map files
+
+You will need to configure your transpiler/bundler to generate the Source Map
+files (`.js.map`). We recommend using the [serverless-esbuild](https://www.serverless.com/plugins/serverless-esbuild)
+Serverless Plugin to add support for ESBuild. Once you add the plugin, add the
+`sourcemap` configuration option in `serverless.yml`.
+
+```yaml
+plugins:
+  - serverless-esbuild
+
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+    sourcemap: true
+```
+
+#### Package the Source Map files
+
+In the Serverless Framework, by default, all files and directories in your
+service directory, including the generated `.js.map` files, get packaged except
+for those specified in `.gitignore` and `.npmignore`. If you use
+`package.include` or `package.exclude` in the `serverless.yml`, then ensure that
+`*.js.map` files are included.
+
+### Configure Node to use the Source Maps
+
+Node 14+ natively supports Source Maps in Error objects by modifying the stack
+trace handler. To use this feature you must pass the `--enable-source-maps`
+CLI option to `node`. You can do this in your `serverless.yml` by setting the
+`NODE_OPTIONS` environment variable.
+
+```yaml
+provider:
+  environment:
+    NODE_OPTIONS: --enable-source-maps
+```
+
 ### Capturing Errors
 
 The most common use case for the Serverless SDK is to capture handled errors.
