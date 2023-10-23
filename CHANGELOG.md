@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.36.0](https://github.com/serverless/serverless/compare/v3.35.2...v3.36.0) (2023-10-23)
+
+### Features
+
+- Improved dashboard documentation and gitignore ([#12176](https://github.com/serverless/serverless/issues/12176)) ([eb462ed](https://github.com/serverless/serverless/commit/eb462edc18de633bb0e479423babcbb43d4c3a33))
+
+### Bug Fixes
+
+- Dashboard documentation improvements ([bb4d7c8](https://github.com/serverless/serverless/commit/bb4d7c8938c3eff0b8412137e25c352327650fa5))
+- Fix menu for dashboard documentation ([8f266af](https://github.com/serverless/serverless/commit/8f266af8308fa9b89327792dd037c4fe14bb14af))
+- Improve dashboard documentation ([ad8bbf1](https://github.com/serverless/serverless/commit/ad8bbf1e13d9ba641f65a42ce95d2b0af7e1b4dd))
+- Improve dashboard documentation ([f67df7f](https://github.com/serverless/serverless/commit/f67df7fd1b409df512673ab4a795657a3d90fa6f))
+- Minor dashboard doc improvements ([#12177](https://github.com/serverless/serverless/issues/12177)) ([f1fa19c](https://github.com/serverless/serverless/commit/f1fa19c7e02a49edaf813aac60e8622486c4b9cc))
+
 ### [3.35.2](https://github.com/serverless/serverless/compare/v3.35.1...v3.35.2) (2023-09-16)
 
 ### Bug Fixes
