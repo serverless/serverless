@@ -135,7 +135,7 @@ functions:
           topic: mytopic
           filterPatterns:
             - value:
-                a: [1]
+                a: [1, 2]
 ```
 
 ## IAM Permissions
