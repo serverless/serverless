@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.37.0](https://github.com/serverless/serverless/compare/v3.36.0...v3.37.0) (2023-11-16)
+
+### Features
+
+- Add support for nodejs20.x runtime ([#12251](https://github.com/serverless/serverless/issues/12251)) ([f3f0af8](https://github.com/serverless/serverless/commit/f3f0af85f0783451b7fdf9216d9ab8536853fa46))
+
+### Bug Fixes
+
+- bump platform-client version for axios ([#12260](https://github.com/serverless/serverless/issues/12260)) ([10980b9](https://github.com/serverless/serverless/commit/10980b9578cb4da6820300b69ae2f001feb1f38e))
+- Update pkg config to include axios cjs ([#12261](https://github.com/serverless/serverless/issues/12261)) ([b21afaf](https://github.com/serverless/serverless/commit/b21afaf9cf97224d36234b02e3e872bc115f7dc9))
+
 ## [3.36.0](https://github.com/serverless/serverless/compare/v3.35.2...v3.36.0) (2023-10-23)
 
 ### Features
