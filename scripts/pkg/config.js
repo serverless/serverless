@@ -28,5 +28,6 @@ module.exports = {
     '../../node_modules/node-gyp/bin/node-gyp.js',
     '../../node_modules/npm/node_modules/node-gyp/bin/node-gyp.js',
     '../../node_modules/npm/node_modules/npm-lifecycle/node_modules/node-gyp/bin/node-gyp.js',
+    '../../node_modules/axios/dist/node/axios.cjs',
   ],
 };
