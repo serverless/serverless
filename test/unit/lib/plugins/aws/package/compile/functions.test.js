@@ -1737,6 +1737,15 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               url: true,
               provisionedConcurrency: 1,
             },
+            fnLoggingConfig: {
+              handler: 'target.handler',
+              loggingConfig: {
+                applicationLogLevel: 'DEBUG',
+                logFormat: 'JSON',
+                logGroup: 'helloLoggingLogGroup',
+                systemLogLevel: 'DEBUG',
+              },
+            },
           },
           resources: {
             Resources: {
@@ -2261,6 +2270,24 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       expect(
         cfResources[naming.getLambdaLogicalId('fnEphemeralStorage')].Properties.EphemeralStorage
       ).to.deep.equal({ Size: ephemeralStorageSize });
+    });
+
+    it('should support `functions[].loggingConfig`', () => {
+      const loggingConfig = serviceConfig.functions.fnLoggingConfig.loggingConfig;
+
+      expect(loggingConfig.applicationLogLevel).to.be.a('string');
+      expect(loggingConfig.logFormat).to.be.a('string');
+      expect(loggingConfig.logGroup).to.be.a('string');
+      expect(loggingConfig.systemLogLevel).to.be.a('string');
+
+      expect(
+        cfResources[naming.getLambdaLogicalId('fnLoggingConfig')].Properties.LoggingConfig
+      ).to.deep.equal({
+        ApplicationLogLevel: loggingConfig.applicationLogLevel,
+        LogFormat: loggingConfig.logFormat,
+        LogGroup: loggingConfig.logGroup,
+        SystemLogLevel: loggingConfig.systemLogLevel,
+      });
     });
 
     it('should support `functions[].fileSystemConfig` (with vpc configured on function)', () => {
