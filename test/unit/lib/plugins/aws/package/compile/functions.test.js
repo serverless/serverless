@@ -2416,6 +2416,60 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       });
     });
 
+    it('should accept `JSON` as a valid logFormat value', () => {
+      return runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            basic: {
+              loggingConfig: {
+                logFormat: 'JSON',
+              },
+            },
+          },
+        },
+        command: 'package',
+      }).then((result) => {
+        expect(result).to.be.ok;
+      });
+    });
+
+    it('should accept `Text` as a valid logFormat value', () => {
+      return runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            basic: {
+              loggingConfig: {
+                logFormat: 'Text',
+              },
+            },
+          },
+        },
+        command: 'package',
+      }).then((result) => {
+        expect(result).to.be.ok;
+      });
+    });
+
+    it('should reject invalid logFormat value', () => {
+      return runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            basic: {
+              loggingConfig: {
+                logFormat: 'INVALID',
+              },
+            },
+          },
+        },
+        command: 'package',
+      }).catch((error) => {
+        expect(error).to.have.property('code', 'INVALID_NON_SCHEMA_COMPLIANT_CONFIGURATION');
+      });
+    });
+
     it('should support `functions[].fileSystemConfig` (with vpc configured on function)', () => {
       const functionServiceConfig = serviceConfig.functions.fnFileSystemConfig;
       const fileSystemCfConfig =
