@@ -203,19 +203,6 @@
       }
     ]
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "*.js": [
-      "eslint"
-    ],
-    "*.{css,html,js,json,md,yaml,yml}": [
-      "prettier -c"
-    ]
-  },
   "scripts": {
     "commitlint": "commitlint -f HEAD@{15}",
     "coverage": "nyc npm test",
