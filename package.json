@@ -1,6 +1,6 @@
 {
   "name": "@apraamcos/serverless",
-  "version": "3.38.0",
+  "version": "3.38.1",
   "description": "Serverless Framework - Build web, mobile and IoT applications with serverless architectures using AWS Lambda, Azure Functions, Google CloudFunctions & more",
   "preferGlobal": true,
   "author": "CJ <cjia@apra.com.au>",
