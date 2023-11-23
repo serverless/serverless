@@ -13,9 +13,6 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
-  "files": [
-    "dist"
-  ],
   "main": "lib/serverless.js",
   "bin": {
     "serverless": "./bin/serverless.js",
@@ -214,7 +211,7 @@
     "integration-test-teardown": "node ./scripts/test/integration-teardown.js",
     "lint": "eslint .",
     "lint:updated": "pipe-git-updated --ext=js --base=main -- eslint",
-    "prepublishOnly": "node ./scripts/pkg/build.js",
+    "pkg:build": "node ./scripts/pkg/build.js",
     "pkg:generate-choco-package": "node ./scripts/pkg/generate-choco-package.js",
     "pkg:upload": "node ./scripts/pkg/upload/index.js",
     "postinstall": "node ./scripts/postinstall.js",
