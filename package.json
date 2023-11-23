@@ -1,20 +1,20 @@
 {
-  "name": "serverless",
+  "name": "@apraamcos/serverless",
   "version": "3.38.0",
   "description": "Serverless Framework - Build web, mobile and IoT applications with serverless architectures using AWS Lambda, Azure Functions, Google CloudFunctions & more",
   "preferGlobal": true,
-  "homepage": "https://serverless.com/framework/docs/",
-  "author": "serverless.com",
-  "repository": "serverless/serverless",
-  "keywords": [
-    "serverless",
-    "lambda",
-    "aws",
-    "amazon",
-    "azure",
-    "google-cloud",
-    "apache-open-whisk",
-    "iot"
+  "author": "CJ <cjia@apra.com.au>",
+  "types": "dist/index.d.ts",
+  "source": "src/index.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apraamcos/serverless.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "files": [
+    "dist"
   ],
   "main": "lib/serverless.js",
   "bin": {
@@ -227,7 +227,7 @@
     "integration-test-teardown": "node ./scripts/test/integration-teardown.js",
     "lint": "eslint .",
     "lint:updated": "pipe-git-updated --ext=js --base=main -- eslint",
-    "pkg:build": "node ./scripts/pkg/build.js",
+    "prepublishOnly": "node ./scripts/pkg/build.js",
     "pkg:generate-choco-package": "node ./scripts/pkg/generate-choco-package.js",
     "pkg:upload": "node ./scripts/pkg/upload/index.js",
     "postinstall": "node ./scripts/postinstall.js",
