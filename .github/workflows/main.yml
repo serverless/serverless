@@ -22,7 +22,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
       - name: Install
         run: |
-          npm ci
+          npm i
       - name: Increase version number
         run: npm version patch -m "[skip ci] Bump version to %s"
       - name: Publish
