@@ -2,8 +2,7 @@ name: Publish
 on:
   push:
     branches: [package]
-  pull_request:
-    branches: [package]
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -11,21 +10,25 @@ jobs:
       contents: write
       packages: write
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
         with:
-          node-version: "18.x"
+          token: ${{ secrets.PACKAGE_DEPLOYMENT_TOKEN }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
           registry-url: "https://npm.pkg.github.com"
-          # Defaults to the user or organization that owns the workflow file
           scope: "@apraamcos"
       - name: Setup Git Configs
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
+      - name: Install
+        run: |
+          npm set @apraamcos:registry https://npm.pkg.github.com
+          npm set //npm.pkg.github.com/:_authToken ${{ secrets.PACKAGE_DEPLOYMENT_TOKEN }}
+          npm ci
       - name: Increase version number
-        run: npm version patch
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm version patch -m "[skip ci] Bump version to %s"
       - name: Publish
         run: npm publish
         env:
@@ -36,5 +39,3 @@ jobs:
           git push --tags
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-   
