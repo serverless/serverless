@@ -2470,6 +2470,114 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       });
     });
 
+    it('should accept valid logGroup value', () => {
+      return runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            basic: {
+              loggingConfig: {
+                logGroup: 'valid',
+              },
+            },
+          },
+        },
+        command: 'package',
+      }).then((result) => {
+        expect(result).to.be.ok;
+      });
+    });
+
+    it('should accept invalid logGroup value', () => {
+      return runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            basic: {
+              loggingConfig: {
+                logGroup: '',
+              },
+            },
+          },
+        },
+        command: 'package',
+      }).catch((error) => {
+        expect(error).to.have.property('code', 'INVALID_NON_SCHEMA_COMPLIANT_CONFIGURATION');
+      });
+    });
+
+    it('should accept `DEBUG` as a valid systemLogLevel value', () => {
+      return runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            basic: {
+              loggingConfig: {
+                systemLogLevel: 'DEBUG',
+              },
+            },
+          },
+        },
+        command: 'package',
+      }).then((result) => {
+        expect(result).to.be.ok;
+      });
+    });
+
+    it('should accept `INFO` as a valid systemLogLevel value', () => {
+      return runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            basic: {
+              loggingConfig: {
+                systemLogLevel: 'INFO',
+              },
+            },
+          },
+        },
+        command: 'package',
+      }).then((result) => {
+        expect(result).to.be.ok;
+      });
+    });
+
+    it('should accept `WARN` as a valid systemLogLevel value', () => {
+      return runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            basic: {
+              loggingConfig: {
+                systemLogLevel: 'WARN',
+              },
+            },
+          },
+        },
+        command: 'package',
+      }).then((result) => {
+        expect(result).to.be.ok;
+      });
+    });
+
+    it('should reject invalid logFormat value', () => {
+      return runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            basic: {
+              loggingConfig: {
+                systemLogLevel: 'INVALID',
+              },
+            },
+          },
+        },
+        command: 'package',
+      }).catch((error) => {
+        expect(error).to.have.property('code', 'INVALID_NON_SCHEMA_COMPLIANT_CONFIGURATION');
+      });
+    });
+
     it('should support `functions[].fileSystemConfig` (with vpc configured on function)', () => {
       const functionServiceConfig = serviceConfig.functions.fnFileSystemConfig;
       const fileSystemCfConfig =
