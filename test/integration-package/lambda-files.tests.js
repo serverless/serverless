@@ -2,7 +2,7 @@
 
 const path = require('path');
 const { expect } = require('chai');
-const fs = require('fs').promises;
+const fsp = require('fs').promises;
 const fse = require('fs-extra');
 const spawn = require('child-process-ext/spawn');
 const serverlessExec = require('../serverless-binary');
@@ -61,7 +61,7 @@ describe('Integration test - Packaging - Lambda Files', () => {
   it('ignores package json files per ignore directive in the zip', async () => {
     await fse.copy(fixturePaths.regular, cwd);
     await spawn('npm', ['init', '--yes'], { cwd });
-    await fs.appendFile(
+    await fsp.appendFile(
       path.resolve(cwd, 'serverless.yml'),
       '\npackage: {patterns: ["!package*.json"]}\n'
     );
