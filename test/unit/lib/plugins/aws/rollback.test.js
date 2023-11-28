@@ -4,14 +4,12 @@ const runServerless = require('../../../../utils/run-serverless');
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
 const AwsRollback = require('../../../../../lib/plugins/aws/rollback');
 const Serverless = require('../../../../../lib/serverless');
-const chai = require('chai');
-const assert = require('chai').assert;
 const sinon = require('sinon');
-
+const chai = require('chai');
 chai.use(require('chai-as-promised'));
-chai.use(require('sinon-chai'));
 
 const expect = chai.expect;
+const assert = chai.assert;
 
 describe('AwsRollback', () => {
   let awsRollback;
@@ -122,22 +120,21 @@ describe('AwsRollback', () => {
       };
       const listObjectsStub = sinon.stub(awsRollback.provider, 'request').resolves(s3Response);
 
-      return awsRollback
-        .setStackToUpdate()
-        .then(() => {
+      await expect(
+        awsRollback.setStackToUpdate().then(() => {
           assert.isNotOk(true, 'setStackToUpdate should not resolve');
         })
-        .catch((error) => {
-          expect(error.code).to.equal('ROLLBACK_DEPLOYMENTS_NOT_FOUND');
-          expect(listObjectsStub.calledOnce).to.be.equal(true);
-          expect(
-            listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
-              Bucket: awsRollback.bucketName,
-              Prefix: `${s3Key}`,
-            })
-          ).to.be.equal(true);
-          awsRollback.provider.request.restore();
-        });
+      ).to.eventually.be.rejected.and.have.property('code', 'ROLLBACK_DEPLOYMENTS_NOT_FOUND');
+
+      expect(listObjectsStub.calledOnce).to.be.true;
+      expect(
+        listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
+          Bucket: awsRollback.bucketName,
+          Prefix: s3Key,
+        })
+      ).to.be.true;
+
+      awsRollback.provider.request.restore();
     });
 
     it('should reject in case this specific deployments is not available', async () => {
@@ -156,22 +153,21 @@ describe('AwsRollback', () => {
 
       const listObjectsStub = sinon.stub(awsRollback.provider, 'request').resolves(s3Response);
 
-      return awsRollback
-        .setStackToUpdate()
-        .then(() => {
+      await expect(
+        awsRollback.setStackToUpdate().then(() => {
           assert.isNotOk(true, 'setStackToUpdate should not resolve');
         })
-        .catch((error) => {
-          expect(error.code).to.equal('ROLLBACK_DEPLOYMENT_NOT_FOUND');
-          expect(listObjectsStub.calledOnce).to.be.equal(true);
-          expect(
-            listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
-              Bucket: awsRollback.bucketName,
-              Prefix: `${s3Key}`,
-            })
-          ).to.be.equal(true);
-          awsRollback.provider.request.restore();
-        });
+      ).to.eventually.be.rejected.and.have.property('code', 'ROLLBACK_DEPLOYMENT_NOT_FOUND');
+
+      expect(listObjectsStub.calledOnce).to.be.true;
+      expect(
+        listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
+          Bucket: awsRollback.bucketName,
+          Prefix: s3Key,
+        })
+      ).to.be.true;
+
+      awsRollback.provider.request.restore();
     });
 
     it('should resolve set the artifactDirectoryName and resolve', async () => {
@@ -208,7 +204,7 @@ describe('AwsRollback', () => {
 
 describe('test/unit/lib/plugins/aws/rollback.test.js', () => {
   it('Should gently handle error of listing objects from S3 bucket', async () => {
-    await expect(
+    return expect(
       runServerless({
         fixture: 'function',
         command: 'rollback',
