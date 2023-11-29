@@ -195,6 +195,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
                 securityGroupIds: ['xxx'],
                 subnetIds: ['xxx'],
               },
+              logGroupClass: 'STANDARD',
               logRetentionInDays: 5,
               iamManagedPolicies: [
                 'arn:aws:iam::123456789012:user/*',
@@ -307,6 +308,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
                 securityGroupIds: ['xxx'],
                 subnetIds: ['xxx'],
               },
+              logGroupClass: 'STANDARD',
               logRetentionInDays: 5,
               logDataProtectionPolicy: {
                 Name: 'data-protection-policy',
@@ -428,6 +430,14 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         });
       });
 
+      it('should support `provider.logGroupClass`', () => {
+        const normalizedName = naming.getLogGroupLogicalId('basic');
+        const iamResource = cfResources[normalizedName];
+        expect(iamResource.Type).to.be.equal('AWS::Logs::LogGroup');
+        expect(iamResource.Properties.LogGroupClass).to.be.equal('STANDARD');
+        expect(iamResource.Properties.LogGroupName).to.be.equal(`/aws/lambda/${service}-dev-basic`);
+      });
+
       it('should support `provider.logRetentionInDays`', () => {
         const normalizedName = naming.getLogGroupLogicalId('basic');
         const iamResource = cfResources[normalizedName];
@@ -486,6 +496,10 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
                 handler: 'index.handler',
                 disableLogs: true,
               },
+              fnLogGroupClass: {
+                handler: 'index.handler',
+                logGroupClass: 'STANDARD',
+              },
               fnLogRetentionInDays: {
                 handler: 'index.handler',
                 logRetentionInDays: 5,
@@ -538,6 +552,18 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         const functionLogGroupName = naming.getLogGroupName(functionName);
 
         expect(cfResources).to.not.have.property(functionLogGroupName);
+      });
+
+      it('should support `functions[].logGroupClass`', async () => {
+        const functionName = serverless.service.getFunction('fnLogGroupClass').name;
+        const normalizedName = naming.getLogGroupLogicalId('fnLogGroupClass');
+        const logResource = cfResources[normalizedName];
+
+        expect(logResource.Type).to.be.equal('AWS::Logs::LogGroup');
+        expect(logResource.Properties.LogGroupClass).to.be.equal('STANDARD');
+        expect(logResource.Properties.LogGroupName).to.be.equal(
+          naming.getLogGroupName(functionName)
+        );
       });
 
       it('should support `functions[].logRetentionInDays`', async () => {

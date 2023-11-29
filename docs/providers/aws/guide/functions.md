@@ -648,6 +648,8 @@ By default, the framework will create LogGroups for your Lambdas. This makes it 
 
 You can opt out of the default behavior by setting `disableLogs: true`
 
+You can specify the CloudWatch log class by setting `logGroupClass` to `STANDARD` or `INFREQUENT_ACCESS`.
+
 You can also specify the duration for CloudWatch log retention by setting `logRetentionInDays`.
 
 You can specify the DataProtectionPolicy for the LogGroup by setting `logDataProtectionPolicy`. On how to define the policy consult the [aws docs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data-start.html).
@@ -659,6 +661,7 @@ functions:
     disableLogs: true
   goodBye:
     handler: handler.goodBye
+    logGroupClass: `INFREQUENT_ACCESS`
     logRetentionInDays: 14
     logDataProtectionPolicy:
       Name: data-protection-policy
