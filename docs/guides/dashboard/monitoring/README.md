@@ -13,6 +13,8 @@ layout: Doc
 
 # Monitoring & Observability
 
+<iframe width="700" height="394" src="https://www.youtube.com/embed/zgcpTlbHwYs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 Easily monitor and observe AWS Lambda functions with Serverless Framework. Access Metrics, Traces, Logs, Errors, and more, across all AWS accounts and Serverless Framework Services.
 
 Works with or without deploying through Serverless Framework. Just connect your AWS account.
