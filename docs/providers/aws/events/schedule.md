@@ -116,3 +116,4 @@ functions:
             key1: value1
             key2: value2
 ```
+**Note**: When visiting the lambda in the AWS Console with the `scheduler` method deployed, the EventBridge input trigger will not appear as it does with `eventBus`. But don't worry, the Schudeler trigger is working and invoking the lambda as configured.
