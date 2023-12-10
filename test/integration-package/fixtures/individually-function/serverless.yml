@@ -21,3 +21,7 @@ functions:
       patterns:
         - handler2.js
         - '!handler.js'
+
+custom:
+  validateIndividuallySetting:
+    handler: validate-individually-setting.handler
