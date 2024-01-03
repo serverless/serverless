@@ -122,14 +122,14 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
           'logs:TagResource',
         ]);
         expect(createLogStatement.Resource).to.deep.includes({
-          'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/${service}-dev*:*`,
+          'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/*${service}-dev*:*`,
         });
 
         const putLogStatement = Properties.Policies[0].PolicyDocument.Statement[1];
         expect(putLogStatement.Effect).to.be.equal('Allow');
         expect(putLogStatement.Action).to.be.deep.equal(['logs:PutLogEvents']);
         expect(putLogStatement.Resource).to.deep.includes({
-          'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/${service}-dev*:*:*`,
+          'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/*${service}-dev*:*:*`,
         });
       });
 
@@ -492,6 +492,10 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
           command: 'package',
           configExt: {
             functions: {
+              fnChangeableLogGroupClass: {
+                handler: 'index.handler',
+                changeableLogGroupClass: true,
+              },
               fnDisableLogs: {
                 handler: 'index.handler',
                 disableLogs: true,

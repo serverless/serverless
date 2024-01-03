@@ -1668,6 +1668,10 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               },
             },
             fnDisabledLogs: { handler: 'trigger.handler', disableLogs: true },
+            fnChangeableLogGroupClass: {
+              handler: 'trigger.handler',
+              changeableLogGroupClass: true,
+            },
             fnMaximumEventAge: { handler: 'trigger.handler', maximumEventAge: 3600 },
             fnMaximumRetryAttempts: { handler: 'trigger.handler', maximumRetryAttempts: 0 },
             fnFileSystemConfig: {
@@ -2226,6 +2230,22 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       expect(cfResources[naming.getLambdaLogicalId('fnDisabledLogs')]).to.not.have.property(
         'DependsOn'
       );
+    });
+
+    it('should support `functions[].changeableLogGroupClass`', () => {
+      const standardLogGroup =
+        cfResources[naming.getLogGroupLogicalId('fnChangeableLogGroupClass', 'STANDARD')].Properties
+          .LogGroupName;
+      const infrequentAccessLogGroup =
+        cfResources[naming.getLogGroupLogicalId('fnChangeableLogGroupClass', 'INFREQUENT_ACCESS')]
+          .Properties.LogGroupName;
+
+      expect(standardLogGroup)
+        .to.be.a('string')
+        .and.not.satisfy((name) => name.startsWith('/aws/lambda/ia/'));
+      expect(infrequentAccessLogGroup)
+        .to.be.a('string')
+        .and.satisfy((name) => name.startsWith('/aws/lambda/ia/'));
     });
 
     it('should support `functions[].maximumEventAge`', () => {
