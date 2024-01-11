@@ -141,6 +141,26 @@ exports.event = (event, callback) => {
 };
 ```
 
+## Function Identity
+
+Each Google Cloud Function has a [Function Identity](https://cloud.google.com/functions/docs/securing/function-identity),
+which is a runtime service account and determines what permissions the function has to interact with other Google Cloud services.
+By default, functions will use your GCP Project's default service account, which has broad access to cloud services. To secure your function,
+create a new service account and use it in your configuration. It can be set at the provider level or for each individual function.
+
+```yml
+# serverless.yml
+
+provider:
+  name: google
+  serviceAccountEmail: my-service-account@my-project.iam.gserviceaccount.com
+
+functions:
+  first:
+    handler: httpFirst
+    serviceAccountEmail: other-service-account@my-project.iam.gserviceaccount.com # overrides provider serviceAccountEmail
+```
+
 ## Labels
 
 Google Cloud Platform supports [labels to assist in organizing resources](https://cloud.google.com/resource-manager/docs/creating-managing-labels).
