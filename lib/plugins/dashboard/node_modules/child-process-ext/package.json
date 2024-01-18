@@ -1,0 +1,99 @@
+{
+	"name": "child-process-ext",
+	"version": "3.0.2",
+	"description": "Extensions to Node.js child_process module",
+	"author": "Mariusz Nowak <medyk@medikoo.com> (http://www.medikoo.com/)",
+	"keywords": [
+		"child_process",
+		"node",
+		"spawn"
+	],
+	"repository": "medikoo/child-process-ext",
+	"dependencies": {
+		"cross-spawn": "^7.0.3",
+		"es5-ext": "^0.10.62",
+		"log": "^6.3.1",
+		"split2": "^3.2.2",
+		"stream-promise": "^3.2.0"
+	},
+	"devDependencies": {
+		"chai": "^4.3.7",
+		"eslint": "^8.43.0",
+		"eslint-config-medikoo": "^4.2.0",
+		"git-list-updated": "^1.2.1",
+		"github-release-from-cc-changelog": "^2.3.0",
+		"husky": "^4.3.8",
+		"lint-staged": "^12.5.0",
+		"mocha": "^7.2.0",
+		"nyc": "^15.1.0",
+		"prettier-elastic": "^2.2.1"
+	},
+	"husky": {
+		"hooks": {
+			"pre-commit": "lint-staged"
+		}
+	},
+	"lint-staged": {
+		"*.js": [
+			"eslint"
+		],
+		"*.{css,html,js,json,md,yaml,yml}": [
+			"prettier -c"
+		]
+	},
+	"eslintConfig": {
+		"extends": "medikoo/node/6",
+		"root": true,
+		"overrides": [
+			{
+				"files": "test/**/*.js",
+				"env": {
+					"mocha": true
+				}
+			}
+		]
+	},
+	"nyc": {
+		"all": true,
+		"exclude": [
+			".github",
+			"coverage/**",
+			"test/**",
+			"*.config.js"
+		],
+		"reporter": [
+			"lcov",
+			"html",
+			"text-summary"
+		]
+	},
+	"prettier": {
+		"printWidth": 100,
+		"tabWidth": 4,
+		"overrides": [
+			{
+				"files": [
+					"*.md",
+					"*.yml"
+				],
+				"options": {
+					"tabWidth": 2
+				}
+			}
+		]
+	},
+	"scripts": {
+		"coverage": "nyc npm test",
+		"lint": "eslint --ignore-path=.gitignore .",
+		"lint:updated": "pipe-git-updated --base=main --ext=js -- eslint --ignore-pattern '!*'",
+		"prettier-check": "prettier -c --ignore-path .gitignore \"**/*.{css,html,js,json,md,yaml,yml}\"",
+		"prettier-check:updated": "pipe-git-updated --base=main --ext=css --ext=html --ext=js --ext=json --ext=md --ext=yaml --ext=yml -- prettier -c",
+		"prettify": "prettier --write --ignore-path .gitignore \"**/*.{css,html,js,json,md,yaml,yml}\"",
+		"prettify:updated": "pipe-git-updated --base=main --ext=css --ext=html --ext=js --ext=json --ext=md --ext=yaml --ext=yml -- prettier --write",
+		"test": "mocha --recursive"
+	},
+	"engines": {
+		"node": ">=8.0"
+	},
+	"license": "ISC"
+}

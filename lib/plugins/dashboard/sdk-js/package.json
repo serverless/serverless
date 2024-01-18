@@ -1,0 +1,52 @@
+{
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "webpack",
+    "cover": "nyc npm test",
+    "test": "mocha \"!(node_modules|dist)/**/*.test.js\"",
+    "test:isolated": "mocha-isolated \"!(node_modules|dist)/**/*.test.js\""
+  },
+  "dependencies": {
+    "@serverless/platform-client": "^4.4.0",
+    "flat": "^5.0.2",
+    "lodash": "^4.17.21",
+    "require-in-the-middle": "^5.1.0",
+    "type": "^2.5.0",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@serverless/test": "^8.4.0",
+    "chai": "^4.3.4",
+    "git-list-updated": "^1.2.1",
+    "mocha": "^8.4.0",
+    "nyc": "^15.1.0",
+    "webpack": "^4.46.0",
+    "webpack-cli": "^3.3.12"
+  },
+  "mocha": {
+    "require": [
+      "@serverless/test/setup/patch",
+      "@serverless/test/setup/log",
+      "@serverless/test/setup/mock-homedir",
+      "@serverless/test/setup/mock-cwd",
+      "@serverless/test/setup/restore-env"
+    ],
+    "timeout": 5000
+  },
+  "nyc": {
+    "all": true,
+    "exclude": [
+      "**/*.test.js",
+      "coverage/**",
+      "dist/**",
+      "node_modules/**",
+      "prettier.config.js",
+      "webpack.config.js"
+    ],
+    "reporter": [
+      "lcov",
+      "html",
+      "text-summary"
+    ]
+  }
+}

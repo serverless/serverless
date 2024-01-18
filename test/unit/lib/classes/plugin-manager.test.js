@@ -597,7 +597,6 @@ describe('PluginManager', () => {
       mockRequire('ServicePluginMock1', ServicePluginMock1);
       mockRequire('ServicePluginMock2', ServicePluginMock2);
       mockRequire('BrokenPluginMock', BrokenPluginMock);
-      mockRequire('@serverless/dashboard-plugin', EnterprisePluginMock);
     });
 
     it('should load only core plugins when no service plugins are given', async () => {
@@ -690,7 +689,6 @@ describe('PluginManager', () => {
       mockRequire.stop('ServicePluginMock1');
       mockRequire.stop('ServicePluginMock2');
       mockRequire.stop('BrokenPluginMock');
-      mockRequire.stop('@serverless/dashboard-plugin');
     });
   });
 
