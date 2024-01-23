@@ -22,9 +22,10 @@
     "sls": "./bin/serverless.js"
   },
   "dependencies": {
-    "@serverless/dashboard-plugin": "^7.2.0",
+    "@aws-sdk/client-sts": "^3.410.0",
+    "@aws-sdk/client-cloudformation": "^3.410.0",
     "@serverless/platform-client": "^4.5.1",
-    "@serverless/utils": "^6.13.1",
+    "@serverless/utils": "^6.14.0",
     "abort-controller": "^3.0.0",
     "ajv": "^8.12.0",
     "ajv-formats": "^2.1.1",
@@ -66,8 +67,9 @@
     "process-utils": "^4.0.0",
     "promise-queue": "^2.2.5",
     "require-from-string": "^2.0.2",
-    "semver": "^7.5.3",
+    "semver": "^7.5.4",
     "signal-exit": "^3.0.7",
+    "simple-git": "^3.16.0",
     "stream-buffers": "^3.0.2",
     "strip-ansi": "^6.0.1",
     "supports-color": "^8.1.1",

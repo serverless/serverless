@@ -15,11 +15,6 @@ module.exports = {
     '../../lib/plugins/create/templates',
     // Local invocation artifacts
     '../../lib/plugins/aws/invoke-local/runtime-wrappers',
-    // Dashboard policies
-    '../../node_modules/@serverless/dashboard-plugin/lib/safeguards/policies',
-    // Dashboard wrappers
-    '../../node_modules/@serverless/dashboard-plugin/sdk-js/dist/index.js',
-    '../../node_modules/@serverless/dashboard-plugin/sdk-py',
     // Ensure npm is bundled as a dependency
     '../../node_modules/npm/lib',
     '../../node_modules/npm/bin/npm-cli.js',
