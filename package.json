@@ -17,10 +17,6 @@
     "iot"
   ],
   "main": "lib/serverless.js",
-  "bin": {
-    "serverless": "./bin/serverless.js",
-    "sls": "./bin/serverless.js"
-  },
   "dependencies": {
     "@aws-sdk/client-sts": "^3.410.0",
     "@aws-sdk/client-cloudformation": "^3.410.0",
