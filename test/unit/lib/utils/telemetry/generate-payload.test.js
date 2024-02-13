@@ -12,7 +12,7 @@ const runServerless = require('../../../../utils/run-serverless');
 const fixtures = require('../../../../fixtures/programmatic');
 
 const versions = {
-  'serverless': require('../../../../../package').version
+  serverless: require('../../../../../package').version,
 };
 
 const getGeneratePayload = () =>
