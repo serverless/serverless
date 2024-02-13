@@ -80,6 +80,12 @@
     "yaml-ast-parser": "0.0.43"
   },
   "devDependencies": {
+    "@aws-sdk/client-api-gateway": "^3.511.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.511.0",
+    "@aws-sdk/client-eventbridge": "^3.511.0",
+    "@aws-sdk/client-iam": "^3.511.0",
+    "@aws-sdk/client-lambda": "^3.511.0",
+    "@aws-sdk/client-s3": "^3.511.0",
     "@commitlint/cli": "^12.1.4",
     "@serverless/eslint-config": "^5.1.0",
     "@serverless/test": "^11.1.1",
