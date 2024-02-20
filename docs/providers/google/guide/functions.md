@@ -120,6 +120,36 @@ functions:
       auth_provider: oauth2
 ```
 
+
+## Secret environment variables
+
+Google Cloud Functions support setting environment variables from secrets managed in [Secrets Manager](https://cloud.google.com/secret-manager).
+
+The `secrets` property can be specified at the provider or at the function level. The provider wide definition causes all functions to share these secret environment variables, whereas the function wide definition means that this configuration is only valid for the function.
+
+By default, no secrets are passed to the functions. The key will be used as the environment variable name and the `secret` must be a reference to a secret in Secrets Manager.
+
+```yml
+# serverless.yml
+
+provider:
+  secrets:
+    API_KEY:
+      secret: 'secret-id'
+      version: 'latest'
+      projectId: 'project-id' # Optional, defaults to function project
+
+functions:
+  first:
+    handler: first
+  second:
+    handler: second
+    secrets:
+      API_KEY: # this will override above secret
+        secret: 'override-secret-id'
+        version: 'latest'
+```
+
 ## Handler signatures
 
 Google Cloud Functions have different handler signatures dependent on the event type which will trigger them.
