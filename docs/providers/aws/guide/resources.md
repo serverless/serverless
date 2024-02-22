@@ -12,7 +12,7 @@ layout: Doc
 
 # AWS Infrastructure Resources
 
-If you are using AWS as a provider for your Service, all [_Resources_](./intro.md#resources) or other AWS infrastructure resources which the AWS Lambda functions depend are defined in your [_Service_](./intro.md#services) serverless definition file. For example, resources like AWS DynamoDB or AWS S3 can be created or updated.
+If you are using AWS as a provider for your Service, all [_Resources_](./intro.md#resources) or other AWS infrastructure resources on which the AWS Lambda functions depend are defined in your [_Service_](./intro.md#services) serverless definition file. For example, resources like AWS DynamoDB or AWS S3 can be created or updated.
 
 Using the Serverless Framework, you can define the infrastructure resources you need in the `serverless.yml` file, and easily deploy them.
 
