@@ -80,25 +80,11 @@ serverless invoke -f hello --log
 
 More details on the `invoke` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke).
 
-If you want to open a session that streams logs from one or multiple AWS Lambda functions, use the new Serverless Framework `dev` command. Instead of relying on AWS Cloudwatch (which is slow) this leverages our new [Serverless Console](https://serverless.com/console) to stream logs and more in less than 1 second to your CLI. It's free, it supports streaming from multiple AWS Lambda functions simultaneously, and it also will stream inputs and outputs your AWS Lambda functions and their SDK calls.
+If you want to stream logs from the function you are working on, use this. This will stream logs in real-time from AWS Cloudwatch thanks to the `-t` or `--tail` option from the `hello` AWS Lambda function.
 
 ```bash
-sls dev
+sls logs -f hello -t
 ```
-
-If you use the `--verbose` flag, the `dev` command will stream requests and responses of your AWS Lambda functions, as well as your AWS SDK calls, so you can inspect what's happening with AWS DynamoDB, AWS S3, and much more.
-
-```bash
-sls dev --verbose
-```
-
-By default, `dev` streams logs from all functions in your Serverless Framework Service. But you can target a specific function like this:
-
-```bash
-sls dev -f my-function
-```
-
-Please note, the `dev` command currently only supports Node.js and Python AWS Lambda runtimes. If you want to stream from AWS Cloudwatch instead, you can use the `tail` command: `serverless logs -f hello --tail`. Please note, this is much slower.
 
 ## Developing Locally
 
@@ -121,27 +107,6 @@ More details on the `invoke local` command can be found [here](https://www.serve
 Serverless Framework also has a great plugin that allows you to run a server locally and emulate AWS API Gateway. This is the `serverless-offline` command.
 
 More details on the **serverless-offline** plugins command can be found [here](https://github.com/dherault/serverless-offline)
-
-## Monitoring & Observability
-
-Monitoring AWS Lambda and its other resources dependencies can be challenging (especially as your number of resources grow). This generally involves jumping around various services and products within AWS Cloudwatch.
-
-Fortunately, we've delivered a consolidated and elegant solution to monitoring AWS Lambda in [Serverless Console](https://console.serverless.com). You'll get a bunch of delightful features out of the box:
-
-- Start monitoring automatically, with no code instrumentation required.
-- Monitor everything via a consolidated Metrics view for all of your AWS Lambda functions across AWS accounts, regions and more.
-- Troubleshoot any invocation by querying rich tags that are automatically added by Serverless Console.
-- Understand issues via detailed Traces detailing what happened within your AWS Lambda invocation.
-- Capture Errors, Warnings and more.
-- Stream Logs and other telemetry instantly while you develop via the Dev Mode user interface.
-
-To set up Serverless Console automatically, run:
-
-```bash
-sls --console
-```
-
-Serverless Console is designed for developers, and it moves at their speed.
 
 ## Remove Your Service
 
