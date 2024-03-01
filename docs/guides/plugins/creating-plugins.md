@@ -56,13 +56,11 @@ plugins:
 
 If your plugin builds code that other plugins might depend on, you can tag your plugin as a `build` plugin with the optional `tags` static property. This ensures that it runs first before other non-build plugins that may depend on it.
 
-```
+```javascript
 class MyPlugin {
   static tags = ['build'];
 
-  constructor() {
-
-  }
+  constructor() {}
 }
 
 module.exports = MyPlugin;
