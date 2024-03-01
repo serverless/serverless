@@ -31,13 +31,6 @@ The simplest way to create a Serverless Framework plugin is to write a JavaScrip
 'use strict';
 
 class MyPlugin {
-  /**
-   * You can optionally specify your plugin as a build plugin
-   * with the optional tags static property. This ensures that
-   * it runs first before other plugins that may depend on it.
-   */
-  static tags = ['build'];
-
   constructor() {
     // The plugin is loaded
   }
