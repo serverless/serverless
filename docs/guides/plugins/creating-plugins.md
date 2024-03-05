@@ -52,6 +52,24 @@ plugins:
   - ./my-plugin.js
 ```
 
+### Prioritizing Build Plugins
+
+If your plugin builds code that other plugins might depend on, you can tag your plugin as a `build` plugin with the optional `tags` static property. This ensures that it runs first before other non-build plugins that may depend on it.
+
+```javascript
+class MyPlugin {
+  static tags = ['build'];
+
+  constructor() {}
+}
+
+module.exports = MyPlugin;
+```
+
+If your plugin doesn't build code, and/or doesn't need to be prioritized, don't set this tag. Otherwise users won't be able to use other build plugins along with your plugin.
+
+**Note:** The `build` tag is the only tag we currently support.
+
 ### Distributing a plugin via NPM
 
 Plugins can also be published to NPM and later installed in separate projects.
