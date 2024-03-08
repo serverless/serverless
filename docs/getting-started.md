@@ -5,7 +5,9 @@ layout: Doc
 
 # Setting Up Serverless Framework With AWS
 
-Get started with Serverless Framework’s open-source CLI and Amazon Web Services in minutes.
+Here's how to set up the Serverless Framework Command Line Interface and prepare for seamless AWS deployments.
+
+While Serverless Framework supports multiple cloud providers, AWS remains its most popular integration. For details on deploying to other providers, see the official [Extensions]() documentation.
 
 ## Installation
 
