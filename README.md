@@ -1,6 +1,7 @@
-[![Serverless Framework AWS Lambda AWS API Gateway AWS DynamoDB](https://github.com/serverless/serverless/assets/2752551/6e2a978a-1a95-49ff-be16-59e929a25640)](https://serverless.com)
 
-[![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
+![temp-500](https://github.com/serverless/serverless/assets/2752551/68f14054-f0e8-4030-9fc2-23176ce230f2)
+
+
 [![Build Status](https://github.com/serverless/serverless/workflows/Integrate/badge.svg)](https://github.com/serverless/serverless/actions?query=workflow%3AIntegrate)
 [![npm version](https://badge.fury.io/js/serverless.svg)](https://badge.fury.io/js/serverless)
 [![codecov](https://codecov.io/gh/serverless/serverless/branch/master/graph/badge.svg)](https://codecov.io/gh/serverless/serverless)
