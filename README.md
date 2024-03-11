@@ -15,16 +15,15 @@
 </div>
 
 <br/>
-
-
-<h1></h1>
-
+<br/>
 
 **The Serverless Framework** – Build applications on AWS Lambda and other next-gen cloud services, that auto-scale and only charge you when they run. This lowers the total cost of running and operating your apps, enabling you to build more and manage less.
 
 The Serverless Framework is a command-line tool with an easy and approachable YAML syntax to deploy both your code and cloud infrastructure needed to make tons of serverless application use-cases. It's a multi-language framework that supports Node.js, Typescript, Python, Go, Java, and more. It's also completely extensible via over 1,000 plugins which add more serverless use-cases and workflows to the Framework.
 
 Actively maintained by [Serverless Inc](https://www.serverless.com).
+
+<br/>
 
 # Contents
 
