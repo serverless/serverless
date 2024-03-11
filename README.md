@@ -1,11 +1,29 @@
 [![Serverless Framework AWS Lambda AWS DynamoDB AWS API Gateway](https://github.com/serverless/serverless/assets/2752551/b20dd7e5-0380-492f-9cf2-5fd87a145ebb)](https://serverless.com)
 
-[![Build Status](https://github.com/serverless/serverless/workflows/Integrate/badge.svg)](https://github.com/serverless/serverless/actions?query=workflow%3AIntegrate)
-[![npm version](https://badge.fury.io/js/serverless.svg)](https://badge.fury.io/js/serverless)
-[![codecov](https://codecov.io/gh/serverless/serverless/branch/master/graph/badge.svg)](https://codecov.io/gh/serverless/serverless)
-[![Known Vulnerabilities](https://snyk.io/test/github/serverless/serverless/badge.svg)](https://snyk.io/test/github/serverless/serverless)
+<br/>
 
-[Website](http://www.serverless.com) • [Docs](https://serverless.com/framework/docs/) • [Community Slack](https://serverless.com/slack) • [Forum](http://forum.serverless.com) • [Twitter](https://twitter.com/goserverless) • [Meetups](https://www.meetup.com/pro/serverless/)
+<p align="center">
+  <a aria-label="Serverless.com" href="https://serverless.com">Website</a>
+  &nbsp;•&nbsp;
+  <a aria-label="Serverless Framework Documentation" href="https://serverless.com/framework/docs/">Documentation</a>
+  &nbsp;•&nbsp;
+  <a aria-label="Serverless Inc Twitter" href="https://twitter.com/goserverless">X / Twitter</a>
+  &nbsp;•&nbsp;
+  <a aria-label="Serverless Framework Community Slack" href="https://serverless.com/slack">Community Slack</a>
+  &nbsp;•&nbsp;
+  <a aria-label="Serverless Framework Community Forum" href="https://forum.serverless.com">Forum</a>
+</p>
+
+<br/>
+
+<p align="center">
+  <a aria-label="NPM version" href="https://www.npmjs.com/package/serverless"><img alt="" src="https://badge.fury.io/js/serverless.svg"></a>
+  <a aria-label="Code Coverage" href="https://codecov.io/gh/serverless/serverless"><img alt="" src="https://codecov.io/gh/serverless/serverless/branch/master/graph/badge.svg"></a>
+  <a aria-label="Vulnerabilities" href="https://snyk.io/test/github/serverless/serverless"><img alt="" src="https://snyk.io/test/github/serverless/serverless/badge.svg"></a>
+</p>
+
+<h1></h1>
+
 
 **The Serverless Framework** – Build applications on AWS Lambda and other next-gen cloud services, that auto-scale and only charge you when they run. This lowers the total cost of running and operating your apps, enabling you to build more and manage less.
 
