@@ -73,6 +73,8 @@ This will guide you through:
 * Setting up credentials to enable the Serverless Framework to deploy to AWS.
 
 After running onboarding, move into the newly created directory
+
+```
 cd [your-new-project-name]
 ```
 
