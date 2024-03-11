@@ -2,7 +2,7 @@
 
 <br/>
 
-<p align="center">
+<div align="center">
   <a aria-label="Serverless.com" href="https://serverless.com">Website</a>
   &nbsp;•&nbsp;
   <a aria-label="Serverless Framework Documentation" href="https://serverless.com/framework/docs/">Documentation</a>
@@ -12,15 +12,10 @@
   <a aria-label="Serverless Framework Community Slack" href="https://serverless.com/slack">Community Slack</a>
   &nbsp;•&nbsp;
   <a aria-label="Serverless Framework Community Forum" href="https://forum.serverless.com">Forum</a>
-</p>
+</div>
 
 <br/>
 
-<p align="center">
-  <a aria-label="NPM version" href="https://www.npmjs.com/package/serverless"><img alt="" src="https://badge.fury.io/js/serverless.svg"></a>
-  <a aria-label="Code Coverage" href="https://codecov.io/gh/serverless/serverless"><img alt="" src="https://codecov.io/gh/serverless/serverless/branch/master/graph/badge.svg"></a>
-  <a aria-label="Vulnerabilities" href="https://snyk.io/test/github/serverless/serverless"><img alt="" src="https://snyk.io/test/github/serverless/serverless/badge.svg"></a>
-</p>
 
 <h1></h1>
 
