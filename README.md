@@ -17,7 +17,7 @@
 <br/>
 <br/>
 
-**The Serverless Framework** – Build applications on AWS Lambda and other next-gen cloud services, that auto-scale and only charge you when they run. This lowers the total cost of running and operating your apps, enabling you to build more and manage less.
+**The Serverless Framework** – Makes it easy to leverage AWS Lambda and other managed cloud services to build applications that auto-scale, cost nothing when idle, and boast radically low maintenance. 
 
 The Serverless Framework is a command-line tool with an easy and approachable YAML syntax to deploy both your code and cloud infrastructure needed to make tons of serverless application use-cases. It's a multi-language framework that supports Node.js, Typescript, Python, Go, Java, and more. It's also completely extensible via over 1,000 plugins which add more serverless use-cases and workflows to the Framework.
 
@@ -36,18 +36,16 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 # <a name="features"></a>Features
 
-- **Hyper-Productive** - Build more and manage less with serverless architectures.
-- **Multiple Use-Cases** - Choose from tons of efficient serverless use-cases (APIs, Scheduled Tasks, Event Handlers, Streaming Data Pipelines, Web Sockets & more).
-- **Infra & Code** - Deploys both code and infrastructure together, resulting in out-of-the-box serverless apps.
-- **Easy** - Enjoy simple syntax to safely deploy deploy AWS Lambda functions, event sources and more without being a cloud expert.
-- **Multi-Language** - Supports Node.js, Python, Java, Go, C#, Ruby, Swift, Kotlin, PHP, Scala, & F#
-- **Full Lifecycle** - Manages the lifecycle of your serverless architecture (build, deploy, update, monitor, troubleshoot).
-- **Multi-Domains** - Group domains into Serverless Services for easy management of code, resources & processes, across large projects & teams.
-- **Multi-Environments** - Built-in support for multiple stages (e.g. development, staging, production).
-- **Guardrails** - Loaded with automation, optimization and best practices.
-- **Extensible** - Extend or modify the Framework and its operations via Plugins.
-- **Plugin Ecosystem** - Extend or modify the Framework and its operations via Plugins.
-- **Welcoming** - A passionate and welcoming community!
+* **Empowerment for All:** Innovate faster by spending less time on infrastructure management.
+* **Maximum Versatility:** Tackle diverse serverless use cases, from APIs and scheduled tasks to web sockets and data pipelines.
+* **Automated Deployment:** Streamline development with code and infrastructure deployment handled together.
+* **Ease of Use:** Deploy complex applications without deep cloud infrastructure expertise, thanks to simple YAML configuration.
+* **Language Agnostic:** Build in your preferred language – Node.js, Python, Java, Go, C#, Ruby, Swift, Kotlin, PHP, Scala, or F#.
+* **Complete Lifecycle Management:** Build, deploy, monitor, update, and troubleshoot serverless applications with ease.
+* **Scalable Organization:** Structure large projects and teams efficiently with multi-domain support.
+* **Effortless Environments:** Seamlessly manage development, staging, and production environments.
+* **Customization Ready:** Extend and modify the Framework's functionality with a rich plugin ecosystem.
+* **Vibrant Community:** Get support and connect with a passionate community of Serverless developers.
 
 # <a name="quick-start"></a>Quick Start
 
