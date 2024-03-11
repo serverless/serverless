@@ -49,8 +49,6 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 # <a name="quick-start"></a>Quick Start
 
-## Installation
-
 The Serverless Framework is packaged as a binary, which can be installed via this CURL script.
 
 ```bash
@@ -62,8 +60,6 @@ You can also install the Framework via NPM. You will need to have [Node.js](http
 ```bash
 npm i serverless -g
 ```
-
-## Set-Up
 
 Run the interactive onboarding via the "serverless" command...
 
@@ -80,19 +76,11 @@ After running onboarding, move into the newly created directory
 cd [your-new-project-name]
 ```
 
-Your new serverless project will contain a `serverless.yml` file. This file features simple syntax for deploying infrastructure to AWS, such as AWS Lambda functions, infrastructure that triggers those functions with events, and additional infrastructure your AWS Lambda functions may need for various use-cases. You can learn more about this in the [Core Concepts documentation](https://www.serverless.com/framework/docs/providers/aws/guide/intro).
+Your new serverless project will contain a `serverless.yml` file with simple syntax for deploying infrastructure to AWS, such as AWS Lambda functions, infrastructure that triggers those functions with events, and additional infrastructure your AWS Lambda functions may need for various use-cases. Learn more about this in the [Core Concepts documentation](https://www.serverless.com/framework/docs/providers/aws/guide/intro).
 
-The `serverless` command will give you a variety of templates to choose from. If those do not fit your needs, check out the [project examples from Serverless Inc. and our community](https://github.com/serverless/examples). You can install any example by passing a GitHub URL using the `--template-url` option:
+## Deploying to AWS
 
-```base
-serverless --template-url=https://github.com/serverless/examples/tree/v3/...
-```
-
-Please note that you can use `serverless` or `sls` to run Serverless Framework commands.
-
-## Deploying
-
-If you haven't done so already within the `serverless` command, you can deploy the project at any time by running:
+After set-up, and ensuring your AWS credentials are configured correctly, you are ready to deploy to AWS. Note that you can use `serverless` or `sls` as the command prompt.
 
 ```bash
 sls deploy
@@ -146,7 +134,7 @@ sls invoke local -f my-api
 You can also pass data to this local invocation via a variety of ways. Here's one of them:
 
 ```bash
-serverless invoke local --function functionName --data '{"a":"bar"}'
+sls invoke local --function functionName --data '{"a":"bar"}'
 ```
 
 More details on the `invoke local` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local)
@@ -154,14 +142,6 @@ More details on the `invoke local` command can be found [here](https://www.serve
 Serverless Framework also has a great plugin that allows you to run a server locally and emulate AWS API Gateway. This is the `serverless-offline` command.
 
 More details on the **serverless-offline** plugins command can be found [here](https://github.com/dherault/serverless-offline)
-
-## Monitoring, Secrets & Collaboration
-
-If you're looking for easy, out-of-the-box monitoring, secrets management and collaboration features, sign into the Serverless Framework Dashboard. It's free!
-
-```bash
-sls login
-```
 
 ## Remove your service
 
