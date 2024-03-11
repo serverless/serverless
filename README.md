@@ -25,6 +25,18 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 <br/>
 
+# Serverless Framework - V.4 - Alpha
+
+This is the Serverless Framework V.4 Alpha release. It includes the following:
+
+* No breaking changes.
+* A transition to a binary core, making Node.js not a requirement.
+* Support for automatic updates.
+* Improved onboarding and set-up assistance.
+* Built-in CLI support command.
+* Improved support for AWS SSO credentials.
+* Authorization with the Serverless Platform.
+
 # Contents
 
 - [Features](#features)
