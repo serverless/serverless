@@ -61,28 +61,23 @@ You can also install the Framework via NPM. You will need to have [Node.js](http
 npm i serverless -g
 ```
 
-Run the interactive onboarding via the "serverless" command...
+Run the interactive onboarding via the "serverless" command, to pick a Template and set-up credentials for AWS.
 
 ```bash
 serverless
 ```
-This will guide you through:
 
-* Picking a Template (e.g. API, Schedule Task, etc.).
-* Generating scaffolding.
-* Setting up credentials to enable the Serverless Framework to deploy to AWS.
-
-After running onboarding, move into the newly created directory
+After onboarding, move into the newly created directory.
 
 ```
 cd [your-new-project-name]
 ```
 
-Your new serverless project will contain a `serverless.yml` file with simple syntax for deploying infrastructure to AWS, such as AWS Lambda functions, infrastructure that triggers those functions with events, and additional infrastructure your AWS Lambda functions may need for various use-cases. Learn more about this in the [Core Concepts documentation](https://www.serverless.com/framework/docs/providers/aws/guide/intro).
+Your new project will contain a `serverless.yml` file with simple syntax for deploying infrastructure to AWS, such as AWS Lambda functions, infrastructure that triggers those functions with events, and additional infrastructure your AWS Lambda functions may need for various use-cases. Learn more about this in the [Core Concepts documentation](https://www.serverless.com/framework/docs/providers/aws/guide/intro).
 
 ## Deploying to AWS
 
-After set-up, and ensuring your AWS credentials are configured correctly, you are ready to deploy to AWS. Note that you can use `serverless` or `sls` as the command prompt.
+Run the `deploy` command to deploy your project to AWS. Note, you can use `serverless` or `sls` as the command prompt.
 
 ```bash
 sls deploy
