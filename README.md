@@ -36,7 +36,7 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 # <a name="features"></a>Features
 
-* **Empowerment for All:** Innovate faster by spending less time on infrastructure management.
+* **Total Empowerment:** Innovate faster by spending less time on infrastructure management.
 * **Maximum Versatility:** Tackle diverse serverless use cases, from APIs and scheduled tasks to web sockets and data pipelines.
 * **Automated Deployment:** Streamline development with code and infrastructure deployment handled together.
 * **Ease of Use:** Deploy complex applications without deep cloud infrastructure expertise, thanks to simple YAML configuration.
