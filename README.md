@@ -49,35 +49,36 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 # <a name="quick-start"></a>Quick Start
 
-Here's how to get started quickly, as well as some recommended development workflows.
-
 ## Installation
 
-Install `serverless` module via NPM:
+The Serverless Framework is packaged as a binary, which can be installed via this CURL script.
 
 ```bash
-npm install -g serverless
+curl -o- -L https://install.serverless.com | bash
 ```
 
-_If you don’t already have Node.js on your machine, [install it first](https://nodejs.org/). If you don't want to install Node or NPM, you can [install **serverless** as a standalone binary](https://www.serverless.com/framework/docs/install-standalone)._
-
-## Creating A Service
-
-To create your first project (known as a Serverless Framework "Service"), run the `serverless` command below, then follow the prompts.
+You can also install the Framework via NPM. You will need to have [Node.js](https://nodejs.org) installed.
 
 ```bash
-# Create a new serverless project
+npm i serverless -g
+```
+
+## Set-Up
+
+Run the interactive onboarding via the "serverless" command...
+
+```bash
 serverless
-
-# Move into the newly created directory
-cd your-service-name
 ```
+This will guide you through:
 
-The `serverless` command will guide you to:
+* Picking a Template (e.g. API, Schedule Task, etc.).
+* Generating scaffolding.
+* Setting up credentials to enable the Serverless Framework to deploy to AWS.
 
-1. Create a new project
-2. Configure your [AWS credentials](https://serverless.com/framework/docs/providers/aws/guide/credentials/)
-3. Optionally set up a free Serverless Framework account with additional features.
+After running onboarding, move into the newly created directory
+cd [your-new-project-name]
+```
 
 Your new serverless project will contain a `serverless.yml` file. This file features simple syntax for deploying infrastructure to AWS, such as AWS Lambda functions, infrastructure that triggers those functions with events, and additional infrastructure your AWS Lambda functions may need for various use-cases. You can learn more about this in the [Core Concepts documentation](https://www.serverless.com/framework/docs/providers/aws/guide/intro).
 
