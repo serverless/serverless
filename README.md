@@ -78,6 +78,8 @@ You can also install the Framework via NPM. You will need to have [Node.js](http
 npm i @serverlessinc/framework -g
 ```
 
+<br/>
+
 ## Create A Project
 
 Run the interactive onboarding via the "serverless" command, to pick a Template and set-up credentials for AWS.
