@@ -17,7 +17,7 @@ In 2014, AWS Lambda introduced a shift towards low-maintenance cloud computing. 
 
 Since its inception, the Serverless Framework has been widely embraced by both start-ups and Fortune 500 companies like the New York Times, Nike, and EA Games.  Several start-ups have achieved unicorn valuations and substantial exits with remarkably small engineering teams empowered by the Framework's capabilities.
 
-If you want to stay ahead in today's fast-paced world, the Serverless Framework offers a compelling advantage. Build more, manage less, and deliver the kind of innovation that turns heads.
+If you want to stay ahead in today's fast-paced world, the Serverless Framework offers a compelling advantage. Build more, manage less, and focus on delivering meaningful innovation.
 
 ## Highlights
 
