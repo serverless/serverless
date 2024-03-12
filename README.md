@@ -44,9 +44,7 @@ This is the Serverless Framework V.4 Alpha release. It includes the following:
 - [Features](#features)
 - [Quick Start](#quick-start)
 - [Plugins](https://github.com/serverless/plugins)
-- [Contributing](#contributing)
 - [Community](#community)
-- [Licensing](#licensing)
 
 <br/>
 
@@ -93,7 +91,9 @@ cd [your-new-project-name]
 
 Your new project will contain a `serverless.yml` file with simple syntax for deploying infrastructure to AWS, such as AWS Lambda functions, infrastructure that triggers those functions with events, and additional infrastructure your AWS Lambda functions may need for various use-cases. Learn more about this in the [Core Concepts documentation](https://www.serverless.com/framework/docs/providers/aws/guide/intro).
 
-## Deploying to AWS
+<br/>
+
+## Deploy to AWS
 
 Run the `deploy` command to deploy your project to AWS. Note, you can use `serverless` or `sls` as the command prompt.
 
@@ -105,7 +105,9 @@ The deployed AWS Lambda functions and other essential information such as API En
 
 More details on deploying can be found [here](https://www.serverless.com/framework/docs/providers/aws/guide/deploying).
 
-## Developing On The Cloud
+<br/>
+
+## Develop On The Cloud
 
 Many Serverless Framework users choose to develop on the cloud, since it matches reality and emulating Lambda locally can be complex. To develop on the cloud quickly, without sacrificing speed, we recommend the following workflow...
 
@@ -136,7 +138,9 @@ sls logs -f [Function name in serverless.yml] -t
 
 Target a specific function via the `-f` option and enable streaming via the `-t` option.
 
-## Developing Locally
+<br/>
+
+## Develop Locally
 
 Many Serverless Framework users rely on local emulation to develop more quickly. Please note, emulating AWS Lambda and other cloud services is never accurate and the process can be complex. We recommend the following workflow to develop locally...
 
@@ -158,7 +162,9 @@ Serverless Framework also has a great plugin that allows you to run a server loc
 
 More details on the **serverless-offline** plugins command can be found [here](https://github.com/dherault/serverless-offline)
 
-## Remove your service
+<br/>
+
+## Remove Your Service
 
 If you want to delete your service, run `remove`. This will delete all the AWS resources created by your project and ensure that you don't incur any unexpected charges. It will also remove the service from Serverless Dashboard.
 
@@ -167,6 +173,8 @@ sls remove
 ```
 
 More details on the `remove` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/remove).
+
+<br/>
 
 ## What's Next
 
@@ -178,23 +186,13 @@ Here are some helpful resources for continuing with the Serverless Framework:
 - [Bookmark Serverless Framework's `serverless.yml` guide](https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml)
 - [Search the plugins registry to extend Serverless Framework](https://www.serverless.com/plugins)
 
-# <a name="contributing"></a>Contributing
-
-We love our contributors! Please read our [Contributing Document](CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
-
-Check out our [help wanted](https://github.com/serverless/serverless/labels/help%20wanted) or [good first issue](https://github.com/serverless/serverless/labels/good%20first%20issue) labels to find issues we want to move forward on with your help.
+<br/>
 
 # <a name="community"></a>Community
 
-- [Twitter](https://twitter.com/goserverless)
+- [X / Twitter](https://twitter.com/goserverless)
 - [Community Slack](https://serverless.com/slack)
 - [Serverless Meetups](http://www.meetup.com/serverless/)
 - [Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework)
 - [Facebook](https://www.facebook.com/serverless)
 - [Contact Us](mailto:hello@serverless.com)
-
-# <a name="licensing"></a>Licensing
-
-Serverless is licensed under the [MIT License](./LICENSE.txt).
-
-All files located in the node_modules and external directories are externally maintained libraries used by this software which have their own licenses; we recommend you read them, as their terms may differ from the terms in the MIT License.
