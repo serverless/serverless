@@ -6,7 +6,7 @@ body:
     attributes:
       label: What version of Serverless Framework are you using?
       description: Output of `serverless --version`
-      validation:
+      validations:
         - required: true
   - type: textarea
     attributes:
