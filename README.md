@@ -29,14 +29,13 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 **March 13th, 2024** – This is the Serverless Framework V.4 Alpha release, which includes these focus areas:
 
-* No breaking changes for the "aws" Provider.
-* A transition to a binary core, making Node.js not a requirement.
-* Support for automatic updates.
-* Improved onboarding and set-up assistance.
-* Built-in CLI support command.
-* Improved support for AWS SSO credentials.
-* Authorization with the Serverless Platform.
-* Deprecation of other cloud providers, in favor of upcoming "Extensions".
+* **No Breaking Changes:** No breaking changes for the "aws" Provider.
+* **Support Command:** Send support requests to our team directly from the CLI, which auto-include contextual info which you can review before sending.
+* **AWS SSO:** Environment variables, especially ones set by AWS SSO, are prioritized. The Framework and Dashboard no longer interfere with these.
+* **Binary By Default:** We've transitioned to a binary core by default, making Node.js not a requirement.
+* **Automatic Updates:** These happen by default now. Though, you will be able to control the level of updates you're open to.
+* **Improved Onboarding & Set-Up:** The `serverless` command has been re-written to be more helpful when setting up a new or existing project.
+* **Deprecation Of Non-AWS Providers:** Deprecation of other cloud providers, in favor of handling this better in our upcoming Serverless Framework "Extensions".
 
 For more info on upgrading, check out the ["Upgrading to V.4 Guide"](./docs/guides/upgrading-v4.md). Follow V.4's progress via our [Github Milestones](https://github.com/serverless/serverless/milestones).
 
@@ -260,6 +259,20 @@ provider:
 More details on Serverless Framework Compose can be found [here](https://www.serverless.com/framework/docs/guides/compose).
 
 <br/>
+
+## Support Command
+
+In Serverless Framework V.4, we've introduced the `serverless support` command, a standout feature that lets you directly connect with our support team. It automatically includes relevant context and omits sensitive details like secrets and account information, which you can check before submission. This streamlined process ensures your issues are quickly and securely addressed.
+
+To use this feature, after an error or any command, run:
+
+```bash
+serverless support
+```
+
+After each command, whether it succeeded or not, a new `report.md` file is created within your current working directory in the `.serverless` folder. The `support` command will prompt you to review it, if you'd like.
+
+This feature is only available to users who sign up for a Subscription.
 
 ## Remove Your Service
 
