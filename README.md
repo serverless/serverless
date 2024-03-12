@@ -37,6 +37,8 @@ This is the Serverless Framework V.4 Alpha release. It includes the following:
 * Improved support for AWS SSO credentials.
 * Authorization with the Serverless Platform.
 
+<br/>
+
 # Contents
 
 - [Features](#features)
@@ -46,9 +48,11 @@ This is the Serverless Framework V.4 Alpha release. It includes the following:
 - [Community](#community)
 - [Licensing](#licensing)
 
+<br/>
+
 # <a name="features"></a>Features
 
-* **Total Empowerment:** Innovate faster by spending less time on infrastructure management.
+* **Build More, Manage Less:** Innovate faster by spending less time on infrastructure management.
 * **Maximum Versatility:** Tackle diverse serverless use cases, from APIs and scheduled tasks to web sockets and data pipelines.
 * **Automated Deployment:** Streamline development with code and infrastructure deployment handled together.
 * **Ease of Use:** Deploy complex applications without deep cloud infrastructure expertise, thanks to simple YAML configuration.
@@ -59,18 +63,20 @@ This is the Serverless Framework V.4 Alpha release. It includes the following:
 * **Customization Ready:** Extend and modify the Framework's functionality with a rich plugin ecosystem.
 * **Vibrant Community:** Get support and connect with a passionate community of Serverless developers.
 
+<br/>
+
 # <a name="quick-start"></a>Quick Start
+
+You can also install the Framework via NPM. You will need to have [Node.js](https://nodejs.org) installed.
+
+```bash
+npm i @serverlessinc/framework -g
+```
 
 The Serverless Framework is packaged as a binary, which can be installed via this CURL script.
 
 ```bash
 curl -o- -L https://install.serverless.com | bash
-```
-
-You can also install the Framework via NPM. You will need to have [Node.js](https://nodejs.org) installed.
-
-```bash
-npm i serverless -g
 ```
 
 Run the interactive onboarding via the "serverless" command, to pick a Template and set-up credentials for AWS.
