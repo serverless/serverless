@@ -27,7 +27,7 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 # Serverless Framework - V.4 - Alpha
 
-**March 13th, 2024** – This is the Serverless Framework V.4 Alpha release, which includes these focus areas:
+**March 13th, 2024** – This is the Serverless Framework V.4 Alpha release, which focuses on these areas:
 
 * **No Breaking Changes:** No breaking changes for the "aws" Provider.
 * **Support Command:** Send support requests to our team directly from the CLI, which auto-include contextual info which you can review before sending.
@@ -37,7 +37,11 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 * **Improved Onboarding & Set-Up:** The `serverless` command has been re-written to be more helpful when setting up a new or existing project.
 * **Deprecation Of Non-AWS Providers:** Deprecation of other cloud providers, in favor of handling this better in our upcoming Serverless Framework "Extensions".
 
-For more info on upgrading, check out the ["Upgrading to V.4 Guide"](./docs/guides/upgrading-v4.md). Follow V.4's progress via our [Github Milestones](https://github.com/serverless/serverless/milestones).
+_**Serverless Framework V.4 Beta**_ will be released shortly w/ additional features. Follow our progress in the [Github Milestones](https://github.com/serverless/serverless/milestones).
+
+Please use the ["v4" tag](https://github.com/serverless/serverless/labels/V4) when creating issues for this Alpha.
+
+For information on upgrading from V.3 to V.4, check out the ["Upgrading to V.4 Guide"](./docs/guides/upgrading-v4.md).
 
 <br/>
 
