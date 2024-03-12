@@ -165,7 +165,7 @@ More details on the `invoke local` command can be found [here](https://www.serve
 
 Serverless Framework also has a great plugin that allows you to run a server locally and emulate AWS API Gateway. This is the `serverless-offline` command.
 
-More details on the **serverless-offline** plugins command can be found [here](https://github.com/dherault/serverless-offline)
+More details on the **serverless-offline** plugin can be found [here](https://github.com/dherault/serverless-offline)
 
 <br/>
 
@@ -182,6 +182,80 @@ Some of the most common Plugins are:
 * **[Serverless Domain Manager](https://github.com/amplify-education/serverless-domain-manager)** - Manage custom domains with AWS API Gateways.
 * **[Serverless Step Functions](https://github.com/serverless-operations/serverless-step-functions)** - Build AWS Step Functions architectures.
 * **[Serverless Python Requirements](https://github.com/serverless/serverless-python-requirements)** - Bundle dependencies from requirements.txt and make them available in your PYTHONPATH.
+
+<br/>
+
+## Composing Services
+
+Serverless Framework Compose allows you to work with multiple Serverless Framework Services at once, and do the following...
+
+* Deploy multiple services in parallel
+* Deploy services in a specific order
+* Share outputs from one service to another
+* Run commands across multiple services
+
+Here is what a project structure might look like:
+
+```bash
+my-app/
+  service-a/
+    src/
+      ...
+    serverless.yml
+  service-b/
+    src/
+      ...
+    serverless.yml
+```
+
+Using Serverless Framework Compose requires a `serverless-compose.yml` file. In it, you specify which Services you wish to deploy. You can also share data from one Service to another, which also creates a deployment order.
+
+```yaml
+# serverless-compose.yml
+
+services:
+  service-a:
+    path: service-a
+ 
+  service-b:
+    path: service-b
+    params:
+      queueUrl: ${service-a.queueUrl}
+
+```
+
+Currently, outputs to be inherited by another Service must be AWS Cloudformation Outputs.
+
+```yaml
+# service-a/serverless.yml
+
+# ...
+ 
+resources:
+  Resources:
+    MyQueue:
+      Type: AWS::SQS::Queue
+      # ...
+  Outputs:
+    queueUrl:
+      Value: !Ref MyQueue
+```
+
+The value will be passed to `service-b` [as a parameter](https://www.serverless.com/framework/docs/guides/parameters) named `queueUrl`. Parameters can be referenced in Serverless Framework configuration via the `${param:xxx}` syntax:
+
+```yaml
+# service-b/serverless.yml
+
+provider:
+  ...
+  environment:
+    # Here we inject the queue URL as a Lambda environment variable
+    SERVICE_A_QUEUE_URL: ${param:queueUrl}
+```
+
+More details on Serverless Framework Compose can be found [here](https://www.serverless.com/framework/docs/guides/compose).
+
+<br/>
 
 ## Remove Your Service
 
