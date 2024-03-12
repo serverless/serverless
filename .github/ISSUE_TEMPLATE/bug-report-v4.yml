@@ -11,7 +11,6 @@ body:
       required: true
   - type: textarea
     id: what-happened
-    type: markdown
     attributes:
       label: Issue description / feedback
       description: Describe the issue, repro steps, and important context to help us reproduce the issue and find the root cause.
