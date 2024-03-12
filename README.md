@@ -29,13 +29,14 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 This is the Serverless Framework V.4 Alpha release. It includes the following:
 
-* No breaking changes.
+* No breaking changes for the "aws" Provider.
 * A transition to a binary core, making Node.js not a requirement.
 * Support for automatic updates.
 * Improved onboarding and set-up assistance.
 * Built-in CLI support command.
 * Improved support for AWS SSO credentials.
 * Authorization with the Serverless Platform.
+* Deprecation of other cloud provider, in favor of upcoming "Extensions".
 
 <br/>
 
@@ -65,23 +66,27 @@ This is the Serverless Framework V.4 Alpha release. It includes the following:
 
 # <a name="quick-start"></a>Quick Start
 
-You can also install the Framework via NPM. You will need to have [Node.js](https://nodejs.org) installed.
-
-```bash
-npm i @serverlessinc/framework -g
-```
-
 The Serverless Framework is packaged as a binary, which can be installed via this CURL script.
 
 ```bash
 curl -o- -L https://install.serverless.com | bash
 ```
 
+You can also install the Framework via NPM. You will need to have [Node.js](https://nodejs.org) installed.
+
+```bash
+npm i @serverlessinc/framework -g
+```
+
+## Create A Project
+
 Run the interactive onboarding via the "serverless" command, to pick a Template and set-up credentials for AWS.
 
 ```bash
 serverless
 ```
+
+During onboarding, you can set up AWS credentials a few ways. You can simply add them as environment variables, which is best if you're using AWS SSO. You can have the Serverless Framework Platform store an AWS IAM Role for you and your team to share and assign to specific Stages, or you can persist long-term credentials to an AWS Profile on your local machine. We recommend the first two options.
 
 After onboarding, move into the newly created directory.
 
@@ -163,6 +168,20 @@ Serverless Framework also has a great plugin that allows you to run a server loc
 More details on the **serverless-offline** plugins command can be found [here](https://github.com/dherault/serverless-offline)
 
 <br/>
+
+## Use Plugins
+
+A big benefit of Serverless Framework is within its [Plugin ecosystem](https://serverless.com/plugins).
+
+Plugins extend or overwrite the Serverless Framework, giving it new use-cases or capabilites, and there are hundreds of them.
+
+Some of the most common Plugins are:
+
+* **[Serverless Offline](https://github.com/dherault/serverless-offline)** - Emulate AWS Lambda and API Gateway locally when developing your Serverless project.
+* **[Serverless ESBuild](https://github.com/floydspace/serverless-esbuild)** - Bundles JavaScript and TypeScript extremely fast via esbuild.
+* **[Serverless Domain Manager](https://github.com/amplify-education/serverless-domain-manager)** - Manage custom domains with AWS API Gateways.
+* **[Serverless Step Functions](https://github.com/serverless-operations/serverless-step-functions)** - Build AWS Step Functions architectures.
+* **[Serverless Python Requirements](https://github.com/serverless/serverless-python-requirements)** - Bundle dependencies from requirements.txt and make them available in your PYTHONPATH.
 
 ## Remove Your Service
 
