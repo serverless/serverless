@@ -5,51 +5,43 @@ layout: Doc
 
 # Setting Up Serverless Framework With AWS
 
-Here's how to set up the Serverless Framework Command Line Interface and prepare for seamless AWS deployments.
+Here's how to install the Serverless Framework, set up a project and deploy it to Amazon Web Services.
 
-While Serverless Framework supports multiple cloud providers, AWS remains its most popular integration. For details on deploying to other providers, see the official [Extensions]() documentation.
-
-## Installation
-
-Install `serverless` module via NPM:
+The Serverless Framework is packaged as a binary, which can be installed via this CURL script.
 
 ```bash
-npm install -g serverless
+curl -o- -L https://install.serverless.com | bash
 ```
 
-_If you don’t already have Node.js on your machine, [install it first](https://nodejs.org/). If you don't want to install Node or NPM, you can [install `serverless` as a standalone binary](https://www.serverless.com/framework/docs/install-standalone)._
-
-## Creating A Service
-
-To create your first project (known as a Serverless Framework "Service"), run the `serverless` command below, then follow the prompts.
+You can also install the Framework via NPM. You will need to have [Node.js](https://nodejs.org) installed.
 
 ```bash
-# Create a new serverless project
+npm i serverless -g
+```
+
+## Create A Project
+
+Run the interactive onboarding via the "serverless" command, to pick a Template and set-up credentials for AWS.
+
+```bash
 serverless
-
-# Move into the newly created directory
-cd your-service-name
 ```
 
-The `serverless` command will guide you to:
+During onboarding, you can set up AWS credentials a few ways. You can simply add them as environment variables, which is best if you're using AWS SSO. You can have the Serverless Framework Platform store an AWS IAM Role for you and your team to share and assign to specific Stages, or you can persist long-term credentials to an AWS Profile on your local machine. We recommend the first two options.
 
-1. Create a new project
-2. Configure your [AWS credentials](https://serverless.com/framework/docs/providers/aws/guide/credentials/)
-3. Optionally set up a free Serverless Framework account with additional features.
+After onboarding, move into the newly created directory.
 
-Your new serverless project will contain a `serverless.yml` file. This file features simple syntax for deploying infrastructure to AWS, such as AWS Lambda functions, infrastructure that triggers those functions with events, and additional infrastructure your AWS Lambda functions may need for various use-cases. You can learn more about this in the [Core Concepts documentation](https://www.serverless.com/framework/docs/providers/aws/guide/intro).
-
-The `serverless` command will give you a variety of templates to choose from. If those do not fit your needs, check out the [project examples from Serverless Inc. and our community](https://github.com/serverless/examples). You can install any example by passing a GitHub URL using the `--template-url` option:
-
-```base
-serverless --template-url=https://github.com/serverless/examples/tree/v3/...
+```
+cd [your-new-project-name]
 ```
 
-Please note that you can use `serverless` or `sls` to run Serverless Framework commands.
+Your new project will contain a `serverless.yml` file with simple syntax for deploying infrastructure to AWS, such as AWS Lambda functions, infrastructure that triggers those functions with events, and additional infrastructure your AWS Lambda functions may need for various use-cases. Learn more about this in the [Core Concepts documentation](https://www.serverless.com/framework/docs/providers/aws/guide/intro).
 
-## Deploying
+<br/>
 
-If you haven't done so already within the `serverless` command, you can deploy the project at any time by running:
+## Deploy to AWS
+
+Run the `deploy` command to deploy your project to AWS. Note, you can use `serverless` or `sls` as the command prompt.
 
 ```bash
 sls deploy
@@ -59,7 +51,9 @@ The deployed AWS Lambda functions and other essential information such as API En
 
 More details on deploying can be found [here](https://www.serverless.com/framework/docs/providers/aws/guide/deploying).
 
-## Developing On The Cloud
+<br/>
+
+## Develop On The Cloud
 
 Many Serverless Framework users choose to develop on the cloud, since it matches reality and emulating Lambda locally can be complex. To develop on the cloud quickly, without sacrificing speed, we recommend the following workflow...
 
@@ -82,27 +76,17 @@ serverless invoke -f hello --log
 
 More details on the `invoke` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke).
 
-If you want to open a session that streams logs from one or multiple AWS Lambda functions, use the new Serverless Framework `dev` command. Instead of relying on AWS Cloudwatch (which is slow) this leverages our new [Serverless Console](https://serverless.com/console) to stream logs and more in less than 1 second to your CLI. It's free, it supports streaming from multiple AWS Lambda functions simultaneously, and it also will stream inputs and outputs your AWS Lambda functions and their SDK calls.
+To stream your logs while you work, use the `sls logs` command in a separate terminal window:
 
 ```bash
-sls dev
+sls logs -f [Function name in serverless.yml] -t
 ```
 
-If you use the `--verbose` flag, the `dev` command will stream requests and responses of your AWS Lambda functions, as well as your AWS SDK calls, so you can inspect what's happening with AWS DynamoDB, AWS S3, and much more.
+Target a specific function via the `-f` option and enable streaming via the `-t` option.
 
-```bash
-sls dev --verbose
-```
+<br/>
 
-By default, `dev` streams logs from all functions in your Serverless Framework Service. But you can target a specific function like this:
-
-```bash
-sls dev -f my-function
-```
-
-Please note, the `dev` command currently only supports Node.js and Python AWS Lambda runtimes. If you want to stream from AWS Cloudwatch instead, you can use the `tail` command: `serverless logs -f hello --tail`. Please note, this is much slower.
-
-## Developing Locally
+## Develop Locally
 
 Many Serverless Framework users rely on local emulation to develop more quickly. Please note, emulating AWS Lambda and other cloud services is never accurate and the process can be complex. We recommend the following workflow to develop locally...
 
@@ -115,7 +99,7 @@ sls invoke local -f my-api
 You can also pass data to this local invocation via a variety of ways. Here's one of them:
 
 ```bash
-serverless invoke local --function functionName --data '{"a":"bar"}'
+sls invoke local --function functionName --data '{"a":"bar"}'
 ```
 
 More details on the `invoke local` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local)
@@ -124,26 +108,21 @@ Serverless Framework also has a great plugin that allows you to run a server loc
 
 More details on the **serverless-offline** plugins command can be found [here](https://github.com/dherault/serverless-offline)
 
-## Monitoring & Observability
+<br/>
 
-Monitoring AWS Lambda and its other resources dependencies can be challenging (especially as your number of resources grow). This generally involves jumping around various services and products within AWS Cloudwatch.
+## Use Plugins
 
-Fortunately, we've delivered a consolidated and elegant solution to monitoring AWS Lambda in [Serverless Console](https://console.serverless.com). You'll get a bunch of delightful features out of the box:
+A big benefit of Serverless Framework is within its [Plugin ecosystem](https://serverless.com/plugins).
 
-- Start monitoring automatically, with no code instrumentation required.
-- Monitor everything via a consolidated Metrics view for all of your AWS Lambda functions across AWS accounts, regions and more.
-- Troubleshoot any invocation by querying rich tags that are automatically added by Serverless Console.
-- Understand issues via detailed Traces detailing what happened within your AWS Lambda invocation.
-- Capture Errors, Warnings and more.
-- Stream Logs and other telemetry instantly while you develop via the Dev Mode user interface.
+Plugins extend or overwrite the Serverless Framework, giving it new use-cases or capabilites, and there are hundreds of them.
 
-To set up Serverless Console automatically, run:
+Some of the most common Plugins are:
 
-```bash
-sls --console
-```
-
-Serverless Console is designed for developers, and it moves at their speed.
+* **[Serverless Offline](https://github.com/dherault/serverless-offline)** - Emulate AWS Lambda and API Gateway locally when developing your Serverless project.
+* **[Serverless ESBuild](https://github.com/floydspace/serverless-esbuild)** - Bundles JavaScript and TypeScript extremely fast via esbuild.
+* **[Serverless Domain Manager](https://github.com/amplify-education/serverless-domain-manager)** - Manage custom domains with AWS API Gateways.
+* **[Serverless Step Functions](https://github.com/serverless-operations/serverless-step-functions)** - Build AWS Step Functions architectures.
+* **[Serverless Python Requirements](https://github.com/serverless/serverless-python-requirements)** - Bundle dependencies from requirements.txt and make them available in your PYTHONPATH.
 
 ## Remove Your Service
 
@@ -154,3 +133,15 @@ sls remove
 ```
 
 More details on the `remove` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/remove).
+
+<br/>
+
+## What's Next
+
+Here are some helpful resources for continuing with the Serverless Framework:
+
+- [Study Serverless Framework's core concepts](https://www.serverless.com/framework/docs/providers/aws/guide/intro)
+- [Get inspiration from these Serverless Framework templates](https://github.com/serverless/examples)
+- [Discover all of the events that can trigger Lambda functions](https://www.serverless.com/framework/docs/providers/aws/guide/events)
+- [Bookmark Serverless Framework's `serverless.yml` guide](https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml)
+- [Search the plugins registry to extend Serverless Framework](https://www.serverless.com/plugins)
