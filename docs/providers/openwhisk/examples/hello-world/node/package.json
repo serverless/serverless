@@ -1,8 +1,0 @@
-{
-  "name": "serverless-openwhisk-hello-world",
-  "version": "0.1.0",
-  "description": "Hello World example for OpenWhisk provider with Serverless Framework.",
-  "devDependencies": {
-    "serverless-openwhisk": ">=0.13.0"
-  }
-}
