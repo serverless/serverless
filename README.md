@@ -27,7 +27,7 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 # Serverless Framework - V.4 - Alpha
 
-This is the Serverless Framework V.4 Alpha release. It includes the following:
+**March 13th, 2024** – This is the Serverless Framework V.4 Alpha release, which includes the focus areas below. Follow V.4's progress via our [Github Milestones](https://github.com/serverless/serverless/milestones).
 
 * No breaking changes for the "aws" Provider.
 * A transition to a binary core, making Node.js not a requirement.
@@ -36,7 +36,7 @@ This is the Serverless Framework V.4 Alpha release. It includes the following:
 * Built-in CLI support command.
 * Improved support for AWS SSO credentials.
 * Authorization with the Serverless Platform.
-* Deprecation of other cloud provider, in favor of upcoming "Extensions".
+* Deprecation of other cloud providers, in favor of upcoming "Extensions".
 
 <br/>
 
