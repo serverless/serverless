@@ -1,7 +1,7 @@
 {
-  "name": "serverless",
+  "name": "@serverless/framework",
   "version": "4.0.0",
-  "description": "Serverless Framework - Build web, mobile and IoT applications with serverless architectures using AWS Lambda",
+  "description": "Use AWS Lambda and other managed cloud services to build apps that auto-scale, cost nothing when idle, and boast radically low maintenance.",
   "preferGlobal": true,
   "homepage": "https://serverless.com/framework/docs/",
   "author": "serverless.com",
