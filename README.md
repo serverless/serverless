@@ -1,4 +1,4 @@
-[![sfv4_00000](https://github.com/serverless/serverless/assets/2752551/989f8c39-34ac-4177-90f0-3f186a09132e)](https://github.com/serverless/serverless/tree/v4.0)
+[![sfv4_00000](https://github.com/serverless/serverless/assets/2752551/fe5487c2-fc65-46ec-b23b-67a1f3e06830)](https://github.com/serverless/serverless/tree/v4.0)
 
 <h1></h1>
 <br/>
