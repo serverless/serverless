@@ -278,6 +278,8 @@ After each command, whether it succeeded or not, a new `report.md` file is creat
 
 This feature is only available to users who sign up for a Subscription.
 
+<br/>
+
 ## Remove Your Service
 
 If you want to delete your service, run `remove`. This will delete all the AWS resources created by your project and ensure that you don't incur any unexpected charges. It will also remove the service from Serverless Dashboard.
