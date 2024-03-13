@@ -16,6 +16,13 @@ The Serverless Framework is a command-line tool with an easy and approachable YA
 
 Actively maintained by [Serverless Inc](https://www.serverless.com).
 
+<br/>
+<br/>
+
+[![sfv4_00000](https://github.com/serverless/serverless/assets/2752551/989f8c39-34ac-4177-90f0-3f186a09132e)](https://github.com/serverless/serverless/tree/v4.0)
+
+<br/>
+
 # Contents
 
 - [Features](#features)
