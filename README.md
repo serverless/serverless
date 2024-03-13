@@ -37,9 +37,7 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 * **Improved Onboarding & Set-Up:** The `serverless` command has been re-written to be more helpful when setting up a new or existing project.
 * **Deprecation Of Non-AWS Providers:** Deprecation of other cloud providers, in favor of handling this better in our upcoming Serverless Framework "Extensions".
 
-**Serverless Framework V.4 Beta** will be released shortly w/ additional features. Follow our progress in the [Github Milestones](https://github.com/serverless/serverless/milestones).
-
-Please use the ["v4" tag](https://github.com/serverless/serverless/labels/V4) when creating issues for this Alpha.
+**Serverless Framework V.4 Beta** will be released shortly w/ additional features. Follow our progress in the [Github Milestones](https://github.com/serverless/serverless/milestones). Please use the ["v4" tag](https://github.com/serverless/serverless/labels/V4) when creating issues for this Alpha.
 
 For information on upgrading from V.3 to V.4, check out the ["Upgrading to V.4 Guide"](./docs/guides/upgrading-v4.md).
 
