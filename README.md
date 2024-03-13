@@ -269,7 +269,7 @@ In Serverless Framework V.4, we've introduced the `serverless support` command, 
 To use this feature, after an error or any command, run:
 
 ```bash
-serverless support
+sls support
 ```
 
 After each command, whether it succeeded or not, a new `report.md` file is created within your current working directory in the `.serverless` folder. The `support` command will prompt you to review it, if you'd like.
