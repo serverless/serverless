@@ -27,7 +27,7 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 # Serverless Framework - V.4 - Alpha
 
-**March 13th, 2024** – This is the Serverless Framework V.4 Alpha release, intended for early feedback from the community and plug-in authors, with a focus on these areas:
+**March 13th, 2024** – This V.4 Alpha release is intended for early feedback from the community and plug-in authors, with a focus on these areas:
 
 * **No Breaking Changes:** No breaking changes for the "aws" Provider.
 * **Support Command:** Send support requests to our team directly from the CLI, which auto-include contextual info which you can review before sending.
