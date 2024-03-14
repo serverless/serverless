@@ -75,10 +75,10 @@ The Serverless Framework is packaged as a binary, which can be installed via thi
 curl -o- -L https://install.serverless.com | bash
 ```
 
-You can also install the Framework via NPM. You will need to have [Node.js](https://nodejs.org) installed.
+You can also install the Framework via NPM. It's currently under the temporary namespace of `v4` while in Alpha. You will need to have [Node.js](https://nodejs.org) installed.
 
 ```bash
-npm i @serverless/v4 -g (temporary namespace while in alpha)
+npm i @serverless/v4 -g
 ```
 
 <br/>
