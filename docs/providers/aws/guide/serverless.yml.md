@@ -405,6 +405,15 @@ provider:
         file: Dockerfile.dev
         buildArgs:
           STAGE: ${sls:stage}
+        buildOptions:
+          [
+            '--tag',
+            'v1.0.0',
+            '--add-host',
+            'example.com:0.0.0.0',
+            '--ssh',
+            'default=/path/to/private/key/id_rsa',
+          ]
         cacheFrom:
           - my-image:latest
 ```
