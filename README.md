@@ -31,10 +31,12 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 * **No Breaking Changes:** No breaking changes for the "aws" Provider.
 * **Support Command:** Send support requests to our team directly from the CLI, which auto-include contextual info which you can review before sending.
+* **New AWS Lambda Runtimes:** "python3.12", "dotnet8", and "java21"
 * **AWS SSO:** Environment variables, especially ones set by AWS SSO, are prioritized. The Framework and Dashboard no longer interfere with these.
 * **Binary By Default:** We've transitioned to a binary core by default, making Node.js not a requirement.
 * **Automatic Updates:** These happen by default now. Though, you will be able to control the level of updates you're open to.
 * **Improved Onboarding & Set-Up:** The `serverless` command has been re-written to be more helpful when setting up a new or existing project.
+* **Updated Custom Resource Handlers:** All custom resource handlers now use `nodejs20.x`.
 * **Deprecation Of Non-AWS Providers:** Deprecation of other cloud providers, in favor of handling this better in our upcoming Serverless Framework "Extensions".
 
 Serverless Framework V.4 Beta will be released shortly w/ additional features. Follow our progress in the [Github Milestones](https://github.com/serverless/serverless/milestones). Please use the ["v4" tag](https://github.com/serverless/serverless/labels/V4) when creating issues for this Alpha.
