@@ -32,6 +32,7 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 * **No Breaking Changes:** No breaking changes for the "aws" Provider.
 * **Support Command:** Send support requests to our team directly from the CLI, which auto-include contextual info which you can review before sending.
 * **New AWS Lambda Runtimes:** "python3.12", "dotnet8", and "java21"
+* **Advanced Logging Controls for AWS Lambda:** Capture Logs in JSON, increased log granularity, and setting a custom Log Group. Here is the [AWS article](https://aws.amazon.com/blogs/compute/introducing-advanced-logging-controls-for-aws-lambda-functions/). Here is the [YAML implementation](https://github.com/serverless/serverless/blob/v4.0/docs/providers/aws/guide/serverless.yml.md#logs)
 * **AWS SSO:** Environment variables, especially ones set by AWS SSO, are prioritized. The Framework and Dashboard no longer interfere with these.
 * **Binary By Default:** We've transitioned to a binary core by default, making Node.js not a requirement.
 * **Automatic Updates:** These happen by default now. Though, you will be able to control the level of updates you're open to.
