@@ -531,7 +531,7 @@ provider:
       # The System Log Level to be used, This can only be set if `logFormat` is set to `JSON`
       systemLogLevel: INFO
       # The LogGroup that will be used by default. If this is set the Framework will not create LogGroups for any functions
-      LogGroup: /aws/lambda/global-log-group
+      logGroup: /aws/lambda/global-log-group
     # Enable HTTP API logs
     # This can either be set to `httpApi: true` to use defaults, or configured via subproperties
     # Can only be configured if the API is created by Serverless Framework
