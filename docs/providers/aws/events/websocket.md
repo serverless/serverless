@@ -117,7 +117,7 @@ functions:
     handler: handler.auth
 ```
 
-Or, if your authorizer function is not managed by this service, you can provide an arn instead:
+You also can provide an arn:
 
 ```yml
 functions:
@@ -127,6 +127,19 @@ functions:
       - websocket:
           route: $connect
           authorizer: arn:aws:lambda:us-east-1:1234567890:function:auth
+```
+
+If your authorizer is externally managed (not run by this service), you can use `managedExternally` to skip permission creation:
+```yml
+functions:
+  connectHandler:
+    handler: handler.connectHandler
+    events:
+      - websocket:
+          route: $connect
+          authorizer: 
+            arn: arn:aws:lambda:us-east-1:1234567890:function:auth
+            managedExternally: true
 ```
 
 By default, the `identitySource` property is set to `route.request.header.Auth`, meaning that your request must include the auth token in the `Auth` header of the request. You can overwrite this by specifying your own `identitySource` configuration:
