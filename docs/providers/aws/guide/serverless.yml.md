@@ -675,7 +675,7 @@ functions:
       # The System Log Level to be used, This can only be set if `logFormat` is set to `JSON`
       systemLogLevel: INFO
       # The LogGroup that will be used by default. If this is set the Framework will not create LogGroups for any functions
-      LogGroup: /aws/lambda/global-log-group
+      logGroup: /aws/lambda/global-log-group
     tags: # Function specific tags
       foo: bar
     # VPC settings for this function
