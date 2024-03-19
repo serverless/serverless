@@ -1,9 +1,9 @@
 name: 🐛 Bug Report
-description: Create a Bug Report. If it's urgent and you are using V.4, you can get support directly from our team using the "serverless support" command.
+description: Create a Bug Report. If it's urgent and you're using V.4, get priority support directly from our team using the "serverless support" command.
 body:
   - type: textarea
     attributes:
-      label: Issue Description
+      label: Issue description
       description: |
         Describe your issue here. If you are using V.4 and on a Serverless Subscription (https://serverless.com/pricing), you can get support directly from our team using the "serverless support" command.
     validations:
