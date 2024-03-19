@@ -1,5 +1,5 @@
 name: 🐛 Bug Report
-description: Create a Bug Report. If it's urgent and you are using V.4, you can get support directly from our team using the "serverless support" command, if you have a Serverless Subscription.
+description: Create a Bug Report. If it's urgent and you are using V.4, you can get support directly from our team using the "serverless support" command.
 body:
   - type: textarea
     attributes:
