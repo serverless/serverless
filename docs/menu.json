@@ -459,7 +459,8 @@
     "plugin uninstall": "providers/aws/cli-reference/plugin-uninstall",
     "generate event": "providers/aws/cli-reference/generate-event",
     "print": "providers/aws/cli-reference/print",
-    "serverless stats": "providers/aws/cli-reference/slstats"
+    "stats": "providers/aws/cli-reference/slstats",
+    "support": "providers/aws/cli-reference/support"
   },
   "Learn More": {
     "Upgrading to v3": "guides/upgrading-v3",
