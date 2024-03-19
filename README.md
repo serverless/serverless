@@ -268,7 +268,7 @@ More details on Serverless Framework Compose can be found [here](https://www.ser
 
 ## Support Command
 
-In Serverless Framework V.4, we've introduced the `serverless support` command, a standout feature that lets you directly connect with our support team. It automatically includes relevant context and omits sensitive details like secrets and account information, which you can check before submission. This streamlined process ensures your issues are quickly and securely addressed.
+In Serverless Framework V.4, we've introduced the `serverless support` command, a standout feature that lets you generate issue reports, or directly connect with our support team. It automatically includes relevant context and omits sensitive details like secrets and account information, which you can check before submission. This streamlined process ensures your issues are quickly and securely addressed.
 
 To use this feature, after an error or any command, run:
 
@@ -276,9 +276,11 @@ To use this feature, after an error or any command, run:
 sls support
 ```
 
-After each command, whether it succeeded or not, a new `report.md` file is created within your current working directory in the `.serverless` folder. The `support` command will prompt you to review it, if you'd like.
+After each command, whether it succeeded or not, the context is saved within your current working directory in the `.serverless` folder.
 
-This feature is only available to users who sign up for a Subscription.
+To open a new support ticket, run the `sls support` command and select `Get priority support...`. Optionally you'll be able to review and edit the generated report. Opening support tickets is only available to users who sign up for a Subscription.
+
+You can also generate reports without submitting a new support ticket. This is useful for sharing context with others, opening Github issues, or using it with an AI prompt like ChatGPT. To do this, run the `sls support` command and select `Create a summary report...`, or `Create a comprehensive report..`. You can skip the prompt by running `sls support --summary` or `sls support --all`. This is especially useful for capturing the report into the clipboard (e.g. `sls support --summary | pbcopy`).
 
 <br/>
 
