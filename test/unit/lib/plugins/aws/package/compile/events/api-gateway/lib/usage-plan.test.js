@@ -288,6 +288,26 @@ describe('#compileUsagePlan()', () => {
       ].Properties.ApiStages[0].ApiId
     ).to.equal('xxxxx');
   });
+
+  it('should compile custom usage plan resource with custom stage name provided', () => {
+    awsCompileApigEvents.serverless.service.provider.apiGateway = {
+      stage: 'custom-stage',
+      usagePlan: {
+        throttle: {
+          burstLimit: 200,
+          rateLimit: 100,
+        },
+      },
+    };
+
+    awsCompileApigEvents.compileUsagePlan();
+
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.provider.naming.getUsagePlanLogicalId()
+      ].Properties.ApiStages[0].Stage
+    ).to.equal('custom-stage');
+  });
 });
 
 describe('UsagePlan', () => {
