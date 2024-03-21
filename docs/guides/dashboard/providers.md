@@ -173,7 +173,14 @@ If you are create a custom IAM Role with this policy, you will need to add a Tru
                 "sts:GetCallerIdentity",
                 "lambda:RemovePermission",
                 "s3:GetBucketLocation",
-                "lambda:GetPolicy"
+                "lambda:GetPolicy",
+                "apigateway:TagResource",
+                "iam:TagRole",
+                "lambda:TagResource",
+                "cloudformation:CreateChangeSet",
+                "cloudformation:DescribeChangeSet",
+                "cloudformation:ExecuteChangeSet",
+                "cloudformation:DeleteChangeSet"
             ],
             "Resource": "*"
         }
