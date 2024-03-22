@@ -209,7 +209,7 @@ processSpanPromise = (async () => {
       processLog.debug('resolve CLI input (service schema)');
       resolveInput.clear();
       ({ command, commands, options, isHelpRequest, commandSchema } = resolveInput(
-        require('../lib/cli/commands-schema/service')
+        require('../lib/cli/commands-schema/service');
       ));
 
       isInteractiveSetup = !isHelpRequest && command === '';
