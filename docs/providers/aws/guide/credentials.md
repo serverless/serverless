@@ -77,11 +77,11 @@ Starting off with a single AWS account that is only used as a way to help manage
    ![img](https://s3.us-east-2.amazonaws.com/assets.public.serverless/website/framework/docs/aws-credentials/organizations-assign-users-and-groups-to-account.png)
 9. Click on “Create permission set” so we can assign the right permissions to your user. This will open a new tab.
    ![img](https://s3.us-east-2.amazonaws.com/assets.public.serverless/website/framework/docs/aws-credentials/assign-permission-sets.png)
-10. For now, we will recommend choosing the default of “AdminstratorAccess” under the “Predefined permissions set”, but this can be changed later if need be.
+10. For now, we will recommend choosing the default of “AdministratorAccess” under the “Predefined permissions set”, but this can be changed later if need be.
     ![img](https://s3.us-east-2.amazonaws.com/assets.public.serverless/website/framework/docs/aws-credentials/pre-defined-permission-set.png)
 11. Choosing how long the session lasts only affects the user when they are logged into the AWS Console and has no impact on the use of Providers when deploying the Serverless Framework so choose any session length you wish. Click “Next” on “Permission set details”, then “Create” on the “Review and create” page.
     ![img](https://s3.us-east-2.amazonaws.com/assets.public.serverless/website/framework/docs/aws-credentials/permission-set-review.png)
-12. Now that the permissions set is done, we can close this tab to go back. If you do not see the updated permissions just refresh, then choose AdminstratorAccess, Next and Submit.
+12. Now that the permissions set is done, we can close this tab to go back. If you do not see the updated permissions just refresh, then choose AdministratorAccess, Next and Submit.
     ![img](https://s3.us-east-2.amazonaws.com/assets.public.serverless/website/framework/docs/aws-credentials/user-assigned-to-account.png)
 
 You can add additional users in future in this way. You should have also received an email to activate the new account that was created. Just complete the process to sign up the new user account and we are ready to continue.
