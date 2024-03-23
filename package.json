@@ -129,7 +129,8 @@
         "files": [
           "test/fixtures/programmatic/plugin/local-esm-plugin/**",
           "test/fixtures/programmatic/plugin/node_modules/esm-plugin/**",
-          "test/fixtures/programmatic/invocation/esm/**"
+          "test/fixtures/programmatic/invocation/esm/**",
+          "test/unit/lib/configuration/variables/sources/fixture/esm/**"
         ],
         "parserOptions": {
           "sourceType": "module"
@@ -137,7 +138,8 @@
       },
       {
         "files": [
-          "lib/utils/import-esm.js"
+          "lib/utils/import-esm.js",
+          "lib/configuration/variables/sources/file.js"
         ],
         "parserOptions": {
           "ecmaVersion": 2020
