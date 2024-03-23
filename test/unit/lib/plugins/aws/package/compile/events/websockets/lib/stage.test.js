@@ -131,6 +131,24 @@ describe('#compileStage()', () => {
         });
       }));
 
+    it('should set a LogGroupClass in a Log Group if provider has logGroupClass', async () => {
+      awsCompileWebsocketsEvents.serverless.service.provider.logGroupClass = 'INFREQUENT_ACCESS';
+
+      return awsCompileWebsocketsEvents.compileStage().then(() => {
+        const resources =
+          awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources;
+
+        expect(resources[logGroupLogicalId]).to.deep.equal({
+          Type: 'AWS::Logs::LogGroup',
+          Properties: {
+            LogGroupName: '/aws/websocket/my-service-dev',
+            LogGroupClass: awsCompileWebsocketsEvents.serverless.service.provider.logGroupClass,
+          },
+        });
+      });
+    });
+
     it('should set a RetentionInDays in a Log Group if provider has logRetentionInDays', async () => {
       awsCompileWebsocketsEvents.serverless.service.provider.logRetentionInDays = 42;
 

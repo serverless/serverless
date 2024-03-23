@@ -264,6 +264,23 @@ describe('#compileStage()', () => {
       });
     });
 
+    it('should set log group class if provider.logGroupClass is set', async () => {
+      serverless.service.provider.logGroupClass = 'INFREQUENT_ACCESS';
+
+      return awsCompileApigEvents.compileStage().then(() => {
+        const resources =
+          awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+
+        expect(resources[logGroupLogicalId]).to.deep.equal({
+          Type: 'AWS::Logs::LogGroup',
+          Properties: {
+            LogGroupName: '/aws/api-gateway/my-service-dev',
+            LogGroupClass: serverless.service.provider.logGroupClass,
+          },
+        });
+      });
+    });
+
     it('should set log retention if provider.logRetentionInDays is set', async () => {
       serverless.service.provider.logRetentionInDays = 30;
 
