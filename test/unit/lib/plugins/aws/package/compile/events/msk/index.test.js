@@ -91,7 +91,7 @@ describe('AwsCompileMSKEvents', () => {
     it('should update default IAM role with MSK statement', () => {
       expect(defaultIamRole.Properties.Policies[0].PolicyDocument.Statement).to.deep.include({
         Effect: 'Allow',
-        Action: ['kafka:DescribeCluster', 'kafka:GetBootstrapBrokers'],
+        Action: ['kafka:DescribeClusterV2', 'kafka:GetBootstrapBrokers'],
         Resource: [arn],
       });
     });
@@ -194,7 +194,7 @@ describe('AwsCompileMSKEvents', () => {
       const defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution;
       expect(defaultIamRole.Properties.Policies[0].PolicyDocument.Statement).not.to.deep.include({
         Effect: 'Allow',
-        Action: ['kafka:DescribeCluster', 'kafka:GetBootstrapBrokers'],
+        Action: ['kafka:DescribeClusterV2', 'kafka:GetBootstrapBrokers'],
         Resource: [],
       });
 
