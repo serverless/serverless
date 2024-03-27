@@ -42,6 +42,11 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 * **Updated Custom Resource Handlers:** All custom resource handlers now use `nodejs20.x`.
 * **Deprecation Of Non-AWS Providers:** Deprecation of other cloud providers, in favor of handling this better in our upcoming Serverless Framework "Extensions".
 
+**Breaking Plugin Changes**
+Some Plug-Ins are affected by changes in V.4. The purpose of the "Alpha" is to discover these issues and fix them before V.4 is GA. Here are the known issues:
+
+• **serverless-better-credentials:** Credential handling has been reworked in V.4 to better support AWS SSO out-of-the-box, but this has broken this plugin at the moment.
+
 Serverless Framework V.4 Beta will be released shortly w/ additional features. Follow our progress in the [Github Milestones](https://github.com/serverless/serverless/milestones). Please use the ["v4" tag](https://github.com/serverless/serverless/labels/V4) when creating issues for this Alpha.
 
 For information on upgrading from V.3 to V.4, check out the ["Upgrading to V.4 Guide"](./docs/guides/upgrading-v4.md).
