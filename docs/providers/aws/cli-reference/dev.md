@@ -1,0 +1,85 @@
+<!--
+title: Serverless Framework Commands - AWS Lambda - Dev Mode
+menuText: dev mode
+menuOrder: 9
+description: Dev mode enables real-time, local development and testing of AWS Lambda functions without frequent redeployments or the need for emulation.
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev)
+
+<!-- DOCS-SITE-LINK:END -->
+
+# AWS - Dev Mode
+
+This command activates dev mode on the specified stage and region. Dev mode allows you to run, develop, and test your functions locally while they are being invoked in real-time remotely on AWS Lambda. It establishes a long-running CLI session that connects directly to your Lambda functions, waiting for events to invoke them. This method significantly simplifies the development of your functions locally, eliminating the need for deployment after every change, and allows you to work with real infrastructure without any emulation.
+
+```bash
+serverless dev
+```
+
+## Options
+
+- `--stage` or `-s` The stage in your service that you want to enable dev mode for.
+- `--region` or `-r` The region in that stage that you want to enable dev mode for.
+
+**Note:** While it is possible, we do not recommend running dev mode in your `prod` stage.
+
+## Supported runtimes
+
+- Node.js
+- TypeScript (coming soon)
+- Python (coming soon)
+- Go (coming soon)
+- Ruby (coming soon)
+- Java (coming soon)
+
+## How it works
+
+To establish a secure connection between your AWS Lambda functions and your local machine, we initiate a WebSocket connection through AWS IoT Core. Each AWS account is equipped with a unique, secure IoT Core endpoint available for immediate use, eliminating the need for deploying any additional infrastructure—unlike WebSocket solutions that rely on AWS API Gateway. Thus, when you execute sls dev, the CLI incorporates a shim into all your lambda functions, routing all events via this WebSocket connection to your local machine. To facilitate this, we must also update the permissions for all lambda functions to access AWS IoT Core by adding the following IAM statement:
+
+```
+Effect: 'Allow',
+Action: ['iot:*'],
+Resource: '*'
+```
+
+Subsequently, we deploy your service similarly to executing sls deploy, albeit without your service code and with modified configurations. The CLI then maintains a long-running session, awaiting invocation events.
+
+To finalize development and save your changes, you must exit dev mode and perform a standard `sls deploy`.
+
+## Environment
+
+When a dev mode session is active, it's set up to listen for invocation events from your functions. Upon receiving such an event, the CLI creates a new child process that closely replicates the environment of the Lambda function that was invoked. This replication includes the same environment variables, IAM permissions, context, and the event itself. The child process then executes your handlers with this comprehensive dataset, outputs all your function logs directly to the local terminal, and sends the response back to Lambda, along with any errors that might have occurred.
+
+### Examples
+
+Dev mode quick run...
+
+```bash
+serverless dev
+```
+
+Run dev mode in the dev stage, but in the `us-east-2` region...
+
+```bash
+serverless dev --stage dev --region us-east-2
+
+```
+
+Run dev mode in your own personal stage...
+
+```bash
+serverless dev --stage austen
+
+```
+
+Run dev mode in a stage called "local"...
+
+```bash
+serverless dev --stage local
+```
+
+Maintaining a dedicated local stage is beneficial for quickly activating dev mode without needing to modify your infrastructure each time you execute the command.
