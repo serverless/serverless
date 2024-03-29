@@ -91,6 +91,8 @@ You can also install the Framework via NPM. It's currently under the temporary n
 npm i @serverless/v4 -g
 ```
 
+Serverless Framework now auto-updates. It checks once daily. If you want to force an update, use this environment variable: `SERVERLESS_FRAMEWORK_FORCE_UPDATE=true`
+
 <br/>
 
 ## Create A Project
