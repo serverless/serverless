@@ -70,7 +70,7 @@ For information on upgrading from V.3 to V.4, check out the ["Upgrading to V.4 G
 * **Ease of Use:** Deploy complex applications without deep cloud infrastructure expertise, thanks to simple YAML configuration.
 * **Language Agnostic:** Build in your preferred language – Node.js, Python, Java, Go, C#, Ruby, Swift, Kotlin, PHP, Scala, or F#.
 * **Complete Lifecycle Management:** Build, deploy, monitor, update, and troubleshoot serverless applications with ease.
-* **Scalable Organization:** Structure large projects and teams efficiently with multi-domain support.
+* **Scalable Organization:** Structure large projects and teams efficiently by breaking down large apps into Services to work on individually or together via Serverless Compose.
 * **Effortless Environments:** Seamlessly manage development, staging, and production environments.
 * **Customization Ready:** Extend and modify the Framework's functionality with a rich plugin ecosystem.
 * **Vibrant Community:** Get support and connect with a passionate community of Serverless developers.
