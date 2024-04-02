@@ -14,7 +14,7 @@ layout: Doc
 
 # Support
 
-The `support` command runs an interactive prompt to generate issue reports, or directly connect with our support team. 
+The `support` command runs an interactive prompt to generate issue reports, or directly connect with our support team.
 
 It will automatically capture relevent context and omit sensitive details like secrets and account information, from the last command that was run. This streamlines the process for opening new Github issues, using AI chat, and opening support requests.
 
@@ -25,6 +25,7 @@ sls support
 ```
 
 ## Options
+
 - `--summary` Creates a summary report non-interactively
 - `--all` Creates a comprehensive report non-interactively
 - `--support` Get help from the Serverless support team.

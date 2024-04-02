@@ -31,21 +31,20 @@ Serverless Framework V.4 will walk you through purchasing a Subscription via our
 
 ### Authentication Via Access Or License Keys
 
-***This is a breaking change if you do not set a Serverless Access Key or Serverless License Key.***
+**_This is a breaking change if you do not set a Serverless Access Key or Serverless License Key._**
 
 As part of the License changes, Serverless Framework now requires authentication via the Serverless Framework Dashboard or a Serverless License Key. This does not mean you have to pay for a Subscription. All users (free and paid) are now prompted by the CLI to sign in.
 
 You can choose from 2 forms of authentication:
 
-* **Serverless Framework Access Keys:** You can authenticate via Access Key by signing in to Serverless Framework Dashboard when prompted by the CLI or running `serverless login`. When you do this, the CLI will auto-create a Serverless Access Key and save it on your machine. This approach is best if your entire team is comfortable signing into and using the [Serverless Framework Dashboard](https://app.serverless.com). To use this method in CI/CD pipelines, go to the [Access Keys view in Serverless Framework Dashboard](https://app.serverless.com/settings/accessKeys), create a new Access Key for CI/CD use, and save it as the `SERVERLESS_ACCESS_KEY` environment variable in your CI/CD pipeline.
+- **Serverless Framework Access Keys:** You can authenticate via Access Key by signing in to Serverless Framework Dashboard when prompted by the CLI or running `serverless login`. When you do this, the CLI will auto-create a Serverless Access Key and save it on your machine. This approach is best if your entire team is comfortable signing into and using the [Serverless Framework Dashboard](https://app.serverless.com). To use this method in CI/CD pipelines, go to the [Access Keys view in Serverless Framework Dashboard](https://app.serverless.com/settings/accessKeys), create a new Access Key for CI/CD use, and save it as the `SERVERLESS_ACCESS_KEY` environment variable in your CI/CD pipeline.
 
-* **Serverless Framework License Keys:** Alernatively, you can authenticate via a License Key. This approach is best if you do not want to use Serverless Framework Dashboard or you do not want to require your entire team to sign into the Dashboard. If you purchase a Subscription, you can create as many License Keys as you'd like within the [License Key ciew in Serverless Framework Dashboard](https://app.serverless.com/settings/licenseKeys) and distribute them to your team. Your team members and CI/CD pipelines will need to set the `SERVERLESS_LICENSE_KEY` environment variable with a License Key to use the Framework.
+- **Serverless Framework License Keys:** Alernatively, you can authenticate via a License Key. This approach is best if you do not want to use Serverless Framework Dashboard or you do not want to require your entire team to sign into the Dashboard. If you purchase a Subscription, you can create as many License Keys as you'd like within the [License Key ciew in Serverless Framework Dashboard](https://app.serverless.com/settings/licenseKeys) and distribute them to your team. Your team members and CI/CD pipelines will need to set the `SERVERLESS_LICENSE_KEY` environment variable with a License Key to use the Framework.
 
 ### Deprecation of other Providers
 
-***This is a breaking change for all users of Providers other than Amazon Web Services.***
+**_This is a breaking change for all users of Providers other than Amazon Web Services._**
 
 Over the years, we've extended support to various providers, but achieving a unified abstraction across the diverse serverless offerings of each vendor has been challenging. This has led to AWS forming the majority of our user base.
 
 Moving forward, we plan to revisit support for other vendors through the introduction of Serverless Framework Extensions. Simultaneously, we've made the decision to deprecate all providers except AWS. This decision is aimed at simplifying the core user experience.
-
