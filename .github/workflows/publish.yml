@@ -109,6 +109,26 @@ jobs:
           TAG=${TEMP_ARRAY[@]: -1}
           npm run pkg:upload -- $TAG
 
+  githubPackagePublish:
+    runs-on: ubuntu-latest
+    needs: prePublishPackageTest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      # Setup .npmrc file to publish to GitHub Packages
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://npm.pkg.github.com'
+          # Defaults to the user or organization that owns the workflow file
+          scope: '@octocat'
+      - run: npm ci
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   chocoPublish:
     name: Publish to Chocolatey
     needs: npmPublish
