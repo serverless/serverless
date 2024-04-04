@@ -76,6 +76,7 @@
     "supports-color": "^8.1.1",
     "tar": "^6.1.15",
     "timers-ext": "^0.1.7",
+    "tsx": "^4.7.2",
     "type": "^2.7.2",
     "untildify": "^4.0.0",
     "uuid": "^9.0.0",

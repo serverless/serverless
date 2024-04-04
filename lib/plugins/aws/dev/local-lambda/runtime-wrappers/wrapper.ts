@@ -107,6 +107,8 @@ const invokeFunction = async (handlerFunction: Function) => {
     // Import and invoke the handler function
     const response = await invokeFunction(await importFunction());
 
+    console.log(`RESULT_FILE: ${path.join(os.tmpdir(), `sls_${process.pid}.json`)}`)
+
     // Save the response for the parent process to fetch and return to Lambda
     saveInvocationResult({ response, error: null });
   } catch (error: any) {
