@@ -76,6 +76,7 @@
     "supports-color": "^8.1.1",
     "tar": "^6.1.15",
     "timers-ext": "^0.1.7",
+    "ts-node": "^10.9.2",
     "tsx": "^4.7.2",
     "type": "^2.7.2",
     "untildify": "^4.0.0",
@@ -247,7 +248,8 @@
     "prettify:updated": "pipe-git-updated --ext=css --ext=html --ext=js --ext=json --ext=md --ext=yaml --ext=yml --base=main -- prettier --write",
     "test": "mocha \"test/unit/**/*.test.js\"",
     "test:ci": "npm run prettier-check:updated && npm run lint:updated && npm run test:isolated",
-    "test:isolated": "mocha-isolated \"test/unit/**/*.test.js\""
+    "test:isolated": "mocha-isolated \"test/unit/**/*.test.js\"",
+    "build:devmode:shim": "esbuild lib/plugins/aws/dev/shim.js --bundle --platform=node --minify --outfile=lib/plugins/aws/dev/shim.min.js"
   },
   "engines": {
     "node": ">=12.0"
