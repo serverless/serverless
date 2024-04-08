@@ -30,7 +30,7 @@ serverless dev
 ## Supported runtimes
 
 - Node.js
-- TypeScript (coming soon)
+- TypeScript
 - Python (coming soon)
 - Go (coming soon)
 - Ruby (coming soon)
@@ -83,3 +83,11 @@ serverless dev --stage local
 ```
 
 Maintaining a dedicated local stage is beneficial for quickly activating dev mode without needing to modify your infrastructure each time you execute the command.
+
+
+## Troubleshooting
+
+
+### Typescript isn't working for me.
+
+Under the hood Serverless uses `ts-node` for invoking your functions locally, and does require a `tsconfig.json` file. Make sure you have a valid config file and try again.
