@@ -29,8 +29,7 @@ serverless dev
 
 ## Supported runtimes
 
-- Node.js
-- TypeScript
+- Node.js (JS & TS)
 - Python (coming soon)
 - Go (coming soon)
 - Ruby (coming soon)
@@ -84,9 +83,7 @@ serverless dev --stage local
 
 Maintaining a dedicated local stage is beneficial for quickly activating dev mode without needing to modify your infrastructure each time you execute the command.
 
-
 ## Troubleshooting
-
 
 ### Typescript isn't working for me.
 

@@ -17,7 +17,7 @@
 <br/>
 <br/>
 
-**The Serverless Framework** – Makes it easy to use AWS Lambda and other managed cloud services to build applications that auto-scale, cost nothing when idle, and boast radically low maintenance. 
+**The Serverless Framework** – Makes it easy to use AWS Lambda and other managed cloud services to build applications that auto-scale, cost nothing when idle, and boast radically low maintenance.
 
 The Serverless Framework is a command-line tool with approachable YAML syntax to deploy both your code and cloud infrastructure needed to make tons of serverless application use-cases, like APIs, front-ends, data pipelines and scheduled tasks. It's a multi-language framework that supports Node.js, Typescript, Python, Go, Java, and more. It's also completely extensible via over 1,000 plugins which add more serverless use-cases and workflows to the Framework.
 
@@ -29,18 +29,19 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 **March 13th, 2024** – We're continuing to add features to the V.4 Alpha for early feedback from the community and plug-in authors. Here's a list of everything that's new in V.4 so far:
 
-* **No Breaking Changes:** No breaking changes for the "aws" Provider.
-* **New AWS Lambda Runtimes:** "python3.12", "dotnet8", and "java21".
-* **Support Command:** Send support requests to our team directly from the CLI, which auto-include contextual info which you can review before sending.
-* **Debug Summary for AI:** When you run into a bug, you can run "serverless support --ai" to generate a concise report detailing your last bug with all necessary context, optimized for pasting into AI tools such as ChatGPT.
-* **Advanced Logging Controls for AWS Lambda:** Capture Logs in JSON, increased log granularity, and setting a custom Log Group. Here is the [AWS article](https://aws.amazon.com/blogs/compute/introducing-advanced-logging-controls-for-aws-lambda-functions/). Here is the [YAML implementation](https://github.com/serverless/serverless/blob/v4.0/docs/providers/aws/guide/serverless.yml.md#logs)
-* **AWS SSO:** Environment variables, especially ones set by AWS SSO, are prioritized. The Framework and Dashboard no longer interfere with these.
-* **Build Plugins Run First:** [Build plugins now run first](https://github.com/serverless/serverless/issues?q=build+plugin), if they include the optional tags static property containing a `"build"` tag run first.
-* **Binary By Default:** We've transitioned to a binary core by default, making Node.js not a requirement.
-* **Automatic Updates:** These happen by default now. Though, you will be able to control the level of updates you're open to.
-* **Improved Onboarding & Set-Up:** The `serverless` command has been re-written to be more helpful when setting up a new or existing project.
-* **Updated Custom Resource Handlers:** All custom resource handlers now use `nodejs20.x`.
-* **Deprecation Of Non-AWS Providers:** Deprecation of other cloud providers, in favor of handling this better in our upcoming Serverless Framework "Extensions".
+- **No Breaking Changes:** No breaking changes for the "aws" Provider.
+- **New AWS Lambda Runtimes:** "python3.12", "dotnet8", and "java21".
+- **Support Command:** Send support requests to our team directly from the CLI, which auto-include contextual info which you can review before sending.
+- **New Local Development Experience:** Develop and test your functions locally using real AWS infrastructure events, without emulation.
+- **Debug Summary for AI:** When you run into a bug, you can run "serverless support --ai" to generate a concise report detailing your last bug with all necessary context, optimized for pasting into AI tools such as ChatGPT.
+- **Advanced Logging Controls for AWS Lambda:** Capture Logs in JSON, increased log granularity, and setting a custom Log Group. Here is the [AWS article](https://aws.amazon.com/blogs/compute/introducing-advanced-logging-controls-for-aws-lambda-functions/). Here is the [YAML implementation](https://github.com/serverless/serverless/blob/v4.0/docs/providers/aws/guide/serverless.yml.md#logs)
+- **AWS SSO:** Environment variables, especially ones set by AWS SSO, are prioritized. The Framework and Dashboard no longer interfere with these.
+- **Build Plugins Run First:** [Build plugins now run first](https://github.com/serverless/serverless/issues?q=build+plugin), if they include the optional tags static property containing a `"build"` tag run first.
+- **Binary By Default:** We've transitioned to a binary core by default, making Node.js not a requirement.
+- **Automatic Updates:** These happen by default now. Though, you will be able to control the level of updates you're open to.
+- **Improved Onboarding & Set-Up:** The `serverless` command has been re-written to be more helpful when setting up a new or existing project.
+- **Updated Custom Resource Handlers:** All custom resource handlers now use `nodejs20.x`.
+- **Deprecation Of Non-AWS Providers:** Deprecation of other cloud providers, in favor of handling this better in our upcoming Serverless Framework "Extensions".
 
 **Breaking Plugin Changes**
 Some Plug-Ins are affected by changes in V.4. The purpose of the "Alpha" is to discover these issues and fix them before V.4 is GA. Here are the known issues:
@@ -64,16 +65,16 @@ For information on upgrading from V.3 to V.4, check out the ["Upgrading to V.4 G
 
 # <a name="features"></a>Features
 
-* **Build More, Manage Less:** Innovate faster by spending less time on infrastructure management.
-* **Maximum Versatility:** Tackle diverse serverless use cases, from APIs and scheduled tasks to web sockets and data pipelines.
-* **Automated Deployment:** Streamline development with code and infrastructure deployment handled together.
-* **Ease of Use:** Deploy complex applications without deep cloud infrastructure expertise, thanks to simple YAML configuration.
-* **Language Agnostic:** Build in your preferred language – Node.js, Python, Java, Go, C#, Ruby, Swift, Kotlin, PHP, Scala, or F#.
-* **Complete Lifecycle Management:** Build, deploy, monitor, update, and troubleshoot serverless applications with ease.
-* **Scalable Organization:** Structure large projects and teams efficiently by breaking down large apps into Services to work on individually or together via Serverless Compose.
-* **Effortless Environments:** Seamlessly manage development, staging, and production environments.
-* **Customization Ready:** Extend and modify the Framework's functionality with a rich plugin ecosystem.
-* **Vibrant Community:** Get support and connect with a passionate community of Serverless developers.
+- **Build More, Manage Less:** Innovate faster by spending less time on infrastructure management.
+- **Maximum Versatility:** Tackle diverse serverless use cases, from APIs and scheduled tasks to web sockets and data pipelines.
+- **Automated Deployment:** Streamline development with code and infrastructure deployment handled together.
+- **Ease of Use:** Deploy complex applications without deep cloud infrastructure expertise, thanks to simple YAML configuration.
+- **Language Agnostic:** Build in your preferred language – Node.js, Python, Java, Go, C#, Ruby, Swift, Kotlin, PHP, Scala, or F#.
+- **Complete Lifecycle Management:** Build, deploy, monitor, update, and troubleshoot serverless applications with ease.
+- **Scalable Organization:** Structure large projects and teams efficiently by breaking down large apps into Services to work on individually or together via Serverless Compose.
+- **Effortless Environments:** Seamlessly manage development, staging, and production environments.
+- **Customization Ready:** Extend and modify the Framework's functionality with a rich plugin ecosystem.
+- **Vibrant Community:** Get support and connect with a passionate community of Serverless developers.
 
 <br/>
 
@@ -115,74 +116,33 @@ Your new project will contain a `serverless.yml` file with simple syntax for dep
 
 <br/>
 
-## Deploy to AWS
+## Develop Locally
 
-Run the `deploy` command to deploy your project to AWS. Note, you can use `serverless` or `sls` as the command prompt.
+Run the `dev` command to start developing your project, while testing with real AWS events & infrastructure. This will make an initial deployment of your project infrastructure to AWS, and show essential infromation such as API Endpoin URLs in your terminal.
+
+Note, you can use `serverless` or `sls` as the command prompt.
+
+```bash
+sls dev
+```
+
+Whenever any of your Lambda functions are invoked on AWS while a development session is active, your function code will be executed locally instead of on AWS Lambda, within an environment that closely resembles AWS Lambda. Your local code will have access to the same environment variables available in your Lambda functions and will have the same IAM permissions as your Lambda function.
+
+All logs or errors will be displayed in your local terminal, and the response will be returned to the caller as expected. This significantly accelerates the testing process for changes while still utilizing real AWS infrastructure with minimal emulation.
+
+To exit the development session, simply press Ctrl+C. This will disconnect your local machine from AWS Lambda, and any subsequent invocations will timeout until you deploy your changes (see below).
+
+More details on dev mode can be found [here](https://www.serverless.com/framework/docs/providers/aws/guide/developing).
+
+## Deploy Globally
+
+Run the `deploy` command to deploy your project to AWS and persist the changes you made in your development session.
 
 ```bash
 sls deploy
 ```
 
-The deployed AWS Lambda functions and other essential information such as API Endpoint URLs will be displayed in the command output.
-
 More details on deploying can be found [here](https://www.serverless.com/framework/docs/providers/aws/guide/deploying).
-
-<br/>
-
-## Develop On The Cloud
-
-Many Serverless Framework users choose to develop on the cloud, since it matches reality and emulating Lambda locally can be complex. To develop on the cloud quickly, without sacrificing speed, we recommend the following workflow...
-
-To deploy code changes quickly, skip the `serverless deploy` command which is much slower since it triggers a full AWS CloudFormation update. Instead, deploy code and configuration changes to individual AWS Lambda functions in seconds via the `deploy function` command, with `-f [function name in serverless.yml]` set to the function you want to deploy.
-
-```bash
-sls deploy function -f my-api
-```
-
-More details on the `deploy function` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/deploy-function).
-
-To invoke your AWS Lambda function on the cloud, you can find URLs for your functions w/ API endpoints in the `serverless deploy` output, or retrieve them via `serverless info`. If your functions do not have API endpoints, you can use the `invoke` command, like this:
-
-```bash
-sls invoke -f hello
-
-# Invoke and display logs:
-serverless invoke -f hello --log
-```
-
-More details on the `invoke` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke).
-
-To stream your logs while you work, use the `sls logs` command in a separate terminal window:
-
-```bash
-sls logs -f [Function name in serverless.yml] -t
-```
-
-Target a specific function via the `-f` option and enable streaming via the `-t` option.
-
-<br/>
-
-## Develop Locally
-
-Many Serverless Framework users rely on local emulation to develop more quickly. Please note, emulating AWS Lambda and other cloud services is never accurate and the process can be complex. We recommend the following workflow to develop locally...
-
-Use the `invoke local` command to invoke your function locally:
-
-```bash
-sls invoke local -f my-api
-```
-
-You can also pass data to this local invocation via a variety of ways. Here's one of them:
-
-```bash
-sls invoke local --function functionName --data '{"a":"bar"}'
-```
-
-More details on the `invoke local` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local)
-
-Serverless Framework also has a great plugin that allows you to run a server locally and emulate AWS API Gateway. This is the `serverless-offline` command.
-
-More details on the **serverless-offline** plugin can be found [here](https://github.com/dherault/serverless-offline)
 
 <br/>
 
@@ -194,11 +154,10 @@ Plugins extend or overwrite the Serverless Framework, giving it new use-cases or
 
 Some of the most common Plugins are:
 
-* **[Serverless Offline](https://github.com/dherault/serverless-offline)** - Emulate AWS Lambda and API Gateway locally when developing your Serverless project.
-* **[Serverless ESBuild](https://github.com/floydspace/serverless-esbuild)** - Bundles JavaScript and TypeScript extremely fast via esbuild.
-* **[Serverless Domain Manager](https://github.com/amplify-education/serverless-domain-manager)** - Manage custom domains with AWS API Gateways.
-* **[Serverless Step Functions](https://github.com/serverless-operations/serverless-step-functions)** - Build AWS Step Functions architectures.
-* **[Serverless Python Requirements](https://github.com/serverless/serverless-python-requirements)** - Bundle dependencies from requirements.txt and make them available in your PYTHONPATH.
+- **[Serverless ESBuild](https://github.com/floydspace/serverless-esbuild)** - Bundles JavaScript and TypeScript extremely fast via esbuild.
+- **[Serverless Domain Manager](https://github.com/amplify-education/serverless-domain-manager)** - Manage custom domains with AWS API Gateways.
+- **[Serverless Step Functions](https://github.com/serverless-operations/serverless-step-functions)** - Build AWS Step Functions architectures.
+- **[Serverless Python Requirements](https://github.com/serverless/serverless-python-requirements)** - Bundle dependencies from requirements.txt and make them available in your PYTHONPATH.
 
 <br/>
 
@@ -206,10 +165,10 @@ Some of the most common Plugins are:
 
 Serverless Framework Compose allows you to work with multiple Serverless Framework Services at once, and do the following...
 
-* Deploy multiple services in parallel
-* Deploy services in a specific order
-* Share outputs from one service to another
-* Run commands across multiple services
+- Deploy multiple services in parallel
+- Deploy services in a specific order
+- Share outputs from one service to another
+- Run commands across multiple services
 
 Here is what a project structure might look like:
 
@@ -233,12 +192,11 @@ Using Serverless Framework Compose requires a `serverless-compose.yml` file. In 
 services:
   service-a:
     path: service-a
- 
+
   service-b:
     path: service-b
     params:
       queueUrl: ${service-a.queueUrl}
-
 ```
 
 Currently, outputs to be inherited by another Service must be AWS Cloudformation Outputs.
@@ -247,7 +205,7 @@ Currently, outputs to be inherited by another Service must be AWS Cloudformation
 # service-a/serverless.yml
 
 # ...
- 
+
 resources:
   Resources:
     MyQueue:
