@@ -118,11 +118,11 @@ Plugins extend or overwrite the Serverless Framework, giving it new use-cases or
 
 Some of the most common Plugins are:
 
-* **[Serverless Offline](https://github.com/dherault/serverless-offline)** - Emulate AWS Lambda and API Gateway locally when developing your Serverless project.
-* **[Serverless ESBuild](https://github.com/floydspace/serverless-esbuild)** - Bundles JavaScript and TypeScript extremely fast via esbuild.
-* **[Serverless Domain Manager](https://github.com/amplify-education/serverless-domain-manager)** - Manage custom domains with AWS API Gateways.
-* **[Serverless Step Functions](https://github.com/serverless-operations/serverless-step-functions)** - Build AWS Step Functions architectures.
-* **[Serverless Python Requirements](https://github.com/serverless/serverless-python-requirements)** - Bundle dependencies from requirements.txt and make them available in your PYTHONPATH.
+- **[Serverless Offline](https://github.com/dherault/serverless-offline)** - Emulate AWS Lambda and API Gateway locally when developing your Serverless project.
+- **[Serverless ESBuild](https://github.com/floydspace/serverless-esbuild)** - Bundles JavaScript and TypeScript extremely fast via esbuild.
+- **[Serverless Domain Manager](https://github.com/amplify-education/serverless-domain-manager)** - Manage custom domains with AWS API Gateways.
+- **[Serverless Step Functions](https://github.com/serverless-operations/serverless-step-functions)** - Build AWS Step Functions architectures.
+- **[Serverless Python Requirements](https://github.com/serverless/serverless-python-requirements)** - Bundle dependencies from requirements.txt and make them available in your PYTHONPATH.
 
 ## Remove Your Service
 

@@ -68,9 +68,10 @@ For information on upgrading from V.3 to V.4, check out the ["Upgrading to V.4 G
 - **Build More, Manage Less:** Innovate faster by spending less time on infrastructure management.
 - **Maximum Versatility:** Tackle diverse serverless use cases, from APIs and scheduled tasks to web sockets and data pipelines.
 - **Automated Deployment:** Streamline development with code and infrastructure deployment handled together.
+- **Local Development:** Develop and test your functions locally using real AWS infrastructure events, without emulation.
 - **Ease of Use:** Deploy complex applications without deep cloud infrastructure expertise, thanks to simple YAML configuration.
 - **Language Agnostic:** Build in your preferred language – Node.js, Python, Java, Go, C#, Ruby, Swift, Kotlin, PHP, Scala, or F#.
-- **Complete Lifecycle Management:** Build, deploy, monitor, update, and troubleshoot serverless applications with ease.
+- **Complete Lifecycle Management:** Develop, deploy, monitor, update, and troubleshoot serverless applications with ease.
 - **Scalable Organization:** Structure large projects and teams efficiently by breaking down large apps into Services to work on individually or together via Serverless Compose.
 - **Effortless Environments:** Seamlessly manage development, staging, and production environments.
 - **Customization Ready:** Extend and modify the Framework's functionality with a rich plugin ecosystem.
