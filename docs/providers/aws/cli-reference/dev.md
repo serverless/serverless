@@ -1,8 +1,8 @@
 <!--
-title: Serverless Framework Commands - AWS Lambda - Dev Mode
-menuText: dev mode
+title: Serverless Framework Commands - AWS Lambda - Dev
+menuText: dev
 menuOrder: 9
-description: Dev mode enables real-time, local development and testing of AWS Lambda functions without frequent redeployments or the need for emulation.
+description: The dev command enables real-time, local development and testing of AWS Lambda functions without frequent redeployments or the need for emulation.
 layout: Doc
 -->
 
@@ -12,9 +12,9 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS - Dev Mode
+# AWS - Dev
 
-This command activates dev mode on the specified stage and region. Dev mode allows you to run, develop, and test your functions locally while they are being invoked in real-time remotely on AWS Lambda. It establishes a long-running CLI session that connects directly to your Lambda functions, waiting for events to invoke them. This method significantly simplifies the development of your functions locally, eliminating the need for deployment after every change, and allows you to work with real infrastructure without any emulation.
+This command activates a development session on the specified stage and region. This allows you to run, develop, and test your functions locally while they are being invoked in real-time remotely on AWS Lambda. It establishes a long-running CLI session that connects directly to your Lambda functions, waiting for events to invoke them. This method significantly simplifies the development of your functions locally, eliminating the need for deployment after every change, and allows you to work with real infrastructure without any emulation.
 
 ```bash
 serverless dev
@@ -22,10 +22,10 @@ serverless dev
 
 ## Options
 
-- `--stage` or `-s` The stage in your service that you want to enable dev mode for.
-- `--region` or `-r` The region in that stage that you want to enable dev mode for.
+- `--stage` or `-s` The stage in your service that you want to activate a development session for.
+- `--region` or `-r` The region in that stage that you want to active a development session for.
 
-**Note:** While it is possible, we do not recommend running dev mode in your `prod` stage.
+**Note:** While it is possible, we do not recommend activating a development session in your `prod` stage.
 
 ## Supported runtimes
 
@@ -47,41 +47,41 @@ Resource: '*'
 
 Subsequently, we deploy your service similarly to executing sls deploy, albeit without your service code and with modified configurations. The CLI then maintains a long-running session, awaiting invocation events.
 
-To finalize development and save your changes, you must exit dev mode and perform a standard `sls deploy`.
+To finalize development and save your changes, you must exit the development session and perform a standard `sls deploy`.
 
 ## Environment
 
-When a dev mode session is active, it's set up to listen for invocation events from your functions. Upon receiving such an event, the CLI creates a new child process that closely replicates the environment of the Lambda function that was invoked. This replication includes the same environment variables, IAM permissions, context, and the event itself. The child process then executes your handlers with this comprehensive dataset, outputs all your function logs directly to the local terminal, and sends the response back to Lambda, along with any errors that might have occurred.
+When a development session is active, it's set up to listen for invocation events from your functions. Upon receiving such an event, the CLI creates a new child process that closely replicates the environment of the Lambda function that was invoked. This replication includes the same environment variables, IAM permissions, context, and the event itself. The child process then executes your handlers with this comprehensive dataset, outputs all your function logs directly to the local terminal, and sends the response back to Lambda, along with any errors that might have occurred.
 
 ### Examples
 
-Dev mode quick run...
+Activate a quick development session in the default `dev` stage...
 
 ```bash
 serverless dev
 ```
 
-Run dev mode in the dev stage, but in the `us-east-2` region...
+Activate a development session in the dev stage, but in the `us-east-2` region...
 
 ```bash
 serverless dev --stage dev --region us-east-2
 
 ```
 
-Run dev mode in your own personal stage...
+Activate a development session in your own personal stage...
 
 ```bash
 serverless dev --stage austen
 
 ```
 
-Run dev mode in a stage called "local"...
+Activate a development session in a stage called "local"...
 
 ```bash
 serverless dev --stage local
 ```
 
-Maintaining a dedicated local stage is beneficial for quickly activating dev mode without needing to modify your infrastructure each time you execute the command.
+Maintaining a dedicated local stage is beneficial for quickly activating a development session without needing to modify your infrastructure each time you execute the command.
 
 ## Troubleshooting
 
