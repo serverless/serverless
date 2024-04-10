@@ -32,7 +32,7 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 - **No Breaking Changes:** No breaking changes for the "aws" Provider.
 - **New AWS Lambda Runtimes:** "python3.12", "dotnet8", and "java21".
 - **Support Command:** Send support requests to our team directly from the CLI, which auto-include contextual info which you can review before sending.
-- **New Local Development Experience:** Develop and test your functions locally using real AWS infrastructure events, without emulation.
+- **New Local Development Experience:** Route events from AWS to your local AWS Lambda code to develop faster without having to deploy every change.
 - **Debug Summary for AI:** When you run into a bug, you can run "serverless support --ai" to generate a concise report detailing your last bug with all necessary context, optimized for pasting into AI tools such as ChatGPT.
 - **Advanced Logging Controls for AWS Lambda:** Capture Logs in JSON, increased log granularity, and setting a custom Log Group. Here is the [AWS article](https://aws.amazon.com/blogs/compute/introducing-advanced-logging-controls-for-aws-lambda-functions/). Here is the [YAML implementation](https://github.com/serverless/serverless/blob/v4.0/docs/providers/aws/guide/serverless.yml.md#logs)
 - **AWS SSO:** Environment variables, especially ones set by AWS SSO, are prioritized. The Framework and Dashboard no longer interfere with these.
@@ -68,7 +68,7 @@ For information on upgrading from V.3 to V.4, check out the ["Upgrading to V.4 G
 - **Build More, Manage Less:** Innovate faster by spending less time on infrastructure management.
 - **Maximum Versatility:** Tackle diverse serverless use cases, from APIs and scheduled tasks to web sockets and data pipelines.
 - **Automated Deployment:** Streamline development with code and infrastructure deployment handled together.
-- **Local Development:** Develop and test your functions locally using real AWS infrastructure events, without emulation.
+- **Local Development:** Route events from AWS to your local AWS Lambda code to develop faster without having to deploy every change.
 - **Ease of Use:** Deploy complex applications without deep cloud infrastructure expertise, thanks to simple YAML configuration.
 - **Language Agnostic:** Build in your preferred language – Node.js, Python, Java, Go, C#, Ruby, Swift, Kotlin, PHP, Scala, or F#.
 - **Complete Lifecycle Management:** Develop, deploy, monitor, update, and troubleshoot serverless applications with ease.
@@ -119,7 +119,7 @@ Your new project will contain a `serverless.yml` file with simple syntax for dep
 
 ## Develop Locally
 
-Run the `dev` command to start developing your project, while testing with real AWS events & infrastructure. This will make an initial deployment of your project infrastructure to AWS, and show essential infromation such as API Endpoin URLs in your terminal.
+Run the dev command to start developing with real AWS events and infrastructure. This will run an initial deployment of your project infrastructure to AWS and display essential information, such as API Endpoint URLs, in your terminal.
 
 Note, you can use `serverless` or `sls` as the command prompt.
 
