@@ -35,6 +35,7 @@
     "cachedir": "^2.3.0",
     "chalk": "^4.1.2",
     "child-process-ext": "^2.1.1",
+    "chokidar": "^3.6.0",
     "ci-info": "^3.8.0",
     "cli-progress-footer": "^2.3.2",
     "d": "^1.0.1",
