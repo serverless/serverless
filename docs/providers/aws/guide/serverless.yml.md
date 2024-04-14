@@ -405,6 +405,8 @@ provider:
         file: Dockerfile.dev
         buildArgs:
           STAGE: ${sls:stage}
+        secrets:
+          aws: src=${env:HOME}/.aws/credentials
         cacheFrom:
           - my-image:latest
 ```
