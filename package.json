@@ -1,11 +1,12 @@
 {
-  "name": "@serverless/framework",
+  "name": "serverless",
   "version": "4.0.0",
   "description": "Use AWS Lambda and other managed cloud services to build apps that auto-scale, cost nothing when idle, and boast radically low maintenance.",
   "preferGlobal": true,
   "homepage": "https://serverless.com/framework/docs/",
   "author": "serverless.com",
   "repository": "serverless/serverless",
+  "type": "module",
   "keywords": [
     "serverless",
     "lambda",
@@ -25,6 +26,7 @@
     "@aws-sdk/credential-provider-node": "^3.501.0",
     "@serverless/platform-client": "^4.5.1",
     "@serverless/utils": "^6.14.0",
+    "@serverlessinc/sf-core": "*",
     "abort-controller": "^3.0.0",
     "ajv": "^8.12.0",
     "ajv-formats": "^2.1.1",
