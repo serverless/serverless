@@ -135,7 +135,7 @@ To exit the development session, simply press Ctrl+C. This will disconnect your 
 
 More details on dev mode can be found [here](https://www.serverless.com/framework/docs/providers/aws/guide/developing).
 
-## Deploy Globally
+## Deploy Changes
 
 Run the `deploy` command to deploy your project to AWS and persist the changes you made in your development session.
 
