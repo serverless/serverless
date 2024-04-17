@@ -1,5 +1,5 @@
 {
-  "name": "serverless",
+  "name": "@serverless/framework",
   "version": "4.0.0",
   "description": "Use AWS Lambda and other managed cloud services to build apps that auto-scale, cost nothing when idle, and boast radically low maintenance.",
   "preferGlobal": true,
