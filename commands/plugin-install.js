@@ -1,26 +1,22 @@
-'use strict';
+import spawn from 'child-process-ext/spawn.js';
+import fsp from 'fs/promises';
+import fse from 'fs-extra';
+import path from 'path';
+import _ from 'lodash';
+import isPlainObject from 'type/plain-object/is.js';
+import yaml from 'js-yaml';
+import cloudformationSchema from '@serverless/utils/cloudformation-schema.js';
+import { utils } from '@serverlessinc/sf-core';
+import ServerlessError from '../lib/serverless-error.js';
+import yamlAstParser from '../lib/utils/yaml-ast-parser.js';
+import npmCommandDeferred from '../lib/utils/npm-command-deferred.js';
+import { getPluginInfo, getServerlessFilePath, validate } from '../lib/commands/plugin-management.js';
 
-const spawn = require('child-process-ext/spawn');
-const fsp = require('fs').promises;
-const fse = require('fs-extra');
-const path = require('path');
-const _ = require('lodash');
-const isPlainObject = require('type/plain-object/is');
-const yaml = require('js-yaml');
-const cloudformationSchema = require('@serverless/utils/cloudformation-schema');
-const { log, progress, style } = require('@serverless/utils/log');
-const ServerlessError = require('../lib/serverless-error');
-const yamlAstParser = require('../lib/utils/yaml-ast-parser');
-const npmCommandDeferred = require('../lib/utils/npm-command-deferred');
-const {
-  getPluginInfo,
-  getServerlessFilePath,
-  validate,
-} = require('../lib/commands/plugin-management');
+const { log, progress, style } = utils;
 
 const mainProgress = progress.get('main');
 
-module.exports = async ({ configuration, serviceDir, configurationFilename, options }) => {
+export default async ({ configuration, serviceDir, configurationFilename, options }) => {
   const commandRunStartTime = Date.now();
   validate({ serviceDir });
 
