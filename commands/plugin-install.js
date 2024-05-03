@@ -10,7 +10,11 @@ import { utils } from '@serverlessinc/sf-core';
 import ServerlessError from '../lib/serverless-error.js';
 import yamlAstParser from '../lib/utils/yaml-ast-parser.js';
 import npmCommandDeferred from '../lib/utils/npm-command-deferred.js';
-import { getPluginInfo, getServerlessFilePath, validate } from '../lib/commands/plugin-management.js';
+import {
+  getPluginInfo,
+  getServerlessFilePath,
+  validate,
+} from '../lib/commands/plugin-management.js';
 
 const { log, progress, style } = utils;
 
