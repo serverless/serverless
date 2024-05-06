@@ -65,6 +65,7 @@
     "npm-registry-utilities": "^1.0.0",
     "object-hash": "^3.0.0",
     "open": "^10.1.0",
+    "p-limit": "^5.0.0",
     "path2": "^0.1.0",
     "process-utils": "^4.0.0",
     "promise-queue": "^2.2.5",
