@@ -5,29 +5,160 @@ layout: Doc
 
 # Setting Up Serverless Framework With AWS
 
-Here's how to install the Serverless Framework, set up a project and deploy it to Amazon Web Services.
+Here's how to install the Serverless Framework, set up a project and deploy it to Amazon Web Services on serverless infrastructure like AWS Lambda, AWS DynamoDB, AWS S3 and more.
 
-The Serverless Framework is packaged as a binary, which can be installed via this CURL script.
+## Installation
 
-```bash
-curl -o- -L https://install.serverless.com | bash
-```
+As of version 4, the Serverless Framework Command Line Interface is packaged as a binary, which can be installed via two ways.
 
-You can also install the Framework via NPM. You will need to have [Node.js](https://nodejs.org) installed.
+### Install the Serverless Framework via NPM
 
-```bash
+If you have the [Node.js runtime](https://nodejs.org) installed, you can install the Serverless Framework via NPM.
+
+Open your CLI and run the command below to install the Serverless Framework globally.
+
+```text
 npm i serverless -g
 ```
 
-## Create A Project
+Run `serverless` to verify your installation is working.
 
-Run the interactive onboarding via the "serverless" command, to pick a Template and set-up credentials for AWS.
+### Install the Serverless Framework via CURL
 
-```bash
+This option is best if you don't have/want to use the Node.js runtime and its package manager, NPM.
+
+Open your CLI and run the command below to install the Serverless Framework.
+
+```text
+curl -o- -L https://install.serverless.com | bash
+```
+
+This will install the binary within your home directory (`~/.serverless/binaries`), create symbolic links for `serverless` and `sls`, and update your shell configuration file (`.zshrc`, `.bashrc`, `.bash_profile`, `.bash_login`, or `.profile`) to include the binary directory in the $PATH, allowing the `serverless` or `sls` command to be run from any location in the terminal.
+
+Run `serverless` to verify your installation is working.
+
+## Update Serverless Framework
+
+As of version 4, the Serverless Framework automatically updates itself and performs a check to do so every 24 hours.
+
+You can force an update by running this command:
+
+```text
+serverless update
+```
+
+Or, you can set this environment variable:
+
+```text
+SERVERLESS_FRAMEWORK_FORCE_UPDATE=true
+```
+
+## The Serverless Command
+
+The Serverless Framework ships with a `serverless` command that walks you through getting a project created and deployed onto AWS. It helps with downloading a Template, setting up AWS Credentials, setting up the Serverless Framework Dashboard, and more, while explaining each concept along the way.
+
+This guide will also walk you through getting started with the Serverless Framework, but please note, simply typing the `serverless` command may be the superior experience.
+
+```text
 serverless
 ```
 
-During onboarding, you can set up AWS credentials a few ways. You can simply add them as environment variables, which is best if you're using AWS SSO. You can have the Serverless Framework Platform store an AWS IAM Role for you and your team to share and assign to specific Stages, or you can persist long-term credentials to an AWS Profile on your local machine. We recommend the first two options.
+## Create A Service
+
+The primary concept for a project in the Serverless Framework is known as a "Service", and its declared by a `serverless.yml` file, which contains simplified syntax for deploying cloud infrastructure. A Service can either be an entire application, logic for a specific domain (e.g. "blog", "users", "products"), or a microservice handling one task. Generally, we recommend starting with a monolithic approach to everything to reduce complexity, until breaking up logic is absolutely necessary.
+
+To create and fully set up a Serverless Framework Service, use the `serverless` command, which offers an interactive set-up workflow.
+
+```text
+serverless
+```
+
+This will show you several Templates. Choose one that fits the language and use-case you want.
+
+```text
+Serverless ϟ Framework
+Welcome to Serverless Framework V.4
+
+Create a new project by selecting a Template to generate scaffolding for a specific use-case.
+
+? Select A Template: … 
+❯ AWS / Node.js / Starter
+  AWS / Node.js / HTTP API
+  AWS / Node.js / Scheduled Task
+  AWS / Node.js / SQS Worker
+  AWS / Node.js / Express API
+  AWS / Node.js / Express API with DynamoDB
+  AWS / Python / Starter
+  AWS / Python / HTTP API
+  AWS / Python / Scheduled Task
+  AWS / Python / SQS Worker
+  AWS / Python / Flask API
+  AWS / Python / Flask API with DynamoDB
+  (Scroll for more)
+```
+
+After selecting a Service Template, its files will be downloaded and you will have the opportunity to give your Service a name.
+
+```text
+? Name Your Service: ›  
+```
+
+Please use only lowercase letters, numbers and hyphens. Also, keep Service names short, since they are added into the name of each cloud resource the Serverless Framework creates, and some cloud resources have character length restrictions in their names.
+
+## Signing In
+
+If you are using the `serverless` command to set up a Service, it will eventually ask you to log in. 
+
+If you need to log in outside of that, run `serverless login`.
+
+Logging in will redirect you to the [Serverless Framework Dashboard](https://app.serverless.com) within your browser. After registering or logging in, go back to your CLI and you will be signed in.
+
+## Creating An App
+
+The "App" concept is a parent container for one or many "Services" which you can optionally set via the `app` property in your `serverless.yml`. Setting an `app` also enables Serverless Framework Dashboard features for that Service, like tracking your Services and their deployments in Serverless Framework Dashboard, enabling sharing outputs between them, sharing secrets between them, and enabling metrics, traces and logs.
+
+If you are using the `serverless` onboarding command, it will help you set up an `app` and add it to your Service.
+
+```text
+❯ Create A New App
+  ecommerce
+  blog
+  acmeinc
+  Skip Adding An App
+```
+
+The app can also be set manually in serverless.yml via the `app` property:
+
+```yaml
+service: my-service
+app: my-app
+```
+
+If you don't want to use Serverless Framework Dashboard, Apps are not required.
+
+## Setting Up AWS Credentials
+
+To deploy cloud infrastructure to AWS, you must set up your AWS credentials.
+
+Running the Serverless Framework's `serverless` command in a new or existing Service will help identify if AWS credentials have been set correctly or if they are expired, or help you set them up from scratch.
+
+```text
+No valid AWS Credentials were found in your environment variables or on your machine. Serverless Framework needs these to access your AWS account and deploy resources to it. Choose an option below to set up AWS Credentials.
+
+❯ Create AWS IAM Role (Easy & Recommended)
+  Save AWS Credentials in a Local Profile
+  Skip & Set Later (AWS SSO, ENV Vars)
+```
+
+To learn more about setting up your AWS Credentials, [read this guide](https://www.serverless.com/framework/docs/providers/aws/guide/credentials)
+
+If you are using AWS SSO, we recommend simply pasting your temporary SSO credentials within the terminal as environment variables.
+
+## Deploy A Service
+
+Make sure your terminal session is within the directory that contains your `serverless.yml` file.
+
+which you can set up AWS credentials a few ways. You can simply add them as environment variables, which is best if you're using AWS SSO. You can have the Serverless Framework Platform store an AWS IAM Role for you and your team to share and assign to specific Stages, or you can persist long-term credentials to an AWS Profile on your local machine. We recommend the first two options.
 
 After onboarding, move into the newly created directory.
 

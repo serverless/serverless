@@ -25,7 +25,7 @@ The mission of the Serverless Framework is to empower all developers to build mo
 
 ## Overview
 
-The Serverless Framework consists of a Command Line Interface and an optional Dashboard, excelling primarily with Amazon Web Services but increasingly supporting other cloud providers. It is developed and maintained by Serverless Inc., a specialized software company based in San Francisco, California. Initially launched as an open-source project, the Framework has since transitioned to a SaaS model to better support its scalability and the extensive infrastructure capabilities it offers.
+The Serverless Framework consists of a Command Line Interface and an optional Dashboard, and helps you deploy code and infrastructure together on Amazon Web Services, while increasingly supporting other cloud providers. The Framework is a YAML-based experience that uses simplified syntax to help you deploy complex infrastructure patterns easily, without needing to be a cloud expert. It is developed and maintained by Serverless Inc., a specialized software company based in San Francisco, California. Initially launched as an open-source project, the Framework has since transitioned to a SaaS product to better support its scalability and the extensive infrastructure capabilities it offers.
 
 ## Highlights
 
