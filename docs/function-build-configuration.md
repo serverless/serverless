@@ -1,16 +1,14 @@
 <!--
-title: Function Build Configuration 
+title: Function Build Configuration
 menuText: Function Build Configuration
 layout: Doc
 -->
 
 # Function Build Configuration
 
-
 ## ESBuild
 
 Framework has built in support for esbuild for being used to bundle and deploy javascript and typescript. By default if your handler is pointed to a typescript file then it will use esbuild to prepare your function code for deployment. No configuration is necessary by default.
-
 
 ### Configuration
 
