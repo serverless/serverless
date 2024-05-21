@@ -1,7 +1,7 @@
 {
   "Intro": "",
   "Get Started": {
-    "Upgrading To V4": "guides/upgrade-to-v4",
+    "Upgrading To V4": "guides/upgrading-v4",
     "Setup": "getting-started",
     "Tutorial": "tutorial",
     "Concepts": "providers/aws/guide/intro",
