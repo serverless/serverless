@@ -622,9 +622,8 @@ You can leverage Git-related information in your `serverless.yml` configuration 
 To reference Git variables, use the `${git:<variable>}` syntax in your `serverless.yml`.
 Here's how you might use these variables:
 
-```yaml
-service: ${git:branch}-service
-provider: aws
+```yml
+service: new-service
 functions:
   hello:
     name: hello-${git:branch}
