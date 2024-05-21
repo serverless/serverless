@@ -1,8 +1,8 @@
 {
   "Intro": "",
   "Get Started": {
-    "Upgrading To V4": "guides/upgrading-v4",
     "Setup": "getting-started",
+    "Upgrading To V4": "guides/upgrading-v4",
     "Tutorial": "tutorial",
     "Concepts": "providers/aws/guide/intro",
     "AWS Credentials": "providers/aws/guide/credentials"
@@ -115,8 +115,5 @@
   "Serverless.yml Reference": "providers/aws/guide/serverless.yml",
   "Learn More": {
     "Configuration Validation": "configuration-validation",
-    "Resolution of Environment Variables": "environment-variables",
-    "Deprecations": "deprecations",
-    "Telemetry and Notifications": "telemetry"
   }
 }
