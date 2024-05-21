@@ -16,9 +16,7 @@ layout: Doc
 
 Print your `serverless.yml` config file with all variables resolved.
 
-If you're using [Serverless Variables](https://serverless.com/framework/docs/providers/aws/guide/variables/)
-in your `serverless.yml`, it can be difficult to know if your syntax is correct
-or if the variables are resolving as you expect.
+If you're using [Serverless Variables](https://serverless.com/framework/docs/providers/aws/guide/variables/) in your `serverless.yml`, it can be difficult to know if your syntax is correct or if the variables are resolving as you expect.
 
 With this command, it will print the fully-resolved config to your console.
 

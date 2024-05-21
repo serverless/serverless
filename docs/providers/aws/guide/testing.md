@@ -102,10 +102,3 @@ Now, the above class keeps business logic separate. Further, the code responsibl
 Further, this code doesn't require running any external services. Instead of a real `db` and `mailer` services, we can pass mocks and assert if `saveUser` and `sendWelcomeEmail` has been called with proper arguments.
 
 Unit Tests can easily be written to cover the above class. An integration test can be added by invoking the function (`serverless invoke`) with fixture email address, check if user is actually saved to DB and check if email was received to see if everything is working together.
-
-## Other
-
-Here are a few links to services which can help you test locally:
-
-- [dynamodb-local](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html)
-- [kinesalite](https://github.com/mhart/kinesalite)

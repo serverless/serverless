@@ -14,9 +14,9 @@ layout: Doc
 
 # Login
 
-The `login` command logs users into the serverless dashboard.
+The `login` command logs users into the Serverless Framework Dashboard.
 
-It will create a new serverless platform account if one doesn't already exist.
+It will create a new Serverless Framework Org if one doesn't already exist.
 
 ```bash
 serverless login

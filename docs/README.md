@@ -15,7 +15,7 @@ layout: Doc
 
 **_Build applications that demand attention, not maintenance._**
 
-In 2014, AWS Lambda was introduced offering a more efficient way to perform compute in the cloud. With features like auto-scaling and no cost when idle, AWS Lambda offers a compute experience that demands so little maintenance it feels *"serverless"*.
+In 2014, AWS Lambda was introduced offering a more efficient compute service in the cloud. With features like auto-scaling and no cost when idle, AWS Lambda offers a compute experience that demands so little maintenance it feels *"serverless"*.
 
 Months later, the Serverless Framework was created to streamline the deployment of various use-cases on AWS Lambda. The Serverless Framework introduced the concept of *"serverless architectures"*, a transformative approach to building applications on the cloud, integrating AWS Lambda and cloud infrastructure with similar "serverless" qualities, to enable developers to create entire applications that scale massively with minimal maintenance.
 
@@ -41,7 +41,7 @@ The Serverless Framework consists of a Command Line Interface and an optional Da
 
 ## Next Steps
 
-Get started with the Serverless Framework [via this guide](https://serverless.com/framework/docs/getting-started/).
+Get started with the Serverless Framework on AWS [via this guide](https://serverless.com/framework/docs/getting-started/).
 
 Have questions? Join thousands of other developers in our [Slack Channel](https://serverless.com/slack).
 

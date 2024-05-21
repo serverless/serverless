@@ -4,13 +4,17 @@ menuText: Function Build Configuration
 layout: Doc
 -->
 
-# Function Build Configuration
+# AWS Lambda Build Configuration
 
 ## ESBuild
 
-Framework has built in support for esbuild for being used to bundle and deploy javascript and typescript. By default if your handler is pointed to a typescript file then it will use esbuild to prepare your function code for deployment. No configuration is necessary by default.
+In Serverless Framework V.4, [esbuild](https://github.com/evanw/esbuild) is included within the Framework for bundling Javascript and Typescript AWS Lambda functions. 
+
+By default, if your AWS Lambda handler is using Typescript files directly, the Framework will build your code automagically upon deploy, without a plugin. No configuration is necessary by default.
 
 ### Configuration
+
+V.4 introduces a new `build` configuration block, which you can use to customize [esbuild](https://github.com/evanw/esbuild) settings.
 
 ```yaml
 build:
@@ -38,3 +42,13 @@ build:
       # Whether to set the NODE_OPTIONS on functions to enable sourcemaps on Lambda
       setNodeOptions: true
 ```
+
+## Plugin Conflicts
+
+Please note, plugins that build your code will not work unless you opt out of the default build experience. Some of the plugins affected are:
+
+- `serverless-esbuild`
+- `serverless-webpack`
+- `serverless-plugin-typescript`
+
+The new `build` configuration is customizable by plugins. We will be introducing more features around this soon.

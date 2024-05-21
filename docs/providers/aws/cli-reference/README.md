@@ -12,6 +12,6 @@ layout: Doc
 
 # Serverless CLI Reference for AWS
 
-Welcome to the Serverless CLI Reference for AWS. Please select a section on the left to get started.
+Welcome to the Serverless Framework CLI Reference for AWS. Please select a section on the left to get started.
 
 If you have questions, join the [Slack community](https://serverless.com/slack) or [post over on the forums](https://forum.serverless.com/)
