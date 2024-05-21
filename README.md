@@ -29,7 +29,7 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 **May 21st, 2024** – We've released Serverless Framework V.4 Beta after testing the V.4 Alpha for a few months. In this release, we assumed the `serverless` npm namespace. To continue to use Serverless Framework V.3 and older versions, please target them in your NPM installs (e.g. `npm i serverless@3.38.0` `3.38.0` is the latest version of `v3`).
 
-If you need to access documentation for Serverless Framework V.3, you can find it [here](https://github.com/serverless/serverless/tree/v3/docs).
+If you need to access documentation for Serv erless Framework V.3, you can find it [here](https://github.com/serverless/serverless/tree/v3/docs).
 
 If you are upgrading to V.4, see our [Upgrading to Serverless Framework V4 Documentation](https://www.serverless.com/framework/docs/guides/upgrading-v4)
 
@@ -38,8 +38,8 @@ If you are upgrading to V.4, see our [Upgrading to Serverless Framework V4 Docum
 Here's a list of everything that's new in V.4, so far:
 
 - **No Breaking Changes:** We've avoid most large breaking changes for the "aws" Provider. See the Potential Breaking Changes section below for more info.
-- **Native Typescript Support:** [ESBuild](https://esbuild.github.io/) is now included in the Framework allowing you to use `.ts` files natively within your AWS Lambda function handlers and have them build automatically upon deploy. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/building).
-- **Reimagined Dev Mode:** Run `serverless dev` to have events from your live architecture routed to your local code, enabling you to make fast changes without deployment. [More info here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
+- **Native Typescript Support:** You can now use `.ts` files natively within your AWS Lambda function handlers and have them build automatically upon deploy, since [ESBuild](https://esbuild.github.io/) is now included in the Framework. [More info here].(https://www.serverless.com/framework/docs/providers/aws/guide/building).
+- **Reimagined Dev Mode:** Run `serverless dev` to have events from your live AWS Lambda functions routed to your local AWS Lambda function code, enabling you to make fast changes rapidly, avoiding deployment. [More info here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
 - **New AWS Lambda Runtimes:** "python3.12", "dotnet8", and "java21".
 - **Support Command:** Send support requests to our team directly from the CLI, which auto-include contextual info which you can review before sending.
 - **Debug Summary for AI:** When you run into a bug, you can run "serverless support --ai" to generate a concise report detailing your last bug with all necessary context, optimized for pasting into AI tools such as ChatGPT.
