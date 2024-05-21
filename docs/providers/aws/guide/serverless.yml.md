@@ -21,25 +21,21 @@ Here is a list of all available properties in `serverless.yml` when the provider
 ```yml
 # serverless.yml
 
+# Org name
+# This is your Serverless Framework Organization, often named after your company or team.
+# This is tied to your user account or license key.
+# This is optional. A default org is auto-set within your .serverlessrc file in your root directory, but recommended to ensure you are always deploying to the correct org.
+org: my-org
+
+# App name
+# The "App" concept acts as a parent container for one or more "Services," which you can configure via the `app` property in `serverless.yml`. 
+# Setting an `app` activates Serverless Framework Dashboard features for that Service, such as tracking deployments, sharing outputs and secrets, and enabling metrics, traces, and logs.
+# This is optional. If you don't want to use Dashboard features, don't set this.
+app: my-app
+
 # Service name
-service: myservice
-
-# Framework version constraint (semver constraint): '3', '^2.33'
-frameworkVersion: '3'
-
-# Configuration validation: 'error' (fatal error), 'warn' (logged to the output) or 'off' (default: warn)
-# See https://www.serverless.com/framework/docs/configuration-validation
-configValidationMode: error
-# Load environment variables from .env files (default: false)
-# See https://www.serverless.com/framework/docs/environment-variables
-useDotenv: true
-# 'warn' reports deprecations on the go, 'error' will result with an exception being thrown on first approached deprecation
-deprecationNotificationMode: warn:summary
-# Disable deprecations by their codes (default: empty)
-# See https://www.serverless.com/framework/docs/deprecations
-disabledDeprecations:
-  - DEP_CODE_1 # Deprecation code to disable
-  - '*' # Disable all deprecation messages
+# This is the name of your project/app/service/microservice (it's scope is up to you).
+service: my-service
 ```
 
 ### Parameters
@@ -50,16 +46,27 @@ Learn more about stage parameters in the [Parameters documentation](../../../gui
 # serverless.yml
 
 # Stage parameters
+# Parameters are Stage-specific values you can reference elsewhere in your YAML via ${param:my-value}
+# Parameters can be defined in `serverless.yml` (and Dashboard and CLI options)
+# "default" Parameters are available across all Stages.
+# Otherwise, Stage-specific Parameters can be set here.
 params:
-  # Values for the "prod" stage
+  default:
+    domain: ${sls:stage}.myapi.com
   prod:
-    my-parameter: foo
-  # Values for the "dev" stage
+    domain: myapi.com
   dev:
-    my-parameter: bar
+    domain: dev.myapi.com
+
+
+# Example usage
+# This will change depending on the Stage set.
+foo: ${param:domain}
 ```
 
 ## Provider
+
+Use this block to specify Service-wide AWS-specific details.
 
 ### General settings
 
@@ -67,33 +74,36 @@ params:
 # serverless.yml
 
 provider:
+  # Name of the Provider. Note, V.4 only supports AWS.
   name: aws
-  # Default stage (default: dev)
+  # Default stage. Optional. (default: dev)
   stage: dev
-  # Default region (default: us-east-1)
+  # Default region. Optional. (default: us-east-1)
   region: us-east-1
-  # The AWS profile to use to deploy (default: "default" profile)
+  # The local AWS profile to use to deploy. Optional. (default: "default" profile)
   profile: production
-  # Use a custom name for the CloudFormation stack
+  # Use a custom name for the CloudFormation stack. Optional.
   stackName: custom-stack-name
-  # Optional CloudFormation tags to apply to APIs and functions
+  # CloudFormation tags to apply to APIs and functions. Optional.
   tags:
     foo: bar
     baz: qux
-  # Optional CloudFormation tags to apply to the stack
+  # CloudFormation tags to apply to the stack. Optional.
   stackTags:
     key: value
-  # Method used for CloudFormation deployments: 'changesets' or 'direct' (default: changesets)
+  # Method used for CloudFormation deployments: 'changesets' or 'direct'. Optional. (default: changesets)
   # See https://www.serverless.com/framework/docs/providers/aws/guide/deploying#deployment-method
   deploymentMethod: direct
-  # List of existing Amazon SNS topics in the same region where notifications about stack events are sent.
+  # List of existing Amazon SNS topics in the same region where notifications about stack events are sent. Optional.
   notificationArns:
     - 'arn:aws:sns:us-east-1:XXXXXX:mytopic'
+  # AWS Cloudformation Stack Parameters. Optional.
   stackParameters:
     - ParameterKey: 'Keyname'
       ParameterValue: 'Value'
-  # Disable automatic rollback by CloudFormation on failure. To be used for non-production environments.
+  # Disable automatic rollback by CloudFormation on failure. To be used for non-production environments. Optional.
   disableRollback: true
+  # AWS Cloudformation Rollback configuration. Optional.
   rollbackConfiguration:
     MonitoringTimeInMinutes: 20
     RollbackTriggers:
@@ -101,60 +111,65 @@ provider:
         Type: AWS::CloudWatch::Alarm
       - Arn: arn:aws:cloudwatch:us-east-1:000000000000:alarm:latency
         Type: AWS::CloudWatch::Alarm
+  # AWS X-Ray Tracing Configuration. Optional.
   tracing:
     # Can only be true if API Gateway is inside a stack.
     apiGateway: true
-    # Optional, can be true (true equals 'Active'), 'Active' or 'PassThrough'
+    # Can be true (true equals 'Active'), 'Active' or 'PassThrough'
     lambda: true
 ```
 
-### General function settings
+### General AWS Lambda settings
 
-Some function settings can be defined for all functions inside the `provider` key:
+Some AWS Lambda function settings can be defined for all functions inside the `provider` key:
 
 ```yml
 # serverless.yml
 
 provider:
-  runtime: nodejs14.x
-  runtimeManagement: auto # optional, set how Lambda controls all functions runtime. AWS default is auto; this can either be 'auto' or 'onFunctionUpdate'. For 'manual', see example in hello function below (syntax for both is identical
-  # Default memory size for functions (default: 1024MB)
+  # AWS Lambda runtime for all AWS Lambda functions within the Service. Optional.
+  runtime: nodejs20.x
+  # Set how Lambda controls all functions runtime. AWS default is auto; this can either be 'auto' or 'onFunctionUpdate'. For 'manual', see example in hello function below (syntax for both is identical. Optional.
+  runtimeManagement: auto
+  # Default memory size for functions. Optional. (default: 1024MB).
   memorySize: 512
-  # Default timeout for functions (default: 6 seconds)
+  # Default timeout for functions. Optional. (default: 6 seconds).
   # Note: API Gateway has a maximum timeout of 30 seconds
   timeout: 10
-  # Function environment variables
+  # AWS Lambda Environment Variables for all functions. Optional.
   environment:
     APP_ENV_VARIABLE: FOOBAR
-  # Duration for CloudWatch log retention (default: forever).
+  # Duration for CloudWatch log retention. Optional. (default: forever).
   # Can be overridden for each function separately inside the functions block, see below on page.
   # Valid values: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-loggroup.html
   logRetentionInDays: 14
-  # Policy defining how to monitor and mask sensitive data in CloudWatch logs
+  # Policy defining how to monitor and mask sensitive data in CloudWatch logs. Optional.
   # Policy format: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data-start.html
   logDataProtectionPolicy:
     Name: data-protection-policy
-  # KMS key ARN to use for encryption for all functions
+  # KMS key ARN to use for encryption for all AWS Lambda functions. Optional.
   kmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
-  # Version of hashing algorithm used by Serverless Framework for function packaging
+  # Version of hashing algorithm used by Serverless Framework for AWS Lambda function packaging. Optional.
   lambdaHashingVersion: 20201221
-  # Use function versioning (enabled by default)
+  # Use AWS Lambda function versioning. Optional. (enabled by default)
   versionFunctions: false
-  # Processor architecture: 'x86_64' or 'arm64' via Graviton2 (default: x86_64)
+  # AWS Lambda Processor architecture: 'x86_64' or 'arm64' via Graviton2. Optional. (default: x86_64)
   architecture: x86_64
 ```
 
 ### Deployment bucket
 
-Serverless Framework needs a S3 bucket to store artifacts for deploying. That bucket is automatically created and managed by Serverless, but you can configure it explicitly if needed:
+Serverless Framework needs an AWS S3 bucket to store artifacts for deploying. 
+
+That bucket is automatically created and managed by Serverless, but you can configure it explicitly if needed:
 
 ```yaml
 provider:
-  # The S3 prefix under which deployed artifacts are stored (default: serverless)
+  # The S3 prefix under which deployed artifacts are stored. Optional. (default: serverless)
   deploymentPrefix: serverless
-  # Configure the S3 bucket used by Serverless Framework to deploy code packages to Lambda
+  # Configure the S3 bucket used by Serverless Framework to deploy code packages to Lambda. Optional.
   deploymentBucket:
-    # Name of an existing bucket to use (default: created by serverless)
+    # Name of an existing bucket to use. Optional. (default: created by serverless)
     name: com.serverless.${self:provider.region}.deploys
     # On deployment, serverless prunes artifacts older than this limit (default: 5)
     maxPreviousDeploymentArtifacts: 10
@@ -532,6 +547,7 @@ provider:
       systemLogLevel: INFO
       # The LogGroup that will be used by default. If this is set the Framework will not create LogGroups for any functions
       logGroup: /aws/lambda/global-log-group
+
     # Enable HTTP API logs
     # This can either be set to `httpApi: true` to use defaults, or configured via subproperties
     # Can only be configured if the API is created by Serverless Framework
@@ -616,7 +632,7 @@ package:
   excludeDevDependencies: false
 ```
 
-## Functions
+## AWS Lambda Functions
 
 Configure the Lambda functions to deploy ([complete documentation](./functions.md)):
 
@@ -748,7 +764,7 @@ functions:
     maximumEventAge: 7200
 ```
 
-## Lambda events
+## AWS Lambda Events
 
 Reference of [Lambda events](./events.md) that trigger functions:
 
