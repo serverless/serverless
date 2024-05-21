@@ -1,6 +1,7 @@
 {
   "Intro": "",
   "Get Started": {
+    "Upgrading To V4": "guides/upgrade-to-v4",
     "Setup": "getting-started",
     "Tutorial": "tutorial",
     "Concepts": "providers/aws/guide/intro",
@@ -109,12 +110,10 @@
       "Best Practices": "guides/dashboard/cicd/best-practices",
       "Troubleshooting": "guides/dashboard/cicd/troubleshooting",
       "FAQ": "guides/dashboard/cicd/faq"
-    },
-    "Upgrading To V4": "guides/dashboard/upgrade-to-v4"
+    }
   },
   "Serverless.yml Reference": "providers/aws/guide/serverless.yml",
   "Learn More": {
-    "Upgrading to v3": "guides/upgrading-v3",
     "Configuration Validation": "configuration-validation",
     "Resolution of Environment Variables": "environment-variables",
     "Deprecations": "deprecations",
