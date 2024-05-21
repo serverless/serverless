@@ -25,14 +25,23 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 <br/>
 
-# Serverless Framework - V.4 - Alpha
+# Serverless Framework - V.4 - Beta
 
-**March 13th, 2024** – We're continuing to add features to the V.4 Alpha for early feedback from the community and plug-in authors. Here's a list of everything that's new in V.4 so far:
+**May 21st, 2024** – We've released Serverless Framework V.4 Beta after testing the V.4 Alpha for a few months. In this release, we assumed the `serverless` npm namespace. To continue to use Serverless Framework V.3 and older versions, please target them in your NPM installs (e.g. `npm i serverless@3.38.0` `3.38.0` is the latest version of `v3`).
 
-- **No Breaking Changes:** No breaking changes for the "aws" Provider.
+If you need to access documentation for Serverless Framework V.3, you can find it [here](https://github.com/serverless/serverless/tree/v3/docs).
+
+If you are upgrading to V.4, see our [Upgrading to Serverless Framework V4 Documentation](https://www.serverless.com/framework/docs/guides/upgrading-v4)
+
+## New Features In V.4
+
+Here's a list of everything that's new in V.4, so far:
+
+- **No Breaking Changes:** We've avoid most large breaking changes for the "aws" Provider. See the Potential Breaking Changes section below for more info.
+- **Native Typescript Support:** [ESBuild](https://esbuild.github.io/) is now included in the Framework allowing you to use `.ts` files natively within your AWS Lambda function handlers and have them build automatically upon deploy. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/building).
+- **Reimagined Dev Mode:** Run `serverless dev` to have events from your live architecture routed to your local code, enabling you to make fast changes without deployment. [More info here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
 - **New AWS Lambda Runtimes:** "python3.12", "dotnet8", and "java21".
 - **Support Command:** Send support requests to our team directly from the CLI, which auto-include contextual info which you can review before sending.
-- **New Local Development Experience:** Route events from AWS to your local AWS Lambda code to develop faster without having to deploy every change.
 - **Debug Summary for AI:** When you run into a bug, you can run "serverless support --ai" to generate a concise report detailing your last bug with all necessary context, optimized for pasting into AI tools such as ChatGPT.
 - **Advanced Logging Controls for AWS Lambda:** Capture Logs in JSON, increased log granularity, and setting a custom Log Group. Here is the [AWS article](https://aws.amazon.com/blogs/compute/introducing-advanced-logging-controls-for-aws-lambda-functions/). Here is the [YAML implementation](https://github.com/serverless/serverless/blob/v4.0/docs/providers/aws/guide/serverless.yml.md#logs)
 - **AWS SSO:** Environment variables, especially ones set by AWS SSO, are prioritized. The Framework and Dashboard no longer interfere with these.
@@ -43,14 +52,9 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 - **Updated Custom Resource Handlers:** All custom resource handlers now use `nodejs20.x`.
 - **Deprecation Of Non-AWS Providers:** Deprecation of other cloud providers, in favor of handling this better in our upcoming Serverless Framework "Extensions".
 
-**Breaking Plugin Changes**
-Some Plug-Ins are affected by changes in V.4. The purpose of the "Alpha" is to discover these issues and fix them before V.4 is GA. Here are the known issues:
+## Potential Breaking Changes
 
-• **serverless-better-credentials:** Credential handling has been reworked in V.4 to better support AWS SSO out-of-the-box, but this has broken this plugin at the moment.
-
-Serverless Framework V.4 Beta will be released shortly w/ additional features. Follow our progress in the [Github Milestones](https://github.com/serverless/serverless/milestones). Please use the ["v4" tag](https://github.com/serverless/serverless/labels/V4) when creating issues for this Alpha.
-
-For information on upgrading from V.3 to V.4, check out the ["Upgrading to V.4 Guide"](./docs/guides/upgrading-v4.md).
+To learn more about potential breaking changes, see our [Upgrading to Serverless Framework V4 Documentation](https://www.serverless.com/framework/docs/guides/upgrading-v4).
 
 <br/>
 
@@ -58,6 +62,7 @@ For information on upgrading from V.3 to V.4, check out the ["Upgrading to V.4 G
 
 - [Features](#features)
 - [Quick Start](#quick-start)
+- [Examples](https://github.com/serverless/examples)
 - [Plugins](https://github.com/serverless/plugins)
 - [Community](#community)
 
@@ -81,69 +86,279 @@ For information on upgrading from V.3 to V.4, check out the ["Upgrading to V.4 G
 
 # <a name="quick-start"></a>Quick Start
 
-The Serverless Framework is packaged as a binary, which can be installed via this CURL script.
-
-```bash
-curl -o- -L https://install.serverless.com | bash
-```
-
-You can also install the Framework via NPM. It's currently under the temporary namespace of `v4` while in Alpha. You will need to have [Node.js](https://nodejs.org) installed.
-
-```bash
-npm i @serverless/v4 -g
-```
-
-Serverless Framework now auto-updates. It checks once daily. If you want to force an update, use this environment variable: `SERVERLESS_FRAMEWORK_FORCE_UPDATE=true`
+Here's how to install the Serverless Framework, set up a project and deploy it to Amazon Web Services on serverless infrastructure like AWS Lambda, AWS DynamoDB, AWS S3 and more.
 
 <br/>
 
-## Create A Project
+## Install the Serverless Framework via NPM
 
-Run the interactive onboarding via the "serverless" command, to pick a Template and set-up credentials for AWS.
+First, you must have the [Node.js runtime](https://nodejs.org) installed, then you can install the Serverless Framework via NPM.
 
-```bash
+Open your CLI and run the command below to install the Serverless Framework globally.
+
+```text
+npm i serverless -g
+```
+
+Run `serverless` to verify your installation is working, and show the current version.
+
+<br/>
+
+## Update Serverless Framework
+
+As of version 4, the Serverless Framework automatically updates itself and performs a check to do so every 24 hours.
+
+You can force an update by running this command:
+
+```text
+serverless update
+```
+
+Or, you can set this environment variable:
+
+```text
+SERVERLESS_FRAMEWORK_FORCE_UPDATE=true
+```
+
+<br/>
+
+## The `serverless` Command
+
+The Serverless Framework ships with a `serverless` command that walks you through getting a project created and deployed onto AWS. It helps with downloading a Template, setting up AWS Credentials, setting up the Serverless Framework Dashboard, and more, while explaining each concept along the way.
+
+This guide will also walk you through getting started with the Serverless Framework, but please note, simply typing the `serverless` command may be the superior experience.
+
+```text
 serverless
 ```
 
-During onboarding, you can set up AWS credentials a few ways. You can simply add them as environment variables, which is best if you're using AWS SSO. You can have the Serverless Framework Platform store an AWS IAM Role for you and your team to share and assign to specific Stages, or you can persist long-term credentials to an AWS Profile on your local machine. We recommend the first two options.
+<br/>
 
-After onboarding, move into the newly created directory.
+## Create A Service
 
+The primary concept for a project in the Serverless Framework is known as a "Service", and its declared by a `serverless.yml` file, which contains simplified syntax for deploying cloud infrastructure, such as AWS Lambda functions, infrastructure that triggers those functions with events, and additional infrastructure your AWS Lambda functions may need for various use-cases (e.g. AWS DynamoDB database tables, AWS S3 storage buckets, AWS API Gateways for recieving HTTP requests and forwarding them to AWS Lambda).
+
+A Service can either be an entire application, logic for a specific domain (e.g. "blog", "users", "products"), or a microservice handling one task. You decide how to organize your project. Generally, we recommend starting with a monolithic approach to everything to reduce complexity, until breaking up logic is absolutely necessary.
+
+To create and fully set up a Serverless Framework Service, use the `serverless` command, which offers an interactive set-up workflow.
+
+```text
+serverless
 ```
-cd [your-new-project-name]
+
+This will show you several Templates. Choose one that fits the language and use-case you want.
+
+```text
+Serverless ϟ Framework
+Welcome to Serverless Framework V.4
+
+Create a new project by selecting a Template to generate scaffolding for a specific use-case.
+
+? Select A Template: … 
+❯ AWS / Node.js / Starter
+  AWS / Node.js / HTTP API
+  AWS / Node.js / Scheduled Task
+  AWS / Node.js / SQS Worker
+  AWS / Node.js / Express API
+  AWS / Node.js / Express API with DynamoDB
+  AWS / Python / Starter
+  AWS / Python / HTTP API
+  AWS / Python / Scheduled Task
+  AWS / Python / SQS Worker
+  AWS / Python / Flask API
+  AWS / Python / Flask API with DynamoDB
+  (Scroll for more)
 ```
 
-Your new project will contain a `serverless.yml` file with simple syntax for deploying infrastructure to AWS, such as AWS Lambda functions, infrastructure that triggers those functions with events, and additional infrastructure your AWS Lambda functions may need for various use-cases. Learn more about this in the [Core Concepts documentation](https://www.serverless.com/framework/docs/providers/aws/guide/intro).
+After selecting a Service Template, its files will be downloaded and you will have the opportunity to give your Service a name.
+
+```text
+? Name Your Service: ›  
+```
+
+Please use only lowercase letters, numbers and hyphens. Also, keep Service names short, since they are added into the name of each cloud resource the Serverless Framework creates, and some cloud resources have character length restrictions in their names.
+
+Learn more about Services and more in the [Core Concepts documentation](https://www.serverless.com/framework/docs/providers/aws/guide/intro).
 
 <br/>
 
-## Develop Locally
+## Signing In
 
-Run the dev command to start developing with real AWS events and infrastructure. This will run an initial deployment of your project infrastructure to AWS and display essential information, such as API Endpoint URLs, in your terminal.
+As of Serverless Framework V.4, if you are using the `serverless` command to set up a Service, it will eventually ask you to log in.
 
-Note, you can use `serverless` or `sls` as the command prompt.
+If you need to log in outside of that, run `serverless login`.
 
-```bash
-sls dev
+Logging in will redirect you to the [Serverless Framework Dashboard](https://app.serverless.com) within your browser. After registering or logging in, go back to your CLI and you will be signed in.
+
+Please note, you can get up and running with the Serverless Framework CLI and Dashboard for free, and the CLI will always be free for small orgs and indiehackers. For more information on pricing, check out our [pricing page](https://serverless.com/pricing).
+
+<br/>
+
+## Creating An App
+
+The "App" concept is a parent container for one or many "Services" which you can optionally set via the `app` property in your `serverless.yml`. Setting an `app` also enables Serverless Framework Dashboard features for that Service, like tracking your Services and their deployments in Serverless Framework Dashboard, enabling sharing outputs between them, sharing secrets between them, and enabling metrics, traces and logs.
+
+If you are using the `serverless` onboarding command, it will help you set up an `app` and add it to your Service. You can use the `serverless` command to create an App on an existing Service as well, or create an App in the Dashboard.
+
+```text
+❯ Create A New App
+  ecommerce
+  blog
+  acmeinc
+  Skip Adding An App
 ```
 
-Whenever any of your Lambda functions are invoked on AWS while a development session is active, your function code will be executed locally instead of on AWS Lambda, within an environment that closely resembles AWS Lambda. Your local code will have access to the same environment variables available in your Lambda functions and will have the same IAM permissions as your Lambda function.
+The app can also be set manually in serverless.yml via the `app` property:
 
-All logs or errors will be displayed in your local terminal, and the response will be returned to the caller as expected. This significantly accelerates the testing process for changes while still utilizing real AWS infrastructure with minimal emulation.
+```yaml
+service: my-service
+app: my-app
+```
 
-To exit the development session, simply press Ctrl+C. This will disconnect your local machine from AWS Lambda, and any subsequent invocations will timeout until you deploy your changes (see below).
+If you don't want to use the Serverless Framework Dashboard's features, simply don't add an `app` property. Apps are not required.
 
-More details on dev mode can be found [here](https://www.serverless.com/framework/docs/providers/aws/guide/developing).
+<br/>
 
-## Deploy Changes
+## Setting Up AWS Credentials
 
-Run the `deploy` command to deploy your project to AWS and persist the changes you made in your development session.
+To deploy cloud infrastructure to AWS, you must give the Serverless Framework access to your AWS credentials.
 
-```bash
-sls deploy
+Running the Serverless Framework's `serverless` command in a new or existing Service will help identify if AWS credentials have been set correctly or if they are expired, or help you set them up from scratch.
+
+```text
+No valid AWS Credentials were found in your environment variables or on your machine. Serverless Framework needs these to access your AWS account and deploy resources to it. Choose an option below to set up AWS Credentials.
+
+❯ Create AWS IAM Role (Easy & Recommended)
+  Save AWS Credentials in a Local Profile
+  Skip & Set Later (AWS SSO, ENV Vars)
+```
+
+We recommend creating an AWS IAM Role that's stored in the Serverless Framework Dashboard. We'll be supporting a lot of Provider Credentials in the near future, and the Dashboard is a great place to keep these centralized across your team, helping you stay organized, and securely eliminating the need to keep credentials on the machines of your teammates.
+
+If you are using AWS SSO, we recommend simply pasting your temporary SSO credentials within the terminal as environment variables.
+
+To learn more about setting up your AWS Credentials, [read this guide](https://www.serverless.com/framework/docs/providers/aws/guide/credentials).
+
+<br/>
+
+## Deploy A Service
+
+After you've used the `serverless` command to set up everything, it's time to deploy your Service to AWS.
+
+Make sure your terminal session is within the directory that contains your `serverless.yml` file. If you just created a Service, don't forget to `cd` into it.
+
+```text
+cd [your-new-service-name]
+```
+
+Deploying will create/update cloud infrastructure and code on AWS, all at the same time.
+
+Run the `deploy` command:
+
+```text
+serverless deploy
 ```
 
 More details on deploying can be found [here](https://www.serverless.com/framework/docs/providers/aws/guide/deploying).
+
+<br/>
+
+## Developing
+
+Many Serverless Framework and serverless developers generally choose to develop on the cloud, since it matches reality (i.e. your production environment), and emulating Lambda and other infrastructure dependencies locally can be complex.
+
+In Serverless Framework V.4, we've created a *hybrid approach to development*, to help developers develop rapidly with the accuracy of the real cloud environment. This is the new `dev` command:
+
+```text
+serverless dev
+```
+
+When you run this command, the following happens... 
+
+An AWS Cloudformation deployment will happen to slightly modify all of the AWS Lambda functions within your Service so that they include a lightweight wrapper.
+
+Once this AWS Cloudformation deployment has completed, your live AWS Lambda functions within your Service will still be able to receive events and be invoked within AWS.
+
+However, the events will be securely and instantly proxied down to your machine, and the code on your machine which will be run, rather than the code within your live AWS Lambda functions. 
+
+This allows you to make changes to your code, without having to deploy or recreate every aspect of your architecture locally, allowing you to develop rapidly.
+
+Logs from your local code will also be shown within your terminal `dev` session.
+
+Once your code has finished, the response from your local code will be forwarded back up to your live AWS Lambda functions, and they will return the response—just like a normal AWS Lambda function in the cloud would.
+
+Please note, `dev` is only designed for development or personal stages/environments and should not be run in production or any stage where a high volume of events are being processed.
+
+Once you are finished with your `dev` session, you MUST re-deploy, using `serverless deploy` to push your recent local changes back to your live AWS Lambda functions—or your AWS Lambda functions will fail(!)
+
+More details on dev mode can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
+
+<br/>
+
+## Invoking
+
+To invoke your AWS Lambda function on the cloud, you can find URLs for your functions w/ API endpoints in the `serverless deploy` output, or retrieve them via `serverless info`. If your functions do not have API endpoints, you can use the `invoke` command, like this:
+
+```bash
+sls invoke -f hello
+
+# Invoke and display logs:
+serverless invoke -f hello --log
+```
+
+More details on the `invoke` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke).
+
+<br/>
+
+## Deploy Functions
+
+To deploy code changes quickly, you can skip the `serverless deploy` command which is much slower since it triggers a full AWS CloudFormation update, and deploy only code and configuration changes to a specific AWS Lambda function.
+
+To deploy code and configuration changes to individual AWS Lambda functions in seconds, use the `deploy function` command, with `-f [function name in serverless.yml]` set to the function you want to deploy.
+
+```text
+serverless deploy function -f my-api
+```
+
+More details on the `deploy function` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/deploy-function).
+
+<br/>
+
+## Streaming Logs
+
+You can use Serverless Framework to stream logs from AWS Cloudwatch directly to your terminal. Use the `sls logs` command in a separate terminal window:
+
+```bash
+sls logs -f [Function name in serverless.yml] -t
+```
+
+Target a specific function via the `-f` option and enable tailing (i.e. streaming) via the `-t` option.
+
+<br/>
+
+## Full Local Development
+
+Many Serverless Framework users choose to emulate their entire serverless architecture locally. Please note, emulating AWS Lambda and other cloud services is never accurate and the process can be complex, especially as your project and teammates grow. As of V.4, we highly recommend using the new `dev` mode with personal stages. 
+
+If you do choose to develop locally, we recommend the following workflow...
+
+Use the `invoke local` command to invoke your function locally:
+
+```bash
+sls invoke local -f my-api
+```
+
+You can also pass data to this local invocation via a variety of ways. Here's one of them:
+
+```bash
+sls invoke local --function functionName --data '{"a":"bar"}'
+```
+
+More details on the `invoke local` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local)
+
+Serverless Framework also has a great plugin that allows you to run a server locally and emulate AWS API Gateway. This is the `serverless-offline` command.
+
+More details on the **serverless-offline** plugins command can be found [here](https://github.com/dherault/serverless-offline).
 
 <br/>
 
@@ -155,10 +370,22 @@ Plugins extend or overwrite the Serverless Framework, giving it new use-cases or
 
 Some of the most common Plugins are:
 
-- **[Serverless ESBuild](https://github.com/floydspace/serverless-esbuild)** - Bundles JavaScript and TypeScript extremely fast via esbuild.
+- **[Serverless Offline](https://github.com/dherault/serverless-offline)** - Emulate AWS Lambda and API Gateway locally when developing your Serverless project.
 - **[Serverless Domain Manager](https://github.com/amplify-education/serverless-domain-manager)** - Manage custom domains with AWS API Gateways.
 - **[Serverless Step Functions](https://github.com/serverless-operations/serverless-step-functions)** - Build AWS Step Functions architectures.
 - **[Serverless Python Requirements](https://github.com/serverless/serverless-python-requirements)** - Bundle dependencies from requirements.txt and make them available in your PYTHONPATH.
+
+<br/>
+
+## Remove Your Service
+
+If you want to delete your service, run `remove`. This will delete all the AWS resources created by your project and ensure that you don't incur any unexpected charges. It will also remove the service from Serverless Dashboard.
+
+```bash
+serverless remove
+```
+
+More details on the `remove` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/remove).
 
 <br/>
 
