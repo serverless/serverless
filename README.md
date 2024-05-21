@@ -25,9 +25,11 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 <br/>
 
-# Serverless Framework - V.4 - Alpha
+# Serverless Framework - V.4 - Beta
 
-**March 13th, 2024** – We're continuing to add features to the V.4 Alpha for early feedback from the community and plug-in authors. Here's a list of everything that's new in V.4 so far:
+**May 21st, 2024** – We've released Serverless Framework V.4 Beta after testing the V.4 Alpha for a few months. In this release, we are assuming the `serverless` npm namespace. To continue to use Serverless Framework V.3 and older versions, please target them in your NPM installs (e.g. `npm i serverless@3.38.0` `3.38.0` is the latest version of `v3`).
+
+Here's a list of everything that's new in V.4 so far:
 
 - **No Breaking Changes:** No breaking changes for the "aws" Provider.
 - **New AWS Lambda Runtimes:** "python3.12", "dotnet8", and "java21".
