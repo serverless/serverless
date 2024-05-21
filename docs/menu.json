@@ -114,6 +114,6 @@
   },
   "Serverless.yml Reference": "providers/aws/guide/serverless.yml",
   "Learn More": {
-    "Configuration Validation": "configuration-validation",
+    "Configuration Validation": "configuration-validation"
   }
 }
