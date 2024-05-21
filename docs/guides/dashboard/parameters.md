@@ -136,8 +136,8 @@ Parameters can be defined in `serverless.yml` per stage, as well as in Serverles
 
 - First, look in params passed with `--param` CLI flag
 - If not found, then look in `params.<stage>` in `serverless.yml`
-- If not found, then look in the instance's parameters in the Dashboard
 - If not found, then look in `params.default` in `serverless.yml`
+- If not found, then look in the instance's parameters in the Dashboard
 - If not found, then look in the service's parameters in the Dashboard
 - If not found, throw an error, or use the fallback value if one was provided: `${param:XXX, 'default value'}`
 
