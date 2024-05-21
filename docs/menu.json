@@ -9,6 +9,7 @@
   "Usage": {
     "Deploying": "providers/aws/guide/deploying",
     "Packaging": "providers/aws/guide/packaging",
+    "Building": "providers/aws/guide/building",
     "Testing": "providers/aws/guide/testing",
     "Services": "providers/aws/guide/services",
     "Functions": "providers/aws/guide/functions",
