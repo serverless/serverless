@@ -45,7 +45,6 @@ Here's a list of everything that's new in V.4, so far:
 - **Advanced Logging Controls for AWS Lambda:** Capture Logs in JSON, increased log granularity, and setting a custom Log Group. Here is the [AWS article](https://aws.amazon.com/blogs/compute/introducing-advanced-logging-controls-for-aws-lambda-functions/). Here is the [YAML implementation](https://github.com/serverless/serverless/blob/v4.0/docs/providers/aws/guide/serverless.yml.md#logs)
 - **AWS SSO:** Environment variables, especially ones set by AWS SSO, are prioritized. The Framework and Dashboard no longer interfere with these.
 - **Build Plugins Run First:** [Build plugins now run first](https://github.com/serverless/serverless/issues?q=build+plugin), if they include the optional tags static property containing a `"build"` tag run first.
-- **Binary By Default:** We've transitioned to a binary core by default, making Node.js not a requirement.
 - **Automatic Updates:** These happen by default now. Though, you will be able to control the level of updates you're open to.
 - **Improved Onboarding & Set-Up:** The `serverless` command has been re-written to be more helpful when setting up a new or existing project.
 - **Updated Custom Resource Handlers:** All custom resource handlers now use `nodejs20.x`.
