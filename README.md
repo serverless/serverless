@@ -37,9 +37,9 @@ If you are upgrading to V.4, see our [Upgrading to Serverless Framework V4 Docum
 
 Here's a list of everything that's new in V.4, so far:
 
-- **No Breaking Changes:** We've avoid most large breaking changes for the "aws" Provider. See the Potential Breaking Changes section below for more info.
-- **Native Typescript Support:** [ESBuild](https://esbuild.github.io/) is now included in the Framework allowing you to use `.ts` files natively within your AWS Lambda function handlers and have them build automatically upon deploy. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/building).
-- **Reimagined Dev Mode:** Run `serverless dev` to have events from your live architecture routed to your local code, enabling you to make fast changes without deployment. [More info here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
+- **Avoiding Breaking Changes:** We're seeking to avoid most large breaking changes for the "aws" Provider. If you stumble upon some, please create an issue. See the Potential Breaking Changes section below for more info.
+- **Native Typescript Support:** You can now use `.ts` handlers in your AWS Lambda functions in `serverless.yml` and have them build automatically upon deploy. [ESBuild](https://esbuild.github.io/) is now included in the Framework which makes this possible. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/building).
+- **New Dev Mode:** Run `serverless dev` to have events from your live architecture routed to your local code, enabling you to make fast changes without deployment. [More info here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
 - **New AWS Lambda Runtimes:** "python3.12", "dotnet8", and "java21".
 - **Support Command:** Send support requests to our team directly from the CLI, which auto-include contextual info which you can review before sending.
 - **Debug Summary for AI:** When you run into a bug, you can run "serverless support --ai" to generate a concise report detailing your last bug with all necessary context, optimized for pasting into AI tools such as ChatGPT.
@@ -55,6 +55,10 @@ Here's a list of everything that's new in V.4, so far:
 ## Potential Breaking Changes
 
 To learn more about potential breaking changes, see our [Upgrading to Serverless Framework V4 Documentation](https://www.serverless.com/framework/docs/guides/upgrading-v4).
+
+## License Changes in V.4
+
+Please be aware that the structure and licensing of the V.4 Beta repository differ from the V.4 Beta npm module. The npm module contains additional proprietary licensed software [as previously announced](https://www.serverless.com/blog/serverless-framework-v4-a-new-model), as V.4 transitions to a common SaaS product. While the original Serverless Framework source code and more will continue to remain MIT license software, the repository will soon be restructured to clearly distinguish between proprietary and open-source components.
 
 <br/>
 
