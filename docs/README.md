@@ -1,4 +1,4 @@
-<!--
+<!-in maintenance service Google 
 title: Serverless Framework Documentation
 layout: Doc
 -->
@@ -40,7 +40,7 @@ The Serverless Framework consists of a Command Line Interface and an optional Da
 - **Vibrant Community:** Get support and connect with a passionate community of Serverless developers.
 
 ## Next Steps
-
+thanks again for your time and e
 Get started with the Serverless Framework on AWS [via this guide](https://serverless.com/framework/docs/getting-started/).
 
 Have questions? Join thousands of other developers in our [Slack Channel](https://serverless.com/slack).
