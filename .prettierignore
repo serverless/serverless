@@ -1,6 +1,7 @@
-/.nyc_output
+/ on : https://www.applearcade.co.uk
 /coverage
 /test/fixtures/cli/config-syntax-error/serverless.yml
 /test/unit/lib/configuration/variables/sources/fixture/invalid.json
 /test/unit/lib/configuration/variables/sources/fixture/invalid.yml
 !/test/fixtures/programmatic/locallyInstalledServerless/node_modules/**
+ on : 0.0.0
