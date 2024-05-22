@@ -27,17 +27,16 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 # Serverless Framework - V.4 - Beta
 
-**May 21st, 2024** – We've released Serverless Framework V.4 Beta after testing the V.4 Alpha for a few months. In this release, we assumed the `serverless` npm namespace. To continue to use Serverless Framework V.3 and older versions, please target them in your NPM installs (e.g. `npm i serverless@3.38.0` `3.38.0` is the latest version of `v3`).
+**May 21st, 2024** – We've released Serverless Framework V.4 Beta after testing the V.4 Alpha for a few months. In this release, we assumed the `serverless` npm namespace. To continue to use Serverless Framework V.3 and older versions, please target them in your NPM installs (e.g. `npm i serverless@3.38.0` `3.38.0` is the latest version of `v3`), and double-check your automated deployments are doing the same.
 
 If you need to access documentation for Serverless Framework V.3, you can find it [here](https://github.com/serverless/serverless/tree/v3/docs).
 
-If you are upgrading to V.4, see our [Upgrading to Serverless Framework V4 Documentation](https://www.serverless.com/framework/docs/guides/upgrading-v4)
+If you are upgrading to V.4, see our [Upgrading to Serverless Framework V4 Documentation](https://www.serverless.com/framework/docs/guides/upgrading-v4).
 
 ## New Features In V.4
 
 Here's a list of everything that's new in V.4, so far:
 
-- **Avoiding Breaking Changes:** We're seeking to avoid most large breaking changes for the "aws" Provider. If you stumble upon some, please create an issue. See the Potential Breaking Changes section below for more info.
 - **Native Typescript Support:** You can now use `.ts` handlers in your AWS Lambda functions in `serverless.yml` and have them build automatically upon deploy. [ESBuild](https://esbuild.github.io/) is now included in the Framework which makes this possible. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/building).
 - **New Dev Mode:** Run `serverless dev` to have events from your live architecture routed to your local code, enabling you to make fast changes without deployment. [More info here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
 - **New AWS Lambda Runtimes:** "python3.12", "dotnet8", and "java21".
@@ -52,13 +51,19 @@ Here's a list of everything that's new in V.4, so far:
 - **Updated Custom Resource Handlers:** All custom resource handlers now use `nodejs20.x`.
 - **Deprecation Of Non-AWS Providers:** Deprecation of other cloud providers, in favor of handling this better in our upcoming Serverless Framework "Extensions".
 
-## Potential Breaking Changes
+## Breaking Changes
 
-To learn more about potential breaking changes, see our [Upgrading to Serverless Framework V4 Documentation](https://www.serverless.com/framework/docs/guides/upgrading-v4).
+We're seeking to avoid breaking changes for the "aws" Provider. However, there are a few large things that are changing to be aware of:
+
+* The V.4 License is changing. See the section below for more information on this.
+* Authentication is required within the CLI.
+* Non-AWS Providers have been deprecated. We will be introducing new ways in V.4 to use other cloud infrastructure vendors.
+
+If you stumble upon additional breaking changes, please create an issue. To learn more about what's different and potential breaking changes, please see our [Upgrading to Serverless Framework V4 Documentation](https://www.serverless.com/framework/docs/guides/upgrading-v4).
 
 ## License Changes in V.4
 
-Please be aware that the structure and licensing of the V.4 Beta repository differ from the V.4 Beta npm module. The npm module contains additional proprietary licensed software [as previously announced](https://www.serverless.com/blog/serverless-framework-v4-a-new-model), as V.4 transitions to a common SaaS product. While the original Serverless Framework source code and more will continue to remain MIT license software, the repository will soon be restructured to clearly distinguish between proprietary and open-source components.
+Please note, the structure and licensing of the V.4 Beta repository differ from the V.4 Beta npm module. The npm module contains additional proprietary licensed software, as V.4 transitions to a common SaaS product, [as previously announced](https://www.serverless.com/blog/serverless-framework-v4-a-new-model). While the original Serverless Framework source code and more will continue to remain MIT license software, the repository will soon be restructured to clearly distinguish between proprietary and open-source components.
 
 <br/>
 
