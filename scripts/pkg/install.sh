@@ -59,7 +59,7 @@ then
   then
     TAG=`curl -L --silent https://sls-standalone-sv-1300963013.cos.na-siliconvalley.myqcloud.com/latest-tag`
   else
-    TAG=`curl -L --silent https://api.github.com/repos/serverless/serverless/releases/latest 2>&1 | grep 'tag_name' | grep -oE "v[0-9]+\.[0-9]+\.[0-9]+"`
+    TAG='v3.38.0'
   fi
   VERSION=${TAG:1}
 else
