@@ -7,7 +7,6 @@ import isPlainObject from 'type/plain-object/is.js';
 import yaml from 'js-yaml';
 import cloudformationSchema from '@serverless/utils/cloudformation-schema.js';
 import { utils } from '@serverlessinc/sf-core';
-import ServerlessError from '../lib/serverless-error.js';
 import yamlAstParser from '../lib/utils/yaml-ast-parser.js';
 import npmCommandDeferred from '../lib/utils/npm-command-deferred.js';
 import {
@@ -16,7 +15,7 @@ import {
   validate,
 } from '../lib/commands/plugin-management.js';
 
-const { log, progress, style } = utils;
+const { log, progress, style, ServerlessError } = utils;
 
 const mainProgress = progress.get('main');
 
