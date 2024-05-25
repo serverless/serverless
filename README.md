@@ -9,7 +9,7 @@
   &nbsp;•&nbsp;
   <a aria-label="Serverless Inc Twitter" href="https://twitter.com/goserverless">X / Twitter</a>
   &nbsp;•&nbsp;
-  <a aria-label="Serverless Framework Community Slack" href="https://serverless.com/slack">Community Slack</a>
+  <a aria-label="Serverless Framework Community Slack" href="https://join.slack.com/t/serverless-contrib/shared_invite/zt-2jpqamlep-SRbvbcFGDXmpEXErcL4WWQ">Community Slack</a>
   &nbsp;•&nbsp;
   <a aria-label="Serverless Framework Community Forum" href="https://forum.serverless.com">Forum</a>
 </div>
