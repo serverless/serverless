@@ -100,7 +100,7 @@
     "chai": "^4.3.7",
     "chai-as-promised": "^7.1.1",
     "cos-nodejs-sdk-v5": "^2.12.1",
-    "eslint": "^9.3.0",
+    "eslint": "^8.57.0",
     "git-list-updated": "^1.2.1",
     "github-release-from-cc-changelog": "^2.3.0",
     "husky": "^4.3.8",
