@@ -1,3 +1,3 @@
-'use strict';
+'use strict'
 
-throw new Error('failed to load plugin');
+throw new Error('failed to load plugin')

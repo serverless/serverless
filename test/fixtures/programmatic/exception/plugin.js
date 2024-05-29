@@ -1,7 +1,7 @@
-'use strict';
+'use strict'
 
 module.exports = class Plugin {
   constructor() {
-    throw new Error('Stop');
+    throw new Error('Stop')
   }
-};
+}

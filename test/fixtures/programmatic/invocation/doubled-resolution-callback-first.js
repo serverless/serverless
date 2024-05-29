@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 module.exports.handler = (event, context, callback) => {
   process.nextTick(() =>
@@ -7,8 +7,8 @@ module.exports.handler = (event, context, callback) => {
       body: JSON.stringify({
         mode: 'callback',
       }),
-    })
-  );
+    }),
+  )
   return new Promise((resolve) =>
     setTimeout(() =>
       resolve({
@@ -16,7 +16,7 @@ module.exports.handler = (event, context, callback) => {
         body: JSON.stringify({
           mode: 'promise',
         }),
-      })
-    )
-  );
-};
+      }),
+    ),
+  )
+}

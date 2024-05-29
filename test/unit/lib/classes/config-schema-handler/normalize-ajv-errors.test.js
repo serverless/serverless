@@ -1,16 +1,16 @@
-'use strict';
+'use strict'
 
-const { expect } = require('chai');
+const { expect } = require('chai')
 
-const Ajv = require('ajv').default;
-const memoize = require('memoizee');
-const normalizeAjvErrors = require('../../../../../lib/classes/config-schema-handler/normalize-ajv-errors');
+const Ajv = require('ajv').default
+const memoize = require('memoizee')
+const normalizeAjvErrors = require('../../../../../lib/classes/config-schema-handler/normalize-ajv-errors')
 
 describe('#normalizeAjvErrors', () => {
   const resolveAjv = memoize(
-    () => new Ajv({ allErrors: true, coerceTypes: 'array', verbose: true })
-  );
-  const resolveValidate = memoize((schema) => resolveAjv().compile(schema));
+    () => new Ajv({ allErrors: true, coerceTypes: 'array', verbose: true }),
+  )
+  const resolveValidate = memoize((schema) => resolveAjv().compile(schema))
 
   const schema = {
     type: 'object',
@@ -23,7 +23,9 @@ describe('#normalizeAjvErrors', () => {
               name: { const: 'aws' },
               deploymentBucket: {
                 type: 'object',
-                properties: { maxPreviousDeploymentArtifacts: { type: 'number' } },
+                properties: {
+                  maxPreviousDeploymentArtifacts: { type: 'number' },
+                },
               },
             },
           },
@@ -130,7 +132,10 @@ describe('#normalizeAjvErrors', () => {
                       properties: {
                         http: {
                           anyOf: [
-                            { type: 'string', pattern: '^(get|post|put) [a-zA-Z0-9]+$' },
+                            {
+                              type: 'string',
+                              pattern: '^(get|post|put) [a-zA-Z0-9]+$',
+                            },
                             {
                               type: 'object',
                               properties: {
@@ -153,22 +158,22 @@ describe('#normalizeAjvErrors', () => {
             required: ['handler'],
             additionalProperties: false,
           },
-          'additionalProperties': false,
+          additionalProperties: false,
         },
         additionalProperties: false,
       },
     },
     additionalProperties: false,
-  };
+  }
 
   const resolveNormalizedErrors = (config) => {
-    const validate = resolveValidate(schema);
-    validate(config);
-    if (!validate.errors) return [];
-    return normalizeAjvErrors(validate.errors);
-  };
+    const validate = resolveValidate(schema)
+    validate(config)
+    if (!validate.errors) return []
+    return normalizeAjvErrors(validate.errors)
+  }
 
-  let errors;
+  let errors
   before(() => {
     errors = resolveNormalizedErrors({
       foo: 'bar',
@@ -183,7 +188,7 @@ describe('#normalizeAjvErrors', () => {
       package: { incclude: ['./folder'] },
       functions: {
         'invalid name': {},
-        'foo': {
+        foo: {
           handler: 'foo',
           image: {
             workingDirectory: 'bar',
@@ -212,55 +217,55 @@ describe('#normalizeAjvErrors', () => {
           ],
         },
       },
-    });
-  });
+    })
+  })
 
   describe('Reporting', () => {
     it('should report error for unrecognized root property', () =>
       expect(
         errors.some((error) => {
-          if (error.instancePath !== '') return false;
-          if (error.keyword !== 'additionalProperties') return false;
-          error.isExpected = true;
-          return true;
-        })
-      ).to.be.true);
+          if (error.instancePath !== '') return false
+          if (error.keyword !== 'additionalProperties') return false
+          error.isExpected = true
+          return true
+        }),
+      ).to.be.true)
     it('should report error for unrecognized deep level property', () =>
       expect(
         errors.some((error) => {
-          if (error.instancePath !== '/package') return false;
-          if (error.keyword !== 'additionalProperties') return false;
-          error.isExpected = true;
-          return true;
-        })
-      ).to.be.true);
+          if (error.instancePath !== '/package') return false
+          if (error.keyword !== 'additionalProperties') return false
+          error.isExpected = true
+          return true
+        }),
+      ).to.be.true)
     it('should report error for invalid function name', () =>
       expect(
         errors.some((error) => {
-          if (error.instancePath !== '/functions') return false;
-          if (error.keyword !== 'additionalProperties') return false;
-          error.isExpected = true;
-          return true;
-        })
-      ).to.be.true);
+          if (error.instancePath !== '/functions') return false
+          if (error.keyword !== 'additionalProperties') return false
+          error.isExpected = true
+          return true
+        }),
+      ).to.be.true)
     it('should report error for unrecognized event', () =>
       expect(
         errors.some((error) => {
-          if (error.instancePath !== '/functions/foo/events/0') return false;
-          if (error.keyword !== 'anyOf') return false;
-          error.isExpected = true;
-          return true;
-        })
-      ).to.be.true);
+          if (error.instancePath !== '/functions/foo/events/0') return false
+          if (error.keyword !== 'anyOf') return false
+          error.isExpected = true
+          return true
+        }),
+      ).to.be.true)
     it('should report error for unrecognized property at event type configuration level', () =>
       expect(
         errors.some((error) => {
-          if (error.instancePath !== '/functions/foo/events/1') return false;
-          if (error.keyword !== 'additionalProperties') return false;
-          error.isExpected = true;
-          return true;
-        })
-      ).to.be.true);
+          if (error.instancePath !== '/functions/foo/events/1') return false
+          if (error.keyword !== 'additionalProperties') return false
+          error.isExpected = true
+          return true
+        }),
+      ).to.be.true)
     it(
       'should report error for unrecognized property at event type configuration level, ' +
         'as result of improper indentation in YAML config',
@@ -274,52 +279,55 @@ describe('#normalizeAjvErrors', () => {
         //         method: GET # Should be additionally indented
         expect(
           errors.some((error) => {
-            if (error.instancePath !== '/functions/foo/events/2') return false;
-            if (error.keyword !== 'additionalProperties') return false;
-            error.isExpected = true;
-            return true;
-          })
-        ).to.be.true
-    );
+            if (error.instancePath !== '/functions/foo/events/2') return false
+            if (error.keyword !== 'additionalProperties') return false
+            error.isExpected = true
+            return true
+          }),
+        ).to.be.true,
+    )
     it(
       'should report error in anyOf case, where two types are possible (string and object), ' +
         'and object with unrecognized property was used',
       () =>
         expect(
           errors.some((error) => {
-            if (error.instancePath !== '/functions/foo/events/3/http') return false;
-            if (error.keyword !== 'additionalProperties') return false;
-            error.isExpected = true;
-            return true;
-          })
-        ).to.be.true
-    );
+            if (error.instancePath !== '/functions/foo/events/3/http')
+              return false
+            if (error.keyword !== 'additionalProperties') return false
+            error.isExpected = true
+            return true
+          }),
+        ).to.be.true,
+    )
     it(
       'should report error in anyOf case, where two types are possible (string and object), ' +
         'and invalid string was used',
       () =>
         expect(
           errors.some((error) => {
-            if (error.instancePath !== '/functions/foo/events/4/http') return false;
-            if (error.keyword !== 'pattern') return false;
-            error.isExpected = true;
-            return true;
-          })
-        ).to.be.true
-    );
+            if (error.instancePath !== '/functions/foo/events/4/http')
+              return false
+            if (error.keyword !== 'pattern') return false
+            error.isExpected = true
+            return true
+          }),
+        ).to.be.true,
+    )
     it(
       'should report in anyOf case, where two types are possible (string and object), ' +
         'and object with missing required property was used',
       () =>
         expect(
           errors.some((error) => {
-            if (error.instancePath !== '/functions/foo/events/5/http') return false;
-            if (error.keyword !== 'required') return false;
-            error.isExpected = true;
-            return true;
-          })
-        ).to.be.true
-    );
+            if (error.instancePath !== '/functions/foo/events/5/http')
+              return false
+            if (error.keyword !== 'required') return false
+            error.isExpected = true
+            return true
+          }),
+        ).to.be.true,
+    )
     it(
       'should report in anyOf case, where two values of same (object) type are possible ' +
         'and for one variant error for deeper path was reported',
@@ -327,16 +335,17 @@ describe('#normalizeAjvErrors', () => {
         expect(
           errors.some((error) => {
             if (
-              error.instancePath !== '/provider/deploymentBucket/maxPreviousDeploymentArtifacts'
+              error.instancePath !==
+              '/provider/deploymentBucket/maxPreviousDeploymentArtifacts'
             ) {
-              return false;
+              return false
             }
-            if (error.keyword !== 'type') return false;
-            error.isExpected = true;
-            return true;
-          })
-        ).to.be.true
-    );
+            if (error.keyword !== 'type') return false
+            error.isExpected = true
+            return true
+          }),
+        ).to.be.true,
+    )
     it(
       'should report in anyOf case, where two values of same (object) type are possible ' +
         'and for all variants errors relate to paths of same depth',
@@ -344,14 +353,14 @@ describe('#normalizeAjvErrors', () => {
         expect(
           errors.some((error) => {
             if (error.instancePath !== '/custom/someCustom') {
-              return false;
+              return false
             }
-            if (error.keyword !== 'anyOf') return false;
-            error.isExpected = true;
-            return true;
-          })
-        ).to.be.true
-    );
+            if (error.keyword !== 'anyOf') return false
+            error.isExpected = true
+            return true
+          }),
+        ).to.be.true,
+    )
     it(
       'should report in anyOf case, where two values of same (string) type are possible ' +
         'and for all variants errors relate to paths of same depth',
@@ -359,63 +368,65 @@ describe('#normalizeAjvErrors', () => {
         expect(
           errors.some((error) => {
             if (error.instancePath !== '/custom/someString') {
-              return false;
+              return false
             }
-            if (error.keyword !== 'anyOf') return false;
-            error.isExpected = true;
-            return true;
-          })
-        ).to.be.true
-    );
+            if (error.keyword !== 'anyOf') return false
+            error.isExpected = true
+            return true
+          }),
+        ).to.be.true,
+    )
     it('should report the duplicated erorr message if more than one dependency is missing only once', () => {
-      const depsErrors = errors.filter((item) => item.keyword === 'dependencies');
-      expect(depsErrors).to.have.lengthOf(1);
-      depsErrors[0].isExpected = true;
-    });
+      const depsErrors = errors.filter(
+        (item) => item.keyword === 'dependencies',
+      )
+      expect(depsErrors).to.have.lengthOf(1)
+      depsErrors[0].isExpected = true
+    })
     it('should not report side errors', () =>
-      expect(errors.filter((error) => !error.isExpected)).to.deep.equal([]));
-  });
+      expect(errors.filter((error) => !error.isExpected)).to.deep.equal([]))
+  })
 
   describe('Message customization', () => {
     it('should report "additionalProperties" error with meaningful message', () =>
       expect(
         errors.find((error) => {
-          if (error.instancePath !== '/package') return false;
-          if (error.keyword !== 'additionalProperties') return false;
-          return true;
-        }).message
-      ).to.include('unrecognized property '));
+          if (error.instancePath !== '/package') return false
+          if (error.keyword !== 'additionalProperties') return false
+          return true
+        }).message,
+      ).to.include('unrecognized property '))
     it('should report invalid function name error with meaningful message', () =>
       expect(
         errors.find((error) => {
-          if (error.instancePath !== '/functions') return false;
-          if (error.keyword !== 'additionalProperties') return false;
-          return true;
-        }).message
-      ).to.include('must be alphanumeric'));
+          if (error.instancePath !== '/functions') return false
+          if (error.keyword !== 'additionalProperties') return false
+          return true
+        }).message,
+      ).to.include('must be alphanumeric'))
     it('should report unrecognized event error with a meaningful message', () =>
       expect(
         errors.find((error) => {
-          if (error.instancePath !== '/functions/foo/events/0') return false;
-          if (error.keyword !== 'anyOf') return false;
-          return true;
-        }).message
-      ).to.include('unsupported function event'));
+          if (error.instancePath !== '/functions/foo/events/0') return false
+          if (error.keyword !== 'anyOf') return false
+          return true
+        }).message,
+      ).to.include('unsupported function event'))
     it('should report value which do not match multiple constants with a meaningful message', () =>
       expect(
         errors.find((error) => {
-          if (error.instancePath !== '/custom/someCustom') return false;
-          if (error.keyword !== 'anyOf') return false;
-          return true;
-        }).message
-      ).to.include('unsupported value'));
+          if (error.instancePath !== '/custom/someCustom') return false
+          if (error.keyword !== 'anyOf') return false
+          return true
+        }).message,
+      ).to.include('unsupported value'))
     it('should report value which do not match multiple string formats with a meaningful message', () =>
       expect(
         errors.find((error) => {
-          if (error.instancePath !== '/custom/someString') return false;
-          if (error.keyword !== 'anyOf') return false;
-          return true;
-        }).message
-      ).to.include('unsupported string format'));
-  });
-});
+          if (error.instancePath !== '/custom/someString') return false
+          if (error.keyword !== 'anyOf') return false
+          return true
+        }).message,
+      ).to.include('unsupported string format'))
+  })
+})

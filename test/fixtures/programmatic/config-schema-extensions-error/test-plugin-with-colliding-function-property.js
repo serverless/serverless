@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 class TestPluginWithCollidingFunctionEventPropertyError {
   constructor(serverless) {
@@ -8,14 +8,14 @@ class TestPluginWithCollidingFunctionEventPropertyError {
           handler: { type: 'string' },
         },
       },
-    });
+    })
 
     serverless.configSchemaHandler.defineFunctionProperties('someProvider', {
       properties: {
         handler: { type: 'string' },
       },
-    });
+    })
   }
 }
 
-module.exports = TestPluginWithCollidingFunctionEventPropertyError;
+module.exports = TestPluginWithCollidingFunctionEventPropertyError

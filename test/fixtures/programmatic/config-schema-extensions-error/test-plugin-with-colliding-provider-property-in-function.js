@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 class TestPluginWithCollidingProviderPropertyInFunctionError {
   constructor(serverless) {
@@ -9,8 +9,8 @@ class TestPluginWithCollidingProviderPropertyInFunctionError {
           events: { type: 'string' },
         },
       },
-    });
+    })
   }
 }
 
-module.exports = TestPluginWithCollidingProviderPropertyInFunctionError;
+module.exports = TestPluginWithCollidingProviderPropertyInFunctionError

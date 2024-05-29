@@ -86,7 +86,10 @@ provider:
       managedPolicies:
         - 'some:aws:arn:xxx:*:*'
         - 'someOther:aws:arn:xxx:*:*'
-        - { 'Fn::Join': [':', ['arn:aws:iam:', { Ref: 'AWS::AccountId' }, 'some/path']] }
+        - {
+            'Fn::Join':
+              [':', ['arn:aws:iam:', { Ref: 'AWS::AccountId' }, 'some/path']],
+          }
 ```
 
 ### Naming for the Default IAM Role

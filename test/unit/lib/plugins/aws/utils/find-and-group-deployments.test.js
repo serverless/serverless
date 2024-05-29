@@ -1,16 +1,18 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const findAndGroupDeployments = require('../../../../../../lib/plugins/aws/utils/find-and-group-deployments');
+const expect = require('chai').expect
+const findAndGroupDeployments = require('../../../../../../lib/plugins/aws/utils/find-and-group-deployments')
 
 describe('#findAndGroupDeployments()', () => {
   it('should return an empty result in case no S3 objects are provided', () => {
     const s3Response = {
       Contents: [],
-    };
+    }
 
-    expect(findAndGroupDeployments(s3Response, 'serverless', 'test', 'dev')).to.deep.equal([]);
-  });
+    expect(
+      findAndGroupDeployments(s3Response, 'serverless', 'test', 'dev'),
+    ).to.deep.equal([])
+  })
 
   it('should group stacks', () => {
     const s3Objects = [
@@ -35,10 +37,10 @@ describe('#findAndGroupDeployments()', () => {
       {
         Key: 'serverless/test/dev/1476781042481-2016-10-18T08:57:22.481Z/test.zip',
       },
-    ];
+    ]
     const s3Response = {
       Contents: s3Objects,
-    };
+    }
 
     const expected = [
       [
@@ -71,10 +73,10 @@ describe('#findAndGroupDeployments()', () => {
           file: 'test.zip',
         },
       ],
-    ];
+    ]
 
-    expect(findAndGroupDeployments(s3Response, 'serverless', 'test', 'dev')).to.deep.equal(
-      expected
-    );
-  });
-});
+    expect(
+      findAndGroupDeployments(s3Response, 'serverless', 'test', 'dev'),
+    ).to.deep.equal(expected)
+  })
+})

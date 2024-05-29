@@ -1,15 +1,15 @@
-'use strict';
+'use strict'
 
-const { expect } = require('chai');
-const proxyquire = require('proxyquire');
+const { expect } = require('chai')
+const proxyquire = require('proxyquire')
 
-const configUtils = require('@serverless/utils/config');
-const logout = require('../../../commands/logout');
+const configUtils = require('@serverless/utils/config')
+const logout = require('../../../commands/logout')
 
 describe('test/unit/commands/logout.test.js', async () => {
   before(async () => {
     const login = proxyquire('../../../lib/commands/login/dashboard', {
-      'open': () => {},
+      open: () => {},
       '@serverless/platform-client': {
         ServerlessSDK: class ServerlessSDK {
           async login() {
@@ -26,17 +26,17 @@ describe('test/unit/commands/logout.test.js', async () => {
                 idToken: 'idToken',
                 expiresAt: 86400,
               }),
-            };
+            }
           }
         },
       },
-    });
+    })
 
-    await login();
-    await logout();
-  });
+    await login()
+    await logout()
+  })
 
   it('should logout', async () => {
-    expect(configUtils.getLoggedInUser()).to.equal(null);
-  });
-});
+    expect(configUtils.getLoggedInUser()).to.equal(null)
+  })
+})

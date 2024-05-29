@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 module.exports = {
   name: 'serverless-compose-example',
@@ -7,4 +7,4 @@ module.exports = {
       path: 'resources',
     },
   },
-};
+}

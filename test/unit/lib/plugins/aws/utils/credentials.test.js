@@ -1,31 +1,31 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const os = require('os');
-const path = require('path');
-const { outputFile, lstat, remove: rmDir } = require('fs-extra');
-const overrideEnv = require('process-utils/override-env');
-const credentials = require('../../../../../../lib/plugins/aws/utils/credentials');
+const expect = require('chai').expect
+const os = require('os')
+const path = require('path')
+const { outputFile, lstat, remove: rmDir } = require('fs-extra')
+const overrideEnv = require('process-utils/override-env')
+const credentials = require('../../../../../../lib/plugins/aws/utils/credentials')
 
 describe('#credentials', () => {
-  const credentialsDirPath = path.join(os.homedir(), '.aws');
-  const credentialsFilePath = path.join(credentialsDirPath, 'credentials');
+  const credentialsDirPath = path.join(os.homedir(), '.aws')
+  const credentialsFilePath = path.join(credentialsDirPath, 'credentials')
 
   before(async () => {
     // Abort if credentials are found in home directory
     // (it should not be the case, as home directory is mocked to point temp dir)
     return lstat(credentialsDirPath).then(
       () => {
-        throw new Error('Unexpected ~/.aws directory, related tests aborted');
+        throw new Error('Unexpected ~/.aws directory, related tests aborted')
       },
       (error) => {
-        if (error.code === 'ENOENT') return;
-        throw error;
-      }
-    );
-  });
+        if (error.code === 'ENOENT') return
+        throw error
+      },
+    )
+  })
 
-  afterEach(() => rmDir(credentialsDirPath));
+  afterEach(() => rmDir(credentialsDirPath))
 
   it('should resolve file profiles', async () => {
     const profiles = new Map([
@@ -43,9 +43,10 @@ describe('#credentials', () => {
           secretAccessKey: 'my-old-profile-secret2',
         },
       ],
-    ]);
+    ])
 
-    const [[profile1Name, profile1], [profile2Name, profile2]] = Array.from(profiles);
+    const [[profile1Name, profile1], [profile2Name, profile2]] =
+      Array.from(profiles)
     const credentialsFileContent = `${[
       `[${[profile1Name]}]`,
       `aws_access_key_id = ${profile1.accessKeyId}`,
@@ -54,23 +55,23 @@ describe('#credentials', () => {
       `[${[profile2Name]}]`,
       `aws_access_key_id = ${profile2.accessKeyId}`,
       `aws_secret_access_key = ${profile2.secretAccessKey}`,
-    ].join('\n')}\n`;
+    ].join('\n')}\n`
 
-    await outputFile(credentialsFilePath, credentialsFileContent);
-    const resolvedProfiles = await credentials.resolveFileProfiles();
+    await outputFile(credentialsFilePath, credentialsFileContent)
+    const resolvedProfiles = await credentials.resolveFileProfiles()
 
-    expect(resolvedProfiles).to.deep.equal(profiles);
-  });
+    expect(resolvedProfiles).to.deep.equal(profiles)
+  })
 
   it('should resolve env credentials', () =>
     overrideEnv(() => {
-      process.env.AWS_ACCESS_KEY_ID = 'foo';
-      process.env.AWS_SECRET_ACCESS_KEY = 'bar';
+      process.env.AWS_ACCESS_KEY_ID = 'foo'
+      process.env.AWS_SECRET_ACCESS_KEY = 'bar'
       expect(credentials.resolveEnvCredentials()).to.deep.equal({
         accessKeyId: 'foo',
         secretAccessKey: 'bar',
-      });
-    }));
+      })
+    }))
 
   it('should save file profiles', async () => {
     const profiles = new Map([
@@ -88,14 +89,16 @@ describe('#credentials', () => {
           secretAccessKey: 'my-old-profile-secret2',
         },
       ],
-    ]);
+    ])
 
     return credentials
       .saveFileProfiles(profiles)
       .then(() =>
         credentials
           .resolveFileProfiles()
-          .then((resolvedProfiles) => expect(resolvedProfiles).to.deep.equal(profiles))
-      );
-  });
-});
+          .then((resolvedProfiles) =>
+            expect(resolvedProfiles).to.deep.equal(profiles),
+          ),
+      )
+  })
+})

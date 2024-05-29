@@ -1,31 +1,32 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const AwsCompileApigEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/api-gateway/index');
-const Serverless = require('../../../../../../../../../../lib/serverless');
-const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
-const runServerless = require('../../../../../../../../../utils/run-serverless');
+const expect = require('chai').expect
+const AwsCompileApigEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/api-gateway/index')
+const Serverless = require('../../../../../../../../../../lib/serverless')
+const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider')
+const runServerless = require('../../../../../../../../../utils/run-serverless')
 
 describe('#compileApiKeys()', () => {
-  let serverless;
-  let awsCompileApigEvents;
+  let serverless
+  let awsCompileApigEvents
 
   beforeEach(() => {
     const options = {
       stage: 'dev',
       region: 'us-east-1',
-    };
-    serverless = new Serverless({ commands: [], options: {} });
-    serverless.setProvider('aws', new AwsProvider(serverless, options));
-    serverless.service.service = 'first-service';
+    }
+    serverless = new Serverless({ commands: [], options: {} })
+    serverless.setProvider('aws', new AwsProvider(serverless, options))
+    serverless.service.service = 'first-service'
     serverless.service.provider.compiledCloudFormationTemplate = {
       Resources: {},
       Outputs: {},
-    };
-    awsCompileApigEvents = new AwsCompileApigEvents(serverless, options);
-    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi';
-    awsCompileApigEvents.apiGatewayDeploymentLogicalId = 'ApiGatewayDeploymentTest';
-  });
+    }
+    awsCompileApigEvents = new AwsCompileApigEvents(serverless, options)
+    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi'
+    awsCompileApigEvents.apiGatewayDeploymentLogicalId =
+      'ApiGatewayDeploymentTest'
+  })
 
   it('should support api key notation', () => {
     awsCompileApigEvents.serverless.service.provider.apiGateway = {
@@ -44,9 +45,9 @@ describe('#compileApiKeys()', () => {
       usagePlan: {
         quota: { limit: 5000 },
       },
-    };
+    }
 
-    awsCompileApigEvents.compileApiKeys();
+    awsCompileApigEvents.compileApiKeys()
     const expectedApiKeys = [
       {
         name: '1234567890',
@@ -78,70 +79,79 @@ describe('#compileApiKeys()', () => {
         description: undefined,
         customerId: 'customerid98765',
       },
-    ];
+    ]
 
     expectedApiKeys.forEach((apiKey, index) => {
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources[
           awsCompileApigEvents.provider.naming.getApiKeyLogicalId(index + 1)
-        ].Type
-      ).to.equal('AWS::ApiGateway::ApiKey');
+        ].Type,
+      ).to.equal('AWS::ApiGateway::ApiKey')
 
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources[
           awsCompileApigEvents.provider.naming.getApiKeyLogicalId(index + 1)
-        ].Properties.Enabled
-      ).to.equal(true);
+        ].Properties.Enabled,
+      ).to.equal(true)
 
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources[
           awsCompileApigEvents.provider.naming.getApiKeyLogicalId(index + 1)
-        ].Properties.Name
-      ).to.equal(apiKey.name);
+        ].Properties.Name,
+      ).to.equal(apiKey.name)
 
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources[
           awsCompileApigEvents.provider.naming.getApiKeyLogicalId(index + 1)
-        ].Properties.Description
-      ).to.equal(apiKey.description);
+        ].Properties.Description,
+      ).to.equal(apiKey.description)
 
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources[
           awsCompileApigEvents.provider.naming.getApiKeyLogicalId(index + 1)
-        ].Properties.CustomerId
-      ).to.equal(apiKey.customerId);
+        ].Properties.CustomerId,
+      ).to.equal(apiKey.customerId)
 
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources[
           awsCompileApigEvents.provider.naming.getApiKeyLogicalId(index + 1)
-        ].Properties.Value
-      ).to.equal(apiKey.value);
+        ].Properties.Value,
+      ).to.equal(apiKey.value)
 
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources[
           awsCompileApigEvents.provider.naming.getApiKeyLogicalId(index + 1)
-        ].Properties.StageKeys[0].RestApiId.Ref
-      ).to.equal('ApiGatewayRestApi');
+        ].Properties.StageKeys[0].RestApiId.Ref,
+      ).to.equal('ApiGatewayRestApi')
 
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources[
           awsCompileApigEvents.provider.naming.getApiKeyLogicalId(index + 1)
-        ].Properties.StageKeys[0].StageName
-      ).to.equal('dev');
+        ].Properties.StageKeys[0].StageName,
+      ).to.equal('dev')
 
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources[
           awsCompileApigEvents.provider.naming.getApiKeyLogicalId(index + 1)
-        ].DependsOn
-      ).to.equal('ApiGatewayDeploymentTest');
-    });
-  });
-});
+        ].DependsOn,
+      ).to.equal('ApiGatewayDeploymentTest')
+    })
+  })
+})
 
 describe('lib/plugins/aws/package/compile/events/apiGateway/lib/apiKeys.test.js', () => {
-  let cfResources;
-  let naming;
-  let serverlessInstance;
+  let cfResources
+  let naming
+  let serverlessInstance
   const apiGatewayExt = {
     apiKeys: [
       {
@@ -162,7 +172,7 @@ describe('lib/plugins/aws/package/compile/events/apiGateway/lib/apiKeys.test.js'
       },
     ],
     usagePlan: [{ free: {} }, { paid: {} }, { disabled: {} }],
-  };
+  }
 
   before(async () => {
     const { awsNaming, cfTemplate, serverless } = await runServerless({
@@ -173,16 +183,16 @@ describe('lib/plugins/aws/package/compile/events/apiGateway/lib/apiKeys.test.js'
           apiGateway: apiGatewayExt,
         },
       },
-    });
-    naming = awsNaming;
-    cfResources = cfTemplate.Resources;
-    serverlessInstance = serverless;
-  });
+    })
+    naming = awsNaming
+    cfResources = cfTemplate.Resources
+    serverlessInstance = serverless
+  })
 
   it('should disable keys when enabled: false', () => {
-    const resource = cfResources[naming.getApiKeyLogicalId(1, 'disabled')];
-    expect(resource.Properties.Enabled).to.be.false;
-  });
+    const resource = cfResources[naming.getApiKeyLogicalId(1, 'disabled')]
+    expect(resource.Properties.Enabled).to.be.false
+  })
 
   it('should support usage plan notation', () => {
     const expectedApiKeys = {
@@ -209,24 +219,29 @@ describe('lib/plugins/aws/package/compile/events/apiGateway/lib/apiKeys.test.js'
         { name: '0987654321', value: undefined, description: undefined },
         { name: 'jihgfedcba', value: undefined, description: undefined },
       ],
-    };
+    }
 
     apiGatewayExt.apiKeys.slice(0, 2).forEach((plan) => {
-      const planName = Object.keys(plan)[0]; // free || paid
-      const apiKeys = expectedApiKeys[planName];
+      const planName = Object.keys(plan)[0] // free || paid
+      const apiKeys = expectedApiKeys[planName]
       apiKeys.forEach((apiKey, index) => {
-        const resource = cfResources[naming.getApiKeyLogicalId(index + 1, planName)];
-        expect(resource.Type).to.equal('AWS::ApiGateway::ApiKey');
-        expect(resource.Properties.Enabled).to.equal(true);
-        expect(resource.Properties.Name).to.equal(apiKey.name);
-        expect(resource.Properties.Description).to.equal(apiKey.description);
-        expect(resource.Properties.Value).to.equal(apiKey.value);
-        expect(resource.Properties.StageKeys[0].RestApiId.Ref).to.equal('ApiGatewayRestApi');
-        expect(resource.Properties.StageKeys[0].StageName).to.equal('dev');
+        const resource =
+          cfResources[naming.getApiKeyLogicalId(index + 1, planName)]
+        expect(resource.Type).to.equal('AWS::ApiGateway::ApiKey')
+        expect(resource.Properties.Enabled).to.equal(true)
+        expect(resource.Properties.Name).to.equal(apiKey.name)
+        expect(resource.Properties.Description).to.equal(apiKey.description)
+        expect(resource.Properties.Value).to.equal(apiKey.value)
+        expect(resource.Properties.StageKeys[0].RestApiId.Ref).to.equal(
+          'ApiGatewayRestApi',
+        )
+        expect(resource.Properties.StageKeys[0].StageName).to.equal('dev')
         expect(resource.DependsOn).to.equal(
-          naming.generateApiGatewayDeploymentLogicalId(serverlessInstance.instanceId)
-        );
-      });
-    });
-  });
-});
+          naming.generateApiGatewayDeploymentLogicalId(
+            serverlessInstance.instanceId,
+          ),
+        )
+      })
+    })
+  })
+})

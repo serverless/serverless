@@ -1,23 +1,25 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const AwsCompileApigEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/api-gateway/index');
-const Serverless = require('../../../../../../../../../../lib/serverless');
-const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
+const expect = require('chai').expect
+const AwsCompileApigEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/api-gateway/index')
+const Serverless = require('../../../../../../../../../../lib/serverless')
+const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider')
 
 describe('#compileCors()', () => {
-  let serverless;
-  let awsCompileApigEvents;
+  let serverless
+  let awsCompileApigEvents
 
   beforeEach(() => {
     const options = {
       stage: 'dev',
       region: 'us-east-1',
-    };
-    serverless = new Serverless({ commands: [], options: {} });
-    serverless.setProvider('aws', new AwsProvider(serverless, options));
-    serverless.service.service = 'first-service';
-    serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
+    }
+    serverless = new Serverless({ commands: [], options: {} })
+    serverless.setProvider('aws', new AwsProvider(serverless, options))
+    serverless.service.service = 'first-service'
+    serverless.service.provider.compiledCloudFormationTemplate = {
+      Resources: {},
+    }
     serverless.service.environment = {
       stages: {
         dev: {
@@ -31,10 +33,10 @@ describe('#compileCors()', () => {
           },
         },
       },
-    };
-    awsCompileApigEvents = new AwsCompileApigEvents(serverless, options);
-    awsCompileApigEvents.apiGatewayMethodLogicalIds = [];
-    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi';
+    }
+    awsCompileApigEvents = new AwsCompileApigEvents(serverless, options)
+    awsCompileApigEvents.apiGatewayMethodLogicalIds = []
+    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi'
     awsCompileApigEvents.apiGatewayResources = {
       'users/create': {
         name: 'UsersCreate',
@@ -56,9 +58,9 @@ describe('#compileCors()', () => {
         name: 'UsersAny',
         resourceLogicalId: 'ApiGatewayResourceUsersAny',
       },
-    };
-    awsCompileApigEvents.validated = {};
-  });
+    }
+    awsCompileApigEvents.validated = {}
+  })
 
   it('should create preflight method for CORS enabled resource', () => {
     awsCompileApigEvents.validated.corsPreflight = {
@@ -93,148 +95,210 @@ describe('#compileCors()', () => {
         methods: ['OPTIONS', 'ANY'],
         allowCredentials: false,
       },
-    };
-    awsCompileApigEvents.compileCors();
+    }
+    awsCompileApigEvents.compileCors()
     // users/create
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreateOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Allow-Origin']
-    ).to.equal("'http://localhost:3000'");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreateOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Allow-Origin'
+      ],
+    ).to.equal("'http://localhost:3000'")
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreateOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseTemplates['application/json']
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreateOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseTemplates['application/json'],
     ).to.equal(
-      '#set($origin = $input.params("Origin"))\n#if($origin == "") #set($origin = $input.params("origin")) #end\n#if($origin.matches("http://localhost:3000") || $origin.matches("https://.+[.]example[.]com")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end'
-    );
+      '#set($origin = $input.params("Origin"))\n#if($origin == "") #set($origin = $input.params("origin")) #end\n#if($origin.matches("http://localhost:3000") || $origin.matches("https://.+[.]example[.]com")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end',
+    )
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreateOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Allow-Headers']
-    ).to.equal("'*'");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreateOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Allow-Headers'
+      ],
+    ).to.equal("'*'")
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreateOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Allow-Methods']
-    ).to.equal("'OPTIONS,POST'");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreateOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Allow-Methods'
+      ],
+    ).to.equal("'OPTIONS,POST'")
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreateOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Allow-Credentials']
-    ).to.equal("'true'");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreateOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Allow-Credentials'
+      ],
+    ).to.equal("'true'")
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreateOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Max-Age']
-    ).to.equal("'86400'");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreateOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Max-Age'
+      ],
+    ).to.equal("'86400'")
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreateOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Cache-Control']
-    ).to.equal("'max-age=600, s-maxage=600'");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreateOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Cache-Control'
+      ],
+    ).to.equal("'max-age=600, s-maxage=600'")
 
     // users/update
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersUpdateOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Allow-Origin']
-    ).to.equal("'http://example.com'");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersUpdateOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Allow-Origin'
+      ],
+    ).to.equal("'http://example.com'")
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersUpdateOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Allow-Methods']
-    ).to.equal("'OPTIONS,PUT'");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersUpdateOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Allow-Methods'
+      ],
+    ).to.equal("'OPTIONS,PUT'")
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersUpdateOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Allow-Credentials']
-    ).to.be.undefined;
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersUpdateOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Allow-Credentials'
+      ],
+    ).to.be.undefined
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersUpdateOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Max-Age']
-    ).to.equal("'86400'");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersUpdateOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Max-Age'
+      ],
+    ).to.equal("'86400'")
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersUpdateOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Cache-Control']
-    ).to.equal("'max-age=600, s-maxage=600'");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersUpdateOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Cache-Control'
+      ],
+    ).to.equal("'max-age=600, s-maxage=600'")
 
     // users/delete
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersDeleteOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Allow-Origin']
-    ).to.equal("'*'");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersDeleteOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Allow-Origin'
+      ],
+    ).to.equal("'*'")
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersDeleteOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Allow-Headers']
-    ).to.equal("'CustomHeaderA,CustomHeaderB'");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersDeleteOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Allow-Headers'
+      ],
+    ).to.equal("'CustomHeaderA,CustomHeaderB'")
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersDeleteOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Allow-Methods']
-    ).to.equal("'OPTIONS,DELETE'");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersDeleteOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Allow-Methods'
+      ],
+    ).to.equal("'OPTIONS,DELETE'")
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersDeleteOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Allow-Credentials']
-    ).to.be.undefined;
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersDeleteOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Allow-Credentials'
+      ],
+    ).to.be.undefined
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersDeleteOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Max-Age']
-    ).to.equal("'86400'");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersDeleteOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Max-Age'
+      ],
+    ).to.equal("'86400'")
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersDeleteOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Cache-Control']
-    ).to.equal("'max-age=600, s-maxage=600'");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersDeleteOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Cache-Control'
+      ],
+    ).to.equal("'max-age=600, s-maxage=600'")
 
     // users/any
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersAnyOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseTemplates['application/json']
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersAnyOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseTemplates['application/json'],
     ).to.equal(
-      '#set($origin = $input.params("Origin"))\n#if($origin == "") #set($origin = $input.params("origin")) #end\n#if($origin.matches("http://localhost:3000") || $origin.matches("http://example[.]com")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end'
-    );
+      '#set($origin = $input.params("Origin"))\n#if($origin == "") #set($origin = $input.params("origin")) #end\n#if($origin.matches("http://localhost:3000") || $origin.matches("http://example[.]com")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end',
+    )
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersAnyOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Allow-Headers']
-    ).to.equal("'*'");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersAnyOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Allow-Headers'
+      ],
+    ).to.equal("'*'")
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersAnyOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Allow-Methods']
-    ).to.equal("'OPTIONS,DELETE,GET,HEAD,PATCH,POST,PUT'");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersAnyOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Allow-Methods'
+      ],
+    ).to.equal("'OPTIONS,DELETE,GET,HEAD,PATCH,POST,PUT'")
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersAnyOptions.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Allow-Credentials']
-    ).to.be.undefined;
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersAnyOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Allow-Credentials'
+      ],
+    ).to.be.undefined
+  })
 
   it('should add the methods resource logical id to the array of method logical ids', () => {
     awsCompileApigEvents.validated.corsPreflight = {
@@ -251,11 +315,11 @@ describe('#compileCors()', () => {
         methods: ['OPTIONS', 'ANY'],
         allowCredentials: false,
       },
-    };
-    awsCompileApigEvents.compileCors();
+    }
+    awsCompileApigEvents.compileCors()
     expect(awsCompileApigEvents.apiGatewayMethodLogicalIds).to.deep.equal([
       'ApiGatewayMethodUsersCreateOptions',
       'ApiGatewayMethodUsersAnyOptions',
-    ]);
-  });
-});
+    ])
+  })
+})

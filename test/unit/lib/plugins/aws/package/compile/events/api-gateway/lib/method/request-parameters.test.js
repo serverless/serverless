@@ -1,16 +1,16 @@
-'use strict';
+'use strict'
 
-const chai = require('chai');
-const runServerless = require('../../../../../../../../../../utils/run-serverless');
+const chai = require('chai')
+const runServerless = require('../../../../../../../../../../utils/run-serverless')
 
-chai.use(require('chai-as-promised'));
+chai.use(require('chai-as-promised'))
 
-const { expect } = chai;
+const { expect } = chai
 
 describe('ApiGatewayEvents', () => {
   describe('Request parameters', () => {
-    let cfResources;
-    let naming;
+    let cfResources
+    let naming
     before(async () =>
       runServerless({
         fixture: 'api-gateway',
@@ -62,81 +62,99 @@ describe('ApiGatewayEvents', () => {
         },
         command: 'package',
       }).then(({ cfTemplate, awsNaming }) => {
-        ({ Resources: cfResources } = cfTemplate);
-        naming = awsNaming;
-      })
-    );
+        ;({ Resources: cfResources } = cfTemplate)
+        naming = awsNaming
+      }),
+    )
 
     it('Should set required headers, querystring, and path params', () => {
-      const methodResourceProps = cfResources[naming.getMethodLogicalId('Foo', 'get')].Properties;
+      const methodResourceProps =
+        cfResources[naming.getMethodLogicalId('Foo', 'get')].Properties
       expect(methodResourceProps.RequestParameters).to.have.property(
         'method.request.header.someRequiredHeader',
-        true
-      );
+        true,
+      )
       expect(methodResourceProps.RequestParameters).to.have.property(
         'method.request.header.someOptionalHeader',
-        false
-      );
+        false,
+      )
       expect(methodResourceProps.RequestParameters).to.have.property(
         'method.request.header.someRequiredMappedHeader',
-        true
-      );
+        true,
+      )
       expect(methodResourceProps.RequestParameters).to.have.property(
         'method.request.header.someOptionalMappedHeader',
-        false
-      );
+        false,
+      )
       expect(methodResourceProps.RequestParameters).to.have.property(
         'method.request.path.somePathParam',
-        true
-      );
+        true,
+      )
       expect(methodResourceProps.RequestParameters).to.have.property(
         'method.request.path.someMappedPathParam',
-        true
-      );
+        true,
+      )
       expect(methodResourceProps.RequestParameters).to.have.property(
         'method.request.querystring.someQueryString',
-        true
-      );
+        true,
+      )
       expect(methodResourceProps.RequestParameters).to.have.property(
         'method.request.querystring.someMappedQueryString',
-        true
-      );
-    });
+        true,
+      )
+    })
 
     it('Should map integration request values', () => {
-      const methodResourceProps = cfResources[naming.getMethodLogicalId('Foo', 'get')].Properties;
-      expect(methodResourceProps.Integration.RequestParameters).to.have.property(
+      const methodResourceProps =
+        cfResources[naming.getMethodLogicalId('Foo', 'get')].Properties
+      expect(
+        methodResourceProps.Integration.RequestParameters,
+      ).to.have.property(
         'integration.request.header.someRequiredHeader',
-        'method.request.header.someRequiredHeader'
-      );
-      expect(methodResourceProps.Integration.RequestParameters).to.have.property(
+        'method.request.header.someRequiredHeader',
+      )
+      expect(
+        methodResourceProps.Integration.RequestParameters,
+      ).to.have.property(
         'integration.request.header.someOptionalHeader',
-        'method.request.header.someOptionalHeader'
-      );
-      expect(methodResourceProps.Integration.RequestParameters).to.have.property(
+        'method.request.header.someOptionalHeader',
+      )
+      expect(
+        methodResourceProps.Integration.RequestParameters,
+      ).to.have.property(
         'integration.request.header.someRequiredMappedHeader',
-        'someRequiredValue'
-      );
-      expect(methodResourceProps.Integration.RequestParameters).to.have.property(
+        'someRequiredValue',
+      )
+      expect(
+        methodResourceProps.Integration.RequestParameters,
+      ).to.have.property(
         'integration.request.header.someOptionalMappedHeader',
-        'someOptionalValue'
-      );
-      expect(methodResourceProps.Integration.RequestParameters).to.have.property(
+        'someOptionalValue',
+      )
+      expect(
+        methodResourceProps.Integration.RequestParameters,
+      ).to.have.property(
         'integration.request.path.somePathParam',
-        'method.request.path.somePathParam'
-      );
-      expect(methodResourceProps.Integration.RequestParameters).to.have.property(
+        'method.request.path.somePathParam',
+      )
+      expect(
+        methodResourceProps.Integration.RequestParameters,
+      ).to.have.property(
         'integration.request.path.someMappedPathParam',
-        'someValue'
-      );
-      expect(methodResourceProps.Integration.RequestParameters).to.have.property(
+        'someValue',
+      )
+      expect(
+        methodResourceProps.Integration.RequestParameters,
+      ).to.have.property(
         'integration.request.querystring.someQueryString',
-        'method.request.querystring.someQueryString'
-      );
-      expect(methodResourceProps.Integration.RequestParameters).to.have.property(
+        'method.request.querystring.someQueryString',
+      )
+      expect(
+        methodResourceProps.Integration.RequestParameters,
+      ).to.have.property(
         'integration.request.querystring.someMappedQueryString',
-        'someValue'
-      );
-    });
-  });
-});
+        'someValue',
+      )
+    })
+  })
+})

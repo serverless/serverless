@@ -1,38 +1,40 @@
-'use strict';
+'use strict'
 
 /* eslint-disable no-unused-expressions */
 
-const sinon = require('sinon');
-const chai = require('chai');
-const proxyquire = require('proxyquire').noCallThru();
-const AwsProvider = require('../../../../../../../../../lib/plugins/aws/provider');
-const Serverless = require('../../../../../../../../../lib/serverless');
-const runServerless = require('../../../../../../../../utils/run-serverless');
+const sinon = require('sinon')
+const chai = require('chai')
+const proxyquire = require('proxyquire').noCallThru()
+const AwsProvider = require('../../../../../../../../../lib/plugins/aws/provider')
+const Serverless = require('../../../../../../../../../lib/serverless')
+const runServerless = require('../../../../../../../../utils/run-serverless')
 
-const { expect } = chai;
-chai.use(require('sinon-chai'));
-chai.use(require('chai-as-promised'));
+const { expect } = chai
+chai.use(require('sinon-chai'))
+chai.use(require('chai-as-promised'))
 
 describe('AwsCompileS3Events', () => {
-  let serverless;
-  let awsCompileS3Events;
-  let addCustomResourceToServiceStub;
+  let serverless
+  let awsCompileS3Events
+  let addCustomResourceToServiceStub
 
   beforeEach(() => {
-    addCustomResourceToServiceStub = sinon.stub().resolves();
+    addCustomResourceToServiceStub = sinon.stub().resolves()
     const AwsCompileS3Events = proxyquire(
       '../../../../../../../../../lib/plugins/aws/package/compile/events/s3/index',
       {
         '../../../../custom-resources': {
           addCustomResourceToService: addCustomResourceToServiceStub,
         },
-      }
-    );
-    serverless = new Serverless({ commands: [], options: {} });
-    serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
-    serverless.setProvider('aws', new AwsProvider(serverless));
-    awsCompileS3Events = new AwsCompileS3Events(serverless);
-    awsCompileS3Events.serverless.service.service = 'new-service';
+      },
+    )
+    serverless = new Serverless({ commands: [], options: {} })
+    serverless.service.provider.compiledCloudFormationTemplate = {
+      Resources: {},
+    }
+    serverless.setProvider('aws', new AwsProvider(serverless))
+    awsCompileS3Events = new AwsCompileS3Events(serverless)
+    awsCompileS3Events.serverless.service.service = 'new-service'
     awsCompileS3Events.serverless.configSchemaHandler = {
       schema: {
         definitions: {
@@ -41,13 +43,13 @@ describe('AwsCompileS3Events', () => {
           },
         },
       },
-    };
-  });
+    }
+  })
 
   describe('#constructor()', () => {
     it('should set the provider variable to an instance of AwsProvider', () =>
-      expect(awsCompileS3Events.provider).to.be.instanceof(AwsProvider));
-  });
+      expect(awsCompileS3Events.provider).to.be.instanceof(AwsProvider))
+  })
 
   describe('#newS3Buckets()', () => {
     it('should create corresponding resources when S3 events are given', () => {
@@ -66,34 +68,39 @@ describe('AwsCompileS3Events', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileS3Events.newS3Buckets();
+      awsCompileS3Events.newS3Buckets()
 
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .S3BucketFirstfunctionbucketone.Type
-      ).to.equal('AWS::S3::Bucket');
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .S3BucketFirstfunctionbucketone.Type,
+      ).to.equal('AWS::S3::Bucket')
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .S3BucketFirstfunctionbuckettwo.Type
-      ).to.equal('AWS::S3::Bucket');
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .S3BucketFirstfunctionbuckettwo.Type,
+      ).to.equal('AWS::S3::Bucket')
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionFirstfunctionbucketoneS3.Type
-      ).to.equal('AWS::Lambda::Permission');
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstLambdaPermissionFirstfunctionbucketoneS3.Type,
+      ).to.equal('AWS::Lambda::Permission')
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionFirstfunctionbuckettwoS3.Type
-      ).to.equal('AWS::Lambda::Permission');
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstLambdaPermissionFirstfunctionbuckettwoS3.Type,
+      ).to.equal('AWS::Lambda::Permission')
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
           .S3BucketFirstfunctionbuckettwo.Properties.NotificationConfiguration
-          .LambdaConfigurations[0].Filter
+          .LambdaConfigurations[0].Filter,
       ).to.deep.equal({
         S3Key: { Rules: [{ Name: 'prefix', Value: 'subfolder/' }] },
-      });
-    });
+      })
+    })
 
     it('should create single bucket resource when the same bucket referenced repeatedly', () => {
       awsCompileS3Events.serverless.service.functions = {
@@ -111,24 +118,27 @@ describe('AwsCompileS3Events', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileS3Events.newS3Buckets();
+      awsCompileS3Events.newS3Buckets()
 
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .S3BucketFirstfunctionbucketone.Type
-      ).to.equal('AWS::S3::Bucket');
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .S3BucketFirstfunctionbucketone.Type,
+      ).to.equal('AWS::S3::Bucket')
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .S3BucketFirstfunctionbucketone.Properties.NotificationConfiguration.LambdaConfigurations
-          .length
-      ).to.equal(2);
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .S3BucketFirstfunctionbucketone.Properties.NotificationConfiguration
+          .LambdaConfigurations.length,
+      ).to.equal(2)
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionFirstfunctionbucketoneS3.Type
-      ).to.equal('AWS::Lambda::Permission');
-    });
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstLambdaPermissionFirstfunctionbucketoneS3.Type,
+      ).to.equal('AWS::Lambda::Permission')
+    })
 
     it('should add the permission resource logical id to the buckets DependsOn array', () => {
       awsCompileS3Events.serverless.service.functions = {
@@ -144,54 +154,61 @@ describe('AwsCompileS3Events', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileS3Events.newS3Buckets();
+      awsCompileS3Events.newS3Buckets()
 
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .S3BucketFirstfunctionbucketone.Type
-      ).to.equal('AWS::S3::Bucket');
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .S3BucketFirstfunctionbucketone.Type,
+      ).to.equal('AWS::S3::Bucket')
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .S3BucketFirstfunctionbuckettwo.Type
-      ).to.equal('AWS::S3::Bucket');
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .S3BucketFirstfunctionbuckettwo.Type,
+      ).to.equal('AWS::S3::Bucket')
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionFirstfunctionbucketoneS3.Type
-      ).to.equal('AWS::Lambda::Permission');
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstLambdaPermissionFirstfunctionbucketoneS3.Type,
+      ).to.equal('AWS::Lambda::Permission')
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionFirstfunctionbuckettwoS3.Type
-      ).to.equal('AWS::Lambda::Permission');
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstLambdaPermissionFirstfunctionbuckettwoS3.Type,
+      ).to.equal('AWS::Lambda::Permission')
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .S3BucketFirstfunctionbucketone.DependsOn
-      ).to.deep.equal(['FirstLambdaPermissionFirstfunctionbucketoneS3']);
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .S3BucketFirstfunctionbucketone.DependsOn,
+      ).to.deep.equal(['FirstLambdaPermissionFirstfunctionbucketoneS3'])
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .S3BucketFirstfunctionbuckettwo.DependsOn
-      ).to.deep.equal(['FirstLambdaPermissionFirstfunctionbuckettwoS3']);
-    });
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .S3BucketFirstfunctionbuckettwo.DependsOn,
+      ).to.deep.equal(['FirstLambdaPermissionFirstfunctionbuckettwoS3'])
+    })
 
     it('should not create corresponding resources when S3 events are not given', () => {
       awsCompileS3Events.serverless.service.functions = {
         first: {
           events: [],
         },
-      };
+      }
 
-      awsCompileS3Events.newS3Buckets();
+      awsCompileS3Events.newS3Buckets()
 
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-      ).to.deep.equal({});
-    });
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources,
+      ).to.deep.equal({})
+    })
 
     it('should generate a valid bucket name from provider.s3 entry', () => {
       awsCompileS3Events.serverless.service.provider.s3 = {
         bucketone: {},
-      };
+      }
       awsCompileS3Events.serverless.service.functions = {
         first: {
           events: [
@@ -202,20 +219,21 @@ describe('AwsCompileS3Events', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileS3Events.newS3Buckets();
+      awsCompileS3Events.newS3Buckets()
 
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .S3BucketBucketone.Properties.BucketName
-      ).to.equal('bucketone');
-    });
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.S3BucketBucketone.Properties
+          .BucketName,
+      ).to.equal('bucketone')
+    })
 
     it('should use logical id from provider s3 specification if exists', () => {
       awsCompileS3Events.serverless.service.provider.s3 = {
         bucketOne: 1,
-      };
+      }
       awsCompileS3Events.serverless.service.functions = {
         first: {
           events: [
@@ -224,30 +242,31 @@ describe('AwsCompileS3Events', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileS3Events.newS3Buckets();
+      awsCompileS3Events.newS3Buckets()
 
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .S3BucketBucketone.Type
-      ).to.equal('AWS::S3::Bucket');
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.S3BucketBucketone.Type,
+      ).to.equal('AWS::S3::Bucket')
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionBucketoneS3.Type
-      ).to.equal('AWS::Lambda::Permission');
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstLambdaPermissionBucketoneS3.Type,
+      ).to.equal('AWS::Lambda::Permission')
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .S3BucketBucketone.DependsOn
-      ).to.deep.equal(['FirstLambdaPermissionBucketoneS3']);
-    });
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.S3BucketBucketone.DependsOn,
+      ).to.deep.equal(['FirstLambdaPermissionBucketoneS3'])
+    })
 
     it('should use name from provider s3 specification if exists', () => {
       awsCompileS3Events.serverless.service.provider.s3 = {
         bucketOne: {
           name: 'my-awesome-bucket',
         },
-      };
+      }
       awsCompileS3Events.serverless.service.functions = {
         first: {
           events: [
@@ -256,15 +275,16 @@ describe('AwsCompileS3Events', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileS3Events.newS3Buckets();
+      awsCompileS3Events.newS3Buckets()
 
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .S3BucketBucketOne.Properties.BucketName
-      ).to.equal('my-awesome-bucket');
-    });
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.S3BucketBucketOne.Properties
+          .BucketName,
+      ).to.equal('my-awesome-bucket')
+    })
 
     it('should use bucketName over name property', () => {
       awsCompileS3Events.serverless.service.provider.s3 = {
@@ -272,7 +292,7 @@ describe('AwsCompileS3Events', () => {
           name: 'not-used',
           bucketName: 'my-awesome-bucket',
         },
-      };
+      }
       awsCompileS3Events.serverless.service.functions = {
         first: {
           events: [
@@ -281,15 +301,16 @@ describe('AwsCompileS3Events', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileS3Events.newS3Buckets();
+      awsCompileS3Events.newS3Buckets()
 
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .S3BucketBucketOne.Properties.BucketName
-      ).to.equal('my-awesome-bucket');
-    });
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.S3BucketBucketOne.Properties
+          .BucketName,
+      ).to.equal('my-awesome-bucket')
+    })
 
     it('should merge notification configuration', () => {
       awsCompileS3Events.serverless.service.provider.s3 = {
@@ -298,7 +319,7 @@ describe('AwsCompileS3Events', () => {
             QueueConfigurations: [1, 2, 3],
           },
         },
-      };
+      }
       awsCompileS3Events.serverless.service.functions = {
         first: {
           events: [
@@ -309,13 +330,14 @@ describe('AwsCompileS3Events', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileS3Events.newS3Buckets();
+      awsCompileS3Events.newS3Buckets()
 
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .S3BucketBucketone.Properties.NotificationConfiguration
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.S3BucketBucketone.Properties
+          .NotificationConfiguration,
       ).to.deep.equal({
         LambdaConfigurations: [
           {
@@ -326,15 +348,15 @@ describe('AwsCompileS3Events', () => {
           },
         ],
         QueueConfigurations: [1, 2, 3],
-      });
-    });
+      })
+    })
 
     it('should convert camel case properties to pascal case', () => {
       awsCompileS3Events.serverless.service.provider.s3 = {
         bucketone: {
           tags: [1, 2, 3],
         },
-      };
+      }
       awsCompileS3Events.serverless.service.functions = {
         first: {
           events: [
@@ -345,16 +367,17 @@ describe('AwsCompileS3Events', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileS3Events.newS3Buckets();
+      awsCompileS3Events.newS3Buckets()
 
       expect(
-        awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .S3BucketBucketone.Properties.Tags
-      ).to.deep.equal([1, 2, 3]);
-    });
-  });
+        awsCompileS3Events.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.S3BucketBucketone.Properties
+          .Tags,
+      ).to.deep.equal([1, 2, 3])
+    })
+  })
 
   describe('#existingS3Buckets()', () => {
     it('should create the necessary resources for the most minimal configuration', async () => {
@@ -370,14 +393,17 @@ describe('AwsCompileS3Events', () => {
             },
           ],
         },
-      };
+      }
 
-      return expect(awsCompileS3Events.existingS3Buckets()).to.be.fulfilled.then(() => {
+      return expect(
+        awsCompileS3Events.existingS3Buckets(),
+      ).to.be.fulfilled.then(() => {
         const { Resources } =
-          awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate;
+          awsCompileS3Events.serverless.service.provider
+            .compiledCloudFormationTemplate
 
-        expect(addCustomResourceToServiceStub).to.have.been.calledOnce;
-        expect(addCustomResourceToServiceStub.args[0][1]).to.equal('s3');
+        expect(addCustomResourceToServiceStub).to.have.been.calledOnce
+        expect(addCustomResourceToServiceStub.args[0][1]).to.equal('s3')
         expect(addCustomResourceToServiceStub.args[0][2]).to.deep.equal([
           {
             Action: ['s3:PutBucketNotification', 's3:GetBucketNotification'],
@@ -422,22 +448,28 @@ describe('AwsCompileS3Events', () => {
               ],
             },
           },
-        ]);
+        ])
         expect(Resources.FirstCustomS31).to.deep.equal({
           Type: 'Custom::S3',
           Version: 1,
-          DependsOn: ['FirstLambdaFunction', 'CustomDashresourceDashexistingDashs3LambdaFunction'],
+          DependsOn: [
+            'FirstLambdaFunction',
+            'CustomDashresourceDashexistingDashs3LambdaFunction',
+          ],
           Properties: {
             ServiceToken: {
-              'Fn::GetAtt': ['CustomDashresourceDashexistingDashs3LambdaFunction', 'Arn'],
+              'Fn::GetAtt': [
+                'CustomDashresourceDashexistingDashs3LambdaFunction',
+                'Arn',
+              ],
             },
             FunctionName: 'first',
             BucketName: 'existing-s3-bucket',
             BucketConfigs: [{ Event: 's3:ObjectCreated:*', Rules: [] }],
           },
-        });
-      });
-    });
+        })
+      })
+    })
 
     it('should create the necessary resources for a service using different config parameters', async () => {
       awsCompileS3Events.serverless.service.functions = {
@@ -454,14 +486,17 @@ describe('AwsCompileS3Events', () => {
             },
           ],
         },
-      };
+      }
 
-      return expect(awsCompileS3Events.existingS3Buckets()).to.be.fulfilled.then(() => {
+      return expect(
+        awsCompileS3Events.existingS3Buckets(),
+      ).to.be.fulfilled.then(() => {
         const { Resources } =
-          awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate;
+          awsCompileS3Events.serverless.service.provider
+            .compiledCloudFormationTemplate
 
-        expect(addCustomResourceToServiceStub).to.have.been.calledOnce;
-        expect(addCustomResourceToServiceStub.args[0][1]).to.equal('s3');
+        expect(addCustomResourceToServiceStub).to.have.been.calledOnce
+        expect(addCustomResourceToServiceStub.args[0][1]).to.equal('s3')
         expect(addCustomResourceToServiceStub.args[0][2]).to.deep.equal([
           {
             Action: ['s3:PutBucketNotification', 's3:GetBucketNotification'],
@@ -506,14 +541,20 @@ describe('AwsCompileS3Events', () => {
               ],
             },
           },
-        ]);
+        ])
         expect(Resources.FirstCustomS31).to.deep.equal({
           Type: 'Custom::S3',
           Version: 1,
-          DependsOn: ['FirstLambdaFunction', 'CustomDashresourceDashexistingDashs3LambdaFunction'],
+          DependsOn: [
+            'FirstLambdaFunction',
+            'CustomDashresourceDashexistingDashs3LambdaFunction',
+          ],
           Properties: {
             ServiceToken: {
-              'Fn::GetAtt': ['CustomDashresourceDashexistingDashs3LambdaFunction', 'Arn'],
+              'Fn::GetAtt': [
+                'CustomDashresourceDashexistingDashs3LambdaFunction',
+                'Arn',
+              ],
             },
             FunctionName: 'second',
             BucketName: 'existing-s3-bucket',
@@ -524,9 +565,9 @@ describe('AwsCompileS3Events', () => {
               },
             ],
           },
-        });
-      });
-    });
+        })
+      })
+    })
 
     it('should support `forceDeploy` setting', async () => {
       const result = await runServerless({
@@ -547,15 +588,16 @@ describe('AwsCompileS3Events', () => {
           },
         },
         command: 'package',
-      });
+      })
 
-      const { Resources } = result.cfTemplate;
-      const { awsNaming } = result;
+      const { Resources } = result.cfTemplate
+      const { awsNaming } = result
 
-      const customResource = Resources[awsNaming.getCustomResourceS3ResourceLogicalId('basic')];
+      const customResource =
+        Resources[awsNaming.getCustomResourceS3ResourceLogicalId('basic')]
 
-      expect(typeof customResource.Properties.ForceDeploy).to.equal('number');
-    });
+      expect(typeof customResource.Properties.ForceDeploy).to.equal('number')
+    })
 
     it('should create the necessary resources for a service using multiple event definitions', async () => {
       awsCompileS3Events.serverless.service.functions = {
@@ -588,14 +630,17 @@ describe('AwsCompileS3Events', () => {
             },
           ],
         },
-      };
+      }
 
-      return expect(awsCompileS3Events.existingS3Buckets()).to.be.fulfilled.then(() => {
+      return expect(
+        awsCompileS3Events.existingS3Buckets(),
+      ).to.be.fulfilled.then(() => {
         const { Resources } =
-          awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate;
+          awsCompileS3Events.serverless.service.provider
+            .compiledCloudFormationTemplate
 
-        expect(addCustomResourceToServiceStub).to.have.been.calledOnce;
-        expect(addCustomResourceToServiceStub.args[0][1]).to.equal('s3');
+        expect(addCustomResourceToServiceStub).to.have.been.calledOnce
+        expect(addCustomResourceToServiceStub.args[0][1]).to.equal('s3')
         expect(addCustomResourceToServiceStub.args[0][2]).to.deep.equal([
           {
             Action: ['s3:PutBucketNotification', 's3:GetBucketNotification'],
@@ -640,14 +685,20 @@ describe('AwsCompileS3Events', () => {
               ],
             },
           },
-        ]);
+        ])
         expect(Resources.FirstCustomS31).to.deep.equal({
           Type: 'Custom::S3',
           Version: 1,
-          DependsOn: ['FirstLambdaFunction', 'CustomDashresourceDashexistingDashs3LambdaFunction'],
+          DependsOn: [
+            'FirstLambdaFunction',
+            'CustomDashresourceDashexistingDashs3LambdaFunction',
+          ],
           Properties: {
             ServiceToken: {
-              'Fn::GetAtt': ['CustomDashresourceDashexistingDashs3LambdaFunction', 'Arn'],
+              'Fn::GetAtt': [
+                'CustomDashresourceDashexistingDashs3LambdaFunction',
+                'Arn',
+              ],
             },
             FunctionName: 'second',
             BucketName: 'existing-s3-bucket',
@@ -668,9 +719,9 @@ describe('AwsCompileS3Events', () => {
               },
             ],
           },
-        });
-      });
-    });
+        })
+      })
+    })
 
     it('should create a valid policy for an S3 bucket using !ImportValue', async () => {
       awsCompileS3Events.serverless.service.functions = {
@@ -686,11 +737,15 @@ describe('AwsCompileS3Events', () => {
             },
           ],
         },
-      };
+      }
 
-      return expect(awsCompileS3Events.existingS3Buckets()).to.be.fulfilled.then(() => {
-        expect(addCustomResourceToServiceStub).to.have.been.calledOnce;
-        expect(addCustomResourceToServiceStub.args[0][2][0].Resource).to.deep.equal({
+      return expect(
+        awsCompileS3Events.existingS3Buckets(),
+      ).to.be.fulfilled.then(() => {
+        expect(addCustomResourceToServiceStub).to.have.been.calledOnce
+        expect(
+          addCustomResourceToServiceStub.args[0][2][0].Resource,
+        ).to.deep.equal({
           'Fn::Join': [
             ':',
             [
@@ -704,9 +759,9 @@ describe('AwsCompileS3Events', () => {
               { 'Fn::ImportValue': 'existing-s3-bucket' },
             ],
           ],
-        });
-      });
-    });
+        })
+      })
+    })
 
     it('should create DependsOn clauses when one bucket is used in more than 1 custom resources', async () => {
       awsCompileS3Events.serverless.service.functions = {
@@ -768,20 +823,29 @@ describe('AwsCompileS3Events', () => {
             },
           ],
         },
-      };
+      }
 
-      return expect(awsCompileS3Events.existingS3Buckets()).to.be.fulfilled.then(() => {
+      return expect(
+        awsCompileS3Events.existingS3Buckets(),
+      ).to.be.fulfilled.then(() => {
         const { Resources } =
-          awsCompileS3Events.serverless.service.provider.compiledCloudFormationTemplate;
+          awsCompileS3Events.serverless.service.provider
+            .compiledCloudFormationTemplate
 
-        expect(Object.keys(Resources)).to.have.length(2);
+        expect(Object.keys(Resources)).to.have.length(2)
         expect(Resources.FirstCustomS31).to.deep.equal({
           Type: 'Custom::S3',
           Version: 1,
-          DependsOn: ['FirstLambdaFunction', 'CustomDashresourceDashexistingDashs3LambdaFunction'],
+          DependsOn: [
+            'FirstLambdaFunction',
+            'CustomDashresourceDashexistingDashs3LambdaFunction',
+          ],
           Properties: {
             ServiceToken: {
-              'Fn::GetAtt': ['CustomDashresourceDashexistingDashs3LambdaFunction', 'Arn'],
+              'Fn::GetAtt': [
+                'CustomDashresourceDashexistingDashs3LambdaFunction',
+                'Arn',
+              ],
             },
             FunctionName: 'first',
             BucketName: 'existing-s3-bucket',
@@ -801,7 +865,7 @@ describe('AwsCompileS3Events', () => {
               },
             ],
           },
-        });
+        })
         expect(Resources.SecondCustomS31).to.deep.equal({
           Type: 'Custom::S3',
           Version: 1,
@@ -812,7 +876,10 @@ describe('AwsCompileS3Events', () => {
           ],
           Properties: {
             ServiceToken: {
-              'Fn::GetAtt': ['CustomDashresourceDashexistingDashs3LambdaFunction', 'Arn'],
+              'Fn::GetAtt': [
+                'CustomDashresourceDashexistingDashs3LambdaFunction',
+                'Arn',
+              ],
             },
             FunctionName: 'second',
             BucketName: 'existing-s3-bucket',
@@ -832,9 +899,9 @@ describe('AwsCompileS3Events', () => {
               },
             ],
           },
-        });
-      });
-    });
+        })
+      })
+    })
 
     it('should throw if more than 1 S3 bucket is configured per function', () => {
       awsCompileS3Events.serverless.service.functions = {
@@ -855,17 +922,19 @@ describe('AwsCompileS3Events', () => {
             },
           ],
         },
-      };
+      }
 
-      return expect(() => awsCompileS3Events.existingS3Buckets()).to.throw('Only one S3 Bucket');
-    });
-  });
-});
+      return expect(() => awsCompileS3Events.existingS3Buckets()).to.throw(
+        'Only one S3 Bucket',
+      )
+    })
+  })
+})
 
 describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', () => {
-  let cfResources;
-  let naming;
-  let serverlessInstance;
+  let cfResources
+  let naming
+  let serverlessInstance
 
   before(async () => {
     const { cfTemplate, awsNaming, serverless } = await runServerless({
@@ -939,11 +1008,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', ()
         },
       },
       command: 'package',
-    });
-    cfResources = cfTemplate.Resources;
-    naming = awsNaming;
-    serverlessInstance = serverless;
-  });
+    })
+    cfResources = cfTemplate.Resources
+    naming = awsNaming
+    serverlessInstance = serverless
+  })
 
   it('should create lambda permissions policy with wild card', async () => {
     const expectedResource = [
@@ -960,57 +1029,83 @@ describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', ()
       },
       'function',
       '*',
-    ];
+    ]
 
     const lambdaPermissionsPolicies =
       cfResources.IamRoleCustomResourcesLambdaExecution.Properties.Policies[
         '0'
-      ].PolicyDocument.Statement.filter((x) => x.Action[0].includes('AddPermission'));
+      ].PolicyDocument.Statement.filter((x) =>
+        x.Action[0].includes('AddPermission'),
+      )
 
-    expect(lambdaPermissionsPolicies).to.have.length(1);
+    expect(lambdaPermissionsPolicies).to.have.length(1)
 
-    const actualResource = lambdaPermissionsPolicies[0].Resource['Fn::Join'][1];
+    const actualResource = lambdaPermissionsPolicies[0].Resource['Fn::Join'][1]
 
-    expect(actualResource).to.deep.equal(expectedResource);
-  });
+    expect(actualResource).to.deep.equal(expectedResource)
+  })
 
   it('should support `bucket` provided as CF function', () => {
-    expect(cfResources[naming.getCustomResourceS3ResourceLogicalId('other')]).to.deep.equal({
+    expect(
+      cfResources[naming.getCustomResourceS3ResourceLogicalId('other')],
+    ).to.deep.equal({
       Type: 'Custom::S3',
       Version: 1,
-      DependsOn: ['OtherLambdaFunction', 'CustomDashresourceDashexistingDashs3LambdaFunction'],
+      DependsOn: [
+        'OtherLambdaFunction',
+        'CustomDashresourceDashexistingDashs3LambdaFunction',
+      ],
       Properties: {
         ServiceToken: {
-          'Fn::GetAtt': ['CustomDashresourceDashexistingDashs3LambdaFunction', 'Arn'],
+          'Fn::GetAtt': [
+            'CustomDashresourceDashexistingDashs3LambdaFunction',
+            'Arn',
+          ],
         },
         FunctionName: `${serverlessInstance.service.service}-dev-other`,
         BucketName: { Ref: 'SomeBucket' },
         BucketConfigs: [{ Event: 's3:ObjectCreated:*', Rules: [] }],
       },
-    });
-  });
+    })
+  })
 
   it('should support `bucket` provided as CF If function', () => {
-    expect(cfResources[naming.getCustomResourceS3ResourceLogicalId('withIf')]).to.deep.equal({
+    expect(
+      cfResources[naming.getCustomResourceS3ResourceLogicalId('withIf')],
+    ).to.deep.equal({
       Type: 'Custom::S3',
       Version: 1,
-      DependsOn: ['WithIfLambdaFunction', 'CustomDashresourceDashexistingDashs3LambdaFunction'],
+      DependsOn: [
+        'WithIfLambdaFunction',
+        'CustomDashresourceDashexistingDashs3LambdaFunction',
+      ],
       Properties: {
         ServiceToken: {
-          'Fn::GetAtt': ['CustomDashresourceDashexistingDashs3LambdaFunction', 'Arn'],
+          'Fn::GetAtt': [
+            'CustomDashresourceDashexistingDashs3LambdaFunction',
+            'Arn',
+          ],
         },
         FunctionName: `${serverlessInstance.service.service}-dev-withIf`,
         BucketName: {
-          'Fn::If': ['isFirstBucketEmtpy', { Ref: 'FirstBucket' }, { Ref: 'SecondBucket' }],
+          'Fn::If': [
+            'isFirstBucketEmtpy',
+            { Ref: 'FirstBucket' },
+            { Ref: 'SecondBucket' },
+          ],
         },
         BucketConfigs: [{ Event: 's3:ObjectCreated:*', Rules: [] }],
       },
-    });
-  });
+    })
+  })
 
   it('should support `prefix` and `suffix` provided as CF function', () => {
     expect(
-      cfResources[naming.getCustomResourceS3ResourceLogicalId('prefixSuffixWithCfFunction')]
+      cfResources[
+        naming.getCustomResourceS3ResourceLogicalId(
+          'prefixSuffixWithCfFunction',
+        )
+      ],
     ).to.deep.equal({
       Type: 'Custom::S3',
       Version: 1,
@@ -1020,7 +1115,10 @@ describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', ()
       ],
       Properties: {
         ServiceToken: {
-          'Fn::GetAtt': ['CustomDashresourceDashexistingDashs3LambdaFunction', 'Arn'],
+          'Fn::GetAtt': [
+            'CustomDashresourceDashexistingDashs3LambdaFunction',
+            'Arn',
+          ],
         },
         FunctionName: `${serverlessInstance.service.service}-dev-prefixSuffixWithCfFunction`,
         BucketName: 'TestBucket',
@@ -1042,8 +1140,8 @@ describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', ()
           },
         ],
       },
-    });
-  });
+    })
+  })
 
   it('should disallow referencing multiple buckets in context of single function with CF references', async () => {
     await expect(
@@ -1072,9 +1170,12 @@ describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', ()
           },
         },
         command: 'package',
-      })
-    ).to.be.eventually.rejected.and.have.property('code', 'S3_MULTIPLE_BUCKETS_PER_FUNCTION');
-  });
+      }),
+    ).to.be.eventually.rejected.and.have.property(
+      'code',
+      'S3_MULTIPLE_BUCKETS_PER_FUNCTION',
+    )
+  })
 
   it('should throw when `bucket` is specified as CF function but without setting `existing: true`', async () => {
     await expect(
@@ -1095,7 +1196,10 @@ describe('test/unit/lib/plugins/aws/package/compile/events/s3/index.test.js', ()
           },
         },
         command: 'package',
-      })
-    ).to.be.eventually.rejected.and.have.property('code', 'S3_INVALID_NEW_BUCKET_FORMAT');
-  });
-});
+      }),
+    ).to.be.eventually.rejected.and.have.property(
+      'code',
+      'S3_INVALID_NEW_BUCKET_FORMAT',
+    )
+  })
+})

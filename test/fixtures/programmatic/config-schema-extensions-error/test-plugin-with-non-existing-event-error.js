@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 class TestPluginWithNonExistingEventError {
   constructor(serverless) {
@@ -14,7 +14,7 @@ class TestPluginWithNonExistingEventError {
           properties: { existingProp: { type: 'string' } },
         },
       },
-    });
+    })
 
     serverless.configSchemaHandler.defineFunctionEventProperties(
       'someProvider',
@@ -23,9 +23,9 @@ class TestPluginWithNonExistingEventError {
         properties: {
           someProperty: { type: 'string' },
         },
-      }
-    );
+      },
+    )
   }
 }
 
-module.exports = TestPluginWithNonExistingEventError;
+module.exports = TestPluginWithNonExistingEventError

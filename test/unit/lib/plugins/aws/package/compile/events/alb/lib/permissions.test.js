@@ -1,23 +1,25 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const AwsCompileAlbEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/alb/index');
-const Serverless = require('../../../../../../../../../../lib/serverless');
-const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
+const expect = require('chai').expect
+const AwsCompileAlbEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/alb/index')
+const Serverless = require('../../../../../../../../../../lib/serverless')
+const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider')
 
 describe('#compilePermissions()', () => {
-  let awsCompileAlbEvents;
+  let awsCompileAlbEvents
 
   beforeEach(() => {
-    const serverless = new Serverless({ commands: [], options: {} });
-    serverless.setProvider('aws', new AwsProvider(serverless));
-    serverless.service.service = 'some-service';
-    serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
-    serverless.service.functions.first = {};
-    serverless.service.functions.second = {};
+    const serverless = new Serverless({ commands: [], options: {} })
+    serverless.setProvider('aws', new AwsProvider(serverless))
+    serverless.service.service = 'some-service'
+    serverless.service.provider.compiledCloudFormationTemplate = {
+      Resources: {},
+    }
+    serverless.service.functions.first = {}
+    serverless.service.functions.second = {}
 
-    awsCompileAlbEvents = new AwsCompileAlbEvents(serverless);
-  });
+    awsCompileAlbEvents = new AwsCompileAlbEvents(serverless)
+  })
 
   it('should create Lambda permission resources', () => {
     awsCompileAlbEvents.validated = {
@@ -48,12 +50,13 @@ describe('#compilePermissions()', () => {
           albId: '50dc6c495c0c9188',
         },
       ],
-    };
+    }
 
-    awsCompileAlbEvents.compilePermissions();
+    awsCompileAlbEvents.compilePermissions()
 
     const resources =
-      awsCompileAlbEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+      awsCompileAlbEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
 
     expect(resources.FirstLambdaPermissionAlb).to.deep.equal({
       Type: 'AWS::Lambda::Permission',
@@ -67,7 +70,7 @@ describe('#compilePermissions()', () => {
           Ref: 'FirstAlbTargetGroup50dc6c495c0c9188',
         },
       },
-    });
+    })
     expect(resources.FirstLambdaPermissionRegisterTarget).to.deep.equal({
       Type: 'AWS::Lambda::Permission',
       Properties: {
@@ -77,7 +80,7 @@ describe('#compilePermissions()', () => {
         },
         Principal: 'elasticloadbalancing.amazonaws.com',
       },
-    });
+    })
     expect(resources.SecondLambdaPermissionAlb).to.deep.equal({
       Type: 'AWS::Lambda::Permission',
       Properties: {
@@ -90,7 +93,7 @@ describe('#compilePermissions()', () => {
           Ref: 'SecondAlbTargetGroup50dc6c495c0c9188',
         },
       },
-    });
+    })
 
     expect(resources.SecondLambdaPermissionRegisterTarget).to.deep.equal({
       Type: 'AWS::Lambda::Permission',
@@ -101,6 +104,6 @@ describe('#compilePermissions()', () => {
         },
         Principal: 'elasticloadbalancing.amazonaws.com',
       },
-    });
-  });
-});
+    })
+  })
+})

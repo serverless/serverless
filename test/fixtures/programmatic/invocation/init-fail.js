@@ -1,3 +1,3 @@
-'use strict';
+'use strict'
 
-throw new Error('Initialization failure');
+throw new Error('Initialization failure')

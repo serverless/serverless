@@ -19,7 +19,7 @@ Plugins can register custom variables sources, for example `${foo:some-variable}
 Custom sources can be registered via `configurationVariablesSources` as an object with a `resolve` function:
 
 ```javascript
-'use strict';
+'use strict'
 
 class MyPlugin {
   constructor() {
@@ -33,14 +33,14 @@ class MyPlugin {
           return {
             //
             value: `Resolving variable ${address}`,
-          };
+          }
         },
       },
-    };
+    }
   }
 }
 
-module.exports = MyPlugin;
+module.exports = MyPlugin
 ```
 
 The variable source defined above (registered via a plugin) can be used as follows:
@@ -93,10 +93,10 @@ class MyPlugin {
             // In the example below, ${foo(one, two):bar} will
             // resolve to "one,two"
             value: (params || []).join(','),
-          };
+          }
         },
       },
-    };
+    }
   }
 }
 ```
@@ -113,16 +113,16 @@ class MyPlugin {
         async resolve({ resolveVariable, options }) {
           // `options` is CLI options
           // `resolveVariable` resolves other variables (for example here: `${sls:stage}`)
-          const stage = await resolveVariable('sls:stage');
+          const stage = await resolveVariable('sls:stage')
           // To retrieve a configuration value from serverless.yml, use the `self:xxx` variable source, for example:
           // await resolveVariable('self:provider.region')
 
           return {
             value: `The stage is ${stage}`,
-          };
+          }
         },
       },
-    };
+    }
   }
 }
 ```

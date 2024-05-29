@@ -1,21 +1,23 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const AwsCompileAlbEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/alb/index');
-const Serverless = require('../../../../../../../../../../lib/serverless');
-const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
+const expect = require('chai').expect
+const AwsCompileAlbEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/alb/index')
+const Serverless = require('../../../../../../../../../../lib/serverless')
+const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider')
 
 describe('#compileListenerRules()', () => {
-  let awsCompileAlbEvents;
+  let awsCompileAlbEvents
 
   beforeEach(() => {
-    const serverless = new Serverless({ commands: [], options: {} });
-    serverless.setProvider('aws', new AwsProvider(serverless));
-    serverless.service.service = 'some-service';
-    serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
+    const serverless = new Serverless({ commands: [], options: {} })
+    serverless.setProvider('aws', new AwsProvider(serverless))
+    serverless.service.service = 'some-service'
+    serverless.service.provider.compiledCloudFormationTemplate = {
+      Resources: {},
+    }
 
-    awsCompileAlbEvents = new AwsCompileAlbEvents(serverless);
-  });
+    awsCompileAlbEvents = new AwsCompileAlbEvents(serverless)
+  })
 
   it('should create ELB listener rule resources', () => {
     awsCompileAlbEvents.validated = {
@@ -65,7 +67,8 @@ describe('#compileListenerRules()', () => {
       authorizers: {
         myFirstAuth: {
           type: 'cognito',
-          userPoolArn: 'arn:aws:cognito-idp:us-east-1:123412341234:userpool/us-east-1_123412341',
+          userPoolArn:
+            'arn:aws:cognito-idp:us-east-1:123412341234:userpool/us-east-1_123412341',
           userPoolClientId: '1h57kf5cpq17m0eml12EXAMPLE',
           userPoolDomain: 'my-test-user-pool-domain',
           onUnauthenticatedRequest: 'allow',
@@ -81,12 +84,13 @@ describe('#compileListenerRules()', () => {
           onUnauthenticatedRequest: 'deny',
         },
       },
-    };
+    }
 
-    awsCompileAlbEvents.compileListenerRules();
+    awsCompileAlbEvents.compileListenerRules()
 
     const resources =
-      awsCompileAlbEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+      awsCompileAlbEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
 
     expect(resources.FirstAlbListenerRule1).to.deep.equal({
       Type: 'AWS::ElasticLoadBalancingV2::ListenerRule',
@@ -117,7 +121,7 @@ describe('#compileListenerRules()', () => {
           '50dc6c495c0c9188/f2f7dc8efc522ab2',
         Priority: 1,
       },
-    });
+    })
     expect(resources.SecondAlbListenerRule2).to.deep.equal({
       Type: 'AWS::ElasticLoadBalancingV2::ListenerRule',
       Properties: {
@@ -141,7 +145,7 @@ describe('#compileListenerRules()', () => {
           '50dc6c495c0c9188/f2f7dc8efc522ab2',
         Priority: 2,
       },
-    });
+    })
     expect(resources.ThirdAlbListenerRule3).to.deep.equal({
       Type: 'AWS::ElasticLoadBalancingV2::ListenerRule',
       Properties: {
@@ -198,6 +202,6 @@ describe('#compileListenerRules()', () => {
           '50dc6c495c0c9188/f2f7dc8efc522ab2',
         Priority: 3,
       },
-    });
-  });
-});
+    })
+  })
+})

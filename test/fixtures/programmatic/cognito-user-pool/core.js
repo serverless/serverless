@@ -1,46 +1,46 @@
-'use strict';
+'use strict'
 
 // NOTE: the `utils.js` file is bundled into the deployment package
 
-const { log } = require('./utils');
+const { log } = require('./utils')
 
 function basic(event, context, callback) {
-  const functionName = 'basic';
-  const nextEvent = Object.assign({}, event);
-  nextEvent.response.autoConfirmUser = true;
+  const functionName = 'basic'
+  const nextEvent = Object.assign({}, event)
+  nextEvent.response.autoConfirmUser = true
 
-  log(functionName, JSON.stringify(nextEvent));
-  return callback(null, nextEvent);
+  log(functionName, JSON.stringify(nextEvent))
+  return callback(null, nextEvent)
 }
 
 function customEmailSender(event, context, callback) {
-  const functionName = 'customEmailSender';
+  const functionName = 'customEmailSender'
 
-  log(functionName, JSON.stringify(event));
-  return callback(null, event);
+  log(functionName, JSON.stringify(event))
+  return callback(null, event)
 }
 
 function existingSimple(event, context, callback) {
-  const functionName = 'existingSimple';
-  const nextEvent = Object.assign({}, event);
-  nextEvent.response.autoConfirmUser = true;
+  const functionName = 'existingSimple'
+  const nextEvent = Object.assign({}, event)
+  nextEvent.response.autoConfirmUser = true
 
-  log(functionName, JSON.stringify(nextEvent));
-  return callback(null, nextEvent);
+  log(functionName, JSON.stringify(nextEvent))
+  return callback(null, nextEvent)
 }
 
 function existingMulti(event, context, callback) {
-  const functionName = 'existingMulti';
+  const functionName = 'existingMulti'
 
-  log(functionName, JSON.stringify(event));
-  return callback(null, event);
+  log(functionName, JSON.stringify(event))
+  return callback(null, event)
 }
 
 function existingCustomEmailSender(event, context, callback) {
-  const functionName = 'existingCustomEmailSender';
+  const functionName = 'existingCustomEmailSender'
 
-  log(functionName, JSON.stringify(event));
-  return callback(null, event);
+  log(functionName, JSON.stringify(event))
+  return callback(null, event)
 }
 
 module.exports = {
@@ -49,4 +49,4 @@ module.exports = {
   existingSimple,
   existingMulti,
   existingCustomEmailSender,
-};
+}

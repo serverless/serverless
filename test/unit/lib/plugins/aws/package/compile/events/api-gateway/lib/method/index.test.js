@@ -1,24 +1,26 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const AwsCompileApigEvents = require('../../../../../../../../../../../lib/plugins/aws/package/compile/events/api-gateway/index');
-const Serverless = require('../../../../../../../../../../../lib/serverless');
-const AwsProvider = require('../../../../../../../../../../../lib/plugins/aws/provider');
-const runServerless = require('../../../../../../../../../../utils/run-serverless');
+const expect = require('chai').expect
+const AwsCompileApigEvents = require('../../../../../../../../../../../lib/plugins/aws/package/compile/events/api-gateway/index')
+const Serverless = require('../../../../../../../../../../../lib/serverless')
+const AwsProvider = require('../../../../../../../../../../../lib/plugins/aws/provider')
+const runServerless = require('../../../../../../../../../../utils/run-serverless')
 
 describe('#compileMethods()', () => {
-  let serverless;
-  let awsCompileApigEvents;
+  let serverless
+  let awsCompileApigEvents
 
   beforeEach(() => {
     const options = {
       stage: 'dev',
       region: 'us-east-1',
-    };
-    serverless = new Serverless({ commands: [], options: {} });
-    serverless.setProvider('aws', new AwsProvider(serverless, options));
-    serverless.service.service = 'first-service';
-    serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
+    }
+    serverless = new Serverless({ commands: [], options: {} })
+    serverless.setProvider('aws', new AwsProvider(serverless, options))
+    serverless.service.service = 'first-service'
+    serverless.service.provider.compiledCloudFormationTemplate = {
+      Resources: {},
+    }
     serverless.service.environment = {
       stages: {
         dev: {
@@ -32,14 +34,14 @@ describe('#compileMethods()', () => {
           },
         },
       },
-    };
-    serverless.service.functions.First = {};
-    serverless.service.functions.Second = {};
-    serverless.service.functions.Third = {};
-    awsCompileApigEvents = new AwsCompileApigEvents(serverless, options);
-    awsCompileApigEvents.validated = {};
-    awsCompileApigEvents.apiGatewayMethodLogicalIds = [];
-    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi';
+    }
+    serverless.service.functions.First = {}
+    serverless.service.functions.Second = {}
+    serverless.service.functions.Third = {}
+    awsCompileApigEvents = new AwsCompileApigEvents(serverless, options)
+    awsCompileApigEvents.validated = {}
+    awsCompileApigEvents.apiGatewayMethodLogicalIds = []
+    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi'
     awsCompileApigEvents.apiGatewayResources = {
       'users/create': {
         name: 'UsersCreate',
@@ -58,8 +60,8 @@ describe('#compileMethods()', () => {
         name: 'UsersDelete',
         resourceLogicalId: 'ApiGatewayResourceUsersDelete',
       },
-    };
-  });
+    }
+  })
 
   it('should have request parameters defined when they are set', () => {
     awsCompileApigEvents.validated.events = [
@@ -88,37 +90,51 @@ describe('#compileMethods()', () => {
           },
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters['method.request.header.foo']
-    ).to.equal(true);
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters[
+        'method.request.header.foo'
+      ],
+    ).to.equal(true)
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters['method.request.header.bar']
-    ).to.equal(false);
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters[
+        'method.request.header.bar'
+      ],
+    ).to.equal(false)
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
         .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters[
         'method.request.querystring.foo'
-      ]
-    ).to.equal(true);
+      ],
+    ).to.equal(true)
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
         .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters[
         'method.request.querystring.bar'
-      ]
-    ).to.equal(false);
+      ],
+    ).to.equal(false)
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters['method.request.path.foo']
-    ).to.equal(true);
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters[
+        'method.request.path.foo'
+      ],
+    ).to.equal(true)
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters['method.request.path.bar']
-    ).to.equal(false);
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters[
+        'method.request.path.bar'
+      ],
+    ).to.equal(false)
+  })
 
   it('should not have integration RequestParameters when no request parameters are set', () => {
     awsCompileApigEvents.validated.events = [
@@ -130,13 +146,14 @@ describe('#compileMethods()', () => {
           integration: 'AWS',
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration
-    ).to.not.have.key('RequestParameters');
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration,
+    ).to.not.have.key('RequestParameters')
+  })
 
   it('should create method resources when http events given', () => {
     awsCompileApigEvents.validated.events = [
@@ -154,17 +171,19 @@ describe('#compileMethods()', () => {
           path: 'users/list',
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Type
-    ).to.equal('AWS::ApiGateway::Method');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Type,
+    ).to.equal('AWS::ApiGateway::Method')
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Type
-    ).to.equal('AWS::ApiGateway::Method');
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Type,
+    ).to.equal('AWS::ApiGateway::Method')
+  })
 
   it('should support AWS integration type', () => {
     awsCompileApigEvents.validated.events = [
@@ -186,15 +205,18 @@ describe('#compileMethods()', () => {
           },
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Type
-    ).to.equal('AWS');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Type,
+    ).to.equal('AWS')
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.RequestParameters
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .RequestParameters,
     ).to.deep.equal({
       'integration.request.querystring.foo': 'method.request.querystring.foo',
       'integration.request.querystring.bar': 'method.request.querystring.bar',
@@ -202,8 +224,8 @@ describe('#compileMethods()', () => {
       'integration.request.path.bar': 'method.request.path.bar',
       'integration.request.header.foo': 'method.request.header.foo',
       'integration.request.header.bar': 'method.request.header.bar',
-    });
-  });
+    })
+  })
 
   it('should support AWS_PROXY integration type', () => {
     awsCompileApigEvents.validated.events = [
@@ -215,13 +237,14 @@ describe('#compileMethods()', () => {
           integration: 'AWS_PROXY',
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Type
-    ).to.equal('AWS_PROXY');
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Type,
+    ).to.equal('AWS_PROXY')
+  })
 
   it('should support HTTP integration type', () => {
     awsCompileApigEvents.validated.events = [
@@ -244,27 +267,35 @@ describe('#compileMethods()', () => {
           },
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Type
-    ).to.equal('HTTP');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Type,
+    ).to.equal('HTTP')
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Uri
-    ).to.equal('https://example.com');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Uri,
+    ).to.equal('https://example.com')
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.IntegrationHttpMethod
-    ).to.equal('POST');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .IntegrationHttpMethod,
+    ).to.equal('POST')
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.RequestTemplates
-    ).to.equal(undefined);
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .RequestTemplates,
+    ).to.equal(undefined)
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.RequestParameters
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .RequestParameters,
     ).to.deep.equal({
       'integration.request.querystring.foo': 'method.request.querystring.foo',
       'integration.request.querystring.bar': 'method.request.querystring.bar',
@@ -272,8 +303,8 @@ describe('#compileMethods()', () => {
       'integration.request.path.bar': 'method.request.path.bar',
       'integration.request.header.foo': 'method.request.header.foo',
       'integration.request.header.bar': 'method.request.header.bar',
-    });
-  });
+    })
+  })
 
   it('should support HTTP integration type with custom request options', () => {
     awsCompileApigEvents.validated.events = [
@@ -289,21 +320,25 @@ describe('#compileMethods()', () => {
           },
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Type
-    ).to.equal('HTTP');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Type,
+    ).to.equal('HTTP')
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Uri
-    ).to.equal('https://example.com');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Uri,
+    ).to.equal('https://example.com')
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.IntegrationHttpMethod
-    ).to.equal('PUT');
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .IntegrationHttpMethod,
+    ).to.equal('PUT')
+  })
 
   it('should support HTTP_PROXY integration type', () => {
     awsCompileApigEvents.validated.events = [
@@ -327,23 +362,29 @@ describe('#compileMethods()', () => {
           },
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Type
-    ).to.equal('HTTP_PROXY');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Type,
+    ).to.equal('HTTP_PROXY')
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Uri
-    ).to.equal('https://example.com');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Uri,
+    ).to.equal('https://example.com')
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.IntegrationHttpMethod
-    ).to.equal('PATCH');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .IntegrationHttpMethod,
+    ).to.equal('PATCH')
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.RequestParameters
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .RequestParameters,
     ).to.deep.equal({
       'integration.request.querystring.foo': 'method.request.querystring.foo',
       'integration.request.querystring.bar': 'method.request.querystring.bar',
@@ -351,8 +392,8 @@ describe('#compileMethods()', () => {
       'integration.request.path.bar': 'method.request.path.bar',
       'integration.request.header.foo': 'method.request.header.foo',
       'integration.request.header.bar': 'method.request.header.bar',
-    });
-  });
+    })
+  })
 
   it('should support MOCK integration type', () => {
     awsCompileApigEvents.validated.events = [
@@ -364,13 +405,14 @@ describe('#compileMethods()', () => {
           integration: 'MOCK',
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Type
-    ).to.equal('MOCK');
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Type,
+    ).to.equal('MOCK')
+  })
 
   it('should add request parameter when async config is used', () => {
     awsCompileApigEvents.validated.events = [
@@ -382,15 +424,15 @@ describe('#compileMethods()', () => {
           async: true,
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.RequestParameters[
-        'integration.request.header.X-Amz-Invocation-Type'
-      ]
-    ).to.equal("'Event'");
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .RequestParameters['integration.request.header.X-Amz-Invocation-Type'],
+    ).to.equal("'Event'")
+  })
 
   it('should add request parameter when integration type is AWS_PROXY and async', () => {
     awsCompileApigEvents.validated.events = [
@@ -403,15 +445,15 @@ describe('#compileMethods()', () => {
           async: true,
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.RequestParameters[
-        'integration.request.header.X-Amz-Invocation-Type'
-      ]
-    ).to.equal("'Event'");
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .RequestParameters['integration.request.header.X-Amz-Invocation-Type'],
+    ).to.equal("'Event'")
+  })
 
   it('should add request parameter mapped value when explicitly defined', () => {
     awsCompileApigEvents.validated.events = [
@@ -452,39 +494,55 @@ describe('#compileMethods()', () => {
           },
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters['method.request.header.foo']
-    ).to.equal(true);
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters[
+        'method.request.header.foo'
+      ],
+    ).to.equal(true)
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters['method.request.header.bar']
-    ).to.equal(false);
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters[
+        'method.request.header.bar'
+      ],
+    ).to.equal(false)
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
         .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters[
         'method.request.querystring.foo'
-      ]
-    ).to.equal(true);
+      ],
+    ).to.equal(true)
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
         .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters[
         'method.request.querystring.bar'
-      ]
-    ).to.equal(false);
+      ],
+    ).to.equal(false)
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters['method.request.path.foo']
-    ).to.equal(true);
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters[
+        'method.request.path.foo'
+      ],
+    ).to.equal(true)
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters['method.request.path.bar']
-    ).to.equal(false);
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.RequestParameters[
+        'method.request.path.bar'
+      ],
+    ).to.equal(false)
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.RequestParameters
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .RequestParameters,
     ).to.deep.equal({
       'integration.request.querystring.foo': 'fooValue',
       'integration.request.querystring.bar': 'barValue',
@@ -492,8 +550,8 @@ describe('#compileMethods()', () => {
       'integration.request.path.bar': 'barValue',
       'integration.request.header.foo': 'fooValue',
       'integration.request.header.bar': 'barValue',
-    });
-  });
+    })
+  })
 
   it('should set required to true when omitted from mapped value', async () => {
     const { cfTemplate } = await runServerless({
@@ -524,13 +582,12 @@ describe('#compileMethods()', () => {
           },
         },
       },
-    });
+    })
     expect(
-      cfTemplate.Resources.ApiGatewayMethodUsersCreatePost.Properties.RequestParameters[
-        'method.request.querystring.foo'
-      ]
-    ).to.equal(true);
-  });
+      cfTemplate.Resources.ApiGatewayMethodUsersCreatePost.Properties
+        .RequestParameters['method.request.querystring.foo'],
+    ).to.equal(true)
+  })
 
   it('should set authorizer config for AWS_IAM', () => {
     awsCompileApigEvents.validated.events = [
@@ -544,13 +601,14 @@ describe('#compileMethods()', () => {
           },
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizationType
-    ).to.equal('AWS_IAM');
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizationType,
+    ).to.equal('AWS_IAM')
+  })
 
   it('should set custom authorizer config with authorizerId', () => {
     awsCompileApigEvents.validated.events = [
@@ -565,17 +623,19 @@ describe('#compileMethods()', () => {
           },
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizationType
-    ).to.equal('COGNITO_USER_POOLS');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizationType,
+    ).to.equal('COGNITO_USER_POOLS')
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizerId
-    ).to.equal('gy7lyj');
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizerId,
+    ).to.equal('gy7lyj')
+  })
 
   it('should set authorizer config if given as ARN string', () => {
     awsCompileApigEvents.validated.events = [
@@ -590,18 +650,20 @@ describe('#compileMethods()', () => {
           method: 'post',
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizationType
-    ).to.equal('CUSTOM');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizationType,
+    ).to.equal('CUSTOM')
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizerId.Ref
-    ).to.equal('AuthorizerApiGatewayAuthorizer');
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizerId.Ref,
+    ).to.equal('AuthorizerApiGatewayAuthorizer')
+  })
 
   it('should set authorizer config for a cognito user pool when given authorizer arn', () => {
     awsCompileApigEvents.validated.events = [
@@ -618,29 +680,34 @@ describe('#compileMethods()', () => {
           method: 'post',
         },
       },
-    ];
+    ]
 
-    awsCompileApigEvents.compileMethods();
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizationType
-    ).to.equal('COGNITO_USER_POOLS');
-
-    expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizationScopes
-    ).to.contain('myapp/read');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizationType,
+    ).to.equal('COGNITO_USER_POOLS')
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizerId.Ref
-    ).to.equal('AuthorizerApiGatewayAuthorizer');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizationScopes,
+    ).to.contain('myapp/read')
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.RequestTemplates['application/json']
-    ).to.not.match(/undefined/);
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizerId.Ref,
+    ).to.equal('AuthorizerApiGatewayAuthorizer')
+
+    expect(
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .RequestTemplates['application/json'],
+    ).to.not.match(/undefined/)
+  })
 
   it('should set authorizer config for a cognito user pool when given authorizerId Ref', () => {
     awsCompileApigEvents.validated.events = [
@@ -658,29 +725,34 @@ describe('#compileMethods()', () => {
           method: 'post',
         },
       },
-    ];
+    ]
 
-    awsCompileApigEvents.compileMethods();
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizationType
-    ).to.equal('COGNITO_USER_POOLS');
-
-    expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizationScopes
-    ).to.contain('myapp/read');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizationType,
+    ).to.equal('COGNITO_USER_POOLS')
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizerId.Ref
-    ).to.equal('CognitoAuthorizer');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizationScopes,
+    ).to.contain('myapp/read')
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.RequestTemplates['application/json']
-    ).to.not.match(/undefined/);
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizerId.Ref,
+    ).to.equal('CognitoAuthorizer')
+
+    expect(
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .RequestTemplates['application/json'],
+    ).to.not.match(/undefined/)
+  })
 
   it('should set authorizer config for a cognito user pool when given cognito arn object', () => {
     awsCompileApigEvents.validated.events = [
@@ -700,29 +772,34 @@ describe('#compileMethods()', () => {
           method: 'post',
         },
       },
-    ];
+    ]
 
-    awsCompileApigEvents.compileMethods();
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizationType
-    ).to.equal('COGNITO_USER_POOLS');
-
-    expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizationScopes
-    ).to.contain('myapp/read');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizationType,
+    ).to.equal('COGNITO_USER_POOLS')
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizerId.Ref
-    ).to.equal('AuthorizerApiGatewayAuthorizer');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizationScopes,
+    ).to.contain('myapp/read')
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.RequestTemplates['application/json']
-    ).to.not.match(/undefined/);
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.AuthorizerId.Ref,
+    ).to.equal('AuthorizerApiGatewayAuthorizer')
+
+    expect(
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .RequestTemplates['application/json'],
+    ).to.not.match(/undefined/)
+  })
 
   it('should not scopes for a cognito user pool when given empty scopes array', () => {
     awsCompileApigEvents.validated.events = [
@@ -740,14 +817,15 @@ describe('#compileMethods()', () => {
           method: 'post',
         },
       },
-    ];
+    ]
 
-    awsCompileApigEvents.compileMethods();
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties
-    ).to.not.have.property('AuthorizationScopes');
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties,
+    ).to.not.have.property('AuthorizationScopes')
+  })
 
   it('should pass on import functions for a cognito user pool authorizer scopes', () => {
     awsCompileApigEvents.validated.events = [
@@ -769,17 +847,18 @@ describe('#compileMethods()', () => {
           method: 'post',
         },
       },
-    ];
+    ]
 
-    awsCompileApigEvents.compileMethods();
+    awsCompileApigEvents.compileMethods()
     const resource =
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost;
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost
 
     expect(resource.Properties.AuthorizationScopes[0]).to.deep.equal({
       'Fn::ImportValue': 'ImportedScope',
-    });
-  });
+    })
+  })
 
   it('should set claims for a cognito user pool', () => {
     awsCompileApigEvents.validated.events = [
@@ -796,19 +875,21 @@ describe('#compileMethods()', () => {
           method: 'post',
         },
       },
-    ];
+    ]
 
-    awsCompileApigEvents.compileMethods();
+    awsCompileApigEvents.compileMethods()
     const jsonRequestTemplatesString =
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.RequestTemplates[
-        'application/json'
-      ];
-    const cognitoPoolClaimsRegex = /"cognitoPoolClaims"\s*:\s*(\{[^}]*\})/;
-    const cognitoPoolClaimsString = jsonRequestTemplatesString.match(cognitoPoolClaimsRegex)[1];
-    const cognitoPoolClaims = JSON.parse(cognitoPoolClaimsString);
-    expect(cognitoPoolClaims.email).to.equal('$context.authorizer.claims.email');
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .RequestTemplates['application/json']
+    const cognitoPoolClaimsRegex = /"cognitoPoolClaims"\s*:\s*(\{[^}]*\})/
+    const cognitoPoolClaimsString = jsonRequestTemplatesString.match(
+      cognitoPoolClaimsRegex,
+    )[1]
+    const cognitoPoolClaims = JSON.parse(cognitoPoolClaimsString)
+    expect(cognitoPoolClaims.email).to.equal('$context.authorizer.claims.email')
+  })
 
   it('should set multiple claims for a cognito user pool', () => {
     awsCompileApigEvents.validated.events = [
@@ -825,20 +906,24 @@ describe('#compileMethods()', () => {
           method: 'post',
         },
       },
-    ];
+    ]
 
-    awsCompileApigEvents.compileMethods();
+    awsCompileApigEvents.compileMethods()
     const jsonRequestTemplatesString =
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.RequestTemplates[
-        'application/json'
-      ];
-    const cognitoPoolClaimsRegex = /"cognitoPoolClaims"\s*:\s*(\{[^}]*\})/;
-    const cognitoPoolClaimsString = jsonRequestTemplatesString.match(cognitoPoolClaimsRegex)[1];
-    const cognitoPoolClaims = JSON.parse(cognitoPoolClaimsString);
-    expect(cognitoPoolClaims.email).to.equal('$context.authorizer.claims.email');
-    expect(cognitoPoolClaims.gender).to.equal('$context.authorizer.claims.gender');
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .RequestTemplates['application/json']
+    const cognitoPoolClaimsRegex = /"cognitoPoolClaims"\s*:\s*(\{[^}]*\})/
+    const cognitoPoolClaimsString = jsonRequestTemplatesString.match(
+      cognitoPoolClaimsRegex,
+    )[1]
+    const cognitoPoolClaims = JSON.parse(cognitoPoolClaimsString)
+    expect(cognitoPoolClaims.email).to.equal('$context.authorizer.claims.email')
+    expect(cognitoPoolClaims.gender).to.equal(
+      '$context.authorizer.claims.gender',
+    )
+  })
 
   it('should properly set claims for custom properties inside the cognito user pool', () => {
     awsCompileApigEvents.validated.events = [
@@ -855,20 +940,24 @@ describe('#compileMethods()', () => {
           method: 'post',
         },
       },
-    ];
+    ]
 
-    awsCompileApigEvents.compileMethods();
+    awsCompileApigEvents.compileMethods()
     const jsonRequestTemplatesString =
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.RequestTemplates[
-        'application/json'
-      ];
-    const cognitoPoolClaimsRegex = /"cognitoPoolClaims"\s*:\s*(\{[^}]*\})/;
-    const cognitoPoolClaimsString = jsonRequestTemplatesString.match(cognitoPoolClaimsRegex)[1];
-    const cognitoPoolClaims = JSON.parse(cognitoPoolClaimsString);
-    expect(cognitoPoolClaims.email).to.equal('$context.authorizer.claims.email');
-    expect(cognitoPoolClaims.score).to.equal("$context.authorizer.claims['custom:score']");
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .RequestTemplates['application/json']
+    const cognitoPoolClaimsRegex = /"cognitoPoolClaims"\s*:\s*(\{[^}]*\})/
+    const cognitoPoolClaimsString = jsonRequestTemplatesString.match(
+      cognitoPoolClaimsRegex,
+    )[1]
+    const cognitoPoolClaims = JSON.parse(cognitoPoolClaimsString)
+    expect(cognitoPoolClaims.email).to.equal('$context.authorizer.claims.email')
+    expect(cognitoPoolClaims.score).to.equal(
+      "$context.authorizer.claims['custom:score']",
+    )
+  })
 
   it('should replace the extra claims in the template if there are none', () => {
     awsCompileApigEvents.validated.events = [
@@ -884,23 +973,26 @@ describe('#compileMethods()', () => {
           method: 'post',
         },
       },
-    ];
+    ]
 
-    awsCompileApigEvents.compileMethods();
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.RequestTemplates['application/json']
-    ).to.not.match(/extraCognitoPoolClaims/);
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .RequestTemplates['application/json'],
+    ).to.not.match(/extraCognitoPoolClaims/)
+  })
 
   it('should not create method resources when http events are not given', () => {
-    awsCompileApigEvents.validated.events = [];
+    awsCompileApigEvents.validated.events = []
 
-    awsCompileApigEvents.compileMethods();
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-    ).to.deep.equal({});
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources,
+    ).to.deep.equal({})
+  })
 
   it('should update the method logical ids array', () => {
     awsCompileApigEvents.validated.events = [
@@ -918,14 +1010,14 @@ describe('#compileMethods()', () => {
           path: 'users/list',
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
-    expect(awsCompileApigEvents.apiGatewayMethodLogicalIds.length).to.equal(2);
+    ]
+    awsCompileApigEvents.compileMethods()
+    expect(awsCompileApigEvents.apiGatewayMethodLogicalIds.length).to.equal(2)
     expect(awsCompileApigEvents.apiGatewayMethodLogicalIds).to.deep.equal([
       'ApiGatewayMethodUsersCreatePost',
       'ApiGatewayMethodUsersListGet',
-    ]);
-  });
+    ])
+  })
 
   it('should set api key as required if private endpoint', () => {
     awsCompileApigEvents.validated.events = [
@@ -937,13 +1029,14 @@ describe('#compileMethods()', () => {
           private: true,
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.ApiKeyRequired
-    ).to.equal(true);
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.ApiKeyRequired,
+    ).to.equal(true)
+  })
 
   it('should set api key as not required if private property is not specified', () => {
     awsCompileApigEvents.validated.events = [
@@ -954,13 +1047,14 @@ describe('#compileMethods()', () => {
           method: 'post',
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.ApiKeyRequired
-    ).to.equal(false);
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.ApiKeyRequired,
+    ).to.equal(false)
+  })
 
   it('should set the correct lambdaUri', () => {
     awsCompileApigEvents.validated.events = [
@@ -978,11 +1072,12 @@ describe('#compileMethods()', () => {
           path: 'users/list',
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Uri
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration.Uri,
     ).to.deep.equal({
       'Fn::Join': [
         '',
@@ -996,10 +1091,11 @@ describe('#compileMethods()', () => {
           '/invocations',
         ],
       ],
-    });
+    })
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.Uri
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.Uri,
     ).to.deep.equal({
       'Fn::Join': [
         '',
@@ -1013,8 +1109,8 @@ describe('#compileMethods()', () => {
           '/invocations',
         ],
       ],
-    });
-  });
+    })
+  })
 
   it('Should point target alias if set', () => {
     awsCompileApigEvents.validated.events = [
@@ -1025,14 +1121,15 @@ describe('#compileMethods()', () => {
           path: 'users/list',
         },
       },
-    ];
+    ]
     serverless.service.functions.Provisioned = {
       targetAlias: { name: 'provisioned', logicalId: 'IrrelevantLogicalId' },
-    };
-    awsCompileApigEvents.compileMethods();
+    }
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.Uri
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.Uri,
     ).to.deep.equal({
       'Fn::Join': [
         '',
@@ -1048,8 +1145,8 @@ describe('#compileMethods()', () => {
           '/invocations',
         ],
       ],
-    });
-  });
+    })
+  })
 
   it('should add CORS origins to method only when CORS is enabled', () => {
     awsCompileApigEvents.validated.events = [
@@ -1104,27 +1201,34 @@ describe('#compileMethods()', () => {
           },
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Allow-Origin']
-    ).to.equal("'http://example.com'");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Allow-Origin'
+      ],
+    ).to.equal("'http://example.com'")
 
     // CORS not enabled!
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Allow-Origin']
-    ).to.not.equal("'*'");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Allow-Origin'
+      ],
+    ).to.not.equal("'*'")
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersUpdatePut.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Allow-Origin']
-    ).to.equal("'*'");
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersUpdatePut
+        .Properties.Integration.IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Allow-Origin'
+      ],
+    ).to.equal("'*'")
+  })
 
   it('should set CORS allowCredentials to method only when specified', () => {
     awsCompileApigEvents.validated.events = [
@@ -1165,21 +1269,26 @@ describe('#compileMethods()', () => {
           },
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Allow-Credentials']
-    ).to.equal('true');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Allow-Credentials'
+      ],
+    ).to.equal('true')
 
     // allowCredentials not enabled
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Access-Control-Allow-Credentials']
-    ).to.not.equal('true');
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Access-Control-Allow-Credentials'
+      ],
+    ).to.not.equal('true')
+  })
 
   describe('when dealing with request configuration', () => {
     it('should setup a default "application/json" template', () => {
@@ -1199,13 +1308,14 @@ describe('#compileMethods()', () => {
             },
           },
         },
-      ];
-      awsCompileApigEvents.compileMethods();
+      ]
+      awsCompileApigEvents.compileMethods()
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayMethodUsersListGet.Properties.Integration.RequestTemplates['application/json']
-      ).to.have.length.above(0);
-    });
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+          .Properties.Integration.RequestTemplates['application/json'],
+      ).to.have.length.above(0)
+    })
 
     it('should setup a default "application/x-www-form-urlencoded" template', () => {
       awsCompileApigEvents.validated.events = [
@@ -1224,15 +1334,16 @@ describe('#compileMethods()', () => {
             },
           },
         },
-      ];
-      awsCompileApigEvents.compileMethods();
+      ]
+      awsCompileApigEvents.compileMethods()
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayMethodUsersListGet.Properties.Integration.RequestTemplates[
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+          .Properties.Integration.RequestTemplates[
           'application/x-www-form-urlencoded'
-        ]
-      ).to.have.length.above(0);
-    });
+        ],
+      ).to.have.length.above(0)
+    })
 
     it('should use defined pass-through behavior', () => {
       awsCompileApigEvents.validated.events = [
@@ -1254,13 +1365,14 @@ describe('#compileMethods()', () => {
             },
           },
         },
-      ];
-      awsCompileApigEvents.compileMethods();
+      ]
+      awsCompileApigEvents.compileMethods()
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayMethodUsersListGet.Properties.Integration.PassthroughBehavior
-      ).to.equal('WHEN_NO_TEMPLATES');
-    });
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+          .Properties.Integration.PassthroughBehavior,
+      ).to.equal('WHEN_NO_TEMPLATES')
+    })
 
     it('should use defined content-handling behavior (request)', () => {
       awsCompileApigEvents.validated.events = [
@@ -1282,13 +1394,14 @@ describe('#compileMethods()', () => {
             },
           },
         },
-      ];
-      awsCompileApigEvents.compileMethods();
+      ]
+      awsCompileApigEvents.compileMethods()
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayMethodUsersListGet.Properties.Integration.ContentHandling
-      ).to.equal('CONVERT_TO_TEXT');
-    });
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+          .Properties.Integration.ContentHandling,
+      ).to.equal('CONVERT_TO_TEXT')
+    })
 
     it('should use defined response content-handling behavior for 2XX only (response)', () => {
       awsCompileApigEvents.validated.events = [
@@ -1311,19 +1424,19 @@ describe('#compileMethods()', () => {
             },
           },
         },
-      ];
-      awsCompileApigEvents.compileMethods();
+      ]
+      awsCompileApigEvents.compileMethods()
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[0]
-          .ContentHandling
-      ).to.equal('CONVERT_TO_BINARY');
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+          .Properties.Integration.IntegrationResponses[0].ContentHandling,
+      ).to.equal('CONVERT_TO_BINARY')
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[1]
-          .ContentHandling
-      ).to.equal(undefined);
-    });
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+          .Properties.Integration.IntegrationResponses[1].ContentHandling,
+      ).to.equal(undefined)
+    })
 
     it('should set custom request templates', () => {
       awsCompileApigEvents.validated.events = [
@@ -1348,18 +1461,20 @@ describe('#compileMethods()', () => {
             },
           },
         },
-      ];
-      awsCompileApigEvents.compileMethods();
+      ]
+      awsCompileApigEvents.compileMethods()
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayMethodUsersListGet.Properties.Integration.RequestTemplates['template/1']
-      ).to.equal('{ "stage" : "$context.stage" }');
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+          .Properties.Integration.RequestTemplates['template/1'],
+      ).to.equal('{ "stage" : "$context.stage" }')
 
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayMethodUsersListGet.Properties.Integration.RequestTemplates['template/2']
-      ).to.equal('{ "httpMethod" : "$context.httpMethod" }');
-    });
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+          .Properties.Integration.RequestTemplates['template/2'],
+      ).to.equal('{ "httpMethod" : "$context.httpMethod" }')
+    })
 
     it('should be possible to overwrite default request templates', () => {
       awsCompileApigEvents.validated.events = [
@@ -1383,14 +1498,15 @@ describe('#compileMethods()', () => {
             },
           },
         },
-      ];
-      awsCompileApigEvents.compileMethods();
+      ]
+      awsCompileApigEvents.compileMethods()
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayMethodUsersListGet.Properties.Integration.RequestTemplates['application/json']
-      ).to.equal('overwritten-request-template-content');
-    });
-  });
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+          .Properties.Integration.RequestTemplates['application/json'],
+      ).to.equal('overwritten-request-template-content')
+    })
+  })
 
   describe('when dealing with response configuration', () => {
     it('should set the custom headers', () => {
@@ -1414,19 +1530,23 @@ describe('#compileMethods()', () => {
             },
           },
         },
-      ];
-      awsCompileApigEvents.compileMethods();
+      ]
+      awsCompileApigEvents.compileMethods()
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[0]
-          .ResponseParameters['method.response.header.Content-Type']
-      ).to.equal("'text/plain'");
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+          .Properties.Integration.IntegrationResponses[0].ResponseParameters[
+          'method.response.header.Content-Type'
+        ],
+      ).to.equal("'text/plain'")
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[0]
-          .ResponseParameters['method.response.header.My-Custom-Header']
-      ).to.equal('my/custom/header');
-    });
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+          .Properties.Integration.IntegrationResponses[0].ResponseParameters[
+          'method.response.header.My-Custom-Header'
+        ],
+      ).to.equal('my/custom/header')
+    })
 
     it('should set the custom template', () => {
       awsCompileApigEvents.validated.events = [
@@ -1446,15 +1566,17 @@ describe('#compileMethods()', () => {
             },
           },
         },
-      ];
-      awsCompileApigEvents.compileMethods();
+      ]
+      awsCompileApigEvents.compileMethods()
       expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[0]
-          .ResponseTemplates['application/json']
-      ).to.equal("$input.path('$.foo')");
-    });
-  });
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+          .Properties.Integration.IntegrationResponses[0].ResponseTemplates[
+          'application/json'
+        ],
+      ).to.equal("$input.path('$.foo')")
+    })
+  })
 
   it('should add method responses for different status codes', () => {
     awsCompileApigEvents.validated.events = [
@@ -1476,17 +1598,19 @@ describe('#compileMethods()', () => {
           },
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.MethodResponses[0].StatusCode
-    ).to.equal('200');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.MethodResponses[0].StatusCode,
+    ).to.equal('200')
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.MethodResponses[1].StatusCode
-    ).to.equal('202');
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.MethodResponses[1].StatusCode,
+    ).to.equal('202')
+  })
 
   it('should add integration responses for different status codes', () => {
     awsCompileApigEvents.validated.events = [
@@ -1508,29 +1632,31 @@ describe('#compileMethods()', () => {
           },
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[1]
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.IntegrationResponses[1],
     ).to.deep.equal({
       StatusCode: '202',
       SelectionPattern: 'foo',
       ResponseParameters: {},
       ResponseTemplates: {},
       ContentHandling: undefined,
-    });
+    })
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[0]
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.IntegrationResponses[0],
     ).to.deep.equal({
       StatusCode: '200',
       SelectionPattern: '',
       ResponseParameters: {},
       ResponseTemplates: {},
       ContentHandling: undefined,
-    });
-  });
+    })
+  })
 
   it('should add fall back headers and template to statusCodes', () => {
     awsCompileApigEvents.validated.events = [
@@ -1553,19 +1679,23 @@ describe('#compileMethods()', () => {
           },
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[0]
-        .ResponseTemplates['application/json']
-    ).to.equal('foo');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.IntegrationResponses[0].ResponseTemplates[
+        'application/json'
+      ],
+    ).to.equal('foo')
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Content-Type']
-    ).to.equal('text/csv');
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Content-Type'
+      ],
+    ).to.equal('text/csv')
+  })
 
   it('should add custom response codes', () => {
     awsCompileApigEvents.validated.events = [
@@ -1592,34 +1722,40 @@ describe('#compileMethods()', () => {
           },
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[0]
-        .ResponseTemplates['application/json']
-    ).to.equal("$input.path('$.foo')");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.IntegrationResponses[0].ResponseTemplates[
+        'application/json'
+      ],
+    ).to.equal("$input.path('$.foo')")
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[0]
-        .SelectionPattern
-    ).to.equal('');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.IntegrationResponses[0].SelectionPattern,
+    ).to.equal('')
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[1]
-        .ResponseTemplates['application/json']
-    ).to.equal("$input.path('$.errorMessage')");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.IntegrationResponses[1].ResponseTemplates[
+        'application/json'
+      ],
+    ).to.equal("$input.path('$.errorMessage')")
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[1]
-        .SelectionPattern
-    ).to.equal('.*"statusCode":404,.*');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.IntegrationResponses[1].SelectionPattern,
+    ).to.equal('.*"statusCode":404,.*')
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[1]
-        .ResponseParameters['method.response.header.Content-Type']
-    ).to.equal('text/html');
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.IntegrationResponses[1].ResponseParameters[
+        'method.response.header.Content-Type'
+      ],
+    ).to.equal('text/html')
+  })
 
   it('should add multiple response templates for a custom response codes', () => {
     awsCompileApigEvents.validated.events = [
@@ -1651,44 +1787,54 @@ describe('#compileMethods()', () => {
           },
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[0]
-        .ResponseTemplates['application/json']
-    ).to.equal("$input.path('$.foo')");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.IntegrationResponses[0].ResponseTemplates[
+        'application/json'
+      ],
+    ).to.equal("$input.path('$.foo')")
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[0]
-        .SelectionPattern
-    ).to.equal('');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.IntegrationResponses[0].SelectionPattern,
+    ).to.equal('')
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[0]
-        .ResponseParameters['method.response.header.Content-Type']
-    ).to.equal('text/csv');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Content-Type'
+      ],
+    ).to.equal('text/csv')
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[1]
-        .ResponseTemplates['application/json']
-    ).to.equal("$input.path('$.errorMessage')");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.IntegrationResponses[1].ResponseTemplates[
+        'application/json'
+      ],
+    ).to.equal("$input.path('$.errorMessage')")
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[1]
-        .ResponseTemplates['application/xml']
-    ).to.equal("$input.path('$.xml.errorMessage')");
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.IntegrationResponses[1].ResponseTemplates[
+        'application/xml'
+      ],
+    ).to.equal("$input.path('$.xml.errorMessage')")
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[1]
-        .SelectionPattern
-    ).to.equal('.*"statusCode":404,.*');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.IntegrationResponses[1].SelectionPattern,
+    ).to.equal('.*"statusCode":404,.*')
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[1]
-        .ResponseParameters['method.response.header.Content-Type']
-    ).to.equal('text/html');
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.IntegrationResponses[1].ResponseParameters[
+        'method.response.header.Content-Type'
+      ],
+    ).to.equal('text/html')
+  })
 
   it('should use defined content-handling behavior', () => {
     awsCompileApigEvents.validated.events = [
@@ -1708,13 +1854,14 @@ describe('#compileMethods()', () => {
           },
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersListGet.Properties.Integration.IntegrationResponses[0].ContentHandling
-    ).to.equal('CONVERT_TO_BINARY');
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodUsersListGet
+        .Properties.Integration.IntegrationResponses[0].ContentHandling,
+    ).to.equal('CONVERT_TO_BINARY')
+  })
 
   it('should handle root resource methods', () => {
     awsCompileApigEvents.validated.events = [
@@ -1725,15 +1872,16 @@ describe('#compileMethods()', () => {
           method: 'GET',
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodGet.Properties.ResourceId
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.ApiGatewayMethodGet.Properties
+        .ResourceId,
     ).to.deep.equal({
       'Fn::GetAtt': ['ApiGatewayRestApi', 'RootResourceId'],
-    });
-  });
+    })
+  })
 
   it('should include operation id as OperationName when it is set', () => {
     awsCompileApigEvents.validated.events = [
@@ -1746,13 +1894,14 @@ describe('#compileMethods()', () => {
           operationId: 'createUser',
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties.OperationName
-    ).to.equal('createUser');
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.OperationName,
+    ).to.equal('createUser')
+  })
 
   it('should not include operation id when it is not set', () => {
     awsCompileApigEvents.validated.events = [
@@ -1764,14 +1913,15 @@ describe('#compileMethods()', () => {
           integration: 'AWS',
         },
       },
-    ];
-    awsCompileApigEvents.compileMethods();
+    ]
+    awsCompileApigEvents.compileMethods()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .ApiGatewayMethodUsersCreatePost.Properties
-    ).to.not.have.key('OperationName');
-  });
-});
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties,
+    ).to.not.have.key('OperationName')
+  })
+})
 
 describe('#compileMethods v2()', () => {
   describe('request configuration', () => {
@@ -1788,7 +1938,9 @@ describe('#compileMethods v2()', () => {
                 {
                   http: {
                     integration: 'AWS',
-                    request: { template: { 'application/x-www-form-urlencoded': null } },
+                    request: {
+                      template: { 'application/x-www-form-urlencoded': null },
+                    },
                   },
                 },
               ],
@@ -1796,14 +1948,15 @@ describe('#compileMethods v2()', () => {
           },
         },
         command: 'package',
-      });
-      const apiGatewayMethodConfig = cfResources[awsNaming.getMethodLogicalId('Foo', 'GET')];
+      })
+      const apiGatewayMethodConfig =
+        cfResources[awsNaming.getMethodLogicalId('Foo', 'GET')]
 
-      expect(apiGatewayMethodConfig.Properties.Integration.RequestTemplates).to.not.have.property(
-        'application/x-www-form-urlencoded'
-      );
-    });
-  });
+      expect(
+        apiGatewayMethodConfig.Properties.Integration.RequestTemplates,
+      ).to.not.have.property('application/x-www-form-urlencoded')
+    })
+  })
 
   describe('method authorization', () => {
     it('should correctly set method authorization properties', async () => {
@@ -1837,17 +1990,26 @@ describe('#compileMethods v2()', () => {
           },
         },
         command: 'package',
-      });
-      const apiGatewayRequestMethodConfig = cfResources[awsNaming.getMethodLogicalId('Foo', 'GET')];
-      expect(apiGatewayRequestMethodConfig.Properties.AuthorizationType).to.equal('CUSTOM');
-      expect(apiGatewayRequestMethodConfig.Properties.AuthorizerId).to.deep.equal('some-id');
+      })
+      const apiGatewayRequestMethodConfig =
+        cfResources[awsNaming.getMethodLogicalId('Foo', 'GET')]
+      expect(
+        apiGatewayRequestMethodConfig.Properties.AuthorizationType,
+      ).to.equal('CUSTOM')
+      expect(
+        apiGatewayRequestMethodConfig.Properties.AuthorizerId,
+      ).to.deep.equal('some-id')
 
       const apiGatewayTokenMethodConfig =
-        cfResources[awsNaming.getMethodLogicalId('SomeDashpost', 'POST')];
-      expect(apiGatewayTokenMethodConfig.Properties.AuthorizationType).to.equal('CUSTOM');
-      expect(apiGatewayTokenMethodConfig.Properties.AuthorizerId).to.deep.equal('another-id');
-    });
-  });
+        cfResources[awsNaming.getMethodLogicalId('SomeDashpost', 'POST')]
+      expect(apiGatewayTokenMethodConfig.Properties.AuthorizationType).to.equal(
+        'CUSTOM',
+      )
+      expect(apiGatewayTokenMethodConfig.Properties.AuthorizerId).to.deep.equal(
+        'another-id',
+      )
+    })
+  })
 
   it('should depends on permission resource', async () => {
     const {
@@ -1856,15 +2018,17 @@ describe('#compileMethods v2()', () => {
     } = await runServerless({
       command: 'package',
       fixture: 'api-gateway',
-    });
-    const FooApiGatewayMethodConfig = cfResources[awsNaming.getMethodLogicalId('Foo', 'GET')];
+    })
+    const FooApiGatewayMethodConfig =
+      cfResources[awsNaming.getMethodLogicalId('Foo', 'GET')]
     const OtherApiGatewayMethodConfig =
-      cfResources[awsNaming.getMethodLogicalId('BarMarkoVar', 'GET')];
+      cfResources[awsNaming.getMethodLogicalId('BarMarkoVar', 'GET')]
 
-    const permNameFoo = awsNaming.getLambdaApiGatewayPermissionLogicalId('Foo');
-    const permNameOther = awsNaming.getLambdaApiGatewayPermissionLogicalId('Other');
+    const permNameFoo = awsNaming.getLambdaApiGatewayPermissionLogicalId('Foo')
+    const permNameOther =
+      awsNaming.getLambdaApiGatewayPermissionLogicalId('Other')
 
-    expect(FooApiGatewayMethodConfig.DependsOn).to.include(permNameFoo);
-    expect(OtherApiGatewayMethodConfig.DependsOn).to.include(permNameOther);
-  });
-});
+    expect(FooApiGatewayMethodConfig.DependsOn).to.include(permNameFoo)
+    expect(OtherApiGatewayMethodConfig.DependsOn).to.include(permNameOther)
+  })
+})

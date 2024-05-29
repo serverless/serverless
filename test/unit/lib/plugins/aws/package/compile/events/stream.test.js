@@ -1,17 +1,17 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
-const AwsCompileStreamEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/stream');
-const Serverless = require('../../../../../../../../lib/serverless');
-const runServerless = require('../../../../../../../utils/run-serverless');
+const expect = require('chai').expect
+const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider')
+const AwsCompileStreamEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/stream')
+const Serverless = require('../../../../../../../../lib/serverless')
+const runServerless = require('../../../../../../../utils/run-serverless')
 
 describe('AwsCompileStreamEvents', () => {
-  let serverless;
-  let awsCompileStreamEvents;
+  let serverless
+  let awsCompileStreamEvents
 
   beforeEach(() => {
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({ commands: [], options: {} })
     serverless.service.provider.compiledCloudFormationTemplate = {
       Resources: {
         IamRoleLambdaExecution: {
@@ -26,11 +26,11 @@ describe('AwsCompileStreamEvents', () => {
           },
         },
       },
-    };
-    serverless.setProvider('aws', new AwsProvider(serverless));
-    awsCompileStreamEvents = new AwsCompileStreamEvents(serverless);
-    awsCompileStreamEvents.serverless.service.service = 'new-service';
-  });
+    }
+    serverless.setProvider('aws', new AwsProvider(serverless))
+    awsCompileStreamEvents = new AwsCompileStreamEvents(serverless)
+    awsCompileStreamEvents.serverless.service.service = 'new-service'
+  })
 
   describe('#compileStreamEvents()', () => {
     it('should not throw error or merge role statements if default policy is not present', () => {
@@ -43,20 +43,20 @@ describe('AwsCompileStreamEvents', () => {
             },
           ],
         },
-      };
+      }
 
       // pretend that the default IamRoleLambdaExecution is not in place
       awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
+        null
 
       expect(() => {
-        awsCompileStreamEvents.compileStreamEvents();
-      }).to.not.throw(Error);
+        awsCompileStreamEvents.compileStreamEvents()
+      }).to.not.throw(Error)
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution,
+      ).to.equal(null)
+    })
 
     it('should not throw error if custom IAM role is set in function', () => {
       awsCompileStreamEvents.serverless.service.functions = {
@@ -69,31 +69,33 @@ describe('AwsCompileStreamEvents', () => {
             },
           ],
         },
-      };
+      }
 
       // pretend that the default IamRoleLambdaExecution is not in place
       awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
+        null
 
       expect(() => {
-        awsCompileStreamEvents.compileStreamEvents();
-      }).to.not.throw(Error);
+        awsCompileStreamEvents.compileStreamEvents()
+      }).to.not.throw(Error)
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn
-      ).to.be.instanceof(Array);
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstEventSourceMappingDynamodbFoo.DependsOn,
+      ).to.be.instanceof(Array)
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn.length
-      ).to.equal(0);
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstEventSourceMappingDynamodbFoo.DependsOn.length,
+      ).to.equal(0)
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution,
+      ).to.equal(null)
+    })
 
     it('should not throw error if custom IAM role name reference is set in function', () => {
-      const roleLogicalId = 'RoleLogicalId';
+      const roleLogicalId = 'RoleLogicalId'
       awsCompileStreamEvents.serverless.service.functions = {
         first: {
           role: roleLogicalId,
@@ -104,27 +106,28 @@ describe('AwsCompileStreamEvents', () => {
             },
           ],
         },
-      };
+      }
 
       // pretend that the default IamRoleLambdaExecution is not in place
       awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
+        null
 
       expect(() => {
-        awsCompileStreamEvents.compileStreamEvents();
-      }).to.not.throw(Error);
+        awsCompileStreamEvents.compileStreamEvents()
+      }).to.not.throw(Error)
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn
-      ).to.include(roleLogicalId);
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstEventSourceMappingDynamodbFoo.DependsOn,
+      ).to.include(roleLogicalId)
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution,
+      ).to.equal(null)
+    })
 
     it('should not throw error if custom IAM role reference is set in function', () => {
-      const roleLogicalId = 'RoleLogicalId';
+      const roleLogicalId = 'RoleLogicalId'
       awsCompileStreamEvents.serverless.service.functions = {
         first: {
           role: { 'Fn::GetAtt': [roleLogicalId, 'Arn'] },
@@ -135,24 +138,25 @@ describe('AwsCompileStreamEvents', () => {
             },
           ],
         },
-      };
+      }
 
       // pretend that the default IamRoleLambdaExecution is not in place
       awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
+        null
 
       expect(() => {
-        awsCompileStreamEvents.compileStreamEvents();
-      }).to.not.throw(Error);
+        awsCompileStreamEvents.compileStreamEvents()
+      }).to.not.throw(Error)
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn
-      ).to.include(roleLogicalId);
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstEventSourceMappingDynamodbFoo.DependsOn,
+      ).to.include(roleLogicalId)
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution,
+      ).to.equal(null)
+    })
 
     it('should not throw error if custom IAM role is set in provider', () => {
       awsCompileStreamEvents.serverless.service.functions = {
@@ -164,30 +168,33 @@ describe('AwsCompileStreamEvents', () => {
             },
           ],
         },
-      };
+      }
 
       // pretend that the default IamRoleLambdaExecution is not in place
       awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
+        null
 
-      awsCompileStreamEvents.serverless.service.provider.role = 'arn:aws:iam::account:role/foo';
+      awsCompileStreamEvents.serverless.service.provider.role =
+        'arn:aws:iam::account:role/foo'
 
       expect(() => {
-        awsCompileStreamEvents.compileStreamEvents();
-      }).to.not.throw(Error);
+        awsCompileStreamEvents.compileStreamEvents()
+      }).to.not.throw(Error)
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn
-      ).to.be.instanceof(Array);
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstEventSourceMappingDynamodbFoo.DependsOn,
+      ).to.be.instanceof(Array)
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn.length
-      ).to.equal(0);
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstEventSourceMappingDynamodbFoo.DependsOn.length,
+      ).to.equal(0)
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution,
+      ).to.equal(null)
+    })
 
     it('should not throw error if IAM role is referenced from cloudformation parameters', () => {
       awsCompileStreamEvents.serverless.service.functions = {
@@ -200,24 +207,25 @@ describe('AwsCompileStreamEvents', () => {
             },
           ],
         },
-      };
+      }
 
       // pretend that the default IamRoleLambdaExecution is not in place
       awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
+        null
 
       expect(() => {
-        awsCompileStreamEvents.compileStreamEvents();
-      }).to.not.throw(Error);
+        awsCompileStreamEvents.compileStreamEvents()
+      }).to.not.throw(Error)
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn.length
-      ).to.equal(0);
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstEventSourceMappingDynamodbFoo.DependsOn.length,
+      ).to.equal(0)
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution,
+      ).to.equal(null)
+    })
 
     it('should not throw error if IAM role is imported', () => {
       awsCompileStreamEvents.serverless.service.functions = {
@@ -230,27 +238,28 @@ describe('AwsCompileStreamEvents', () => {
             },
           ],
         },
-      };
+      }
 
       // pretend that the default IamRoleLambdaExecution is not in place
       awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
+        null
 
       expect(() => {
-        awsCompileStreamEvents.compileStreamEvents();
-      }).to.not.throw(Error);
+        awsCompileStreamEvents.compileStreamEvents()
+      }).to.not.throw(Error)
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn.length
-      ).to.equal(0);
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstEventSourceMappingDynamodbFoo.DependsOn.length,
+      ).to.equal(0)
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution,
+      ).to.equal(null)
+    })
 
     it('should not throw error if custom IAM role reference is set in provider', () => {
-      const roleLogicalId = 'RoleLogicalId';
+      const roleLogicalId = 'RoleLogicalId'
       awsCompileStreamEvents.serverless.service.functions = {
         first: {
           events: [
@@ -260,31 +269,32 @@ describe('AwsCompileStreamEvents', () => {
             },
           ],
         },
-      };
+      }
 
       // pretend that the default IamRoleLambdaExecution is not in place
       awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
+        null
 
       awsCompileStreamEvents.serverless.service.provider.role = {
         'Fn::GetAtt': [roleLogicalId, 'Arn'],
-      };
+      }
 
       expect(() => {
-        awsCompileStreamEvents.compileStreamEvents();
-      }).to.not.throw(Error);
+        awsCompileStreamEvents.compileStreamEvents()
+      }).to.not.throw(Error)
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn
-      ).to.include(roleLogicalId);
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstEventSourceMappingDynamodbFoo.DependsOn,
+      ).to.include(roleLogicalId)
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution,
+      ).to.equal(null)
+    })
 
     it('should not throw error if custom IAM role name reference is set in provider', () => {
-      const roleLogicalId = 'RoleLogicalId';
+      const roleLogicalId = 'RoleLogicalId'
       awsCompileStreamEvents.serverless.service.functions = {
         first: {
           events: [
@@ -294,26 +304,27 @@ describe('AwsCompileStreamEvents', () => {
             },
           ],
         },
-      };
+      }
 
       // pretend that the default IamRoleLambdaExecution is not in place
       awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-        null;
+        null
 
-      awsCompileStreamEvents.serverless.service.provider.role = roleLogicalId;
+      awsCompileStreamEvents.serverless.service.provider.role = roleLogicalId
 
       expect(() => {
-        awsCompileStreamEvents.compileStreamEvents();
-      }).to.not.throw(Error);
+        awsCompileStreamEvents.compileStreamEvents()
+      }).to.not.throw(Error)
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstEventSourceMappingDynamodbFoo.DependsOn
-      ).to.include(roleLogicalId);
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstEventSourceMappingDynamodbFoo.DependsOn,
+      ).to.include(roleLogicalId)
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .IamRoleLambdaExecution
-      ).to.equal(null);
-    });
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution,
+      ).to.equal(null)
+    })
 
     describe('when a DynamoDB stream ARN is given', () => {
       it('should create event source mappings when a DynamoDB stream ARN is given', () => {
@@ -356,181 +367,241 @@ describe('AwsCompileStreamEvents', () => {
               },
             ],
           },
-        };
+        }
 
-        awsCompileStreamEvents.compileStreamEvents();
+        awsCompileStreamEvents.compileStreamEvents()
 
         // event 1
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbFoo.Type
-        ).to.equal('AWS::Lambda::EventSourceMapping');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbFoo.Type,
+        ).to.equal('AWS::Lambda::EventSourceMapping')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbFoo.DependsOn
-        ).to.include('IamRoleLambdaExecution');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbFoo.DependsOn,
+        ).to.include('IamRoleLambdaExecution')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbFoo.Properties.EventSourceArn
-        ).to.equal(awsCompileStreamEvents.serverless.service.functions.first.events[0].stream.arn);
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbFoo.Properties.BatchSize
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbFoo.Properties.EventSourceArn,
         ).to.equal(
-          awsCompileStreamEvents.serverless.service.functions.first.events[0].stream.batchSize
-        );
+          awsCompileStreamEvents.serverless.service.functions.first.events[0]
+            .stream.arn,
+        )
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbFoo.Properties.StartingPosition
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbFoo.Properties.BatchSize,
         ).to.equal(
-          awsCompileStreamEvents.serverless.service.functions.first.events[0].stream
-            .startingPosition
-        );
+          awsCompileStreamEvents.serverless.service.functions.first.events[0]
+            .stream.batchSize,
+        )
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbFoo.Properties.Enabled
-        ).to.equal(false);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbFoo.Properties.StartingPosition,
+        ).to.equal(
+          awsCompileStreamEvents.serverless.service.functions.first.events[0]
+            .stream.startingPosition,
+        )
+        expect(
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbFoo.Properties.Enabled,
+        ).to.equal(false)
 
         // event 2
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBar.Type
-        ).to.equal('AWS::Lambda::EventSourceMapping');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBar.Type,
+        ).to.equal('AWS::Lambda::EventSourceMapping')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBar.DependsOn
-        ).to.include('IamRoleLambdaExecution');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBar.DependsOn,
+        ).to.include('IamRoleLambdaExecution')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBar.Properties.EventSourceArn
-        ).to.equal(awsCompileStreamEvents.serverless.service.functions.first.events[1].stream.arn);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBar.Properties.EventSourceArn,
+        ).to.equal(
+          awsCompileStreamEvents.serverless.service.functions.first.events[1]
+            .stream.arn,
+        )
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBar.Properties.BatchSize
-        ).to.equal(10);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBar.Properties.BatchSize,
+        ).to.equal(10)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBar.Properties.StartingPosition
-        ).to.equal('TRIM_HORIZON');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBar.Properties.StartingPosition,
+        ).to.equal('TRIM_HORIZON')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBar.Properties.Enabled
-        ).to.equal(true);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBar.Properties.Enabled,
+        ).to.equal(true)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBar.Properties.MaximumBatchingWindowInSeconds
-        ).to.equal(15);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBar.Properties
+            .MaximumBatchingWindowInSeconds,
+        ).to.equal(15)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBar.Properties.MaximumRetryAttempts
-        ).to.equal(4);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBar.Properties.MaximumRetryAttempts,
+        ).to.equal(4)
 
         // event 3
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBaz.Type
-        ).to.equal('AWS::Lambda::EventSourceMapping');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBaz.Type,
+        ).to.equal('AWS::Lambda::EventSourceMapping')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBaz.DependsOn
-        ).to.include('IamRoleLambdaExecution');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBaz.DependsOn,
+        ).to.include('IamRoleLambdaExecution')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBaz.Properties.EventSourceArn
-        ).to.equal(awsCompileStreamEvents.serverless.service.functions.first.events[2].stream);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBaz.Properties.EventSourceArn,
+        ).to.equal(
+          awsCompileStreamEvents.serverless.service.functions.first.events[2]
+            .stream,
+        )
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBaz.Properties.BatchSize
-        ).to.equal(10);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBaz.Properties.BatchSize,
+        ).to.equal(10)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBaz.Properties.StartingPosition
-        ).to.equal('TRIM_HORIZON');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBaz.Properties.StartingPosition,
+        ).to.equal('TRIM_HORIZON')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBaz.Properties.Enabled
-        ).to.equal(true);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBaz.Properties.Enabled,
+        ).to.equal(true)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBaz.Properties.BisectBatchOnFunctionError
-        ).to.equal(undefined);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBaz.Properties
+            .BisectBatchOnFunctionError,
+        ).to.equal(undefined)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBaz.Properties.MaximumRecordAgeInSeconds
-        ).to.equal(undefined);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBaz.Properties
+            .MaximumRecordAgeInSeconds,
+        ).to.equal(undefined)
 
         // event 4
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBuzz.Type
-        ).to.equal('AWS::Lambda::EventSourceMapping');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBuzz.Type,
+        ).to.equal('AWS::Lambda::EventSourceMapping')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBuzz.DependsOn
-        ).to.include('IamRoleLambdaExecution');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBuzz.DependsOn,
+        ).to.include('IamRoleLambdaExecution')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBuzz.Properties.EventSourceArn
-        ).to.equal(awsCompileStreamEvents.serverless.service.functions.first.events[3].stream.arn);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBuzz.Properties.EventSourceArn,
+        ).to.equal(
+          awsCompileStreamEvents.serverless.service.functions.first.events[3]
+            .stream.arn,
+        )
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBuzz.Properties.BatchSize
-        ).to.equal(10);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBuzz.Properties.BatchSize,
+        ).to.equal(10)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBuzz.Properties.StartingPosition
-        ).to.equal('TRIM_HORIZON');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBuzz.Properties.StartingPosition,
+        ).to.equal('TRIM_HORIZON')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBuzz.Properties.Enabled
-        ).to.equal(true);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBuzz.Properties.Enabled,
+        ).to.equal(true)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBuzz.Properties.BisectBatchOnFunctionError
-        ).to.equal(true);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBuzz.Properties
+            .BisectBatchOnFunctionError,
+        ).to.equal(true)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBuzz.Properties.MaximumRecordAgeInSeconds
-        ).to.equal(120);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBuzz.Properties
+            .MaximumRecordAgeInSeconds,
+        ).to.equal(120)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBuzz.Properties.MaximumBatchingWindowInSeconds
-        ).to.equal(0);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBuzz.Properties
+            .MaximumBatchingWindowInSeconds,
+        ).to.equal(0)
 
         // event 5
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbFizz.Type
-        ).to.equal('AWS::Lambda::EventSourceMapping');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbFizz.Type,
+        ).to.equal('AWS::Lambda::EventSourceMapping')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbFizz.DependsOn
-        ).to.include('IamRoleLambdaExecution');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbFizz.DependsOn,
+        ).to.include('IamRoleLambdaExecution')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbFizz.Properties.EventSourceArn
-        ).to.equal(awsCompileStreamEvents.serverless.service.functions.first.events[4].stream.arn);
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbFizz.Properties.BatchSize
-        ).to.equal(10);
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbFizz.Properties.StartingPosition
-        ).to.equal('TRIM_HORIZON');
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbFizz.Properties.Enabled
-        ).to.equal(true);
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbFizz.Properties.DestinationConfig.OnFailure
-            .Destination
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbFizz.Properties.EventSourceArn,
         ).to.equal(
-          awsCompileStreamEvents.serverless.service.functions.first.events[4].stream.destinations
-            .onFailure
-        );
-      });
+          awsCompileStreamEvents.serverless.service.functions.first.events[4]
+            .stream.arn,
+        )
+        expect(
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbFizz.Properties.BatchSize,
+        ).to.equal(10)
+        expect(
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbFizz.Properties.StartingPosition,
+        ).to.equal('TRIM_HORIZON')
+        expect(
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbFizz.Properties.Enabled,
+        ).to.equal(true)
+        expect(
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbFizz.Properties.DestinationConfig
+            .OnFailure.Destination,
+        ).to.equal(
+          awsCompileStreamEvents.serverless.service.functions.first.events[4]
+            .stream.destinations.onFailure,
+        )
+      })
 
       it('should allow specifying DynamoDB and Kinesis streams as CFN reference types', () => {
         awsCompileStreamEvents.serverless.service.resources.Parameters = {
@@ -540,7 +611,7 @@ describe('AwsCompileStreamEvents', () => {
           ForeignKinesisStreamArn: {
             Type: 'String',
           },
-        };
+        }
         awsCompileStreamEvents.serverless.service.functions = {
           first: {
             events: [
@@ -592,18 +663,21 @@ describe('AwsCompileStreamEvents', () => {
               },
             ],
           },
-        };
+        }
 
-        awsCompileStreamEvents.compileStreamEvents();
+        awsCompileStreamEvents.compileStreamEvents()
 
         // dynamodb with Fn::GetAtt
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbSomeDdbTable.Properties.EventSourceArn
-        ).to.deep.equal({ 'Fn::GetAtt': ['SomeDdbTable', 'StreamArn'] });
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbSomeDdbTable.Properties
+            .EventSourceArn,
+        ).to.deep.equal({ 'Fn::GetAtt': ['SomeDdbTable', 'StreamArn'] })
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement[0]
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution
+            .Properties.Policies[0].PolicyDocument.Statement[0],
         ).to.deep.equal({
           Action: [
             'dynamodb:GetRecords',
@@ -620,18 +694,21 @@ describe('AwsCompileStreamEvents', () => {
               Ref: 'SomeDdbTableStreamArn',
             },
           ],
-        });
+        })
 
         // kinesis with Fn::ImportValue
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisForeignKinesis.Properties.EventSourceArn
-        ).to.deep.equal({ 'Fn::ImportValue': 'ForeignKinesis' });
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisForeignKinesis.Properties
+            .EventSourceArn,
+        ).to.deep.equal({ 'Fn::ImportValue': 'ForeignKinesis' })
 
         // kinesis with Fn::Join
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisMyStream.Properties.EventSourceArn
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisMyStream.Properties.EventSourceArn,
         ).to.deep.equal({
           'Fn::Join': [
             ':',
@@ -648,11 +725,12 @@ describe('AwsCompileStreamEvents', () => {
               'stream/MyStream',
             ],
           ],
-        });
+        })
 
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement[1]
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution
+            .Properties.Policies[0].PolicyDocument.Statement[1],
         ).to.deep.equal({
           Effect: 'Allow',
           Action: [
@@ -686,8 +764,8 @@ describe('AwsCompileStreamEvents', () => {
               Ref: 'ForeignKinesisStreamArn',
             },
           ],
-        });
-      });
+        })
+      })
 
       it('should allow specifying OnFailure destinations as CFN reference types', () => {
         awsCompileStreamEvents.serverless.service.resources.Parameters = {
@@ -697,7 +775,7 @@ describe('AwsCompileStreamEvents', () => {
           ForeignSQSArn: {
             Type: 'String',
           },
-        };
+        }
         awsCompileStreamEvents.serverless.service.functions = {
           first: {
             events: [
@@ -774,19 +852,21 @@ describe('AwsCompileStreamEvents', () => {
               },
             ],
           },
-        };
+        }
 
-        awsCompileStreamEvents.compileStreamEvents();
+        awsCompileStreamEvents.compileStreamEvents()
 
         // sns with Fn::GetAtt
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbFoo.Properties.DestinationConfig.OnFailure
-            .Destination
-        ).to.deep.equal({ 'Fn::GetAtt': ['SomeSNS', 'Arn'] });
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbFoo.Properties.DestinationConfig
+            .OnFailure.Destination,
+        ).to.deep.equal({ 'Fn::GetAtt': ['SomeSNS', 'Arn'] })
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement[1]
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution
+            .Properties.Policies[0].PolicyDocument.Statement[1],
         ).to.deep.equal({
           Action: ['sns:Publish'],
           Effect: 'Allow',
@@ -798,20 +878,22 @@ describe('AwsCompileStreamEvents', () => {
               Ref: 'SomeSNSArn',
             },
           ],
-        });
+        })
 
         // sqs with Fn::ImportValue
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBar.Properties.DestinationConfig.OnFailure
-            .Destination
-        ).to.deep.equal({ 'Fn::ImportValue': 'ForeignSQS' });
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBar.Properties.DestinationConfig
+            .OnFailure.Destination,
+        ).to.deep.equal({ 'Fn::ImportValue': 'ForeignSQS' })
 
         // sqs with Fn::Join
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBaz.Properties.DestinationConfig.OnFailure
-            .Destination
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingDynamodbBaz.Properties.DestinationConfig
+            .OnFailure.Destination,
         ).to.deep.equal({
           'Fn::Join': [
             ':',
@@ -828,11 +910,12 @@ describe('AwsCompileStreamEvents', () => {
               'MyQueue',
             ],
           ],
-        });
+        })
 
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement[2]
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution
+            .Properties.Policies[0].PolicyDocument.Statement[2],
         ).to.deep.equal({
           Effect: 'Allow',
           Action: ['sqs:ListQueues', 'sqs:SendMessage'],
@@ -861,8 +944,8 @@ describe('AwsCompileStreamEvents', () => {
               Ref: 'ForeignSQSArn',
             },
           ],
-        });
-      });
+        })
+      })
 
       it('fails if Ref/dynamic stream ARN is used without defining it to the CF parameters', () => {
         awsCompileStreamEvents.serverless.service.functions = {
@@ -875,10 +958,12 @@ describe('AwsCompileStreamEvents', () => {
               },
             ],
           },
-        };
+        }
 
-        expect(() => awsCompileStreamEvents.compileStreamEvents()).to.throw(Error);
-      });
+        expect(() => awsCompileStreamEvents.compileStreamEvents()).to.throw(
+          Error,
+        )
+      })
 
       it('fails if Ref/dynamic onFailure ARN is used without defining it to the CF parameters', () => {
         awsCompileStreamEvents.serverless.service.functions = {
@@ -896,10 +981,12 @@ describe('AwsCompileStreamEvents', () => {
               },
             ],
           },
-        };
+        }
 
-        expect(() => awsCompileStreamEvents.compileStreamEvents()).to.throw(Error);
-      });
+        expect(() => awsCompileStreamEvents.compileStreamEvents()).to.throw(
+          Error,
+        )
+      })
 
       it('fails if Fn::GetAtt/dynamic stream ARN is used without a type', () => {
         awsCompileStreamEvents.serverless.service.functions = {
@@ -912,10 +999,12 @@ describe('AwsCompileStreamEvents', () => {
               },
             ],
           },
-        };
+        }
 
-        expect(() => awsCompileStreamEvents.compileStreamEvents()).to.throw(Error);
-      });
+        expect(() => awsCompileStreamEvents.compileStreamEvents()).to.throw(
+          Error,
+        )
+      })
 
       it('fails if Fn::GetAtt/dynamic onFailure ARN is used without a type', () => {
         awsCompileStreamEvents.serverless.service.functions = {
@@ -933,10 +1022,12 @@ describe('AwsCompileStreamEvents', () => {
               },
             ],
           },
-        };
+        }
 
-        expect(() => awsCompileStreamEvents.compileStreamEvents()).to.throw(Error);
-      });
+        expect(() => awsCompileStreamEvents.compileStreamEvents()).to.throw(
+          Error,
+        )
+      })
 
       it('should add the necessary IAM role statements', () => {
         awsCompileStreamEvents.serverless.service.functions = {
@@ -955,7 +1046,7 @@ describe('AwsCompileStreamEvents', () => {
               },
             ],
           },
-        };
+        }
 
         const iamRoleStatements = [
           {
@@ -976,16 +1067,17 @@ describe('AwsCompileStreamEvents', () => {
             Action: ['sns:Publish'],
             Resource: ['arn:aws:sns:region:account:snstopic'],
           },
-        ];
+        ]
 
-        awsCompileStreamEvents.compileStreamEvents();
+        awsCompileStreamEvents.compileStreamEvents()
 
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement
-        ).to.deep.equal(iamRoleStatements);
-      });
-    });
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution
+            .Properties.Policies[0].PolicyDocument.Statement,
+        ).to.deep.equal(iamRoleStatements)
+      })
+    })
 
     describe('when a Kinesis stream ARN is given', () => {
       it('should create event source mappings when a Kinesis stream ARN is given', () => {
@@ -1037,7 +1129,8 @@ describe('AwsCompileStreamEvents', () => {
               {
                 stream: {
                   arn: 'arn:aws:kinesis:region:account:stream/xyz',
-                  consumer: 'arn:aws:kinesis:region:account:stream/xyz/consumer/foobar:1558544531',
+                  consumer:
+                    'arn:aws:kinesis:region:account:stream/xyz/consumer/foobar:1558544531',
                 },
               },
               {
@@ -1048,282 +1141,373 @@ describe('AwsCompileStreamEvents', () => {
               },
             ],
           },
-        };
+        }
 
-        awsCompileStreamEvents.compileStreamEvents();
+        awsCompileStreamEvents.compileStreamEvents()
 
         // event 1
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisFoo.Type
-        ).to.equal('AWS::Lambda::EventSourceMapping');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisFoo.Type,
+        ).to.equal('AWS::Lambda::EventSourceMapping')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisFoo.DependsOn
-        ).to.include('IamRoleLambdaExecution');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisFoo.DependsOn,
+        ).to.include('IamRoleLambdaExecution')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisFoo.Properties.EventSourceArn
-        ).to.equal(awsCompileStreamEvents.serverless.service.functions.first.events[0].stream.arn);
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisFoo.Properties.BatchSize
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisFoo.Properties.EventSourceArn,
         ).to.equal(
-          awsCompileStreamEvents.serverless.service.functions.first.events[0].stream.batchSize
-        );
+          awsCompileStreamEvents.serverless.service.functions.first.events[0]
+            .stream.arn,
+        )
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisFoo.Properties.StartingPosition
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisFoo.Properties.BatchSize,
         ).to.equal(
-          awsCompileStreamEvents.serverless.service.functions.first.events[0].stream
-            .startingPosition
-        );
+          awsCompileStreamEvents.serverless.service.functions.first.events[0]
+            .stream.batchSize,
+        )
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisFoo.Properties.ParallelizationFactor
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisFoo.Properties.StartingPosition,
         ).to.equal(
-          awsCompileStreamEvents.serverless.service.functions.first.events[0].stream
-            .parallelizationFactor
-        );
+          awsCompileStreamEvents.serverless.service.functions.first.events[0]
+            .stream.startingPosition,
+        )
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisFoo.Properties.Enabled
-        ).to.equal(false);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisFoo.Properties.ParallelizationFactor,
+        ).to.equal(
+          awsCompileStreamEvents.serverless.service.functions.first.events[0]
+            .stream.parallelizationFactor,
+        )
+        expect(
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisFoo.Properties.Enabled,
+        ).to.equal(false)
 
         // event 2
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBar.Type
-        ).to.equal('AWS::Lambda::EventSourceMapping');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBar.Type,
+        ).to.equal('AWS::Lambda::EventSourceMapping')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBar.DependsOn
-        ).to.include('IamRoleLambdaExecution');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBar.DependsOn,
+        ).to.include('IamRoleLambdaExecution')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBar.Properties.EventSourceArn
-        ).to.equal(awsCompileStreamEvents.serverless.service.functions.first.events[1].stream.arn);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBar.Properties.EventSourceArn,
+        ).to.equal(
+          awsCompileStreamEvents.serverless.service.functions.first.events[1]
+            .stream.arn,
+        )
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBar.Properties.BatchSize
-        ).to.equal(10);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBar.Properties.BatchSize,
+        ).to.equal(10)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBar.Properties.ParallelizationFactor
-        ).to.equal(undefined);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBar.Properties.ParallelizationFactor,
+        ).to.equal(undefined)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBar.Properties.StartingPosition
-        ).to.equal('TRIM_HORIZON');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBar.Properties.StartingPosition,
+        ).to.equal('TRIM_HORIZON')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBar.Properties.Enabled
-        ).to.equal(true);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBar.Properties.Enabled,
+        ).to.equal(true)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBar.Properties.MaximumBatchingWindowInSeconds
-        ).to.equal(15);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBar.Properties
+            .MaximumBatchingWindowInSeconds,
+        ).to.equal(15)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBar.Properties.MaximumRetryAttempts
-        ).to.equal(5);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBar.Properties.MaximumRetryAttempts,
+        ).to.equal(5)
 
         // event 3
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBaz.Type
-        ).to.equal('AWS::Lambda::EventSourceMapping');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBaz.Type,
+        ).to.equal('AWS::Lambda::EventSourceMapping')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBaz.DependsOn
-        ).to.include('IamRoleLambdaExecution');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBaz.DependsOn,
+        ).to.include('IamRoleLambdaExecution')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBaz.Properties.EventSourceArn
-        ).to.equal(awsCompileStreamEvents.serverless.service.functions.first.events[2].stream);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBaz.Properties.EventSourceArn,
+        ).to.equal(
+          awsCompileStreamEvents.serverless.service.functions.first.events[2]
+            .stream,
+        )
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBaz.Properties.BatchSize
-        ).to.equal(10);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBaz.Properties.BatchSize,
+        ).to.equal(10)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBaz.Properties.StartingPosition
-        ).to.equal('TRIM_HORIZON');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBaz.Properties.StartingPosition,
+        ).to.equal('TRIM_HORIZON')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBaz.Properties.Enabled
-        ).to.equal(true);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBaz.Properties.Enabled,
+        ).to.equal(true)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBaz.Properties.BisectBatchOnFunctionError
-        ).to.equal(undefined);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBaz.Properties
+            .BisectBatchOnFunctionError,
+        ).to.equal(undefined)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBaz.Properties.MaximumRecordAgeInSeconds
-        ).to.equal(undefined);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBaz.Properties
+            .MaximumRecordAgeInSeconds,
+        ).to.equal(undefined)
 
         // event 4
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBuzz.Type
-        ).to.equal('AWS::Lambda::EventSourceMapping');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBuzz.Type,
+        ).to.equal('AWS::Lambda::EventSourceMapping')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBuzz.DependsOn
-        ).to.include('IamRoleLambdaExecution');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBuzz.DependsOn,
+        ).to.include('IamRoleLambdaExecution')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBuzz.Properties.EventSourceArn
-        ).to.equal(awsCompileStreamEvents.serverless.service.functions.first.events[3].stream.arn);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBuzz.Properties.EventSourceArn,
+        ).to.equal(
+          awsCompileStreamEvents.serverless.service.functions.first.events[3]
+            .stream.arn,
+        )
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBuzz.Properties.BatchSize
-        ).to.equal(10);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBuzz.Properties.BatchSize,
+        ).to.equal(10)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBuzz.Properties.ParallelizationFactor
-        ).to.equal(undefined);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBuzz.Properties
+            .ParallelizationFactor,
+        ).to.equal(undefined)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBuzz.Properties.StartingPosition
-        ).to.equal('TRIM_HORIZON');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBuzz.Properties.StartingPosition,
+        ).to.equal('TRIM_HORIZON')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBuzz.Properties.Enabled
-        ).to.equal(true);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBuzz.Properties.Enabled,
+        ).to.equal(true)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBuzz.Properties.BisectBatchOnFunctionError
-        ).to.equal(true);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBuzz.Properties
+            .BisectBatchOnFunctionError,
+        ).to.equal(true)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBuzz.Properties.MaximumRecordAgeInSeconds
-        ).to.equal(180);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisBuzz.Properties
+            .MaximumRecordAgeInSeconds,
+        ).to.equal(180)
 
         // event 5
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisFizz.Type
-        ).to.equal('AWS::Lambda::EventSourceMapping');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisFizz.Type,
+        ).to.equal('AWS::Lambda::EventSourceMapping')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisFizz.DependsOn
-        ).to.include('IamRoleLambdaExecution');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisFizz.DependsOn,
+        ).to.include('IamRoleLambdaExecution')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisFizz.Properties.EventSourceArn
-        ).to.equal(awsCompileStreamEvents.serverless.service.functions.first.events[4].stream.arn);
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisFizz.Properties.BatchSize
-        ).to.equal(10);
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisFizz.Properties.StartingPosition
-        ).to.equal('TRIM_HORIZON');
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisFizz.Properties.Enabled
-        ).to.equal(true);
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisFizz.Properties.DestinationConfig.OnFailure
-            .Destination
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisFizz.Properties.EventSourceArn,
         ).to.equal(
-          awsCompileStreamEvents.serverless.service.functions.first.events[4].stream.destinations
-            .onFailure
-        );
+          awsCompileStreamEvents.serverless.service.functions.first.events[4]
+            .stream.arn,
+        )
+        expect(
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisFizz.Properties.BatchSize,
+        ).to.equal(10)
+        expect(
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisFizz.Properties.StartingPosition,
+        ).to.equal('TRIM_HORIZON')
+        expect(
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisFizz.Properties.Enabled,
+        ).to.equal(true)
+        expect(
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisFizz.Properties.DestinationConfig
+            .OnFailure.Destination,
+        ).to.equal(
+          awsCompileStreamEvents.serverless.service.functions.first.events[4]
+            .stream.destinations.onFailure,
+        )
 
         // event 6
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisAbc.Type
-        ).to.equal('AWS::Lambda::EventSourceMapping');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisAbc.Type,
+        ).to.equal('AWS::Lambda::EventSourceMapping')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisAbc.DependsOn
-        ).to.eql(['IamRoleLambdaExecution', 'FirstabcConsumerStreamConsumer']);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisAbc.DependsOn,
+        ).to.eql(['IamRoleLambdaExecution', 'FirstabcConsumerStreamConsumer'])
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisAbc.Properties.EventSourceArn
-        ).to.eql({ Ref: 'FirstabcConsumerStreamConsumer' });
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisAbc.Properties.EventSourceArn,
+        ).to.eql({ Ref: 'FirstabcConsumerStreamConsumer' })
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisAbc.Properties.BatchSize
-        ).to.equal(10);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisAbc.Properties.BatchSize,
+        ).to.equal(10)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisAbc.Properties.StartingPosition
-        ).to.equal('AT_TIMESTAMP');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisAbc.Properties.StartingPosition,
+        ).to.equal('AT_TIMESTAMP')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisAbc.Properties.StartingPositionTimestamp
-        ).to.equal(123);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisAbc.Properties
+            .StartingPositionTimestamp,
+        ).to.equal(123)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisAbc.Properties.Enabled
-        ).to.equal(true);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisAbc.Properties.Enabled,
+        ).to.equal(true)
 
         // event 7
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisXyz.Type
-        ).to.equal('AWS::Lambda::EventSourceMapping');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisXyz.Type,
+        ).to.equal('AWS::Lambda::EventSourceMapping')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisXyz.DependsOn
-        ).to.include('IamRoleLambdaExecution');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisXyz.DependsOn,
+        ).to.include('IamRoleLambdaExecution')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisXyz.Properties.EventSourceArn
-        ).to.equal('arn:aws:kinesis:region:account:stream/xyz/consumer/foobar:1558544531');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisXyz.Properties.EventSourceArn,
+        ).to.equal(
+          'arn:aws:kinesis:region:account:stream/xyz/consumer/foobar:1558544531',
+        )
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisXyz.Properties.BatchSize
-        ).to.equal(10);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisXyz.Properties.BatchSize,
+        ).to.equal(10)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisXyz.Properties.StartingPosition
-        ).to.equal('TRIM_HORIZON');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisXyz.Properties.StartingPosition,
+        ).to.equal('TRIM_HORIZON')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisXyz.Properties.Enabled
-        ).to.equal(true);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisXyz.Properties.Enabled,
+        ).to.equal(true)
 
         // event 8
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisDef.Type
-        ).to.equal('AWS::Lambda::EventSourceMapping');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisDef.Type,
+        ).to.equal('AWS::Lambda::EventSourceMapping')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisDef.DependsOn
-        ).to.include('IamRoleLambdaExecution');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisDef.DependsOn,
+        ).to.include('IamRoleLambdaExecution')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisDef.Properties.EventSourceArn
-        ).to.equal(awsCompileStreamEvents.serverless.service.functions.first.events[7].stream.arn);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisDef.Properties.EventSourceArn,
+        ).to.equal(
+          awsCompileStreamEvents.serverless.service.functions.first.events[7]
+            .stream.arn,
+        )
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisDef.Properties.BatchSize
-        ).to.equal(10);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisDef.Properties.BatchSize,
+        ).to.equal(10)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisDef.Properties.StartingPosition
-        ).to.equal('TRIM_HORIZON');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisDef.Properties.StartingPosition,
+        ).to.equal('TRIM_HORIZON')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisDef.Properties.Enabled
-        ).to.equal(true);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisDef.Properties.Enabled,
+        ).to.equal(true)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisDef.Properties.BisectBatchOnFunctionError
-        ).to.equal(undefined);
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisDef.Properties
+            .BisectBatchOnFunctionError,
+        ).to.equal(undefined)
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisDef.Properties.MaximumRecordAgeInSeconds
-        ).to.equal(undefined);
-      });
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstEventSourceMappingKinesisDef.Properties
+            .MaximumRecordAgeInSeconds,
+        ).to.equal(undefined)
+      })
 
       it('should create stream consumer when a Kinesis stream with consumer "true" is given', () => {
         awsCompileStreamEvents.serverless.service.functions = {
@@ -1337,23 +1521,29 @@ describe('AwsCompileStreamEvents', () => {
               },
             ],
           },
-        };
+        }
 
-        awsCompileStreamEvents.compileStreamEvents();
+        awsCompileStreamEvents.compileStreamEvents()
 
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstabcConsumerStreamConsumer.Type
-        ).to.equal('AWS::Kinesis::StreamConsumer');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstabcConsumerStreamConsumer.Type,
+        ).to.equal('AWS::Kinesis::StreamConsumer')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstabcConsumerStreamConsumer.Properties.ConsumerName
-        ).to.equal('firstabcConsumer');
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstabcConsumerStreamConsumer.Properties.ConsumerName,
+        ).to.equal('firstabcConsumer')
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstabcConsumerStreamConsumer.Properties.StreamARN
-        ).to.equal(awsCompileStreamEvents.serverless.service.functions.first.events[0].stream.arn);
-      });
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+            .FirstabcConsumerStreamConsumer.Properties.StreamARN,
+        ).to.equal(
+          awsCompileStreamEvents.serverless.service.functions.first.events[0]
+            .stream.arn,
+        )
+      })
 
       it('should add the necessary IAM role statements', () => {
         awsCompileStreamEvents.serverless.service.functions = {
@@ -1376,12 +1566,13 @@ describe('AwsCompileStreamEvents', () => {
                 stream: {
                   type: 'kinesis',
                   arn: 'arn:aws:kinesis:region:account:stream/buzz',
-                  consumer: 'arn:aws:kinesis:region:account:stream/buzz/consumer/abc:1558544531',
+                  consumer:
+                    'arn:aws:kinesis:region:account:stream/buzz/consumer/abc:1558544531',
                 },
               },
             ],
           },
-        };
+        }
 
         const iamRoleStatements = [
           {
@@ -1418,15 +1609,16 @@ describe('AwsCompileStreamEvents', () => {
               'arn:aws:kinesis:region:account:stream/buzz/consumer/abc:1558544531',
             ],
           },
-        ];
+        ]
 
-        awsCompileStreamEvents.compileStreamEvents();
+        awsCompileStreamEvents.compileStreamEvents()
 
         expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement
-        ).to.deep.equal(iamRoleStatements);
-      });
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution
+            .Properties.Policies[0].PolicyDocument.Statement,
+        ).to.deep.equal(iamRoleStatements)
+      })
 
       it('should fail to compile EventSourceMapping resource properties for startingPosition AT_TIMESTAMP with no startingPositionTimestamp', () => {
         expect(() => {
@@ -1442,14 +1634,14 @@ describe('AwsCompileStreamEvents', () => {
                 },
               ],
             },
-          };
+          }
 
-          awsCompileStreamEvents.compileStreamEvents();
+          awsCompileStreamEvents.compileStreamEvents()
         }).to.throw(
-          'You must specify startingPositionTimestamp for function: first when startingPosition is AT_TIMESTAMP'
-        );
-      });
-    });
+          'You must specify startingPositionTimestamp for function: first when startingPosition is AT_TIMESTAMP',
+        )
+      })
+    })
 
     it('should remove all non-alphanumerics from stream names for the resource logical ids', () => {
       awsCompileStreamEvents.serverless.service.functions = {
@@ -1460,23 +1652,24 @@ describe('AwsCompileStreamEvents', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileStreamEvents.compileStreamEvents();
+      awsCompileStreamEvents.compileStreamEvents()
 
       expect(
-        awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-      ).to.have.any.keys('FirstEventSourceMappingKinesisSomelongname');
-    });
-  });
-});
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources,
+      ).to.have.any.keys('FirstEventSourceMappingKinesisSomelongname')
+    })
+  })
+})
 
 describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () => {
   describe('regular', () => {
-    let eventSourceMappingResource;
-    let streamConsumerResource;
-    let serviceName;
-    let stage;
+    let eventSourceMappingResource
+    let streamConsumerResource
+    let serviceName
+    let stage
 
     before(async () => {
       const { awsNaming, cfTemplate, serverless } = await runServerless({
@@ -1495,7 +1688,10 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
                     arn: 'arn:aws:kinesis:us-east-1:123456789012:stream/some-long-name',
                     functionResponseType: 'ReportBatchItemFailures',
                     tumblingWindowInSeconds: 30,
-                    filterPatterns: [{ eventName: ['INSERT'] }, { eventName: ['MODIFY'] }],
+                    filterPatterns: [
+                      { eventName: ['INSERT'] },
+                      { eventName: ['MODIFY'] },
+                    ],
                     parallelizationFactor: 10,
                     bisectBatchOnFunctionError: true,
                     consumer: true,
@@ -1663,16 +1859,24 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
           },
         },
         command: 'package',
-      });
-      const streamLogicalId = awsNaming.getStreamLogicalId('basic', 'kinesis', 'some-long-name');
-      eventSourceMappingResource = cfTemplate.Resources[streamLogicalId];
+      })
+      const streamLogicalId = awsNaming.getStreamLogicalId(
+        'basic',
+        'kinesis',
+        'some-long-name',
+      )
+      eventSourceMappingResource = cfTemplate.Resources[streamLogicalId]
 
-      const consumerName = awsNaming.getStreamConsumerName('basic', 'some-long-name');
-      const streamConsumerLogicalId = awsNaming.getStreamConsumerLogicalId(consumerName);
-      streamConsumerResource = cfTemplate.Resources[streamConsumerLogicalId];
-      serviceName = serverless.service.service;
-      stage = serverless.service.provider.stage;
-    });
+      const consumerName = awsNaming.getStreamConsumerName(
+        'basic',
+        'some-long-name',
+      )
+      const streamConsumerLogicalId =
+        awsNaming.getStreamConsumerLogicalId(consumerName)
+      streamConsumerResource = cfTemplate.Resources[streamConsumerLogicalId]
+      serviceName = serverless.service.service
+      stage = serverless.service.provider.stage
+    })
 
     it.skip('TODO: should support ARN String for `arn`', () => {
       // Replaces
@@ -1682,28 +1886,28 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
       // Confirm effect of:
       // - `functions.basic.events[0].stream.arn`
       // - `functions.dynamodb.events[0].stream.arn`
-    });
+    })
 
     it.skip('TODO: should support Fn::GetAtt for `arn`', () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/stream.test.js#L586-L741
       //
       // Confirm effect of `functions.arnVariants.events[0].stream.arn`
-    });
+    })
 
     it.skip('TODO: should support Fn::ImportValue for `arn`', () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/stream.test.js#L586-L741
       //
       // Confirm effect of `functions.kinesisImportCustomIam.events[0].stream.arn`
-    });
+    })
 
     it.skip('TODO: should support Fn::Join for `arn`', () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/stream.test.js#L586-L741
       //
       // Confirm effect of `functions.arnVariants.events[1].stream.arn`
-    });
+    })
 
     it.skip('TODO: should support Ref for `arn`', () => {
       // Replaces partially
@@ -1712,7 +1916,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
       // Confirm effect of:
       // - `functions.arnVariants.events[2].stream.arn`
       // - `functions.arnVariants.events[3].stream.arn`
-    });
+    })
 
     it.skip('TODO: should support `batchSize`', () => {
       // Replaces partially
@@ -1720,7 +1924,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/stream.test.js#L1106-L1453
       //
       // Confirm effect of `functions.dynamo.events[0].stream.batchSize`
-    });
+    })
 
     it.skip('TODO: should support `startingPosition`', () => {
       // Replaces partially
@@ -1728,7 +1932,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/stream.test.js#L1106-L1453
       //
       // Confirm effect of `functions.dynamo.events[0].stream.startingPosition`
-    });
+    })
 
     it.skip('TODO: should support `enabled`', () => {
       // Replaces partially
@@ -1736,7 +1940,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/stream.test.js#L1106-L1453
       //
       // Confirm effect of `functions.dynamo.events[0].stream.enabled`
-    });
+    })
 
     it.skip('TODO: should support `batchWindow`', () => {
       // Replaces partially
@@ -1744,7 +1948,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/stream.test.js#L1106-L1453
       //
       // Confirm effect of `functions.dynamo.events[0].stream.batchWindow`
-    });
+    })
 
     it.skip('TODO: should support `maximumRetryAttempts`', () => {
       // Replaces partially
@@ -1752,7 +1956,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/stream.test.js#L1106-L1453
       //
       // Confirm effect of `functions.dynamo.events[0].stream.maximumRetryAttempts`
-    });
+    })
 
     it.skip('TODO: should support `maximumRecordAgeInSeconds`', () => {
       // Replaces partially
@@ -1760,21 +1964,21 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/stream.test.js#L1106-L1453
       //
       // Confirm effect of `functions.dynamo.events[0].stream.maximumRecordAgeInSeconds`
-    });
+    })
 
     it.skip('TODO: should support `parallelizationFactor`', () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/stream.test.js#L1106-L1453
       //
       // Confirm effect of `functions.basic.events[0].stream.parallelizationFactor`
-    });
+    })
 
     it.skip('TODO: should support `bisectBatchOnFunctionError`', () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/stream.test.js#L1106-L1453
       //
       // Confirm effect of `functions.basic.events[0].stream.bisectBatchOnFunctionError`
-    });
+    })
 
     it.skip('TODO: should support `consumer`', () => {
       // Replaces
@@ -1784,35 +1988,35 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
       // Confirm effect of:
       // - `functions.basic.events[0].stream.consumer`
       // - `functions.kinesisImportCustomIam.events[0].stream.consumer`
-    });
+    })
 
     it.skip('TODO: should support ARN string for `destinations.onFailure`', () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/stream.test.js#L370-L584
       //
       // Confirm effect of: `functions.dynamo.events[0].stream.destinations`
-    });
+    })
 
     it.skip('TODO: should support Fn::GetAtt for `destinations.onFailure`', () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/stream.test.js#L743-L916
       //
       // Confirm effect of: `functions.destinationVariants.events[0].stream.destinations`
-    });
+    })
 
     it.skip('TODO: should support Fn::ImportValue for `destinations.onFailure`', () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/stream.test.js#L743-L916
       //
       // Confirm effect of: `functions.arnVariants.events[2].stream.destinations`
-    });
+    })
 
     it.skip('TODO: should support Fn::Join for `destinations.onFailure`', () => {
       // Replaces partially
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/stream.test.js#L743-L916
       //
       // Confirm effect of: `functions.destinationVariants.events[1].stream.destinations`
-    });
+    })
 
     it.skip('TODO: should support Ref for `destinations.onFailure`', () => {
       // Replaces partially
@@ -1821,25 +2025,31 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
       // Confirm effect of:
       // - `functions.destinationVariants.events[2].stream.destinations`
       // - `functions.destinationVariants.events[3].stream.destinations`
-    });
+    })
 
     it('should support `functionResponseType`', () => {
-      expect(eventSourceMappingResource.Properties.FunctionResponseTypes).to.include.members([
-        'ReportBatchItemFailures',
-      ]);
-    });
+      expect(
+        eventSourceMappingResource.Properties.FunctionResponseTypes,
+      ).to.include.members(['ReportBatchItemFailures'])
+    })
 
     it('should have service and stage specific stream consumer name', () => {
-      expect(streamConsumerResource.Properties.ConsumerName).to.include(serviceName);
-      expect(streamConsumerResource.Properties.ConsumerName).to.include(stage);
-    });
+      expect(streamConsumerResource.Properties.ConsumerName).to.include(
+        serviceName,
+      )
+      expect(streamConsumerResource.Properties.ConsumerName).to.include(stage)
+    })
 
     it('should support `tumblingWindowInSeconds`', () => {
-      expect(eventSourceMappingResource.Properties.TumblingWindowInSeconds).to.equal(30);
-    });
+      expect(
+        eventSourceMappingResource.Properties.TumblingWindowInSeconds,
+      ).to.equal(30)
+    })
 
     it('should support `filterPatterns`', () => {
-      expect(eventSourceMappingResource.Properties.FilterCriteria).to.deep.equal({
+      expect(
+        eventSourceMappingResource.Properties.FilterCriteria,
+      ).to.deep.equal({
         Filters: [
           {
             Pattern: JSON.stringify({ eventName: ['INSERT'] }),
@@ -1848,8 +2058,8 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
             Pattern: JSON.stringify({ eventName: ['MODIFY'] }),
           },
         ],
-      });
-    });
+      })
+    })
 
     it.skip('TODO: should ensure necessary IAM statememnts', () => {
       // Replaces
@@ -1858,8 +2068,8 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
       // https://github.com/serverless/serverless/blob/f64f7c68abb1d6837ecaa6173f4b605cf3975acf/test/unit/lib/plugins/aws/package/compile/events/stream.test.js#L1467-L1539 (partially)
       //
       // Confirm expected IAM statements on final role
-    });
-  });
+    })
+  })
 
   describe.skip('TODO: failures', () => {
     it("should fail if stream `type` is not set and couldn't be assumed", async () => {
@@ -1883,9 +2093,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
               },
             },
           },
-        })
-      ).to.be.eventually.rejected.and.have.property('code', 'TODO');
-    });
+        }),
+      ).to.be.eventually.rejected.and.have.property('code', 'TODO')
+    })
 
     it("should fail if destination `type` is not set and couldn't be assumed", async () => {
       // Replaces
@@ -1913,14 +2123,14 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
               },
             },
           },
-        })
-      ).to.be.eventually.rejected.and.have.property('code', 'TODO');
-    });
-  });
+        }),
+      ).to.be.eventually.rejected.and.have.property('code', 'TODO')
+    })
+  })
 
   describe('with provisioned concurrency', () => {
-    let naming;
-    let eventSourceMappingResource;
+    let naming
+    let eventSourceMappingResource
 
     before(async () => {
       const { awsNaming, cfTemplate } = await runServerless({
@@ -1929,16 +2139,25 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
           functions: {
             basic: {
               provisionedConcurrency: 1,
-              events: [{ stream: 'arn:aws:kinesis:us-east-1:123456789012:stream/myStream' }],
+              events: [
+                {
+                  stream:
+                    'arn:aws:kinesis:us-east-1:123456789012:stream/myStream',
+                },
+              ],
             },
           },
         },
         command: 'package',
-      });
-      naming = awsNaming;
-      const streamLogicalId = awsNaming.getStreamLogicalId('basic', 'kinesis', 'myStream');
-      eventSourceMappingResource = cfTemplate.Resources[streamLogicalId];
-    });
+      })
+      naming = awsNaming
+      const streamLogicalId = awsNaming.getStreamLogicalId(
+        'basic',
+        'kinesis',
+        'myStream',
+      )
+      eventSourceMappingResource = cfTemplate.Resources[streamLogicalId]
+    })
 
     it('should reference provisioned alias', () => {
       expect(eventSourceMappingResource.Properties.FunctionName).to.deep.equal({
@@ -1951,12 +2170,13 @@ describe('test/unit/lib/plugins/aws/package/compile/events/stream.test.js', () =
             'provisioned',
           ],
         ],
-      });
-    });
+      })
+    })
 
     it('should depend on provisioned alias', () => {
-      const aliasLogicalId = naming.getLambdaProvisionedConcurrencyAliasLogicalId('basic');
-      expect(eventSourceMappingResource.DependsOn).to.include(aliasLogicalId);
-    });
-  });
-});
+      const aliasLogicalId =
+        naming.getLambdaProvisionedConcurrencyAliasLogicalId('basic')
+      expect(eventSourceMappingResource.DependsOn).to.include(aliasLogicalId)
+    })
+  })
+})

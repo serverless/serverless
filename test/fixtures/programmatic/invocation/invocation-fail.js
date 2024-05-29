@@ -1,5 +1,5 @@
-'use strict';
+'use strict'
 
 module.exports.handler = () => {
-  throw new Error('Invocation fail');
-};
+  throw new Error('Invocation fail')
+}

@@ -1,11 +1,11 @@
-'use strict';
+'use strict'
 
-const chai = require('chai');
-const runServerless = require('../../../../../../utils/run-serverless');
-const expect = require('chai').expect;
+const chai = require('chai')
+const runServerless = require('../../../../../../utils/run-serverless')
+const expect = require('chai').expect
 
-chai.use(require('chai-as-promised'));
-chai.use(require('sinon-chai'));
+chai.use(require('chai-as-promised'))
+chai.use(require('sinon-chai'))
 
 describe('#generateCoreTemplate()', () => {
   it('should reject non-HTTPS requests to the deployment bucket', async () =>
@@ -14,19 +14,26 @@ describe('#generateCoreTemplate()', () => {
       command: 'package',
     }).then(({ cfTemplate }) => {
       const serverlessDeploymentBucketPolicy =
-        cfTemplate.Resources.ServerlessDeploymentBucketPolicy;
+        cfTemplate.Resources.ServerlessDeploymentBucketPolicy
 
-      expect(serverlessDeploymentBucketPolicy).to.exist;
-      expect(serverlessDeploymentBucketPolicy.Type).to.equal('AWS::S3::BucketPolicy');
-      expect(serverlessDeploymentBucketPolicy.Properties).to.exist;
+      expect(serverlessDeploymentBucketPolicy).to.exist
+      expect(serverlessDeploymentBucketPolicy.Type).to.equal(
+        'AWS::S3::BucketPolicy',
+      )
+      expect(serverlessDeploymentBucketPolicy.Properties).to.exist
       expect(serverlessDeploymentBucketPolicy.Properties.Bucket).to.deep.equal({
         Ref: 'ServerlessDeploymentBucket',
-      });
+      })
 
-      expect(serverlessDeploymentBucketPolicy.Properties.PolicyDocument).to.exist;
-      expect(serverlessDeploymentBucketPolicy.Properties.PolicyDocument.Statement).to.exist;
+      expect(serverlessDeploymentBucketPolicy.Properties.PolicyDocument).to
+        .exist
+      expect(
+        serverlessDeploymentBucketPolicy.Properties.PolicyDocument.Statement,
+      ).to.exist
 
-      expect(serverlessDeploymentBucketPolicy.Properties.PolicyDocument.Statement).to.deep.include({
+      expect(
+        serverlessDeploymentBucketPolicy.Properties.PolicyDocument.Statement,
+      ).to.deep.include({
         Action: 's3:*',
         Effect: 'Deny',
         Principal: '*',
@@ -46,18 +53,23 @@ describe('#generateCoreTemplate()', () => {
           {
             'Fn::Join': [
               '',
-              ['arn:', { Ref: 'AWS::Partition' }, ':s3:::', { Ref: 'ServerlessDeploymentBucket' }],
+              [
+                'arn:',
+                { Ref: 'AWS::Partition' },
+                ':s3:::',
+                { Ref: 'ServerlessDeploymentBucket' },
+              ],
             ],
           },
         ],
         Condition: {
           Bool: { 'aws:SecureTransport': false },
         },
-      });
-    }));
+      })
+    }))
 
   it('should use a custom bucket if specified', async () => {
-    const bucketName = 'com.serverless.deploys';
+    const bucketName = 'com.serverless.deploys'
 
     return runServerless({
       config: {
@@ -66,12 +78,14 @@ describe('#generateCoreTemplate()', () => {
       },
       command: 'package',
     }).then(({ cfTemplate }) => {
-      const template = cfTemplate;
-      expect(template.Outputs.ServerlessDeploymentBucketName.Value).to.equal(bucketName);
-      expect(template.Resources.ServerlessDeploymentBucket).to.not.exist;
-      expect(template.Resources.ServerlessDeploymentBucketPolicy).to.not.exist;
-    });
-  });
+      const template = cfTemplate
+      expect(template.Outputs.ServerlessDeploymentBucketName.Value).to.equal(
+        bucketName,
+      )
+      expect(template.Resources.ServerlessDeploymentBucket).to.not.exist
+      expect(template.Resources.ServerlessDeploymentBucketPolicy).to.not.exist
+    })
+  })
 
   it('should enable S3 Block Public Access & versioning if specified', async () =>
     runServerless({
@@ -87,7 +101,9 @@ describe('#generateCoreTemplate()', () => {
       },
       command: 'package',
     }).then(({ cfTemplate }) => {
-      expect(cfTemplate.Resources.ServerlessDeploymentBucket.Properties).to.deep.include({
+      expect(
+        cfTemplate.Resources.ServerlessDeploymentBucket.Properties,
+      ).to.deep.include({
         PublicAccessBlockConfiguration: {
           BlockPublicAcls: true,
           BlockPublicPolicy: true,
@@ -97,8 +113,8 @@ describe('#generateCoreTemplate()', () => {
         VersioningConfiguration: {
           Status: 'Enabled',
         },
-      });
-    }));
+      })
+    }))
 
   it('should add resource tags to the bucket if present', async () =>
     runServerless({
@@ -133,11 +149,11 @@ describe('#generateCoreTemplate()', () => {
             { Key: 'BAZ', Value: 'qux' },
           ],
         },
-      });
-    }));
+      })
+    }))
 
   it('should result in error for custom bucket and accelerate flag', async () => {
-    const bucketName = 'com.serverless.deploys';
+    const bucketName = 'com.serverless.deploys'
 
     await expect(
       runServerless({
@@ -152,7 +168,9 @@ describe('#generateCoreTemplate()', () => {
           S3: { getBucketLocation: { LocationConstraint: '' } },
           STS: {
             getCallerIdentity: {
-              ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+              ResponseMetadata: {
+                RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+              },
               UserId: 'XXXXXXXXXXXXXXXXXXXXX',
               Account: '1234567890',
               Arn: 'arn:aws:iam::1234567890:user/test',
@@ -162,12 +180,12 @@ describe('#generateCoreTemplate()', () => {
         command: 'deploy',
         options: { 'aws-s3-accelerate': true },
         lastLifecycleHookName: 'before:deploy:deploy',
-      })
+      }),
     ).to.eventually.be.rejected.and.have.property(
       'code',
-      'S3_TRANSFER_ACCELERATION_ON_EXISTING_BUCKET'
-    );
-  });
+      'S3_TRANSFER_ACCELERATION_ON_EXISTING_BUCKET',
+    )
+  })
 
   it('should use a auto generated bucket if you does not specify deploymentBucket', async () =>
     runServerless({
@@ -187,8 +205,8 @@ describe('#generateCoreTemplate()', () => {
             ],
           },
         },
-      });
-    }));
+      })
+    }))
 
   it('should add a custom output if S3 Transfer Acceleration is enabled', async () =>
     runServerless({
@@ -199,7 +217,9 @@ describe('#generateCoreTemplate()', () => {
       awsRequestStubMap: {
         STS: {
           getCallerIdentity: {
-            ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+            ResponseMetadata: {
+              RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+            },
             UserId: 'XXXXXXXXXXXXXXXXXXXXX',
             Account: '1234567890',
             Arn: 'arn:aws:iam::1234567890:user/test',
@@ -207,9 +227,13 @@ describe('#generateCoreTemplate()', () => {
         },
       },
     }).then(({ cfTemplate: template }) => {
-      expect(template.Outputs.ServerlessDeploymentBucketAccelerated).to.not.equal(null);
-      expect(template.Outputs.ServerlessDeploymentBucketAccelerated.Value).to.equal(true);
-    }));
+      expect(
+        template.Outputs.ServerlessDeploymentBucketAccelerated,
+      ).to.not.equal(null)
+      expect(
+        template.Outputs.ServerlessDeploymentBucketAccelerated.Value,
+      ).to.equal(true)
+    }))
 
   it('should explicitly disable S3 Transfer Acceleration, if requested', async () =>
     runServerless({
@@ -220,7 +244,9 @@ describe('#generateCoreTemplate()', () => {
       awsRequestStubMap: {
         STS: {
           getCallerIdentity: {
-            ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+            ResponseMetadata: {
+              RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+            },
             UserId: 'XXXXXXXXXXXXXXXXXXXXX',
             Account: '1234567890',
             Arn: 'arn:aws:iam::1234567890:user/test',
@@ -244,17 +270,22 @@ describe('#generateCoreTemplate()', () => {
             ],
           },
         },
-      });
-    }));
+      })
+    }))
 
   it('should exclude AccelerateConfiguration for govcloud region', async () =>
     runServerless({
-      config: { service: 'irrelevant', provider: { name: 'aws', region: 'us-gov-west-1' } },
+      config: {
+        service: 'irrelevant',
+        provider: { name: 'aws', region: 'us-gov-west-1' },
+      },
       command: 'deploy',
       awsRequestStubMap: {
         STS: {
           getCallerIdentity: {
-            ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+            ResponseMetadata: {
+              RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+            },
             UserId: 'XXXXXXXXXXXXXXXXXXXXX',
             Account: '1234567890',
             Arn: 'arn:aws:iam::1234567890:user/test',
@@ -277,8 +308,8 @@ describe('#generateCoreTemplate()', () => {
             ],
           },
         },
-      });
-    }));
+      })
+    }))
 
   it('should not create ServerlessDeploymentBucketPolicy resource if requested', async () => {
     const { cfTemplate, awsNaming } = await runServerless({
@@ -292,10 +323,10 @@ describe('#generateCoreTemplate()', () => {
         },
       },
       command: 'package',
-    });
+    })
 
     expect(cfTemplate.Resources).to.not.have.property(
-      awsNaming.getDeploymentBucketPolicyLogicalId()
-    );
-  });
-});
+      awsNaming.getDeploymentBucketPolicyLogicalId(),
+    )
+  })
+})
