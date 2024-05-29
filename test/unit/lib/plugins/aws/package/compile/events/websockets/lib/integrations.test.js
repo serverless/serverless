@@ -1,26 +1,28 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const AwsCompileWebsocketsEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/index');
-const Serverless = require('../../../../../../../../../../lib/serverless');
-const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
+const expect = require('chai').expect
+const AwsCompileWebsocketsEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/index')
+const Serverless = require('../../../../../../../../../../lib/serverless')
+const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider')
 
 describe('#compileIntegrations()', () => {
-  let awsCompileWebsocketsEvents;
+  let awsCompileWebsocketsEvents
 
   beforeEach(() => {
-    const serverless = new Serverless({ commands: [], options: {} });
-    serverless.setProvider('aws', new AwsProvider(serverless));
-    serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
+    const serverless = new Serverless({ commands: [], options: {} })
+    serverless.setProvider('aws', new AwsProvider(serverless))
+    serverless.service.provider.compiledCloudFormationTemplate = {
+      Resources: {},
+    }
     serverless.service.functions = {
       First: {},
       Second: {},
-    };
-    awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless);
+    }
+    awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless)
 
     awsCompileWebsocketsEvents.websocketsApiLogicalId =
-      awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
-  });
+      awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId()
+  })
 
   it('should create an integration resource for every event', () => {
     awsCompileWebsocketsEvents.validated = {
@@ -34,12 +36,12 @@ describe('#compileIntegrations()', () => {
           route: '$disconnect',
         },
       ],
-    };
+    }
 
-    awsCompileWebsocketsEvents.compileIntegrations();
+    awsCompileWebsocketsEvents.compileIntegrations()
     const resources =
-      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-        .Resources;
+      awsCompileWebsocketsEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
 
     expect(resources).to.deep.equal({
       FirstWebsocketsIntegration: {
@@ -102,6 +104,6 @@ describe('#compileIntegrations()', () => {
           },
         },
       },
-    });
-  });
-});
+    })
+  })
+})

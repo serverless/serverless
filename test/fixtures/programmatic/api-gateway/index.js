@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 module.exports.handler = (event, context, callback) => {
   const resolve = () =>
@@ -9,10 +9,10 @@ module.exports.handler = (event, context, callback) => {
         method: event.httpMethod,
         headers: event.headers,
       }),
-    });
-  if (event.path === '/bar/timeout') setTimeout(resolve, 2000);
-  else resolve();
-};
+    })
+  if (event.path === '/bar/timeout') setTimeout(resolve, 2000)
+  else resolve()
+}
 
 module.exports.minimal = async (event) => {
   return {
@@ -21,5 +21,5 @@ module.exports.minimal = async (event) => {
       message: 'Hello from API Gateway! - (minimal)',
       event,
     }),
-  };
-};
+  }
+}

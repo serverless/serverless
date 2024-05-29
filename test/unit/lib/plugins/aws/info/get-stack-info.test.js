@@ -1,37 +1,37 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const sinon = require('sinon');
-const AwsInfo = require('../../../../../../lib/plugins/aws/info/index');
-const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
-const Serverless = require('../../../../../../lib/serverless');
+const expect = require('chai').expect
+const sinon = require('sinon')
+const AwsInfo = require('../../../../../../lib/plugins/aws/info/index')
+const AwsProvider = require('../../../../../../lib/plugins/aws/provider')
+const Serverless = require('../../../../../../lib/serverless')
 
 describe('#getStackInfo()', () => {
-  let serverless;
-  let awsInfo;
-  let describeStacksStub;
+  let serverless
+  let awsInfo
+  let describeStacksStub
 
   beforeEach(() => {
     const options = {
       stage: 'dev',
       region: 'us-east-1',
-    };
-    serverless = new Serverless({ commands: [], options: {} });
-    serverless.setProvider('aws', new AwsProvider(serverless, options));
-    serverless.service.service = 'my-service';
+    }
+    serverless = new Serverless({ commands: [], options: {} })
+    serverless.setProvider('aws', new AwsProvider(serverless, options))
+    serverless.service.service = 'my-service'
     serverless.service.functions = {
       hello: { name: 'my-service-dev-hello' },
       world: { name: 'customized' },
-    };
-    serverless.service.layers = { test: {} };
-    awsInfo = new AwsInfo(serverless, options);
+    }
+    serverless.service.layers = { test: {} }
+    awsInfo = new AwsInfo(serverless, options)
 
-    describeStacksStub = sinon.stub(awsInfo.provider, 'request');
-  });
+    describeStacksStub = sinon.stub(awsInfo.provider, 'request')
+  })
 
   afterEach(() => {
-    awsInfo.provider.request.restore();
-  });
+    awsInfo.provider.request.restore()
+  })
 
   it('attach info from describeStack call to this.gatheredData if result is available', async () => {
     const describeStacksResponse = {
@@ -84,9 +84,9 @@ describe('#getStackInfo()', () => {
           DisableRollback: false,
         },
       ],
-    };
+    }
 
-    describeStacksStub.resolves(describeStacksResponse);
+    describeStacksStub.resolves(describeStacksResponse)
 
     const expectedGatheredDataObj = {
       info: {
@@ -148,24 +148,28 @@ describe('#getStackInfo()', () => {
           OutputValue: 'a12bcdef3g45hi.cloudfront.net',
         },
       ],
-    };
+    }
 
     return awsInfo.getStackInfo().then(() => {
-      expect(describeStacksStub.calledOnce).to.equal(true);
+      expect(describeStacksStub.calledOnce).to.equal(true)
       expect(
-        describeStacksStub.calledWithExactly('CloudFormation', 'describeStacks', {
-          StackName: awsInfo.provider.naming.getStackName(),
-        })
-      ).to.equal(true);
+        describeStacksStub.calledWithExactly(
+          'CloudFormation',
+          'describeStacks',
+          {
+            StackName: awsInfo.provider.naming.getStackName(),
+          },
+        ),
+      ).to.equal(true)
 
-      expect(awsInfo.gatheredData).to.deep.equal(expectedGatheredDataObj);
-    });
-  });
+      expect(awsInfo.gatheredData).to.deep.equal(expectedGatheredDataObj)
+    })
+  })
 
   it('should resolve if result is empty', async () => {
-    const describeStacksResponse = null;
+    const describeStacksResponse = null
 
-    describeStacksStub.resolves(describeStacksResponse);
+    describeStacksStub.resolves(describeStacksResponse)
 
     const expectedGatheredDataObj = {
       info: {
@@ -178,30 +182,34 @@ describe('#getStackInfo()', () => {
         stack: 'my-service-dev',
       },
       outputs: [],
-    };
+    }
 
     return awsInfo.getStackInfo().then(() => {
-      expect(describeStacksStub.calledOnce).to.equal(true);
+      expect(describeStacksStub.calledOnce).to.equal(true)
       expect(
-        describeStacksStub.calledWithExactly('CloudFormation', 'describeStacks', {
-          StackName: awsInfo.provider.naming.getStackName(),
-        })
-      ).to.equal(true);
+        describeStacksStub.calledWithExactly(
+          'CloudFormation',
+          'describeStacks',
+          {
+            StackName: awsInfo.provider.naming.getStackName(),
+          },
+        ),
+      ).to.equal(true)
 
-      expect(awsInfo.gatheredData).to.deep.equal(expectedGatheredDataObj);
-    });
-  });
+      expect(awsInfo.gatheredData).to.deep.equal(expectedGatheredDataObj)
+    })
+  })
 
   it('should attach info from api gateway if httpApi is used', async () => {
     serverless.service.provider.httpApi = {
       id: 'http-api-id',
-    };
+    }
 
     describeStacksStub
       .withArgs('CloudFormation', 'describeStacks', {
         StackName: awsInfo.provider.naming.getStackName(),
       })
-      .resolves(null);
+      .resolves(null)
 
     describeStacksStub
       .withArgs('ApiGatewayV2', 'getApi', {
@@ -209,7 +217,7 @@ describe('#getStackInfo()', () => {
       })
       .resolves({
         ApiEndpoint: 'my-endpoint',
-      });
+      })
 
     const expectedGatheredDataObj = {
       info: {
@@ -222,22 +230,26 @@ describe('#getStackInfo()', () => {
         stack: 'my-service-dev',
       },
       outputs: [],
-    };
+    }
 
     return awsInfo.getStackInfo().then(() => {
-      expect(describeStacksStub.calledTwice).to.equal(true);
+      expect(describeStacksStub.calledTwice).to.equal(true)
       expect(
-        describeStacksStub.calledWithExactly('CloudFormation', 'describeStacks', {
-          StackName: awsInfo.provider.naming.getStackName(),
-        })
-      ).to.equal(true);
+        describeStacksStub.calledWithExactly(
+          'CloudFormation',
+          'describeStacks',
+          {
+            StackName: awsInfo.provider.naming.getStackName(),
+          },
+        ),
+      ).to.equal(true)
       expect(
         describeStacksStub.calledWithExactly('ApiGatewayV2', 'getApi', {
           ApiId: 'http-api-id',
-        })
-      ).to.equal(true);
+        }),
+      ).to.equal(true)
 
-      expect(awsInfo.gatheredData).to.deep.equal(expectedGatheredDataObj);
-    });
-  });
-});
+      expect(awsInfo.gatheredData).to.deep.equal(expectedGatheredDataObj)
+    })
+  })
+})

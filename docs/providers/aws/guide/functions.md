@@ -52,7 +52,7 @@ The `handler` property points to the file and module containing the code you wan
 
 ```javascript
 // handler.js
-module.exports.functionOne = function (event, context, callback) {};
+module.exports.functionOne = function (event, context, callback) {}
 ```
 
 You can add as many functions as you want within this property.
@@ -172,7 +172,14 @@ provider:
             - 's3:ListBucket'
           # You can put CloudFormation syntax in here.  No one will judge you.
           # Remember, this all gets translated to CloudFormation.
-          Resource: { 'Fn::Join': ['', ['arn:aws:s3:::', { 'Ref': 'ServerlessDeploymentBucket' }]] }
+          Resource:
+            {
+              'Fn::Join':
+                [
+                  '',
+                  ['arn:aws:s3:::', { 'Ref': 'ServerlessDeploymentBucket' }],
+                ],
+            }
         - Effect: 'Allow'
           Action:
             - 's3:PutObject'

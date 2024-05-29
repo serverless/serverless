@@ -1,11 +1,11 @@
-'use strict';
+'use strict'
 
-const { promisify } = require('util');
-const path = require('path');
-const copyFile = promisify(require('fs').copyFile);
+const { promisify } = require('util')
+const path = require('path')
+const copyFile = promisify(require('fs').copyFile)
 
 // sha256 hash: `T0qEYHOE4Xv2E8Ar03xGogAlElcdf/dQh/lh9ao7Glo=`
-const ZIP_NAME = 'my-own.zip';
+const ZIP_NAME = 'my-own.zip'
 
 /**
  * Simple plugin to move prepackaged zip file to `.serverless/NAME.zip` during
@@ -13,23 +13,26 @@ const ZIP_NAME = 'my-own.zip';
  */
 class PackageArtifactPlugin {
   constructor(serverless) {
-    this.serverless = serverless;
+    this.serverless = serverless
     this.hooks = {
       'before:package:createDeploymentArtifacts': async () => this.package(),
-    };
+    }
   }
 
   async package() {
-    const zipSrcPath = path.resolve(ZIP_NAME);
-    const serverlessDirPath = path.resolve(this.serverless.serviceDir, '.serverless');
-    const zipDestPath = path.join(serverlessDirPath, ZIP_NAME);
+    const zipSrcPath = path.resolve(ZIP_NAME)
+    const serverlessDirPath = path.resolve(
+      this.serverless.serviceDir,
+      '.serverless',
+    )
+    const zipDestPath = path.join(serverlessDirPath, ZIP_NAME)
 
     // Copy zip to `.serverless` directory
-    await copyFile(zipSrcPath, zipDestPath);
+    await copyFile(zipSrcPath, zipDestPath)
 
     // Mutate package.artifact to point to `.serverless/NAME.zip`
-    this.serverless.service.package.artifact = zipDestPath;
+    this.serverless.service.package.artifact = zipDestPath
   }
 }
 
-module.exports = PackageArtifactPlugin;
+module.exports = PackageArtifactPlugin

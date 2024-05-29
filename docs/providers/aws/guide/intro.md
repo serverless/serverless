@@ -92,7 +92,7 @@ In case you need more flexibility, you can also define the service configuration
 While Serverless Framework is language-agnostic, projects written in Node.js can benefit from using the same language all around. When using JavaScript or TypeScript, the file must export the configuration as a JS object, for example:
 
 ```js
-'use strict';
+'use strict'
 
 // serverless.js
 
@@ -109,12 +109,12 @@ module.exports = {
     // ...
   },
   resources: {},
-};
+}
 ```
 
 ```ts
 // Requiring @types/serverless in your project package.json
-import type { Serverless } from 'serverless/aws';
+import type { Serverless } from 'serverless/aws'
 
 // serverless.ts
 
@@ -131,9 +131,9 @@ const serverlessConfiguration: Serverless = {
     // ...
   },
   resources: {},
-};
+}
 
-module.exports = serverlessConfiguration;
+module.exports = serverlessConfiguration
 ```
 
 Note: when deploying using a `serverless.ts` file, `ts-node` needs to be installed separately as a dev dependency.

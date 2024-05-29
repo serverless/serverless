@@ -1,20 +1,20 @@
-'use strict';
+'use strict'
 
-const chai = require('chai');
-const sinon = require('sinon');
-const proxyquire = require('proxyquire');
-const PluginList = require('../../../../../../lib/plugins/plugin/list');
-const Serverless = require('../../../../../../lib/serverless');
-const CLI = require('../../../../../../lib/classes/cli');
-const observeOutput = require('@serverless/test/observe-output');
+const chai = require('chai')
+const sinon = require('sinon')
+const proxyquire = require('proxyquire')
+const PluginList = require('../../../../../../lib/plugins/plugin/list')
+const Serverless = require('../../../../../../lib/serverless')
+const CLI = require('../../../../../../lib/classes/cli')
+const observeOutput = require('@serverless/test/observe-output')
 
-chai.use(require('chai-as-promised'));
+chai.use(require('chai-as-promised'))
 
-const expect = chai.expect;
+const expect = chai.expect
 
 describe('PluginUtils', () => {
-  let pluginUtils;
-  let serverless;
+  let pluginUtils
+  let serverless
   const plugins = [
     {
       name: 'serverless-plugin-1',
@@ -31,53 +31,58 @@ describe('PluginUtils', () => {
       description: 'Serverless Existing plugin',
       githubUrl: 'https://github.com/serverless/serverless-existing-plugin',
     },
-  ];
+  ]
 
   beforeEach(() => {
-    serverless = new Serverless({ commands: [], options: {} });
-    serverless.cli = new CLI(serverless);
-    const options = {};
-    pluginUtils = new PluginList(serverless, options);
-  });
+    serverless = new Serverless({ commands: [], options: {} })
+    serverless.cli = new CLI(serverless)
+    const options = {}
+    pluginUtils = new PluginList(serverless, options)
+  })
 
   describe('#getPlugins()', () => {
-    let fetchStub;
-    let pluginWithFetchStub;
+    let fetchStub
+    let pluginWithFetchStub
 
     beforeEach(async () => {
       fetchStub = sinon.stub().returns(
         Promise.resolve({
           json: sinon.stub().returns(Promise.resolve(plugins)),
-        })
-      );
-      pluginWithFetchStub = proxyquire('../../../../../../lib/plugins/plugin/lib/utils.js', {
-        'node-fetch': fetchStub,
-      });
-    });
+        }),
+      )
+      pluginWithFetchStub = proxyquire(
+        '../../../../../../lib/plugins/plugin/lib/utils.js',
+        {
+          'node-fetch': fetchStub,
+        },
+      )
+    })
 
     it('should fetch and return the plugins from the plugins repository', async () => {
-      const endpoint = 'https://raw.githubusercontent.com/serverless/plugins/master/plugins.json';
+      const endpoint =
+        'https://raw.githubusercontent.com/serverless/plugins/master/plugins.json'
 
       return pluginWithFetchStub.getPlugins().then((result) => {
-        expect(fetchStub.calledOnce).to.equal(true);
-        expect(fetchStub.args[0][0]).to.equal(endpoint);
-        expect(result).to.deep.equal(plugins);
-      });
-    });
-  });
+        expect(fetchStub.calledOnce).to.equal(true)
+        expect(fetchStub.args[0][0]).to.equal(endpoint)
+        expect(result).to.deep.equal(plugins)
+      })
+    })
+  })
 
   describe('#display()', () => {
     it('should display the plugins if present', async () => {
-      const output = await observeOutput(() => pluginUtils.display(plugins));
-      let expectedMessage = '';
-      expectedMessage += 'serverless-existing-plugin Serverless Existing plugin\n';
-      expectedMessage += 'serverless-plugin-1 Serverless Plugin 1\n';
-      expectedMessage += 'serverless-plugin-2 Serverless Plugin 2\n\n';
-      expectedMessage += 'Install a plugin by running:\n';
-      expectedMessage += '  serverless plugin install --name ...\n\n';
+      const output = await observeOutput(() => pluginUtils.display(plugins))
+      let expectedMessage = ''
       expectedMessage +=
-        'It will be automatically downloaded and added to package.json and serverless.yml\n';
-      expect(output).to.equal(expectedMessage);
-    });
-  });
-});
+        'serverless-existing-plugin Serverless Existing plugin\n'
+      expectedMessage += 'serverless-plugin-1 Serverless Plugin 1\n'
+      expectedMessage += 'serverless-plugin-2 Serverless Plugin 2\n\n'
+      expectedMessage += 'Install a plugin by running:\n'
+      expectedMessage += '  serverless plugin install --name ...\n\n'
+      expectedMessage +=
+        'It will be automatically downloaded and added to package.json and serverless.yml\n'
+      expect(output).to.equal(expectedMessage)
+    })
+  })
+})

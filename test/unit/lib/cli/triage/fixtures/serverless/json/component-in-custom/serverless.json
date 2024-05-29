@@ -1,1 +1,5 @@
-{ "service": "foo", "provider": { "name": "foo" }, "custom": { "component": "foo" } }
+{
+  "service": "foo",
+  "provider": { "name": "foo" },
+  "custom": { "component": "foo" }
+}

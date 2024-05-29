@@ -70,20 +70,20 @@ yarn add @serverless/aws-lambda-sdk
 Use the following methods to instrument the AWS client libraries and Express.js.
 
 ```javascript
-const express = require('express');
-const serverlessSdk = require('@serverless/aws-lambda-sdk');
+const express = require('express')
+const serverlessSdk = require('@serverless/aws-lambda-sdk')
 
 // Instrument AWS SDK v2
-serverlessSdk.instrumentation.awsSdkV2.install(AWS);
+serverlessSdk.instrumentation.awsSdkV2.install(AWS)
 
 // Instrument AWS SDK v3 client
-serverlessSdk.instrumentation.awsSdkV3Client.install(client);
+serverlessSdk.instrumentation.awsSdkV3Client.install(client)
 
 // Instruments Express.js
-const expressApp = express();
+const expressApp = express()
 // Ensure you install the SDK instrumentation before
 // installing any express middleware
-serverlessSdk.instrumentation.expressApp.install(expressApp);
+serverlessSdk.instrumentation.expressApp.install(expressApp)
 ```
 
 Additionally, in some instrumentation cases, it's important to ensure that
@@ -107,7 +107,7 @@ To use the Serverless SDK you must require the `@serverless/sdk` method in your
 AWS Lambda function handler.
 
 ```javascript
-const serverlessSdk = require('@serverless/sdk');
+const serverlessSdk = require('@serverless/sdk')
 ```
 
 ### Setting up Source Maps
@@ -182,7 +182,7 @@ There are two mechanisms for capturing handled errors.
 try {
   // an error is thrown
 } catch (ex) {
-  serverlessSdk.captureError(ex);
+  serverlessSdk.captureError(ex)
 }
 ```
 
@@ -192,7 +192,7 @@ try {
 try {
   // an error is thrown
 } catch (ex) {
-  console.error(ex);
+  console.error(ex)
 }
 ```
 
@@ -211,13 +211,13 @@ combination of a string and `Error`, are provided, then the stack trace of the
 #### Using captureWarning
 
 ```javascript
-serverlessSdk.captureWarning('Something bad will happen soon');
+serverlessSdk.captureWarning('Something bad will happen soon')
 ```
 
 #### Using console.warn
 
 ```javascript
-console.warn('My Warning');
+console.warn('My Warning')
 ```
 
 The Serverless SDK automatically instruments the `console.warn` method to
@@ -238,7 +238,7 @@ is easy to identify in Serverless Dashboard.
 #### Setting Tags on the Trace
 
 ```javascript
-serverlessSdk.setTag('userId', 'bd86489cf036');
+serverlessSdk.setTag('userId', 'bd86489cf036')
 ```
 
 Using the `setTag` method will create Tags associated with the entire Trace.
@@ -254,9 +254,9 @@ an SDK error will be made available in Trace Details.
 #### Settings Tags with console.error and console.warn
 
 ```javascript
-serverlessSdk.setTag('userId', 'bd86489cf036');
-console.warn('warning message');
-console.error(new Error('some error'));
+serverlessSdk.setTag('userId', 'bd86489cf036')
+console.warn('warning message')
+console.error(new Error('some error'))
 ```
 
 Using `setTag` sets the Tag values on both the Trace and all Captured Errors
@@ -268,7 +268,7 @@ using the `console.error` and `console.warn` methods. Therefore, Tags set with
 #### Setting Tags on Captured Errors
 
 ```javascript
-serverlessSdk.captureError(ex, { tags: { userId: '1b8b4c6b4b14' } });
+serverlessSdk.captureError(ex, { tags: { userId: '1b8b4c6b4b14' } })
 ```
 
 Tags can also be set on the individual error. If you previously set a Tag using
@@ -280,7 +280,9 @@ Tag keys on `captureError` are validated the same way as tag keys on `setTag`.
 #### Setting Tags on Captured Warnings
 
 ```javascript
-serverlessSdk.captureWarning('warning message', { tags: { userId: 'eb661c69405c' } });
+serverlessSdk.captureWarning('warning message', {
+  tags: { userId: 'eb661c69405c' },
+})
 ```
 
 Tags can also be added on the individual Captured Warnings, just like Captured
@@ -328,9 +330,9 @@ create your own custom spans and nest them.
 #### Create a Custom Span
 
 ```javascript
-const customSpan1 = serverlessSdk.createSpan('mySpan');
+const customSpan1 = serverlessSdk.createSpan('mySpan')
 // do some work
-customSpan1.close();
+customSpan1.close()
 ```
 
 #### Creating a Custom Span with a callback
@@ -342,7 +344,7 @@ callback starts/stops.
 ```javascript
 serverlessSdk.createSpan('mySpan', () => {
   // do some work
-});
+})
 ```
 
 This also supports `async` callbacks.
@@ -350,7 +352,7 @@ This also supports `async` callbacks.
 ```javascript
 serverlessSdk.createSpan('mySpan', async () => {
   // do some work
-});
+})
 ```
 
 #### Creating Nested Spans
@@ -358,12 +360,12 @@ serverlessSdk.createSpan('mySpan', async () => {
 Spans can also be nested by calling the `createSpan` method on a Span.
 
 ```javascript
-const span1 = serverlessSdk.createSpan('span1');
-const span2 = span1.createSpan('span2');
+const span1 = serverlessSdk.createSpan('span1')
+const span2 = span1.createSpan('span2')
 // do some work
-span2.close();
+span2.close()
 // do additional work
-span1.close();
+span1.close()
 ```
 
 Child spans must be stopped via `close()` before the parent Span is stopped. If
@@ -383,5 +385,5 @@ In some cases, it may be necessary to manually set the endpoint. In such cases
 you can use the `setEndpoint` method to customize the endpoint path.
 
 ```javascript
-serverlessSdk.setEndpoint('/my/custom/endpoint');
+serverlessSdk.setEndpoint('/my/custom/endpoint')
 ```

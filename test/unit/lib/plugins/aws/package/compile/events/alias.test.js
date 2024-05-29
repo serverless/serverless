@@ -1,13 +1,13 @@
-'use strict';
+'use strict'
 
-const runServerless = require('../../../../../../../utils/run-serverless');
-const { use: chaiUse, expect } = require('chai');
-const chaiAsPromised = require('chai-as-promised');
-const naming = require('../../../../../../../../lib/plugins/aws/lib/naming');
+const runServerless = require('../../../../../../../utils/run-serverless')
+const { use: chaiUse, expect } = require('chai')
+const chaiAsPromised = require('chai-as-promised')
+const naming = require('../../../../../../../../lib/plugins/aws/lib/naming')
 
-chaiUse(chaiAsPromised);
+chaiUse(chaiAsPromised)
 describe('test/unit/lib/plugins/aws/package/compile/events/alias.test.js', () => {
-  let lambdaResourceCount = 0;
+  let lambdaResourceCount = 0
 
   before(async () => {
     const events = (index) => {
@@ -16,14 +16,16 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alias.test.js', () =>
           activemq: {
             queue: 'TestingQueue',
             arn: 'arn:aws:mq:us-east-1:0000:broker:ExampleMQBroker:b-xxx-xxx',
-            basicAuthArn: 'arn:aws:secretsmanager:us-east-1:01234567890:secret:MyBrokerSecretName',
+            basicAuthArn:
+              'arn:aws:secretsmanager:us-east-1:01234567890:secret:MyBrokerSecretName',
           },
         },
         {
           rabbitmq: {
             queue: 'TestingQueue',
             arn: 'arn:aws:mq:us-east-1:0000:broker:ExampleMQBroker:b-xxx-xxx',
-            basicAuthArn: 'arn:aws:secretsmanager:us-east-1:01234567890:secret:MyBrokerSecretName',
+            basicAuthArn:
+              'arn:aws:secretsmanager:us-east-1:01234567890:secret:MyBrokerSecretName',
           },
         },
         {
@@ -90,7 +92,8 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alias.test.js', () =>
         {
           iotFleetProvisioning: {
             templateBody: {},
-            provisioningRoleArn: 'arn:aws:iam::123456789:role/provisioning-role',
+            provisioningRoleArn:
+              'arn:aws:iam::123456789:role/provisioning-role',
           },
         },
         { iot: { sql: 'SELECT * FROM topic_1' } },
@@ -108,9 +111,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alias.test.js', () =>
         {
           cloudwatchEvent: {
             event: {
-              'source': ['aws.ec2'],
+              source: ['aws.ec2'],
               'detail-type': ['EC2 Instance State-change Notification'],
-              'detail': { state: ['pending'] },
+              detail: { state: ['pending'] },
             },
           },
         },
@@ -119,7 +122,8 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alias.test.js', () =>
           cognitoUserPool: {
             pool: `Test${index}`,
             trigger: 'CustomSMSSender',
-            kmsKeyId: 'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
+            kmsKeyId:
+              'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
           },
         },
         { websocket: { route: '$connect', authorizer: 'ProvisionedFn' } },
@@ -142,8 +146,8 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alias.test.js', () =>
             schedule: 'rate(10 minutes)',
           },
         },
-      ];
-    };
+      ]
+    }
     const { cfTemplate } = await runServerless({
       fixture: 'function',
       configExt: {
@@ -184,9 +188,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alias.test.js', () =>
         },
       },
       command: 'package',
-    });
+    })
 
-    const resources = cfTemplate.Resources;
+    const resources = cfTemplate.Resources
 
     const unwrapApiGateway = (uri) => {
       if (
@@ -194,17 +198,17 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alias.test.js', () =>
         uri['Fn::Join'][0] === '' &&
         uri['Fn::Join'][1][2] === ':apigateway:'
       ) {
-        const base = uri['Fn::Join'][1][5];
+        const base = uri['Fn::Join'][1][5]
         // Support both embedded Fn::Join format and expanded
         if (base['Fn::GetAtt'] && uri['Fn::Join'][1][6] === ':') {
           return {
             'Fn::Join': [':', [base, uri['Fn::Join'][1][7]]],
-          };
+          }
         }
-        return base;
+        return base
       }
-      return uri;
-    };
+      return uri
+    }
 
     const resourceTypeToLambdaLookup = {
       'AWS::Lambda::Version': false,
@@ -212,25 +216,34 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alias.test.js', () =>
       'AWS::Lambda::Permission': (r) => r.Properties.FunctionName,
       'AWS::Lambda::EventSourceMapping': (r) => r.Properties.FunctionName,
       'AWS::Events::Rule': (r) => r.Properties.Targets[0].Arn,
-      'AWS::ApiGatewayV2::Integration': (r) => unwrapApiGateway(r.Properties.IntegrationUri),
-      'AWS::ApiGatewayV2::Authorizer': (r) => r.Properties.AuthorizerUri['Fn::Join'][1][5],
-      'AWS::ElasticLoadBalancingV2::TargetGroup': (r) => r.Properties.Targets[0].Id,
-      'AWS::IoT::ProvisioningTemplate': (r) => r.Properties.PreProvisioningHook.TargetArn,
+      'AWS::ApiGatewayV2::Integration': (r) =>
+        unwrapApiGateway(r.Properties.IntegrationUri),
+      'AWS::ApiGatewayV2::Authorizer': (r) =>
+        r.Properties.AuthorizerUri['Fn::Join'][1][5],
+      'AWS::ElasticLoadBalancingV2::TargetGroup': (r) =>
+        r.Properties.Targets[0].Id,
+      'AWS::IoT::ProvisioningTemplate': (r) =>
+        r.Properties.PreProvisioningHook.TargetArn,
       'AWS::Logs::SubscriptionFilter': (r) => r.Properties.DestinationArn,
       'AWS::S3::Bucket': (r) =>
         r.Properties.NotificationConfiguration.LambdaConfigurations[0].Function,
       'AWS::SNS::Topic': (r) => r.Properties.Subscription[0].Endpoint,
-      'AWS::Cognito::UserPool': (r) => r.Properties.LambdaConfig.CustomSMSSender.LambdaArn,
-      'AWS::ApiGateway::Method': (r) => unwrapApiGateway(r.Properties.Integration.Uri),
-      'AWS::IoT::TopicRule': (r) => r.Properties.TopicRulePayload.Actions[0].Lambda.FunctionArn,
-      'AWS::ApiGateway::Authorizer': (r) => unwrapApiGateway(r.Properties.AuthorizerUri),
-    };
+      'AWS::Cognito::UserPool': (r) =>
+        r.Properties.LambdaConfig.CustomSMSSender.LambdaArn,
+      'AWS::ApiGateway::Method': (r) =>
+        unwrapApiGateway(r.Properties.Integration.Uri),
+      'AWS::IoT::TopicRule': (r) =>
+        r.Properties.TopicRulePayload.Actions[0].Lambda.FunctionArn,
+      'AWS::ApiGateway::Authorizer': (r) =>
+        unwrapApiGateway(r.Properties.AuthorizerUri),
+    }
 
     const functionsToCheck = [
       {
         functionName: 'ProvisionedFn',
         aliasName: 'provisioned',
-        aliasLogicalId: naming.getLambdaProvisionedConcurrencyAliasLogicalId('ProvisionedFn'),
+        aliasLogicalId:
+          naming.getLambdaProvisionedConcurrencyAliasLogicalId('ProvisionedFn'),
       },
       {
         functionName: 'SnapStartFn',
@@ -238,22 +251,28 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alias.test.js', () =>
         aliasLogicalId: naming.getLambdaSnapStartAliasLogicalId('SnapStartFn'),
       },
       { functionName: 'NoAliasFn', aliasName: null, aliasLogicalId: null },
-    ];
+    ]
 
     functionsToCheck.forEach((check) => {
-      const lambdaLogicalId = naming.getLambdaLogicalId(check.functionName);
+      const lambdaLogicalId = naming.getLambdaLogicalId(check.functionName)
       describe(`test/unit/lib/plugins/aws/package/compile/events/alias.test.js - ${check.functionName}`, () => {
         Object.keys(resources).forEach((r) => {
-          const resource = resources[r];
-          const lookup = resourceTypeToLambdaLookup[resource.Type];
-          if (JSON.stringify(resource).includes(naming.getLambdaLogicalId(check.functionName))) {
-            lambdaResourceCount++;
+          const resource = resources[r]
+          const lookup = resourceTypeToLambdaLookup[resource.Type]
+          if (
+            JSON.stringify(resource).includes(
+              naming.getLambdaLogicalId(check.functionName),
+            )
+          ) {
+            lambdaResourceCount++
             if (lookup == null) {
               it(`${r} - should be a known type`, () => {
-                expect(Object.keys(resourceTypeToLambdaLookup)).to.include(resource.Type);
-              });
+                expect(Object.keys(resourceTypeToLambdaLookup)).to.include(
+                  resource.Type,
+                )
+              })
             } else if (lookup) {
-              const lambdaReference = lookup(resource);
+              const lambdaReference = lookup(resource)
               if (check.aliasName) {
                 it(`${r} - should reference lambda alias '${check.aliasName}'`, () => {
                   expect(lambdaReference).to.deep.equal({
@@ -266,25 +285,25 @@ describe('test/unit/lib/plugins/aws/package/compile/events/alias.test.js', () =>
                         check.aliasName,
                       ],
                     ],
-                  });
-                });
+                  })
+                })
                 it(`${r} - should depend on lambda alias '${check.aliasName}'`, () => {
-                  expect(resource.DependsOn).to.include(check.aliasLogicalId);
-                });
+                  expect(resource.DependsOn).to.include(check.aliasLogicalId)
+                })
               } else {
                 it(`${r} - should not reference lambda alias`, () => {
                   expect(lambdaReference).to.deep.equal({
                     'Fn::GetAtt': [lambdaLogicalId, 'Arn'],
-                  });
-                });
+                  })
+                })
               }
             }
           }
-        });
-      });
-    });
-  });
+        })
+      })
+    })
+  })
   it('Check resource count', () => {
-    expect(lambdaResourceCount).to.gte(1);
-  });
-});
+    expect(lambdaResourceCount).to.gte(1)
+  })
+})

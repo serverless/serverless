@@ -57,16 +57,18 @@ Example handler function that returns timestamp in the response headers. More ex
 
 ```javascript
 // index.handler
-'use strict';
+'use strict'
 
 module.exports.handler = (event, context, callback) => {
-  const response = event.Records[0].cf.response;
-  const headers = response.headers;
+  const response = event.Records[0].cf.response
+  const headers = response.headers
 
-  headers['x-serverless-time'] = [{ key: 'x-serverless-time', value: Date.now().toString() }];
+  headers['x-serverless-time'] = [
+    { key: 'x-serverless-time', value: Date.now().toString() },
+  ]
 
-  return callback(null, response);
-};
+  return callback(null, response)
+}
 ```
 
 For more specific setup, origin can be a object, which uses CloudFormation yaml syntax.

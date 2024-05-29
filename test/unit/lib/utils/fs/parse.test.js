@@ -1,12 +1,12 @@
-'use strict';
+'use strict'
 
-const chai = require('chai');
-const parse = require('../../../../../lib/utils/fs/parse');
+const chai = require('chai')
+const parse = require('../../../../../lib/utils/fs/parse')
 
 // Configure chai
-chai.use(require('chai-as-promised'));
-chai.use(require('sinon-chai'));
-const expect = require('chai').expect;
+chai.use(require('chai-as-promised'))
+chai.use(require('sinon-chai'))
+const expect = require('chai').expect
 
 const shortHandOptions = [
   {
@@ -87,40 +87,41 @@ const shortHandOptions = [
       },
     },
   },
-];
+]
 
 describe('#parse()', () => {
   it('should reconstitute circular references', () => {
-    const tmpFilePath = 'anything.json';
-    const fileContents = '{"foo":{"$ref":"$"}}';
+    const tmpFilePath = 'anything.json'
+    const fileContents = '{"foo":{"$ref":"$"}}'
 
-    const obj = parse(tmpFilePath, fileContents);
+    const obj = parse(tmpFilePath, fileContents)
 
-    expect(obj).to.equal(obj.foo);
-  });
+    expect(obj).to.equal(obj.foo)
+  })
 
   it('should return contents of a non json or yaml file as a string', () => {
-    const tmpFilePath = 'anything.txt';
-    const fileContents = 'serverless';
+    const tmpFilePath = 'anything.txt'
+    const fileContents = 'serverless'
 
-    const obj = parse(tmpFilePath, fileContents);
+    const obj = parse(tmpFilePath, fileContents)
 
-    expect(obj).to.equal('serverless');
-  });
+    expect(obj).to.equal('serverless')
+  })
 
   shortHandOptions.forEach((shortHandOption) => {
     it(`should convert shorthand syntax "${shortHandOption.name}"`, () => {
-      const tmpFilePath = 'anything.yml';
-      const fileContents = shortHandOption.yaml;
-      const obj = parse(tmpFilePath, fileContents);
-      expect(obj).to.eql(shortHandOption.json);
-    });
-  });
+      const tmpFilePath = 'anything.yml'
+      const fileContents = shortHandOption.yaml
+      const obj = parse(tmpFilePath, fileContents)
+      expect(obj).to.eql(shortHandOption.json)
+    })
+  })
 
   it('should parse YAML without shorthand syntax', () => {
-    const tmpFilePath = 'anything.yml';
-    const fileContents = 'Item:\n  Fn::Join:\n  - ""\n  - - "arn:aws:s3::"\n    - !Ref MyBucket';
-    const obj = parse(tmpFilePath, fileContents);
+    const tmpFilePath = 'anything.yml'
+    const fileContents =
+      'Item:\n  Fn::Join:\n  - ""\n  - - "arn:aws:s3::"\n    - !Ref MyBucket'
+    const obj = parse(tmpFilePath, fileContents)
     expect(obj).to.eql({
       Item: {
         'Fn::Join': [
@@ -133,18 +134,19 @@ describe('#parse()', () => {
           ],
         ],
       },
-    });
-  });
+    })
+  })
 
   it('should throw error with invalid shorthand syntax', () => {
-    const tmpFilePath = 'anything.yml';
-    const fileContents = 'Item:\n  !Invalid\n- ""\n- - "arn:aws:s3::"\n  - !Ref MyBucket';
-    let obj;
+    const tmpFilePath = 'anything.yml'
+    const fileContents =
+      'Item:\n  !Invalid\n- ""\n- - "arn:aws:s3::"\n  - !Ref MyBucket'
+    let obj
     try {
-      obj = parse(tmpFilePath, fileContents);
+      obj = parse(tmpFilePath, fileContents)
     } catch (exception) {
-      expect(exception.name).to.be.equal('YAMLException');
+      expect(exception.name).to.be.equal('YAMLException')
     }
-    expect(obj).to.be.equal(undefined);
-  });
-});
+    expect(obj).to.be.equal(undefined)
+  })
+})

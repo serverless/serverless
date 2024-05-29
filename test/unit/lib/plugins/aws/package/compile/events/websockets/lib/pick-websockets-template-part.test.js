@@ -1,7 +1,7 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const pickWebsocketsTemplatePart = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/lib/pick-websockets-template-part');
+const expect = require('chai').expect
+const pickWebsocketsTemplatePart = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/lib/pick-websockets-template-part')
 
 describe('#pickWebsocketsTemplatePart', () => {
   it('picks resources from a CloudFormation template related to WebsocketsApi', () => {
@@ -34,7 +34,7 @@ describe('#pickWebsocketsTemplatePart', () => {
           },
         },
       },
-    };
+    }
 
     const expectedTemplatePart = {
       WebsocketsApi: {
@@ -56,10 +56,13 @@ describe('#pickWebsocketsTemplatePart', () => {
           RouteKey: '$connect',
         },
       },
-    };
+    }
 
     expect(
-      pickWebsocketsTemplatePart(initialCloudFormationTemplate, 'WebsocketsApi')
-    ).to.deep.equal(expectedTemplatePart);
-  });
-});
+      pickWebsocketsTemplatePart(
+        initialCloudFormationTemplate,
+        'WebsocketsApi',
+      ),
+    ).to.deep.equal(expectedTemplatePart)
+  })
+})

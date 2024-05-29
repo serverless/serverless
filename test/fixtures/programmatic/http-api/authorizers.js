@@ -1,12 +1,12 @@
-'use strict';
+'use strict'
 
 module.exports.simpleAuthorizer = async (event) => {
   if (event.headers.authorization === 'secretToken') {
-    return { isAuthorized: true };
+    return { isAuthorized: true }
   }
 
-  return { isAuthorized: false };
-};
+  return { isAuthorized: false }
+}
 
 module.exports.standardAuthorizer = async (event) => {
   if (event.headers.authorization === 'secretToken') {
@@ -22,7 +22,7 @@ module.exports.standardAuthorizer = async (event) => {
           },
         ],
       },
-    };
+    }
   }
 
   return {
@@ -37,5 +37,5 @@ module.exports.standardAuthorizer = async (event) => {
         },
       ],
     },
-  };
-};
+  }
+}

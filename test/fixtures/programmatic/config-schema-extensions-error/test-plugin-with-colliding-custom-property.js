@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 class TestPluginWithCollidingCustomPropertyError {
   constructor(serverless) {
@@ -7,15 +7,15 @@ class TestPluginWithCollidingCustomPropertyError {
         someProperty: { type: 'string' },
       },
       required: ['someProperty'],
-    });
+    })
 
     serverless.configSchemaHandler.defineCustomProperties({
       properties: {
         someProperty: { type: 'string' },
       },
       required: ['someProperty'],
-    });
+    })
   }
 }
 
-module.exports = TestPluginWithCollidingCustomPropertyError;
+module.exports = TestPluginWithCollidingCustomPropertyError

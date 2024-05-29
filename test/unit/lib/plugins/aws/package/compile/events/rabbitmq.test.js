@@ -1,27 +1,28 @@
-'use strict';
+'use strict'
 
-const chai = require('chai');
-const runServerless = require('../../../../../../../utils/run-serverless');
+const chai = require('chai')
+const runServerless = require('../../../../../../../utils/run-serverless')
 
-const { expect } = chai;
+const { expect } = chai
 
-chai.use(require('chai-as-promised'));
+chai.use(require('chai-as-promised'))
 
 describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', () => {
-  const brokerArn = 'arn:aws:mq:us-east-1:0000:broker:ExampleMQBroker:b-xxx-xxx';
-  const basicAuthArn = 'arn:aws:secretsmanager:us-east-1:01234567890:secret:MyBrokerSecretName';
-  const queue = 'TestingQueue';
-  const virtualHost = '/';
-  const enabled = false;
-  const batchSize = 5000;
-  const maximumBatchingWindow = 20;
-  const filterPatterns = [{ value: { a: [1, 2] } }, { value: [3] }];
+  const brokerArn = 'arn:aws:mq:us-east-1:0000:broker:ExampleMQBroker:b-xxx-xxx'
+  const basicAuthArn =
+    'arn:aws:secretsmanager:us-east-1:01234567890:secret:MyBrokerSecretName'
+  const queue = 'TestingQueue'
+  const virtualHost = '/'
+  const enabled = false
+  const batchSize = 5000
+  const maximumBatchingWindow = 20
+  const filterPatterns = [{ value: { a: [1, 2] } }, { value: [3] }]
 
   describe('when there are rabbitmq events defined', () => {
-    let minimalEventSourceMappingResource;
-    let allParamsEventSourceMappingResource;
-    let defaultIamRole;
-    let naming;
+    let minimalEventSourceMappingResource
+    let allParamsEventSourceMappingResource
+    let defaultIamRole
+    let naming
 
     before(async () => {
       const { awsNaming, cfTemplate } = await runServerless({
@@ -58,14 +59,14 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
           },
         },
         command: 'package',
-      });
-      naming = awsNaming;
+      })
+      naming = awsNaming
       minimalEventSourceMappingResource =
-        cfTemplate.Resources[naming.getRabbitMQEventLogicalId('basic', queue)];
+        cfTemplate.Resources[naming.getRabbitMQEventLogicalId('basic', queue)]
       allParamsEventSourceMappingResource =
-        cfTemplate.Resources[naming.getRabbitMQEventLogicalId('other', queue)];
-      defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution;
-    });
+        cfTemplate.Resources[naming.getRabbitMQEventLogicalId('other', queue)]
+      defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution
+    })
 
     it('should correctly compile EventSourceMapping resource properties with minimal configuration', () => {
       expect(minimalEventSourceMappingResource.Properties).to.deep.equal({
@@ -80,29 +81,37 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
         FunctionName: {
           'Fn::GetAtt': [naming.getLambdaLogicalId('basic'), 'Arn'],
         },
-      });
-    });
+      })
+    })
 
     it('should update default IAM role with DescribeBroker statement', () => {
-      expect(defaultIamRole.Properties.Policies[0].PolicyDocument.Statement).to.deep.include({
+      expect(
+        defaultIamRole.Properties.Policies[0].PolicyDocument.Statement,
+      ).to.deep.include({
         Effect: 'Allow',
         Action: ['mq:DescribeBroker'],
         Resource: [brokerArn],
-      });
-    });
+      })
+    })
 
     it('should update default IAM role with SecretsManager statement', () => {
-      expect(defaultIamRole.Properties.Policies[0].PolicyDocument.Statement).to.deep.include({
+      expect(
+        defaultIamRole.Properties.Policies[0].PolicyDocument.Statement,
+      ).to.deep.include({
         Effect: 'Allow',
         Action: ['secretsmanager:GetSecretValue'],
         Resource: [basicAuthArn],
-      });
-    });
+      })
+    })
 
     it('should correctly compile EventSourceMapping resource DependsOn ', () => {
-      expect(minimalEventSourceMappingResource.DependsOn).to.include('IamRoleLambdaExecution');
-      expect(allParamsEventSourceMappingResource.DependsOn).to.include('IamRoleLambdaExecution');
-    });
+      expect(minimalEventSourceMappingResource.DependsOn).to.include(
+        'IamRoleLambdaExecution',
+      )
+      expect(allParamsEventSourceMappingResource.DependsOn).to.include(
+        'IamRoleLambdaExecution',
+      )
+    })
 
     it('should correctly compile EventSourceMapping resource with all parameters', () => {
       expect(allParamsEventSourceMappingResource.Properties).to.deep.equal({
@@ -138,11 +147,13 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
             },
           ],
         },
-      });
-    });
+      })
+    })
 
     it('should update default IAM role with EC2 statement', async () => {
-      expect(defaultIamRole.Properties.Policies[0].PolicyDocument.Statement).to.deep.include({
+      expect(
+        defaultIamRole.Properties.Policies[0].PolicyDocument.Statement,
+      ).to.deep.include({
         Effect: 'Allow',
         Action: [
           'ec2:CreateNetworkInterface',
@@ -153,9 +164,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
           'ec2:DescribeSecurityGroups',
         ],
         Resource: '*',
-      });
-    });
-  });
+      })
+    })
+  })
 
   describe('configuring rabbitmq events', () => {
     it('should not add dependsOn for imported role', async () => {
@@ -179,35 +190,43 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
           },
         },
         command: 'package',
-      });
+      })
 
       const eventSourceMappingResource =
-        cfTemplate.Resources[awsNaming.getRabbitMQEventLogicalId('basic', queue)];
-      expect(eventSourceMappingResource.DependsOn).to.deep.equal([]);
-    });
-  });
+        cfTemplate.Resources[
+          awsNaming.getRabbitMQEventLogicalId('basic', queue)
+        ]
+      expect(eventSourceMappingResource.DependsOn).to.deep.equal([])
+    })
+  })
 
   describe('when no rabbitmq events are defined', () => {
     it('should not modify the default IAM role', async () => {
       const { cfTemplate } = await runServerless({
         fixture: 'function',
         command: 'package',
-      });
+      })
 
-      const defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution;
-      expect(defaultIamRole.Properties.Policies[0].PolicyDocument.Statement).not.to.deep.include({
+      const defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution
+      expect(
+        defaultIamRole.Properties.Policies[0].PolicyDocument.Statement,
+      ).not.to.deep.include({
         Effect: 'Allow',
         Action: ['mq:DescribeBroker'],
         Resource: [brokerArn],
-      });
+      })
 
-      expect(defaultIamRole.Properties.Policies[0].PolicyDocument.Statement).not.to.deep.include({
+      expect(
+        defaultIamRole.Properties.Policies[0].PolicyDocument.Statement,
+      ).not.to.deep.include({
         Effect: 'Allow',
         Action: ['secretsmanager:GetSecretValue'],
         Resource: [basicAuthArn],
-      });
+      })
 
-      expect(defaultIamRole.Properties.Policies[0].PolicyDocument.Statement).not.to.deep.include({
+      expect(
+        defaultIamRole.Properties.Policies[0].PolicyDocument.Statement,
+      ).not.to.deep.include({
         Effect: 'Allow',
         Action: [
           'ec2:CreateNetworkInterface',
@@ -218,7 +237,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/rabbitmq.test.js', ()
           'ec2:DescribeSecurityGroups',
         ],
         Resource: '*',
-      });
-    });
-  });
-});
+      })
+    })
+  })
+})

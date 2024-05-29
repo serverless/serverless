@@ -1,30 +1,33 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const AwsCompileWebsocketsEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/index');
-const Serverless = require('../../../../../../../../../../lib/serverless');
-const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
+const expect = require('chai').expect
+const AwsCompileWebsocketsEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/index')
+const Serverless = require('../../../../../../../../../../lib/serverless')
+const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider')
 
 describe('#compileDeployment()', () => {
-  let awsCompileWebsocketsEvents;
+  let awsCompileWebsocketsEvents
 
   beforeEach(() => {
     const options = {
       stage: 'dev',
       region: 'us-east-1',
-    };
-    const serverless = new Serverless({ commands: [], options: {} });
-    serverless.setProvider('aws', new AwsProvider(serverless));
+    }
+    const serverless = new Serverless({ commands: [], options: {} })
+    serverless.setProvider('aws', new AwsProvider(serverless))
     serverless.service.provider.compiledCloudFormationTemplate = {
       Resources: {},
       Outputs: {},
-    };
+    }
 
-    awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless, options);
+    awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(
+      serverless,
+      options,
+    )
 
     awsCompileWebsocketsEvents.websocketsApiLogicalId =
-      awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
-  });
+      awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId()
+  })
 
   it('should create a deployment resource and output', () => {
     awsCompileWebsocketsEvents.validated = {
@@ -38,18 +41,19 @@ describe('#compileDeployment()', () => {
           route: '$disconnect',
         },
       ],
-    };
+    }
 
-    awsCompileWebsocketsEvents.compileDeployment();
+    awsCompileWebsocketsEvents.compileDeployment()
     const resources =
-      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-        .Resources;
+      awsCompileWebsocketsEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
     const outputs =
-      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
+      awsCompileWebsocketsEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Outputs
 
-    const deploymentLogicalId = Object.keys(resources)[0];
+    const deploymentLogicalId = Object.keys(resources)[0]
 
-    expect(deploymentLogicalId).to.match(/WebsocketsDeployment/);
+    expect(deploymentLogicalId).to.match(/WebsocketsDeployment/)
     expect(resources[deploymentLogicalId]).to.deep.equal({
       Type: 'AWS::ApiGatewayV2::Deployment',
       DependsOn: ['SconnectWebsocketsRoute', 'SdisconnectWebsocketsRoute'],
@@ -59,7 +63,7 @@ describe('#compileDeployment()', () => {
         },
         Description: 'Serverless Websockets',
       },
-    });
+    })
     expect(outputs).to.deep.equal({
       ServiceEndpointWebsocket: {
         Description: 'URL of the service endpoint',
@@ -84,8 +88,8 @@ describe('#compileDeployment()', () => {
           ],
         },
       },
-    });
-  });
+    })
+  })
 
   it('should create a deployment resource with stage reference if websocketApiId is specified', () => {
     awsCompileWebsocketsEvents.validated = {
@@ -99,19 +103,19 @@ describe('#compileDeployment()', () => {
           route: '$disconnect',
         },
       ],
-    };
+    }
     awsCompileWebsocketsEvents.serverless.service.provider.apiGateway = {
       websocketApiId: 'xyz123abc',
-    };
+    }
 
-    awsCompileWebsocketsEvents.compileDeployment();
+    awsCompileWebsocketsEvents.compileDeployment()
     const resources =
-      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-        .Resources;
+      awsCompileWebsocketsEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
 
-    const deploymentLogicalId = Object.keys(resources)[0];
+    const deploymentLogicalId = Object.keys(resources)[0]
 
-    expect(deploymentLogicalId).to.match(/WebsocketsDeployment/);
+    expect(deploymentLogicalId).to.match(/WebsocketsDeployment/)
     expect(resources[deploymentLogicalId]).to.deep.equal({
       Type: 'AWS::ApiGatewayV2::Deployment',
       DependsOn: ['SconnectWebsocketsRoute', 'SdisconnectWebsocketsRoute'],
@@ -120,8 +124,8 @@ describe('#compileDeployment()', () => {
         StageName: awsCompileWebsocketsEvents.provider.getStage(),
         Description: 'Serverless Websockets',
       },
-    });
-  });
+    })
+  })
 
   it('should add deployment logical id to stage if no websocketApiId specified', async () => {
     awsCompileWebsocketsEvents.validated = {
@@ -135,17 +139,19 @@ describe('#compileDeployment()', () => {
           route: '$disconnect',
         },
       ],
-    };
+    }
 
     return awsCompileWebsocketsEvents.compileStage().then(() => {
-      awsCompileWebsocketsEvents.compileDeployment();
+      awsCompileWebsocketsEvents.compileDeployment()
       const resources =
-        awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources;
+        awsCompileWebsocketsEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
 
-      expect(resources.WebsocketsDeploymentStage.Properties.DeploymentId).to.deep.equal({
+      expect(
+        resources.WebsocketsDeploymentStage.Properties.DeploymentId,
+      ).to.deep.equal({
         Ref: awsCompileWebsocketsEvents.websocketsDeploymentLogicalId,
-      });
-    });
-  });
-});
+      })
+    })
+  })
+})

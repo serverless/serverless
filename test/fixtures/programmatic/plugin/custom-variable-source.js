@@ -1,10 +1,10 @@
-'use strict';
+'use strict'
 
 module.exports = class CustomVariableSourcePlugin {
   constructor(serverless, options, utils) {
-    this.serverless = serverless;
-    this.options = options;
-    this.utils = utils;
+    this.serverless = serverless
+    this.options = options
+    this.utils = utils
     this.configurationVariablesSources = {
       other: {
         async resolve({ address }) {
@@ -15,9 +15,9 @@ module.exports = class CustomVariableSourcePlugin {
           return {
             //
             value: `Resolving variable ${address}`,
-          };
+          }
         },
       },
-    };
+    }
   }
-};
+}

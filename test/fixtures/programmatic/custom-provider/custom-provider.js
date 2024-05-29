@@ -1,3 +1,3 @@
-'use strict';
+'use strict'
 
-module.exports = class CustomPlugin {};
+module.exports = class CustomPlugin {}

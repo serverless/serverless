@@ -1,22 +1,24 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const AwsCompileApigEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/api-gateway/index');
-const Serverless = require('../../../../../../../../../../lib/serverless');
-const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
+const expect = require('chai').expect
+const AwsCompileApigEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/api-gateway/index')
+const Serverless = require('../../../../../../../../../../lib/serverless')
+const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider')
 
 describe('#awsCompilePermissions()', () => {
-  let awsCompileApigEvents;
+  let awsCompileApigEvents
 
   beforeEach(() => {
-    const serverless = new Serverless({ commands: [], options: {} });
-    serverless.setProvider('aws', new AwsProvider(serverless));
-    serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
+    const serverless = new Serverless({ commands: [], options: {} })
+    serverless.setProvider('aws', new AwsProvider(serverless))
+    serverless.service.provider.compiledCloudFormationTemplate = {
+      Resources: {},
+    }
 
-    awsCompileApigEvents = new AwsCompileApigEvents(serverless);
-    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi';
-    awsCompileApigEvents.validated = {};
-  });
+    awsCompileApigEvents = new AwsCompileApigEvents(serverless)
+    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi'
+    awsCompileApigEvents.validated = {}
+  })
 
   it('should create limited permission resource scope to REST API', () => {
     awsCompileApigEvents.validated.events = [
@@ -27,8 +29,8 @@ describe('#awsCompilePermissions()', () => {
           method: 'post',
         },
       },
-    ];
-    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi';
+    ]
+    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi'
     awsCompileApigEvents.permissionMapping = [
       {
         lambdaLogicalId: 'FirstLambdaFunction',
@@ -41,13 +43,16 @@ describe('#awsCompilePermissions()', () => {
           functionName: 'First',
         },
       },
-    ];
+    ]
 
-    awsCompileApigEvents.compilePermissions();
+    awsCompileApigEvents.compilePermissions()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .FirstLambdaPermissionApiGateway.Properties.FunctionName['Fn::GetAtt'][0]
-    ).to.equal('FirstLambdaFunction');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .FirstLambdaPermissionApiGateway.Properties.FunctionName[
+        'Fn::GetAtt'
+      ][0],
+    ).to.equal('FirstLambdaFunction')
 
     const deepObj = {
       'Fn::Join': [
@@ -64,18 +69,19 @@ describe('#awsCompilePermissions()', () => {
           '/*/*',
         ],
       ],
-    };
+    }
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .FirstLambdaPermissionApiGateway.Properties.SourceArn
-    ).to.deep.equal(deepObj);
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .FirstLambdaPermissionApiGateway.Properties.SourceArn,
+    ).to.deep.equal(deepObj)
+  })
 
   it('should create limited permission resource scope to REST API with restApiId provided', () => {
     awsCompileApigEvents.serverless.service.provider.apiGateway = {
       restApiId: 'xxxxx',
-    };
+    }
     awsCompileApigEvents.validated.events = [
       {
         functionName: 'First',
@@ -84,8 +90,8 @@ describe('#awsCompilePermissions()', () => {
           method: 'post',
         },
       },
-    ];
-    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi';
+    ]
+    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi'
     awsCompileApigEvents.permissionMapping = [
       {
         lambdaLogicalId: 'FirstLambdaFunction',
@@ -98,13 +104,16 @@ describe('#awsCompilePermissions()', () => {
           functionName: 'First',
         },
       },
-    ];
+    ]
 
-    awsCompileApigEvents.compilePermissions();
+    awsCompileApigEvents.compilePermissions()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .FirstLambdaPermissionApiGateway.Properties.FunctionName['Fn::GetAtt'][0]
-    ).to.equal('FirstLambdaFunction');
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .FirstLambdaPermissionApiGateway.Properties.FunctionName[
+        'Fn::GetAtt'
+      ][0],
+    ).to.equal('FirstLambdaFunction')
 
     const deepObj = {
       'Fn::Join': [
@@ -121,18 +130,19 @@ describe('#awsCompilePermissions()', () => {
           '/*/*',
         ],
       ],
-    };
+    }
 
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .FirstLambdaPermissionApiGateway.Properties.SourceArn
-    ).to.deep.equal(deepObj);
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .FirstLambdaPermissionApiGateway.Properties.SourceArn,
+    ).to.deep.equal(deepObj)
+  })
 
   it('should setup permissions for an alias in case of provisioned function', () => {
     awsCompileApigEvents.serverless.service.provider.apiGateway = {
       restApiId: 'xxxxx',
-    };
+    }
     awsCompileApigEvents.validated.events = [
       {
         functionName: 'First',
@@ -141,8 +151,8 @@ describe('#awsCompilePermissions()', () => {
           method: 'post',
         },
       },
-    ];
-    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi';
+    ]
+    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi'
     awsCompileApigEvents.permissionMapping = [
       {
         lambdaLogicalId: 'FirstLambdaFunction',
@@ -156,14 +166,17 @@ describe('#awsCompilePermissions()', () => {
           functionName: 'First',
         },
       },
-    ];
+    ]
 
-    awsCompileApigEvents.compilePermissions();
+    awsCompileApigEvents.compilePermissions()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .FirstLambdaPermissionApiGateway.Properties.FunctionName['Fn::Join'][1][1]
-    ).to.equal('provisioned');
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .FirstLambdaPermissionApiGateway.Properties.FunctionName[
+        'Fn::Join'
+      ][1][1],
+    ).to.equal('provisioned')
+  })
 
   it('should create limited permission resources for authorizers', () => {
     awsCompileApigEvents.validated.events = [
@@ -178,8 +191,8 @@ describe('#awsCompilePermissions()', () => {
           method: 'post',
         },
       },
-    ];
-    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi';
+    ]
+    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi'
     awsCompileApigEvents.permissionMapping = [
       {
         lambdaLogicalId: 'AuthorizerLambdaFunction',
@@ -206,7 +219,7 @@ describe('#awsCompilePermissions()', () => {
           functionName: 'First',
         },
       },
-    ];
+    ]
 
     const deepObj = {
       'Fn::Join': [
@@ -223,18 +236,20 @@ describe('#awsCompilePermissions()', () => {
           '/*/*',
         ],
       ],
-    };
+    }
 
-    awsCompileApigEvents.compilePermissions();
+    awsCompileApigEvents.compilePermissions()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .AuthorizerLambdaPermissionApiGateway.Properties.FunctionName
-    ).to.deep.equal({ 'Fn::GetAtt': ['AuthorizerLambdaFunction', 'Arn'] });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .AuthorizerLambdaPermissionApiGateway.Properties.FunctionName,
+    ).to.deep.equal({ 'Fn::GetAtt': ['AuthorizerLambdaFunction', 'Arn'] })
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .AuthorizerLambdaPermissionApiGateway.Properties.SourceArn
-    ).to.deep.equal(deepObj);
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .AuthorizerLambdaPermissionApiGateway.Properties.SourceArn,
+    ).to.deep.equal(deepObj)
+  })
 
   it('should create limited permission resources for aliased authorizers', () => {
     awsCompileApigEvents.validated.events = [
@@ -249,8 +264,8 @@ describe('#awsCompilePermissions()', () => {
           method: 'post',
         },
       },
-    ];
-    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi';
+    ]
+    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi'
     awsCompileApigEvents.permissionMapping = [
       {
         lambdaLogicalId: 'AuthorizerLambdaFunction',
@@ -278,7 +293,7 @@ describe('#awsCompilePermissions()', () => {
           functionName: 'First',
         },
       },
-    ];
+    ]
 
     const deepObj = {
       'Fn::Join': [
@@ -295,29 +310,35 @@ describe('#awsCompilePermissions()', () => {
           '/*/*',
         ],
       ],
-    };
+    }
 
-    awsCompileApigEvents.compilePermissions();
+    awsCompileApigEvents.compilePermissions()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .AuthorizerLambdaPermissionApiGateway.Properties.FunctionName
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .AuthorizerLambdaPermissionApiGateway.Properties.FunctionName,
     ).to.deep.equal({
-      'Fn::Join': [':', [{ 'Fn::GetAtt': ['AuthorizerLambdaFunction', 'Arn'] }, 'provisioned']],
-    });
+      'Fn::Join': [
+        ':',
+        [{ 'Fn::GetAtt': ['AuthorizerLambdaFunction', 'Arn'] }, 'provisioned'],
+      ],
+    })
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .AuthorizerLambdaPermissionApiGateway.Properties.SourceArn
-    ).to.deep.equal(deepObj);
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .AuthorizerLambdaPermissionApiGateway.Properties.SourceArn,
+    ).to.deep.equal(deepObj)
+  })
 
   it('should not create permission resources when http events are not given', () => {
-    awsCompileApigEvents.validated.events = [];
-    awsCompileApigEvents.permissionMapping = [];
-    awsCompileApigEvents.compilePermissions();
+    awsCompileApigEvents.validated.events = []
+    awsCompileApigEvents.permissionMapping = []
+    awsCompileApigEvents.compilePermissions()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-    ).to.deep.equal({});
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources,
+    ).to.deep.equal({})
+  })
 
   it('should not create permission resources when the authorizer is managed externally', () => {
     const event = {
@@ -331,17 +352,17 @@ describe('#awsCompilePermissions()', () => {
         path: 'foo/bar',
         method: 'post',
       },
-    };
+    }
 
-    awsCompileApigEvents.validated.events = [event];
-    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi';
+    awsCompileApigEvents.validated.events = [event]
+    awsCompileApigEvents.apiGatewayRestApiLogicalId = 'ApiGatewayRestApi'
     awsCompileApigEvents.permissionMapping = [
       {
         lambdaLogicalId: 'FirstLambdaFunction',
         resourceName: 'FooBar',
         event,
       },
-    ];
+    ]
 
     // the important thing in this object is that it does *not* contain
     // a permission allowing API Gateway to call the authorizer. If
@@ -375,11 +396,12 @@ describe('#awsCompilePermissions()', () => {
         },
         Type: 'AWS::Lambda::Permission',
       },
-    };
+    }
 
-    awsCompileApigEvents.compilePermissions();
+    awsCompileApigEvents.compilePermissions()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-    ).to.deep.equal(deepObj);
-  });
-});
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources,
+    ).to.deep.equal(deepObj)
+  })
+})

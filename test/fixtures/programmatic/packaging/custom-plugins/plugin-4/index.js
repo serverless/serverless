@@ -1,3 +1,3 @@
-'use strict';
+'use strict'
 
-module.exports = function SomePlugin() {};
+module.exports = function SomePlugin() {}

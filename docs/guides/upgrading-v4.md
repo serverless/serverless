@@ -82,5 +82,3 @@ Auto-updating has been introduced in Serverless Framework V.4. This is checked o
 Git-related Serverless Framework Variables have been introduced into the Variable system.
 
 As a result, the [Serverless Git Variables Plugin](https://github.com/jacob-meacham/serverless-plugin-git-variables) no longer works.
-
-

@@ -1,7 +1,7 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const resolveCfImportValue = require('../../../../../../lib/plugins/aws/utils/resolve-cf-import-value');
+const expect = require('chai').expect
+const resolveCfImportValue = require('../../../../../../lib/plugins/aws/utils/resolve-cf-import-value')
 
 describe('#resolveCfImportValue', () => {
   it('should return matching exported value if found', async () => {
@@ -18,8 +18,8 @@ describe('#resolveCfImportValue', () => {
           },
         ],
       }),
-    };
-    const result = await resolveCfImportValue(provider, 'exportName');
-    expect(result).to.equal('exportValue');
-  });
-});
+    }
+    const result = await resolveCfImportValue(provider, 'exportName')
+    expect(result).to.equal('exportValue')
+  })
+})

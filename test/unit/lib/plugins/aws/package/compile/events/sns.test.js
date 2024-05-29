@@ -1,28 +1,30 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
-const AwsCompileSNSEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/sns');
-const Serverless = require('../../../../../../../../lib/serverless');
+const expect = require('chai').expect
+const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider')
+const AwsCompileSNSEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/sns')
+const Serverless = require('../../../../../../../../lib/serverless')
 
 describe('AwsCompileSNSEvents', () => {
-  let serverless;
-  let awsCompileSNSEvents;
+  let serverless
+  let awsCompileSNSEvents
 
   beforeEach(() => {
-    serverless = new Serverless({ commands: [], options: {} });
+    serverless = new Serverless({ commands: [], options: {} })
     const options = {
       region: 'some-region',
-    };
-    serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
-    serverless.setProvider('aws', new AwsProvider(serverless));
-    awsCompileSNSEvents = new AwsCompileSNSEvents(serverless, options);
-  });
+    }
+    serverless.service.provider.compiledCloudFormationTemplate = {
+      Resources: {},
+    }
+    serverless.setProvider('aws', new AwsProvider(serverless))
+    awsCompileSNSEvents = new AwsCompileSNSEvents(serverless, options)
+  })
 
   describe('#constructor()', () => {
     it('should set the provider variable to an instance of AwsProvider', () =>
-      expect(awsCompileSNSEvents.provider).to.be.instanceof(AwsProvider));
-  });
+      expect(awsCompileSNSEvents.provider).to.be.instanceof(AwsProvider))
+  })
 
   describe('#compileSNSEvents()', () => {
     it('should throw an error if SNS event type is not a string or an object', () => {
@@ -34,10 +36,10 @@ describe('AwsCompileSNSEvents', () => {
             },
           ],
         },
-      };
+      }
 
-      expect(() => awsCompileSNSEvents.compileSNSEvents()).to.throw(Error);
-    });
+      expect(() => awsCompileSNSEvents.compileSNSEvents()).to.throw(Error)
+    })
 
     it('should create corresponding resources when SNS events are given', () => {
       awsCompileSNSEvents.serverless.service.functions = {
@@ -58,39 +60,44 @@ describe('AwsCompileSNSEvents', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileSNSEvents.compileSNSEvents();
+      awsCompileSNSEvents.compileSNSEvents()
 
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .SNSTopicTopic1.Type
-      ).to.equal('AWS::SNS::Topic');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.SNSTopicTopic1.Type,
+      ).to.equal('AWS::SNS::Topic')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .SNSTopicTopic2.Type
-      ).to.equal('AWS::SNS::Topic');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.SNSTopicTopic2.Type,
+      ).to.equal('AWS::SNS::Topic')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionTopic1SNS.Type
-      ).to.equal('AWS::Lambda::Permission');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstLambdaPermissionTopic1SNS.Type,
+      ).to.equal('AWS::Lambda::Permission')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionTopic2SNS.Type
-      ).to.equal('AWS::Lambda::Permission');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstLambdaPermissionTopic2SNS.Type,
+      ).to.equal('AWS::Lambda::Permission')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionTopic1.Type
-      ).to.equal('AWS::SNS::Subscription');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionTopic1
+          .Type,
+      ).to.equal('AWS::SNS::Subscription')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionTopic1.Properties.FilterPolicy
-      ).to.eql({ pet: ['dog', 'cat'] });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionTopic1
+          .Properties.FilterPolicy,
+      ).to.eql({ pet: ['dog', 'cat'] })
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionTopic1.Properties.FilterPolicyScope
-      ).to.eql('MessageBody');
-    });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionTopic1
+          .Properties.FilterPolicyScope,
+      ).to.eql('MessageBody')
+    })
 
     it('should allow SNS topic without displayName', () => {
       awsCompileSNSEvents.serverless.service.functions = {
@@ -103,15 +110,15 @@ describe('AwsCompileSNSEvents', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileSNSEvents.compileSNSEvents();
+      awsCompileSNSEvents.compileSNSEvents()
 
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .SNSTopicTopic1.Properties
-      ).to.to.not.have.property('DisplayName');
-    });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.SNSTopicTopic1.Properties,
+      ).to.to.not.have.property('DisplayName')
+    })
 
     it('should create corresponding resources when topic is defined in resources', () => {
       awsCompileSNSEvents.serverless.service.functions = {
@@ -131,10 +138,11 @@ describe('AwsCompileSNSEvents', () => {
             },
           ],
         },
-      };
+      }
 
       Object.assign(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources,
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources,
         {
           SNSTopicTopic2: {
             Type: 'AWS::SNS::Topic',
@@ -143,36 +151,40 @@ describe('AwsCompileSNSEvents', () => {
               DisplayName: 'Display name for topic 2',
             },
           },
-        }
-      );
+        },
+      )
 
-      awsCompileSNSEvents.compileSNSEvents();
+      awsCompileSNSEvents.compileSNSEvents()
 
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .SNSTopicTopic1.Type
-      ).to.equal('AWS::SNS::Topic');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.SNSTopicTopic1.Type,
+      ).to.equal('AWS::SNS::Topic')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .SNSTopicTopic2.Type
-      ).to.equal('AWS::SNS::Topic');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.SNSTopicTopic2.Type,
+      ).to.equal('AWS::SNS::Topic')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionTopic1SNS.Type
-      ).to.equal('AWS::Lambda::Permission');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstLambdaPermissionTopic1SNS.Type,
+      ).to.equal('AWS::Lambda::Permission')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionTopic2SNS.Type
-      ).to.equal('AWS::Lambda::Permission');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstLambdaPermissionTopic2SNS.Type,
+      ).to.equal('AWS::Lambda::Permission')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionTopic1.Type
-      ).to.equal('AWS::SNS::Subscription');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionTopic1
+          .Type,
+      ).to.equal('AWS::SNS::Subscription')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionTopic1.Properties.FilterPolicy
-      ).to.eql({ pet: ['dog', 'cat'] });
-    });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionTopic1
+          .Properties.FilterPolicy,
+      ).to.eql({ pet: ['dog', 'cat'] })
+    })
 
     it('should create single SNS topic when the same topic is referenced repeatedly', () => {
       awsCompileSNSEvents.serverless.service.functions = {
@@ -189,24 +201,26 @@ describe('AwsCompileSNSEvents', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileSNSEvents.compileSNSEvents();
+      awsCompileSNSEvents.compileSNSEvents()
 
       expect(
         Object.keys(
-          awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        )
-      ).to.have.length(2);
+          awsCompileSNSEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources,
+        ),
+      ).to.have.length(2)
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .SNSTopicTopic1.Type
-      ).to.equal('AWS::SNS::Topic');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.SNSTopicTopic1.Type,
+      ).to.equal('AWS::SNS::Topic')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionTopic1SNS.Type
-      ).to.equal('AWS::Lambda::Permission');
-    });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstLambdaPermissionTopic1SNS.Type,
+      ).to.equal('AWS::Lambda::Permission')
+    })
 
     it('should throw an error when the event an object and the displayName is not given', () => {
       awsCompileSNSEvents.serverless.service.functions = {
@@ -219,26 +233,27 @@ describe('AwsCompileSNSEvents', () => {
             },
           ],
         },
-      };
+      }
 
       expect(() => {
-        awsCompileSNSEvents.compileSNSEvents();
-      }).to.throw(Error);
-    });
+        awsCompileSNSEvents.compileSNSEvents()
+      }).to.throw(Error)
+    })
 
     it('should not create corresponding resources when SNS events are not given', () => {
       awsCompileSNSEvents.serverless.service.functions = {
         first: {
           events: [],
         },
-      };
+      }
 
-      awsCompileSNSEvents.compileSNSEvents();
+      awsCompileSNSEvents.compileSNSEvents()
 
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-      ).to.deep.equal({});
-    });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources,
+      ).to.deep.equal({})
+    })
 
     it('should create SNS topic when arn is given as a string', () => {
       awsCompileSNSEvents.serverless.service.functions = {
@@ -249,28 +264,32 @@ describe('AwsCompileSNSEvents', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileSNSEvents.compileSNSEvents();
+      awsCompileSNSEvents.compileSNSEvents()
 
       expect(
         Object.keys(
-          awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        )
-      ).to.have.length(2);
+          awsCompileSNSEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources,
+        ),
+      ).to.have.length(2)
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionFoo.Type
-      ).to.equal('AWS::SNS::Subscription');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionFoo
+          .Type,
+      ).to.equal('AWS::SNS::Subscription')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionFooSNS.Type
-      ).to.equal('AWS::Lambda::Permission');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstLambdaPermissionFooSNS
+          .Type,
+      ).to.equal('AWS::Lambda::Permission')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionFoo.Properties.FilterPolicy
-      ).to.equal(undefined);
-    });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionFoo
+          .Properties.FilterPolicy,
+      ).to.equal(undefined)
+    })
 
     it('should create SNS topic when only arn is given as an object property', () => {
       awsCompileSNSEvents.serverless.service.functions = {
@@ -283,24 +302,27 @@ describe('AwsCompileSNSEvents', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileSNSEvents.compileSNSEvents();
+      awsCompileSNSEvents.compileSNSEvents()
 
       expect(
         Object.keys(
-          awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        )
-      ).to.have.length(2);
+          awsCompileSNSEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources,
+        ),
+      ).to.have.length(2)
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionFoo.Type
-      ).to.equal('AWS::SNS::Subscription');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionFoo
+          .Type,
+      ).to.equal('AWS::SNS::Subscription')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionFooSNS.Type
-      ).to.equal('AWS::Lambda::Permission');
-    });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstLambdaPermissionFooSNS
+          .Type,
+      ).to.equal('AWS::Lambda::Permission')
+    })
 
     it('should create a cross region subscription when SNS topic arn in a different region than provider', () => {
       awsCompileSNSEvents.serverless.service.functions = {
@@ -313,27 +335,31 @@ describe('AwsCompileSNSEvents', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileSNSEvents.compileSNSEvents();
+      awsCompileSNSEvents.compileSNSEvents()
       expect(
         Object.keys(
-          awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        )
-      ).to.have.length(2);
+          awsCompileSNSEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources,
+        ),
+      ).to.have.length(2)
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionFoo.Type
-      ).to.equal('AWS::SNS::Subscription');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionFoo
+          .Type,
+      ).to.equal('AWS::SNS::Subscription')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionFoo.Properties.Region
-      ).to.equal('some-other-region');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionFoo
+          .Properties.Region,
+      ).to.equal('some-other-region')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionFooSNS.Type
-      ).to.equal('AWS::Lambda::Permission');
-    });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstLambdaPermissionFooSNS
+          .Type,
+      ).to.equal('AWS::Lambda::Permission')
+    })
 
     it('should create a cross region subscription when SNS topic arn in a different region is using pseudo params', () => {
       awsCompileSNSEvents.serverless.service.functions = {
@@ -346,27 +372,31 @@ describe('AwsCompileSNSEvents', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileSNSEvents.compileSNSEvents();
+      awsCompileSNSEvents.compileSNSEvents()
       expect(
         Object.keys(
-          awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        )
-      ).to.have.length(2);
+          awsCompileSNSEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources,
+        ),
+      ).to.have.length(2)
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionFoo.Type
-      ).to.equal('AWS::SNS::Subscription');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionFoo
+          .Type,
+      ).to.equal('AWS::SNS::Subscription')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionFoo.Properties.Region
-      ).to.equal('${AWS::Region}');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionFoo
+          .Properties.Region,
+      ).to.equal('${AWS::Region}')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionFooSNS.Type
-      ).to.equal('AWS::Lambda::Permission');
-    });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstLambdaPermissionFooSNS
+          .Type,
+      ).to.equal('AWS::Lambda::Permission')
+    })
 
     it('should throw an error when the arn an object and the value is not a string', () => {
       awsCompileSNSEvents.serverless.service.functions = {
@@ -379,12 +409,12 @@ describe('AwsCompileSNSEvents', () => {
             },
           ],
         },
-      };
+      }
 
       expect(() => {
-        awsCompileSNSEvents.compileSNSEvents();
-      }).to.throw(Error);
-    });
+        awsCompileSNSEvents.compileSNSEvents()
+      }).to.throw(Error)
+    })
 
     it('should create SNS topic when both arn and topicName are given as object properties', () => {
       awsCompileSNSEvents.serverless.service.functions = {
@@ -398,24 +428,27 @@ describe('AwsCompileSNSEvents', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileSNSEvents.compileSNSEvents();
+      awsCompileSNSEvents.compileSNSEvents()
 
       expect(
         Object.keys(
-          awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        )
-      ).to.have.length(2);
+          awsCompileSNSEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources,
+        ),
+      ).to.have.length(2)
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionBar.Type
-      ).to.equal('AWS::SNS::Subscription');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionBar
+          .Type,
+      ).to.equal('AWS::SNS::Subscription')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionBarSNS.Type
-      ).to.equal('AWS::Lambda::Permission');
-    });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstLambdaPermissionBarSNS
+          .Type,
+      ).to.equal('AWS::Lambda::Permission')
+    })
 
     it('should create two SNS topic subsriptions for ARNs with the same topic name in two regions when different topicName parameters are specified', () => {
       awsCompileSNSEvents.serverless.service.functions = {
@@ -435,24 +468,27 @@ describe('AwsCompileSNSEvents', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileSNSEvents.compileSNSEvents();
+      awsCompileSNSEvents.compileSNSEvents()
 
       expect(
         Object.keys(
-          awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        )
-      ).to.have.length(4);
+          awsCompileSNSEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources,
+        ),
+      ).to.have.length(4)
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionFirst.Type
-      ).to.equal('AWS::SNS::Subscription');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionFirst
+          .Type,
+      ).to.equal('AWS::SNS::Subscription')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionSecond.Type
-      ).to.equal('AWS::SNS::Subscription');
-    });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionSecond
+          .Type,
+      ).to.equal('AWS::SNS::Subscription')
+    })
 
     it('should override SNS topic subsription CF resource name when arn and topicName are given as object properties', () => {
       awsCompileSNSEvents.serverless.service.functions = {
@@ -466,24 +502,27 @@ describe('AwsCompileSNSEvents', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileSNSEvents.compileSNSEvents();
+      awsCompileSNSEvents.compileSNSEvents()
 
       expect(
         Object.keys(
-          awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        )
-      ).to.have.length(2);
+          awsCompileSNSEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources,
+        ),
+      ).to.have.length(2)
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionFoo.Type
-      ).to.equal('AWS::SNS::Subscription');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionFoo
+          .Type,
+      ).to.equal('AWS::SNS::Subscription')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionFooSNS.Type
-      ).to.equal('AWS::Lambda::Permission');
-    });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstLambdaPermissionFooSNS
+          .Type,
+      ).to.equal('AWS::Lambda::Permission')
+    })
 
     // eslint-disable-next-line max-len
     it('should create SNS topic when arn object and topicName are given as object properties', () => {
@@ -494,30 +533,41 @@ describe('AwsCompileSNSEvents', () => {
               sns: {
                 topicName: 'bar',
                 arn: {
-                  'Fn::Join': [':', ['arn:aws:sns', '${AWS::Region}', '${AWS::AccountId}', 'bar']],
+                  'Fn::Join': [
+                    ':',
+                    [
+                      'arn:aws:sns',
+                      '${AWS::Region}',
+                      '${AWS::AccountId}',
+                      'bar',
+                    ],
+                  ],
                 },
               },
             },
           ],
         },
-      };
+      }
 
-      awsCompileSNSEvents.compileSNSEvents();
+      awsCompileSNSEvents.compileSNSEvents()
 
       expect(
         Object.keys(
-          awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        )
-      ).to.have.length(2);
+          awsCompileSNSEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources,
+        ),
+      ).to.have.length(2)
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionBar.Type
-      ).to.equal('AWS::SNS::Subscription');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionBar
+          .Type,
+      ).to.equal('AWS::SNS::Subscription')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionBarSNS.Type
-      ).to.equal('AWS::Lambda::Permission');
-    });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstLambdaPermissionBarSNS
+          .Type,
+      ).to.equal('AWS::Lambda::Permission')
+    })
 
     // eslint-disable-next-line max-len
     it('should throw an error when arn object and no topicName are given as object properties', () => {
@@ -527,18 +577,26 @@ describe('AwsCompileSNSEvents', () => {
             {
               sns: {
                 arn: {
-                  'Fn::Join': [':', ['arn:aws:sns', '${AWS::Region}', '${AWS::AccountId}', 'bar']],
+                  'Fn::Join': [
+                    ':',
+                    [
+                      'arn:aws:sns',
+                      '${AWS::Region}',
+                      '${AWS::AccountId}',
+                      'bar',
+                    ],
+                  ],
                 },
               },
             },
           ],
         },
-      };
+      }
 
       expect(() => {
-        awsCompileSNSEvents.compileSNSEvents();
-      }).to.throw(Error);
-    });
+        awsCompileSNSEvents.compileSNSEvents()
+      }).to.throw(Error)
+    })
 
     it('should create SNS topic when arn, topicName, and filterPolicy are given as object', () => {
       awsCompileSNSEvents.serverless.service.functions = {
@@ -555,28 +613,32 @@ describe('AwsCompileSNSEvents', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileSNSEvents.compileSNSEvents();
+      awsCompileSNSEvents.compileSNSEvents()
 
       expect(
         Object.keys(
-          awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        )
-      ).to.have.length(2);
+          awsCompileSNSEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources,
+        ),
+      ).to.have.length(2)
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionBar.Type
-      ).to.equal('AWS::SNS::Subscription');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionBar
+          .Type,
+      ).to.equal('AWS::SNS::Subscription')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionBar.Properties.FilterPolicy
-      ).to.eql({ pet: ['dog', 'cat'] });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionBar
+          .Properties.FilterPolicy,
+      ).to.eql({ pet: ['dog', 'cat'] })
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionBarSNS.Type
-      ).to.equal('AWS::Lambda::Permission');
-    });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstLambdaPermissionBarSNS
+          .Type,
+      ).to.equal('AWS::Lambda::Permission')
+    })
 
     it('should link topic to corresponding dlq when redrivePolicy is defined by arn string', () => {
       awsCompileSNSEvents.serverless.service.functions = {
@@ -587,39 +649,46 @@ describe('AwsCompileSNSEvents', () => {
                 topicName: 'Topic 1',
                 displayName: 'Display name for topic 1',
                 redrivePolicy: {
-                  deadLetterTargetArn: 'arn:aws:sqs:us-east-1:11111111111:myDLQ',
+                  deadLetterTargetArn:
+                    'arn:aws:sqs:us-east-1:11111111111:myDLQ',
                 },
               },
             },
           ],
         },
-      };
+      }
 
-      awsCompileSNSEvents.compileSNSEvents();
+      awsCompileSNSEvents.compileSNSEvents()
 
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .SNSTopicTopic1.Type
-      ).to.equal('AWS::SNS::Topic');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.SNSTopicTopic1.Type,
+      ).to.equal('AWS::SNS::Topic')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionTopic1SNS.Type
-      ).to.equal('AWS::Lambda::Permission');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstLambdaPermissionTopic1SNS.Type,
+      ).to.equal('AWS::Lambda::Permission')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionTopic1.Type
-      ).to.equal('AWS::SNS::Subscription');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionTopic1
+          .Type,
+      ).to.equal('AWS::SNS::Subscription')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionTopic1.Properties.RedrivePolicy
-      ).to.eql({ deadLetterTargetArn: 'arn:aws:sqs:us-east-1:11111111111:myDLQ' });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionTopic1
+          .Properties.RedrivePolicy,
+      ).to.eql({
+        deadLetterTargetArn: 'arn:aws:sqs:us-east-1:11111111111:myDLQ',
+      })
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .Topic1ToFirstDLQPolicy.Type
-      ).to.equal('AWS::SQS::QueuePolicy');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.Topic1ToFirstDLQPolicy.Type,
+      ).to.equal('AWS::SQS::QueuePolicy')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .Topic1ToFirstDLQPolicy.Properties.Queues
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.Topic1ToFirstDLQPolicy
+          .Properties.Queues,
       ).to.deep.equal([
         {
           'Fn::Join': [
@@ -633,8 +702,8 @@ describe('AwsCompileSNSEvents', () => {
             ],
           ],
         },
-      ]);
-    });
+      ])
+    })
 
     it('should link topic to corresponding dlq when redrivePolicy is defined with resource ref', () => {
       awsCompileSNSEvents.serverless.service.functions = {
@@ -651,10 +720,11 @@ describe('AwsCompileSNSEvents', () => {
             },
           ],
         },
-      };
+      }
 
       Object.assign(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources,
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources,
         {
           SNSDLQ: {
             Type: 'AWS::SQS::Queue',
@@ -662,32 +732,35 @@ describe('AwsCompileSNSEvents', () => {
               QueueName: 'SNSDLQ',
             },
           },
-        }
-      );
+        },
+      )
 
-      awsCompileSNSEvents.compileSNSEvents();
+      awsCompileSNSEvents.compileSNSEvents()
 
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .SNSTopicTopic1.Type
-      ).to.equal('AWS::SNS::Topic');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.SNSTopicTopic1.Type,
+      ).to.equal('AWS::SNS::Topic')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionTopic1SNS.Type
-      ).to.equal('AWS::Lambda::Permission');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstLambdaPermissionTopic1SNS.Type,
+      ).to.equal('AWS::Lambda::Permission')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionTopic1.Type
-      ).to.equal('AWS::SNS::Subscription');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionTopic1
+          .Type,
+      ).to.equal('AWS::SNS::Subscription')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionTopic1.Properties.RedrivePolicy
-      ).to.eql({ deadLetterTargetArn: { 'Fn::GetAtt': ['SNSDLQ', 'Arn'] } });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionTopic1
+          .Properties.RedrivePolicy,
+      ).to.eql({ deadLetterTargetArn: { 'Fn::GetAtt': ['SNSDLQ', 'Arn'] } })
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .Topic1ToFirstDLQPolicy.Type
-      ).to.equal('AWS::SQS::QueuePolicy');
-    });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.Topic1ToFirstDLQPolicy.Type,
+      ).to.equal('AWS::SQS::QueuePolicy')
+    })
 
     it('should link topic to corresponding dlq when redrivePolicy is defined with resource ref', () => {
       awsCompileSNSEvents.serverless.service.functions = {
@@ -707,30 +780,33 @@ describe('AwsCompileSNSEvents', () => {
             },
           ],
         },
-      };
+      }
 
-      awsCompileSNSEvents.compileSNSEvents();
+      awsCompileSNSEvents.compileSNSEvents()
 
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .SNSTopicTopic1.Type
-      ).to.equal('AWS::SNS::Topic');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.SNSTopicTopic1.Type,
+      ).to.equal('AWS::SNS::Topic')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstLambdaPermissionTopic1SNS.Type
-      ).to.equal('AWS::Lambda::Permission');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+          .FirstLambdaPermissionTopic1SNS.Type,
+      ).to.equal('AWS::Lambda::Permission')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionTopic1.Type
-      ).to.equal('AWS::SNS::Subscription');
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionTopic1
+          .Type,
+      ).to.equal('AWS::SNS::Subscription')
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .FirstSnsSubscriptionTopic1.Properties.RedrivePolicy
-      ).to.eql({ deadLetterTargetArn: { 'Fn::ImportValue': 'myDLQArn' } });
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FirstSnsSubscriptionTopic1
+          .Properties.RedrivePolicy,
+      ).to.eql({ deadLetterTargetArn: { 'Fn::ImportValue': 'myDLQArn' } })
       expect(
-        awsCompileSNSEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .Topic1ToFirstDLQPolicy.Type
-      ).to.equal('AWS::SQS::QueuePolicy');
-    });
-  });
-});
+        awsCompileSNSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.Topic1ToFirstDLQPolicy.Type,
+      ).to.equal('AWS::SQS::QueuePolicy')
+    })
+  })
+})
