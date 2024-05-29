@@ -1,4 +1,4 @@
-import { serverlessIncEslintConfig } from '@serverlessinc/config'
+import { serverlessIncEslintConfig } from '@serverlessinc/standards'
 
 export default [...serverlessIncEslintConfig]
 
