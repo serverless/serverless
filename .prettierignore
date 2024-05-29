@@ -6,5 +6,5 @@
 !/test/fixtures/programmatic/locallyInstalledServerless/node_modules/**
 /.github
 ../sf-core
-../config/
+../standards/
 .eslintrc.cjs
