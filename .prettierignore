@@ -5,3 +5,4 @@
 /test/unit/lib/configuration/variables/sources/fixture/invalid.yml
 !/test/fixtures/programmatic/locallyInstalledServerless/node_modules/**
 /.github
+../sf-core
