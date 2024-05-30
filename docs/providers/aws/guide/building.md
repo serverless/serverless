@@ -31,6 +31,9 @@ build:
     # if the runtime is set to nodejs16.x or lower or set to @aws-sdk/* if set to nodejs18.x or higher.
     exclude:
       - @aws-sdk/*
+    # The packages config, this can be set to override the behavior of external
+    # If this is set then all dependencies will be treated as external and not bundled.
+    packages: external
     # By default Framework will attempt to build and package all functions concurrently.
     # This property can bet set to a different number if you wish to limit the
     # concurrency of those operations.
