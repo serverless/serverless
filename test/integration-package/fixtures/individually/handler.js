@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 module.exports.hello = function (event) {
   return {
@@ -9,10 +9,10 @@ module.exports.hello = function (event) {
         input: event,
       },
       null,
-      2
+      2,
     ),
-  };
+  }
 
   // Use this code if you don't use the http event with the LAMBDA-PROXY integration
   // return { message: 'Go Serverless v1.0! Your function executed successfully!', event };
-};
+}

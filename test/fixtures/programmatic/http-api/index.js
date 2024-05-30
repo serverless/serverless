@@ -1,7 +1,7 @@
-'use strict';
+'use strict'
 
 module.exports.handler = (event, context, callback) => {
-  const httpData = event.requestContext.http;
+  const httpData = event.requestContext.http
   const resolve = () =>
     callback(null, {
       statusCode: 200,
@@ -9,7 +9,7 @@ module.exports.handler = (event, context, callback) => {
         path: httpData.path,
         method: httpData.method,
       }),
-    });
-  if (httpData.path === '/bar/timeout') setTimeout(resolve, 2000);
-  else resolve();
-};
+    })
+  if (httpData.path === '/bar/timeout') setTimeout(resolve, 2000)
+  else resolve()
+}

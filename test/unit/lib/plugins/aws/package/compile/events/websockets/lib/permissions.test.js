@@ -1,28 +1,30 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const AwsCompileWebsocketsEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/index');
-const Serverless = require('../../../../../../../../../../lib/serverless');
-const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
+const expect = require('chai').expect
+const AwsCompileWebsocketsEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/index')
+const Serverless = require('../../../../../../../../../../lib/serverless')
+const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider')
 
 describe('#compilePermissions()', () => {
-  let awsCompileWebsocketsEvents;
+  let awsCompileWebsocketsEvents
 
   beforeEach(() => {
-    const serverless = new Serverless({ commands: [], options: {} });
-    serverless.setProvider('aws', new AwsProvider(serverless));
-    serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
+    const serverless = new Serverless({ commands: [], options: {} })
+    serverless.setProvider('aws', new AwsProvider(serverless))
+    serverless.service.provider.compiledCloudFormationTemplate = {
+      Resources: {},
+    }
     serverless.service.functions = {
       First: {},
       Second: {},
       auth: {},
-    };
+    }
 
-    awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless);
+    awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless)
 
     awsCompileWebsocketsEvents.websocketsApiLogicalId =
-      awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
-  });
+      awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId()
+  })
 
   it('should create a permission resource for every event', () => {
     awsCompileWebsocketsEvents.validated = {
@@ -36,12 +38,12 @@ describe('#compilePermissions()', () => {
           route: '$disconnect',
         },
       ],
-    };
+    }
 
-    awsCompileWebsocketsEvents.compilePermissions();
+    awsCompileWebsocketsEvents.compilePermissions()
     const resources =
-      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-        .Resources;
+      awsCompileWebsocketsEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
 
     expect(resources).to.deep.equal({
       FirstLambdaPermissionWebsockets: {
@@ -66,8 +68,8 @@ describe('#compilePermissions()', () => {
           Principal: 'apigateway.amazonaws.com',
         },
       },
-    });
-  });
+    })
+  })
 
   it('should create a permission resource for authorizer function', () => {
     awsCompileWebsocketsEvents.validated = {
@@ -81,12 +83,12 @@ describe('#compilePermissions()', () => {
           },
         },
       ],
-    };
+    }
 
-    awsCompileWebsocketsEvents.compilePermissions();
+    awsCompileWebsocketsEvents.compilePermissions()
     const resources =
-      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-        .Resources;
+      awsCompileWebsocketsEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
 
     expect(resources).to.deep.equal({
       FirstLambdaPermissionWebsockets: {
@@ -111,6 +113,6 @@ describe('#compilePermissions()', () => {
           Principal: 'apigateway.amazonaws.com',
         },
       },
-    });
-  });
-});
+    })
+  })
+})

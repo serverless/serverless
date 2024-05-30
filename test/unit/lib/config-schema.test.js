@@ -1,7 +1,7 @@
-'use strict';
+'use strict'
 
-const runServerless = require('../../utils/run-serverless');
-const expect = require('chai').expect;
+const runServerless = require('../../utils/run-serverless')
+const expect = require('chai').expect
 
 describe('test/unit/lib/configSchema.test.js', () => {
   const cases = [
@@ -82,10 +82,10 @@ describe('test/unit/lib/configSchema.test.js', () => {
         },
       },
     },
-  ];
+  ]
 
   for (const someCase of cases) {
-    const passOrFail = someCase.isValid ? 'pass' : 'fail';
+    const passOrFail = someCase.isValid ? 'pass' : 'fail'
     it(`should ${passOrFail} validation for ${someCase.description}`, async () =>
       runServerless({
         fixture: 'config-schema-extensions',
@@ -94,17 +94,17 @@ describe('test/unit/lib/configSchema.test.js', () => {
       }).then(
         () => {
           if (!someCase.isValid) {
-            expect(false).to.be.true;
+            expect(false).to.be.true
           }
-          return;
+          return
         },
         (err) => {
           try {
-            expect(err.message).to.include(someCase.errorMessage);
+            expect(err.message).to.include(someCase.errorMessage)
           } catch (error) {
-            throw err;
+            throw err
           }
-        }
-      ));
+        },
+      ))
   }
-});
+})

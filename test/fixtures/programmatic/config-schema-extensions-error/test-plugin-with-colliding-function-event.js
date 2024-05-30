@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 class TestPluginWithCollidingFunctionEventError {
   constructor(serverless) {
@@ -14,17 +14,21 @@ class TestPluginWithCollidingFunctionEventError {
           properties: { existingProp: { type: 'string' } },
         },
       },
-    });
+    })
 
-    serverless.configSchemaHandler.defineFunctionEvent('someProvider', 'existingEvent', {
-      type: 'object',
-      properties: {
-        someProperty: { type: 'string' },
+    serverless.configSchemaHandler.defineFunctionEvent(
+      'someProvider',
+      'existingEvent',
+      {
+        type: 'object',
+        properties: {
+          someProperty: { type: 'string' },
+        },
+        required: ['someProperty'],
+        additionalProperties: false,
       },
-      required: ['someProperty'],
-      additionalProperties: false,
-    });
+    )
   }
 }
 
-module.exports = TestPluginWithCollidingFunctionEventError;
+module.exports = TestPluginWithCollidingFunctionEventError

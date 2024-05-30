@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 class TestPlugin {
   constructor(serverless) {
@@ -18,36 +18,46 @@ class TestPlugin {
             { type: 'string' },
             {
               type: 'object',
-              properties: { existingPropForObjectEventDefinition: { type: 'string' } },
+              properties: {
+                existingPropForObjectEventDefinition: { type: 'string' },
+              },
             },
           ],
         },
       },
-    });
+    })
 
     serverless.configSchemaHandler.defineCustomProperties({
       properties: {
         someCustomStringProp: { type: 'string' },
       },
       required: ['someCustomStringProp'],
-    });
+    })
 
-    serverless.configSchemaHandler.defineFunctionEvent('someProvider', 'someEvent', {
-      type: 'object',
-      properties: {
-        someRequiredStringProp: { type: 'string' },
-        someNumberProp: { type: 'number' },
+    serverless.configSchemaHandler.defineFunctionEvent(
+      'someProvider',
+      'someEvent',
+      {
+        type: 'object',
+        properties: {
+          someRequiredStringProp: { type: 'string' },
+          someNumberProp: { type: 'number' },
+        },
+        required: ['someRequiredStringProp'],
+        additionalProperties: false,
       },
-      required: ['someRequiredStringProp'],
-      additionalProperties: false,
-    });
+    )
 
-    serverless.configSchemaHandler.defineFunctionEventProperties('someProvider', 'existingEvent', {
-      properties: {
-        somePluginAdditionalEventProp: { type: 'string' },
+    serverless.configSchemaHandler.defineFunctionEventProperties(
+      'someProvider',
+      'existingEvent',
+      {
+        properties: {
+          somePluginAdditionalEventProp: { type: 'string' },
+        },
+        required: ['somePluginAdditionalEventProp'],
       },
-      required: ['somePluginAdditionalEventProp'],
-    });
+    )
 
     serverless.configSchemaHandler.defineFunctionEventProperties(
       'someProvider',
@@ -57,8 +67,8 @@ class TestPlugin {
           somePluginAdditionalComplexEventProp: { type: 'string' },
         },
         required: ['somePluginAdditionalComplexEventProp'],
-      }
-    );
+      },
+    )
 
     serverless.configSchemaHandler.defineFunctionProperties('someProvider', {
       properties: {
@@ -66,12 +76,12 @@ class TestPlugin {
         someRequiredFunctionNumberProp: { type: 'number' },
       },
       required: ['someRequiredFunctionNumberProp'],
-    });
+    })
 
     serverless.configSchemaHandler.defineTopLevelProperty('top', {
       type: 'string',
-    });
+    })
   }
 }
 
-module.exports = TestPlugin;
+module.exports = TestPlugin

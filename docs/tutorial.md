@@ -126,25 +126,25 @@ resources:
 And lets create a new file in the same folder as the `serverless.yml` called `createCustomer.js` and add the following code to it:
 
 ```javascript
-'use strict';
-const AWS = require('aws-sdk');
+'use strict'
+const AWS = require('aws-sdk')
 
 module.exports.createCustomer = async (event) => {
-  const body = JSON.parse(Buffer.from(event.body, 'base64').toString());
-  const dynamoDb = new AWS.DynamoDB.DocumentClient();
+  const body = JSON.parse(Buffer.from(event.body, 'base64').toString())
+  const dynamoDb = new AWS.DynamoDB.DocumentClient()
   const putParams = {
     TableName: process.env.DYNAMODB_CUSTOMER_TABLE,
     Item: {
       primary_key: body.name,
       email: body.email,
     },
-  };
-  await dynamoDb.put(putParams).promise();
+  }
+  await dynamoDb.put(putParams).promise()
 
   return {
     statusCode: 201,
-  };
-};
+  }
+}
 ```
 
 You may have noticed we include an npm module to help us talk to AWS, so lets make sure we install this required npm module as a part of our service with the following command:
@@ -234,21 +234,21 @@ getCustomers:
 Then we need to create a file called `getCustomers.js` and drop the following code in for the getCustomers function.
 
 ```javascript
-'use strict';
-const AWS = require('aws-sdk');
+'use strict'
+const AWS = require('aws-sdk')
 
 module.exports.getCustomers = async (event) => {
   const scanParams = {
     TableName: process.env.DYNAMODB_CUSTOMER_TABLE,
-  };
+  }
 
-  const dynamodb = new AWS.DynamoDB.DocumentClient();
-  const result = await dynamodb.scan(scanParams).promise();
+  const dynamodb = new AWS.DynamoDB.DocumentClient()
+  const result = await dynamodb.scan(scanParams).promise()
 
   if (result.Count === 0) {
     return {
       statusCode: 404,
-    };
+    }
   }
 
   return {
@@ -259,11 +259,11 @@ module.exports.getCustomers = async (event) => {
         return {
           name: customer.primary_key,
           email: customer.email,
-        };
+        }
       }),
     }),
-  };
-};
+  }
+}
 ```
 
 The only thing to really take note of here is the re-use of that environment variable to access the DynamoDB table and that we now use the scan method for DynamoDB to retrieve all records.

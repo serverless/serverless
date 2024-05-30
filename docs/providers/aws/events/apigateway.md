@@ -115,10 +115,10 @@ functions:
 ```javascript
 // handler.js
 
-'use strict';
+'use strict'
 
 module.exports.hello = function (event, context, callback) {
-  console.log(event); // Contains incoming request data (e.g., query params, headers and more)
+  console.log(event) // Contains incoming request data (e.g., query params, headers and more)
 
   const response = {
     statusCode: 200,
@@ -126,10 +126,10 @@ module.exports.hello = function (event, context, callback) {
       'x-custom-header': 'My Header Value',
     },
     body: JSON.stringify({ message: 'Hello World!' }),
-  };
+  }
 
-  callback(null, response);
-};
+  callback(null, response)
+}
 ```
 
 **Note:** When the body is a JSON-Document, you must parse it yourself:
@@ -365,7 +365,7 @@ If you want to use CORS with the lambda-proxy integration, remember to include t
 ```javascript
 // handler.js
 
-'use strict';
+'use strict'
 
 module.exports.hello = function (event, context, callback) {
   const response = {
@@ -377,10 +377,10 @@ module.exports.hello = function (event, context, callback) {
       'Access-Control-Allow-Credentials': true,
     },
     body: JSON.stringify({ message: 'Hello World!' }),
-  };
+  }
 
-  callback(null, response);
-};
+  callback(null, response)
+}
 ```
 
 ### HTTP Endpoints with `AWS_IAM` Authorizers
@@ -1165,8 +1165,12 @@ the user is not authorized to perform the action (401). Those status codes are r
 
 ```javascript
 module.exports.hello = (event, context, callback) => {
-  callback(null, { statusCode: 404, body: 'Not found', headers: { 'Content-Type': 'text/plain' } });
-};
+  callback(null, {
+    statusCode: 404,
+    body: 'Not found',
+    headers: { 'Content-Type': 'text/plain' },
+  })
+}
 ```
 
 #### Available Status Codes
@@ -1191,8 +1195,8 @@ Here's an example which shows you how you can raise a 404 HTTP status from withi
 
 ```javascript
 module.exports.hello = (event, context, callback) => {
-  callback(new Error('[404] Not found'));
-};
+  callback(new Error('[404] Not found'))
+}
 ```
 
 #### Custom Status Codes
@@ -1706,15 +1710,17 @@ Having that in your Lambda function, you need to ensure that the correct `conten
 e.g., Assuming that there's an `image.jpg` file located aside of `binaryExample.js` lambda handler, the handler can be set up as follows:
 
 ```js
-const fsp = require('fs').promises;
-const path = require('path');
+const fsp = require('fs').promises
+const path = require('path')
 
 module.exports.handler = async () => ({
   statusCode: 200,
   headers: { 'Content-type': 'image/jpeg' },
-  body: (await fsp.readFile(path.resolve(__dirname, 'image.jpg'))).toString('base64'),
+  body: (await fsp.readFile(path.resolve(__dirname, 'image.jpg'))).toString(
+    'base64',
+  ),
   isBase64Encoded: true,
-});
+})
 ```
 
 ## Detailed CloudWatch Metrics

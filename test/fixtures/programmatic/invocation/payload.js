@@ -1,3 +1,3 @@
-'use strict';
+'use strict'
 
-module.exports = { dataInputKey: 'dataInputValue' };
+module.exports = { dataInputKey: 'dataInputValue' }

@@ -1,8 +1,8 @@
-'use strict';
+'use strict'
 
-const { expect } = require('chai');
+const { expect } = require('chai')
 
-const filterSupportedOptions = require('../../../../lib/cli/filter-supported-options');
+const filterSupportedOptions = require('../../../../lib/cli/filter-supported-options')
 
 describe('test/unit/lib/cli/filter-supported-options.test.js', () => {
   it('should recognize just command schema options if passsed', () => {
@@ -25,15 +25,15 @@ describe('test/unit/lib/cli/filter-supported-options.test.js', () => {
               extra: {},
             },
           },
-        }
-      )
+        },
+      ),
     ).to.deep.equal({
       supString: 'string',
       supBool: false,
       supMultiple: ['multiple'],
       extra: null,
-    });
-  });
+    })
+  })
 
   it('should recognize just AWS service options when no command schema and AWS provider', () => {
     expect(
@@ -45,23 +45,23 @@ describe('test/unit/lib/cli/filter-supported-options.test.js', () => {
           unSupBool: false,
           unSupMultiple: ['multiple'],
         },
-        { providerName: 'aws' }
-      )
+        { providerName: 'aws' },
+      ),
     ).to.deep.equal({
-      'param': null,
-      'region': 'elo',
+      param: null,
+      region: 'elo',
       'aws-profile': null,
-      'help': null,
-      'version': null,
-      'config': null,
-      'stage': 'marko',
-      'app': null,
-      'org': null,
+      help: null,
+      version: null,
+      config: null,
+      stage: 'marko',
+      app: null,
+      org: null,
       'use-local-credentials': null,
-      'verbose': null,
-      'debug': null,
-    });
-  });
+      verbose: null,
+      debug: null,
+    })
+  })
 
   it('should recognize just any service options when no command schema and no AWS provider', () => {
     expect(
@@ -73,8 +73,8 @@ describe('test/unit/lib/cli/filter-supported-options.test.js', () => {
           unSupBool: false,
           unSupMultiple: ['multiple'],
         },
-        {}
-      )
+        {},
+      ),
     ).to.deep.equal({
       param: null,
       help: null,
@@ -83,6 +83,6 @@ describe('test/unit/lib/cli/filter-supported-options.test.js', () => {
       stage: 'marko',
       verbose: null,
       debug: null,
-    });
-  });
-});
+    })
+  })
+})

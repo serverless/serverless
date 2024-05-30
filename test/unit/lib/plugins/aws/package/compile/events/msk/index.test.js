@@ -1,36 +1,37 @@
-'use strict';
+'use strict'
 
-const chai = require('chai');
-const runServerless = require('../../../../../../../../utils/run-serverless');
+const chai = require('chai')
+const runServerless = require('../../../../../../../../utils/run-serverless')
 
-const { expect } = chai;
+const { expect } = chai
 
-chai.use(require('chai-as-promised'));
+chai.use(require('chai-as-promised'))
 
 describe('AwsCompileMSKEvents', () => {
-  const arn = 'arn:aws:kafka:us-east-1:111111111111:cluster/ClusterName/a1a1a1a1a1a1a1a1a';
-  const topic = 'TestingTopic';
-  const enabled = false;
-  const startingPosition = 'AT_TIMESTAMP';
-  const startingPositionTimestamp = 123;
-  const batchSize = 5000;
-  const maximumBatchingWindow = 10;
+  const arn =
+    'arn:aws:kafka:us-east-1:111111111111:cluster/ClusterName/a1a1a1a1a1a1a1a1a'
+  const topic = 'TestingTopic'
+  const enabled = false
+  const startingPosition = 'AT_TIMESTAMP'
+  const startingPositionTimestamp = 123
+  const batchSize = 5000
+  const maximumBatchingWindow = 10
   const saslScram512 =
-    'arn:aws:secretsmanager:us-east-1:111111111111:secret:AmazonMSK_a1a1a1a1a1a1a1a1';
-  const consumerGroupId = 'TestConsumerGroupId';
+    'arn:aws:secretsmanager:us-east-1:111111111111:secret:AmazonMSK_a1a1a1a1a1a1a1a1'
+  const consumerGroupId = 'TestConsumerGroupId'
   const sourceAccessConfigurations = [
     {
       Type: 'SASL_SCRAM_512_AUTH',
       URI: saslScram512,
     },
-  ];
-  const filterPatterns = [{ value: { a: [1, 2] } }, { value: [3] }];
+  ]
+  const filterPatterns = [{ value: { a: [1, 2] } }, { value: [3] }]
 
   describe('when there are msk events defined', () => {
-    let minimalEventSourceMappingResource;
-    let allParamsEventSourceMappingResource;
-    let defaultIamRole;
-    let naming;
+    let minimalEventSourceMappingResource
+    let allParamsEventSourceMappingResource
+    let defaultIamRole
+    let naming
 
     before(async () => {
       const { awsNaming, cfTemplate } = await runServerless({
@@ -68,14 +69,18 @@ describe('AwsCompileMSKEvents', () => {
           },
         },
         command: 'package',
-      });
-      naming = awsNaming;
+      })
+      naming = awsNaming
       minimalEventSourceMappingResource =
-        cfTemplate.Resources[naming.getMSKEventLogicalId('basic', 'ClusterName', 'TestingTopic')];
+        cfTemplate.Resources[
+          naming.getMSKEventLogicalId('basic', 'ClusterName', 'TestingTopic')
+        ]
       allParamsEventSourceMappingResource =
-        cfTemplate.Resources[naming.getMSKEventLogicalId('other', 'ClusterName', 'TestingTopic')];
-      defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution;
-    });
+        cfTemplate.Resources[
+          naming.getMSKEventLogicalId('other', 'ClusterName', 'TestingTopic')
+        ]
+      defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution
+    })
 
     it('should correctly compile EventSourceMapping resource properties with minimal configuration', () => {
       expect(minimalEventSourceMappingResource.Properties).to.deep.equal({
@@ -85,19 +90,23 @@ describe('AwsCompileMSKEvents', () => {
         FunctionName: {
           'Fn::GetAtt': [naming.getLambdaLogicalId('basic'), 'Arn'],
         },
-      });
-    });
+      })
+    })
 
     it('should update default IAM role with MSK statement', () => {
-      expect(defaultIamRole.Properties.Policies[0].PolicyDocument.Statement).to.deep.include({
+      expect(
+        defaultIamRole.Properties.Policies[0].PolicyDocument.Statement,
+      ).to.deep.include({
         Effect: 'Allow',
         Action: ['kafka:DescribeCluster', 'kafka:GetBootstrapBrokers'],
         Resource: [arn],
-      });
-    });
+      })
+    })
 
     it('should update default IAM role with EC2 statement', () => {
-      expect(defaultIamRole.Properties.Policies[0].PolicyDocument.Statement).to.deep.include({
+      expect(
+        defaultIamRole.Properties.Policies[0].PolicyDocument.Statement,
+      ).to.deep.include({
         Effect: 'Allow',
         Action: [
           'ec2:CreateNetworkInterface',
@@ -108,13 +117,17 @@ describe('AwsCompileMSKEvents', () => {
           'ec2:DescribeSecurityGroups',
         ],
         Resource: '*',
-      });
-    });
+      })
+    })
 
     it('should correctly compile EventSourceMapping resource DependsOn ', () => {
-      expect(minimalEventSourceMappingResource.DependsOn).to.include('IamRoleLambdaExecution');
-      expect(allParamsEventSourceMappingResource.DependsOn).to.include('IamRoleLambdaExecution');
-    });
+      expect(minimalEventSourceMappingResource.DependsOn).to.include(
+        'IamRoleLambdaExecution',
+      )
+      expect(allParamsEventSourceMappingResource.DependsOn).to.include(
+        'IamRoleLambdaExecution',
+      )
+    })
 
     it('should correctly complie EventSourceMapping resource with all parameters', () => {
       expect(allParamsEventSourceMappingResource.Properties).to.deep.equal({
@@ -146,8 +159,8 @@ describe('AwsCompileMSKEvents', () => {
             },
           ],
         },
-      });
-    });
+      })
+    })
 
     describe('when startingPosition is AT_TIMESTAMP', () => {
       it('if startingPositionTimestamp is not provided, it should fail to compile EventSourceMapping resource properties', async () => {
@@ -176,29 +189,33 @@ describe('AwsCompileMSKEvents', () => {
               },
             },
             command: 'package',
-          })
+          }),
         ).to.be.rejected.and.eventually.contain({
           code: 'FUNCTION_MSK_STARTING_POSITION_TIMESTAMP_INVALID',
-        });
-      });
-    });
-  });
+        })
+      })
+    })
+  })
 
   describe('when no msk events are defined', () => {
     it('should not modify the default IAM role', async () => {
       const { cfTemplate } = await runServerless({
         fixture: 'function',
         command: 'package',
-      });
+      })
 
-      const defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution;
-      expect(defaultIamRole.Properties.Policies[0].PolicyDocument.Statement).not.to.deep.include({
+      const defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution
+      expect(
+        defaultIamRole.Properties.Policies[0].PolicyDocument.Statement,
+      ).not.to.deep.include({
         Effect: 'Allow',
         Action: ['kafka:DescribeCluster', 'kafka:GetBootstrapBrokers'],
         Resource: [],
-      });
+      })
 
-      expect(defaultIamRole.Properties.Policies[0].PolicyDocument.Statement).not.to.deep.include({
+      expect(
+        defaultIamRole.Properties.Policies[0].PolicyDocument.Statement,
+      ).not.to.deep.include({
         Effect: 'Allow',
         Action: [
           'ec2:CreateNetworkInterface',
@@ -209,7 +226,7 @@ describe('AwsCompileMSKEvents', () => {
           'ec2:DescribeSecurityGroups',
         ],
         Resource: '*',
-      });
-    });
-  });
-});
+      })
+    })
+  })
+})

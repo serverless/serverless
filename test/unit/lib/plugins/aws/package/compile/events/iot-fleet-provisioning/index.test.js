@@ -1,22 +1,22 @@
-'use strict';
+'use strict'
 
-const chai = require('chai');
-const runServerless = require('../../../../../../../../utils/run-serverless');
-const templateBody = require('../../../../../../../../fixtures/programmatic/iot-fleet-provisioning/template.json');
+const chai = require('chai')
+const runServerless = require('../../../../../../../../utils/run-serverless')
+const templateBody = require('../../../../../../../../fixtures/programmatic/iot-fleet-provisioning/template.json')
 
-chai.use(require('chai-as-promised'));
+chai.use(require('chai-as-promised'))
 
-const { expect } = chai;
+const { expect } = chai
 
 describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test.js', () => {
   describe('nominal configurations', () => {
-    const functionName = 'iotFleetProvisioningBasic';
-    const disabledFunctionName = 'iotFleetProvisioningDisabled';
-    const namedFunctionName = 'iotFleetProvisioningNamed';
-    const stage = 'dev';
-    let cfResources;
-    let naming;
-    let serviceName;
+    const functionName = 'iotFleetProvisioningBasic'
+    const disabledFunctionName = 'iotFleetProvisioningDisabled'
+    const namedFunctionName = 'iotFleetProvisioningNamed'
+    const stage = 'dev'
+    let cfResources
+    let naming
+    let serviceName
 
     before(async () => {
       const {
@@ -33,7 +33,8 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
                 {
                   iotFleetProvisioning: {
                     templateBody,
-                    provisioningRoleArn: 'arn:aws:iam::123456789:role/provisioning-role',
+                    provisioningRoleArn:
+                      'arn:aws:iam::123456789:role/provisioning-role',
                   },
                 },
               ],
@@ -44,7 +45,8 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
                 {
                   iotFleetProvisioning: {
                     templateBody,
-                    provisioningRoleArn: 'arn:aws:iam::123456789:role/provisioning-role',
+                    provisioningRoleArn:
+                      'arn:aws:iam::123456789:role/provisioning-role',
                     enabled: false,
                   },
                 },
@@ -56,7 +58,8 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
                 {
                   iotFleetProvisioning: {
                     templateBody,
-                    provisioningRoleArn: 'arn:aws:iam::123456789:role/provisioning-role',
+                    provisioningRoleArn:
+                      'arn:aws:iam::123456789:role/provisioning-role',
                     templateName: 'MyTemplate',
                   },
                 },
@@ -65,15 +68,15 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
           },
         },
         command: 'package',
-      });
-      ({ Resources: cfResources } = cfTemplate);
-      serviceName = serviceConfig.service;
-      naming = awsNaming;
-    });
+      })
+      ;({ Resources: cfResources } = cfTemplate)
+      serviceName = serviceConfig.service
+      naming = awsNaming
+    })
 
     it('should create corresponding template resource', () => {
       const iotProvisioningTemplateResource =
-        cfResources[naming.getIotFleetProvisioningLogicalId(functionName)];
+        cfResources[naming.getIotFleetProvisioningLogicalId(functionName)]
       expect(iotProvisioningTemplateResource).to.deep.equal({
         Type: 'AWS::IoT::ProvisioningTemplate',
         Properties: {
@@ -88,13 +91,17 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
             .replace(/\$\{self:service}/g, serviceName)
             .replace(/\$\{sls:stage}/g, stage),
         },
-        DependsOn: [naming.getLambdaIotFleetProvisioningPermissionLogicalId(functionName)],
-      });
-    });
+        DependsOn: [
+          naming.getLambdaIotFleetProvisioningPermissionLogicalId(functionName),
+        ],
+      })
+    })
 
     it('should create corresponding permission resource', () => {
       const lambdaPermissionResource =
-        cfResources[naming.getLambdaIotFleetProvisioningPermissionLogicalId(functionName)];
+        cfResources[
+          naming.getLambdaIotFleetProvisioningPermissionLogicalId(functionName)
+        ]
       expect(lambdaPermissionResource).to.deep.equal({
         Type: 'AWS::Lambda::Permission',
         DependsOn: undefined,
@@ -105,21 +112,25 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
           Action: 'lambda:InvokeFunction',
           Principal: 'iot.amazonaws.com',
         },
-      });
-    });
+      })
+    })
 
     it('should allow disabling of a provisioning template', () => {
       const iotProvisioningTemplateResource =
-        cfResources[naming.getIotFleetProvisioningLogicalId(disabledFunctionName)];
-      expect(iotProvisioningTemplateResource.Properties.Enabled).to.eq(false);
-    });
+        cfResources[
+          naming.getIotFleetProvisioningLogicalId(disabledFunctionName)
+        ]
+      expect(iotProvisioningTemplateResource.Properties.Enabled).to.eq(false)
+    })
 
     it('should allow customization of a provisioning template TemplateName', () => {
       const iotProvisioningTemplateResource =
-        cfResources[naming.getIotFleetProvisioningLogicalId(namedFunctionName)];
-      expect(iotProvisioningTemplateResource.Properties.TemplateName).to.eq('MyTemplate');
-    });
-  });
+        cfResources[naming.getIotFleetProvisioningLogicalId(namedFunctionName)]
+      expect(iotProvisioningTemplateResource.Properties.TemplateName).to.eq(
+        'MyTemplate',
+      )
+    })
+  })
 
   describe('disallowed configurations', () => {
     it('It should throw if there are more than one iotFleetProvisioning per lambda', () => {
@@ -134,14 +145,16 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
                   {
                     iotFleetProvisioning: {
                       templateBody,
-                      provisioningRoleArn: 'arn:aws:iam::123456789:role/provisioning-role',
+                      provisioningRoleArn:
+                        'arn:aws:iam::123456789:role/provisioning-role',
                       templateName: 'MyTemplate1',
                     },
                   },
                   {
                     iotFleetProvisioning: {
                       templateBody,
-                      provisioningRoleArn: 'arn:aws:iam::123456789:role/provisioning-role',
+                      provisioningRoleArn:
+                        'arn:aws:iam::123456789:role/provisioning-role',
                       templateName: 'MyTemplate2',
                     },
                   },
@@ -150,11 +163,11 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
             },
           },
           command: 'package',
-        })
+        }),
       ).to.eventually.be.rejected.and.have.property(
         'code',
-        'MULTIPLE_IOT_PROVISIONING_TEMPLATE_HOOK'
-      );
-    });
-  });
-});
+        'MULTIPLE_IOT_PROVISIONING_TEMPLATE_HOOK',
+      )
+    })
+  })
+})

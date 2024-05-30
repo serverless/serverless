@@ -29,24 +29,24 @@ To get through these challenges, and to keep the [test pyramid](http://martinfow
 Here is an example in Node.js of how to follow the practices above. The job this Function should perform is to save a user in a database and then send a welcome email:
 
 ```javascript
-const db = require('db').connect();
-const mailer = require('mailer');
+const db = require('db').connect()
+const mailer = require('mailer')
 
 module.exports.saveUser = (event, context, callback) => {
   const user = {
     email: event.email,
     created_at: Date.now(),
-  };
+  }
 
   db.saveUser(user, function (err) {
     if (err) {
-      callback(err);
+      callback(err)
     } else {
-      mailer.sendWelcomeEmail(event.email);
-      callback();
+      mailer.sendWelcomeEmail(event.email)
+      callback()
     }
-  });
-};
+  })
+}
 ```
 
 There are two main problems with this function:
@@ -61,40 +61,40 @@ Let's refactor the above example to separate the business logic from the FaaS Pr
 ```javascript
 class Users {
   constructor(db, mailer) {
-    this.db = db;
-    this.mailer = mailer;
+    this.db = db
+    this.mailer = mailer
   }
 
   save(email, callback) {
     const user = {
       email: email,
       created_at: Date.now(),
-    };
+    }
 
     this.db.saveUser(user, function (err) {
       if (err) {
-        callback(err);
+        callback(err)
       } else {
-        this.mailer.sendWelcomeEmail(email);
-        callback();
+        this.mailer.sendWelcomeEmail(email)
+        callback()
       }
-    });
+    })
   }
 }
 
-module.exports = Users;
+module.exports = Users
 ```
 
 ```javascript
-const db = require('db').connect();
-const mailer = require('mailer');
-const Users = require('users');
+const db = require('db').connect()
+const mailer = require('mailer')
+const Users = require('users')
 
-let users = new Users(db, mailer);
+let users = new Users(db, mailer)
 
 module.exports.saveUser = (event, context, callback) => {
-  users.save(event.email, callback);
-};
+  users.save(event.email, callback)
+}
 ```
 
 Now, the above class keeps business logic separate. Further, the code responsible for setting up dependencies, injecting them, calling business logic functions and interacting with AWS Lambda is in its own file, which will be changed less often. This way, the business logic is not provider dependent, easier to re-use, and easier to test.

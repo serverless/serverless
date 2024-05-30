@@ -1,23 +1,25 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const AwsCompileWebsocketsEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/index');
-const Serverless = require('../../../../../../../../../../lib/serverless');
-const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
+const expect = require('chai').expect
+const AwsCompileWebsocketsEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/index')
+const Serverless = require('../../../../../../../../../../lib/serverless')
+const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider')
 
 describe('#compileRoutes()', () => {
-  let awsCompileWebsocketsEvents;
+  let awsCompileWebsocketsEvents
 
   beforeEach(() => {
-    const serverless = new Serverless({ commands: [], options: {} });
-    serverless.setProvider('aws', new AwsProvider(serverless));
-    serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
+    const serverless = new Serverless({ commands: [], options: {} })
+    serverless.setProvider('aws', new AwsProvider(serverless))
+    serverless.service.provider.compiledCloudFormationTemplate = {
+      Resources: {},
+    }
 
-    awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless);
+    awsCompileWebsocketsEvents = new AwsCompileWebsocketsEvents(serverless)
 
     awsCompileWebsocketsEvents.websocketsApiLogicalId =
-      awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId();
-  });
+      awsCompileWebsocketsEvents.provider.naming.getWebsocketsApiLogicalId()
+  })
 
   it('should create a route resource for every event', () => {
     awsCompileWebsocketsEvents.validated = {
@@ -31,12 +33,12 @@ describe('#compileRoutes()', () => {
           route: '$disconnect',
         },
       ],
-    };
+    }
 
-    awsCompileWebsocketsEvents.compileRoutes();
+    awsCompileWebsocketsEvents.compileRoutes()
     const resources =
-      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-        .Resources;
+      awsCompileWebsocketsEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
 
     expect(resources).to.deep.equal({
       SconnectWebsocketsRoute: {
@@ -81,8 +83,8 @@ describe('#compileRoutes()', () => {
           },
         },
       },
-    });
-  });
+    })
+  })
 
   it('should set routeResponseSelectionExpression when configured', () => {
     awsCompileWebsocketsEvents.validated = {
@@ -93,12 +95,12 @@ describe('#compileRoutes()', () => {
           routeResponseSelectionExpression: '$default',
         },
       ],
-    };
+    }
 
-    awsCompileWebsocketsEvents.compileRoutes();
+    awsCompileWebsocketsEvents.compileRoutes()
     const resources =
-      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-        .Resources;
+      awsCompileWebsocketsEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
 
     expect(resources).to.deep.equal({
       SconnectWebsocketsRoute: {
@@ -123,8 +125,8 @@ describe('#compileRoutes()', () => {
           },
         },
       },
-    });
-  });
+    })
+  })
 
   it('should set authorizer property for the connect route', () => {
     awsCompileWebsocketsEvents.validated = {
@@ -137,12 +139,12 @@ describe('#compileRoutes()', () => {
           },
         },
       ],
-    };
+    }
 
-    awsCompileWebsocketsEvents.compileRoutes();
+    awsCompileWebsocketsEvents.compileRoutes()
     const resources =
-      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-        .Resources;
+      awsCompileWebsocketsEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
 
     expect(resources).to.deep.equal({
       SconnectWebsocketsRoute: {
@@ -155,7 +157,7 @@ describe('#compileRoutes()', () => {
           AuthorizationType: 'CUSTOM',
           AuthorizerId: {
             Ref: awsCompileWebsocketsEvents.provider.naming.getWebsocketsAuthorizerLogicalId(
-              'auth'
+              'auth',
             ),
           },
           Target: {
@@ -171,6 +173,6 @@ describe('#compileRoutes()', () => {
           },
         },
       },
-    });
-  });
-});
+    })
+  })
+})

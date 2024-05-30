@@ -1,23 +1,25 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const AwsCompileAlbEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/alb/index');
-const Serverless = require('../../../../../../../../../../lib/serverless');
-const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
+const expect = require('chai').expect
+const AwsCompileAlbEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/alb/index')
+const Serverless = require('../../../../../../../../../../lib/serverless')
+const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider')
 
 describe('#compileTargetGroups()', () => {
-  let awsCompileAlbEvents;
+  let awsCompileAlbEvents
 
   beforeEach(() => {
-    const serverless = new Serverless({ commands: [], options: {} });
-    serverless.setProvider('aws', new AwsProvider(serverless));
-    serverless.service.service = 'some-service';
-    serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
-    serverless.service.functions.first = {};
-    serverless.service.functions.second = {};
+    const serverless = new Serverless({ commands: [], options: {} })
+    serverless.setProvider('aws', new AwsProvider(serverless))
+    serverless.service.service = 'some-service'
+    serverless.service.provider.compiledCloudFormationTemplate = {
+      Resources: {},
+    }
+    serverless.service.functions.first = {}
+    serverless.service.functions.second = {}
 
-    awsCompileAlbEvents = new AwsCompileAlbEvents(serverless);
-  });
+    awsCompileAlbEvents = new AwsCompileAlbEvents(serverless)
+  })
 
   it('should create ELB target group resources', () => {
     awsCompileAlbEvents.validated = {
@@ -62,14 +64,17 @@ describe('#compileTargetGroups()', () => {
           },
         },
       ],
-    };
+    }
 
-    awsCompileAlbEvents.compileTargetGroups();
+    awsCompileAlbEvents.compileTargetGroups()
 
     const resources =
-      awsCompileAlbEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+      awsCompileAlbEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
 
-    expect(resources.FirstAlbMultiValueTargetGroup50dc6c495c0c9188).to.deep.equal({
+    expect(
+      resources.FirstAlbMultiValueTargetGroup50dc6c495c0c9188,
+    ).to.deep.equal({
       Type: 'AWS::ElasticLoadBalancingV2::TargetGroup',
       Properties: {
         Name: 'cee340765bf4be569254b8969c1d07a0',
@@ -96,7 +101,7 @@ describe('#compileTargetGroups()', () => {
         HealthCheckEnabled: false,
       },
       DependsOn: ['FirstLambdaPermissionRegisterTarget'],
-    });
+    })
     expect(resources.SecondAlbTargetGroup50dc6c495c0c9188).to.deep.equal({
       Type: 'AWS::ElasticLoadBalancingV2::TargetGroup',
       Properties: {
@@ -124,8 +129,8 @@ describe('#compileTargetGroups()', () => {
         HealthCheckEnabled: false,
       },
       DependsOn: ['SecondLambdaPermissionRegisterTarget'],
-    });
+    })
     // Target groups are unique to functions/albs, so there should only be 2 target groups
-    expect(Object.keys(resources).length).to.be.equal(2);
-  });
-});
+    expect(Object.keys(resources).length).to.be.equal(2)
+  })
+})

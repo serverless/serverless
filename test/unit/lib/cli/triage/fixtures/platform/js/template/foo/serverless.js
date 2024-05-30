@@ -1,3 +1,3 @@
-'use strict';
+'use strict'
 
-module.exports = { component: 'foo' };
+module.exports = { component: 'foo' }

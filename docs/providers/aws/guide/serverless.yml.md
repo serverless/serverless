@@ -28,7 +28,7 @@ Here is a list of all available properties in `serverless.yml` when the provider
 org: my-org
 
 # App name
-# The "App" concept acts as a parent container for one or more "Services," which you can configure via the `app` property in `serverless.yml`. 
+# The "App" concept acts as a parent container for one or more "Services," which you can configure via the `app` property in `serverless.yml`.
 # Setting an `app` activates Serverless Framework Dashboard features for that Service, such as tracking deployments, sharing outputs and secrets, and enabling metrics, traces, and logs.
 # This is optional. If you don't want to use Dashboard features, don't set this.
 app: my-app
@@ -57,7 +57,6 @@ params:
     domain: myapi.com
   dev:
     domain: dev.myapi.com
-
 
 # Example usage
 # This will change depending on the Stage set.
@@ -159,7 +158,7 @@ provider:
 
 ### Deployment bucket
 
-Serverless Framework needs an AWS S3 bucket to store artifacts for deploying. 
+Serverless Framework needs an AWS S3 bucket to store artifacts for deploying.
 
 That bucket is automatically created and managed by Serverless, but you can configure it explicitly if needed:
 

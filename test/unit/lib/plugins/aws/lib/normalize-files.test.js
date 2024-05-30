@@ -1,7 +1,7 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const normalizeFiles = require('../../../../../../lib/plugins/aws/lib/normalize-files');
+const expect = require('chai').expect
+const normalizeFiles = require('../../../../../../lib/plugins/aws/lib/normalize-files')
 
 describe('normalizeFiles', () => {
   describe('#normalizeCloudFormationTemplate()', () => {
@@ -17,9 +17,9 @@ describe('normalizeFiles', () => {
             },
           },
         },
-      };
+      }
 
-      const result = normalizeFiles.normalizeCloudFormationTemplate(input);
+      const result = normalizeFiles.normalizeCloudFormationTemplate(input)
 
       expect(result).to.deep.equal({
         Resources: {
@@ -32,8 +32,8 @@ describe('normalizeFiles', () => {
             },
           },
         },
-      });
-    });
+      })
+    })
 
     it('should reset the S3 content keys for Lambda layer versions', () => {
       const input = {
@@ -47,9 +47,9 @@ describe('normalizeFiles', () => {
             },
           },
         },
-      };
+      }
 
-      const result = normalizeFiles.normalizeCloudFormationTemplate(input);
+      const result = normalizeFiles.normalizeCloudFormationTemplate(input)
 
       expect(result).to.deep.equal({
         Resources: {
@@ -62,8 +62,8 @@ describe('normalizeFiles', () => {
             },
           },
         },
-      });
-    });
+      })
+    })
 
     it('should remove the API Gateway Deployment random id', () => {
       const input = {
@@ -76,9 +76,9 @@ describe('normalizeFiles', () => {
             },
           },
         },
-      };
+      }
 
-      const result = normalizeFiles.normalizeCloudFormationTemplate(input);
+      const result = normalizeFiles.normalizeCloudFormationTemplate(input)
 
       expect(result).to.deep.equal({
         Resources: {
@@ -90,8 +90,8 @@ describe('normalizeFiles', () => {
             },
           },
         },
-      });
-    });
+      })
+    })
 
     it('should remove the Websocket deployment random id', () => {
       const input = {
@@ -105,9 +105,9 @@ describe('normalizeFiles', () => {
             },
           },
         },
-      };
+      }
 
-      const result = normalizeFiles.normalizeCloudFormationTemplate(input);
+      const result = normalizeFiles.normalizeCloudFormationTemplate(input)
 
       expect(result).to.deep.equal({
         Resources: {
@@ -120,8 +120,8 @@ describe('normalizeFiles', () => {
             },
           },
         },
-      });
-    });
+      })
+    })
 
     it('should remove the random id from Websocket deployment stage', () => {
       const input = {
@@ -139,9 +139,9 @@ describe('normalizeFiles', () => {
             },
           },
         },
-      };
+      }
 
-      const result = normalizeFiles.normalizeCloudFormationTemplate(input);
+      const result = normalizeFiles.normalizeCloudFormationTemplate(input)
 
       expect(result).to.deep.equal({
         Resources: {
@@ -154,8 +154,8 @@ describe('normalizeFiles', () => {
             },
           },
         },
-      });
-    });
+      })
+    })
 
     it('should keep other resources untouched', () => {
       const input = {
@@ -164,9 +164,9 @@ describe('normalizeFiles', () => {
             Type: 'AWS::XXX::XXX',
           },
         },
-      };
+      }
 
-      const result = normalizeFiles.normalizeCloudFormationTemplate(input);
+      const result = normalizeFiles.normalizeCloudFormationTemplate(input)
 
       expect(result).to.deep.equal({
         Resources: {
@@ -174,8 +174,8 @@ describe('normalizeFiles', () => {
             Type: 'AWS::XXX::XXX',
           },
         },
-      });
-    });
+      })
+    })
 
     it('should sort resources and outputs alphabetically', () => {
       const input = {
@@ -195,9 +195,9 @@ describe('normalizeFiles', () => {
             Value: 'AnotherValue',
           },
         },
-      };
+      }
 
-      const result = normalizeFiles.normalizeCloudFormationTemplate(input);
+      const result = normalizeFiles.normalizeCloudFormationTemplate(input)
 
       expect(result).to.deep.equal({
         Resources: {
@@ -216,7 +216,7 @@ describe('normalizeFiles', () => {
             Value: 'AnotherValue',
           },
         },
-      });
-    });
-  });
-});
+      })
+    })
+  })
+})

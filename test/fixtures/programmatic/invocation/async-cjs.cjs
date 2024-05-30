@@ -1,7 +1,7 @@
-'use strict';
+'use strict'
 
 module.exports.handler = async (event, context) => {
-  if (event && event.shouldFail) throw new Error('Failed on request');
+  if (event && event.shouldFail) throw new Error('Failed on request')
   return {
     statusCode: 200,
     body: JSON.stringify({
@@ -10,5 +10,5 @@ module.exports.handler = async (event, context) => {
       clientContext: context.clientContext,
       env: process.env,
     }),
-  };
-};
+  }
+}

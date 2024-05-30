@@ -28,7 +28,7 @@ Creating a custom plugin lets you:
 The simplest way to create a Serverless Framework plugin is to write a JavaScript file:
 
 ```javascript
-'use strict';
+'use strict'
 
 class MyPlugin {
   constructor() {
@@ -36,7 +36,7 @@ class MyPlugin {
   }
 }
 
-module.exports = MyPlugin;
+module.exports = MyPlugin
 ```
 
 The plugin can then be loaded in `serverless.yml` via a local path:
@@ -58,12 +58,12 @@ If your plugin builds code that other plugins might depend on, you can tag your 
 
 ```javascript
 class MyPlugin {
-  static tags = ['build'];
+  static tags = ['build']
 
   constructor() {}
 }
 
-module.exports = MyPlugin;
+module.exports = MyPlugin
 ```
 
 If your plugin doesn't build code, and/or doesn't need to be prioritized, don't set this tag. Otherwise users won't be able to use other build plugins along with your plugin.
@@ -113,15 +113,15 @@ The `initialize` event is shared across all CLI commands and runs when the CLI s
 Plugins can "hook" into existing lifecycle events to add behavior to commands like `deploy`, `package`, etc. via the `hooks` helper:
 
 ```javascript
-'use strict';
+'use strict'
 
 class MyPlugin {
   constructor() {
     this.hooks = {
-      'initialize': () => this.init(),
+      initialize: () => this.init(),
       'before:deploy:deploy': () => this.beforeDeploy(),
       'after:deploy:deploy': () => this.afterDeploy(),
-    };
+    }
   }
 
   init() {
@@ -137,7 +137,7 @@ class MyPlugin {
   }
 }
 
-module.exports = MyPlugin;
+module.exports = MyPlugin
 ```
 
 Plugins can also create their own commands (with their own lifecycle events): read the [Custom commands documentation](custom-commands.md).
@@ -147,27 +147,27 @@ Plugins can also create their own commands (with their own lifecycle events): re
 The `serverless` parameter provides access to the service configuration at runtime:
 
 ```javascript
-'use strict';
+'use strict'
 
 class MyPlugin {
   constructor(serverless) {
-    this.serverless = serverless;
+    this.serverless = serverless
     this.hooks = {
       initialize: () => this.init(),
-    };
+    }
   }
 
   init() {
-    console.log('Serverless instance: ', this.serverless);
+    console.log('Serverless instance: ', this.serverless)
 
     // `serverless.service` contains the (resolved) serverless.yml config
-    const service = this.serverless.service;
-    console.log('Provider name: ', service.provider.name);
-    console.log('Functions: ', service.functions);
+    const service = this.serverless.service
+    console.log('Provider name: ', service.provider.name)
+    console.log('Functions: ', service.functions)
   }
 }
 
-module.exports = MyPlugin;
+module.exports = MyPlugin
 ```
 
 **Note:** configuration values are only resolved _after_ plugins are initialized. Do not try to read configuration in the plugin constructor, as variables aren't resolved yet. Read configuration in lifecycle events only.
@@ -180,7 +180,7 @@ The `options` parameter provides access to the CLI options provided to the comma
 class MyPlugin {
   constructor(serverless, options) {
     // Log if a --verbose option was passed:
-    console.log(options.verbose);
+    console.log(options.verbose)
   }
 }
 ```
@@ -197,7 +197,7 @@ To bind to a specific provider, retrieve it and set the `this.provider` property
 class MyPlugin {
   constructor(serverless, options) {
     // bind to a specific provider
-    this.provider = serverless.getProvider('providerX');
+    this.provider = serverless.getProvider('providerX')
 
     // ...
   }

@@ -1,3 +1,7 @@
-'use strict';
+'use strict'
 
-module.exports = { service: 'foo', provider: { name: 'foo' }, custom: { component: 'foo' } };
+module.exports = {
+  service: 'foo',
+  provider: { name: 'foo' },
+  custom: { component: 'foo' },
+}

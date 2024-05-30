@@ -1,8 +1,8 @@
 module.exports = {
-  "name": "serverless-compose-example",
-  "services": {
-    "resources": {
-      "path": "resources"
-    }
-  }
-};
+  name: 'serverless-compose-example',
+  services: {
+    resources: {
+      path: 'resources',
+    },
+  },
+}

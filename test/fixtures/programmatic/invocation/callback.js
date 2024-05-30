@@ -1,9 +1,9 @@
-'use strict';
+'use strict'
 
 module.exports.handler = (event, context, callback) => {
   if (event && event.shouldFail) {
-    callback(new Error('Failed on request'));
-    return;
+    callback(new Error('Failed on request'))
+    return
   }
   callback(null, {
     statusCode: 200,
@@ -13,5 +13,5 @@ module.exports.handler = (event, context, callback) => {
       clientContext: context.clientContext,
       env: process.env,
     }),
-  });
-};
+  })
+}

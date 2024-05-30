@@ -1,38 +1,38 @@
-'use strict';
+'use strict'
 
-const chai = require('chai');
-chai.use(require('chai-as-promised'));
-const expect = require('chai').expect;
-const sinon = require('sinon');
-const AwsInfo = require('../../../../../../lib/plugins/aws/info/index');
-const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
-const Serverless = require('../../../../../../lib/serverless');
+const chai = require('chai')
+chai.use(require('chai-as-promised'))
+const expect = require('chai').expect
+const sinon = require('sinon')
+const AwsInfo = require('../../../../../../lib/plugins/aws/info/index')
+const AwsProvider = require('../../../../../../lib/plugins/aws/provider')
+const Serverless = require('../../../../../../lib/serverless')
 
 describe('#getResourceCount()', () => {
-  let serverless;
-  let awsInfo;
-  let listStackResourcesStub;
+  let serverless
+  let awsInfo
+  let listStackResourcesStub
 
   beforeEach(() => {
     const options = {
       stage: 'dev',
       region: 'us-east-1',
-    };
-    serverless = new Serverless({ commands: [], options: {} });
-    serverless.setProvider('aws', new AwsProvider(serverless, options));
-    serverless.service.service = 'my-service';
+    }
+    serverless = new Serverless({ commands: [], options: {} })
+    serverless.setProvider('aws', new AwsProvider(serverless, options))
+    serverless.service.service = 'my-service'
     serverless.service.functions = {
       hello: {},
       world: {},
-    };
-    awsInfo = new AwsInfo(serverless, options);
+    }
+    awsInfo = new AwsInfo(serverless, options)
 
-    listStackResourcesStub = sinon.stub(awsInfo.provider, 'request');
-  });
+    listStackResourcesStub = sinon.stub(awsInfo.provider, 'request')
+  })
 
   afterEach(() => {
-    awsInfo.provider.request.restore();
-  });
+    awsInfo.provider.request.restore()
+  })
 
   it('attach resourceCount to this.gatheredData after listStackResources call', async () => {
     const listStackResourcesResponse = {
@@ -75,13 +75,15 @@ describe('#getResourceCount()', () => {
         },
         {
           LogicalResourceId: 'HelloLambdaPermissionApiGateway',
-          PhysicalResourceId: 'hello-world-2-dev-HelloLambdaPermissionApiGateway-18KKZXJG1DPF5',
+          PhysicalResourceId:
+            'hello-world-2-dev-HelloLambdaPermissionApiGateway-18KKZXJG1DPF5',
           ResourceType: 'AWS::Lambda::Permission',
           LastUpdatedTimestamp: '2018-03-12T00:22:46.950Z',
           ResourceStatus: 'CREATE_COMPLETE',
         },
         {
-          LogicalResourceId: 'HelloLambdaVersiongZDaMtQjEhvXacHdpTLnQ61zDCdI2IWVYCbuE50pj8',
+          LogicalResourceId:
+            'HelloLambdaVersiongZDaMtQjEhvXacHdpTLnQ61zDCdI2IWVYCbuE50pj8',
           PhysicalResourceId:
             'arn:aws:lambda:us-east-1:111111111:function:hello-world-2-dev-hello:2',
           ResourceType: 'AWS::Lambda::Version',
@@ -104,15 +106,16 @@ describe('#getResourceCount()', () => {
         },
         {
           LogicalResourceId: 'ServerlessDeploymentBucket',
-          PhysicalResourceId: 'hello-world-2-dev-serverlessdeploymentbucket-1e3l68m8zaz7i',
+          PhysicalResourceId:
+            'hello-world-2-dev-serverlessdeploymentbucket-1e3l68m8zaz7i',
           ResourceType: 'AWS::S3::Bucket',
           LastUpdatedTimestamp: '2018-03-12T00:22:11.380Z',
           ResourceStatus: 'CREATE_COMPLETE',
         },
       ],
-    };
+    }
 
-    listStackResourcesStub.resolves(listStackResourcesResponse);
+    listStackResourcesStub.resolves(listStackResourcesResponse)
 
     awsInfo.gatheredData = {
       info: {
@@ -124,18 +127,22 @@ describe('#getResourceCount()', () => {
         stack: '',
       },
       outputs: [],
-    };
+    }
 
     return expect(awsInfo.getResourceCount()).to.be.fulfilled.then(() => {
-      expect(listStackResourcesStub.calledOnce).to.equal(true);
+      expect(listStackResourcesStub.calledOnce).to.equal(true)
       expect(
-        listStackResourcesStub.calledWithExactly('CloudFormation', 'listStackResources', {
-          StackName: awsInfo.provider.naming.getStackName(),
-          NextToken: undefined,
-        })
-      ).to.equal(true);
+        listStackResourcesStub.calledWithExactly(
+          'CloudFormation',
+          'listStackResources',
+          {
+            StackName: awsInfo.provider.naming.getStackName(),
+            NextToken: undefined,
+          },
+        ),
+      ).to.equal(true)
 
-      expect(awsInfo.gatheredData.info.resourceCount).to.equal(10);
-    });
-  });
-});
+      expect(awsInfo.gatheredData.info.resourceCount).to.equal(10)
+    })
+  })
+})

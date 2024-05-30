@@ -54,9 +54,9 @@ Here's a list of everything that's new in V.4, so far:
 
 We're seeking to avoid breaking changes for the "aws" Provider. However, there are a few large things that are changing to be aware of:
 
-* The V.4 License is changing. See the section below for more information on this.
-* Authentication is required within the CLI.
-* Non-AWS Providers have been deprecated. We will be introducing new ways in V.4 to use other cloud infrastructure vendors.
+- The V.4 License is changing. See the section below for more information on this.
+- Authentication is required within the CLI.
+- Non-AWS Providers have been deprecated. We will be introducing new ways in V.4 to use other cloud infrastructure vendors.
 
 If you stumble upon additional breaking changes, please create an issue. To learn more about what's different and potential breaking changes, please see our [Upgrading to Serverless Framework V4 Documentation](https://www.serverless.com/framework/docs/guides/upgrading-v4).
 
@@ -162,7 +162,7 @@ Welcome to Serverless Framework V.4
 
 Create a new project by selecting a Template to generate scaffolding for a specific use-case.
 
-? Select A Template: … 
+? Select A Template: …
 ❯ AWS / Node.js / Starter
   AWS / Node.js / HTTP API
   AWS / Node.js / Scheduled Task
@@ -181,7 +181,7 @@ Create a new project by selecting a Template to generate scaffolding for a speci
 After selecting a Service Template, its files will be downloaded and you will have the opportunity to give your Service a name.
 
 ```text
-? Name Your Service: ›  
+? Name Your Service: ›
 ```
 
 Please use only lowercase letters, numbers and hyphens. Also, keep Service names short, since they are added into the name of each cloud resource the Serverless Framework creates, and some cloud resources have character length restrictions in their names.
@@ -275,19 +275,19 @@ More details on deploying can be found [here](https://www.serverless.com/framewo
 
 Many Serverless Framework and serverless developers generally choose to develop on the cloud, since it matches reality (i.e. your production environment), and emulating Lambda and other infrastructure dependencies locally can be complex.
 
-In Serverless Framework V.4, we've created a *hybrid approach to development*, to help developers develop rapidly with the accuracy of the real cloud environment. This is the new `dev` command:
+In Serverless Framework V.4, we've created a _hybrid approach to development_, to help developers develop rapidly with the accuracy of the real cloud environment. This is the new `dev` command:
 
 ```text
 serverless dev
 ```
 
-When you run this command, the following happens... 
+When you run this command, the following happens...
 
 An AWS Cloudformation deployment will happen to slightly modify all of the AWS Lambda functions within your Service so that they include a lightweight wrapper.
 
 Once this AWS Cloudformation deployment has completed, your live AWS Lambda functions within your Service will still be able to receive events and be invoked within AWS.
 
-However, the events will be securely and instantly proxied down to your machine, and the code on your machine which will be run, rather than the code within your live AWS Lambda functions. 
+However, the events will be securely and instantly proxied down to your machine, and the code on your machine which will be run, rather than the code within your live AWS Lambda functions.
 
 This allows you to make changes to your code, without having to deploy or recreate every aspect of your architecture locally, allowing you to develop rapidly.
 
@@ -346,7 +346,7 @@ Target a specific function via the `-f` option and enable tailing (i.e. streamin
 
 ## Full Local Development
 
-Many Serverless Framework users choose to emulate their entire serverless architecture locally. Please note, emulating AWS Lambda and other cloud services is never accurate and the process can be complex, especially as your project and teammates grow. As of V.4, we highly recommend using the new `dev` mode with personal stages. 
+Many Serverless Framework users choose to emulate their entire serverless architecture locally. Please note, emulating AWS Lambda and other cloud services is never accurate and the process can be complex, especially as your project and teammates grow. As of V.4, we highly recommend using the new `dev` mode with personal stages.
 
 If you do choose to develop locally, we recommend the following workflow...
 

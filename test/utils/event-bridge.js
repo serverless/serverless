@@ -1,26 +1,26 @@
-'use strict';
+'use strict'
 
-const awsRequest = require('@serverless/test/aws-request');
-const EventBridgeService = require('aws-sdk').EventBridge;
+const awsRequest = require('@serverless/test/aws-request')
+const EventBridgeService = require('aws-sdk').EventBridge
 
 async function createEventBus(name) {
-  return awsRequest(EventBridgeService, 'createEventBus', { Name: name });
+  return awsRequest(EventBridgeService, 'createEventBus', { Name: name })
 }
 
 async function deleteEventBus(name) {
-  return awsRequest(EventBridgeService, 'deleteEventBus', { Name: name });
+  return awsRequest(EventBridgeService, 'deleteEventBus', { Name: name })
 }
 
 async function describeEventBus(name) {
-  return awsRequest(EventBridgeService, 'describeEventBus', { Name: name });
+  return awsRequest(EventBridgeService, 'describeEventBus', { Name: name })
 }
 
 async function putEvents(EventBusName, Entries) {
-  Entries.map((entry) => (entry.EventBusName = EventBusName));
+  Entries.map((entry) => (entry.EventBusName = EventBusName))
   const params = {
     Entries,
-  };
-  return awsRequest(EventBridgeService, 'putEvents', params);
+  }
+  return awsRequest(EventBridgeService, 'putEvents', params)
 }
 
 module.exports = {
@@ -28,4 +28,4 @@ module.exports = {
   deleteEventBus,
   describeEventBus,
   putEvents,
-};
+}

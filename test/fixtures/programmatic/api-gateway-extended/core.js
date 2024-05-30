@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 async function minimal(event) {
   return {
@@ -7,7 +7,7 @@ async function minimal(event) {
       message: 'Hello from API Gateway! - (minimal)',
       event,
     }),
-  };
+  }
 }
 
 async function cors(event) {
@@ -20,7 +20,7 @@ async function cors(event) {
       message: 'Hello from API Gateway! - (cors)',
       event,
     }),
-  };
+  }
 }
 
 async function customAuthorizers(event) {
@@ -30,7 +30,7 @@ async function customAuthorizers(event) {
       message: 'Hello from API Gateway! - (customAuthorizers)',
       event,
     }),
-  };
+  }
 }
 
 async function apiKeys(event) {
@@ -40,7 +40,7 @@ async function apiKeys(event) {
       message: 'Hello from API Gateway! - (apiKeys)',
       event,
     }),
-  };
+  }
 }
 
 async function timeout(event) {
@@ -54,9 +54,9 @@ async function timeout(event) {
             event,
           }),
         }),
-      2000
-    )
-  );
+      2000,
+    ),
+  )
 }
 
 module.exports = {
@@ -65,4 +65,4 @@ module.exports = {
   customAuthorizers,
   apiKeys,
   timeout,
-};
+}

@@ -1,32 +1,32 @@
-'use strict';
+'use strict'
 
-const chai = require('chai');
-const runServerless = require('../../../../../../../utils/run-serverless');
+const chai = require('chai')
+const runServerless = require('../../../../../../../utils/run-serverless')
 
-chai.use(require('chai-as-promised'));
+chai.use(require('chai-as-promised'))
 
-const { expect } = chai;
+const { expect } = chai
 
 describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () => {
   const saslScram256AuthArn =
-    'arn:aws:secretsmanager:us-east-1:01234567890:secret:SaslScram256Auth';
+    'arn:aws:secretsmanager:us-east-1:01234567890:secret:SaslScram256Auth'
   const clientCertificateTlsAuthArn =
-    'arn:aws:secretsmanager:us-east-1:01234567890:secret:clientCertificateTlsAuth';
+    'arn:aws:secretsmanager:us-east-1:01234567890:secret:clientCertificateTlsAuth'
   const serverRootCaCertificateArn =
-    'arn:aws:secretsmanager:us-east-1:01234567890:secret:ServerRootCaCertificate';
+    'arn:aws:secretsmanager:us-east-1:01234567890:secret:ServerRootCaCertificate'
 
-  const topic = 'TestingTopic';
-  const enabled = false;
-  const startingPosition = 'LATEST';
-  const batchSize = 5000;
-  const maximumBatchingWindow = 20;
-  const filterPatterns = [{ eventName: 'INSERT' }];
+  const topic = 'TestingTopic'
+  const enabled = false
+  const startingPosition = 'LATEST'
+  const batchSize = 5000
+  const maximumBatchingWindow = 20
+  const filterPatterns = [{ eventName: 'INSERT' }]
 
   describe('when there are kafka events defined', () => {
-    let minimalEventSourceMappingResource;
-    let allParamsEventSourceMappingResource;
-    let defaultIamRole;
-    let naming;
+    let minimalEventSourceMappingResource
+    let allParamsEventSourceMappingResource
+    let defaultIamRole
+    let naming
 
     before(async () => {
       const { awsNaming, cfTemplate } = await runServerless({
@@ -39,7 +39,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
                   kafka: {
                     topic,
                     bootstrapServers: ['abc.xyz:9092'],
-                    accessConfigurations: { saslScram256Auth: saslScram256AuthArn },
+                    accessConfigurations: {
+                      saslScram256Auth: saslScram256AuthArn,
+                    },
                   },
                 },
               ],
@@ -50,7 +52,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
                   kafka: {
                     topic,
                     bootstrapServers: ['abc.xyz:9092'],
-                    accessConfigurations: { saslScram256Auth: saslScram256AuthArn },
+                    accessConfigurations: {
+                      saslScram256Auth: saslScram256AuthArn,
+                    },
                     batchSize,
                     maximumBatchingWindow,
                     enabled,
@@ -63,14 +67,18 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
           },
         },
         command: 'package',
-      });
-      naming = awsNaming;
+      })
+      naming = awsNaming
       minimalEventSourceMappingResource =
-        cfTemplate.Resources[naming.getKafkaEventLogicalId('basic', 'TestingTopic')];
+        cfTemplate.Resources[
+          naming.getKafkaEventLogicalId('basic', 'TestingTopic')
+        ]
       allParamsEventSourceMappingResource =
-        cfTemplate.Resources[naming.getKafkaEventLogicalId('other', 'TestingTopic')];
-      defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution;
-    });
+        cfTemplate.Resources[
+          naming.getKafkaEventLogicalId('other', 'TestingTopic')
+        ]
+      defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution
+    })
 
     it('should correctly compile EventSourceMapping resource properties with minimal configuration', () => {
       expect(minimalEventSourceMappingResource.Properties).to.deep.equal({
@@ -90,21 +98,27 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
         FunctionName: {
           'Fn::GetAtt': [naming.getLambdaLogicalId('basic'), 'Arn'],
         },
-      });
-    });
+      })
+    })
 
     it('should update default IAM role with SecretsManager statement', () => {
-      expect(defaultIamRole.Properties.Policies[0].PolicyDocument.Statement).to.deep.include({
+      expect(
+        defaultIamRole.Properties.Policies[0].PolicyDocument.Statement,
+      ).to.deep.include({
         Effect: 'Allow',
         Action: ['secretsmanager:GetSecretValue'],
         Resource: [saslScram256AuthArn],
-      });
-    });
+      })
+    })
 
     it('should correctly compile EventSourceMapping resource DependsOn ', () => {
-      expect(minimalEventSourceMappingResource.DependsOn).to.contain('IamRoleLambdaExecution');
-      expect(allParamsEventSourceMappingResource.DependsOn).to.contain('IamRoleLambdaExecution');
-    });
+      expect(minimalEventSourceMappingResource.DependsOn).to.contain(
+        'IamRoleLambdaExecution',
+      )
+      expect(allParamsEventSourceMappingResource.DependsOn).to.contain(
+        'IamRoleLambdaExecution',
+      )
+    })
 
     it('should correctly compile EventSourceMapping resource with all parameters', () => {
       expect(allParamsEventSourceMappingResource.Properties).to.deep.equal({
@@ -136,9 +150,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
             },
           ],
         },
-      });
-    });
-  });
+      })
+    })
+  })
 
   describe('configuring kafka events', () => {
     const runCompileEventSourceMappingTest = async (eventConfig) => {
@@ -156,17 +170,21 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
           },
         },
         command: 'package',
-      });
+      })
 
       const eventSourceMappingResource =
-        cfTemplate.Resources[awsNaming.getKafkaEventLogicalId('basic', 'TestingTopic')];
-      expect(eventSourceMappingResource.Properties).to.deep.equal(eventConfig.resource(awsNaming));
-    };
+        cfTemplate.Resources[
+          awsNaming.getKafkaEventLogicalId('basic', 'TestingTopic')
+        ]
+      expect(eventSourceMappingResource.Properties).to.deep.equal(
+        eventConfig.resource(awsNaming),
+      )
+    }
 
     describe('accessConfigurations', () => {
       it('should correctly compile EventSourceMapping resource properties for VPC_SECURITY_GROUP and VPC_SUBNET', async () => {
-        const vpcSecurityGroup = 'sg-abc4567890';
-        const vpcSubnet = 'subnet-abc4567890';
+        const vpcSecurityGroup = 'sg-abc4567890'
+        const vpcSubnet = 'subnet-abc4567890'
 
         const eventConfig = {
           event: {
@@ -196,14 +214,14 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
               FunctionName: {
                 'Fn::GetAtt': [awsNaming.getLambdaLogicalId('basic'), 'Arn'],
               },
-            };
+            }
           },
-        };
-        await runCompileEventSourceMappingTest(eventConfig);
-      });
+        }
+        await runCompileEventSourceMappingTest(eventConfig)
+      })
 
       it('should correctly compile EventSourceMapping resource properties for multiple VPC_SUBNETS', async () => {
-        const vpcSecurityGroup = 'sg-abc4567890';
+        const vpcSecurityGroup = 'sg-abc4567890'
 
         const eventConfig = {
           event: {
@@ -240,11 +258,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
               FunctionName: {
                 'Fn::GetAtt': [awsNaming.getLambdaLogicalId('basic'), 'Arn'],
               },
-            };
+            }
           },
-        };
-        await runCompileEventSourceMappingTest(eventConfig);
-      });
+        }
+        await runCompileEventSourceMappingTest(eventConfig)
+      })
 
       it('should fail to compile EventSourceMapping resource properties for VPC_SUBNET with no VPC_SECURITY GROUP', async () => {
         await expect(
@@ -258,7 +276,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
                       kafka: {
                         topic,
                         bootstrapServers: ['abc.xyz:9092'],
-                        accessConfigurations: { vpcSubnet: 'subnet-abc4567890' },
+                        accessConfigurations: {
+                          vpcSubnet: 'subnet-abc4567890',
+                        },
                       },
                     },
                   ],
@@ -266,11 +286,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
               },
             },
             command: 'package',
-          })
+          }),
         ).to.be.rejected.and.eventually.contain({
           code: 'FUNCTION_KAFKA_VPC_ACCESS_CONFIGURATION_INVALID',
-        });
-      });
+        })
+      })
 
       it('should fail to compile EventSourceMapping resource properties for VPC_SECURITY GROUP with no VPC_SUBNET', async () => {
         await expect(
@@ -284,7 +304,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
                       kafka: {
                         topic,
                         bootstrapServers: ['abc.xyz:9092'],
-                        accessConfigurations: { vpcSecurityGroup: 'sg-abc4567890' },
+                        accessConfigurations: {
+                          vpcSecurityGroup: 'sg-abc4567890',
+                        },
                       },
                     },
                   ],
@@ -292,11 +314,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
               },
             },
             command: 'package',
-          })
+          }),
         ).to.be.rejected.and.eventually.contain({
           code: 'FUNCTION_KAFKA_VPC_ACCESS_CONFIGURATION_INVALID',
-        });
-      });
+        })
+      })
 
       it('should correctly compile EventSourceMapping resource properties for SASL_PLAIN_AUTH', async () => {
         const eventConfig = {
@@ -326,11 +348,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
               FunctionName: {
                 'Fn::GetAtt': [awsNaming.getLambdaLogicalId('basic'), 'Arn'],
               },
-            };
+            }
           },
-        };
-        await runCompileEventSourceMappingTest(eventConfig);
-      });
+        }
+        await runCompileEventSourceMappingTest(eventConfig)
+      })
 
       it('should correctly compile EventSourceMapping resource properties for SASL_SCRAM_256_AUTH', async () => {
         const eventConfig = {
@@ -357,11 +379,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
               FunctionName: {
                 'Fn::GetAtt': [awsNaming.getLambdaLogicalId('basic'), 'Arn'],
               },
-            };
+            }
           },
-        };
-        await runCompileEventSourceMappingTest(eventConfig);
-      });
+        }
+        await runCompileEventSourceMappingTest(eventConfig)
+      })
 
       it('should correctly compile EventSourceMapping resource properties for SASL_SCRAM_512_AUTH', async () => {
         const eventConfig = {
@@ -391,11 +413,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
               FunctionName: {
                 'Fn::GetAtt': [awsNaming.getLambdaLogicalId('basic'), 'Arn'],
               },
-            };
+            }
           },
-        };
-        await runCompileEventSourceMappingTest(eventConfig);
-      });
+        }
+        await runCompileEventSourceMappingTest(eventConfig)
+      })
 
       it('should correctly compile EventSourceMapping resource properties for CLIENT_CERTIFICATE_TLS_AUTH', async () => {
         const eventConfig = {
@@ -424,11 +446,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
               FunctionName: {
                 'Fn::GetAtt': [awsNaming.getLambdaLogicalId('basic'), 'Arn'],
               },
-            };
+            }
           },
-        };
-        await runCompileEventSourceMappingTest(eventConfig);
-      });
+        }
+        await runCompileEventSourceMappingTest(eventConfig)
+      })
 
       it('should correctly compile EventSourceMapping resource properties for SERVER_ROOT_CA_CERTIFICATE', async () => {
         const eventConfig = {
@@ -462,11 +484,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
               FunctionName: {
                 'Fn::GetAtt': [awsNaming.getLambdaLogicalId('basic'), 'Arn'],
               },
-            };
+            }
           },
-        };
-        await runCompileEventSourceMappingTest(eventConfig);
-      });
+        }
+        await runCompileEventSourceMappingTest(eventConfig)
+      })
 
       it('should correctly compile EventSourceMapping resource properties for ConsumerGroupId', async () => {
         const eventConfig = {
@@ -499,11 +521,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
               SelfManagedKafkaEventSourceConfig: {
                 ConsumerGroupId: 'my-consumer-group-id',
               },
-            };
+            }
           },
-        };
-        await runCompileEventSourceMappingTest(eventConfig);
-      });
+        }
+        await runCompileEventSourceMappingTest(eventConfig)
+      })
 
       it('should update default IAM role with EC2 statement when VPC accessConfiguration is provided', async () => {
         const { cfTemplate } = await runServerless({
@@ -527,9 +549,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
             },
           },
           command: 'package',
-        });
-        const defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution;
-        expect(defaultIamRole.Properties.Policies[0].PolicyDocument.Statement).to.deep.include({
+        })
+        const defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution
+        expect(
+          defaultIamRole.Properties.Policies[0].PolicyDocument.Statement,
+        ).to.deep.include({
           Effect: 'Allow',
           Action: [
             'ec2:CreateNetworkInterface',
@@ -540,9 +564,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
             'ec2:DescribeSecurityGroups',
           ],
           Resource: '*',
-        });
-      });
-    });
+        })
+      })
+    })
 
     describe('startingPositionTimestamp', () => {
       it('should fail to compile EventSourceMapping resource properties for startingPosition AT_TIMESTAMP with no startingPositionTimestamp', async () => {
@@ -558,7 +582,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
                       kafka: {
                         topic,
                         bootstrapServers: ['abc.xyz:9092'],
-                        accessConfigurations: { saslScram256Auth: saslScram256AuthArn },
+                        accessConfigurations: {
+                          saslScram256Auth: saslScram256AuthArn,
+                        },
                         startingPosition: 'AT_TIMESTAMP',
                       },
                     },
@@ -567,11 +593,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
               },
             },
             command: 'package',
-          })
+          }),
         ).to.be.rejected.and.eventually.contain({
           code: 'FUNCTION_KAFKA_STARTING_POSITION_TIMESTAMP_INVALID',
-        });
-      });
+        })
+      })
 
       it('should correctly compile EventSourceMapping resource properties for startingPosition', async () => {
         const { awsNaming, cfTemplate } = await runServerless({
@@ -585,7 +611,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
                     kafka: {
                       topic,
                       bootstrapServers: ['abc.xyz:9092'],
-                      accessConfigurations: { saslScram256Auth: saslScram256AuthArn },
+                      accessConfigurations: {
+                        saslScram256Auth: saslScram256AuthArn,
+                      },
                       startingPosition: 'AT_TIMESTAMP',
                       startingPositionTimestamp: 123,
                     },
@@ -595,13 +623,17 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
             },
           },
           command: 'package',
-        });
+        })
 
         const eventSourceMappingResource =
-          cfTemplate.Resources[awsNaming.getKafkaEventLogicalId('basic', 'TestingTopic')];
-        expect(eventSourceMappingResource.Properties.StartingPositionTimestamp).to.deep.equal(123);
-      });
-    });
+          cfTemplate.Resources[
+            awsNaming.getKafkaEventLogicalId('basic', 'TestingTopic')
+          ]
+        expect(
+          eventSourceMappingResource.Properties.StartingPositionTimestamp,
+        ).to.deep.equal(123)
+      })
+    })
 
     it('should not add dependsOn for imported role', async () => {
       const { awsNaming, cfTemplate } = await runServerless({
@@ -615,7 +647,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
                   kafka: {
                     topic,
                     bootstrapServers: ['abc.xyz:9092'],
-                    accessConfigurations: { saslScram256Auth: saslScram256AuthArn },
+                    accessConfigurations: {
+                      saslScram256Auth: saslScram256AuthArn,
+                    },
                   },
                 },
               ],
@@ -623,12 +657,14 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
           },
         },
         command: 'package',
-      });
+      })
 
       const eventSourceMappingResource =
-        cfTemplate.Resources[awsNaming.getKafkaEventLogicalId('basic', 'TestingTopic')];
-      expect(eventSourceMappingResource.DependsOn).to.deep.equal([]);
-    });
+        cfTemplate.Resources[
+          awsNaming.getKafkaEventLogicalId('basic', 'TestingTopic')
+        ]
+      expect(eventSourceMappingResource.DependsOn).to.deep.equal([])
+    })
 
     it('should correctly compile EventSourceMapping resource properties for filterPatterns', async () => {
       const { awsNaming, cfTemplate } = await runServerless({
@@ -642,7 +678,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
                   kafka: {
                     topic,
                     bootstrapServers: ['abc.xyz:9092'],
-                    accessConfigurations: { saslScram256Auth: saslScram256AuthArn },
+                    accessConfigurations: {
+                      saslScram256Auth: saslScram256AuthArn,
+                    },
                     filterPatterns: [{ value: { a: [1, 2] } }, { value: [3] }],
                   },
                 },
@@ -651,12 +689,16 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
           },
         },
         command: 'package',
-      });
+      })
 
       const eventSourceMappingResource =
-        cfTemplate.Resources[awsNaming.getKafkaEventLogicalId('basic', 'TestingTopic')];
+        cfTemplate.Resources[
+          awsNaming.getKafkaEventLogicalId('basic', 'TestingTopic')
+        ]
 
-      expect(eventSourceMappingResource.Properties.FilterCriteria).to.deep.equal({
+      expect(
+        eventSourceMappingResource.Properties.FilterCriteria,
+      ).to.deep.equal({
         Filters: [
           {
             Pattern: JSON.stringify({
@@ -669,25 +711,29 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
             }),
           },
         ],
-      });
-    });
-  });
+      })
+    })
+  })
 
   describe('when no kafka events are defined', () => {
     it('should not modify the default IAM role', async () => {
       const { cfTemplate } = await runServerless({
         fixture: 'function',
         command: 'package',
-      });
+      })
 
-      const defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution;
-      expect(defaultIamRole.Properties.Policies[0].PolicyDocument.Statement).not.to.deep.include({
+      const defaultIamRole = cfTemplate.Resources.IamRoleLambdaExecution
+      expect(
+        defaultIamRole.Properties.Policies[0].PolicyDocument.Statement,
+      ).not.to.deep.include({
         Effect: 'Allow',
         Action: ['secretsmanager:GetSecretValue'],
         Resource: [saslScram256AuthArn],
-      });
+      })
 
-      expect(defaultIamRole.Properties.Policies[0].PolicyDocument.Statement).not.to.deep.include({
+      expect(
+        defaultIamRole.Properties.Policies[0].PolicyDocument.Statement,
+      ).not.to.deep.include({
         Effect: 'Allow',
         Action: [
           'ec2:CreateNetworkInterface',
@@ -698,7 +744,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/kafka.test.js', () =>
           'ec2:DescribeSecurityGroups',
         ],
         Resource: '*',
-      });
-    });
-  });
-});
+      })
+    })
+  })
+})

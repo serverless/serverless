@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 module.exports = {
   service: 'serverless-ts-service',
@@ -7,4 +7,4 @@ module.exports = {
   },
   configValidationMode: 'error',
   frameworkVersion: '*',
-};
+}

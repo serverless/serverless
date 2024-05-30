@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 class TestPluginWithComplexEventWithoutObjectDefinitionError {
   constructor(serverless) {
@@ -13,7 +13,7 @@ class TestPluginWithComplexEventWithoutObjectDefinitionError {
           anyOf: [{ type: 'string' }, { type: 'integer' }],
         },
       },
-    });
+    })
 
     serverless.configSchemaHandler.defineFunctionEventProperties(
       'someProvider',
@@ -22,9 +22,9 @@ class TestPluginWithComplexEventWithoutObjectDefinitionError {
         properties: {
           someProperty: { type: 'string' },
         },
-      }
-    );
+      },
+    )
   }
 }
 
-module.exports = TestPluginWithComplexEventWithoutObjectDefinitionError;
+module.exports = TestPluginWithComplexEventWithoutObjectDefinitionError

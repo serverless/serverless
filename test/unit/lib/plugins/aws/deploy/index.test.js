@@ -1,13 +1,13 @@
-'use strict';
+'use strict'
 
-const chai = require('chai');
-const sinon = require('sinon');
+const chai = require('chai')
+const sinon = require('sinon')
 
-const runServerless = require('../../../../../utils/run-serverless');
+const runServerless = require('../../../../../utils/run-serverless')
 
-chai.use(require('chai-as-promised'));
-chai.use(require('sinon-chai'));
-const expect = require('chai').expect;
+chai.use(require('chai-as-promised'))
+chai.use(require('sinon-chai'))
+const expect = require('chai').expect
 
 describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
   const baseAwsRequestStubMap = {
@@ -19,7 +19,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         Arn: 'arn:aws:iam::999999999999:user/test',
       },
     },
-  };
+  }
 
   describe('with direct create/update calls', () => {
     it('with nonexistent stack - first deploy', async () => {
@@ -28,11 +28,11 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         .onFirstCall()
         .throws('error', 'stack does not exist')
         .onSecondCall()
-        .resolves({ Stacks: [{}] });
-      const createStackStub = sinon.stub().resolves({});
-      const updateStackStub = sinon.stub().resolves({});
-      const s3UploadStub = sinon.stub().resolves();
-      const deleteObjectsStub = sinon.stub().resolves({});
+        .resolves({ Stacks: [{}] })
+      const createStackStub = sinon.stub().resolves({})
+      const updateStackStub = sinon.stub().resolves({})
+      const s3UploadStub = sinon.stub().resolves()
+      const deleteObjectsStub = sinon.stub().resolves({})
       const awsRequestStubMap = {
         ...baseAwsRequestStubMap,
         ECR: {
@@ -68,7 +68,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           validateTemplate: {},
           listStackResources: {},
         },
-      };
+      }
 
       await runServerless({
         fixture: 'function',
@@ -79,16 +79,16 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
             deploymentMethod: 'direct',
           },
         },
-      });
+      })
 
-      expect(createStackStub).to.be.calledOnce;
-      expect(updateStackStub).to.be.calledOnce;
-      const wasCloudFormationTemplateUploadInitiated = s3UploadStub.args.some((call) =>
-        call[0].Key.endsWith('compiled-cloudformation-template.json')
-      );
-      expect(wasCloudFormationTemplateUploadInitiated).to.be.true;
-      expect(deleteObjectsStub).not.to.be.called;
-    });
+      expect(createStackStub).to.be.calledOnce
+      expect(updateStackStub).to.be.calledOnce
+      const wasCloudFormationTemplateUploadInitiated = s3UploadStub.args.some(
+        (call) => call[0].Key.endsWith('compiled-cloudformation-template.json'),
+      )
+      expect(wasCloudFormationTemplateUploadInitiated).to.be.true
+      expect(deleteObjectsStub).not.to.be.called
+    })
 
     it('with nonexistent stack - first deploy with custom deployment bucket', async () => {
       const describeStacksStub = sinon
@@ -96,11 +96,11 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         .onFirstCall()
         .throws('error', 'stack does not exist')
         .onSecondCall()
-        .resolves({ Stacks: [{}] });
-      const createStackStub = sinon.stub().resolves({});
-      const updateStackStub = sinon.stub().resolves({});
-      const s3UploadStub = sinon.stub().resolves();
-      const deleteObjectsStub = sinon.stub().resolves({});
+        .resolves({ Stacks: [{}] })
+      const createStackStub = sinon.stub().resolves({})
+      const updateStackStub = sinon.stub().resolves({})
+      const s3UploadStub = sinon.stub().resolves()
+      const deleteObjectsStub = sinon.stub().resolves({})
       const awsRequestStubMap = {
         ...baseAwsRequestStubMap,
         ECR: {
@@ -116,7 +116,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           getBucketLocation: () => {
             return {
               LocationConstraint: 'us-east-1',
-            };
+            }
           },
         },
         CloudFormation: {
@@ -138,7 +138,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           validateTemplate: {},
           listStackResources: {},
         },
-      };
+      }
 
       await runServerless({
         fixture: 'function',
@@ -150,22 +150,23 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
             deploymentMethod: 'direct',
           },
         },
-      });
+      })
 
-      expect(createStackStub).to.be.calledOnce;
-      expect(updateStackStub).not.to.be.called;
-      const wasCloudFormationTemplateUploadInitiated = s3UploadStub.args.some((call) =>
-        call[0].Key.endsWith('compiled-cloudformation-template.json')
-      );
-      expect(wasCloudFormationTemplateUploadInitiated).to.be.true;
-      expect(deleteObjectsStub).not.to.be.called;
-    });
+      expect(createStackStub).to.be.calledOnce
+      expect(updateStackStub).not.to.be.called
+      const wasCloudFormationTemplateUploadInitiated = s3UploadStub.args.some(
+        (call) => call[0].Key.endsWith('compiled-cloudformation-template.json'),
+      )
+      expect(wasCloudFormationTemplateUploadInitiated).to.be.true
+      expect(deleteObjectsStub).not.to.be.called
+    })
 
     it('with existing stack - subsequent deploy', async () => {
-      const s3BucketPrefix = 'serverless/test-aws-deploy-with-existing-stack/dev';
-      const s3UploadStub = sinon.stub().resolves();
-      const createStackStub = sinon.stub().resolves({});
-      const updateStackStub = sinon.stub().resolves({});
+      const s3BucketPrefix =
+        'serverless/test-aws-deploy-with-existing-stack/dev'
+      const s3UploadStub = sinon.stub().resolves()
+      const createStackStub = sinon.stub().resolves({})
+      const updateStackStub = sinon.stub().resolves({})
       const listObjectsV2Stub = sinon
         .stub()
         .onFirstCall()
@@ -186,8 +187,8 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
               Key: `${s3BucketPrefix}/1589988704352-2020-05-20T15:31:44.359Z/artifact.zip`,
             },
           ],
-        });
-      const deleteObjectsStub = sinon.stub().resolves();
+        })
+      const deleteObjectsStub = sinon.stub().resolves()
       const awsRequestStubMap = {
         ...baseAwsRequestStubMap,
         ECR: {
@@ -229,7 +230,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           validateTemplate: {},
           listStackResources: {},
         },
-      };
+      }
 
       await runServerless({
         fixture: 'function',
@@ -245,14 +246,14 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
             },
           },
         },
-      });
+      })
 
-      expect(createStackStub).not.to.be.called;
-      expect(updateStackStub).to.be.calledOnce;
-      const wasCloudFormationTemplateUploadInitiated = s3UploadStub.args.some((call) =>
-        call[0].Key.endsWith('compiled-cloudformation-template.json')
-      );
-      expect(wasCloudFormationTemplateUploadInitiated).to.be.true;
+      expect(createStackStub).not.to.be.called
+      expect(updateStackStub).to.be.calledOnce
+      const wasCloudFormationTemplateUploadInitiated = s3UploadStub.args.some(
+        (call) => call[0].Key.endsWith('compiled-cloudformation-template.json'),
+      )
+      expect(wasCloudFormationTemplateUploadInitiated).to.be.true
       expect(deleteObjectsStub).to.be.calledWithExactly({
         Bucket: 's3-bucket-resource',
         Delete: {
@@ -260,29 +261,31 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
             {
               Key: `${s3BucketPrefix}/1589988704351-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json`,
             },
-            { Key: `${s3BucketPrefix}/1589988704351-2020-05-20T15:31:44.359Z/artifact.zip` },
+            {
+              Key: `${s3BucketPrefix}/1589988704351-2020-05-20T15:31:44.359Z/artifact.zip`,
+            },
           ],
         },
-      });
-    });
+      })
+    })
 
     it('with existing stack - with deployment bucket resource missing from CloudFormation template', async () => {
-      const createStackStub = sinon.stub().resolves({});
-      const updateStackStub = sinon.stub().resolves({});
+      const createStackStub = sinon.stub().resolves({})
+      const updateStackStub = sinon.stub().resolves({})
       const describeStackResourceStub = sinon
         .stub()
         .onFirstCall()
         .throws(() => {
-          const err = new Error('does not exist for stack');
+          const err = new Error('does not exist for stack')
           err.providerError = {
             code: 'ValidationError',
-          };
-          return err;
+          }
+          return err
         })
         .onSecondCall()
         .resolves({
           StackResourceDetail: { PhysicalResourceId: 's3-bucket-resource' },
-        });
+        })
 
       const awsRequestStubMap = {
         ...baseAwsRequestStubMap,
@@ -294,9 +297,9 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         S3: {
           listObjectsV2: { Contents: [] },
           headBucket: () => {
-            const err = new Error();
-            err.code = 'AWS_S3_HEAD_BUCKET_NOT_FOUND';
-            throw err;
+            const err = new Error()
+            err.code = 'AWS_S3_HEAD_BUCKET_NOT_FOUND'
+            throw err
           },
         },
         CloudFormation: {
@@ -307,7 +310,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           getTemplate: () => {
             return {
               TemplateBody: JSON.stringify({}),
-            };
+            }
           },
           describeStackEvents: {
             StackEvents: [
@@ -323,7 +326,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           },
           describeStackResource: describeStackResourceStub,
         },
-      };
+      }
 
       const { serverless, awsNaming } = await runServerless({
         fixture: 'function',
@@ -335,9 +338,9 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           },
         },
         lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
-      });
+      })
 
-      expect(createStackStub).not.to.be.called;
+      expect(createStackStub).not.to.be.called
       expect(updateStackStub).to.be.calledWithExactly({
         StackName: awsNaming.getStackName(),
         Capabilities: ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM'],
@@ -345,17 +348,19 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         NotificationARNs: [],
         Tags: [{ Key: 'STAGE', Value: 'dev' }],
         TemplateBody: JSON.stringify({
-          Resources: serverless.service.provider.coreCloudFormationTemplate.Resources,
-          Outputs: serverless.service.provider.coreCloudFormationTemplate.Outputs,
+          Resources:
+            serverless.service.provider.coreCloudFormationTemplate.Resources,
+          Outputs:
+            serverless.service.provider.coreCloudFormationTemplate.Outputs,
         }),
-      });
-    });
+      })
+    })
 
     describe('custom deployment-related properties', () => {
-      let createStackStub;
-      let updateStackStub;
-      const deploymentRole = 'arn:xxx';
-      const notificationArns = ['arn:xxx', 'arn:yyy'];
+      let createStackStub
+      let updateStackStub
+      const deploymentRole = 'arn:xxx'
+      const notificationArns = ['arn:xxx', 'arn:yyy']
       const stackParameters = [
         {
           ParameterKey: 'key',
@@ -365,7 +370,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           ParameterKey: 'key2',
           ParameterValue: 'val2',
         },
-      ];
+      ]
 
       const stackPolicy = [
         {
@@ -374,17 +379,17 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           Action: ['Update:*'],
           Resource: '*',
         },
-      ];
+      ]
 
       const rollbackConfiguration = {
         MonitoringTimeInMinutes: 20,
-      };
+      }
 
-      const disableRollback = true;
+      const disableRollback = true
       const stackTags = {
         TAG: 'value',
         ANOTHERTAG: 'anotherval',
-      };
+      }
 
       before(async () => {
         const describeStacksStub = sinon
@@ -392,9 +397,9 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           .onFirstCall()
           .throws('error', 'stack does not exist')
           .onSecondCall()
-          .resolves({ Stacks: [{}] });
-        createStackStub = sinon.stub().resolves({});
-        updateStackStub = sinon.stub().resolves({});
+          .resolves({ Stacks: [{}] })
+        createStackStub = sinon.stub().resolves({})
+        updateStackStub = sinon.stub().resolves({})
         const awsRequestStubMap = {
           ...baseAwsRequestStubMap,
           ECR: {
@@ -430,7 +435,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
             validateTemplate: {},
             listStackResources: {},
           },
-        };
+        }
 
         await runServerless({
           fixture: 'function',
@@ -450,55 +455,67 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
               },
             },
           },
-        });
-      });
+        })
+      })
 
       it('should support custom deployment role', () => {
-        expect(createStackStub.getCall(0).args[0].RoleARN).to.equal(deploymentRole);
-        expect(updateStackStub.getCall(0).args[0].RoleARN).to.equal(deploymentRole);
-      });
+        expect(createStackStub.getCall(0).args[0].RoleARN).to.equal(
+          deploymentRole,
+        )
+        expect(updateStackStub.getCall(0).args[0].RoleARN).to.equal(
+          deploymentRole,
+        )
+      })
 
       it('should support `notificationsArns`', () => {
-        expect(createStackStub.getCall(0).args[0].NotificationARNs).to.deep.equal(notificationArns);
-        expect(updateStackStub.getCall(0).args[0].NotificationARNs).to.deep.equal(notificationArns);
-      });
+        expect(
+          createStackStub.getCall(0).args[0].NotificationARNs,
+        ).to.deep.equal(notificationArns)
+        expect(
+          updateStackStub.getCall(0).args[0].NotificationARNs,
+        ).to.deep.equal(notificationArns)
+      })
 
       it('should support `stackParameters`', () => {
-        expect(createStackStub.getCall(0).args[0].Parameters).to.deep.equal(stackParameters);
-        expect(updateStackStub.getCall(0).args[0].Parameters).to.deep.equal(stackParameters);
-      });
+        expect(createStackStub.getCall(0).args[0].Parameters).to.deep.equal(
+          stackParameters,
+        )
+        expect(updateStackStub.getCall(0).args[0].Parameters).to.deep.equal(
+          stackParameters,
+        )
+      })
 
       it('should support `stackPolicy`', () => {
-        expect(updateStackStub.getCall(0).args[0].StackPolicyBody).to.deep.equal(
-          JSON.stringify({ Statement: stackPolicy })
-        );
-      });
+        expect(
+          updateStackStub.getCall(0).args[0].StackPolicyBody,
+        ).to.deep.equal(JSON.stringify({ Statement: stackPolicy }))
+      })
 
       it('should support `rollbackConfiguration`', () => {
-        expect(updateStackStub.getCall(0).args[0].RollbackConfiguration).to.deep.equal(
-          rollbackConfiguration
-        );
-      });
+        expect(
+          updateStackStub.getCall(0).args[0].RollbackConfiguration,
+        ).to.deep.equal(rollbackConfiguration)
+      })
 
       it('should support `disableRollback`', () => {
-        expect(createStackStub.getCall(0).args[0].DisableRollback).to.be.true;
-        expect(updateStackStub.getCall(0).args[0].DisableRollback).to.be.true;
-      });
+        expect(createStackStub.getCall(0).args[0].DisableRollback).to.be.true
+        expect(updateStackStub.getCall(0).args[0].DisableRollback).to.be.true
+      })
 
       it('should support `stackTags`', () => {
         expect(createStackStub.getCall(0).args[0].Tags).to.deep.equal([
           { Key: 'STAGE', Value: 'dev' },
           { Key: 'TAG', Value: 'value' },
           { Key: 'ANOTHERTAG', Value: 'anotherval' },
-        ]);
+        ])
         expect(updateStackStub.getCall(0).args[0].Tags).to.deep.equal([
           { Key: 'STAGE', Value: 'dev' },
           { Key: 'TAG', Value: 'value' },
           { Key: 'ANOTHERTAG', Value: 'anotherval' },
-        ]);
-      });
-    });
-  });
+        ])
+      })
+    })
+  })
 
   describe('with change-sets', () => {
     it('with nonexistent stack - first deploy with custom deployment bucket', async () => {
@@ -507,11 +524,11 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         .onFirstCall()
         .throws('error', 'stack does not exist')
         .onSecondCall()
-        .resolves({ Stacks: [{}] });
-      const createChangeSetStub = sinon.stub().resolves({});
-      const executeChangeSetStub = sinon.stub().resolves({});
-      const s3UploadStub = sinon.stub().resolves();
-      const deleteObjectsStub = sinon.stub().resolves({});
+        .resolves({ Stacks: [{}] })
+      const createChangeSetStub = sinon.stub().resolves({})
+      const executeChangeSetStub = sinon.stub().resolves({})
+      const s3UploadStub = sinon.stub().resolves()
+      const deleteObjectsStub = sinon.stub().resolves({})
       const awsRequestStubMap = {
         ...baseAwsRequestStubMap,
         ECR: {
@@ -527,7 +544,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           getBucketLocation: () => {
             return {
               LocationConstraint: 'us-east-1',
-            };
+            }
           },
         },
         CloudFormation: {
@@ -556,7 +573,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           validateTemplate: {},
           listStackResources: {},
         },
-      };
+      }
 
       await runServerless({
         fixture: 'function',
@@ -567,17 +584,19 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
             deploymentBucket: 'existing-s3-bucket',
           },
         },
-      });
+      })
 
-      expect(createChangeSetStub).to.be.calledOnce;
-      expect(createChangeSetStub.getCall(0).args[0].ChangeSetType).to.equal('CREATE');
-      expect(executeChangeSetStub).to.be.calledOnce;
-      const wasCloudFormationTemplateUploadInitiated = s3UploadStub.args.some((call) =>
-        call[0].Key.endsWith('compiled-cloudformation-template.json')
-      );
-      expect(wasCloudFormationTemplateUploadInitiated).to.be.true;
-      expect(deleteObjectsStub).not.to.be.called;
-    });
+      expect(createChangeSetStub).to.be.calledOnce
+      expect(createChangeSetStub.getCall(0).args[0].ChangeSetType).to.equal(
+        'CREATE',
+      )
+      expect(executeChangeSetStub).to.be.calledOnce
+      const wasCloudFormationTemplateUploadInitiated = s3UploadStub.args.some(
+        (call) => call[0].Key.endsWith('compiled-cloudformation-template.json'),
+      )
+      expect(wasCloudFormationTemplateUploadInitiated).to.be.true
+      expect(deleteObjectsStub).not.to.be.called
+    })
 
     it('with nonexistent stack - first deploy', async () => {
       const describeStacksStub = sinon
@@ -585,11 +604,11 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         .onFirstCall()
         .throws('error', 'stack does not exist')
         .onSecondCall()
-        .resolves({ Stacks: [{}] });
-      const createChangeSetStub = sinon.stub().resolves({});
-      const executeChangeSetStub = sinon.stub().resolves({});
-      const s3UploadStub = sinon.stub().resolves();
-      const deleteObjectsStub = sinon.stub().resolves({});
+        .resolves({ Stacks: [{}] })
+      const createChangeSetStub = sinon.stub().resolves({})
+      const executeChangeSetStub = sinon.stub().resolves({})
+      const s3UploadStub = sinon.stub().resolves()
+      const deleteObjectsStub = sinon.stub().resolves({})
       const awsRequestStubMap = {
         ...baseAwsRequestStubMap,
         ECR: {
@@ -632,24 +651,28 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           validateTemplate: {},
           listStackResources: {},
         },
-      };
+      }
 
       await runServerless({
         fixture: 'function',
         command: 'deploy',
         awsRequestStubMap,
-      });
+      })
 
-      expect(createChangeSetStub).to.be.calledTwice;
-      expect(createChangeSetStub.getCall(0).args[0].ChangeSetType).to.equal('CREATE');
-      expect(createChangeSetStub.getCall(1).args[0].ChangeSetType).to.equal('UPDATE');
-      expect(executeChangeSetStub).to.be.calledTwice;
-      const wasCloudFormationTemplateUploadInitiated = s3UploadStub.args.some((call) =>
-        call[0].Key.endsWith('compiled-cloudformation-template.json')
-      );
-      expect(wasCloudFormationTemplateUploadInitiated).to.be.true;
-      expect(deleteObjectsStub).not.to.be.called;
-    });
+      expect(createChangeSetStub).to.be.calledTwice
+      expect(createChangeSetStub.getCall(0).args[0].ChangeSetType).to.equal(
+        'CREATE',
+      )
+      expect(createChangeSetStub.getCall(1).args[0].ChangeSetType).to.equal(
+        'UPDATE',
+      )
+      expect(executeChangeSetStub).to.be.calledTwice
+      const wasCloudFormationTemplateUploadInitiated = s3UploadStub.args.some(
+        (call) => call[0].Key.endsWith('compiled-cloudformation-template.json'),
+      )
+      expect(wasCloudFormationTemplateUploadInitiated).to.be.true
+      expect(deleteObjectsStub).not.to.be.called
+    })
 
     it('with nonexistent stack - should output an appropriate error message for an abnormal stack state', async () => {
       const describeStacksStub = sinon
@@ -661,11 +684,11 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
               StackStatus: 'REVIEW_IN_PROGRESS',
             },
           ],
-        });
-      const createChangeSetStub = sinon.stub().resolves({});
-      const executeChangeSetStub = sinon.stub().resolves({});
-      const s3UploadStub = sinon.stub().resolves();
-      const deleteObjectsStub = sinon.stub().resolves({});
+        })
+      const createChangeSetStub = sinon.stub().resolves({})
+      const executeChangeSetStub = sinon.stub().resolves({})
+      const s3UploadStub = sinon.stub().resolves()
+      const deleteObjectsStub = sinon.stub().resolves({})
       const awsRequestStubMap = {
         ...baseAwsRequestStubMap,
         ECR: {
@@ -697,22 +720,26 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           validateTemplate: {},
           listStackResources: {},
         },
-      };
+      }
 
       await expect(
         runServerless({
           fixture: 'function',
           command: 'deploy',
           awsRequestStubMap,
-        })
-      ).to.have.been.eventually.rejected.with.property('code', 'AWS_CLOUDFORMATION_INACTIVE_STACK');
-    });
+        }),
+      ).to.have.been.eventually.rejected.with.property(
+        'code',
+        'AWS_CLOUDFORMATION_INACTIVE_STACK',
+      )
+    })
 
     it('with existing stack - subsequent deploy', async () => {
-      const s3BucketPrefix = 'serverless/test-aws-deploy-with-existing-stack/dev';
-      const s3UploadStub = sinon.stub().resolves();
-      const createChangeSetStub = sinon.stub().resolves({});
-      const executeChangeSetStub = sinon.stub().resolves({});
+      const s3BucketPrefix =
+        'serverless/test-aws-deploy-with-existing-stack/dev'
+      const s3UploadStub = sinon.stub().resolves()
+      const createChangeSetStub = sinon.stub().resolves({})
+      const executeChangeSetStub = sinon.stub().resolves({})
       const listObjectsV2Stub = sinon
         .stub()
         .onFirstCall()
@@ -733,8 +760,8 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
               Key: `${s3BucketPrefix}/1589988704352-2020-05-20T15:31:44.359Z/artifact.zip`,
             },
           ],
-        });
-      const deleteObjectsStub = sinon.stub().resolves();
+        })
+      const deleteObjectsStub = sinon.stub().resolves()
       const awsRequestStubMap = {
         ...baseAwsRequestStubMap,
         ECR: {
@@ -777,7 +804,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           validateTemplate: {},
           listStackResources: {},
         },
-      };
+      }
 
       await runServerless({
         fixture: 'function',
@@ -792,15 +819,17 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
             },
           },
         },
-      });
+      })
 
-      expect(createChangeSetStub).to.be.calledOnce;
-      expect(createChangeSetStub.getCall(0).args[0].ChangeSetType).to.equal('UPDATE');
-      expect(executeChangeSetStub).to.be.calledOnce;
-      const wasCloudFormationTemplateUploadInitiated = s3UploadStub.args.some((call) =>
-        call[0].Key.endsWith('compiled-cloudformation-template.json')
-      );
-      expect(wasCloudFormationTemplateUploadInitiated).to.be.true;
+      expect(createChangeSetStub).to.be.calledOnce
+      expect(createChangeSetStub.getCall(0).args[0].ChangeSetType).to.equal(
+        'UPDATE',
+      )
+      expect(executeChangeSetStub).to.be.calledOnce
+      const wasCloudFormationTemplateUploadInitiated = s3UploadStub.args.some(
+        (call) => call[0].Key.endsWith('compiled-cloudformation-template.json'),
+      )
+      expect(wasCloudFormationTemplateUploadInitiated).to.be.true
       expect(deleteObjectsStub).to.be.calledWithExactly({
         Bucket: 's3-bucket-resource',
         Delete: {
@@ -808,18 +837,20 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
             {
               Key: `${s3BucketPrefix}/1589988704351-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json`,
             },
-            { Key: `${s3BucketPrefix}/1589988704351-2020-05-20T15:31:44.359Z/artifact.zip` },
+            {
+              Key: `${s3BucketPrefix}/1589988704351-2020-05-20T15:31:44.359Z/artifact.zip`,
+            },
           ],
         },
-      });
-    });
+      })
+    })
 
     it('with existing stack - subsequent deploy with empty changeset', async () => {
-      const createChangeSetStub = sinon.stub().resolves({});
-      const executeChangeSetStub = sinon.stub().resolves({});
-      const deleteChangeSetStub = sinon.stub().resolves();
-      const deleteObjectsStub = sinon.stub().resolves();
-      let objectsToRemove;
+      const createChangeSetStub = sinon.stub().resolves({})
+      const executeChangeSetStub = sinon.stub().resolves({})
+      const deleteChangeSetStub = sinon.stub().resolves()
+      const deleteObjectsStub = sinon.stub().resolves()
+      let objectsToRemove
       const listObjectsV2Stub = sinon
         .stub()
         .onFirstCall()
@@ -833,11 +864,11 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
             {
               Key: `${params.Prefix}/artifact.zip`,
             },
-          ];
+          ]
           return {
             Contents: objectsToRemove,
-          };
-        });
+          }
+        })
       const awsRequestStubMap = {
         ...baseAwsRequestStubMap,
         ECR: {
@@ -869,23 +900,25 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           validateTemplate: {},
           listStackResources: {},
         },
-      };
+      }
 
       await runServerless({
         fixture: 'function',
         command: 'deploy',
         awsRequestStubMap,
-      });
+      })
 
-      expect(createChangeSetStub).to.be.calledOnce;
-      expect(createChangeSetStub.getCall(0).args[0].ChangeSetType).to.equal('UPDATE');
-      expect(executeChangeSetStub).not.to.be.called;
-      expect(deleteChangeSetStub).to.be.calledTwice;
+      expect(createChangeSetStub).to.be.calledOnce
+      expect(createChangeSetStub.getCall(0).args[0].ChangeSetType).to.equal(
+        'UPDATE',
+      )
+      expect(executeChangeSetStub).not.to.be.called
+      expect(deleteChangeSetStub).to.be.calledTwice
       expect(deleteObjectsStub).to.be.calledWithExactly({
         Bucket: 's3-bucket-resource',
         Delete: { Objects: objectsToRemove },
-      });
-    });
+      })
+    })
 
     it('should fail if cannot create a change set', async () => {
       const awsRequestStubMap = {
@@ -919,37 +952,37 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           validateTemplate: {},
           listStackResources: {},
         },
-      };
+      }
 
       await expect(
         runServerless({
           fixture: 'function',
           command: 'deploy',
           awsRequestStubMap,
-        })
+        }),
       ).to.have.been.eventually.rejected.with.property(
         'code',
-        'AWS_CLOUD_FORMATION_CHANGE_SET_CREATION_FAILED'
-      );
-    });
+        'AWS_CLOUD_FORMATION_CHANGE_SET_CREATION_FAILED',
+      )
+    })
 
     it('with existing stack - with deployment bucket resource missing from CloudFormation template', async () => {
-      const createChangeSetStub = sinon.stub().resolves({});
-      const executeChangeSetStub = sinon.stub().resolves({});
+      const createChangeSetStub = sinon.stub().resolves({})
+      const executeChangeSetStub = sinon.stub().resolves({})
       const describeStackResourceStub = sinon
         .stub()
         .onFirstCall()
         .throws(() => {
-          const err = new Error('does not exist for stack');
+          const err = new Error('does not exist for stack')
           err.providerError = {
             code: 'ValidationError',
-          };
-          return err;
+          }
+          return err
         })
         .onSecondCall()
         .resolves({
           StackResourceDetail: { PhysicalResourceId: 's3-bucket-resource' },
-        });
+        })
 
       const awsRequestStubMap = {
         ...baseAwsRequestStubMap,
@@ -961,9 +994,9 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         S3: {
           listObjectsV2: { Contents: [] },
           headBucket: () => {
-            const err = new Error();
-            err.code = 'AWS_S3_HEAD_BUCKET_NOT_FOUND';
-            throw err;
+            const err = new Error()
+            err.code = 'AWS_S3_HEAD_BUCKET_NOT_FOUND'
+            throw err
           },
         },
         CloudFormation: {
@@ -981,7 +1014,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           getTemplate: () => {
             return {
               TemplateBody: JSON.stringify({}),
-            };
+            }
           },
           describeStackEvents: {
             StackEvents: [
@@ -997,14 +1030,14 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           },
           describeStackResource: describeStackResourceStub,
         },
-      };
+      }
 
       const { serverless, awsNaming } = await runServerless({
         fixture: 'function',
         command: 'deploy',
         awsRequestStubMap,
         lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
-      });
+      })
 
       expect(createChangeSetStub).to.be.calledWithExactly({
         StackName: awsNaming.getStackName(),
@@ -1015,22 +1048,24 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         NotificationARNs: [],
         Tags: [{ Key: 'STAGE', Value: 'dev' }],
         TemplateBody: JSON.stringify({
-          Resources: serverless.service.provider.coreCloudFormationTemplate.Resources,
-          Outputs: serverless.service.provider.coreCloudFormationTemplate.Outputs,
+          Resources:
+            serverless.service.provider.coreCloudFormationTemplate.Resources,
+          Outputs:
+            serverless.service.provider.coreCloudFormationTemplate.Outputs,
         }),
-      });
+      })
       expect(executeChangeSetStub).to.be.calledWithExactly({
         StackName: awsNaming.getStackName(),
         ChangeSetName: awsNaming.getStackChangeSetName(),
-      });
-    });
+      })
+    })
 
     describe('custom deployment-related properties', () => {
-      let createChangeSetStub;
-      let executeChangeSetStub;
-      let setStackPolicyStub;
-      const deploymentRole = 'arn:xxx';
-      const notificationArns = ['arn:xxx', 'arn:yyy'];
+      let createChangeSetStub
+      let executeChangeSetStub
+      let setStackPolicyStub
+      const deploymentRole = 'arn:xxx'
+      const notificationArns = ['arn:xxx', 'arn:yyy']
       const stackParameters = [
         {
           ParameterKey: 'key',
@@ -1040,7 +1075,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           ParameterKey: 'key2',
           ParameterValue: 'val2',
         },
-      ];
+      ]
 
       const stackPolicy = [
         {
@@ -1049,17 +1084,17 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           Action: ['Update:*'],
           Resource: '*',
         },
-      ];
+      ]
 
       const rollbackConfiguration = {
         MonitoringTimeInMinutes: 20,
-      };
+      }
 
-      const disableRollback = true;
+      const disableRollback = true
       const stackTags = {
         TAG: 'value',
         ANOTHERTAG: 'anotherval',
-      };
+      }
 
       before(async () => {
         const describeStacksStub = sinon
@@ -1067,10 +1102,10 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           .onFirstCall()
           .throws('error', 'stack does not exist')
           .onSecondCall()
-          .resolves({ Stacks: [{}] });
-        createChangeSetStub = sinon.stub().resolves({});
-        executeChangeSetStub = sinon.stub().resolves({});
-        setStackPolicyStub = sinon.stub().resolves({});
+          .resolves({ Stacks: [{}] })
+        createChangeSetStub = sinon.stub().resolves({})
+        executeChangeSetStub = sinon.stub().resolves({})
+        setStackPolicyStub = sinon.stub().resolves({})
         const awsRequestStubMap = {
           ...baseAwsRequestStubMap,
           ECR: {
@@ -1114,7 +1149,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
             validateTemplate: {},
             listStackResources: {},
           },
-        };
+        }
 
         await runServerless({
           fixture: 'function',
@@ -1133,65 +1168,73 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
               },
             },
           },
-        });
-      });
+        })
+      })
 
       it('should support custom deployment role', () => {
-        expect(createChangeSetStub.getCall(0).args[0].RoleARN).to.equal(deploymentRole);
-        expect(createChangeSetStub.getCall(1).args[0].RoleARN).to.equal(deploymentRole);
-      });
+        expect(createChangeSetStub.getCall(0).args[0].RoleARN).to.equal(
+          deploymentRole,
+        )
+        expect(createChangeSetStub.getCall(1).args[0].RoleARN).to.equal(
+          deploymentRole,
+        )
+      })
 
       it('should support `notificationsArns`', () => {
-        expect(createChangeSetStub.getCall(0).args[0].NotificationARNs).to.deep.equal(
-          notificationArns
-        );
-        expect(createChangeSetStub.getCall(1).args[0].NotificationARNs).to.deep.equal(
-          notificationArns
-        );
-      });
+        expect(
+          createChangeSetStub.getCall(0).args[0].NotificationARNs,
+        ).to.deep.equal(notificationArns)
+        expect(
+          createChangeSetStub.getCall(1).args[0].NotificationARNs,
+        ).to.deep.equal(notificationArns)
+      })
 
       it('should support `stackParameters`', () => {
-        expect(createChangeSetStub.getCall(1).args[0].Parameters).to.deep.equal(stackParameters);
-      });
+        expect(createChangeSetStub.getCall(1).args[0].Parameters).to.deep.equal(
+          stackParameters,
+        )
+      })
 
       it('should support `stackPolicy`', () => {
         expect(setStackPolicyStub.getCall(0).args[0].StackPolicyBody).to.equal(
-          JSON.stringify({ Statement: stackPolicy })
-        );
-      });
+          JSON.stringify({ Statement: stackPolicy }),
+        )
+      })
 
       it('should only set `stackPolicy` after applying change set', () => {
-        expect(setStackPolicyStub).to.not.be.calledBefore(executeChangeSetStub);
-      });
+        expect(setStackPolicyStub).to.not.be.calledBefore(executeChangeSetStub)
+      })
 
       it('should support `rollbackConfiguration`', () => {
-        expect(createChangeSetStub.getCall(1).args[0].RollbackConfiguration).to.deep.equal(
-          rollbackConfiguration
-        );
-      });
+        expect(
+          createChangeSetStub.getCall(1).args[0].RollbackConfiguration,
+        ).to.deep.equal(rollbackConfiguration)
+      })
 
       it('should support `disableRollback`', () => {
-        expect(executeChangeSetStub.getCall(0).args[0].DisableRollback).to.be.true;
-        expect(executeChangeSetStub.getCall(1).args[0].DisableRollback).to.be.true;
-      });
+        expect(executeChangeSetStub.getCall(0).args[0].DisableRollback).to.be
+          .true
+        expect(executeChangeSetStub.getCall(1).args[0].DisableRollback).to.be
+          .true
+      })
 
       it('should support `stackTags`', () => {
         expect(createChangeSetStub.getCall(0).args[0].Tags).to.deep.equal([
           { Key: 'STAGE', Value: 'dev' },
           { Key: 'TAG', Value: 'value' },
           { Key: 'ANOTHERTAG', Value: 'anotherval' },
-        ]);
+        ])
         expect(createChangeSetStub.getCall(1).args[0].Tags).to.deep.equal([
           { Key: 'STAGE', Value: 'dev' },
           { Key: 'TAG', Value: 'value' },
           { Key: 'ANOTHERTAG', Value: 'anotherval' },
-        ]);
-      });
-    });
-  });
+        ])
+      })
+    })
+  })
 
   it('with existing stack - should skip deploy if nothing changed', async () => {
-    const s3UploadStub = sinon.stub().resolves();
+    const s3UploadStub = sinon.stub().resolves()
 
     const listObjectsV2Stub = sinon.stub().resolves({
       Contents: [
@@ -1217,24 +1260,28 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           StorageClass: 'STANDARD',
         },
       ],
-    });
-    const s3HeadObjectStub = sinon.stub();
+    })
+    const s3HeadObjectStub = sinon.stub()
     s3HeadObjectStub
       .withArgs({
         Bucket: 's3-bucket-resource',
         Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json',
       })
       .returns({
-        Metadata: { filesha256: 'sazQTKx8BgZJIMV2cJhXcOT68Q8KaP9mHdI9C2dST40=' },
-      });
+        Metadata: {
+          filesha256: 'sazQTKx8BgZJIMV2cJhXcOT68Q8KaP9mHdI9C2dST40=',
+        },
+      })
     s3HeadObjectStub
       .withArgs({
         Bucket: 's3-bucket-resource',
         Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/serverless-state.json',
       })
       .returns({
-        Metadata: { filesha256: 'fSU2tLfTe72BW+k8hJvm6VkzHtssCtrTG+uqGGg4YzI=' },
-      });
+        Metadata: {
+          filesha256: 'fSU2tLfTe72BW+k8hJvm6VkzHtssCtrTG+uqGGg4YzI=',
+        },
+      })
 
     s3HeadObjectStub
       .withArgs({
@@ -1242,8 +1289,10 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         Key: 'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/my-own.zip',
       })
       .returns({
-        Metadata: { filesha256: 'T0qEYHOE4Xv2E8Ar03xGogAlElcdf/dQh/lh9ao7Glo=' },
-      });
+        Metadata: {
+          filesha256: 'T0qEYHOE4Xv2E8Ar03xGogAlElcdf/dQh/lh9ao7Glo=',
+        },
+      })
 
     const awsRequestStubMap = {
       ...baseAwsRequestStubMap,
@@ -1273,7 +1322,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         validateTemplate: {},
         listStackResources: {},
       },
-    };
+    }
 
     const { serverless } = await runServerless({
       fixture: 'package-artifact-in-serverless-dir',
@@ -1283,11 +1332,11 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         // Default, non-deterministic service-name invalidates this test
         service: 'test-aws-deploy-should-be-skipped',
       },
-    });
+    })
 
-    expect(serverless.service.provider.shouldNotDeploy).to.be.true;
-    expect(s3UploadStub).to.not.be.called;
-  });
+    expect(serverless.service.provider.shouldNotDeploy).to.be.true
+    expect(s3UploadStub).to.not.be.called
+  })
 
   it('with existing stack - missing custom deployment bucket', async () => {
     const awsRequestStubMap = {
@@ -1299,14 +1348,14 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       },
       S3: {
         getBucketLocation: () => {
-          throw new Error();
+          throw new Error()
         },
       },
       CloudFormation: {
         describeStacks: { Stacks: [{}] },
         validateTemplate: {},
       },
-    };
+    }
 
     await expect(
       runServerless({
@@ -1319,9 +1368,12 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
             deploymentBucket: 'bucket-name',
           },
         },
-      })
-    ).to.eventually.have.been.rejected.and.have.property('code', 'DEPLOYMENT_BUCKET_NOT_FOUND');
-  });
+      }),
+    ).to.eventually.have.been.rejected.and.have.property(
+      'code',
+      'DEPLOYMENT_BUCKET_NOT_FOUND',
+    )
+  })
 
   it('with existing stack - with custom deployment bucket in different region', async () => {
     const awsRequestStubMap = {
@@ -1335,14 +1387,14 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         getBucketLocation: () => {
           return {
             LocationConstraint: 'us-west-1',
-          };
+          }
         },
       },
       CloudFormation: {
         describeStacks: { Stacks: [{}] },
         validateTemplate: {},
       },
-    };
+    }
 
     await expect(
       runServerless({
@@ -1355,12 +1407,12 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
             deploymentBucket: 'bucket-name',
           },
         },
-      })
+      }),
     ).to.eventually.have.been.rejected.and.have.property(
       'code',
-      'DEPLOYMENT_BUCKET_INVALID_REGION'
-    );
-  });
+      'DEPLOYMENT_BUCKET_INVALID_REGION',
+    )
+  })
 
   it('with existing stack - with deployment bucket from CloudFormation deleted manually', async () => {
     const awsRequestStubMap = {
@@ -1372,9 +1424,9 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       },
       S3: {
         headBucket: () => {
-          const err = new Error();
-          err.code = 'AWS_S3_HEAD_BUCKET_NOT_FOUND';
-          throw err;
+          const err = new Error()
+          err.code = 'AWS_S3_HEAD_BUCKET_NOT_FOUND'
+          throw err
         },
       },
       CloudFormation: {
@@ -1384,7 +1436,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           StackResourceDetail: { PhysicalResourceId: 's3-bucket-resource' },
         },
       },
-    };
+    }
 
     await expect(
       runServerless({
@@ -1392,12 +1444,12 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         command: 'deploy',
         awsRequestStubMap,
         lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
-      })
+      }),
     ).to.eventually.have.been.rejected.and.have.property(
       'code',
-      'DEPLOYMENT_BUCKET_REMOVED_MANUALLY'
-    );
-  });
+      'DEPLOYMENT_BUCKET_REMOVED_MANUALLY',
+    )
+  })
 
   it('should throw when deployment bucket cannot be accessed', async () => {
     const awsRequestStubMap = {
@@ -1409,9 +1461,9 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       },
       S3: {
         headBucket: () => {
-          const err = new Error();
-          err.code = 'AWS_S3_HEAD_BUCKET_FORBIDDEN';
-          throw err;
+          const err = new Error()
+          err.code = 'AWS_S3_HEAD_BUCKET_FORBIDDEN'
+          throw err
         },
       },
       CloudFormation: {
@@ -1421,7 +1473,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
           StackResourceDetail: { PhysicalResourceId: 's3-bucket-resource' },
         },
       },
-    };
+    }
 
     await expect(
       runServerless({
@@ -1429,7 +1481,10 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         command: 'deploy',
         awsRequestStubMap,
         lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
-      })
-    ).to.eventually.have.been.rejected.and.have.property('code', 'AWS_S3_HEAD_BUCKET_FORBIDDEN');
-  });
-});
+      }),
+    ).to.eventually.have.been.rejected.and.have.property(
+      'code',
+      'AWS_S3_HEAD_BUCKET_FORBIDDEN',
+    )
+  })
+})

@@ -1,52 +1,55 @@
-'use strict';
+'use strict'
 
-const awsRequest = require('@serverless/test/aws-request');
-const CloudFormationService = require('aws-sdk').CloudFormation;
-const IotService = require('aws-sdk').Iot;
-const LambdaService = require('aws-sdk').Lambda;
-const hasFailed = require('@serverless/test/has-failed');
-const { expect } = require('chai');
-const fixtures = require('../../fixtures/programmatic');
-const { deployService, removeService } = require('../../utils/integration');
-const { resolveIotEndpoint } = require('../../utils/iot');
+const awsRequest = require('@serverless/test/aws-request')
+const CloudFormationService = require('aws-sdk').CloudFormation
+const IotService = require('aws-sdk').Iot
+const LambdaService = require('aws-sdk').Lambda
+const hasFailed = require('@serverless/test/has-failed')
+const { expect } = require('chai')
+const fixtures = require('../../fixtures/programmatic')
+const { deployService, removeService } = require('../../utils/integration')
+const { resolveIotEndpoint } = require('../../utils/iot')
 
 describe('test/integration/aws/iotFleetProvisioning.test.js', function () {
-  this.timeout(1000 * 60 * 100); // Involves time-taking deploys
-  const stage = 'dev';
-  let stackName;
-  let thingName;
-  let serviceDir;
-  let certificateId;
-  let isDeployed = false;
+  this.timeout(1000 * 60 * 100) // Involves time-taking deploys
+  const stage = 'dev'
+  let stackName
+  let thingName
+  let serviceDir
+  let certificateId
+  let isDeployed = false
 
   const resolveTemplateName = async () => {
     const result = await awsRequest(CloudFormationService, 'describeStacks', {
       StackName: stackName,
-    });
+    })
     return result.Stacks[0].Outputs.find(
-      (output) => output.OutputKey === 'ProvisioningTemplateName'
-    ).OutputValue;
-  };
+      (output) => output.OutputKey === 'ProvisioningTemplateName',
+    ).OutputValue
+  }
   const resolveIoTPolicyName = async () => {
     const result = await awsRequest(CloudFormationService, 'describeStacks', {
       StackName: stackName,
-    });
-    return result.Stacks[0].Outputs.find((output) => output.OutputKey === 'IoTPolicyName')
-      .OutputValue;
-  };
+    })
+    return result.Stacks[0].Outputs.find(
+      (output) => output.OutputKey === 'IoTPolicyName',
+    ).OutputValue
+  }
 
   before(async () => {
-    let serviceConfig;
-    ({ serviceConfig, servicePath: serviceDir } = await fixtures.setup('iot-fleet-provisioning'));
-    const serviceName = serviceConfig.service;
-    thingName = stackName = `${serviceName}-${stage}`;
-    await deployService(serviceDir);
-    isDeployed = true;
-  });
+    let serviceConfig
+    ;({ serviceConfig, servicePath: serviceDir } = await fixtures.setup(
+      'iot-fleet-provisioning',
+    ))
+    const serviceName = serviceConfig.service
+    thingName = stackName = `${serviceName}-${stage}`
+    await deployService(serviceDir)
+    isDeployed = true
+  })
 
   after(async function () {
-    if (!isDeployed) return;
-    if (hasFailed(this.test.parent)) return;
+    if (!isDeployed) return
+    if (hasFailed(this.test.parent)) return
     if (certificateId) {
       const [
         {
@@ -58,7 +61,7 @@ describe('test/integration/aws/iotFleetProvisioning.test.js', function () {
           certificateId,
         }),
         resolveIoTPolicyName(),
-      ]);
+      ])
       await Promise.all([
         awsRequest(IotService, 'detachThingPrincipal', {
           thingName,
@@ -72,7 +75,7 @@ describe('test/integration/aws/iotFleetProvisioning.test.js', function () {
           certificateId,
           newStatus: 'INACTIVE',
         }),
-      ]);
+      ])
       await Promise.all([
         awsRequest(IotService, 'deleteThing', {
           thingName,
@@ -80,10 +83,10 @@ describe('test/integration/aws/iotFleetProvisioning.test.js', function () {
         awsRequest(IotService, 'deleteCertificate', {
           certificateId,
         }),
-      ]);
+      ])
     }
-    await removeService(serviceDir);
-  });
+    await removeService(serviceDir)
+  })
 
   it('setup a new IoT Thing with the provisioning template', async () => {
     const [{ certificatePem, keyPair }, iotEndpoint] = await Promise.all([
@@ -91,7 +94,7 @@ describe('test/integration/aws/iotFleetProvisioning.test.js', function () {
         templateName: await resolveTemplateName(),
       }),
       resolveIotEndpoint(),
-    ]);
+    ])
 
     const { Payload } = await awsRequest(LambdaService, 'invoke', {
       FunctionName: `${stackName}-registerDevice`,
@@ -101,13 +104,14 @@ describe('test/integration/aws/iotFleetProvisioning.test.js', function () {
         certificatePem,
         privateKey: keyPair.PrivateKey,
       }),
-    });
+    })
 
-    const payload = JSON.parse(Payload);
-    ({ certificateId } = payload);
-    const { thingName: provisionnedThingName, errorMessage } = payload;
-    if (errorMessage) throw new Error(`Invocation errored with: ${errorMessage}`);
+    const payload = JSON.parse(Payload)
+    ;({ certificateId } = payload)
+    const { thingName: provisionnedThingName, errorMessage } = payload
+    if (errorMessage)
+      throw new Error(`Invocation errored with: ${errorMessage}`)
 
-    expect(provisionnedThingName).to.equal(thingName);
-  });
-});
+    expect(provisionnedThingName).to.equal(thingName)
+  })
+})

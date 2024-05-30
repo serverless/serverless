@@ -1,16 +1,16 @@
-'use strict';
+'use strict'
 
-const expect = require('chai').expect;
-const runServerless = require('../../../../../../../utils/run-serverless');
+const expect = require('chai').expect
+const runServerless = require('../../../../../../../utils/run-serverless')
 
 describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
   describe('regular configuration', () => {
-    let directArnEventSourceMappingResource;
-    let basicEventSourceMappingResource;
-    let arnCfGetAttEventSourceMappingResource;
-    let arnCfImportEventSourceMappingResource;
-    let arnCfJoinEventSourceMappingResource;
-    let iamRoleLambdaExecution;
+    let directArnEventSourceMappingResource
+    let basicEventSourceMappingResource
+    let arnCfGetAttEventSourceMappingResource
+    let arnCfImportEventSourceMappingResource
+    let arnCfJoinEventSourceMappingResource
+    let iamRoleLambdaExecution
 
     before(async () => {
       const { awsNaming, cfTemplate } = await runServerless({
@@ -35,7 +35,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
             },
             arnCfGetAtt: {
               handler: 'basic.handler',
-              events: [{ sqs: { arn: { 'Fn::GetAtt': ['SomeQueue', 'Arn'] } } }],
+              events: [
+                { sqs: { arn: { 'Fn::GetAtt': ['SomeQueue', 'Arn'] } } },
+              ],
             },
             arnCfImport: {
               handler: 'basic.handler',
@@ -70,48 +72,76 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
           },
         },
         command: 'package',
-      });
-      const directArnFunctionLogicalId = awsNaming.getQueueLogicalId('directArn', 'MyQueue');
-      directArnEventSourceMappingResource = cfTemplate.Resources[directArnFunctionLogicalId];
+      })
+      const directArnFunctionLogicalId = awsNaming.getQueueLogicalId(
+        'directArn',
+        'MyQueue',
+      )
+      directArnEventSourceMappingResource =
+        cfTemplate.Resources[directArnFunctionLogicalId]
 
-      const basicFunctionLogicalId = awsNaming.getQueueLogicalId('basic', 'some-queue-name');
-      basicEventSourceMappingResource = cfTemplate.Resources[basicFunctionLogicalId];
+      const basicFunctionLogicalId = awsNaming.getQueueLogicalId(
+        'basic',
+        'some-queue-name',
+      )
+      basicEventSourceMappingResource =
+        cfTemplate.Resources[basicFunctionLogicalId]
 
-      const arnCfGetAttLogicalId = awsNaming.getQueueLogicalId('arnCfGetAtt', 'SomeQueue');
-      arnCfGetAttEventSourceMappingResource = cfTemplate.Resources[arnCfGetAttLogicalId];
+      const arnCfGetAttLogicalId = awsNaming.getQueueLogicalId(
+        'arnCfGetAtt',
+        'SomeQueue',
+      )
+      arnCfGetAttEventSourceMappingResource =
+        cfTemplate.Resources[arnCfGetAttLogicalId]
 
-      const arnCfImportLogicalId = awsNaming.getQueueLogicalId('arnCfImport', 'ForeignQueue');
-      arnCfImportEventSourceMappingResource = cfTemplate.Resources[arnCfImportLogicalId];
+      const arnCfImportLogicalId = awsNaming.getQueueLogicalId(
+        'arnCfImport',
+        'ForeignQueue',
+      )
+      arnCfImportEventSourceMappingResource =
+        cfTemplate.Resources[arnCfImportLogicalId]
 
-      const arnCfJoinLogicalId = awsNaming.getQueueLogicalId('arnCfJoin', 'MyQueue');
-      arnCfJoinEventSourceMappingResource = cfTemplate.Resources[arnCfJoinLogicalId];
+      const arnCfJoinLogicalId = awsNaming.getQueueLogicalId(
+        'arnCfJoin',
+        'MyQueue',
+      )
+      arnCfJoinEventSourceMappingResource =
+        cfTemplate.Resources[arnCfJoinLogicalId]
 
-      iamRoleLambdaExecution = cfTemplate.Resources.IamRoleLambdaExecution;
-    });
+      iamRoleLambdaExecution = cfTemplate.Resources.IamRoleLambdaExecution
+    })
 
     it('should suport direct ARN string', () => {
-      const directSqsArn = 'arn:aws:sqs:region:account:MyQueue';
-      expect(directArnEventSourceMappingResource.Properties.EventSourceArn).to.equal(directSqsArn);
-    });
+      const directSqsArn = 'arn:aws:sqs:region:account:MyQueue'
+      expect(
+        directArnEventSourceMappingResource.Properties.EventSourceArn,
+      ).to.equal(directSqsArn)
+    })
 
     it('should support `arn` (string)', () => {
-      const basicSqsArn = 'arn:aws:sqs:region:account:some-queue-name';
-      expect(basicEventSourceMappingResource.Properties.EventSourceArn).to.equal(basicSqsArn);
-    });
+      const basicSqsArn = 'arn:aws:sqs:region:account:some-queue-name'
+      expect(
+        basicEventSourceMappingResource.Properties.EventSourceArn,
+      ).to.equal(basicSqsArn)
+    })
 
     it('should suport `arn` (CF Fn::GetAtt)', () => {
-      const getAttSqsArn = { 'Fn::GetAtt': ['SomeQueue', 'Arn'] };
+      const getAttSqsArn = { 'Fn::GetAtt': ['SomeQueue', 'Arn'] }
       expect(
-        arnCfGetAttEventSourceMappingResource.Properties.EventSourceArn['Fn::GetAtt']
-      ).to.deep.equal(getAttSqsArn['Fn::GetAtt']);
-    });
+        arnCfGetAttEventSourceMappingResource.Properties.EventSourceArn[
+          'Fn::GetAtt'
+        ],
+      ).to.deep.equal(getAttSqsArn['Fn::GetAtt'])
+    })
 
     it('should suport `arn` (CF Fn::ImportValue)', () => {
-      const cfImportArn = { 'Fn::ImportValue': 'ForeignQueue' };
+      const cfImportArn = { 'Fn::ImportValue': 'ForeignQueue' }
       expect(
-        arnCfImportEventSourceMappingResource.Properties.EventSourceArn['Fn::ImportValue']
-      ).to.deep.equal(cfImportArn['Fn::ImportValue']);
-    });
+        arnCfImportEventSourceMappingResource.Properties.EventSourceArn[
+          'Fn::ImportValue'
+        ],
+      ).to.deep.equal(cfImportArn['Fn::ImportValue'])
+    })
 
     it('should suport `arn` (CF Fn::Join)', () => {
       const cfJoinArn = {
@@ -130,29 +160,37 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
             'MyQueue',
           ],
         ],
-      };
+      }
       expect(
-        arnCfJoinEventSourceMappingResource.Properties.EventSourceArn['Fn::Join']
-      ).to.deep.equal(cfJoinArn['Fn::Join']);
-    });
+        arnCfJoinEventSourceMappingResource.Properties.EventSourceArn[
+          'Fn::Join'
+        ],
+      ).to.deep.equal(cfJoinArn['Fn::Join'])
+    })
 
     it('should suport `batchSize`', () => {
-      const requestedBatchSize = 10;
-      expect(basicEventSourceMappingResource.Properties.BatchSize).to.equal(requestedBatchSize);
-    });
+      const requestedBatchSize = 10
+      expect(basicEventSourceMappingResource.Properties.BatchSize).to.equal(
+        requestedBatchSize,
+      )
+    })
 
     it('should suport `functionResponseType`', () => {
-      const requestedFunctionResponseType = 'ReportBatchItemFailures';
-      expect(basicEventSourceMappingResource.Properties.FunctionResponseTypes).to.include.members([
-        requestedFunctionResponseType,
-      ]);
-    });
+      const requestedFunctionResponseType = 'ReportBatchItemFailures'
+      expect(
+        basicEventSourceMappingResource.Properties.FunctionResponseTypes,
+      ).to.include.members([requestedFunctionResponseType])
+    })
 
     it('should ensure necessary IAM statememnts', () => {
       const iamRoleStatments = [
         {
           Effect: 'Allow',
-          Action: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:GetQueueAttributes'],
+          Action: [
+            'sqs:ReceiveMessage',
+            'sqs:DeleteMessage',
+            'sqs:GetQueueAttributes',
+          ],
           Resource: [
             'arn:aws:sqs:region:account:some-queue-name',
             'arn:aws:sqs:region:account:MyQueue',
@@ -177,16 +215,16 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
             },
           ],
         },
-      ];
+      ]
       expect(
-        iamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement
-      ).to.deep.include.members(iamRoleStatments);
-    });
-  });
+        iamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement,
+      ).to.deep.include.members(iamRoleStatments)
+    })
+  })
 
   describe('with provisioned concurrency', () => {
-    let naming;
-    let eventSourceMappingResource;
+    let naming
+    let eventSourceMappingResource
 
     before(async () => {
       const { awsNaming, cfTemplate } = await runServerless({
@@ -210,33 +248,40 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
           },
         },
         command: 'package',
-      });
-      naming = awsNaming;
-      const queueLogicalId = awsNaming.getQueueLogicalId('basic', 'MyQueue');
-      eventSourceMappingResource = cfTemplate.Resources[queueLogicalId];
-    });
+      })
+      naming = awsNaming
+      const queueLogicalId = awsNaming.getQueueLogicalId('basic', 'MyQueue')
+      eventSourceMappingResource = cfTemplate.Resources[queueLogicalId]
+    })
 
     it('should reference provisioned alias', () => {
       expect(
-        JSON.stringify(eventSourceMappingResource.Properties.FunctionName['Fn::Join'])
-      ).to.include('provisioned');
-    });
+        JSON.stringify(
+          eventSourceMappingResource.Properties.FunctionName['Fn::Join'],
+        ),
+      ).to.include('provisioned')
+    })
 
     it('should depend on provisioned alias', () => {
-      const aliasLogicalId = naming.getLambdaProvisionedConcurrencyAliasLogicalId('basic');
-      expect(eventSourceMappingResource.DependsOn).to.include(aliasLogicalId);
-    });
+      const aliasLogicalId =
+        naming.getLambdaProvisionedConcurrencyAliasLogicalId('basic')
+      expect(eventSourceMappingResource.DependsOn).to.include(aliasLogicalId)
+    })
 
     it('should have correct batch size', () => {
-      expect(eventSourceMappingResource.Properties.BatchSize).to.equal(10);
-    });
+      expect(eventSourceMappingResource.Properties.BatchSize).to.equal(10)
+    })
 
     it('should have correct batching window size', () => {
-      expect(eventSourceMappingResource.Properties.MaximumBatchingWindowInSeconds).to.equal(100);
-    });
+      expect(
+        eventSourceMappingResource.Properties.MaximumBatchingWindowInSeconds,
+      ).to.equal(100)
+    })
 
     it('should have correct filtering patterns', () => {
-      expect(eventSourceMappingResource.Properties.FilterCriteria).to.deep.equal({
+      expect(
+        eventSourceMappingResource.Properties.FilterCriteria,
+      ).to.deep.equal({
         Filters: [
           {
             Pattern: JSON.stringify({ a: [1, 2] }),
@@ -245,15 +290,17 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
             Pattern: JSON.stringify({ b: [3, 4] }),
           },
         ],
-      });
-    });
+      })
+    })
 
     it('should have correct maximum concurrency', () => {
-      expect(eventSourceMappingResource.Properties.ScalingConfig).to.deep.equal({
-        MaximumConcurrency: 250,
-      });
-    });
-  });
+      expect(eventSourceMappingResource.Properties.ScalingConfig).to.deep.equal(
+        {
+          MaximumConcurrency: 250,
+        },
+      )
+    })
+  })
 
   it('should not depend on default IAM role when custom role defined', async () => {
     const { awsNaming, cfTemplate } = await runServerless({
@@ -279,11 +326,11 @@ describe('test/unit/lib/plugins/aws/package/compile/events/sqs.test.js', () => {
         },
       },
       command: 'package',
-    });
+    })
 
-    const queueLogicalId = awsNaming.getQueueLogicalId('basic', 'MyQueue');
-    const eventSourceMappingResource = cfTemplate.Resources[queueLogicalId];
+    const queueLogicalId = awsNaming.getQueueLogicalId('basic', 'MyQueue')
+    const eventSourceMappingResource = cfTemplate.Resources[queueLogicalId]
 
-    expect(eventSourceMappingResource.DependsOn).to.deep.equal([]);
-  });
-});
+    expect(eventSourceMappingResource.DependsOn).to.deep.equal([])
+  })
+})

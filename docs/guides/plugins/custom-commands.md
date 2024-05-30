@@ -25,11 +25,11 @@ class MyPlugin {
       'my-command': {
         lifecycleEvents: ['resources', 'functions'],
       },
-    };
+    }
   }
 }
 
-module.exports = MyPlugin;
+module.exports = MyPlugin
 ```
 
 A CLI _Command_ that can be called by a user, e.g. `serverless foo`. A Command has no logic, but simply defines the CLI configuration (e.g. command, parameters) and the _Lifecycle Events_ for the command. Every command defines its own lifecycle events.
@@ -45,13 +45,13 @@ class MyPlugin {
       'my-command': {
         lifecycleEvents: ['run'],
       },
-    };
+    }
 
     this.hooks = {
       'my-command:run': () => {
         // Do something
       },
-    };
+    }
   }
 }
 ```
@@ -69,7 +69,7 @@ this.hooks = {
   'after:my-command:run': () => {
     // After
   },
-};
+}
 ```
 
 Note that a command can define multiple events: these will be called sequentially.
@@ -86,7 +86,7 @@ Options can be specified in the command definition. The value of the CLI option 
 ```javascript
 class MyPlugin {
   constructor(serverless, options) {
-    this.options = options;
+    this.options = options
 
     this.commands = {
       'my-command': {
@@ -96,22 +96,23 @@ class MyPlugin {
         options: {
           // Define the '--function' option with the '-f' shortcut
           function: {
-            usage: 'Specify the function you want to handle (e.g. "--function myFunction")',
+            usage:
+              'Specify the function you want to handle (e.g. "--function myFunction")',
             shortcut: 'f',
             required: true,
             type: 'string', // Possible values: 'string', 'boolean', 'multiple'
           },
         },
       },
-    };
+    }
 
     this.hooks = {
       'my-command:run': () => this.run(),
-    };
+    }
   }
 
   run() {
-    console.log('The option was: ', this.options.function);
+    console.log('The option was: ', this.options.function)
   }
 }
 ```

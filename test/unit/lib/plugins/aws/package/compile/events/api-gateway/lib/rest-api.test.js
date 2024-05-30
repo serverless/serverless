@@ -1,28 +1,30 @@
-'use strict';
+'use strict'
 
-const chai = require('chai');
-const AwsCompileApigEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/api-gateway/index');
-const Serverless = require('../../../../../../../../../../lib/serverless');
-const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
-const runServerless = require('../../../../../../../../../utils/run-serverless');
+const chai = require('chai')
+const AwsCompileApigEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/api-gateway/index')
+const Serverless = require('../../../../../../../../../../lib/serverless')
+const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider')
+const runServerless = require('../../../../../../../../../utils/run-serverless')
 
-const expect = chai.expect;
-chai.use(require('chai-as-promised'));
+const expect = chai.expect
+chai.use(require('chai-as-promised'))
 
 describe('#compileRestApi()', () => {
-  let serverless;
-  let awsCompileApigEvents;
+  let serverless
+  let awsCompileApigEvents
 
   beforeEach(() => {
     const options = {
       stage: 'dev',
       region: 'us-east-1',
-    };
-    serverless = new Serverless({ commands: [], options: {} });
-    serverless.setProvider('aws', new AwsProvider(serverless, options));
-    serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
-    awsCompileApigEvents = new AwsCompileApigEvents(serverless, options);
-    awsCompileApigEvents.serverless.service.service = 'new-service';
+    }
+    serverless = new Serverless({ commands: [], options: {} })
+    serverless.setProvider('aws', new AwsProvider(serverless, options))
+    serverless.service.provider.compiledCloudFormationTemplate = {
+      Resources: {},
+    }
+    awsCompileApigEvents = new AwsCompileApigEvents(serverless, options)
+    awsCompileApigEvents.serverless.service.service = 'new-service'
     awsCompileApigEvents.serverless.service.functions = {
       first: {
         events: [
@@ -34,13 +36,14 @@ describe('#compileRestApi()', () => {
           },
         ],
       },
-    };
-  });
+    }
+  })
 
   it('should create a REST API resource', () => {
-    awsCompileApigEvents.compileRestApi();
+    awsCompileApigEvents.compileRestApi()
     const resources =
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
 
     expect(resources.ApiGatewayRestApi).to.deep.equal({
       Type: 'AWS::ApiGateway::RestApi',
@@ -53,8 +56,8 @@ describe('#compileRestApi()', () => {
         },
         Policy: '',
       },
-    });
-  });
+    })
+  })
 
   it('should create a REST API resource with resource policy', () => {
     awsCompileApigEvents.serverless.service.provider.apiGateway = {
@@ -71,10 +74,11 @@ describe('#compileRestApi()', () => {
           },
         },
       ],
-    };
-    awsCompileApigEvents.compileRestApi();
+    }
+    awsCompileApigEvents.compileRestApi()
     const resources =
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
 
     expect(resources.ApiGatewayRestApi).to.deep.equal({
       Type: 'AWS::ApiGateway::RestApi',
@@ -102,14 +106,15 @@ describe('#compileRestApi()', () => {
           ],
         },
       },
-    });
-  });
+    })
+  })
 
   it('should provide open policy if no policy specified', () => {
     const resources =
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
 
-    awsCompileApigEvents.compileRestApi();
+    awsCompileApigEvents.compileRestApi()
     expect(resources.ApiGatewayRestApi).to.deep.equal({
       Type: 'AWS::ApiGateway::RestApi',
       Properties: {
@@ -121,27 +126,29 @@ describe('#compileRestApi()', () => {
         },
         Policy: '',
       },
-    });
-  });
+    })
+  })
 
   it('should ignore REST API resource creation if there is predefined restApi config', () => {
     awsCompileApigEvents.serverless.service.provider.apiGateway = {
       restApiId: '6fyzt1pfpk',
       restApiRootResourceId: 'z5d4qh4oqi',
-    };
-    awsCompileApigEvents.compileRestApi();
+    }
+    awsCompileApigEvents.compileRestApi()
     expect(
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-    ).to.deep.equal({});
-  });
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources,
+    ).to.deep.equal({})
+  })
 
   it('should set binary media types if defined at the apiGateway provider config level', () => {
     awsCompileApigEvents.serverless.service.provider.apiGateway = {
       binaryMediaTypes: ['*/*'],
-    };
-    awsCompileApigEvents.compileRestApi();
+    }
+    awsCompileApigEvents.compileRestApi()
     const resources =
-      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
 
     expect(resources.ApiGatewayRestApi).to.deep.equal({
       Type: 'AWS::ApiGateway::RestApi',
@@ -154,26 +161,26 @@ describe('#compileRestApi()', () => {
         Name: 'dev-new-service',
         Policy: '',
       },
-    });
-  });
+    })
+  })
 
   it('should throw error if endpointType property is not PRIVATE and vpcEndpointIds property is [id1]', () => {
-    awsCompileApigEvents.serverless.service.provider.endpointType = 'Testing';
-    awsCompileApigEvents.serverless.service.provider.vpcEndpointIds = ['id1'];
-    expect(() => awsCompileApigEvents.compileRestApi()).to.throw(Error);
-  });
-});
+    awsCompileApigEvents.serverless.service.provider.endpointType = 'Testing'
+    awsCompileApigEvents.serverless.service.provider.vpcEndpointIds = ['id1']
+    expect(() => awsCompileApigEvents.compileRestApi()).to.throw(Error)
+  })
+})
 
 describe('lib/plugins/aws/package/compile/events/apiGateway/lib/restApi.test.js', () => {
   it('should not disable the default execute-api endpoint by default', async () => {
     const { cfTemplate } = await runServerless({
       fixture: 'api-gateway',
       command: 'package',
-    });
-    const resource = cfTemplate.Resources.ApiGatewayRestApi;
+    })
+    const resource = cfTemplate.Resources.ApiGatewayRestApi
 
-    expect(resource.Properties.DisableExecuteApiEndpoint).to.equal(undefined);
-  });
+    expect(resource.Properties.DisableExecuteApiEndpoint).to.equal(undefined)
+  })
 
   it('should support `provider.apiGateway.disableDefaultEndpoint`', async () => {
     const { cfTemplate } = await runServerless({
@@ -186,11 +193,11 @@ describe('lib/plugins/aws/package/compile/events/apiGateway/lib/restApi.test.js'
           },
         },
       },
-    });
-    const resource = cfTemplate.Resources.ApiGatewayRestApi;
+    })
+    const resource = cfTemplate.Resources.ApiGatewayRestApi
 
-    expect(resource.Properties.DisableExecuteApiEndpoint).to.equal(true);
-  });
+    expect(resource.Properties.DisableExecuteApiEndpoint).to.equal(true)
+  })
 
   it('should support `provider.apiGateway.resourcePolicy[].Principal.AWS with Fn::If`', async () => {
     const { cfTemplate } = await runServerless({
@@ -214,13 +221,15 @@ describe('lib/plugins/aws/package/compile/events/apiGateway/lib/restApi.test.js'
           },
         },
       },
-    });
-    const resource = cfTemplate.Resources.ApiGatewayRestApi;
+    })
+    const resource = cfTemplate.Resources.ApiGatewayRestApi
 
-    expect(resource.Properties.Policy.Statement[0].Principal.AWS).to.deep.equal({
-      'Fn::If': ['Condition', 'FirstVal', 'SecondVal'],
-    });
-  });
+    expect(resource.Properties.Policy.Statement[0].Principal.AWS).to.deep.equal(
+      {
+        'Fn::If': ['Condition', 'FirstVal', 'SecondVal'],
+      },
+    )
+  })
 
   it('should support `provider.apiGateway.minimumCompressionSize to be set to 0`', async () => {
     const { cfTemplate } = await runServerless({
@@ -233,11 +242,11 @@ describe('lib/plugins/aws/package/compile/events/apiGateway/lib/restApi.test.js'
           },
         },
       },
-    });
-    const resource = cfTemplate.Resources.ApiGatewayRestApi;
+    })
+    const resource = cfTemplate.Resources.ApiGatewayRestApi
 
-    expect(resource.Properties.MinimumCompressionSize).to.equal(0);
-  });
+    expect(resource.Properties.MinimumCompressionSize).to.equal(0)
+  })
 
   it('should support `provider.apiGateway.description`', async () => {
     const { cfTemplate } = await runServerless({
@@ -250,9 +259,9 @@ describe('lib/plugins/aws/package/compile/events/apiGateway/lib/restApi.test.js'
           },
         },
       },
-    });
-    const resource = cfTemplate.Resources.ApiGatewayRestApi;
+    })
+    const resource = cfTemplate.Resources.ApiGatewayRestApi
 
-    expect(resource.Properties.Description).to.equal('API Test DEV');
-  });
-});
+    expect(resource.Properties.Description).to.equal('API Test DEV')
+  })
+})

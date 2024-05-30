@@ -1,27 +1,27 @@
-'use strict';
+'use strict'
 
-const { expect } = require('chai');
-const sinon = require('sinon');
-const proxyquire = require('proxyquire').noCallThru();
+const { expect } = require('chai')
+const sinon = require('sinon')
+const proxyquire = require('proxyquire').noCallThru()
 
 describe('ensureApiGatewayCloudWatchRole', () => {
-  let provider;
-  let resources;
-  let addCustomResourceToServiceStub;
-  let ensureApiGatewayCloudWatchRole;
-  const customResourceLogicalId = 'CustomResourceId';
+  let provider
+  let resources
+  let addCustomResourceToServiceStub
+  let ensureApiGatewayCloudWatchRole
+  const customResourceLogicalId = 'CustomResourceId'
 
   beforeEach(() => {
-    addCustomResourceToServiceStub = sinon.stub().resolves();
+    addCustomResourceToServiceStub = sinon.stub().resolves()
     ensureApiGatewayCloudWatchRole = proxyquire(
       '../../../../../../../../../lib/plugins/aws/package/compile/events/lib/ensure-api-gateway-cloud-watch-role',
       {
         '../../../../custom-resources': {
           addCustomResourceToService: addCustomResourceToServiceStub,
         },
-      }
-    );
-    resources = {};
+      },
+    )
+    resources = {}
     provider = {
       serverless: {
         service: {
@@ -35,10 +35,11 @@ describe('ensureApiGatewayCloudWatchRole', () => {
       naming: {
         getCustomResourceApiGatewayAccountCloudWatchRoleResourceLogicalId: () =>
           customResourceLogicalId,
-        getCustomResourceApiGatewayAccountCloudWatchRoleHandlerFunctionLogicalId: () => 'bar',
+        getCustomResourceApiGatewayAccountCloudWatchRoleHandlerFunctionLogicalId:
+          () => 'bar',
       },
-    };
-  });
+    }
+  })
 
   describe('when using a custom REST API role', () => {
     it('should add the custom REST API role to the resources', async () => {
@@ -46,9 +47,9 @@ describe('ensureApiGatewayCloudWatchRole', () => {
         restApi: {
           role: 'arn:aws:iam::XXXXX:role/api-gateway-role',
         },
-      };
+      }
 
-      await ensureApiGatewayCloudWatchRole(provider);
+      await ensureApiGatewayCloudWatchRole(provider)
 
       expect(resources[customResourceLogicalId]).to.deep.equal({
         Type: 'Custom::ApiGatewayAccountRole',
@@ -59,9 +60,9 @@ describe('ensureApiGatewayCloudWatchRole', () => {
           },
           RoleArn: 'arn:aws:iam::XXXXX:role/api-gateway-role',
         },
-      });
-    });
-  });
+      })
+    })
+  })
 
   describe('when role assignment is managed externally', () => {
     it('should not add any custom resources', async () => {
@@ -70,26 +71,26 @@ describe('ensureApiGatewayCloudWatchRole', () => {
           role: 'arn:aws:iam::XXXXX:role/api-gateway-role',
           roleManagedExternally: true,
         },
-      };
+      }
 
-      await ensureApiGatewayCloudWatchRole(provider);
+      await ensureApiGatewayCloudWatchRole(provider)
 
-      expect(resources[customResourceLogicalId]).to.be.undefined;
-    });
-  });
+      expect(resources[customResourceLogicalId]).to.be.undefined
+    })
+  })
 
   describe('when leveraging custom resources', () => {
     it('Should memoize custom resource generator', async () => {
       await Promise.all([
         ensureApiGatewayCloudWatchRole(provider),
         ensureApiGatewayCloudWatchRole(provider),
-      ]);
+      ])
 
-      expect(addCustomResourceToServiceStub.calledOnce).to.be.true;
-    });
+      expect(addCustomResourceToServiceStub.calledOnce).to.be.true
+    })
 
     it('Should ensure custom resource on template', async () => {
-      await ensureApiGatewayCloudWatchRole(provider);
+      await ensureApiGatewayCloudWatchRole(provider)
 
       expect(resources[customResourceLogicalId]).to.deep.equal({
         Type: 'Custom::ApiGatewayAccountRole',
@@ -100,7 +101,7 @@ describe('ensureApiGatewayCloudWatchRole', () => {
             'Fn::GetAtt': ['bar', 'Arn'],
           },
         },
-      });
-    });
-  });
-});
+      })
+    })
+  })
+})

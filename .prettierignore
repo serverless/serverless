@@ -4,3 +4,7 @@
 /test/unit/lib/configuration/variables/sources/fixture/invalid.json
 /test/unit/lib/configuration/variables/sources/fixture/invalid.yml
 !/test/fixtures/programmatic/locallyInstalledServerless/node_modules/**
+/.github
+../sf-core
+../standards/
+.eslintrc.cjs
