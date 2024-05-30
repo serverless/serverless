@@ -1,5 +1,5 @@
 name: 🐛 Bug Report
-description: Create a Bug Report. If you're using V.4, get priority support directly from our team using the "serverless support" command, using the Serverless Framework Dashboard or emailing us at support AT serverless.com
+description: Create a Bug Report. If you're using V.4, get priority support directly from our team using the "serverless support" command, the Dashboard or email us at support AT serverless.com
 body:
   - type: textarea
     attributes:
