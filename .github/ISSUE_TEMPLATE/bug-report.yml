@@ -16,4 +16,4 @@ body:
         If you're not using V.4, please include your serverless.yml, version, and anything else relevant to your issue.
         If not applicable, fill with "N/A"
     validations:
-      required: true
+      required: false
