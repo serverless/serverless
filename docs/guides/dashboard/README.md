@@ -53,6 +53,4 @@ app: # A parent namespce for this Service and related Services App name (e.g. mo
 
 ```
 
-You must deploy your Service to have it show in the Dashboard with the following configuration in your YAML file. Run `serverless deploy` to do this.
-
-By default, Deployment history and Observability will be set up automatically. To enable Observability, Serverless Framework will automatically create an AWS IAM Role within the AWS account you deployed to, giving Serverless Inc permission to AWS Cloudwatch and more. [You can transparently see the permissions this role requires in Github](https://github.com/serverless/console/blob/main/instrumentation/aws/iam-role-cfn-template.yaml).
+You must deploy your Service with the above configuration in your YAML file to have it show in the Dashboard. Run `serverless deploy` to do this. The Serverless Framework will automatically create an AWS IAM Role within the AWS account you deployed to, giving Serverless Inc permission to AWS Cloudwatch and more. [You can transparently see the permissions this role requires in Github](https://github.com/serverless/console/blob/main/instrumentation/aws/iam-role-cfn-template.yaml). By default, Deployment history will be set up automatically.
