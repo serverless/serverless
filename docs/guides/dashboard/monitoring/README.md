@@ -162,7 +162,7 @@ Please note that if you remove an Integration, if you immediately create a new I
 
 ### Disabling A Service
 
-To disable Serverless Framework's Monitoring & Observability features within a specific Serverless Framework Service, you can remove the `app` property from your `serverless.yml` file. This action will prevent your AWS account from being integrated and your AWS Lambda functions from being instrumented. If you prefer to disable only the service function instrumentation while retaining other dashboard features, you can do so under the `stages` property:
+To disable Serverless Framework's Monitoring & Observability features within a specific Serverless Framework Service, you can do so under the stages property. This action will prevent your AWS Lambda functions from being instrumented, and un-instrument them if they are already instrumented.
 
 ```yml
 org: my-org
@@ -172,6 +172,8 @@ stages:
   prod:
     observability: false
 ```
+
+Please note, if you have an Observability Integration already established with one or multiple AWS accounts, you will have to delete those via the [Serverless Framework Dashboard)[https://app.serverless.com]
 
 ### Disabling Trace Sampling
 
