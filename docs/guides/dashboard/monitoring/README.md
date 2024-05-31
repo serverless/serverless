@@ -62,17 +62,32 @@ Please note, Metrics, Traces and more typically can take up to 10 minutes before
 
 ### Set-Up Via Serverless Framework CLI
 
-You can use the Serverless Framework CLI to enable Monitoring & Observability. This approach will automatically connect the Serverless Framework Platform to an AWS account and enable monitoring on all of the AWS Lambda functions within a Serverless Framework Service.
+You can use the Serverless Framework CLI to enable Monitoring & Observability. This approach will automatically connect the Serverless Framework Platform to an AWS account and enable monitoring on all of the AWS Lambda functions for the selected stages within the Serverless Framework Service.
 
-However, if you want to connect multiple AWS account(s) and/or enable monitoring on all AWS Lambda functions within an AWS account, doing set-up via the Serverless Framework Dashboard UI is more convenient, since you can accomplish this in a few clicks.
+However, if you want to connect multiple AWS accounts and/or enable monitoring on all AWS Lambda functions within an AWS account, setting it up via the Serverless Framework Dashboard UI is more convenient, as you can accomplish this in a few clicks.
 
-Within the working directory of a Serverless Framework Service, ensure the Service is first connected to Serverless Framework Dashboard, evidenced by having an `org` and `app` property within its `serverless.yml` file. If the Service is not connected to Dashboard, run the `serverless` command within the working directory of the Serverless Framework Service.
+Within the working directory of a Serverless Framework Service, ensure the Service is first connected to the Serverless Framework Dashboard. This can be confirmed by the presence of an org and app properties within the serverless.yml file. If the Service is not connected to the Dashboard, run the `serverless` command within the working directory of the Serverless Framework Service. Once your service is connected to the Serverless Dashboard, you can control your observability instrumentation settings under the stages property in your serverless.yml file:
 
-If those properties are set, perform a deployment via `sls deploy`. During the deployment, an integration will be established between Serverless Framework and the AWS account the deployment is targetting, automatically. Also during the deployment, all of the AWS Lambda functions will be instrumented within that Serverless Framework Service.
+```yml
+# Ensure these properties are present to connect to the Dashboard
+org: my-org
+app: my-app
 
-After deployment, confirm everything worked within the [Serverless Framework Dashboard](https://app.serverless.com). Go to "Settings" > "Integrations", and you should see the AWS Account that was recently integrated. We highly recommend you give that account a name, so it's easier to remember and find in Dashboard's query filters.
+# Control observability instrumentation settings under stages
+stages:
+  dev:
+    observability: true # Turn on observability in the dev stage
+  prod:
+    observability: true # Turn on observability in the prod stage
+  default:
+    observability: false # Turn off observability in all other stages
+```
 
-If you click on the "Edit" button on that Integration, you should see all of the AWS Lambda functions in the account, and the ones within your Serverless Framework Service should have their "Instrumented" toggle enabled.
+Now, whenever you deploy, observability will be enabled or disabled according to the stage you are deploying to. In the above example, observability will be enabled in the dev and prod stages but disabled in all other stages.
+
+After deployment, confirm everything worked within the Serverless Framework Dashboard. Go to "Settings" > "Integrations," and you should see the AWS account that was recently integrated. We highly recommend giving that account a name so it's easier to remember and find in the Dashboard's query filters.
+
+If you click on the "Edit" button on that Integration, you should see all of the AWS Lambda functions in the account, indicating which ones are enabled and which are disabled.
 
 Please note, Metrics, Traces and more typically can take up to 10 minutes before they are visible in Serverless Framework Dashboard, after an AWS account has been integrated.
 
@@ -147,12 +162,18 @@ Please note that if you remove an Integration, if you immediately create a new I
 
 ### Disabling A Service
 
-If you wish to disable Serverless Framework's Monitoring & Observability features within a specific Serverless Framework Service, you can do so with the YAML configuration below. Doing this will prevent an AWS account from being integrated, and prevent your AWS Lambda functions from being instrumented:
+To disable Serverless Framework's Monitoring & Observability features within a specific Serverless Framework Service, you can do so under the stages property. This action will prevent your AWS Lambda functions from being instrumented, and un-instrument them if they are already instrumented.
 
-```yaml
-dashboard:
-  disableMonitoring: true
+```yml
+org: my-org
+app: my-app
+
+stages:
+  prod:
+    observability: false
 ```
+
+Please note, if you have an Observability Integration already established with one or multiple AWS accounts, you will have to delete those via the [Serverless Framework Dashboard)[https://app.serverless.com]
 
 ### Disabling Trace Sampling
 
