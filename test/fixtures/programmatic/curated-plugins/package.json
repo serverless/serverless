@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "serverless-offline": "8.3.1",
+    "serverless-offline": "9.0.0",
     "webpack": "5.66.0",
     "serverless-webpack": "5.6.0",
     "serverless-domain-manager": "5.3.0",

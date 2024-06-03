@@ -4,7 +4,7 @@ name: Integrate
 
 on:
   push:
-    branches: [main]
+    branches: [v3]
 
 env:
   SLS_IGNORE_WARNING: '*'

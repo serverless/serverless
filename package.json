@@ -22,6 +22,12 @@
     "sls": "./bin/serverless.js"
   },
   "dependencies": {
+    "@aws-sdk/client-api-gateway": "^3.588.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.588.0",
+    "@aws-sdk/client-eventbridge": "^3.588.0",
+    "@aws-sdk/client-iam": "^3.588.0",
+    "@aws-sdk/client-lambda": "^3.588.0",
+    "@aws-sdk/client-s3": "^3.588.0",
     "@serverless/dashboard-plugin": "^7.2.0",
     "@serverless/platform-client": "^4.5.1",
     "@serverless/utils": "^6.13.1",
