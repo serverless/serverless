@@ -46,15 +46,7 @@ A handy list of commands to use when developing with the Serverless Framework.
 Creates a new Service
 
 ```bash
-serverless create -p [SERVICE NAME] -t aws-nodejs
-```
-
-##### Install A Service
-
-This is a convenience method to install a pre-made Serverless Service locally by downloading the Github repo and unzipping it.
-
-```bash
-serverless install -u [GITHUB URL OF SERVICE]
+serverless
 ```
 
 ##### Deploy All
@@ -71,6 +63,16 @@ Use this to quickly overwrite your AWS Lambda code on AWS, allowing you to devel
 
 ```bash
 serverless deploy function -f [FUNCTION NAME] -s [STAGE NAME] -r [REGION NAME]
+```
+
+##### Develop Locally
+
+Use this to easily develop your AWS Lambda Functions locally. This will run your AWS Lambda Functions locally and allow you to send events to them on AWS.
+
+Currently this is only supported for Node.js. Learn more about the [dev command](/framework/docs/providers/aws/cli-reference/dev).
+
+```bash
+serverless dev
 ```
 
 ##### Invoke Function
