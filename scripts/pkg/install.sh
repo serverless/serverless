@@ -59,7 +59,7 @@ then
   then
     TAG=`curl -L --silent https://sls-standalone-sv-1300963013.cos.na-siliconvalley.myqcloud.com/latest-tag`
   else
-    TAG='v3.38.0'
+    TAG='v3.39.0'
   fi
   VERSION=${TAG:1}
 else

@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.39.0](https://github.com/serverless/serverless/compare/v3.38.0...v3.39.0) (2024-06-04)
+
+### Features
+
+- Add support for java21 runtime ([#12273](https://github.com/serverless/serverless/issues/12273)) ([#12274](https://github.com/serverless/serverless/issues/12274)) ([e4dfebd](https://github.com/serverless/serverless/commit/e4dfebdcf66a0f26138f6774b057924128efbfa5))
+- Update custom resources to node18 ([d40e9f4](https://github.com/serverless/serverless/commit/d40e9f4b323a737a0b13b35f705bfa54d6614a9b))
+
+### Bug Fixes
+
+- pin install.sh to v3 ([0f52de4](https://github.com/serverless/serverless/commit/0f52de4b34815d233c2c89a79661a806feddcec8))
+
 ## [3.38.0](https://github.com/serverless/serverless/compare/v3.37.0...v3.38.0) (2023-11-21)
 
 ### Features
