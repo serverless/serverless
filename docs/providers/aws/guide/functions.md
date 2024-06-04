@@ -414,6 +414,28 @@ functions:
     architecture: arm64
 ```
 
+## Runtime
+
+The `runtime` configuration specifies which [AWS Runtime](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html) your functions use. If you set `runtime` to `provided` or `provided.al2`, include your provided runtime as a [layer](#layers). 
+
+You can configure `runtime` for all functions at the `provider` level:
+
+```yml
+provider:
+  ...
+  runtime: nodejs14.x
+```
+
+To set the `runtime` per function individually, set it directly at `functions[]` context:
+
+```yml
+functions:
+  hello:
+    ...
+    runtime: python3.9
+```
+
+
 ## Runtime Management
 
 [Runtime Management](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html) allows for fine-grained control of the runtime being used for a lambda function in the rare event of compatibility issues with a function.
@@ -637,8 +659,7 @@ functions:
       - arn:aws:lambda:region:XXXXXX:layer:LayerName:Y
 ```
 
-Layers can be used in combination with `runtime: provided` to implement your own custom runtime on
-AWS Lambda.
+Layers can be used in combination with `runtime: provided` or `runtime: provided.al2` to implement your own custom [runtime](#runtime) on AWS Lambda.
 
 To publish Lambda Layers, check out the [Layers](./layers.md) documentation.
 
