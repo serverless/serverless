@@ -126,6 +126,12 @@ provider:
   # Function environment variables
   environment:
     APP_ENV_VARIABLE: FOOBAR
+  # CloudWatch logs class (default: STANDARD).
+  # Can be overridden for each function separately inside the functions block, see below on page.
+  # Valid values: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-loggroup.html
+  logGroupClass: INFREQUENT_ACCESS
+  # Defines whether LogGroupClass can be changed for existing functions
+  changeableLogGroupClass: false
   # Duration for CloudWatch log retention (default: forever).
   # Can be overridden for each function separately inside the functions block, see below on page.
   # Valid values: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-loggroup.html
