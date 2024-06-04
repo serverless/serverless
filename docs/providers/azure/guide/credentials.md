@@ -79,7 +79,6 @@ This will yield something like:
 {
   "appId": "19f7b7c1-fc4e-4c92-8aaf-21fffc93b4c9",
   "displayName": "azure-cli-1970-01-01-00-00-00",
-  "name": "http://azure-cli-1970-01-01-00-00-00",
   "password": "48d82644-00f2-4e64-80c5-65192f9bb2d0",
   "tenant": "16f63fe8-17db-476f-b2b3-ba3752a03a33"
 }
@@ -95,7 +94,7 @@ Add the following environment variables to the shell session or CI/CD tool that 
 # bash
 export AZURE_SUBSCRIPTION_ID='<subscriptionId>' # From step 3
 export AZURE_TENANT_ID='<tenant>'
-export AZURE_CLIENT_ID='<name>'
+export AZURE_CLIENT_ID='<appId>'
 export AZURE_CLIENT_SECRET='<password>'
 ```
 
@@ -103,6 +102,6 @@ export AZURE_CLIENT_SECRET='<password>'
 # PowerShell
 $env:AZURE_SUBSCRIPTION_ID='<subscriptionId>' # From step 3
 $env:AZURE_TENANT_ID='<tenant>'
-$env:AZURE_CLIENT_ID='<name>'
+$env:AZURE_CLIENT_ID='<appId>'
 $env:AZURE_CLIENT_SECRET='<password>'
 ```
