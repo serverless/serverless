@@ -1,19 +1,18 @@
 <!--
-title: Serverless Framework Dashboard - Parameters
-menuText: Parameters
-menuOrder: 3
+title: Serverless Framework - Parameters
+description: How the Serverless Framework parameters work and how to use them.
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/parameters/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/parameters)
 
 <!-- DOCS-SITE-LINK:END -->
 
 # Parameters
 
-Parameters can be defined in `serverless.yml`, [Serverless Dashboard](https://www.serverless.com/secrets) or passed via CLI with `--param="<key>=<value>"` flag. They can be used for example to:
+Parameters can be defined in `serverless.yml`, [Serverless Dashboard](https://app.serverless.com) or passed via CLI with `--param="<key>=<value>"` flag. They can be used for example to:
 
 - adapt the configuration based on the stage
 - store secrets securely
@@ -38,26 +37,31 @@ provider:
 
 ## Stage parameters
 
-Parameters can be defined **for each stage** in `serverless.yml` under the `params` key:
+Parameters can be defined **for each stage** in `serverless.yml` under the `stages.<stage>.params` key:
 
 ```yaml
-params:
+stages:
   prod:
-    domain: myapp.com
+    params:
+      domain: myapp.com
   dev:
-    domain: preview.myapp.com
+    params:
+      domain: preview.myapp.com
 ```
 
 Use the `default` key to define parameters that apply to all stages by default:
 
 ```yaml
-params:
+stages:
   default:
-    domain: ${sls:stage}.preview.myapp.com
+    params:
+      domain: ${sls:stage}.preview.myapp.com
   prod:
-    domain: myapp.com
+    params:
+      domain: myapp.com
   dev:
-    domain: preview.myapp.com
+    params:
+      domain: preview.myapp.com
 ```
 
 Parameters can then be used via the `${param:XXX}` variables:
@@ -94,49 +98,13 @@ To manage parameters on a service, go to the **apps** section of the dashboard, 
 
 To manage parameters on an instance, go to the **app** section of the dashboard, select the instance, and go to the **params** tab.
 
-### Retrieving parameters from the command line
-
-Dashboard parameters can also be accessed on the CLI. You can use this at development time to look up the parameters without opening the dashboard, or in your CI/CD pipeline to use the parameters in custom scripts.
-
-#### List parameters
-
-If you are in a directory with a `serverless.yml`, the parameters will be listed for the org, app, and service specified in the `serverless.yml` file:
-
-```bash
-serverless param list [--stage <stage>]
-```
-
-If you are in a directory without a `serverless.yml`, or if you want to access parameters from another org, app, service, stage, or region, you can pass in the optional flags:
-
-```bash
-serverless param list
-  [--org <org>]
-  [--app <app>]
-  [--service <service>]
-  [--stage <stage>]
-  [--region <region>]
-```
-
-#### Get a parameter
-
-Individual parameters can also be accessed from the CLI using the `param get` sub-command. This command requires the `--name <name>` flag to identify the parameter name. Like the `sls param list`, you can optionally specify a different org, app, service, stage, ore region using flags.
-
-```bash
-serverless param get --name <name>
-  [--org <org>]
-  [--app <app>]
-  [--service <service>]
-  [--stage <stage>]
-  [--region <region>]
-```
-
 ## Inheritance and overriding
 
 Parameters can be defined in `serverless.yml` per stage, as well as in Serverless Dashboard on the service or the instance (stage). Here is the priority used to resolve a `${param:XXX}` variable:
 
 - First, look in params passed with `--param` CLI flag
-- If not found, then look in `params.<stage>` in `serverless.yml`
-- If not found, then look in `params.default` in `serverless.yml`
+- If not found, then look in `stages.<stage>.params` in `serverless.yml`
+- If not found, then look in `stages.default.params` in `serverless.yml`
 - If not found, then look in the instance's parameters in the Dashboard
 - If not found, then look in the service's parameters in the Dashboard
 - If not found, throw an error, or use the fallback value if one was provided: `${param:XXX, 'default value'}`

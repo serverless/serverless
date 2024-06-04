@@ -82,3 +82,29 @@ Auto-updating has been introduced in Serverless Framework V.4. This is checked o
 Git-related Serverless Framework Variables have been introduced into the Variable system.
 
 As a result, the [Serverless Git Variables Plugin](https://github.com/jacob-meacham/serverless-plugin-git-variables) no longer works.
+
+## Updated stages syntax
+
+In V.4 there is a new global stages syntax that allows you to define parameters for each stage. This is not a breaking change for the previous `stages` syntax; however, the new syntax is recommended.
+
+The old V.3 syntax:
+```yaml
+params:
+  default:
+    key1: devValue
+  prod:
+    key1: prodValue
+```
+
+The new V.4 syntax:
+```yaml
+stages:
+  default:
+    params:
+      key1: devValue
+  prod:
+    params:
+      key1: prodValue
+```
+
+The functionality is similar, but parameters should be defined under `stages.<stage>.params` instead of just `params.<stage>`.
