@@ -1205,6 +1205,24 @@ describe('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
 
       expect(output).to.include('Invoked');
     });
+    it('should support loading handlers that are ES modules with `.mjs` extension in packages of `module` type', async () => {
+      const { output } = await runServerless({
+        fixture: 'invocation',
+        command: 'invoke local',
+        options: { function: 'asyncEsmMjsInModulePackageType' },
+      });
+
+      expect(output).to.include('Invoked');
+    });
+    it('should support loading handlers that are ES modules with `.mjs` extension in packages of `commonjs` type', async () => {
+      const { output } = await runServerless({
+        fixture: 'invocation',
+        command: 'invoke local',
+        options: { function: 'asyncEsmMjsInCommonjsPackageType' },
+      });
+
+      expect(output).to.include('Invoked');
+    });
   });
 
   describe('Python', () => {
