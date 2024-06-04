@@ -725,6 +725,10 @@ processSpanPromise = (async () => {
             s3: require('../lib/configuration/variables/sources/instance-dependent/get-s3')(
               serverless
             ),
+            secretsmanager:
+              require('../lib/configuration/variables/sources/instance-dependent/get-secretsmanager')(
+                serverless
+              ),
             ssm: require('../lib/configuration/variables/sources/instance-dependent/get-ssm')(
               serverless
             ),
@@ -732,7 +736,12 @@ processSpanPromise = (async () => {
               serverless
             ),
           });
-          resolverConfiguration.fulfilledSources.add('cf').add('s3').add('ssm').add('aws');
+          resolverConfiguration.fulfilledSources
+            .add('cf')
+            .add('s3')
+            .add('secretsmanager')
+            .add('ssm')
+            .add('aws');
         }
 
         // Register variable source resolvers provided by external plugins
