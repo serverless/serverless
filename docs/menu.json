@@ -42,7 +42,9 @@
     "Layers": "providers/aws/guide/layers",
     "IAM Function Permissions": "providers/aws/guide/iam",
     "Parameters": "guides/parameters",
-    "Variables": "providers/aws/guide/variables",
+    "Variables": {
+      "Overview": "guides/variables"
+    },
     "Resources": "providers/aws/guide/resources",
     "Composing Services": "guides/compose",
     "Workflow Tips": "providers/aws/guide/workflow",
