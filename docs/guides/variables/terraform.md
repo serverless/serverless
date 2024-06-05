@@ -69,11 +69,9 @@ stages:
     resolvers:
       terraform:
         type: terraform
-        outputs:
-          type: outputs
-          backend: s3
-          bucket: terraform-state
-          key: users-table/terraform.tfstate
+        backend: s3
+        bucket: terraform-state
+        key: users-table/terraform.tfstate
 
 functions:
   api:
@@ -94,25 +92,18 @@ stages:
     resolvers:
       terraform:
         type: terraform
+        backend: s3
+        bucket: terraform-state
+        key: users-table/terraform.tfstate
 ```
 
-In the `terraform` resolver we then have to declare the outputs resolver. For convenience we will also name it `outputs`.
-
-```yaml
-outputs:
-  type: outputs
-  backend: s3
-  bucket: terraform-state
-  key: users-table/terraform.tfstate
-```
-
-In the `outputs` resolver we have to provide the following configuration:
-- `type: outputs` - The type of the resolver. This is required and must be set to `outputs`.
-- `backend: s3` - The backend where the Terraform State Outputs are stored. In this case, the Terraform State Outputs are stored in an S3 bucket. Currently only `s3` is supported.
-- `bucket: terraform-state` - The name of the S3 bucket where the Terraform State Outputs are stored.
-- `key: users-table/terraform.tfstate` - The key of the Terraform State Outputs file in the S3 bucket.
-- `region: us-east-1` - (optional) - The region of the S3 bucket where the Terraform State Outputs are stored. This is optional and if not provided the default region will be used.
-- `profile: dev` (optional) - The AWS profile to use when fetching the Terraform State Outputs. This is optional and if not provided the default profile will be used. This can be used to reference a different AWS profile than the one used by the Serverless Framework.
+In the `terraform` resolver we have to provide the following configuration:
+- `type` - The type of the resolver. This is required and must be set to `terraform`.
+- `backend` - The backend where the Terraform State Outputs are stored. In this case, the Terraform State Outputs are stored in an S3 bucket. Currently only `s3` is supported.
+- `bucket` - The name of the S3 bucket where the Terraform State Outputs are stored.
+- `key` - The key of the Terraform State Outputs file in the S3 bucket.
+- `region` - (optional) - The region of the S3 bucket where the Terraform State Outputs are stored. This is optional and if not provided the default region will be used.
+- `profile` (optional) - The AWS profile to use when fetching the Terraform State Outputs. This is optional and if not provided the default profile will be used. This can be used to reference a different AWS profile than the one used by the Serverless Framework.
 
 As you can see from this configuration, these values all match the values in the terraform backend configuration in the Terraform configuration file.
 
@@ -120,7 +111,7 @@ Now the `${terraform:outputs:users_table_name}` variable can be used in the `ser
 
 Since Variable Resolvers are a new concept in Serverless Framework V.4 it is worth mentioning that the variable reference, `${terraform:outputs}` is based on the keys declared in the `resolvers` section of the `serverless.yml`
 
-For example, if we changes the configuration and replaced `terraform:` with `infra:`, and `outputs:` with `config:`, then we'd have to use `${infra:config:users_table_name}` instead of `${terraform:outputs:users_table_name}`.
+For example, if we changes the configuration and replaced `terraform:` with `infra:`, then we'd have to use `${infra:outputs:users_table_name}` instead of `${terraform:outputs:users_table_name}`.
 
 ```yaml
 stages:
@@ -128,7 +119,4 @@ stages:
     resolvers:
       infra:
         type: terraform
-        config:
-          type: outputs
-          # ...other properties
 ```
