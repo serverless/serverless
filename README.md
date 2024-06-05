@@ -1,6 +1,5 @@
 [![sfv4_00000](https://github.com/serverless/serverless/assets/2752551/6cf62477-7834-49dc-9a41-f71b76d70a18)](https://github.com/serverless/serverless/tree/v4.0)
 
-
 <h1></h1>
 <br/>
 
