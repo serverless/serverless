@@ -18,6 +18,11 @@ It is a popular use case to use Terraform and Serverless Framework in conjunctio
 
 In this case, it is helpful to access the Terraform State Outputs from within your serverless.yml file so at deployment time it can look up details about the shared infrastructure, like the RDS connection string, or SQS Queue ARN.
 
+The Terraform Variable Resolver supports getting the Terraform State Outputs from either an `s3`, `remote`, or `cloud` backend. The `s3` backend is used when the Terraform State is stored in an S3 bucket, while the `remote` backend is used when the Terraform States is stored in a remote backend like Terraform HCP or compatible services like JFrog Artifactory Terraform Backend Repository.
+
+
+## Getting Outputs From The `s3` Backend
+
 Suppose you have a Terraform configuration that creates a DynamoDB table and you want to reference the name and ARN of the table in your serverless.yml file. You can use the `terraform` resolver to reference the Terraform State Outputs.
 
 ```hcl
@@ -64,27 +69,14 @@ After the `terraform apply` the Terraform State Outputs will be stored in the S3
 Those outputs can be referenced in the `serverless.yml` file like this:
 
 ```yaml
-stages:
-  default:
-    resolvers:
-      terraform:
-        type: terraform
-        backend: s3
-        bucket: terraform-state
-        key: users-table/terraform.tfstate
-
-functions:
-  api:
-    handler: handler.handler
-    events:
-      - httpApi: "*"
-    environment:
-      DYNAMO_TABLE: ${terraform:outputs:users_table_name}
+${terraform:outputs:users_table_name}
 ```
+
+In this example we use the variable `${terraform}`; however, you can use any name you want. The `outputs` is a fixed key that is used to reference the Terraform State Outputs. The `users_table_name` is the name of the output in the Terraform configuration file.
 
 Before you can use the `${terraform}` parameter, you must first configure the Variable Resolver. The Variable Resolver is a new concept in Serverless Framework V.4 which allows you to use different sources for your variables. In this case, we are using the `terraform` resolver to reference the Terraform State Outputs.
 
-To use this resolver, first you must declare the `type: terraform` resolver, which is done by providing a custom name and setting the value `type` to `terraform`. The custom name in this case is `terraform`. Other than `type`, this resolver does not require any other configuration.
+To use this resolver, you must declare the `type: terraform` resolver, which is done by providing a custom name and setting the value `type` to `terraform`. The custom name in this case is `terraform`. Other than `type`, this resolver does not require any other configuration.
 
 ```yaml
 stages:
@@ -97,13 +89,10 @@ stages:
         key: users-table/terraform.tfstate
 ```
 
-In the `terraform` resolver we have to provide the following configuration:
-- `type` - The type of the resolver. This is required and must be set to `terraform`.
-- `backend` - The backend where the Terraform State Outputs are stored. In this case, the Terraform State Outputs are stored in an S3 bucket. Currently only `s3` is supported.
+In the `terraform` resolver supports the following configuration if the `backend` is `s3`:
 - `bucket` - The name of the S3 bucket where the Terraform State Outputs are stored.
 - `key` - The key of the Terraform State Outputs file in the S3 bucket.
 - `region` - (optional) - The region of the S3 bucket where the Terraform State Outputs are stored. This is optional and if not provided the default region will be used.
-- `profile` (optional) - The AWS profile to use when fetching the Terraform State Outputs. This is optional and if not provided the default profile will be used. This can be used to reference a different AWS profile than the one used by the Serverless Framework.
 
 As you can see from this configuration, these values all match the values in the terraform backend configuration in the Terraform configuration file.
 
@@ -120,3 +109,51 @@ stages:
       infra:
         type: terraform
 ```
+
+
+## Getting Outputs From The `remote` or `cloud` Backend
+
+Suppose you have a Terraform configuration that creates a DynamoDB table and you want to reference the name and ARN of the table in your serverless.yml file. You can use the `terraform` resolver to reference the Terraform State Outputs.
+
+```hcl
+# Configures the Terraform backend to store state in an remote backend
+terraform {
+  # Also works with the `cloud` backend
+  backend "remote" {
+    organization = "my-org"
+    workspaces {
+      name = "my-workspace"
+    }
+  }
+}
+
+# Everything else is the same as the S3 example
+```
+
+After the `terraform apply` the Terraform State Outputs will be stored in the remote backend for he workspace `my-workspace` in the organization `my-org`.
+
+To use this resolver, you must declare the `type: terraform` resolver, which is done by providing a custom name and setting the value `type` to `terraform`. The custom name in this case is `terraform`. Other than `type`, this resolver does not require any other configuration.
+
+```yaml
+stages:
+  default:
+    resolvers:
+      terraform:
+        type: terraform
+        backend: remote
+        organization: my-org
+        workspace: my-workspace
+```
+
+In the `terraform` resolver supports the following configuration if the `backend` is `remote`:
+- `organization` - (optional) The name of the Terraform Cloud organization where the Terraform State Outputs are stored.
+- `workspace` - (optional) The name of the Terraform Cloud workspace where the Terraform State Outputs are stored.
+- `workspaceId` - (optional) The ID of the Terraform Cloud workspace where the Terraform State Outputs are stored.
+- `token` - (optional) The Terraform Cloud API token to use to access the Terraform State Outputs. This is required if the Terraform Cloud workspace is private.
+- `hostname` - (optional) The hostname of the Terraform Cloud API. This is optional and if not provided the default hostname will be used.
+
+While `organization`, `workspace`, and `workspaceId` are optional, you must provide either the organization & workspace, or the workspaceId. 
+
+If no token is provided then the resolver will try to get the token from the `TF_CLOUD_TOKEN` environment variable, or from the `~/.terraform.d/credentials.tfrc.json` file.
+
+Now the `${terraform:outputs:users_table_name}` variable can be used in the `serverless.yml` file to reference the `users_table_name` output from the Terraform State Outputs.
