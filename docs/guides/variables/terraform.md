@@ -1,18 +1,18 @@
 <!--
-title: Serverless Framework - Variables - Terraform State Outputs
-menuText: Terraform State Outputs
+title: Serverless Framework - Variables - HashiCorp Terraform State Outputs
+menuText: HashiCorp Terraform State Outputs
 menuOrder: 13
-description: How to reference Terraform State Outputs
+description: How to reference HashiCorp Terraform State Outputs
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/variables/cli-options)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/variables/terraform)
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Reference Terraform State Outputs
+# Reference HashiCorp Terraform State Outputs
 
 It is a popular use case to use Terraform and Serverless Framework in conjunction, where Terraform is used to provision shared infrastructure while Serverless Framework is used to provision app-specific infrastructure. For example, you might have some infrastructure like an RDS Database or an SQS Queue that is used by your Serverless Framework based service, as well as other apps/services at your company. In this case, the RDS Database and SQS Queue may be provisioned with Terraform, while your app provisions Lambda functions and event configurations using Serverless Framework.
 

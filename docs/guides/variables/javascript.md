@@ -8,7 +8,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/variables/cli-options)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/variables/javascript)
 
 <!-- DOCS-SITE-LINK:END -->
 
