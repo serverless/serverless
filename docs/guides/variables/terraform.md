@@ -94,6 +94,8 @@ In the `terraform` resolver supports the following configuration if the `backend
 - `key` - The key of the Terraform State Outputs file in the S3 bucket.
 - `region` - (optional) - The region of the S3 bucket where the Terraform State Outputs are stored. This is optional and if not provided the default region will be used.
 
+The resolver uses the current AWS account credentials, the same ones being used for the deployment, so the S3 bucket containing the state must reside in that account. Support for pointing to a secondary AWS account is coming soon.
+
 As you can see from this configuration, these values all match the values in the terraform backend configuration in the Terraform configuration file.
 
 Now the `${terraform:outputs:users_table_name}` variable can be used in the `serverless.yml` file to reference the `users_table_name` output from the Terraform State Outputs.
