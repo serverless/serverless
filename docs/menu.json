@@ -47,7 +47,7 @@
       "Self-reference serverless.yml": "guides/variables/self",
       "Serverless Core": "guides/variables/core",
       "Environment Variables": "guides/variables/env-vars",
-      "CLI Options": "guides/variables/cli",
+      "CLI Options": "guides/variables/cli-options",
       "External YAML/JSON Files": "guides/variables/file",
       "Javascript properties": "guides/variables/javascript",
       "Git": "guides/variables/git",
