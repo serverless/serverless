@@ -42,10 +42,12 @@
     "Layers": "providers/aws/guide/layers",
     "IAM Function Permissions": "providers/aws/guide/iam",
     "Parameters": "guides/parameters",
-    "Variables": "providers/aws/guide/variables",
+    "Variables": {
+      "Overview": "guides/variables"
+    },
     "Resources": "providers/aws/guide/resources",
     "Composing Services": "guides/compose",
-    "Workflow Tips": "providers/aws/guide/workflow",
+    "Workflow Tips": "guides/workflow",
     "Plugins": {
       "Overview": "guides/plugins",
       "Creating Plugins": "guides/plugins/creating-plugins",
@@ -94,7 +96,6 @@
         "Python": "guides/dashboard/monitoring/sdk/python"
       }
     },
-    "Parameters": "guides/dashboard/parameters",
     "Outputs": "guides/dashboard/output-variables",
     "Providers": "guides/dashboard/providers",
     "CI/CD": {
