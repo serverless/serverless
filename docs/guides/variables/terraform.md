@@ -28,7 +28,7 @@ The Terraform output variable resolver in Serverless Framework V.4 only supports
 
 In all the examples we'll assume a Terraform configuration that creates a DynamoDB table and outputs the ARN of the table in the `users_table_arn` output.
 
-```hcl
+```
 # Configures the Terraform backend to store state in an S3 bucket
 terraform {
   # cloud {} - compatible with remote backend
