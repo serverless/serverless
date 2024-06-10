@@ -96,7 +96,6 @@
         "Python": "guides/dashboard/monitoring/sdk/python"
       }
     },
-    "Parameters": "guides/dashboard/parameters",
     "Outputs": "guides/dashboard/output-variables",
     "Providers": "guides/dashboard/providers",
     "CI/CD": {
