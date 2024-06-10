@@ -47,7 +47,7 @@
     },
     "Resources": "providers/aws/guide/resources",
     "Composing Services": "guides/compose",
-    "Workflow Tips": "providers/aws/guide/workflow",
+    "Workflow Tips": "guides/workflow",
     "Plugins": {
       "Overview": "guides/plugins",
       "Creating Plugins": "guides/plugins/creating-plugins",
