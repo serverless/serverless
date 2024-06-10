@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - Variables - Environment
-menuText: Serverless Core
+menuText: Serverless Env Vars
 menuOrder: 4
 description: How to reference Environment Variables
 layout: Doc

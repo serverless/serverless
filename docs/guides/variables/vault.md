@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Variables - HashiCorp Vault Secrets
 menuText: HashiCorp Vault Secrets
-menuOrder: 13
+menuOrder: 14
 description: How to reference HashiCorp Vault Secrets
 layout: Doc
 -->

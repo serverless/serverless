@@ -43,7 +43,20 @@
     "IAM Function Permissions": "providers/aws/guide/iam",
     "Parameters": "guides/parameters",
     "Variables": {
-      "Overview": "guides/variables"
+      "Overview": "guides/variables",
+      "Self-reference serverless.yml": "guides/variables/self",
+      "Serverless Core": "guides/variables/core",
+      "Environment Variables": "guides/variables/env-vars",
+      "CLI Options": "guides/variables/cli",
+      "External YAML/JSON Files": "guides/variables/file",
+      "Javascript properties": "guides/variables/javascript",
+      "Git": "guides/variables/git",
+      "AWS-specific": "guides/variables/aws",
+      "AWS S3 Objects": "guides/variables/s3",
+      "AWS SSM Parameter Store & Secrets Manager": "guides/variables/ssm",
+      "AWS CloudFormation Stack Outputs": "guides/variables/cf-stack",
+      "HashiCorp Terraform State Output": "guides/variables/terraform",
+      "HashiCorp Vault": "guides/variables/vault"
     },
     "Resources": "providers/aws/guide/resources",
     "Composing Services": "guides/compose",
