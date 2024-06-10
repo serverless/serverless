@@ -42,10 +42,12 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 - [External YAML/JSON Files](/framework/docs/guides/variables/file)
 - [Dynamic Values from Javascript](/framework/docs/guides/variables/javascript)
 - [Git](/framework/docs/guides/variables/git)
-- [AWS](/framework/docs/guides/variables/aws)
+- [AWS-specific](/framework/docs/guides/variables/aws)
 - [AWS S3](/framework/docs/guides/variables/s3)
 - [AWS SSM Parameter Store & Secrets Manager](/framework/docs/guides/variables/ssm)
 - [AWS CloudFormation Outputs](/framework/docs/guides/variables/cf-stack)
+- [HashiCorp Terraform State Outputs](/framework/docs/guides/variables/teraform)
+- [HashiCorp Vault Secrets](/framework/docs/guides/variables/vault)
 
 ## Recursively reference properties
 
