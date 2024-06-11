@@ -14,7 +14,6 @@ layout: Doc
 
 # Self-Reference Properties in serverless.yml
 
-
 To self-reference properties in `serverless.yml`, use the `${self:someProperty}` syntax in your `serverless.yml`. `someProperty` can contain the empty string for a top-level self-reference or a dotted attribute reference to any depth of attribute, so you can go as shallow or deep in the object tree as you want.
 
 ```yml

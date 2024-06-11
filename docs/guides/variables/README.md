@@ -93,7 +93,6 @@ provider:
 
 Read all about parameters in the [Parameters documentation](/framework/docs/providers/aws/guide/parameters).
 
-
 ## Multiple Configuration Files
 
 Adding many custom resources to your `serverless.yml` file could bloat the whole file, so you can use the Serverless Variable syntax to split this up.

@@ -88,6 +88,7 @@ As a result, the [Serverless Git Variables Plugin](https://github.com/jacob-meac
 In V.4 there is a new global stages syntax that allows you to define parameters for each stage. This is not a breaking change for the previous `stages` syntax; however, the new syntax is recommended.
 
 The old V.3 syntax:
+
 ```yaml
 params:
   default:
@@ -97,6 +98,7 @@ params:
 ```
 
 The new V.4 syntax:
+
 ```yaml
 stages:
   default:
