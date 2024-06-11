@@ -14,7 +14,6 @@ layout: Doc
 
 # Reference AWS CloudFormation Stack Outputs
 
-
 You can reference CloudFormation stack output values as the source of your variables to use in your service with the `cf:stackName.outputKey` syntax. For example:
 
 ```yml

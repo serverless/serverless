@@ -14,7 +14,6 @@ layout: Doc
 
 # Reference Git Variables
 
-
 You can leverage Git-related information in your `serverless.yml` configuration using Git variables. This allows you to include dynamic data related to your Git environment directly into your deployment configuration.
 
 ### Available Git Variables:

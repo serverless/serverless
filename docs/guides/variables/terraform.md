@@ -67,6 +67,7 @@ stages:
 ```
 
 In the `terraform` resolver supports the following configuration if the `backend` is `s3`:
+
 - `bucket` - The name of the S3 bucket where the Terraform State Outputs are stored.
 - `key` - The key of the Terraform State Outputs file in the S3 bucket.
 - `region` - (optional) - The region of the S3 bucket where the Terraform State Outputs are stored. This is optional and if not provided the default region will be used.
@@ -91,13 +92,14 @@ stages:
 ```
 
 In the `terraform` resolver supports the following configuration if the `backend` is `remote`:
+
 - `organization` - (optional) The name of the Terraform Cloud organization where the Terraform State Outputs are stored.
 - `workspace` - (optional) The name of the Terraform Cloud workspace where the Terraform State Outputs are stored.
 - `workspaceId` - (optional) The ID of the Terraform Cloud workspace where the Terraform State Outputs are stored.
 - `token` - (optional) The Terraform Cloud API token to use to access the Terraform State Outputs. This is required if the Terraform Cloud workspace is private.
 - `hostname` - (optional) The hostname of the Terraform Cloud API. This is optional and if not provided the default hostname will be used.
 
-While `organization`, `workspace`, and `workspaceId` are optional, you must provide either the organization & workspace, or the workspaceId. 
+While `organization`, `workspace`, and `workspaceId` are optional, you must provide either the organization & workspace, or the workspaceId.
 
 If no token is provided then the resolver will try to get the token from the `TF_CLOUD_TOKEN` environment variable, or from the `~/.terraform.d/credentials.tfrc.json` file.
 
@@ -115,6 +117,7 @@ stages:
 ```
 
 In the `terraform` resolver supports the following configuration if the `backend` is `remote`:
+
 - `address` - (optional) The HTTP address of the Terraform http backend where the Terraform State Outputs are stored.
 - `username` - (optional) The username to use to access the Terraform State Outputs.
 - `password` - (optional) The password to use to access the Terraform State Outputs.
@@ -132,7 +135,7 @@ For example, we can change the `terraform: ` key to `infra:` like this:
 ```yaml
 stages:
   default:
-    resolvers: 
+    resolvers:
       infra: # Previously this was "terraform"
         type: terraform
 ```
@@ -142,4 +145,3 @@ With this change, the variable reference must be updated from `${terraform:outpu
 As you can see, the `<key>` in the `stages.<stage>.resolvers.<key>` path is used to reference the resolver in the variable reference, `${<key>:outputs:users_table_name}`.
 
 This also means you can have multiple resolvers in the `serverless.yml` file, each with a unique key and configuration, and reference them in the `serverless.yml` file using their unique keys.
-

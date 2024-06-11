@@ -14,7 +14,6 @@ layout: Doc
 
 # Reference CLI Options
 
-
 To reference CLI options that you passed, use the `${opt:<option>}` syntax in your `serverless.yml` configuration file. It is valid to use the empty string in place of `<option>`. This looks like "`${opt:}`" and the result of declaring this in your `serverless.yml` is to embed the complete `options` object (i.e. all the command line options from your `serverless` command).
 
 ```yml
