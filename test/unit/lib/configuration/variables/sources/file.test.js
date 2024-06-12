@@ -19,9 +19,12 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
       tfstate: '${file(file.tfstate)}',
       js: '${file(file.js)}',
       cjs: '${file(file.cjs)}',
+      mjs: '${file(file.mjs)}',
+      esm: '${file(esm/file.js)}',
       jsFunction: '${file(file-function.js)}',
       jsPropertyFunction: '${file(file-property-function.js):property}',
       jsPropertyFunctionProperty: '${file(file-property-function.js):property.result}',
+      mjsPropertyFunction: '${file(file-property-function.mjs):property}',
       addressSupport: '${file(file.json):result}',
       jsFunctionResolveVariable: '${file(file-function-variable.js)}',
       jsFunctionResolveVariableMissingSource: '${file(file-function-variable-missing-source.js)}',
@@ -87,6 +90,12 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
   it('should resolve "cjs" file sources', () =>
     expect(configuration.cjs).to.deep.equal({ result: 'cjs' }));
 
+  it('should resolve "mjs" file sources', () =>
+    expect(configuration.mjs).to.deep.equal({ result: 'mjs' }));
+
+  it('should resolve "js" file sources with type: module', () =>
+    expect(configuration.esm).to.deep.equal({ result: 'esm' }));
+
   it('should support function resolvers in "js" file sources', () =>
     expect(configuration.jsFunction).to.deep.equal({ result: 'js-function' }));
 
@@ -98,6 +107,9 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
 
   it('should resolves properties on objects returned by function property resolvers in "js" file sources', () =>
     expect(configuration.jsPropertyFunctionProperty).to.equal('js-property-function'));
+
+  it('should support function property resolvers in "mjs" file sources', () =>
+    expect(configuration.mjsPropertyFunction).to.deep.equal({ result: 'js-property-function' }));
 
   it('should support "address" argument', () =>
     expect(configuration.addressSupport).to.equal('json'));
