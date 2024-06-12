@@ -143,10 +143,10 @@ service: billing
 
 stages:
   prod:
-    parameters:
+    params:
       stripe_api_key: ${env:PROD_STRIPE_API_KEY}
   default:
-    parameters:
+    params:
       stripe_api_key: ${env:DEV_STRIPE_API_KEY}
 ```
 

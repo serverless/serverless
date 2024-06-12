@@ -40,7 +40,7 @@ service: my-service
 
 ### Stages
 
-Use the `stages` property to specify stage-specific configuration, like `parameters`, and `observability` settings.
+Use the `stages` property to specify stage-specific configuration, like `params`, and `observability` settings.
 
 #### Parameters
 
@@ -54,7 +54,7 @@ stages:
     observability: true
 
     # Sepcify parameter values to be used in the prod stage
-    parameters:
+    params:
       stripe_api_key: ${env:PROD_STRIPE_API_KEY}
 
   default:
@@ -62,7 +62,7 @@ stages:
     observability: false
 
     # Sepcify parameter values to be used in all other stages
-    parameters:
+    params:
       stripe_api_key: ${env:DEV_STRIPE_API_KEY}
 ```
 
