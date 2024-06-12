@@ -29,7 +29,7 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 <div align="center" style="max-width: 500px; margin: auto;">
   <a href="https://www.youtube.com/watch?v=UQL_PPJUFOU" target="_blank">
-    <img src="https://github.com/serverless/serverless/assets/2752551/e304f17b-cab6-4636-a3ce-36e217f77b15" alt="Serverless Framework V.4 Overview Video" style="width: 100%; max-width: 500px;">
+    <img src="https://github.com/serverless/serverless/assets/2752551/bcfa227a-cc6d-467a-ad7c-7a012f9daff0" alt="Serverless Framework V.4 Overview Video" style="width: 100%; max-width: 500px;">
   </a>
 </div>
 
