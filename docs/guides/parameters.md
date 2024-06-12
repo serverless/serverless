@@ -37,6 +37,8 @@ provider:
 
 ## Stage parameters
 
+`stages` allows you to set Parameters and other configuration details in a Stage-specific way. This is the new, preferred method for defining Parameters, which was launched in V.4. We'll be launching many features for the `stages` property, so we recommend embracing it.
+
 Parameters can be defined **for each stage** in `serverless.yml` under the `stages.<stage>.params` key:
 
 ```yaml
@@ -76,7 +78,7 @@ The variable will be resolved based on the current stage.
 
 ## Params property
 
-You can also set stage-specific parameters using the `params` top-level property, as show below:
+You can also set stage-specific parameters using the `params` top-level property, as show below. However, using the `stages` top-level property as shown above is the preferred and recommended way of setting parameters in the Serverless Framework V4.
 
 ```yml
 # serverless.yml
@@ -89,8 +91,6 @@ params:
   dev:
     domain: dev.myapi.com
 ```
-
-However, using the `stages` top-level property as shown above is the preferred and recommended way of setting parameters in the Serverless Framework V4.
 
 ## Serverless Dashboard parameters
 
