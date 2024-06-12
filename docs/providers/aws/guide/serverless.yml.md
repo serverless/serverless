@@ -38,6 +38,34 @@ app: my-app
 service: my-service
 ```
 
+### Stages
+
+Use the `stages` property to specify stage-specific configuration, like `params`, and `observability` settings.
+
+#### Parameters
+
+```yml
+# serverless.yml
+service: billing
+
+stages:
+  prod:
+    # Enables observability in the prod stage
+    observability: true
+
+    # Sepcify parameter values to be used in the prod stage
+    params:
+      stripe_api_key: ${env:PROD_STRIPE_API_KEY}
+
+  default:
+    # Disabales observability in all other stages
+    observability: false
+
+    # Sepcify parameter values to be used in all other stages
+    params:
+      stripe_api_key: ${env:DEV_STRIPE_API_KEY}
+```
+
 ### Parameters
 
 Learn more about stage parameters in the [Parameters documentation](../../../guides/parameters.md).
@@ -62,6 +90,8 @@ params:
 # This will change depending on the Stage set.
 foo: ${param:domain}
 ```
+
+**Note:** Specifying parameters under the `stage` property as shown in the previous section is the preferred way of setting parameters in v4 of the Serverless Framework.
 
 ## Provider
 

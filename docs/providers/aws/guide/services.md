@@ -129,6 +129,77 @@ resources:
         BillingMode: PAY_PER_REQUEST
 ```
 
+### Stage-Specific Configuration
+
+You can specify stage-specific configuration in the `stages` section of the `serverless.yml` file. This configuration include parameters, observability settings, and variables resolvers declarations. Here's how that looks like:
+
+#### Setting Parameters
+
+You can set different parameter values for each stage, and use the `default` stage as a fallback for any stage that you did not specify.
+
+```yml
+# serverless.yml
+service: billing
+
+stages:
+  prod:
+    params:
+      stripe_api_key: ${env:PROD_STRIPE_API_KEY}
+  default:
+    params:
+      stripe_api_key: ${env:DEV_STRIPE_API_KEY}
+```
+
+You can then reference these parameters later in your `serverless.yml` file:
+
+```yml
+functions:
+  chargeCustomer:
+    handler: billing.charge
+    environment:
+      STRIPE_API_KEY: ${param:stripe_api_key}
+```
+
+This will use the correct parameter value based on the stage you're currently working on.
+
+For more information please see the [parameters](../../../guides/parameters.md) documentation.
+
+#### Enabling and Disabling Observability
+
+You can also enable or disable the observability feature of the Serverless Dashboard based on the stage you are working on.
+
+```yml
+# serverless.yml
+service: billing
+
+stages:
+  prod:
+    observability: true
+  default:
+    observability: false
+```
+
+The above example will enable observability for the `prod` stage, but disable it by default for all other stages.
+
+For more information please see the [observability](../../../guides/dashboard/README.md) documentation.
+
+#### Declaring Variables Resolvers
+
+Another use case of the stages property is to declare variable resolvers for the `terraform` and `vault` variables. Here's an example that declares the `terraform` variable resolver:
+
+```yml
+stages:
+  default:
+    resolvers:
+      terraform:
+        type: terraform
+        backend: s3
+        bucket: terraform-state
+        key: users-table/terraform.tfstate
+```
+
+For more information please see the [terraform](../../../guides/variables/terraform.md) and the [vault](../../../guides/variables/vault.md) variables documentation.
+
 ## Deployment
 
 When you deploy a service, all functions, events and resources in `serverless.yml` are translated to an AWS CloudFormation template and deployed as a single CloudFormation stack.
