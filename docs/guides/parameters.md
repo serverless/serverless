@@ -74,6 +74,24 @@ provider:
 
 The variable will be resolved based on the current stage.
 
+## Params property
+
+You can also set stage-specific parameters using the `params` top-level property, as show below:
+
+```yml
+# serverless.yml
+
+params:
+  default:
+    domain: ${sls:stage}.myapi.com
+  prod:
+    domain: myapi.com
+  dev:
+    domain: dev.myapi.com
+```
+
+However, using the `stages` top-level property as shown above is the preferred and recommended way of setting parameters in the Serverless Framework V4.
+
 ## Serverless Dashboard parameters
 
 [Serverless Dashboard](https://www.serverless.com/secrets) lets you create and manage parameters, which is perfect for storing secrets securely or sharing configuration values across team members.
