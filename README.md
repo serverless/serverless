@@ -27,7 +27,13 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 # Serverless Framework - V.4
 
-[![Serverless Framework V.4 Overview Video](https://github.com/serverless/serverless/assets/2752551/e304f17b-cab6-4636-a3ce-36e217f77b15)](https://www.youtube.com/watch?v=UQL_PPJUFOU)
+<div align="center" style="max-width: 500px; margin: auto;">
+  <a href="https://www.youtube.com/watch?v=UQL_PPJUFOU" target="_blank">
+    <img src="https://github.com/serverless/serverless/assets/2752551/e304f17b-cab6-4636-a3ce-36e217f77b15" alt="Serverless Framework V.4 Overview Video" style="width: 100%; max-width: 500px;">
+  </a>
+</div>
+
+<br/>
 
 **June 12th, 2024** – We've released Serverless Framework V.4 GA after testing the V.4 Alpha and Beta since early 2024.
 
