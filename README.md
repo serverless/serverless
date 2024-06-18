@@ -105,7 +105,7 @@ Here's how to install the Serverless Framework, set up a project and deploy it t
 
 ## Install the Serverless Framework via NPM
 
-First, you must have the [Node.js runtime](https://nodejs.org) installed, then you can install the Serverless Framework via NPM.
+First, you must have the [Node.js runtime](https://nodejs.org) installed, version 18.20.3 or greater, then you can install the Serverless Framework via NPM.
 
 Open your CLI and run the command below to install the Serverless Framework globally.
 
