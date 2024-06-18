@@ -117,6 +117,7 @@
     "sinon": "^13.0.2",
     "sinon-chai": "^3.7.0",
     "standard-version": "^9.5.0",
+    "tsx": "^4.15.6",
     "xml2js": "^0.4.23"
   },
   "prettier": "@serverlessinc/standards",
