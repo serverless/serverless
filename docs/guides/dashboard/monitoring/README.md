@@ -152,8 +152,9 @@ Please note that if you remove an Integration, if you immediately create a new I
 If you wish to disable Serverless Framework's Monitoring & Observability features within a specific Serverless Framework Service, you can do so with the YAML configuration below. Doing this will prevent an AWS account from being integrated, and prevent your AWS Lambda functions from being instrumented:
 
 ```yaml
-dashboard:
-  disableMonitoring: true
+custom:
+  enterprise:
+    disableMonitoringSetup: true
 ```
 
 ### Disabling Trace Sampling
