@@ -1,0 +1,44 @@
+# This workflow is responsible for publishing the docs menu and syncing the docs with Algolia and ChatGPT
+
+name: Publish docs
+
+on:
+  push:
+    branches: [main]
+
+# This workflow contains two jobs that run in parallel
+jobs:
+  # Publish the docs menu
+  docs-menu:
+    name: Publish the docs menu
+    runs-on: ubuntu-latest
+    timeout-minutes: 3 # Default is 360
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.DOCS_ASSETS_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.DOCS_ASSETS_AWS_SECRET_ACCESS_KEY }}
+    steps:
+      - uses: actions/checkout@v3
+      # Upload menu.json with a cache of 60 seconds (instead of the default 24h on the CloudFront distribution)
+      - run: 'aws s3 cp docs/menu.json s3://assets.public.serverless/website/framework/docs/menu.json --cache-control max-age=60 --region us-east-2'
+  # Sync the docs with Algolia
+  sync-algolia:
+    name: Sync Algolia Index
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run sync script
+        env:
+          ALGOLIA_APP_ID: ${{ secrets.ALGOLIA_APP_ID }}
+          ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY_PROD }}
+          ALGOLIA_DOCS_INDEX: ${{ secrets.ALGOLIA_DOCS_INDEX_PROD }}
+        run: node scripts/sync-docs.js
