@@ -1,0 +1,111 @@
+{
+  "name": "marked",
+  "description": "A markdown parser built for speed",
+  "author": "Christopher Jeffrey",
+  "version": "13.0.1",
+  "type": "module",
+  "main": "./lib/marked.cjs",
+  "module": "./lib/marked.esm.js",
+  "browser": "./lib/marked.umd.js",
+  "types": "./lib/marked.d.ts",
+  "bin": {
+    "marked": "bin/marked.js"
+  },
+  "man": "./man/marked.1",
+  "files": [
+    "bin/",
+    "lib/",
+    "man/",
+    "marked.min.js"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./lib/marked.d.ts",
+        "default": "./lib/marked.esm.js"
+      },
+      "default": {
+        "types": "./lib/marked.d.cts",
+        "default": "./lib/marked.cjs"
+      }
+    },
+    "./bin/marked": "./bin/marked.js",
+    "./marked.min.js": "./marked.min.js",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "provenance": true
+  },
+  "repository": "git://github.com/markedjs/marked.git",
+  "homepage": "https://marked.js.org",
+  "bugs": {
+    "url": "http://github.com/markedjs/marked/issues"
+  },
+  "license": "MIT",
+  "keywords": [
+    "markdown",
+    "markup",
+    "html"
+  ],
+  "tags": [
+    "markdown",
+    "markup",
+    "html"
+  ],
+  "devDependencies": {
+    "@markedjs/testutils": "12.0.0-0",
+    "@arethetypeswrong/cli": "^0.15.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@semantic-release/commit-analyzer": "^13.0.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^10.0.6",
+    "@semantic-release/npm": "^12.0.1",
+    "@semantic-release/release-notes-generator": "^14.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.13.0",
+    "@typescript-eslint/parser": "^7.13.1",
+    "cheerio": "1.0.0-rc.12",
+    "commonmark": "0.31.0",
+    "cross-env": "^7.0.3",
+    "dts-bundle-generator": "^9.5.1",
+    "eslint": "^8.57.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-promise": "^6.2.0",
+    "highlight.js": "^11.9.0",
+    "markdown-it": "14.1.0",
+    "marked-highlight": "^2.1.2",
+    "marked-man": "^2.1.0",
+    "node-fetch": "^3.3.2",
+    "recheck": "^4.4.5",
+    "rollup": "^4.18.0",
+    "semantic-release": "^24.0.0",
+    "titleize": "^4.0.0",
+    "ts-expect": "^1.3.0",
+    "typescript": "5.4.5"
+  },
+  "scripts": {
+    "test": "npm run build && npm run test:specs && npm run test:unit",
+    "test:all": "npm test && npm run test:umd && npm run test:types && npm run test:lint",
+    "test:unit": "node --test --test-reporter=spec test/unit/*.test.js",
+    "test:specs": "node --test --test-reporter=spec test/run-spec-tests.js",
+    "test:lint": "eslint .",
+    "test:redos": "node test/recheck.js > vuln.js",
+    "test:types": "tsc --project tsconfig-type-test.json && attw -P --exclude-entrypoints ./bin/marked ./marked.min.js",
+    "test:umd": "node test/umd-test.js",
+    "test:update": "node test/update-specs.js",
+    "rules": "node test/rules.js",
+    "bench": "npm run build && node test/bench.js",
+    "lint": "eslint --fix .",
+    "build:reset": "git checkout upstream/master lib/marked.cjs lib/marked.umd.js lib/marked.esm.js marked.min.js",
+    "build": "npm run rollup && npm run build:types && npm run build:man",
+    "build:docs": "npm run build && node docs/build.js",
+    "build:types": "tsc && dts-bundle-generator --project tsconfig.json -o lib/marked.d.ts src/marked.ts && dts-bundle-generator --project tsconfig.json -o lib/marked.d.cts src/marked.ts",
+    "build:man": "marked-man man/marked.1.md > man/marked.1",
+    "rollup": "rollup -c rollup.config.js"
+  },
+  "engines": {
+    "node": ">= 18"
+  }
+}
