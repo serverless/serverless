@@ -12,6 +12,8 @@ In Serverless Framework V.4, [esbuild](https://github.com/evanw/esbuild) is incl
 
 By default, if your AWS Lambda handler is using Typescript files directly, the Framework will build your code automagically upon deploy, without a plugin. No configuration is necessary by default.
 
+If your AWS Lambda handler is using ESM syntax in a `.js` file, please make sure you remove the "type" property from your "package.json" file and configure the build settings in your `serverless.yml` file as shown below.
+
 ### Configuration
 
 V.4 introduces a new `build` configuration block, which you can use to customize [esbuild](https://github.com/evanw/esbuild) settings.
