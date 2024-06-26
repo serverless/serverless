@@ -2,6 +2,7 @@
   "name": "scripts",
   "version": "1.0.0",
   "main": "sync-docs.js",
+  "type": "module",
   "directories": {
     "test": "test"
   },
