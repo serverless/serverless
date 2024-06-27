@@ -10,6 +10,11 @@ on:
       - 'docs/**'
   workflow_dispatch:
 
+permissions:
+  packages: read
+  contents: write
+  pull-requests: write
+  
 # This workflow contains three jobs
 jobs:
   # Publish docs menu
@@ -42,13 +47,15 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+        working-directory: scripts
 
       - name: Run sync script
         env:
           ALGOLIA_APP_ID: ${{ secrets.ALGOLIA_APP_ID }}
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY_PROD }}
           ALGOLIA_DOCS_INDEX: ${{ secrets.ALGOLIA_DOCS_INDEX_PROD }}
-        run: node scripts/sync-docs.js
+        run: node sync-docs.js
+        working-directory: scripts
 
   # Sync docs in Dev (push to docs-dev branch)
   sync-docs-dev:
@@ -76,10 +83,12 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+        working-directory: scripts
 
       - name: Run sync script for dev
         env:
           ALGOLIA_APP_ID: ${{ secrets.ALGOLIA_APP_ID }}
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY_DEV }}
           ALGOLIA_DOCS_INDEX: ${{ secrets.ALGOLIA_DOCS_INDEX_DEV }}
-        run: node scripts/sync-docs.js
+        run: node sync-docs.js
+        working-directory: scripts
