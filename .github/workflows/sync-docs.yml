@@ -29,7 +29,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       # Upload menu.json with a cache of 60 seconds (instead of the default 24h on the CloudFront distribution)
-      - run: 'aws s3 cp docs/menu.json s3://assets.public.serverless/website/framework/docs/menu.json --cache-control max-age=60 --region us-east-2'
+      - run: |
+          set -e
+          aws s3 cp docs/menu.json s3://assets.public.serverless/website/framework/docs/menu.json --cache-control max-age=60 --region us-east-2
 
   # Sync docs in Prod
   sync-docs-prod:
@@ -46,7 +48,9 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          set -e
+          npm install
         working-directory: scripts
 
       - name: Run sync script
@@ -54,7 +58,9 @@ jobs:
           ALGOLIA_APP_ID: ${{ secrets.ALGOLIA_APP_ID }}
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY_PROD }}
           ALGOLIA_DOCS_INDEX: ${{ secrets.ALGOLIA_DOCS_INDEX_PROD }}
-        run: node sync-docs.js
+        run: |
+          set -e
+          node sync-docs.js
         working-directory: scripts
 
   # Sync docs in Dev (push to docs-dev branch)
@@ -68,11 +74,13 @@ jobs:
 
       - name: Set up Git
         run: |
+          set -e
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Push changes to docs-dev
         run: |
+          set -e
           git checkout -b docs-dev
           git push origin docs-dev --force
 
@@ -82,7 +90,9 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          set -e
+          npm install
         working-directory: scripts
 
       - name: Run sync script for dev
@@ -90,5 +100,7 @@ jobs:
           ALGOLIA_APP_ID: ${{ secrets.ALGOLIA_APP_ID }}
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY_DEV }}
           ALGOLIA_DOCS_INDEX: ${{ secrets.ALGOLIA_DOCS_INDEX_DEV }}
-        run: node sync-docs.js
+        run: |
+          set -e
+          node sync-docs.js
         working-directory: scripts
