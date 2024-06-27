@@ -10,6 +10,11 @@ on:
       - 'docs/**'
   workflow_dispatch:
 
+permissions:
+  packages: read
+  contents: write
+  pull-requests: write
+  
 # This workflow contains three jobs
 jobs:
   # Publish docs menu
