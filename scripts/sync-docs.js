@@ -110,6 +110,7 @@ const syncWithAlgolia = async () => {
     console.log('Sync with Algolia completed successfully')
   } catch (error) {
     console.error('Error syncing with Algolia:', error)
+    throw error
   }
 }
 
