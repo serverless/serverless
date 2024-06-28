@@ -88,7 +88,7 @@ It is also a good practice to add `serverless` to the `peerDependencies` section
 {
   ...
   "peerDependencies": {
-    "serverless": "^2.60 || 3"
+    "serverless": "^2.60 || 3 || 4"
   }
 }
 ```
