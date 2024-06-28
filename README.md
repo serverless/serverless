@@ -35,7 +35,7 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 <br/>
 
-**June 12th, 2024** – We've released Serverless Framework V.4 GA after testing the V.4 Alpha and Beta since early 2024. If you are upgrading to V.4, see our [Upgrading to Serverless Framework V4 Documentation](https://www.serverless.com/framework/docs/guides/upgrading-v4). If you need to access documentation for Serverless Framework V.3, you can find it [here](https://github.com/serverless/serverless/tree/v3/docs). 
+**June 12th, 2024** – We've released Serverless Framework V.4 GA after testing the V.4 Alpha and Beta since early 2024. If you are upgrading to V.4, see our [Upgrading to Serverless Framework V4 Documentation](https://www.serverless.com/framework/docs/guides/upgrading-v4). If you need to access documentation for Serverless Framework V.3, you can find it [here](https://github.com/serverless/serverless/tree/v3/docs).
 
 ## New Features In V.4
 
