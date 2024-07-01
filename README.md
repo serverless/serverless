@@ -29,7 +29,7 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 **May 21st, 2024** – We've released Serverless Framework V.4 Beta after testing the V.4 Alpha for a few months. In this release, we assumed the `serverless` npm namespace. To continue to use Serverless Framework V.3 and older versions, please target them in your NPM installs (e.g. `npm i serverless@3.38.0` `3.38.0` is the latest version of `v3`).
 
-If you need to access documentation for Serv erless Framework V.3, you can find it [here](https://github.com/serverless/serverless/tree/v3/docs).
+If you need to access documentation for Serverless Framework V.3, you can find it [here](https://github.com/serverless/serverless/tree/v3/docs).
 
 If you are upgrading to V.4, see our [Upgrading to Serverless Framework V4 Documentation](https://www.serverless.com/framework/docs/guides/upgrading-v4)
 
