@@ -50,7 +50,6 @@ describe('test/unit/lib/cli/filter-supported-options.test.js', () => {
     ).to.deep.equal({
       param: null,
       region: 'elo',
-      'aws-profile': null,
       help: null,
       version: null,
       config: null,
