@@ -120,7 +120,7 @@ provider:
   # CloudFormation tags to apply to the stack. Optional.
   stackTags:
     key: value
-  # Method used for CloudFormation deployments: 'changesets' or 'direct'. Optional. (default: changesets)
+  # Method used for CloudFormation deployments: 'changesets' or 'direct'. Optional. (default: direct)
   # See https://www.serverless.com/framework/docs/providers/aws/guide/deploying#deployment-method
   deploymentMethod: direct
   # List of existing Amazon SNS topics in the same region where notifications about stack events are sent. Optional.

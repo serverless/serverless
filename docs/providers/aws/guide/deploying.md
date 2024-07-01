@@ -44,16 +44,16 @@ The Serverless Framework translates all syntax in `serverless.yml` to a single A
 
 ### Deployment method
 
-Since Serverless Framework v3, deployments are done using [CloudFormation change sets](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-changesets.html). It is possible to use [CloudFormation direct deployments](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-direct.html) instead.
+In Serverless Framework V4, deployments are done using [CloudFormation direct deployments](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-direct.html). It is possible to use [CloudFormation change sets](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-changesets.html) instead.
 
-Direct deployments **are faster** and have no downsides (unless you specifically use the generated change sets). They will become the default in Serverless Framework 4.
-
-You are encouraged to enable direct deployments via the `deploymentMethod` option:
+Direct deployments **are faster** and have no downsides. If you specifically
+need to use the generated change set, you can enable it by setting the
+`deploymentMethod` option in your `serverless.yml` file:
 
 ```
 provider:
   name: aws
-  deploymentMethod: direct
+  deploymentMethod: changesets
 ```
 
 ### Tips
