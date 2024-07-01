@@ -625,8 +625,8 @@ provider:
       # Log full requests/responses for execution logging (default: true)
       fullExecutionData: true
 
-    # Optional, whether to write CloudWatch logs for custom resource lambdas as added by the framework
-    frameworkLambda: true
+    # Optional, whether to write CloudWatch logs for custom resource lambdas as added by the framework. Default is true.
+    frameworkLambda: false
 ```
 
 ### S3 buckets
