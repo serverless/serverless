@@ -52,12 +52,6 @@ const localServerlessPathModulePath = require.resolve(
 )
 const resolveInput = require('../lib/cli/resolve-input')
 
-const BbPromise = require('bluebird')
-
-BbPromise.config({
-  longStackTraces: true,
-})
-
 const { runnerEmitter } = require('@serverless/test/setup/patch')
 
 runnerEmitter.on('runner', (runner) => {
