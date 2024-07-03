@@ -46,6 +46,31 @@ build:
       setNodeOptions: true
 ```
 
+You may also configure esbuild with a JavaScript file, which is useful if you want to use esbuild plugins. Here's an example:
+
+```yml
+build:
+  esbuild:
+    # Path to the esbuild config file relative to the `serverless.yml` file
+    configFile: ./esbuild.config.js
+```
+
+The JavaScript file must export a function that returns an esbuild configuration object. For your convenience, the **serverless** instance is passed to that function.
+
+Here's an example using the `esbuild-plugin-env` plugin:
+
+```js
+// don't forget to install this package
+const env = require('esbuild-plugin-env')
+
+module.exports = (serverless) => {
+  return {
+    external: ['lodash'],
+    plugins: [env()],
+  }
+}
+```
+
 ## Plugin Conflicts
 
 Please note, plugins that build your code will not work unless you opt out of the default build experience. Some of the plugins affected are:
