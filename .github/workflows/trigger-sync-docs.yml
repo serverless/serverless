@@ -35,7 +35,7 @@ jobs:
               owner: 'serverlessinc',
               repo: 'growth',
               workflow_id: 'sync-docs.yml', // Replace with the actual workflow file name in the target repo
-              ref: '${{ github.event.inputs.stage || 'dev' }}',
+              ref: 'main',
               inputs: {
                 stage: '${{ github.event.inputs.stage || 'dev' }}'
               }
