@@ -22,28 +22,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check if the push event has changes in /docs
-        id: changes_in_docs
-        if: github.event_name == 'push'
-        run: |
-          echo "Checking for changes in /docs directory..."
-          git fetch origin ${{ github.ref }}
-          if git diff --name-only ${{ github.sha }} ${{ github.event.before }} | grep -q '^docs/'; then
-            echo "Changes found in /docs directory."
-            echo "::set-output name=changes::true"
-          else
-            echo "No changes in /docs directory."
-            echo "::set-output name=changes::false"
-          fi
-
-      - name: Trigger Sync Docs Workflow in Repo B
-        if: github.event_name == 'workflow_dispatch' || steps.changes_in_docs.outputs.changes == 'true'
-        env:
-          REPO: 'serverlessinc/growth'
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+      - name: Trigger Sync Docs Workflow
         run: |
           curl -X POST \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            https://api.github.com/repos/$REPO/actions/workflows/sync-docs.yml/dispatches \
-            -d '{"ref":"main", "inputs":{"branch": "${{ github.event.inputs.stage || 'dev' }}"}}'
+            -H "Accept: application/vnd.github.everest-preview+json" \
+            -H "Authorization: token ${{ secrets.WORKFLOW_TOKEN }}" \
+            https://api.github.com/repos/serverlessinc/growth/dispatches \
+            -d '{"event_type":"sync-docs", "client_payload": {"stage": "${{ github.event.inputs.stage }}"}}'
