@@ -1,0 +1,29 @@
+name: Trigger Sync Docs
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: 'Deployment stage'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Sync Docs Workflow
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github.everest-preview+json" \
+            -H "Authorization: token ${{ secrets.WORKFLOW_TOKEN }}" \
+            https://api.github.com/repos/serverlessinc/growth/dispatches \
+            -d '{"event_type":"sync-docs", "client_payload": {"stage": "${{ github.event.inputs.stage }}"}}'
