@@ -57,10 +57,28 @@ build:
 
 The JavaScript file must export a function that returns an esbuild configuration object. For your convenience, the **serverless** instance is passed to that function.
 
-Here's an example using the `esbuild-plugin-env` plugin:
+Here's an example of the `esbuild.config.js` file that uses the `esbuild-plugin-env` plugin:
+
+**ESM:**
 
 ```js
-// don't forget to install this package
+/**
+ * don't forget to set the `"type": "module"` property in `package.json`
+ * and install the `esbuild-plugin-env` package
+ */
+import env from 'esbuild-plugin-env'
+
+export default (serverless) => {
+  return {
+    external: ['@aws-sdk/client-s3'],
+    plugins: [env()],
+  }
+}
+```
+
+**CommonJS:**
+
+```js
 const env = require('esbuild-plugin-env')
 
 module.exports = (serverless) => {
