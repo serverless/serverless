@@ -1,10 +1,9 @@
-<!--
+---
 title: Serverless Framework - Plugins - Custom commands
-menuText: Custom commands
-menuOrder: 3
 description: How to create custom Serverless Framework commands via a plugin
-layout: Doc
--->
+short_title: Custom commands
+keywords: ['Serverless Framework', 'Plugins', 'Custom Commands']
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

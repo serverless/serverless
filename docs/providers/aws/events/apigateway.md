@@ -1,10 +1,9 @@
-<!--
+---
 title: Serverless Framework - AWS Lambda Events - REST API (API Gateway v1)
-menuText: API Gateway
-menuOrder: 1
+short_title: API Gateway
 description: Deploying REST APIs with AWS Lambda and API Gateway v1 via the Serverless Framework
-layout: Doc
--->
+keywords: ['Serverless Framework', 'AWS Lambda', 'API Gateway', 'REST API']
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

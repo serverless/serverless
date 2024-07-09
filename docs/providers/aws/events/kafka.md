@@ -1,9 +1,9 @@
-<!--
+---
 title: Serverless Framework - AWS Lambda Events - Self-managed Apache Kafka
-menuText: Kafka
-description:  Setting up AWS self-managed Apache Kafka Events with AWS Lambda via the Serverless Framework
-layout: Doc
--->
+short_title: Kafka
+description: Setting up AWS self-managed Apache Kafka Events with AWS Lambda via the Serverless Framework
+keywords: ['Serverless Framework', 'AWS Lambda', 'Kafka', 'Apache Kafka', 'AWS']
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

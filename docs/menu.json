@@ -71,7 +71,6 @@
       "Extending and overriding configuration": "guides/plugins/extending-configuration"
     }
   },
-  "Examples and Tutorials": "examples-and-tutorials",
   "CLI Reference": {
     "Overview": "providers/aws/cli-reference",
     "package": "providers/aws/cli-reference/package",
@@ -88,8 +87,6 @@
     "rollback": "providers/aws/cli-reference/rollback",
     "rollback function": "providers/aws/cli-reference/rollback-function",
     "remove": "providers/aws/cli-reference/remove",
-    "plugin list": "providers/aws/cli-reference/plugin-list",
-    "plugin search": "providers/aws/cli-reference/plugin-search",
     "plugin install": "providers/aws/cli-reference/plugin-install",
     "plugin uninstall": "providers/aws/cli-reference/plugin-uninstall",
     "generate event": "providers/aws/cli-reference/generate-event",
@@ -128,6 +125,7 @@
   },
   "Serverless.yml Reference": "providers/aws/guide/serverless.yml",
   "Learn More": {
+    "Examples and Tutorials": "examples-and-tutorials",
     "Configuration Validation": "configuration-validation"
   }
 }

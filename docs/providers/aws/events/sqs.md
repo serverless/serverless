@@ -1,10 +1,22 @@
-<!--
+---
 title: Serverless Framework - AWS Lambda Events - SQS Queues
-menuText: SQS
-menuOrder: 8
-description:  Setting up AWS SQS Queue Events with AWS Lambda via the Serverless Framework
-layout: Doc
--->
+description: Setting up AWS SQS Queue Events with AWS Lambda via the Serverless Framework
+short_title: SQS
+keywords:
+  [
+    'Serverless',
+    'Framework',
+    'AWS',
+    'Lambda',
+    'Events',
+    'AWS SQS Events',
+    'Serverless AWS Lambda SQS',
+    'AWS Lambda SQS Integration',
+    'AWS Lambda Event Sources',
+    'AWS SQS Lambda Trigger',
+    'AWS SQS Queue',
+  ]
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

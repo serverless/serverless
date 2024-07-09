@@ -1,9 +1,19 @@
-<!--
+---
 title: Serverless Framework - Upgrading to v4
-menuText: Upgrading to v4
-menuOrder: 13
-layout: Doc
--->
+description: Learn about the significant updates and changes in Serverless Framework Version 4, including new licensing requirements, authentication methods, and deprecated providers.
+short_title: Upgrading to v4
+keywords:
+  [
+    'Serverless Framework',
+    'Version 4',
+    'upgrade',
+    'AWS',
+    'licensing',
+    'authentication',
+    'TypeScript support',
+    'auto-updating',
+  ]
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

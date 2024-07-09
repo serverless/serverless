@@ -1,9 +1,17 @@
-<!--
+---
 title: Serverless Dashboard - CI/CD Preview Deployments
-menuText: Preview Deployments
-menuOrder: 2
-layout: Doc
--->
+description: Learn how to enable and configure preview deployments for pull requests in Serverless Framework.
+short_title: Preview Deployments
+keywords:
+  [
+    'Serverless Framework',
+    'CI/CD',
+    'Preview Deployments',
+    'Pull Requests',
+    'Stage',
+    'Branch',
+  ]
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

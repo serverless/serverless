@@ -1,8 +1,15 @@
-<!--
+---
 title: Serverless Framework Services
+short_title: Services
 description: How to manage and configure serverless services, which contain your AWS Lambda functions, their events and infrastructure resources.
-layout: Doc
--->
+keywords:
+  [
+    'Serverless Framework',
+    'AWS Lambda',
+    'serverless services',
+    'serverless.yml',
+  ]
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

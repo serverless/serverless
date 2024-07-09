@@ -1,10 +1,9 @@
-<!--
+---
 title: Serverless Framework - Variables - Javascript properties
-menuText: Javascript properties
-menuOrder: 7
 description: How to reference Javascript properties
-layout: Doc
--->
+short_title: Javascript properties
+keywords: ['Serverless Framework', 'Javascript', 'Variables']
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

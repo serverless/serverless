@@ -1,8 +1,18 @@
-<!--
+---
 title: Serverless Framework - IAM Permissions For Functions
 description: How to manage your AWS Lambda functions and their AWS infrastructure resources easily with the Serverless Framework.
-layout: Doc
--->
+short_title: IAM Permissions
+keywords:
+  [
+    'Serverless Framework',
+    'AWS IAM',
+    'function permissions',
+    'IAM roles',
+    'Lambda permissions',
+  ]
+---
+
+````​⬤
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
@@ -37,7 +47,7 @@ provider:
       permissionsBoundary: arn:aws:iam::123456789012:policy/boundaries
       tags:
         key: value
-```
+````
 
 Note that `provider.iam.role` can be either an object like in example above, or custom role arn:
 

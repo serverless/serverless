@@ -1,10 +1,23 @@
-<!--
+---
 title: Serverless Framework - AWS Lambda Events - Kinesis & DynamoDB Streams
-menuText: Kinesis & DynamoDB
-menuOrder: 4
-description:  Setting up AWS Kinesis Streams and AWS DynamoDB Streams Events with AWS Lambda via the Serverless Framework
-layout: Doc
--->
+description: Setting up AWS Kinesis Streams and AWS DynamoDB Streams Events with AWS Lambda via the Serverless Framework
+short_title: Kinesis & DynamoDB
+keywords:
+  [
+    'Serverless',
+    'Framework',
+    'AWS',
+    'Lambda',
+    'Events',
+    'AWS Kinesis Streams',
+    'AWS DynamoDB Streams',
+    'Serverless AWS Lambda Kinesis',
+    'Serverless AWS Lambda DynamoDB',
+    'AWS Lambda Event Sources',
+    'AWS Kinesis Lambda Trigger',
+    'AWS DynamoDB Lambda Trigger',
+  ]
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

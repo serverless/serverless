@@ -1,8 +1,8 @@
-<!--
+---
 title: Serverless - AWS Lambda - CLI Reference
 menuText: CLI Reference
 layout: Doc
--->
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

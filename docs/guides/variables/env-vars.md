@@ -1,10 +1,9 @@
-<!--
+---
 title: Serverless Framework - Variables - Environment
-menuText: Serverless Env Vars
-menuOrder: 4
 description: How to reference Environment Variables
-layout: Doc
--->
+short_title: Env Vars
+keywords: ['Serverless Framework', 'Environment Variables', 'Configuration']
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

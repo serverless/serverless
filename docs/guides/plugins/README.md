@@ -1,10 +1,9 @@
-<!--
+---
 title: Serverless Framework - Plugins
-menuText: Plugins
-menuOrder: 4
 description: How to install plugins to customize the Serverless Framework
-layout: Doc
--->
+short_title: Plugins
+keywords: ['Serverless Framework', 'Plugins', 'Installation', 'Customization']
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

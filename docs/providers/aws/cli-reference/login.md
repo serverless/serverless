@@ -1,10 +1,16 @@
-<!--
+---
 title: Serverless Framework Commands - Login
-menuText: login
-menuOrder: 11
-description: Login to the serverless platform
-layout: Doc
--->
+description: Login to the serverless platform.
+short_title: Login
+keywords:
+  [
+    'Serverless',
+    'Framework',
+    'login',
+    'Serverless Framework Dashboard',
+    'authentication',
+  ]
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

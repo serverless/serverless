@@ -1,10 +1,15 @@
-<!--
+---
 title: Serverless Framework - Variables
-menuText: Variables
-menuOrder: 1
 description: How to use Serverless Variables to insert dynamic configuration info into your serverless.yml
-layout: Doc
--->
+short_title: Variables
+keywords:
+  [
+    'Serverless Framework',
+    'Variables',
+    'serverless.yml',
+    'dynamic configuration',
+  ]
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

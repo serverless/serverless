@@ -1,10 +1,9 @@
-<!--
+---
 title: Serverless Framework - Variables - HashiCorp Terraform State Outputs
-menuText: HashiCorp Terraform State Outputs
-menuOrder: 13
 description: How to reference HashiCorp Terraform State Outputs
-layout: Doc
--->
+short_title: HashiCorp Terraform State Outputs
+keywords: ['Serverless Framework', 'HashiCorp', 'Terraform', 'Variables']
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

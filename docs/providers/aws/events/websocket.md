@@ -1,10 +1,20 @@
-<!--
+---
 title: Serverless Framework - AWS Lambda Events - Websocket
-menuText: Websocket
-menuOrder: 3
 description: Setting up AWS Websockets with AWS Lambda via the Serverless Framework
-layout: Doc
--->
+short_title: Websocket
+keywords:
+  [
+    'Serverless',
+    'Framework',
+    'AWS',
+    'Lambda',
+    'Events',
+    'AWS Websockets',
+    'Serverless AWS Websockets',
+    'AWS Lambda Event Sources',
+    'AWS Websockets Lambda Trigger',
+  ]
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

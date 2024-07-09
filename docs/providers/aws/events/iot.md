@@ -1,10 +1,9 @@
-<!--
+---
 title: Serverless Framework - AWS Lambda Events - IoT
-menuText: IoT
-menuOrder: 12
-description:  Setting up AWS IoT Events with AWS Lambda via the Serverless Framework
-layout: Doc
--->
+short_title: IoT
+description: Setting up AWS IoT Events with AWS Lambda via the Serverless Framework
+keywords: ['Serverless Framework', 'AWS Lambda', 'IoT', 'IoT Events']
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

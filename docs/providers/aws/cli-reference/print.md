@@ -1,10 +1,17 @@
-<!--
+---
 title: Serverless Framework Commands - AWS Lambda - Print
-menuText: print
-menuOrder: 22
-description: Print your config with all variables resolved for debugging
-layout: Doc
--->
+description: Print your `serverless.yml` config file with all variables resolved for debugging.
+short_title: Print
+keywords:
+  [
+    'Serverless',
+    'Framework',
+    'AWS Lambda',
+    'print',
+    'configuration',
+    'variables',
+  ]
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

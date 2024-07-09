@@ -1,9 +1,17 @@
-<!--
+---
 title: Serverless Dashboard - CI/CD Branch Deployments
-menuText: Branch Deployments
-menuOrder: 1
-layout: Doc
--->
+description: Learn how to set up and manage branch deployments in Serverless Framework for automated stage deployments.
+short_title: Branch Deployments
+keywords:
+  [
+    'Serverless Framework',
+    'CI/CD',
+    'Branch Deployments',
+    'Automation',
+    'GitHub',
+    'Deployment',
+  ]
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

@@ -1,10 +1,9 @@
-<!--
+---
 title: Serverless Framework Dashboard - Concepts
-menuText: Concepts
-menuOrder: 2
 description: The Concepts within Serverless Framework Dashboard
-layout: Doc
--->
+short_title: Concepts
+keywords: ['Serverless Framework', 'Dashboard', 'Orgs', 'Members']
+---
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
