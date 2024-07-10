@@ -1,7 +1,16 @@
 <!--
 title: Serverless Framework - Deploying to AWS
 description: How to deploy your AWS Lambda functions and their required infrastructure
-layout: Doc
+short_title: AWS Deployment
+keywords:
+  [
+    'Serverless Framework',
+    'AWS',
+    'deploying',
+    'Lambda functions',
+    'cloud infrastructure',
+    'CloudFormation',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

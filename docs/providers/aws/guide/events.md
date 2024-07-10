@@ -1,9 +1,18 @@
 <!--
 title: Serverless Framework - AWS Lambda Events
-menuText: Events
-menuOrder: 6
 description: Configuring AWS Lambda function events in the Serverless Framework
-layout: Doc
+short_title: AWS Events
+keywords:
+  [
+    'Serverless Framework',
+    'AWS Lambda',
+    'events',
+    'triggers',
+    'API Gateway',
+    'S3',
+    'SNS',
+    'function configuration',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

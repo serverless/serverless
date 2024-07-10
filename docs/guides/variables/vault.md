@@ -1,9 +1,8 @@
 <!--
 title: Serverless Framework - Variables - HashiCorp Vault Secrets
-menuText: HashiCorp Vault Secrets
-menuOrder: 14
 description: How to reference HashiCorp Vault Secrets
-layout: Doc
+short_title: HashiCorp Vault Secrets
+keywords: ['Serverless Framework', 'HashiCorp', 'Vault', 'Secrets', 'Variables']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

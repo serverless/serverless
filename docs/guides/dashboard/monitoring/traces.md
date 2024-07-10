@@ -1,8 +1,17 @@
 <!--
 title: Serverless Framework - Monitoring & Observability - Traces
-menuText: Traces
-menuOrder: 3
-layout: Doc
+description: How to analyze traces, spans, logs, and events in Serverless Framework Dashboard.
+short_title: Traces
+keywords:
+  [
+    'Serverless Framework',
+    'Monitoring',
+    'Observability',
+    'Traces',
+    'Spans',
+    'Logs',
+    'Events',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

@@ -1,9 +1,8 @@
 <!--
 title: Serverless Framework Dashboard - Setup & Overview
-menuText: Setup & Overview
-menuOrder: 1
 description: An overview and set-up guide for Serverless Framework Dashboard
-layout: Doc
+short_title: Setup & Overview
+keywords: ['Serverless Framework', 'Dashboard', 'Setup', 'Overview']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

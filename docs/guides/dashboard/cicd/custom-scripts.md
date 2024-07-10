@@ -1,8 +1,15 @@
 <!--
 title: Serverless Dashboard - CI/CD Custom Scripts
-menuText: Custom Scripts
-menuOrder: 3
-layout: Doc
+description: Learn how to run custom scripts before and after various CI/CD steps in Serverless Framework.
+short_title: Custom Scripts
+keywords:
+  [
+    'Serverless Framework',
+    'CI/CD',
+    'Custom Scripts',
+    'Automation',
+    'Deployment',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

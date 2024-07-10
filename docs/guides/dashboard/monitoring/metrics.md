@@ -1,8 +1,15 @@
 <!--
 title: Serverless Framework - Monitoring & Observability - Metrics
-menuText: Metrics
-menuOrder: 2
-layout: Doc
+description: Overview of the Metrics feature in Serverless Dashboard, including setup, available charts, and filters.
+short_title: Metrics
+keywords:
+  [
+    'Serverless Framework',
+    'Monitoring',
+    'Observability',
+    'Metrics',
+    'AWS Lambda',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

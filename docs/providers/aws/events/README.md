@@ -1,8 +1,11 @@
 <!--
 title: Serverless - AWS Lambda - Events
-menuText: AWS Events
-layout: Doc
+description: AWS Serverless Events Glossary covering various event sources for AWS Lambda.
+short_title: AWS Events
+keywords: ['Serverless', 'Framework', 'AWS', 'Lambda', 'Events']
 -->
+
+```​⬤
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
@@ -19,3 +22,4 @@ guide](../guide/events.md) for general information regarding Lambda Events in
 Serverless.
 
 If you have questions, join the [Slack community](https://serverless.com/slack) or [post over on the forums](https://forum.serverless.com/)
+```

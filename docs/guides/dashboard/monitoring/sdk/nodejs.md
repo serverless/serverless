@@ -1,8 +1,9 @@
 <!--
 title: Serverless Framework - SDK - Node.js
-menuText: Node.js
-menuOrder: 1
-layout: Doc
+description: How to use the Serverless Framework Node.js SDK for monitoring and observability.
+short_title: Node.js SDK
+keywords:
+  ['Serverless Framework', 'SDK', 'Node.js', 'Monitoring', 'Observability']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

@@ -1,7 +1,16 @@
 <!--
 title: Serverless Framework Concepts
 description: An introduction to using AWS and AWS Lambda with the Serverless Framework.
-layout: Doc
+short_title: Concepts
+keywords:
+  [
+    'Serverless Framework',
+    'AWS Lambda',
+    'AWS infrastructure',
+    'event-driven architecture',
+    'Functions',
+    'Events',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

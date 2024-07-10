@@ -1,8 +1,17 @@
 <!--
 title: Serverless Dashboard - CI/CD Notifications
-menuText: Notifications
-menuOrder: 6
-layout: Doc
+description: Configure Slack, email, SNS, and webhook notifications for CI/CD status updates in Serverless Framework.
+short_title: Notifications
+keywords:
+  [
+    'Serverless Framework',
+    'CI/CD',
+    'Notifications',
+    'Slack',
+    'Email',
+    'SNS',
+    'Webhook',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

@@ -1,7 +1,17 @@
 <!--
 title: Serverless Framework - AWS Lambda Functions
 description: How to configure AWS Lambda functions in the Serverless Framework
-layout: Doc
+short_title: AWS Lambda Functions
+keywords:
+  [
+    'Serverless Framework',
+    'AWS Lambda',
+    'function configuration',
+    'handler',
+    'runtime',
+    'permissions',
+    'environment variables',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

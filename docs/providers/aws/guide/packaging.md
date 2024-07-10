@@ -1,7 +1,9 @@
 <!--
 title: Serverless Framework - Packaging
 description: How the Serverless Framework packages your AWS Lambda functions and other available options
-layout: Doc
+short_title: Packaging
+keywords:
+  ['Serverless Framework', 'AWS Lambda', 'Packaging', 'Lambda functions', 'AWS']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

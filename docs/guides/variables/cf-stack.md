@@ -1,9 +1,15 @@
 <!--
 title: Serverless Framework - Variables - CloudFormation Stack Outputs
-menuText: AWS CloudFormation Stack Outputs
-menuOrder: 12
-description: How to reference AWS CloudFormation Stack Outputs
-layout: Doc
+description: How to reference AWS CloudFormation Stack Outputs in the Serverless Framework for enhanced service integration.
+short_title: CloudFormation Outputs
+keywords:
+  [
+    'Serverless Framework',
+    'CloudFormation Stack Outputs',
+    'AWS',
+    'configuration',
+    'deployment',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

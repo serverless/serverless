@@ -1,8 +1,17 @@
 <!--
 title: Serverless Dashboard - Running tests
-menuText: Testing
-menuOrder: 4
-layout: Doc
+description: Learn how to configure and run tests for your Serverless Framework services using Serverless Dashboard CI/CD.
+short_title: Testing
+keywords:
+  [
+    'Serverless Framework',
+    'CI/CD',
+    'Testing',
+    'Node.js',
+    'Python',
+    'NPM',
+    'Serverless Dashboard',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
