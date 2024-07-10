@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework - AWS Credentials
 description: How to set up the Serverless Framework with your Amazon Web Services credentials
 short_title: AWS Credentials
@@ -12,7 +12,7 @@ keywords:
     'Serverless Dashboard',
     'AWS IAM',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

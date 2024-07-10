@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework - Variables - AWS-specific variables
 description: How to reference AWS-specific variables in the Serverless Framework for efficient configuration and deployment.
 short_title: AWS Variables
@@ -11,7 +11,7 @@ keywords:
     'accountId',
     'region',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

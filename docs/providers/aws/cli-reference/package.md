@@ -1,9 +1,9 @@
----
+<!--
 title: Serverless Framework Commands - AWS Lambda - Package
 description: Package your service according to a specified provider using the Serverless Framework.
 short_title: Package
 keywords: ['Serverless', 'Framework', 'AWS Lambda', 'deployment']
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

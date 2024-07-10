@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework - AWS Lambda Events - Managed Streaming for Apache Kafka (MSK)
 short_title: MSK
 description: Setting up AWS MSK Events with AWS Lambda via the Serverless Framework
@@ -10,7 +10,7 @@ keywords:
     'Managed Streaming for Apache Kafka',
     'AWS',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

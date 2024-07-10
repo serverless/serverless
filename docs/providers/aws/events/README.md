@@ -1,9 +1,9 @@
----
+<!--
 title: Serverless - AWS Lambda - Events
 description: AWS Serverless Events Glossary covering various event sources for AWS Lambda.
 short_title: AWS Events
 keywords: ['Serverless', 'Framework', 'AWS', 'Lambda', 'Events']
----
+-->
 
 ```​⬤
 

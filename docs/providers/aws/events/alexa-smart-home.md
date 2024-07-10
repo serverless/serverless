@@ -1,10 +1,10 @@
----
+<!--
 title: Serverless Framework - AWS Lambda Events - Alexa Smart Home
 short_title: Alexa Smart Home
 description: Setting up AWS Alexa Smart Home Events with AWS Lambda via the Serverless Framework
 keywords:
   ['Serverless Framework', 'AWS Lambda', 'Alexa Smart Home', 'Alexa events']
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

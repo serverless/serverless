@@ -1,4 +1,4 @@
----
+<!--
 title: Function Build Configuration
 description: Configuration guide for building AWS Lambda functions with Serverless Framework using esbuild.
 short_title: Build Config
@@ -10,7 +10,7 @@ keywords:
     'esbuild',
     'Typescript',
   ]
----
+-->
 
 # AWS Lambda Build Configuration
 

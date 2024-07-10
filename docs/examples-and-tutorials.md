@@ -1,4 +1,4 @@
----
+<!--
 title: 'Serverless Framework Examples and Tutorials'
 description: 'Explore Serverless Framework examples and tutorials to help you get started with creating and deploying serverless applications.'
 short_title: 'Examples & Tutorials'
@@ -9,7 +9,7 @@ keywords:
     'Serverless templates',
     'Serverless guides',
   ]
----
+-->
 
 # Serverless Framework Examples and Tutorials
 

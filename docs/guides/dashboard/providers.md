@@ -1,10 +1,10 @@
----
+<!--
 title: Serverless Framework Dashboard - Providers
 description: How to manage cloud service provider credentials in the Serverless Framework Dashboard
 short_title: Providers
 keywords:
   ['Serverless Framework', 'Dashboard', 'Providers', 'AWS', 'Azure', 'GCP']
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

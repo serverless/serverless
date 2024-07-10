@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework Concepts
 description: An introduction to using AWS and AWS Lambda with the Serverless Framework.
 short_title: Concepts
@@ -11,7 +11,7 @@ keywords:
     'Functions',
     'Events',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

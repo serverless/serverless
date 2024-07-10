@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework - AWS Lambda Functions
 description: How to configure AWS Lambda functions in the Serverless Framework
 short_title: AWS Lambda Functions
@@ -12,7 +12,7 @@ keywords:
     'permissions',
     'environment variables',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

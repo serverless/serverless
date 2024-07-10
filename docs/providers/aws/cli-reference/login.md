@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework Commands - Login
 description: Login to the serverless platform.
 short_title: Login
@@ -10,7 +10,7 @@ keywords:
     'Serverless Framework Dashboard',
     'authentication',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

@@ -1,9 +1,9 @@
----
+<!--
 title: Serverless Framework - Variables - AWS SSM & Secrets Manager
 description: How to reference AWS SSM Parameter Store & Secrets Manager
 short_title: AWS SSM & Secrets Manager
 keywords: ['Serverless Framework', 'AWS SSM', 'Secrets Manager', 'Variables']
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

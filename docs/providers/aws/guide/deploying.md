@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework - Deploying to AWS
 description: How to deploy your AWS Lambda functions and their required infrastructure
 short_title: AWS Deployment
@@ -11,7 +11,7 @@ keywords:
     'cloud infrastructure',
     'CloudFormation',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

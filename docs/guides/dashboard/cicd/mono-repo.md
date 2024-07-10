@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Dashboard - CI/CD Mono Repos
 description: Mono-repo support using Trigger Directories for efficient deployments in Serverless Framework.
 short_title: Mono Repos
@@ -10,7 +10,7 @@ keywords:
     'Trigger Directories',
     'Microservices',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

@@ -1,4 +1,4 @@
----
+<!--
 title: 'Serverless Framework Documentation'
 short_title: 'Introduction'
 description: 'An introduction to the Serverless Framework, its philosophy, overview, and key highlights. Learn how to build serverless applications efficiently with minimal maintenance.'
@@ -12,7 +12,7 @@ keywords:
     'Serverless CLI',
     'Serverless Dashboard',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

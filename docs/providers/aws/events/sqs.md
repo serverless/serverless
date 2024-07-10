@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework - AWS Lambda Events - SQS Queues
 description: Setting up AWS SQS Queue Events with AWS Lambda via the Serverless Framework
 short_title: SQS
@@ -16,7 +16,7 @@ keywords:
     'AWS SQS Lambda Trigger',
     'AWS SQS Queue',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

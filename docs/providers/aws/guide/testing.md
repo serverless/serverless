@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework - Testing
 short_title: Testing
 description: Recommendations and best practices for testing AWS Lambda Functions with the Serverless Framework
@@ -10,7 +10,7 @@ keywords:
     'unit tests',
     'integration tests',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

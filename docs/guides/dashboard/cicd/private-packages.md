@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Dashboard - CI/CD Private Package Manager (NPM)
 description: Learn how to use private package managers like NPM in your Serverless Framework CI/CD workflow.
 short_title: Private Packages
@@ -11,7 +11,7 @@ keywords:
     'Environment Variables',
     'Authentication',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework - AWS Lambda Events
 description: Configuring AWS Lambda function events in the Serverless Framework
 short_title: AWS Events
@@ -13,7 +13,7 @@ keywords:
     'SNS',
     'function configuration',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

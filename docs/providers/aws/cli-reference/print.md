@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework Commands - AWS Lambda - Print
 description: Print your `serverless.yml` config file with all variables resolved for debugging.
 short_title: Print
@@ -11,7 +11,7 @@ keywords:
     'configuration',
     'variables',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

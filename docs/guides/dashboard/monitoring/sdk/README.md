@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework - Monitoring & Observability - SDKs
 description: Learn how to use the Serverless Framework SDK for monitoring and observability in your serverless applications.
 short_title: SDK
@@ -11,7 +11,7 @@ keywords:
     'Lambda',
     'Instrumentation',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

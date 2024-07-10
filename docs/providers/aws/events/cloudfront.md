@@ -1,9 +1,9 @@
----
+<!--
 title: Serverless Framework - AWS Lambda Events - CloudFront
 short_title: CloudFront
 description: Setting up CloudFront with AWS Lambda@Edge via the Serverless Framework
 keywords: ['Serverless Framework', 'AWS Lambda', 'CloudFront', 'Lambda@Edge']
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

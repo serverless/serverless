@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework - Upgrading to v4
 description: Learn about the significant updates and changes in Serverless Framework Version 4, including new licensing requirements, authentication methods, and deprecated providers.
 short_title: Upgrading to v4
@@ -13,7 +13,7 @@ keywords:
     'TypeScript support',
     'auto-updating',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

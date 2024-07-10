@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework - IAM Permissions For Functions
 description: How to manage your AWS Lambda functions and their AWS infrastructure resources easily with the Serverless Framework.
 short_title: IAM Permissions
@@ -10,7 +10,7 @@ keywords:
     'IAM roles',
     'Lambda permissions',
   ]
----
+-->
 
 ````​⬤
 

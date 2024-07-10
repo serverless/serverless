@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework - Parameters
 description: Learn how to use parameters in Serverless Framework for adaptable configurations, secure secret storage, and shared configuration values. This guide covers CLI parameters, stage-specific parameters, and Serverless Dashboard parameters.
 short_title: Parameters
@@ -12,7 +12,7 @@ keywords:
     'Serverless Dashboard',
     'secure secrets',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

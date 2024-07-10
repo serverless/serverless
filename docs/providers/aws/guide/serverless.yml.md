@@ -1,10 +1,10 @@
----
+<!--
 title: Serverless Framework - AWS Lambda Guide - Serverless.yml Reference
 short_title: Serverless.yml Reference
 description: A list of all available properties on serverless.yml for AWS.
 keywords:
   ['Serverless Framework', 'AWS Lambda', 'serverless.yml reference', 'AWS']
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

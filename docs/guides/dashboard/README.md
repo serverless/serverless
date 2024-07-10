@@ -1,9 +1,9 @@
----
+<!--
 title: Serverless Framework Dashboard - Setup & Overview
 description: An overview and set-up guide for Serverless Framework Dashboard
 short_title: Setup & Overview
 keywords: ['Serverless Framework', 'Dashboard', 'Setup', 'Overview']
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

@@ -1,9 +1,9 @@
----
+<!--
 title: Serverless Framework - Variables - External YAML/JSON Files
 description: How to reference external YAML/JSON files in serverless.yml
 short_title: External YAML/JSON
 keywords: ['Serverless Framework', 'YAML', 'JSON', 'Configuration']
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework Commands - AWS Lambda - Deploy
 description: Deploy your service to the specified provider
 short_title: Deploy
@@ -14,7 +14,7 @@ keywords:
     'Serverless Framework CLI',
     'Serverless Deploy',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

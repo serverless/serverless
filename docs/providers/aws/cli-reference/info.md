@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework Commands - AWS Lambda - Info
 description: Display information about your deployed service and AWS Lambda functions, events, and resources it contains.
 short_title: Info
@@ -13,7 +13,7 @@ keywords:
     'CloudFormation',
     'Stack Outputs',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

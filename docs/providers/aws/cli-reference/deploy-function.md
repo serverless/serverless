@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework Commands - AWS Lambda - Deploy Function
 description: Deploy your AWS Lambda functions quickly without CloudFormation
 short_title: Deploy Function
@@ -14,7 +14,7 @@ keywords:
     'Serverless Framework CLI',
     'Serverless Deploy Function',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

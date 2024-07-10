@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework - User Guides
 description: Discover comprehensive user guides for Serverless Framework, covering everything from getting started to advanced topics. Join the community chat on Slack or participate in the forums for more support.
 short_title: User Guides
@@ -12,7 +12,7 @@ keywords:
     'Slack',
     'forums',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

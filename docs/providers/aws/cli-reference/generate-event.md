@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework Commands - AWS Lambda - Generate Event
 description: Generate sample Lambda function event payloads for various event types.
 short_title: Generate Event
@@ -13,7 +13,7 @@ keywords:
     'Sample Events',
     'Serverless CLI',
   ]
----
+-->
 
 # AWS - Generate Event
 

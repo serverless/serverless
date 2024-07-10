@@ -1,4 +1,4 @@
----
+<!--
 title: Serverless Framework Dashboard - CI/CD
 description: Learn how to set up and use Serverless Framework CI/CD to automatically test and deploy services from Github.
 short_title: CI/CD
@@ -13,7 +13,7 @@ keywords:
     'Deployment',
     'Serverless Dashboard',
   ]
----
+-->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 

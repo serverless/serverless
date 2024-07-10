@@ -1,4 +1,4 @@
----
+<!--
 title: 'Service Configuration Validation'
 description: 'Learn how to validate your service configuration in the Serverless Framework using AJV. Understand the error handling modes and how to address configuration issues.'
 short_title: 'Config Validation'
@@ -10,7 +10,7 @@ keywords:
     'JSON-schema validation',
     'configValidationMode',
   ]
----
+-->
 
 # Service configuration validation
 
