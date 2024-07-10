@@ -46,6 +46,49 @@ build:
       setNodeOptions: true
 ```
 
+You may also configure esbuild with a JavaScript file, which is useful if you want to use esbuild plugins. Here's an example:
+
+```yml
+build:
+  esbuild:
+    # Path to the esbuild config file relative to the `serverless.yml` file
+    configFile: ./esbuild.config.js
+```
+
+The JavaScript file must export a function that returns an esbuild configuration object. For your convenience, the **serverless** instance is passed to that function.
+
+Here's an example of the `esbuild.config.js` file that uses the `esbuild-plugin-env` plugin:
+
+**ESM:**
+
+```js
+/**
+ * don't forget to set the `"type": "module"` property in `package.json`
+ * and install the `esbuild-plugin-env` package
+ */
+import env from 'esbuild-plugin-env'
+
+export default (serverless) => {
+  return {
+    external: ['@aws-sdk/client-s3'],
+    plugins: [env()],
+  }
+}
+```
+
+**CommonJS:**
+
+```js
+const env = require('esbuild-plugin-env')
+
+module.exports = (serverless) => {
+  return {
+    external: ['@aws-sdk/client-s3'],
+    plugins: [env()],
+  }
+}
+```
+
 ## Plugin Conflicts
 
 Please note, plugins that build your code will not work unless you opt out of the default build experience. Some of the plugins affected are:
