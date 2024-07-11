@@ -31,14 +31,16 @@ build:
     bundle: true
     # Enable minifying function code. (Default: false)
     minify: false
-    # NPM packages to not be bundled
+    # NPM packages to not be bundled. Glob patterns are supported here.
     external:
       - '@aws-sdk/client-s3'
     # NPM packages to not be bundled, as well as not included in node_modules
     # in the zip file uploaded to Lambda. By default this will be set to aws-sdk
     # if the runtime is set to nodejs16.x or lower or set to @aws-sdk/* if set to nodejs18.x or higher.
+    # Glob patterns are supported here.
     exclude:
       - '@aws-sdk/*'
+      - '!@aws-sdk/client-bedrock-runtime'
     # The packages config, this can be set to override the behavior of external
     # If this is set then all dependencies will be treated as external and not bundled.
     packages: external
