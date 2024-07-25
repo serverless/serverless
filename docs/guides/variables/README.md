@@ -87,9 +87,11 @@ Here is an example of setting a domain variable based on the stage:
 ```yaml
 stages:
   default:
-    domain: ${sls:stage}.example-dev.com
+    params:
+      domain: ${sls:stage}.example-dev.com
   prod:
-    domain: example.com
+    params:
+      domain: example.com
 
 provider:
   environment:
