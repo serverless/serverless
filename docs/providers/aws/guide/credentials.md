@@ -34,7 +34,7 @@ If you want a quick way to get Serverless Framework connected to your AWS accoun
 
 ### Serverless Provider
 
-If you are attempting to add an existing service to the Serverless Dashboard and want to find out more about adding a Provider, we recommend looking at the [Provider specific documentation](https://serverless.com/framework/docs/guides/providers) or skip to the next sections that discusses the recommended configuration of AWS accounts for production use.
+If you are attempting to add an existing service to the Serverless Dashboard and want to find out more about adding a Provider, we recommend looking at the [Provider specific documentation](../../../guides/dashboard/providers.md) or skip to the next sections that discusses the recommended configuration of AWS accounts for production use.
 
 If you are new to Serverless and adding credentials for your Serverless Framework service, please continue with the steps below:
 
@@ -116,6 +116,6 @@ Using the methods described above, you can create individual AWS account per dev
 
 ### Combine with Serverless Provider
 
-Now that the AWS accounts are structured as needed, you can also combine the use of Providers in the Serverless Dashboard as described earlier to create specific connections to those AWS account for specific stages.
+Now that the AWS accounts are structured as needed, you can also combine the use of Providers in the Serverless Dashboard as described earlier to create specific connections to those AWS accounts for specific stages.
 
-Providers has its own documentation which provides a lot more detail: https://www.serverless.com/framework/docs/guides/providers
+Providers have their own [documentation](https://www.serverless.com/framework/docs/guides/dashboard/providers), which provides a lot more detail.

@@ -5,8 +5,6 @@ short_title: AWS Events
 keywords: ['Serverless', 'Framework', 'AWS', 'Lambda', 'Events']
 -->
 
-```​⬤
-
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/)
@@ -22,4 +20,3 @@ guide](../guide/events.md) for general information regarding Lambda Events in
 Serverless.
 
 If you have questions, join the [Slack community](https://serverless.com/slack) or [post over on the forums](https://forum.serverless.com/)
-```

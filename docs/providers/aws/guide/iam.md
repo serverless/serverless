@@ -12,8 +12,6 @@ keywords:
   ]
 -->
 
-````​⬤
-
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/iam)
@@ -47,7 +45,7 @@ provider:
       permissionsBoundary: arn:aws:iam::123456789012:policy/boundaries
       tags:
         key: value
-````
+```
 
 Note that `provider.iam.role` can be either an object like in example above, or custom role arn:
 

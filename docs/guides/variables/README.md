@@ -42,7 +42,7 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 
 - [Self-References Properties Defined in `serverless.yml`](/framework/docs/guides/variables/self)
 - [Serverless Core Variables](/framework/docs/guides/variables/core)
-- [Environment Variables](/framework/docs/guides/variables/env)
+- [Environment Variables](/framework/docs/guides/variables/env-vars)
 - [CLI Options](/framework/docs/guides/variables/cli-options)
 - [External YAML/JSON Files](/framework/docs/guides/variables/file)
 - [Dynamic Values from Javascript](/framework/docs/guides/variables/javascript)
@@ -51,7 +51,7 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 - [AWS S3](/framework/docs/guides/variables/s3)
 - [AWS SSM Parameter Store & Secrets Manager](/framework/docs/guides/variables/ssm)
 - [AWS CloudFormation Outputs](/framework/docs/guides/variables/cf-stack)
-- [HashiCorp Terraform State Outputs](/framework/docs/guides/variables/teraform)
+- [HashiCorp Terraform State Outputs](/framework/docs/guides/variables/terraform)
 - [HashiCorp Vault Secrets](/framework/docs/guides/variables/vault)
 
 ## Recursively reference properties
@@ -98,7 +98,7 @@ provider:
     APP_DOMAIN: ${param:domain}
 ```
 
-Read all about parameters in the [Parameters documentation](/framework/docs/providers/aws/guide/parameters).
+Read all about parameters in the [Parameters documentation](../../guides//parameters.md).
 
 ## Multiple Configuration Files
 

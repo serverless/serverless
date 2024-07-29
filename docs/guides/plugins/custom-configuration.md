@@ -58,7 +58,7 @@ module.exports = MyPlugin
 
 Any additional configuration defined by plugins in `serverless.yml` must come with validation rules.
 
-Serverless Framework uses JSON schema validation backed by [the AJV library](https://github.com/ajv-validator/ajv). You can extend [the base schema](/lib/configSchema/index.js) in plugins via:
+Serverless Framework uses JSON schema validation backed by [the AJV library](https://github.com/ajv-validator/ajv). You can extend [the base schema](https://github.com/serverless/serverless/blob/main/lib/config-schema.js) in plugins via:
 
 - `defineTopLevelProperty`
 - `defineCustomProperties`

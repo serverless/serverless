@@ -27,8 +27,6 @@ Simply put, events are the things that trigger your functions to run.
 
 If you are using AWS as your provider, all `events` in the service are anything in AWS that can trigger an AWS Lambda function, like an S3 bucket upload, an SNS topic, and HTTP endpoints created via [API Gateway](https://serverless.com/amazon-api-gateway/).
 
-[View the AWS events section for a list of supported events](../events)
-
 Upon deployment, the framework will deploy any infrastructure required for an event (e.g., an API Gateway endpoint) and configure your `function` to listen to it.
 
 Infrastructure which is created to support events in the `events` list may be
@@ -70,7 +68,7 @@ functions:
 
 ## Types
 
-The Serverless Framework supports all of the AWS Lambda events and more. Instead of listing them here, we've put them in a separate section, since they have a lot of configurations and functionality. [Check out the events section for more information.](../events)
+The Serverless Framework supports all of the AWS Lambda events and more. Instead of listing them here, we've put them in a separate section, since they have a lot of configurations and functionality.
 
 ## PathParameters
 
