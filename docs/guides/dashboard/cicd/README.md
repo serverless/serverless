@@ -39,7 +39,7 @@ Before you setup your CI/CD workflow, make sure you meet the following requireme
 
 As is the case with deployments from the Serverless Framework CLI, Serverless CI/CD requires access to your AWS Account in order to deploy your services. To make this process as secure as possible, Serverless CI/CD will generate short-lived credentials to your AWS account on each deployment. This is done by creating an AWS Access Role in your AWS account and associating it with a Provider in the Serverless Framework Dashboard.
 
-If you’ve already setup an AWS Access Role with a Provider you can skip this step. Otherwise, please go through the instructions on our Provider documentation page to help set one up: https://www.serverless.com/framework/docs/guides/providers#adding-providers-in-the-dashboard
+If you’ve already set up an AWS Access Role with a Provider, you can skip this step. Otherwise, please go through the instructions on our [Provider documentation page](../providers.md) to help set one up.
 
 ### Step 2: Connect to Github
 

@@ -30,7 +30,7 @@ Deploying multiple services in a monorepository is a very common pattern across 
 
 ## Setup
 
-_Note: Compose is available in Serverless Framework **v3.15.0** or greater ([Upgrading guide](../getting-started.md#upgrade)). If Serverless Framework is installed locally (in `node_modules/`), make sure to upgrade it as well._
+_Note: Compose is available in Serverless Framework **v3.15.0** or greater ([Upgrading guide](../guides/upgrading-v4.md)). If Serverless Framework is installed locally (in `node_modules/`), make sure to upgrade it as well._
 
 Assuming you have an application containing multiple Serverless Framework services, for example:
 

@@ -3,8 +3,8 @@
   "Get Started": {
     "Setup": "getting-started",
     "Upgrading To V4": "guides/upgrading-v4",
-    "Tutorial": "tutorial",
     "Concepts": "providers/aws/guide/intro",
+    "Tutorial": "tutorial",
     "AWS Credentials": "providers/aws/guide/credentials"
   },
   "Usage": {

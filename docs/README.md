@@ -30,7 +30,7 @@ In 2014, AWS Lambda was introduced offering a more efficient compute service in 
 
 Months later, the Serverless Framework was created to streamline the deployment of various use-cases on AWS Lambda. The Serverless Framework introduced the concept of _"serverless architectures"_, a transformative approach to building applications on the cloud, integrating AWS Lambda and cloud infrastructure with similar "serverless" qualities, to enable developers to create entire applications that scale massively with minimal maintenance.
 
-Today, the Serverless Framework continues to be the original, leading and most trusted tool for enterprises and start-ups building serverless architectures. Renowned Fortune 500 companies such as the New York Times, Nike, and EA Games utilize it, while numerous startups have reached unicorn valuations and achieved notable exits using the Framework. These successes have been accomplished with relatively small engineering teams, leveraging the power of serverless architectures.
+Today, the Serverless Framework continues to be the original, leading and most trusted tool for enterprises and start-ups building serverless architectures. Renowned Fortune 500 companies such as the _New York Times_, _Nike_, and _EA Games_ utilize it, while numerous startups have reached unicorn valuations and achieved notable exits using the Framework. These successes have been accomplished with relatively small engineering teams, leveraging the power of serverless architectures.
 
 The mission of the Serverless Framework is to empower all developers to build more and manage less.
 
