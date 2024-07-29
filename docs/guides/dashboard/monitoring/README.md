@@ -112,8 +112,8 @@ In addition to the out-of-the-box instrumentation provided by Serverless Framewo
 
 See the SDK documentation for Node and Python for details:
 
-- [Full NodeJS Documentation](../sdk/nodejs.md)
-- [Full Python Documentation](../sdk/python.md)
+- [Full NodeJS Documentation](./sdk/nodejs.md)
+- [Full Python Documentation](./sdk/python.md)
 
 ## Supported AWS Lambda Runtimes
 
@@ -182,7 +182,7 @@ stages:
     observability: false
 ```
 
-Please note, if you have an Observability Integration already established with one or multiple AWS accounts, you will have to delete those via the [Serverless Framework Dashboard)[https://app.serverless.com]
+Please note, if you have an Observability Integration already established with one or multiple AWS accounts, you will have to delete those via the [Serverless Framework Dashboard](https://app.serverless.com)
 
 ### Disabling Trace Sampling
 

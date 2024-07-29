@@ -50,7 +50,7 @@ pip install serverless-sdk
 ### Enable Instrumentation
 
 The SDK will merely generate the necessary Tags, Spans, and Events; however,
-you must [Enable Instrumentation](/framework/docs/monitoring) for each of
+you must [Enable Instrumentation](../README.md#set-up-via-serverless-framework-dashboard-ui) for each of
 your functions for Serverless Framework Dashboard to ingest the data.
 
 ## Usage

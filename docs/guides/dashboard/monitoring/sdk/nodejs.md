@@ -95,7 +95,7 @@ with [`--keep-names`](https://esbuild.github.io/api/#keep-names) option.
 ### Enable Instrumentation
 
 The SDK will merely generate the necessary Tags, Spans, and Events; however,
-you must [Enable Instrumentation](/framework/docs/guide/monitoring/instrumentation)
+you must [Enable Instrumentation](../README.md#set-up-via-serverless-framework-dashboard-ui)
 for each of your functions for Serverless Dashboard to ingest the data.
 
 ## Usage

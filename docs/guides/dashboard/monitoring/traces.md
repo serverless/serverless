@@ -23,7 +23,7 @@ keywords:
 # Traces
 
 Traces, Spans, Logs, and Events are captured and made available in Trace
-Explorer for your AWS Lambda functions when [Instrumentation](./instrumentation.md)
+Explorer for your AWS Lambda functions when [Instrumentation](./README.md#set-up-via-serverless-framework-dashboard-ui)
 is enabled.
 
 Serverless Dashboard provides a set of tools to analyzing Traces.
