@@ -46,6 +46,24 @@ Or, you can set this environment variable:
 SERVERLESS_FRAMEWORK_FORCE_UPDATE=true
 ```
 
+## Pinning to a Specific Version
+
+You are able to pin to a specific version of the Serverless Framework using normal semver syntax, by setting the `frameworkVersion` property in your `serverless.yml` file. If you do not set this property, then every 24 hours you will be automatically updated to the latest version of the Serverless Framework. If you do set this property, you will be updated every 24 hours to the highest version that is currently available for the version constraint you have set.
+
+For example, If you set `frameworkVersion: ~4.1.0` then you will always be updated to the most recent patch version of `4.1.x`.
+
+We highly recommend that you never pin to a specific patch version and instead pin to a specific major or minor version. This way you will always benefit from patch updates that may include security and bug fixes.
+
+We periodically will block versions that are found to contain regressions, security issues, or other issues that impact stability for our users. If you are pinning to a version that is found to be broken, we will update you to the next closest patch version that is not blocked.
+
+### Blocked Versions
+
+Currently, the following versions are blocked,
+
+1. Versions older than `4.0.4`
+2. Version `4.1.8`
+3. Versions `4.1.13` to `4.1.15`
+
 ## The `serverless` Command
 
 The Serverless Framework ships with a `serverless` command that walks you through getting a project created and deployed onto AWS. It helps with downloading a Template, setting up AWS Credentials, setting up the Serverless Framework Dashboard, and more, while explaining each concept along the way.
