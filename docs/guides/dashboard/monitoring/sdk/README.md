@@ -32,7 +32,7 @@ It also has certain features you can use directly in your lambda such as capturi
 ## Advanced Span Configuration
 
 For most of the SDK configuration, like turning on/off span collection, follow the
-[Monitoring Configuration](../monitoring/#configuration) instructions to modify your
+[Monitoring Configuration](../README.md/#configuration) instructions to modify your
 serverless.yml appropriately.
 
 If needed, you can configure HTTP span collection with the following environment variables
