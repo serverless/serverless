@@ -32,8 +32,7 @@ Upon deployment, the framework will deploy any infrastructure required for an ev
 Infrastructure which is created to support events in the `events` list may be
 referenced using CloudFormation intrinsic functions like `Fn::GetAtt` or
 `Fn::Ref` (or their shorthand counterparts). For details on referencing created
-resources in AWS, see the [AWS CloudFormation Resource
-Reference](./resources.md#aws-cloudformation-resource-reference) section on the
+resources in AWS, see the [AWS CloudFormation Resource Reference](./resources.md#aws-cloudformation-resource-reference) section on the
 [AWS - Resources](./resources.md) page.
 
 ## Configuration

@@ -23,8 +23,7 @@ keywords:
 Metrics is a Serverless Dashboard feature which enables viewing metrics across
 AWS Accounts and Lambda functions.
 
-To get started you need to [add an AWS Account integration](./integrations/aws.md)
-and [enable Dev or Prod Instrumentation Mode](./instrumentation.md).
+To get started you need to [add an AWS Account integration](./README.md).
 
 Once instrumentation is enabled, go to the **Metrics** page to view all of your
 AWS Lambda function metrics including durations, invocations, and event counts.

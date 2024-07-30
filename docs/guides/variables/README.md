@@ -98,7 +98,7 @@ provider:
     APP_DOMAIN: ${param:domain}
 ```
 
-Read all about parameters in the [Parameters documentation](../../guides//parameters.md).
+Read all about parameters in the [Parameters documentation](../../guides/parameters.md).
 
 ## Multiple Configuration Files
 

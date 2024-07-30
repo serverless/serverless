@@ -93,7 +93,7 @@ functions:
           customProperty: foobar # <-- use defineFunctionEventProperties
 ```
 
-We'll walk though those helpers. You may also want to check out examples from [helpers tests](tests/fixtures/configSchemaExtensions/test-plugin.js)
+We'll walk though those helpers. You may also want to check out examples from [helpers tests](../../../test/fixtures/programmatic/config-schema-extensions/test-plugin.js)
 
 ### Top-level properties via `defineTopLevelProperty`
 

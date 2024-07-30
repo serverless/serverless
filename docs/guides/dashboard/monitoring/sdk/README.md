@@ -25,9 +25,9 @@ When using the Serverless Framework Dashboard, the Framework automatically injec
 
 It also has certain features you can use directly in your lambda such as capturing an error in the Dashboard without causing your lambda to error and custom function spans.
 
-[NodeJS Documentation](../sdk/nodejs.md)
+[NodeJS Documentation](./nodejs.md)
 
-[Python Documentation](../sdk/python.md)
+[Python Documentation](./python.md)
 
 ## Advanced Span Configuration
 
