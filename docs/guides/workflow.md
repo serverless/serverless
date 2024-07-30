@@ -79,7 +79,7 @@ serverless deploy function -f [FUNCTION NAME] -s [STAGE NAME] -r [REGION NAME]
 
 Use this to easily develop your AWS Lambda Functions locally. This will run your AWS Lambda Functions locally and allow you to send events to them on AWS.
 
-Currently this is only supported for Node.js. Learn more about the [dev command](/framework/docs/providers/aws/cli-reference/dev).
+Currently this is only supported for Node.js. Learn more about the [dev command](../providers/aws/cli-reference/dev.md).
 
 ```bash
 serverless dev
