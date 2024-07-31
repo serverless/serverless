@@ -591,6 +591,9 @@ aws_secret_access_key = CUSTOMSECRET
         const { serverless } = await runServerless({
           fixture: 'aws',
           command: 'print',
+          options: {
+            'aws-profile': 'notDefault',
+          },
           configExt: {
             provider: {
               deploymentBucket: {
@@ -602,9 +605,28 @@ aws_secret_access_key = CUSTOMSECRET
         awsCredentials = serverless.getProvider('aws').getCredentials()
       })
 
+      it('should get credentials "--aws-profile" CLI option', () => {
+        expect(awsCredentials.credentials.accessKeyId).to.equal(
+          'NOTDEFAULTKEYID',
+        )
+      })
+
       it('should set the signatureVersion to v4 if the serverSideEncryption is aws:kms', () => {
         expect(awsCredentials.signatureVersion).to.equal('v4')
       })
+    })
+
+    it('should throw an error if a non-existent profile is set', async () => {
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        command: 'print',
+        options: {
+          'aws-profile': 'nonExistent',
+        },
+      })
+      expect(() => serverless.getProvider('aws').getCredentials()).to.throw(
+        Error,
+      )
     })
   })
 
@@ -674,6 +696,27 @@ aws_secret_access_key = CUSTOMSECRET
       })
       expect(serverless.getProvider('aws').getProfile()).to.equal(
         'cli-override',
+      )
+    })
+
+    it('should allow to set via CLI `--aws-profile` param', async () => {
+      // Test with `provider.profile` `--profile` and `--aws-pofile` CLI param set
+      // Confirm that `--aws-profile` overrides
+      const { serverless } = await runServerless({
+        fixture: 'aws',
+        command: 'print',
+        options: {
+          profile: 'cli-override',
+          'aws-profile': 'aws-override',
+        },
+        configExt: {
+          provider: {
+            profile: 'test-profile',
+          },
+        },
+      })
+      expect(serverless.getProvider('aws').getProfile()).to.equal(
+        'aws-override',
       )
     })
   })
