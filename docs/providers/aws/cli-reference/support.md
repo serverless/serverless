@@ -1,9 +1,9 @@
 <!--
 title: Serverless Framework Commands - Support
-menuText: support
-menuOrder: 24
 description: Generate issue reports and get support
-layout: Doc
+short_title: Support
+keywords:
+  ['Serverless', 'Framework', 'AWS Lambda', 'support', 'issue', 'report']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

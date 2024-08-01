@@ -1,8 +1,17 @@
 <!--
 title: Serverless Framework - Monitoring & Observability - Traces
-menuText: Traces
-menuOrder: 3
-layout: Doc
+description: How to analyze traces, spans, logs, and events in Serverless Framework Dashboard.
+short_title: Traces
+keywords:
+  [
+    'Serverless Framework',
+    'Monitoring',
+    'Observability',
+    'Traces',
+    'Spans',
+    'Logs',
+    'Events',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -14,7 +23,7 @@ layout: Doc
 # Traces
 
 Traces, Spans, Logs, and Events are captured and made available in Trace
-Explorer for your AWS Lambda functions when [Instrumentation](./instrumentation.md)
+Explorer for your AWS Lambda functions when [Instrumentation](./README.md#set-up-via-serverless-framework-dashboard-ui)
 is enabled.
 
 Serverless Dashboard provides a set of tools to analyzing Traces.

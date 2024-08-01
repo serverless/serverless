@@ -1,8 +1,16 @@
 <!--
 title: Serverless Framework - Monitoring & Observability - SDKs
-menuText: SDK
-menuOrder: 4
-layout: Doc
+description: Learn how to use the Serverless Framework SDK for monitoring and observability in your serverless applications.
+short_title: SDK
+keywords:
+  [
+    'Serverless Framework',
+    'SDK',
+    'Monitoring',
+    'Observability',
+    'Lambda',
+    'Instrumentation',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -17,14 +25,14 @@ When using the Serverless Framework Dashboard, the Framework automatically injec
 
 It also has certain features you can use directly in your lambda such as capturing an error in the Dashboard without causing your lambda to error and custom function spans.
 
-[NodeJS Documentation](../sdk/nodejs.md)
+[NodeJS Documentation](./nodejs.md)
 
-[Python Documentation](../sdk/python.md)
+[Python Documentation](./python.md)
 
 ## Advanced Span Configuration
 
 For most of the SDK configuration, like turning on/off span collection, follow the
-[Monitoring Configuration](../monitoring/#configuration) instructions to modify your
+[Monitoring Configuration](../README.md/#configuration) instructions to modify your
 serverless.yml appropriately.
 
 If needed, you can configure HTTP span collection with the following environment variables

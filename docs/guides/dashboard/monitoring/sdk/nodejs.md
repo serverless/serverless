@@ -1,8 +1,9 @@
 <!--
 title: Serverless Framework - SDK - Node.js
-menuText: Node.js
-menuOrder: 1
-layout: Doc
+description: How to use the Serverless Framework Node.js SDK for monitoring and observability.
+short_title: Node.js SDK
+keywords:
+  ['Serverless Framework', 'SDK', 'Node.js', 'Monitoring', 'Observability']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -94,7 +95,7 @@ with [`--keep-names`](https://esbuild.github.io/api/#keep-names) option.
 ### Enable Instrumentation
 
 The SDK will merely generate the necessary Tags, Spans, and Events; however,
-you must [Enable Instrumentation](/framework/docs/guide/monitoring/instrumentation)
+you must [Enable Instrumentation](../README.md#set-up-via-serverless-framework-dashboard-ui)
 for each of your functions for Serverless Dashboard to ingest the data.
 
 ## Usage
@@ -123,8 +124,7 @@ package, and configure Node to use them with captured Errors in the Serverless
 SDK.
 
 If you are on a version of the Serverless Framework prior to 3.36.0, you will
-need to remove the Dashboard SDK Wrapper by setting `disableWrapping`. More
-details about wrapping are in the [Upgrade to V2 guide](https://www.serverless.com/framework/docs/guides/dashboard/upgrade-to-v2#remove-dashboard-sdk-wrapping-optional).
+need to remove the Dashboard SDK Wrapper by setting `disableWrapping`.
 
 ```yaml
 custom:

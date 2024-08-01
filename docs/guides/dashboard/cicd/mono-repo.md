@@ -1,8 +1,15 @@
 <!--
 title: Serverless Dashboard - CI/CD Mono Repos
-menuText: Mono Repos
-menuOrder: 7
-layout: Doc
+description: Mono-repo support using Trigger Directories for efficient deployments in Serverless Framework.
+short_title: Mono Repos
+keywords:
+  [
+    'Serverless Framework',
+    'CI/CD',
+    'Mono Repos',
+    'Trigger Directories',
+    'Microservices',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

@@ -1,9 +1,19 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Invoke
-menuText: invoke
-menuOrder: 8
-description: Invoke an AWS Lambda Function using the Serverless Framework
-layout: Doc
+description: Invoke an AWS Lambda Function using the Serverless Framework.
+short_title: Invoke
+keywords:
+  [
+    'Serverless',
+    'Framework',
+    'AWS',
+    'Lambda',
+    'Invoke',
+    'function invocation',
+    'AWS Lambda function',
+    'event data',
+    'logging',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

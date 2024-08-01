@@ -1,8 +1,16 @@
 <!--
 title: Serverless Dashboard - CI/CD Branch Deployments
-menuText: Branch Deployments
-menuOrder: 1
-layout: Doc
+description: Learn how to set up and manage branch deployments in Serverless Framework for automated stage deployments.
+short_title: Branch Deployments
+keywords:
+  [
+    'Serverless Framework',
+    'CI/CD',
+    'Branch Deployments',
+    'Automation',
+    'GitHub',
+    'Deployment',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -21,4 +29,4 @@ To add a new branch deployment, in the "branch deploys" section of the CI/CD set
 
 ## Add a stage to a branch deployment
 
-If you are a first time user, the stage list may be empty. You must first [create a new deployment profile](/framework/docs/dashboard/profiles#creating-a-new-deployment-profile), and [add the deployment profile to a stage in your application](/framework/docs/dashboard/profiles#add-a-deployment-profile-to-your-application-and-stage). As mentioned in the requirements section, the deployment profile must also have an [AWS Access Role](/framework/docs/dashboard/access-roles/).
+You can assign a stage to each branch deployment, but ensure that a valid provider is set for this service.

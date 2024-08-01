@@ -1,7 +1,15 @@
 <!--
 title: Function Build Configuration
-menuText: Function Build Configuration
-layout: Doc
+description: Configuration guide for building AWS Lambda functions with Serverless Framework using esbuild.
+short_title: Build Config
+keywords:
+  [
+    'Serverless Framework',
+    'AWS Lambda',
+    'Build Configuration',
+    'esbuild',
+    'Typescript',
+  ]
 -->
 
 # AWS Lambda Build Configuration
@@ -23,14 +31,16 @@ build:
     bundle: true
     # Enable minifying function code. (Default: false)
     minify: false
-    # NPM packages to not be bundled
+    # NPM packages to not be bundled. Glob patterns are supported here.
     external:
       - '@aws-sdk/client-s3'
     # NPM packages to not be bundled, as well as not included in node_modules
     # in the zip file uploaded to Lambda. By default this will be set to aws-sdk
     # if the runtime is set to nodejs16.x or lower or set to @aws-sdk/* if set to nodejs18.x or higher.
+    # Glob patterns are supported here.
     exclude:
       - '@aws-sdk/*'
+      - '!@aws-sdk/client-bedrock-runtime'
     # The packages config, this can be set to override the behavior of external
     # If this is set then all dependencies will be treated as external and not bundled.
     packages: external
@@ -44,6 +54,49 @@ build:
       type: linked
       # Whether to set the NODE_OPTIONS on functions to enable sourcemaps on Lambda
       setNodeOptions: true
+```
+
+You may also configure esbuild with a JavaScript file, which is useful if you want to use esbuild plugins. Here's an example:
+
+```yml
+build:
+  esbuild:
+    # Path to the esbuild config file relative to the `serverless.yml` file
+    configFile: ./esbuild.config.js
+```
+
+The JavaScript file must export a function that returns an esbuild configuration object. For your convenience, the **serverless** instance is passed to that function.
+
+Here's an example of the `esbuild.config.js` file that uses the `esbuild-plugin-env` plugin:
+
+**ESM:**
+
+```js
+/**
+ * don't forget to set the `"type": "module"` property in `package.json`
+ * and install the `esbuild-plugin-env` package
+ */
+import env from 'esbuild-plugin-env'
+
+export default (serverless) => {
+  return {
+    external: ['@aws-sdk/client-s3'],
+    plugins: [env()],
+  }
+}
+```
+
+**CommonJS:**
+
+```js
+const env = require('esbuild-plugin-env')
+
+module.exports = (serverless) => {
+  return {
+    external: ['@aws-sdk/client-s3'],
+    plugins: [env()],
+  }
+}
 ```
 
 ## Plugin Conflicts

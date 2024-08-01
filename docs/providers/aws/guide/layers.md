@@ -1,7 +1,15 @@
 <!--
 title: Serverless Framework - AWS Lambda Layers
 description: How to configure AWS Lambda layers in the Serverless Framework
-layout: Doc
+short_title: AWS Lambda Layers
+keywords:
+  [
+    'Serverless Framework',
+    'AWS Lambda',
+    'Lambda layers',
+    'AWS',
+    'configuration',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

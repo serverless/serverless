@@ -1,8 +1,16 @@
 <!--
-title: Serverless Framework - Composing services
-menuText: Composing services
-menuOrder: 3
-layout: Doc
+title: 'Composing Serverless Framework Services'
+description: 'Learn how to deploy and orchestrate multiple services using Serverless Framework Compose. This guide covers setup, service dependencies, and global commands for efficient management of serverless applications.'
+short_title: 'Composing Services'
+keywords:
+  [
+    'Serverless Framework',
+    'composing services',
+    'multiple services',
+    'service dependencies',
+    'global commands',
+    'serverless-compose',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -22,7 +30,7 @@ Deploying multiple services in a monorepository is a very common pattern across 
 
 ## Setup
 
-_Note: Compose is available in Serverless Framework **v3.15.0** or greater ([Upgrading guide](../getting-started.md#upgrade)). If Serverless Framework is installed locally (in `node_modules/`), make sure to upgrade it as well._
+_Note: Compose is available in Serverless Framework **v3.15.0** or greater ([Upgrading guide](../guides/upgrading-v4.md)). If Serverless Framework is installed locally (in `node_modules/`), make sure to upgrade it as well._
 
 Assuming you have an application containing multiple Serverless Framework services, for example:
 
@@ -221,8 +229,8 @@ In these cases, you must run all commands from the root: `serverless service-a:d
 
 The following variables are supported in `serverless-compose.yml`:
 
-- [`${sls:stage}`](/framework/docs/guides/variables.md#referencing-serverless-core-variables)
-- [`${env:xxx}`](/framework/docs/guides/variables.md#referencing-environment-variables)
+- [`${sls:stage}`](./variables/env-vars.md#referencing-serverless-core-variables)
+- [`${env:xxx}`](./variables/env-vars.md#referencing-environment-variables)
 
 ### Differences with `serverless.yml`
 

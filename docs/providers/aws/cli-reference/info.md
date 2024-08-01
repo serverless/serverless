@@ -1,9 +1,18 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Info
-menuText: info
-menuOrder: 13
-description: Display information about your deployed service and the AWS Lambda Functions, Events and AWS Resources it contains.
-layout: Doc
+description: Display information about your deployed service and AWS Lambda functions, events, and resources it contains.
+short_title: Info
+keywords:
+  [
+    'Serverless',
+    'Framework',
+    'AWS',
+    'Lambda',
+    'Info',
+    'Service Information',
+    'CloudFormation',
+    'Stack Outputs',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

@@ -1,6 +1,16 @@
 <!--
 title: 'Tutorial: Your First Serverless Framework Project'
-menuText: Your First Project
+description: 'Step-by-step guide to creating and deploying your first HTTP API using Serverless Framework and AWS. Learn how to set up AWS, install Serverless Framework, and create and test API endpoints.'
+short_title: 'Tutorial'
+keywords:
+  [
+    'Serverless Framework tutorial',
+    'first serverless project',
+    'deploy HTTP API',
+    'AWS Lambda setup',
+    'Serverless API',
+    'beginner guide',
+  ]
 -->
 
 # Tutorial: Your First Serverless Framework Project
@@ -54,7 +64,7 @@ The first option you should see is to choose the type of template you want to ba
 
 [Serverless Dashboard](http://app.serverless.com) is a tool provided by the Serverless Framework to help make managing connections to AWS easier, manage configuration data for your services, monitoring capabilities and the ability to read logs for your Lambda functions amongst many other features.
 
-The dashboard is free for single developer use and we will be using it for the purpose of the getting started, because the dashboard makes it so much easier to manage connections to our AWS account for the deployment we will shortly be doing.
+The dashboard is free for single developer use and we will be using it for the purpose of the tutorial, because the dashboard makes it so much easier to manage connections to our AWS account for the deployment we will shortly be doing.
 
 For all these reasons, lets choose Y (or just press Enter), to get ourselves set up with the dashboard. This will then open a window in your browser.
 
@@ -69,7 +79,7 @@ Once the account is created, the CLI will then do one of two things:
 
 When you choose “AWS Access Role” another browser window should open (if not, the CLI provides you a link to use to open the window manually), and this is where we configure our Provider within our dashboard account.
 
-![img](https://assets-global.website-files.com/60acbb950c4d66d0ab3e2007/61f2c55319969220814ce2b7_61f198766d6b9c8fa8d6d1f7_xmNC49vOm8J4Y0xafU-3edJvkDSmmthrm4zFTFnGX3Ght03vHaiG41DodIXKBPIw_dWpuzSTb6uC8XQ6qWVz93oM6lA_F2ORGYOLgazshBUAkcsnrmEYKgZm8i32Q4PfGaojzeo1.png)
+![img](https://github.com/user-attachments/assets/baeec45a-0f02-4690-8b64-529c76e54631)
 
 Feel free to read through the documentation you may see, and on the next step make sure to choose the “Simple” option and then click “Connect AWS provider”. This will open a page to your AWS account titled “Quick create stack”. There is nothing we need to change here, just scroll down so that we can check the confirmation box at the bottom of the page, then click “Create Stack”.
 

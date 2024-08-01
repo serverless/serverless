@@ -1,7 +1,14 @@
 <!--
 title: Serverless Framework Services
+short_title: Services
 description: How to manage and configure serverless services, which contain your AWS Lambda functions, their events and infrastructure resources.
-layout: Doc
+keywords:
+  [
+    'Serverless Framework',
+    'AWS Lambda',
+    'serverless services',
+    'serverless.yml',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -87,7 +94,7 @@ Each `service` configuration is managed in the `serverless.yml` file. The main r
 - Define any plugin to use
 - Define a set of AWS resources to create
 - Allow events listed in the `events` section to automatically create the resources required for the event upon deployment
-- Allow flexible configuration using [variables](./variables.md)
+- Allow flexible configuration using [variables](../../../guides/variables/env-vars.md)
 
 You can see the name of the service, the provider configuration and the first function inside the `functions` definition which points to the `handler.js` file. Any further service configuration will be done in this file.
 

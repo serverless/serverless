@@ -1,9 +1,8 @@
 <!--
-title: Serverless Framework - Variables - Serverless Core variables
-menuText: Serverless Core
-menuOrder: 3
+title: Serverless Framework - Variables - Serverless Core Variables
 description: How to reference Serverless Core variables
-layout: Doc
+short_title: Serverless Core
+keywords: ['Serverless Framework', 'Core Variables', 'Configuration']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

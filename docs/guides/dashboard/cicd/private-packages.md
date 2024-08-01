@@ -1,8 +1,16 @@
 <!--
 title: Serverless Dashboard - CI/CD Private Package Manager (NPM)
-menuText: Private Packages
-menuOrder: 5
-layout: Doc
+description: Learn how to use private package managers like NPM in your Serverless Framework CI/CD workflow.
+short_title: Private Packages
+keywords:
+  [
+    'Serverless Framework',
+    'CI/CD',
+    'Private Package Manager',
+    'NPM',
+    'Environment Variables',
+    'Authentication',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -21,6 +29,6 @@ guide to create an authentication token. Following this process you will obtain 
 variable. Other private package managers for NPM or other runtimes (e.g. Python) also typically provide a method for
 authentication using environment variables in a CI/CD environment.
 
-To set an environment variable use the [Parameters](/framework/docs/dashboard/parameters/) feature and create a variable called
+To set an environment variable use the [Parameters](../../../guides/parameters.md) feature and create a variable called
 `NPM_TOKEN` containing your private registry token. Parameters defined in the deployment profiles associated with the
 application and stage are loaded in the Serverless CI/CD service as environment variables.

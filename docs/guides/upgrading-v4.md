@@ -1,8 +1,18 @@
 <!--
 title: Serverless Framework - Upgrading to v4
-menuText: Upgrading to v4
-menuOrder: 13
-layout: Doc
+description: Learn about the significant updates and changes in Serverless Framework Version 4, including new licensing requirements, authentication methods, and deprecated providers.
+short_title: Upgrading to v4
+keywords:
+  [
+    'Serverless Framework',
+    'Version 4',
+    'upgrade',
+    'AWS',
+    'licensing',
+    'authentication',
+    'TypeScript support',
+    'auto-updating',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -27,7 +37,7 @@ These changes only apply to Serverless Framework V.4 and beyond and not to earli
 
 All questions on pricing can be answered on our [pricing page](https://serverless.com/pricing).
 
-Serverless Framework V.4 will walk you through purchasing a Subscription via our Dashboard if you simply run the `serverless` command. Subscriptions can be purchased via [credit card](https://app.serverless-dev.com/settings/billing) or the [AWS Marketplace](https://aws.amazon.com/marketplace/pp/prodview-ok24yw6x5wcrg).
+Serverless Framework V.4 will walk you through purchasing a Subscription via our Dashboard if you simply run the `serverless` command. Subscriptions can be purchased via [credit card](https://app.serverless.com/settings/billing) or the [AWS Marketplace](https://aws.amazon.com/marketplace/pp/prodview-ok24yw6x5wcrg).
 
 ## Authentication Via Access Or License Keys
 

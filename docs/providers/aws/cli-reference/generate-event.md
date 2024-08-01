@@ -1,9 +1,18 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Generate Event
-menuText: generate event
-menuOrder: 21
-description: Generate sample Lambda function event payload
-layout: Doc
+description: Generate sample Lambda function event payloads for various event types.
+short_title: Generate Event
+keywords:
+  [
+    'Serverless',
+    'Framework',
+    'AWS',
+    'Lambda',
+    'Generate Event',
+    'Event Payloads',
+    'Sample Events',
+    'Serverless CLI',
+  ]
 -->
 
 # AWS - Generate Event

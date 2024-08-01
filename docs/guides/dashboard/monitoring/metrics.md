@@ -1,8 +1,15 @@
 <!--
 title: Serverless Framework - Monitoring & Observability - Metrics
-menuText: Metrics
-menuOrder: 2
-layout: Doc
+description: Overview of the Metrics feature in Serverless Dashboard, including setup, available charts, and filters.
+short_title: Metrics
+keywords:
+  [
+    'Serverless Framework',
+    'Monitoring',
+    'Observability',
+    'Metrics',
+    'AWS Lambda',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -16,8 +23,7 @@ layout: Doc
 Metrics is a Serverless Dashboard feature which enables viewing metrics across
 AWS Accounts and Lambda functions.
 
-To get started you need to [add an AWS Account integration](./integrations/aws.md)
-and [enable Dev or Prod Instrumentation Mode](./instrumentation.md).
+To get started you need to [add an AWS Account integration](./README.md).
 
 Once instrumentation is enabled, go to the **Metrics** page to view all of your
 AWS Lambda function metrics including durations, invocations, and event counts.
@@ -75,11 +81,11 @@ saved as a shared views to collaborate with team mates on specific searches.
 - **Events** - Individual invocations may produce multiple errors or warnings.
   The Serverless SDK may also produce errors and warnings. Filtering by Events
   enables filtering for invocations which include any of the selected Event types.
-  You can find more details about Event types on the [Trace Explorer](./trace-explorer.md).
+  You can find more details about Event types on the [Trace Explorer](./traces#event-types.md).
 - **Cold start** - Filters for metrics on AWS Lambda invocations that were a
   cold start.
 - **Duration** - Filters based on the AWS Lambda response duration.
 - **Custom Tags** - Filters for metrics on invocations that had the provided
   custom tags. Custom tags on traces, errors, and warnings are all queried. Use
-  the [Node.js](../nodejs-sdk.md) or [Python](./python-sdk.md) Serverless SDK to
+  the [Node.js](./sdk/nodejs.md) or [Python](./sdk/python.md) Serverless SDK to
   set custom tags.

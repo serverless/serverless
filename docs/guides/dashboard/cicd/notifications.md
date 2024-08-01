@@ -1,8 +1,17 @@
 <!--
 title: Serverless Dashboard - CI/CD Notifications
-menuText: Notifications
-menuOrder: 6
-layout: Doc
+description: Configure Slack, email, SNS, and webhook notifications for CI/CD status updates in Serverless Framework.
+short_title: Notifications
+keywords:
+  [
+    'Serverless Framework',
+    'CI/CD',
+    'Notifications',
+    'Slack',
+    'Email',
+    'SNS',
+    'Webhook',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -18,7 +27,7 @@ Serverless Framework has integrated Slack, email, SNS and webhook notifications 
 Notifications for CI/CD events are not setup by default, so you will not get notified of deployments starting,
 completing of failing. These notifications must be added manually.
 
-Notifications for CI/CD events are configured the same way as they are for [monitoring](/framework/docs/dashboard/monitoring/notifications/).
+Notifications for CI/CD events are configured the same way as they are for [monitoring](../../../guides/dashboard/cicd/notifications.md).
 
 You can subscribe to three different CI/CD events in the "Add notifications" dialog:
 

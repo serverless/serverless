@@ -1,9 +1,14 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - IoT Fleet Provisioning
-menuText: IoT Fleet Provisioning
-menuOrder: 19
-description:  Setting up AWS IoT Provisioning Template with AWS Lambda pre-validation hook via the Serverless Framework
-layout: Doc
+short_title: IoT Fleet Provisioning
+description: Setting up AWS IoT Provisioning Template with AWS Lambda pre-validation hook via the Serverless Framework
+keywords:
+  [
+    'Serverless Framework',
+    'AWS Lambda',
+    'IoT Fleet Provisioning',
+    'IoT Provisioning Template',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
