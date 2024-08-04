@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - IoT
-short_title: IoT
+short_title: AWS Lambda Events - IoT
 description: Setting up AWS IoT Events with AWS Lambda via the Serverless Framework
 keywords: ['Serverless Framework', 'AWS Lambda', 'IoT', 'IoT Events']
 -->

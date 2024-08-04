@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - Kinesis & DynamoDB Streams
 description: Setting up AWS Kinesis Streams and AWS DynamoDB Streams Events with AWS Lambda via the Serverless Framework
-short_title: Kinesis & DynamoDB
+short_title: AWS Lambda Event - Kinesis & DynamoDB Streams
 keywords:
   [
     'Serverless',

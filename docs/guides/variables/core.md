@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Variables - Serverless Core Variables
 description: How to reference Serverless Core variables
-short_title: Serverless Core
+short_title: Serverless Variables - Core Variables
 keywords: ['Serverless Framework', 'Core Variables', 'Configuration']
 -->
 

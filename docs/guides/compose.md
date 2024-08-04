@@ -1,7 +1,7 @@
 <!--
 title: 'Composing Serverless Framework Services'
 description: 'Learn how to deploy and orchestrate multiple services using Serverless Framework Compose. This guide covers setup, service dependencies, and global commands for efficient management of serverless applications.'
-short_title: 'Composing Services'
+short_title: Composing Services
 keywords:
   [
     'Serverless Framework',

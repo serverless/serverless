@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - Cognito User Pool
-short_title: Cognito User Pool
+short_title: AWS Lambda Events - Cognito User Pool
 description: Setting up AWS Cognito User Pool Triggers with AWS Lambda via the Serverless Framework
 keywords:
   [

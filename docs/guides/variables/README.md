@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Variables
 description: How to use Serverless Variables to insert dynamic configuration info into your serverless.yml
-short_title: Variables
+short_title: Serverless Variables
 keywords:
   [
     'Serverless Framework',

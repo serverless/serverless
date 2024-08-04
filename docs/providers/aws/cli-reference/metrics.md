@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Metrics
 description: View metrics of your AWS Lambda Function within your terminal using the Serverless Framework.
-short_title: Metrics
+short_title: Commands - Metrics
 keywords: ['Serverless', 'Framework', 'metrics', 'AWS Lambda', 'CloudWatch']
 -->
 

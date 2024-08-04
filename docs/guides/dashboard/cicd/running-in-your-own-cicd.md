@@ -1,7 +1,7 @@
 <!--
 title: Serverless Dashboard - Running in your own CI/CD
 description: Learn how to deploy your Serverless Framework services using your own CI/CD service while leveraging Serverless Framework Dashboard features.
-short_title: Deploy in your own CI/CD
+short_title: Serverless Dashboard - Running your own CI/CD
 keywords:
   [
     'Serverless Framework',

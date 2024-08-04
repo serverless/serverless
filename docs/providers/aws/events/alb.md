@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - ALB
-short_title: Application Load Balancer
+short_title: AWS Lambda Events - ALB
 description: Setting up AWS Application Load Balancer events with AWS Lambda via the Serverless Framework
 keywords:
   [

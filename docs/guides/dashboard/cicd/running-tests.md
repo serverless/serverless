@@ -1,7 +1,7 @@
 <!--
 title: Serverless Dashboard - Running tests
 description: Learn how to configure and run tests for your Serverless Framework services using Serverless Dashboard CI/CD.
-short_title: Testing
+short_title: Serverless Dashboard - Testing
 keywords:
   [
     'Serverless Framework',

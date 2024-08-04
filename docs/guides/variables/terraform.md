@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Variables - HashiCorp Terraform State Outputs
 description: How to reference HashiCorp Terraform State Outputs
-short_title: HashiCorp Terraform State Outputs
+short_title: Serverless Variables -  HashiCorp Terraform State Outputs
 keywords: ['Serverless Framework', 'HashiCorp', 'Terraform', 'Variables']
 -->
 

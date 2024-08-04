@@ -1,7 +1,7 @@
 <!--
 title: 'Tutorial: Your First Serverless Framework Project'
 description: 'Step-by-step guide to creating and deploying your first HTTP API using Serverless Framework and AWS. Learn how to set up AWS, install Serverless Framework, and create and test API endpoints.'
-short_title: 'Tutorial'
+short_title: 'Tutorial: Your First Serverless Framework Project'
 keywords:
   [
     'Serverless Framework tutorial',

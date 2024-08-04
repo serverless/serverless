@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - Alexa Skill
-short_title: Alexa Skill
+short_title: AWS Lambda Events - Alexa Skill
 description: Setting up AWS Alexa Skill Events with AWS Lambda via the Serverless Framework
 keywords: ['Serverless Framework', 'AWS Lambda', 'Alexa Skill', 'Alexa events']
 -->

@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Variables - Environment
 description: How to reference Environment Variables
-short_title: Env Vars
+short_title: Serverless Variables - Env Vars
 keywords: ['Serverless Framework', 'Environment Variables', 'Configuration']
 -->
 

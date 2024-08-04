@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - Testing
-short_title: Testing
+short_title: Testing with the Serverless Framework
 description: Recommendations and best practices for testing AWS Lambda Functions with the Serverless Framework
 keywords:
   [

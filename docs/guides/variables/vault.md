@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Variables - HashiCorp Vault Secrets
 description: How to reference HashiCorp Vault Secrets
-short_title: HashiCorp Vault Secrets
+short_title: Serverless Variables - HashiCorp Vault Secrets
 keywords: ['Serverless Framework', 'HashiCorp', 'Vault', 'Secrets', 'Variables']
 -->
 

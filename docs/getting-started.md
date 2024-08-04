@@ -1,7 +1,7 @@
 <!--
 title: 'Setting Up Serverless Framework With AWS'
 description: 'Learn how to install, set up, and deploy projects using the Serverless Framework with AWS Lambda, DynamoDB, S3, and more.'
-short_title: 'Setup with AWS'
+short_title: 'Setting Up Serverless Framework With AWS'
 keywords:
   [
     'Serverless Framework setup',

@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Creating plugins
 description: How to create custom plugins to customize the Serverless Framework
-short_title: Creating plugins
+short_title: Serverless Plugins - Creating plugins
 keywords: ['Serverless Framework', 'Plugins', 'Custom Plugins']
 -->
 

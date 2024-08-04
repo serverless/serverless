@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - SNS
 description: Setting up AWS SNS Events with AWS Lambda via the Serverless Framework
-short_title: SNS
+short_title: AWS Lambda Events - SNS
 keywords:
   [
     'Serverless',

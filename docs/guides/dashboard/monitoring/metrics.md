@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Monitoring & Observability - Metrics
 description: Overview of the Metrics feature in Serverless Dashboard, including setup, available charts, and filters.
-short_title: Metrics
+short_title: Serverless Dashboard Observability - Metrics
 keywords:
   [
     'Serverless Framework',

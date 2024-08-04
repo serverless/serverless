@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Invoke
 description: Invoke an AWS Lambda Function using the Serverless Framework.
-short_title: Invoke
+short_title: Commands - Invoke
 keywords:
   [
     'Serverless',

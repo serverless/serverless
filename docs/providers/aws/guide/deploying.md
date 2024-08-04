@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Deploying to AWS
 description: How to deploy your AWS Lambda functions and their required infrastructure
-short_title: AWS Deployment
+short_title: Deploying to AWS
 keywords:
   [
     'Serverless Framework',
