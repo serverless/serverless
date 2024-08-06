@@ -23,7 +23,7 @@ Axiom is a powerful observability platform that enables efficient handling, stor
 2. Create or join an organization in Axiom.
 3. Skip the first step (creating dataset) in the Axiom onboarding process, as it will be done automatically by the Serverless Framework.
 4. Go to API tokens in the Axiom settings and create a new access token.
-   If you want to specify exact permissions for the token, you can do so using Advanced settings.
+   You can specify exact permissions for the token using Advanced settings if needed.
    The minimum required permissions are `Ingest:Create`, `Datasets:Create` and `Datasets:Read`.
    Store the token value securely as you will need it in the next steps.
    The Serverless Framework will use it to send logs to Axiom.
@@ -49,10 +49,10 @@ export AXIOM_TOKEN=your-axiom-access-token
 
 Now, you're all set to start sending logs to Axiom. Deploy your service with the Serverless Framework, and you'll see logs in the Axiom platform.
 
-Integrated are all the logs from:
+Integrated logs include:
 
-- the Lambda Functions in your service (unless `disableLogs` is set to `true` for a specific function).
-- log groups that are defined in `Resources` block and not associated with Lambda Functions.
+- Logs from the Lambda Functions in your service (unless `disableLogs` is set to `true` for a specific function).
+- log groups defined in the `Resources` block and not associated with Lambda Functions.
 
 ## Additional Configuration
 
@@ -75,16 +75,16 @@ stages:
 
 ## Disabling Axiom Observability
 
-To disable Axiom observability for your service, just remove the `observability` property from the `stages` block in your `serverless.yml` file.
+To disable Axiom observability for your service, remove the `observability` property from the `stages` block in your `serverless.yml` file.
 
 Please note that:
 
 - All Lambda Function logs will stop being sent to Axiom after the next deployment.
-- Logs from log groups other than Lambda Functions log groups will continue to be sent to Axiom until you remove the Axiom log subscriptions.
-  - If you want us to remove the Axiom log subscriptions, keep the `AXIOM_TOKEN` environment variable set and deploy the service with the Serverless Framework. The log subscriptions will be removed, and no more logs will be sent to the Axiom platform.
-  - If you unset the `AXIOM_TOKEN` environment variable before deploying, the log subscriptions will remain and logs will continue to be sent to Axiom.
+- Logs from log groups other than Lambda Functions will continue to be sent to Axiom until you remove the Axiom log subscriptions.
+  -	To remove the Axiom log subscriptions, keep the `AXIOM_TOKEN` environment variable set and deploy the service with the Serverless Framework. The log subscriptions will be removed, and no more logs will be sent to Axiom.
+  - If you unset the `AXIOM_TOKEN` environment variable before deploying, the log subscriptions will remain, and logs will continue to be sent to Axiom.
 
-The resources that are **not** removed automatically are:
+The resources that are **not** removed automatically, as they might still be used by other services, include:
 
 - The dataset.
 - [Axiom CloudFormation stacks](https://github.com/axiomhq/axiom-cloudwatch-forwarder) for each dataset created:

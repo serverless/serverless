@@ -20,7 +20,7 @@ The Serverless Dashboard is a powerful tool that provides insights into the beha
 To enable the Serverless Dashboard for your service:
 
 1. If you don't already have a Serverless Framework account, create a new account at https://app.serverless.com.
-2. If not already specified, add the `app` and `org` top-level property in your `serverless.yml` file.
+2. Add the `app` and `org` top-level properties in your `serverless.yml` file if they are not already specified.
 3. Add the `observability` property to the `stages` block in your `serverless.yml` file and use `dashboard` or `true` value as the provider.
 
 ```yaml
