@@ -1,7 +1,7 @@
 <!--
 title: Serverless Dashboard - CI/CD FAQ
 description: Frequently asked questions about Serverless CI/CD.
-short_title: FAQ
+short_title: Serverless Dashboard - FAQs
 keywords:
   [
     'Serverless Framework',

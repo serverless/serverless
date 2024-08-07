@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Variables - CLI Options
 description: Learn how to reference CLI options in your Serverless Framework configuration using the ${opt:<option>} syntax.
-short_title: CLI Options
+short_title: Serverless Variables - CLI Options
 keywords: ['Serverless Framework', 'CLI Options', 'Variables', 'Configuration']
 -->
 

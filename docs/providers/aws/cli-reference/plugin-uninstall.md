@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Plugin Uninstall
-short_title: Plugin Uninstall
+short_title: Commands - Plugin Uninstall
 description: Uninstall a Serverless plugin and remove it from the services `plugins` array using the Serverless Framework CLI.
 keywords: ['Serverless', 'Framework', 'AWS Lambda', 'plugin', 'uninstall']
 -->

@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - SDK - Python
 description: How to use the Serverless Framework Python SDK for monitoring and observability.
-short_title: Python SDK
+short_title: Serverless Observability - Python SDK
 keywords:
   ['Serverless Framework', 'SDK', 'Python', 'Monitoring', 'Observability']
 -->

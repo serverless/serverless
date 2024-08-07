@@ -1,7 +1,7 @@
 <!--
-title: Serverless Framework - Variables - AWS-specific variables
+title: Serverless Framework - Variables - AWS Account Variables
 description: How to reference AWS-specific variables in the Serverless Framework for efficient configuration and deployment.
-short_title: AWS Variables
+short_title: Serverless Variables - AWS Account Variables
 keywords:
   [
     'Serverless Framework',

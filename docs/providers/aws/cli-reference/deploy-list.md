@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Deploy List
 description: List your previous CloudFormation deployments
-short_title: Deploy List
+short_title: Commands - Deploy List
 keywords:
   [
     'Serverless',

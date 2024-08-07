@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Services
-short_title: Services
+short_title: Serverless Framework Services
 description: How to manage and configure serverless services, which contain your AWS Lambda functions, their events and infrastructure resources.
 keywords:
   [

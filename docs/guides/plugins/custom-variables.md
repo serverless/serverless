@@ -1,7 +1,7 @@
 <!--
-title: Serverless Framework - Plugins - Custom variables
+title: Serverless Framework - Plugins - Custom Variables
 description: How to create custom Serverless Framework variables via a plugin
-short_title: Custom variables
+short_title: Serverless Plugins - Custom Variables
 keywords: ['Serverless Framework', 'Plugins', 'Variables', 'Custom']
 -->
 

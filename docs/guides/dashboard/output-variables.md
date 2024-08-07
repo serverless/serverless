@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Dashboard - Outputs
 description: How to define and use outputs in Serverless Framework Dashboard
-short_title: Outputs
+short_title: Serverless Dashboard - Outputs
 keywords: ['Serverless Framework', 'Dashboard', 'Outputs', 'serverless.yml']
 -->
 

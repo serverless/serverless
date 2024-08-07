@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Login
 description: Login to the serverless platform.
-short_title: Login
+short_title: Commands - Login
 keywords:
   [
     'Serverless',

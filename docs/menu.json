@@ -89,7 +89,6 @@
     "remove": "providers/aws/cli-reference/remove",
     "plugin install": "providers/aws/cli-reference/plugin-install",
     "plugin uninstall": "providers/aws/cli-reference/plugin-uninstall",
-    "generate event": "providers/aws/cli-reference/generate-event",
     "print": "providers/aws/cli-reference/print",
     "support": "providers/aws/cli-reference/support"
   },

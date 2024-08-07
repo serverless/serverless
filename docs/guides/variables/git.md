@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Variables - Git
 description: How to reference git variables
-short_title: Git Variables
+short_title: Serverless Variables - Git Variables
 keywords: ['Serverless Framework', 'Git', 'Variables']
 -->
 

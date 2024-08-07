@@ -1,6 +1,7 @@
 <!--
 title: Serverless - AWS Lambda - CLI Reference
 menuText: CLI Reference
+short_title: CLI Reference
 layout: Doc
 -->
 

@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - Event Bridge
-short_title: EventBridge
+short_title: AWS Lambda Events - EventBridge
 description: Setting up AWS EventBridge Events with AWS Lambda via the Serverless Framework
 keywords:
   [

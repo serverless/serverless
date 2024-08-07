@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - CloudWatch Event
-short_title: CloudWatch Event
+short_title: AWS Lambda Events - CloudWatch Event
 description: Setting up AWS CloudWatch Events with AWS Lambda via the Serverless Framework
 keywords: ['Serverless Framework', 'AWS Lambda', 'CloudWatch Events', 'AWS EC2']
 -->

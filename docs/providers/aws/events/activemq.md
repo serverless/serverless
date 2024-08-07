@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - ActiveMQ
-short_title: ActiveMQ
+short_title: AWS Lambda Events - ActiveMQ
 description: Setting up AWS ActiveMQ Events with AWS Lambda via the Serverless Framework
 keywords:
   ['Serverless Framework', 'AWS Lambda', 'ActiveMQ', 'AWS ActiveMQ events']

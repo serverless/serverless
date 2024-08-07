@@ -1,6 +1,6 @@
 <!--
 title: 'Serverless Framework Documentation'
-short_title: 'Introduction'
+short_title: 'Introduction to the Serverless Framework'
 description: 'An introduction to the Serverless Framework, its philosophy, overview, and key highlights. Learn how to build serverless applications efficiently with minimal maintenance.'
 keywords:
   [

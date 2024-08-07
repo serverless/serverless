@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Concepts
 description: An introduction to using AWS and AWS Lambda with the Serverless Framework.
-short_title: Concepts
+short_title: Serverless Framework Concepts
 keywords:
   [
     'Serverless Framework',

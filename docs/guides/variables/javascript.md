@@ -1,7 +1,7 @@
 <!--
-title: Serverless Framework - Variables - Javascript properties
+title: Serverless Framework - Variables - Javascript Properties
 description: How to reference Javascript properties
-short_title: Javascript properties
+short_title: Serverless Variables - Javascript Properties
 keywords: ['Serverless Framework', 'Javascript', 'Variables']
 -->
 
