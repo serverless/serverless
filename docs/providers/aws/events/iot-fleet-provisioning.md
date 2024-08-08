@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - IoT Fleet Provisioning
-short_title: IoT Fleet Provisioning
+short_title: AWS Lambda Events - IoT Fleet Provisioning
 description: Setting up AWS IoT Provisioning Template with AWS Lambda pre-validation hook via the Serverless Framework
 keywords:
   [

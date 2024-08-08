@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Variables - serverless.yml self-reference
 description: How to self-reference variables in serverless.yml
-short_title: Self-reference serverless.yml
+short_title: Serverless Variables - Self-reference serverless.yml
 keywords:
   ['Serverless Framework', 'serverless.yml', 'Variables', 'Self-reference']
 -->

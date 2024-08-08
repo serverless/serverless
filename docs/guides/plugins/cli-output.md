@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Plugins - CLI output
 description: How to write to the CLI output in Serverless Framework plugins.
-short_title: CLI output
+short_title: Serverless Plugins - CLI output
 keywords: ['Serverless Framework', 'Plugins', 'CLI', 'Output']
 -->
 

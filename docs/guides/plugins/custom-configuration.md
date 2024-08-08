@@ -1,7 +1,7 @@
 <!--
-title: Serverless Framework - Plugins - Extending the configuration
+title: Serverless Framework - Plugins - Custom Configuration
 description: How to extend the serverless.yml schema with custom configuration via a plugin
-short_title: Extending the configuration
+short_title: Serverless Plugins - Custom Configuration
 keywords: ['Serverless Framework', 'Plugins', 'Configuration', 'Schema']
 -->
 

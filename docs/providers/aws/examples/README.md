@@ -1,6 +1,6 @@
 <!--
 title: Serverless - AWS Lambda - Examples
-short_title: Examples
+short_title: Serverless Examples
 description: AWS Lambda examples using the Serverless Framework.
 keywords:
   ['Serverless Framework', 'AWS Lambda', 'examples', 'serverless functions']

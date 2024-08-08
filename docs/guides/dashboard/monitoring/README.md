@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Monitoring & Observability - Overview & Setup
 description: An overview and setup guide for Serverless Framework's Monitoring & Observability features, including metrics, traces, logs, and more.
-short_title: Overview & Setup
+short_title: Serverless Dashboard Observability - Overview & Setup
 keywords:
   [
     'Serverless Framework',

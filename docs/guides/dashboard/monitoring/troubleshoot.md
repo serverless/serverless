@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Monitoring & Observability - Troubleshoot
 description: Troubleshooting steps for integration and instrumentation issues in Serverless Framework Dashboard.
-short_title: Troubleshoot
+short_title: Serverless Dashboard Observability - Troubleshoot
 keywords:
   [
     'Serverless Framework',

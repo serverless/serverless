@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - RabbitMQ
-short_title: RabbitMQ
+short_title: AWS Lambda Events - RabbitMQ
 description: Setting up AWS RabbitMQ Events with AWS Lambda via the Serverless Framework
 keywords: ['Serverless Framework', 'AWS Lambda', 'RabbitMQ', 'AWS']
 -->

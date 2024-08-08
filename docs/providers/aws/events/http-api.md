@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - HTTP API (API Gateway v2)
-short_title: HTTP API
+short_title: AWS Lambda Events - HTTP API
 description: Deploying HTTP APIs with AWS Lambda and API Gateway v2 via the Serverless Framework
 keywords: ['Serverless Framework', 'AWS Lambda', 'HTTP API', 'API Gateway v2']
 -->

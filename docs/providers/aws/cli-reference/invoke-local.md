@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Invoke Local
 description: Emulate an invocation of your AWS Lambda function locally using the Serverless Framework.
-short_title: Invoke Local
+short_title: Commands - Invoke Local
 keywords:
   [
     'Serverless',

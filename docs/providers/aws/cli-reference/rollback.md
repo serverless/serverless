@@ -1,7 +1,7 @@
 <!--
 title: Serverless Rollback CLI Command
 description: Rollback the Serverless service to a specific deployment
-short_title: Rollback
+short_title: Commands - Rollback
 keywords: ['Serverless', 'Framework', 'AWS Lambda', 'rollback', 'deployment']
 -->
 

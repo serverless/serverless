@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Logs
 description: View logs of your AWS Lambda Function within your terminal using the Serverless Framework.
-short_title: Logs
+short_title: Commands - Logs
 keywords: ['Serverless', 'Framework', 'logs', 'AWS Lambda', 'CloudWatch']
 -->
 

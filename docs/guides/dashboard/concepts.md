@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Dashboard - Concepts
 description: The Concepts within Serverless Framework Dashboard
-short_title: Concepts
+short_title: Serverless Dashboard - Concepts
 keywords: ['Serverless Framework', 'Dashboard', 'Orgs', 'Members']
 -->
 
