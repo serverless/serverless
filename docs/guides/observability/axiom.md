@@ -23,10 +23,10 @@ Axiom is a powerful observability platform that enables efficient handling, stor
 2. Create or join an organization in Axiom.
 3. Skip the first step (creating dataset) in the Axiom onboarding process, as it will be done automatically by the Serverless Framework.
 4. Go to [API tokens in the Axiom settings](https://app.axiom.co/settings/api-tokens) and create a new access token
-with the `Ingest`, `Query`, `Datasets`, `Dashboards`, and `Monitors` using the Advanced tab.
+   with the `Ingest`, `Query`, `Datasets`, `Dashboards`, and `Monitors` using the Advanced tab.
    Store the token value securely as you will need it in the next steps.
    The Serverless Framework will use it to send logs to Axiom.
-![Axiom API tokens settings](axiom-api-tokens.png)
+   ![Axiom API tokens settings](axiom-api-tokens.png)
 
 ### Step 2: Configure Axiom in your Serverless Framework service
 
