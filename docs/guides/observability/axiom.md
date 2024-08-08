@@ -81,7 +81,7 @@ Please note that:
 
 - All Lambda Function logs will stop being sent to Axiom after the next deployment.
 - Logs from log groups other than Lambda Functions will continue to be sent to Axiom until you remove the Axiom log subscriptions.
-  -	To remove the Axiom log subscriptions, keep the `AXIOM_TOKEN` environment variable set and deploy the service with the Serverless Framework. The log subscriptions will be removed, and no more logs will be sent to Axiom.
+  - To remove the Axiom log subscriptions, keep the `AXIOM_TOKEN` environment variable set and deploy the service with the Serverless Framework. The log subscriptions will be removed, and no more logs will be sent to Axiom.
   - If you unset the `AXIOM_TOKEN` environment variable before deploying, the log subscriptions will remain, and logs will continue to be sent to Axiom.
 
 The resources that are **not** removed automatically, as they might still be used by other services, include:
