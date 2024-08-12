@@ -124,7 +124,7 @@
     "standard-version": "^9.5.0",
     "striptags": "^3.2.0",
     "tsx": "^4.15.6",
-    "xml2js": "^0.4.23"
+    "xml2js": "^0.6.2"
   },
   "prettier": "@serverlessinc/standards",
   "mocha": {
