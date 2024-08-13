@@ -20,8 +20,7 @@ keywords:
 
 # AWS Lambda Layers
 
-If you are using AWS as a provider, all _layers_ inside the service are [AWS Lambda
-layers](https://aws.amazon.com/blogs/aws/new-for-aws-lambda-use-any-programming-language-and-share-common-components/).
+If you are using AWS as a provider, all _layers_ inside the service are [AWS Lambda layers](https://aws.amazon.com/blogs/aws/new-for-aws-lambda-use-any-programming-language-and-share-common-components/).
 
 ## Configuration
 
@@ -160,7 +159,7 @@ layers:
 
 ## Using your layers
 
-Using the `layers` configuration key in a function makes it possible for your layer with a function
+Using the `layers` configuration key in a function makes it possible to use layers with that function.
 
 ```yml
 functions:
@@ -173,7 +172,7 @@ functions:
 To use a layer with a function in the same service, use a CloudFormation Ref. The name of your layer
 in the CloudFormation template will be your layer name
 [TitleCased](https://en.wikipedia.org/wiki/Letter_case#Title_Case) (without spaces) and have
-`LambdaLayer` appended to the end. EG:
+`LambdaLayer` appended to the end. e.g.:
 
 ```yml
 layers:
@@ -186,7 +185,8 @@ functions:
       - !Ref TestLambdaLayer
 ```
 
-You can also configure layers at the service level. EG:
+You can also configure layers at the service level which applies to all the
+functions in the service. e.g.:
 
 ```yml
 # serverless.yml
@@ -205,3 +205,6 @@ functions:
   hello2:
     handler: handler.hello2
 ```
+
+If you are using both service and function level `layers` property, the function
+level `layers` property will take precedence.
