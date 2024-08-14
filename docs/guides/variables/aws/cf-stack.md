@@ -20,9 +20,9 @@ keywords:
 
 # Configuration options
 
-| Option       |  Required  |   Type    |              Default               | Description                                                           |
-|--------------|:----------:|:---------:|:----------------------------------:|:----------------------------------------------------------------------|
-| `region`     |     No     |  String   | Inherited from parent AWS resolver | AWS region                                                            |
+| Option   | Required |  Type  |              Default               | Description |
+| -------- | :------: | :----: | :--------------------------------: | :---------- |
+| `region` |    No    | String | Inherited from parent AWS resolver | AWS region  |
 
 ## Examples
 
@@ -34,7 +34,7 @@ stages:
     resolvers:
       awsAccount1:
         type: aws
-        
+
 functions:
   hello:
     handler: handler.hello
@@ -57,7 +57,7 @@ functions:
   hello:
     handler: handler.hello
     description: ${awsAccount1:euCf:another-service.functionPrefix}
-  ```
+```
 
 # Classic (Pre-Resolvers) Format
 

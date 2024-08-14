@@ -73,8 +73,6 @@ functions:
       VALUE2: ${awsAccount2:s3:myBucket/myKey}
 ```
 
-````yaml
-
 ## Current Variable Providers:
 
 - [Self-References Properties Defined in `serverless.yml`](./self)

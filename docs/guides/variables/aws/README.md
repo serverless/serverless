@@ -21,15 +21,14 @@ keywords:
 
 # Configuration options
 
-| Option            |  Required  |   Type    |  Default  | Description                                                           |
-|-------------------|:----------:|:---------:|:---------:|:----------------------------------------------------------------------|
-| `accessKeyId`     |     No     |  String   |           | AWS Access Key ID                                                     |
-| `secretAccessKey` |     No     |  String   |           | AWS Secret Access Key                                                 |
-| `sessionToken`    |     No     |  String   |           | AWS Session Token                                                     |
-| `region`          |     No     |  String   | us-east-1 | AWS region                                                            |
-| `profile`         |     No     |  String   |           | AWS profile name                                                      |
-| `dashboard`       |     No     |  Boolean  |   true    | Whether Serverless Dashboard AWS Provider credentials should be used  |
-
+| Option            | Required |  Type   |  Default  | Description                                                          |
+| ----------------- | :------: | :-----: | :-------: | :------------------------------------------------------------------- |
+| `accessKeyId`     |    No    | String  |           | AWS Access Key ID                                                    |
+| `secretAccessKey` |    No    | String  |           | AWS Secret Access Key                                                |
+| `sessionToken`    |    No    | String  |           | AWS Session Token                                                    |
+| `region`          |    No    | String  | us-east-1 | AWS region                                                           |
+| `profile`         |    No    | String  |           | AWS profile name                                                     |
+| `dashboard`       |    No    | Boolean |   true    | Whether Serverless Dashboard AWS Provider credentials should be used |
 
 ## Example
 
@@ -49,6 +48,7 @@ stages:
 # Provider-specific variables
 
 You can reference AWS-specific values as the source of your variables. Those values are exposed via the Serverless Variables system through:
+
 1. `{providerName:}` variable prefix which should be the name of the resolver provider specified in the `resolvers` block (`aws-account-1` in the example above).
 2. `{aws:}` variable prefix which uses the deployment credentials.
 

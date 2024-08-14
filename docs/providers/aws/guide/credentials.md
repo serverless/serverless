@@ -75,7 +75,7 @@ In addition to using the Serverless Dashboard for managing AWS credentials, you 
 
 2. **Choose the Setup Method:** During the setup, you will be presented with different options to configure your AWS credentials. Select **"Save AWS Credentials in a Local Profile"** if you want to store the credentials on your machine.
 
-  - If you select this option, the `serverless` command will prompt you to log in to your AWS account, navigate to the IAM Dashboard, and create a new IAM user with AdministratorAccess. You will then be guided to generate an Access Key and Secret Access Key for this user.
+- If you select this option, the `serverless` command will prompt you to log in to your AWS account, navigate to the IAM Dashboard, and create a new IAM user with AdministratorAccess. You will then be guided to generate an Access Key and Secret Access Key for this user.
 
 3. **Enter the Credentials:** After creating the IAM user, you will be prompted to enter the AWS Access Key ID and Secret Access Key that you obtained from the AWS Management Console.
 
@@ -202,18 +202,19 @@ stages:
         profile: project-specific-profile
       dashboard-provider-account:
         type: aws
-        
+
 provider:
   name: aws
   resolver: local-profile-account
 ```
-   
+
 In this example:
-* The `org` and `app` properties in the `serverless.yml` file are used to link the service to the Serverless Dashboard Provider.
-* The `dashboard-provider-account` Resolver uses the credentials from the Serverless Dashboard Provider.
-* The `dashboard: false` property in the `local-profile-account` Resolver configuration ensures that the credentials from the local profile are used instead of the Serverless Dashboard Provider.
-* The `local-profile-account` Resolver uses the credentials from the local profile `project-specific-profile` for deployment.
-* The `provider.resolver` property specifies that the `local-profile-account` Resolver should provide the deployment credentials.
+
+- The `org` and `app` properties in the `serverless.yml` file are used to link the service to the Serverless Dashboard Provider.
+- The `dashboard-provider-account` Resolver uses the credentials from the Serverless Dashboard Provider.
+- The `dashboard: false` property in the `local-profile-account` Resolver configuration ensures that the credentials from the local profile are used instead of the Serverless Dashboard Provider.
+- The `local-profile-account` Resolver uses the credentials from the local profile `project-specific-profile` for deployment.
+- The `provider.resolver` property specifies that the `local-profile-account` Resolver should provide the deployment credentials.
 
 ## Production Configuration
 

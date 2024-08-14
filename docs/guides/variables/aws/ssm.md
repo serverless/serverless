@@ -14,21 +14,21 @@ keywords: ['Serverless Framework', 'AWS SSM', 'Secrets Manager', 'Variables']
 # Configuration options
 
 | Option         | Required |  Type  |              Default               | Description                                                                 |
-|----------------|:--------:|:------:|:----------------------------------:|:----------------------------------------------------------------------------|
+| -------------- | :------: | :----: | :--------------------------------: | :-------------------------------------------------------------------------- |
 | `region`       |    No    | String | Inherited from parent AWS resolver | AWS region                                                                  |
 | `rawOrDecrypt` |    No    | String |                                    | `raw` or `noDecrypt` instruction to disable auto-parsing or auto-decrypting |
 
 ## Examples
 
 ### Default
-  
+
 ```yaml
 stages:
   default:
     resolvers:
       awsAccount1:
         type: aws
-        
+
 functions:
   hello:
     handler: handler.hello
@@ -51,10 +51,10 @@ functions:
   hello:
     handler: handler.hello
     description: ${awsAccount1:euSsm:/path/to/param}
-  ```
+```
 
 ### Raw
-  
+
 ```yaml
 stages:
   default:
@@ -63,7 +63,7 @@ stages:
         type: aws
         rawSsm:
           rawOrDecrypt: raw
-          
+
 functions:
   hello:
     handler: handler.hello
@@ -80,7 +80,7 @@ stages:
         type: aws
         noDecryptSsm:
           rawOrDecrypt: noDecrypt
-          
+
 functions:
   hello:
     handler: handler.hello
