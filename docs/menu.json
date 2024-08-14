@@ -51,12 +51,17 @@
       "External YAML/JSON Files": "guides/variables/file",
       "Javascript properties": "guides/variables/javascript",
       "Git": "guides/variables/git",
-      "AWS-specific": "guides/variables/aws",
-      "AWS S3 Objects": "guides/variables/s3",
-      "AWS SSM Parameter Store & Secrets Manager": "guides/variables/ssm",
-      "AWS CloudFormation Stack Outputs": "guides/variables/cf-stack",
-      "HashiCorp Terraform State Output": "guides/variables/terraform",
-      "HashiCorp Vault": "guides/variables/vault"
+      "AWS": {
+        "Overview": "guides/variables/aws",
+        "S3 Objects": "guides/variables/s3",
+        "SSM Parameter Store & Secrets Manager": "guides/variables/ssm",
+        "CloudFormation Stack Outputs": "guides/variables/cf-stack"
+      },
+      "HashiCorp": {
+        "Overview": "guides/variables/terraform",
+        "Vault": "guides/variables/vault",
+        "Terraform State Output": "guides/variables/hashicorp"
+      }
     },
     "Resources": "providers/aws/guide/resources",
     "Composing Services": "guides/compose",

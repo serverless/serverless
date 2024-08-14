@@ -11,9 +11,87 @@ keywords: ['Serverless Framework', 'AWS SSM', 'Secrets Manager', 'Variables']
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Reference AWS SSM Parameter Store & Secrets Manager
+# Configuration options
 
-You can reference SSM Parameters as the source of your variables with the `ssm:/path/to/param` syntax. For example:
+| Option         | Required |  Type  |              Default               | Description                                                                 |
+|----------------|:--------:|:------:|:----------------------------------:|:----------------------------------------------------------------------------|
+| `region`       |    No    | String | Inherited from parent AWS resolver | AWS region                                                                  |
+| `rawOrDecrypt` |    No    | String |                                    | `raw` or `noDecrypt` instruction to disable auto-parsing or auto-decrypting |
+
+## Examples
+
+### Default
+  
+```yaml
+stages:
+  default:
+    resolvers:
+      awsAccount1:
+        type: aws
+        
+functions:
+  hello:
+    handler: handler.hello
+    description: ${awsAccount1:ssm:/path/to/param}
+```
+
+### Custom region
+
+```yaml
+stages:
+  default:
+    resolvers:
+      awsAccount1:
+        type: aws
+        region: us-west-2
+        euSsm:
+          region: eu-west-1
+
+functions:
+  hello:
+    handler: handler.hello
+    description: ${awsAccount1:euSsm:/path/to/param}
+  ```
+
+### Raw
+  
+```yaml
+stages:
+  default:
+    resolvers:
+      awsAccount1:
+        type: aws
+        rawSsm:
+          rawOrDecrypt: raw
+          
+functions:
+  hello:
+    handler: handler.hello
+    description: ${awsAccount1:rawSsm:/path/to/param}
+```
+
+### No Decrypt
+
+```yaml
+stages:
+  default:
+    resolvers:
+      awsAccount1:
+        type: aws
+        noDecryptSsm:
+          rawOrDecrypt: noDecrypt
+          
+functions:
+  hello:
+    handler: handler.hello
+    description: ${awsAccount1:noDecryptSsm:/path/to/param}
+```
+
+# Classic (Pre-Resolvers) Format
+
+You can reference SSM Parameters as the source of your variables with the `ssm:/path/to/param` syntax.
+It uses the deployment (provider) AWS credentials to access SSM Parameter Store and Secrets Manager.
+For example:
 
 ```yml
 service: ${ssm:/path/to/service/id}-service

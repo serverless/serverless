@@ -34,6 +34,7 @@ The displayed information is useful when rolling back a deployment or function v
 
 - `--stage` or `-s` The stage in your service that you want to deploy to.
 - `--region` or `-r` The region in that stage that you want to deploy to.
+- `--aws-profile` The AWS profile you want to use.
 
 ## Examples
 

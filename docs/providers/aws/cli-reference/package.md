@@ -23,6 +23,7 @@ serverless package
 
 - `--stage` or `-s` The stage in your service that you want to deploy to.
 - `--region` or `-r` The region in that stage that you want to deploy to.
+- `--aws-profile` The AWS profile you want to use.
 - `--package` or `-p` path to the custom packaging directory you want.
 
 ## Examples

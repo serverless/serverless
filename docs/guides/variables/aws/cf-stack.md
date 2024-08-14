@@ -18,9 +18,52 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Reference AWS CloudFormation Stack Outputs
+# Configuration options
 
-You can reference CloudFormation stack output values as the source of your variables to use in your service with the `cf:stackName.outputKey` syntax. For example:
+| Option       |  Required  |   Type    |              Default               | Description                                                           |
+|--------------|:----------:|:---------:|:----------------------------------:|:----------------------------------------------------------------------|
+| `region`     |     No     |  String   | Inherited from parent AWS resolver | AWS region                                                            |
+
+## Examples
+
+### Default
+
+```yaml
+stages:
+  default:
+    resolvers:
+      awsAccount1:
+        type: aws
+        
+functions:
+  hello:
+    handler: handler.hello
+    description: ${awsAccount1:cf:another-service.functionPrefix}
+```
+
+### Custom region
+
+```yaml
+stages:
+  default:
+    resolvers:
+      awsAccount1:
+        type: aws
+        region: us-west-2
+        euCf:
+          region: eu-west-1
+
+functions:
+  hello:
+    handler: handler.hello
+    description: ${awsAccount1:euCf:another-service.functionPrefix}
+  ```
+
+# Classic (Pre-Resolvers) Format
+
+You can reference CloudFormation stack output values as the source of your variables to use in your service with the `cf:stackName.outputKey` syntax.
+It uses the deployment (provider) AWS credentials to access CloudFormation.
+For example:
 
 ```yml
 service: new-service

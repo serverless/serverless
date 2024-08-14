@@ -205,7 +205,7 @@ stages:
         key: users-table/terraform.tfstate
 ```
 
-For more information please see the [terraform](../../../guides/variables/terraform.md) and the [vault](../../../guides/variables/vault.md) variables documentation.
+For more information please see the [terraform](../../../guides/variables/hashicorp/terraform.md) and the [vault](../../../guides/variables/hashicorp/vault.md) variables documentation.
 
 ## Deployment
 

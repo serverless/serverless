@@ -18,7 +18,7 @@ The Serverless Framework is used to create, manage, monitor and troubleshoot ser
 
 Providers enable you to securely manage the accounts to the cloud service providers like Azure, AWS, and GCP in the Serverless Framework Dashboard.
 
-Your organization admin can add a provider to the organization in the Dashboard, either using static credentials like an AWS Access Key/Secret, or using AWS Access Roles to generate short-lived credentials per deployment. Developers in your organization can use the providers by linking them to their services and they will automatically use the credentials from the providers for deployments.
+Your organization admin can add a provider to the organization in the Dashboard using AWS Access Roles to generate short-lived credentials per deployment. Developers in your organization can use the providers by linking them to their services and they will automatically use the credentials from the providers for deployments.
 
 There are many benefits to using providers over managing accounts manually:
 
