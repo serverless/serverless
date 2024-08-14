@@ -94,7 +94,7 @@
     "@aws-sdk/client-iam": "^3.511.0",
     "@aws-sdk/client-lambda": "^3.511.0",
     "@aws-sdk/client-s3": "^3.511.0",
-    "@commitlint/cli": "^12.1.4",
+    "@commitlint/cli": "^19.4.0",
     "@serverless/test": "^11.1.1",
     "@serverlessinc/standards": "*",
     "adm-zip": "^0.5.10",
