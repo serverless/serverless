@@ -42,6 +42,7 @@ Resources:
     Properties:
       Runtime: nodejs20.x
       Handler: index.handler
+      CodeUri: '.'
       Events:
         ListCustomers:
           Type: Api
@@ -50,13 +51,25 @@ Resources:
             Method: any
 ```
 
+With the following handler file:
+
+```js
+// index.js
+export const handler = async (event) => {
+  return {
+    statusCode: 200,
+    body: JSON.stringify('Hello from Lambda!'),
+  }
+}
+```
+
 You can deploy it with the following command:
 
 ```
 serverless deploy --stack my-dev-stack
 ```
 
-You templte doesn't have to be a SAM template, it could also be a regular CloudFormation template.
+Your templte doesn't have to be a SAM template, it could also be a regular CloudFormation template.
 
 ## samconfig.toml
 
