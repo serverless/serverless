@@ -13,6 +13,8 @@ layout: Doc
 
 # Overview
 
+_Warning:_ Support for deploying raw CloudFormation & SAM projects is still experimental.
+
 You can deploy any SAM or CloudFormation template using the Serverless Framework V4. This enables you to take advantage of the many features the framework offers, such as:
 
 - You can simplify your configuration with Serverless Variables.
