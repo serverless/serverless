@@ -65,16 +65,16 @@ version = 0.1
 
 [default.deploy.parameters]
 stack_name = "my-dev-stack"
-region: "us-east-1"
-s3_bucket: "my-dev-bucket"
-template_file: "my-dev-template.yml"
+region = "us-east-1"
+s3_bucket = "my-dev-bucket"
+template_file = "my-dev-template.yml"
 parameter_overrides = "Environment=dev"
 
 [prod.deploy.parameters]
 stack_name = "my-prod-stack"
-region: "us-east-1"
-s3_bucket: "my-prod-bucket"
-template_file: "my-prod-template.yml"
+region = "us-east-1"
+s3_bucket = "my-prod-bucket"
+template_file = "my-prod-template.yml"
 parameter_overrides = "Environment=prod"
 ```
 
