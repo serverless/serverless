@@ -81,16 +81,8 @@ version = 0.1
 [default.deploy.parameters]
 stack_name = "my-dev-stack"
 region = "us-east-1"
-s3_bucket = "my-dev-bucket"
-template_file = "my-dev-template.yml"
+template_file = "template.yml"
 parameter_overrides = "Environment=dev"
-
-[prod.deploy.parameters]
-stack_name = "my-prod-stack"
-region = "us-east-1"
-s3_bucket = "my-prod-bucket"
-template_file = "my-prod-template.yml"
-parameter_overrides = "Environment=prod"
 ```
 
 **Note:** Because `samconfig.toml` is structured around the SAM CLI commands that do not exist in the Serverless Framework, the CLI will only use the `<stage>.global.parameters` and `<stage>.deploy.parameters` configuration, even if you are running a command other than `deploy`
