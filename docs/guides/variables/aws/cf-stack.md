@@ -51,6 +51,7 @@ stages:
         type: aws
         region: us-west-2
         euCf:
+          type: cf
           region: eu-west-1
 
 functions:

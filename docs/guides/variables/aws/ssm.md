@@ -45,6 +45,7 @@ stages:
         type: aws
         region: us-west-2
         euSsm:
+          type: ssm
           region: eu-west-1
 
 functions:
@@ -62,6 +63,7 @@ stages:
       awsAccount1:
         type: aws
         rawSsm:
+          type: ssm
           rawOrDecrypt: raw
 
 functions:
@@ -79,6 +81,7 @@ stages:
       awsAccount1:
         type: aws
         noDecryptSsm:
+          type: ssm
           rawOrDecrypt: noDecrypt
 
 functions:
