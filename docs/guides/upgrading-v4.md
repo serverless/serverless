@@ -61,7 +61,7 @@ Moving forward, we plan to revisit support for other vendors through the introdu
 
 ## Environment Variables Loaded By Default
 
-In previous versions of Serverless Framework (<= V.3), the `useDotEnv` configuration in `serverless.yml` would have to be set in order to load `.env` and `[stage].env` files, and make their environment variables accessible within `serverless.yml`.
+In previous versions of Serverless Framework (<= V.3), the `useDotEnv` configuration in `serverless.yml` would have to be set in order to load `.env` and `.env.[stage]` files, and make their environment variables accessible within `serverless.yml`.
 
 In V.4, these files are read automatically, without the `useDotEnv` property.
 
