@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - Deploying SAM & CloudFormation Projects
-menuText: Deploying SAM/CFN Projects
+menuText: Deploying SAM & CFN Projects
 short_title: Deploying SAM & CloudFormation Projects
 layout: Doc
 -->
@@ -70,6 +70,8 @@ serverless deploy --stack my-dev-stack
 ```
 
 Your templte doesn't have to be a SAM template, it could also be a regular CloudFormation template.
+
+**Note:** AWS Lambda Layers, AWS Lambda Containers, and AWS Lambda Step Functions resources are not yet supported.
 
 ## samconfig.toml
 
