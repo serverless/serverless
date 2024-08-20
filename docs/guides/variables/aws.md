@@ -1,9 +1,16 @@
 <!--
-title: Serverless Framework - Variables - AWS-specific variables
-menuText: AWS-specific variables
-menuOrder: 9
-description: How to reference AWS-specific variables
-layout: Doc
+title: Serverless Framework - Variables - AWS Account Variables
+description: How to reference AWS-specific variables in the Serverless Framework for efficient configuration and deployment.
+short_title: Serverless Variables - AWS Account Variables
+keywords:
+  [
+    'Serverless Framework',
+    'AWS-specific variables',
+    'configuration',
+    'deployment',
+    'accountId',
+    'region',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

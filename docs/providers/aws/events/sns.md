@@ -1,9 +1,21 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - SNS
-menuText: SNS
-menuOrder: 7
-description:  Setting up AWS SNS Events with AWS Lambda via the Serverless Framework
-layout: Doc
+description: Setting up AWS SNS Events with AWS Lambda via the Serverless Framework
+short_title: AWS Lambda Events - SNS
+keywords:
+  [
+    'Serverless',
+    'Framework',
+    'AWS',
+    'Lambda',
+    'Events',
+    'AWS SNS Events',
+    'Serverless AWS Lambda SNS',
+    'AWS Lambda SNS Integration',
+    'AWS Lambda Event Sources',
+    'AWS SNS Lambda Trigger',
+    'AWS SNS Topics',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

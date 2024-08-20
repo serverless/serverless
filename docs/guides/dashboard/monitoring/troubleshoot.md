@@ -1,8 +1,16 @@
 <!--
 title: Serverless Framework - Monitoring & Observability - Troubleshoot
-menuText: Troubleshoot
-menuOrder: 3
-layout: Doc
+description: Troubleshooting steps for integration and instrumentation issues in Serverless Framework Dashboard.
+short_title: Serverless Dashboard Observability - Troubleshoot
+keywords:
+  [
+    'Serverless Framework',
+    'Monitoring',
+    'Observability',
+    'Troubleshoot',
+    'Integration',
+    'Instrumentation',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

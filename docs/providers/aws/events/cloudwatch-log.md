@@ -1,9 +1,9 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - CloudWatch Log
-menuText: CloudWatch Log
-menuOrder: 14
-description:  Setting up AWS CloudWatch Logs with AWS Lambda via the Serverless Framework
-layout: Doc
+short_title: AWS Lambda Events - CloudWatch Log
+description: Setting up AWS CloudWatch Logs with AWS Lambda via the Serverless Framework
+keywords:
+  ['Serverless Framework', 'AWS Lambda', 'CloudWatch Logs', 'log stream']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

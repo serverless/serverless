@@ -1,7 +1,17 @@
 <!--
 title: Serverless Framework - User Guides
-menuText: User Guides
-layout: Doc
+description: Discover comprehensive user guides for Serverless Framework, covering everything from getting started to advanced topics. Join the community chat on Slack or participate in the forums for more support.
+short_title: User Guides
+keywords:
+  [
+    'Serverless Framework',
+    'user guides',
+    'getting started',
+    'advanced topics',
+    'community',
+    'Slack',
+    'forums',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

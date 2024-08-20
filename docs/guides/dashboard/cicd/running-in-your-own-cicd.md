@@ -1,8 +1,18 @@
 <!--
 title: Serverless Dashboard - Running in your own CI/CD
-menuText: Deploy in your own CI/CD
-menuOrder: 8
-layout: Doc
+description: Learn how to deploy your Serverless Framework services using your own CI/CD service while leveraging Serverless Framework Dashboard features.
+short_title: Serverless Dashboard - Running your own CI/CD
+keywords:
+  [
+    'Serverless Framework',
+    'CI/CD',
+    'Custom CI/CD',
+    'Deployment',
+    'Serverless Dashboard',
+    'Node.js',
+    'NPM',
+    'Authentication',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

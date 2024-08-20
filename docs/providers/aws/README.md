@@ -1,8 +1,9 @@
 <!--
 title: Serverless Framework - AWS Documentation
-menuText: AWS
-menuOrder: 1
-layout: Doc
+description: Comprehensive guide to using AWS as the default cloud provider with the Serverless Framework.
+short_title: AWS Provider Documentation
+keywords:
+  ['Serverless Framework', 'AWS', 'Cloud Provider', 'Serverless Documentation']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

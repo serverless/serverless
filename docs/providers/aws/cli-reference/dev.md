@@ -1,9 +1,19 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Dev
-menuText: dev
-menuOrder: 9
 description: The dev command enables real-time, local development and testing of AWS Lambda functions without frequent redeployments or the need for emulation.
-layout: Doc
+short_title: Commands - Dev
+keywords:
+  [
+    'Serverless',
+    'Framework',
+    'AWS',
+    'Lambda',
+    'Dev',
+    'Local Development',
+    'Serverless CLI',
+    'AWS Lambda Testing',
+    'AWS IoT Core',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

@@ -1,9 +1,8 @@
 <!--
 title: Serverless Framework - Plugins
-menuText: Plugins
-menuOrder: 4
 description: How to install plugins to customize the Serverless Framework
-layout: Doc
+short_title: Plugins
+keywords: ['Serverless Framework', 'Plugins', 'Installation', 'Customization']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -18,7 +17,7 @@ A plugin is custom JavaScript code that extends the Serverless Framework with ne
 
 If you or your organization have a specific workflow, install a pre-written plugin or write one to customize the Framework to your needs.
 
-Since the Serverless Framework is a group of "core" plugins, custom plugins are written exactly the same way as core plugins. Learn more about [creating a custom plugin](creating-plugins.md).
+Since the Serverless Framework is a group of "core" plugins, custom plugins are written exactly the same way as core plugins. Learn more about [creating a custom plugin](./creating-plugins.md).
 
 Explore existing plugins in the [Serverless Framework Plugins repository](https://www.serverless.com/plugins).
 
@@ -59,7 +58,7 @@ custom:
   customkey: customvalue
 ```
 
-Note for plugin authors: read [Extending the configuration](custom-configuration.md) to learn how to enhance `serverless.yml` with configuration validation.
+Note for plugin authors: read [Extending the configuration](./custom-configuration.md) to learn how to enhance `serverless.yml` with configuration validation.
 
 ## Service local plugin
 

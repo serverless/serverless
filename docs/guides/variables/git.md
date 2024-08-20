@@ -1,9 +1,8 @@
 <!--
 title: Serverless Framework - Variables - Git
-menuText: Git
-menuOrder: 8
 description: How to reference git variables
-layout: Doc
+short_title: Serverless Variables - Git Variables
+keywords: ['Serverless Framework', 'Git', 'Variables']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

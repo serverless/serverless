@@ -1,9 +1,8 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Plugin Install
-menuText: plugin install
-menuOrder: 19
-description: Install a Serverless plugin
-layout: Doc
+description: Install a Serverless plugin and add it to the service's plugins array using the Serverless Framework.
+short_title: Commands - Plugin Install
+keywords: ['Serverless', 'Framework', 'AWS Lambda', 'plugin', 'installation']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

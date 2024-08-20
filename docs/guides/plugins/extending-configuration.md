@@ -1,9 +1,9 @@
 <!--
 title: Serverless Framework - Plugins - Extending and overriding the configuration
-menuText: Extending and overriding configuration
-menuOrder: 6
 description: How to extend and override configuration via a plugin
-layout: Doc
+short_title: Serverless Plugins - Extending & Overwriting Configuration
+keywords:
+  ['Serverless Framework', 'Plugins', 'Configuration', 'Extend', 'Override']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

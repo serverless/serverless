@@ -1,9 +1,8 @@
 <!--
 title: Serverless Framework - Creating plugins
-menuText: Creating plugins
-menuOrder: 1
 description: How to create custom plugins to customize the Serverless Framework
-layout: Doc
+short_title: Serverless Plugins - Creating plugins
+keywords: ['Serverless Framework', 'Plugins', 'Custom Plugins']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -88,7 +87,7 @@ It is also a good practice to add `serverless` to the `peerDependencies` section
 {
   ...
   "peerDependencies": {
-    "serverless": "^2.60 || 3"
+    "serverless": ">=2.60"
   }
 }
 ```

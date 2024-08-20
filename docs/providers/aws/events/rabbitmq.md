@@ -1,8 +1,8 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - RabbitMQ
-menuText: RabbitMQ
-description:  Setting up AWS RabbitMQ Events with AWS Lambda via the Serverless Framework
-layout: Doc
+short_title: AWS Lambda Events - RabbitMQ
+description: Setting up AWS RabbitMQ Events with AWS Lambda via the Serverless Framework
+keywords: ['Serverless Framework', 'AWS Lambda', 'RabbitMQ', 'AWS']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

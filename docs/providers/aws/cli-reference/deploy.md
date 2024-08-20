@@ -1,9 +1,19 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Deploy
-menuText: deploy
-menuOrder: 5
 description: Deploy your service to the specified provider
-layout: Doc
+short_title: Commands - Deploy
+keywords:
+  [
+    'Serverless',
+    'Framework',
+    'AWS',
+    'Lambda',
+    'Deploy',
+    'Serverless AWS Lambda Commands',
+    'AWS Lambda Deployment',
+    'Serverless Framework CLI',
+    'Serverless Deploy',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

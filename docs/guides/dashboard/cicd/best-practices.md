@@ -1,8 +1,15 @@
 <!--
 title: Serverless Dashboard - CI/CD Best Practices
-menuText: Best Practices
-menuOrder: 9
-layout: Doc
+description: Best practices for using CI/CD with Serverless Framework to manage and deploy services at scale.
+short_title: Serverless Dashboard - Best Practices
+keywords:
+  [
+    'Serverless Framework',
+    'CI/CD',
+    'Best Practices',
+    'Deployment',
+    'Automation',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

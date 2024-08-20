@@ -1,9 +1,8 @@
 <!--
 title: Serverless Framework Dashboard - Setup & Overview
-menuText: Setup & Overview
-menuOrder: 1
 description: An overview and set-up guide for Serverless Framework Dashboard
-layout: Doc
+short_title: Serverless Dashboard - Setup & Overview
+keywords: ['Serverless Framework', 'Dashboard', 'Setup', 'Overview']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -40,7 +39,7 @@ For Serverless Framework's new Observability offering, you must use version 3.35
 
 If you don't already have a Serverless Framework account, create a new account at [https://app.serverless.com](https://app.serverless.com).
 
-If you don't have existing Serverless Framework Services, follow the [Getting Started with the Serverless Framework and AWS](/framework/docs/getting-started/) guide. This will help you get a Serverless Framework Service deployed to AWS, and enabled with the Dashboard.
+If you don't have existing Serverless Framework Services, follow the [Getting Started with the Serverless Framework and AWS](../../getting-started.md) guide. This will help you get a Serverless Framework Service deployed to AWS, and enabled with the Dashboard.
 
 If you have existing Serverless Framework Services, in the directory with your Service's `serverless.yml` file, run the `serverless` command. This will walk you through the setup process, including setting up your AWS account credentials and creating an organization and application from the Dashboard. Once completed, you'll notice that the `org` and `app` fields will be added to your `serverless.yml` to indicate the org/app to which this service belongs.
 

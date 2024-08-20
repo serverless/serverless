@@ -1,7 +1,9 @@
 <!--
 title: Serverless - AWS Lambda - Examples
-menuText: Examples
-layout: Doc
+short_title: Serverless Examples
+description: AWS Lambda examples using the Serverless Framework.
+keywords:
+  ['Serverless Framework', 'AWS Lambda', 'examples', 'serverless functions']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

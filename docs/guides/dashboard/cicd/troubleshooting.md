@@ -1,8 +1,16 @@
 <!--
 title: Serverless Dashboard - Troubleshooting CI/CD
-menuText: Troubleshooting
-menuOrder: 10
-layout: Doc
+description: Guide to troubleshooting CI/CD settings in the Serverless Framework Dashboard, including resetting OAuth access and configuring GitHub app installations.
+short_title: Serverless Dashboard - Troubleshooting
+keywords:
+  [
+    'Serverless Framework',
+    'CI/CD',
+    'Troubleshooting',
+    'GitHub',
+    'OAuth',
+    'Serverless Dashboard',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

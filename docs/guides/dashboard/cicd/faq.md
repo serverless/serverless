@@ -1,8 +1,17 @@
 <!--
-title: Serverless Dashboard - CI/CD FAW
-menuText: FAQ
-menuOrder: 11
-layout: Doc
+title: Serverless Dashboard - CI/CD FAQ
+description: Frequently asked questions about Serverless CI/CD.
+short_title: Serverless Dashboard - FAQs
+keywords:
+  [
+    'Serverless Framework',
+    'CI/CD',
+    'FAQ',
+    'Serverless Deployment',
+    'AWS',
+    'Azure',
+    'GCP',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

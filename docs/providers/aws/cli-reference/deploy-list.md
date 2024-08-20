@@ -1,9 +1,19 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Deploy List
-menuText: deploy list
-menuOrder: 7
 description: List your previous CloudFormation deployments
-layout: Doc
+short_title: Commands - Deploy List
+keywords:
+  [
+    'Serverless',
+    'Framework',
+    'AWS',
+    'Lambda',
+    'Deploy List',
+    'Serverless AWS Lambda Commands',
+    'AWS Lambda Deployment List',
+    'Serverless Framework CLI',
+    'Serverless Deploy List',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

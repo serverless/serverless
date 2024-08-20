@@ -1,9 +1,14 @@
 <!--
 title: Serverless Framework - Variables
-menuText: Variables
-menuOrder: 1
 description: How to use Serverless Variables to insert dynamic configuration info into your serverless.yml
-layout: Doc
+short_title: Serverless Variables
+keywords:
+  [
+    'Serverless Framework',
+    'Variables',
+    'serverless.yml',
+    'dynamic configuration',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -35,19 +40,19 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 
 ## Current variable sources:
 
-- [Self-References Properties Defined in `serverless.yml`](/framework/docs/guides/variables/self)
-- [Serverless Core Variables](/framework/docs/guides/variables/core)
-- [Environment Variables](/framework/docs/guides/variables/env)
-- [CLI Options](/framework/docs/guides/variables/cli-options)
-- [External YAML/JSON Files](/framework/docs/guides/variables/file)
-- [Dynamic Values from Javascript](/framework/docs/guides/variables/javascript)
-- [Git](/framework/docs/guides/variables/git)
-- [AWS-specific](/framework/docs/guides/variables/aws)
-- [AWS S3](/framework/docs/guides/variables/s3)
-- [AWS SSM Parameter Store & Secrets Manager](/framework/docs/guides/variables/ssm)
-- [AWS CloudFormation Outputs](/framework/docs/guides/variables/cf-stack)
-- [HashiCorp Terraform State Outputs](/framework/docs/guides/variables/teraform)
-- [HashiCorp Vault Secrets](/framework/docs/guides/variables/vault)
+- [Self-References Properties Defined in `serverless.yml`](./self)
+- [Serverless Core Variables](./core)
+- [Environment Variables](./env-vars)
+- [CLI Options](./cli-options)
+- [External YAML/JSON Files](./file)
+- [Dynamic Values from Javascript](./javascript)
+- [Git](./git)
+- [AWS-specific](./aws)
+- [AWS S3](./s3)
+- [AWS SSM Parameter Store & Secrets Manager](./ssm)
+- [AWS CloudFormation Outputs](./cf-stack)
+- [HashiCorp Terraform State Outputs](./terraform)
+- [HashiCorp Vault Secrets](./vault)
 
 ## Recursively reference properties
 
@@ -82,16 +87,18 @@ Here is an example of setting a domain variable based on the stage:
 ```yaml
 stages:
   default:
-    domain: ${sls:stage}.example-dev.com
+    params:
+      domain: ${sls:stage}.example-dev.com
   prod:
-    domain: example.com
+    params:
+      domain: example.com
 
 provider:
   environment:
     APP_DOMAIN: ${param:domain}
 ```
 
-Read all about parameters in the [Parameters documentation](/framework/docs/providers/aws/guide/parameters).
+Read all about parameters in the [Parameters documentation](../../guides/parameters.md).
 
 ## Multiple Configuration Files
 

@@ -1,9 +1,8 @@
 <!--
 title: Serverless Rollback Function CLI Command
-menuText: rollback function
-menuOrder: 15
 description: Rollback a function to a specific version
-layout: Doc
+short_title: Commands - Rollback Function
+keywords: ['Serverless', 'Framework', 'AWS Lambda', 'rollback', 'function']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

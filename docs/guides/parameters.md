@@ -1,7 +1,17 @@
 <!--
 title: Serverless Framework - Parameters
-description: How the Serverless Framework parameters work and how to use them.
-layout: Doc
+description: Learn how to use parameters in Serverless Framework for adaptable configurations, secure secret storage, and shared configuration values. This guide covers CLI parameters, stage-specific parameters, and Serverless Dashboard parameters.
+short_title: Serverless Parameters
+keywords:
+  [
+    'Serverless Framework',
+    'parameters',
+    'configuration',
+    'CLI parameters',
+    'stage parameters',
+    'Serverless Dashboard',
+    'secure secrets',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

@@ -1,9 +1,8 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - Alexa Skill
-menuText: Alexa Skill
-menuOrder: 10
-description:  Setting up AWS Alexa Skill Events with AWS Lambda via the Serverless Framework
-layout: Doc
+short_title: AWS Lambda Events - Alexa Skill
+description: Setting up AWS Alexa Skill Events with AWS Lambda via the Serverless Framework
+keywords: ['Serverless Framework', 'AWS Lambda', 'Alexa Skill', 'Alexa events']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

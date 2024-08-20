@@ -1,9 +1,20 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Invoke Local
-menuText: invoke local
-menuOrder: 9
-description: Emulate an invocation of your AWS Lambda function locally using the Serverless Framework
-layout: Doc
+description: Emulate an invocation of your AWS Lambda function locally using the Serverless Framework.
+short_title: Commands - Invoke Local
+keywords:
+  [
+    'Serverless',
+    'Framework',
+    'AWS',
+    'Lambda',
+    'Invoke Local',
+    'local development',
+    'emulation',
+    'AWS Lambda function',
+    'invoke',
+    'event data',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
