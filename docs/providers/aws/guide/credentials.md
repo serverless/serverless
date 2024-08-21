@@ -28,9 +28,184 @@ This guide is for the Amazon Web Services (AWS) provider, so we'll step through 
 
 The Serverless Framework provides multiple methods to connect to AWS. However, the recommended configuration can be time consuming. Below we describe a quick way to get Serverless Framework connected to AWS securely. After that we provide the preferred configuration using multiple accounts to manage production and development deployments of your Serverless application.
 
-## Quick Connect
+- [Recommended: Using Local Credentials](#recommended-using-local-credentials)
+- [Advanced Credential Management (AWS SSO, Profiles, Roles & More)](#advanced-credential-management-aws-sso-profiles-roles--more)
+- [Using Resolvers to Specify Deployment Credentials](#using-resolvers-to-specify-deployment-credentials)
+  - [Defining Resolvers](#defining-resolvers)
+  - [Using Multiple Resolvers](#using-multiple-resolvers)
+  - [Using Serverless Dashboard Providers with Resolvers](#using-serverless-dashboard-providers-with-resolvers)
+- [Using Serverless Dashboard Providers with IAM Role](#using-serverless-dashboard-providers-with-iam-role)
+- [Production Configuration](#production-configuration)
+  - [Management account](#management-account)
+  - [Stage accounts for production and development](#stage-accounts-for-production-and-development)
+  - [Developer accounts](#developer-accounts)
+  - [Combine with Serverless Provider](#combine-with-serverless-provider)
 
-If you want a quick way to get Serverless Framework connected to your AWS account, the easiest and simplest way is to use Serverless Dashboard and its Providers feature.
+## Recommended: Using Local Credentials
+
+The simplest way to set up AWS credentials for the Serverless Framework is to store them locally on your machine.
+Serverless Framework can guide you through the process of setting up and storing them in a local profile, allowing you to deploy your services to AWS securely.
+
+1. **Run the Serverless Command:** Start by running the `serverless` command in your terminal. This command will guide you through the process of setting up AWS credentials.
+
+2. **Choose the Setup Method:** During the setup, you will be presented with different options to configure your AWS credentials. Select **"Save AWS Credentials in a Local Profile"** if you want to store the credentials on your machine.
+
+- If you select this option, the `serverless` command will prompt you to log in to your AWS account, navigate to the IAM Dashboard, and create a new IAM user with AdministratorAccess. You will then be guided to generate an Access Key and Secret Access Key for this user.
+
+3. **Enter the Credentials:** After creating the IAM user, you will be prompted to enter the AWS Access Key ID and Secret Access Key that you obtained from the AWS Management Console.
+
+4. **Credentials Storage:** The credentials you provide will be stored in a profile (by default, in the `~/.aws/credentials` file) on your local machine, allowing the Serverless Framework to use them for deploying resources to AWS.
+
+5. **Deployment:** Once your credentials are set up and stored locally, you can proceed to deploy your services to AWS using the `serverless deploy` command. The Serverless Framework will automatically use the stored credentials for authentication.
+
+This method offers a straightforward way to manage AWS credentials locally, ensuring that you have full control over them while still enabling the deployment of Serverless applications.
+
+## Advanced Credential Management (AWS SSO, Profiles, Roles & More)
+
+If you prefer to manage AWS credentials using methods beyond storing long-lived credentials locally, the Serverless Framework offers robust support for various authentication strategies by leveraging the standard AWS credentials provider chain. This approach allows you to configure and use AWS SSO, environment variables, and other methods to securely authenticate your AWS deployments.
+
+During the `serverless` command's onboarding process, you can choose the **"Skip & Set Later (AWS SSO, ENV Vars)"** option. This option lets you bypass the immediate setup of AWS credentials in a local profile, giving you the flexibility to configure your credentials using alternative methods at a later time.
+
+The Serverless Framework fully supports the standard AWS credentials provider chain, which includes a variety of methods:
+
+- **Environment Variables:** You can set the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN` environment variables in your system. The Serverless Framework will automatically detect and use these credentials during deployments.
+
+- **AWS SSO (Single Sign-On):** AWS SSO can be configured via the AWS CLI with the `aws configure sso` command. Once set up, the Serverless Framework will seamlessly utilize these credentials for your deployments.
+
+- **Shared Credentials File:** If you have AWS credentials stored in a shared credentials file (typically located at `~/.aws/credentials`), the Serverless Framework will automatically use these credentials.
+
+- **IAM Role for EC2 Instances:** When running the Serverless Framework on an EC2 instance, it can automatically use the instance’s IAM role for authentication with AWS.
+
+- **AWS Profiles:** For those managing multiple AWS accounts, profiles can be created in the `~/.aws/credentials` file. You can specify which profile to use by setting the `AWS_PROFILE` environment variable.
+
+The Serverless Framework leverages the [AWS credentials provider chain](https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html#credentialProviderChain), which sequentially attempts to retrieve your credentials from various sources. This built-in flexibility allows you to switch between different credential management strategies with ease.
+
+For more information, refer to the [AWS credentials provider chain documentation](https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html).
+
+## Using Resolvers to Specify Deployment Credentials
+
+The Serverless Framework allows you to use [Resolvers](../../../guides/variables) to specify deployment credentials. Resolvers supersede the traditional method of specifying AWS credentials in the `provider` block, such as `profile` and `region`.
+
+AWS Resolver offers a flexible way to manage AWS credentials directly within your Serverless configuration files, leveraging the standard AWS credential provider chain methods.
+
+### Defining Resolvers
+
+To define a Resolver in your Serverless configuration, you need to add a `resolvers` block within the `stages` section in your `serverless.yml` file.
+Each Resolver can specify AWS credentials and other related options such as region and profile.
+
+Here’s an example of how to define a Resolver for AWS credentials:
+
+```yaml
+stages:
+  default:
+    resolvers:
+      aws-account-1:
+        type: aws
+        profile: account1-profile-name
+        region: us-west-2
+```
+
+In this setup, the `aws-account-1` Resolver provides the necessary credentials and configuration options (like `region` and `profile`) for deploying the service.
+
+For all configuration options, refer to the [AWS Resolver documentation](../../../guides/variables/aws).
+
+### Using Multiple Resolvers
+
+In scenarios where more than one AWS Resolver is specified in your configuration file, you can leverage different AWS accounts for various purposes.
+For example, one AWS account can be used to resolve variables (e.g., from a shared AWS account), while another can be used for the actual deployment (e.g., a project-specific AWS account).
+
+To select which Resolver should provide the credentials for deployment, you need to use the `provider.resolver` property in your `serverless.yml` file.
+This property specifies the name of the Resolver from the `resolvers` block that will be used for the deployment credentials.
+
+Here’s an example configuration that demonstrates using multiple Resolvers:
+
+```yaml
+service: my-service
+
+stages:
+  default:
+    resolvers:
+      shared-account:
+        type: aws
+        region: us-east-1
+        accessKeyId: ${env:SHARED_ACCOUNT_AWS_ACCESS_KEY_ID}
+        secretAccessKey: ${env:SHARED_ACCOUNT_AWS_SECRET_ACCESS_KEY}
+      project-specific-account:
+        type: aws
+        region: us-west-2
+        profile: project-specific-profile
+
+provider:
+  name: aws
+  resolver: project-specific-account
+
+functions:
+  hello:
+    handler: handler.hello
+    environment:
+      ACCOUNT_ID: ${project-specific-account:accountId}
+      SHARED_VAR: ${shared-account:someSsmVariable}
+```
+
+In this example:
+
+- The `shared-account` Resolver is used to retrieve variables from a shared AWS account.
+- The `project-specific-account` Resolver is used for deployment credentials, as specified by the `provider.resolver` property, while you can still reference variables within your functions using this Resolver.
+
+**Note:** You can't use both `provider.resolver` and `provider.profile` at the same time.
+
+### Using Serverless Dashboard Providers with Resolvers
+
+If you are using the Serverless Dashboard Providers feature, you can still leverage Resolvers to specify deployment credentials.
+When you have a Provider set up in the Serverless Dashboard, and `org` and `app` are defined in your `serverless.yml` file, the Resolvers will automatically use the credentials from the Dashboard Provider.
+If you want to use a different set of credentials despite having a Provider configured, you can include `dashboard: false` in the Resolver configuration.
+
+Here’s an example of how to use Resolvers with Serverless Dashboard Providers:
+
+```yaml
+service: my-service
+org: my-org
+app: my-app
+
+stages:
+  default:
+    resolvers:
+      local-profile-account:
+        type: aws
+        dashboard: false
+        region: us-west-2
+        profile: project-specific-profile
+      dashboard-provider-account:
+        type: aws
+
+provider:
+  name: aws
+  resolver: local-profile-account
+```
+
+In this example:
+
+- The `org` and `app` properties in the `serverless.yml` file are used to link the service to the Serverless Dashboard Provider.
+- The `dashboard-provider-account` Resolver uses the credentials from the Serverless Dashboard Provider.
+- The `dashboard: false` property in the `local-profile-account` Resolver configuration ensures that the credentials from the local profile are used instead of the Serverless Dashboard Provider.
+- The `local-profile-account` Resolver uses the credentials from the local profile `project-specific-profile` for deployment.
+- The `provider.resolver` property specifies that the `local-profile-account` Resolver should provide the deployment credentials.
+
+### Credential Precedence: How `provider.profile` and Resolvers Interact
+
+When configuring AWS credentials with the Serverless Framework, it's essential to understand how `provider.profile` and `provider.resolver` interact with each other:
+
+- **You cannot define both `provider.profile` and `provider.resolver` at the same time** in your `serverless.yml` file. Attempting to do so will result in an error. You must choose one of these options.
+
+- If neither `provider.profile` nor `provider.resolver` are set, but a single Resolver is defined, that Resolver will be automatically used for AWS credential resolution during deployment.
+
+- If `provider.profile` is set, and there is only one Resolver defined, the `provider.profile` setting takes precedence and will be used for the deployment credentials, ignoring the defined Resolver.
+
+- When multiple Resolvers are defined in your configuration, you **must** set `provider.resolver` to specify which Resolver should be used for deployment credentials. Failure to do so will lead to a configuration error, as the framework cannot automatically determine which Resolver to use.
+
+## Using Serverless Dashboard Providers with IAM Role
+
+If you want a quick way to get Serverless Framework connected to your AWS account with IAM Role, the easiest and simplest way is to use Serverless Dashboard and its Providers feature.
 
 ### Serverless Provider
 
@@ -53,12 +228,6 @@ If you are new to Serverless and adding credentials for your Serverless Framewor
 13. You will then be prompted to deploy. Say “Y” to deploy your first Serverless Framework service.
 
 Note: If you already had AWS credentials on your local machine, the Serverless Framework may have skipped all steps and prompted to do a deployment using those credentials instead of prompting to create a Provider. However, if you just create a provider in your Dashboard account, run “serverless login” and then “serverless deploy” it will use the Dashboard Provider instead.
-
-### AWS Access Key and Secret
-
-The alternative to using the AWS IAM Role provider is to rather use an access key and secret generated in AWS IAM. These are generally considered insecure since if anyone gained access to those credentials, they have access to your AWS account.
-
-However, if you must use an access key and secret pair, these can be added as a provider in Serverless Dashboard by choosing the “Access/Secret Keys” tab and inserting the credentials to be used.
 
 ## Production Configuration
 

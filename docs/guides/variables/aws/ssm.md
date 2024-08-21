@@ -11,9 +11,104 @@ keywords: ['Serverless Framework', 'AWS SSM', 'Secrets Manager', 'Variables']
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Reference AWS SSM Parameter Store & Secrets Manager
+# Configuration options
 
-You can reference SSM Parameters as the source of your variables with the `ssm:/path/to/param` syntax. For example:
+| Option         | Required |  Type  |              Default               | Description                                                                 |
+| -------------- | :------: | :----: | :--------------------------------: | :-------------------------------------------------------------------------- |
+| `region`       |    No    | String | Inherited from parent AWS resolver | AWS region                                                                  |
+| `rawOrDecrypt` |    No    | String |                                    | `raw` or `noDecrypt` instruction to disable auto-parsing or auto-decrypting |
+
+## Examples
+
+### Default Configuration
+
+In this example, `awsAccount1` is configured as the provider that references AWS SSM parameters.
+This is the most straightforward case when you only need to access SSM parameters from a single region that matches your deployment.
+
+```yaml
+stages:
+  default:
+    resolvers:
+      awsAccount1:
+        type: aws
+
+functions:
+  hello:
+    handler: handler.hello
+    description: ${awsAccount1:ssm:/path/to/param}
+```
+
+### Custom region
+
+In this example, the `awsAccount1` provider is set to use the `us-west-2` region.
+However, within that, a specific `euSsm` resolver is defined to fetch SSM parameters from the `eu-west-`1 region.
+This setup is useful when your deployment is based in one region, but you need to access SSM parameters from another region.
+
+```yaml
+stages:
+  default:
+    resolvers:
+      awsAccount1:
+        type: aws
+        region: us-west-2
+        euSsm:
+          type: ssm
+          region: eu-west-1
+
+functions:
+  hello:
+    handler: handler.hello
+    description: ${awsAccount1:euSsm:/path/to/param}
+```
+
+### Raw Parameter Value
+
+By setting `rawOrDecrypt` to `raw`, the SSM parameter value is retrieved as-is, without any automatic parsing or transformation.
+This is useful when you want the raw string from SSM, for example, when you need array values (`StringList`) to be returned as strings.
+
+```yaml
+stages:
+  default:
+    resolvers:
+      awsAccount1:
+        type: aws
+        rawSsm:
+          type: ssm
+          rawOrDecrypt: raw
+
+functions:
+  hello:
+    handler: handler.hello
+    description: ${awsAccount1:rawSsm:/path/to/param}
+```
+
+### No Decrypt
+
+In this scenario, the SSM parameter is of type SecureString, but you do not want it automatically decrypted.
+This is useful if your use case involves handling the encrypted value directly
+(e.g., for further processing or storing securely without exposing the plaintext value).
+
+```yaml
+stages:
+  default:
+    resolvers:
+      awsAccount1:
+        type: aws
+        noDecryptSsm:
+          type: ssm
+          rawOrDecrypt: noDecrypt
+
+functions:
+  hello:
+    handler: handler.hello
+    description: ${awsAccount1:noDecryptSsm:/path/to/param}
+```
+
+# Classic (Pre-Resolvers) Format
+
+You can reference SSM Parameters as the source of your variables with the `ssm:/path/to/param` syntax.
+It uses the deployment (provider) AWS credentials to access SSM Parameter Store and Secrets Manager.
+For example:
 
 ```yml
 service: ${ssm:/path/to/service/id}-service

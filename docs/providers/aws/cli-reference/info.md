@@ -33,6 +33,7 @@ serverless info
 
 - `--stage` or `-s` The stage in your service you want to display information about.
 - `--region` or `-r` The region in your stage that you want to display information about.
+- `--aws-profile` The AWS profile you want to use.
 - `--verbose` Shows displays any Stack Output.
 
 ## Provided lifecycle events

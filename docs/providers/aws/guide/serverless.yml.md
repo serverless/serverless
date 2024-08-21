@@ -132,6 +132,8 @@ provider:
       ParameterValue: 'Value'
   # Disable automatic rollback by CloudFormation on failure. To be used for non-production environments. Optional.
   disableRollback: true
+  # Resolver name to use for providing AWS credentials for deployment. Optional.
+  resolver: aws-account-1
   # AWS Cloudformation Rollback configuration. Optional.
   rollbackConfiguration:
     MonitoringTimeInMinutes: 20
