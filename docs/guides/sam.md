@@ -15,20 +15,20 @@ layout: Doc
 
 _Warning:_ Support for deploying raw CloudFormation & SAM projects is still experimental.
 
-The Serverless Framework enables you to deploy SAM or CloudFormation template. This enables you to take advantage of the many features the framework offers. Here is what is currently supported and our future roadmap for this feature:
+You can now deploy SAM/CFN templates with the Serverless Framework. This enables you to take advantage of the many features the framework offers. Here is what is currently supported and our future roadmap for this feature:
 
 - [x] Deploying SAM/CFN templates in JSON & YAML formats.
 - [x] Removing SAM/CFN templates in JSON & YAML formats.
 - [x] Using Serverless Variables in your SAM/CFN templates (partially supported).
-- [ ] Testing your app in the cloud with `sls dev`
-- [ ] Viewing stack info with `sls info`
-- [ ] Deploying indvidual functions with `sls deploy function --function LambdaLogicalId`
-- [ ] Invoking functions with `sls invoke --function LambdaLogicalId`
-- [ ] Searching function logs with `sls logs --function LambdaLogicalId`
+- [ ] Testing your app in the cloud with `sls dev`.
+- [ ] Viewing stack info with `sls info`.
+- [ ] Deploying indvidual functions with `sls deploy function --function LambdaLogicalId`.
+- [ ] Invoking functions with `sls invoke --function LambdaLogicalId`.
+- [ ] Searching function logs with `sls logs --function LambdaLogicalId`.
 - [ ] Composing services together with Serverless Compose.
 - [ ] Using dashboard features like parameters and observability.
 
-You don't have to make any changes to your SAM or CloudFormation templates to deploy them with the Serverless Framework. Just run `serverless deploy` in your project directory.
+You don't have to make any changes to your SAM/CFN templates to deploy them with the Serverless Framework. Just run `serverless deploy` in your project directory. Your template doesn't have to be a SAM template, it could also be a regular CloudFormation template.
 
 ### Quick Start
 
@@ -75,11 +75,11 @@ You can deploy it with the following command:
 serverless deploy --stack my-dev-stack
 ```
 
-Your template doesn't have to be a SAM template, it could also be a regular CloudFormation template.
+You only have to specify the `--stack` option if you don't have it in a `samconfig.toml` file.
 
 ## samconfig.toml
 
-If your project has a `samconfig.toml` file, it'll be read by the framework. Most `samconfig.toml` properties are irrelevant outside the SAM/CFN context, so the Serverless Framework only the properties it needs, specifically:
+If your project has a `samconfig.toml` file, it'll be read by the framework. Most `samconfig.toml` properties are irrelevant outside the SAM/CFN context, so the Serverless Framework only uses the properties it needs, specifically:
 
 ```toml
 version = 0.1
@@ -98,12 +98,6 @@ You now no longer have to specify a stack name on every deploy:
 
 ```
 serverless deploy
-```
-
-And you can change your stage like any other Serverless Framework project:
-
-```
-serverless deploy --stage prod
 ```
 
 **Note:** The default stage name when deploying SAM projects is `default`, not `dev` like traditional Serverless Framework projects. Because `samconfig.toml` is more likely to have `default` config rather than `dev` config, as it is much more commonly used in the SAM ecosystem based on AWS recommendation.
@@ -140,7 +134,7 @@ If you specified your own deployment bucket, it will not be emptied or removed w
 
 You can use Serverless Variables in your SAM or CloudFormation templates just like any other Serverless Framework project. The CLI will automatically resolve those variables before deployment. This simplifies your configuration as your project grows.
 
-_Note:_ While we haven't tested every single Serverless Variable with SAM projects as this feature is still in an experimetnal stage, you should be able to use any Serverless Variable except those that require the `stages` section in your configuration, like the `${params}` variable.
+_Note:_ While we haven't tested every Serverless Variable with SAM/CFN projects, as this feature is still in an experimental stage, you should be able to use any Serverless Variable except those that require the stages section in your configuration, such as the ${params:} variable.
 
 For example, you can pass in your local environment variables to AWS Lambda:
 
