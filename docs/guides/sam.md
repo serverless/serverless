@@ -130,6 +130,15 @@ You can remove a SAM/CFN template with the Serverless Framework using the `sls r
 
 If you specified your own deployment bucket, it will not be emptied or removed with the `remove` command.
 
+## Supported file formats and names
+
+The Serverless Framework supports both JSON and YAML file formats for both SAM
+and CloudFormation templates. The file can be named `template.yml`,
+`template.yaml`, or `template.json`.
+
+You can also use the `samconfig.toml` to specify the template filename using
+the `template_file` parameter.
+
 ## Using Serverless Variables
 
 You can use Serverless Variables in your SAM or CloudFormation templates just like any other Serverless Framework project. The CLI will automatically resolve those variables before deployment. This simplifies your configuration as your project grows.
@@ -167,4 +176,4 @@ Resources:
           STAGE: ${env:USER}
 ```
 
-For more information about these variabels, take a look at the [Serverless Variables Docs](./variables/README.md).
+For more information about these variables, take a look at the [Serverless Variables Docs](./variables/README.md).
