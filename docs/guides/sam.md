@@ -11,7 +11,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Overview
+# AWS SAM & Cloudformation Support
 
 _Warning:_ Support for deploying raw CloudFormation & SAM projects is still experimental.
 
