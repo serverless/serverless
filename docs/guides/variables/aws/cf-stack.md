@@ -26,7 +26,11 @@ keywords:
 
 ## Examples
 
-### Default
+### Default Configuration
+
+In this example, the `awsAccount1` provider is set up to fetch CloudFormation stack outputs using the default region associated with your deployment.
+This setup is useful when your Serverless service needs to dynamically reference values from another service or stack, such as resource names.
+The `cf:stackName.outputKey` syntax ensures that you can easily pull outputs from another stack without hard-coding values.
 
 ```yaml
 stages:
@@ -42,6 +46,10 @@ functions:
 ```
 
 ### Custom region
+
+Here, the `awsAccount1` provider is configured with a default region (`us-west-2`), while the `euCf` resolver is set to pull CloudFormation outputs from the `eu-west-1` region.
+This is particularly useful when your service needs to integrate with resources or outputs from stacks deployed in different regions.
+For instance, if your primary service is deployed in one region but needs to interact with a resource defined in a stack in another region, this setup handles that cross-region reference smoothly.
 
 ```yaml
 stages:

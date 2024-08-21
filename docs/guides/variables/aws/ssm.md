@@ -20,7 +20,10 @@ keywords: ['Serverless Framework', 'AWS SSM', 'Secrets Manager', 'Variables']
 
 ## Examples
 
-### Default
+### Default Configuration
+
+In this example, `awsAccount1` is configured as the provider that references AWS SSM parameters.
+This is the most straightforward case when you only need to access SSM parameters from a single region that matches your deployment.
 
 ```yaml
 stages:
@@ -36,6 +39,10 @@ functions:
 ```
 
 ### Custom region
+
+In this example, the `awsAccount1` provider is set to use the `us-west-2` region.
+However, within that, a specific `euSsm` resolver is defined to fetch SSM parameters from the `eu-west-`1 region.
+This setup is useful when your deployment is based in one region, but you need to access SSM parameters from another region.
 
 ```yaml
 stages:
@@ -54,7 +61,10 @@ functions:
     description: ${awsAccount1:euSsm:/path/to/param}
 ```
 
-### Raw
+### Raw Parameter Value
+
+By setting `rawOrDecrypt` to `raw`, the SSM parameter value is retrieved as-is, without any automatic parsing or transformation.
+This is useful when you want the raw string from SSM, for example, when you need array values (`StringList`) to be returned as strings.
 
 ```yaml
 stages:
@@ -73,6 +83,10 @@ functions:
 ```
 
 ### No Decrypt
+
+In this scenario, the SSM parameter is of type SecureString, but you do not want it automatically decrypted.
+This is useful if your use case involves handling the encrypted value directly
+(e.g., for further processing or storing securely without exposing the plaintext value).
 
 ```yaml
 stages:
