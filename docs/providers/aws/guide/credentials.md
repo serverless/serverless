@@ -69,7 +69,7 @@ Note: If you already had AWS credentials on your local machine, the Serverless F
 
 ## Using Locally Stored Credentials
 
-In addition to using the Serverless Dashboard for managing AWS credentials, you can also configure the Serverless Framework to use AWS credentials stored locally on your machine. This approach is beneficial if you prefer not to use the Serverless Dashboard or if you're working in an environment where direct access to AWS via the AWS CLI is preferred.
+In addition to using the Serverless Dashboard for managing AWS credentials, you can also configure the Serverless Framework to use AWS credentials stored locally on your machine. This approach is beneficial if you prefer not to use the Serverless Dashboard or if you're working in an environment where direct access to AWS via CLI is preferred.
 
 1. **Run the Serverless Command:** Start by running the `serverless` command in your terminal. This command will guide you through the process of setting up AWS credentials.
 
@@ -215,6 +215,18 @@ In this example:
 - The `dashboard: false` property in the `local-profile-account` Resolver configuration ensures that the credentials from the local profile are used instead of the Serverless Dashboard Provider.
 - The `local-profile-account` Resolver uses the credentials from the local profile `project-specific-profile` for deployment.
 - The `provider.resolver` property specifies that the `local-profile-account` Resolver should provide the deployment credentials.
+
+### Credential Precedence: How `provider.profile` and Resolvers Interact
+
+When configuring AWS credentials with the Serverless Framework, it's essential to understand how `provider.profile` and `provider.resolver` interact with each other:
+
+- **You cannot define both `provider.profile` and `provider.resolver` at the same time** in your `serverless.yml` file. Attempting to do so will result in an error. You must choose one of these options.
+
+- If neither `provider.profile` nor `provider.resolver` are set, but a single Resolver is defined, that Resolver will be automatically used for AWS credential resolution during deployment.
+
+- If `provider.profile` is set, and there is only one Resolver defined, the `provider.profile` setting takes precedence and will be used for the deployment credentials, ignoring the defined Resolver.
+
+- When multiple Resolvers are defined in your configuration, you **must** set `provider.resolver` to specify which Resolver should be used for deployment credentials. Failure to do so will lead to a configuration error, as the framework cannot automatically determine which Resolver to use.
 
 ## Production Configuration
 

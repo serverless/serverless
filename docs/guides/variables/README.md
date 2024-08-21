@@ -36,13 +36,41 @@ otherYamlKey: ${provider:resolver:key, defaultValue}
 
 **Note:** You can only use variables in `serverless.yml` property **values**, not property keys. So you can't use variables to generate dynamic logical IDs in the custom resources section for example.
 
-## Resolvers
+## Variable Resolvers
 
-Variable Resolvers allow you to reference external data sources in your `serverless.yml` file.
-Each Resolver has a Provider parent, which is responsible for fetching the credentials.
-For example, the `aws` Provider has a `ssm` Resolver and a `s3` Resolver, which can fetch data from AWS SSM Parameter Store and S3 respectively.
-Provider also can have default variables that can be used in the `serverless.yml` file, like `accountId` and `region` for the `aws` Provider.
-You can customize the Provider and Resolver configuration in the `resolvers` block.
+Variable Resolvers allow you to reference external data sources in your serverless.yml file.
+Each Resolver has a Provider parent, which is responsible for fetching the credentials. 
+For example, the `aws` Provider has a `ssm` Resolver and a `s3` Resolver,
+which can fetch data from AWS SSM Parameter Store and S3, respectively.
+
+Providers can also have default variables that can be used in the serverless.yml file,
+such as `accountId` for the `aws` Provider.
+
+You can customize Providers and Resolvers by specifying custom configuration options in the `resolvers` block of the `stages` section.
+Then, you can reference the customized Resolvers using `${customProviderName:customResolverName:key}` syntax.
+
+**You can always reference the default Resolvers provided by Providers, even if you don’t define them explicitly.**
+For example,
+you can reference the default `s3` Resolver provided by the `aws` Provider using `${aws:s3:myBucket/myKey}` syntax
+(it will use the AWS provider which provides the credentials for the deployment),
+or `${customProviderName:s3:myBucket/myKey}` if you define customized Provider configuration.
+
+### Examples
+
+#### Default Resolvers
+
+```yaml
+
+functions:
+  hello:
+    handler: handler.hello
+    environment:
+      ACCOUNT_ID: ${aws:accountId} # built-in variable provided by the AWS provider
+      SSM_VALUE: ${aws:ssm:/path/to/param} # uses the default resolver configuration and the same AWS provider which is used for the deployment 
+      S3_VALUE: ${aws:s3:myBucket/myKey} # uses the default resolver configuration and the same AWS provider which is used for the deployment
+```
+
+#### Customized Resolvers
 
 ```yaml
 stages:
@@ -54,6 +82,9 @@ stages:
       awsAccount2:
         type: aws
         profile: dev-account2-profile-name
+        euS3: # custom resolver configuration defined for the awsAccount2 provider
+          type: s3
+          region: eu-west-1
   prod:
     resolvers:
       awsAccount1:
@@ -62,18 +93,21 @@ stages:
       awsAccount2:
         type: aws
         profile: prod-account2-profile-name
+        euS3: # custom resolver configuration defined for the awsAccount2 provider
+          type: s3
+          region: eu-west-1
 
 functions:
   hello:
     handler: handler.hello
     environment:
-      ACCOUNT1_ID: ${awsAccount1:accountId}
-      ACCOUNT2_ID: ${awsAccount2:accountId}
-      VALUE1: ${awsAccount1:ssm:/path/to/param}
-      VALUE2: ${awsAccount2:s3:myBucket/myKey}
+      ACCOUNT1_ID: ${awsAccount1:accountId} # built-in variable provided by the AWS provider
+      SSM_VALUE: ${awsAccount1:ssm:/path/to/param} # uses the default resolver configuration even if it's not explicitly defined in the resolvers block
+      EU_S3_VALUE: ${awsAccount2:euS3:myBucket/myKey} # uses the customized resolver configuration
+      S3_VALUE: ${awsAccount2:s3:myBucket/myKey} # uses the default resolver configuration even if a customized one (euS3) is defined for the same provider
 ```
 
-## Current Variable Providers:
+## Supported Variable Providers:
 
 - [Self-References Properties Defined in `serverless.yml`](./self)
 - [Serverless Core Variables](./core)
