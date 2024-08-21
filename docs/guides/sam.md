@@ -134,7 +134,7 @@ If you specified your own deployment bucket, it will not be emptied or removed w
 
 You can use Serverless Variables in your SAM or CloudFormation templates just like any other Serverless Framework project. The CLI will automatically resolve those variables before deployment. This simplifies your configuration as your project grows.
 
-_Note:_ While we haven't tested every Serverless Variable with SAM/CFN projects, as this feature is still in an experimental stage, you should be able to use any Serverless Variable except those that require the stages section in your configuration, such as the ${params:} variable.
+**Note:** While we haven't tested every Serverless Variable with SAM/CFN projects, as this feature is still in an experimental stage, you should be able to use any Serverless Variable except those that require the stages section in your configuration, such as the ${params:} variable.
 
 For example, you can pass in your local environment variables to AWS Lambda:
 
