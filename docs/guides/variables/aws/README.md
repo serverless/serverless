@@ -15,9 +15,9 @@ keywords:
 
 # Resolvers
 
-- [AWS S3](/framework/docs/guides/variables/aws/s3)
-- [AWS SSM Parameter Store & Secrets Manager](/framework/docs/guides/variables/aws/ssm)
-- [AWS CloudFormation Outputs](/framework/docs/guides/variables/aws/cf-stack)
+- [AWS S3](s3)
+- [AWS SSM Parameter Store & Secrets Manager](ssm)
+- [AWS CloudFormation Outputs](cf-stack)
 
 # Configuration options
 

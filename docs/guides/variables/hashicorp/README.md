@@ -13,5 +13,5 @@ keywords:
 
 # Resolvers
 
-- [HashiCorp Terraform State Outputs](/framework/docs/guides/variables/hashicorp/teraform)
-- [HashiCorp Vault Secrets](/framework/docs/guides/variables/hashicorp/vault)
+- [HashiCorp Terraform State Outputs](terraform)
+- [HashiCorp Vault Secrets](vault)

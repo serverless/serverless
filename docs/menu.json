@@ -53,14 +53,14 @@
       "Git": "guides/variables/git",
       "AWS": {
         "Overview": "guides/variables/aws",
-        "S3 Objects": "guides/variables/s3",
-        "SSM Parameter Store & Secrets Manager": "guides/variables/ssm",
-        "CloudFormation Stack Outputs": "guides/variables/cf-stack"
+        "S3 Objects": "guides/variables/aws/s3",
+        "SSM Parameter Store & Secrets Manager": "guides/variables/aws/ssm",
+        "CloudFormation Stack Outputs": "guides/variables/aws/cf-stack"
       },
       "HashiCorp": {
-        "Overview": "guides/variables/terraform",
-        "Vault": "guides/variables/vault",
-        "Terraform State Output": "guides/variables/hashicorp"
+        "Overview": "guides/variables/hashicorp",
+        "Vault": "guides/variables/hashicorp/vault",
+        "Terraform State Output": "guides/variables/hashicorp/terraform"
       }
     },
     "Resources": "providers/aws/guide/resources",
