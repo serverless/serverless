@@ -86,6 +86,6 @@ The resources that are **not** removed automatically, as they might still be use
 
 - The dataset.
 - [Axiom CloudFormation stacks](https://github.com/axiomhq/axiom-cloudwatch-forwarder) for each dataset created:
-  - {datasetName}-aws-cloudwatch-forwarder-axiom
-  - {datasetName}-aws-cloudwatch-subscriber-axiom
-  - {datasetName}-aws-cloudwatch-unsubscriber-axiom
+  - {datasetName}-forwarder-axiom
+  - {datasetName}-subscriber-axiom
+  - {datasetName}-unsubscriber-axiom
