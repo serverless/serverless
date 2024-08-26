@@ -13,38 +13,36 @@ keywords: ['Serverless Framework', 'Observability', 'Monitoring', 'Axiom']
 
 # Axiom
 
-Axiom is a powerful observability platform that enables efficient handling, storage, and querying of extensive event data. It offers a cost-effective solution for log management and analytics, ensuring comprehensive visibility across your applications. Axiom allows you to capture, analyze, and visualize logs, metrics, and traces, providing essential tools for monitoring and troubleshooting your serverless applications.
+Axiom is a powerful observability platform that enables efficient handling, storage, and querying of extensive event data. It offers a cost-effective solution compared to AWS Cloudwatch for AWS Lambda, with a generous 500GB/month free tier, ensuring comprehensive visibility across your applications. Axiom allows you to capture, analyze, and visualize logs, metrics, and traces, providing essential tools for monitoring and troubleshooting AWS Lambda based applications.
 
 ## Enabling Axiom Observability
 
-### Step 1: Create an Axiom account and access token
+### Create an Axiom account and API Token
 
-1. If you don't already have an Axiom account, sign up at [https://app.axiom.co/register](https://app.axiom.co/register). Axiom offers a free tier that allows you to get started with the platform.
-2. Create or join an organization in Axiom.
-3. Skip the first step (creating dataset) in the Axiom onboarding process, as it will be done automatically by the Serverless Framework.
-4. Go to [API tokens in the Axiom settings](https://app.axiom.co/settings/api-tokens) and create a new access token
-   with the `Ingest`, `Query`, `Datasets`, `Dashboards`, and `Monitors` using the Advanced tab.
-   Store the token value securely as you will need it in the next steps.
-   The Serverless Framework will use it to send logs to Axiom.
-   ![Axiom API tokens settings](axiom-api-tokens.png)
+If you don't already have an Axiom account, [you can register for one here](https://slss.io/axiom). Axiom offers a very generous free tier.
 
-### Step 2: Configure Axiom in your Serverless Framework service
+Create or join an organization in Axiom – **but skip the first step of Creating A Dataset in the Axiom onboarding process** – as this will be done automatically and more correctly by the Serverless Framework. Instead, click the setting icon in the Dashboard, select [API Tokens](https://app.axiom.co/settings/api-tokens) on the left, and select New API Token.
 
-Add the `observability` property to the `stages` block in your `serverless.yml` file and use `axiom` as the provider.
+Enter a name, choose “None” for Expiration, then click the Advanced tab to select the permissions your token should have. 
+
+Assign the `Ingest`, `Query`, `Datasets`, `Dashboards`, and `Monitors` permissions.
+
+Set the `AXIOM_TOKEN` environment variable in your CI/CD pipeline or locally. The value should be the API token you created in Axiom.
+
+```bash
+export AXIOM_TOKEN=your-axiom-access-token
+```
+
+You can also set this in a `.env` file or stages `.env` file and the Serverless Framework will pick it up automatically.
+
+### Configure Axiom in your Serverless Framework Service
+
+Here is the easiest way to configure Axiom across all Stages within your serverless application. Add the `observability` property to the `stages` block in your `serverless.yml` and point it to `axiom`.
 
 ```yaml
 stages:
   default:
-    observability:
-      provider: axiom
-```
-
-### Step 3: Set the AXIOM_TOKEN environment variable
-
-Set the `AXIOM_TOKEN` environment variable in your CI/CD pipeline or locally. The value should be the access token you created in Axiom.
-
-```bash
-export AXIOM_TOKEN=your-axiom-access-token
+    observability: axiom
 ```
 
 Now, you're all set to start sending logs to Axiom. Deploy your service with the Serverless Framework, and you'll see logs in the Axiom platform.
@@ -52,7 +50,7 @@ Now, you're all set to start sending logs to Axiom. Deploy your service with the
 Integrated logs include:
 
 - Logs from the Lambda Functions in your service (unless `disableLogs` is set to `true` for a specific function).
-- log groups defined in the `Resources` block and not associated with Lambda Functions.
+- Log groups defined in the `resources` block, not associated with Lambda Functions. These will all be auto-instrumented with Axiom. There is not a way to currently disable this behavior.
 
 ## Additional Configuration
 
