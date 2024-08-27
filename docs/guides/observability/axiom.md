@@ -71,6 +71,12 @@ stages:
       dataset: my-custom-dataset
 ```
 
+## Troubleshooting
+
+### Forbidden Error
+
+If you run into a "forbidden" error upon deployment, it is most often due to the Axiom API Token not having the correct permissions specified in this documentation. Go to the Axiom Dashboard and ensure your permissions match the ones listed in this documentation.
+
 ## Disabling Axiom Observability
 
 To disable Axiom observability for your service, remove the `observability` property from the `stages` block in your `serverless.yml` file.
