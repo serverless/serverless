@@ -39,7 +39,7 @@ otherYamlKey: ${provider:resolver:key, defaultValue}
 ## Variable Resolvers
 
 Variable Resolvers allow you to reference external data sources in your serverless.yml file.
-Each Resolver has a Provider parent, which is responsible for fetching the credentials. 
+Each Resolver has a Provider parent, which is responsible for fetching the credentials.
 For example, the `aws` Provider has a `ssm` Resolver and a `s3` Resolver,
 which can fetch data from AWS SSM Parameter Store and S3, respectively.
 
@@ -60,13 +60,12 @@ or `${customProviderName:s3:myBucket/myKey}` if you define customized Provider c
 #### Default Resolvers
 
 ```yaml
-
 functions:
   hello:
     handler: handler.hello
     environment:
       ACCOUNT_ID: ${aws:accountId} # built-in variable provided by the AWS provider
-      SSM_VALUE: ${aws:ssm:/path/to/param} # uses the default resolver configuration and the same AWS provider which is used for the deployment 
+      SSM_VALUE: ${aws:ssm:/path/to/param} # uses the default resolver configuration and the same AWS provider which is used for the deployment
       S3_VALUE: ${aws:s3:myBucket/myKey} # uses the default resolver configuration and the same AWS provider which is used for the deployment
 ```
 
