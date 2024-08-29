@@ -441,9 +441,11 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     expect(updateFunctionCodeStub).to.be.calledOnce
     expect(updateFunctionCodeStub.args[0][0].ImageUri).to.equal(imageWithSha)
     expect(updateFunctionConfigurationStub).to.be.calledOnce
-    expect(
-      updateFunctionConfigurationStub.args[0][0].ImageConfig,
-    ).to.deep.equal({
+
+    const configParams = updateFunctionConfigurationStub.args[0][0]
+    expect(configParams.Handler).to.be.undefined
+    expect(configParams.Runtime).to.be.undefined
+    expect(configParams.ImageConfig).to.deep.equal({
       Command: ['anotherexecutable'],
       EntryPoint: ['executable', 'param1'],
       WorkingDirectory: './workdir',
