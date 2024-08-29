@@ -50,6 +50,7 @@ Here's a list of everything that's new in V.4, so far:
 - **Debug Summary for AI:** When you run into a bug, you can run "serverless support --ai" to generate a concise report detailing your last bug with all necessary context, optimized for pasting into AI tools such as ChatGPT.
 - **New AWS Lambda Runtimes:** "python3.12", "dotnet8", and "java21".
 - **Advanced Logging Controls for AWS Lambda:** Capture Logs in JSON, increased log granularity, and setting a custom Log Group. Here is the [AWS article](https://aws.amazon.com/blogs/compute/introducing-advanced-logging-controls-for-aws-lambda-functions/). Here is the [YAML implementation](https://github.com/serverless/serverless/blob/v4.0/docs/providers/aws/guide/serverless.yml.md#logs)
+- **Axiom Integration:** Integrate with [Axiom's observability solution](https://www.serverless.com/framework/docs/guides/observability/axiom) for a powerful logging, metrics and traces experience, at 3X less than AWS cloudwatch.
 - **AWS SSO:** Environment variables, especially ones set by AWS SSO, are prioritized. The Framework and Dashboard no longer interfere with these.
 - **Automatic Updates:** These happen by default now. Though, you will be able to control the level of updates you're open to.
 - **Improved Onboarding & Set-Up:** The `serverless` command has been re-written to be more helpful when setting up a new or existing project.
