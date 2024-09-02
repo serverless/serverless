@@ -14,7 +14,7 @@ keywords:
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/variables/cf-stack)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/variables/aws/cf-stack)
 
 <!-- DOCS-SITE-LINK:END -->
 
