@@ -15,7 +15,7 @@ keywords:
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/compose/compose)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/compose)
 
 <!-- DOCS-SITE-LINK:END -->
 

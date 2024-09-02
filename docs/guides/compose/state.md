@@ -47,6 +47,9 @@ The easiest way to manage state in Serverless Framework Compose is through its d
   - `bucketRegion`: The AWS region where the bucket is located.
 3. **Versioning Enabled**: The created S3 bucket will have versioning enabled by default, ensuring that different states over time are maintained and can be rolled back if necessary.
 
+**Note**: To create the default state bucket, you must have the necessary permissions to put SSM parameters and create versioned S3 buckets.
+If you don’t have these permissions, you can set up a [custom state configuration](#custom-state-configuration) to use an existing S3 bucket. 
+
 ### Example
 
 Assume you have the following serverless-compose.yml with two services:
