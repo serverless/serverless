@@ -240,6 +240,40 @@ Unless documented here, expect `serverless.yml` features to not be supported in 
 
 You can [open feature requests](https://github.com/serverless/compose) if you need features that aren't supported in `serverless-compose.yml`.
 
+## Stage-specific Configuration
+
+You can specify stage-specific configurations using the `stages` block, similar to how it's done in `serverless.yml`. Your composed services can then reference those variables in their `serverless.yml` files using the `${param:<key>}` variable, without needing to explicitly pass them as parameters in `serverless-compose.yml`.
+
+Here’s an example:
+
+```yml
+# serverless-compose.yml
+stages:
+  dev:
+    params:
+      STRIPE_API_KEY: 'stripe-api-dev-key'
+  prod:
+    params:
+      STRIPE_API_KEY: 'stripe-api-prod-key'
+
+services:
+  service-a:
+    path: service-a
+  service-b:
+    path: service-b
+```
+
+The `STRIPE_API_KEY` param will be resolved based on the stage you're deploying to and will automatically be available for both services to reference in their `serverless.yml` files:
+
+```yml
+# serverless.yml (for both service-a and service-b)
+
+functions:
+  hello:
+    environment:
+      STRIPE_API_KEY: ${param:STRIPE_API_KEY} # Resolves to "stripe-api-dev-key" in dev and "stripe-api-prod-key" in prod
+```
+
 ## Refreshing outputs
 
 The outputs of a service are stored locally (in the `.serverless/` directory). If a colleague deployed changes that changed the outputs of a service, you can refresh your local state via the `refresh-outputs` command:

@@ -168,3 +168,70 @@ Resources:
 ```
 
 For more information about these variabels, take a look at the [Serverless Variables Docs](./variables/README.md).
+
+## Using Serverless Compose
+
+Just like traditional framework services, you can compose multiple SAM or CloudFormation (CFN) stacks together with Serverless Compose, or alongside traditional framework services. This allows you to reference outputs from other services and manage dependencies seamlessly. Here’s an example:
+
+```yml
+# serverless-compose.yml
+
+services:
+  traditional-service:
+    path: traditional-service
+  sam-service:
+    path: sam-service
+    params:
+      traditionalServiceOutput: ${traditional-service.exampleOutput}
+```
+
+You can then reference these parameters in your SAM/CFN templates using the `${param:<key>}` variable:
+
+```yml
+# template.yml
+
+Resources:
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Environment:
+        Variables:
+          FRAMEWORK_OUTPUT: ${param:traditionalServiceOutput}
+```
+
+Serverless Compose also supports stage-specific configuration shared between all your services. If you define stage-specific parameters in your `serverless-compose.yml`:
+
+```yml
+# serverless-compose.yml
+stages:
+  dev:
+    params:
+      STRIPE_API_KEY: 'stripe-api-dev-key'
+  prod:
+    params:
+      STRIPE_API_KEY: 'stripe-api-prod-key'
+
+services:
+  traditional-service:
+    path: traditional-service
+  sam-service:
+    path: sam-service
+    params:
+      traditionalServiceOutput: ${traditional-service.exampleOutput}
+```
+
+You can reference these parameters directly in your SAM/CFN templates, and the correct value will be used based on the stage you're deploying to:
+
+```yml
+# template.yml
+
+Resources:
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Environment:
+        Variables:
+          STRIPE_API_KEY: ${param:STRIPE_API_KEY}
+```
+
+**Note:** If you don't specify the stack name in a `samconfig.toml` file in any of these SAM/CFN projects, you'll still need to use the `--stack` option in the CLI.
