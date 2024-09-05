@@ -131,7 +131,6 @@ Let's break down the example above into 3 steps:
    ```yaml
    # service-b/serverless.yml
    provider:
-     ...
      environment:
        # Here we inject the queue URL as a Lambda environment variable
        SERVICE_A_QUEUE_URL: ${param:queueUrl}
@@ -240,7 +239,7 @@ Unless documented here, expect `serverless.yml` features to not be supported in 
 
 You can [open feature requests](https://github.com/serverless/compose) if you need features that aren't supported in `serverless-compose.yml`.
 
-## Stage-specific Configuration
+## Stage-specific configuration
 
 You can specify stage-specific configurations using the `stages` block, similar to how it's done in `serverless.yml`. Your composed services can then reference those variables in their `serverless.yml` files using the `${param:<key>}` variable, without needing to explicitly pass them as parameters in `serverless-compose.yml`.
 
@@ -272,6 +271,31 @@ functions:
   hello:
     environment:
       STRIPE_API_KEY: ${param:STRIPE_API_KEY} # Resolves to "stripe-api-dev-key" in dev and "stripe-api-prod-key" in prod
+```
+
+## Passing params to indvidual services
+
+The `stages` block mentioned earlier makes stage parameters available to all services. However, if you need to pass parameters to individual services that aren't outputs from other services, you can define them directly in the `params` section of the specific service:
+
+```yml
+services:
+  service-a:
+    path: service-a
+    params:
+      user: ${env:USER} # You can also use environment variables here, as shown above.
+      description: 'This is a hard-coded description that you can pass to your service.'
+```
+
+In the serverless.yml file of service-a, you can reference these parameters like this:
+
+```yml
+# service-a/serverless.yml
+
+functions:
+  hello:
+    environment:
+      USER: ${param:user}
+      DESCRIPTION: ${param:description}
 ```
 
 ## Refreshing outputs
