@@ -75,6 +75,11 @@
       "Custom Variables": "guides/plugins/custom-variables",
       "Extending the Configuration schema": "guides/plugins/custom-configuration",
       "Extending and overriding configuration": "guides/plugins/extending-configuration"
+    },
+    "Observability": {
+      "Overview": "guides/observability",
+      "Dashboard": "guides/observability/dashboard",
+      "Axiom": "guides/observability/axiom"
     }
   },
   "CLI Reference": {

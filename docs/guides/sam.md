@@ -11,7 +11,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Overview
+# AWS SAM & Cloudformation Support
 
 _Warning:_ Support for deploying raw CloudFormation & SAM projects is still experimental.
 
@@ -100,8 +100,6 @@ You now no longer have to specify a stack name on every deploy:
 serverless deploy
 ```
 
-**Note:** The default stage name when deploying SAM projects is `default`, not `dev` like traditional Serverless Framework projects. Because `samconfig.toml` is more likely to have `default` config rather than `dev` config, as it is much more commonly used in the SAM ecosystem based on AWS recommendation.
-
 ## Deploying SAM/CFN Templates
 
 You can deploy a SAM/CFN template with the Serverless Framework using the `sls deploy` command.
@@ -129,6 +127,15 @@ You can remove a SAM/CFN template with the Serverless Framework using the `sls r
 - `stage` - The stage to deploy to. Default is `default`.
 
 If you specified your own deployment bucket, it will not be emptied or removed with the `remove` command.
+
+## Supported file formats and names
+
+The Serverless Framework supports both JSON and YAML file formats for both SAM
+and CloudFormation templates. The file can be named `template.yml`,
+`template.yaml`, or `template.json`.
+
+You can also use the `samconfig.toml` to specify the template filename using
+the `template_file` parameter.
 
 ## Using Serverless Variables
 
