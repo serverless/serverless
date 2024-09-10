@@ -22,7 +22,7 @@ keywords:
 
 The Serverless Framework simplifies deploying services by managing deployment artifacts and resources efficiently.
 A key component of this process is the **Deployment Bucket**, which serves as a storage mechanism for Lambda function code, CloudFormation templates,
-and other resources required for service deployment.
+and other resources required for service deployment, service rollback, and efficient parameter retrieval.
 This guide outlines the purpose, behavior, and management of the Deployment Bucket in Serverless Framework.
 
 ### Key Features of the Deployment Bucket:
