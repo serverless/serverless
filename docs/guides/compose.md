@@ -199,6 +199,27 @@ However, if "service-a" uses `${param:xxx}` to reference parameters injected by 
 
 In these cases, you must run all commands from the root: `serverless service-a deploy`.
 
+## Shared State
+
+With the introduction of shared [State](./state), collaboration across teams deploying multiple services has been significantly improved.
+In earlier versions of Serverless Framework Compose, local state management was used, which had several limitations,
+especially when multiple people or CI/CD systems deployed services independently.
+
+### Key benefits of shared State:
+
+- **Improved collaboration:** Outputs are always in sync, ensuring that different team members working on different services can collaborate seamlessly. When one person deploys a service, the outputs are immediately available and consistent for everyone else.
+- **No need for output synchronization commands:** Previously, local state required manual commands like `serverless outputs`
+and `serverless refresh-outputs` to synchronize outputs across services.
+These commands have been deprecated because the shared State handles this automatically, keeping everything in sync in real time.
+
+### Deprecated local state
+
+The older versions of Compose relied on local state, which has now been deprecated and replaced by shared State.
+This deprecation removes the need for manual refreshes, streamlining the deployment and orchestration
+process across multiple services.
+
+For more information about shared State, please refer to [the State documentation](./state).
+
 ## Configuration
 
 All Variable Resolvers are supported in `serverless-compose.yml`. For example, you can use SSM Parameters, Secrets Manager, or custom variables.
@@ -213,19 +234,6 @@ Unless documented here, expect `serverless.yml` features to not be supported in 
 For example, it is not possible to include plugins inside `serverless-compose.yml`.
 
 You can [open feature requests](https://github.com/serverless/serverless) if you need features that aren't supported in `serverless-compose.yml`.
-
-## Refreshing outputs
-
-To load the latest service state into the state store, run:
-
-```
-serverless info
-```
-
-This command ensures
-that the state store is up to date with the most recent outputs and configurations from your services,
-allowing dependent services to access the latest data.
-It has no impact on deployed services, it can be run at any time without unintended side effects.
 
 ## Removing services
 
