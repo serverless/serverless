@@ -30,7 +30,7 @@ Deploying multiple services in a monorepository is a very common pattern across 
 
 ## Setup
 
-_Note: Compose is available in Serverless Framework **v3.15.0** or greater ([Upgrading guide](upgrading-v4.md)). If Serverless Framework is installed locally (in `node_modules/`), make sure to upgrade it as well._
+_Note: Compose, as documented here, is available in Serverless Framework **v4.3.1** or greater ([Upgrading guide](upgrading-v4.md)). Initial version was available in v3.15.0 but that is not covered in these docs._
 
 Assuming you have an application containing multiple Serverless Framework services, for example:
 
@@ -69,21 +69,29 @@ To deploy all services, instead of running `serverless deploy` in each service, 
 ```bash
 $ serverless deploy
 
-Deploying myapp to stage dev
+Deploying "service-1" to stage "dev" (us-east-1)
+Deploying "service-2" to stage "dev" (us-east-1)
 
-    ✔  service-a › deployed › 15s
-    ✔  service-b › deployed › 31s
+✔ Service deployed to stack service-1-dev (8s)
+✔ Service deployed to stack service-2-dev (8s)
+
+Serverless Compose Run Report:
+Command:
+- deploy
+Succeeded:
+- eventBus
+- businessApi
+- aiChatApi
+- businessWorker
+- auth
+- web
 
 ```
 
 ### Service dependencies and variables
 
-Service variables let us:
-
-- order deployments
-- inject outputs from one service into another
-
-This is possible via the `${service.output}` syntax. For example:
+Service variables let us order deployments and inject outputs from one service
+into another. This is possible via the `${service.output}` syntax. For example:
 
 ```yaml
 services:
