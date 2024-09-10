@@ -82,20 +82,29 @@ To learn more about custom bucket configuration, refer to the [documentation](ht
 
 ### 1. **Deploying a New Service**:
 
-- When deploying a new service, the Serverless Framework will automatically check for the existence of the Deployment Bucket in the specified AWS region. If no bucket exists, it will create one. This bucket will then be used to store deployment packages for the service, ensuring that all deployment artifacts are stored in the correct region.
+When deploying a new service, the Serverless Framework will automatically check
+for the existence of the Deployment Bucket in the specified AWS region. If no
+bucket exists, it will create one. This bucket will then be used to store
+deployment packages for the service, ensuring that all deployment artifacts are
+stored in the correct region.
 
 ### 2. **Deploying an Existing Service Without Compose**:
 
-- For existing services deployed before Serverless Framework v4, a separate Deployment Bucket was created per service by default.
-  The Serverless Framework does not change this behavior, and it continues to use the Deployment Bucket that was created during the initial deployment (as specified in the CloudFormation stack or YAML configuration). This ensures consistency in deployment processes and prevents disruption to existing setups.
+For existing services deployed before Serverless Framework v4, a separate
+Deployment Bucket was created per service by default. The Serverless Framework
+does not change this behavior, and it continues to use the Deployment Bucket
+that was created during the initial deployment (as specified in the
+CloudFormation stack or YAML configuration). This ensures consistency in
+deployment processes and prevents disruption to existing setups.
 
 ### 3. **Deploying with Compose**:
 
-- When deploying with [Compose](./compose), the Serverless Framework uses a shared Deployment Bucket by default for all services, including existing ones.
-  This simplifies management by consolidating deployment artifacts into a single bucket per region.
-  However,
-  if a custom Deployment Bucket is specified in the `provider.deploymentBucket` field in the `serverless.yml` file,
-  the Framework will use that bucket instead of the shared one (see [Custom Bucket Configuration](#custom-bucket-configuration)).
+When deploying with [Compose](./compose), the Serverless Framework uses a shared
+Deployment Bucket by default for all services, including existing ones. This
+simplifies management by consolidating deployment artifacts into a single bucket
+per region. However, if a custom Deployment Bucket is specified in the `provider.deploymentBucket`
+field in the `serverless.yml` file, the Framework will use that bucket instead
+of the shared one (see [Custom Bucket Configuration](#custom-bucket-configuration)).
 
 ## Regional Constraints and Compliance
 
