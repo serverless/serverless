@@ -27,7 +27,7 @@ This guide outlines the purpose, behavior, and management of the Deployment Buck
 
 ### Key Features of the Deployment Bucket:
 
-- **Per-Region Bucket**: Deployment buckets are created and managed per AWS region, ensuring that resources are stored in compliance with AWS’s regional requirements for services like Lambda.
+- **Per-Region Bucket**: Deployment buckets are created and managed per AWS region, ensuring that resources are stored in compliance with AWS's regional requirements for services like Lambda.
 - **Shared Across Services**: For each region, the Deployment Bucket is shared across services within the same AWS account, optimizing resource management and reducing duplication.
 
 ## Managing Deployment Buckets
@@ -60,7 +60,7 @@ The value of this parameter is a JSON object with the following structure:
 ```
 
 This allows the Framework to track the bucket used for deployments, ensuring consistency across services and regions.
-If the specified bucket doesn’t exist, it will be automatically created by the Serverless Framework during deployment.
+If the specified bucket doesn't exist, it will be automatically created by the Serverless Framework during deployment.
 
 ### Custom Bucket Configuration
 
@@ -99,7 +99,7 @@ To learn more about custom bucket configuration, refer to the [documentation](ht
 
 ## Regional Constraints and Compliance
 
-Since AWS services like Lambda require deployment artifacts to be stored in the same region where the service is running, the Deployment Bucket is region-specific. When deploying services across multiple regions, the Serverless Framework will create and use a separate Deployment Bucket for each region. This ensures compliance with AWS’s best practices for regional data storage and guarantees that your deployment artifacts are always available in the correct region.
+Since AWS services like Lambda require deployment artifacts to be stored in the same region where the service is running, the Deployment Bucket is region-specific. When deploying services across multiple regions, the Serverless Framework will create and use a separate Deployment Bucket for each region. This ensures compliance with AWS's best practices for regional data storage and guarantees that your deployment artifacts are always available in the correct region.
 
 ## Migration to Centralized Deployment Buckets
 
