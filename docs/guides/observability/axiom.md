@@ -23,7 +23,7 @@ If you don't already have an Axiom account, [you can register for one here](http
 
 Create or join an organization in Axiom – **but skip the first step of Creating A Dataset in the Axiom onboarding process** – as this will be done automatically and more correctly by the Serverless Framework. Instead, click the setting icon in the Dashboard, select [API Tokens](https://app.axiom.co/settings/api-tokens) on the left, and select New API Token.
 
-Enter a name, choose “None” for Expiration, then click the Advanced tab to select the permissions your token should have. 
+Enter a name, choose “None” for Expiration, then click the Advanced tab to select the permissions your token should have.
 
 Assign the `Ingest`, `Query`, `Datasets`, `Dashboards`, and `Monitors` permissions.
 
