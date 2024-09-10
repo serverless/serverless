@@ -30,7 +30,7 @@ Deploying multiple services in a monorepository is a very common pattern across 
 
 ## Setup
 
-_Note: Compose is available in Serverless Framework **v3.15.0** or greater ([Upgrading guide](../upgrading-v4.md)). If Serverless Framework is installed locally (in `node_modules/`), make sure to upgrade it as well._
+_Note: Compose is available in Serverless Framework **v3.15.0** or greater ([Upgrading guide](upgrading-v4.md)). If Serverless Framework is installed locally (in `node_modules/`), make sure to upgrade it as well._
 
 Assuming you have an application containing multiple Serverless Framework services, for example:
 
@@ -118,7 +118,7 @@ Let's break down the example above into 3 steps:
 
 2. Because of the dependency introduced by the variable, `serverless deploy` will automatically **deploy `service-a` first, and then `service-b`.**
 
-3. The value will be passed to `service-b` [as a parameter](../parameters.md) named `queueUrl`. Parameters can be referenced in Serverless Framework configuration via the `${param:xxx}` syntax:
+3. The value will be passed to `service-b` [as a parameter](parameters.md) named `queueUrl`. Parameters can be referenced in Serverless Framework configuration via the `${param:xxx}` syntax:
 
    ```yaml
    # service-b/serverless.yml
@@ -203,7 +203,7 @@ In these cases, you must run all commands from the root: `serverless service-a d
 
 All Variable Resolvers are supported in `serverless-compose.yml`. For example, you can use SSM Parameters, Secrets Manager, or custom variables.
 
-For more information, see the [Variable Resolvers documentation](../variables).
+For more information, see the [Variable Resolvers documentation](variables).
 
 ### Differences with `serverless.yml`
 
@@ -229,7 +229,7 @@ It has no impact on deployed services, it can be run at any time without uninten
 
 ## Removing services
 
-To delete the whole project (and all its services), run `serverless remove` in the same directory as `serverless-compose.yml`. This will run [`serverless remove`](../../providers/aws/cli-reference/remove.md) in each service directory.
+To delete the whole project (and all its services), run `serverless remove` in the same directory as `serverless-compose.yml`. This will run [`serverless remove`](../providers/aws/cli-reference/remove.md) in each service directory.
 
 To delete only one service:
 
