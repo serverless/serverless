@@ -74,7 +74,7 @@ comments/
 
 This makes sense since related functions usually use common infrastructure resources, and you want to keep those functions and resources together as a single unit of deployment, for better organization and separation of concerns.
 
-To orchestrate and deploy multiple services, check out the ["Composing services" documentation](../../../guides/compose.md).
+To orchestrate and deploy multiple services, check out the ["Composing services" documentation](../../../guides/compose).
 
 ## Contents
 

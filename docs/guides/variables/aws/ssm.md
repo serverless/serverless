@@ -7,7 +7,7 @@ keywords: ['Serverless Framework', 'AWS SSM', 'Secrets Manager', 'Variables']
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/variables/ssm)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/variables/aws/ssm)
 
 <!-- DOCS-SITE-LINK:END -->
 
