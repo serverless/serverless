@@ -330,6 +330,7 @@ Additionally, you can define arguments that will be passed to the `docker build`
 - `buildOptions`: With the `buildOptions` property, you can define options that will be passed to the `docker build` command. (See [Documentation](https://docs.docker.com/engine/reference/commandline/image_build/#options))
 - `cacheFrom`: The `cacheFrom` property can be used to specify which images to use as a source for layer caching in the `docker build` command with `--cache-from` flag. (See [Documentation](https://docs.docker.com/engine/reference/builder/#usage))
 - `platform`: The `platform` property can be used to specify the architecture target in the `docker build` command with the `--platform` flag. If not specified, Docker will build for your computer's architecture by default. AWS Lambda typically uses `x86` architecture unless otherwise specified in the Lambda's runtime settings. In order to avoid runtime errors when building on an ARM-based machine (e.g. Apple M1 Mac), `linux/amd64` must be used here. The options for this flag are `linux/amd64` (`x86`-based Lambdas), `linux/arm64` (`arm`-based Lambdas), or `windows/amd64`. (See [Documentation](https://docs.docker.com/engine/reference/builder/#from))
+- `provenance` Use the `provenance` property to disable multi-architecture manifest generated from BuildKit or `docker buildx`, allows the architecture specified in `platform` to be recognized by AWS Lambda during deployment.
 
 When `uri` is defined for an image, `buildArgs`, `buildOptions`, `cacheFrom`, and `platform` cannot be defined.
 
@@ -350,6 +351,7 @@ provider:
         cacheFrom:
           - my-image:latest
         platform: linux/amd64
+        provenance: false
       anotherimage:
         uri: 000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38
 ```
