@@ -107,11 +107,9 @@ You can deploy a SAM/CFN template with the Serverless Framework using the `sls d
 ### Options
 
 - `stack` - The stack name. Required if not specified in a `samconfig.toml` file.
-- `bucket` - The deployment bucket. Required if updating an existing template and is not specified in a `samconfig.toml` file.
+- `bucket` - The deployment bucket. If not specified, we'll use the default Serverless Framework deployment bucket.
 - `region` - The region to deploy to. Default is `us-east-1`.
 - `stage` - The stage to deploy to. Default is `default`.
-
-If the stack does not exist, a deployment bucket will be added to your stack before it is created, making the `bucket` parameter optional.
 
 **Note:** Deploying AWS Lambda Layers, AWS Lambda Containers, and AWS Lambda Step Functions resources is not yet supported.
 
@@ -241,4 +239,4 @@ Resources:
           STRIPE_API_KEY: ${param:STRIPE_API_KEY}
 ```
 
-**Note:** If you don't specify the stack name in a `samconfig.toml` file in any of these SAM/CFN projects, you'll still need to use the `--stack` option in the CLI.
+If you don't specify the stack name in a `samconfig.toml` file in any of these SAM/CFN services, the stack name will be the service key you specified in the `serverless-compose.yml` file. So in the above example, that would be `sam-service`.
