@@ -25,6 +25,7 @@ Deploying multiple services in a monorepository is a very common pattern across 
 
 - Deploy multiple services in parallel
 - Deploy services in a specific order
+- Deploy different types of services (ie. Traditional, SAM, or CloudFormation) together.
 - Share outputs from one service to another
 - Run commands across multiple services
 
@@ -131,7 +132,6 @@ Let's break down the example above into 3 steps:
    ```yaml
    # service-b/serverless.yml
    provider:
-     ...
      environment:
        # Here we inject the queue URL as a Lambda environment variable
        SERVICE_A_QUEUE_URL: ${param:queueUrl}
@@ -217,8 +217,8 @@ especially when multiple people or CI/CD systems deployed services independently
 
 - **Improved collaboration:** Outputs are always in sync, ensuring that different team members working on different services can collaborate seamlessly. When one person deploys a service, the outputs are immediately available and consistent for everyone else.
 - **No need for output synchronization commands:** Previously, local state required manual commands like `serverless outputs`
-and `serverless refresh-outputs` to synchronize outputs across services.
-These commands have been deprecated because the shared State handles this automatically, keeping everything in sync in real time.
+  and `serverless refresh-outputs` to synchronize outputs across services.
+  These commands have been deprecated because the shared State handles this automatically, keeping everything in sync in real time.
 
 ### Deprecated local state
 
@@ -233,6 +233,62 @@ For more information about shared State, please refer to [the State documentatio
 All Variable Resolvers are supported in `serverless-compose.yml`. For example, you can use SSM Parameters, Secrets Manager, or custom variables.
 
 For more information, see the [Variable Resolvers documentation](variables).
+
+## Stage-specific configuration
+
+You can specify stage-specific configurations using the `stages` block, similar to how it's done in `serverless.yml`. Your composed services can then reference those variables in their `serverless.yml` files using the `${param:<key>}` variable, without needing to explicitly pass them as parameters in `serverless-compose.yml`.
+
+Here’s an example:
+
+```yml
+# serverless-compose.yml
+stages:
+  dev:
+    params:
+      STRIPE_API_KEY: 'stripe-api-dev-key'
+  prod:
+    params:
+      STRIPE_API_KEY: 'stripe-api-prod-key'
+services:
+  service-a:
+    path: service-a
+  service-b:
+    path: service-b
+```
+
+The `STRIPE_API_KEY` param will be resolved based on the stage you're deploying to and will automatically be available for both services to reference in their `serverless.yml` files:
+
+```yml
+# serverless.yml (for both service-a and service-b)
+functions:
+  hello:
+    environment:
+      STRIPE_API_KEY: ${param:STRIPE_API_KEY} # Resolves to "stripe-api-dev-key" in dev and "stripe-api-prod-key" in prod
+```
+
+## Passing params to indvidual services
+
+The `stages` block mentioned earlier makes stage parameters available to all services. However, if you need to pass parameters to individual services that aren't outputs from other services, you can define them directly in the `params` section of the specific service:
+
+```yml
+services:
+  service-a:
+    path: service-a
+    params:
+      user: ${env:USER} # You can also use environment variables here, as shown above.
+      description: 'This is a hard-coded description that you can pass to your service.'
+```
+
+In the serverless.yml file of service-a, you can reference these parameters like this:
+
+```yml
+# service-a/serverless.yml
+functions:
+  hello:
+    environment:
+      USER: ${param:user}
+      DESCRIPTION: ${param:description}
+```
 
 ### Differences with `serverless.yml`
 

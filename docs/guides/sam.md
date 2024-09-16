@@ -100,8 +100,6 @@ You now no longer have to specify a stack name on every deploy:
 serverless deploy
 ```
 
-**Note:** The default stage name when deploying SAM projects is `default`, not `dev` like traditional Serverless Framework projects. Because `samconfig.toml` is more likely to have `default` config rather than `dev` config, as it is much more commonly used in the SAM ecosystem based on AWS recommendation.
-
 ## Deploying SAM/CFN Templates
 
 You can deploy a SAM/CFN template with the Serverless Framework using the `sls deploy` command.
@@ -109,11 +107,9 @@ You can deploy a SAM/CFN template with the Serverless Framework using the `sls d
 ### Options
 
 - `stack` - The stack name. Required if not specified in a `samconfig.toml` file.
-- `bucket` - The deployment bucket. Required if updating an existing template and is not specified in a `samconfig.toml` file.
+- `bucket` - The deployment bucket. If not specified, we'll use the default Serverless Framework deployment bucket.
 - `region` - The region to deploy to. Default is `us-east-1`.
 - `stage` - The stage to deploy to. Default is `default`.
-
-If the stack does not exist, a deployment bucket will be added to your stack before it is created, making the `bucket` parameter optional.
 
 **Note:** Deploying AWS Lambda Layers, AWS Lambda Containers, and AWS Lambda Step Functions resources is not yet supported.
 
@@ -176,4 +172,71 @@ Resources:
           STAGE: ${env:USER}
 ```
 
-For more information about these variables, take a look at the [Serverless Variables Docs](./variables/README.md).
+For more information about these variabels, take a look at the [Serverless Variables Docs](./variables/README.md).
+
+## Using Serverless Compose
+
+Just like traditional framework services, you can compose multiple SAM or CloudFormation (CFN) stacks together with Serverless Compose, or alongside traditional framework services. This allows you to reference outputs from other services and manage dependencies seamlessly. Here’s an example:
+
+```yml
+# serverless-compose.yml
+
+services:
+  traditional-service:
+    path: traditional-service
+  sam-service:
+    path: sam-service
+    params:
+      traditionalServiceOutput: ${traditional-service.exampleOutput}
+```
+
+You can then reference these parameters in your SAM/CFN templates using the `${param:<key>}` variable:
+
+```yml
+# template.yml
+
+Resources:
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Environment:
+        Variables:
+          FRAMEWORK_OUTPUT: ${param:traditionalServiceOutput}
+```
+
+Serverless Compose also supports stage-specific configuration shared between all your services. If you define stage-specific parameters in your `serverless-compose.yml`:
+
+```yml
+# serverless-compose.yml
+stages:
+  dev:
+    params:
+      STRIPE_API_KEY: 'stripe-api-dev-key'
+  prod:
+    params:
+      STRIPE_API_KEY: 'stripe-api-prod-key'
+
+services:
+  traditional-service:
+    path: traditional-service
+  sam-service:
+    path: sam-service
+    params:
+      traditionalServiceOutput: ${traditional-service.exampleOutput}
+```
+
+You can reference these parameters directly in your SAM/CFN templates, and the correct value will be used based on the stage you're deploying to:
+
+```yml
+# template.yml
+
+Resources:
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Environment:
+        Variables:
+          STRIPE_API_KEY: ${param:STRIPE_API_KEY}
+```
+
+If you don't specify the stack name in a `samconfig.toml` file in any of these SAM/CFN services, the stack name will be the service key you specified in the `serverless-compose.yml` file. So in the above example, that would be `sam-service`.
