@@ -9,7 +9,7 @@
   &nbsp;•&nbsp;
   <a aria-label="Serverless Inc Twitter" href="https://twitter.com/goserverless">X / Twitter</a>
   &nbsp;•&nbsp;
-  <a aria-label="Serverless Framework Community Slack" href="https://join.slack.com/t/serverless-contrib/shared_invite/zt-2jpqamlep-SRbvbcFGDXmpEXErcL4WWQ">Community Slack</a>
+  <a aria-label="Serverless Framework Community Slack" href="https://serverless.com/slack">Community Slack</a>
   &nbsp;•&nbsp;
   <a aria-label="Serverless Framework Community Forum" href="https://forum.serverless.com">Forum</a>
 </div>
@@ -43,6 +43,7 @@ Here's a list of everything that's new in V.4, so far:
 
 - **Support for AWS SAM, AWS Cloudformation, & Traditional Serverless Framework Projects:** Now, you can use one tool to deploy all three of these IaC project files. [More info here](https://www.serverless.com/framework/docs/guides/sam)
 - **Native Typescript Support:** You can now use `.ts` handlers in your AWS Lambda functions in `serverless.yml` and have them build automatically upon deploy. [ESBuild](https://esbuild.github.io/) is now included in the Framework which makes this possible. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/building).
+- **The AWS AI Stack:** V.4 is optimized for [the AWS AI Stack](https://github.com/serverless/aws-ai-stack). Deploy a full-stack, serverless, boilerplate for AI applications on AWS, featuring Bedrock LLMs like Claude 3.5 Sonnet and Llama3.1 and much more.
 - **New Dev Mode:** Run `serverless dev` to have events from your live architecture routed to your local code, enabling you to make fast changes without deployment. [More info here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
 - **New Stages Property:** Easily organize stage-specific config via `stages` and set `default` config to fallback to.
 - **New Terraform & Vault Integrations:** Pull state outputs from several Terraform state storage solutions, and secrets from Vault. [Terraform Docs](https://www.serverless.com/framework/docs/guides/variables/terraform) [Vault Docs](https://www.serverless.com/framework/docs/guides/variables/vault)

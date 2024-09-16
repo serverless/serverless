@@ -65,6 +65,8 @@
     },
     "Resources": "providers/aws/guide/resources",
     "Composing Services": "guides/compose",
+    "Deployment Bucket": "guides/deployment-bucket",
+    "State": "guides/state",
     "Deploying SAM/CFN Templates": "guides/sam",
     "Workflow Tips": "guides/workflow",
     "Plugins": {

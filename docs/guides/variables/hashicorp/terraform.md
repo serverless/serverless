@@ -7,7 +7,7 @@ keywords: ['Serverless Framework', 'HashiCorp', 'Terraform', 'Variables']
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/variables/terraform)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/variables/hashicorp/terraform)
 
 <!-- DOCS-SITE-LINK:END -->
 
