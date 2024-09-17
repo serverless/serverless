@@ -20,12 +20,12 @@ You can now deploy SAM/CFN templates with the Serverless Framework. This enables
 - [x] Deploying SAM/CFN templates in JSON & YAML formats.
 - [x] Removing SAM/CFN templates in JSON & YAML formats.
 - [x] Using Serverless Variables in your SAM/CFN templates (partially supported).
-- [ ] Testing your app in the cloud with `sls dev`.
+- [x] Composing services together with Serverless Compose.
 - [ ] Viewing stack info with `sls info`.
+- [ ] Testing your app in the cloud with `sls dev`.
 - [ ] Deploying indvidual functions with `sls deploy function --function LambdaLogicalId`.
 - [ ] Invoking functions with `sls invoke --function LambdaLogicalId`.
 - [ ] Searching function logs with `sls logs --function LambdaLogicalId`.
-- [ ] Composing services together with Serverless Compose.
 - [ ] Using dashboard features like parameters and observability.
 
 You don't have to make any changes to your SAM/CFN templates to deploy them with the Serverless Framework. Just run `serverless deploy` in your project directory. Your template doesn't have to be a SAM template, it could also be a regular CloudFormation template.
