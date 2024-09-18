@@ -21,12 +21,11 @@ You can now deploy SAM/CFN templates with the Serverless Framework. This enables
 - [x] Removing SAM/CFN templates in JSON & YAML formats.
 - [x] Using Serverless Variables in your SAM/CFN templates (partially supported).
 - [x] Composing services together with Serverless Compose.
-- [ ] Viewing stack info with `sls info`.
-- [ ] Testing your app in the cloud with `sls dev`.
+- [x] Viewing stack info with `sls info`.
 - [ ] Deploying indvidual functions with `sls deploy function --function LambdaLogicalId`.
 - [ ] Invoking functions with `sls invoke --function LambdaLogicalId`.
 - [ ] Searching function logs with `sls logs --function LambdaLogicalId`.
-- [ ] Using dashboard features like parameters and observability.
+- [ ] Testing your app in the cloud with `sls dev`.
 
 You don't have to make any changes to your SAM/CFN templates to deploy them with the Serverless Framework. Just run `serverless deploy` in your project directory. Your template doesn't have to be a SAM template, it could also be a regular CloudFormation template.
 
@@ -109,7 +108,7 @@ You can deploy a SAM/CFN template with the Serverless Framework using the `sls d
 - `stack` - The stack name. Required if not specified in a `samconfig.toml` file.
 - `bucket` - The deployment bucket. If not specified, we'll use the default Serverless Framework deployment bucket.
 - `region` - The region to deploy to. Default is `us-east-1`.
-- `stage` - The stage to deploy to. Default is `default`.
+- `stage` - The stage to deploy to. Default is `dev`.
 
 **Note:** Deploying AWS Lambda Layers, AWS Lambda Containers, and AWS Lambda Step Functions resources is not yet supported.
 
@@ -120,11 +119,21 @@ You can remove a SAM/CFN template with the Serverless Framework using the `sls r
 ### Options
 
 - `stack` - The stack name. Required if not specified in a `samconfig.toml` file.
-- `bucket` - The deployment bucket. Required if updating an existing template and is not specified in a `samconfig.toml` file.
+- `bucket` - The deployment bucket. If not specified, we'll use the default Serverless Framework deployment bucket.
 - `region` - The region to deploy to. Default is `us-east-1`.
-- `stage` - The stage to deploy to. Default is `default`.
+- `stage` - The stage to deploy to. Default is `dev`.
 
 If you specified your own deployment bucket, it will not be emptied or removed with the `remove` command.
+
+## Getting SAM/CFN Service Info
+
+You can get information about your SAM/CFN service, specifically the stack outputs and their values, using the `sls info` command.
+
+### Options
+
+- `stack` - The stack name. Required if not specified in a `samconfig.toml` file.
+- `region` - The region where the service/stack is deployed. Default is `us-east-1`.
+- `stage` - The stage where the service/stack is deployed. Default is `dev`.
 
 ## Supported file formats and names
 
