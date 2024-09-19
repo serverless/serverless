@@ -34,6 +34,7 @@ serverless info
 - `--stage` or `-s` The stage in your service you want to display information about.
 - `--region` or `-r` The region in your stage that you want to display information about.
 - `--aws-profile` The AWS profile you want to use.
+- `--json` Output the information in JSON format.
 - `--verbose` Shows displays any Stack Output.
 
 ## Provided lifecycle events
@@ -87,4 +88,58 @@ CloudFrontUrl: d2d10e2tyk1pei.cloudfront.net
 ScreenshotBucket: dev-svdgraaf-screenshots
 ServiceEndpoint: https://12341jc801.execute-api.us-east-1.amazonaws.com/dev
 ServerlessDeploymentBucketName: lambda-screenshots-dev-serverlessdeploymentbucket-15b7pkc04f98a
+```
+
+#### JSON
+
+When using the `--json` flag, the `info` command will output the information in JSON format:
+
+```bash
+$ serverless info --json
+
+{
+  "info": {
+    "functions": [
+      {
+        "name": "hello",
+        "deployedName": "my-serverless-service-dev-hello"
+      }
+    ],
+    "layers": [],
+    "endpoints": [
+      "httpApi: https://mnpgyjhfqj.execute-api.us-east-1.amazonaws.com"
+    ],
+    "service": "my-serverless-service",
+    "stage": "dev",
+    "region": "us-east-1",
+    "stack": "my-serverless-service-dev",
+    "resourceCount": 4,
+    "apiKeys": []
+  },
+  "outputs": [
+    {
+      "OutputKey": "HelloLambdaFunctionQualifiedArn",
+      "OutputValue": "arn:aws:lambda:us-east-1:012345678901:function:my-serverless-service-dev-hello:26",
+      "Description": "Current Lambda function version",
+      "ExportName": "sls-my-serverless-service-dev-hello-HelloLambdaFunctionQualifiedArn"
+    },
+    {
+      "OutputKey": "ServerlessDeploymentBucketName",
+      "OutputValue": "serverless-framework-deployments-us-east-1-d7b2bf38-2784",
+      "ExportName": "sls-my-serverless-service-dev-ServerlessDeploymentBucketName"
+    },
+    {
+      "OutputKey": "HttpApiId",
+      "OutputValue": "mnpgyjhfqj",
+      "Description": "Id of the HTTP API",
+      "ExportName": "sls-my-serverless-service-dev-HttpApiId"
+    },
+    {
+      "OutputKey": "HttpApiUrl",
+      "OutputValue": "https://mnpgyjhfqj.execute-api.us-east-1.amazonaws.com",
+      "Description": "URL of the HTTP API",
+      "ExportName": "sls-my-serverless-service-dev-HttpApiUrl"
+    }
+  ]
+}
 ```
