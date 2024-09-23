@@ -21,7 +21,7 @@ keywords:
 
 # Composing Serverless Framework services
 
-Deploying multiple services in a monorepository is a very common pattern across larger teams. Serverless Framework Compose is meant to simplify deploying and orchestrating multiple services:
+Deploying multiple services in a monorepository is a very common pattern across larger teams. Serverless Framework Compose is meant to simplify deploying and orchestrating multiple services. It lets you:
 
 - Deploy multiple services in parallel
 - Deploy services in a specific order
