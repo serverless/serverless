@@ -75,7 +75,6 @@
     "semver": "^7.5.4",
     "signal-exit": "^3.0.7",
     "simple-git": "^3.16.0",
-    "stream-buffers": "^3.0.2",
     "strip-ansi": "^6.0.1",
     "supports-color": "^8.1.1",
     "tar": "^6.1.15",
