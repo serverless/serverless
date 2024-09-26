@@ -67,26 +67,23 @@ _Note: JS/TS configuration files are also supported (`serverless-compose.{yml,ts
 
 To deploy all services, instead of running `serverless deploy` in each service, you can now deploy all services at once by running `serverless deploy` at the root:
 
-```bash
+```text
 $ serverless deploy
 
-Deploying "service-1" to stage "dev" (us-east-1)
-Deploying "service-2" to stage "dev" (us-east-1)
+Serverless ϟ Compose
 
-✔ Service deployed to stack service-1-dev (8s)
-✔ Service deployed to stack service-2-dev (8s)
+Serverless Compose enables you to deploy multiple services in one command, in parallel, or ordered by dependencies.
+Docs: https://www.serverless.com/framework/docs/guides/compose
 
-Serverless Compose Run Report:
-Command:
-- deploy
-Succeeded:
-- eventBus
-- businessApi
-- aiChatApi
-- businessWorker
-- auth
-- web
+✔ service-a
+    output1: ...
+    output2: ...
 
+✔ service-b
+    output1: ...
+    output2: ...
+
+Results: 2 services succeeded, 0 failed, 0 skipped, 2 total    Time: 38s
 ```
 
 ### Service dependencies and variables
