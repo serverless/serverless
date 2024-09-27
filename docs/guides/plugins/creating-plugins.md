@@ -149,8 +149,10 @@ The `serverless` parameter provides access to the service configuration at runti
 'use strict'
 
 class MyPlugin {
-  constructor(serverless) {
+  constructor(serverless, options, utils) {
     this.serverless = serverless
+    this.options = options // CLI options
+    this.utils = utils
 
     this.hooks = {
       initialize: () => this.init(),
@@ -160,13 +162,13 @@ class MyPlugin {
   init() {
     // Use this custom logging method instead of console.log
     // to avoid conflicting with the spinner output
-    this.serverless.cli.log('Serverless instance: ', this.serverless)
+    this.utils.log('Serverless instance: ', this.serverless)
 
     // `serverless.service` contains the (resolved) serverless.yml config
     const service = this.serverless.service
 
-    this.serverless.cli.log('Provider name: ', service.provider.name)
-    this.serverless.cli.log('Functions: ', service.functions)
+    this.utils.log('Provider name: ', service.provider.name)
+    this.utils.log('Functions: ', service.functions)
   }
 }
 
