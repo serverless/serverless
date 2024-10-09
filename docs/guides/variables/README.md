@@ -115,8 +115,8 @@ functions:
 - [External YAML/JSON Files](./file)
 - [Dynamic Values from Javascript](./javascript)
 - [Git](./git)
-- [AWS](./aws/aws)
-- [HashiCorp](./hashicorp/hashicorp)
+- [AWS](./aws)
+- [HashiCorp](./hashicorp)
 
 ## Recursively reference properties
 
