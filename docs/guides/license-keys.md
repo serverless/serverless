@@ -30,10 +30,10 @@ Free Users and Serverless Framework Dashboard users can optionally use License K
 
 ## Key Characteristics
 
-* **Simple Identifiers**: License Keys in the Serverless Framework merely serve to validate and track subscription usage. They do not offer access control or permissions within the CLI or Dashboard.
-* **Disables Dashboard Access**: License Keys will disable access to the Serverless Framework Dashboard. This eliminates all remote requests to the Dashboard, except for validating the License Key and sending License Key telemetry.
-* **No Expiration**: License Keys do not have an expiration date. This provides consistent access to the Framework without the need to regularly update keys. However, you should still periodically rotate keys as a best practice.
-* **Create One or Several**: Create and distribute as many License Keys as needed across your organization - whether by company, team, app, or developer.
+- **Simple Identifiers**: License Keys in the Serverless Framework merely serve to validate and track subscription usage. They do not offer access control or permissions within the CLI or Dashboard.
+- **Disables Dashboard Access**: License Keys will disable access to the Serverless Framework Dashboard. This eliminates all remote requests to the Dashboard, except for validating the License Key and sending License Key telemetry.
+- **No Expiration**: License Keys do not have an expiration date. This provides consistent access to the Framework without the need to regularly update keys. However, you should still periodically rotate keys as a best practice.
+- **Create One or Several**: Create and distribute as many License Keys as needed across your organization - whether by company, team, app, or developer.
 
 ## How to Manage License Keys
 
@@ -68,7 +68,7 @@ licenseKey: ${vault:secret/serverless-framework/license-key}
 provider:
   name: aws
   runtime: nodejs20.x
-  
+
 functions:
   hello:
     handler: handler.hello
@@ -81,6 +81,7 @@ The most common pattern is to add License Keys to each AWS account the Serverles
 Serverless Framework Variable Resolvers can reference a separate AWS account from the deployment target, allowing you to store and read the License Key in one AWS account. This requires additional configuration in your serverless.yml files. For more details, refer to our documentation on [Variable Resolvers](https://www.serverless.com/framework/docs/guides/variables/aws). Using Serverless Framework Compose, you can create a parent Compose file that specifies the AWS account information you want to reference, eliminating the need to replicate this configuration across multiple serverless.yml files.
 
 For more details, refer to
-* [Serverless Variables documentation](./variables)
-* [AWS SSM Resolver documentation](./variables/aws/ssm)
-* [HashiCorp Vault Resolver documentation](./variables/hashicorp/vault)
+
+- [Serverless Variables documentation](./variables)
+- [AWS SSM Resolver documentation](./variables/aws/ssm)
+- [HashiCorp Vault Resolver documentation](./variables/hashicorp/vault)
