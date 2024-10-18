@@ -24,9 +24,9 @@ Starting with Version 4, authentication is required for all users of the Serverl
 
 License Keys are merely unique identifiers used to authenticate your access to Serverless Framework V4 and ensure compliance with its licensing model.
 
-They're ideal for organizations that prefer not to use the Serverless Framework Dashboard or its authentication methods. If you want to use only the CLI and avoid remote requests to the Dashboard, License Keys are the answer. They simplify authentication and access management across your organization while maintaining compliance with the Framework's licensing model.
+They're ideal for organizations that prefer not to use the Serverless Framework Dashboard or its authentication methods. If you want to use only the CLI and avoid remote requests to the Dashboard, License Keys are the solution.
 
-Free Users and Serverless Framework Dashboard users can optinally use License Keys, or can authenticate through the Dashboard. The CLI provides guidance for Dashboard authentication.
+Free Users and Serverless Framework Dashboard users can optionally use License Keys, or can authenticate through the Dashboard. The CLI provides guidance for Dashboard authentication.
 
 ## Key Characteristics
 
@@ -42,8 +42,6 @@ There are two ways to manage License Keys:
 You can create, list and delete them within the Serverless Framework Dashboard within the [Settings > License Keys view](https://app.serverless.com/settings/licenseKeys).
 
 Or, you can have Serverless Inc. create, update and delete them for you by mailing into [support](mailto:support@serverless.com).
-
-Within Q4 of 2024, we are releasing an API to programmatically manage License Keys. This way, you can integrate them into existing workflows.
 
 ## How to Use License Keys
 
