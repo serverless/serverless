@@ -51,9 +51,11 @@ The Serverless Framework translates all syntax in `serverless.yml` to a single A
 - The CloudFormation Stack is updated with the new CloudFormation template.
 - Each deployment publishes a new version for each function in your service.
 
+**Note:** AWS SSM and S3 permissions are required for deployments to manage state and upload deployment packages. For more details, see [AWS Credentials Requirement for Packaging](./packaging.md#aws-credentials-requirement-for-packaging).
+
 ### Deployment method
 
-Since Serverless Framework v4, deployments are by default done using CloudFormation direct deployments](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-direct.html). This is the recommended approach for most users.
+Since Serverless Framework v4, deployments are by default done using [CloudFormation direct deployments](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-direct.html). This is the recommended approach for most users.
 
 If you want to instead use [CloudFormation change sets](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-changesets.html), you can enable it via the `deploymentMethod` option:
 
