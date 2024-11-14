@@ -81,7 +81,7 @@ If you run into a "forbidden" error upon deployment, it is most often due to the
 
 > API rate limit exceeded for <IP_ADDRESS>. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.) - https://docs.github.com/rest/overview/resources-in-the-rest-api#rate-limiting``
 
-We are using the GitHub API to fetch the latest version of the Axiom AWS Lambda Layer.
+The Serverless Framework uses the GitHub API to fetch the latest version of the Axiom AWS Lambda Layer.
 GitHub enforces a rate limit of 60 requests per hour for unauthenticated requests.
 To resolve this, you can set the `GITHUB_TOKEN` environment variable to authenticate the requests and increase the rate limit to 5000 requests per hour.
 You can create a personal access token in the [GitHub Developer settings](https://github.com/settings/tokens).
