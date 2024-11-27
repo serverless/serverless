@@ -35,7 +35,7 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 <br/>
 
-**June 12th, 2024** – We've released Serverless Framework V.4 GA after testing the V.4 Alpha and Beta since early 2024. If you are upgrading to V.4, see our [Upgrading to Serverless Framework V4 Documentation](https://www.serverless.com/framework/docs/guides/upgrading-v4). If you need to access documentation for Serverless Framework V.3, you can find it [here](https://github.com/serverless/serverless/tree/v3/docs).
+**September 24th, 2024** – We have introduced a ton of new features since the release of Serverless Framework V4 GA in May. Check out the list below for everything recently launched. If you are upgrading to V.4, see our [Upgrading to Serverless Framework V4 Documentation](https://www.serverless.com/framework/docs/guides/upgrading-v4). If you need to access documentation for Serverless Framework V.3, you can find it [here](https://github.com/serverless/serverless/tree/v3/docs).
 
 ## New Features In V.4
 
@@ -46,6 +46,7 @@ Here's a list of everything that's new in V.4, so far:
 - **The AWS AI Stack:** V.4 is optimized for [the AWS AI Stack](https://github.com/serverless/aws-ai-stack). Deploy a full-stack, serverless, boilerplate for AI applications on AWS, featuring Bedrock LLMs like Claude 3.5 Sonnet and Llama3.1 and much more.
 - **New Dev Mode:** Run `serverless dev` to have events from your live architecture routed to your local code, enabling you to make fast changes without deployment. [More info here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
 - **New Stages Property:** Easily organize stage-specific config via `stages` and set `default` config to fallback to.
+- **Improved Compose Experience:** Serverless Compose now has a beautiful new CLI experience that better demonstrates what is being deployed.
 - **New Terraform & Vault Integrations:** Pull state outputs from several Terraform state storage solutions, and secrets from Vault. [Terraform Docs](https://www.serverless.com/framework/docs/guides/variables/terraform) [Vault Docs](https://www.serverless.com/framework/docs/guides/variables/vault)
 - **Support Command:** Send support requests to our team [directly from the CLI](https://www.serverless.com/framework/docs/providers/aws/cli-reference/support), which auto-include contextual info which you can review before sending.
 - **Debug Summary for AI:** When you run into a bug, you can run "serverless support --ai" to generate a concise report detailing your last bug with all necessary context, optimized for pasting into AI tools such as ChatGPT.
@@ -526,3 +527,9 @@ Here are some helpful resources for continuing with the Serverless Framework:
 - [Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework)
 - [Facebook](https://www.facebook.com/serverless)
 - [Contact Us](mailto:hello@serverless.com)
+
+## Security and Bug Disclosure
+
+We take security seriously. If you discover a security issue, please responsibly disclose it by contacting us at [support@serverless.com](mailto:support@serverless.com). Please do not publicly disclose vulnerabilities until we have addressed them.
+
+For more details, see our [Security Policy](./SECURITY.md).

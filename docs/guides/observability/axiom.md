@@ -77,6 +77,15 @@ stages:
 
 If you run into a "forbidden" error upon deployment, it is most often due to the Axiom API Token not having the correct permissions specified in this documentation. Go to the Axiom Dashboard and ensure your permissions match the ones listed in this documentation.
 
+### GitHub API rate limit exceeded
+
+> API rate limit exceeded for <IP_ADDRESS>. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.) - https://docs.github.com/rest/overview/resources-in-the-rest-api#rate-limiting``
+
+The Serverless Framework uses the GitHub API to fetch the latest version of the Axiom AWS Lambda Layer.
+GitHub enforces a rate limit of 60 requests per hour for unauthenticated requests.
+To resolve this, you can set the `GITHUB_TOKEN` environment variable to authenticate the requests and increase the rate limit to 5000 requests per hour.
+You can create a personal access token in the [GitHub Developer settings](https://github.com/settings/tokens).
+
 ## Disabling Axiom Observability
 
 To disable Axiom observability for your service, remove the `observability` property from the `stages` block in your `serverless.yml` file.

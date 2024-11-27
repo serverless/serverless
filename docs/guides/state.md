@@ -41,7 +41,7 @@ The easiest way to manage state in Serverless Framework Compose is through its d
 ### How It Works
 
 1. **Automatic S3 Bucket Creation**: If no state configuration is provided in your `serverless-compose.yml`, Serverless Framework Compose automatically creates an S3 bucket to store the state.
-2. **SSM Parameter Store**: The name and region of the automatically created S3 bucket are stored in AWS SSM Parameter Store under the parameter `/serverless-framework/state/s3_bucket`. This parameter contains a JSON object with the following keys:
+2. **SSM Parameter Store**: The name and region of the automatically created S3 bucket are stored in AWS SSM Parameter Store in `us-east-1` AWS region, under the parameter `/serverless-framework/state/s3-bucket`. This parameter contains a JSON object with the following keys:
 
 - `bucketName`: The name of the S3 bucket.
 - `bucketRegion`: The AWS region where the bucket is located.

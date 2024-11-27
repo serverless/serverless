@@ -38,8 +38,9 @@ When deploying a service for the first time, the Serverless Framework will autom
 This bucket will be used for storing all future deployment artifacts for services within that region and account.
 
 The name of the automatically created bucket follows a specific naming convention:
+
 - It starts with a predefined prefix (`serverless-framework-deployments`).
--	It includes the AWS region where the service is being deployed.
+- It includes the AWS region where the service is being deployed.
 - A unique identifier (UUID) is appended to ensure bucket name uniqueness across accounts (as required by AWS).
 
 For example, a Deployment Bucket created for the `us-east-1` region might be named:

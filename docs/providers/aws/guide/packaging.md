@@ -30,6 +30,22 @@ However, you can also use the --package option to add a destination path and Ser
 serverless package --package my-artifacts
 ```
 
+## AWS Credentials Requirement for Packaging
+
+Even when packaging your service without deploying it to AWS, the Serverless Framework still requires valid AWS credentials.
+This is because the packaging process needs to retrieve information about the **State** and **Deployment Bucket** used for your service.
+Specifically, the Framework needs access to AWS SSM Parameters and S3 to check the storage locations for deployment artifacts and service state.
+
+Ensure that your AWS credentials allow access to:
+
+- **AWS SSM Parameter Store**: To retrieve information about the State and Deployment Bucket locations.
+- **AWS S3**: For retrieving and possibly writing to the State and Deployment Bucket.
+
+For more details on the State and Deployment Bucket, see the following documentation:
+
+- [Deployment Bucket](../../../guides/deployment-bucket)
+- [State](../../../guides/state)
+
 ## Package Configuration
 
 Sometimes you might like to have more control over your function artifacts and how they are packaged.
