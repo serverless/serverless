@@ -67,6 +67,7 @@
     "p-limit": "^5.0.0",
     "p-map": "^7.0.2",
     "p-map-series": "^3.0.0",
+    "p-reduce": "^3.0.0",
     "p-try": "^3.0.0",
     "path2": "^0.1.0",
     "process-utils": "^4.0.0",
