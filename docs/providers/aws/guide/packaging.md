@@ -42,6 +42,7 @@ Ensure that your AWS credentials allow access to:
 - **AWS S3**: For retrieving and possibly writing to the State and Deployment Bucket.
 
 For more details on the State and Deployment Bucket, see the following documentation:
+
 - [Deployment Bucket](../../../guides/deployment-bucket)
 - [State](../../../guides/state)
 
