@@ -27,31 +27,52 @@ V.4 introduces a new `build` configuration block, which you can use to customize
 ```yaml
 build:
   esbuild:
-    # Enable or Disable bundling the function code and dependencies. (Default: true)
+    # Enable or Disable bundling the function code and dependencies into a single file. (Default: true)
     bundle: true
-    # Enable minifying function code. (Default: false)
-    minify: false
-    # NPM packages to not be bundled. Glob patterns are supported here.
+
+    # NPM packages to not be bundled, and instead be available in node_modules, and the zip file uploaded to Lambda.
+    #
+    # This property only makes sense if bundling is enabled.
+    #
+    # If no excludes (see below) are specified, and the runtime is set to nodejs16.x or lower,
+    # we automatically add "aws-sdk" to the list of externals.
+    #
+    # If no excludes (see below) are specified, and the runtime is set to nodejs18.x or higher,
+    # we automatically add "aws-sdk/*" to the list of externals.
+    #
+    # Glob patterns are supported here.
     external:
       - '@aws-sdk/client-s3'
-    # NPM packages to not be bundled, as well as not included in node_modules
-    # in the zip file uploaded to Lambda. By default this will be set to aws-sdk
-    # if the runtime is set to nodejs16.x or lower or set to @aws-sdk/* if set to nodejs18.x or higher.
+
+    # The packages config, this can be set to override the behavior of external
+    # If this is set then all dependencies will be treated as external and not bundled.
+    packages: external
+
+    # NPM packages to not be included in node_modules, and the zip file uploaded to Lambda.
+    #
+    # This option only makes most sense if bundling is disabled. But if bundling is enabled and externals are specified
+    # this property can be useful to further control which external packages to be included/excluded from the zip file.
+    #
+    # Everything specified here is also added to the list of externals (see above).
+    #
     # Glob patterns are supported here.
     exclude:
       - '@aws-sdk/*'
       - '!@aws-sdk/client-bedrock-runtime'
-    # The packages config, this can be set to override the behavior of external
-    # If this is set then all dependencies will be treated as external and not bundled.
-    packages: external
+
     # By default Framework will attempt to build and package all functions concurrently.
     # This property can bet set to a different number if you wish to limit the
     # concurrency of those operations.
     buildConcurrency: 3
+
+    # Enable or Disable minifying the built code. (Default: false)
+    minify: false
+
     # Enable or configure sourcemaps, can be set to true or to an object with further configuration.
     sourcemap:
       # The sourcemap type to use, options are (inline, linked, or external)
       type: linked
+
       # Whether to set the NODE_OPTIONS on functions to enable sourcemaps on Lambda
       setNodeOptions: true
 ```
