@@ -24,6 +24,7 @@
       "CloudWatch Log": "providers/aws/events/cloudwatch-log",
       "CloudFront": "providers/aws/events/cloudfront",
       "Cognito User Pool": "providers/aws/events/cognito-user-pool",
+      "DocumentDb": "providers/aws/events/documentDb",
       "EventBridge Event": "providers/aws/events/event-bridge",
       "IoT": "providers/aws/events/iot",
       "IoT Fleet Provisioning": "providers/aws/events/iot-fleet-provisioning",
