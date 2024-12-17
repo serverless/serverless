@@ -1226,6 +1226,7 @@ aws_secret_access_key = CUSTOMSECRET
       const describeRepositoriesStub = sinon.stub();
       const createRepositoryStub = sinon.stub();
       const createRepositoryStubScanOnPush = sinon.stub();
+      const putLifecyclePolicyStub = sinon.stub();
       const baseAwsRequestStubMap = {
         STS: {
           getCallerIdentity: {
@@ -1392,6 +1393,49 @@ aws_secret_access_key = CUSTOMSECRET
         expect(versionCfConfig.CodeSha256).to.equal(imageSha);
         expect(describeRepositoriesStub).to.be.calledOnce;
         expect(createRepositoryStub).to.be.calledOnce;
+        expect(putLifecyclePolicyStub).to.not.have.been.called;
+      });
+
+      it('should set ECR lifecycle policy correctly', async () => {
+        const awsRequestStubMap = {
+          ...baseAwsRequestStubMap,
+          ECR: {
+            ...baseAwsRequestStubMap.ECR,
+            describeRepositories: describeRepositoriesStub.throws({
+              providerError: { code: 'RepositoryNotFoundException' },
+            }),
+            createRepository: createRepositoryStub.resolves({ repository: { repositoryUri } }),
+            putLifecyclePolicy: putLifecyclePolicyStub.resolves(),
+          },
+        };
+
+        await runServerless({
+          fixture: 'ecr',
+          command: 'package',
+          awsRequestStubMap,
+          modulesCacheStub,
+          configExt: {
+            provider: {
+              ecr: {
+                maxImageCount: 10,
+              },
+            },
+          },
+        });
+
+        expect(JSON.parse(putLifecyclePolicyStub.args[0][0].lifecyclePolicyText)).to.deep.equal({
+          rules: [
+            {
+              rulePriority: 1,
+              action: { type: 'expire' },
+              selection: {
+                tagStatus: 'any',
+                countType: 'imageCountMoreThan',
+                countNumber: 10,
+              },
+            },
+          ],
+        });
       });
 
       it('should login and retry when docker push fails with no basic auth credentials error', async () => {
