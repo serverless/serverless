@@ -163,7 +163,8 @@ functions:
             - abc3.xyz.com:9092
             - abc2.xyz.com:9092
           filterPatterns:
-            - eventName: INSERT
+            - value:
+                a: [1]
 ```
 
 ## IAM Permissions
