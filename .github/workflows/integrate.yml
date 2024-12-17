@@ -54,8 +54,6 @@ jobs:
         # Some tests depend on TTY support, which is missing in GA runner
         # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
         run: script -e -c "npm run coverage -- -b"
-      - name: Push coverage
-        run: npx codecov
       - name: Packaging tests
         run: npm run integration-test-run-package
 
