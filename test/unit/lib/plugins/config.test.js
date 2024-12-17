@@ -1,12 +1,8 @@
 'use strict';
 
-const fs = require('fs');
-const BbPromise = require('bluebird');
 const { expect } = require('chai');
 const config = require('@serverless/utils/config');
 const runServerless = require('../../../utils/run-serverless');
-
-BbPromise.promisifyAll(fs);
 
 describe('Config', () => {
   it('should support "config credentials" command', () =>
