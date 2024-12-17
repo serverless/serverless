@@ -103,7 +103,7 @@ describe('#addCustomResourceToService()', () => {
           S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
           S3Key: 'artifact-dir-name/custom-resources.zip',
         },
-        FunctionName: `${serviceName}-dev-custom-resource-existing-s3`,
+        FunctionName: `${serverless.service.getShortServiceName()}-dev-custom-resource-existing-s3`,
         Handler: 's3/handler.handler',
         MemorySize: 1024,
         Role: {
@@ -122,7 +122,7 @@ describe('#addCustomResourceToService()', () => {
           S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
           S3Key: 'artifact-dir-name/custom-resources.zip',
         },
-        FunctionName: `${serviceName}-dev-custom-resource-existing-cup`,
+        FunctionName: `${serverless.service.getBaseName()}-custom-resource-existing-cup`,
         Handler: 'cognito-user-pool/handler.handler',
         MemorySize: 1024,
         Role: {
@@ -141,7 +141,7 @@ describe('#addCustomResourceToService()', () => {
           S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
           S3Key: 'artifact-dir-name/custom-resources.zip',
         },
-        FunctionName: `${serviceName}-dev-custom-resource-event-bridge`,
+        FunctionName: `${serverless.service.getBaseName()}-custom-resource-event-bridge`,
         Handler: 'event-bridge/handler.handler',
         MemorySize: 1024,
         Role: {
@@ -364,9 +364,13 @@ describe('test/unit/lib/plugins/aws/customResources/index.test.js', () => {
       },
     });
 
+    const suffix = 'testing-custom-resource-apigw-cw-role';
     const properties =
       cfTemplate.Resources.CustomDashresourceDashapigwDashcwDashroleLambdaFunction.Properties;
-    expect(properties.FunctionName.endsWith('testing-custom-resource-apigw-cw-role')).to.be.true;
+    expect(
+      properties.FunctionName.endsWith(suffix),
+      `function name was ${properties.FunctionName}, expected suffix ${suffix}`
+    ).to.be.true;
   });
 
   it('correctly takes stage from config into account when constructing apiGatewayCloudWatchRole resource', async () => {
@@ -383,8 +387,12 @@ describe('test/unit/lib/plugins/aws/customResources/index.test.js', () => {
       },
     });
 
+    const suffix = 'testing-custom-resource-apigw-cw-role';
     const properties =
       cfTemplate.Resources.CustomDashresourceDashapigwDashcwDashroleLambdaFunction.Properties;
-    expect(properties.FunctionName.endsWith('testing-custom-resource-apigw-cw-role')).to.be.true;
+    expect(
+      properties.FunctionName.endsWith(suffix),
+      `function name was ${properties.FunctionName}, expected suffix ${suffix}`
+    ).to.be.true;
   });
 });

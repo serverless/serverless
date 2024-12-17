@@ -38,7 +38,6 @@ describe('AwsDeployFunction', () => {
         },
       },
     };
-    serverless.service.serviceObject = {};
     serverless.service.functions = {
       first: {
         handler: true,
