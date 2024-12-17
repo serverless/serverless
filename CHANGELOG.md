@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.40.0](https://github.com/serverless/serverless/compare/v3.39.0...v3.40.0) (2024-12-17)
+
+### Bug Fixes
+
+- enable compatibility for loading native ES modules with require() ([#12950](https://github.com/serverless/serverless/pull/12950)) ([8b960a2](https://github.com/serverless/serverless/commit/8b960a2e92364149e463c274172dc9d08a37a836))
+
 ## [3.39.0](https://github.com/serverless/serverless/compare/v3.38.0...v3.39.0) (2024-06-04)
 
 ### Features
