@@ -6,6 +6,7 @@ frameworkVersion: '*'
 provider:
   name: aws
   runtime: nodejs16.x
+  logGroupClass: 'STANDARD'
   logRetentionInDays: 14
 
 functions:

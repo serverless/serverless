@@ -262,6 +262,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     it('should configure log group resource', () => {
       expect(cfLogGroup.Type).to.equal('AWS::Logs::LogGroup');
       expect(cfLogGroup.Properties).to.have.property('LogGroupName');
+      expect(cfLogGroup.Properties).to.have.property('LogGroupClass');
       expect(cfLogGroup.Properties).to.have.property('RetentionInDays');
     });
 
