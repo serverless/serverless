@@ -870,7 +870,7 @@ functions:
           path: posts/create
           method: post
           request:
-            schemas:
+            schema:
               application/json: post-create-model
 ```
 
