@@ -12,8 +12,7 @@ layout: Doc
 
 # AWS Lambda Layers
 
-If you are using AWS as a provider, all _layers_ inside the service are [AWS Lambda
-layers](https://aws.amazon.com/blogs/aws/new-for-aws-lambda-use-any-programming-language-and-share-common-components/).
+If you are using AWS as a provider, all _layers_ inside the service are [AWS Lambda layers](https://aws.amazon.com/blogs/aws/new-for-aws-lambda-use-any-programming-language-and-share-common-components/).
 
 ## Configuration
 
@@ -152,7 +151,7 @@ layers:
 
 ## Using your layers
 
-Using the `layers` configuration key in a function makes it possible for your layer with a function
+Using the `layers` configuration key in a function makes it possible to use your function with layers.
 
 ```yml
 functions:
@@ -162,10 +161,7 @@ functions:
       - arn:aws:lambda:region:XXXXXX:layer:LayerName:Y
 ```
 
-To use a layer with a function in the same service, use a CloudFormation Ref. The name of your layer
-in the CloudFormation template will be your layer name
-[TitleCased](https://en.wikipedia.org/wiki/Letter_case#Title_Case) (without spaces) and have
-`LambdaLayer` appended to the end. EG:
+To use a layer with a function in the same service, use a CloudFormation Ref. The name of your layer in the CloudFormation template will be your layer name [TitleCased](https://en.wikipedia.org/wiki/Letter_case#Title_Case) (without spaces) and have `LambdaLayer` appended to the end.
 
 ```yml
 layers:
@@ -178,7 +174,7 @@ functions:
       - !Ref TestLambdaLayer
 ```
 
-You can also configure layers at the service level. EG:
+You can also configure layers at the service level which applies to all functions in the service.
 
 ```yml
 # serverless.yml
@@ -194,6 +190,27 @@ provider:
 functions:
   hello1:
     handler: handler.hello1
+  hello2:
+    handler: handler.hello2
+```
+
+When using both service and function `layers` property, function level will take precedence over service level.
+
+```yml
+# serverless.yml
+service: myService
+
+provider:
+  name: aws
+  runtime: python3.11
+  layers:
+    - arn:aws:lambda:us-east-1:xxxxxxxxxxxxx:layer:xxxxx:mylayer1
+
+functions:
+  hello1:
+    handler: handler.hello1
+    layers:
+      - arn:aws:lambda:us-east-1:xxxxxxxxxxxxx:layer:xxxxx:mylayer2 # Only this layer will be included
   hello2:
     handler: handler.hello2
 ```
