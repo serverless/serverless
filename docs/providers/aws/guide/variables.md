@@ -266,6 +266,33 @@ provider:
         'Fn::ImportValue': 'DynamoDbTable-${self:custom.stage}'
 ```
 
+## Referencing AWS-specific variables
+
+You can reference AWS-specific values as the source of your variables. Those values are exposed via the Serverless Variables system through the `{aws:}` variable prefix.
+
+The following variables are available:
+
+**accountId**
+
+Account ID of you AWS Account, based on the AWS Credentials that you have configured.
+
+```yml
+service: new-service
+provider:
+  name: aws
+
+functions:
+  func1:
+    name: function-1
+    handler: handler.func1
+    environment:
+      ACCOUNT_ID: ${aws:accountId}
+```
+
+**region**
+
+The region used by the Serverless CLI. The `${aws:region}` variable is a shortcut for `${opt:region, self:provider.region, "us-east-1"}`.
+
 ## Referencing S3 Objects
 
 You can reference S3 values as the source of your variables to use in your service with the `s3:bucketName/key` syntax. For example:
@@ -310,33 +337,6 @@ functions:
     handler: handler.hello
 ```
 
-## Referencing AWS-specific variables
-
-You can reference AWS-specific values as the source of your variables. Those values are exposed via the Serverless Variables system through the `{aws:}` variable prefix.
-
-The following variables are available:
-
-**accountId**
-
-Account ID of you AWS Account, based on the AWS Credentials that you have configured.
-
-```yml
-service: new-service
-provider:
-  name: aws
-
-functions:
-  func1:
-    name: function-1
-    handler: handler.func1
-    environment:
-      ACCOUNT_ID: ${aws:accountId}
-```
-
-**region**
-
-The region used by the Serverless CLI. The `${aws:region}` variable is a shortcut for `${opt:region, self:provider.region, "us-east-1"}`.
-
 ### Resolution of non plain string types
 
 Other types as `SecureString` and `StringList` are automatically resolved into expected forms.
@@ -347,9 +347,40 @@ All `SecureString` type parameters are automatically decrypted, and automaticall
 
 In order to get the encrypted content, you can pass `noDecrypt` instruction into variable as: `${ssm(noDecrypt):/path/to/secureparam}` (it can be passed aside of region param as e.g.: `${ssm(eu-west-1, noDecrypt):/path/to/secureparam})`
 
+#### Resolve `StringList` as array of strings
+
+Same `StringList` type parameters are automatically detected and resolved to array form. (Note: you can turn off resolution to array by passing `raw` instruction into variable as: `${ssm(raw):/path/to/stringlistparam}`, if you need to also pass custom region, put it first as: `${ssm(eu-west-1, raw):/path/to/stringlistparam}`)
+
+```yml
+service: new-service
+provider: aws
+functions:
+  hello:
+    name: hello
+    handler: handler.hello
+custom:
+  myArrayVar: ${ssm:/path/to/stringlistparam}
+```
+
 ## Reference Variables using AWS Secrets Manager
 
-Variables in [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) can be referenced [using SSM](https://docs.aws.amazon.com/systems-manager/latest/userguide/integration-ps-secretsmanager.html), just use the `ssm:/aws/reference/secretsmanager/secret_ID_in_Secrets_Manager` syntax. For example:
+Variables in [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) can be referenced through the `secretsmanager(versionId=ID, versionStage=STAGE):secret-arn-or-name` syntax. For example:
+
+```yml
+service: new-service
+provider: aws
+functions:
+  hello:
+    name: hello
+    handler: handler.hello
+custom:
+  supersecret: ${secretsmanager:arn:aws:secretsmanager:us-east-1:123456789012:secret:secret_ID_in_Secrets_Manager}
+  supersecretVersion: ${secretsmanager(versionId=EXAMPLE1-90ab-cdef-fedc-ba987SECRET1):arn:aws:secretsmanager:us-east-1:123456789012:secret:secret_ID_in_Secrets_Manager-123456}
+```
+
+The `SecretString` value is automatically parsed as JSON if it is a valid JSON string. You can turn off parsing by passing the `raw` instruction into the variable as: `${secretsmanager(raw):arn:aws:secretsmanager:us-east-1:123456789012:secret:secret_ID_in_Secrets_Manager}`. Also note that `SecretBinary` blobs are not supported.
+
+Variables in AWS Secrets Manager can be also be referenced [using SSM](https://docs.aws.amazon.com/systems-manager/latest/userguide/integration-ps-secretsmanager.html) using the `ssm:/aws/reference/secretsmanager/secret_ID_in_Secrets_Manager` syntax (note: this syntax does not support referencing by ARN, versioning, nor cross-account secrets). For example:
 
 ```yml
 service: new-service
@@ -364,9 +395,9 @@ custom:
   supersecret: ${ssm:/aws/reference/secretsmanager/secret_ID_in_Secrets_Manager}
 ```
 
-In this example, the serverless variable will contain the decrypted value of the secret.
+In either syntax, the serverless variable will contain the decrypted value of the secret.
 
-Variables can also be object, since AWS Secrets Manager can store secrets not only in plain text but also in JSON.
+Since AWS Secrets Manager can store secrets not only in plain text but also in JSON, variables resolved may represent a string or an object.
 
 If the above secret `secret_ID_in_Secrets_Manager` is something like below,
 
@@ -394,21 +425,6 @@ custom:
     arr:
       - true
       - false
-```
-
-#### Resolve `StringList` as array of strings
-
-Same `StringList` type parameters are automatically detected and resolved to array form. (Note: you can turn off resolution to array by passing `raw` instruction into variable as: `${ssm(raw):/path/to/stringlistparam}`, if you need to also pass custom region, put it first as: `${ssm(eu-west-1, raw):/path/to/stringlistparam}`)
-
-```yml
-service: new-service
-provider: aws
-functions:
-  hello:
-    name: hello
-    handler: handler.hello
-custom:
-  myArrayVar: ${ssm:/path/to/stringlistparam}
 ```
 
 ## Reference Properties in Other Files
