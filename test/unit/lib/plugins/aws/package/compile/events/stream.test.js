@@ -1044,6 +1044,8 @@ describe('AwsCompileStreamEvents', () => {
                 stream: {
                   arn: 'arn:aws:kinesis:region:account:stream/def',
                   consumer: false,
+                  startingPosition: 'AT_TIMESTAMP',
+                  startingPositionTimestamp: 123,
                 },
               },
             ],
@@ -1310,7 +1312,11 @@ describe('AwsCompileStreamEvents', () => {
         expect(
           awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
             .Resources.FirstEventSourceMappingKinesisDef.Properties.StartingPosition
-        ).to.equal('TRIM_HORIZON');
+        ).to.equal('AT_TIMESTAMP');
+        expect(
+          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources.FirstEventSourceMappingKinesisDef.Properties.StartingPositionTimestamp
+        ).to.equal(123);
         expect(
           awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
             .Resources.FirstEventSourceMappingKinesisDef.Properties.Enabled
@@ -1436,7 +1442,6 @@ describe('AwsCompileStreamEvents', () => {
                 {
                   stream: {
                     arn: 'arn:aws:kinesis:region:account:stream/abc',
-                    consumer: true,
                     startingPosition: 'AT_TIMESTAMP',
                   },
                 },
