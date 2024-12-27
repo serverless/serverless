@@ -20,10 +20,12 @@ The `sls deploy function` command deploys an individual function without AWS Clo
 serverless deploy function -f functionName
 ```
 
-**Note:** This command **now** deploys both function configuration and code by
+**Note:** 
+1) This command **now** deploys both function configuration and code by
 default. Just as before, this puts your function in an inconsistent state that
 is out of sync with your CloudFormation stack. Use this for faster development
 cycles and not production deployments
+2) This command does not deploy the function if it is first time deployment for the function, instead run "serverless deploy" to deploy your service. After that you can redeploy your services functions with the "serverless deploy function" command. 
 
 ## Options
 
