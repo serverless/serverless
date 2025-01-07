@@ -99,3 +99,7 @@ Maintaining a dedicated local stage is beneficial for quickly activating a devel
 ### Typescript isn't working for me.
 
 Under the hood Serverless uses `ts-node` for invoking your functions locally, and does require a `tsconfig.json` file. Make sure you have a valid config file and try again.
+
+### Lambda functions inside a VPC aren't working for me
+
+The `dev` command does not work out-of-the-box with AWS Lambda functions running inside a VPC. To enable it, you can either temporarily remove the VPC configuration or update your VPC setup to allow connectivity with AWS IoT Core. For detailed instructions, refer to [the official AWS documentation on using AWS IoT Core with interface VPC endpoints](https://docs.aws.amazon.com/vpc/latest/privatelink/create-interface-endpoint.html).
