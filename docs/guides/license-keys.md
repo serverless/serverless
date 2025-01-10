@@ -105,4 +105,4 @@ aws ssm put-parameter \
 ```
 
 This method is particularly useful for simplifying License Key management in larger teams or projects.
-It centralizes the License Key storage and eliminates the need for manual configuration in every deployment setup. 
+It centralizes the License Key storage and eliminates the need for manual configuration in every deployment setup.
