@@ -1898,7 +1898,7 @@ You can change this by setting the `timeoutInMillis` property in the `apiGateway
 and overriding it in the `http` event for specific functions.
 
 **Note:** This is particularly useful if you have requested an increase to the API Gateway integration timeout soft limit
-in AWS (which previously had a hard limit of 29 seconds). 
+in AWS (which previously had a hard limit of 29 seconds).
 
 ```yml
 provider:
@@ -1920,4 +1920,3 @@ functions:
           method: post
           timeoutInMillis: 40000 # Override: 40-second timeout for this endpoint
 ```
-

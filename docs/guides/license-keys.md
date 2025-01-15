@@ -85,3 +85,24 @@ For more details, refer to
 - [Serverless Variables documentation](./variables)
 - [AWS SSM Resolver documentation](./variables/aws/ssm)
 - [HashiCorp Vault Resolver documentation](./variables/hashicorp/vault)
+
+3. **AWS Systems Manager Parameter Store**: As of Serverless Framework version 4.4.19 you can store your License Key in AWS SSM Parameter Store without referencing the License Key in your configuration file or setting it as an environment variable.
+
+When no `licenseKey` is specified in the configuration file and the `SERVERLESS_LICENSE_KEY` environment variable is absent,
+the Framework will automatically check for a License Key stored in the `/serverless-framework/license-key` parameter in
+AWS SSM Parameter Store. The Framework reads this parameter using the deployment credentials, applying the same AWS region and profile as the deployment.
+
+To set up the License Key in AWS SSM Parameter Store, you can use the AWS CLI:
+
+```bash
+aws ssm put-parameter \
+  --name "/serverless-framework/license-key" \
+  --description "Serverless Framework License Key" \
+  --type "SecureString" \
+  --value "your-license-key" \
+  --region "your-aws-region" \
+  --profile "your-aws-profile"
+```
+
+This method is particularly useful for simplifying License Key management in larger teams or projects.
+It centralizes the License Key storage and eliminates the need for manual configuration in every deployment setup.
