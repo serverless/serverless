@@ -43,7 +43,7 @@
     "decompress": "^4.2.1",
     "dotenv": "^16.3.1",
     "dotenv-expand": "^10.0.0",
-    "esbuild": "0.19.12",
+    "esbuild": "0.25.0",
     "essentials": "^1.2.0",
     "ext": "^1.7.0",
     "fastest-levenshtein": "^1.0.16",
