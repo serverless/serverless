@@ -26,10 +26,10 @@ jobs:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.CLA_PERSONAL_ACCESS_TOKEN }}
         with:
           path-to-signatures: 'signatures/version1/cla.json'
-          path-to-document: 'https://github.com/serverless/serverless/blob/main/CODE_OF_CONDUCT.md' # e.g. a CLA or a DCO document
+          path-to-document: 'https://github.com/serverless/serverless/blob/main/CLA.md' # e.g. a CLA or a DCO document
           # branch should not be protected
           branch: 'main'
-          #allowlist: user1,bot*
+          allowlist: czubocha,eahefnawy,austencollins,Mmarzex,skierkowski,dependabot[bot]
 
           # the followings are the optional inputs - If the optional inputs are not given, then default values will be taken
           remote-organization-name: serverlessinc # enter the remote organization name where the signatures should be stored (Default is storing the signatures in the same repository)
