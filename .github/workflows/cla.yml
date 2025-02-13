@@ -29,7 +29,7 @@ jobs:
           path-to-document: 'https://github.com/serverless/serverless/blob/main/CODE_OF_CONDUCT.md' # e.g. a CLA or a DCO document
           # branch should not be protected
           branch: 'main'
-          # allowlist: user1,bot*
+          #allowlist: user1,bot*
 
           # the followings are the optional inputs - If the optional inputs are not given, then default values will be taken
           remote-organization-name: serverlessinc # enter the remote organization name where the signatures should be stored (Default is storing the signatures in the same repository)
