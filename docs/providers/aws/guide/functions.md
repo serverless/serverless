@@ -447,7 +447,7 @@ provider:
   runtimeManagement: onFunctionUpdate
 ```
 
-To toggle instruction set architecture per function individually, set it directly at `functions[]` context:
+To configure the runtime update mode for a specific function, define it in the `functions[]` context as follows:
 
 ```yml
 functions:
