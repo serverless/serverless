@@ -12,6 +12,6 @@ If you discover a security issue in the Serverless Framework, please report it p
 
 Upon receiving your report, we will triage the issue within 3 business days and work to resolve it as quickly as possible. We may follow up for more details.
 
-Your efforts to responsibly disclose vulnerabilities are greatly appreciated. At this time, we do not offer a bug bounty program.
+Your efforts to responsibly disclose vulnerabilities are greatly appreciated.
 
 Thank you for helping us keep the Serverless Framework secure!
