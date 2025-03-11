@@ -184,6 +184,16 @@ describe('#validate()', () => {
         listenerId: 'HTTPListener1',
       })
     })
+
+    it('returns the ImportValue when given an object for the listener ARN', () => {
+      const listenerArn = { 'Fn::ImportValue': 'sharedValueToImport' }
+      expect(
+        awsCompileAlbEvents.validateListenerArn(listenerArn, 'functionname'),
+      ).to.deep.equal({
+        albId: 'sharedValueToImport',
+        listenerId: 'sharedValueToImport',
+      })
+    })
   })
 
   describe('#validatePriorities()', () => {
