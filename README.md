@@ -17,7 +17,7 @@
 <br/>
 <br/>
 
-**The Serverless Framework** – Makes it easy to use AWS Lambda and other managed cloud services to build applications that auto-scale, cost nothing when idle, and overall result in radically low maintenance.
+**The Serverless Framework** – Makes it easy to use AWS Lambda and other managed cloud services to build applications that auto-scale, cost nothing when idle, and result in radically low maintenance.
 
 The Serverless Framework is a command-line tool with approachable YAML syntax to deploy both your code and cloud infrastructure needed to make tons of serverless application use-cases, like APIs, front-ends, data pipelines and scheduled tasks. It's a multi-language framework that supports Node.js, Typescript, Python, Go, Java, and more. It's also completely extensible via over 1,000 plugins which add more serverless use-cases and workflows to the Framework.
 
@@ -35,12 +35,14 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 <br/>
 
-**September 24th, 2024** – We have introduced a ton of new features since the release of Serverless Framework V4 GA in May. Check out the list below for everything recently launched. If you are upgrading to V.4, see our [Upgrading to Serverless Framework V4 Documentation](https://www.serverless.com/framework/docs/guides/upgrading-v4). If you need to access documentation for Serverless Framework V.3, you can find it [here](https://github.com/serverless/serverless/tree/v3/docs).
+**April 2025** – V.4 continues to feature significant updates. Review them all below. In 2025, we have begun releasing bigger projects, like the [Serverless Container Framework](https://github.com/serverless/containers), and the [Serverless MCP](https://www.serverless.com/framework/docs/guides/mcp). As always, we are more excited about the serverless future than ever.
 
 ## New Features In V.4
 
 Here's a list of everything that's new in V.4, so far:
 
+- **Introducing [Serverless MCP](https://www.serverless.com/framework/docs/guides/mcp):** Built for Cursor, Windsurf, and other AI-powered IDEs, it auto-detects cloud resources from your code, fetching logs, state, and config from AWS, enabling you to debug serverless apps directly in your IDE — no AWS console visit needed! Supports Serverless Framework, Cloudformation, and more.
+- **Introducing the [Serverless Container Framework](https://github.com/serverless/containers):** One solution to deploy serverless workloads everywhere - This is a new YAML file that works with the Serverless Framework CLI that gives you one experience to easily deploy containers to AWS Lambda and AWS ECS Fargate and migrate between them w/ zero-downtime — all without re-architecting. We launched this as a way to reduce large Lambda bills and give folks flexibility, but it is rapidly become the greatest developer experience for containers on AWS. Support for Google Cloud Run, Azure and more are coming soon.
 - **Support for AWS SAM, AWS Cloudformation, & Traditional Serverless Framework Projects:** Now, you can use one tool to deploy all three of these IaC project files. [More info here](https://www.serverless.com/framework/docs/guides/sam)
 - **Native Typescript Support:** You can now use `.ts` handlers in your AWS Lambda functions in `serverless.yml` and have them build automatically upon deploy. [ESBuild](https://esbuild.github.io/) is now included in the Framework which makes this possible. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/building).
 - **The AWS AI Stack:** V.4 is optimized for [the AWS AI Stack](https://github.com/serverless/aws-ai-stack). Deploy a full-stack, serverless, boilerplate for AI applications on AWS, featuring Bedrock LLMs like Claude 3.5 Sonnet and Llama3.1 and much more.
