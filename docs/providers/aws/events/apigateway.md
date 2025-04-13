@@ -643,14 +643,16 @@ provider:
   name: aws
   apiGateway:
     apiKeys:
+      # a key named myFirstKey, value will be generated during deployment
       - myFirstKey
+      # you can name keys per stage
       - ${opt:stage}-myFirstKey
-      # you can hide it in a serverless variable
-      - ${env:MY_API_KEY}
+      # a key named myThirdKey with an explicit value (naming keys with values is not recommended, see note above)
       - name: myThirdKey
-        value: myThirdKeyValue
-      # let cloudformation name the key (recommended when setting api key value)
-      - value: myFourthKeyValue
+        # you can hide it in a serverless variable
+        value: ${env:MY_API_KEY}
+      # set a value, but let cloudformation name the key (recommended when setting api key value, see note above)
+      - value: ${env:MY_API_KEY}
         description: Api key description # Optional
         customerId: A string that will be set as the customerID for the key # Optional
     usagePlan:
