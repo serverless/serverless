@@ -148,6 +148,16 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
             ],
           },
         },
+        {
+          schedule: {
+            rate: 'rate(30 minutes)',
+            method: METHOD_SCHEDULER,
+            name: 'scheduler-with-group',
+            description: 'Scheduler with Group',
+            groupName: 'my-schedule-group',
+            input: '{"key":"value"}',
+          },
+        },
       ]
 
       ;({ scheduleCfResources, iamResource, cfResources } = await run(events))
@@ -164,6 +174,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
       expect(scheduleCfResources[7].Type).to.equal('AWS::Events::Rule')
       expect(scheduleCfResources[8].Type).to.equal('AWS::Scheduler::Schedule')
       expect(scheduleCfResources[9].Type).to.equal('AWS::Scheduler::Schedule')
+      expect(scheduleCfResources[10].Type).to.equal('AWS::Scheduler::Schedule')
     })
 
     it('should respect the given rate expressions', () => {
@@ -197,6 +208,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
       expect(scheduleCfResources[9].Properties.ScheduleExpression).to.equal(
         'cron(15 10 ? * SAT-SUN *)',
       )
+      expect(scheduleCfResources[10].Properties.ScheduleExpression).to.equal(
+        'rate(30 minutes)',
+      )
     })
 
     it('should respect the "enabled" variable, defaulting to true', () => {
@@ -210,6 +224,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
       expect(scheduleCfResources[7].Properties.State).to.equal('ENABLED')
       expect(scheduleCfResources[8].Properties.State).to.equal('ENABLED')
       expect(scheduleCfResources[9].Properties.State).to.equal('DISABLED')
+      expect(scheduleCfResources[10].Properties.State).to.equal('ENABLED')
     })
 
     it('should respect the "name" variable', () => {
@@ -229,6 +244,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
         'scheduler-scheduled-event',
       )
       expect(scheduleCfResources[9].Properties.Name).to.be.undefined
+      expect(scheduleCfResources[10].Properties.Name).to.equal(
+        'scheduler-with-group',
+      )
     })
 
     it('should respect the "description" variable', () => {
@@ -250,6 +268,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
         'Scheduler Scheduled Event',
       )
       expect(scheduleCfResources[9].Properties.Description).to.be.undefined
+      expect(scheduleCfResources[10].Properties.Description).to.equal(
+        'Scheduler with Group',
+      )
     })
 
     it('should respect the "inputPath" variable', () => {
@@ -272,6 +293,7 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
         .undefined
       expect(scheduleCfResources[8].Properties.Target.InputPath).to.be.undefined
       expect(scheduleCfResources[9].Properties.Target.InputPath).to.be.undefined
+      expect(scheduleCfResources[10].Properties.Target.InputPath).to.be.undefined
     })
 
     it('should respect the "input" variable', () => {
@@ -293,6 +315,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
         '{"key":"array"}',
       )
       expect(scheduleCfResources[9].Properties.Target.Input).to.be.undefined
+      expect(scheduleCfResources[10].Properties.Target.Input).to.equal(
+        '{"key":"value"}',
+      )
     })
 
     it('should respect the "inputTransformer" variable', () => {
@@ -320,6 +345,8 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
         .undefined
       expect(scheduleCfResources[9].Properties.Target.InputTransformer).to.be
         .undefined
+      expect(scheduleCfResources[10].Properties.Target.InputTransformer).to.be
+        .undefined
     })
 
     it('should pass the roleArn to method:schedule resources', () => {
@@ -327,6 +354,9 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
         'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'],
       })
       expect(scheduleCfResources[9].Properties.Target.RoleArn).to.deep.equal({
+        'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'],
+      })
+      expect(scheduleCfResources[10].Properties.Target.RoleArn).to.deep.equal({
         'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'],
       })
     })
@@ -368,6 +398,26 @@ describe('test/unit/lib/plugins/aws/package/compile/events/schedule.test.js', ()
 
       expect(resources).to.have.lengthOf(1)
       expect(versionResources).to.have.lengthOf(1)
+    })
+
+    it('should respect the "groupName" variable when using method:scheduler', () => {
+      expect(scheduleCfResources[10].Properties.GroupName).to.equal('my-schedule-group')
+    })
+
+    it('should throw when passing "groupName" to method:eventBus resources', async () => {
+      const events = [
+        {
+          schedule: {
+            rate: 'rate(15 minutes)',
+            method: METHOD_EVENT_BUS,
+            groupName: 'my-schedule-group',
+          },
+        },
+      ]
+
+      await expect(run(events))
+        .to.be.eventually.rejectedWith(ServerlessError)
+        .and.have.property('code', 'SCHEDULE_PARAMETER_NOT_SUPPORTED')
     })
   })
 

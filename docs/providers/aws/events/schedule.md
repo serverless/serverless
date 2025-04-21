@@ -127,3 +127,23 @@ functions:
             key1: value1
             key2: value2
 ```
+
+## Schedule Groups
+
+When using the `scheduler` method, you can organize your schedules into logical groups using the `groupName` property. This is useful for managing related schedules together.
+
+```yaml
+functions:
+  foo:
+    handler: foo.handler
+    events:
+      - schedule:
+          method: scheduler
+          rate: rate(15 minutes)
+          groupName: my-schedule-group
+          name: my-scheduled-event
+          description: 'Scheduled event with group'
+          input: '{"key": "value"}'
+```
+
+The `groupName` property is only supported with the `scheduler` method and will throw an error if used with the default `eventBus` method.
