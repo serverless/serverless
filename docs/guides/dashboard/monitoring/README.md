@@ -129,7 +129,7 @@ Serverless Framework's Monitoring & Observability features currently support the
 
 ## Supported AWS Regions
 
-Serverless Framework's Monitoring & Observability features currently support all of the Commercial AWS Regions. They do not support GovCloud or reginos in China.
+Serverless Framework's Monitoring & Observability features currently support all of the Commercial AWS Regions. They do not support GovCloud or regions in China.
 
 ## How Integration Works
 
