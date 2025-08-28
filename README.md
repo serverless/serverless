@@ -35,12 +35,14 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 <br/>
 
-**April 2025** – V.4 continues to feature significant updates. Review them all below. In 2025, we have begun releasing bigger projects, like the [Serverless Container Framework](https://github.com/serverless/containers), and the [Serverless MCP](https://www.serverless.com/framework/docs/guides/mcp). As always, we are more excited about the serverless future than ever.
+**August 2025** – V.4 continues to feature significant updates. Review them all below. In 2025, we have begun releasing bigger projects, like the [Serverless Container Framework](https://github.com/serverless/containers), and the [Serverless MCP](https://www.serverless.com/framework/docs/guides/mcp). As always, we are more excited about the serverless future than ever.
 
 ## New Features In V.4
 
 Here's a list of everything that's new in V.4, so far:
 
+- **Improved Custom Domain Support:** You no longer need an external plugin to automatically configure custom domains and SSL certificates for your APIs and more. It's now built into the [Serverless Framework CLI](https://www.serverless.com/framework/docs/providers/aws/guide/domains).
+- **Integration with Doppler:** You can now easily fetch Secrets from Doppler via [Serverless Framework Variables](https://www.serverless.com/framework/docs/guides/variables/doppler).
 - **Introducing [Serverless MCP](https://www.serverless.com/framework/docs/guides/mcp):** Built for Cursor, Windsurf, and other AI-powered IDEs, it auto-detects cloud resources from your code, fetching logs, state, and config from AWS, enabling you to debug serverless apps directly in your IDE — no AWS console visit needed! Supports Serverless Framework, Cloudformation, and more.
 - **Introducing the [Serverless Container Framework](https://github.com/serverless/containers):** One solution to deploy serverless workloads everywhere - This is a new YAML file that works with the Serverless Framework CLI that gives you one experience to easily deploy containers to AWS Lambda and AWS ECS Fargate and migrate between them w/ zero-downtime — all without re-architecting. We launched this as a way to reduce large Lambda bills and give folks flexibility, but it is rapidly become the greatest developer experience for containers on AWS. Support for Google Cloud Run, Azure and more are coming soon.
 - **Support for AWS SAM, AWS Cloudformation, & Traditional Serverless Framework Projects:** Now, you can use one tool to deploy all three of these IaC project files. [More info here](https://www.serverless.com/framework/docs/guides/sam)
