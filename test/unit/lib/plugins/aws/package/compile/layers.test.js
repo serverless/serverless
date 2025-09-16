@@ -78,9 +78,7 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
     const layerResource =
       cfResources[naming.getLambdaLayerLogicalId(resourceName)]
     const s3Folder = service.package.artifactDirectoryName
-    const s3FileName = service.layers[resourceName].package.artifact
-      .split(path.sep)
-      .pop()
+    const s3FileName = path.basename(service.layers[resourceName].package.artifact)
 
     expect(layerResource.Properties.Content.S3Key).to.equal(
       `${s3Folder}/${s3FileName}`,
@@ -92,9 +90,7 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
     const layerResource =
       cfResources[naming.getLambdaLayerLogicalId(resourceName)]
     const s3Folder = service.package.artifactDirectoryName
-    const s3FileName = service.layers[resourceName].package.artifact
-      .split(path.sep)
-      .pop()
+    const s3FileName = path.basename(service.layers[resourceName].package.artifact)
 
     expect(layerResource.Type).to.equals('AWS::Lambda::LayerVersion')
     expect(layerResource.Properties.Content.S3Key).to.equal(
