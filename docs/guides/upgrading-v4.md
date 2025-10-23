@@ -33,7 +33,7 @@ Here is what you need to know about upgrading to V.4.
 
 As we announced at the end of 2023, Serverless Framework CLI will continue to be free for individual developers and small businesses, but will no longer be free for Organizations that have greater than $2M in annual revenue. These Organizations will require a commercial Subscription.
 
-These changes only apply to Serverless Framework V.4 and beyond and not to earlier versions. Serverless Framework V.3 will continue to be maintained via critical security and bug fixes through 2024.
+These changes only apply to Serverless Framework V.4 and beyond and not to earlier versions. **Note:** Serverless Framework V.3 is no longer actively maintained. Users are strongly encouraged to upgrade to V.4 for continued support and new features.
 
 All questions on pricing can be answered on our [pricing page](https://serverless.com/pricing).
 
