@@ -1921,6 +1921,65 @@ describe('#compileMethods()', () => {
         .ApiGatewayMethodUsersCreatePost.Properties,
     ).to.not.have.key('OperationName')
   })
+
+  it('should set ResponseTransferMode when specified', () => {
+    awsCompileApigEvents.validated.events = [
+      {
+        functionName: 'First',
+        http: {
+          path: 'users/create',
+          method: 'post',
+          responseTransferMode: 'STREAM',
+        },
+      },
+    ]
+    awsCompileApigEvents.compileMethods()
+    expect(
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .ResponseTransferMode,
+    ).to.equal('STREAM')
+  })
+
+  it('should set ResponseTransferMode to BUFFERED when specified', () => {
+    awsCompileApigEvents.validated.events = [
+      {
+        functionName: 'First',
+        http: {
+          path: 'users/create',
+          method: 'post',
+          responseTransferMode: 'BUFFERED',
+        },
+      },
+    ]
+    awsCompileApigEvents.compileMethods()
+    expect(
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .ResponseTransferMode,
+    ).to.equal('BUFFERED')
+  })
+
+  it('should not set ResponseTransferMode when not specified', () => {
+    awsCompileApigEvents.validated.events = [
+      {
+        functionName: 'First',
+        http: {
+          path: 'users/create',
+          method: 'post',
+        },
+      },
+    ]
+    awsCompileApigEvents.compileMethods()
+    expect(
+      awsCompileApigEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+        .ApiGatewayMethodUsersCreatePost.Properties.Integration
+        .ResponseTransferMode,
+    ).to.be.undefined
+  })
 })
 
 describe('#compileMethods v2()', () => {

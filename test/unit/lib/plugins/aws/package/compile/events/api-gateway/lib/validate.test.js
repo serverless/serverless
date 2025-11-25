@@ -1670,4 +1670,76 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/valida
       'API_GATEWAY_EXTERNAL_API_LOGS',
     )
   })
+
+  it('should accept valid responseTransferMode values', () => {
+    awsCompileApigEvents.serverless.service.functions = {
+      first: {
+        events: [
+          {
+            http: {
+              method: 'GET',
+              path: 'foo/bar',
+              responseTransferMode: 'BUFFERED',
+            },
+          },
+        ],
+      },
+      second: {
+        events: [
+          {
+            http: {
+              method: 'GET',
+              path: 'foo/baz',
+              responseTransferMode: 'STREAM',
+            },
+          },
+        ],
+      },
+    }
+
+    const validated = awsCompileApigEvents.validate()
+    expect(validated.events).to.be.an('Array').with.length(2)
+    expect(validated.events[0].http.responseTransferMode).to.equal('BUFFERED')
+    expect(validated.events[1].http.responseTransferMode).to.equal('STREAM')
+  })
+
+  it('should normalize responseTransferMode to uppercase', () => {
+    awsCompileApigEvents.serverless.service.functions = {
+      first: {
+        events: [
+          {
+            http: {
+              method: 'GET',
+              path: 'foo/bar',
+              responseTransferMode: 'buffered',
+            },
+          },
+        ],
+      },
+    }
+
+    const validated = awsCompileApigEvents.validate()
+    expect(validated.events[0].http.responseTransferMode).to.equal('BUFFERED')
+  })
+
+  it('should reject invalid responseTransferMode values', () => {
+    awsCompileApigEvents.serverless.service.functions = {
+      first: {
+        events: [
+          {
+            http: {
+              method: 'GET',
+              path: 'foo/bar',
+              responseTransferMode: 'INVALID',
+            },
+          },
+        ],
+      },
+    }
+
+    expect(() => awsCompileApigEvents.validate()).to.throw(
+      ServerlessError,
+      /Invalid responseTransferMode/,
+    )
+  })
 })
