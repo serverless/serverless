@@ -35,12 +35,15 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 <br/>
 
-**August 2025** – V.4 continues to feature significant updates. Review them all below. In 2025, we have begun releasing bigger projects, like the [Serverless Container Framework](https://github.com/serverless/containers), and the [Serverless MCP](https://www.serverless.com/framework/docs/guides/mcp). As always, we are more excited about the serverless future than ever.
+**December 2025** – V.4 continues to feature significant updates. Review them all below. In December 2025 we released support for numerous new features announced at AWS re:invent, like new runtimes, new regions, HTTP response streaming with API Gateway, Lambda tenant isolation, and much more. As always, we are more excited about the serverless future than ever.
 
 ## New Features In V.4
 
 Here's a list of everything that's new in V.4, so far:
 
+- **Lambda tenant isolation mode:** Use tenant isolation mode to create distinct Lambda compute environments per tenant to help reduce noisy neighbor effects and isolate high traffic customers more cleanly.
+- **HTTP response streaming:** Stream logs, long-running reports, partial respones, or AI LLM responses from Lambda with API Gateway HTTP APIs.
+- **Per-function IAM roles:** Add per-function IAM policies or switch the entire service to use per-function policies.
 - **Improved Custom Domain Support:** You no longer need an external plugin to automatically configure custom domains and SSL certificates for your APIs and more. It's now built into the [Serverless Framework CLI](https://www.serverless.com/framework/docs/providers/aws/guide/domains).
 - **Integration with Doppler:** You can now easily fetch Secrets from Doppler via [Serverless Framework Variables](https://www.serverless.com/framework/docs/guides/variables/doppler).
 - **Introducing [Serverless MCP](https://www.serverless.com/framework/docs/guides/mcp):** Built for Cursor, Windsurf, and other AI-powered IDEs, it auto-detects cloud resources from your code, fetching logs, state, and config from AWS, enabling you to debug serverless apps directly in your IDE — no AWS console visit needed! Supports Serverless Framework, Cloudformation, and more.
@@ -49,13 +52,13 @@ Here's a list of everything that's new in V.4, so far:
 - **Native Typescript Support:** You can now use `.ts` handlers in your AWS Lambda functions in `serverless.yml` and have them build automatically upon deploy. [ESBuild](https://esbuild.github.io/) is now included in the Framework which makes this possible. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/building).
 - **The AWS AI Stack:** V.4 is optimized for [the AWS AI Stack](https://github.com/serverless/aws-ai-stack). Deploy a full-stack, serverless, boilerplate for AI applications on AWS, featuring Bedrock LLMs like Claude 3.5 Sonnet and Llama3.1 and much more.
 - **New Dev Mode:** Run `serverless dev` to have events from your live architecture routed to your local code, enabling you to make fast changes without deployment. [More info here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
-- - **Node.js V22:** Support for Node.js version 22 on AWS Lambda.
+- **Latest Runtime Support:** Support for Node.js 22 (`nodejs24.x`, Python 3.14 (`python3.14`) and Java 25 (`java25`), on AWS Lambda.
+- **Latest Region Support:** Support for all major regions, including the newly announced `ap-southeast-6` in New Zealand.
 - **New Stages Property:** Easily organize stage-specific config via `stages` and set `default` config to fallback to.
 - **Improved Compose Experience:** Serverless Compose now has a beautiful new CLI experience that better demonstrates what is being deployed.
 - **New Terraform & Vault Integrations:** Pull state outputs from several Terraform state storage solutions, and secrets from Vault. [Terraform Docs](https://www.serverless.com/framework/docs/guides/variables/terraform) [Vault Docs](https://www.serverless.com/framework/docs/guides/variables/vault)
 - **Support Command:** Send support requests to our team [directly from the CLI](https://www.serverless.com/framework/docs/providers/aws/cli-reference/support), which auto-include contextual info which you can review before sending.
 - **Debug Summary for AI:** When you run into a bug, you can run "serverless support --ai" to generate a concise report detailing your last bug with all necessary context, optimized for pasting into AI tools such as ChatGPT.
-- **New AWS Lambda Runtimes:** "python3.12", "dotnet8", and "java21".
 - **Advanced Logging Controls for AWS Lambda:** Capture Logs in JSON, increased log granularity, and setting a custom Log Group. Here is the [AWS article](https://aws.amazon.com/blogs/compute/introducing-advanced-logging-controls-for-aws-lambda-functions/). Here is the [YAML implementation](https://github.com/serverless/serverless/blob/v4.0/docs/providers/aws/guide/serverless.yml.md#logs)
 - **Axiom Integration:** Integrate with [Axiom's observability solution](https://www.serverless.com/framework/docs/guides/observability/axiom) for a powerful logging, metrics and traces experience, at 3X less than AWS cloudwatch.
 - **AWS SSO:** Environment variables, especially ones set by AWS SSO, are prioritized. The Framework and Dashboard no longer interfere with these.
