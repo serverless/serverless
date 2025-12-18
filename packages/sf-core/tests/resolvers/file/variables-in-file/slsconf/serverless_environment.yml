@@ -1,0 +1,3 @@
+TZ: XXX
+EnvironmentVariable1: ${self:custom.${opt:stage, self:provider.stage}.EnvironmentVariable1Val}
+EnvironmentVariable2: ${self:custom.${opt:stage, self:provider.stage}.EnvironmentVariable2Val}

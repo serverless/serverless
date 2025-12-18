@@ -1,0 +1,11 @@
+org: serverlesstestaccount
+service: resolvers-self-test
+
+custom:
+  abc: example
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${self:service} { ${self:service} } ${self:service}
+    description: ${self:service} } ${self:service} { ${self:service} ${env:EMPTY_ENV_VAR} ${self:custom.abc}

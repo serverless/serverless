@@ -1,0 +1,32 @@
+org: serverlesstestaccount
+service: resolvers-self-test
+
+custom:
+  envpath: ${file(./serverless.env.yml):${opt:stage, self:provider.stage}}
+  globalSchedule: rate(10 minutes)
+  # the following example purposely demonstrates the ability for a variable to cross reference another one
+  serviceName: ${self:service}
+  exportName: ${self:custom.serviceName}-export
+  # or simply
+  # exportName: ${self:service}-export
+
+provider:
+  name: aws
+  region: ${self:custom.envpath.region}
+  stage: dev
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - schedule: ${self:custom.globalSchedule}
+  world:
+    handler: handler.world
+    events:
+      - schedule: ${self:custom.globalSchedule}
+resources:
+  Outputs:
+    NewServiceExport:
+      Value: 'A Value To Export'
+      Export:
+        Name: ${self:custom.exportName}

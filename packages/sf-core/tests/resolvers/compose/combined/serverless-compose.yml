@@ -1,0 +1,19 @@
+org: ${env:ORG} # ORG is defined in the .env file
+app: ${file:data.json#app} # data.json is a file in the same directory as serverless.yml
+service: resolvers-compose-test
+
+stages:
+  default:
+    resolvers:
+      compose-resolver:
+        type: aws
+
+services:
+  service-a:
+    path: service-a
+  service-b:
+    path: service-b
+    params:
+      apiUrl: ${service-a.apiUrl}
+  service-c:
+    path: service-c

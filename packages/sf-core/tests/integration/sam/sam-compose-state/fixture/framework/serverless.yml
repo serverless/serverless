@@ -1,0 +1,19 @@
+service: sam-integration-tests-framework
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  stackName: sam-integration-tests-sam-compose-state-framework-${env:STACK_RANDOM_ID}
+  iam:
+    role:
+      name: sam-tests-framework-role-${env:STACK_RANDOM_ID}
+
+functions:
+  hello:
+    handler: handler.handler
+    environment:
+      SAM_OUTPUT_PARAM: ${param:samOutput}
+    events:
+      - httpApi:
+          path: /
+          method: get

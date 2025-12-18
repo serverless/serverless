@@ -1,0 +1,4 @@
+org: serverlesstestaccount
+service: license-key-env-resolver
+
+licenseKey: ${env:LICENSE_KEY}

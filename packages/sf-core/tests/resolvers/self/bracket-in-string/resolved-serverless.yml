@@ -1,0 +1,11 @@
+org: serverlesstestaccount
+service: resolvers-self-test
+
+custom:
+  abc: example
+
+functions:
+  hello:
+    handler: handler.hello
+    name: resolvers-self-test { resolvers-self-test } resolvers-self-test
+    description: resolvers-self-test } resolvers-self-test { resolvers-self-test  example

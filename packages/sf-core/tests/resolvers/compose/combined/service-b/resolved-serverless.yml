@@ -1,0 +1,22 @@
+org: serverlesstestaccount
+service: compose-b
+
+provider:
+  name: aws
+  region: us-east-1
+  stage: sit
+  versionFunctions: true
+
+stages:
+  default:
+    resolvers:
+      service-b-resolver:
+        type: example
+        option1: service-b-resolver
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ssm-value
+    description: vault-service-b-resolver
+    events: []

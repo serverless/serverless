@@ -1,0 +1,15 @@
+service: resolvers-credentials-test
+org: serverlesstestaccount
+app: resolvers-integration-test
+
+stages:
+  default:
+    resolvers:
+      aws-acc2:
+        type: aws
+        dashboard: false
+
+functions:
+  hello:
+    handler: handler.hello
+    description: 377024778620 acc2-value

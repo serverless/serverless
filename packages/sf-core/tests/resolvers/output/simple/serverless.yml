@@ -1,0 +1,39 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-output-test
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  region: us-east-1
+
+params:
+  prod:
+    param1: ${output:resolvers-output-producer.obj.} # shouldn't try to resolve this malformed variable if stage is not prod
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${output:resolvers-output-producer.str}
+    description: ${output:resolvers-output-producer.num}
+    env: ${output:resolvers-output-producer.obj}
+    subKey: ${output:resolvers-output-producer.obj.foo}
+    fromOtherApp:
+      url: ${output:test-services:dev:us-east-1:outputs-publisher.BaseURL}
+      key1: ${output:test-services:dev:us-east-1:outputs-publisher.key1}
+    skipApp: ${output::dev:us-east-1:resolvers-output-producer.str}
+    skipStage: ${output:resolvers-integration-test::us-east-1:resolvers-output-producer.str}
+    skipRegion: ${output:resolvers-integration-test:dev::resolvers-output-producer.str}
+    skipAppStage: ${output:::us-east-1:resolvers-output-producer.str}
+    skipAppRegion: ${output::dev::resolvers-output-producer.str}
+    skipStageRegion: ${output:resolvers-integration-test:::resolvers-output-producer.str}
+    skipAppStageRegion: ${output::::resolvers-output-producer.str}
+    #   with variables
+    fullWithVariables: ${output:${self:app}:${sls:stage}:${self:provider.region}:resolvers-output-producer.str}
+    skipAppWithVariables: ${output::${sls:stage}:${self:provider.region}:resolvers-output-producer.str}
+    skipStageWithVariables: ${output:${self:app}::${self:provider.region}:resolvers-output-producer.str}
+    skipRegionWithVariables: ${output:${self:app}:${sls:stage}::resolvers-output-producer.str}
+    skipAppStageWithVariables: ${output:::${self:provider.region}:resolvers-output-producer.str}
+    skipAppRegionWithVariables: ${output::${sls:stage}::resolvers-output-producer.str}
+    skipStageRegionWithVariables: ${output:${self:app}:::resolvers-output-producer.str}
+    skipAppStageRegionWithVariables: ${output::::resolvers-output-producer.str}

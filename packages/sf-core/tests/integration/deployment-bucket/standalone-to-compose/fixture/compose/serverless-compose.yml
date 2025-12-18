@@ -1,0 +1,20 @@
+state: my-s3-state-resolver
+
+stages:
+  default:
+    resolvers:
+      compose-resolver:
+        type: aws
+        my-s3-state-resolver:
+          type: s3
+          bucketName: serverless-compose-state-bucket-integration-test
+    params:
+      composeParam: compose-param
+
+services:
+  service-a:
+    path: service-a
+  service-b:
+    path: service-b
+    params:
+      apiUrl: ${service-a.apiUrl}

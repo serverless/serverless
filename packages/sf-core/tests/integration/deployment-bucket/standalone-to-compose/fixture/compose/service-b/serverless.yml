@@ -1,0 +1,15 @@
+service: standalone-to-compose-b
+
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+
+functions:
+  hello:
+    handler: handler.hello
+    description: ${compose-resolver:/resolvers/sample-param} ${param:composeParam}
+    # resolver and param defined in serverless-compose.yml is used
+    environment:
+      apiUrl: ${param:apiUrl}

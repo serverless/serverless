@@ -1,0 +1,16 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+params:
+  default:
+    prefix: foo
+    suffix: bar
+  prod:
+    prefix: prod-foo
+    suffix: prod-bar
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${param:prefix}-hello-${param:suffix}

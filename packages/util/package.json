@@ -1,0 +1,25 @@
+{
+  "name": "@serverless/util",
+  "version": "1.0.0",
+  "description": "Reusable utility functions for frameworks",
+  "main": "index.js",
+  "type": "module",
+  "prettier": "@serverlessinc/standards",
+  "scripts": {
+    "prettier": "prettier -c .",
+    "prettier:fix": "prettier \"src/**/*\" --write"
+  },
+  "author": "Serverless Inc.",
+  "dependencies": {
+    "aws-sdk-v3-proxy": "^2.2.0",
+    "@aws-sdk/client-s3": "3.943.0",
+    "chalk": "^5.6.2",
+    "dockerode": "^4.0.9",
+    "enquirer": "^2.4.1",
+    "lodash": "^4.17.21",
+    "ora": "^8.2.0",
+    "undici": "^6.22.0",
+    "uuid": "^13.0.0",
+    "zod": "^3.25.76"
+  }
+}

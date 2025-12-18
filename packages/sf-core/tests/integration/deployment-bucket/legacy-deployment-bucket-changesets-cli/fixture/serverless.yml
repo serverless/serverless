@@ -1,0 +1,11 @@
+# cs stand for changesets. Shortened to avoid role name limit error.
+service: legacy-bucket-cs-cli
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  deploymentMethod: changesets
+
+functions:
+  hello:
+    handler: handler.hello

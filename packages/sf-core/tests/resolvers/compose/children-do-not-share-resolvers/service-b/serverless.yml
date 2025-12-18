@@ -1,0 +1,16 @@
+service: compose-b
+
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  lambdaHashingVersion: 20201221
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${shared-resolver:/resolvers/sample-param}
+    description: ${service-a-resolver:/resolvers/sample-param}
+    environment:
+      apiUrl: ${param:apiUrl}

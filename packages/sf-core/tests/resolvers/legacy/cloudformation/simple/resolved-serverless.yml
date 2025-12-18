@@ -1,0 +1,12 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+custom:
+  value: sfc-nodejs-resolvers-integration-test.Function1LambdaFunctionQualifiedArn
+
+functions:
+  hello:
+    handler: handler.hello
+    name: sfc-nodejs-resolvers-inte-serverlessdeploymentbuck-6vskiu5gzt1u
+    description: arn:aws:lambda:us-east-1:762003938904:function:sfc-nodejs-resolvers-integration-test-function1:1 sfc-nodejs-resolvers-inte-serverlessdeploymentbuck-6vskiu5gzt1u sfc-nodejs-resolvers-inte-serverlessdeploymentbuck-vky0nzemsvvr

@@ -1,0 +1,8 @@
+service: resolvers-env-test
+org: serverlesstestaccount
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${env:FUNC_PREFIX}-hello-${env:FUNC_SUFFIX}
+    description: ${env:SHOULD_BE_OVERWRITTEN_BY_STAGE_FILE} ${env:SHOULD_BE_OVERWRITTEN_BY_SYSTEM_ENV}

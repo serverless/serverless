@@ -1,0 +1,12 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+Flask = "==3.0.3"
+bottle = "*"
+boto3 = "*"
+
+[dev-packages]
+pytest = "*"

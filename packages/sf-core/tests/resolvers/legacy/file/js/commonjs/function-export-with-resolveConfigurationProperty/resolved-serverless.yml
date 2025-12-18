@@ -1,0 +1,36 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+provider:
+  name: aws
+  stage: other
+  region: us-east-1
+
+custom:
+  option1: us-east-1
+
+  configFileNameStage:
+    dev: config.dev.yaml
+    other: config.other.yaml
+    default: config.default.yaml
+  stageConfigFileName: config.other.yaml
+  stageConfig:
+    test: test-other-us-east-1
+  defaultConfig:
+    test: test-default-us-east-1
+
+  test1: test-other-us-east-1
+
+functions:
+  hello:
+    handler: handler.hello
+    name: hello
+    field:
+      value: us-east-1
+      resolvedVariable: test-other-us-east-1
+      instanceId: '1704067200000'
+      fileDataWithSsmReference:
+        data1: value1
+        data2: value2
+        data3: ssm-value

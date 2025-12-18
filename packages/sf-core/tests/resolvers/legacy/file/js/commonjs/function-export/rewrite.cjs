@@ -1,0 +1,80 @@
+function handler(e) {
+  function regxStr(pattern) {
+    pattern = pattern.replace(/[|\\{}()[\]^$+*?.-]/g, '\\$&')
+    return '^' + pattern.replace(/\\\*/g, '.*').replace(/\\\?/g, '.') + '$'
+  }
+
+  if (e.request.uri !== '/') {
+    e.request.uri = e.request.uri.replace(/\/+$/, '')
+  }
+  var uri = e.request.uri
+  var headers = e.request.headers
+
+  /**
+   * If user is from China then redirect to China website
+   */
+  var country = 'CN'
+  var userCountry
+  var isGlobalRequest =
+    e.request.querystring.global &&
+    e.request.querystring.global.value === 'true'
+  if (headers['cloudfront-viewer-country']) {
+    userCountry = headers['cloudfront-viewer-country'].value
+  }
+  /**
+   * Redirect to chinese website only if:
+   * - User is from China
+   * - Only on home page
+   * - and there is no 'global' query param
+   */
+  if (country === userCountry && !isGlobalRequest && e.request.uri === '/') {
+    return {
+      statusCode: 302,
+      statusDescription: 'Found',
+      headers: { location: { value: 'https://cn.serverless.com' } },
+    }
+  }
+
+  var path = uri.replace(/^\/|\/$/g, '')
+  var isBlog = uri.includes('/blog/') && !uri.includes('/rss.xml')
+
+  var isDocs = [
+    'framework/docs',
+    'framework/docs/*',
+    'cloud/docs',
+    'cloud/docs/*',
+    'console/docs',
+    'console/docs/*',
+  ].some((ptrn) => new RegExp(regxStr(ptrn)).test(path))
+  /**
+   * If path is blog post and has dots then replace with dashes
+   * i.e /blog/serverless-v1.3.0 to blog/serverless-v1-3-0
+   */
+  if (isBlog) {
+    e.request.uri = uri.replace(/\./g, '-')
+  } else if (isDocs) {
+    var type = path.includes('cloud/docs')
+      ? 'cloud'
+      : path.includes('console/docs')
+        ? 'console'
+        : 'framework'
+    var newPath =
+      type === 'cloud' || type === 'console'
+        ? `/${type}-docs/${path
+            .replace(`${type}/`, '')
+            .replace(/\//g, '-')
+            .replace(/\./g, '-')}`
+        : `/${type}/${path
+            .replace(`${type}/`, '')
+            .replace(/\//g, '-')
+            .replace(/\./g, '-')}`
+
+    e.request.uri = newPath
+  }
+
+  return e.request
+}
+
+module.exports = () => handler.toString()
+
+module.exports.handler = handler

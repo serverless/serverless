@@ -1,0 +1,12 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+functions:
+  hello:
+    handler: handler.hello
+    name: hello
+    field:
+      envVar: foo
+      stage: dev
+      fallback: fallback-value

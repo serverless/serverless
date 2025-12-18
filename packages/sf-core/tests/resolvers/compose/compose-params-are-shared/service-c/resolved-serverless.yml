@@ -1,0 +1,15 @@
+org: serverlesstestaccount
+service: compose-c
+
+provider:
+  name: aws
+  region: us-east-1
+  stage: dev
+  versionFunctions: true
+
+functions:
+  hello:
+    handler: handler.hello
+    name: compose-c-dev-hello
+    description: vault-value1
+    events: []

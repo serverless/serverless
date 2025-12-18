@@ -1,0 +1,19 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+custom:
+  prefix: foo
+  suffix: bar
+  myevents:
+    - schedule:
+        rate: rate(1 minute)
+
+functions:
+  hello:
+    handler: handler.hello
+    name: foo-hello-bar
+    description: foo
+    events:
+      - schedule:
+          rate: rate(1 minute)

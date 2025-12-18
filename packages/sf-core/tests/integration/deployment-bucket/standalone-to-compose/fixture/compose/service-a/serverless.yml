@@ -1,0 +1,21 @@
+service: standalone-to-compose-a
+
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+
+functions:
+  hello:
+    handler: handler.hello
+    description: ${compose-resolver:/resolvers/sample-param} ${param:composeParam}
+    # resolver and param defined in serverless-compose.yml is used
+
+resources:
+  Resources:
+    MyQueue:
+      Type: AWS::SQS::Queue
+  Outputs:
+    apiUrl:
+      Value: !Ref MyQueue

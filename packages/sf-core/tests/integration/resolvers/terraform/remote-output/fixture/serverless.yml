@@ -1,0 +1,25 @@
+org: serverlesstestaccount
+service: res-tr
+
+stages:
+  default:
+    resolvers:
+      terraform:
+        type: terraform
+        backend: remote
+        workspace: serverless-test-01
+        organization: serverlesstestaccount
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  stage: dev
+
+functions:
+  api:
+    handler: handler.handler
+    events:
+      - httpApi: '*'
+    environment:
+      TEST: ${terraform:outputs:key-1-id}

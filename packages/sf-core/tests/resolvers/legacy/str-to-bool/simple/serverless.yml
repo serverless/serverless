@@ -1,0 +1,14 @@
+org: serverlesstestaccount
+service: resolvers-strToBool-test
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${strToBool(true)}
+    description: ${strToBool(false)}
+    field1: ${strToBool(True)}
+    field2: ${strToBool(False)}
+    field3: ${strToBool(TRUE)}
+    field4: ${strToBool(FALSE)}
+    field5: ${strToBool(1)}
+    field6: ${strToBool(0)}

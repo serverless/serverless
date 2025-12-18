@@ -1,0 +1,22 @@
+service: sls-py-func-level-mixed-pkg
+
+provider:
+  name: aws
+  runtime: python3.13
+
+custom:
+  pythonRequirements:
+    dockerizePip: false
+
+functions:
+  # This function uses function-level package.individually
+  individualFunction:
+    handler: handler_individual.hello
+    package:
+      individually: true
+      patterns:
+        - '!node_modules/**'
+
+  # This function uses shared package (no individually setting)
+  sharedFunction:
+    handler: handler_shared.hello

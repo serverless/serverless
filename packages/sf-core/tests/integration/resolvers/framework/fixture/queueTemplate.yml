@@ -1,0 +1,4 @@
+queueFile{{i.logicalName}}:
+  Type: AWS::SQS::Queue
+  Properties:
+    QueueName: queue{{i.name}}

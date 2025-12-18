@@ -1,0 +1,19 @@
+service: sls-py-func-level-mixed-rt
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+
+custom:
+  pythonRequirements:
+    dockerizePip: false
+
+functions:
+  pythonFunction:
+    handler: handler.hello
+    runtime: python3.13
+    package:
+      individually: true
+
+  nodeFunction:
+    handler: index.handler

@@ -1,0 +1,19 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+functions:
+  hello:
+    handler: handler.hello
+
+resources:
+  - Resources:
+      SomeResourceA:
+        Type: 'AWS::S3::Bucket'
+        Properties:
+          BucketName: a-bucket-name
+  - Resources:
+      SomeResourceB:
+        Type: 'AWS::S3::Bucket'
+        Properties:
+          BucketName: b-bucket-name

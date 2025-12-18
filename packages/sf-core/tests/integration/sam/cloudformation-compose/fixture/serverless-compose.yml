@@ -1,0 +1,13 @@
+stages:
+  default:
+    params:
+      stagedParam: 'This is the DEFAULT param'
+  prod:
+    params:
+      stagedParam: 'This is the PROD param'
+
+services:
+  cloudformation:
+    path: cloudformation
+    params:
+      composeParam: 'This is a test compose param'

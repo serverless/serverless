@@ -1,0 +1,4 @@
+type Channel {
+  channelName: String! @aws_iam @aws_api_key
+  data: String! @aws_iam @aws_api_key
+}

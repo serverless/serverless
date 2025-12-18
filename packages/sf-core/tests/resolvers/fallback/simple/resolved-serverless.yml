@@ -1,0 +1,31 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-fallback-test
+
+provider:
+  name: aws
+  stage: sit
+
+custom:
+  myStage: sit
+  myRegion: eu-west-1
+  myCfnRole: false
+  myLambdaMemory: 128
+  myArnWithColonAndSingleQuotes: mongodb+srv//user:asdadasda@mongodb.net/dbname
+  myArnWithColonAndDoubleQuotes: mongodb+srv//user:asdadasda@mongodb.net/dbname
+  selfReference: eu-west-1
+  ssmValue: default-ssm-value
+  cfValue: default-cf-value
+  s3Value: default-s3-value
+
+functions:
+  hello:
+    handler: handler.hello
+    name: default-value
+    description: false
+    attr1: 123
+    attr2: '123'
+    attr3: '123'
+    attr4: 'false'
+    attr5: existing-value
+    attr6: foobar

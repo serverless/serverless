@@ -1,0 +1,56 @@
+service: sls-py-req-test
+
+provider:
+  name: aws
+  runtime: ${env:runtime, 'python3.13'}
+
+custom:
+  pythonRequirements:
+    zip: ${env:zip, self:custom.defaults.zip}
+    dockerizePip: ${env:dockerizePip, self:custom.defaults.dockerizePip}
+    dockerSsh: ${env:dockerSsh, self:custom.defaults.dockerSsh}
+    dockerPrivateKey: ${env:dockerPrivateKey, self:custom.defaults.dockerPrivateKey}
+    dockerImage: ${env:dockerImage, self:custom.defaults.dockerImage}
+    slim: ${env:slim, self:custom.defaults.slim}
+    slimPatterns: ${file(./slimPatterns.yml):slimPatterns, self:custom.defaults.slimPatterns}
+    slimPatternsAppendDefaults: ${env:slimPatternsAppendDefaults, self:custom.defaults.slimPatternsAppendDefaults}
+    vendor: ${env:vendor, ''}
+    fileName: ${env:fileName, 'requirements.txt'}
+    useStaticCache: ${env:useStaticCache, self:custom.defaults.useStaticCache}
+    useDownloadCache: ${env:useDownloadCache, self:custom.defaults.useDownloadCache}
+    cacheLocation: ${env:cacheLocation, ''}
+  defaults:
+    slim: false
+    slimPatterns: false
+    slimPatternsAppendDefaults: true
+    zip: false
+    dockerizePip: false
+    dockerSsh: false
+    dockerPrivateKey: ''
+    dockerImage: ''
+    individually: false
+    useStaticCache: true
+    useDownloadCache: true
+
+package:
+  individually: ${env:individually, self:custom.defaults.individually}
+  patterns:
+    - '!**/*'
+    - 'handler.py'
+
+functions:
+  hello:
+    handler: handler.hello
+  hello2:
+    handler: handler.hello
+  hello3:
+    handler: handler.hello
+    runtime: nodejs14.x
+  hello4:
+    handler: fn2_handler.hello
+    module: fn2
+    package:
+      patterns:
+        - 'fn2/**'
+  hello5:
+    image: 000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38

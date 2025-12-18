@@ -1,0 +1,19 @@
+service: state-resolver-compose-a
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  lambdaHashingVersion: 20201221
+
+functions:
+  hello:
+    handler: handler.hello
+    description: ${ssm:/resolvers/sample-param}
+
+resources:
+  Resources:
+    MyQueue:
+      Type: AWS::SQS::Queue
+  Outputs:
+    apiUrl:
+      Value: !Ref MyQueue

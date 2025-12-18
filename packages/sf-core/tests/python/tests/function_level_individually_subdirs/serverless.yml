@@ -1,0 +1,23 @@
+service: sls-py-func-level-subdirs
+
+provider:
+  name: aws
+  runtime: python3.13
+
+custom:
+  pythonRequirements:
+    dockerizePip: false
+    pythonBin: ${env:pythonBin, 'python3.13'}
+
+functions:
+  function1:
+    handler: handler1.hello
+    module: module1
+    package:
+      individually: true
+
+  function2:
+    handler: handler2.hello
+    module: module2
+    package:
+      individually: true

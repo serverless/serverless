@@ -1,0 +1,18 @@
+service: sls-py-req-test
+
+provider:
+  name: aws
+  runtime: python3.13
+
+custom:
+  pythonRequirements:
+    usePoetry: false
+
+package:
+  patterns:
+    - '!**/*'
+    - 'handler.py'
+
+functions:
+  hello:
+    handler: handler.hello

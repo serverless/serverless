@@ -1,0 +1,13 @@
+{
+    "result": "json",
+    "nested": {
+        "deep": {
+            "value": "found"
+        }
+    },
+    "array": [
+        1,
+        2,
+        3
+    ]
+}

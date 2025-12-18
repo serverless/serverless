@@ -1,0 +1,29 @@
+org: serverlesstestaccount
+service: resolvers-compose-test
+app: resolvers-integration-test
+
+frameworkVersion: '4'
+
+stages:
+  default:
+    resolvers:
+      service-a-resolver:
+        type: aws
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  lambdaHashingVersion: 20201221
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${shared-resolver:/resolvers/sample-param}
+
+resources:
+  Resources:
+    MyQueue:
+      Type: AWS::SQS::Queue
+  Outputs:
+    apiUrl:
+      Value: url

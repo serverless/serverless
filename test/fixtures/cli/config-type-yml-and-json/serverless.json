@@ -1,5 +1,0 @@
-{
-  "service": "json-service",
-  "provider": "json-provider",
-  "frameworkVersion": "*"
-}

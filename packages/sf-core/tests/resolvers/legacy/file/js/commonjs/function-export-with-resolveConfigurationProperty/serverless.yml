@@ -1,0 +1,28 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region}
+
+custom:
+  option1: ${opt:region}
+
+  configFileNameStage:
+    dev: config.dev.yaml
+    other: config.other.yaml
+    default: config.default.yaml
+  stageConfigFileName: ${self:custom.configFileNameStage.${self:provider.stage}, self:custom.configFileNameStage.dev}
+  stageConfig: ${file(${self:custom.stageConfigFileName})}
+  defaultConfig: ${file(config.default.yaml)}
+
+  test1: ${self:custom.stageConfig.test, self:custom.defaultConfig.test}
+
+functions:
+  hello:
+    handler: handler.hello
+    name: hello
+    #   use resolveConfigurationProperty in foo.js to resolve custom.option1 property and return an object with it
+    field: ${file(foo.cjs):testResolution}

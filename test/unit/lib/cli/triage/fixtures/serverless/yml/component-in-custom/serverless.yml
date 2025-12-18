@@ -1,7 +1,0 @@
-service: foo
-
-provider:
-  name: aws
-
-custom:
-  component: foo

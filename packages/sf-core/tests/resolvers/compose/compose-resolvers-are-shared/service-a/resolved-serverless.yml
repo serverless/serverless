@@ -1,0 +1,33 @@
+org: serverlesstestaccount
+service: resolvers-compose-test
+app: resolvers-integration-test
+
+frameworkVersion: '4'
+
+stages:
+  default:
+    resolvers:
+      tom:
+        type: aws
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  lambdaHashingVersion: '20201221'
+  region: us-east-1
+  stage: dev
+  versionFunctions: true
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ssm-value
+    events: []
+
+resources:
+  Resources:
+    MyQueue:
+      Type: AWS::SQS::Queue
+  Outputs:
+    apiUrl:
+      Value: url

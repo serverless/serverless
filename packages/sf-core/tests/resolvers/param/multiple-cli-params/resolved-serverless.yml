@@ -1,0 +1,7 @@
+org: serverlesstestaccount
+service: resolvers-param-test
+
+functions:
+  hello:
+    handler: handler.hello
+    name: foo-hello-bar

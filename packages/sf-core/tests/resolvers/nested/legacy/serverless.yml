@@ -1,0 +1,23 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-nested-test
+
+custom:
+  stageVariables:
+    stg:
+      param-name: sample-param
+    prod:
+      param-name: prod-sample-param
+
+provider:
+  stage: stg
+  name: aws
+  region: ap-southeast-1
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${file(foo-${opt:stage, 'bar'}.json):${opt:key}}
+    description: ${ssm(${opt:region}):${opt:ssm-param}} ${s3:resolvers-integration-test/test.txt}
+    description2: ${ssm(${opt:region}):/resolvers/${self:custom.stageVariables.${self:provider.stage}.param-name}}
+    runtime: ${s3:resolvers-integration-test/${opt:filename}}

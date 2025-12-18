@@ -1,0 +1,24 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-compose-test
+
+stages:
+  default:
+    resolvers:
+      shared-resolver:
+        type: aws
+
+services:
+  service-a:
+    component: serverless-framework
+    path: service-a
+  service-b:
+    component: serverless-framework
+    path: service-b
+    params:
+      apiUrl: ${service-a.apiUrl}
+    parsedParams:
+      apiUrl: service-a.apiUrl
+  service-c:
+    component: serverless-framework
+    path: service-c

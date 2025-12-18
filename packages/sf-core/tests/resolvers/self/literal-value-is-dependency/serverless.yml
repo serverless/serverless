@@ -1,0 +1,9 @@
+org: serverlesstestaccount
+service: resolvers-self-test
+
+functions:
+  hello:
+    handler: handler.hello
+    # 'name' placeholder is dependent on the 'description' and contains a literal value
+    name: ${self:functions.hello.description, 'hello'}
+    description: ${param:NONEXISTING, 'desc1'}

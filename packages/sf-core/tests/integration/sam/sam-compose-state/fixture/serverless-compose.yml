@@ -1,0 +1,7 @@
+services:
+  framework:
+    path: framework
+    params:
+      samOutput: ${sam.SamOutput}
+  sam:
+    path: sam

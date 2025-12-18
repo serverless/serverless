@@ -1,0 +1,24 @@
+org: serverlesstestaccount
+service: resolvers-compose-test
+app: resolvers-integration-test
+
+provider:
+  name: aws
+  region: us-east-1
+  stage: dev
+  versionFunctions: true
+
+functions:
+  hello:
+    name: resolvers-compose-test-dev-hello
+    handler: handler.hello
+    description: vault-value1
+    events: []
+
+resources:
+  Resources:
+    MyQueue:
+      Type: AWS::SQS::Queue
+  Outputs:
+    apiUrl:
+      Value: url

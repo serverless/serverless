@@ -1,0 +1,13 @@
+service: sls-missing-custom-block
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+
+functions:
+  pythonFunction:
+    handler: handler.hello
+    runtime: python3.13
+
+  nodeFunction:
+    handler: index.handler

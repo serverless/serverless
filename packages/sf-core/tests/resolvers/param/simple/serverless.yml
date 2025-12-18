@@ -1,0 +1,20 @@
+org: serverlesstestaccount
+service: resolvers-param-test
+
+stages:
+  default:
+    params:
+      prefix: foo
+      suffix: bar
+      region: ${opt:region, env:region, 'us-east-1'}
+      prefixAndSuffix: ${param:prefix}-${param:suffix}
+
+provider:
+  name: aws
+  region: ${param:region}
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${param:prefix}-hello-${param:suffix}
+    description: ${param:fromCli} ${param:notProvided, param:fromCli}

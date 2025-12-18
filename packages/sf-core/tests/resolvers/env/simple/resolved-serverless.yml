@@ -1,0 +1,8 @@
+org: serverlesstestaccount
+service: resolvers-env-test
+
+functions:
+  hello:
+    handler: handler.hello
+    name: foo-hello-bar
+    description: default description

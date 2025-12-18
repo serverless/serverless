@@ -1,0 +1,23 @@
+service: sls-py-req-test-indiv
+
+provider:
+  name: aws
+  runtime: python3.13
+
+package:
+  individually: true
+  patterns:
+    - '!node_modules/**'
+custom:
+  pythonRequirements:
+    dockerizePip: ${env:dockerizePip, self:custom.defaults.dockerizePip}
+  defaults:
+    dockerizePip: false
+
+functions:
+  hello1:
+    handler: handler1.hello
+    module: module1
+  hello2:
+    handler: handler2.hello
+    module: module2

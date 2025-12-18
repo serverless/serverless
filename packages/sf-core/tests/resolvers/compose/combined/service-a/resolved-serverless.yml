@@ -1,0 +1,29 @@
+org: serverlesstestaccount
+service: compose-a
+
+provider:
+  name: aws
+  region: us-east-1
+  stage: sit
+  versionFunctions: true
+
+stages:
+  default:
+    resolvers:
+      compose-resolver:
+        type: example
+        option1: abc
+
+functions:
+  hello:
+    handler: handler.hello
+    name: vault-abc
+    events: []
+
+resources:
+  Resources:
+    MyQueue:
+      Type: AWS::SQS::Queue
+  Outputs:
+    apiUrl:
+      Value: api url value

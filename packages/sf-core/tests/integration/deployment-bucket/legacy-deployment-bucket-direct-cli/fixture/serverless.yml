@@ -1,0 +1,10 @@
+service: legacy-bucket-direct-cli
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  deploymentMethod: direct
+
+functions:
+  hello:
+    handler: handler.hello

@@ -1,0 +1,11 @@
+org: serverlesstestaccount
+service: resolvers-validate-test
+
+custom:
+  name1: ${self:custom.name2}
+  name2: ${self:custom.name3}
+  name3: ${self:custom.name1}
+
+functions:
+  hello:
+    handler: handler.hello

@@ -1,0 +1,10 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-compose-test
+
+functions:
+  hello:
+    handler: handler.${ssm(us-east-1, raw):/resolvers/sample-param}
+    name: ${compose-resolver:/resolvers/sample-param}
+    #     name: ${service-b-resolver:key}
+    description: ${file(data.json):description}

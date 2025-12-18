@@ -1,0 +1,8 @@
+org: serverlesstestaccount
+service: resolvers-opt-test
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${opt:prefix}-hello-${opt:suffix}
+    description: ${opt:stage}

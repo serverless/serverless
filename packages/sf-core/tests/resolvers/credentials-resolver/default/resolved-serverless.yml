@@ -1,0 +1,6 @@
+service: resolvers-credentials-test
+
+functions:
+  hello:
+    handler: handler.hello
+    description: 377024778620 acc2-value

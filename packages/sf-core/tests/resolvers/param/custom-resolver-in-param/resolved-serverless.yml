@@ -1,0 +1,19 @@
+org: serverlesstestaccount
+service: resolvers-param-test
+
+stages:
+  default:
+    params:
+      prefix: foo
+      suffix: bar
+      usingResolver: vault-value1
+    resolvers:
+      resolver-1:
+        type: example
+        option1: value1
+
+functions:
+  hello:
+    handler: handler.hello
+    name: foo-hello-bar
+    description: vault-value1

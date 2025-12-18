@@ -1,0 +1,11 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+functions:
+  hello:
+    handler: handler.hello
+
+resources:
+  - ${file(resources1.yml)}
+  - ${file(resources2.yml)}

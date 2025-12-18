@@ -1,0 +1,24 @@
+org: serverlesstestaccount
+service: resolvers-file-test
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  environment: ${file(slsconf/serverless_environment.yml)}
+  role: arn:aws:iam::${self:custom.${opt:stage, self:provider.stage}.EnvironmentVariable1Val}:/role/${self:custom.${opt:stage, self:provider.stage}.EnvironmentVariable2Val}
+  test: ['${self:obj}']
+
+obj:
+  key1: val1
+  key2: ${self:text}
+
+text: obj
+
+custom: ${file(slsconf/serverless_custom${opt:stage, self:provider.stage}.yml)}
+
+functions:
+  - ${file(slsconf/functions_common.yml)}
+
+stepFunctions:
+  stateMachines: ${file(slsconf/state_machines.yml)}

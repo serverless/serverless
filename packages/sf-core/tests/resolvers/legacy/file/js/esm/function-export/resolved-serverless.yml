@@ -1,0 +1,12 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+functions:
+  hello:
+    handler: handler.hello
+    name: foo-hello-bar
+    description: foo-bar
+    field:
+      prefix: foo
+      suffix: bar

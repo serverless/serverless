@@ -1,0 +1,7 @@
+service: resolvers-env-test
+org: serverlesstestaccount
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${env:FUNC_PREFIX}-hello-${env:FUNC_SUFFIX}

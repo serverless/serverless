@@ -1,0 +1,20 @@
+org: serverlesstestaccount
+service: compose-b
+
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  lambdaHashingVersion: '20201221'
+  region: us-east-1
+  stage: dev
+  versionFunctions: true
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ssm-value
+    events: []
+    environment:
+      apiUrl: NOT_AVAILABLE_IN_PRINT_COMMAND

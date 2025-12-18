@@ -1,0 +1,21 @@
+service: compose-a
+
+stages:
+  default:
+    resolvers:
+      compose-resolver: # compose-resolver is overridden
+        type: example
+        option1: abc
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${compose-resolver:/resolvers/sample-param}
+
+resources:
+  Resources:
+    MyQueue:
+      Type: AWS::SQS::Queue
+  Outputs:
+    apiUrl:
+      Value: api url value

@@ -1,0 +1,6 @@
+name: aws
+region: ${param:region} # us-east-1 from params
+runtime: nodejs18.x
+
+environment:
+  ENV_VAR1: ${self:custom.ssm-value.objectKey}

@@ -1,4 +1,0 @@
-service: 'some-aws-service'
-provider: 'aws'
-
-org: 'testinteractivecli'

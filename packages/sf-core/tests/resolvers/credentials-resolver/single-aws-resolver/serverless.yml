@@ -1,0 +1,20 @@
+service: resolvers-credentials-test
+
+stages:
+  default:
+    resolvers:
+      aws-acc2:
+        type: aws
+        profile: ${opt:aws-profile, 'default'}
+    params:
+      accountId: ${aws:accountId}
+  sit:
+    resolvers:
+      aws-acc1:
+        type: aws
+        profile: ${opt:aws-profile, 'default'}
+
+functions:
+  hello:
+    handler: handler.hello
+    description: ${aws:accountId} ${param:accountId} ${ssm:/resolvers/credentials/sample-param}

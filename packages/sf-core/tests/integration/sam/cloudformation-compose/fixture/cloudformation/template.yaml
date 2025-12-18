@@ -1,0 +1,93 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Resources:
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref AWS::StackName
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      Policies:
+        - PolicyName: LambdaBasicExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: '*'
+        - PolicyName: LambdaUrlPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunctionUrl
+                  - lambda:UpdateFunctionUrlConfig
+                  - lambda:GetFunctionUrlConfig
+                  - lambda:DeleteFunctionUrlConfig
+                Resource: '*'
+
+  Lambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          exports.handler = async (event) => {
+            return {
+              COMPOSE_PARAM: process.env.COMPOSE_PARAM,
+              STAGED_PARAM: process.env.STAGED_PARAM,
+            }
+          }
+      FunctionName: !Ref AWS::StackName
+      Handler: index.handler
+      MemorySize: 1024
+      Role: !GetAtt Role.Arn
+      Runtime: nodejs20.x
+      Timeout: 5
+      Environment:
+        Variables:
+          STAGED_PARAM: '${param:stagedParam}'
+          COMPOSE_PARAM: '${param:composeParam}'
+
+  LambdaUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      TargetFunctionArn: !Ref Lambda
+      AuthType: NONE
+      Cors:
+        AllowHeaders:
+          - '*'
+        AllowOrigins:
+          - '*'
+        AllowMethods:
+          - '*'
+
+  LambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref Lambda
+      Action: lambda:InvokeFunctionUrl
+      Principal: '*'
+      FunctionUrlAuthType: NONE
+
+  LambdaPermissionInvokeFunction:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref Lambda
+      Action: lambda:InvokeFunction
+      Principal: '*'
+      InvokedViaFunctionUrl: true
+
+Outputs:
+  Url:
+    Value: !GetAtt LambdaUrl.FunctionUrl

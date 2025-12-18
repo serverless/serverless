@@ -1,0 +1,5 @@
+sit:
+  local-param: ${self:service}${self:custom.notExisting, null}
+  null-param: ${self:custom.notExisting, null}
+  file-param: ${file(schema.graphql)}
+  region: us-east-1

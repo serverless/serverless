@@ -1,0 +1,33 @@
+service: sls-py-req-test
+
+configValidationMode: off
+
+provider:
+  name: scaleway
+  runtime: python39
+
+plugins:
+  - serverless-scaleway-functions
+
+custom:
+  pythonRequirements:
+    zip: ${env:zip, self:custom.defaults.zip}
+    slim: ${env:slim, self:custom.defaults.slim}
+    slimPatterns: ${file(./slimPatterns.yml):slimPatterns, self:custom.defaults.slimPatterns}
+    slimPatternsAppendDefaults: ${env:slimPatternsAppendDefaults, self:custom.defaults.slimPatternsAppendDefaults}
+    dockerizePip: ${env:dockerizePip, self:custom.defaults.dockerizePip}
+  defaults:
+    zip: false
+    slimPatterns: false
+    slimPatternsAppendDefaults: true
+    slim: false
+    dockerizePip: false
+
+package:
+  patterns:
+    - '!**/*'
+    - 'handler.py'
+
+functions:
+  hello:
+    handler: handler.hello

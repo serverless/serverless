@@ -1,0 +1,12 @@
+service: sfc-dashboard
+org: serverlesstestaccount
+app: integration-tests
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+
+functions:
+  function1:
+    handler: index.handler

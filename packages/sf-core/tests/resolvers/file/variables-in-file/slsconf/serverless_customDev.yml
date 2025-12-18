@@ -1,0 +1,8 @@
+Dev:
+  EnvironmentVariable1Val: XXX
+  EnvironmentVariable2Val: XXX
+  apiSecurityGroupIds:
+    - sg-xxxxxxxxx
+  apiSubnetIds:
+    - subnet-xxxxxx0
+    - subnet-xxxxxx1

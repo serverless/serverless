@@ -1,0 +1,10 @@
+org: serverlesstestaccount
+service: resolvers-file-test
+
+functions:
+  hello:
+    handler: handler.hello
+
+resources:
+  - ${file(first-cf-resources.yml)}
+  - ${file(second-cf-resources.yml)}

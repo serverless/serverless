@@ -1,0 +1,18 @@
+service: sls-py-func-level-indiv-basic
+
+provider:
+  name: aws
+  runtime: python3.13
+
+custom:
+  pythonRequirements:
+    dockerizePip: false
+
+functions:
+  # This function uses function-level package.individually
+  individualFunction:
+    handler: handler.hello
+    package:
+      individually: true
+      patterns:
+        - '!node_modules/**'

@@ -1,0 +1,23 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-nested-test
+
+custom:
+  stageVariables:
+    stg:
+      param-name: sample-param
+    prod:
+      param-name: prod-sample-param
+
+provider:
+  stage: stg
+  name: aws
+  region: ap-southeast-1
+
+functions:
+  hello:
+    handler: handler.hello
+    name: pref-value
+    description: ssm-value file content
+    description2: ssm-value
+    runtime: file content

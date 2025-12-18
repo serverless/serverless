@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: 2010-09-09 # Keep it without quotes to test this case
+Description: A simple CloudFormation template for integration testing with basic resources
+
+Resources:
+  MyTestBucket:
+    Type: 'AWS::S3::Bucket'
+
+  MyTestSNSTopic:
+    Type: 'AWS::SNS::Topic'
+
+  MyTestDynamoDBTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: 'Id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'Id'
+          KeyType: 'HASH'
+      BillingMode: 'PAY_PER_REQUEST'
+
+  MyTestQueue:
+    Type: 'AWS::SQS::Queue'
+
+Outputs:
+  S3BucketName:
+    Description: The name of the created S3 bucket
+    Value: !Ref MyTestBucket
+
+  SNSTopicArn:
+    Description: The ARN of the created SNS topic
+    Value: !Ref MyTestSNSTopic
+
+  DynamoDBTableName:
+    Description: The name of the created DynamoDB table
+    Value: !Ref MyTestDynamoDBTable
+
+  SQSQueueUrl:
+    Description: The URL of the created SQS queue
+    Value: !Ref MyTestQueue

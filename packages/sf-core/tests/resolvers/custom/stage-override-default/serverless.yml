@@ -1,0 +1,26 @@
+org: ${env:ORG} # ORG is defined in the .env file
+app: ${file:data.json#app} # data.json is a file in the same directory as serverless.yml
+service: ${env:SERVICE} # SERVICE is defined in the .env.prod file
+
+stages:
+  default:
+    params:
+      local-param: local-value
+    resolvers:
+      resolver-1:
+        type: example
+        option1: ${resolver-2:/resolvers/sample-param} ${aws:/resolvers/sample-param} # /resolvers/sample-param in SSM is 'ssm-value'
+        option2: ${aws:/resolvers/sample-param}
+      resolver-2:
+        type: aws
+  dev:
+    resolvers:
+      resolver-1:
+        type: example
+        option1: hardcoded
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${resolver-1:key} # this is resolved by vault resolver defined in dev stage
+    description: ${param:local-param} ${param:dashboard-param} # fetched from Dashboard Parameters

@@ -1,0 +1,8 @@
+empty: []
+poetryWithGroups:
+  - custom1
+  - custom2
+poetryWithoutGroups:
+  - custom1
+poetryOnlyGroups:
+  - custom2

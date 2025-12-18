@@ -1,0 +1,5 @@
+Resources:
+  SomeResourceB:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: b-bucket-name

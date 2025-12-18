@@ -1,0 +1,4 @@
+org: serverlesstestaccount
+service: license-key-ssm-resolver
+
+licenseKey: ${ssm:/serverless-framework/license-key-serverlesstestaccount}

@@ -1,0 +1,11 @@
+org: serverlesstestaccount
+service: resolvers-git-test
+
+functions:
+  hello:
+    handler: handler.hello
+    name: |-
+      cdbce70-lightweight-tag-cdbce70-cdbce709a4ca3607154eb88a0818c89541bd2831-main-commit subject
+
+      commit message body-commit subject
+    description: commit message body your_name your_email@abc.example false simple lightweight-tag::lightweight-tag-2

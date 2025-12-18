@@ -1,0 +1,18 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+stages:
+  default:
+    resolvers:
+      awsAccount1:
+        type: aws
+        noDecryptSsm:
+          type: ssm
+          rawOrDecrypt: noDecrypt
+
+
+functions:
+  hello:
+    handler: handler.hello
+    description: AQICAHi+/eOFEtb8TxOR1ScFmM5nSuMq78yCdJJZc6iCT/NUMgGAclYUOvV1utdqWcUJX+1ZAAAAZzBlBgkqhkiG9w0BBwagWDBWAgEAMFEGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMJzWih1j5PohkwpedAgEQgCTFZL8UNiHYH2lBOiEdWllXWr9G1cu9ZIqySzzoCXArdZi8wrI=

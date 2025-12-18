@@ -1,0 +1,19 @@
+org: serverlesstestaccount
+service: resolvers-param-test
+
+stages:
+  default:
+    params:
+      prefix: foo
+      suffix: bar
+  dev:
+    params:
+      Description: develop
+
+functions:
+  hello:
+    handler: handler.hello
+    name: foo-hello-bar
+
+custom:
+  description: develop

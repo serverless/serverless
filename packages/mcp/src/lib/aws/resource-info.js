@@ -1,0 +1,6 @@
+export { getLambdaResourceInfo } from './lambda-resource-info.js'
+export { getIamResourceInfo } from './iam-resource-info.js'
+export { getSqsResourceInfo } from './sqs-resource-info.js'
+export { getS3ResourceInfo } from './s3-resource-info.js'
+export { getRestApiGatewayResourceInfo } from './rest-api-gateway-resource-info.js'
+export { getDynamoDBResourceInfo } from './dynamodb-resource-info.js'

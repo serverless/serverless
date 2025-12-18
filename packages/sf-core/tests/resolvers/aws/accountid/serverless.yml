@@ -1,0 +1,14 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-aws-test
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: ${env:AWS_REGION,'eu-west-1'}
+
+functions:
+  hello:
+    handler: handler.hello
+    name: foo-hello-bar
+    description: ${aws:accountId} ${aws:region}

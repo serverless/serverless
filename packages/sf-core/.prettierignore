@@ -1,0 +1,8 @@
+dist/
+../serverless
+../config
+*.json
+*.yml
+.serverless
+.terraform
+tests/unit/resolvers/fixtures/invalid.yaml

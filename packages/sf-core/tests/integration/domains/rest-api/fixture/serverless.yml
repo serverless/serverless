@@ -1,0 +1,17 @@
+service: domains-rest-api
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  domain:
+    name: rest-api.sls-domains-tests.click
+    apiType: rest
+    endpointType: regional
+
+functions:
+  hello:
+    handler: src/hello.handler
+    events:
+      - http:
+          path: /
+          method: get

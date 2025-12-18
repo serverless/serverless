@@ -1,0 +1,159 @@
+{
+  "Intro": "",
+  "Get Started": {
+    "Setup": "getting-started",
+    "Upgrading To V4": "guides/upgrading-v4",
+    "Concepts": "providers/aws/guide/intro",
+    "Tutorial": "tutorial",
+    "AWS Credentials": "providers/aws/guide/credentials",
+    "License Keys": "guides/license-keys"
+  },
+  "Usage": {
+    "Deploying": "providers/aws/guide/deploying",
+    "Packaging": "providers/aws/guide/packaging",
+    "Building": "providers/aws/guide/building",
+    "Testing": "providers/aws/guide/testing",
+    "Services": "providers/aws/guide/services",
+    "Functions": "providers/aws/guide/functions",
+    "Events": {
+      "Overview": "providers/aws/guide/events",
+      "HTTP (API Gateway v2)": "providers/aws/events/http-api",
+      "REST (API Gateway v1)": "providers/aws/events/apigateway",
+      "ActiveMQ": "providers/aws/events/activemq",
+      "Application Load Balancer": "providers/aws/events/alb",
+      "Alexa Skill": "providers/aws/events/alexa-skill",
+      "Alexa Smart Home": "providers/aws/events/alexa-smart-home",
+      "CloudWatch Event": "providers/aws/events/cloudwatch-event",
+      "CloudWatch Log": "providers/aws/events/cloudwatch-log",
+      "CloudFront": "providers/aws/events/cloudfront",
+      "Cognito User Pool": "providers/aws/events/cognito-user-pool",
+      "EventBridge Event": "providers/aws/events/event-bridge",
+      "IoT": "providers/aws/events/iot",
+      "IoT Fleet Provisioning": "providers/aws/events/iot-fleet-provisioning",
+      "Kafka": "providers/aws/events/kafka",
+      "Kinesis & DynamoDB": "providers/aws/events/streams",
+      "MSK": "providers/aws/events/msk",
+      "RabbitMQ": "providers/aws/events/rabbitmq",
+      "S3": "providers/aws/events/s3",
+      "Schedule": "providers/aws/events/schedule",
+      "SNS": "providers/aws/events/sns",
+      "SQS": "providers/aws/events/sqs",
+      "Websocket": "providers/aws/events/websocket"
+    },
+    "Layers": "providers/aws/guide/layers",
+    "Managed Instances": "providers/aws/guide/managed-instances",
+    "Alerts": "providers/aws/guide/alerts",
+    "Domains": "providers/aws/guide/domains",
+    "IAM Function Permissions": "providers/aws/guide/iam",
+    "Parameters": "guides/parameters",
+    "Variables": {
+      "Overview": "guides/variables",
+      "Self-reference serverless.yml": "guides/variables/self",
+      "Serverless Core": "guides/variables/core",
+      "Environment Variables": "guides/variables/env-vars",
+      "CLI Options": "guides/variables/cli-options",
+      "External YAML/JSON Files": "guides/variables/file",
+      "Javascript properties": "guides/variables/javascript",
+      "Git": "guides/variables/git",
+      "Doppler": "guides/variables/doppler",
+      "AWS": {
+        "Overview": "guides/variables/aws",
+        "S3 Objects": "guides/variables/aws/s3",
+        "SSM Parameter Store & Secrets Manager": "guides/variables/aws/ssm",
+        "CloudFormation Stack Outputs": "guides/variables/aws/cf-stack"
+      },
+      "HashiCorp": {
+        "Overview": "guides/variables/hashicorp",
+        "Vault": "guides/variables/hashicorp/vault",
+        "Terraform State Output": "guides/variables/hashicorp/terraform"
+      }
+    },
+    "Resources": "providers/aws/guide/resources",
+    "Composing Services": "guides/compose",
+    "Deployment Bucket": "guides/deployment-bucket",
+    "State": "guides/state",
+    "Python support": "providers/aws/guide/python",
+    "API Gateway Proxy": "providers/aws/guide/api-gateway-aws-proxy",
+    "Deploying SAM/CFN Templates": "guides/sam",
+    "Workflow Tips": "guides/workflow",
+    "Plugins": {
+      "Overview": "guides/plugins",
+      "Creating Plugins": "guides/plugins/creating-plugins",
+      "CLI Output": "guides/plugins/cli-output",
+      "Custom Commands": "guides/plugins/custom-commands",
+      "Custom Variables": "guides/plugins/custom-variables",
+      "Extending the Configuration schema": "guides/plugins/custom-configuration",
+      "Extending and overriding configuration": "guides/plugins/extending-configuration"
+    },
+    "Observability": {
+      "Overview": "guides/observability",
+      "Dashboard": "guides/observability/dashboard",
+      "Axiom": "guides/observability/axiom"
+    }
+  },
+  "CLI Reference": {
+    "Overview": "providers/aws/cli-reference",
+    "package": "providers/aws/cli-reference/package",
+    "dev": "providers/aws/cli-reference/dev",
+    "deploy": "providers/aws/cli-reference/deploy",
+    "deploy function": "providers/aws/cli-reference/deploy-function",
+    "deploy list": "providers/aws/cli-reference/deploy-list",
+    "invoke": "providers/aws/cli-reference/invoke",
+    "invoke local": "providers/aws/cli-reference/invoke-local",
+    "logs": "providers/aws/cli-reference/logs",
+    "login": "providers/aws/cli-reference/login",
+    "login aws": "providers/aws/cli-reference/login-aws",
+    "metrics": "providers/aws/cli-reference/metrics",
+    "info": "providers/aws/cli-reference/info",
+    "rollback": "providers/aws/cli-reference/rollback",
+    "rollback function": "providers/aws/cli-reference/rollback-function",
+    "remove": "providers/aws/cli-reference/remove",
+    "plugin install": "providers/aws/cli-reference/plugin-install",
+    "plugin uninstall": "providers/aws/cli-reference/plugin-uninstall",
+    "print": "providers/aws/cli-reference/print",
+    "support": "providers/aws/cli-reference/support",
+    "usage": "providers/aws/cli-reference/usage",
+    "reconcile": "providers/aws/cli-reference/reconcile"
+  },
+  "Dashboard": {
+    "Overview": "guides/dashboard",
+    "Monitoring & Observability": {
+      "Overview": "guides/dashboard/monitoring",
+      "Metrics": "guides/dashboard/monitoring/metrics",
+      "Traces": "guides/dashboard/monitoring/traces",
+      "Troubleshoot": "guides/dashboard/monitoring/troubleshoot",
+      "SDK": {
+        "Overview": "guides/dashboard/monitoring/sdk",
+        "Node.js": "guides/dashboard/monitoring/sdk/nodejs",
+        "Python": "guides/dashboard/monitoring/sdk/python"
+      }
+    },
+    "Outputs": "guides/dashboard/output-variables",
+    "Providers": "guides/dashboard/providers",
+    "CI/CD": {
+      "Overview": "guides/dashboard/cicd",
+      "Branch Deployments": "guides/dashboard/cicd/branch-deployments",
+      "Preview Deployments": "guides/dashboard/cicd/preview-deployments",
+      "Custom Scripts": "guides/dashboard/cicd/custom-scripts",
+      "Testing": "guides/dashboard/cicd/running-tests",
+      "Private Packages": "guides/dashboard/cicd/private-packages",
+      "Notifications": "guides/dashboard/cicd/notifications",
+      "Mono Repos": "guides/dashboard/cicd/mono-repo",
+      "Deploy in your own CI/CD": "guides/dashboard/cicd/running-in-your-own-cicd",
+      "Best Practices": "guides/dashboard/cicd/best-practices",
+      "Troubleshooting": "guides/dashboard/cicd/troubleshooting",
+      "FAQ": "guides/dashboard/cicd/faq"
+    }
+  },
+  "MCP Server": {
+    "Overview": "guides/mcp",
+    "Setup": "guides/mcp/setup",
+    "Tools": "guides/mcp/tools",
+    "AWS Integration": "guides/mcp/aws-integration"
+  },
+  "Serverless.yml Reference": "providers/aws/guide/serverless.yml",
+  "Learn More": {
+    "Examples and Tutorials": "examples-and-tutorials",
+    "Configuration Validation": "configuration-validation"
+  }
+}

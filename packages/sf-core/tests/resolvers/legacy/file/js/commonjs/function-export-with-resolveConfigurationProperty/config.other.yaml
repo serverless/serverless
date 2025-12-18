@@ -1,0 +1,1 @@
+test: test-other-${self:provider.region}

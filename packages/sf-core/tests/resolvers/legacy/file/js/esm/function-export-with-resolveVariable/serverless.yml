@@ -1,0 +1,10 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+functions:
+  hello:
+    handler: handler.hello
+    name: hello
+    #   use resolveValue in foo.js to resolve env var & stage and return an object with value key
+    field: ${file(foo.js)}

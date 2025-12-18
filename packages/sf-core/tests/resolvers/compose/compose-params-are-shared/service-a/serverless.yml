@@ -1,0 +1,16 @@
+org: serverlesstestaccount
+service: resolvers-compose-test
+app: resolvers-integration-test
+
+functions:
+  hello:
+    handler: handler.hello
+    description: ${param:compose-param}
+
+resources:
+  Resources:
+    MyQueue:
+      Type: AWS::SQS::Queue
+  Outputs:
+    apiUrl:
+      Value: url

@@ -1,0 +1,12 @@
+org: serverlesstestaccount
+service: resolvers-sls-test
+
+provider:
+  name: aws
+  stage: sit
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${sls:instanceId}
+    description: ${sls:stage}

@@ -1,12 +1,6 @@
-/.eslintcache
-/.nyc_output
-/coverage
-/dist
 **/node_modules
-/scripts/node_modules
-/node_modules
-npm-debug.log
-/package-lock.json
-/yarn.lock
-**/.DS_Store
-lib/plugins/aws/dev/shim.min.js
+**/dist
+# **/.env # TODO: Our tests use many .env files, so we cannot ignore them ATM.
+**/.serverless
+.DS_Store
+.idea

@@ -1,0 +1,23 @@
+org: serverlesstestaccount
+service: default-license-in-ssm
+
+stages:
+  dev:
+    resolvers:
+      aws-account-1:
+        type: aws
+        region: eu-central-1
+        profile: abcd
+        dashboard: false
+  alpha:
+    resolvers:
+      aws-account-1:
+        type: aws
+        region: ${opt:region, 'eu-central-1'}
+        dashboard: false
+  production:
+    resolvers:
+      aws-account-1:
+        type: aws
+        region: eu-central-1
+        dashboard: false

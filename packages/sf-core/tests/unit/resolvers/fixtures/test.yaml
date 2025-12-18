@@ -1,0 +1,7 @@
+result: yaml
+nested:
+  deep:
+    value: found
+items:
+  - one
+  - two

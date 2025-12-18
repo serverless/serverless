@@ -1,0 +1,13 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+custom: ${file(foo.yaml)}
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${file(foo.yaml):prefix}-hello-${file(foo.yaml):suffix}
+    #     description: ${self:custom.prefix} ${self:custom.suffix}
+    description: ${self:custom.prefix}
+    events: ${self:custom.myevents}

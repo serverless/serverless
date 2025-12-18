@@ -1,0 +1,26 @@
+org: serverlesstestaccount
+service: res-ts
+
+stages:
+  default:
+    resolvers:
+      terraform:
+        type: terraform
+        backend: s3
+        bucket: terraform-s3-resolver-test-bucket
+        key: terraform-s3-resolver-test-state/tfstate
+        region: us-east-1
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  stage: dev
+
+functions:
+  api:
+    handler: handler.handler
+    events:
+      - httpApi: '*'
+    environment:
+      TEST: ${terraform:outputs:key-1-id}

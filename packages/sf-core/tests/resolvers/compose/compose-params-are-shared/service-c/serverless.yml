@@ -1,0 +1,7 @@
+org: serverlesstestaccount
+service: compose-c
+
+functions:
+  hello:
+    handler: handler.hello
+    description: ${param:compose-param}

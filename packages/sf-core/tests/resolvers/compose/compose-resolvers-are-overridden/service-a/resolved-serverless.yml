@@ -1,0 +1,34 @@
+org: serverlesstestaccount
+service: resolvers-compose-test
+app: resolvers-integration-test
+
+frameworkVersion: '4'
+
+stages:
+  default:
+    resolvers:
+      compose-resolver:
+        type: example
+        option1: abc
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  lambdaHashingVersion: '20201221'
+  region: us-east-1
+  stage: dev
+  versionFunctions: true
+
+functions:
+  hello:
+    handler: handler.hello
+    name: vault-abc
+    events: []
+
+resources:
+  Resources:
+    MyQueue:
+      Type: AWS::SQS::Queue
+  Outputs:
+    apiUrl:
+      Value: url

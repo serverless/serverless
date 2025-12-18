@@ -1,0 +1,8 @@
+version = 0.1
+
+[default.deploy.parameters]
+parameter_overrides = "Foo=Bar"
+s3_prefix = "sam-integration-test"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM"
+image_repositories = []

@@ -1,0 +1,12 @@
+function1:
+  handler: index.handler
+  vpc:
+    ${file(slsconf/serverless_vpc.yml)}
+function2:
+  handler: index.handler
+  vpc:
+    ${file(slsconf/serverless_vpc.yml)}
+StepfunctionsAAAA:
+  handler: index.handler
+  environment:
+    stateMachineBBBBARN: !Ref ${self:stepFunctions.stateMachines.BBBB.name}

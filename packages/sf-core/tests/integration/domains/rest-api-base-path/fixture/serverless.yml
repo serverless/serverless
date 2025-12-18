@@ -1,0 +1,18 @@
+service: domains-rest-api-base-path
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  domain:
+    name: rest-api-base-path.sls-domains-tests.click
+    apiType: rest
+    endpointType: regional
+    basePath: api
+
+functions:
+  hello:
+    handler: src/hello.handler
+    events:
+      - http:
+          path: /
+          method: get

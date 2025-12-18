@@ -1,0 +1,13 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+custom:
+  option1: ${opt:option1}
+
+functions:
+  hello:
+    handler: handler.hello
+    name: hello
+    #   use resolveConfigurationProperty in foo.js to resolve custom.option1 property and return an object with it
+    field: ${file(foo.js)}

@@ -1,0 +1,15 @@
+service: resolvers-credentials-test
+
+stages:
+  default:
+    resolvers:
+      aws-acc2:
+        type: aws
+        profile: default
+    params:
+      accountId: 377024778620
+
+functions:
+  hello:
+    handler: handler.hello
+    description: 377024778620 377024778620 acc2-value

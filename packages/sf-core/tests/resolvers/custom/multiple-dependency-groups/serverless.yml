@@ -1,0 +1,29 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-custom-test
+
+stages:
+  default:
+    resolvers:
+      dependent-1-group-2:
+        type: example
+        option1: ${independent-1-group-1:/resolvers/sample-param} # group 1 dependency
+      dependent-2-group-2:
+        type: example
+        option1: ${independent-2-group-1:/resolvers/sample-param} # group 1 dependency
+      dependent-1-group-3:
+        type: example
+        option1: ${dependent-2-group-2:/resolvers/sample-param} # group 2 dependency
+      independent-1-group-1:
+        type: aws
+      independent-2-group-1:
+        type: aws
+
+provider:
+  name: aws
+  resolver: independent-2-group-1
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${dependent-1-group-3:key}

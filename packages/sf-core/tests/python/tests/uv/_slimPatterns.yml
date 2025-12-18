@@ -1,0 +1,6 @@
+slimPatterns:
+  - "**/*.pyc"
+  - "**/__pycache__/**"
+  - "**/__main__.py"
+
+

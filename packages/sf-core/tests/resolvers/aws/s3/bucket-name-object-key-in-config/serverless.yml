@@ -1,0 +1,18 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+stages:
+  default:
+    resolvers:
+      awsAccount1:
+        type: aws
+        myFile:
+          type: s3
+          bucketName: resolvers-integration-test
+          objectKey: test.txt
+
+functions:
+  hello:
+    handler: handler.hello
+    description: ${awsAccount1:myFile}

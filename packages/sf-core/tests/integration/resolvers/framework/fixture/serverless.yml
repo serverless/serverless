@@ -1,0 +1,49 @@
+org: ${env:ORG} # serverlesstestaccount from .env file
+service: ${file(data.json):service}-${opt:region} # "resolvers" from data.json file and us-east-1 from options
+
+frameworkVersion: ${file(data.json):frameworkVersion} # 4 from data.json file
+
+plugins:
+  - ./plugin/index.cjs
+
+params:
+  default: ${file(conf/params.yml):${env:ENV, 'dev'}}
+
+provider: ${file(conf/provider.yml)}
+
+custom: ${file(conf/custom.yml)}
+
+functions:
+  function1:
+    handler: index.handler
+    description: |
+      param:local-param: ${param:local-param}
+      s3:resolvers-integration-test/test.txt: ${s3:resolvers-integration-test/test.txt}
+      ssm:test-param: ${ssm:/resolvers/sample-param}
+      aws:accountId: ${aws:accountId}
+      aws:region: ${aws:region}
+      pluginCountBob: ${count:${self:custom.foreachParams.0.name}}
+      pluginCountFoobarStage: ${count:${file(conf/${opt:region}.yml):toCount}}
+
+  # expected:
+  # param:local-param: ${param:local-param} # resolvers-us-east-1null from local param
+  # s3:resolvers-integration-test/test.txt: ${s3:resolvers-integration-test/test.txt} # file content from esolvers-integration-test S3 bucket, test.txt file
+  # ssm:test-param: ${ssm:/resolvers/sample-param} # ssm-value from /resolvers/sample-param SSM parameter
+  # aws:accountId: ${aws:accountId} # 762003938904 serverlesstestaccount AWS account ID
+  # aws:region: ${aws:region} # us-east-1 from provider region
+
+  function2:
+    handler: index.handler
+    description: |
+      fileContentToCount: ${file(conf/${opt:region}.yml):toCount}
+      fileContent: ${file(conf/${opt:region}.yml):cloudformation}
+      cfResolverUsingFileContent: ${cf:${file(conf/${opt:region}.yml):cloudformation}.ServerlessDeploymentBucketName}
+      notExisting: ${file(conf/${opt:region}.yml):this.does.not.exist, "defaultValue"}
+
+# expected:
+# sfc-nodejs-resolvers-inte-serverlessdeploymentbuck-6vskiu5gzt1u from sfc-nodejs-resolvers-integration-test CloudFormation stack output
+
+resources:
+  - ${foreach(${self:custom.template}, ${self:custom.foreachParams})}
+  - ${foreach(${file(queueTemplate.yml)}, ${file(conf/${opt:region}.yml):queueParams})}
+  - ${file(resources.yml)}

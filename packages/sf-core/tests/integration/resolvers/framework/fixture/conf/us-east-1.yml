@@ -1,0 +1,7 @@
+queueParams:
+  - name: John${sls:stage}
+    logicalName: John
+  - name: Doe${sls:stage}
+    logicalName: Doe
+toCount: foobar${sls:stage}
+cloudformation: ${file(conf/common.yml):name}

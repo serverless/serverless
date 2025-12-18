@@ -1,0 +1,4 @@
+[project]
+name = "sls-uv-test"
+version = "0.1.0"
+requires-python = ">=3.9"

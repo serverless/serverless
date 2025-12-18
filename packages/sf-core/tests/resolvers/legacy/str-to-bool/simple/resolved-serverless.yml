@@ -1,0 +1,14 @@
+org: serverlesstestaccount
+service: resolvers-strToBool-test
+
+functions:
+  hello:
+    handler: handler.hello
+    name: true
+    description: false
+    field1: true
+    field2: false
+    field3: true
+    field4: false
+    field5: true
+    field6: false

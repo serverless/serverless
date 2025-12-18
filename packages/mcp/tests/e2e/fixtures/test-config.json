@@ -1,0 +1,9 @@
+{
+  "logGroupNames": [
+    "/aws/lambda/test-errors-info-patterns-function1",
+    "/aws/lambda/test-errors-info-patterns-function2",
+    "/aws/lambda/test-errors-info-patterns-function3"
+  ],
+  "profile": "some-profile",
+  "region": "us-east-1"
+}

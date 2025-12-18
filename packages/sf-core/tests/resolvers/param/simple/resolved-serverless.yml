@@ -1,0 +1,20 @@
+org: serverlesstestaccount
+service: resolvers-param-test
+
+stages:
+  default:
+    params:
+      prefix: foo
+      suffix: bar
+      region: eu-north-1
+      prefixAndSuffix: foo-bar
+
+provider:
+  name: aws
+  region: eu-north-1
+
+functions:
+  hello:
+    handler: handler.hello
+    name: foo-hello-bar
+    description: baz baz

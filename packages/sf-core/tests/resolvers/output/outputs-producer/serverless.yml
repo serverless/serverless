@@ -1,0 +1,9 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-output-producer
+
+outputs:
+  str: string-value
+  num: 42
+  obj:
+    foo: bar

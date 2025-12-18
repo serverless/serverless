@@ -1,0 +1,18 @@
+service: sls-no-python-functions
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+
+custom:
+  pythonRequirements: {}
+
+functions:
+  individualFunction:
+    handler: handler.individual
+    package:
+      individually: true
+
+  sharedFunction:
+    handler: handler.shared

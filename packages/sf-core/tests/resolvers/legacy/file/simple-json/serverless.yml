@@ -1,0 +1,9 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${file(foo.json):prefix}-hello-${file(foo.json):suffix}
+    description: ${file(foo.json)}

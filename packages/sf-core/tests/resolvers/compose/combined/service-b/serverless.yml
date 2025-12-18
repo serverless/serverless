@@ -1,0 +1,14 @@
+service: compose-b
+
+stages:
+  default:
+    resolvers:
+      service-b-resolver:
+        type: example
+        option1: service-b-resolver
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${compose-resolver:/resolvers/sample-param} # resolver defined in serverless-compose.yml is used
+    description: ${service-b-resolver:key}

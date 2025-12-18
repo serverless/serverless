@@ -1,0 +1,1 @@
+Serverless Container Framework was built by Tomasz Czubocha, Max Marze, Austen Collins, and the rest of the team at Serverless Inc.

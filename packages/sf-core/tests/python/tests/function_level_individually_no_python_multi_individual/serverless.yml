@@ -1,0 +1,20 @@
+service: sls-no-python-multi-individual
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+
+custom:
+  pythonRequirements: {}
+
+functions:
+  function1:
+    handler: handler.function1
+    package:
+      individually: true
+
+  function2:
+    handler: handler.function2
+    package:
+      individually: true

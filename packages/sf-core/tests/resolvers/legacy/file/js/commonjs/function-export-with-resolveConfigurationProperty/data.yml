@@ -1,0 +1,3 @@
+data1: value1
+data2: value2
+data3: ${ssm:/resolvers/sample-param}

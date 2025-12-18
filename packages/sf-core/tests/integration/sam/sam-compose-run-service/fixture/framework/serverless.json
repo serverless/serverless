@@ -1,0 +1,29 @@
+{
+  "service": "sam-integration-tests-framework",
+  "provider": {
+    "name": "aws",
+    "runtime": "nodejs20.x",
+    "stackName": "sam-tests-run-service-framework-${env:STACK_RANDOM_ID}",
+    "iam": {
+      "role": {
+        "name": "sam-tests-run-service-framework-${env:STACK_RANDOM_ID}"
+      }
+    },
+    "environment": {
+      "TEST_ENV": "7982"
+    }
+  },
+  "functions": {
+    "hello": {
+      "handler": "handler.handler",
+      "events": [
+        {
+          "httpApi": {
+            "path": "/",
+            "method": "get"
+          }
+        }
+      ]
+    }
+  }
+}

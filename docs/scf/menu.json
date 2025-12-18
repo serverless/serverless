@@ -1,0 +1,21 @@
+{
+  "Intro": "",
+  "Get Started": "getting-started",
+  "Configuration": "configuration",
+  "Development": "development",
+  "Deployment": "deployment",
+  "FAQ": "faq",
+  "Examples": {
+    "AI Streaming": "examples/ai-streaming",
+    "Apollo GraphQL": "examples/apollo-graphql",
+    "Astro Static Site": "examples/astro-static",
+    "Deno V2": "examples/deno",
+    "Express Application": "examples/express",
+    "Hono Application": "examples/hono",
+    "Next.js Application": "examples/nextjs",
+    "React Application": "examples/react",
+    "React Router V7": "examples/react-router-v7"
+  },
+  "Upgrading": "upgrading",
+  "Credits": "credits"
+}

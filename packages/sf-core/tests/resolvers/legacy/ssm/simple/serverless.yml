@@ -1,0 +1,16 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+provider:
+  name: aws
+  region: ${opt:region, 'us-east-1'}
+  environment:
+    ENV_VAR: ${ssm:/resolvers/sample-param}
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${ssm(us-east-1, raw):/resolvers/sample-param} ${env:ENV_VAR}
+    description: ${ssm:/resolvers/sample-param} ${ssm(eu-west-1):/resolvers/sample-param}
+    attr1: ${ssm:/aws/reference/secretsmanager/resolvers/sample-secret}

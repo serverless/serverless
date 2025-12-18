@@ -1,0 +1,19 @@
+import _ from 'lodash'
+
+export default (s3Response, prefix, service, stage) => {
+  const contents = (s3Response && s3Response.Contents) || []
+  if (contents.length) {
+    const regex = new RegExp(`${prefix}/${service}/${stage}/(.+-.+-.+-.+)/(.+)`)
+    const s3Objects = contents.filter((s3Object) => s3Object.Key.match(regex))
+    const names = s3Objects.map((s3Object) => {
+      const match = s3Object.Key.match(regex)
+      return {
+        directory: match[1],
+        file: match[2],
+      }
+    })
+    const grouped = _.groupBy(names, 'directory')
+    return Object.values(grouped)
+  }
+  return []
+}

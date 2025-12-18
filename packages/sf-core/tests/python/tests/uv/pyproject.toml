@@ -1,0 +1,18 @@
+[project]
+name = "sls-uv-test"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+  "flask==3.0.3",
+  "bottle",
+  "boto3==1.40.39",
+  "requests>=2.32.5",
+]
+
+[tool.uv]
+dev-dependencies = [
+  "pytest>=8.3.3",
+]
+
+[tool.uv.sources]
+bottle = {git = "https://git@github.com/bottlepy/bottle.git", tag = "0.13.4"}

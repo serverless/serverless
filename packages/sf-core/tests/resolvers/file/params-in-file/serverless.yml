@@ -1,0 +1,10 @@
+service: my-service
+params: ${file(env.yml)}
+
+custom:
+  myCustomParameterName: ${param:XXX}
+
+provider:
+  name: aws
+  environment:
+    XXX: ${param:XXX}

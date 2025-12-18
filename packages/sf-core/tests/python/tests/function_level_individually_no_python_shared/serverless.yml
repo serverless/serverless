@@ -1,0 +1,16 @@
+service: sls-no-python-shared
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+
+custom:
+  pythonRequirements: {}
+
+functions:
+  function1:
+    handler: handler.function1
+
+  function2:
+    handler: handler.function2

@@ -1,0 +1,205 @@
+[
+  {
+    "logStreamName": "stream1",
+    "events": [
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_300000",
+        "message": "ERROR: Connection timeout to database at 10.0.0.1"
+      },
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_240000",
+        "message": "ERROR: Connection timeout to database at 10.0.0.2"
+      }
+    ]
+  },
+  {
+    "logStreamName": "stream2",
+    "events": [
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_180000",
+        "message": "ERROR: Invalid input parameter: user-id-123"
+      },
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_120000",
+        "message": "ERROR: Invalid input parameter: user-id-456"
+      }
+    ]
+  },
+  {
+    "logStreamName": "stream3",
+    "events": [
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_60000",
+        "message": "TypeError: Cannot read property 'id' of undefined"
+      },
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_55000",
+        "message": "TypeError: Cannot read property 'name' of undefined"
+      },
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_50000",
+        "message": "TypeError: Cannot read property 'address' of undefined"
+      }
+    ]
+  },
+  {
+    "logStreamName": "stream4",
+    "events": [
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_30000",
+        "message": "TypeError: Cannot read properties of undefined (reading 'name')"
+      },
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_15000",
+        "message": "TypeError: Cannot read properties of undefined (reading 'email')"
+      }
+    ]
+  },
+  {
+    "logStreamName": "stream5",
+    "events": [
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_10000",
+        "message": "ReferenceError: config is not defined"
+      },
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_9000",
+        "message": "ReferenceError: options is not defined"
+      },
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_8000",
+        "message": "ReferenceError: settings is not defined"
+      }
+    ]
+  },
+  {
+    "logStreamName": "stream6",
+    "events": [
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_7000",
+        "message": "SyntaxError: Unexpected token '}'"
+      },
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_6000",
+        "message": "SyntaxError: Unexpected token '}' at line 42"
+      },
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_5000",
+        "message": "SyntaxError: Unexpected token '}' in JSON at position 217"
+      }
+    ]
+  },
+  {
+    "logStreamName": "stream7",
+    "events": [
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_4000",
+        "message": "RangeError: Maximum call stack size exceeded"
+      }
+    ]
+  },
+  {
+    "logStreamName": "stream8",
+    "events": [
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_3000",
+        "message": "Error: Request failed with status code 404"
+      },
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_2500",
+        "message": "Error: Request failed with status code 500"
+      },
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_2000",
+        "message": "Error: Request failed with status code 403"
+      }
+    ]
+  },
+  {
+    "logStreamName": "stream9",
+    "events": [
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_1500",
+        "message": "UnhandledPromiseRejectionWarning: Error: Connection refused"
+      }
+    ]
+  },
+  {
+    "logStreamName": "stream10",
+    "events": [
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_1000",
+        "message": "TypeError: object is not a function"
+      }
+    ]
+  },
+  {
+    "logStreamName": "stream11",
+    "events": [
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_1000",
+        "message": "URIError: URI malformed"
+      }
+    ]
+  },
+  {
+    "logStreamName": "stream12",
+    "events": [
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_1000",
+        "message": "Error: Memory limit exceeded"
+      }
+    ]
+  },
+  {
+    "logStreamName": "stream13",
+    "events": [
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_1000",
+        "message": "AccessDeniedException: User arn:aws:iam::123456789012:user/developer is not authorized to perform lambda:InvokeFunction on resource arn:aws:lambda:us-east-1:123456789012:function:api-prod-getUser"
+      },
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_900",
+        "message": "AccessDeniedException: User arn:aws:iam::987654321098:user/admin is not authorized to perform dynamodb:PutItem on resource arn:aws:dynamodb:us-west-2:987654321098:table/users-table-prod"
+      },
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_800",
+        "message": "AccessDeniedException: User arn:aws:iam::567890123456:user/service-role is not authorized to perform s3:PutObject on resource arn:aws:s3:::data-bucket-dev/uploads/user-data.json"
+      }
+    ]
+  },
+  {
+    "logStreamName": "stream14",
+    "events": [
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_700",
+        "message": "ResourceNotFoundException: Table users-table-dev not found in account 234567890123"
+      },
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_650",
+        "message": "ResourceNotFoundException: Table orders-table-prod not found in account 345678901234"
+      },
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_600",
+        "message": "ResourceNotFoundException: Table products-table-staging not found in account 456789012345"
+      }
+    ]
+  },
+  {
+    "logStreamName": "stream15",
+    "events": [
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_500",
+        "message": "FileNotFoundError: [Errno 2] No such file or directory: 'config.json'"
+      },
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_450",
+        "message": "FileNotFoundError: [Errno 2] No such file or directory: '/tmp/data.csv'"
+      },
+      {
+        "timestamp": "RELATIVE_TIME_MINUS_400",
+        "message": "FileNotFoundError: [Errno 2] No such file or directory: '/var/log/application.log'"
+      }
+    ]
+  }
+]

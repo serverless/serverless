@@ -1,0 +1,16 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-compose-test
+
+provider:
+  name: aws
+  region: us-east-1
+  stage: sit
+  versionFunctions: true
+
+functions:
+  hello:
+    handler: handler.ssm-value
+    name: ssm-value
+    description: value-from-service-c-file
+    events: []

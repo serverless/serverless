@@ -1,0 +1,21 @@
+service: sls-py-func-level-indiv-multi
+
+provider:
+  name: aws
+  runtime: python3.13
+
+custom:
+  pythonRequirements:
+    dockerizePip: false
+    pythonBin: ${env:pythonBin, 'python3.13'}
+
+functions:
+  function1:
+    handler: handler1.hello
+    package:
+      individually: true
+
+  function2:
+    handler: handler2.hello
+    package:
+      individually: true

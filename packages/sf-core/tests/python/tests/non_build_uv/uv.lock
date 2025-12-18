@@ -1,0 +1,12 @@
+version = 1
+revision = 3
+requires-python = ">=3.9"
+resolution-markers = [
+    "python_full_version >= '3.10'",
+    "python_full_version < '3.10'",
+]
+
+[[package]]
+name = "sls-uv-test"
+version = "0.1.0"
+source = { virtual = "." }

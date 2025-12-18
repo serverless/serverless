@@ -1,0 +1,22 @@
+org: ${env:ORG}
+app: resolvers-integration-test
+service: resolvers-compose-test
+
+stages:
+  default:
+    resolvers:
+      compose-resolver:
+        type: example
+        option1: value1
+    params:
+      compose-param: ${compose-resolver:/resolvers/sample-param}
+
+services:
+  service-a:
+    path: service-a
+  service-b:
+    path: service-b
+    params:
+      apiUrl: ${service-a.apiUrl}
+  service-c:
+    path: service-c

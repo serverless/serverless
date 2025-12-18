@@ -1,0 +1,36 @@
+service: sls-py-req-test-indiv-mixed-runtime
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  architecture: arm64
+
+package:
+  individually: true
+
+custom:
+  pythonRequirements:
+    dockerizePip: ${env:dockerizePip, self:custom.defaults.dockerizePip}
+    zip: ${env:zip, self:custom.defaults.zip}
+  defaults:
+    dockerizePip: false
+    zip: false
+
+functions:
+  hello1:
+    handler: handler1.hello
+    architecture: x86_64
+    package:
+      patterns:
+        - '!**'
+        - 'module1/**'
+
+  hello2:
+    handler: handler2.hello
+    module: module2
+    runtime: python3.13
+    architecture: x86_64
+    package:
+      patterns:
+        - '!**'
+        - 'module2/**'

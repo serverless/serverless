@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "esbuild": "0.27.2"
+  }
+}

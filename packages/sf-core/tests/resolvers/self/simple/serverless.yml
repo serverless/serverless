@@ -1,0 +1,7 @@
+org: serverlesstestaccount
+service: resolvers-self-test
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${self:service}

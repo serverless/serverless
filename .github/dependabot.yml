@@ -1,0 +1,85 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # Maintain NPM dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    versioning-strategy: increase
+    cooldown:
+      default-days: 5
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
+    groups:
+      aws-sdk:
+        patterns:
+          - "@aws-sdk/*"
+          - "@smithy/*"
+          - "aws-sdk-v3-proxy"
+          - "aws-iot-device-sdk"
+      dev-dependencies:
+        patterns:
+          - "*"
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      patch-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+    ignore:
+      - dependency-name: "ora"
+        # ora v9 drops support for Node.js 18
+        versions: [">= 9.0.0"]
+      - dependency-name: "open"
+        # open v11 drops support for Node.js 18
+        versions: [">= 11.0.0"]
+      - dependency-name: "p-limit"
+        # p-limit v7 drops support for Node.js 18
+        versions: [">= 7.0.0"]
+      - dependency-name: "joi"
+        # joi v18 drops support for Node.js 18
+        versions: [">= 18.0.0"]
+      - dependency-name: "is-docker"
+        # is-docker v4 drops support for Node.js 18
+        versions: [">= 4.0.0"]
+      - dependency-name: "eventsource"
+        # eventsource v4 drops support for Node.js 18
+        versions: [">= 4.0.0"]
+      - dependency-name: "@octokit/rest"
+        # @octokit/rest v22 drops support for Node.js 18
+        versions: [">= 22.0.0"]
+      - dependency-name: "yargs"
+        # yargs v18 drops support for Node.js 18
+        versions: [">= 18.0.0"]
+
+  # Maintain Go dependencies
+  - package-ecosystem: "gomod"
+    directory: "/binary-installer"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 5
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
+
+  # Maintain GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 5
+    groups:
+      actions:
+        patterns:
+          - "*"

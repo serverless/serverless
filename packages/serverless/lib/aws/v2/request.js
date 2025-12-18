@@ -1,0 +1,259 @@
+import _ from 'lodash'
+import memoize from 'memoizee'
+import PromiseQueue from 'promise-queue'
+import sdk from './sdk.js'
+import ServerlessError from '../../serverless-error.js'
+import { log } from '@serverless/util'
+import { HttpsProxyAgent } from 'https-proxy-agent'
+import https from 'https'
+import fs from 'fs'
+import deepSortObjectByKey from '../../utils/deep-sort-object-by-key.js'
+import ensureString from 'type/string/ensure.js'
+import isObject from 'type/object/is.js'
+import wait from 'timers-ext/promise/sleep.js'
+
+// Activate AWS SDK logging
+const awsLog = log.get('sls:aws:request')
+
+// Use HTTPS Proxy (Optional)
+const proxyUrl =
+  process.env.proxy ||
+  process.env.HTTP_PROXY ||
+  process.env.http_proxy ||
+  process.env.HTTPS_PROXY ||
+  process.env.https_proxy
+
+const ca = process.env.ca || process.env.HTTPS_CA || process.env.https_ca
+
+let caCerts = []
+
+if (ca) {
+  // Can be a single certificate or multiple, comma separated.
+  const caArr = ca.split(',')
+  // Replace the newline -- https://stackoverflow.com/questions/30400341
+  caCerts = caCerts.concat(caArr.map((cert) => cert.replace(/\\n/g, '\n')))
+}
+
+const cafile =
+  process.env.cafile || process.env.HTTPS_CAFILE || process.env.https_cafile
+
+if (cafile) {
+  // Can be a single certificate file path or multiple paths, comma separated.
+  const caPathArr = cafile.split(',')
+  caCerts = caCerts.concat(
+    caPathArr.map((cafilePath) => fs.readFileSync(cafilePath.trim())),
+  )
+}
+
+const tlsOptions = {}
+if (caCerts.length > 0) {
+  Object.assign(tlsOptions, {
+    rejectUnauthorized: true,
+    ca: caCerts,
+  })
+}
+
+// Pass TLS options to either proxy agent or direct https agent
+if (proxyUrl) {
+  sdk.config.httpOptions.agent = new HttpsProxyAgent(proxyUrl, tlsOptions)
+} else if (tlsOptions.ca) {
+  // Update the agent -- http://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/node-registering-certs.html
+  sdk.config.httpOptions.agent = new https.Agent(tlsOptions)
+}
+
+// Configure the AWS Client timeout (Optional).  The default is 120000 (2 minutes)
+const timeout = process.env.AWS_CLIENT_TIMEOUT || process.env.aws_client_timeout
+if (timeout) {
+  sdk.config.httpOptions.timeout = parseInt(timeout, 10)
+}
+PromiseQueue.configure(Promise)
+const requestQueue = new PromiseQueue(2, Infinity)
+
+const MAX_RETRIES = (() => {
+  const userValue = Number(process.env.SLS_AWS_REQUEST_MAX_RETRIES)
+  return userValue >= 0 ? userValue : 4
+})()
+
+const accelerationCompatibleS3Methods = new Set(['upload', 'putObject'])
+
+const shouldS3Accelerate = (method, params) => {
+  if (
+    accelerationCompatibleS3Methods.has(method) &&
+    params &&
+    params.isS3TransferAccelerationEnabled
+  ) {
+    log.notice('Using S3 Transfer Acceleration Endpoint')
+    return true
+  }
+  return false
+}
+
+const getServiceInstance = memoize(
+  (service, method) => {
+    const Service = _.get(sdk, service.name)
+    // we translate params to an object for the service creation by selecting keys of interest
+    const serviceParams = { ...service.params }
+    if (service.name === 'S3') {
+      serviceParams.useAccelerateEndpoint = shouldS3Accelerate(
+        method,
+        service.params,
+      )
+    }
+    return new Service(serviceParams)
+  },
+  {
+    normalizer: ([service, method]) => {
+      return [JSON.stringify(deepSortObjectByKey(service)), method].join('|')
+    },
+  },
+)
+
+const normalizerPattern = /(?<!^)([A-Z])/g
+const normalizeErrorCodePostfix = (name) => {
+  return name.replace(normalizerPattern, '_$1').toUpperCase()
+}
+
+let requestCounter = 0
+
+/** Execute request to AWS service
+ * @param {Object|string} [service] - Description of the service to call
+ * @prop [service.name] - Name of the service to call, support subclasses
+ * @prop [service.params] - Parameters to apply when creating the service and doing the request
+ * @prop [service.params.credentials] - AWS Credentials to use
+ * @prop [service.params.useCache ] - Wether to reuse result of the same request cached locally
+ * @prop [service.params.region] - Region in which the call should be made (default to us-east-1)
+ * @prop [service.params.isS3TransferAccelerationEnabled] - Use s3 acceleration when available for the request
+ * @param {String} method - Method to call
+ * @param {Array} args - Argument for the method call
+ */
+async function awsRequest(service, method, ...args) {
+  // Checks regarding expectations on service object
+  if (isObject(service)) {
+    ensureString(service.name, { name: 'service.name' })
+  } else {
+    ensureString(service, { name: 'service' })
+    service = { name: service }
+  }
+  const BASE_BACKOFF = 5000
+  const persistentRequest = async (f, numTry = 0) => {
+    try {
+      return await f()
+    } catch (e) {
+      const { providerError } = e
+      if (
+        numTry < MAX_RETRIES &&
+        providerError &&
+        ((providerError.retryable &&
+          providerError.statusCode !== 403 &&
+          providerError.code !== 'CredentialsError' &&
+          providerError.code !== 'ExpiredTokenException') ||
+          providerError.statusCode === 429)
+      ) {
+        const nextTryNum = numTry + 1
+        const jitter = Math.random() * 3000 - 1000
+        // backoff is between 4 and 7 seconds
+        const backOff = BASE_BACKOFF + jitter
+        log.info(
+          [
+            `Recoverable error occurred (${
+              e.message
+            }), sleeping for ~${Math.round(backOff / 1000)} seconds.`,
+            `Try ${nextTryNum} of ${MAX_RETRIES}`,
+          ].join(' '),
+        )
+        await wait(backOff)
+        return persistentRequest(f, nextTryNum)
+      }
+      throw e
+    }
+  }
+  const request = await requestQueue.add(() =>
+    persistentRequest(async () => {
+      const requestId = ++requestCounter
+      const awsService = getServiceInstance(service, method)
+      awsLog.debug(`request: #${requestId} ${service.name}.${method}`, args)
+      const req = awsService[method](...args)
+      try {
+        const result = await req.promise()
+        awsLog.debug(
+          `request result: #${requestId} ${service.name}.${method}`,
+          result,
+        )
+        return result
+      } catch (err) {
+        awsLog.debug(
+          `request error: #${requestId} - ${service.name}.${method}`,
+          err,
+        )
+        let message = err.message != null ? err.message : String(err.code)
+        if (message.startsWith('Missing credentials in config')) {
+          // Credentials error
+          // If failed at last resort (EC2 Metadata check) expose a meaningful error
+          // with link to AWS documentation
+          // Otherwise, it's likely that user relied on some AWS creds, which appeared not correct
+          // therefore expose an AWS message directly
+          let bottomError = err
+          while (
+            bottomError.originalError &&
+            !bottomError.message.startsWith('EC2 Metadata')
+          ) {
+            bottomError = bottomError.originalError
+          }
+
+          const errorMessage = bottomError.message.startsWith('EC2 Metadata')
+            ? [
+                'AWS provider credentials not found.',
+                ' Learn how to set up AWS provider credentials',
+                ` in our docs here: http://slss.io/aws-creds-setup`,
+              ].join('')
+            : bottomError.message
+          message = errorMessage
+          // We do not want to trigger the retry mechanism for credential errors
+          throw Object.assign(
+            new ServerlessError(errorMessage, 'AWS_CREDENTIALS_NOT_FOUND'),
+            {
+              providerError: Object.assign({}, err, { retryable: false }),
+            },
+          )
+        }
+        const providerErrorCodeExtension = (() => {
+          if (!err.code) return 'ERROR'
+          if (typeof err.code === 'number') return `HTTP_${err.code}_ERROR`
+          return normalizeErrorCodePostfix(err.code)
+        })()
+        if (err.stack) {
+          log.debug(`${err.stack}\n${'-'.repeat(100)}`)
+        }
+        throw Object.assign(
+          new ServerlessError(
+            message,
+            `AWS_${normalizeErrorCodePostfix(
+              service.name,
+            )}_${normalizeErrorCodePostfix(
+              method,
+            )}_${providerErrorCodeExtension}`,
+          ),
+          {
+            providerError: err,
+            providerErrorCodeExtension,
+          },
+        )
+      }
+    }),
+  )
+  return request
+}
+
+awsRequest.memoized = memoize(awsRequest, {
+  promise: true,
+  normalizer: ([service, method, args]) => {
+    if (!isObject(service)) service = { name: ensureString(service) }
+    return [
+      JSON.stringify(deepSortObjectByKey(service)),
+      method,
+      JSON.stringify(deepSortObjectByKey(args)),
+    ].join('|')
+  },
+})
+
+export default awsRequest

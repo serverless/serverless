@@ -1,0 +1,21 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+provider:
+  name: aws
+  region: us-east-1
+  environment:
+    ENV_VAR: ssm-value
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ssm-value test
+    description: ssm-value ssm-value
+    attr1:
+      num: 1
+      str: secret
+      arr:
+        - true
+        - false

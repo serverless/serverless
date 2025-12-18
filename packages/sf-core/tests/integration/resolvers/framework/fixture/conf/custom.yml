@@ -1,0 +1,12 @@
+template:
+  queueCustom{{i.logicalName}}:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: queue{{i.name}}
+foreachParams:
+  - name: Bob${sls:stage}
+    logicalName: Bob
+  - name: Alice${sls:stage}
+    logicalName: Alice
+ssm-value: ${ssm:/resolvers/${self:custom.param-name}}
+param-name: object-secure-param

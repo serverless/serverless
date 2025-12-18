@@ -1,0 +1,11 @@
+service: legacy-bucket-direct-yml
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  deploymentMethod: direct
+  enableLegacyDeploymentBucket: true
+
+functions:
+  hello:
+    handler: handler.hello

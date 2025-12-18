@@ -1,0 +1,20 @@
+state: my-s3-state-resolver
+
+stages:
+  default:
+    resolvers:
+      my-aws-account:
+        type: aws
+        my-s3-state-resolver:
+          type: s3
+          bucketName: serverless-compose-state-bucket-integration-test
+
+services:
+  service-a:
+    path: service-a
+  service-b:
+    path: service-b
+    params:
+      apiUrl: ${service-a.apiUrl}
+  service-c:
+    path: service-c

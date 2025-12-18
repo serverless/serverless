@@ -1,0 +1,17 @@
+service: sls-py-func-level-zip-basic
+
+provider:
+  name: aws
+  runtime: python3.13
+
+custom:
+  pythonRequirements:
+    dockerizePip: false
+    zip: ${env:zip, true}
+    pythonBin: ${env:pythonBin, 'python3.13'}
+
+functions:
+  individualFunction:
+    handler: handler.hello
+    package:
+      individually: true

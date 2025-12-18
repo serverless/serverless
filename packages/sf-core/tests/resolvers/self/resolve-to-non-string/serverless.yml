@@ -1,0 +1,13 @@
+org: serverlesstestaccount
+service: resolvers-self-test
+
+custom:
+  arr: [1, 2, 3]
+  num: 123
+  bool: true
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${self:service}
+    description: test-${self:custom.arr}-${self:custom.num}-${self:custom.bool}

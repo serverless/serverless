@@ -1,0 +1,17 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+functions:
+  hello:
+    handler: handler.hello
+
+    #   when default export is not a function, provided key is used as named export to get the value
+    #   named export can be a function or an object (prefix is a function in this case and suffix is an object)
+    name: ${file(bar.js):prefix}-hello-${file(bar.js):suffix}
+
+    #   when default export is a function, provided keys in variable are used as keys in the object returned by the function
+    description: ${file(foo.js):prefix}-${file(foo.js):suffix}
+
+    #   if no key is provided, the whole object from the default export is returned
+    field: ${file(foo.js)}

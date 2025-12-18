@@ -1,0 +1,7 @@
+org: serverlesstestaccount
+service: resolvers-self-test
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${env:ENV_VAR_WITH_PLACEHOLDER}

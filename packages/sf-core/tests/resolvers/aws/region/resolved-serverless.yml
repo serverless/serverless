@@ -1,0 +1,13 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-aws-test
+
+provider:
+  name: aws
+  region: eu-west-1
+
+functions:
+  hello:
+    handler: handler.hello
+    name: foo-hello-bar
+    description: !Sub eu-west-1${AWS::Partition}

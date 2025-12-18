@@ -1,0 +1,14 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-aws-test
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: us-west-2
+
+functions:
+  hello:
+    handler: handler.hello
+    name: foo-hello-bar
+    description: '762003938904 us-west-2'

@@ -1,0 +1,23 @@
+service: sls-py-func-level-override
+
+provider:
+  name: aws
+  runtime: python3.13
+
+package:
+  individually: false  # Explicit service-level setting
+
+custom:
+  pythonRequirements:
+    dockerizePip: false
+    pythonBin: ${env:pythonBin, 'python3.13'}
+
+functions:
+  individualFunction:
+    handler: handler_individual.hello
+    package:
+      individually: true  # Override service-level setting
+
+  sharedFunction:
+    handler: handler_shared.hello
+    # No function-level setting, uses service-level (false)

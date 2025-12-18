@@ -1,0 +1,39 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-output-test
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  region: us-east-1
+
+params:
+  prod:
+    param1: ${output:resolvers-output-producer.obj.} # shouldn't try to resolve this malformed variable if stage is not prod
+
+functions:
+  hello:
+    handler: handler.hello
+    name: string-value
+    description: '42'
+    env:
+      foo: bar
+    subKey: bar
+    fromOtherApp:
+      url: https://z3r3p8owng.execute-api.us-east-1.amazonaws.com
+      key1: value1
+    skipApp: string-value
+    skipStage: string-value
+    skipRegion: string-value
+    skipAppStage: string-value
+    skipAppRegion: string-value
+    skipStageRegion: string-value
+    skipAppStageRegion: string-value
+    fullWithVariables: string-value
+    skipAppWithVariables: string-value
+    skipStageWithVariables: string-value
+    skipRegionWithVariables: string-value
+    skipAppStageWithVariables: string-value
+    skipAppRegionWithVariables: string-value
+    skipStageRegionWithVariables: string-value
+    skipAppStageRegionWithVariables: string-value

@@ -1,0 +1,59 @@
+org: serverlesstestaccount
+service: resolvers-file-test
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  role: arn:aws:iam::XXX:/role/XXX
+  environment:
+    TZ: XXX
+    EnvironmentVariable1: XXX
+    EnvironmentVariable2: XXX
+  test:
+    - key1: val1
+      key2: obj
+
+obj:
+  key1: val1
+  key2: obj
+
+text: obj
+
+custom:
+  Dev:
+    EnvironmentVariable1Val: XXX
+    EnvironmentVariable2Val: XXX
+    apiSecurityGroupIds:
+      - sg-xxxxxxxxx
+    apiSubnetIds:
+      - subnet-xxxxxx0
+      - subnet-xxxxxx1
+
+functions:
+  - function1:
+      handler: index.handler
+      vpc:
+        securityGroupIds:
+          - sg-xxxxxxxxx
+        subnetIds:
+          - subnet-xxxxxx0
+          - subnet-xxxxxx1
+    function2:
+      handler: index.handler
+      vpc:
+        securityGroupIds:
+          - sg-xxxxxxxxx
+        subnetIds:
+          - subnet-xxxxxx0
+          - subnet-xxxxxx1
+    StepfunctionsAAAA:
+      handler: index.handler
+      environment:
+        stateMachineBBBBARN:
+          Ref: StateMachineBBBB
+
+stepFunctions:
+  stateMachines:
+    BBBB:
+      name: StateMachineBBBB

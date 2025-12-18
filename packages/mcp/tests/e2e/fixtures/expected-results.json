@@ -1,0 +1,454 @@
+{
+  "summary": {
+    "totalErrors": 32,
+    "uniqueErrorGroups": 23,
+    "timeRange": {
+      "start": "2025-04-09T00:00:00.000Z",
+      "end": "2025-04-09T17:10:27.913Z"
+    }
+  },
+  "errorGroups": [
+    {
+      "id": "error-group-syntax1",
+      "pattern": "SyntaxError: Unexpected token '}'",
+      "count": 1,
+      "examples": [
+        "SyntaxError: Unexpected token '}'"
+      ],
+      "patternId": "0049b7747137bc085d569b96a81661c8",
+      "regexString": "\\QSyntaxError: Unexpected token '}'\\E",
+      "ratio": 0.07,
+      "relatedPatterns": [
+        "013b6a5cb03aa59d9fcc11cce2122507",
+        "bc778ae8439733c1e38a6d16a77dc984",
+        "56d010045edbe1cfa157c066e3a324f7",
+        "4c6b457ceacc6940ed3e5d34e69e74ca",
+        "7ecb9e1506938875f66688ee60c510db"
+      ],
+      "severityLabel": "NONE"
+    },
+    {
+      "id": "error-group-syntax2",
+      "pattern": "SyntaxError: Unexpected token '}' at line <*>",
+      "count": 1,
+      "examples": [
+        "SyntaxError: Unexpected token '}' at line 42"
+      ],
+      "patternId": "75a85f39a9a5715cc2c8a45e114c554a",
+      "regexString": "\\QSyntaxError: Unexpected token '}' at line \\E.*",
+      "ratio": 0.07,
+      "relatedPatterns": [
+        "7ecb9e1506938875f66688ee60c510db",
+        "013b6a5cb03aa59d9fcc11cce2122507",
+        "bc778ae8439733c1e38a6d16a77dc984",
+        "56d010045edbe1cfa157c066e3a324f7",
+        "4c6b457ceacc6940ed3e5d34e69e74ca"
+      ],
+      "severityLabel": "NONE"
+    },
+    {
+      "id": "error-group-syntax3",
+      "pattern": "SyntaxError: Unexpected token '}' in JSON at position <*>",
+      "count": 1,
+      "examples": [
+        "SyntaxError: Unexpected token '}' in JSON at position 217"
+      ],
+      "patternId": "56d010045edbe1cfa157c066e3a324f7",
+      "regexString": "\\QSyntaxError: Unexpected token '}' in JSON at position \\E.*",
+      "ratio": 0.07,
+      "relatedPatterns": [
+        "013b6a5cb03aa59d9fcc11cce2122507",
+        "bc778ae8439733c1e38a6d16a77dc984",
+        "4c6b457ceacc6940ed3e5d34e69e74ca",
+        "7ecb9e1506938875f66688ee60c510db",
+        "75a85f39a9a5715cc2c8a45e114c554a"
+      ],
+      "severityLabel": "NONE"
+    },
+    {
+      "id": "error-group-1",
+      "pattern": "TypeError: Cannot read property <*> of undefined",
+      "count": 3,
+      "examples": [
+        "TypeError: Cannot read property 'id' of undefined",
+        "TypeError: Cannot read property 'name' of undefined",
+        "TypeError: Cannot read property 'address' of undefined"
+      ],
+      "patternId": "013b6a5cb03aa59d9fcc11cce2122507",
+      "regexString": "\\QTypeError: Cannot read property \\E.*\\Q of undefined\\E",
+      "ratio": 0.25,
+      "relatedPatterns": [
+        "75a85f39a9a5715cc2c8a45e114c554a",
+        "7ecb9e1506938875f66688ee60c510db",
+        "4c6b457ceacc6940ed3e5d34e69e74ca",
+        "b5ab2abe6a27704feba4b291af274c8d",
+        "3c1d89589bf60ffcab54103b15468306"
+      ],
+      "severityLabel": "NONE"
+    },
+    {
+      "id": "error-group-2",
+      "pattern": "ERROR: Connection timeout to database at <*>",
+      "count": 2,
+      "examples": [
+        "ERROR: Connection timeout to database at 10.0.0.1",
+        "ERROR: Connection timeout to database at 10.0.0.2"
+      ],
+      "patternId": "7ecb9e1506938875f66688ee60c510db",
+      "regexString": "\\QERROR: Connection timeout to database at \\E.*",
+      "ratio": 0.17,
+      "relatedPatterns": [
+        "75a85f39a9a5715cc2c8a45e114c554a",
+        "4c6b457ceacc6940ed3e5d34e69e74ca",
+        "013b6a5cb03aa59d9fcc11cce2122507",
+        "b5ab2abe6a27704feba4b291af274c8d",
+        "3c1d89589bf60ffcab54103b15468306"
+      ],
+      "severityLabel": "ERROR"
+    },
+    {
+      "id": "error-group-3",
+      "pattern": "ERROR: Invalid input parameter: <*>",
+      "count": 2,
+      "examples": [
+        "ERROR: Invalid input parameter: user-id-123",
+        "ERROR: Invalid input parameter: user-id-456"
+      ],
+      "patternId": "4c6b457ceacc6940ed3e5d34e69e74ca",
+      "regexString": "\\QERROR: Invalid input parameter: \\E.*",
+      "ratio": 0.17,
+      "relatedPatterns": [
+        "75a85f39a9a5715cc2c8a45e114c554a",
+        "7ecb9e1506938875f66688ee60c510db",
+        "013b6a5cb03aa59d9fcc11cce2122507",
+        "b5ab2abe6a27704feba4b291af274c8d",
+        "3c1d89589bf60ffcab54103b15468306"
+      ],
+      "severityLabel": "ERROR"
+    },
+    {
+      "id": "error-group-4",
+      "pattern": "TypeError: Cannot read properties of undefined (reading <*>)",
+      "count": 2,
+      "examples": [
+        "TypeError: Cannot read properties of undefined (reading 'name')",
+        "TypeError: Cannot read properties of undefined (reading 'email')"
+      ],
+      "patternId": "75a85f39a9a5715cc2c8a45e114c554a",
+      "regexString": "\\QTypeError: Cannot read properties of undefined (reading \\E.*\\Q)\\E",
+      "ratio": 0.17,
+      "relatedPatterns": [
+        "7ecb9e1506938875f66688ee60c510db",
+        "4c6b457ceacc6940ed3e5d34e69e74ca",
+        "013b6a5cb03aa59d9fcc11cce2122507",
+        "b5ab2abe6a27704feba4b291af274c8d",
+        "3c1d89589bf60ffcab54103b15468306"
+      ],
+      "severityLabel": "NONE"
+    },
+    {
+      "id": "error-group-5",
+      "pattern": "ReferenceError: options is not defined",
+      "count": 1,
+      "examples": [
+        "ReferenceError: options is not defined"
+      ],
+      "patternId": "b5ab2abe6a27704feba4b291af274c8d",
+      "regexString": "\\QReferenceError: options is not defined\\E",
+      "ratio": 0.08,
+      "relatedPatterns": [
+        "75a85f39a9a5715cc2c8a45e114c554a",
+        "7ecb9e1506938875f66688ee60c510db",
+        "4c6b457ceacc6940ed3e5d34e69e74ca",
+        "013b6a5cb03aa59d9fcc11cce2122507",
+        "3c1d89589bf60ffcab54103b15468306"
+      ],
+      "severityLabel": "NONE"
+    },
+    {
+      "id": "error-group-6",
+      "pattern": "ReferenceError: settings is not defined",
+      "count": 1,
+      "examples": [
+        "ReferenceError: settings is not defined"
+      ],
+      "patternId": "3c1d89589bf60ffcab54103b15468306",
+      "regexString": "\\QReferenceError: settings is not defined\\E",
+      "ratio": 0.08,
+      "relatedPatterns": [
+        "75a85f39a9a5715cc2c8a45e114c554a",
+        "7ecb9e1506938875f66688ee60c510db",
+        "4c6b457ceacc6940ed3e5d34e69e74ca",
+        "013b6a5cb03aa59d9fcc11cce2122507",
+        "b5ab2abe6a27704feba4b291af274c8d"
+      ],
+      "severityLabel": "NONE"
+    },
+    {
+      "id": "error-group-7",
+      "pattern": "ReferenceError: config is not defined",
+      "count": 1,
+      "examples": [
+        "ReferenceError: config is not defined"
+      ],
+      "patternId": "a5429cb5739e1f471e81f52526a30afb",
+      "regexString": "\\QReferenceError: config is not defined\\E",
+      "ratio": 0.08,
+      "relatedPatterns": [
+        "75a85f39a9a5715cc2c8a45e114c554a",
+        "7ecb9e1506938875f66688ee60c510db",
+        "4c6b457ceacc6940ed3e5d34e69e74ca",
+        "013b6a5cb03aa59d9fcc11cce2122507",
+        "b5ab2abe6a27704feba4b291af274c8d"
+      ],
+      "severityLabel": "NONE"
+    },
+    {
+      "id": "error-group-range",
+      "pattern": "RangeError: Maximum call stack size exceeded",
+      "count": 1,
+      "examples": [
+        "RangeError: Maximum call stack size exceeded"
+      ],
+      "patternId": "bc778ae8439733c1e38a6d16a77dc984",
+      "regexString": "\\QRangeError: Maximum call stack size exceeded\\E",
+      "ratio": 0.05,
+      "relatedPatterns": [
+        "013b6a5cb03aa59d9fcc11cce2122507",
+        "4c6b457ceacc6940ed3e5d34e69e74ca",
+        "75a85f39a9a5715cc2c8a45e114c554a",
+        "7ecb9e1506938875f66688ee60c510db",
+        "56d010045edbe1cfa157c066e3a324f7"
+      ],
+      "severityLabel": "NONE"
+    },
+    {
+      "id": "error-group-http",
+      "pattern": "Error: Request failed with status code <*>",
+      "count": 3,
+      "examples": [
+        "Error: Request failed with status code 404",
+        "Error: Request failed with status code 500",
+        "Error: Request failed with status code 403"
+      ],
+      "patternId": "8433b3d1671dd9742247536952b1d751",
+      "regexString": "\\QError: Request failed with status code \\E.*",
+      "ratio": 0.12,
+      "relatedPatterns": [
+        "4e475125190dda54ff9d3edcbc4c3a04",
+        "11d1f68f169d22740ba569e2a978b213",
+        "c9171ca2e1b49c966924d48eb0478965",
+        "75a85f39a9a5715cc2c8a45e114c554a",
+        "013b6a5cb03aa59d9fcc11cce2122507"
+      ],
+      "severityLabel": "ERROR"
+    },
+    {
+      "id": "error-group-promise",
+      "pattern": "UnhandledPromiseRejectionWarning: Error: Connection refused",
+      "count": 1,
+      "examples": [
+        "UnhandledPromiseRejectionWarning: Error: Connection refused"
+      ],
+      "patternId": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
+      "regexString": "\\QUnhandledPromiseRejectionWarning: Error: Connection refused\\E",
+      "ratio": 0.05,
+      "relatedPatterns": [
+        "013b6a5cb03aa59d9fcc11cce2122507",
+        "4c6b457ceacc6940ed3e5d34e69e74ca",
+        "7ecb9e1506938875f66688ee60c510db",
+        "bc778ae8439733c1e38a6d16a77dc984"
+      ],
+      "severityLabel": "ERROR"
+    },
+    {
+      "id": "error-group-type-function",
+      "pattern": "TypeError: object is not a function",
+      "count": 1,
+      "examples": [
+        "TypeError: object is not a function"
+      ],
+      "patternId": "b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2",
+      "regexString": "\\QTypeError: object is not a function\\E",
+      "ratio": 0.05,
+      "relatedPatterns": [
+        "013b6a5cb03aa59d9fcc11cce2122507",
+        "4c6b457ceacc6940ed3e5d34e69e74ca",
+        "8433b3d1671dd9742247536952b1d751",
+        "75a85f39a9a5715cc2c8a45e114c554a"
+      ],
+      "severityLabel": "NONE"
+    },
+    {
+      "id": "error-group-uri-malformed",
+      "pattern": "URIError: URI malformed",
+      "count": 1,
+      "examples": [
+        "URIError: URI malformed"
+      ],
+      "patternId": "f1e2d3c4b5a6f7e8d9c0b1a2f3e4d5c6",
+      "regexString": "\\QURIError: URI malformed\\E",
+      "ratio": 0.05,
+      "relatedPatterns": [
+        "013b6a5cb03aa59d9fcc11cce2122507",
+        "4c6b457ceacc6940ed3e5d34e69e74ca",
+        "8433b3d1671dd9742247536952b1d751",
+        "75a85f39a9a5715cc2c8a45e114c554a"
+      ],
+      "severityLabel": "NONE"
+    },
+    {
+      "id": "error-group-memory-limit",
+      "pattern": "Error: Memory limit exceeded",
+      "count": 1,
+      "examples": [
+        "Error: Memory limit exceeded"
+      ],
+      "patternId": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
+      "regexString": "\\QError: Memory limit exceeded\\E",
+      "ratio": 0.05,
+      "relatedPatterns": [
+        "013b6a5cb03aa59d9fcc11cce2122507",
+        "4c6b457ceacc6940ed3e5d34e69e74ca",
+        "8433b3d1671dd9742247536952b1d751",
+        "75a85f39a9a5715cc2c8a45e114c554a"
+      ],
+      "severityLabel": "ERROR"
+    },
+    {
+      "id": "error-group-access-denied-lambda",
+      "pattern": "AccessDeniedException: User <*> is not authorized to perform lambda:InvokeFunction on resource <*>",
+      "count": 1,
+      "examples": [
+        "AccessDeniedException: User arn:aws:iam::123456789012:user/developer is not authorized to perform lambda:InvokeFunction on resource arn:aws:lambda:us-east-1:123456789012:function:api-prod-getUser"
+      ],
+      "patternId": "11d1f68f169d22740ba569e2a978b213",
+      "regexString": "\\QAccessDeniedException: User \\E.*\\Q is not authorized to perform lambda:InvokeFunction on resource \\E.*",
+      "ratio": 0.04,
+      "relatedPatterns": [
+        "4e475125190dda54ff9d3edcbc4c3a04",
+        "c9171ca2e1b49c966924d48eb0478965",
+        "75a85f39a9a5715cc2c8a45e114c554a",
+        "013b6a5cb03aa59d9fcc11cce2122507",
+        "4c6b457ceacc6940ed3e5d34e69e74ca"
+      ],
+      "severityLabel": "NONE"
+    },
+    {
+      "id": "error-group-access-denied-dynamodb",
+      "pattern": "AccessDeniedException: User <*> is not authorized to perform dynamodb:PutItem on resource <*>",
+      "count": 1,
+      "examples": [
+        "AccessDeniedException: User arn:aws:iam::987654321098:user/admin is not authorized to perform dynamodb:PutItem on resource arn:aws:dynamodb:us-west-2:987654321098:table/users-table-prod"
+      ],
+      "patternId": "c9171ca2e1b49c966924d48eb0478965",
+      "regexString": "\\QAccessDeniedException: User \\E.*\\Q is not authorized to perform dynamodb:PutItem on resource \\E.*",
+      "ratio": 0.04,
+      "relatedPatterns": [
+        "4e475125190dda54ff9d3edcbc4c3a04",
+        "11d1f68f169d22740ba569e2a978b213",
+        "75a85f39a9a5715cc2c8a45e114c554a",
+        "013b6a5cb03aa59d9fcc11cce2122507",
+        "4c6b457ceacc6940ed3e5d34e69e74ca"
+      ],
+      "severityLabel": "NONE"
+    },
+    {
+      "id": "error-group-access-denied-s3",
+      "pattern": "AccessDeniedException: User <*> is not authorized to perform <*>:PutObject on resource <*>",
+      "count": 1,
+      "examples": [
+        "AccessDeniedException: User arn:aws:iam::567890123456:user/service-role is not authorized to perform s3:PutObject on resource arn:aws:s3:::data-bucket-dev/uploads/user-data.json"
+      ],
+      "patternId": "bc778ae8439733c1e38a6d16a77dc984",
+      "regexString": "\\QAccessDeniedException: User \\E.*\\Q is not authorized to perform \\E.*\\Q:PutObject on resource \\E.*",
+      "ratio": 0.04,
+      "relatedPatterns": [
+        "4e475125190dda54ff9d3edcbc4c3a04",
+        "11d1f68f169d22740ba569e2a978b213",
+        "c9171ca2e1b49c966924d48eb0478965",
+        "75a85f39a9a5715cc2c8a45e114c554a",
+        "013b6a5cb03aa59d9fcc11cce2122507"
+      ],
+      "severityLabel": "NONE"
+    },
+    {
+      "id": "error-group-resource-not-found-1",
+      "pattern": "ResourceNotFoundException: Table users-table-dev not found in account <*>",
+      "count": 1,
+      "examples": [
+        "ResourceNotFoundException: Table users-table-dev not found in account 234567890123"
+      ],
+      "patternId": "4e475125190dda54ff9d3edcbc4c3a04",
+      "regexString": "\\QResourceNotFoundException: Table users-table-dev not found in account \\E.*",
+      "ratio": 0.03,
+      "relatedPatterns": [
+        "11d1f68f169d22740ba569e2a978b213",
+        "c9171ca2e1b49c966924d48eb0478965",
+        "7ecb9e1506938875f66688ee60c510db",
+        "4c6b457ceacc6940ed3e5d34e69e74ca",
+        "013b6a5cb03aa59d9fcc11cce2122507"
+      ],
+      "severityLabel": "NONE"
+    },
+    {
+      "id": "error-group-resource-not-found-2",
+      "pattern": "ResourceNotFoundException: Table orders-table-prod not found in account <*>",
+      "count": 1,
+      "examples": [
+        "ResourceNotFoundException: Table orders-table-prod not found in account 345678901234"
+      ],
+      "patternId": "11d1f68f169d22740ba569e2a978b213",
+      "regexString": "\\QResourceNotFoundException: Table orders-table-prod not found in account \\E.*",
+      "ratio": 0.03,
+      "relatedPatterns": [
+        "4e475125190dda54ff9d3edcbc4c3a04",
+        "c9171ca2e1b49c966924d48eb0478965",
+        "7ecb9e1506938875f66688ee60c510db",
+        "4c6b457ceacc6940ed3e5d34e69e74ca",
+        "013b6a5cb03aa59d9fcc11cce2122507"
+      ],
+      "severityLabel": "NONE"
+    },
+    {
+      "id": "error-group-resource-not-found-3",
+      "pattern": "ResourceNotFoundException: Table products-table-staging not found in account <*>",
+      "count": 1,
+      "examples": [
+        "ResourceNotFoundException: Table products-table-staging not found in account 456789012345"
+      ],
+      "patternId": "c9171ca2e1b49c966924d48eb0478965",
+      "regexString": "\\QResourceNotFoundException: Table products-table-staging not found in account \\E.*",
+      "ratio": 0.03,
+      "relatedPatterns": [
+        "4e475125190dda54ff9d3edcbc4c3a04",
+        "11d1f68f169d22740ba569e2a978b213",
+        "7ecb9e1506938875f66688ee60c510db",
+        "4c6b457ceacc6940ed3e5d34e69e74ca",
+        "013b6a5cb03aa59d9fcc11cce2122507"
+      ],
+      "severityLabel": "NONE"
+    },
+    {
+      "id": "error-group-file-not-found",
+      "pattern": "FileNotFoundError: [Errno <*>] No such file or directory: <*>",
+      "count": 3,
+      "examples": [
+        "FileNotFoundError: [Errno 2] No such file or directory: 'config.json'",
+        "FileNotFoundError: [Errno 2] No such file or directory: '/tmp/data.csv'",
+        "FileNotFoundError: [Errno 2] No such file or directory: '/var/log/application.log'"
+      ],
+      "patternId": "2f487e9159058b1de53d0c3527ebc544",
+      "regexString": "\\QFileNotFoundError: [Errno \\E.*\\Q] No such file or directory: \\E.*",
+      "ratio": 0.09,
+      "relatedPatterns": [
+        "4e475125190dda54ff9d3edcbc4c3a04",
+        "11d1f68f169d22740ba569e2a978b213",
+        "c9171ca2e1b49c966924d48eb0478965",
+        "8433b3d1671dd9742247536952b1d751",
+        "75a85f39a9a5715cc2c8a45e114c554a"
+      ],
+      "severityLabel": "NONE"
+    }
+  ]
+}

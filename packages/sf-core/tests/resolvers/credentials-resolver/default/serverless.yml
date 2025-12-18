@@ -1,0 +1,6 @@
+service: resolvers-credentials-test
+
+functions:
+  hello:
+    handler: handler.hello
+    description: ${aws:accountId} ${ssm:/resolvers/credentials/sample-param}

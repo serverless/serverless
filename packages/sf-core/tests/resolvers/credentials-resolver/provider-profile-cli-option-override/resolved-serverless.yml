@@ -1,0 +1,10 @@
+service: resolvers-credentials-test
+
+provider:
+  name: aws
+  profile: acc1
+
+functions:
+  hello:
+    handler: handler.hello
+    description: 377024778620 acc2-value

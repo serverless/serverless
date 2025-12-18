@@ -1,0 +1,142 @@
+{
+  "CREATE_COMPLETE": {
+    "isFinal": true,
+    "type": "success",
+    "color": "green"
+  },
+  "CREATE_IN_PROGRESS": {
+    "isFinal": false,
+    "type": "progress",
+    "color": "yellow"
+  },
+  "CREATE_FAILED": {
+    "isFinal": false,
+    "type": "failure",
+    "color": "red"
+  },
+  "UPDATE_COMPLETE": {
+    "isFinal": true,
+    "type": "success",
+    "color": "green"
+  },
+  "UPDATE_COMPLETE_CLEANUP_IN_PROGRESS": {
+    "isFinal": false,
+    "type": "success",
+    "color": "green"
+  },
+  "UPDATE_IN_PROGRESS": {
+    "isFinal": false,
+    "type": "progress",
+    "color": "yellow"
+  },
+  "UPDATE_FAILED": {
+    "isFinal": false,
+    "type": "failure",
+    "color": "red"
+  },
+  "DELETE_COMPLETE": {
+    "isFinal": true,
+    "type": "success",
+    "color": "red"
+  },
+  "DELETE_IN_PROGRESS": {
+    "isFinal": false,
+    "type": "progress",
+    "color": "red"
+  },
+  "DELETE_FAILED": {
+    "isFinal": false,
+    "type": "failure",
+    "color": "red"
+  },
+  "IMPORT_COMPLETE": {
+    "isFinal": true,
+    "type": "success",
+    "color": "green"
+  },
+  "IMPORT_IN_PROGRESS": {
+    "isFinal": false,
+    "type": "progress",
+    "color": "yellow"
+  },
+  "IMPORT_FAILED": {
+    "isFinal": false,
+    "type": "failure",
+    "color": "red"
+  },
+  "ROLLBACK_COMPLETE": {
+    "isFinal": true,
+    "type": "failure",
+    "color": "red"
+  },
+  "ROLLBACK_IN_PROGRESS": {
+    "isFinal": false,
+    "type": "failure",
+    "color": "red"
+  },
+  "ROLLBACK_FAILED": {
+    "isFinal": false,
+    "type": "failure",
+    "color": "red"
+  },
+  "UPDATE_ROLLBACK_COMPLETE": {
+    "isFinal": true,
+    "type": "failure",
+    "color": "red"
+  },
+  "UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS": {
+    "isFinal": false,
+    "type": "failure",
+    "color": "red"
+  },
+  "UPDATE_ROLLBACK_IN_PROGRESS": {
+    "isFinal": false,
+    "type": "failure",
+    "color": "red"
+  },
+  "UPDATE_ROLLBACK_FAILED": {
+    "isFinal": false,
+    "type": "failure",
+    "color": "red"
+  },
+  "IMPORT_ROLLBACK_COMPLETE": {
+    "isFinal": true,
+    "type": "failure",
+    "color": "red"
+  },
+  "IMPORT_ROLLBACK_IN_PROGRESS": {
+    "isFinal": false,
+    "type": "failure",
+    "color": "red"
+  },
+  "IMPORT_ROLLBACK_FAILED": {
+    "isFinal": false,
+    "type": "failure",
+    "color": "red"
+  },
+  "DELETE_SKIPPED": {
+    "isFinal": true,
+    "type": "success",
+    "color": "green"
+  },
+  "VALIDATION_IN_PROGRESS": {
+    "isFinal": false,
+    "type": "progress",
+    "color": "yellow"
+  },
+  "UP_TO_DATE": {
+    "isFinal": true,
+    "type": "success",
+    "color": "green"
+  },
+  "ERROR": {
+    "isFinal": true,
+    "type": "failure",
+    "color": "red"
+  },
+  "STARTING": {
+    "isFinal": false,
+    "type": "progress",
+    "color": "yellow"
+  }
+}

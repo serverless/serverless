@@ -1,0 +1,12 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+custom:
+  value: sfc-nodejs-resolvers-integration-test.Function1LambdaFunctionQualifiedArn
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${cf(us-east-1):sfc-nodejs-resolvers-integration-test.ServerlessDeploymentBucketName}
+    description: ${cf:${self:custom.value}} ${cf:sfc-nodejs-resolvers-integration-test.ServerlessDeploymentBucketName} ${cf(eu-west-1):sfc-nodejs-resolvers-integration-test.ServerlessDeploymentBucketName}

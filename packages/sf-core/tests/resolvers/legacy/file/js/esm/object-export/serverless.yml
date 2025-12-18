@@ -1,0 +1,15 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+functions:
+  hello:
+    handler: handler.hello
+
+    #   foo.js default export is not a function so it's looking for a named export
+    #   when variable resolves to a string, it can be used standalone or as a part of another string
+    name: ${file(foo.js):prefix}-hello-${file(foo.js):suffix}
+
+    #   no key is provided so it takes the default export, which is an object
+    #   export can resolve to an object, but then variable cannot be part of string property
+    description: ${file(foo.js)}

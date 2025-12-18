@@ -1,0 +1,8 @@
+org: serverlesstestaccount
+service: resolvers-env-test
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${env:FUNC_PREFIX}-hello-${env:variables:FUNC_SUFFIX}
+    description: ${env:DOESNT_EXIST, 'default description'}

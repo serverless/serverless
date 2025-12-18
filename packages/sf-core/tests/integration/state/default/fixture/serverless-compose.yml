@@ -1,0 +1,17 @@
+stages:
+  default:
+    resolvers:
+      compose-resolver:
+        type: aws
+    params:
+      composeParam: compose-param
+
+services:
+  service-a:
+    path: service-a
+  service-b:
+    path: service-b
+    params:
+      apiUrl: ${service-a.apiUrl}
+  service-c:
+    path: service-c

@@ -1,0 +1,9 @@
+{
+  "name": "@serverlessinc/standards",
+  "version": "0.0.1",
+  "main": "index.js",
+  "type": "module",
+  "devDependencies": {
+    "eslint-config-prettier": "^10.1.8"
+  }
+}

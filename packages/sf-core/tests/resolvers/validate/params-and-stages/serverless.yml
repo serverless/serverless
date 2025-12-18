@@ -1,0 +1,15 @@
+org: serverlesstestaccount
+service: resolvers-validate-test
+
+params:
+  default:
+    foo: bar
+
+stages:
+  default:
+    params:
+      foo: bar
+
+functions:
+  hello:
+    handler: handler.hello

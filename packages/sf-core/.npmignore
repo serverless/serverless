@@ -1,0 +1,8 @@
+.devcontainer/
+bin/
+example/
+src/
+tsconfig.json
+scripts/
+dist/binaries/
+tests/

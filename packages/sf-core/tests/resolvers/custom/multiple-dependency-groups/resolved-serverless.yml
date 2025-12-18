@@ -1,0 +1,28 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-custom-test
+stages:
+  default:
+    resolvers:
+      dependent-1-group-2:
+        type: example
+        option1: ssm-value
+      dependent-2-group-2:
+        type: example
+        option1: ssm-value
+      dependent-1-group-3:
+        type: example
+        option1: vault-ssm-value
+      independent-1-group-1:
+        type: aws
+      independent-2-group-1:
+        type: aws
+
+provider:
+  name: aws
+  resolver: independent-2-group-1
+
+functions:
+  hello:
+    handler: handler.hello
+    name: vault-vault-ssm-value

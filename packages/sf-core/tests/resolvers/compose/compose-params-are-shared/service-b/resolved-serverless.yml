@@ -1,0 +1,17 @@
+org: serverlesstestaccount
+service: compose-b
+
+provider:
+  name: aws
+  region: us-east-1
+  stage: dev
+  versionFunctions: true
+
+functions:
+  hello:
+    handler: handler.hello
+    description: vault-value1
+    name: compose-b-dev-hello
+    events: []
+    environment:
+      apiUrl: NOT_AVAILABLE_IN_PRINT_COMMAND

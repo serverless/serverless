@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "poetry"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.13"
+Flask = "3.0.3"
+bottle = {git = "https://git@github.com/bottlepy/bottle.git", tag = "0.13.4"}
+boto3 = "1.40.39"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry"]
+build-backend = "poetry.masonry.api"

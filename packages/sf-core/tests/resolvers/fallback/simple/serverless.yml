@@ -1,0 +1,32 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-fallback-test
+
+provider:
+  name: aws
+  stage: sit
+
+custom:
+  myStage: ${opt:stage, self:provider.stage}
+  myRegion: ${opt:region, 'eu-west-1'}
+  myCfnRole: ${opt:role, false}
+  myLambdaMemory: ${opt:memory, 128}
+  # This is example of default value with comma
+  myArnWithColonAndSingleQuotes: ${opt:arn, 'mongodb+srv//user:asdadasda@mongodb.net/dbname'}
+  myArnWithColonAndDoubleQuotes: ${opt:arn, "mongodb+srv//user:asdadasda@mongodb.net/dbname"}
+  selfReference: ${self:custom.nonExisting, self:custom.myRegion}
+  ssmValue: ${ssm:nonExisting, 'default-ssm-value'}
+  cfValue: ${cf:nonExisting, cf:sfc-nodejs-resolvers-integration-test.nonExisting, 'default-cf-value'}
+  s3Value: ${s3:resolvers-integration-test/nonExisting, 'default-s3-value'}
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${opt:stage, env:MISSING_ENV_VAR, 'default-value'}
+    description: ${opt:stage, env:MISSING_ENV_VAR, false}
+    attr1: ${opt:stage, env:MISSING_ENV_VAR, 123}
+    attr2: ${opt:stage, env:MISSING_ENV_VAR, '123'}
+    attr3: ${opt:stage, env:MISSING_ENV_VAR, "123"}
+    attr4: ${opt:stage, env:MISSING_ENV_VAR, "false"}
+    attr5: ${opt:stage, env:EXISTING_ENV_VAR, "false"}
+    attr6: ${opt:stage, 'foobar'}

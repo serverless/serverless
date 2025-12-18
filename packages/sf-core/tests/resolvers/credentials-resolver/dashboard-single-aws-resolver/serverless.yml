@@ -1,0 +1,14 @@
+service: resolvers-credentials-test
+org: serverlesstestaccount
+app: resolvers-integration-test
+
+stages:
+  default:
+    resolvers:
+      aws-acc2:
+        type: aws
+
+functions:
+  hello:
+    handler: handler.hello
+    description: ${aws:accountId} ${ssm:/resolvers/credentials/sample-param}

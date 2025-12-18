@@ -1,5 +1,0 @@
-{
-  "dependencies": {
-    "amqplib": "^0.8.0"
-  }
-}

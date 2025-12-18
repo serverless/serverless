@@ -1,0 +1,50 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Simple SAM template for integration testing",
+  "Transform": "AWS::Serverless-2016-10-31",
+  "Parameters": {
+    "Foo": {
+      "Type": "String",
+      "Description": "Test parameter to ensure parameters are read from samconfig.toml"
+    }
+  },
+  "Globals": {
+    "Function": {
+      "CodeUri": ".",
+      "Runtime": "nodejs16.x",
+      "MemorySize": 128,
+      "Timeout": 100,
+      "Environment": {
+        "Variables": {
+          "TEST_ENV": "9749"
+        }
+      }
+    }
+  },
+  "Resources": {
+    "getAllItemsFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "get.handler",
+        "Description": "get test env var value",
+        "Events": {
+          "Api": {
+            "Type": "HttpApi",
+            "Properties": {
+              "Path": "/",
+              "Method": "GET"
+            }
+          }
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "WebEndpoint": {
+      "Description": "API Gateway endpoint URL for Prod stage",
+      "Value": {
+        "Fn::Sub": "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+      }
+    }
+  }
+}

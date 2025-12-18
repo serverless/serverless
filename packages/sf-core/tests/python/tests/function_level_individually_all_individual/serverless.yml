@@ -1,0 +1,25 @@
+service: sls-py-func-level-all-indiv
+
+provider:
+  name: aws
+  runtime: python3.13
+  region: us-east-1
+  stage: dev
+
+custom:
+  pythonRequirements:
+    dockerizePip: false
+    pythonBin: ${env:pythonBin, 'python3.13'}
+
+functions:
+  function1:
+    handler: module1/handler1.hello
+    module: module1
+    package:
+      individually: true
+
+  function2:
+    handler: module2/handler2.hello
+    module: module2
+    package:
+      individually: true

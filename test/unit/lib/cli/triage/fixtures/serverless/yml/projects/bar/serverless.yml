@@ -1,3 +1,0 @@
-service: foo
-provider:
-  name: any

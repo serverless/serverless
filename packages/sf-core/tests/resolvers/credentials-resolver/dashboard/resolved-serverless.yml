@@ -1,0 +1,8 @@
+service: resolvers-credentials-test
+org: serverlesstestaccount
+app: resolvers-integration-test
+
+functions:
+  hello:
+    handler: handler.hello
+    description: 762003938904 acc3-value

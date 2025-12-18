@@ -1,0 +1,20 @@
+service: sls-py-func-level-slim
+
+provider:
+  name: aws
+  runtime: python3.13
+
+custom:
+  pythonRequirements:
+    dockerizePip: false
+    slim: ${env:slim, true}
+    pythonBin: ${env:pythonBin, 'python3.13'}
+
+functions:
+  individualFunction:
+    handler: handler_individual.hello
+    package:
+      individually: true
+
+  sharedFunction:
+    handler: handler_shared.hello

@@ -1,6 +1,0 @@
-{
-  "service": "json-service",
-  "provider": "json-provider",
-  "configValidationMode": "error",
-  "frameworkVersion": "*"
-}

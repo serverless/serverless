@@ -1,4 +1,0 @@
-service: 'yaml-service'
-provider: 'yaml-provider'
-configValidationMode: error
-frameworkVersion: '*'

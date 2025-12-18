@@ -1,0 +1,5 @@
+{
+  "service": "resolvers",
+  "region": "us-east-1",
+  "frameworkVersion": "4"
+}

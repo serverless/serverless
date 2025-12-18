@@ -1,0 +1,9 @@
+service: esbuild-type-module
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+
+functions:
+  hello:
+    handler: hello.handler

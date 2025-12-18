@@ -1,0 +1,8 @@
+org: serverlesstestaccount
+service: resolvers-git-test
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${git:describe}-${git:describeLight}-${git:sha1}-${git:commit}-${git:branch}-${git:message}-${git:messageSubject}
+    description: ${git:messageBody} ${git:user} ${git:email} ${git:isDirty} ${git:repository} ${git:tags}

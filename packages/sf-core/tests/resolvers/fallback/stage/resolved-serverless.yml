@@ -1,0 +1,17 @@
+org: serverlesstestaccount
+service: resolvers-fallback-test
+
+provider:
+  stage: john
+
+stages:
+  john:
+    resolvers:
+      resolver-1:
+        type: example
+        option1: foo
+
+functions:
+  hello:
+    handler: handler.hello
+    description: vault-foo john

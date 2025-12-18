@@ -1,4 +1,0 @@
-service: 'yml-service'
-provider: 'yml-provider'
-configValidationMode: error
-frameworkVersion: '*'

@@ -1,0 +1,43 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Transform": "AWS::Serverless-2016-10-31",
+  "Globals": {
+    "Function": {
+      "CodeUri": ".",
+      "Runtime": "nodejs16.x",
+      "MemorySize": 128,
+      "Timeout": 100,
+      "Environment": {
+        "Variables": {
+          "TEST_ENV": "7982"
+        }
+      }
+    }
+  },
+  "Resources": {
+    "getAllItemsFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "handler.handler",
+        "Description": "get test env var value",
+        "Events": {
+          "Api": {
+            "Type": "HttpApi",
+            "Properties": {
+              "Path": "/",
+              "Method": "GET"
+            }
+          }
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "Endpoint": {
+      "Description": "API Gateway endpoint URL for Prod stage",
+      "Value": {
+        "Fn::Sub": "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+      }
+    }
+  }
+}

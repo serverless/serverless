@@ -1,0 +1,32 @@
+org: serverlesstestaccount
+service: resolvers-file-test
+
+functions:
+  hello:
+    handler: handler.hello
+
+resources:
+  - Resources:
+      MyDynamoDBTable:
+        Type: AWS::DynamoDB::Table
+        Properties:
+          TableName: MyConditionalTable
+          AttributeDefinitions:
+            - AttributeName: id
+              AttributeType: S
+          KeySchema:
+            - AttributeName: id
+              KeyType: HASH
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+  - Resources:
+      MyS3Bucket:
+        Type: AWS::S3::Bucket
+        Properties:
+          BucketName: !Sub 'my-s3-bucket'
+          VersioningConfiguration:
+            Status: Enabled
+          Tags:
+            - Key: Name
+              Value: !Sub 'my-s3-bucket'

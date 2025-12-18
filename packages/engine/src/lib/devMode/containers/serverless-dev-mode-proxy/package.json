@@ -1,0 +1,13 @@
+{
+  "name": "serverless-containers-dev-mode-proxy",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Local proxy server for development mode",
+  "main": "main.js",
+  "engines": {
+    "node": ">=23.6.1"
+  },
+  "scripts": {
+    "start": "node main.js"
+  }
+}

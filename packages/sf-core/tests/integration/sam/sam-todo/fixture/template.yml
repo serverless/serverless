@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Simple SAM template for integration testing
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  Foo:
+    Type: String
+    Description: Test parameter to ensure parameters are read from samconfig.toml
+
+Globals:
+  Function:
+    CodeUri: .
+    Runtime: nodejs16.x
+    MemorySize: 128
+    Timeout: 100
+    Environment:
+      Variables:
+        SAMPLE_TABLE: !Ref SampleTable
+
+Resources:
+  getAllItemsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/get-all-items.getAllItemsHandler
+      Description: get all items
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref SampleTable
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: GET
+
+  getByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/get-by-id.getByIdHandler
+      Description: get item by id
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref SampleTable
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            Path: /{id}
+            Method: GET
+
+  putItemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/put-item.putItemHandler
+      Description: put item in ddb table
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SampleTable
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: POST
+
+  SampleTable:
+    Type: AWS::Serverless::SimpleTable
+
+Outputs:
+  WebEndpoint:
+    Description: 'API Gateway endpoint URL for Prod stage'
+    Value: !Sub 'https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com'

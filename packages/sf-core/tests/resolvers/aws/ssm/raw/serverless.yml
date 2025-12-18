@@ -1,0 +1,17 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-legacy-test
+
+stages:
+  default:
+    resolvers:
+      awsAccount1:
+        type: aws
+        rawSsm:
+          type: ssm
+          rawOrDecrypt: raw
+
+functions:
+  hello:
+    handler: handler.hello
+    description: ${awsAccount1:rawSsm:/resolvers/sample-list-param}

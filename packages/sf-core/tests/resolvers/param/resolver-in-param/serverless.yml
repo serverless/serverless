@@ -1,0 +1,18 @@
+org: serverlesstestaccount
+service: resolvers-param-test
+
+stages:
+  default:
+    params:
+      prefix: ${env:FOO}
+      suffix: ${file:data.json#suffix}
+  dev:
+    params: ${file(env.yml):dev}
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${param:prefix}-hello-${param:suffix}
+
+custom:
+  description: ${param:Description}

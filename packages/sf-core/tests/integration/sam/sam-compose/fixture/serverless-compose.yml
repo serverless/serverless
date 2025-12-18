@@ -1,0 +1,7 @@
+services:
+  framework:
+    path: framework
+  sam:
+    path: sam
+    params:
+      frameworkOutput: ${framework.frameworkOutput}

@@ -1,0 +1,19 @@
+service: sls-no-python-service-level
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+
+custom:
+  pythonRequirements: {}
+
+package:
+  individually: true
+
+functions:
+  function1:
+    handler: handler.function1
+
+  function2:
+    handler: handler.function2

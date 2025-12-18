@@ -1,0 +1,24 @@
+{
+  "name": "@serverlessinc/framework-alpha",
+  "version": "4.3.3",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "bin": {
+    "serverless": "./dist/sf-core.js",
+    "sls": "./dist/sf-core.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cloudfront-keyvaluestore": "3.943.0",
+    "@aws-sdk/signature-v4-crt": "3.943.0",
+    "@aws-sdk/signature-v4a": "3.930.0",
+    "ajv": "8.17.1",
+    "ajv-formats": "2.1.1",
+    "esbuild": "0.27.2"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "version": "4.6.2-37363891",
+  "supportedOperatingSystems": [
+    {
+      "os": "Windows_NT",
+      "architecture": "x64",
+      "fileSuffix": "win-x64.exe"
+    },
+    {
+      "os": "Linux",
+      "architecture": "x64",
+      "fileSuffix": "linux-x64"
+    },
+    {
+      "os": "Linux",
+      "architecture": "arm64",
+      "fileSuffix": "linux-arm64"
+    },
+    {
+      "os": "Darwin",
+      "architecture": "x64",
+      "fileSuffix": "macos-x64"
+    },
+    {
+      "os": "Darwin",
+      "architecture": "arm64",
+      "fileSuffix": "macos-arm64"
+    }
+  ]
+}

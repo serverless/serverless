@@ -1,0 +1,112 @@
+export default {
+  widgets: [
+    {
+      title: 'Errors',
+      service: 'lambda',
+      metric: 'errors',
+      display: 'time-series',
+      coordinates: {
+        x: 0,
+        y: 0,
+        width: 8,
+        height: 6,
+      },
+    },
+    {
+      title: 'Errors',
+      service: 'lambda',
+      metric: 'errors',
+      display: 'numbers',
+      coordinates: {
+        x: 8,
+        y: 0,
+        width: 6,
+        height: 6,
+      },
+    },
+    {
+      title: 'Duration',
+      service: 'lambda',
+      metric: 'duration',
+      display: 'time-series',
+      coordinates: {
+        x: 14,
+        y: 0,
+        width: 10,
+        height: 6,
+      },
+    },
+    {
+      title: 'Invocations',
+      service: 'lambda',
+      metric: 'invocations',
+      display: 'time-series',
+      coordinates: {
+        x: 0,
+        y: 6,
+        width: 8,
+        height: 6,
+      },
+    },
+    {
+      title: 'Invocations',
+      service: 'lambda',
+      metric: 'invocations',
+      display: 'numbers',
+      coordinates: {
+        x: 8,
+        y: 6,
+        width: 6,
+        height: 6,
+      },
+    },
+    {
+      title: 'API Requests',
+      service: 'api-gw',
+      metric: 'requests',
+      display: 'time-series',
+      coordinates: {
+        x: 14,
+        y: 6,
+        width: 10,
+        height: 6,
+      },
+    },
+    {
+      title: 'Throttles',
+      service: 'lambda',
+      metric: 'throttles',
+      display: 'time-series',
+      coordinates: {
+        x: 0,
+        y: 12,
+        width: 8,
+        height: 6,
+      },
+    },
+    {
+      title: 'Throttles',
+      service: 'lambda',
+      metric: 'throttles',
+      display: 'numbers',
+      coordinates: {
+        x: 8,
+        y: 12,
+        width: 6,
+        height: 6,
+      },
+    },
+    {
+      title: 'API Latency',
+      service: 'api-gw',
+      metric: 'latency',
+      display: 'time-series',
+      coordinates: {
+        x: 14,
+        y: 12,
+        width: 10,
+        height: 6,
+      },
+    },
+  ],
+}

@@ -1,0 +1,5 @@
+prefix: foo
+suffix: bar
+myevents:
+  - schedule:
+      rate: rate(1 minute)

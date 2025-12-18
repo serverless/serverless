@@ -1,0 +1,11 @@
+service: sfc-python
+
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  runtime: python3.11
+
+functions:
+  hello:
+    handler: handler.hello

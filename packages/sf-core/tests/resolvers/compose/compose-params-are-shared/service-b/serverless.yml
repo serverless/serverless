@@ -1,0 +1,9 @@
+org: serverlesstestaccount
+service: compose-b
+
+functions:
+  hello:
+    handler: handler.hello
+    description: ${param:compose-param}
+    environment:
+      apiUrl: ${param:apiUrl}

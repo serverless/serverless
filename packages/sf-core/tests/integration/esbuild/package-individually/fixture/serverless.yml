@@ -1,0 +1,14 @@
+service: esbuild-pi
+
+package:
+  individually: true
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+
+functions:
+  hello:
+    handler: src/hello.handler
+  hello2:
+    handler: src/hello2.handler

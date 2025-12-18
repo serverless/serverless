@@ -1,5 +1,0 @@
-service: 'some-aws-service'
-provider: 'aws'
-
-org: 'testinteractivecli'
-app: 'not-created-app'

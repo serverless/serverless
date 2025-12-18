@@ -1,5 +1,0 @@
-{
-  "dependencies": {
-    "kafkajs": "^1.13.0"
-  }
-}

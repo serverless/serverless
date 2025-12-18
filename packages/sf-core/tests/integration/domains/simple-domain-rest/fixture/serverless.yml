@@ -1,0 +1,14 @@
+service: domains-simple-domain-rest
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  domain: rest.sls-domains-tests.click
+
+functions:
+  hello:
+    handler: src/hello.handler
+    events:
+      - http:
+          path: /
+          method: get

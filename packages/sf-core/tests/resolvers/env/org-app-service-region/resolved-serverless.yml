@@ -1,0 +1,11 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-env-test
+
+provider:
+  name: aws
+  region: us-east-1
+
+functions:
+  hello:
+    handler: handler.hello

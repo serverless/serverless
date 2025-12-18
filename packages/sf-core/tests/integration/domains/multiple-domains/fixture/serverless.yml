@@ -1,0 +1,16 @@
+service: domains-multiple-domains
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  domains:
+    - multiple-domains-1.sls-domains-tests.click
+    - multiple-domains-2.sls-domains-tests.click
+
+functions:
+  hello:
+    handler: src/hello.handler
+    events:
+      - httpApi:
+          path: /
+          method: get

@@ -1,0 +1,9 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-nested-test
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${env:${env:NESTED}} ${env:${env:NON_EXISTING, self:service}} ${env:${env:NON_EXISTING, 'ROOT'}}
+    description: ${env:${opt:stage}_arn}

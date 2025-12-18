@@ -1,0 +1,8 @@
+service: resolvers-env-test
+org: serverlesstestaccount
+
+functions:
+  hello:
+    handler: handler.hello
+    name: foo-hello-bar
+    description: stage-value system-value

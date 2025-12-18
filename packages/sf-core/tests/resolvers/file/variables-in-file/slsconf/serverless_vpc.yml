@@ -1,0 +1,2 @@
+securityGroupIds: ${self:custom.${opt:stage, self:provider.stage}.apiSecurityGroupIds}
+subnetIds: ${self:custom.${opt:stage, self:provider.stage}.apiSubnetIds}

@@ -1,0 +1,24 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-custom-test
+stages:
+  default:
+    params:
+      local-param: local-value
+    resolvers:
+      resolver-1:
+        type: example
+        option1: ssm-value ssm-value
+        option2: ssm-value
+      resolver-2:
+        type: aws
+  dev:
+    resolvers:
+      resolver-1:
+        type: example
+        option1: hardcoded
+functions:
+  hello:
+    handler: handler.hello
+    name: vault-hardcoded
+    description: local-value dashboard-value
