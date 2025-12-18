@@ -1,0 +1,43 @@
+name: "Release: Binary Installer"
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: ./binary-installer
+
+jobs:
+  release-installer-binary:
+    name: "Release: Binary Installer"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout Code"
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - name: "Setup: Go"
+        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
+        with:
+          go-version: '>=1.25'
+          cache-dependency-path: binary-installer/go.sum
+      - name: "Setup: AWS Credentials"
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        with:
+          role-to-assume: arn:aws:iam::802587217904:role/GithubActionsDeploymentRole
+          aws-region: us-east-1
+      - name: "Test: Unit"
+        run: make test
+      - name: "Build: Production"
+        run: make build-prod
+      - name: "Release: Install Script"
+        run: |
+          aws s3 cp ./install.sh s3://install.serverless.com/install.sh
+      - name: "Release: Binaries"
+        run: |
+          aws s3 cp --recursive ./dist/prod s3://install.serverless.com/installer-builds/
+      - name: "Release: Invalidate Cache"
+        run: |
+          aws cloudfront create-invalidation --distribution-id E3OEL4OJF1G5FG --paths "/install.sh" "/installer-builds/*"
