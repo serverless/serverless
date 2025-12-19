@@ -11,7 +11,7 @@ on:
     paths:
       - '.github/workflows/ci-python.yml'
       - 'packages/serverless/lib/plugins/python/**'
-      - 'packages/sf-core/tests/python'
+      - 'packages/sf-core/tests/python/**'
 
 jobs:
   test-python:
