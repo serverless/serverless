@@ -1992,25 +1992,36 @@ class AwsProvider {
                   additionalProperties: false,
                 },
               },
+              // Consolidated pattern to support both Resource names and Fn::ForEach macros
+              // This is necessary because json-schema-to-typescript (used in @serverless/typescript repo) has a limitation where it only supports a single patternProperty
+              // See: https://github.com/bcherny/json-schema-to-typescript/pull/144
               patternProperties: {
-                '^[a-zA-Z0-9]{1,255}$': {
-                  type: 'object',
-                  properties: {
-                    Type: { type: 'string' },
-                    Properties: { type: 'object' },
-                    CreationPolicy: { type: 'object' },
-                    DeletionPolicy: { type: 'string' },
-                    DependsOn: { $ref: '#/definitions/awsResourceDependsOn' },
-                    Metadata: { type: 'object' },
-                    UpdatePolicy: { type: 'object' },
-                    UpdateReplacePolicy: { type: 'string' },
-                    Condition: { $ref: '#/definitions/awsResourceCondition' },
-                  },
-                  required: ['Type'],
-                  additionalProperties: false,
-                },
-                '^Fn::ForEach::[a-zA-Z0-9]+$': {
-                  $ref: '#/definitions/awsCfForEach',
+                '^([a-zA-Z0-9]{1,255}|Fn::ForEach::[a-zA-Z0-9]+)$': {
+                  oneOf: [
+                    {
+                      type: 'object',
+                      properties: {
+                        Type: { type: 'string' },
+                        Properties: { type: 'object' },
+                        CreationPolicy: { type: 'object' },
+                        DeletionPolicy: { type: 'string' },
+                        DependsOn: {
+                          $ref: '#/definitions/awsResourceDependsOn',
+                        },
+                        Metadata: { type: 'object' },
+                        UpdatePolicy: { type: 'object' },
+                        UpdateReplacePolicy: { type: 'string' },
+                        Condition: {
+                          $ref: '#/definitions/awsResourceCondition',
+                        },
+                      },
+                      required: ['Type'],
+                      additionalProperties: false,
+                    },
+                    {
+                      $ref: '#/definitions/awsCfForEach',
+                    },
+                  ],
                 },
               },
               additionalProperties: false,
