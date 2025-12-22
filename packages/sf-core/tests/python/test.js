@@ -87,6 +87,7 @@ const mkCommand =
 const sls = mkCommand('sls')
 const git = mkCommand('git')
 const perl = mkCommand('perl')
+const npm = mkCommand('npm')
 
 const setup = () => {
   removeSync(getUserCachePath())
@@ -279,6 +280,7 @@ test('py3.13 packages have the same hash', async (t) => {
 
 test('mixed runtimes - shared packaging (no individually)', async (t) => {
   process.chdir('tests/mixed_runtime_shared')
+  npm(['install'])
   sls(['package'], { env: { pythonBin: getPythonBin(3) } })
 
   // Verify NO individual function zips created (shared packaging)
