@@ -19,8 +19,7 @@ jobs:
   test-engine:
     name: "Test: Engine"
     if: ${{ !github.event.pull_request.draft }}
-    runs-on:
-      group: "Github Linux Runners"
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./packages/engine
@@ -42,8 +41,7 @@ jobs:
   test-framework:
     name: "Test: Framework"
     if: ${{ !github.event.pull_request.draft }}
-    runs-on:
-      group: "Github Linux Runners"
+    runs-on: ubuntu-latest
     steps:
       - name: "Checkout Code"
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -53,7 +51,6 @@ jobs:
           node-version: 24.x
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
-          # Defaults to the user or organization that owns the workflow file
           scope: '@serverlessinc'
       - name: "Setup: AWS Credentials"
         uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1

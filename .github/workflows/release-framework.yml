@@ -46,19 +46,11 @@ jobs:
       fail-fast: false # Continue running jobs even if one or more jobs in the matrix fail
       matrix:
         group:
-          - 'latest'
-          - 'latest-arm-linux'
-          - 'gh-windows-latest'
-          # - 'macos-latest'
-        # group:
-        #   - 'Mac Runners'
-        #   - 'Github ARM Linux Runners'
-        #   # - "Linux ARM64 Runners"
-        #   - 'Github Linux Runners'
-        #   - 'Github Windows Runners'
+          - latest
+          - latest-arm-linux
+          - gh-windows-latest
     runs-on:
       ${{ matrix.group }}
-    # group: ${{ matrix.group }}
     steps:
       - name: "Checkout Code"
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -68,7 +60,6 @@ jobs:
           node-version: 24.x
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
-          # Defaults to the user or organization that owns the workflow file
           scope: '@serverlessinc'
       - name: "Setup: AWS Credentials"
         uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
@@ -102,7 +93,7 @@ jobs:
     name: "Release: Canary & Tag"
     needs: [ test-matrix, test-engine ]
     runs-on:
-      group: "Github Linux Runners"
+      group: latest
     outputs:
       new_version: ${{ steps.tag_if_new_version.outputs.new_version }}
     steps:
@@ -116,7 +107,6 @@ jobs:
           node-version: 24.x
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
-          # Defaults to the user or organization that owns the workflow file
           scope: '@serverlessinc'
       - name: "Install: Dependencies"
         run: |
@@ -157,7 +147,7 @@ jobs:
     needs: release-canary
     if: needs.release-canary.outputs.new_version
     runs-on:
-      group: "Github Linux Runners"
+      group: latest
     steps:
       - name: "Checkout Code"
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -167,7 +157,6 @@ jobs:
           node-version: 24.x
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
-          # Defaults to the user or organization that owns the workflow file
           scope: '@serverlessinc'
       - name: "Setup: AWS Credentials"
         uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
@@ -196,7 +185,7 @@ jobs:
     name: "Release: NPM Installer"
     needs: release-stable
     runs-on:
-      group: "Github Linux Runners"
+      group: latest
     defaults:
       run:
         working-directory: ./packages/sf-core-installer
@@ -208,7 +197,6 @@ jobs:
         with:
           node-version: 24.x
           cache: npm
-          # Defaults to the user or organization that owns the workflow file
           scope: '@serverless'
           registry-url: https://registry.npmjs.org
       - name: "Release: Copy Readme"
@@ -221,5 +209,3 @@ jobs:
       - name: "Release: NPM Publish"
         run: |
           npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
