@@ -50,7 +50,7 @@
     "ext": "^1.7.0",
     "fastest-levenshtein": "^1.0.16",
     "filesize": "^11.0.13",
-    "fs-extra": "^11.3.2",
+    "fs-extra": "^11.3.3",
     "get-stdin": "^9.0.0",
     "glob": "^10.5.0",
     "globby": "^11.1.0",
