@@ -19,7 +19,7 @@ jobs:
   test-engine:
     name: "Test: Engine"
     if: ${{ !github.event.pull_request.draft }}
-    runs-on: latest
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./packages/engine
@@ -41,7 +41,7 @@ jobs:
   test-framework:
     name: "Test: Framework"
     if: ${{ !github.event.pull_request.draft }}
-    runs-on: latest
+    runs-on: ubuntu-latest
     steps:
       - name: "Checkout Code"
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
