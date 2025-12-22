@@ -82,7 +82,12 @@ export default {
                 if (
                   eventStatus &&
                   (eventStatus.endsWith('FAILED') ||
-                    eventStatus === 'UPDATE_ROLLBACK_IN_PROGRESS') &&
+                    eventStatus === 'UPDATE_ROLLBACK_IN_PROGRESS' ||
+                    // Stack-level DELETE_IN_PROGRESS indicates creation/update failure
+                    (action !== 'delete' &&
+                      eventStatus === 'DELETE_IN_PROGRESS' &&
+                      event.ResourceType === 'AWS::CloudFormation::Stack' &&
+                      event.StackName === event.LogicalResourceId)) &&
                   stackLatestError === null
                 ) {
                   stackLatestError = event
@@ -122,9 +127,12 @@ export default {
                 (!this.options.verbose ||
                   (stackStatus &&
                     (stackStatus.endsWith('ROLLBACK_COMPLETE') ||
-                      ['DELETE_FAILED', 'DELETE_COMPLETE'].includes(
-                        stackStatus,
-                      ))))
+                      [
+                        'CREATE_FAILED',
+                        'UPDATE_FAILED',
+                        'DELETE_FAILED',
+                        'DELETE_COMPLETE',
+                      ].includes(stackStatus))))
               ) {
                 const decoratedErrorMessage = `${
                   stackLatestError.ResourceStatus
