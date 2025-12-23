@@ -8,6 +8,7 @@ import { buildImage, getBindPath, getDockerUid } from './docker.js'
 import { deleteFiles, getStripCommand, getStripMode } from './slim.js'
 import { isPoetryProject, pyprojectTomlToRequirements } from './poetry.js'
 import { getUvVersion } from './uv.js'
+import tomlParse from '@iarna/toml/parse-string.js'
 import {
   checkForAndDeleteMaxCacheVersions,
   getRequirementsWorkingPath,
@@ -201,6 +202,23 @@ async function installRequirements(targetFolder, pluginInstance, funcOptions) {
         const parts = cmd.split(/\s+/, 2)
         pipCmd.push(...parts)
       })
+    }
+
+    // uv caches local packages (e.g. -e .).
+    // Passing --reinstall-package for local packages prevents stale deployments.
+    // See: https://github.com/astral-sh/uv/issues/13876
+    if (usingUv) {
+      const localPackages = getLocalPackagesFromRequirements(
+        targetRequirementsTxt,
+        pluginInstance.servicePath,
+      )
+
+      for (const name of localPackages) {
+        pipCmd.push('--reinstall-package', name)
+        if (log) {
+          log.info(`Force reinstalling local package: ${name}`)
+        }
+      }
     }
 
     const pipCmds = [pipCmd]
@@ -521,6 +539,49 @@ function dockerPathForWin(path) {
   } else {
     return path
   }
+}
+
+/**
+ * Read package name from pyproject.toml for a local package.
+ * @param {string} packagePath - Absolute path to the package directory
+ * @return {string|null} Package name or null if not found
+ */
+function getPackageNameFromPyproject(packagePath) {
+  const pyprojectPath = path.join(packagePath, 'pyproject.toml')
+  if (!fse.existsSync(pyprojectPath)) return null
+
+  try {
+    const content = fse.readFileSync(pyprojectPath, 'utf-8')
+    const pyproject = tomlParse(content)
+    return pyproject.project?.name || null
+  } catch (e) {
+    // Gracefully handle invalid TOML or missing project.name
+    return null
+  }
+}
+
+/**
+ * Resolves local package names from requirements.txt to enable force reinstall with uv.
+ * @param {string} requirementsPath - Path to requirements.txt
+ * @param {string} servicePath - Base service path
+ * @return {string[]} Array of local package names
+ */
+function getLocalPackagesFromRequirements(requirementsPath, servicePath) {
+  if (!fse.existsSync(requirementsPath)) return []
+
+  return getRequirements(requirementsPath)
+    .map((req) => req.trim())
+    .filter(
+      (req) => req === '.' || req.startsWith('./') || req.startsWith('../'),
+    )
+    .map((trimmed) => {
+      const fullPath = path.resolve(servicePath, trimmed)
+      if (fse.existsSync(fullPath) && fse.statSync(fullPath).isDirectory()) {
+        return getPackageNameFromPyproject(fullPath)
+      }
+      return null
+    })
+    .filter(Boolean)
 }
 
 /**
