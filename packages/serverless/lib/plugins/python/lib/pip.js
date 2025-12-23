@@ -570,15 +570,16 @@ function getLocalPackagesFromRequirements(requirementsPath, servicePath) {
   if (!fse.existsSync(requirementsPath)) return []
 
   return getRequirements(requirementsPath)
-    .map((req) => req.trim())
-    .filter((req) => {
-      const p = req.replace(/\\/g, '/')
-      return (
-        p === '.' || p === '..' || p.startsWith('./') || p.startsWith('../')
-      )
-    })
-    .map((trimmed) => {
-      const fullPath = path.resolve(servicePath, trimmed)
+    .map((req) => req.split('#')[0].trim().replace(/\\/g, '/')) // Strip comments and normalize separator
+    .filter(
+      (req) =>
+        req === '.' ||
+        req === '..' ||
+        req.startsWith('./') ||
+        req.startsWith('../'),
+    )
+    .map((normalizedPath) => {
+      const fullPath = path.resolve(servicePath, normalizedPath)
       if (fse.existsSync(fullPath) && fse.statSync(fullPath).isDirectory()) {
         return getPackageNameFromPyproject(fullPath)
       }
