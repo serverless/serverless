@@ -571,9 +571,12 @@ function getLocalPackagesFromRequirements(requirementsPath, servicePath) {
 
   return getRequirements(requirementsPath)
     .map((req) => req.trim())
-    .filter(
-      (req) => req === '.' || req.startsWith('./') || req.startsWith('../'),
-    )
+    .filter((req) => {
+      const p = req.replace(/\\/g, '/')
+      return (
+        p === '.' || p === '..' || p.startsWith('./') || p.startsWith('../')
+      )
+    })
     .map((trimmed) => {
       const fullPath = path.resolve(servicePath, trimmed)
       if (fse.existsSync(fullPath) && fse.statSync(fullPath).isDirectory()) {
