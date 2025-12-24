@@ -10,7 +10,6 @@ import { sleep } from './utils.js'
 import APIGatewayV1Wrapper from './aws/api-gateway-v1-wrapper.js'
 import APIGatewayV2Wrapper from './aws/api-gateway-v2-wrapper.js'
 import Logging from './logging.js'
-import AWS from 'aws-sdk'
 import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
 
 class ServerlessCustomDomain {
@@ -80,26 +79,6 @@ class ServerlessCustomDomain {
     await this.initSLSCredentials()
     await this.initAWSRegion()
     await this.initAWSResources()
-
-    // start of the legacy AWS SDK V2 creds support
-    // TODO: remove it in case serverless will add V3 support
-    const domain = this.domains[0]
-    if (domain) {
-      try {
-        await this.getApiGateway(domain).getCustomDomain(domain)
-      } catch (error) {
-        if (
-          error.message.includes(
-            'Could not load credentials from any providers',
-          )
-        ) {
-          Globals.credentials =
-            await this.serverless.providers.aws.getCredentials()
-          await this.initAWSResources()
-        }
-      }
-    }
-    // end of the legacy AWS SDK V2 creds support
 
     return lifecycleFunc.call(this)
   }
@@ -211,7 +190,8 @@ class ServerlessCustomDomain {
           throw new ServerlessError(
             "'EDGE' endpointType is not compatible with HTTP APIs. Please change the endpointType to 'REGIONAL' or the apiType to 'rest' or 'websocket'.\n" +
               'https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html',
-            ServerlessErrorCodes.domains.DOMAIN_VALIDATION_INCOMPATIBLE_ENDPOINT_TYPE,
+            ServerlessErrorCodes.domains
+              .DOMAIN_VALIDATION_INCOMPATIBLE_ENDPOINT_TYPE,
           )
         }
       } else if (domain.apiType === Globals.apiTypes.websocket) {
@@ -219,7 +199,8 @@ class ServerlessCustomDomain {
         if (domain.endpointType === Globals.endpointTypes.edge) {
           throw new ServerlessError(
             "'EDGE' endpointType is not compatible with WebSocket APIs",
-            ServerlessErrorCodes.domains.DOMAIN_VALIDATION_INCOMPATIBLE_ENDPOINT_TYPE,
+            ServerlessErrorCodes.domains
+              .DOMAIN_VALIDATION_INCOMPATIBLE_ENDPOINT_TYPE,
           )
         }
       }
@@ -227,30 +208,17 @@ class ServerlessCustomDomain {
   }
 
   /**
-   * Init AWS credentials based on sls `provider.profile`
+   * Init AWS credentials from the framework (already honors provider.profile and --aws-profile)
    */
   async initSLSCredentials() {
-    const slsProfile =
-      Globals.options['aws-profile'] ||
-      Globals.serverless.service.provider.profile
-    Globals.credentials = slsProfile
-      ? await Globals.getProfileCreds(slsProfile)
-      : null
+    Globals.credentials = await this.serverless.providers.aws.getCredentials()
   }
 
   /**
-   * Init AWS current region based on Node options
+   * Init AWS current region from the framework (already honors --region and provider.region)
    */
   async initAWSRegion() {
-    try {
-      // For AWS SDK v2, we can get region from config or environment
-      Globals.currentRegion =
-        AWS.config.region ||
-        process.env.AWS_REGION ||
-        process.env.AWS_DEFAULT_REGION
-    } catch (err) {
-      Logging.logInfo('Node region was not found.')
-    }
+    Globals.currentRegion = this.serverless.providers.aws.getRegion()
   }
 
   /**

@@ -1,10 +1,21 @@
-import AWS from 'aws-sdk'
+import {
+  ACMClient,
+  CertificateStatus,
+  ListCertificatesCommand,
+  RequestCertificateCommand,
+  DescribeCertificateCommand,
+} from '@aws-sdk/client-acm'
+import { addProxyToAwsClient } from '@serverless/util'
 import Globals from '../globals.js'
 import { getAWSPagedResults, sleep } from '../utils.js'
 import Logging from '../logging.js'
 import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
 
-const certStatuses = ['PENDING_VALIDATION', 'ISSUED', 'INACTIVE']
+const certStatuses = [
+  CertificateStatus.PENDING_VALIDATION,
+  CertificateStatus.ISSUED,
+  CertificateStatus.INACTIVE,
+]
 
 class ACMWrapper {
   constructor(credentials, endpointType) {
@@ -12,15 +23,14 @@ class ACMWrapper {
     const config = {
       region: isEdge ? Globals.defaultRegion : Globals.getRegion(),
       endpoint: Globals.getServiceEndpoint('acm'),
-      ...Globals.getRetryStrategy(),
-      ...Globals.getRequestHandler(),
+      retryStrategy: Globals.getRetryStrategy(),
     }
 
     if (credentials) {
       config.credentials = credentials
     }
 
-    this.acm = new AWS.ACM(config)
+    this.acm = addProxyToAwsClient(new ACMClient(config))
   }
 
   async getCertArn(domain) {
@@ -30,11 +40,10 @@ class ACMWrapper {
     try {
       const certificates = await getAWSPagedResults(
         this.acm,
-        'listCertificates',
         'CertificateSummaryList',
         'NextToken',
         'NextToken',
-        { CertificateStatuses: certStatuses },
+        new ListCertificatesCommand({ CertificateStatuses: certStatuses }),
       )
       // enhancement idea: weight the choice of cert so longer expires
       // and RenewalEligibility = ELIGIBLE is more preferable
@@ -50,7 +59,9 @@ class ACMWrapper {
           certificateName,
         )
       }
-      Logging.logInfo(`Found a certificate ARN: '${certificateArn}'`)
+      if (certificateArn) {
+        Logging.logInfo(`Found existing certificate ARN: '${certificateArn}'`)
+      }
     } catch (err) {
       throw new ServerlessError(
         `Could not search certificates in Certificate Manager.\n${err.message}`,
@@ -129,10 +140,9 @@ class ACMWrapper {
       const params = {
         DomainName: domainName,
         ValidationMethod: 'DNS',
-        // SubjectAlternativeNames: [],
       }
 
-      const result = await this.acm.requestCertificate(params).promise()
+      const result = await this.acm.send(new RequestCertificateCommand(params))
       Logging.logInfo(
         `Certificate created with ARN: '${result.CertificateArn}'`,
       )
@@ -168,7 +178,9 @@ class ACMWrapper {
     while (Date.now() - startTime < maxWaitTimeMs) {
       try {
         const params = { CertificateArn: certificateArn }
-        const result = await this.acm.describeCertificate(params).promise()
+        const result = await this.acm.send(
+          new DescribeCertificateCommand(params),
+        )
 
         if (
           result.Certificate.DomainValidationOptions &&
@@ -193,7 +205,8 @@ class ACMWrapper {
       } catch (err) {
         throw new ServerlessError(
           `Failed to get validation records for certificate '${certificateArn}': ${err.message}`,
-          ServerlessErrorCodes.domains.ACM_CERTIFICATE_VALIDATION_RECORDS_FAILED,
+          ServerlessErrorCodes.domains
+            .ACM_CERTIFICATE_VALIDATION_RECORDS_FAILED,
           { originalMessage: err.message },
         )
       }
@@ -227,7 +240,9 @@ class ACMWrapper {
     while (Date.now() - startTime < maxWaitTimeMs) {
       try {
         const params = { CertificateArn: certificateArn }
-        const result = await this.acm.describeCertificate(params).promise()
+        const result = await this.acm.send(
+          new DescribeCertificateCommand(params),
+        )
 
         if (result.Certificate.Status === 'ISSUED') {
           Logging.logInfo('Certificate validation completed successfully!')

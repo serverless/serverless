@@ -1,6 +1,6 @@
-import DomainConfig from '../models/domain-config.js'
+import { S3Client, HeadObjectCommand } from '@aws-sdk/client-s3'
+import { addProxyToAwsClient } from '@serverless/util'
 import Logging from '../logging.js'
-import AWS from 'aws-sdk'
 import Globals from '../globals.js'
 import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
 
@@ -9,15 +9,14 @@ class S3Wrapper {
     const config = {
       region: Globals.getRegion(),
       endpoint: Globals.getServiceEndpoint('s3'),
-      ...Globals.getRetryStrategy(),
-      ...Globals.getRequestHandler(),
+      retryStrategy: Globals.getRetryStrategy(),
     }
 
     if (credentials) {
       config.credentials = credentials
     }
 
-    this.s3 = new AWS.S3(config)
+    this.s3 = addProxyToAwsClient(new S3Client(config))
   }
 
   /**
@@ -35,9 +34,10 @@ class S3Wrapper {
     }
 
     try {
-      await this.s3.headObject(params).promise()
+      await this.s3.send(new HeadObjectCommand(params))
     } catch (err) {
-      if (!err.statusCode || err.statusCode !== 403) {
+      const statusCode = err.$metadata?.httpStatusCode
+      if (!statusCode || statusCode !== 403) {
         throw new ServerlessError(
           `Could not head S3 object at ${domain.tlsTruststoreUri}.\n${err.message}`,
           ServerlessErrorCodes.domains.S3_TLS_CERTIFICATE_OBJECT_NOT_FOUND,

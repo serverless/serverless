@@ -1,20 +1,15 @@
+import {
+  Route53Client,
+  ChangeResourceRecordSetsCommand,
+  ListHostedZonesCommand,
+  ChangeAction,
+  RRType,
+} from '@aws-sdk/client-route-53'
+import { addProxyToAwsClient } from '@serverless/util'
 import Globals from '../globals.js'
-import DomainConfig from '../models/domain-config.js'
 import Logging from '../logging.js'
-import AWS from 'aws-sdk'
 import { getAWSPagedResults } from '../utils.js'
 import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
-
-// Define constants that were imported from v3 SDK
-const ChangeAction = {
-  UPSERT: 'UPSERT',
-  DELETE: 'DELETE',
-}
-
-const RRType = {
-  A: 'A',
-  AAAA: 'AAAA',
-}
 
 class Route53Wrapper {
   constructor(credentials, region) {
@@ -23,8 +18,7 @@ class Route53Wrapper {
     const config = {
       region: region || Globals.getRegion(),
       endpoint: serviceEndpoint,
-      ...Globals.getRetryStrategy(),
-      ...Globals.getRequestHandler(),
+      retryStrategy: Globals.getRetryStrategy(),
     }
 
     if (credentials) {
@@ -32,7 +26,7 @@ class Route53Wrapper {
     }
 
     this.region = config.region
-    this.route53 = new AWS.Route53(config)
+    this.route53 = addProxyToAwsClient(new Route53Client(config))
   }
 
   /**
@@ -57,11 +51,10 @@ class Route53Wrapper {
     try {
       hostedZones = await getAWSPagedResults(
         this.route53,
-        'listHostedZones',
         'HostedZones',
         'Marker',
         'NextMarker',
-        {},
+        new ListHostedZonesCommand({}),
       )
       Logging.logInfo(
         `Found hosted zones list: ${hostedZones.map((zone) => zone.Name)}.`,
@@ -114,11 +107,10 @@ class Route53Wrapper {
     try {
       const hostedZones = await getAWSPagedResults(
         this.route53,
-        'listHostedZones',
         'HostedZones',
         'Marker',
         'NextMarker',
-        {},
+        new ListHostedZonesCommand({}),
       )
 
       // removing the first part of the domain name, api.test.com => test.com
@@ -149,11 +141,10 @@ class Route53Wrapper {
     try {
       const hostedZones = await getAWSPagedResults(
         this.route53,
-        'listHostedZones',
         'HostedZones',
         'Marker',
         'NextMarker',
-        {},
+        new ListHostedZonesCommand({}),
       )
 
       for (const record of validationRecords) {
@@ -205,12 +196,13 @@ class Route53Wrapper {
           HostedZoneId: hostedZoneId,
         }
 
-        await this.route53.changeResourceRecordSets(params).promise()
+        await this.route53.send(new ChangeResourceRecordSetsCommand(params))
       }
     } catch (err) {
       throw new ServerlessError(
         `Failed to create certificate validation records: ${err.message}`,
-        ServerlessErrorCodes.route53.ROUTE53_CERTIFICATE_VALIDATION_RECORDS_FAILED,
+        ServerlessErrorCodes.route53
+          .ROUTE53_CERTIFICATE_VALIDATION_RECORDS_FAILED,
         { originalMessage: err.message },
       )
     }
@@ -300,7 +292,7 @@ class Route53Wrapper {
       }
       // Make API call
       try {
-        await this.route53.changeResourceRecordSets(params).promise()
+        await this.route53.send(new ChangeResourceRecordSetsCommand(params))
       } catch (err) {
         throw new ServerlessError(
           `Failed to ${action} ${recordsToCreate.join(',')} Alias for '${domain.givenDomainName}':\n
