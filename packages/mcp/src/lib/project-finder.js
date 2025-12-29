@@ -1,10 +1,10 @@
 import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
-import { exec } from 'child_process'
+import { execFile } from 'child_process'
 import { enhanceProjectsWithServiceDetails } from './serverless-framework/service-details.js'
 
-const execAsync = promisify(exec)
+const execFileAsync = promisify(execFile)
 const readFileAsync = promisify(fs.readFile)
 
 /**
@@ -20,8 +20,19 @@ export async function findServerlessFrameworkProjects(workspaceDir) {
     const rootDir = workspaceDir || process.cwd()
 
     // Use find command to locate all serverless.yml files, excluding node_modules and .git
-    const { stdout } = await execAsync(
-      `find "${rootDir}" -name "serverless.yml" -not -path "*/node_modules/*" -not -path "*/\.git/*"`,
+    const { stdout } = await execFileAsync(
+      'find',
+      [
+        rootDir,
+        '-name',
+        'serverless.yml',
+        '-not',
+        '-path',
+        '*/node_modules/*',
+        '-not',
+        '-path',
+        '*/.git/*',
+      ],
       { maxBuffer: 10 * 1024 * 1024 }, // Increase buffer size for large workspaces
     )
 
@@ -55,13 +66,35 @@ async function findYamlFiles(workspaceDir) {
 
   // Use find command to locate all yaml/yml files, excluding node_modules and .git
   // We'll run two separate find commands to avoid syntax issues with complex expressions
-  const { stdout: yamlStdout } = await execAsync(
-    `find "${rootDir}" -name "*.yaml" -not -path "*/node_modules/*" -not -path "*/\.git/*"`,
+  const { stdout: yamlStdout } = await execFileAsync(
+    'find',
+    [
+      rootDir,
+      '-name',
+      '*.yaml',
+      '-not',
+      '-path',
+      '*/node_modules/*',
+      '-not',
+      '-path',
+      '*/.git/*',
+    ],
     { maxBuffer: 5 * 1024 * 1024 }, // Increase buffer size for large workspaces
   )
 
-  const { stdout: ymlStdout } = await execAsync(
-    `find "${rootDir}" -name "*.yml" -not -path "*/node_modules/*" -not -path "*/\.git/*"`,
+  const { stdout: ymlStdout } = await execFileAsync(
+    'find',
+    [
+      rootDir,
+      '-name',
+      '*.yml',
+      '-not',
+      '-path',
+      '*/node_modules/*',
+      '-not',
+      '-path',
+      '*/.git/*',
+    ],
     { maxBuffer: 5 * 1024 * 1024 }, // Increase buffer size for large workspaces
   )
 
