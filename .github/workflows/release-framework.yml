@@ -48,7 +48,7 @@ jobs:
         group:
           - ubuntu-latest
           - latest-arm-linux
-          - gh-windows-latest
+#          - gh-windows-latest
     runs-on:
       ${{ matrix.group }}
     steps:
