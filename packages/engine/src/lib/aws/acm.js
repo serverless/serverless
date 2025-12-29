@@ -114,6 +114,8 @@ export class AwsAcmClient {
     let statusCheckAttempts = 0
     const maxStatusCheckAttempts = 60
 
+    const alreadyCreatedRecords = new Set()
+
     while (statusCheckAttempts < maxStatusCheckAttempts) {
       const certificate = await this.getCertificate(certificateArn)
       const validationOptions = certificate?.DomainValidationOptions
@@ -121,6 +123,10 @@ export class AwsAcmClient {
       if (validationOptions) {
         for (const option of validationOptions) {
           if (option.ResourceRecord) {
+            if (alreadyCreatedRecords.has(option.ResourceRecord.Name)) {
+              continue
+            }
+            alreadyCreatedRecords.add(option.ResourceRecord.Name)
             await this.route53Client.createRecordIfNotExists(
               hostedZoneId,
               option.ResourceRecord,
