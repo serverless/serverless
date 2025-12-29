@@ -1,6 +1,6 @@
 {
   "name": "@serverlessinc/sf-core",
-  "version": "4.29.2",
+  "version": "4.29.3",
   "main": "src/index.js",
   "type": "module",
   "prettier": "@serverlessinc/standards",
@@ -30,7 +30,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "github.com/serverlessinc/sf-core"
+    "url": "git+https://github.com/serverless/serverless.git"
   },
   "author": "Serverless Inc.",
   "license": "ISC",
