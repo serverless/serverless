@@ -92,8 +92,7 @@ jobs:
   release-canary:
     name: "Release: Canary & Tag"
     needs: [ test-matrix, test-engine ]
-    runs-on:
-      group: ubuntu-latest
+    runs-on: ubuntu-latest
     outputs:
       new_version: ${{ steps.tag_if_new_version.outputs.new_version }}
     steps:
@@ -146,8 +145,7 @@ jobs:
     name: "Release: Dist Tarball"
     needs: release-canary
     if: needs.release-canary.outputs.new_version
-    runs-on:
-      group: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
       - name: "Checkout Code"
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -184,8 +182,7 @@ jobs:
   release-npm:
     name: "Release: NPM Installer"
     needs: release-stable
-    runs-on:
-      group: ubuntu-latest
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./packages/sf-core-installer
