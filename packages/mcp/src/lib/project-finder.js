@@ -6,6 +6,31 @@ import { enhanceProjectsWithServiceDetails } from './serverless-framework/servic
 
 const execFileAsync = promisify(execFile)
 const readFileAsync = promisify(fs.readFile)
+const statAsync = promisify(fs.stat)
+
+/**
+ * Validate that the provided path is an existing directory
+ *
+ * @param {string} dirPath - The directory path to validate
+ * @returns {Promise<string>} - The validated absolute path
+ * @throws {Error} - If the path is not a valid directory
+ */
+async function validateWorkspaceDir(dirPath) {
+  if (!dirPath || typeof dirPath !== 'string') {
+    throw new Error('Workspace directory must be a non-empty string')
+  }
+
+  // Resolve to absolute path to prevent relative path tricks
+  const absolutePath = path.resolve(dirPath)
+
+  // Verify the path exists and is a directory
+  const stats = await statAsync(absolutePath)
+  if (!stats.isDirectory()) {
+    throw new Error(`Path is not a directory: ${absolutePath}`)
+  }
+
+  return absolutePath
+}
 
 /**
  * Find all Serverless Framework projects in the workspace
@@ -16,8 +41,8 @@ const readFileAsync = promisify(fs.readFile)
  */
 export async function findServerlessFrameworkProjects(workspaceDir) {
   try {
-    // If no workspace directory is provided, use the current working directory
-    const rootDir = workspaceDir || process.cwd()
+    // Validate and resolve the workspace directory
+    const rootDir = await validateWorkspaceDir(workspaceDir || process.cwd())
 
     // Use find command to locate all serverless.yml files, excluding node_modules and .git
     const { stdout } = await execFileAsync(
@@ -61,8 +86,8 @@ export async function findServerlessFrameworkProjects(workspaceDir) {
  * @returns {Promise<string[]>} - Array of file paths
  */
 async function findYamlFiles(workspaceDir) {
-  // If no workspace directory is provided, use the current working directory
-  const rootDir = workspaceDir || process.cwd()
+  // Validate and resolve the workspace directory
+  const rootDir = await validateWorkspaceDir(workspaceDir || process.cwd())
 
   // Use find command to locate all yaml/yml files, excluding node_modules and .git
   // We'll run two separate find commands to avoid syntax issues with complex expressions
