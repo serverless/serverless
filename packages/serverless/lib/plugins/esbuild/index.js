@@ -984,15 +984,15 @@ class Esbuild {
   }
 
   /**
-   * Searches for the directory containing the compose file up to 3 levels up.
+   * Searches for the directory containing the compose file up to 5 levels up.
    * @param {string} startDir - The directory to start the search from.
-   * @param {number} maxLevelsUp - The maximum number of parent directories to search, default is 3.
-   * @returns {string} - The directory path containing the file, or throws error if not found.
+   * @param {number} maxLevelsUp - The maximum number of parent directories to search, default is 5.
+   * @returns {string|null} - The directory path containing the file, or null if not found.
    */
-  async _getComposeDir(startDir = process.cwd(), maxLevelsUp = 3) {
+  async _getComposeDir(startDir = process.cwd(), maxLevelsUp = 5) {
     let currentDir = path.resolve(startDir)
 
-    for (let i = 0; i < maxLevelsUp; i++) {
+    for (let i = 0; i <= maxLevelsUp; i++) {
       const composeYmlPath = path.join(currentDir, 'serverless-compose.yml')
       const composeYamlPath = path.join(currentDir, 'serverless-compose.yaml')
 
@@ -1010,7 +1010,7 @@ class Esbuild {
       currentDir = parentDir
     }
 
-    throw new Error('Cannot find "serverless-compose.yml|yaml" file')
+    return null
   }
 
   /**
@@ -1027,12 +1027,19 @@ class Esbuild {
     if (this.serverless.compose.isWithinCompose) {
       const composeDir = await this._getComposeDir(
         this.serverless.config.serviceDir,
-        3,
       )
 
-      composePackageJson = await this._readPackageJson(
-        path.join(composeDir, 'package.json'),
-      )
+      if (composeDir) {
+        composePackageJson = await this._readPackageJson(
+          path.join(composeDir, 'package.json'),
+        )
+      } else {
+        logger.info(
+          'Could not locate serverless-compose.yml file. ' +
+            'Dependencies from the compose root package.json will not be included in the build. ' +
+            'This may cause issues if your service relies on dependencies defined at the compose level.',
+        )
+      }
     }
 
     const packageJsonNoDevDeps = {
