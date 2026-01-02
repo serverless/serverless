@@ -8,6 +8,23 @@ const docsBaseDirs = {
   scf: fromRepoRoot('docs/scf'),
 }
 
+function normalizeDocPath(product, docPath) {
+  // Remove product prefix if it exists to avoid path duplication
+  return docPath.startsWith(`${product}/`)
+    ? docPath.substring(product.length + 1)
+    : docPath
+}
+
+function resolvePathInBase(baseDir, relativePath) {
+  const resolvedPath = path.resolve(baseDir, relativePath)
+  const relativeToBase = path.relative(baseDir, resolvedPath)
+  const isWithinBase =
+    relativeToBase === '' ||
+    (!relativeToBase.startsWith('..') && !path.isAbsolute(relativeToBase))
+
+  return { resolvedPath, isWithinBase }
+}
+
 /**
  * Lists the contents of a directory, filtering for markdown files
  * @param {string} dirPath - Path to the directory
@@ -48,12 +65,15 @@ async function readMarkdownContent(product, docPath) {
     throw new Error(`Invalid product: ${product}. Must be one of: sf, scf`)
   }
 
-  // Remove product prefix if it exists to avoid path duplication
-  const normalizedPath = docPath.startsWith(`${product}/`)
-    ? docPath.substring(product.length + 1)
-    : docPath
+  const normalizedPath = normalizeDocPath(product, docPath)
+  const { resolvedPath: fullPath, isWithinBase } = resolvePathInBase(
+    docsBaseDirs[product],
+    normalizedPath,
+  )
 
-  const fullPath = path.join(docsBaseDirs[product], normalizedPath)
+  if (!isWithinBase) {
+    throw new Error(`Invalid path: ${product}/${docPath}`)
+  }
 
   try {
     const stats = await fs.stat(fullPath)
@@ -107,10 +127,15 @@ async function findNearestDirectory(product, docPath, availablePaths) {
     throw new Error(`Invalid product: ${product}. Must be one of: sf, scf`)
   }
 
-  // Remove product prefix if it exists to avoid path duplication
-  const normalizedPath = docPath.startsWith(`${product}/`)
-    ? docPath.substring(product.length + 1)
-    : docPath
+  const normalizedPath = normalizeDocPath(product, docPath)
+  const { isWithinBase } = resolvePathInBase(
+    docsBaseDirs[product],
+    normalizedPath,
+  )
+
+  if (!isWithinBase) {
+    throw new Error(`Invalid path: ${product}/${docPath}`)
+  }
 
   // Split path into parts and try each parent directory
   const parts = normalizedPath.split('/')
@@ -118,7 +143,14 @@ async function findNearestDirectory(product, docPath, availablePaths) {
   while (parts.length > 0) {
     const testPath = parts.join('/')
     try {
-      const fullPath = path.join(docsBaseDirs[product], testPath)
+      const { resolvedPath: fullPath, isWithinBase: testWithinBase } =
+        resolvePathInBase(docsBaseDirs[product], testPath)
+
+      if (!testWithinBase) {
+        parts.pop()
+        continue
+      }
+
       const stats = await fs.stat(fullPath)
 
       if (stats.isDirectory()) {
