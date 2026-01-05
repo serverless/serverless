@@ -1,0 +1,136 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`schema should fail if schema is invalid 1`] = `"Cannot read properties of undefined (reading 'Error')"`;
+
+exports[`schema should generate a schema resource 1`] = `
+{
+  "GraphQlSchema": {
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "Definition": "type Query {
+  getUser: User!
+}
+
+type Mutation {
+  createUser(post: UserInput!): User!
+}
+
+"""
+A User
+"""
+type User {
+  id: ID!
+  name: String!
+}
+
+# Input for user
+input UserInput {
+  name: String!
+}
+",
+    },
+    "Type": "AWS::AppSync::GraphQLSchema",
+  },
+}
+`;
+
+exports[`schema should merge glob schemas 1`] = `
+"type Mutation {
+  createPost(post: PostInput!): Post!
+  createUser(post: UserInput!): User!
+}
+
+type Post @aws_oidc {
+  id: ID!
+  title: String!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+"""This is a description"""
+input PostInput {
+  title: String!
+}
+
+type Query {
+  getPost(id: ID!): Post!
+  getUser: User!
+}
+
+type User {
+  id: ID!
+  name: String!
+  role: String! @aws_oidc
+  email: AWSEmail!
+  posts: [Post!]!
+}
+
+input UserInput {
+  name: String!
+}"
+`;
+
+exports[`schema should merge the schemas 1`] = `
+"type Mutation {
+  createPost(post: PostInput!): Post!
+  createUser(post: UserInput!): User!
+}
+
+type Post @aws_oidc {
+  id: ID!
+  title: String!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+"""This is a description"""
+input PostInput {
+  title: String!
+}
+
+type Query {
+  getPost(id: ID!): Post!
+  getUser: User!
+}
+
+type User {
+  id: ID!
+  name: String!
+  role: String! @aws_oidc
+  email: AWSEmail!
+  posts: [Post!]!
+}
+
+input UserInput {
+  name: String!
+}"
+`;
+
+exports[`schema should return single files schemas as-is 1`] = `
+"type Query {
+  getUser: User!
+}
+
+type Mutation {
+  createUser(post: UserInput!): User!
+}
+
+"""
+A User
+"""
+type User {
+  id: ID!
+  name: String!
+}
+
+# Input for user
+input UserInput {
+  name: String!
+}
+"
+`;

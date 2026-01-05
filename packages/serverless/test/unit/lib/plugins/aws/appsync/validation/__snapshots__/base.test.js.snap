@@ -1,0 +1,70 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Validation Caching Invalid should validate a Invalid 1`] = `
+"/caching/enabled: must be boolean
+/caching/behavior: must be one of 'FULL_REQUEST_CACHING', 'PER_RESOLVER_CACHING'
+/caching/type: must be one of 'SMALL', 'MEDIUM', 'LARGE', 'XLARGE', 'LARGE_2X', 'LARGE_4X', 'LARGE_8X', 'LARGE_12X'
+/caching/ttl: must be integer
+/caching/atRestEncryption: must be boolean
+/caching/transitEncryption: must be boolean"
+`;
+
+exports[`Validation Caching Invalid should validate a Ttl max value 1`] = `"/caching/ttl: must be <= 3600"`;
+
+exports[`Validation Caching Invalid should validate a Ttl min value 1`] = `"/caching/ttl: must be >= 1"`;
+
+exports[`Validation Domain Invalid should validate a Invalid 1`] = `
+"/domain/enabled: must be boolean
+/domain/name: must be a valid domain name
+/domain/certificateArn: must be a string or a CloudFormation intrinsic function
+/domain/route53: must be boolean"
+`;
+
+exports[`Validation Domain Invalid should validate a Invalid Route 53 1`] = `
+"/domain/name: must be a valid domain name
+/domain/route53: must be boolean"
+`;
+
+exports[`Validation Domain Invalid should validate a useCloudFormation: not present, certificateArn or hostedZoneId is required 1`] = `"/domain: when using CloudFormation, you must provide either certificateArn or hostedZoneId."`;
+
+exports[`Validation Domain Invalid should validate a useCloudFormation: true, certificateArn or hostedZoneId is required 1`] = `"/domain: when using CloudFormation, you must provide either certificateArn or hostedZoneId."`;
+
+exports[`Validation Log Invalid should validate a Invalid 1`] = `
+"/logging/level: must be one of 'ALL', 'INFO', 'DEBUG', 'ERROR' or 'NONE'
+/logging/retentionInDays: must be integer
+/logging/excludeVerboseContent: must be boolean"
+`;
+
+exports[`Validation Waf Invalid should validate a Invalid 1`] = `
+"/waf/name: must be string
+/waf/defaultAction: must be 'Allow' or 'Block'
+/waf/rules/0: must be a valid WAF rule
+/waf/rules/1: must be a valid WAF rule
+/waf/rules/2: must be a valid WAF rule
+/waf/enabled: must be boolean"
+`;
+
+exports[`Validation Waf Invalid should validate a Invalid arn 1`] = `"/waf/arn: must be a string or a CloudFormation intrinsic function"`;
+
+exports[`Validation Waf Invalid should validate a Throttle limit 1`] = `
+"/waf/rules/0: must be a valid WAF rule
+/waf/rules/1: must be a valid WAF rule"
+`;
+
+exports[`Validation should validate 1`] = `
+": must have required property 'name'
+: must have required property 'authentication'
+/unknownPorp: invalid (unknown) property
+/xrayEnabled: must be boolean
+/visibility: must be "GLOBAL" or "PRIVATE"
+/introspection: must be boolean
+/queryDepthLimit: must be integer
+/resolverCountLimit: must be integer
+/environment: must be a valid environment definition
+/esbuild: must be an esbuild config object or false"
+`;
+
+exports[`Validation should validate 2`] = `
+"/queryDepthLimit: must be <= 75
+/resolverCountLimit: must be <= 1000"
+`;

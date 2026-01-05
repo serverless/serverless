@@ -1,0 +1,257 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DataSources should merge dataSource arrays 1`] = `
+{
+  "anotherNamedSource": {
+    "name": "anotherNamedSource",
+    "type": "NONE",
+  },
+  "myDataSource": {
+    "name": "myDataSource",
+    "type": "NONE",
+  },
+  "myOtherDataSource": {
+    "name": "myOtherDataSource",
+    "type": "NONE",
+  },
+  "otherSource": {
+    "name": "otherSource",
+    "type": "NONE",
+  },
+}
+`;
+
+exports[`DataSources should merge dataSources embedded into resolvers and pipelineFunctions 1`] = `
+{
+  "dataSources": {
+    "Mutation_createUser_0": {
+      "config": {
+        "functionName": "createUser",
+      },
+      "name": "Mutation_createUser_0",
+      "type": "AWS_LAMBDA",
+    },
+    "Query_getUser": {
+      "config": {
+        "functionName": "getUser",
+      },
+      "name": "Query_getUser",
+      "type": "AWS_LAMBDA",
+    },
+    "function1": {
+      "config": {
+        "functionName": "function1",
+      },
+      "name": "function1",
+      "type": "AWS_LAMBDA",
+    },
+    "function2": {
+      "config": {
+        "functionName": "function2",
+      },
+      "name": "function2",
+      "type": "AWS_LAMBDA",
+    },
+    "getUsers": {
+      "config": {
+        "functionName": "getUsers",
+      },
+      "name": "getUsers",
+      "type": "AWS_LAMBDA",
+    },
+    "myDataSource": {
+      "name": "myDataSource",
+      "type": "NONE",
+    },
+    "myOtherDataSource": {
+      "name": "myOtherDataSource",
+      "type": "NONE",
+    },
+  },
+  "pipelineFunctions": {
+    "Mutation_createUser_0": {
+      "dataSource": "Mutation_createUser_0",
+      "name": "Mutation_createUser_0",
+    },
+    "function1": {
+      "dataSource": "function1",
+      "name": "function1",
+    },
+    "function2": {
+      "dataSource": "function2",
+      "name": "function2",
+    },
+  },
+  "resolvers": {
+    "Mutation.createUser": {
+      "field": "createUser",
+      "functions": [
+        "Mutation_createUser_0",
+      ],
+      "kind": "PIPELINE",
+      "type": "Mutation",
+    },
+    "Query.getUser": {
+      "dataSource": "Query_getUser",
+      "field": "getUser",
+      "kind": "UNIT",
+      "type": "Query",
+    },
+    "getUsers": {
+      "dataSource": "getUsers",
+      "field": "getUsers",
+      "kind": "UNIT",
+      "type": "Query",
+    },
+  },
+}
+`;
+
+exports[`Pipeline Functions should merge function arrays 1`] = `
+{
+  "function1": {
+    "dataSource": "users",
+    "name": "function1",
+  },
+  "function2": {
+    "dataSource": "users",
+    "name": "function2",
+  },
+  "function3": {
+    "dataSource": "users",
+    "name": "function3",
+  },
+  "function4": {
+    "dataSource": "users",
+    "name": "function4",
+  },
+}
+`;
+
+exports[`Pipeline Functions should merge inline function definitions 1`] = `
+{
+  "Mutation_createUser_0": {
+    "code": "function1.js",
+    "dataSource": "users",
+    "name": "Mutation_createUser_0",
+  },
+  "Mutation_createUser_1": {
+    "code": "function2.js",
+    "dataSource": "users",
+    "name": "Mutation_createUser_1",
+  },
+  "Mutation_updateUser_0": {
+    "code": "updateUser.js",
+    "dataSource": "Mutation_updateUser_0",
+    "name": "Mutation_updateUser_0",
+  },
+  "function1": {
+    "dataSource": "users",
+    "name": "function1",
+  },
+  "function2": {
+    "dataSource": "users",
+    "name": "function2",
+  },
+}
+`;
+
+exports[`Resolvers should merge resolvers arrays 1`] = `
+{
+  "Query.getPost": {
+    "dataSource": "posts",
+    "field": "getPost",
+    "kind": "UNIT",
+    "type": "Query",
+  },
+  "Query.getUser": {
+    "dataSource": "users",
+    "field": "getUser",
+    "kind": "UNIT",
+    "type": "Query",
+  },
+  "Query.pipeline": {
+    "field": "pipeline",
+    "functions": [
+      "function1",
+      "function2",
+    ],
+    "kind": "PIPELINE",
+    "type": "Query",
+  },
+  "getPostsResolver": {
+    "dataSource": "posts",
+    "field": "getPosts",
+    "kind": "UNIT",
+    "type": "Query",
+  },
+  "getUsersResolver": {
+    "dataSource": "users",
+    "field": "getUsers",
+    "kind": "UNIT",
+    "type": "Query",
+  },
+  "pipelineResolver2": {
+    "field": "getUsers",
+    "functions": [
+      "function1",
+      "function2",
+    ],
+    "kind": "PIPELINE",
+    "type": "Query",
+  },
+}
+`;
+
+exports[`Resolvers should resolve resolver type and fields 1`] = `
+{
+  "Query.getUser": {
+    "dataSource": "users",
+    "field": "getUser",
+    "kind": "UNIT",
+    "type": "Query",
+  },
+  "getUsersResolver": {
+    "dataSource": "users",
+    "field": "getUsers",
+    "kind": "UNIT",
+    "type": "Query",
+  },
+}
+`;
+
+exports[`Schema should return a schema array unchanged 1`] = `
+[
+  "users.graphql",
+  "posts.graphql",
+]
+`;
+
+exports[`Schema should return a single schema as an array 1`] = `
+[
+  "mySchema.graphql",
+]
+`;
+
+exports[`Schema should return the default schema 1`] = `
+[
+  "schema.graphql",
+]
+`;
+
+exports[`returns basic config 1`] = `
+{
+  "additionalAuthentications": [],
+  "apiKeys": {},
+  "authentication": {
+    "type": "API_KEY",
+  },
+  "dataSources": {},
+  "name": "My Api",
+  "pipelineFunctions": {},
+  "resolvers": {},
+  "schema": [
+    "schema.graphql",
+  ],
+}
+`;

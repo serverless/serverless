@@ -1,0 +1,66 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`JS Resolvers should fail if template is missing 1`] = `"Cannot read properties of undefined (reading 'Error')"`;
+
+exports[`JS Resolvers should substitute variables 1`] = `
+{
+  "Fn::Join": [
+    "",
+    [
+      "const foo = '",
+      {
+        "Fn::Sub": [
+          "\${foo}",
+          {
+            "foo": "bar",
+          },
+        ],
+      },
+      "';
+       const var = '",
+      {
+        "Fn::Sub": [
+          "\${var}",
+          {
+            "var": {
+              "Ref": "MyReference",
+            },
+          },
+        ],
+      },
+      "';
+       const unknonw = '#unknown#'",
+    ],
+  ],
+}
+`;
+
+exports[`JS Resolvers should substitute variables and use defaults 1`] = `
+{
+  "Fn::Join": [
+    "",
+    [
+      "const foo = '",
+      {
+        "Fn::Sub": [
+          "\${foo}",
+          {
+            "foo": "fuzz",
+          },
+        ],
+      },
+      "';
+    const var = '",
+      {
+        "Fn::Sub": [
+          "\${var}",
+          {
+            "var": "bizz",
+          },
+        ],
+      },
+      "';",
+    ],
+  ],
+}
+`;

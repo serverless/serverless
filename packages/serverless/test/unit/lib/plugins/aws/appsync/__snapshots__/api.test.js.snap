@@ -1,0 +1,747 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Api LambdaAuthorizer should generate the Lambda Authorizer Resources from additional auth 1`] = `
+{
+  "LambdaAuthorizerPermission": {
+    "Properties": {
+      "Action": "lambda:InvokeFunction",
+      "FunctionName": "arn:",
+      "Principal": "appsync.amazonaws.com",
+      "SourceArn": {
+        "Ref": "GraphQlApi",
+      },
+    },
+    "Type": "AWS::Lambda::Permission",
+  },
+}
+`;
+
+exports[`Api LambdaAuthorizer should generate the Lambda Authorizer Resources from basic auth 1`] = `
+{
+  "LambdaAuthorizerPermission": {
+    "Properties": {
+      "Action": "lambda:InvokeFunction",
+      "FunctionName": "arn:",
+      "Principal": "appsync.amazonaws.com",
+      "SourceArn": {
+        "Ref": "GraphQlApi",
+      },
+    },
+    "Type": "AWS::Lambda::Permission",
+  },
+}
+`;
+
+exports[`Api LambdaAuthorizer should not generate the Lambda Authorizer Resources 1`] = `{}`;
+
+exports[`Api Logs should compile CloudWatch Resources when enabled 1`] = `
+{
+  "GraphQlApiLogGroup": {
+    "Properties": {
+      "LogGroupName": {
+        "Fn::Join": [
+          "/",
+          [
+            "/aws/appsync/apis",
+            {
+              "Fn::GetAtt": [
+                "GraphQlApi",
+                "ApiId",
+              ],
+            },
+          ],
+        ],
+      },
+      "RetentionInDays": 14,
+    },
+    "Type": "AWS::Logs::LogGroup",
+  },
+  "GraphQlApiLogGroupPolicy": {
+    "Properties": {
+      "PolicyDocument": {
+        "Statement": [
+          {
+            "Action": [
+              "logs:CreateLogGroup",
+              "logs:CreateLogStream",
+              "logs:PutLogEvents",
+            ],
+            "Effect": "Allow",
+            "Resource": [
+              {
+                "Fn::GetAtt": [
+                  "GraphQlApiLogGroup",
+                  "Arn",
+                ],
+              },
+            ],
+          },
+        ],
+        "Version": "2012-10-17",
+      },
+      "PolicyName": "GraphQlApiLogGroupPolicy",
+      "Roles": [
+        {
+          "Ref": "GraphQlApiLogGroupRole",
+        },
+      ],
+    },
+    "Type": "AWS::IAM::Policy",
+  },
+  "GraphQlApiLogGroupRole": {
+    "Properties": {
+      "AssumeRolePolicyDocument": {
+        "Statement": [
+          {
+            "Action": [
+              "sts:AssumeRole",
+            ],
+            "Effect": "Allow",
+            "Principal": {
+              "Service": [
+                "appsync.amazonaws.com",
+              ],
+            },
+          },
+        ],
+        "Version": "2012-10-17",
+      },
+    },
+    "Type": "AWS::IAM::Role",
+  },
+}
+`;
+
+exports[`Api Logs should not compile CloudWatch Resources when logging is disabled 1`] = `{}`;
+
+exports[`Api Logs should not compile CloudWatch Resources when logging not configured 1`] = `{}`;
+
+exports[`Api apiKeys should generate an api key with default expiry 1`] = `
+{
+  "GraphQlApiDefault": {
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "ApiKeyId": undefined,
+      "Description": "Default Key",
+      "Expires": 1639065600,
+    },
+    "Type": "AWS::AppSync::ApiKey",
+  },
+}
+`;
+
+exports[`Api apiKeys should generate an api key with explicit expiresAt 1`] = `
+{
+  "GraphQlApiDefault": {
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "ApiKeyId": undefined,
+      "Description": "Default Key",
+      "Expires": 1672524000,
+    },
+    "Type": "AWS::AppSync::ApiKey",
+  },
+}
+`;
+
+exports[`Api apiKeys should generate an api key with sliding window expiration in duration 1`] = `
+{
+  "GraphQlApiDefault": {
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "ApiKeyId": undefined,
+      "Description": "Default Key",
+      "Expires": 1610121600,
+    },
+    "Type": "AWS::AppSync::ApiKey",
+  },
+}
+`;
+
+exports[`Api apiKeys should generate an api key with sliding window expiration in numeric hours 1`] = `
+{
+  "GraphQlApiDefault": {
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "ApiKeyId": undefined,
+      "Description": "Default Key",
+      "Expires": 1607619600,
+    },
+    "Type": "AWS::AppSync::ApiKey",
+  },
+}
+`;
+
+exports[`Api apiKeys should generate an api key with sliding window expiration in string hours 1`] = `
+{
+  "GraphQlApiDefault": {
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "ApiKeyId": undefined,
+      "Description": "Default Key",
+      "Expires": 1607619600,
+    },
+    "Type": "AWS::AppSync::ApiKey",
+  },
+}
+`;
+
+exports[`Api compileEndpoint should compile the Api Resource 1`] = `
+{
+  "GraphQlApi": {
+    "Properties": {
+      "AuthenticationType": "API_KEY",
+      "EnvironmentVariables": undefined,
+      "Name": "MyApi",
+      "Tags": [
+        {
+          "Key": "stage",
+          "Value": "Dev",
+        },
+      ],
+      "XrayEnabled": false,
+    },
+    "Type": "AWS::AppSync::GraphQLApi",
+  },
+}
+`;
+
+exports[`Api compileEndpoint should compile the Api Resource for a private endpoint 1`] = `
+{
+  "GraphQlApi": {
+    "Properties": {
+      "AuthenticationType": "API_KEY",
+      "EnvironmentVariables": undefined,
+      "Name": "MyApi",
+      "Tags": [
+        {
+          "Key": "stage",
+          "Value": "Dev",
+        },
+      ],
+      "Visibility": "PRIVATE",
+      "XrayEnabled": false,
+    },
+    "Type": "AWS::AppSync::GraphQLApi",
+  },
+}
+`;
+
+exports[`Api compileEndpoint should compile the Api Resource with Environments 1`] = `
+{
+  "GraphQlApi": {
+    "Properties": {
+      "AuthenticationType": "API_KEY",
+      "EnvironmentVariables": {
+        "OTHER_TABLE": {
+          "Ref": "OtherTable",
+        },
+        "TABLE_NAME": "MyTable",
+      },
+      "Name": "MyApi",
+      "Tags": [
+        {
+          "Key": "stage",
+          "Value": "Dev",
+        },
+      ],
+      "XrayEnabled": false,
+    },
+    "Type": "AWS::AppSync::GraphQLApi",
+  },
+}
+`;
+
+exports[`Api compileEndpoint should compile the Api Resource with additional auths 1`] = `
+{
+  "GraphQlApi": {
+    "Properties": {
+      "AdditionalAuthenticationProviders": [
+        {
+          "AuthenticationType": "AMAZON_COGNITO_USER_POOLS",
+          "UserPoolConfig": {
+            "AppIdClientRegex": "[a-z]",
+            "AwsRegion": "us-east-1",
+            "UserPoolId": "pool123",
+          },
+        },
+        {
+          "AuthenticationType": "AWS_IAM",
+        },
+        {
+          "AuthenticationType": "OPENID_CONNECT",
+          "OpenIDConnectConfig": {
+            "AuthTTL": 60,
+            "ClientId": "333746dd-06fc-44df-bce2-5ff108724044",
+            "IatTTL": 3600,
+            "Issuer": "https://auth.example.com",
+          },
+        },
+        {
+          "AuthenticationType": "AWS_LAMBDA",
+          "LambdaAuthorizerConfig": {
+            "AuthorizerResultTtlInSeconds": 300,
+            "AuthorizerUri": {
+              "Fn::GetAtt": [
+                "AuthFunctionLambdaFunction",
+                "Arn",
+              ],
+            },
+            "IdentityValidationExpression": "customm-*",
+          },
+        },
+      ],
+      "AuthenticationType": "AMAZON_COGNITO_USER_POOLS",
+      "EnvironmentVariables": undefined,
+      "Name": "MyApi",
+      "Tags": [
+        {
+          "Key": "stage",
+          "Value": "Dev",
+        },
+      ],
+      "UserPoolConfig": {
+        "AppIdClientRegex": "[a-z]",
+        "AwsRegion": "us-east-1",
+        "DefaultAction": "ALLOW",
+        "UserPoolId": "pool123",
+      },
+      "XrayEnabled": false,
+    },
+    "Type": "AWS::AppSync::GraphQLApi",
+  },
+}
+`;
+
+exports[`Api compileEndpoint should compile the Api Resource with config 1`] = `
+{
+  "GraphQlApi": {
+    "Properties": {
+      "AuthenticationType": "API_KEY",
+      "EnvironmentVariables": undefined,
+      "IntrospectionConfig": "DISABLED",
+      "Name": "MyApi",
+      "QueryDepthLimit": 10,
+      "ResolverCountLimit": 20,
+      "Tags": [
+        {
+          "Key": "stage",
+          "Value": "Dev",
+        },
+      ],
+      "XrayEnabled": false,
+    },
+    "Type": "AWS::AppSync::GraphQLApi",
+  },
+}
+`;
+
+exports[`Api compileEndpoint should compile the Api Resource with embedded additional authorizer Lambda function 1`] = `
+{
+  "GraphQlApi": {
+    "Properties": {
+      "AdditionalAuthenticationProviders": [
+        {
+          "AuthenticationType": "AWS_LAMBDA",
+          "LambdaAuthorizerConfig": {
+            "AuthorizerResultTtlInSeconds": undefined,
+            "AuthorizerUri": {
+              "Fn::GetAtt": [
+                "MyApiAuthorizerLambdaFunction",
+                "Arn",
+              ],
+            },
+            "IdentityValidationExpression": undefined,
+          },
+        },
+      ],
+      "AuthenticationType": "API_KEY",
+      "EnvironmentVariables": undefined,
+      "Name": "MyApi",
+      "Tags": [
+        {
+          "Key": "stage",
+          "Value": "Dev",
+        },
+      ],
+      "XrayEnabled": false,
+    },
+    "Type": "AWS::AppSync::GraphQLApi",
+  },
+}
+`;
+
+exports[`Api compileEndpoint should compile the Api Resource with embedded additional authorizer Lambda function 2`] = `
+{
+  "MyApiAuthorizer": {
+    "handler": "index.handler",
+  },
+}
+`;
+
+exports[`Api compileEndpoint should compile the Api Resource with embedded authorizer Lambda function 1`] = `
+{
+  "GraphQlApi": {
+    "Properties": {
+      "AuthenticationType": "AWS_LAMBDA",
+      "EnvironmentVariables": undefined,
+      "LambdaAuthorizerConfig": {
+        "AuthorizerResultTtlInSeconds": undefined,
+        "AuthorizerUri": {
+          "Fn::GetAtt": [
+            "MyApiAuthorizerLambdaFunction",
+            "Arn",
+          ],
+        },
+        "IdentityValidationExpression": undefined,
+      },
+      "Name": "MyApi",
+      "Tags": [
+        {
+          "Key": "stage",
+          "Value": "Dev",
+        },
+      ],
+      "XrayEnabled": false,
+    },
+    "Type": "AWS::AppSync::GraphQLApi",
+  },
+}
+`;
+
+exports[`Api compileEndpoint should compile the Api Resource with embedded authorizer Lambda function 2`] = `
+{
+  "MyApiAuthorizer": {
+    "handler": "index.handler",
+  },
+}
+`;
+
+exports[`Api compileEndpoint should compile the Api Resource with logs enabled 1`] = `
+{
+  "GraphQlApi": {
+    "Properties": {
+      "AuthenticationType": "API_KEY",
+      "EnvironmentVariables": undefined,
+      "LogConfig": {
+        "CloudWatchLogsRoleArn": {
+          "Fn::GetAtt": [
+            "GraphQlApiLogGroupRole",
+            "Arn",
+          ],
+        },
+        "ExcludeVerboseContent": false,
+        "FieldLogLevel": "ERROR",
+      },
+      "Name": "MyApi",
+      "Tags": [
+        {
+          "Key": "stage",
+          "Value": "Dev",
+        },
+      ],
+      "XrayEnabled": false,
+    },
+    "Type": "AWS::AppSync::GraphQLApi",
+  },
+}
+`;
+
+exports[`Caching should generate Resources with custom Config 1`] = `
+{
+  "GraphQlCaching": {
+    "Properties": {
+      "ApiCachingBehavior": "FULL_REQUEST_CACHING",
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "AtRestEncryptionEnabled": true,
+      "TransitEncryptionEnabled": true,
+      "Ttl": 500,
+      "Type": "T2_MEDIUM",
+    },
+    "Type": "AWS::AppSync::ApiCache",
+  },
+}
+`;
+
+exports[`Caching should generate Resources with defaults 1`] = `
+{
+  "GraphQlCaching": {
+    "Properties": {
+      "ApiCachingBehavior": "FULL_REQUEST_CACHING",
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "AtRestEncryptionEnabled": false,
+      "TransitEncryptionEnabled": false,
+      "Ttl": 3600,
+      "Type": "T2_SMALL",
+    },
+    "Type": "AWS::AppSync::ApiCache",
+  },
+}
+`;
+
+exports[`Domains should generate domain resources 1`] = `
+{
+  "GraphQlDomainAssociation": {
+    "DeletionPolicy": "Delete",
+    "DependsOn": [
+      "GraphQlDomainName",
+    ],
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "DomainName": "api.example.com",
+    },
+    "Type": "AWS::AppSync::DomainNameApiAssociation",
+  },
+  "GraphQlDomainCertificate": {
+    "DeletionPolicy": "Delete",
+    "Properties": {
+      "DomainName": "api.example.com",
+      "DomainValidationOptions": [
+        {
+          "DomainName": "api.example.com",
+          "HostedZoneId": "Z111111QQQQQQQ",
+        },
+      ],
+      "ValidationMethod": "DNS",
+    },
+    "Type": "AWS::CertificateManager::Certificate",
+  },
+  "GraphQlDomainName": {
+    "DeletionPolicy": "Delete",
+    "Properties": {
+      "CertificateArn": {
+        "Ref": "GraphQlDomainCertificate",
+      },
+      "DomainName": "api.example.com",
+    },
+    "Type": "AWS::AppSync::DomainName",
+  },
+  "GraphQlDomainRoute53Record": {
+    "DeletionPolicy": "Delete",
+    "Properties": {
+      "AliasTarget": {
+        "DNSName": {
+          "Fn::GetAtt": [
+            "GraphQlDomainName",
+            "AppSyncDomainName",
+          ],
+        },
+        "EvaluateTargetHealth": false,
+        "HostedZoneId": {
+          "Fn::GetAtt": [
+            "GraphQlDomainName",
+            "HostedZoneId",
+          ],
+        },
+      },
+      "HostedZoneId": "Z111111QQQQQQQ",
+      "Name": "api.example.com",
+      "Type": "A",
+    },
+    "Type": "AWS::Route53::RecordSet",
+  },
+}
+`;
+
+exports[`Domains should generate domain resources with custom certificate ARN 1`] = `
+{
+  "GraphQlDomainAssociation": {
+    "DeletionPolicy": "Delete",
+    "DependsOn": [
+      "GraphQlDomainName",
+    ],
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "DomainName": "api.example.com",
+    },
+    "Type": "AWS::AppSync::DomainNameApiAssociation",
+  },
+  "GraphQlDomainName": {
+    "DeletionPolicy": "Delete",
+    "Properties": {
+      "CertificateArn": "arn:aws:acm:us-east-1:1234567890:certificate/e4b6e9be-1aa7-458d-880e-069622e5be52",
+      "DomainName": "api.example.com",
+    },
+    "Type": "AWS::AppSync::DomainName",
+  },
+  "GraphQlDomainRoute53Record": {
+    "DeletionPolicy": "Delete",
+    "Properties": {
+      "AliasTarget": {
+        "DNSName": {
+          "Fn::GetAtt": [
+            "GraphQlDomainName",
+            "AppSyncDomainName",
+          ],
+        },
+        "EvaluateTargetHealth": false,
+        "HostedZoneId": {
+          "Fn::GetAtt": [
+            "GraphQlDomainName",
+            "HostedZoneId",
+          ],
+        },
+      },
+      "HostedZoneName": "example.com.",
+      "Name": "api.example.com",
+      "Type": "A",
+    },
+    "Type": "AWS::Route53::RecordSet",
+  },
+}
+`;
+
+exports[`Domains should generate domain resources with custom hostedZoneId 1`] = `
+{
+  "GraphQlDomainAssociation": {
+    "DeletionPolicy": "Delete",
+    "DependsOn": [
+      "GraphQlDomainName",
+    ],
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "DomainName": "api.example.com",
+    },
+    "Type": "AWS::AppSync::DomainNameApiAssociation",
+  },
+  "GraphQlDomainName": {
+    "DeletionPolicy": "Delete",
+    "Properties": {
+      "CertificateArn": "arn:aws:acm:us-east-1:1234567890:certificate/e4b6e9be-1aa7-458d-880e-069622e5be52",
+      "DomainName": "api.example.com",
+    },
+    "Type": "AWS::AppSync::DomainName",
+  },
+  "GraphQlDomainRoute53Record": {
+    "DeletionPolicy": "Delete",
+    "Properties": {
+      "AliasTarget": {
+        "DNSName": {
+          "Fn::GetAtt": [
+            "GraphQlDomainName",
+            "AppSyncDomainName",
+          ],
+        },
+        "EvaluateTargetHealth": false,
+        "HostedZoneId": {
+          "Fn::GetAtt": [
+            "GraphQlDomainName",
+            "HostedZoneId",
+          ],
+        },
+      },
+      "HostedZoneId": "Z111111QQQQQQQ",
+      "Name": "api.example.com",
+      "Type": "A",
+    },
+    "Type": "AWS::Route53::RecordSet",
+  },
+}
+`;
+
+exports[`Domains should generate domain resources with custom hostedZoneName 1`] = `
+{
+  "GraphQlDomainAssociation": {
+    "DeletionPolicy": "Delete",
+    "DependsOn": [
+      "GraphQlDomainName",
+    ],
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "DomainName": "foo.api.example.com",
+    },
+    "Type": "AWS::AppSync::DomainNameApiAssociation",
+  },
+  "GraphQlDomainName": {
+    "DeletionPolicy": "Delete",
+    "Properties": {
+      "CertificateArn": "arn:aws:acm:us-east-1:1234567890:certificate/e4b6e9be-1aa7-458d-880e-069622e5be52",
+      "DomainName": "foo.api.example.com",
+    },
+    "Type": "AWS::AppSync::DomainName",
+  },
+  "GraphQlDomainRoute53Record": {
+    "DeletionPolicy": "Delete",
+    "Properties": {
+      "AliasTarget": {
+        "DNSName": {
+          "Fn::GetAtt": [
+            "GraphQlDomainName",
+            "AppSyncDomainName",
+          ],
+        },
+        "EvaluateTargetHealth": false,
+        "HostedZoneId": {
+          "Fn::GetAtt": [
+            "GraphQlDomainName",
+            "HostedZoneId",
+          ],
+        },
+      },
+      "HostedZoneName": "example.com.",
+      "Name": "foo.api.example.com",
+      "Type": "A",
+    },
+    "Type": "AWS::Route53::RecordSet",
+  },
+}
+`;
+
+exports[`Domains should not generate domain resources when disabled 1`] = `{}`;
+
+exports[`Domains should not generate domain resources when not configured 1`] = `{}`;
