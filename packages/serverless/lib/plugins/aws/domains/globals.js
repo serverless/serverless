@@ -1,4 +1,5 @@
-import AWS from 'aws-sdk'
+import { fromIni } from '@aws-sdk/credential-providers'
+import { ConfiguredRetryStrategy } from '@smithy/util-retry'
 
 export default class Globals {
   static pluginName = 'domains'
@@ -75,28 +76,30 @@ export default class Globals {
   }
 
   static getRegion() {
-    const slsRegion =
-      Globals.options.region || Globals.serverless.service.provider.region
-    return slsRegion || Globals.currentRegion || Globals.defaultRegion
+    return Globals.currentRegion || Globals.defaultRegion
   }
 
+  /**
+   * Get credentials for a specific AWS profile using AWS SDK V3
+   * @param {string} profile - The AWS profile name
+   * @returns {Promise<object>} - The resolved credentials
+   */
   static async getProfileCreds(profile) {
-    const credentials = new AWS.SharedIniFileCredentials({ profile })
-    return credentials
+    return fromIni({ profile })()
   }
 
+  /**
+   * Get retry strategy for AWS SDK V3 clients
+   * @param {number} attempts - Maximum retry attempts (default: 5)
+   * @param {number} delay - Delay in ms per attempt (default: 3000)
+   * @param {number} backoff - Base backoff in ms (default: 500)
+   * @returns {ConfiguredRetryStrategy} - The retry strategy instance
+   */
   static getRetryStrategy(attempts = 5, delay = 3000, backoff = 500) {
-    return {
-      retryDelayOptions: {
-        base: backoff,
-        customBackoff: (retryCount) => backoff + retryCount * delay,
-      },
-      maxRetries: attempts,
-    }
-  }
-
-  static getRequestHandler() {
-    // AWS SDK v2 handles proxy configuration automatically
-    return {}
+    return new ConfiguredRetryStrategy(
+      attempts,
+      // Backoff function: base backoff + delay per attempt
+      (attempt) => backoff + attempt * delay,
+    )
   }
 }
