@@ -683,6 +683,68 @@ test('uv py3.13 doesnt package bottle with noDeploy option', async (t) => {
   t.end()
 })
 
+test('uv py3.13 auto-reinstalls local packages (based on pyproject.toml name)', async (t) => {
+  process.chdir('tests/uv_local_package')
+
+  // Initial package of version 1.0.0
+  sls(['package'], { env: { SLS_DEBUG: '*' } })
+
+  // Modify source code of local package to version 2.0.0
+  const initPyPath = `src${sep}my_local_package${sep}__init__.py`
+  const originalContent = await readFile(initPyPath, { encoding: 'utf-8' })
+  const newContent = originalContent.replace(
+    'VERSION = "1.0.0"',
+    'VERSION = "2.0.0"',
+  )
+  writeFileSync(initPyPath, newContent)
+
+  try {
+    // Repackage to verify changes are picked up correctly
+    const { stderr } = sls(['package'], { env: { SLS_DEBUG: '*' } })
+
+    // Verify Force reinstall was triggered
+    t.true(
+      stderr &&
+        stderr.includes('Force reinstalling local package: my-local-package'),
+      'Logs indicate forced reinstall of local package',
+    )
+
+    const zipData = await readFile('.serverless/sls-py-req-test.zip')
+    const zip = await new JSZip().loadAsync(zipData)
+
+    let fileInZip = zip.file(`my_local_package${sep}__init__.py`)
+
+    if (!fileInZip) {
+      const files = Object.keys(zip.files)
+      const match = files.find((f) =>
+        f.endsWith('my_local_package/__init__.py'),
+      )
+      if (match) fileInZip = zip.file(match)
+    }
+
+    t.ok(fileInZip, 'my_local_package/__init__.py found in zip')
+
+    if (fileInZip) {
+      const content = await fileInZip.async('string')
+      t.true(
+        content.includes('VERSION = "2.0.0"'),
+        'Packaged artifact reflects source changes',
+      )
+    }
+
+    // Verify flask (transitive dependency) is also packaged
+    const files = Object.keys(zip.files)
+    t.true(
+      files.some((f) => f.includes(`flask${sep}__init__.py`)),
+      'flask is packaged',
+    )
+  } finally {
+    writeFileSync(initPyPath, originalContent)
+  }
+
+  t.end()
+})
+
 test('pipenv py3.13 can package flask with slim option', async (t) => {
   process.chdir('tests/pipenv')
   sls(['package'], { env: { slim: 'true' } })

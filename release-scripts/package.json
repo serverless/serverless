@@ -16,7 +16,7 @@
     "prettier": "^3.7.4"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.952.0",
+    "@aws-sdk/client-s3": "3.953.0",
     "mongodb": "^7.0.0"
   }
 }
