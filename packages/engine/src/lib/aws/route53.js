@@ -125,10 +125,6 @@ export class AwsRoute53Client {
       )
     } catch (error) {
       return
-      // if (error.message.includes('already exists')) {
-      //   return
-      // }
-      // throw error
     }
   }
 
