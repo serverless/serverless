@@ -83,7 +83,7 @@ export default {
                   eventStatus &&
                   (eventStatus.endsWith('FAILED') ||
                     eventStatus === 'UPDATE_ROLLBACK_IN_PROGRESS' ||
-                    // Stack-level DELETE_IN_PROGRESS indicates creation/update failure
+                    // Stack-level DELETE_IN_PROGRESS indicates creation failure
                     (action !== 'delete' &&
                       eventStatus === 'DELETE_IN_PROGRESS' &&
                       event.ResourceType === 'AWS::CloudFormation::Stack' &&
