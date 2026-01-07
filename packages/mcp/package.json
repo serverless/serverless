@@ -19,7 +19,7 @@
     "prettier:fix": "prettier src/**/* tests/**/* --write"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.25.1",
+    "@modelcontextprotocol/sdk": "^1.25.2",
     "@serverless/engine": "*",
     "@serverless/framework": "*",
     "eventsource": "^3.0.7",
