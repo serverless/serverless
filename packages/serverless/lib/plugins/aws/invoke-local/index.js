@@ -415,7 +415,7 @@ class AwsInvokeLocal {
       )
     }
 
-    if (['ruby2.7', 'ruby3.2', 'ruby3.3'].includes(runtime)) {
+    if (['ruby2.7', 'ruby3.2', 'ruby3.3', 'ruby3.4'].includes(runtime)) {
       const handlerComponents = handler.split(/\./)
       const handlerPath = handlerComponents[0]
       const handlerName = handlerComponents.slice(1).join('.')
