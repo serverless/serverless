@@ -2,11 +2,20 @@
  * Wrapper class for AWS CloudFormation provider
  */
 
-import AWS from 'aws-sdk'
+import {
+  CloudFormationClient,
+  DescribeStackResourceCommand,
+  DescribeStacksCommand,
+  ListExportsCommand,
+} from '@aws-sdk/client-cloudformation'
+import {
+  addProxyToAwsClient,
+  ServerlessError,
+  ServerlessErrorCodes,
+} from '@serverless/util'
 import Globals from '../globals.js'
 import Logging from '../logging.js'
 import { getAWSPagedResults } from '../utils.js'
-import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
 
 class CloudFormationWrapper {
   constructor(credentials) {
@@ -19,15 +28,14 @@ class CloudFormationWrapper {
     const config = {
       region: Globals.getRegion(),
       endpoint: Globals.getServiceEndpoint('cloudformation'),
-      ...Globals.getRetryStrategy(),
-      ...Globals.getRequestHandler(),
+      retryStrategy: Globals.getRetryStrategy(),
     }
 
     if (credentials) {
       config.credentials = credentials
     }
 
-    this.cloudFormation = new AWS.CloudFormation(config)
+    this.cloudFormation = addProxyToAwsClient(new CloudFormationClient(config))
   }
 
   /**
@@ -142,11 +150,10 @@ class CloudFormationWrapper {
   async getImportValues(names) {
     const exports = await getAWSPagedResults(
       this.cloudFormation,
-      'listExports',
       'Exports',
       'NextToken',
       'NextToken',
-      {},
+      new ListExportsCommand({}),
     )
     // filter Exports by names which we need
     const filteredExports = exports.filter(
@@ -168,12 +175,12 @@ class CloudFormationWrapper {
    */
   async getStack(logicalResourceId, stackName) {
     try {
-      return await this.cloudFormation
-        .describeStackResource({
+      return await this.cloudFormation.send(
+        new DescribeStackResourceCommand({
           LogicalResourceId: logicalResourceId,
           StackName: stackName,
-        })
-        .promise()
+        }),
+      )
     } catch (err) {
       throw new ServerlessError(
         `Failed to find CloudFormation resources with an error: ${err.message}\n`,
@@ -193,11 +200,10 @@ class CloudFormationWrapper {
     // get all stacks from the CloudFormation
     const stacks = await getAWSPagedResults(
       this.cloudFormation,
-      'describeStacks',
       'Stacks',
       'NextToken',
       'NextToken',
-      {},
+      new DescribeStacksCommand({}),
     )
 
     // filter stacks by given stackName and check by nested stack RootId

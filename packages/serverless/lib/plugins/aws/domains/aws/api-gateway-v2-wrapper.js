@@ -1,12 +1,21 @@
 /**
  * Wrapper class for AWS APIGatewayV2 provider
  */
-import DomainConfig from '../models/domain-config.js'
+import {
+  ApiGatewayV2Client,
+  CreateDomainNameCommand,
+  GetDomainNameCommand,
+  DeleteDomainNameCommand,
+  CreateApiMappingCommand,
+  GetApiMappingsCommand,
+  UpdateApiMappingCommand,
+  DeleteApiMappingCommand,
+} from '@aws-sdk/client-apigatewayv2'
+import { addProxyToAwsClient } from '@serverless/util'
 import DomainInfo from '../models/domain-info.js'
 import Globals from '../globals.js'
 import ApiGatewayMap from '../models/api-gateway-map.js'
 import APIGatewayBase from '../models/apigateway-base.js'
-import AWS from 'aws-sdk'
 import Logging from '../logging.js'
 import { getAWSPagedResults } from '../utils.js'
 import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
@@ -17,15 +26,14 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
     const config = {
       region: Globals.getRegion(),
       endpoint: Globals.getServiceEndpoint('apigatewayv2'),
-      ...Globals.getRetryStrategy(),
-      ...Globals.getRequestHandler(),
+      retryStrategy: Globals.getRetryStrategy(),
     }
 
     if (credentials) {
       config.credentials = credentials
     }
 
-    this.apiGateway = new AWS.ApiGatewayV2(config)
+    this.apiGateway = addProxyToAwsClient(new ApiGatewayV2Client(config))
   }
 
   /**
@@ -64,9 +72,9 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
     }
 
     try {
-      const domainInfo = await this.apiGateway
-        .createDomainName(params)
-        .promise()
+      const domainInfo = await this.apiGateway.send(
+        new CreateDomainNameCommand(params),
+      )
       return new DomainInfo(domainInfo)
     } catch (err) {
       throw new ServerlessError(
@@ -86,14 +94,15 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
   async getCustomDomain(domain, silent = true) {
     // Make API call
     try {
-      const domainInfo = await this.apiGateway
-        .getDomainName({
+      const domainInfo = await this.apiGateway.send(
+        new GetDomainNameCommand({
           DomainName: domain.givenDomainName,
-        })
-        .promise()
+        }),
+      )
       return new DomainInfo(domainInfo)
     } catch (err) {
-      if (!err.statusCode || err.statusCode !== 404 || !silent) {
+      const statusCode = err.$metadata?.httpStatusCode
+      if (!statusCode || statusCode !== 404 || !silent) {
         throw new ServerlessError(
           `V2 - Unable to fetch information about '${domain.givenDomainName}':\n${err.message}`,
           ServerlessErrorCodes.domains.API_GATEWAY_CUSTOM_DOMAIN_FETCH_FAILED,
@@ -112,11 +121,11 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
   async deleteCustomDomain(domain) {
     // Make API call
     try {
-      await this.apiGateway
-        .deleteDomainName({
+      await this.apiGateway.send(
+        new DeleteDomainNameCommand({
           DomainName: domain.givenDomainName,
-        })
-        .promise()
+        }),
+      )
     } catch (err) {
       throw new ServerlessError(
         `V2 - Failed to delete custom domain '${domain.givenDomainName}':\n${err.message}`,
@@ -133,8 +142,8 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
    */
   async createBasePathMapping(domain) {
     try {
-      await this.apiGateway
-        .createApiMapping({
+      await this.apiGateway.send(
+        new CreateApiMappingCommand({
           ApiId: domain.apiId,
           ApiMappingKey: domain.basePath,
           DomainName: domain.givenDomainName,
@@ -142,15 +151,16 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
             domain.apiType === Globals.apiTypes.http
               ? '$default'
               : domain.stage,
-        })
-        .promise()
+        }),
+      )
       Logging.logInfo(
         `V2 - Created API mapping '${Logging.formatBasePathForDisplay(domain.basePath)}' for '${domain.givenDomainName}'`,
       )
     } catch (err) {
       throw new ServerlessError(
         `V2 - Unable to create base path mapping for '${domain.givenDomainName}':\n${err.message}`,
-        ServerlessErrorCodes.domains.API_GATEWAY_BASE_PATH_MAPPING_CREATION_FAILED,
+        ServerlessErrorCodes.domains
+          .API_GATEWAY_BASE_PATH_MAPPING_CREATION_FAILED,
         { originalMessage: err.message },
       )
     }
@@ -165,13 +175,12 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
     try {
       const items = await getAWSPagedResults(
         this.apiGateway,
-        'getApiMappings',
         'Items',
         'NextToken',
         'NextToken',
-        {
+        new GetApiMappingsCommand({
           DomainName: domain.givenDomainName,
-        },
+        }),
       )
       return items.map(
         (item) =>
@@ -198,8 +207,8 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
    */
   async updateBasePathMapping(domain) {
     try {
-      await this.apiGateway
-        .updateApiMapping({
+      await this.apiGateway.send(
+        new UpdateApiMappingCommand({
           ApiId: domain.apiId,
           ApiMappingId: domain.apiMapping.apiMappingId,
           ApiMappingKey: domain.basePath,
@@ -208,15 +217,16 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
             domain.apiType === Globals.apiTypes.http
               ? '$default'
               : domain.stage,
-        })
-        .promise()
+        }),
+      )
       Logging.logInfo(
         `V2 - Updated API mapping to '${Logging.formatBasePathForDisplay(domain.basePath)}' for '${domain.givenDomainName}'`,
       )
     } catch (err) {
       throw new ServerlessError(
         `V2 - Unable to update base path mapping for '${domain.givenDomainName}':\n${err.message}`,
-        ServerlessErrorCodes.domains.API_GATEWAY_BASE_PATH_MAPPING_UPDATE_FAILED,
+        ServerlessErrorCodes.domains
+          .API_GATEWAY_BASE_PATH_MAPPING_UPDATE_FAILED,
         { originalMessage: err.message },
       )
     }
@@ -229,19 +239,20 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
    */
   async deleteBasePathMapping(domain) {
     try {
-      await this.apiGateway
-        .deleteApiMapping({
+      await this.apiGateway.send(
+        new DeleteApiMappingCommand({
           ApiMappingId: domain.apiMapping.apiMappingId,
           DomainName: domain.givenDomainName,
-        })
-        .promise()
+        }),
+      )
       Logging.logInfo(
         `V2 - Removed API Mapping with id: '${domain.apiMapping.apiMappingId}'`,
       )
     } catch (err) {
       throw new ServerlessError(
         `V2 - Unable to remove base path mapping for '${domain.givenDomainName}':\n${err.message}`,
-        ServerlessErrorCodes.domains.API_GATEWAY_BASE_PATH_MAPPING_DELETION_FAILED,
+        ServerlessErrorCodes.domains
+          .API_GATEWAY_BASE_PATH_MAPPING_DELETION_FAILED,
         { originalMessage: err.message },
       )
     }

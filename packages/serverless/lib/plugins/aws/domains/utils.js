@@ -42,32 +42,30 @@ function evaluateBoolean(value, defaultValue) {
 }
 
 /**
- * Iterate through the pages of a AWS SDK v2 response and collect them into a single array
+ * Iterate through the pages of an AWS SDK v3 response and collect them into a single array
  *
- * @param {Object} client - The AWS service instance to use to make the calls
- * @param {string} methodName - The method name to call on the client
+ * @param {Object} client - The AWS SDK v3 client instance
  * @param {string} resultsKey - The key name in the response that contains the items to return
  * @param {string} nextTokenKey - The request key name to append to the request that has the paging token value
  * @param {string} nextResponseTokenKey - The response key name that has the next paging token value
- * @param {Object} params - Parameters to send in the request
+ * @param {Object} command - The AWS SDK v3 Command instance to execute
  * @returns {Promise<Array>} Promise that resolves to an array of results
  */
 async function getAWSPagedResults(
   client,
-  methodName,
   resultsKey,
   nextTokenKey,
   nextResponseTokenKey,
-  params,
+  command,
 ) {
   let results = []
-  let response = await client[methodName](params).promise()
-  results = results.concat(response[resultsKey] || [])
+  let response = await client.send(command)
+  results = results.concat(response[resultsKey] || results)
 
-  while (response[nextResponseTokenKey]) {
-    params[nextTokenKey] = response[nextResponseTokenKey]
-    response = await client[methodName](params).promise()
-    results = results.concat(response[resultsKey] || [])
+  while (nextResponseTokenKey in response && response[nextResponseTokenKey]) {
+    command.input[nextTokenKey] = response[nextResponseTokenKey]
+    response = await client.send(command)
+    results = results.concat(response[resultsKey])
   }
 
   return results
