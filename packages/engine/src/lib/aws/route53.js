@@ -89,6 +89,22 @@ export class AwsRoute53Client {
     }
 
     try {
+      logger.debug({
+        HostedZoneId: hostedZoneId,
+        ChangeBatch: {
+          Changes: [
+            {
+              Action: ChangeAction.CREATE,
+              ResourceRecordSet: {
+                Name: resourceRecord.Name,
+                Type: resourceRecord.Type,
+                TTL: 300,
+                ResourceRecords: [{ Value: resourceRecord.Value }],
+              },
+            },
+          ],
+        },
+      })
       await this.client.send(
         new ChangeResourceRecordSetsCommand({
           HostedZoneId: hostedZoneId,
@@ -108,10 +124,7 @@ export class AwsRoute53Client {
         }),
       )
     } catch (error) {
-      if (error.message.includes('already exists')) {
-        return
-      }
-      throw error
+      return
     }
   }
 
