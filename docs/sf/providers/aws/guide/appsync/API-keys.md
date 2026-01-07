@@ -1,3 +1,17 @@
+<!--
+title: Serverless Framework - AppSync - API Keys
+description: How to configure API keys for AWS AppSync with the Serverless Framework.
+short_title: AppSync - API Keys
+keywords:
+  [
+    'Serverless Framework',
+    'AppSync',
+    'API Keys',
+    'GraphQL',
+    'AWS',
+  ]
+-->
+
 # API Keys
 
 When you use `API_KEY` as an [authentication method](authentication.md), you can control how API keys are created under `appSync.apiKeys`. It takes an array of API key definitions or strings.

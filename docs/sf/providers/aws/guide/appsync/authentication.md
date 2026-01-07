@@ -1,3 +1,21 @@
+<!--
+title: Serverless Framework - AppSync - Authentication
+description: How to configure authentication for AWS AppSync with the Serverless Framework.
+short_title: AppSync - Authentication
+keywords:
+  [
+    'Serverless Framework',
+    'AppSync',
+    'Authentication',
+    'Cognito',
+    'IAM',
+    'OIDC',
+    'Lambda Authorizer',
+    'GraphQL',
+    'AWS',
+  ]
+-->
+
 # Authentication
 
 [Authentication](https://docs.aws.amazon.com/appsync/latest/devguide/security-authz.html) definitions are found under the `appSync.authentication` (for the default authentication method) and `appSync.additionalAuthentications` (as an array) for additional ones

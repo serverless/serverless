@@ -1,3 +1,17 @@
+<!--
+title: Serverless Framework - AppSync - General Configuration
+description: General configuration options for AWS AppSync with the Serverless Framework.
+short_title: AppSync - General Configuration
+keywords:
+  [
+    'Serverless Framework',
+    'AppSync',
+    'Configuration',
+    'GraphQL',
+    'AWS',
+  ]
+-->
+
 # General configuration
 
 ## Quick start

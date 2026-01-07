@@ -1,3 +1,18 @@
+<!--
+title: Serverless Framework - AppSync - CLI Commands
+description: CLI commands for AWS AppSync with the Serverless Framework.
+short_title: AppSync - CLI Commands
+keywords:
+  [
+    'Serverless Framework',
+    'AppSync',
+    'CLI',
+    'Commands',
+    'GraphQL',
+    'AWS',
+  ]
+-->
+
 # Commands
 
 The AppSync integration provides some useful commands to explore and manage your API.

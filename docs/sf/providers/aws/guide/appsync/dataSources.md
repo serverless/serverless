@@ -1,3 +1,23 @@
+<!--
+title: Serverless Framework - AppSync - Data Sources
+description: How to configure data sources (DynamoDB, Lambda, OpenSearch, HTTP, RDS, EventBridge) for AWS AppSync with the Serverless Framework.
+short_title: AppSync - Data Sources
+keywords:
+  [
+    'Serverless Framework',
+    'AppSync',
+    'Data Sources',
+    'DynamoDB',
+    'Lambda',
+    'OpenSearch',
+    'HTTP',
+    'RDS',
+    'EventBridge',
+    'GraphQL',
+    'AWS',
+  ]
+-->
+
 # DataSources
 
 All the DataSources in your AppSync API can be found in serverless.yml under the `appSync.dataSources` property. DataSources are defined as key-value objects, the key being the name of the DataSource.

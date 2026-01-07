@@ -1,3 +1,18 @@
+<!--
+title: Serverless Framework - AppSync - Pipeline Functions
+description: How to configure pipeline functions for AWS AppSync with the Serverless Framework.
+short_title: AppSync - Pipeline Functions
+keywords:
+  [
+    'Serverless Framework',
+    'AppSync',
+    'Pipeline Functions',
+    'Resolvers',
+    'GraphQL',
+    'AWS',
+  ]
+-->
+
 # Pipeline functions
 
 When you use `PIPELINE` [resolvers](resolvers.md), you will also need to define the used pipeline functions. You can do so under the `appSync.pipelineFunctions` attribute.

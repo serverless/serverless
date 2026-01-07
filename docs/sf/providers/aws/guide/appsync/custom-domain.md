@@ -1,3 +1,17 @@
+<!--
+title: Serverless Framework - AppSync - Custom Domains
+description: How to configure custom domains for AWS AppSync with the Serverless Framework.
+short_title: AppSync - Custom Domains
+keywords:
+  [
+    'Serverless Framework',
+    'AppSync',
+    'Custom Domains',
+    'GraphQL',
+    'AWS',
+  ]
+-->
+
 # Custom Domains
 
 AppSync supports associating your API to a [custom domain](https://aws.amazon.com/blogs/mobile/introducing-custom-domain-names-for-aws-appsync-apis/).

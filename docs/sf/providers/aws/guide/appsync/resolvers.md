@@ -1,3 +1,19 @@
+<!--
+title: Serverless Framework - AppSync - Resolvers
+description: How to configure UNIT and PIPELINE resolvers for AWS AppSync with the Serverless Framework.
+short_title: AppSync - Resolvers
+keywords:
+  [
+    'Serverless Framework',
+    'AppSync',
+    'Resolvers',
+    'UNIT',
+    'PIPELINE',
+    'GraphQL',
+    'AWS',
+  ]
+-->
+
 # Resolvers
 
 All the Resolvers in your AppSync API can be found in serverless.yml under the `appSync.resolvers` property.

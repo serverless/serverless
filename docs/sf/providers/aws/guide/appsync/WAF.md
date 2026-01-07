@@ -1,3 +1,18 @@
+<!--
+title: Serverless Framework - AppSync - Web Application Firewall (WAF)
+description: How to configure Web Application Firewall (WAF) for AWS AppSync with the Serverless Framework.
+short_title: AppSync - WAF
+keywords:
+  [
+    'Serverless Framework',
+    'AppSync',
+    'WAF',
+    'Web Application Firewall',
+    'GraphQL',
+    'AWS',
+  ]
+-->
+
 # Web Application Firewall (WAF)
 
 AppSync [supports WAF](https://aws.amazon.com/blogs/mobile/appsync-waf/). WAF is an Application Firewall that helps you protect your API against common web exploits.

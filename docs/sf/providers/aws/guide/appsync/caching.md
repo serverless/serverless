@@ -1,3 +1,17 @@
+<!--
+title: Serverless Framework - AppSync - Caching
+description: How to configure caching for AWS AppSync with the Serverless Framework.
+short_title: AppSync - Caching
+keywords:
+  [
+    'Serverless Framework',
+    'AppSync',
+    'Caching',
+    'GraphQL',
+    'AWS',
+  ]
+-->
+
 # Caching
 
 AppSync supports [server-side data caching](https://docs.aws.amazon.com/appsync/latest/devguide/enabling-caching.html). You can find the caching configuration under the `appSync.caching` attribute.
