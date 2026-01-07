@@ -23,7 +23,7 @@
     "@serverless/engine": "*",
     "@serverless/framework": "*",
     "eventsource": "^3.0.7",
-    "express": "^4.22.1",
+    "express": "^5.2.1",
     "zod": "^3.25.76"
   },
   "devDependencies": {
