@@ -45,11 +45,11 @@ The Serverless Framework provides multiple methods to connect to AWS. However, t
 
 We recommend using browser-based AWS Console authentication to generate short-lived credentials. This is more secure than long-term access keys and integrates with your existing console sign-in.
 
-1. **Run the Onboarding Wizard**
-   Run the command below and select **"Sign in with AWS Console"** when prompted:
+1. **Run the Login Command**
+   Run the command below to authenticate with AWS:
 
     ```
-    serverless
+    serverless login aws
     ```
 
 2. **Authenticate**
