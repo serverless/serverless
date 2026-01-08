@@ -1,0 +1,131 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Basic Invalid should validate: Invalid Datasource 1`] = `
+"/dataSources/myDynamoSource1/type: must be one of AMAZON_DYNAMODB, AMAZON_OPENSEARCH_SERVICE, AWS_LAMBDA, HTTP, NONE, RELATIONAL_DATABASE, AMAZON_EVENTBRIDGE
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`DynamoDB Invalid should validate: Empty config 1`] = `
+"/dataSources/myDynamoSource1/config: must have required property 'tableName'
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`DynamoDB Invalid should validate: Invalid config 1`] = `
+"/dataSources/myDynamoSource1/config/tableName: must be a string or a CloudFormation intrinsic function
+/dataSources/myDynamoSource1/config/useCallerCredentials: must be boolean
+/dataSources/myDynamoSource1/config/serviceRoleArn: must be a string or a CloudFormation intrinsic function
+/dataSources/myDynamoSource1/config/region: must be a string or a CloudFormation intrinsic function
+/dataSources/myDynamoSource1/config/iamRoleStatements/0: must be a valid IAM role statement
+/dataSources/myDynamoSource1/config/versioned: must be boolean
+/dataSources/myDynamoSource1/config/deltaSyncConfig: must have required property 'deltaSyncTableName'
+/dataSources/myDynamoSource1/config/deltaSyncConfig/baseTableTTL: must be integer
+/dataSources/myDynamoSource1/config/deltaSyncConfig/deltaSyncTableTTL: must be integer
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`DynamoDB Invalid should validate: Missing config 1`] = `
+"/dataSources/myDynamoSource1: must have required property 'config'
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`EventBridge Invalid should not validate: Empty config 1`] = `
+"/dataSources/myEventBridgeSource1/config: must have required property 'eventBusArn'
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`EventBridge Invalid should not validate: Invalid config 1`] = `
+"/dataSources/myEventBridgeSource1/config/eventBusArn: must be a string or a CloudFormation intrinsic function
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`EventBridge Invalid should not validate: Missing config 1`] = `
+"/dataSources/myEventBridgeSource1: must have required property 'config'
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`HTTP Invalid should validate: Empty config 1`] = `
+"/dataSources/http1/config: must have required property 'endpoint'
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`HTTP Invalid should validate: Invalid config 1`] = `
+"/dataSources/http1/config/endpoint: must be a string or a CloudFormation intrinsic function
+/dataSources/http1/config/authorizationConfig/authorizationType: must be AWS_IAM
+/dataSources/http1/config/authorizationConfig/awsIamConfig/signingRegion: must be a string or a CloudFormation intrinsic function
+/dataSources/http1/config/authorizationConfig/awsIamConfig/signingServiceName: must be a string or a CloudFormation intrinsic function
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`HTTP Invalid should validate: Missing config 1`] = `
+"/dataSources/http1: must have required property 'config'
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`Lambda Invalid should validate: Empty config 1`] = `
+"/dataSources/myLambda1/config: must specify functionName, functionArn or function (all exclusives)
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`Lambda Invalid should validate: Invalid config 1`] = `
+"/dataSources/myLambda1/config: must specify functionName, functionArn or function (all exclusives)
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`Lambda Invalid should validate: Invalid embedded function 1`] = `
+"/dataSources/myLambda1/config: must specify functionName, functionArn or function (all exclusives)
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`Lambda Invalid should validate: Invalid functionArn 1`] = `
+"/dataSources/myLambda1/config/functionArn: must be a string or a CloudFormation intrinsic function
+/dataSources/myLambda1/config: must specify functionName, functionArn or function (all exclusives)
+/dataSources/myLambda1/config/functionArn: must be a string or a CloudFormation intrinsic function
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`Lambda Invalid should validate: Invalid functionName 1`] = `
+"/dataSources/myLambda1/config: must specify functionName, functionArn or function (all exclusives)
+/dataSources/myLambda1/config/functionName: must be string
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`Lambda Invalid should validate: Missing config 1`] = `
+"/dataSources/myLambda1: must have required property 'config'
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`OpenSearch Invalid should validate: Empty config 1`] = `
+"/dataSources/openSearch1/config: must have a endpoint or domain (but not both)
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`OpenSearch Invalid should validate: Invalid config 1`] = `
+"/dataSources/openSearch1/config/endpoint: must be a string or a CloudFormation intrinsic function
+/dataSources/openSearch1/config: must have a endpoint or domain (but not both)
+/dataSources/openSearch1/config/endpoint: must be a string or a CloudFormation intrinsic function
+/dataSources/openSearch1/config/region: must be a string or a CloudFormation intrinsic function
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`OpenSearch Invalid should validate: Missing config 1`] = `
+"/dataSources/openSearch1: must have required property 'config'
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`RelationalDb Invalid should validate: Empty config 1`] = `
+"/dataSources/http1/config: must have required property 'endpoint'
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`RelationalDb Invalid should validate: Invalid config 1`] = `
+"/dataSources/http1/config/endpoint: must be a string or a CloudFormation intrinsic function
+/dataSources/http1/config/authorizationConfig/authorizationType: must be AWS_IAM
+/dataSources/http1/config/authorizationConfig/awsIamConfig/signingRegion: must be a string or a CloudFormation intrinsic function
+/dataSources/http1/config/authorizationConfig/awsIamConfig/signingServiceName: must be a string or a CloudFormation intrinsic function
+/dataSources: contains invalid data source definitions"
+`;
+
+exports[`RelationalDb Invalid should validate: Missing config 1`] = `
+"/dataSources/http1: must have required property 'config'
+/dataSources: contains invalid data source definitions"
+`;

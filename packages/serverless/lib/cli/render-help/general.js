@@ -66,6 +66,7 @@ ${style.aside('Options')}`)
   if (loadedPlugins.size) {
     if (extensionCommandsSchema.size) {
       for (const [plugin, pluginCommandsSchema] of extensionCommandsSchema) {
+        writeText()
         writeText(null, style.aside(plugin.constructor.name))
         for (const [commandName, commandSchema] of pluginCommandsSchema) {
           writeText(generateCommandUsage(commandName, commandSchema))

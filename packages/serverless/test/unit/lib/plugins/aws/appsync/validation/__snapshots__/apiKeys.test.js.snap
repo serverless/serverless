@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Basic Invalid should validate: Invalid WAF rules 1`] = `"/apiKeys/0/wafRules/0: must be a valid WAF rule"`;
+
+exports[`Basic Invalid should validate: Invalid duration 1`] = `"/apiKeys/0/expiresAfter: must be a valid duration."`;
+
+exports[`Basic Invalid should validate: Invalid expiresAt 1`] = `"/apiKeys/0/expiresAt: must be a valid date-time"`;
+
+exports[`Basic Invalid should validate: Missing name 1`] = `"/apiKeys/0: must have required property 'name'"`;

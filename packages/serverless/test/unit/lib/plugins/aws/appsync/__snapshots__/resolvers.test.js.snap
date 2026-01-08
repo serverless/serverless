@@ -1,0 +1,456 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Resolvers Caching should fallback to global caching TTL 1`] = `
+{
+  "GraphQlResolverQueryuser": {
+    "DependsOn": [
+      "GraphQlSchema",
+    ],
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "CachingConfig": {
+        "CachingKeys": [
+          "$context.identity.sub",
+          "$context.arguments.id",
+        ],
+        "Ttl": 300,
+      },
+      "DataSourceName": {
+        "Fn::GetAtt": [
+          "GraphQlDsmyTable",
+          "Name",
+        ],
+      },
+      "FieldName": "user",
+      "Kind": "UNIT",
+      "MaxBatchSize": undefined,
+      "TypeName": "Query",
+    },
+    "Type": "AWS::AppSync::Resolver",
+  },
+}
+`;
+
+exports[`Resolvers Caching should generate Resources with caching enabled 1`] = `
+{
+  "GraphQlResolverQueryuser": {
+    "DependsOn": [
+      "GraphQlSchema",
+    ],
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "CachingConfig": {
+        "Ttl": 3600,
+      },
+      "DataSourceName": {
+        "Fn::GetAtt": [
+          "GraphQlDsmyTable",
+          "Name",
+        ],
+      },
+      "FieldName": "user",
+      "Kind": "UNIT",
+      "MaxBatchSize": undefined,
+      "TypeName": "Query",
+    },
+    "Type": "AWS::AppSync::Resolver",
+  },
+}
+`;
+
+exports[`Resolvers Caching should generate Resources with custom keys 1`] = `
+{
+  "GraphQlResolverQueryuser": {
+    "DependsOn": [
+      "GraphQlSchema",
+    ],
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "CachingConfig": {
+        "CachingKeys": [
+          "$context.identity.sub",
+          "$context.arguments.id",
+        ],
+        "Ttl": 200,
+      },
+      "DataSourceName": {
+        "Fn::GetAtt": [
+          "GraphQlDsmyTable",
+          "Name",
+        ],
+      },
+      "FieldName": "user",
+      "Kind": "UNIT",
+      "MaxBatchSize": undefined,
+      "TypeName": "Query",
+    },
+    "Type": "AWS::AppSync::Resolver",
+  },
+}
+`;
+
+exports[`Resolvers Pipeline Function should fail if Pipeline Function references unexisting data source 1`] = `"Cannot read properties of undefined (reading 'Error')"`;
+
+exports[`Resolvers Pipeline Function should generate Pipeline Function Resources with VTL mapping templates 1`] = `
+{
+  "GraphQlFunctionConfigurationfunction1": {
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "DataSourceName": {
+        "Fn::GetAtt": [
+          "GraphQlDsmyTable",
+          "Name",
+        ],
+      },
+      "Description": "Function1 Pipeline Resolver",
+      "FunctionVersion": "2018-05-29",
+      "MaxBatchSize": undefined,
+      "Name": "function1",
+      "RequestMappingTemplate": "Content of path/to/mappingTemplates/function1.request.vtl",
+      "ResponseMappingTemplate": "Content of path/to/mappingTemplates/function1.response.vtl",
+    },
+    "Type": "AWS::AppSync::FunctionConfiguration",
+  },
+}
+`;
+
+exports[`Resolvers Pipeline Function should generate Pipeline Function Resources with direct Lambda 1`] = `
+{
+  "GraphQlFunctionConfigurationfunction1": {
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "DataSourceName": {
+        "Fn::GetAtt": [
+          "GraphQlDsmyLambdaFunction",
+          "Name",
+        ],
+      },
+      "Description": "Function1 Pipeline Resolver",
+      "FunctionVersion": "2018-05-29",
+      "MaxBatchSize": undefined,
+      "Name": "function1",
+    },
+    "Type": "AWS::AppSync::FunctionConfiguration",
+  },
+}
+`;
+
+exports[`Resolvers Pipeline Function should generate Pipeline Function Resources with maxBatchSize 1`] = `
+{
+  "GraphQlFunctionConfigurationfunction1": {
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "DataSourceName": {
+        "Fn::GetAtt": [
+          "GraphQlDsmyFunction",
+          "Name",
+        ],
+      },
+      "Description": "Function1 Pipeline Resolver",
+      "FunctionVersion": "2018-05-29",
+      "MaxBatchSize": 200,
+      "Name": "function1",
+      "RequestMappingTemplate": "Content of function1.request.vtl",
+      "ResponseMappingTemplate": "Content of function1.response.vtl",
+    },
+    "Type": "AWS::AppSync::FunctionConfiguration",
+  },
+}
+`;
+
+exports[`Resolvers Pipeline Function should generate Resources with sync configuration 1`] = `
+{
+  "GraphQlFunctionConfigurationmyFunction": {
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "DataSourceName": {
+        "Fn::GetAtt": [
+          "GraphQlDsmyLambdaFunction",
+          "Name",
+        ],
+      },
+      "Description": undefined,
+      "FunctionVersion": "2018-05-29",
+      "MaxBatchSize": undefined,
+      "Name": "myFunction",
+      "RequestMappingTemplate": "Content of myFunction.request.vtl",
+      "ResponseMappingTemplate": "Content of myFunction.response.vtl",
+      "SyncConfig": {
+        "ConflictDetection": "VERSION",
+        "ConflictHandler": "LAMBDA",
+        "LambdaConflictHandlerConfig": {
+          "LambdaConflictHandlerArn": {
+            "Fn::GetAtt": [
+              "MyFunction_SyncLambdaFunction",
+              "Arn",
+            ],
+          },
+        },
+      },
+    },
+    "Type": "AWS::AppSync::FunctionConfiguration",
+  },
+}
+`;
+
+exports[`Resolvers Pipeline Resolvers should fail when referencing unknown pipeline function 1`] = `"Cannot read properties of undefined (reading 'Error')"`;
+
+exports[`Resolvers Pipeline Resolvers should generate JS Resources with default empty resolver 1`] = `
+{
+  "GraphQlResolverQueryuser": {
+    "DependsOn": [
+      "GraphQlSchema",
+    ],
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "Code": "
+export function request() {
+  return {};
+}
+
+export function response(ctx) {
+  return ctx.prev.result;
+}
+",
+      "FieldName": "user",
+      "Kind": "PIPELINE",
+      "PipelineConfig": {
+        "Functions": [
+          {
+            "Fn::GetAtt": [
+              "GraphQlFunctionConfigurationgetUser",
+              "FunctionId",
+            ],
+          },
+        ],
+      },
+      "Runtime": {
+        "Name": "APPSYNC_JS",
+        "RuntimeVersion": "1.0.0",
+      },
+      "TypeName": "Query",
+    },
+    "Type": "AWS::AppSync::Resolver",
+  },
+}
+`;
+
+exports[`Resolvers Pipeline Resolvers should generate Resources with VTL mapping templates 1`] = `
+{
+  "GraphQlResolverQueryuser": {
+    "DependsOn": [
+      "GraphQlSchema",
+    ],
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "FieldName": "user",
+      "Kind": "PIPELINE",
+      "PipelineConfig": {
+        "Functions": [
+          {
+            "Fn::GetAtt": [
+              "GraphQlFunctionConfigurationfunction1",
+              "FunctionId",
+            ],
+          },
+          {
+            "Fn::GetAtt": [
+              "GraphQlFunctionConfigurationfunction2",
+              "FunctionId",
+            ],
+          },
+        ],
+      },
+      "RequestMappingTemplate": "Content of Query.user.request.vtl",
+      "ResponseMappingTemplate": "Content of Query.user.response.vtl",
+      "TypeName": "Query",
+    },
+    "Type": "AWS::AppSync::Resolver",
+  },
+}
+`;
+
+exports[`Resolvers Unit Resolvers should fail when referencing unknown data source 1`] = `"Cannot read properties of undefined (reading 'Error')"`;
+
+exports[`Resolvers Unit Resolvers should generate Resources with VTL mapping templates 1`] = `
+{
+  "GraphQlResolverQueryuser": {
+    "DependsOn": [
+      "GraphQlSchema",
+    ],
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "DataSourceName": {
+        "Fn::GetAtt": [
+          "GraphQlDsmyTable",
+          "Name",
+        ],
+      },
+      "FieldName": "user",
+      "Kind": "UNIT",
+      "MaxBatchSize": undefined,
+      "RequestMappingTemplate": "Content of path/to/mappingTemplates/Query.user.request.vtl",
+      "ResponseMappingTemplate": "Content of path/to/mappingTemplates/Query.user.response.vtl",
+      "TypeName": "Query",
+    },
+    "Type": "AWS::AppSync::Resolver",
+  },
+}
+`;
+
+exports[`Resolvers Unit Resolvers should generate Resources with direct Lambda 1`] = `
+{
+  "GraphQlResolverQueryuser": {
+    "DependsOn": [
+      "GraphQlSchema",
+    ],
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "DataSourceName": {
+        "Fn::GetAtt": [
+          "GraphQlDsmyLambdaFunction",
+          "Name",
+        ],
+      },
+      "FieldName": "user",
+      "Kind": "UNIT",
+      "MaxBatchSize": undefined,
+      "TypeName": "Query",
+    },
+    "Type": "AWS::AppSync::Resolver",
+  },
+}
+`;
+
+exports[`Resolvers Unit Resolvers should generate Resources with maxBatchSize 1`] = `
+{
+  "GraphQlResolverQueryuser": {
+    "DependsOn": [
+      "GraphQlSchema",
+    ],
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "DataSourceName": {
+        "Fn::GetAtt": [
+          "GraphQlDsmyFunction",
+          "Name",
+        ],
+      },
+      "FieldName": "user",
+      "Kind": "UNIT",
+      "MaxBatchSize": 200,
+      "TypeName": "Query",
+    },
+    "Type": "AWS::AppSync::Resolver",
+  },
+}
+`;
+
+exports[`Resolvers Unit Resolvers should generate Resources with sync configuration 1`] = `
+{
+  "GraphQlResolverQueryuser": {
+    "DependsOn": [
+      "GraphQlSchema",
+    ],
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "DataSourceName": {
+        "Fn::GetAtt": [
+          "GraphQlDsmyLambdaFunction",
+          "Name",
+        ],
+      },
+      "FieldName": "user",
+      "Kind": "UNIT",
+      "MaxBatchSize": undefined,
+      "SyncConfig": {
+        "ConflictDetection": "VERSION",
+        "ConflictHandler": "LAMBDA",
+        "LambdaConflictHandlerConfig": {
+          "LambdaConflictHandlerArn": {
+            "Fn::GetAtt": [
+              "Query_user_SyncLambdaFunction",
+              "Arn",
+            ],
+          },
+        },
+      },
+      "TypeName": "Query",
+    },
+    "Type": "AWS::AppSync::Resolver",
+  },
+}
+`;
+
+exports[`Resolvers Unit Resolvers should generate Resources with sync configuration 2`] = `
+{
+  "Query_user_Sync": {
+    "handler": "index.handler",
+  },
+}
+`;

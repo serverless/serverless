@@ -1,0 +1,22 @@
+extend type Query {
+  getPost(id: ID!): Post!
+}
+
+extend type Mutation {
+  createPost(post: PostInput!): Post!
+}
+
+# This is a comment
+type Post @aws_oidc {
+  id: ID!
+  title: String!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+"""
+This is a description
+"""
+input PostInput {
+  title: String!
+}

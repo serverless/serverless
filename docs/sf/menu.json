@@ -74,6 +74,20 @@
     "State": "guides/state",
     "Python support": "providers/aws/guide/python",
     "API Gateway Proxy": "providers/aws/guide/api-gateway-aws-proxy",
+    "AppSync": {
+      "Overview": "providers/aws/guide/appsync",
+      "General Configuration": "providers/aws/guide/appsync/general-config",
+      "Authentication": "providers/aws/guide/appsync/authentication",
+      "API Keys": "providers/aws/guide/appsync/API-keys",
+      "Data Sources": "providers/aws/guide/appsync/dataSources",
+      "Resolvers": "providers/aws/guide/appsync/resolvers",
+      "Pipeline Functions": "providers/aws/guide/appsync/pipeline-functions",
+      "Caching": "providers/aws/guide/appsync/caching",
+      "Delta Sync": "providers/aws/guide/appsync/syncConfig",
+      "Custom Domain": "providers/aws/guide/appsync/custom-domain",
+      "WAF": "providers/aws/guide/appsync/WAF",
+      "CLI Commands": "providers/aws/guide/appsync/commands"
+    },
     "Deploying SAM/CFN Templates": "guides/sam",
     "Workflow Tips": "guides/workflow",
     "Plugins": {

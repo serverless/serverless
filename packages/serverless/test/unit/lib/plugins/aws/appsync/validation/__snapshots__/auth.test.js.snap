@@ -1,0 +1,44 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Validation Invalid should validate a Cognito empty config 1`] = `"/authentication/config: must have required property 'userPoolId'"`;
+
+exports[`Validation Invalid should validate a Cognito missing config 1`] = `"/authentication: must have required property 'config'"`;
+
+exports[`Validation Invalid should validate a Cognito with invalid userPoolId 1`] = `
+"/authentication/config/userPoolId: must be a string or a CloudFormation intrinsic function
+/authentication/config/awsRegion: must be a string or a CloudFormation intrinsic function
+/authentication/config/defaultAction: must be "ALLOW" or "DENY"
+/authentication/config/appIdClientRegex: must be a string or a CloudFormation intrinsic function"
+`;
+
+exports[`Validation Invalid should validate a Lambda with empty config 1`] = `"/authentication/config: must specify functionName, functionArn or function (all exclusives)"`;
+
+exports[`Validation Invalid should validate a Lambda with invalid config functionnArn 1`] = `
+"/authentication/config/functionArn: must be a string or a CloudFormation intrinsic function
+/authentication/config: must specify functionName, functionArn or function (all exclusives)
+/authentication/config/functionArn: must be string
+/authentication/config/identityValidationExpression: must be string
+/authentication/config/authorizerResultTtlInSeconds: must be number"
+`;
+
+exports[`Validation Invalid should validate a Lambda with invalid config: both functionName and functionnArn are set 1`] = `"/authentication/config: must specify functionName, functionArn or function (all exclusives)"`;
+
+exports[`Validation Invalid should validate a Lambda with invalid functionName and functionVersion 1`] = `
+"/authentication/config: must specify functionName, functionArn or function (all exclusives)
+/authentication/config/functionName: must be string
+/authentication/config/identityValidationExpression: must be string
+/authentication/config/authorizerResultTtlInSeconds: must be number"
+`;
+
+exports[`Validation Invalid should validate a Lambda with missing config 1`] = `"/authentication: must have required property 'config'"`;
+
+exports[`Validation Invalid should validate a OIDC with empty config 1`] = `"/authentication/config: must have required property 'issuer'"`;
+
+exports[`Validation Invalid should validate a OIDC with invalid config 1`] = `
+"/authentication/config/issuer: must be string
+/authentication/config/clientId: must be string
+/authentication/config/iatTTL: must be number
+/authentication/config/authTTL: must be number"
+`;
+
+exports[`Validation Invalid should validate a OIDC with missing config 1`] = `"/authentication: must have required property 'config'"`;

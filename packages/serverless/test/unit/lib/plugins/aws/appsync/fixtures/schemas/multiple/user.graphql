@@ -1,0 +1,19 @@
+extend type Query {
+  getUser: User!
+}
+
+extend type Mutation {
+  createUser(post: UserInput!): User!
+}
+
+type User {
+  id: ID!
+  name: String!
+  role: String! @aws_oidc
+  email: AWSEmail!
+  posts: [Post!]!
+}
+
+input UserInput {
+  name: String!
+}

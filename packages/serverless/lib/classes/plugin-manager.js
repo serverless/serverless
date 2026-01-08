@@ -1,6 +1,6 @@
 import path from 'path'
 import _ from 'lodash'
-import { log, getPluginWriters } from '@serverless/util'
+import { getPluginWriters, log } from '@serverless/util'
 import { require as tsxRequire } from 'tsx/cjs/api'
 import ServerlessError from '../serverless-error.js'
 import renderCommandHelp from '../cli/render-help/command.js'
@@ -66,6 +66,7 @@ import pluginAwsAlerts from '../plugins/aws/alerts/index.js'
 import pluginAwsDomains from '../plugins/aws/domains/index.js'
 import pluginAxiom from '../plugins/observability/axiom/index.js'
 import pluginPythonRequirements from '../plugins/python/index.js'
+import pluginAwsAppsync from '../plugins/aws/appsync/index.js'
 import { createRequire } from 'module'
 
 const internalPlugins = [
@@ -128,6 +129,7 @@ const internalPlugins = [
   pluginAwsAlerts,
   pluginAwsDomains,
   pluginPythonRequirements,
+  pluginAwsAppsync,
 ]
 
 // Describe core-bundled plugins so we can coordinate loading with any legacy entries in `plugins:`
@@ -156,6 +158,18 @@ const bundledPluginDefinitions = [
     shouldLoad: (serverless, context = {}) =>
       pluginAwsApiGatewayServiceProxy.shouldLoad
         ? pluginAwsApiGatewayServiceProxy.shouldLoad({
+            serverless,
+            ...context,
+          })
+        : true,
+  },
+  {
+    module: pluginAwsAppsync,
+    externalNames: ['serverless-appsync-plugin'],
+    allowCommunityOverride: true,
+    shouldLoad: (serverless, context = {}) =>
+      pluginAwsAppsync.shouldLoad
+        ? pluginAwsAppsync.shouldLoad({
             serverless,
             ...context,
           })
@@ -402,7 +416,16 @@ class PluginManager {
 
         return true
       })
-      .forEach((Plugin) => this.addPlugin(Plugin))
+      .forEach((Plugin) => {
+        const definition = findBundledPluginByModule(Plugin)
+        if (definition) {
+          isRegisteringExternalPlugins = true
+          this.addPlugin(Plugin)
+          isRegisteringExternalPlugins = false
+        } else {
+          this.addPlugin(Plugin)
+        }
+      })
 
     // Load External Plugins
     isRegisteringExternalPlugins = true
