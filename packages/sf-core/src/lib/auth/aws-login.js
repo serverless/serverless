@@ -1,27 +1,23 @@
+import crypto from 'crypto'
+import fs from 'fs'
+import http from 'http'
 import os from 'os'
 import path from 'path'
-import crypto from 'crypto'
-import http from 'http'
-import fs from 'fs'
 import open from 'open'
 import configWriter from './aws-config-writer.js'
 import { SERVERLESS_LOGO_BASE64 } from './serverless-logo.js'
+import {
+  AwsLoginBase,
+  LOGIN_TIMEOUT_MS,
+  HTML_ESCAPES,
+} from './aws-login-base.js'
 import { log, progress, ServerlessError } from '@serverless/util'
 
-const HTML_ESCAPES = {
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  '"': '&quot;',
-  "'": '&#39;',
-}
-
-const LOGIN_TIMEOUT_MS = 300000 // 5 minutes
 const DEFAULT_EXPIRATION_SECONDS = 900 // 15 minutes
 
-export class AwsLogin {
+export class AwsLogin extends AwsLoginBase {
   constructor(options = {}) {
-    this.options = options
+    super(options)
     this.logger = options.logger || log.get('core-runner:login-aws')
   }
 

@@ -17,6 +17,7 @@ import commandReconcile from './reconcile.js'
 import commandMcp from './mcp.js'
 import { getAwsCredentialProvider } from '../../../utils/index.js'
 import loginAws from './login-aws.js'
+import loginAwsSso from './login-aws-sso.js'
 
 class CoreRunner extends Runner {
   constructor({
@@ -62,17 +63,39 @@ class CoreRunner extends Runner {
           {
             command: 'aws',
             description: 'Log in to AWS',
-            options: {
-              'aws-profile': {
-                description: 'Profile to configure',
-                type: 'string',
+            builder: [
+              {
+                command: 'sso',
+                description: 'Log in to AWS using SSO',
+                builder: [
+                  {
+                    options: {
+                      'sso-session': {
+                        description: 'SSO session name to use',
+                        type: 'string',
+                      },
+                      'aws-profile': {
+                        description: 'AWS profile to read SSO config from',
+                        type: 'string',
+                      },
+                    },
+                  },
+                ],
               },
-              region: {
-                description: 'Region to configure',
-                type: 'string',
-                alias: 'r',
+              {
+                options: {
+                  'aws-profile': {
+                    description: 'Profile to configure',
+                    type: 'string',
+                  },
+                  region: {
+                    description: 'Region to configure',
+                    type: 'string',
+                    alias: 'r',
+                  },
+                },
               },
-            },
+            ],
           },
         ],
         options: {},
@@ -221,7 +244,11 @@ class CoreRunner extends Runner {
       }
       case 'login': {
         if (this.command[1] === 'aws') {
-          await loginAws(this.options)
+          if (this.command[2] === 'sso') {
+            await loginAwsSso(this.options)
+          } else {
+            await loginAws(this.options)
+          }
         } else {
           if (logger.isInteractive()) {
             logger.logo()

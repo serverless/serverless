@@ -162,14 +162,16 @@ Running the Serverless Framework's `serverless` command in a new or existing Ser
 ```text
 No valid AWS Credentials were found in your environment variables or on your machine. Serverless Framework needs these to access your AWS account and deploy resources to it. Choose an option below to set up AWS Credentials.
 
-❯ Create AWS IAM Role (Easy & Recommended)
+❯ Sign in with AWS Console (Recommended)
   Save AWS Credentials in a Local Profile
   Skip & Set Later (AWS SSO, ENV Vars)
 ```
 
-We recommend creating an AWS IAM Role that's stored in the Serverless Framework Dashboard. We'll be supporting a lot of Provider Credentials in the near future, and the Dashboard is a great place to keep these centralized across your team, helping you stay organized, and securely eliminating the need to keep credentials on the machines of your teammates.
+**If you are using Serverless Dashboard**, you will see a **"Create AWS IAM Role (Easy & Recommended)"** option at the top of this list. We recommend using this option as it stores your AWS IAM Role in the Serverless Framework Dashboard, enabling you to share it with your team and securely eliminating the need to keep credentials on local machines.
 
-If you are using AWS SSO, we recommend simply pasting your temporary SSO credentials within the terminal as environment variables.
+**For all other users**, we recommend using **Sign in with AWS Console** which uses browser-based authentication to generate short-lived credentials. This is more secure than long-term access keys and integrates with your existing AWS Console sign-in. You can also run this directly with `serverless login aws`.
+
+If you are using AWS SSO (IAM Identity Center), you can select "Skip & Set Later" and configure SSO using `aws configure sso`, then run `serverless login aws sso` to authenticate.
 
 To learn more about setting up your AWS Credentials, [read this guide](https://www.serverless.com/framework/docs/providers/aws/guide/credentials).
 
