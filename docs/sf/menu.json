@@ -103,6 +103,7 @@
     "logs": "providers/aws/cli-reference/logs",
     "login": "providers/aws/cli-reference/login",
     "login aws": "providers/aws/cli-reference/login-aws",
+    "login aws sso": "providers/aws/cli-reference/login-aws-sso",
     "metrics": "providers/aws/cli-reference/metrics",
     "info": "providers/aws/cli-reference/info",
     "rollback": "providers/aws/cli-reference/rollback",
