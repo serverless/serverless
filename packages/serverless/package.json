@@ -59,7 +59,7 @@
     "fs-extra": "^11.3.3",
     "get-stdin": "^9.0.0",
     "glob": "^10.5.0",
-    "globby": "^11.1.0",
+    "globby": "^16.0.0",
     "graphql": "^16.6.0",
     "https-proxy-agent": "^7.0.6",
     "is-docker": "^3.0.0",
