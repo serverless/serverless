@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
-import globby from 'globby'
+import { globby } from 'globby'
 import _ from 'lodash'
 import normalizeFiles from '../../lib/normalize-files.js'
 import ServerlessError from '../../../../serverless-error.js'

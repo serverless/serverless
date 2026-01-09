@@ -1,11 +1,12 @@
-import globby from 'globby'
+import { globbySync } from 'globby'
 import fs from 'fs'
 import path from 'path'
 import _ from 'lodash'
-const { flatten } = _
 import { parse, print } from 'graphql'
 import { validateSDL } from 'graphql/validation/validate.js'
 import { mergeTypeDefs } from '@graphql-tools/merge'
+
+const { flatten } = _
 
 const AWS_TYPES = `
 directive @aws_iam on FIELD_DEFINITION | OBJECT
@@ -63,7 +64,7 @@ export class Schema {
 
   generateSchema() {
     const schemaFiles = flatten(
-      globby.sync(
+      globbySync(
         this.schemas.map((schema) =>
           path.join(this.api.plugin.serverless.config.servicePath, schema),
         ),
