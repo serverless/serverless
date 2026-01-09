@@ -779,7 +779,7 @@ export const appSyncSchema = {
             },
             expiresAt: {
               type: 'string',
-              format: 'date-time',
+              format: 'iso-date-time',
               errorMessage: 'must be a valid date-time',
             },
             wafRules: {

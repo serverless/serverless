@@ -285,7 +285,7 @@ export default {
               },
               ExpirationDate: {
                 type: 'string',
-                format: 'date-time',
+                format: 'iso-date-time',
               },
               ExpirationInDays: cfValue({ type: 'integer', minimum: 0 }),
               Id: {
@@ -327,7 +327,7 @@ export default {
                     },
                     TransitionDate: {
                       type: 'string',
-                      format: 'date-time',
+                      format: 'iso-date-time',
                     },
                     TransitionInDays: {
                       type: 'integer',
