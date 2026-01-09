@@ -6,7 +6,7 @@ import fs from 'fs'
 import fsp from 'fs/promises'
 import { promisify } from 'util'
 import * as child from 'child_process'
-import globby from 'globby'
+import { globbySync } from 'globby'
 import _ from 'lodash'
 import pMap from 'p-map'
 import pReduce from 'p-reduce'
@@ -178,7 +178,7 @@ async function excludeNodeDevDependencies(serviceDir) {
   )
 
   try {
-    const packageJsonFilePaths = globby.sync(
+    const packageJsonFilePaths = globbySync(
       [
         '**/package.json',
         // TODO add glob for node_modules filtering

@@ -1,6 +1,6 @@
 import path from 'path'
 import fsp from 'fs/promises'
-import globby from 'globby'
+import { globby } from 'globby'
 import _ from 'lodash'
 import micromatch from 'micromatch'
 import ServerlessError from '../../../serverless-error.js'
