@@ -70,7 +70,7 @@
     "jszip": "^3.10.1",
     "lodash": "^4.17.21",
     "lodash.uniqby": "^4.7.0",
-    "luxon": "^2.5.0",
+    "luxon": "^3.7.2",
     "memoizee": "^0.4.17",
     "micromatch": "^4.0.8",
     "object-hash": "^3.0.0",
