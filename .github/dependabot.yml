@@ -66,6 +66,9 @@ updates:
       - dependency-name: "rimraf"
         # rimraf v6 drops support for Node.js 18
         versions: [">= 6.0.0"]
+      - dependency-name: "terminal-link"
+        # terminal-link v5 drops support for Node.js 18
+        versions: [">= 5.0.0"]
 
   # Maintain Go dependencies
   - package-ecosystem: "gomod"

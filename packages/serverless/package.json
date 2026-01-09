@@ -86,7 +86,7 @@
     "sha256-file": "^1.0.0",
     "shell-quote": "^1.8.3",
     "strip-ansi": "^7.1.2",
-    "terminal-link": "^2.1.1",
+    "terminal-link": "^4.0.0",
     "timers-ext": "^0.1.8",
     "toml": "^3.0.0",
     "tsx": "^4.21.0",
