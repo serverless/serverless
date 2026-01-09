@@ -3,16 +3,13 @@ import os from 'os'
 import { URL } from 'url'
 import qs from 'querystring'
 import { promises as fsp } from 'fs'
-import { promisify } from 'util'
-import { exec } from 'child_process'
+import { spawn } from 'child_process'
 import {
   dirExists,
   copyDirContents,
   removeFileOrDirectory,
   unzipFile,
 } from '../fs/index.js'
-
-const execAsync = promisify(exec)
 
 /**
  * Returns directory path
@@ -48,8 +45,12 @@ const validateUrl = ({ url, hostname, service, owner, repo }) => {
  * @returns Boolean indicating if the URL is a plain Git URL
  */
 const isPlainGitURL = (url) => {
+  if (!url || typeof url !== 'string') return false
+  // Reject URLs with shell metacharacters to prevent command injection
+  if (/[;`$&|<>()\\]/.test(url)) return false
   return (
-    (url.startsWith('https') || url.startsWith('git@')) && url.endsWith('.git')
+    (url.startsWith('https://') || url.startsWith('git@')) &&
+    url.endsWith('.git')
   )
 }
 
@@ -272,8 +273,7 @@ const parseUrl = (inputUrl) => {
     const url = new URL(sanitizedUrl)
     return url
   } catch (error) {
-    // Handle any errors that might occur during URL parsing
-    console.error('Invalid URL:', error.message)
+    // Invalid URL - return null to be handled by caller
     return null
   }
 }
@@ -336,12 +336,34 @@ export const parseRepoURL = async (inputUrl) => {
 
 /**
  * Clone a git repository to a specified path
+ * Uses spawn with array arguments to prevent command injection
  * @param gitUrl - The git URL to clone
  * @param targetPath - The path to clone to
  * @returns A Promise that resolves when clone is complete
  */
-const cloneGitRepo = async (gitUrl, targetPath) => {
-  await execAsync(`git clone "${gitUrl}" "${targetPath}"`)
+const cloneGitRepo = (gitUrl, targetPath) => {
+  return new Promise((resolve, reject) => {
+    // Use spawn with array arguments - no shell interpretation
+    // The '--' separator prevents gitUrl from being interpreted as options
+    const git = spawn('git', ['clone', '--', gitUrl, targetPath])
+
+    let stderr = ''
+    git.stderr.on('data', (data) => {
+      stderr += data.toString()
+    })
+
+    git.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(`Failed to clone repository: ${stderr.trim()}`))
+      } else {
+        resolve()
+      }
+    })
+
+    git.on('error', (err) => {
+      reject(new Error(`Failed to clone repository: ${err.message}`))
+    })
+  })
 }
 
 /**
