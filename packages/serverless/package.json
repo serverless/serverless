@@ -42,7 +42,7 @@
     "adm-zip": "^0.5.16",
     "ajv": "8.17.1",
     "ajv-errors": "^3.0.0",
-    "ajv-formats": "2.1.1",
+    "ajv-formats": "3.0.1",
     "appdirectory": "^0.1.0",
     "archiver": "^7.0.1",
     "aws-iot-device-sdk": "^2.2.16",
