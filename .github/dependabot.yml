@@ -63,6 +63,9 @@ updates:
       - dependency-name: "undici"
         # undici v7 drops support for Node.js 18
         versions: [">= 7.0.0"]
+      - dependency-name: "rimraf"
+        # rimraf v6 drops support for Node.js 18
+        versions: [">= 6.0.0"]
 
   # Maintain Go dependencies
   - package-ecosystem: "gomod"
