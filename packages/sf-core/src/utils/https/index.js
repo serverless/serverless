@@ -3,12 +3,16 @@ import os from 'os'
 import { URL } from 'url'
 import qs from 'querystring'
 import { promises as fsp } from 'fs'
+import { promisify } from 'util'
+import { exec } from 'child_process'
 import {
   dirExists,
   copyDirContents,
   removeFileOrDirectory,
   unzipFile,
 } from '../fs/index.js'
+
+const execAsync = promisify(exec)
 
 /**
  * Returns directory path
@@ -238,14 +242,19 @@ const parsePlainGitURL = (url) => {
   const branch = 'master'
   const downloadUrl = url
   const isSubdirectory = false
-  const repo = url.match(/.+\/(.+)\.git/)[1]
+  // Handle both HTTPS URLs (with /) and SSH URLs (with : before repo path)
+  // Examples:
+  //   https://example.com/team/my-template.git -> my-template
+  //   git@bitbucket.org:team/my-template.git -> my-template
+  const match = url.match(/.+[/:]([^/]+)\.git$/)
+  const repo = match ? match[1] : url
   return {
     repo,
     branch,
     downloadUrl,
     isSubdirectory,
-    username: url.username || '',
-    password: url.password || '',
+    username: '',
+    password: '',
   }
 }
 
@@ -279,24 +288,26 @@ export const parseRepoURL = async (inputUrl) => {
     return new Error('URL is required')
   }
 
+  // Handle plain Git URLs (including SSH URLs like git@...)
+  // These need special handling before URL parsing since they're not valid URLs
+  if (isPlainGitURL(inputUrl)) {
+    return parsePlainGitURL(inputUrl)
+  }
+
   const url = parseUrl(inputUrl.replace(/\/$/, ''))
+
+  // check if url parameter is a valid url
+  if (!url || !url.host) {
+    return new Error('The URL you passed is not valid')
+  }
+
   if (url.auth) {
     const [username, password] = url.auth.split(':')
     url.username = username
     url.password = password
   }
 
-  // check if url parameter is a valid url
-  if (!url.host && !url.href.startsWith('git@')) {
-    return new Error('The URL you passed is not valid')
-  }
-
-  if (isPlainGitURL(url.href)) {
-    return parsePlainGitURL(inputUrl)
-  } else if (
-    url.hostname === 'github.com' ||
-    url.hostname.includes('github.')
-  ) {
+  if (url.hostname === 'github.com' || url.hostname.includes('github.')) {
     return parseGitHubURL(url)
   } else if (url.hostname === 'bitbucket.org') {
     return parseBitbucketURL(url)
@@ -321,6 +332,16 @@ export const parseRepoURL = async (inputUrl) => {
     throw err
   }
   return parsedBitbucketServerURL
+}
+
+/**
+ * Clone a git repository to a specified path
+ * @param gitUrl - The git URL to clone
+ * @param targetPath - The path to clone to
+ * @returns A Promise that resolves when clone is complete
+ */
+const cloneGitRepo = async (gitUrl, targetPath) => {
+  await execAsync(`git clone "${gitUrl}" "${targetPath}"`)
 }
 
 /**
@@ -353,7 +374,23 @@ export const downloadTemplate = async (inputUrl, newTemplateName) => {
     throw new Error(errorMessage)
   }
 
-  // Download repo contents
+  // Handle plain Git URLs (e.g., git@bitbucket.org:... or https://...*.git)
+  // These require git clone instead of HTTP download
+  if (isPlainGitURL(inputUrl)) {
+    await cloneGitRepo(inputUrl, newServicePath)
+
+    // Remove the .git folder to disassociate from the template repository
+    await removeFileOrDirectory(path.join(newServicePath, '.git'))
+
+    // Remove serverless.template.yml if it exists
+    await removeFileOrDirectory(
+      path.join(newServicePath, 'serverless.template.yml'),
+    )
+
+    return newServicePath
+  }
+
+  // Download repo contents via HTTP for non-git URLs
   const downloadOptions = {
     timeout: 30000,
     extract: true,

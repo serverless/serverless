@@ -15,10 +15,15 @@ jest.unstable_mockModule('../../../../src/utils/fs/index.js', () => ({
   unzipFile: mockUnzipFile,
 }))
 
+// Mock child_process for git clone
+const mockExec = jest.fn()
+jest.unstable_mockModule('child_process', () => ({
+  exec: mockExec,
+}))
+
 // Import after mocking
-const { parseRepoURL, downloadTemplate } = await import(
-  '../../../../src/utils/https/index.js'
-)
+const { parseRepoURL, downloadTemplate } =
+  await import('../../../../src/utils/https/index.js')
 import { promises as fsp } from 'fs'
 
 describe('HTTPS Utils', () => {
@@ -251,6 +256,7 @@ describe('HTTPS Utils', () => {
       mockCopyDirContents.mockReset()
       mockRemoveFileOrDirectory.mockReset()
       mockUnzipFile.mockReset()
+      mockExec.mockReset()
     })
 
     it('should download and unzip a GitHub template', async () => {
@@ -285,6 +291,64 @@ describe('HTTPS Utils', () => {
       const url = 'https://invalid-provider.com/owner/repo'
 
       await expect(downloadTemplate(url)).rejects.toThrow(/valid provider/)
+    })
+
+    it('should clone a plain .git URL and remove .git folder', async () => {
+      const url = 'https://example.com/sample-service.git'
+      const name = 'my-new-service'
+      const expectedPath = path.join(cwd, name)
+
+      // Mock exec to simulate successful git clone
+      mockExec.mockImplementation((cmd, callback) => {
+        callback(null, { stdout: '', stderr: '' })
+      })
+
+      const result = await downloadTemplate(url, name)
+
+      expect(result).toBe(expectedPath)
+      // Verify git clone was called
+      expect(mockExec).toHaveBeenCalledWith(
+        expect.stringContaining('git clone'),
+        expect.any(Function),
+      )
+      expect(mockExec).toHaveBeenCalledWith(
+        expect.stringContaining(url),
+        expect.any(Function),
+      )
+      // Verify .git folder removal was called
+      expect(mockRemoveFileOrDirectory).toHaveBeenCalledWith(
+        path.join(expectedPath, '.git'),
+      )
+      // HTTP fetch should NOT have been called for plain git URLs
+      expect(fetchSpy).not.toHaveBeenCalled()
+    })
+
+    it('should clone a git@ SSH URL and remove .git folder', async () => {
+      const url = 'git@bitbucket.org:myteam/my-template.git'
+      const name = 'new-project-from-ssh'
+      const expectedPath = path.join(cwd, name)
+
+      // Mock exec to simulate successful git clone
+      mockExec.mockImplementation((cmd, callback) => {
+        callback(null, { stdout: '', stderr: '' })
+      })
+
+      const result = await downloadTemplate(url, name)
+
+      expect(result).toBe(expectedPath)
+      // Verify git clone was called with SSH URL
+      expect(mockExec).toHaveBeenCalledWith(
+        expect.stringContaining('git clone'),
+        expect.any(Function),
+      )
+      expect(mockExec).toHaveBeenCalledWith(
+        expect.stringContaining(url),
+        expect.any(Function),
+      )
+      // Verify .git folder removal was called
+      expect(mockRemoveFileOrDirectory).toHaveBeenCalledWith(
+        path.join(expectedPath, '.git'),
+      )
     })
   })
 })
