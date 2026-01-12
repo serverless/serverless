@@ -10,11 +10,13 @@ describe('Resolvers', () => {
   let mockExists
 
   beforeEach(() => {
-    mock = jest
-      .spyOn(fs, 'readFileSync')
-      .mockImplementation(
-        (path) => `Content of ${`${path}`.replace(/\\/g, '/')}`,
-      )
+    mock = jest.spyOn(fs, 'readFileSync').mockImplementation((filePath) => {
+      // Strip cwd prefix for portable snapshot testing
+      const relativePath = `${filePath}`
+        .replace(/\\/g, '/')
+        .replace(process.cwd().replace(/\\/g, '/') + '/', '')
+      return `Content of ${relativePath}`
+    })
     mockExists = jest.spyOn(fs, 'existsSync').mockReturnValue(true)
   })
 
