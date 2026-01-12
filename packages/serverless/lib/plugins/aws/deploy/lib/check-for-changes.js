@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
-import { globby } from 'globby'
+import { globbySync } from 'globby'
 import _ from 'lodash'
 import normalizeFiles from '../../lib/normalize-files.js'
 import ServerlessError from '../../../../serverless-error.js'
@@ -204,9 +204,11 @@ export default {
     ])
 
     // create hashes for all the zip files
-    const zipFiles = globby
-      .sync(['**.zip'], { cwd: serverlessDirPath, dot: true, silent: true })
-      .filter((basename) => !isOtelExtensionName(basename))
+    const zipFiles = globbySync(['**.zip'], {
+      cwd: serverlessDirPath,
+      dot: true,
+      silent: true,
+    }).filter((basename) => !isOtelExtensionName(basename))
     if (this.serverless.service.package.artifact) {
       zipFiles.push(
         path.resolve(
