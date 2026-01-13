@@ -208,6 +208,11 @@ commands.set('dev', {
       usage: 'Show complete invocation events and responses',
       type: 'boolean',
     },
+    'remove-on-exit': {
+      usage:
+        'Remove the service stack when exiting dev mode (with confirmation)',
+      type: 'boolean',
+    },
   },
   lifecycleEvents: ['dev'],
   serviceDependencyMode: 'required',

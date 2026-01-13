@@ -7,9 +7,9 @@ import iot from 'aws-iot-device-sdk'
 import chokidar from 'chokidar'
 import validate from '../lib/validate.js'
 import {
-  ServerlessError,
   log,
   progress,
+  ServerlessError,
   stringToSafeColor,
 } from '@serverless/util'
 import LocalLambda from './local-lambda/index.js'
@@ -733,13 +733,47 @@ class AwsDev {
     /**
      * Exit the process when the user presses Ctrl+C
      */
-    process.on('SIGINT', () => {
+    process.on('SIGINT', async () => {
       mainProgress.remove()
       logger.blankLine()
-      logger.blankLine()
-      logger.warning(
-        `Don't forget to run "serverless deploy" immediately upon closing Dev Mode to restore your original code and remove Dev Mode's instrumentation or your functions will not work!`,
-      )
+
+      if (this.options['remove-on-exit']) {
+        const serviceName = this.serverless.service.getServiceName()
+        const stage = this.provider.getStage()
+        const region = this.provider.getRegion()
+
+        try {
+          const confirmed = await logger.confirm({
+            message: `Remove "${serviceName}" from stage "${stage}" in "${region}"?`,
+            initial: false,
+          })
+
+          if (confirmed) {
+            mainProgress.notice('Removing service stack')
+            await this.serverless.pluginManager.spawn('remove')
+            mainProgress.remove()
+            logger.success('Stack removed successfully')
+          } else {
+            logger.blankLine()
+            logger.warning(
+              `Removal skipped. Run "serverless deploy" to restore your original code and remove Dev Mode's instrumentation — your functions will not work until you do!\nAlternatively, run "serverless remove" to tear down the service.`,
+            )
+          }
+        } catch (error) {
+          mainProgress.remove()
+          // User cancelled or removal failed
+          if (error.message !== 'Canceled') {
+            logger.error(`Failed to remove stack: ${error.message}`)
+            logger.debug('Stack removal error:', error)
+          }
+        }
+      } else {
+        logger.blankLine()
+        logger.warning(
+          `Don't forget to run "serverless deploy" immediately upon closing Dev Mode to restore your original code and remove Dev Mode's instrumentation or your functions will not work!`,
+        )
+      }
+
       logger.blankLine()
       process.exit(0)
     })
