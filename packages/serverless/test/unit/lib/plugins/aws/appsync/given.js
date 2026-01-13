@@ -11,7 +11,7 @@ import ServerlessAppsyncPlugin from '../../../../../../lib/plugins/aws/appsync/i
 export const createServerless = () => {
   const serverless = {
     config: {
-      servicePath: '',
+      servicePath: process.cwd(),
     },
     configurationInput: {
       appSync: appSyncConfig(),

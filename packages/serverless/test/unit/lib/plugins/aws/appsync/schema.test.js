@@ -56,4 +56,18 @@ describe('schema', () => {
     ])
     expect(schema.generateSchema()).toMatchSnapshot()
   })
+
+  it('should handle absolute paths with servicePath', () => {
+    const api = new Api(given.appSyncConfig(), plugin)
+    const schema = new Schema(api, [
+      'test/unit/lib/plugins/aws/appsync/fixtures/schemas/multiple/*.graphql',
+    ])
+
+    // The schema should be generated correctly with absolute servicePath
+    // convertPathToPattern handles special characters and path separators correctly
+    const result = schema.generateSchema()
+    expect(result).toContain('type Query')
+    expect(result).toContain('type User')
+    expect(result).toContain('type Post')
+  })
 })

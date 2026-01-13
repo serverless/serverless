@@ -1,4 +1,4 @@
-import { globbySync } from 'globby'
+import { convertPathToPattern, globbySync } from 'globby'
 import fs from 'fs'
 import path from 'path'
 import _ from 'lodash'
@@ -63,10 +63,13 @@ export class Schema {
   }
 
   generateSchema() {
+    const servicePath = this.api.plugin.serverless.config.servicePath
+    // Use convertPathToPattern to handle Windows backslashes and escape special chars,
+    // then path.posix.join to maintain forward slashes for globby compatibility
     const schemaFiles = flatten(
       globbySync(
         this.schemas.map((schema) =>
-          path.join(this.api.plugin.serverless.config.servicePath, schema),
+          path.posix.join(convertPathToPattern(servicePath), schema),
         ),
       ),
     )
