@@ -43,6 +43,7 @@
     "Layers": "providers/aws/guide/layers",
     "Managed Instances": "providers/aws/guide/managed-instances",
     "Alerts": "providers/aws/guide/alerts",
+    "Version Pruning": "providers/aws/guide/prune",
     "Domains": "providers/aws/guide/domains",
     "IAM Function Permissions": "providers/aws/guide/iam",
     "Parameters": "guides/parameters",
@@ -126,6 +127,7 @@
     "plugin install": "providers/aws/cli-reference/plugin-install",
     "plugin uninstall": "providers/aws/cli-reference/plugin-uninstall",
     "print": "providers/aws/cli-reference/print",
+    "prune": "providers/aws/cli-reference/prune",
     "support": "providers/aws/cli-reference/support",
     "usage": "providers/aws/cli-reference/usage",
     "reconcile": "providers/aws/cli-reference/reconcile"
