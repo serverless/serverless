@@ -75,7 +75,7 @@ const getValidate = async (schema) => {
     }
     const moduleCode = standaloneCode(ajv, validate)
 
-    const tmpDir = await fsp.mkdtemp('sls-ajv')
+    const tmpDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'sls-ajv'))
 
     const tmpCachePath = path.resolve(tmpDir, filename)
     await fsp.writeFile(tmpCachePath, moduleCode)
