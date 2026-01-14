@@ -96,15 +96,12 @@
   "devDependencies": {
     "@aws-sdk/client-cognito-identity-provider": "3.965.0",
     "@aws-sdk/client-eventbridge": "3.965.0",
-    "@serverlessinc/standards": "*",
     "@types/jest": "^30.0.0",
     "cross-env": "^10.1.0",
-    "eslint": "^8.57.1",
-    "jest": "^30.2.0",
-    "prettier": "^3.7.4"
+    "jest": "^30.2.0"
   },
-  "prettier": "@serverlessinc/standards",
   "scripts": {
+    "lint": "eslint lib",
     "prettier": "prettier -c .",
     "prettier:fix": "prettier docs/**/* --write",
     "test:unit": "cross-env NODE_OPTIONS='--experimental-vm-modules' NODE_NO_WARNINGS=1 jest",

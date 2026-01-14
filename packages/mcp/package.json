@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "main": "src/server.js",
-  "prettier": "@serverlessinc/standards",
   "scripts": {
+    "lint": "eslint src tests",
     "start": "node src/server.js",
     "start:stdio": "node src/stdio-server.js",
     "test:aws-errors-info": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest tests/e2e/aws-errors-info.test.js",

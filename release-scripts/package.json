@@ -5,16 +5,13 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "lint": "eslint .",
     "publish:release": "node scripts/publishReleaseToMongo.js",
     "publish:release-metadata": "node scripts/publishReleaseMetadataToS3.js"
   },
   "author": "Serverless Inc.",
   "prettier": "@serverlessinc/standards",
-  "devDependencies": {
-    "@serverlessinc/standards": "*",
-    "eslint": "^8.57.1",
-    "prettier": "^3.7.4"
-  },
+  "devDependencies": {},
   "dependencies": {
     "@aws-sdk/client-s3": "3.965.0",
     "mongodb": "^7.0.0"

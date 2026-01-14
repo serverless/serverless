@@ -4,6 +4,8 @@
   "main": "index.js",
   "type": "module",
   "devDependencies": {
-    "eslint-config-prettier": "^10.1.8"
+    "@eslint/js": "^8.57.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^13.24.0"
   }
 }
