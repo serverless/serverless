@@ -36,7 +36,7 @@ jobs:
       - name: "Install: Dependencies"
         run: |
           cd ../../
-          npm install
+          npm ci
       - name: "Test: Engine Unit"
         run: npm test
 
@@ -68,7 +68,7 @@ jobs:
       - name: "Install: Dependencies"
         run: |
           cd ../../
-          npm install
+          npm ci
       - name: "Test: Unit (sf-core)"
         run: npm run test:unit
       - name: "Test: Unit (serverless)"
@@ -111,7 +111,7 @@ jobs:
       - name: "Install: Dependencies"
         run: |
           cd ../../
-          npm install
+          npm ci
       - name: "Build: Minify Shim"
         run: |
           cd ../serverless/lib/plugins/aws/dev
@@ -163,7 +163,7 @@ jobs:
       - name: "Install: Dependencies"
         run: |
           cd ../../
-          npm install
+          npm ci
       - name: "Build: Minify Shim"
         run: |
           cd ../serverless/lib/plugins/aws/dev
@@ -201,7 +201,7 @@ jobs:
       - name: "Install: Dependencies"
         run: |
           cd ../../
-          npm install
+          npm ci
       - name: "Release: NPM Publish"
         run: |
           npm publish

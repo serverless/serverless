@@ -27,7 +27,7 @@ jobs:
           cache: npm
 
       - name: "Install: Dependencies"
-        run: npm install
+        run: npm ci
 
       - name: "Test: Unit"
         working-directory: packages/engine

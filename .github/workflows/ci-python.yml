@@ -45,7 +45,7 @@ jobs:
           python -m pip install pipenv poetry uv && poetry self add poetry-plugin-export
 
       - name: "Install: Dependencies"
-        run: npm install
+        run: npm ci
 
       - name: "Setup: Link Framework CLI"
         run: |
