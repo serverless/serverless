@@ -28,6 +28,6 @@
   },
   "devDependencies": {
     "@aws-sdk/client-cloudwatch-logs": "3.958.0",
-    "jest": "^29.7.0"
+    "jest": "^30.2.0"
   }
 }
