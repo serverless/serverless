@@ -862,18 +862,45 @@ export class ServerlessEngineDevMode {
       this.#pendingRebuilds = new Map()
     }
 
+    // Build the list of user-configured directories to exclude (as absolute paths)
+    const userExcludedDirs = (
+      containerConfig.dev?.excludeDirectories ?? []
+    ).map((dir) => path.join(containerPath, dir))
+
     const watcher = chokidar.watch(containerPath, {
-      ignored: [
-        '**/node_modules/**',
-        '**/.git/**',
-        '**/coverage/**',
-        '**/test/**',
-        '**/*.test.js',
-        '**/*.spec.js',
-        ...(containerConfig.dev?.excludeDirectories ?? []).map((dir) =>
-          path.join(containerPath, dir),
-        ),
-      ],
+      // chokidar v4 removed glob support, using function-based filter instead
+      ignored: (filePath, stats) => {
+        // Ignore common directories that should never trigger rebuilds
+        // Check both "/dir/" pattern (for absolute paths) and "dir/" at start (for relative paths)
+        if (
+          filePath.includes('/node_modules/') ||
+          filePath.startsWith('node_modules/') ||
+          filePath.includes('/.git/') ||
+          filePath.startsWith('.git/') ||
+          filePath.includes('/coverage/') ||
+          filePath.startsWith('coverage/') ||
+          filePath.includes('/test/') ||
+          filePath.startsWith('test/')
+        ) {
+          return true
+        }
+        // Ignore test files (only check file extension for actual files)
+        if (
+          stats?.isFile() &&
+          (filePath.endsWith('.test.js') || filePath.endsWith('.spec.js'))
+        ) {
+          return true
+        }
+        // Ignore user-configured directories
+        if (
+          userExcludedDirs.some(
+            (dir) => filePath.startsWith(dir + path.sep) || filePath === dir,
+          )
+        ) {
+          return true
+        }
+        return false
+      },
       ignoreInitial: true,
       followSymlinks: false,
       // Add debounce to prevent rapid-fire events

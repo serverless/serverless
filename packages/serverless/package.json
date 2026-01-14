@@ -49,7 +49,7 @@
     "aws-sdk": "^2.1693.0",
     "cachedir": "^2.4.0",
     "child-process-ext": "^3.0.2",
-    "chokidar": "^3.6.0",
+    "chokidar": "^4.0.3",
     "d": "^1.0.2",
     "dayjs": "^1.11.19",
     "esbuild": "0.27.2",
