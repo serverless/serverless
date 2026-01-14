@@ -92,6 +92,8 @@ jobs:
     name: "Release: Canary & Tag"
     needs: [ test-matrix, test-engine ]
     runs-on: ubuntu-latest
+    env:
+      IS_CANARY: true
     outputs:
       new_version: ${{ steps.tag_if_new_version.outputs.new_version }}
     steps:
@@ -123,8 +125,6 @@ jobs:
           aws-region: us-east-1
       - name: "Release: Upload Tarballs"
         run: bash prepareReleaseTars.sh
-        env:
-          IS_CANARY: true
       - name: "Release: Invalidate Cache"
         run: |
           aws cloudfront create-invalidation --distribution-id E1USPSJN28WQ8U --paths "/*"
