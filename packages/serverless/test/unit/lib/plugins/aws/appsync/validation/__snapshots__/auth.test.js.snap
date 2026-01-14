@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`Validation Invalid should validate a Cognito empty config 1`] = `"/authentication/config: must have required property 'userPoolId'"`;
 

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`Basic Invalid should validate: Invalid 1`] = `
 "/pipelineFunctions/function1/dataSource: must be a string or data source definition
