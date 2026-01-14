@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`Basic Invalid should validate: Invalid Datasource 1`] = `
 "/dataSources/myDynamoSource1/type: must be one of AMAZON_DYNAMODB, AMAZON_OPENSEARCH_SERVICE, AWS_LAMBDA, HTTP, NONE, RELATIONAL_DATABASE, AMAZON_EVENTBRIDGE

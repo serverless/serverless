@@ -36,7 +36,7 @@ jobs:
       - name: "Install: Dependencies"
         run: |
           cd ../../
-          npm install
+          npm ci
       - name: "Test: Engine Unit"
         run: npm test
 
@@ -68,7 +68,7 @@ jobs:
       - name: "Install: Dependencies"
         run: |
           cd ../../
-          npm install
+          npm ci
       - name: "Test: Unit (sf-core)"
         run: npm run test:unit
       - name: "Test: Unit (serverless)"
@@ -92,6 +92,8 @@ jobs:
     name: "Release: Canary & Tag"
     needs: [ test-matrix, test-engine ]
     runs-on: ubuntu-latest
+    env:
+      IS_CANARY: true
     outputs:
       new_version: ${{ steps.tag_if_new_version.outputs.new_version }}
     steps:
@@ -109,7 +111,7 @@ jobs:
       - name: "Install: Dependencies"
         run: |
           cd ../../
-          npm install
+          npm ci
       - name: "Build: Minify Shim"
         run: |
           cd ../serverless/lib/plugins/aws/dev
@@ -123,8 +125,6 @@ jobs:
           aws-region: us-east-1
       - name: "Release: Upload Tarballs"
         run: bash prepareReleaseTars.sh
-        env:
-          IS_CANARY: true
       - name: "Release: Invalidate Cache"
         run: |
           aws cloudfront create-invalidation --distribution-id E1USPSJN28WQ8U --paths "/*"
@@ -163,7 +163,7 @@ jobs:
       - name: "Install: Dependencies"
         run: |
           cd ../../
-          npm install
+          npm ci
       - name: "Build: Minify Shim"
         run: |
           cd ../serverless/lib/plugins/aws/dev
@@ -201,7 +201,7 @@ jobs:
       - name: "Install: Dependencies"
         run: |
           cd ../../
-          npm install
+          npm ci
       - name: "Release: NPM Publish"
         run: |
           npm publish

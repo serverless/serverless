@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`Api LambdaAuthorizer should generate the Lambda Authorizer Resources from additional auth 1`] = `
 {

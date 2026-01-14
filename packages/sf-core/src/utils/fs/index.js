@@ -3,14 +3,20 @@
  * Use asynchronous functions rather than synchronous
  * for better performance and to avoid blocking the event loop.
  */
+
+/* global __SF_CORE_VERSION__ */
+
 import fsp from 'fs/promises'
 import path from 'path'
 import { randomUUID } from 'crypto'
 import os from 'os'
 import yaml from 'js-yaml'
+import { createRequire } from 'node:module'
 import _ from 'lodash'
 import AdmZip from 'adm-zip'
 import dotenv from 'dotenv'
+
+const require = createRequire(import.meta.url)
 
 /**
  * Checks if a file exists and is a regular file.
@@ -934,20 +940,25 @@ const writeAwsCredentialsToFile = async ({
  * Get Versions
  */
 const getVersions = async () => {
-  const currentScriptPath = process.argv[1] // Gets the path of the Node.js script being run
   const versions = {}
-  const pathSfCorePackageJson = path.resolve(
-    currentScriptPath,
-    '../..',
-    'package.json',
-  )
-  if (await fileExists(pathSfCorePackageJson)) {
-    versions.serverless_framework = JSON.parse(
-      await readFile(pathSfCorePackageJson, 'utf8'),
-    )
-    versions.serverless_framework =
-      versions.serverless_framework.version || null
+
+  // 1. Primary: Use build-time injected version (Production)
+  if (typeof __SF_CORE_VERSION__ !== 'undefined') {
+    versions.serverless_framework = __SF_CORE_VERSION__
+    return versions
   }
+
+  // 2. Fallback: Local Development / Tests
+  try {
+    const pkgName = '@serverlessinc/sf-core/package.json'
+    const pkgPath = require.resolve(pkgName)
+    const pkg = JSON.parse(await fsp.readFile(pkgPath, 'utf8'))
+
+    versions.serverless_framework = pkg.version || null
+  } catch (err) {
+    // Silent fallback
+  }
+
   return versions
 }
 
