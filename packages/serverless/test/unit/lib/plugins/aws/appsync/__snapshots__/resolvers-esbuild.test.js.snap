@@ -10,7 +10,7 @@ exports[`Resolvers with esbuild Pipeline Function should generate Pipeline Funct
           "ApiId",
         ],
       },
-      "Code": "Bundled content of /Users/czubocha/GolandProjects/serverless/packages/serverless/funciton1.js",
+      "Code": "Bundled content of funciton1.js",
       "DataSourceName": {
         "Fn::GetAtt": [
           "GraphQlDsmyTable",
@@ -44,7 +44,7 @@ exports[`Resolvers with esbuild Pipeline Resolvers should generate JS Resources 
           "ApiId",
         ],
       },
-      "Code": "Bundled content of /Users/czubocha/GolandProjects/serverless/packages/serverless/resolvers/getUserFunction.js",
+      "Code": "Bundled content of resolvers/getUserFunction.js",
       "FieldName": "user",
       "Kind": "PIPELINE",
       "PipelineConfig": {
@@ -81,7 +81,7 @@ exports[`Resolvers with esbuild Unit Resolvers should generate JS Resources with
           "ApiId",
         ],
       },
-      "Code": "Bundled content of /Users/czubocha/GolandProjects/serverless/packages/serverless/resolvers/getUserFunction.js",
+      "Code": "Bundled content of resolvers/getUserFunction.js",
       "DataSourceName": {
         "Fn::GetAtt": [
           "GraphQlDsmyTable",

@@ -42,22 +42,25 @@ describe('Resolvers with esbuild', () => {
     mockExists = jest.spyOn(fs, 'existsSync').mockReturnValue(true)
 
     // Configure esbuild mock to return bundled content
-    mockBuildSync.mockImplementation((config) => ({
-      errors: [],
-      warnings: [],
-      metafile: undefined,
-      mangleCache: undefined,
-      outputFiles: [
-        {
-          path: 'path/to/file',
-          contents: Uint8Array.from([]),
-          text: `Bundled content of ${`${config.entryPoints?.[0]}`.replace(
-            /\\/g,
-            '/',
-          )}`,
-        },
-      ],
-    }))
+    // Strip cwd prefix for portable snapshot testing (same as readFileSync mock)
+    mockBuildSync.mockImplementation((config) => {
+      const entryPoint = `${config.entryPoints?.[0]}`
+        .replace(/\\/g, '/')
+        .replace(process.cwd().replace(/\\/g, '/') + '/', '')
+      return {
+        errors: [],
+        warnings: [],
+        metafile: undefined,
+        mangleCache: undefined,
+        outputFiles: [
+          {
+            path: 'path/to/file',
+            contents: Uint8Array.from([]),
+            text: `Bundled content of ${entryPoint}`,
+          },
+        ],
+      }
+    })
   })
 
   afterEach(() => {
