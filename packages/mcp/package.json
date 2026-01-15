@@ -24,7 +24,7 @@
     "@serverless/framework": "*",
     "eventsource": "^3.0.7",
     "express": "^5.2.1",
-    "zod": "^3.25.76"
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "@aws-sdk/client-cloudwatch-logs": "3.965.0",
