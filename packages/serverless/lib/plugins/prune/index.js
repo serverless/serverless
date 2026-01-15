@@ -1,3 +1,4 @@
+import cliCommandsSchema from '../../cli/commands-schema.js'
 import { log } from '@serverless/util'
 
 class Prune {
@@ -34,57 +35,7 @@ class Prune {
 
     this.commands = {
       prune: {
-        usage:
-          'Clean up deployed functions and/or layers by deleting older versions.',
-        lifecycleEvents: ['prune'],
-        options: {
-          number: {
-            usage: 'Number of previous versions to keep',
-            shortcut: 'n',
-            required: true,
-            type: 'string',
-          },
-          stage: {
-            usage: 'Stage of the service',
-            shortcut: 's',
-            type: 'string',
-          },
-          region: {
-            usage: 'Region of the service',
-            shortcut: 'r',
-            type: 'string',
-          },
-          function: {
-            usage: 'Function name. Limits cleanup to the specified function',
-            shortcut: 'f',
-            required: false,
-            type: 'string',
-          },
-          layer: {
-            usage: 'Layer name. Limits cleanup to the specified Lambda layer',
-            shortcut: 'l',
-            required: false,
-            type: 'string',
-          },
-          includeLayers: {
-            usage: 'Boolean flag. Includes the pruning of Lambda layers.',
-            shortcut: 'i',
-            required: false,
-            type: 'boolean',
-          },
-          dryRun: {
-            usage:
-              'Simulate pruning without executing delete actions. Deletion candidates are logged when used in conjunction with --verbose',
-            shortcut: 'd',
-            required: false,
-            type: 'boolean',
-          },
-          verbose: {
-            usage: 'Enable detailed output during plugin execution',
-            required: false,
-            type: 'boolean',
-          },
-        },
+        ...cliCommandsSchema.get('prune'),
       },
     }
 
