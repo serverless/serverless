@@ -26,7 +26,7 @@ export const loadEnvFiles = ({ stage, configFileDirPath }) => {
   // Load .env file
   const defaultEnvPath = path.resolve(configFileDirPath, '.env')
   if (existsSync(defaultEnvPath)) {
-    dotenv.config({ path: defaultEnvPath })
+    dotenv.config({ path: defaultEnvPath, quiet: true })
   }
 }
 
@@ -41,6 +41,6 @@ export const loadStageEnvFiles = ({ stage, configFileDirPath }) => {
   // Load .env.[stageName] file
   const stageEnvPath = path.resolve(configFileDirPath, `.env.${stage}`)
   if (existsSync(stageEnvPath)) {
-    dotenv.config({ path: stageEnvPath })
+    dotenv.config({ path: stageEnvPath, quiet: true })
   }
 }
