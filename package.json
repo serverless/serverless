@@ -20,7 +20,6 @@
   "author": "Serverless Inc.",
   "license": "",
   "devDependencies": {
-    "@serverlessinc/standards": "*",
     "eslint": "^9.39.2",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",

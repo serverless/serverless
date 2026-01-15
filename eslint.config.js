@@ -13,9 +13,10 @@ export default [
   ...baseConfig.map((config) => ({
     ...config,
     files: [
-      'packages/sf-core/{src,tests,bin,scripts}/**/*.js',
-      'packages/engine/{src,integration,test}/**/*.js',
-      'packages/serverless/{lib,test}/**/*.js',
+      'packages/sf-core/{src,tests,bin,scripts}/**/*.{js,cjs,mjs}',
+      'packages/sf-core/*.cjs',
+      'packages/engine/{src,integration,test}/**/*.{js,mjs}',
+      'packages/serverless/{lib,test}/**/*.{js,cjs,mjs}',
       'packages/mcp/{src,tests}/**/*.js',
       'packages/util/{src,index.js}/**/*.js',
       'packages/util/index.js',
