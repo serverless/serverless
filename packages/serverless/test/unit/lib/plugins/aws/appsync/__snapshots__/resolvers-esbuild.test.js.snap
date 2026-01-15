@@ -1,0 +1,103 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Resolvers with esbuild Pipeline Function should generate Pipeline Function Resources with JS code 1`] = `
+{
+  "GraphQlFunctionConfigurationfunction1": {
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "Code": "Bundled content of /Users/czubocha/GolandProjects/serverless/packages/serverless/funciton1.js",
+      "DataSourceName": {
+        "Fn::GetAtt": [
+          "GraphQlDsmyTable",
+          "Name",
+        ],
+      },
+      "Description": "Function1 Pipeline Resolver",
+      "FunctionVersion": "2018-05-29",
+      "MaxBatchSize": undefined,
+      "Name": "function1",
+      "Runtime": {
+        "Name": "APPSYNC_JS",
+        "RuntimeVersion": "1.0.0",
+      },
+    },
+    "Type": "AWS::AppSync::FunctionConfiguration",
+  },
+}
+`;
+
+exports[`Resolvers with esbuild Pipeline Resolvers should generate JS Resources with specific code 1`] = `
+{
+  "GraphQlResolverQueryuser": {
+    "DependsOn": [
+      "GraphQlSchema",
+    ],
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "Code": "Bundled content of /Users/czubocha/GolandProjects/serverless/packages/serverless/resolvers/getUserFunction.js",
+      "FieldName": "user",
+      "Kind": "PIPELINE",
+      "PipelineConfig": {
+        "Functions": [
+          {
+            "Fn::GetAtt": [
+              "GraphQlFunctionConfigurationgetUser",
+              "FunctionId",
+            ],
+          },
+        ],
+      },
+      "Runtime": {
+        "Name": "APPSYNC_JS",
+        "RuntimeVersion": "1.0.0",
+      },
+      "TypeName": "Query",
+    },
+    "Type": "AWS::AppSync::Resolver",
+  },
+}
+`;
+
+exports[`Resolvers with esbuild Unit Resolvers should generate JS Resources with specific code 1`] = `
+{
+  "GraphQlResolverQueryuser": {
+    "DependsOn": [
+      "GraphQlSchema",
+    ],
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "Code": "Bundled content of /Users/czubocha/GolandProjects/serverless/packages/serverless/resolvers/getUserFunction.js",
+      "DataSourceName": {
+        "Fn::GetAtt": [
+          "GraphQlDsmyTable",
+          "Name",
+        ],
+      },
+      "FieldName": "user",
+      "Kind": "UNIT",
+      "MaxBatchSize": undefined,
+      "Runtime": {
+        "Name": "APPSYNC_JS",
+        "RuntimeVersion": "1.0.0",
+      },
+      "TypeName": "Query",
+    },
+    "Type": "AWS::AppSync::Resolver",
+  },
+}
+`;
