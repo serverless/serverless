@@ -1,20 +1,12 @@
-import {
-  jest,
-  describe,
-  beforeEach,
-  afterEach,
-  it,
-  expect,
-} from '@jest/globals'
+import { afterEach, beforeEach, describe, expect, it } from '@jest/globals'
 import os from 'os'
 import path from 'path'
 import fs from 'fs'
 import fsp from 'fs/promises'
 
 // Import the function directly since it doesn't have complex dependencies
-const { renameService } = await import(
-  '../../../../lib/utils/rename-service.js'
-)
+const { renameService } =
+  await import('../../../../lib/utils/rename-service.js')
 
 describe('renameService', () => {
   let tmpDirPath

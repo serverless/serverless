@@ -39,12 +39,12 @@ What we do at Serverless Inc is offer exceptional infrastructure-as-code experie
 
 If you're coming from AWS Lambda, some of the downsides are:
 
-* **Longer deployment times**: Container deployments take longer than function deployments for two reasons:
+- **Longer deployment times**: Container deployments take longer than function deployments for two reasons:
   - Container images are larger than function packages
   - AWS Fargate requires additional infrastructure setup for safe deployments
 
-* **Request/Response limitations for AWS Lambda and AWS ALB**: AWS Lambda configured to AWS Application Load Balancer has a 1MB payload limit on request and response sizes (this includes headers). While compression can help, you'll need to architect your application with these limits in mind. We're actively working with AWS to advocate for higher limits, and are very optimistic that this will be addressed in the near future.
+- **Request/Response limitations for AWS Lambda and AWS ALB**: AWS Lambda configured to AWS Application Load Balancer has a 1MB payload limit on request and response sizes (this includes headers). While compression can help, you'll need to architect your application with these limits in mind. We're actively working with AWS to advocate for higher limits, and are very optimistic that this will be addressed in the near future.
 
-* **Lack of streaming response support for AWS Lambda and AWS ALB**: AWS Lambda and AWS ALB do not support streaming responses. This means that if your application attempts to stream a response, ALB will await the whole response before sending any data to the client.
+- **Lack of streaming response support for AWS Lambda and AWS ALB**: AWS Lambda and AWS ALB do not support streaming responses. This means that if your application attempts to stream a response, ALB will await the whole response before sending any data to the client.
 
 If you're coming from other container deployment tools, the main consideration is maturity. As a newer solution in this space, we're continuously evolving. However, we believe our developer experience already surpasses existing tools, offering unique features like local cloud emulation, real-time logs, and seamless Lambda/ECS switching.

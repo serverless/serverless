@@ -35,7 +35,7 @@ Also, the [Serverless MCP](https://www.serverless.com/framework/docs/guides/mcp)
 
 ## Overview
 
-Serverless Framework CLI version 4 was released in May 2024. It's stable and now widely used, and introduces no breaking changes—except for a new license and authentication requirement. 
+Serverless Framework CLI version 4 was released in May 2024. It's stable and now widely used, and introduces no breaking changes—except for a new license and authentication requirement.
 
 V.4 works out of the box for older projects built using Amazon Web Services with no migration steps required. Organizations making over $2 million/year may need to purchase a subscription based on the new terms (detailed below), but most developers will not.
 
@@ -73,13 +73,14 @@ The updated license terms can be reviewed in the On-Premise Software License sec
 
 For organizations that meet or exceed the revenue threshold, a subscription is required, priced based on Credits. One Credit is equivalent to one Serverless Framework Service Instance. A Service corresponds to a `serverless.yml` file, while a Service Instance refers to the deployment of that file to a specific AWS account, Stage, and Region. Another way to think about a Service Instance is that it equates to an AWS CloudFormation Stack deployed via Serverless Framework.
 
-To estimate pricing, multiply the Credit price by the number of estimated Service Instances you might have. Our Serverless Framework Dashboard also features a pricing calculator within the [Billing page]([https://app.serverless.com/](https://app.serverless.com/settings/billing)).
+To estimate pricing, multiply the Credit price by the number of estimated Service Instances you might have. Our Serverless Framework Dashboard also features a pricing calculator within the [Billing page](<[https://app.serverless.com/](https://app.serverless.com/settings/billing)>).
 
 If a Service Instance is interacted with using Serverless Framework CLI version 4 at any point (including instances initially deployed using versions 3 or earlier), it will be counted towards usage. To stop a Service Instance from counting towards your usage, run the `serverless remove` CLI command using version 4.
 
 Additionally, a Service Instance will only be counted if it exists for more than 10 days in a given month. This rule prevents charges for temporary Service Instances used for testing or previews.
 
 For greater clarity, subscriptions are **not** priced based on:
+
 - Individual AWS Lambda functions within a Service.
 - Individual resources within a Service.
 - The number of AWS Lambda invocations.
@@ -121,13 +122,13 @@ While not a technical breaking change affecting services or architecture, Server
 
 ### Authentication Requirement
 
-Version 4 of the Serverless Framework CLI now requires authentication. This is a breaking change as the authentication prompt in the CLI will disrupt usage of CLI commands on local machines and in CI/CD pipelines. 
+Version 4 of the Serverless Framework CLI now requires authentication. This is a breaking change as the authentication prompt in the CLI will disrupt usage of CLI commands on local machines and in CI/CD pipelines.
 
 We offer two ways to sign in using either the Serverless Framework Dashboard or License Keys.
 
 #### Serverless Framework Dashboard
 
-Authenticate via the CLI using your Serverless Framework Dashboard credentials (email/password, Google, or GitHub). This generates an Access Key on your machine, eliminating the need for repeated logins. 
+Authenticate via the CLI using your Serverless Framework Dashboard credentials (email/password, Google, or GitHub). This generates an Access Key on your machine, eliminating the need for repeated logins.
 
 In the Serverless Framework Dashboard, you can generate further Access Keys to use in your CI/CD pipelines [in the Settings > Access Keys tab](https://app.serverless.com/settings/accessKeys), to avoid the authentication prompt in the CLI.
 
@@ -259,4 +260,3 @@ The functionality is similar, but parameters should be defined under `stages.<st
 You're no longer on your own—Serverless Framework V4 prioritizes your experience and support. Whether you have specific migration questions, licensing inquiries, or general feedback, our team is ready and eager to assist.
 
 Feel free to [book a meeting](https://slss.io/meet) with us today, or reach out directly at support[at]serverless.com. We're here to ensure your upgrade to Version 4 is smooth, efficient, and successful.
-

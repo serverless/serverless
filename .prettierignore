@@ -1,0 +1,6 @@
+node_modules
+coverage
+.serverless
+*.min.js
+packages/sf-core/tests/unit/resolvers/fixtures/invalid.yaml
+packages/sf-core/tests/unit/resolvers/fixtures/invalid.json

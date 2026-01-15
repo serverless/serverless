@@ -12,11 +12,11 @@ import _ from 'lodash'
 import {
   createAndWaitForSlackAppInstallation,
   createManifest,
-  getSlackCredentialsFromEnvironment,
   getSlackConfigTokenCredentials,
-  updateSlackAppMode,
+  getSlackCredentialsFromEnvironment,
   refreshSlackConfigToken,
   removeSlackAppForDev,
+  updateSlackAppMode,
 } from './slack/apps.js'
 import {
   createEventBridgeIntegrations,
@@ -24,8 +24,6 @@ import {
   reconcileEventBridgeIntegrations,
 } from './integrations/eventbridge.js'
 import { ServerlessAiManifestSchema } from './types.js'
-import fs from 'fs'
-import path from 'path'
 import { AwsEventBridgeClient } from '../../aws/eventbridge.js'
 import { AwsSsmClient } from '../../aws/ssm.js'
 import { ParameterType } from '@aws-sdk/client-ssm'

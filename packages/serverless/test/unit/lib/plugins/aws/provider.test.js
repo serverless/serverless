@@ -36,9 +36,8 @@ jest.unstable_mockModule('@serverless/util', () => ({
 }))
 
 // Import Class Under Test (Dynamic)
-const { default: AwsProvider } = await import(
-  '../../../../../lib/plugins/aws/provider.js'
-)
+const { default: AwsProvider } =
+  await import('../../../../../lib/plugins/aws/provider.js')
 const { default: Serverless } = await import('../../../../../lib/serverless.js')
 
 describe('AwsProvider', () => {

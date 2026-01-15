@@ -7,9 +7,9 @@ import iot from 'aws-iot-device-sdk'
 import chokidar from 'chokidar'
 import validate from '../lib/validate.js'
 import {
-  ServerlessError,
   log,
   progress,
+  ServerlessError,
   stringToSafeColor,
 } from '@serverless/util'
 import LocalLambda from './local-lambda/index.js'
@@ -961,7 +961,9 @@ class AwsDev {
           })}`,
         )
       }
-    } catch (e) {}
+    } catch (e) {
+      // Ignore errors when failing to log function events in dev mode
+    }
   }
 
   /**
@@ -990,7 +992,9 @@ class AwsDev {
           })}`,
         )
       }
-    } catch (e) {}
+    } catch (e) {
+      // Ignore errors when failing to log function responses in dev mode
+    }
   }
 }
 

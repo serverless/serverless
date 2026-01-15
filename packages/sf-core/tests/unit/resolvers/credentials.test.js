@@ -6,9 +6,8 @@ jest.unstable_mockModule('@aws-sdk/credential-providers', () => ({
   fromNodeProviderChain: mockFromNodeProviderChain,
 }))
 
-const { getAwsCredentials } = await import(
-  '../../../src/lib/resolvers/providers/aws/credentials.js'
-)
+const { getAwsCredentials } =
+  await import('../../../src/lib/resolvers/providers/aws/credentials.js')
 
 describe('getAwsCredentials', () => {
   let logger

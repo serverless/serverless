@@ -5,7 +5,7 @@
  * to avoid making actual AWS API calls during testing.
  */
 
-import { jest, expect, describe, test, beforeEach } from '@jest/globals'
+import { beforeEach, describe, expect, jest, test } from '@jest/globals'
 
 // Create mock functions
 const mockGetLambdaFunctionDetails = jest.fn()
@@ -36,12 +36,6 @@ await jest.unstable_mockModule(
 
 // Import the function after mocking dependencies
 const { getLambdaInfo } = await import('../../src/tools/aws/lambda-info.js')
-const { AwsLambdaClient } = await import(
-  '../../../engine/src/lib/aws/lambda.js'
-)
-const { AwsCloudWatchClient } = await import(
-  '../../../engine/src/lib/aws/cloudwatch.js'
-)
 
 describe('AWS Lambda Info Tool', () => {
   beforeEach(() => {

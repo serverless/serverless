@@ -1,10 +1,10 @@
-  Resources:
-    MyS3Bucket:
-      Type: AWS::S3::Bucket
-      Properties:
-        BucketName: !Sub 'my-s3-bucket'
-        VersioningConfiguration:
-          Status: Enabled
-        Tags:
-          - Key: Name
-            Value: !Sub 'my-s3-bucket'
+Resources:
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'my-s3-bucket'
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Name
+          Value: !Sub 'my-s3-bucket'

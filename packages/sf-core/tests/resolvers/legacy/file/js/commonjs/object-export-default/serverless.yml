@@ -9,5 +9,3 @@ functions:
     # module.exports = { value: 'value' } (default export object)
     name: ${file(foo.cjs):value}
     description: ${file(foo.cjs)}
-
-

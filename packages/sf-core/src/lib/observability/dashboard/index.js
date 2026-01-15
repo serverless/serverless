@@ -280,7 +280,6 @@ const DashboardObservabilityIntegrationService = async (serverless) => {
     const MAX_TIMEOUT = flowIds.length * 1000 * 60 * 3
     const startTime = Date.now()
     while (waiting) {
-      // eslint-disable-next-line no-loop-func
       const requests = flowIds.map((id) =>
         sdk.integrations.getInstrumentationFlow({
           flowId: id,

@@ -378,7 +378,8 @@ const runFramework = async ({
     if (service.provider?.name?.startsWith('${')) {
       const err = new ServerlessError(
         'Serverless Framework Variables are not supported for "provider.name".',
-        ServerlessErrorCodes.framework.FRAMEWORK_VARIABLES_NOT_SUPPORTED_FOR_PROVIDER,
+        ServerlessErrorCodes.framework
+          .FRAMEWORK_VARIABLES_NOT_SUPPORTED_FOR_PROVIDER,
       )
       err.stack = undefined
       throw err
@@ -870,7 +871,7 @@ const createServiceDeployment = ({
    * Save Outputs to Deployment
    * Fetch any Cloudformation Outputs specified as Service Outputs
    */
-  const outputs = { ...service.outputs } || {}
+  const outputs = { ...service.outputs }
   for (const [outputKey, outputValue] of _.entries(outputs)) {
     if (typeof outputValue === 'string' && outputValue.startsWith('CFN!?')) {
       if (awsCfStackOutputs) {

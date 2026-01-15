@@ -79,7 +79,8 @@ const checkStoredBucket = async ({
     } catch (err) {
       throw new ServerlessError(
         `An error occurred while fetching the SSM parameter "${ssmParameterName}": ${err.message}`,
-        ServerlessErrorCodes.globalBucket.GLOBAL_BUCKET_GET_SSM_PARAMETER_FAILED,
+        ServerlessErrorCodes.globalBucket
+          .GLOBAL_BUCKET_GET_SSM_PARAMETER_FAILED,
         { originalMessage: err.message, originalName: err.name },
       )
     }

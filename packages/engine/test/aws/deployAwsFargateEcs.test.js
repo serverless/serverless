@@ -2,10 +2,10 @@ import { jest } from '@jest/globals'
 import { mock } from 'jest-mock-extended'
 import { ServerlessError } from '@serverless/util'
 import {
-  deployAwsFargateEcsContainer,
   computeDesiredScaling,
-  performServiceDeployment,
+  deployAwsFargateEcsContainer,
   identifyDeploymentFailureToFargateEcs,
+  performServiceDeployment,
 } from '../../src/lib/deploymentTypes/awsApi/deployAwsFargateEcs.js'
 
 describe('deployAwsFargateEcs', () => {
@@ -274,11 +274,10 @@ describe('deployAwsFargateEcs', () => {
       })
 
       // Use the internal function from the module being tested
-      const performServiceDeployment = await import(
-        '../../src/lib/deploymentTypes/awsApi/deployAwsFargateEcs.js'
-      )
-        .then((module) => Object.getOwnPropertyDescriptors(module))
-        .then((descriptors) => descriptors.performServiceDeployment?.value)
+      const performServiceDeployment =
+        await import('../../src/lib/deploymentTypes/awsApi/deployAwsFargateEcs.js')
+          .then((module) => Object.getOwnPropertyDescriptors(module))
+          .then((descriptors) => descriptors.performServiceDeployment?.value)
 
       if (!performServiceDeployment) {
         throw new Error('performServiceDeployment function not found in module')
@@ -424,11 +423,10 @@ describe('deployAwsFargateEcs', () => {
       })
 
       // Use the internal function from the module being tested
-      const performServiceDeployment = await import(
-        '../../src/lib/deploymentTypes/awsApi/deployAwsFargateEcs.js'
-      )
-        .then((module) => Object.getOwnPropertyDescriptors(module))
-        .then((descriptors) => descriptors.performServiceDeployment?.value)
+      const performServiceDeployment =
+        await import('../../src/lib/deploymentTypes/awsApi/deployAwsFargateEcs.js')
+          .then((module) => Object.getOwnPropertyDescriptors(module))
+          .then((descriptors) => descriptors.performServiceDeployment?.value)
 
       if (!performServiceDeployment) {
         throw new Error('performServiceDeployment function not found in module')
@@ -560,14 +558,13 @@ describe('deployAwsFargateEcs', () => {
       )
 
       // Use the internal function from the module being tested
-      const identifyDeploymentFailureToFargateEcs = await import(
-        '../../src/lib/deploymentTypes/awsApi/deployAwsFargateEcs.js'
-      )
-        .then((module) => Object.getOwnPropertyDescriptors(module))
-        .then(
-          (descriptors) =>
-            descriptors.identifyDeploymentFailureToFargateEcs?.value,
-        )
+      const identifyDeploymentFailureToFargateEcs =
+        await import('../../src/lib/deploymentTypes/awsApi/deployAwsFargateEcs.js')
+          .then((module) => Object.getOwnPropertyDescriptors(module))
+          .then(
+            (descriptors) =>
+              descriptors.identifyDeploymentFailureToFargateEcs?.value,
+          )
 
       if (!identifyDeploymentFailureToFargateEcs) {
         throw new Error(
@@ -617,14 +614,13 @@ describe('deployAwsFargateEcs', () => {
       )
 
       // Use the internal function from the module being tested
-      const identifyDeploymentFailureToFargateEcs = await import(
-        '../../src/lib/deploymentTypes/awsApi/deployAwsFargateEcs.js'
-      )
-        .then((module) => Object.getOwnPropertyDescriptors(module))
-        .then(
-          (descriptors) =>
-            descriptors.identifyDeploymentFailureToFargateEcs?.value,
-        )
+      const identifyDeploymentFailureToFargateEcs =
+        await import('../../src/lib/deploymentTypes/awsApi/deployAwsFargateEcs.js')
+          .then((module) => Object.getOwnPropertyDescriptors(module))
+          .then(
+            (descriptors) =>
+              descriptors.identifyDeploymentFailureToFargateEcs?.value,
+          )
 
       if (!identifyDeploymentFailureToFargateEcs) {
         throw new Error(
@@ -666,14 +662,13 @@ describe('deployAwsFargateEcs', () => {
       }
 
       // Use the internal function from the module being tested
-      const identifyDeploymentFailureToFargateEcs = await import(
-        '../../src/lib/deploymentTypes/awsApi/deployAwsFargateEcs.js'
-      )
-        .then((module) => Object.getOwnPropertyDescriptors(module))
-        .then(
-          (descriptors) =>
-            descriptors.identifyDeploymentFailureToFargateEcs?.value,
-        )
+      const identifyDeploymentFailureToFargateEcs =
+        await import('../../src/lib/deploymentTypes/awsApi/deployAwsFargateEcs.js')
+          .then((module) => Object.getOwnPropertyDescriptors(module))
+          .then(
+            (descriptors) =>
+              descriptors.identifyDeploymentFailureToFargateEcs?.value,
+          )
 
       if (!identifyDeploymentFailureToFargateEcs) {
         throw new Error(
@@ -712,14 +707,13 @@ describe('deployAwsFargateEcs', () => {
       }
 
       // Use the internal function from the module being tested
-      const identifyDeploymentFailureToFargateEcs = await import(
-        '../../src/lib/deploymentTypes/awsApi/deployAwsFargateEcs.js'
-      )
-        .then((module) => Object.getOwnPropertyDescriptors(module))
-        .then(
-          (descriptors) =>
-            descriptors.identifyDeploymentFailureToFargateEcs?.value,
-        )
+      const identifyDeploymentFailureToFargateEcs =
+        await import('../../src/lib/deploymentTypes/awsApi/deployAwsFargateEcs.js')
+          .then((module) => Object.getOwnPropertyDescriptors(module))
+          .then(
+            (descriptors) =>
+              descriptors.identifyDeploymentFailureToFargateEcs?.value,
+          )
 
       if (!identifyDeploymentFailureToFargateEcs) {
         throw new Error(
@@ -775,14 +769,13 @@ describe('deployAwsFargateEcs', () => {
       )
 
       // Use the internal function from the module being tested
-      const identifyDeploymentFailureToFargateEcs = await import(
-        '../../src/lib/deploymentTypes/awsApi/deployAwsFargateEcs.js'
-      )
-        .then((module) => Object.getOwnPropertyDescriptors(module))
-        .then(
-          (descriptors) =>
-            descriptors.identifyDeploymentFailureToFargateEcs?.value,
-        )
+      const identifyDeploymentFailureToFargateEcs =
+        await import('../../src/lib/deploymentTypes/awsApi/deployAwsFargateEcs.js')
+          .then((module) => Object.getOwnPropertyDescriptors(module))
+          .then(
+            (descriptors) =>
+              descriptors.identifyDeploymentFailureToFargateEcs?.value,
+          )
 
       if (!identifyDeploymentFailureToFargateEcs) {
         throw new Error(

@@ -201,15 +201,6 @@ export const removeSlackAppForDev = async ({ appId, configToken }) => {
   return res
 }
 
-const canRunOpenOnLinux = () => {
-  try {
-    execSync('which xdg-open')
-    return true
-  } catch (err) {
-    return false
-  }
-}
-
 export const createAndWaitForSlackAppInstallation = async (
   manifest,
   { configToken, refreshToken, expiresAt } = {

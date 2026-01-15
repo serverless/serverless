@@ -179,7 +179,8 @@ class DomainConfig {
       throw new ServerlessError(
         `${routingPolicy} routing is not intended to be used with edge endpoints. ` +
           'Use a regional endpoint instead.',
-        ServerlessErrorCodes.domains.DOMAIN_CONFIG_ROUTING_POLICY_EDGE_INCOMPATIBLE,
+        ServerlessErrorCodes.domains
+          .DOMAIN_CONFIG_ROUTING_POLICY_EDGE_INCOMPATIBLE,
       )
     }
 

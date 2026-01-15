@@ -29,15 +29,12 @@ jest.unstable_mockModule(
 )
 
 // Import after mocking
-const { default: AwsCompileCognitoUserPoolEvents } = await import(
-  '../../../../../../../../lib/plugins/aws/package/compile/events/cognito-user-pool.js'
-)
-const { default: AwsProvider } = await import(
-  '../../../../../../../../lib/plugins/aws/provider.js'
-)
-const { default: Serverless } = await import(
-  '../../../../../../../../lib/serverless.js'
-)
+const { default: AwsCompileCognitoUserPoolEvents } =
+  await import('../../../../../../../../lib/plugins/aws/package/compile/events/cognito-user-pool.js')
+const { default: AwsProvider } =
+  await import('../../../../../../../../lib/plugins/aws/provider.js')
+const { default: Serverless } =
+  await import('../../../../../../../../lib/serverless.js')
 
 describe('AwsCompileCognitoUserPoolEvents', () => {
   let serverless

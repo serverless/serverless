@@ -68,12 +68,12 @@ const mkCommand =
       options,
     )
     if (error && !options['noThrow']) {
-      console.error(`Error running: ${quote([cmd, ...args])}`) // eslint-disable-line no-console
+      console.error(`Error running: ${quote([cmd, ...args])}`)
       throw error
     }
     if (status && !options['noThrow']) {
-      console.error('STDOUT: ', stdout.toString()) // eslint-disable-line no-console
-      console.error('STDERR: ', stderr.toString()) // eslint-disable-line no-console
+      console.error('STDOUT: ', stdout.toString())
+      console.error('STDERR: ', stderr.toString())
       throw new Error(
         `${quote([cmd, ...args])} failed with status code ${status}`,
       )

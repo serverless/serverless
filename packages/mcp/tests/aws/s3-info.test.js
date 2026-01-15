@@ -5,7 +5,7 @@
  * to avoid making actual AWS API calls during testing.
  */
 
-import { jest, expect, describe, test, beforeEach } from '@jest/globals'
+import { beforeEach, describe, expect, jest, test } from '@jest/globals'
 
 // Create mock functions
 const mockGetBucketDetails = jest.fn()
@@ -46,10 +46,6 @@ await jest.unstable_mockModule(
 
 // Import the function after mocking dependencies
 const { getS3Info } = await import('../../src/tools/aws/s3-info.js')
-const { AwsS3Client } = await import('../../../engine/src/lib/aws/s3.js')
-const { AwsCloudWatchClient } = await import(
-  '../../../engine/src/lib/aws/cloudwatch.js'
-)
 
 describe('AWS S3 Info Tool', () => {
   beforeEach(() => {

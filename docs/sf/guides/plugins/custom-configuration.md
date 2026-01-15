@@ -31,25 +31,25 @@ To do so, plugins must define schema validation (see below), and can retrieve co
 ```js
 class MyPlugin {
   constructor(serverless) {
-    this.serverless = serverless;
+    this.serverless = serverless
     this.hooks = {
       'before:deploy': () => this.beforeDeploy(),
-    };
+    }
   }
 
   beforeDeploy() {
     // `service` contains the (resolved) serverless.yml config
-    const service = this.serverless.service;
-    console.log('Provider name: ', service.provider.name);
-    console.log('Functions: ', service.functions);
+    const service = this.serverless.service
+    console.log('Provider name: ', service.provider.name)
+    console.log('Functions: ', service.functions)
     console.log(
       'Custom plugin config: ',
       service['my-plugin']['my-plugin-config'],
-    );
+    )
   }
 }
 
-module.exports = MyPlugin;
+module.exports = MyPlugin
 ```
 
 **Note:** configuration values are only resolved _after_ plugins are initialized. Do not try to read configuration in the plugin constructor, as variables aren't resolved yet. Read configuration in lifecycle events only.
@@ -119,7 +119,7 @@ class MyPlugin {
         someProperty: { type: 'string' },
       },
       required: ['someProperty'],
-    });
+    })
   }
 }
 ```
@@ -153,7 +153,7 @@ class MyPlugin {
         myCustomProperty: { type: 'string' },
       },
       required: ['myCustomProperty'],
-    });
+    })
   }
 }
 ```
@@ -189,7 +189,7 @@ class MyPlugin {
         anotherProperty: { type: 'number' },
       },
       required: ['someCustomProperty'],
-    });
+    })
   }
 }
 ```
@@ -234,7 +234,7 @@ class MyPlugin {
         required: ['someProp'],
         additionalProperties: false,
       },
-    );
+    )
   }
 }
 ```
@@ -277,7 +277,7 @@ class MyPlugin {
         },
         required: ['documentation'],
       },
-    );
+    )
   }
 }
 ```
@@ -349,7 +349,7 @@ class MyPlugin {
           },
         },
       },
-    });
+    })
   }
 }
 ```

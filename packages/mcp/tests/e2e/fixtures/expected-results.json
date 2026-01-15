@@ -12,9 +12,7 @@
       "id": "error-group-syntax1",
       "pattern": "SyntaxError: Unexpected token '}'",
       "count": 1,
-      "examples": [
-        "SyntaxError: Unexpected token '}'"
-      ],
+      "examples": ["SyntaxError: Unexpected token '}'"],
       "patternId": "0049b7747137bc085d569b96a81661c8",
       "regexString": "\\QSyntaxError: Unexpected token '}'\\E",
       "ratio": 0.07,
@@ -31,9 +29,7 @@
       "id": "error-group-syntax2",
       "pattern": "SyntaxError: Unexpected token '}' at line <*>",
       "count": 1,
-      "examples": [
-        "SyntaxError: Unexpected token '}' at line 42"
-      ],
+      "examples": ["SyntaxError: Unexpected token '}' at line 42"],
       "patternId": "75a85f39a9a5715cc2c8a45e114c554a",
       "regexString": "\\QSyntaxError: Unexpected token '}' at line \\E.*",
       "ratio": 0.07,
@@ -50,9 +46,7 @@
       "id": "error-group-syntax3",
       "pattern": "SyntaxError: Unexpected token '}' in JSON at position <*>",
       "count": 1,
-      "examples": [
-        "SyntaxError: Unexpected token '}' in JSON at position 217"
-      ],
+      "examples": ["SyntaxError: Unexpected token '}' in JSON at position 217"],
       "patternId": "56d010045edbe1cfa157c066e3a324f7",
       "regexString": "\\QSyntaxError: Unexpected token '}' in JSON at position \\E.*",
       "ratio": 0.07,
@@ -150,9 +144,7 @@
       "id": "error-group-5",
       "pattern": "ReferenceError: options is not defined",
       "count": 1,
-      "examples": [
-        "ReferenceError: options is not defined"
-      ],
+      "examples": ["ReferenceError: options is not defined"],
       "patternId": "b5ab2abe6a27704feba4b291af274c8d",
       "regexString": "\\QReferenceError: options is not defined\\E",
       "ratio": 0.08,
@@ -169,9 +161,7 @@
       "id": "error-group-6",
       "pattern": "ReferenceError: settings is not defined",
       "count": 1,
-      "examples": [
-        "ReferenceError: settings is not defined"
-      ],
+      "examples": ["ReferenceError: settings is not defined"],
       "patternId": "3c1d89589bf60ffcab54103b15468306",
       "regexString": "\\QReferenceError: settings is not defined\\E",
       "ratio": 0.08,
@@ -188,9 +178,7 @@
       "id": "error-group-7",
       "pattern": "ReferenceError: config is not defined",
       "count": 1,
-      "examples": [
-        "ReferenceError: config is not defined"
-      ],
+      "examples": ["ReferenceError: config is not defined"],
       "patternId": "a5429cb5739e1f471e81f52526a30afb",
       "regexString": "\\QReferenceError: config is not defined\\E",
       "ratio": 0.08,
@@ -207,9 +195,7 @@
       "id": "error-group-range",
       "pattern": "RangeError: Maximum call stack size exceeded",
       "count": 1,
-      "examples": [
-        "RangeError: Maximum call stack size exceeded"
-      ],
+      "examples": ["RangeError: Maximum call stack size exceeded"],
       "patternId": "bc778ae8439733c1e38a6d16a77dc984",
       "regexString": "\\QRangeError: Maximum call stack size exceeded\\E",
       "ratio": 0.05,
@@ -265,9 +251,7 @@
       "id": "error-group-type-function",
       "pattern": "TypeError: object is not a function",
       "count": 1,
-      "examples": [
-        "TypeError: object is not a function"
-      ],
+      "examples": ["TypeError: object is not a function"],
       "patternId": "b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2",
       "regexString": "\\QTypeError: object is not a function\\E",
       "ratio": 0.05,
@@ -283,9 +267,7 @@
       "id": "error-group-uri-malformed",
       "pattern": "URIError: URI malformed",
       "count": 1,
-      "examples": [
-        "URIError: URI malformed"
-      ],
+      "examples": ["URIError: URI malformed"],
       "patternId": "f1e2d3c4b5a6f7e8d9c0b1a2f3e4d5c6",
       "regexString": "\\QURIError: URI malformed\\E",
       "ratio": 0.05,
@@ -301,9 +283,7 @@
       "id": "error-group-memory-limit",
       "pattern": "Error: Memory limit exceeded",
       "count": 1,
-      "examples": [
-        "Error: Memory limit exceeded"
-      ],
+      "examples": ["Error: Memory limit exceeded"],
       "patternId": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
       "regexString": "\\QError: Memory limit exceeded\\E",
       "ratio": 0.05,

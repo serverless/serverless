@@ -13,7 +13,6 @@ process.env.DOCKER_CLI_HINTS = false
  */
 export class ServerlessContainerFramework {
   #configSchema
-  #projectConfig
   #engine
 
   /**
@@ -55,7 +54,7 @@ export class ServerlessContainerFramework {
     })
 
     // Validate project config
-    this.#projectConfig = validateZodSchema({
+    validateZodSchema({
       schema: this.#configSchema,
       data: projectConfig,
       errorMessage: 'Invalid configuration:',

@@ -18,9 +18,8 @@ await jest.unstable_mockModule('../../src/lib/aws/cloudwatch-alarms.js', () => {
 })
 
 // Import the function after mocking dependencies
-const { getCloudWatchAlarmsInfo } = await import(
-  '../../src/tools/aws/aws-cloudwatch-alarms.js'
-)
+const { getCloudWatchAlarmsInfo } =
+  await import('../../src/tools/aws/aws-cloudwatch-alarms.js')
 
 describe('CloudWatch Alarms Tool', () => {
   beforeEach(() => {

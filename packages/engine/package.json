@@ -4,10 +4,10 @@
   "description": "Reusable engine logic for CLI and external consumers",
   "type": "module",
   "main": "src/index.js",
-  "prettier": "@serverlessinc/standards",
   "scripts": {
-    "prettier": "prettier -c \"src/**/*\" --ignore-unknown",
-    "prettier:fix": "prettier \"src/**/*\" --write --ignore-unknown",
+    "lint": "eslint",
+    "prettier": "prettier -c . --ignore-path ../../.prettierignore",
+    "prettier:fix": "prettier -w . --ignore-path ../../.prettierignore",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --testPathPatterns '^(?!.*integration).*test.*$' --testPathIgnorePatterns=integration",
     "test:integration": "NODE_OPTIONS=--experimental-vm-modules jest --testPathPatterns integration"
   },
@@ -53,7 +53,6 @@
   "devDependencies": {
     "jest": "^30.2.0",
     "jest-mock-extended": "^4.0.0",
-    "js-yaml": "^4.1.1",
-    "prettier": "^3.7.4"
+    "js-yaml": "^4.1.1"
   }
 }

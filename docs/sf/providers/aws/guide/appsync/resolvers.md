@@ -61,11 +61,11 @@ If nothing is specified, by default, the resolver is a PIPELINE JavaScript resol
 
 ```js
 export function request() {
-  return {};
+  return {}
 }
 
 export function response(ctx) {
-  return ctx.prev.result;
+  return ctx.prev.result
 }
 ```
 
@@ -131,20 +131,20 @@ resolvers:
 
 ```ts
 // getUser.ts
-import { Context, util } from '@aws-appsync/utils';
+import { Context, util } from '@aws-appsync/utils'
 
 export function request(ctx: Context) {
   const {
     args: { id },
-  } = ctx;
+  } = ctx
   return {
     operation: 'GetItem',
     key: util.dynamodb.toMapValues({ id }),
-  };
+  }
 }
 
 export function response(ctx: Context) {
-  return ctx.result;
+  return ctx.result
 }
 ```
 

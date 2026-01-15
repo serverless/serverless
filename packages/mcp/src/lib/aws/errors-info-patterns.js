@@ -44,6 +44,9 @@ export async function getErrorsInfoWithPatterns({
 }) {
   // Initialize AWS config at the beginning of the function
   const awsConfig = { region, profile }
+  // Determine which log groups to analyze
+  let effectiveLogGroups = []
+
   try {
     // Validate parameters
     if (!startTime || !endTime) {
@@ -59,9 +62,6 @@ export async function getErrorsInfoWithPatterns({
     if (isNaN(startTimeMs) || isNaN(endTimeMs)) {
       throw new Error('Invalid startTime or endTime')
     }
-
-    // Determine which log groups to analyze
-    let effectiveLogGroups = []
 
     if (serviceWideAnalysis) {
       // Validate service parameters

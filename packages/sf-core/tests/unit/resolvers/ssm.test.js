@@ -25,9 +25,8 @@ jest.unstable_mockModule('@serverless/util', () => ({
 }))
 
 // Import after mocking
-const { resolveVariableFromSsm } = await import(
-  '../../../src/lib/resolvers/providers/aws/ssm.js'
-)
+const { resolveVariableFromSsm } =
+  await import('../../../src/lib/resolvers/providers/aws/ssm.js')
 
 describe('SSM Resolver', () => {
   let mockLogger

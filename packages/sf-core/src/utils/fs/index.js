@@ -344,7 +344,9 @@ const getConfigFilePath = async (options) => {
       if (await fsp.stat(eventualServiceConfigPath)) {
         return eventualServiceConfigPath
       }
-    } catch (err) {}
+    } catch (err) {
+      if (err.code !== 'ENOENT') throw err
+    }
   }
   return null
 }
@@ -726,7 +728,6 @@ const saveRcAuthenticatedUser = async ({
 
   // Optionally delete user information
   if (deleteUserInfo) {
-    // eslint-disable-next-line
     delete config.users[userId]
     // Remove user session
     config.userId = null

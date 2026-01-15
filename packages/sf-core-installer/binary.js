@@ -20,7 +20,6 @@ class Binary {
       errors.push('url must be a string')
     } else {
       try {
-        // eslint-disable-next-line no-new
         new URL(url)
       } catch (e) {
         errors.push(e)

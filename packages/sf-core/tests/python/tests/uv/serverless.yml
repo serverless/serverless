@@ -27,5 +27,3 @@ package:
 functions:
   hello:
     handler: handler.hello
-
-

@@ -12,4 +12,3 @@ functions:
   hello:
     handler: handler.hello
     description: ${awsAccount1:s3:s3://resolvers-integration-test/test.txt}
-

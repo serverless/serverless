@@ -140,14 +140,14 @@ waf:
   defaultAction: Block
   rules:
     # using ManagedRuleGroup
-    - name: "AWSManagedRulesCommonRuleSet"
+    - name: 'AWSManagedRulesCommonRuleSet'
       priority: 20
       overrideAction:
         None: {}
       statement:
         ManagedRuleGroupStatement:
-          VendorName: "AWS"
-          Name: "AWSManagedRulesCommonRuleSet"
+          VendorName: 'AWS'
+          Name: 'AWSManagedRulesCommonRuleSet'
 ```
 
 ### Per API Key rules

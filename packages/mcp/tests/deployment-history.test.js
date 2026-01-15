@@ -23,12 +23,10 @@ await jest.unstable_mockModule(
 )
 
 // Import the function after mocking dependencies
-const { getDeploymentHistory } = await import(
-  '../src/tools/deployment-history.js'
-)
-const { AwsCloudformationService } = await import(
-  '@serverless/engine/src/lib/aws/cloudformation.js'
-)
+const { getDeploymentHistory } =
+  await import('../src/tools/deployment-history.js')
+const { AwsCloudformationService } =
+  await import('@serverless/engine/src/lib/aws/cloudformation.js')
 
 describe('Deployment History Tool', () => {
   beforeEach(() => {

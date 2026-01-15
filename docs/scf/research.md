@@ -41,6 +41,7 @@ SCF treats containers as the universal deployment unit, providing a consistent w
 The evolution of serverless compute platforms shows the industry's progression from simple deployments to sophisticated container-based solutions:
 
 **2014-2016: Early Serverless Era**
+
 - AWS Lambda launches with zip-only deployments (50MB limit)
 - Azure Functions debuts (2016) with zip deployment support
 - Google Cloud Functions releases with source-code uploads
@@ -48,6 +49,7 @@ The evolution of serverless compute platforms shows the industry's progression f
 - Google App Engine adds Flexible Environment with container support (2016)
 
 **2017-2019: Maturation & Container Adoption**
+
 - AWS Lambda increases zip limit to 250MB
 - Azure Functions adds custom handlers for language flexibility
 - Google Cloud Functions adds layer support for dependency management
@@ -57,6 +59,7 @@ The evolution of serverless compute platforms shows the industry's progression f
 - Knative 1.0 releases, offering a Kubernetes-native serverless platform
 
 **2020-2021: Container Revolution**
+
 - AWS Lambda adds container image support (Dec 2020, 10GB limit)
 - Azure Functions introduces container deployment (late 2020, 10GB limit)
 - Digital Ocean Functions launches with container-first approach via OpenFaaS
@@ -64,6 +67,7 @@ The evolution of serverless compute platforms shows the industry's progression f
 - AWS App Runner launches (2021) with container-native PaaS
 
 **2022-Present: Container Optimization & Platform Convergence**
+
 - Google Cloud Functions 2nd Gen debuts with container support (2022)
 - AWS introduces on-demand container loading and efficient caching, dramatically improving performance of containerized functions
 - Azure integrates tighter container orchestration with Kubernetes
@@ -74,19 +78,19 @@ The evolution of serverless compute platforms shows the industry's progression f
 
 **Current Platform Capabilities:**
 
-| Platform | Primary Package Format | Size Limit | Container Support |
-|----------|----------------------|-------------|-------------------|
-| AWS Lambda | Zip/Container | 10GB | Native + Custom |
-| Azure Functions | Zip/Container | 10GB | Native + Custom |
-| Google Functions | Zip/Container | 32GB | Native + Custom |
-| AWS Fargate | Container | 10GB | Native |
-| Google Cloud Run | Container | 32GB | Native |
-| Azure Container Apps | Container | 10GB | Native |
-| DO Functions | Container | 10GB | Container-only |
-| AWS App Runner | Container | 10GB | Native |
-| Azure Container Instances | Container | No limit* | Native |
+| Platform                  | Primary Package Format | Size Limit | Container Support |
+| ------------------------- | ---------------------- | ---------- | ----------------- |
+| AWS Lambda                | Zip/Container          | 10GB       | Native + Custom   |
+| Azure Functions           | Zip/Container          | 10GB       | Native + Custom   |
+| Google Functions          | Zip/Container          | 32GB       | Native + Custom   |
+| AWS Fargate               | Container              | 10GB       | Native            |
+| Google Cloud Run          | Container              | 32GB       | Native            |
+| Azure Container Apps      | Container              | 10GB       | Native            |
+| DO Functions              | Container              | 10GB       | Container-only    |
+| AWS App Runner            | Container              | 10GB       | Native            |
+| Azure Container Instances | Container              | No limit\* | Native            |
 
-*Subject to quota limits
+\*Subject to quota limits
 
 This evolution demonstrates the industry's convergence on containers as the standard deployment unit for serverless compute, enabling greater workload portability and operational consistency across platforms.
 
@@ -94,17 +98,17 @@ This evolution demonstrates the industry's convergence on containers as the stan
 
 AWS Fargate is a serverless container management service that differs from AWS Lambda in several ways:
 
-* **Execution**:
-    - Lambda: Managed, auto-scaled functions.
-    - Fargate: Customizable container environment, with scaling and load balancing managed by you.
-* **Pricing**:
-    - Lambda: Per-invocation billing, with costs based on the number of invocations, execution time and memory allocated
-      to your functions. Pricing granularity is 1ms.
-    - Fargate: Pay for resources, with costs based on the CPU and memory resources you allocate to your containers.
-      Pricing granularity is 1 second (minimum 1 minute).
-* **Resource Control**:
-    - Lambda: Limited control over CPU and memory resources.
-    - Fargate: Full control over CPU and memory resources.
+- **Execution**:
+  - Lambda: Managed, auto-scaled functions.
+  - Fargate: Customizable container environment, with scaling and load balancing managed by you.
+- **Pricing**:
+  - Lambda: Per-invocation billing, with costs based on the number of invocations, execution time and memory allocated
+    to your functions. Pricing granularity is 1ms.
+  - Fargate: Pay for resources, with costs based on the CPU and memory resources you allocate to your containers.
+    Pricing granularity is 1 second (minimum 1 minute).
+- **Resource Control**:
+  - Lambda: Limited control over CPU and memory resources.
+  - Fargate: Full control over CPU and memory resources.
 
 AWS Fargate offers container-specific advantages and greater customization compared to AWS Lambda, making it a choice
 when you need more control over containerized applications and specific workloads.
@@ -274,22 +278,22 @@ measuring 512KiB, rather than entire image layers.
 
 ### Key Takeaways
 
-* **Container images offer a practical choice for deploying serverless workloads**, providing enhanced control over the
+- **Container images offer a practical choice for deploying serverless workloads**, providing enhanced control over the
   environment and dependencies, and supporting multi-platform deployment with the same image.
-* **Container images do not exhibit slower initialization compared to the traditional ZIP archive deployment**. In some
+- **Container images do not exhibit slower initialization compared to the traditional ZIP archive deployment**. In some
   scenarios, they may even outperform it.
-* **The size of the container image plays a role**, influencing initialization duration. However, the impact remains
+- **The size of the container image plays a role**, influencing initialization duration. However, the impact remains
   relatively insignificant.
-* **Memory size does not have a significant impact on cold start times**, though this may vary if intensive CPU or
+- **Memory size does not have a significant impact on cold start times**, though this may vary if intensive CPU or
   memory
   tasks are part of the initialization process.
-* **Container images are cached.** Opting for popular base images can result in faster loading times due to cache
+- **Container images are cached.** Opting for popular base images can result in faster loading times due to cache
   availability.
-* **Unused dependencies can inflate the image size, but they do not affect cold start times**, thanks to the on-demand
+- **Unused dependencies can inflate the image size, but they do not affect cold start times**, thanks to the on-demand
   loading approach.
-* **Minifying your code can lead to reduced cold start times**, but this may necessitate an increase in memory size for
+- **Minifying your code can lead to reduced cold start times**, but this may necessitate an increase in memory size for
   running the container with minified code.
-* **The choice of how you run your application can influence cold start times**. Using the runtime interface client
+- **The choice of how you run your application can influence cold start times**. Using the runtime interface client
   installed in the node_modules directory is recommended for time-saving benefits.
 
 ## Google Cloud Run
@@ -304,9 +308,9 @@ for applications that respond to HTTP requests, making it a suitable choice for 
 event-driven workloads. Cloud Run is notable for its flexible pricing and execution models, where you can choose between
 two CPU allocation options:
 
-* CPU Always Allocated: In this model, the CPU is allocated to your container instance regardless of request activity,
+- CPU Always Allocated: In this model, the CPU is allocated to your container instance regardless of request activity,
   which can lead to higher costs but offers instant responsiveness for incoming requests.
-* CPU Allocated During Request: This option allocates CPU to your container only during the processing of a request.
+- CPU Allocated During Request: This option allocates CPU to your container only during the processing of a request.
   This can be more cost-effective, especially for workloads with sporadic traffic, but may contribute to longer cold
   start times.
 
@@ -323,11 +327,11 @@ Lambda.
 The benchmark utilized the same Node.js applications which were used for AWS.
 Deployments used three types of container images:
 
-* **Buildpacks-generated**: Automated creation with larger image sizes. Google
+- **Buildpacks-generated**: Automated creation with larger image sizes. Google
   Cloud's [buildpacks](https://cloud.google.com/docs/buildpacks/overview) is an open-source
   project that takes your application source code and transforms it into production-ready container images.
-* **Distroless Node.js**: Manually optimized with custom Dockerfile, smaller image sizes.
-* **Node.js Slim**: Manually optimized with custom Dockerfile, similar to Distroless in size.
+- **Distroless Node.js**: Manually optimized with custom Dockerfile, smaller image sizes.
+- **Node.js Slim**: Manually optimized with custom Dockerfile, similar to Distroless in size.
 
 ![Google Cloud Image Size](docs/images/google-cloud-image-size.svg)
 
@@ -410,13 +414,13 @@ your service and reputation.
 
 Here's what you gain:
 
-* **Strategic Cost Optimization**: Our detailed benchmarks, available in our comprehensive spreadsheet, guide you to
+- **Strategic Cost Optimization**: Our detailed benchmarks, available in our comprehensive spreadsheet, guide you to
   make informed decisions, ensuring you only pay for what you need, when you need it, even if that means scaling back.
-* **Zero Downtime Migration**: Our tools are designed for uninterrupted service. Switch serverless platforms without
+- **Zero Downtime Migration**: Our tools are designed for uninterrupted service. Switch serverless platforms without
   your users noticing a thing, in either direction.
-* **Data-Driven Insights**: We equip you with comprehensive comparisons, helping you understand the cost implications at
+- **Data-Driven Insights**: We equip you with comprehensive comparisons, helping you understand the cost implications at
   every scale and traffic pattern.
-* **Scalability and Reversibility**: Your startup's saga is one of evolution, and so is your infrastructure. Our
+- **Scalability and Reversibility**: Your startup's saga is one of evolution, and so is your infrastructure. Our
   solution ensures that your technology is as adaptable and responsive as your growing enterprise.
 
 ### Your Future, Cost-Optimized
@@ -428,5 +432,3 @@ Transition on your terms, scale on your schedule, and adapt as needed—because 
 of your thriving business.
 
 Welcome to the next stage of your growth journey—let's make it a cost-effective one.
-
-

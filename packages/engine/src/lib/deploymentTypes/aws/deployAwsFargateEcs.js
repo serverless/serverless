@@ -1,4 +1,4 @@
-import { ServerlessError, log, progress } from '@serverless/util'
+import { log, progress, ServerlessError } from '@serverless/util'
 
 const logger = log.get('scf:awsApi:deploy:fargate-ecs')
 const sclProgress = progress.get('main')
@@ -687,7 +687,9 @@ const identifyDeploymentFailureToFargateEcs = async ({
             `${containerName}: Recent Logs - Beginning: -------------------------\n\n${awsCloudWatchClient.prettyPrintLogs({ logs: recentLogs })}\n\n${containerName}: Recent Logs - Ending: ----------------------------`,
           )
         }
-      } catch (err) {}
+      } catch (err) {
+        // Ignore errors during log retrieval for failures
+      }
     }
 
     /**

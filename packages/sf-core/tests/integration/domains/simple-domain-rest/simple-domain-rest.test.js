@@ -1,18 +1,17 @@
-/* eslint-disable no-undef */
 import path from 'path'
 import readConfig from '@serverless/framework/lib/configuration/read.js'
 import url from 'url'
 import { setGlobalRendererSettings } from '@serverless/util'
 import {
   ACMClient,
-  ListCertificatesCommand,
   DeleteCertificateCommand,
+  ListCertificatesCommand,
 } from '@aws-sdk/client-acm'
 import {
-  Route53Client,
+  ChangeResourceRecordSetsCommand,
   ListHostedZonesCommand,
   ListResourceRecordSetsCommand,
-  ChangeResourceRecordSetsCommand,
+  Route53Client,
 } from '@aws-sdk/client-route-53'
 import { jest } from '@jest/globals'
 import { getTestStageName, runSfCore } from '../../../utils/runSfCore'

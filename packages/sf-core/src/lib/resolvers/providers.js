@@ -212,7 +212,8 @@ export const convertPluginToResolverProvider = (
         if (!resolveFunc) {
           throw new ServerlessError(
             `Invalid "configurationVariablesSources.${sourceName}.resolve" value on "${pluginName}", expected function`,
-            ServerlessErrorCodes.resolvers.RESOLVER_INVALID_PLUGIN_CONFIGURATION,
+            ServerlessErrorCodes.resolvers
+              .RESOLVER_INVALID_PLUGIN_CONFIGURATION,
           )
         }
         const result = await resolveFunc({

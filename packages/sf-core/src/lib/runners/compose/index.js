@@ -4,10 +4,10 @@ import { getHumanFriendlyTime } from '../../../utils/index.js'
 import { route } from '../../router.js'
 import path from 'path'
 import {
-  ServerlessError,
-  ServerlessErrorCodes,
   log,
   progress,
+  ServerlessError,
+  ServerlessErrorCodes,
   style,
 } from '@serverless/util'
 import { resolveConfigAndGetState } from './state.js'
@@ -100,7 +100,8 @@ const setDependencies = (allComponents) => {
             if (!allComponents[referencedComponent]) {
               throw new ServerlessError(
                 `The service "${referencedComponent}" does not exist. It is referenced by "${alias}" in expression "${match}".`,
-                ServerlessErrorCodes.compose.COMPOSE_GRAPH_SERVICE_DEPENDENCY_DOES_NOT_EXIST,
+                ServerlessErrorCodes.compose
+                  .COMPOSE_GRAPH_SERVICE_DEPENDENCY_DOES_NOT_EXIST,
                 { stack: false },
               )
             }
@@ -119,7 +120,8 @@ const setDependencies = (allComponents) => {
       if (!allComponents[explicitDependency]) {
         throw new ServerlessError(
           `The service "${explicitDependency}" referenced in "dependsOn" of "${alias}" does not exist`,
-          ServerlessErrorCodes.compose.COMPOSE_GRAPH_SERVICE_DEPENDENCY_DOES_NOT_EXIST,
+          ServerlessErrorCodes.compose
+            .COMPOSE_GRAPH_SERVICE_DEPENDENCY_DOES_NOT_EXIST,
           { stack: false },
         )
       }
@@ -130,7 +132,8 @@ const setDependencies = (allComponents) => {
         if (!allComponents[explicitDependency]) {
           throw new ServerlessError(
             `The service "${explicitDependency}" referenced in "dependsOn" of "${alias}" does not exist`,
-            ServerlessErrorCodes.compose.COMPOSE_GRAPH_SERVICE_DEPENDENCY_DOES_NOT_EXIST,
+            ServerlessErrorCodes.compose
+              .COMPOSE_GRAPH_SERVICE_DEPENDENCY_DOES_NOT_EXIST,
             { stack: false },
           )
         }
@@ -326,7 +329,8 @@ class Compose {
                     } else {
                       throw new ServerlessError(
                         `Could not resolve the parameter '${key}'. Please ensure that it is correctly defined in the Compose configuration and that all dependent services are deployed. If the services are deployed, verify that their state is up to date by running 'deploy' or 'info' command on the Compose file.`,
-                        ServerlessErrorCodes.compose.COMPOSE_COULD_NOT_RESOLVE_PARAM,
+                        ServerlessErrorCodes.compose
+                          .COMPOSE_COULD_NOT_RESOLVE_PARAM,
                         { stack: false },
                       )
                     }
@@ -543,7 +547,8 @@ class Compose {
     if (!this.graph.hasNode(serviceName)) {
       throw new ServerlessError(
         `The service "${serviceName}" does not exist in the Compose configuration.`,
-        ServerlessErrorCodes.compose.COMPOSE_GRAPH_SERVICE_DEPENDENCY_DOES_NOT_EXIST,
+        ServerlessErrorCodes.compose
+          .COMPOSE_GRAPH_SERVICE_DEPENDENCY_DOES_NOT_EXIST,
         { stack: false },
       )
     }

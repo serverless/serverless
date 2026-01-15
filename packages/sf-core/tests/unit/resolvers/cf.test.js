@@ -19,9 +19,8 @@ jest.unstable_mockModule('@serverless/util', () => ({
 }))
 
 // Import after mocking
-const { resolveVariableFromCloudFormation } = await import(
-  '../../../src/lib/resolvers/providers/aws/cf.js'
-)
+const { resolveVariableFromCloudFormation } =
+  await import('../../../src/lib/resolvers/providers/aws/cf.js')
 
 describe('CloudFormation Resolver', () => {
   let mockLogger

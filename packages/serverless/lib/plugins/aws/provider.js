@@ -600,7 +600,7 @@ class AwsProvider {
               'ruby2.7',
               'ruby3.2',
               'ruby3.3',
-              'ruby3.4'
+              'ruby3.4',
             ],
           },
           awsLambdaRuntimeManagement: {

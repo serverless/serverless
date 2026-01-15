@@ -1,11 +1,11 @@
 import {
   createAndWaitForSlackAppInstallation,
-  getSlackConfigTokenCredentials,
-  refreshSlackConfigToken,
-  updateSlackAppMode,
-  getSlackCredentialsFromEnvironment,
   createManifest,
+  getSlackConfigTokenCredentials,
+  getSlackCredentialsFromEnvironment,
+  refreshSlackConfigToken,
   removeSlackAppForDev,
+  updateSlackAppMode,
 } from './slack/apps.js'
 import { setTimeout } from 'node:timers/promises'
 import { ParameterType } from '@aws-sdk/client-ssm'
@@ -15,7 +15,6 @@ const logger = log.get('scf:integrations:slack')
 
 export default class SlackIntegration {
   #projectConfig
-  #stage
   #ssmClient
   #state
   #startedDevIntegrations
@@ -23,7 +22,6 @@ export default class SlackIntegration {
 
   constructor({ projectConfig, stage, ssmClient, state }) {
     this.#projectConfig = projectConfig
-    this.#stage = stage
     this.#ssmClient = ssmClient
     this.#state = state
     this.#startedDevIntegrations = []
@@ -94,12 +92,6 @@ export default class SlackIntegration {
       paramValue: JSON.stringify(credentials),
       overwrite: true,
       type: ParameterType.SECURE_STRING,
-    })
-  }
-
-  async #deleteSlackAppCredentials() {
-    await this.#ssmClient.deleteSSMParameter({
-      paramName: this.#ssmParameterPath,
     })
   }
 

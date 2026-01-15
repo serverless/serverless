@@ -255,17 +255,14 @@ Finally, you'll see logs or notices about the resources created or updated, alon
 SCF enables seamless, zero-downtime transitions between compute types for live applications through a sophisticated orchestration process:
 
 1. **Parallel Deployment**
-
    - New compute environment is provisioned alongside the existing one
    - Both Lambda and Fargate configurations can run simultaneously
    - Original environment continues serving traffic during transition
 
 2. **Traffic Management**
-
    - An AWS Cloudfront Function instantly redirects requests once deployment of the new compute is complete and healthy.
 
 3. **Safety Mechanisms**
-
    - Connection draining prevents request interruption
    - Continuous health monitoring throughout transition
    - State consistency verification at each step

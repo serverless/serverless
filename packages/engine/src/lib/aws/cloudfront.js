@@ -1,23 +1,22 @@
 import {
   CloudFrontClient,
   CreateDistributionCommand,
+  CreateFunctionCommand,
   DeleteDistributionCommand,
+  DeleteFunctionCommand,
+  DescribeFunctionCommand,
   GetDistributionCommand,
   GetDistributionConfigCommand,
-  UpdateDistributionCommand,
-  CreateFunctionCommand,
-  UpdateFunctionCommand,
   GetFunctionCommand,
-  DescribeFunctionCommand,
-  PublishFunctionCommand,
-  DeleteFunctionCommand,
-  ListFunctionsCommand,
-  TagResourceCommand,
   ListDistributionsCommand,
   ListTagsForResourceCommand,
+  PublishFunctionCommand,
+  TagResourceCommand,
+  UpdateDistributionCommand,
+  UpdateFunctionCommand,
 } from '@aws-sdk/client-cloudfront'
 import { ConfiguredRetryStrategy } from '@smithy/util-retry'
-import { log, addProxyToAwsClient } from '@serverless/util'
+import { addProxyToAwsClient, log } from '@serverless/util'
 
 const logger = log.get('aws:cloudfront')
 
@@ -1042,41 +1041,37 @@ export class AwsCloudFrontClient {
    * @returns {Promise<void>}
    */
   async deleteDistribution(distributionId) {
-    try {
-      const getConfigCommand = new GetDistributionConfigCommand({
-        Id: distributionId,
-      })
-      const configResult = await this.client.send(getConfigCommand)
-      const config = configResult.DistributionConfig
-      const eTag = configResult.ETag
+    const getConfigCommand = new GetDistributionConfigCommand({
+      Id: distributionId,
+    })
+    const configResult = await this.client.send(getConfigCommand)
+    const config = configResult.DistributionConfig
+    const eTag = configResult.ETag
 
-      config.Enabled = false
-      const updateCommand = new UpdateDistributionCommand({
-        Id: distributionId,
-        IfMatch: eTag,
-        DistributionConfig: config,
-      })
-      await this.client.send(updateCommand)
+    config.Enabled = false
+    const updateCommand = new UpdateDistributionCommand({
+      Id: distributionId,
+      IfMatch: eTag,
+      DistributionConfig: config,
+    })
+    await this.client.send(updateCommand)
 
-      await this.waitForDistributionDeployed(distributionId)
+    await this.waitForDistributionDeployed(distributionId)
 
-      const getConfigAgainCommand = new GetDistributionConfigCommand({
-        Id: distributionId,
-      })
-      const configAgainResult = await this.client.send(getConfigAgainCommand)
-      const newETag = configAgainResult.ETag
+    const getConfigAgainCommand = new GetDistributionConfigCommand({
+      Id: distributionId,
+    })
+    const configAgainResult = await this.client.send(getConfigAgainCommand)
+    const newETag = configAgainResult.ETag
 
-      const deleteCommand = new DeleteDistributionCommand({
-        Id: distributionId,
-        IfMatch: newETag,
-      })
-      await this.client.send(deleteCommand)
-      logger.debug(
-        `CloudFront distribution ${distributionId} deleted successfully`,
-      )
-    } catch (error) {
-      throw error
-    }
+    const deleteCommand = new DeleteDistributionCommand({
+      Id: distributionId,
+      IfMatch: newETag,
+    })
+    await this.client.send(deleteCommand)
+    logger.debug(
+      `CloudFront distribution ${distributionId} deleted successfully`,
+    )
   }
 
   /**

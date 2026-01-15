@@ -135,7 +135,7 @@ describe('parseDeclarativeConfig', () => {
 
     try {
       parseDeclarativeConfig(tmpFilePath, fileContents)
-      fail('Should have thrown YAMLException')
+      throw new Error('Should have thrown YAMLException')
     } catch (e) {
       expect(e.name).toBe('YAMLException')
     }

@@ -38,12 +38,10 @@ jest.unstable_mockModule('@serverless/util', () => ({
   getOrCreateGlobalDeploymentBucket: jest.fn(),
 }))
 
-const { default: Package } = await import(
-  '../../../../../../lib/plugins/package/package.js'
-)
-const { default: Serverless } = await import(
-  '../../../../../../lib/serverless.js'
-)
+const { default: Package } =
+  await import('../../../../../../lib/plugins/package/package.js')
+const { default: Serverless } =
+  await import('../../../../../../lib/serverless.js')
 
 describe('packageService', () => {
   let tmpDirPath

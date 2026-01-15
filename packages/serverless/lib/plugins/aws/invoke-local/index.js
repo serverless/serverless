@@ -18,6 +18,7 @@ import dirExists from '../../../utils/fs/dir-exists.js'
 import fileExists from '../../../utils/fs/file-exists.js'
 import resolveCfImportValue from '../utils/resolve-cf-import-value.js'
 import resolveCfRefValue from '../utils/resolve-cf-ref-value.js'
+import importEsm from '../../../utils/import-esm.js'
 import { log, progress, writeText } from '@serverless/util'
 import { setTimeout } from 'timers/promises'
 

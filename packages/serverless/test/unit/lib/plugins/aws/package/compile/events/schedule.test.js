@@ -20,15 +20,12 @@ jest.unstable_mockModule('@serverless/util', () => ({
   write: jest.fn(),
 }))
 
-const { default: AwsProvider } = await import(
-  '../../../../../../../../lib/plugins/aws/provider.js'
-)
-const { default: AwsCompileScheduledEvents } = await import(
-  '../../../../../../../../lib/plugins/aws/package/compile/events/schedule.js'
-)
-const { default: Serverless } = await import(
-  '../../../../../../../../lib/serverless.js'
-)
+const { default: AwsProvider } =
+  await import('../../../../../../../../lib/plugins/aws/provider.js')
+const { default: AwsCompileScheduledEvents } =
+  await import('../../../../../../../../lib/plugins/aws/package/compile/events/schedule.js')
+const { default: Serverless } =
+  await import('../../../../../../../../lib/serverless.js')
 
 const METHOD_SCHEDULER = 'scheduler'
 const METHOD_EVENT_BUS = 'eventBus'

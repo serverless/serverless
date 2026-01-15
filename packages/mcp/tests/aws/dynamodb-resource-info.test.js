@@ -49,9 +49,8 @@ jest.unstable_mockModule(
 )
 
 // Import the module under test (after mocking)
-const { getDynamoDBResourceInfo } = await import(
-  '../../src/lib/aws/dynamodb-resource-info.js'
-)
+const { getDynamoDBResourceInfo } =
+  await import('../../src/lib/aws/dynamodb-resource-info.js')
 
 describe('DynamoDB Resource Info', () => {
   beforeEach(() => {
@@ -407,12 +406,10 @@ describe('DynamoDB Resource Info', () => {
     })
 
     // Verify the AWS clients were initialized with the correct parameters
-    const { AwsDynamoDBClient } = await import(
-      '../../../../packages/engine/src/lib/aws/dynamodb.js'
-    )
-    const { AwsCloudWatchClient } = await import(
-      '../../../../packages/engine/src/lib/aws/cloudwatch.js'
-    )
+    const { AwsDynamoDBClient } =
+      await import('../../../../packages/engine/src/lib/aws/dynamodb.js')
+    const { AwsCloudWatchClient } =
+      await import('../../../../packages/engine/src/lib/aws/cloudwatch.js')
 
     expect(AwsDynamoDBClient).toHaveBeenCalledWith({ region, profile })
     expect(AwsCloudWatchClient).toHaveBeenCalledWith({ region, profile })

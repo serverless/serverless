@@ -5,7 +5,7 @@ provider:
   runtime: python3.13
 
 package:
-  individually: false  # Explicit service-level setting
+  individually: false # Explicit service-level setting
 
 custom:
   pythonRequirements:
@@ -16,7 +16,7 @@ functions:
   individualFunction:
     handler: handler_individual.hello
     package:
-      individually: true  # Override service-level setting
+      individually: true # Override service-level setting
 
   sharedFunction:
     handler: handler_shared.hello
