@@ -21,7 +21,7 @@ In Serverless Framework v2, plugins could write to the CLI output via `serverles
 
 ```js
 // This approach is deprecated:
-serverless.cli.log('Message');
+serverless.cli.log('Message')
 ```
 
 The method above is deprecated. It should no longer be used in Serverless Framework v3.
@@ -31,11 +31,11 @@ Instead, plugins can log messages to the CLI output via a standard `log` interfa
 ```js
 class MyPlugin {
   constructor(serverless, cliOptions, { log }) {
-    log.error('Error');
-    log.warning('Warning');
-    log.notice('Message');
-    log.info('Verbose message'); // --verbose log
-    log.debug('Debug message'); // --debug log
+    log.error('Error')
+    log.warning('Warning')
+    log.notice('Message')
+    log.info('Verbose message') // --verbose log
+    log.debug('Debug message') // --debug log
   }
 }
 ```
@@ -43,19 +43,19 @@ class MyPlugin {
 Some aliases exist to make log levels more explicit:
 
 ```js
-log('Here is a message');
+log('Here is a message')
 // is an alias to:
-log.notice('Here is a message');
+log.notice('Here is a message')
 
-log.verbose('Here is a verbose message'); // displayed with --verbose
+log.verbose('Here is a verbose message') // displayed with --verbose
 // is an alias to:
-log.info('Here is a verbose message'); // displayed with --verbose
+log.info('Here is a verbose message') // displayed with --verbose
 ```
 
 To write a formatted "success" message, use the following helper:
 
 ```js
-log.success('The task executed with success');
+log.success('The task executed with success')
 ```
 
 Success messages render with the checkmark, like the "Service deployed" success message:
@@ -65,7 +65,7 @@ Success messages render with the checkmark, like the "Service deployed" success 
 Log methods also support the printf format:
 
 ```js
-log.warning('Here is a %s log', 'formatted');
+log.warning('Here is a %s log', 'formatted')
 ```
 
 **Best practices:**
@@ -85,8 +85,8 @@ By default, plugins should write messages to `stderr` via the `log` object. To w
 ```js
 class MyPlugin {
   constructor(serverless, cliOptions, { writeText }) {
-    writeText('Command output');
-    writeText(['Here is a', 'multi-line output']);
+    writeText('Command output')
+    writeText(['Here is a', 'multi-line output'])
   }
 }
 ```
@@ -109,7 +109,7 @@ Take, for example, the `serverless invoke` command:
 To format and color text output, use the [chalk](https://github.com/chalk/chalk) package. For example:
 
 ```js
-log.notice(chalk.gray('Here is a message'));
+log.notice(chalk.gray('Here is a message'))
 ```
 
 **Best practices:**
@@ -134,7 +134,7 @@ The Serverless Framework differentiates between 2 errors:
 To throw a **user error** and have it properly formatted, use Serverless' error class:
 
 ```js
-throw new serverless.classes.Error('Invalid configuration in X');
+throw new serverless.classes.Error('Invalid configuration in X')
 ```
 
 All other errors are considered programmer errors by default (and are properly formatted in the CLI output as well).
@@ -154,11 +154,11 @@ class MyPlugin {
   constructor(serverless, cliOptions, { progress }) {
     const myProgress = progress.create({
       message: 'Doing extra work in my-plugin',
-    });
+    })
     // ...
-    myProgress.update('Almost finished');
+    myProgress.update('Almost finished')
     // ...
-    myProgress.remove();
+    myProgress.remove()
   }
 }
 ```
@@ -180,17 +180,17 @@ Note that it is possible to give a unique name to a progress. That name can be u
 // Progress without any name:
 const myProgress = progress.create({
   message: 'Doing extra work in my-plugin',
-});
+})
 
 // Progress with a unique name
 progress.create({
   message: 'Doing extra work in my-plugin',
   name: 'my-plugin-progress', // Try to make the name unique across all plugins
-});
+})
 // elsewhere...
-progress.get('my-plugin-progress').update('Almost finished');
+progress.get('my-plugin-progress').update('Almost finished')
 // elsewhere...
-progress.get('my-plugin-progress').remove();
+progress.get('my-plugin-progress').remove()
 ```
 
 ## Service information
@@ -200,7 +200,7 @@ Plugins can add their own sections to the "Service information", i.e. the inform
 To add a single item:
 
 ```js
-serverless.addServiceOutputSection('my section', 'content');
+serverless.addServiceOutputSection('my section', 'content')
 ```
 
 The example above will be displayed as:
@@ -215,7 +215,7 @@ my section: content
 To add a multi-line section:
 
 ```js
-serverless.addServiceOutputSection('my section', ['line 1', 'line 2']);
+serverless.addServiceOutputSection('my section', ['line 1', 'line 2'])
 ```
 
 The example above will be displayed as:
@@ -237,7 +237,7 @@ Plugins can signal deprecated features to users via `logDeprecation()`:
 serverless.logDeprecation(
   'DEPRECATION_CODE',
   'Feature X of my-plugin is deprecated. Please use Y instead.',
-);
+)
 ```
 
 These deprecations will integrate with the deprecation system of the Serverless Framework.
@@ -262,5 +262,5 @@ class MyPlugin {
 However, it is also possible to retrieve it from any JavaScript file by requiring the `@serverless/utils` package:
 
 ```js
-const { writeText, log, progress } = require('@serverless/utils/log');
+const { writeText, log, progress } = require('@serverless/utils/log')
 ```

@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "lint": "eslint",
-    "prettier": "prettier -c .",
-    "prettier:fix": "prettier \"src/**/*\" --write"
+    "prettier": "prettier -c . --ignore-path ../../.prettierignore",
+    "prettier:fix": "prettier -w . --ignore-path ../../.prettierignore"
   },
   "author": "Serverless Inc.",
   "dependencies": {

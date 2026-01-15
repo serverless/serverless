@@ -5,7 +5,7 @@
  * to avoid making actual AWS API calls during testing.
  */
 
-import { jest, expect, describe, test, beforeEach } from '@jest/globals'
+import { beforeEach, describe, expect, jest, test } from '@jest/globals'
 
 // Create mock functions
 const mockListTables = jest.fn()
@@ -47,12 +47,6 @@ await jest.unstable_mockModule('../../src/lib/aws/resource-info.js', () => {
 
 // Import the function after mocking dependencies
 const { getDynamoDBInfo } = await import('../../src/tools/aws/dynamodb-info.js')
-const { AwsDynamoDBClient } = await import(
-  '../../../engine/src/lib/aws/dynamodb.js'
-)
-const { AwsCloudWatchClient } = await import(
-  '../../../engine/src/lib/aws/cloudwatch.js'
-)
 
 describe('AWS DynamoDB Info Tool', () => {
   beforeEach(() => {

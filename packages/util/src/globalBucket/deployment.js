@@ -1,6 +1,6 @@
 import { getOrCreateDefaultBucket } from './index.js'
 import { v4 as uuidv4 } from 'uuid'
-import { ServerlessError, ServerlessErrorCodes, log } from '@serverless/util'
+import { log, ServerlessError, ServerlessErrorCodes } from '@serverless/util'
 
 const SSM_PARAMETER_NAME = '/serverless-framework/deployment/s3-bucket'
 const S3_BUCKET_NAME_PREFIX = 'serverless-framework-deployments'
@@ -33,7 +33,8 @@ export const getOrCreateGlobalDeploymentBucket = async ({
           `• Manually create the S3 bucket and SSM parameter.\n\n` +
           `For more details, please refer to the documentation: https://www.serverless.com/framework/docs/guides/deployment-bucket\n\n` +
           `Original error: ${err.message}`,
-        ServerlessErrorCodes.deploymentBucket.DEPLOYMENT_BUCKET_INSUFFICIENT_PERMISSIONS,
+        ServerlessErrorCodes.deploymentBucket
+          .DEPLOYMENT_BUCKET_INSUFFICIENT_PERMISSIONS,
       )
       customErr.stack = undefined
       throw customErr

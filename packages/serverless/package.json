@@ -102,8 +102,8 @@
   },
   "scripts": {
     "lint": "eslint",
-    "prettier": "prettier -c .",
-    "prettier:fix": "prettier docs/**/* --write",
+    "prettier": "prettier -c . --ignore-path ../../.prettierignore",
+    "prettier:fix": "prettier -w . --ignore-path ../../.prettierignore",
     "test:unit": "cross-env NODE_OPTIONS='--experimental-vm-modules' NODE_NO_WARNINGS=1 jest",
     "build:devmode:shim": "esbuild lib/plugins/aws/dev/shim.js --bundle --platform=node --minify --outfile=lib/plugins/aws/dev/shim.min.js"
   },

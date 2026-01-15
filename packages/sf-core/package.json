@@ -6,6 +6,8 @@
   "scripts": {
     "lint": "eslint",
     "lint:fix": "eslint --fix",
+    "prettier": "prettier -c . --ignore-path ../../.prettierignore",
+    "prettier:fix": "prettier -w . --ignore-path ../../.prettierignore",
     "test:unit": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest \"tests/unit/.*\"",
     "test": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest \"tests/integration/.*\" --testPathIgnorePatterns=tests/integration/domains",
     "test:sam": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/sam/**",
@@ -23,8 +25,6 @@
     "test:binary": "cross-env BINARY_INTEGRATION_TESTS=true NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\"  NODE_NO_WARNINGS=1 jest \"tests/integration/.*\"",
     "test:python": "cross-env node tests/python/test.js",
     "build": "node esbuild.js",
-    "prettier": "prettier -c .",
-    "prettier:fix": "prettier scripts/**/* src/**/* bin/**/* tests/**/* --write",
     "test:build": "cd ../.. && npm i && cd packages/serverless/lib/plugins/aws/dev && ../../../../../../node_modules/.bin/esbuild ./shim.js --bundle --platform=node --minify --outfile=./shim.min.js && cd ../../../../../sf-core && npm run build && cd scripts && node ./prepareDistributionTarballs.js && cd ../../framework-dist && npm pack && tar -xvzf serverlessinc-framework-alpha-$npm_package_version.tgz && node package/dist/sf-core.js"
   },
   "repository": {

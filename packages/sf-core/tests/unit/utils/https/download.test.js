@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 import path from 'path'
-import os from 'os'
+import { promises as fsp } from 'fs'
 
 // Mock dependencies from fs utils
 const mockDirExists = jest.fn()
@@ -16,10 +16,8 @@ jest.unstable_mockModule('../../../../src/utils/fs/index.js', () => ({
 }))
 
 // Import after mocking
-const { parseRepoURL, downloadTemplate } = await import(
-  '../../../../src/utils/https/index.js'
-)
-import { promises as fsp } from 'fs'
+const { parseRepoURL, downloadTemplate } =
+  await import('../../../../src/utils/https/index.js')
 
 describe('HTTPS Utils', () => {
   let fetchSpy

@@ -33,11 +33,11 @@ You can create a plugin by writing a simple JavaScript or TypeScript file:
 class MyPlugin {
   constructor() {
     // The plugin is loaded
-    console.log('MyPlugin loaded');
+    console.log('MyPlugin loaded')
   }
 }
 
-module.exports = MyPlugin;
+module.exports = MyPlugin
 ```
 
 ### JavaScript (ESM)
@@ -47,7 +47,7 @@ module.exports = MyPlugin;
 export default class MyPlugin {
   constructor() {
     // The plugin is loaded
-    console.log('MyPlugin loaded');
+    console.log('MyPlugin loaded')
   }
 }
 ```
@@ -61,7 +61,7 @@ export default class MyPlugin {
 export default class MyPlugin {
   constructor() {
     // The plugin is loaded
-    console.log('MyPlugin loaded');
+    console.log('MyPlugin loaded')
   }
 }
 ```
@@ -85,12 +85,12 @@ If your plugin builds code that other plugins might depend on, you can tag your 
 
 ```javascript
 class MyPlugin {
-  static tags = ['build'];
+  static tags = ['build']
 
   constructor() {}
 }
 
-module.exports = MyPlugin;
+module.exports = MyPlugin
 ```
 
 If your plugin doesn't build code, and/or doesn't need to be prioritized, don't set this tag. Otherwise users won't be able to use other build plugins along with your plugin.
@@ -146,7 +146,7 @@ class MyPlugin {
       initialize: () => this.init(),
       'before:deploy:deploy': () => this.beforeDeploy(),
       'after:deploy:deploy': () => this.afterDeploy(),
-    };
+    }
   }
 
   init() {
@@ -162,7 +162,7 @@ class MyPlugin {
   }
 }
 
-module.exports = MyPlugin;
+module.exports = MyPlugin
 ```
 
 Plugins can also create their own commands (with their own lifecycle events): read the [Custom commands documentation](custom-commands.md).
@@ -174,29 +174,29 @@ The `serverless` parameter provides access to the service configuration at runti
 ```javascript
 class MyPlugin {
   constructor(serverless, options, utils) {
-    this.serverless = serverless;
-    this.options = options; // CLI options
-    this.utils = utils;
+    this.serverless = serverless
+    this.options = options // CLI options
+    this.utils = utils
 
     this.hooks = {
       initialize: () => this.init(),
-    };
+    }
   }
 
   init() {
     // Use this custom logging method instead of console.log
     // to avoid conflicting with the spinner output
-    this.utils.log('Serverless instance: ', this.serverless);
+    this.utils.log('Serverless instance: ', this.serverless)
 
     // `serverless.service` contains the (resolved) serverless.yml config
-    const service = this.serverless.service;
+    const service = this.serverless.service
 
-    this.utils.log('Provider name: ', service.provider.name);
-    this.utils.log('Functions: ', service.functions);
+    this.utils.log('Provider name: ', service.provider.name)
+    this.utils.log('Functions: ', service.functions)
   }
 }
 
-module.exports = MyPlugin;
+module.exports = MyPlugin
 ```
 
 **Note:** configuration values are only resolved _after_ plugins are initialized. Do not try to read configuration in the plugin constructor, as variables aren't resolved yet. Read configuration in lifecycle events only.
@@ -209,7 +209,7 @@ The `options` parameter provides access to the CLI options provided to the comma
 class MyPlugin {
   constructor(serverless, options) {
     // Log if a --verbose option was passed:
-    console.log(options.verbose);
+    console.log(options.verbose)
   }
 }
 ```
@@ -226,7 +226,7 @@ To bind to a specific provider, retrieve it and set the `this.provider` property
 class MyPlugin {
   constructor(serverless, options) {
     // bind to a specific provider
-    this.provider = serverless.getProvider('providerX');
+    this.provider = serverless.getProvider('providerX')
 
     // ...
   }

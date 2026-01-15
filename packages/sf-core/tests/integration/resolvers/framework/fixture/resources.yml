@@ -4,17 +4,17 @@ Resources:
     Properties:
       PolicyName: IoTDevicePolicy-${sls:instanceId}
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
-              - "iot:Connect"
-            Resource: "*"
+              - 'iot:Connect'
+            Resource: '*'
             Condition:
               StringEquals:
-                "iot:ClientId": "${iot:ClientId}"  # Used directly
+                'iot:ClientId': '${iot:ClientId}' # Used directly
           - Effect: Allow
             Action:
-              - "iot:Publish"
+              - 'iot:Publish'
             Resource:
-              - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/${!iot:ClientId}/data"  # Using !Sub
+              - !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/${!iot:ClientId}/data' # Using !Sub

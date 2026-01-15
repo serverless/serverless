@@ -15,5 +15,3 @@ functions:
 
   nodeFunction:
     handler: index.handler
-
-

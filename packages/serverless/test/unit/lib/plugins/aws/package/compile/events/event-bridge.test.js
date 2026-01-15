@@ -34,15 +34,12 @@ jest.unstable_mockModule(
 )
 
 // Import after mocking
-const { default: AwsCompileEventBridgeEvents } = await import(
-  '../../../../../../../../lib/plugins/aws/package/compile/events/event-bridge/index.js'
-)
-const { default: AwsProvider } = await import(
-  '../../../../../../../../lib/plugins/aws/provider.js'
-)
-const { default: Serverless } = await import(
-  '../../../../../../../../lib/serverless.js'
-)
+const { default: AwsCompileEventBridgeEvents } =
+  await import('../../../../../../../../lib/plugins/aws/package/compile/events/event-bridge/index.js')
+const { default: AwsProvider } =
+  await import('../../../../../../../../lib/plugins/aws/provider.js')
+const { default: Serverless } =
+  await import('../../../../../../../../lib/serverless.js')
 
 describe('AwsCompileEventBridgeEvents', () => {
   let serverless

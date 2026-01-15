@@ -133,9 +133,9 @@ Refer to the [Configuration Guide](./configuration.md) for changes or new featur
 
 The new deployment routes all traffic through a CloudFront Function. This introduces:
 
-* Better flexibility across compute types and clouds.
-* Performance and cost implications. Test accordingly.
-* Future support for editing the routing function.
+- Better flexibility across compute types and clouds.
+- Performance and cost implications. Test accordingly.
+- Future support for editing the routing function.
 
 ### Deploy the New Stack
 

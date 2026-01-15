@@ -8,7 +8,7 @@
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "prettier": "prettier -c .",
-    "prettier:fix": "prettier docs/**/* --write",
+    "prettier:fix": "prettier -w .",
     "test": "npm run test:unit -w @serverlessinc/sf-core -w @serverless/framework",
     "setup-dev-mode": "bash setup-dev-for-dev-mode.sh",
     "prepare": "husky"

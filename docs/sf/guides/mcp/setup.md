@@ -150,22 +150,25 @@ If you're building a custom integration, you can connect to the MCP Server using
 You can use the MCP Server with any MCP client, including the official MCP client library. Here's an example of how to connect to the server programmatically:
 
 ```javascript
-const { createClient } = require('@mcp/client');
+const { createClient } = require('@mcp/client')
 
 // Create a client that connects to the server
 const client = createClient({
   url: 'http://localhost:3001',
-});
+})
 
 // Call the list-resources tool
-client.callTool('list-resources', {
-  serviceName: 'my-service',
-  serviceType: 'serverless-framework',
-}).then(result => {
-  console.log('Resources:', result);
-}).catch(error => {
-  console.error('Error:', error);
-});
+client
+  .callTool('list-resources', {
+    serviceName: 'my-service',
+    serviceType: 'serverless-framework',
+  })
+  .then((result) => {
+    console.log('Resources:', result)
+  })
+  .catch((error) => {
+    console.error('Error:', error)
+  })
 ```
 
 This approach allows you to integrate the MCP Server with your own applications and workflows.

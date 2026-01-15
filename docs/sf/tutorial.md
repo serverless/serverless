@@ -160,7 +160,7 @@ module.exports.createCustomer = async (event) => {
 }
 ```
 
- You may have noticed we include an npm module to help us talk to AWS, so lets make sure we install this required npm module as a part of our service with the following command:
+You may have noticed we include an npm module to help us talk to AWS, so lets make sure we install this required npm module as a part of our service with the following command:
 
 ```bash
 npm install @aws-sdk/client-dynamodb @aws-sdk/lib-dynamodb
@@ -254,7 +254,7 @@ module.exports.getCustomers = async () => {
   const result = await ddb.send(
     new ScanCommand({
       TableName: process.env.DYNAMODB_CUSTOMER_TABLE,
-    })
+    }),
   )
 
   if (!result.Count || result.Count === 0) {
