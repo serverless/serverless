@@ -600,7 +600,7 @@ class AwsProvider {
               'ruby2.7',
               'ruby3.2',
               'ruby3.3',
-              'ruby3.4'
+              'ruby3.4',
             ],
           },
           awsLambdaRuntimeManagement: {
@@ -1544,6 +1544,7 @@ class AwsProvider {
                 'us-west-2',
                 'af-south-1',
                 'ap-east-1',
+                'ap-east-2',
                 'ap-northeast-1',
                 'ap-northeast-2',
                 'ap-northeast-3',
