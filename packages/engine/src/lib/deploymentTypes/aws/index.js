@@ -1,7 +1,7 @@
 import { ServerlessEngineDevMode } from '../../devMode/index.js'
 import deploy from './deploy.js'
 import remove from './remove.js'
-import { ServerlessError, log, progress } from '@serverless/util'
+import { log, progress, ServerlessError } from '@serverless/util'
 import { detectAiFramework } from './detector.js'
 import {
   createEventBridgeIntegrations,
@@ -207,24 +207,23 @@ export default class DeploymentTypeAwsApi {
     onLogStdErr = null,
   } = {}) {
     await this.#slackIntegration.startDev()
+
+    const devMode = new ServerlessEngineDevMode({
+      state: this.#state,
+      projectConfig: this.#projectConfig,
+      projectPath: this.#projectPath,
+      stage: this.#stage,
+      provider: this.#provider,
+      resourceNameBase: this.#resourceNameBase,
+      proxyPort,
+      controlPort,
+    })
     try {
-      const devMode = new ServerlessEngineDevMode({
-        state: this.#state,
-        projectConfig: this.#projectConfig,
-        projectPath: this.#projectPath,
-        stage: this.#stage,
-        provider: this.#provider,
-        resourceNameBase: this.#resourceNameBase,
-        proxyPort,
-        controlPort,
-      })
       await devMode.start({
         onStart,
         onLogStdOut,
         onLogStdErr,
       })
-    } catch (err) {
-      throw err
     } finally {
       await this.#slackIntegration.stopDev()
     }

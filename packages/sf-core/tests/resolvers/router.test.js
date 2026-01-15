@@ -147,7 +147,6 @@ describe('resolve variables and parameters', () => {
     })
     it('cycle', async () => {
       await expect(runTest(path.join(dirPath, 'cycle'))).rejects.toThrow(
-        // eslint-disable-next-line no-template-curly-in-string
         'Cyclic reference found: ${self:custom.name1} -> ${self:custom.name3} -> ${self:custom.name2}',
       )
     })
@@ -450,7 +449,6 @@ describe('resolve variables and parameters', () => {
 
   describe('aws', () => {
     const awsDirPath = path.join(__dirname, 'aws')
-    // eslint-disable-next-line no-unused-vars
     it('resolve region', async () => {
       const { AWS_REGION, ...envWithoutRegion } = originalEnv
       await runTest(path.join(awsDirPath, 'region'), {}, envWithoutRegion)

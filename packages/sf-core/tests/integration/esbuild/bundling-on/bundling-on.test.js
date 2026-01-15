@@ -1,9 +1,8 @@
-/* eslint-disable no-undef */
 import path from 'path'
 import spawnExt from 'child-process-ext/spawn.js'
 import readConfig from '@serverless/framework/lib/configuration/read.js'
 import url from 'url'
-import { setGlobalRendererSettings } from '@serverless/util'
+import { setGlobalRendererSettings, log } from '@serverless/util'
 import {
   LambdaClient,
   GetFunctionCommand,

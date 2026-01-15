@@ -26,8 +26,6 @@ export class ServerlessEngine {
   #provider
   #state
   #resourceNameBase
-  #deployer
-  #devMode
 
   /**
    * Creates an instance of ServerlessEngine.

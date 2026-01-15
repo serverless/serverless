@@ -101,7 +101,7 @@
     "jest": "^30.2.0"
   },
   "scripts": {
-    "lint": "eslint lib",
+    "lint": "eslint",
     "prettier": "prettier -c .",
     "prettier:fix": "prettier docs/**/* --write",
     "test:unit": "cross-env NODE_OPTIONS='--experimental-vm-modules' NODE_NO_WARNINGS=1 jest",

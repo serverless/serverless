@@ -5,7 +5,7 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
-    "lint": "eslint src",
+    "lint": "eslint",
     "prettier": "prettier -c \"src/**/*\" --ignore-unknown",
     "prettier:fix": "prettier \"src/**/*\" --write --ignore-unknown",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --testPathPatterns '^(?!.*integration).*test.*$' --testPathIgnorePatterns=integration",

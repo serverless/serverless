@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "lint": "eslint .",
+    "lint": "eslint",
     "prettier": "prettier -c .",
     "prettier:fix": "prettier \"src/**/*\" --write"
   },

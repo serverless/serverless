@@ -1,5 +1,5 @@
 import js from '@eslint/js'
-import eslintConfigPrettier from 'eslint-config-prettier'
+import eslintConfigPrettier from 'eslint-config-prettier/flat'
 import globals from 'globals'
 
 export default [
@@ -11,11 +11,12 @@ export default [
       sourceType: 'module',
       globals: {
         ...globals.node,
-        ...globals.es2021,
       },
     },
     rules: {
       'no-unused-vars': 'off',
+      'no-useless-escape': 'off',
+      'no-async-promise-executor': 'off',
     },
   },
   {
@@ -23,7 +24,6 @@ export default [
     languageOptions: {
       globals: {
         ...globals.jest,
-        ...globals.jasmine,
         _: 'readonly',
       },
     },

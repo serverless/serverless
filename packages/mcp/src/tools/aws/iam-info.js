@@ -11,8 +11,9 @@ import { handleAwsCredentialsError } from '../../lib/aws-credentials-error-handl
  * @returns {Promise<Object>} - Information about the IAM roles and their policies
  */
 export async function getIamInfo(params) {
+  const { profile } = params
   try {
-    const { roleNames, region, profile } = params
+    const { roleNames, region } = params
 
     if (!Array.isArray(roleNames) || roleNames.length === 0) {
       return {

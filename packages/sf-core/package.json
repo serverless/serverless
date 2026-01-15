@@ -4,8 +4,8 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "lint": "eslint src",
-    "lint:fix": "eslint src --fix",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
     "test:unit": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest \"tests/unit/.*\"",
     "test": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest \"tests/integration/.*\" --testPathIgnorePatterns=tests/integration/domains",
     "test:sam": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/sam/**",

@@ -5,8 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
     "prettier": "prettier -c .",
     "prettier:fix": "prettier docs/**/* --write",
     "test": "npm run test:unit -w @serverlessinc/sf-core -w @serverless/framework",
@@ -24,7 +24,7 @@
     "eslint": "^9.39.2",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "prettier": "^3.7.4"
+    "prettier": "^3.8.0"
   },
   "lint-staged": {
     "*.{js,ts,tsx,jsx}": [
