@@ -15,10 +15,26 @@ jest.unstable_mockModule('../../../../src/utils/fs/index.js', () => ({
   unzipFile: mockUnzipFile,
 }))
 
+// Mock child_process spawn for git clone
+import { EventEmitter } from 'events'
+
+const createMockSpawn = (exitCode = 0) => {
+  const mockProcess = new EventEmitter()
+  mockProcess.stderr = new EventEmitter()
+  setTimeout(() => {
+    mockProcess.emit('close', exitCode)
+  }, 0)
+  return mockProcess
+}
+
+const mockSpawn = jest.fn(() => createMockSpawn(0))
+jest.unstable_mockModule('child_process', () => ({
+  spawn: mockSpawn,
+}))
+
 // Import after mocking
-const { parseRepoURL, downloadTemplate } = await import(
-  '../../../../src/utils/https/index.js'
-)
+const { parseRepoURL, downloadTemplate } =
+  await import('../../../../src/utils/https/index.js')
 import { promises as fsp } from 'fs'
 
 describe('HTTPS Utils', () => {
@@ -251,6 +267,7 @@ describe('HTTPS Utils', () => {
       mockCopyDirContents.mockReset()
       mockRemoveFileOrDirectory.mockReset()
       mockUnzipFile.mockReset()
+      mockSpawn.mockClear()
     })
 
     it('should download and unzip a GitHub template', async () => {
@@ -285,6 +302,63 @@ describe('HTTPS Utils', () => {
       const url = 'https://invalid-provider.com/owner/repo'
 
       await expect(downloadTemplate(url)).rejects.toThrow(/valid provider/)
+    })
+
+    it('should clone a plain .git URL and remove .git folder', async () => {
+      const url = 'https://example.com/sample-service.git'
+      const name = 'my-new-service'
+      const expectedPath = path.join(cwd, name)
+
+      const result = await downloadTemplate(url, name)
+
+      expect(result).toBe(expectedPath)
+      // Verify spawn was called with git clone arguments (uses array for security)
+      expect(mockSpawn).toHaveBeenCalledWith('git', [
+        'clone',
+        '--',
+        url,
+        expectedPath,
+      ])
+      // Verify .git folder removal was called
+      expect(mockRemoveFileOrDirectory).toHaveBeenCalledWith(
+        path.join(expectedPath, '.git'),
+      )
+      // HTTP fetch should NOT have been called for plain git URLs
+      expect(fetchSpy).not.toHaveBeenCalled()
+    })
+
+    it('should clone a git@ SSH URL and remove .git folder', async () => {
+      const url = 'git@bitbucket.org:myteam/my-template.git'
+      const name = 'new-project-from-ssh'
+      const expectedPath = path.join(cwd, name)
+
+      const result = await downloadTemplate(url, name)
+
+      expect(result).toBe(expectedPath)
+      // Verify spawn was called with git clone arguments (uses array for security)
+      expect(mockSpawn).toHaveBeenCalledWith('git', [
+        'clone',
+        '--',
+        url,
+        expectedPath,
+      ])
+      // Verify .git folder removal was called
+      expect(mockRemoveFileOrDirectory).toHaveBeenCalledWith(
+        path.join(expectedPath, '.git'),
+      )
+    })
+
+    it('should reject URLs with shell metacharacters', async () => {
+      // Malicious URL with command injection attempt
+      const url = 'https://example.com/test";touch /tmp/pwned;#.git'
+      const name = 'my-service'
+
+      // Should be treated as non-git URL and fail provider validation
+      await expect(downloadTemplate(url, name)).rejects.toThrow(
+        /valid provider/,
+      )
+      // spawn should not have been called
+      expect(mockSpawn).not.toHaveBeenCalled()
     })
   })
 })
