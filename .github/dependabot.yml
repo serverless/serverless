@@ -75,7 +75,7 @@ updates:
       - dependency-name: 'chokidar'
         # chokidar v5 drops support for Node.js 18
         versions: ['>= 5.0.0']
-      - dependency-name: "glob"
+      - dependency-name: 'glob'
         # glob v11 drops support for Node.js 18
         versions: ['>= 11.0.0']
 
