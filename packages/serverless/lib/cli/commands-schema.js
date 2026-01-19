@@ -439,6 +439,50 @@ commands.set('rollback function', {
   hasAwsExtension: true,
 })
 
+commands.set('prune', {
+  usage: 'Clean up deployed functions and/or layers by deleting older versions',
+  lifecycleEvents: ['prune'],
+  serviceDependencyMode: 'required',
+  options: {
+    number: {
+      usage: 'Number of previous versions to keep',
+      shortcut: 'n',
+      required: true,
+      type: 'string',
+    },
+    function: {
+      usage: 'Function name. Limits cleanup to the specified function',
+      shortcut: 'f',
+      required: false,
+      type: 'string',
+    },
+    layer: {
+      usage: 'Layer name. Limits cleanup to the specified Lambda layer',
+      shortcut: 'l',
+      required: false,
+      type: 'string',
+    },
+    includeLayers: {
+      usage: 'Boolean flag. Includes the pruning of Lambda layers.',
+      shortcut: 'i',
+      required: false,
+      type: 'boolean',
+    },
+    dryRun: {
+      usage:
+        'Simulate pruning without executing delete actions. Deletion candidates are logged when used in conjunction with --verbose',
+      shortcut: 'd',
+      required: false,
+      type: 'boolean',
+    },
+    verbose: {
+      usage: 'Enable detailed output',
+      required: false,
+      type: 'boolean',
+    },
+  },
+})
+
 commands.set('requirements clean', {
   usage: 'Remove .requirements and requirements.zip',
   options: {},

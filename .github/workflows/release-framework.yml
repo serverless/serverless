@@ -83,7 +83,7 @@ jobs:
       - name: 'Install: Serverless v3'
         run: npm install -g serverless@3
       - name: 'Test: Integration'
-        run: npm run test
+        run: npm run test ${{ matrix.group == 'ubuntu-latest' && '-- --maxWorkers=8' || '' }}
         env:
           SERVERLESS_LICENSE_KEY_DEV: ${{ secrets.SERVERLESS_LICENSE_KEY_DEV }}
           SERVERLESS_ACCESS_KEY_DEV: ${{ secrets.SERVERLESS_ACCESS_KEY_DEV }}

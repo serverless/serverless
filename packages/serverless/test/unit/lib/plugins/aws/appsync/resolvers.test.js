@@ -25,7 +25,8 @@ describe('Resolvers', () => {
     mockExists.mockRestore()
   })
 
-  // Note: esbuild tests skipped - ESM modules can't be mocked with jest.spyOn
+  // Note: esbuild/JS resolver tests are in resolvers-esbuild.test.js
+  // They use jest.unstable_mockModule to properly mock the esbuild ESM module
 
   describe('Unit Resolvers', () => {
     it('should generate Resources with VTL mapping templates', () => {
@@ -49,31 +50,6 @@ describe('Resolvers', () => {
           field: 'user',
           request: 'path/to/mappingTemplates/Query.user.request.vtl',
           response: 'path/to/mappingTemplates/Query.user.response.vtl',
-        }),
-      ).toMatchSnapshot()
-    })
-
-    // Skipped: requires esbuild mock (ESM can't mock esbuild module)
-    it.skip('should generate JS Resources with specific code', () => {
-      const api = new Api(
-        given.appSyncConfig({
-          dataSources: {
-            myTable: {
-              name: 'myTable',
-              type: 'AMAZON_DYNAMODB',
-              config: { tableName: 'data' },
-            },
-          },
-        }),
-        plugin,
-      )
-      expect(
-        api.compileResolver({
-          type: 'Query',
-          kind: 'UNIT',
-          field: 'user',
-          dataSource: 'myTable',
-          code: 'resolvers/getUserFunction.js',
         }),
       ).toMatchSnapshot()
     })
@@ -239,36 +215,6 @@ describe('Resolvers', () => {
       ).toMatchSnapshot()
     })
 
-    // Skipped: requires esbuild mock
-    it.skip('should generate JS Resources with specific code', () => {
-      const api = new Api(
-        given.appSyncConfig({
-          dataSources: {
-            myTable: {
-              name: 'myTable',
-              type: 'AMAZON_DYNAMODB',
-              config: { tableName: 'data' },
-            },
-          },
-          pipelineFunctions: {
-            getUser: {
-              name: 'getUser',
-              dataSource: 'myTable',
-            },
-          },
-        }),
-        plugin,
-      )
-      expect(
-        api.compileResolver({
-          type: 'Query',
-          field: 'user',
-          functions: ['getUser'],
-          code: 'resolvers/getUserFunction.js',
-        }),
-      ).toMatchSnapshot()
-    })
-
     it('should fail when referencing unknown pipeline function', () => {
       const api = new Api(
         given.appSyncConfig({
@@ -300,29 +246,7 @@ describe('Resolvers', () => {
   })
 
   describe('Pipeline Function', () => {
-    // Skipped: requires esbuild mock
-    it.skip('should generate Pipeline Function Resources with JS code', () => {
-      const api = new Api(
-        given.appSyncConfig({
-          dataSources: {
-            myTable: {
-              name: 'myTable',
-              type: 'AMAZON_DYNAMODB',
-              config: { tableName: 'data' },
-            },
-          },
-        }),
-        plugin,
-      )
-      expect(
-        api.compilePipelineFunctionResource({
-          name: 'function1',
-          dataSource: 'myTable',
-          description: 'Function1 Pipeline Resolver',
-          code: 'funciton1.js',
-        }),
-      ).toMatchSnapshot()
-    })
+    // Note: JS code tests are in resolvers-esbuild.test.js
 
     it('should generate Pipeline Function Resources with VTL mapping templates', () => {
       const api = new Api(

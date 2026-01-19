@@ -1,6 +1,6 @@
 {
   "name": "@serverlessinc/sf-core",
-  "version": "4.30.0",
+  "version": "4.31.0",
   "main": "src/index.js",
   "type": "module",
   "scripts": {
@@ -69,7 +69,7 @@
     "@smithy/util-retry": "^4.2.6",
     "adm-zip": "^0.5.16",
     "child-process-ext": "^3.0.2",
-    "dotenv": "^16.6.1",
+    "dotenv": "^17.2.3",
     "fs-extra": "^11.3.3",
     "graceful-fs": "^4.2.11",
     "https-proxy-agent": "^7.0.6",

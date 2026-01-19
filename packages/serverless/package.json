@@ -34,7 +34,7 @@
     "@aws-sdk/client-sts": "3.965.0",
     "@aws-sdk/credential-providers": "3.965.0",
     "@aws-sdk/lib-storage": "3.965.0",
-    "@graphql-tools/merge": "^8.3.12",
+    "@graphql-tools/merge": "^9.1.7",
     "@iarna/toml": "^2.2.5",
     "@serverlessinc/sf-core": "*",
     "@smithy/node-http-handler": "^4.4.5",

@@ -14,7 +14,6 @@ import yaml from 'js-yaml'
 import { createRequire } from 'node:module'
 import _ from 'lodash'
 import AdmZip from 'adm-zip'
-import dotenv from 'dotenv'
 
 const require = createRequire(import.meta.url)
 
@@ -195,51 +194,6 @@ const parseDeclarativeConfig = (filePath, contents) => {
     return result.data
   }
   return contents.trim()
-}
-
-/**
- * Read a dotenv file and return the parsed content.
- * NOTE: This does not automatically set environment variables.
- * If params are provided, search in a custom path.
- * Otherwise, search in the current working directory.
- * Can accept .env.dev, .env.prod, .env, etc.
- * A staged .env file takes priority over a default .env file.
- * @returns Object with environment variables
- */
-const loadDotEnvFile = async ({ customPath = null, stageName = null }) => {
-  // Set path to current working directory if not provided
-  const envPath = customPath || process.cwd()
-
-  // If the path specifies a directory, search for a .env and staged .env file in it
-  if (await dirExists(envPath)) {
-    const defaultEnvPath = path.resolve(envPath, '.env')
-    const stageFilePath = stageName
-      ? path.resolve(envPath, `.env.${stageName}`)
-      : null
-
-    let envDefault = {}
-    if (await fileExists(defaultEnvPath)) {
-      const data = dotenv.config({
-        path: defaultEnvPath,
-      }).parsed
-      envDefault = data || {}
-    }
-
-    let envStage = {}
-    if (stageFilePath && (await fileExists(stageFilePath))) {
-      const data = dotenv.config({
-        path: stageFilePath,
-      }).parsed
-      envStage = data || {}
-    }
-    // Merge default and staged environment variables, with staged taking priority
-    return { ...envDefault, ...envStage }
-  }
-
-  // If the path specifies a file, use it
-  if (await fileExists(envPath)) {
-    return dotenv.config({ path: envPath }).parsed
-  }
 }
 
 /**
@@ -972,7 +926,6 @@ export {
   copyDirContents,
   removeFileOrDirectory,
   parseDeclarativeConfig,
-  loadDotEnvFile,
   renameTemplateInAllFiles,
   renameDirectory,
   getConfigFilePath,
