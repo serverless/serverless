@@ -14,6 +14,10 @@
   <a aria-label="Serverless Framework Community Forum" href="https://forum.serverless.com">Forum</a>
 </div>
 
+<br />
+<br />
+Same Serverless, just has nodejs22.x enabled.
+
 <br/>
 <br/>
 
