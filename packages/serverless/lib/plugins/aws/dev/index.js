@@ -608,7 +608,7 @@ class AwsDev {
       mainProgress.remove()
     })
 
-    // Each function has a seperate topic we need to subscribe to
+    // Each function has a separate topic we need to subscribe to
     const functionNames = this.serverless.service.getAllFunctions()
 
     for (const functionName of functionNames) {
