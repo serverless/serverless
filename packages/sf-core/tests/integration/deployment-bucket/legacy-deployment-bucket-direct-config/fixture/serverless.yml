@@ -2,7 +2,7 @@ service: legacy-bucket-direct-yml
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   deploymentMethod: direct
   enableLegacyDeploymentBucket: true
 

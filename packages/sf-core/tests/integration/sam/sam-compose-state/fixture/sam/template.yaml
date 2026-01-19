@@ -15,7 +15,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: handler.handler
-      Runtime: nodejs20.x
+      Runtime: nodejs22.x
       Architectures:
         - x86_64
       Events:

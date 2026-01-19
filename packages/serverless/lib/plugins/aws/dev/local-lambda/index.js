@@ -31,7 +31,7 @@ if (__dirname.endsWith('dist')) {
  * @example
  * const config = {
  *   handler: 'index.handler',
- *   runtime: 'nodejs20.x',
+ *   runtime: 'nodejs22.x',
  *   environment: { FOO: 'BAR' },
  *   serviceAbsolutePath: '~/path/to/service'
  * };

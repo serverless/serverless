@@ -64,7 +64,7 @@ Here's a list of everything that's new in V.4, so far:
 - **AWS SSO:** Environment variables, especially ones set by AWS SSO, are prioritized. The Framework and Dashboard no longer interfere with these.
 - **Automatic Updates:** These happen by default now. Though, you will be able to control the level of updates you're open to.
 - **Improved Onboarding & Set-Up:** The `serverless` command has been re-written to be more helpful when setting up a new or existing project.
-- **Updated Custom Resource Handlers:** All custom resource handlers now use `nodejs20.x`.
+- **Updated Custom Resource Handlers:** All custom resource handlers now use `nodejs22.x`.
 - **Deprecation Of Non-AWS Providers:** Deprecation of other cloud providers, in favor of handling this better in our upcoming Serverless Framework "Extensions".
 
 ## Breaking Changes

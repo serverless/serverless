@@ -45,7 +45,7 @@ Resources:
   ExampleFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: nodejs20.x
+      Runtime: nodejs22.x
       Handler: index.handler
       CodeUri: '.'
       Events:
@@ -174,7 +174,7 @@ Resources:
   ExampleFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: nodejs20.x
+      Runtime: nodejs22.x
       Handler: index.handler
       Environment:
         Variables:

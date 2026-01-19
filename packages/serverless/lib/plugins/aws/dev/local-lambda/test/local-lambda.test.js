@@ -21,7 +21,7 @@ describe('.js functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'js'),
       handler: 'handlers.hello',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -40,7 +40,7 @@ describe('.js functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'js'),
       handler: 'handlers.event',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -63,7 +63,7 @@ describe('.js functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'js'),
       handler: 'handlers.environment',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
       environment: {
         FOO: 'BAR',
@@ -85,7 +85,7 @@ describe('.js functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'js'),
       handler: 'handlers.context',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -98,7 +98,7 @@ describe('.js functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'js'),
       handler: 'handlers.callback',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -111,7 +111,7 @@ describe('.js functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'js'),
       handler: 'handlers.error',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -122,7 +122,7 @@ describe('.js functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'js'),
       handler: 'handlers.error',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -139,7 +139,7 @@ describe('.cjs functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'cjs'),
       handler: 'handlers.hello',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -158,7 +158,7 @@ describe('.cjs functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'cjs'),
       handler: 'handlers.event',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -181,7 +181,7 @@ describe('.cjs functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'cjs'),
       handler: 'handlers.environment',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
       environment: {
         FOO: 'BAR',
@@ -203,7 +203,7 @@ describe('.cjs functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'cjs'),
       handler: 'handlers.context',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -216,7 +216,7 @@ describe('.cjs functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'cjs'),
       handler: 'handlers.callback',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -229,7 +229,7 @@ describe('.cjs functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'cjs'),
       handler: 'handlers.error',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -240,7 +240,7 @@ describe('.cjs functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'cjs'),
       handler: 'handlers.error',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -257,7 +257,7 @@ describe('.mjs functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'mjs'),
       handler: 'handlers.hello',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -276,7 +276,7 @@ describe('.mjs functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'mjs'),
       handler: 'handlers.event',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -299,7 +299,7 @@ describe('.mjs functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'mjs'),
       handler: 'handlers.environment',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
       environment: {
         FOO: 'BAR',
@@ -321,7 +321,7 @@ describe('.mjs functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'mjs'),
       handler: 'handlers.context',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -334,7 +334,7 @@ describe('.mjs functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'mjs'),
       handler: 'handlers.error',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -345,7 +345,7 @@ describe('.mjs functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'mjs'),
       handler: 'handlers.callback',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -358,7 +358,7 @@ describe('.mjs functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'mjs'),
       handler: 'handlers.error',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -375,7 +375,7 @@ describe('.ts functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'ts'),
       handler: 'handlers.hello',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -394,7 +394,7 @@ describe('.ts functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'ts'),
       handler: 'handlers.event',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -417,7 +417,7 @@ describe('.ts functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'ts'),
       handler: 'handlers.environment',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
       environment: {
         FOO: 'BAR',
@@ -439,7 +439,7 @@ describe('.ts functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'ts'),
       handler: 'handlers.context',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -452,7 +452,7 @@ describe('.ts functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'ts'),
       handler: 'handlers.callback',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -465,7 +465,7 @@ describe('.ts functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'ts'),
       handler: 'handlers.error',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 
@@ -476,7 +476,7 @@ describe('.ts functions', () => {
     const localLambda = new LocalLambda({
       serviceAbsolutePath: path.resolve(__dirname, 'handlers', 'ts'),
       handler: 'handlers.error',
-      runtime: 'nodejs20.x',
+      runtime: 'nodejs22.x',
       invocationColorFn: (x) => x,
     })
 

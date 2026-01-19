@@ -171,6 +171,11 @@ describe('packageService', () => {
       const result = packagePlugin.getRuntime(undefined)
       expect(result).toBe('nodejs20.x')
     })
+
+    it('should return default runtime if no runtime defined', () => {
+      const result = packagePlugin.getRuntime(undefined)
+      expect(result).toBe('nodejs22.x')
+    })
   })
 
   describe('#packageFunction()', () => {

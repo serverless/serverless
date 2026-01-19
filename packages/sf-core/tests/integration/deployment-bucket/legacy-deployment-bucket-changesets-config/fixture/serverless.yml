@@ -3,7 +3,7 @@ service: legacy-bucket-cs-yml
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   deploymentMethod: changesets
   enableLegacyDeploymentBucket: true
 
