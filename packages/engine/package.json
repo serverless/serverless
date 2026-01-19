@@ -48,7 +48,7 @@
     "eventsource": "^3.0.7",
     "lodash": "^4.17.21",
     "p-limit": "^6.2.0",
-    "zod": "^3.25.76"
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "jest": "^30.2.0",
