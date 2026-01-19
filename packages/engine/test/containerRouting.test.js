@@ -54,7 +54,7 @@ describe('Container Routing Configuration Schema Validation', () => {
           pathPattern,
         })
         expect(result.success).toBe(false)
-        expect(result.error.errors[0].message).toBe(
+        expect(result.error.issues[0].message).toBe(
           'Must start with "/" and cannot contain spaces or invalid characters (<, >, \\, ").',
         )
       })
@@ -110,7 +110,7 @@ describe('Container Routing Configuration Schema Validation', () => {
       }
       expect(() =>
         ConfigContainerRouting.parse(configWithoutPathPattern),
-      ).toThrow(/Required/)
+      ).toThrow(/Invalid input|Required/)
     })
   })
 
@@ -138,7 +138,7 @@ describe('Container Routing Configuration Schema Validation', () => {
         },
       }
       expect(() => ConfigContainerSchema.parse(configWithoutRouting)).toThrow(
-        /Required/,
+        /Invalid input|Required/,
       )
     })
 

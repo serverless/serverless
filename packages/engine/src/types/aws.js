@@ -22,7 +22,7 @@ const JSONValue = z.lazy(() =>
     z.number(),
     z.boolean(),
     z.array(JSONValue),
-    z.record(JSONValue),
+    z.record(z.string(), JSONValue),
   ]),
 )
 
