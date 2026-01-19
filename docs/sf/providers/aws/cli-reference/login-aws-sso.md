@@ -96,6 +96,7 @@ region = us-west-2
 ## AWS CLI Compatibility
 
 The Serverless Framework SSO login uses the same token cache (`~/.aws/sso/cache/`) as AWS CLI. This means:
+
 - Your existing SSO sessions work seamlessly with the Serverless Framework
 - No need to log in separately for each tool
 - One consent prompt covers both tools

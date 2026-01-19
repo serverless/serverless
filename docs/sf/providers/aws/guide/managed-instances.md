@@ -48,6 +48,7 @@ functions:
 ```
 
 When using this minimal configuration:
+
 - A **default capacity provider** is automatically created.
 - It **inherits the VPC configuration** from `provider.vpc`.
 - It uses a default, **automatically created Operator Role**.
@@ -56,6 +57,7 @@ When using this minimal configuration:
 - **Max vCPU Count** defaults to no limit.
 
 Additionally, the function using this provider will use default settings:
+
 - **memorySize**: `2048` MB
 - **maxConcurrency**: Defaults to the service default (varies by runtime).
   - Node.js: 64
@@ -241,6 +243,7 @@ functions:
 Capacity Providers require VPC configuration. You can:
 
 1.  **Inherit from provider-level VPC:**
+
     ```yml
     provider:
       vpc:
@@ -251,6 +254,7 @@ Capacity Providers require VPC configuration. You can:
     ```
 
 2.  **Override per capacity provider:**
+
     ```yml
      provider:
       vpc:
@@ -315,6 +319,7 @@ When you define a capacity provider, the following CloudFormation resources are 
 2.  **AWS::IAM::Role** - The operator role (if not explicitly provided)
 
 Example for a capacity provider named `default` in service `my-service`:
+
 - Capacity Provider: `DefaultLambdaCapacityProvider`
 - Operator Role: `LambdaCapacityProviderOperatorRole`
 
@@ -335,6 +340,7 @@ If you later change the `capacityProvider` for a function and remove the old cap
 This happens because older function versions are still associated with the previous capacity provider, even if no function in `serverless.yml` references it anymore.
 
 To resolve this:
+
 - Ensure that traffic is no longer using the old function versions and then delete the old versions before removing the capacity provider.
 - If you rely only on `$LATEST` and do not want function versions at all, you can disable automatic versioning:
 

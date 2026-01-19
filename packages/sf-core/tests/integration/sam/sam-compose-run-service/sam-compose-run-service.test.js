@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import path from 'path'
 import url from 'url'
 import { promises as fs } from 'fs'

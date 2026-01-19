@@ -5,7 +5,7 @@
  * which doesn't rely on AWS CloudFormation service.
  */
 
-import { jest, expect, describe, test, beforeEach } from '@jest/globals'
+import { beforeEach, describe, expect, jest, test } from '@jest/globals'
 
 // Create a mock function for describeStackResources
 const mockDescribeStackResources = jest.fn()
@@ -23,12 +23,8 @@ await jest.unstable_mockModule(
 )
 
 // Import the actual module
-const { getIacResources, setListProjectsCalled } = await import(
-  '../src/tools/list-resources.js'
-)
-const { AwsCloudformationService } = await import(
-  '@serverless/engine/src/lib/aws/cloudformation.js'
-)
+const { getIacResources, setListProjectsCalled } =
+  await import('../src/tools/list-resources.js')
 
 describe('IaC Resources Tool', () => {
   beforeEach(() => {

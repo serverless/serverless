@@ -23,7 +23,7 @@ e.g.
 
 ```js
 // scheduleConfig.js
-module.exports.rate = 'rate(10 minutes)';
+module.exports.rate = 'rate(10 minutes)'
 ```
 
 ```yml

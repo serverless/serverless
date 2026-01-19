@@ -4,8 +4,10 @@
   "private": true,
   "type": "module",
   "main": "src/server.js",
-  "prettier": "@serverlessinc/standards",
   "scripts": {
+    "lint": "eslint",
+    "prettier": "prettier -c . --ignore-path ../../.prettierignore",
+    "prettier:fix": "prettier -w . --ignore-path ../../.prettierignore",
     "start": "node src/server.js",
     "start:stdio": "node src/stdio-server.js",
     "test:aws-errors-info": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest tests/e2e/aws-errors-info.test.js",
@@ -14,9 +16,7 @@
     "test:aws-errors-info:cleanup": "node tests/e2e/aws-errors-info-cleanup.js",
     "test:unit": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest tests/ --testPathIgnorePatterns=tests/e2e",
     "test:e2e": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest tests/e2e/",
-    "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest tests/",
-    "prettier": "prettier -c src/**/* tests/**/*",
-    "prettier:fix": "prettier src/**/* tests/**/* --write"
+    "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest tests/"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.2",

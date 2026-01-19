@@ -27,6 +27,7 @@ npm run test:resolvers -w @serverlessinc/sf-core
 ## Test Environment Setup
 
 ### Required Environment Variables
+
 The following environment variables need to be set before running the tests:
 
 ```sh
@@ -35,11 +36,13 @@ export SERVERLESS_ACCESS_KEY_DEV="your-access-key"
 ```
 
 ### AWS Prerequisites
+
 The integration tests require specific AWS resources, including:
 
 #### SSM Parameters
 
 ##### us-east-1
+
 - `/resolvers/sample-param` (String): `ssm-value`
 - `/resolvers/sample-secure-param` (SecureString): `ssm-value`
 - `/resolvers/sample-list-param` (StringList): `foo,bar`
@@ -49,13 +52,16 @@ The integration tests require specific AWS resources, including:
 - `/resolvers/terraform-hcp-token` (String): `your-terraform-hcp-token`
 
 ##### eu-west-1
+
 - `/resolvers/sample-param` (String): `ssm-value`
 - `/resolvers/sample-secure-param-eu-west-1` (SecureString): `ssm-value`
 
 #### AWS Secrets Manager Secrets
 
 ##### us-east-1
+
 - `resolvers/sample-secret`:
+
 ```json
 {
   "num": 1,
@@ -77,17 +83,20 @@ The integration tests require specific AWS resources, including:
 #### AWS DynamoDB Tables
 
 ##### us-east-1
+
 - `terraform-s3-resolver-test-lock-table`
   - Primary Key: `LockID` (String)
 
 #### AWS CloudFormation Stacks
 
 ##### us-east-1
+
 - `sfc-nodejs-resolvers-integration-test`
   - `ServerlessDeploymentBucketName`: `sfc-nodejs-resolvers-inte-serverlessdeploymentbuck-6vskiu5gzt1u`
   - `Function1LambdaFunctionQualifiedArn`: `arn:aws:lambda:us-east-1:762003938904:function:sfc-nodejs-resolvers-integration-test-function1:1`
 
 ##### eu-west-1
+
 - `sfc-nodejs-resolvers-integration-test`
   - `ServerlessDeploymentBucketName`: `sfc-nodejs-resolvers-inte-serverlessdeploymentbuck-vky0nzemsvvr`
   - `Function1LambdaFunctionQualifiedArn`: `arn:aws:lambda:eu-west-1:762003938904:function:sfc-nodejs-resolvers-integration-test-function1:1`
@@ -95,10 +104,14 @@ The integration tests require specific AWS resources, including:
 ### Serverless Dashboard Prerequisites
 
 #### Service `resolvers-custom-test`:
- * Dashboard Parameters
-   * `dashboard-param`: `dashboard-value`
+
+- Dashboard Parameters
+  - `dashboard-param`: `dashboard-value`
+
 #### Service `resolver-output-producer`:
-* Dashboard Outputs
+
+- Dashboard Outputs
+
 ```yaml
 outputs:
   str: string-value
@@ -108,8 +121,10 @@ outputs:
 ```
 
 ### Terraform Cloud Prerequisites
-* `serverlesstestaccount` organization
-* `serverless-test-01` workspace
+
+- `serverlesstestaccount` organization
+- `serverless-test-01` workspace
 
 ## Troubleshooting
+
 For any issues, refer to the `tests/integration/` directory for test implementations and configurations.

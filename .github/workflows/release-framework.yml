@@ -1,4 +1,4 @@
-name: "Release: Framework CLI"
+name: 'Release: Framework CLI'
 
 permissions:
   id-token: write
@@ -7,7 +7,7 @@ permissions:
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'packages/sf-core/**'
       - 'packages/serverless/**'
@@ -20,28 +20,28 @@ defaults:
 
 jobs:
   test-engine:
-    name: "Test: Engine"
+    name: 'Test: Engine'
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./packages/engine
     steps:
-      - name: "Checkout Code"
+      - name: 'Checkout Code'
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: "Setup: Node.js"
+      - name: 'Setup: Node.js'
         uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           node-version: 24.x
           cache: npm
-      - name: "Install: Dependencies"
+      - name: 'Install: Dependencies'
         run: |
           cd ../../
           npm ci
-      - name: "Test: Engine Unit"
+      - name: 'Test: Engine Unit'
         run: npm test
 
   test-matrix:
-    name: "Test: Framework (Cross-Platform)"
+    name: 'Test: Framework (Cross-Platform)'
     strategy:
       fail-fast: false # Continue running jobs even if one or more jobs in the matrix fail
       matrix:
@@ -51,84 +51,84 @@ jobs:
           - gh-windows-latest
     runs-on: ${{ matrix.group }}
     steps:
-      - name: "Checkout Code"
+      - name: 'Checkout Code'
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: "Setup: Node.js"
+      - name: 'Setup: Node.js'
         uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           node-version: 24.x
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
           scope: '@serverlessinc'
-      - name: "Setup: AWS Credentials"
+      - name: 'Setup: AWS Credentials'
         uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
         with:
           role-to-assume: arn:aws:iam::762003938904:role/GithubActionsDeploymentRole
           aws-region: us-east-1
-      - name: "Install: Dependencies"
+      - name: 'Install: Dependencies'
         run: |
           cd ../../
           npm ci
-      - name: "Test: Unit (sf-core)"
+      - name: 'Test: Unit (sf-core)'
         run: npm run test:unit
-      - name: "Test: Unit (serverless)"
+      - name: 'Test: Unit (serverless)'
         working-directory: ./packages/serverless
         run: npm run test:unit
-      - name: "Build: Minify Shim"
+      - name: 'Build: Minify Shim'
         run: |
           cd ../serverless/lib/plugins/aws/dev
           ../../../../../../node_modules/.bin/esbuild ./shim.js --bundle --platform=node --minify --outfile=./shim.min.js
-      - name: "Build: Framework"
+      - name: 'Build: Framework'
         run: npm run build
-      - name: "Install: Serverless v3"
+      - name: 'Install: Serverless v3'
         run: npm install -g serverless@3
-      - name: "Test: Integration"
+      - name: 'Test: Integration'
         run: npm run test ${{ matrix.group == 'ubuntu-latest' && '-- --maxWorkers=8' || '' }}
         env:
           SERVERLESS_LICENSE_KEY_DEV: ${{ secrets.SERVERLESS_LICENSE_KEY_DEV }}
           SERVERLESS_ACCESS_KEY_DEV: ${{ secrets.SERVERLESS_ACCESS_KEY_DEV }}
           TEST_STAGE: mr-${{ github.event.actor }}
   release-canary:
-    name: "Release: Canary & Tag"
-    needs: [ test-matrix, test-engine ]
+    name: 'Release: Canary & Tag'
+    needs: [test-matrix, test-engine]
     runs-on: ubuntu-latest
     env:
       IS_CANARY: true
     outputs:
       new_version: ${{ steps.tag_if_new_version.outputs.new_version }}
     steps:
-      - name: "Checkout Code"
+      - name: 'Checkout Code'
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 50
-      - name: "Setup: Node.js"
+      - name: 'Setup: Node.js'
         uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           node-version: 24.x
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
           scope: '@serverlessinc'
-      - name: "Install: Dependencies"
+      - name: 'Install: Dependencies'
         run: |
           cd ../../
           npm ci
-      - name: "Build: Minify Shim"
+      - name: 'Build: Minify Shim'
         run: |
           cd ../serverless/lib/plugins/aws/dev
           ../../../../../../node_modules/.bin/esbuild ./shim.js --bundle --platform=node --minify --outfile=./shim.min.js
-      - name: "Build: Framework"
+      - name: 'Build: Framework'
         run: npm run build
-      - name: "Setup: AWS Credentials"
+      - name: 'Setup: AWS Credentials'
         uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
         with:
           role-to-assume: arn:aws:iam::377024778620:role/GithubActionsDeploymentRole
           aws-region: us-east-1
-      - name: "Release: Upload Tarballs"
+      - name: 'Release: Upload Tarballs'
         run: bash prepareReleaseTars.sh
-      - name: "Release: Invalidate Cache"
+      - name: 'Release: Invalidate Cache'
         run: |
           aws cloudfront create-invalidation --distribution-id E1USPSJN28WQ8U --paths "/*"
-      - name: "Release: Tag Version"
+      - name: 'Release: Tag Version'
         id: tag_if_new_version
         continue-on-error: true
         run: |
@@ -141,67 +141,67 @@ jobs:
             echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
           fi
   release-stable:
-    name: "Release: Dist Tarball"
+    name: 'Release: Dist Tarball'
     needs: release-canary
     if: needs.release-canary.outputs.new_version
     runs-on: ubuntu-latest
     steps:
-      - name: "Checkout Code"
+      - name: 'Checkout Code'
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: "Setup: Node.js"
+      - name: 'Setup: Node.js'
         uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           node-version: 24.x
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
           scope: '@serverlessinc'
-      - name: "Setup: AWS Credentials"
+      - name: 'Setup: AWS Credentials'
         uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
         with:
           role-to-assume: arn:aws:iam::802587217904:role/GithubActionsDeploymentRole
           aws-region: us-east-1
-      - name: "Install: Dependencies"
+      - name: 'Install: Dependencies'
         run: |
           cd ../../
           npm ci
-      - name: "Build: Minify Shim"
+      - name: 'Build: Minify Shim'
         run: |
           cd ../serverless/lib/plugins/aws/dev
           ../../../../../../node_modules/.bin/esbuild ./shim.js --bundle --platform=node --minify --outfile=./shim.min.js
-      - name: "Build: Framework"
+      - name: 'Build: Framework'
         run: npm run build
-      - name: "Release: Upload Tarballs"
+      - name: 'Release: Upload Tarballs'
         run: bash prepareReleaseTars.sh
         env:
           RELEASES_MONGO_URI: ${{ secrets.RELEASES_MONGO_URI }}
-      - name: "Release: Invalidate Cache"
+      - name: 'Release: Invalidate Cache'
         run: |
           aws cloudfront create-invalidation --distribution-id E3OEL4OJF1G5FG --paths "/releases.json"
           aws cloudfront create-invalidation --distribution-id E3OEL4OJF1G5FG --paths "/versions.json"
   release-npm:
-    name: "Release: NPM Installer"
+    name: 'Release: NPM Installer'
     needs: release-stable
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./packages/sf-core-installer
     steps:
-      - name: "Checkout Code"
+      - name: 'Checkout Code'
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: "Setup: Node.js"
+      - name: 'Setup: Node.js'
         uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           node-version: 24.x
           cache: npm
           scope: '@serverless'
           registry-url: https://registry.npmjs.org
-      - name: "Release: Copy Readme"
+      - name: 'Release: Copy Readme'
         run: |
           cp ../../README.md ./README.md
-      - name: "Install: Dependencies"
+      - name: 'Install: Dependencies'
         run: |
           cd ../../
           npm ci
-      - name: "Release: NPM Publish"
+      - name: 'Release: NPM Publish'
         run: |
           npm publish

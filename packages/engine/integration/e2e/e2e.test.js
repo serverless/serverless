@@ -418,7 +418,7 @@ describe('Deploy SCF Service', () => {
           VpcIds: [vpcId],
         })
         const vpc = await ec2Client.send(describeVpcCommand)
-        fail('VPC should not exist')
+        throw new Error('VPC should not exist')
       } catch (error) {
         expect(error.message).toContain('does not exist')
       }

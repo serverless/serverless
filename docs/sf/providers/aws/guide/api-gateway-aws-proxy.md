@@ -414,6 +414,7 @@ custom:
             serverError: |-
               { "message": "there was an error handling your request" }
 ```
+
 #### Allow Binary Type
 
 In order to allow the browser to recognize binary type (e.g. images), add the following.
@@ -422,8 +423,9 @@ In order to allow the browser to recognize binary type (e.g. images), add the fo
 #provider.apiGateway.binaryMediaTypes
 provider:
   apiGateway:
-    binaryMediaTypes: "*/*"
+    binaryMediaTypes: '*/*'
 ```
+
 ### SNS
 
 Sample syntax for SNS proxy in `serverless.yml`.
@@ -650,7 +652,6 @@ custom:
             responseTemplates:
               application/json: |-
                 #set($item = $input.path('$.Item')){ "Item": $item }
-
 ```
 
 ### EventBridge
@@ -660,14 +661,14 @@ Sample syntax for EventBridge proxy in `serverless.yml`.
 ```yaml
 custom:
   apiGatewayServiceProxies:
-    - eventbridge:  # source and detailType are hardcoded; detail defaults to POST body
+    - eventbridge: # source and detailType are hardcoded; detail defaults to POST body
         path: /eventbridge
         method: post
         source: 'hardcoded_source'
         detailType: 'hardcoded_detailType'
         eventBusName: { Ref: 'YourBusName' }
         cors: true
-    - eventbridge:  # source and detailType as path parameters
+    - eventbridge: # source and detailType as path parameters
         path: /eventbridge/{detailTypeKey}/{sourceKey}
         method: post
         detailType:
@@ -676,7 +677,7 @@ custom:
           pathParam: sourceKey
         eventBusName: { Ref: 'YourBusName' }
         cors: true
-    - eventbridge:  # source, detail, and detailType as body parameters
+    - eventbridge: # source, detail, and detailType as body parameters
         path: /eventbridge/{detailTypeKey}/{sourceKey}
         method: post
         detailType:
@@ -807,8 +808,6 @@ resources:
 
 Source: [AWS::ApiGateway::Method docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-method.html#cfn-apigateway-method-authorizationtype)
 
-
-
 ### Enabling API Token Authentication
 
 You can indicate whether the method requires clients to submit a valid API key using `private` flag:
@@ -834,7 +833,6 @@ which is the same syntax used in Serverless framework.
 Source: [Serverless: Setting API keys for your Rest API](https://serverless.com/framework/docs/providers/aws/events/apigateway/#setting-api-keys-for-your-rest-api)
 
 Source: [AWS::ApiGateway::Method docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-method.html#cfn-apigateway-method-apikeyrequired)
-
 
 ### Using a Custom IAM Role
 

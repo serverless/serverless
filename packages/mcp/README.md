@@ -398,22 +398,22 @@ The MCP server supports AWS SSO credentials. There are two ways to configure AWS
 
 Manually edit your AWS config file (`~/.aws/config`) to add an SSO profile:
 
-   ```ini
-   [profile my-sso-profile]
-   sso_start_url = https://my-sso-portal.awsapps.com/start
-   sso_region = us-east-1
-   sso_account_id = 123456789012
-   sso_role_name = SSOReadOnlyRole
-   region = us-west-2
-   ```
+```ini
+[profile my-sso-profile]
+sso_start_url = https://my-sso-portal.awsapps.com/start
+sso_region = us-east-1
+sso_account_id = 123456789012
+sso_role_name = SSOReadOnlyRole
+region = us-west-2
+```
 
 ##### Option 2: AWS CLI Configuration Wizard
 
 Use the AWS CLI to set up SSO automatically:
 
-   ```bash
-   aws configure sso
-   ```
+```bash
+aws configure sso
+```
 
 Follow the prompts to enter your SSO start URL, region, account ID, and role name.
 
@@ -466,20 +466,23 @@ To use this MCP server with Cursor:
 You can use this server with any MCP client, including the official MCP client library. Here's an example of how to connect to the server using the MCP client:
 
 ```javascript
-const { createClient } = require('@mcp/client');
+const { createClient } = require('@mcp/client')
 
 // Create a client that connects to the server
 const client = createClient({
   url: 'http://localhost:3001',
-});
+})
 
 // Call the list-resources tool
-client.callTool('list-resources', {
-  serviceName: 'my-service',
-  serviceType: 'serverless-framework',
-}).then(result => {
-  console.log('Resources:', result);
-}).catch(error => {
-  console.error('Error:', error);
-});
+client
+  .callTool('list-resources', {
+    serviceName: 'my-service',
+    serviceType: 'serverless-framework',
+  })
+  .then((result) => {
+    console.log('Resources:', result)
+  })
+  .catch((error) => {
+    console.error('Error:', error)
+  })
 ```

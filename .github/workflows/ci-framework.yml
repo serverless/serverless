@@ -1,4 +1,4 @@
-name: "CI: Framework CLI"
+name: 'CI: Framework CLI'
 
 permissions:
   id-token: write
@@ -7,84 +7,104 @@ permissions:
 on:
   workflow_dispatch:
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths-ignore:
       - 'docs/**'
 
-defaults:
-  run:
-    working-directory: ./packages/sf-core
-
 jobs:
+  lint:
+    name: 'Lint'
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./
+    steps:
+      - name: 'Checkout Code'
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - name: 'Setup: Node.js'
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version: 24.x
+          cache: npm
+      - name: 'Install: Dependencies'
+        run: npm ci
+      - name: 'Lint: ESLint'
+        run: npm run lint
+      - name: 'Lint: Prettier'
+        run: npm run prettier
+
   test-engine:
-    name: "Test: Engine"
+    name: 'Test: Engine'
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./packages/engine
     steps:
-      - name: "Checkout Code"
+      - name: 'Checkout Code'
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: "Setup: Node.js"
+      - name: 'Setup: Node.js'
         uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           node-version: 24.x
           cache: npm
-      - name: "Install: Dependencies"
+      - name: 'Install: Dependencies'
         run: |
           cd ../../
           npm ci
-      - name: "Test: Engine Unit"
+      - name: 'Test: Engine Unit'
         run: npm test
 
   test-framework:
-    name: "Test: Framework"
+    name: 'Test: Framework'
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./packages/sf-core
     steps:
-      - name: "Checkout Code"
+      - name: 'Checkout Code'
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: "Setup: Node.js"
+      - name: 'Setup: Node.js'
         uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           node-version: 24.x
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
           scope: '@serverlessinc'
-      - name: "Setup: AWS Credentials"
+      - name: 'Setup: AWS Credentials'
         uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
         with:
           role-to-assume: arn:aws:iam::762003938904:role/GithubActionsDeploymentRole
           aws-region: us-east-1
-      - name: "Install: Dependencies"
+      - name: 'Install: Dependencies'
         run: |
           cd ../../
           npm ci
-      - name: "Test: Unit (sf-core)"
+      - name: 'Test: Unit (sf-core)'
         run: npm run test:unit
-      - name: "Test: Unit (serverless)"
+      - name: 'Test: Unit (serverless)'
         working-directory: ./packages/serverless
         run: npm run test:unit
-      - name: "Build: Minify Shim"
+      - name: 'Build: Minify Shim'
         run: |
           cd ../serverless/lib/plugins/aws/dev
           ../../../../../../node_modules/.bin/esbuild ./shim.js --bundle --platform=node --minify --outfile=./shim.min.js
-      - name: "Build: Framework"
+      - name: 'Build: Framework'
         run: npm run build
-      - name: "Install: Serverless v3"
+      - name: 'Install: Serverless v3'
         run: npm install -g serverless@3
-      - name: "Test: Integration"
+      - name: 'Test: Integration'
         run: npm run test -- --maxWorkers=8
         env:
           SERVERLESS_LICENSE_KEY_DEV: ${{ secrets.SERVERLESS_LICENSE_KEY_DEV }}
           SERVERLESS_ACCESS_KEY_DEV: ${{ secrets.SERVERLESS_ACCESS_KEY_DEV }}
           TEST_STAGE: pr-${{ github.event.pull_request.user.login }}
           SLS_AWS_SDK: 3
-      - name: "Test: Resolvers"
+      - name: 'Test: Resolvers'
         run: npm run test:resolvers -- --maxWorkers=8
         env:
           SERVERLESS_LICENSE_KEY_DEV: ${{ secrets.SERVERLESS_LICENSE_KEY_DEV }}
           SERVERLESS_ACCESS_KEY_DEV: ${{ secrets.SERVERLESS_ACCESS_KEY_DEV }}
           TEST_STAGE: pr-${{ github.event.pull_request.user.login }}
-

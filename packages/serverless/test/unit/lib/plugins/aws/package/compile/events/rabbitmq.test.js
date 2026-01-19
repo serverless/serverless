@@ -20,15 +20,12 @@ jest.unstable_mockModule('@serverless/util', () => ({
 }))
 
 // Import after mocking
-const { default: AwsCompileRabbitMQEvents } = await import(
-  '../../../../../../../../lib/plugins/aws/package/compile/events/rabbitmq.js'
-)
-const { default: AwsProvider } = await import(
-  '../../../../../../../../lib/plugins/aws/provider.js'
-)
-const { default: Serverless } = await import(
-  '../../../../../../../../lib/serverless.js'
-)
+const { default: AwsCompileRabbitMQEvents } =
+  await import('../../../../../../../../lib/plugins/aws/package/compile/events/rabbitmq.js')
+const { default: AwsProvider } =
+  await import('../../../../../../../../lib/plugins/aws/provider.js')
+const { default: Serverless } =
+  await import('../../../../../../../../lib/serverless.js')
 
 describe('AwsCompileRabbitMQEvents', () => {
   let serverless

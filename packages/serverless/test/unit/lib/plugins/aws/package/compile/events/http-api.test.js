@@ -26,15 +26,12 @@ jest.unstable_mockModule('@serverless/util', () => ({
 }))
 
 // Import after mocking
-const { default: HttpApiEvents } = await import(
-  '../../../../../../../../lib/plugins/aws/package/compile/events/http-api.js'
-)
-const { default: AwsProvider } = await import(
-  '../../../../../../../../lib/plugins/aws/provider.js'
-)
-const { default: Serverless } = await import(
-  '../../../../../../../../lib/serverless.js'
-)
+const { default: HttpApiEvents } =
+  await import('../../../../../../../../lib/plugins/aws/package/compile/events/http-api.js')
+const { default: AwsProvider } =
+  await import('../../../../../../../../lib/plugins/aws/provider.js')
+const { default: Serverless } =
+  await import('../../../../../../../../lib/serverless.js')
 
 describe('HttpApiEvents', () => {
   let serverless

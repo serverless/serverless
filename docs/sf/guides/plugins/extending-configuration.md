@@ -35,16 +35,16 @@ You can use it in plugin constructor, or if for some reason configuration extens
 ```js
 class MyPlugin {
   constructor(serverless) {
-    this.serverless = serverless;
+    this.serverless = serverless
 
     const value = {
       myKey: 'myValue',
-    };
-    this.serverless.extendConfiguration(['custom', 'myPlugin'], value);
+    }
+    this.serverless.extendConfiguration(['custom', 'myPlugin'], value)
   }
 }
 
-module.exports = MyPlugin;
+module.exports = MyPlugin
 ```
 
 If your plugin needs merging you need to take care of it yourself.
@@ -52,15 +52,15 @@ If your plugin needs merging you need to take care of it yourself.
 ```js
 class MyPlugin {
   constructor(serverless) {
-    this.serverless = serverless;
+    this.serverless = serverless
 
-    const currentConfig = this.serverless.configurationInput.custom.myPlugin;
+    const currentConfig = this.serverless.configurationInput.custom.myPlugin
     const value = Object.assign(currentConfig, {
       myKey: 'myValue',
-    });
-    this.serverless.extendConfiguration(['custom', 'myPlugin'], value);
+    })
+    this.serverless.extendConfiguration(['custom', 'myPlugin'], value)
   }
 }
 
-module.exports = MyPlugin;
+module.exports = MyPlugin
 ```
