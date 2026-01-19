@@ -17,7 +17,7 @@
     "release-scripts"
   ],
   "prettier": "@serverlessinc/standards",
-  "author": "Serverless Inc.",
+  "author": "Darren Mackintosh",
   "license": "",
   "devDependencies": {
     "husky": "^9.1.7",

@@ -17,7 +17,7 @@
   "license": "",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/serverless/serverless.git"
+    "url": "git+https://github.com/takuhii/serverless-node-next.git"
   },
   "bin": {
     "serverless": "run.js",

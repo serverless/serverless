@@ -22,7 +22,7 @@ Welcome, and thanks in advance for your help!
    node /path/to/serverless/packages/sf-core/bin/sf-core.js deploy
    ```
 
-A good first step is to search for open [issues](https://github.com/serverless/serverless/issues). Look for issues labeled [good first issue](https://github.com/serverless/serverless/labels/good%20first%20issue) or [help wanted](https://github.com/serverless/serverless/labels/help%20wanted).
+A good first step is to search for open [issues](https://github.com/takuhii/serverless-node-next/issues). Look for issues labeled [good first issue](https://github.com/takuhii/serverless-node-next/labels/good%20first%20issue) or [help wanted](https://github.com/takuhii/serverless-node-next/labels/help%20wanted).
 
 ## When You Propose a New Feature or Bug Fix
 
@@ -51,9 +51,9 @@ Our documentation lives in the [docs](docs) directory. See a typo or improvement
 ## Providing Support
 
 Help the community by:
-- Replying to [issues on GitHub](https://github.com/serverless/serverless/issues)
+- Replying to [issues on GitHub](https://github.com/takuhii/serverless-node-next/issues)
 - Chatting in [our Community Slack](https://www.serverless.com/slack)
-- Answering questions in [GitHub Discussions](https://github.com/serverless/serverless/discussions)
+- Answering questions in [GitHub Discussions](https://github.com/takuhii/serverless-node-next/discussions)
 
 ---
 

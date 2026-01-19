@@ -17,7 +17,7 @@ if [[ $OSTYPE == "linux"* ]]; then
 elif [[ $OSTYPE == "darwin"* ]]; then
   PLATFORM="darwin"
 else
-  echo "${red}Sorry, there's no serverless binary installer available for this platform. Please open request for it at https://github.com/serverless/serverless/issues.$reset"
+  echo "${red}Sorry, there's no serverless binary installer available for this platform. Please open request for it at https://github.com/takuhii/serverless-node-next/issues.$reset"
   exit 1
 fi
 
@@ -29,7 +29,7 @@ if [[ $MACHINE_TYPE == "x86_64" ]]; then
 elif [[ $MACHINE_TYPE == "arm64" || $MACHINE_TYPE == "aarch64" ]]; then
   ARCH='arm64'
 else
-  echo "${red}Sorry, there's no serverless binary installer available for $MACHINE_TYPE architecture. Please open request for it at https://github.com/serverless/serverless/issues.$reset"
+  echo "${red}Sorry, there's no serverless binary installer available for $MACHINE_TYPE architecture. Please open request for it at https://github.com/takuhii/serverless-node-next/issues.$reset"
   exit 1
 fi
 # Download binary

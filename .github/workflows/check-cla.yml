@@ -28,7 +28,7 @@ jobs:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.CLA_PERSONAL_ACCESS_TOKEN }}
         with:
           path-to-signatures: 'signatures/version1/cla.json'
-          path-to-document: 'https://github.com/serverless/serverless/blob/main/CLA.md' # e.g. a CLA or a DCO document
+          path-to-document: 'https://github.com/takuhii/serverless-node-next/blob/main/CLA.md' # e.g. a CLA or a DCO document
           # branch should not be protected
           branch: 'main'
           allowlist: czubocha,eahefnawy,austencollins,Mmarzex,skierkowski,dependabot[bot],snyk-bot,aikido-autofix[bot]
