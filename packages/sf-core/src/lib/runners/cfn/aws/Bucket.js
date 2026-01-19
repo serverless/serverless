@@ -51,30 +51,6 @@ export default class Bucket {
   }
 
   /**
-   * Upload the cloudformation template
-   *
-   * @param {*} template
-   */
-  async uploadTemplate(template) {
-    const fileExtension = path.extname(templatePath).toLowerCase()
-    let contentType = 'application/json'
-
-    if (fileExtension === '.yaml' || fileExtension === '.yml') {
-      contentType = 'text/yaml'
-      this.templateKey.replace('.json', '.yml')
-    }
-
-    await this.client.send(
-      new PutObjectCommand({
-        Bucket: this.name,
-        Key: this.templateKey,
-        Body: template,
-        ContentType: contentType,
-      }),
-    )
-  }
-
-  /**
    * Upload the functions zip files to the bucket
    * and return the url/uri for each function
    *

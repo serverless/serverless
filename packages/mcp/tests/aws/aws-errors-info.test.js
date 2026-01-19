@@ -79,9 +79,8 @@ await jest.unstable_mockModule(
 )
 
 // Import the module under test after mocking dependencies
-const { getErrorsInfoWithPatterns } = await import(
-  '../../src/lib/aws/errors-info-patterns.js'
-)
+const { getErrorsInfoWithPatterns } =
+  await import('../../src/lib/aws/errors-info-patterns.js')
 
 describe('AWS Errors Info with Pattern Analytics', () => {
   beforeEach(() => {

@@ -1,4 +1,4 @@
-name: "CI: Engine"
+name: 'CI: Engine'
 
 permissions:
   contents: read
@@ -6,29 +6,29 @@ permissions:
 on:
   workflow_dispatch:
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - '.github/workflows/ci-engine.yml'
       - 'packages/engine/**'
 
 jobs:
   test-engine:
-    name: "Test: Engine"
+    name: 'Test: Engine'
     runs-on: ubuntu-latest
 
     steps:
-      - name: "Checkout Code"
+      - name: 'Checkout Code'
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      - name: "Setup: Node.js"
+      - name: 'Setup: Node.js'
         uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           node-version: 24.x
           cache: npm
 
-      - name: "Install: Dependencies"
+      - name: 'Install: Dependencies'
         run: npm ci
 
-      - name: "Test: Unit"
+      - name: 'Test: Unit'
         working-directory: packages/engine
         run: npm test

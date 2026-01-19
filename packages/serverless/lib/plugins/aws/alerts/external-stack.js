@@ -296,7 +296,7 @@ class ExternalStack {
       STAGE: this.options.stage || this.serverless.service.provider.stage,
     }
     if (
-      typeof externalStackConfig &&
+      typeof externalStackConfig === 'object' &&
       externalStackConfig.stackTags === 'object'
     ) {
       // Add custom tags specified only for this stack

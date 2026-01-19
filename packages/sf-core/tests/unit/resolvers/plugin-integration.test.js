@@ -32,9 +32,8 @@ describe('Plugin Integration', () => {
   let serverless
 
   beforeEach(async () => {
-    const module = await import(
-      '../../../../serverless/lib/classes/plugin-manager.js'
-    )
+    const module =
+      await import('../../../../serverless/lib/classes/plugin-manager.js')
     PluginManager = module.default
     serverless = {
       classes: { PluginManager },

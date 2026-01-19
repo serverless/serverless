@@ -118,7 +118,8 @@ class AwsCompileS3Events {
 
             if (
               !new RegExp(
-                this.serverless.configSchemaHandler.schema.definitions.awsS3BucketName.pattern,
+                this.serverless.configSchemaHandler.schema.definitions
+                  .awsS3BucketName.pattern,
               ).test(bucketName)
             ) {
               const errorMessage = [

@@ -40,11 +40,11 @@ custom:
 
 ### Configuration Options
 
-| Option          | Type    | Default | Description                                |
-| --------------- | ------- | ------- | ------------------------------------------ |
-| `automatic`     | boolean | `false` | Enable automatic pruning after deploy      |
+| Option          | Type    | Default | Description                                         |
+| --------------- | ------- | ------- | --------------------------------------------------- |
+| `automatic`     | boolean | `false` | Enable automatic pruning after deploy               |
 | `number`        | integer | -       | Number of versions to keep (required for automatic) |
-| `includeLayers` | boolean | `false` | Include Lambda layers in pruning           |
+| `includeLayers` | boolean | `false` | Include Lambda layers in pruning                    |
 
 ## Manual Pruning
 

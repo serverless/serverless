@@ -16,5 +16,5 @@ functions:
     #   if no key is provided, the whole object from the default export is returned
     field: ${file(foo.cjs)}
 
-   #    placeholders in JS files should not be resolved
+    #    placeholders in JS files should not be resolved
     field2: ${file(./rewrite.cjs)}

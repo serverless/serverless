@@ -27,4 +27,3 @@ It will create a new Serverless Framework Org if one doesn't already exist.
 ```bash
 serverless login
 ```
-

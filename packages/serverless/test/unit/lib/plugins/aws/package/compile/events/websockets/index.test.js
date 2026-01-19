@@ -19,18 +19,14 @@ jest.unstable_mockModule('@serverless/util', () => ({
   write: jest.fn(),
 }))
 
-const { default: Serverless } = await import(
-  '../../../../../../../../../lib/serverless.js'
-)
-const { default: AwsProvider } = await import(
-  '../../../../../../../../../lib/plugins/aws/provider.js'
-)
-const { default: AwsCompileWebsocketsEvents } = await import(
-  '../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/index.js'
-)
-const { default: pickWebsocketsTemplatePart } = await import(
-  '../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/lib/pick-websockets-template-part.js'
-)
+const { default: Serverless } =
+  await import('../../../../../../../../../lib/serverless.js')
+const { default: AwsProvider } =
+  await import('../../../../../../../../../lib/plugins/aws/provider.js')
+const { default: AwsCompileWebsocketsEvents } =
+  await import('../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/index.js')
+const { default: pickWebsocketsTemplatePart } =
+  await import('../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/lib/pick-websockets-template-part.js')
 
 describe('AwsCompileWebsocketsEvents', () => {
   let serverless

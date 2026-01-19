@@ -19,15 +19,12 @@ jest.unstable_mockModule('@serverless/util', () => ({
   write: jest.fn(),
 }))
 
-const { default: Serverless } = await import(
-  '../../../../../../../../../lib/serverless.js'
-)
-const { default: AwsProvider } = await import(
-  '../../../../../../../../../lib/plugins/aws/provider.js'
-)
-const { default: AwsCompileAlbEvents } = await import(
-  '../../../../../../../../../lib/plugins/aws/package/compile/events/alb/index.js'
-)
+const { default: Serverless } =
+  await import('../../../../../../../../../lib/serverless.js')
+const { default: AwsProvider } =
+  await import('../../../../../../../../../lib/plugins/aws/provider.js')
+const { default: AwsCompileAlbEvents } =
+  await import('../../../../../../../../../lib/plugins/aws/package/compile/events/alb/index.js')
 
 describe('AwsCompileAlbEvents', () => {
   let serverless

@@ -33,8 +33,8 @@ ID of an existing VPC to use
 
 ### Properties
 
-- **type**: 
-- **id**: 
+- **type**:
+- **id**:
 
 ### Validation Rules
 
@@ -46,7 +46,7 @@ Configuration for the SFAI AWS deployment architecture
 
 ### Properties
 
-- **type**: 
+- **type**:
 
 ### Validation Rules
 
@@ -62,8 +62,8 @@ Path to the handler function
 
 ### Properties
 
-- **type**: 
-- **handler**: 
+- **type**:
+- **handler**:
 
 ## ConfigSfaiAwsIntegrationMcpSchema
 
@@ -71,8 +71,8 @@ Path to the handler function
 
 ### Properties
 
-- **type**: 
-- **handler**: 
+- **type**:
+- **handler**:
 
 ## ConfigSfaiAwsIntegrationScheduleSchema
 
@@ -80,8 +80,8 @@ Path to the handler function
 
 ### Properties
 
-- **type**: 
-- **handler**: 
+- **type**:
+- **handler**:
 
 ## ConfigSfaiAwsIntegrationStreamSchema
 
@@ -89,8 +89,8 @@ Path to the handler function
 
 ### Properties
 
-- **type**: 
-- **handler**: 
+- **type**:
+- **handler**:
 
 ## ConfigSfaiAwsIntegrationsSchema
 
@@ -131,4 +131,3 @@ No description available
 ## ServerlessEngineDeploymentStateBase
 
 Path to the handler function
-

@@ -20,15 +20,12 @@ jest.unstable_mockModule('@serverless/util', () => ({
 }))
 
 // Import after mocking
-const { default: AwsCompileKafkaEvents } = await import(
-  '../../../../../../../../lib/plugins/aws/package/compile/events/kafka.js'
-)
-const { default: AwsProvider } = await import(
-  '../../../../../../../../lib/plugins/aws/provider.js'
-)
-const { default: Serverless } = await import(
-  '../../../../../../../../lib/serverless.js'
-)
+const { default: AwsCompileKafkaEvents } =
+  await import('../../../../../../../../lib/plugins/aws/package/compile/events/kafka.js')
+const { default: AwsProvider } =
+  await import('../../../../../../../../lib/plugins/aws/provider.js')
+const { default: Serverless } =
+  await import('../../../../../../../../lib/serverless.js')
 
 describe('AwsCompileKafkaEvents', () => {
   let serverless

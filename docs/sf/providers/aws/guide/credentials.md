@@ -48,9 +48,9 @@ We recommend using browser-based AWS Console authentication to generate short-li
 1. **Run the Login Command**
    Run the command below to authenticate with AWS:
 
-    ```
-    serverless login aws
-    ```
+   ```
+   serverless login aws
+   ```
 
 2. **Authenticate**
    Complete the sign-in flow in your browser. The CLI will automatically configure your temporary credentials.
@@ -58,9 +58,9 @@ We recommend using browser-based AWS Console authentication to generate short-li
 3. **Deploy**
    You are ready to go! Run your deploy command:
 
-    ```
-    serverless deploy
-    ```
+   ```
+   serverless deploy
+   ```
 
 > **Note:** To keep your account secure, this session expires after **12 hours**. If you see a "Your session has expired." error later, simply run `serverless login aws` to refresh your credentials.
 

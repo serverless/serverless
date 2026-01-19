@@ -1,4 +1,4 @@
-name: "CI: Python Requirements"
+name: 'CI: Python Requirements'
 
 permissions:
   id-token: write
@@ -15,39 +15,39 @@ on:
 
 jobs:
   test-python:
-    name: "Test: Python Requirements"
+    name: 'Test: Python Requirements'
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     steps:
-      - name: "Checkout Code"
+      - name: 'Checkout Code'
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      - name: "Setup: Node.js"
+      - name: 'Setup: Node.js'
         uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           node-version: 24.x
           cache: npm
 
-      - name: "Setup: AWS Credentials"
+      - name: 'Setup: AWS Credentials'
         uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
         with:
           role-to-assume: arn:aws:iam::762003938904:role/GithubActionsDeploymentRole
           aws-region: us-east-1
 
-      - name: "Setup: Python"
+      - name: 'Setup: Python'
         uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: 3.13
 
-      - name: "Install: Python Tools"
+      - name: 'Install: Python Tools'
         run: |
           python -m pip install --upgrade pip
           python -m pip install pipenv poetry uv && poetry self add poetry-plugin-export
 
-      - name: "Install: Dependencies"
+      - name: 'Install: Dependencies'
         run: npm ci
 
-      - name: "Setup: Link Framework CLI"
+      - name: 'Setup: Link Framework CLI'
         run: |
           chmod +x packages/sf-core/bin/sf-core.js
           mkdir -p .github/bin
@@ -55,7 +55,7 @@ jobs:
             "${{ github.workspace }}/.github/bin/sls"
           echo "${{ github.workspace }}/.github/bin" >> $GITHUB_PATH
 
-      - name: "Test: Python Requirements"
+      - name: 'Test: Python Requirements'
         run: |
           npm run test:python -w packages/sf-core
         env:

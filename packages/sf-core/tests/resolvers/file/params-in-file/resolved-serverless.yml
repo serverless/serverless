@@ -3,15 +3,15 @@ service: my-service
 provider:
   name: aws
   environment:
-    XXX: "default"
+    XXX: 'default'
 
 custom:
   myCustomParameterName: default
 
 params:
   default:
-    XXX: "default"
+    XXX: 'default'
   staging:
-    XXX: "staging"
+    XXX: 'staging'
   prod:
-    XXX: "prod"
+    XXX: 'prod'

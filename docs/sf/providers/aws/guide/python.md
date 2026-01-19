@@ -186,7 +186,7 @@ If you also want uv to drive the installation step (instead of invoking `python 
 ```yaml
 custom:
   pythonRequirements:
-    useUv: true   # default
+    useUv: true # default
     installer: uv
 ```
 
@@ -594,7 +594,6 @@ package:
   exclude:
     - '**'
 ```
-
 
 ## Disable the built-in packaging
 

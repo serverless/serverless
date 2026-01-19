@@ -65,7 +65,7 @@ The `handler` property points to the file and module containing the code you wan
 
 ```javascript
 // handler.js
-module.exports.functionOne = function (event, context, callback) {};
+module.exports.functionOne = function (event, context, callback) {}
 ```
 
 You can add as many functions as you want within this property.
@@ -920,10 +920,10 @@ functions:
           request:
             parameters:
               headers:
-                'My-Tenant-Id': true  # Client must send this header
+                'My-Tenant-Id': true # Client must send this header
                 'X-Amz-Tenant-Id':
-                  required: false  # Not required from client
-                  mappedValue: "method.request.header.My-Tenant-Id"
+                  required: false # Not required from client
+                  mappedValue: 'method.request.header.My-Tenant-Id'
 ```
 
 **Important notes:**
@@ -955,7 +955,7 @@ functions:
               headers:
                 'X-Amz-Tenant-Id':
                   required: false
-                  mappedValue: "context.authorizer.tenantId"  # Maps from authorizer context
+                  mappedValue: 'context.authorizer.tenantId' # Maps from authorizer context
 
   myAuthorizer:
     handler: authorizer.handler
@@ -967,23 +967,25 @@ In your authorizer function, return the tenant ID in the context:
 // authorizer.handler
 exports.handler = async (event) => {
   // Your authorization logic here
-  const tenantId = extractTenantIdFromToken(event.authorizationToken);
+  const tenantId = extractTenantIdFromToken(event.authorizationToken)
 
   return {
     principalId: 'user123',
     policyDocument: {
       Version: '2012-10-17',
-      Statement: [{
-        Action: 'execute-api:Invoke',
-        Effect: 'Allow',
-        Resource: event.methodArn
-      }]
+      Statement: [
+        {
+          Action: 'execute-api:Invoke',
+          Effect: 'Allow',
+          Resource: event.methodArn,
+        },
+      ],
     },
     context: {
-      tenantId: tenantId  // This can be mapped to X-Amz-Tenant-Id
-    }
-  };
-};
+      tenantId: tenantId, // This can be mapped to X-Amz-Tenant-Id
+    },
+  }
+}
 ```
 
 See the [API Gateway documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-lambda-authorizer-output.html) for more details on Lambda authorizer output format.

@@ -1280,8 +1280,10 @@ const copyOutEdgesRecursively = (newGraph, originalGraph, nodeId) => {
 const extractCliParams = (paramsFromOptions) => {
   const cliParams = {}
   paramsFromOptions?.forEach((paramString) => {
-    const [key, value] = paramString?.split('=')
-    cliParams[key] = value
+    const [key, value] = paramString?.split('=') ?? []
+    if (key) {
+      cliParams[key] = value
+    }
   })
   return cliParams
 }

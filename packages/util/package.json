@@ -4,10 +4,10 @@
   "description": "Reusable utility functions for frameworks",
   "main": "index.js",
   "type": "module",
-  "prettier": "@serverlessinc/standards",
   "scripts": {
-    "prettier": "prettier -c .",
-    "prettier:fix": "prettier \"src/**/*\" --write"
+    "lint": "eslint",
+    "prettier": "prettier -c . --ignore-path ../../.prettierignore",
+    "prettier:fix": "prettier -w . --ignore-path ../../.prettierignore"
   },
   "author": "Serverless Inc.",
   "dependencies": {

@@ -961,7 +961,9 @@ class AwsDev {
           })}`,
         )
       }
-    } catch (e) {}
+    } catch (e) {
+      // Ignore errors when failing to log function events in dev mode
+    }
   }
 
   /**
@@ -990,7 +992,9 @@ class AwsDev {
           })}`,
         )
       }
-    } catch (e) {}
+    } catch (e) {
+      // Ignore errors when failing to log function responses in dev mode
+    }
   }
 }
 

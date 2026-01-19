@@ -10,6 +10,7 @@ Welcome, and thanks in advance for your help!
 ## Getting Started
 
 1. Fork the repository on GitHub, then clone your fork:
+
    ```bash
    git clone https://github.com/<your-username>/serverless.git
    cd serverless
@@ -51,6 +52,7 @@ Our documentation lives in the [docs](docs) directory. See a typo or improvement
 ## Providing Support
 
 Help the community by:
+
 - Replying to [issues on GitHub](https://github.com/serverless/serverless/issues)
 - Chatting in [our Community Slack](https://www.serverless.com/slack)
 - Answering questions in [GitHub Discussions](https://github.com/serverless/serverless/discussions)
