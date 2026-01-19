@@ -107,9 +107,12 @@ const ConfigContainerAwsFargateEcsScaleSchemaMin = z
   .object({
     type: z.literal('min'),
     min: z.number({
-      required_error:
-        'A scaling object with key "min" must have a number value',
-      invalid_type_error: '"min" must be a number',
+      error: (issue) => {
+        if (issue.input === undefined) {
+          return 'A scaling object with key "min" must have a number value'
+        }
+        return '"min" must be a number'
+      },
     }),
   })
   .strict()
@@ -124,9 +127,12 @@ const ConfigContainerAwsFargateEcsScaleSchemaMax = z
   .object({
     type: z.literal('max'),
     max: z.number({
-      required_error:
-        'A scaling object with key "max" must have a number value',
-      invalid_type_error: '"max" must be a number',
+      error: (issue) => {
+        if (issue.input === undefined) {
+          return 'A scaling object with key "max" must have a number value'
+        }
+        return '"max" must be a number'
+      },
     }),
   })
   .strict()
@@ -242,10 +248,12 @@ const ConfigContainerAwsFargateEcsScaleSchemaTarget = z
     type: z.literal('target'),
     target: z
       .enum(['cpu', 'memory', 'albRequestsPerTarget'], {
-        required_error:
-          'A scaling object with key "target" must have a value of "cpu", "memory", or "albRequestsPerTarget"',
-        invalid_type_error:
-          '"target" must be either "cpu", "memory", or "albRequestsPerTarget"',
+        error: (issue) => {
+          if (issue.input === undefined) {
+            return 'A scaling object with key "target" must have a value of "cpu", "memory", or "albRequestsPerTarget"'
+          }
+          return '"target" must be either "cpu", "memory", or "albRequestsPerTarget"'
+        },
       })
       .describe('Specifies whether scaling is targeting CPU or memory'),
     value: z
@@ -292,9 +300,12 @@ const ConfigContainerAwsFargateEcsScaleSchemaDesired = z
     type: z.literal('desired'),
     desired: z
       .number({
-        required_error:
-          'A scaling object with key "desired" must have a number value',
-        invalid_type_error: '"desired" must be a number',
+        error: (issue) => {
+          if (issue.input === undefined) {
+            return 'A scaling object with key "desired" must have a number value'
+          }
+          return '"desired" must be a number'
+        },
       })
       .default(5),
   })
