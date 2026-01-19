@@ -52,7 +52,7 @@ Resources:
       Handler: index.handler
       MemorySize: 1024
       Role: !GetAtt Role.Arn
-      Runtime: nodejs20.x
+      Runtime: nodejs22.x
       Timeout: 5
       Environment:
         Variables:

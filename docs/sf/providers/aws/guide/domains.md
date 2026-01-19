@@ -29,7 +29,7 @@ service: my-service
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   domain: api.example.com
 
 functions:
@@ -62,7 +62,7 @@ service: my-service
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   domain: api.example.com
 
 functions:
@@ -88,7 +88,7 @@ params:
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   domain: ${param:domain}
 
 functions:
@@ -108,7 +108,7 @@ service: my-service
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   domains:
     - api.example.com
     - api-v2.example.com
@@ -128,7 +128,7 @@ functions:
 service: your-service
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   domain:
     name: api.example.com
     basePath: v1
@@ -223,7 +223,7 @@ Below are all available configuration options for custom domains:
 ```yaml
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   domain:
     name: api.example.com
     basePath: v1
@@ -378,7 +378,7 @@ service: my-service
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   domains:
     - name: api.example.com
       apiType: httpApi
@@ -451,7 +451,7 @@ service: my-service
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   domain:
     name: api.example.com
     certificateArn: arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012
@@ -495,7 +495,7 @@ After deploying your service, you'll need to create DNS records in your registra
 ```yaml
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   domains:
     - name: api.example.com
       certificateArn: arn:aws:acm:us-east-1:123456789012:certificate/api-cert-12345

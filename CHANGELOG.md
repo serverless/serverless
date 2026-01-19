@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.39.0](https://github.com/serverless/serverless/compare/v3.37.0...v3.38.0) (2023-11-21)
+
+### Features
+
+- Add support for provided.al2023 runtime ([#12263](https://github.com/serverless/serverless/issues/12263)) ([6cdf14e](https://github.com/serverless/serverless/commit/6cdf14e7a81016a69c18d7a1fa6ba293cc3b2a6b))
+
 ## [3.38.0](https://github.com/serverless/serverless/compare/v3.37.0...v3.38.0) (2023-11-21)
 
 ### Features
@@ -12,7 +18,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Features
 
-- Add support for nodejs20.x runtime ([#12251](https://github.com/serverless/serverless/issues/12251)) ([f3f0af8](https://github.com/serverless/serverless/commit/f3f0af85f0783451b7fdf9216d9ab8536853fa46))
+- Add support for nodejs22.x runtime ([#12251](https://github.com/serverless/serverless/issues/12251)) ([f3f0af8](https://github.com/serverless/serverless/commit/f3f0af85f0783451b7fdf9216d9ab8536853fa46))
 
 ### Bug Fixes
 

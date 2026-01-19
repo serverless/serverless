@@ -2,7 +2,7 @@ service: sam-integration-tests-framework
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   stackName: sam-integration-tests-sam-compose-state-framework-${env:STACK_RANDOM_ID}
   iam:
     role:

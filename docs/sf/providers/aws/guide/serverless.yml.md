@@ -218,7 +218,7 @@ Some AWS Lambda function settings can be defined for all functions inside the `p
 
 provider:
   # AWS Lambda runtime for all AWS Lambda functions within the Service. Optional.
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   # Set how Lambda controls all functions runtime. AWS default is auto; this can either be 'auto' or 'onFunctionUpdate'. For 'manual', see example in hello function below (syntax for both is identical. Optional.
   runtimeManagement: auto
   # Default memory size for functions. Optional. (default: 1024MB).

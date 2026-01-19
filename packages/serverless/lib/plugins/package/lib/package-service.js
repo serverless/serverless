@@ -27,7 +27,7 @@ export default {
   },
 
   getRuntime(runtime) {
-    const defaultRuntime = 'nodejs20.x'
+    const defaultRuntime = 'nodejs22.x'
     return runtime || this.serverless.service.provider.runtime || defaultRuntime
   },
 

@@ -301,7 +301,7 @@ describe('AwsCompileLayers', () => {
       serverless.service.layers = {
         testLayer: {
           path: 'layer',
-          compatibleRuntimes: ['nodejs18.x', 'nodejs20.x'],
+          compatibleRuntimes: ['nodejs18.x', 'nodejs20.x', 'nodejs22.x'],
         },
       }
 
@@ -311,7 +311,7 @@ describe('AwsCompileLayers', () => {
         serverless.service.provider.compiledCloudFormationTemplate.Resources
       expect(
         resources.TestLayerLambdaLayer.Properties.CompatibleRuntimes,
-      ).toEqual(['nodejs18.x', 'nodejs20.x'])
+      ).toEqual(['nodejs18.x', 'nodejs20.x', 'nodejs22.x'])
     })
 
     it('should support layers[].compatibleArchitectures', async () => {

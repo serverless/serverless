@@ -138,7 +138,7 @@ licenseKey: ${vault:secret/serverless-framework/license-key}
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
 
 functions:
   hello:

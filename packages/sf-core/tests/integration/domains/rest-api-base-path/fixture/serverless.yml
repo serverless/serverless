@@ -2,7 +2,7 @@ service: domains-rest-api-base-path
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   domain:
     name: rest-api-base-path.sls-domains-tests.click
     apiType: rest

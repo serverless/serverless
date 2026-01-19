@@ -274,7 +274,7 @@ class AwsDev {
    * Updates the serverless service configuration with dev mode config needed for the shim to work. Specifically:
    *   1. Update all AWS Lambda functions' IAM roles to allow all IoT actions.
    *   2. Update all AWS Lambad function's handler to 'index.handler' as set in the shim
-   *   3. Update all AWS Lambda functions' runtime to 'nodejs20.x' as expected by the shim
+   *   3. Update all AWS Lambda functions' runtime to 'nodejs22.x' as expected by the shim
    *   4. Update all AWS Lambda functions' environment variables to include the IoT endpoint and a function identifier.
    *
    * This method also backs up the original IAM configuration and function configurations to allow for later restoration.
@@ -332,7 +332,7 @@ class AwsDev {
       const functionRuntime =
         functionConfig.runtime ||
         this.serverless.service.provider.runtime ||
-        'nodejs20.x'
+        'nodejs22.x'
 
       return !functionRuntime.startsWith('nodejs')
     })
@@ -355,7 +355,7 @@ class AwsDev {
       const functionRuntime =
         functionConfig.runtime ||
         this.serverless.service.provider.runtime ||
-        'nodejs20.x'
+        'nodejs22.x'
 
       if (functionRuntime.startsWith('nodejs')) {
         if (localRuntime !== functionRuntime) {
@@ -385,7 +385,7 @@ class AwsDev {
       functionConfig.originalHandler = functionConfig.handler
 
       functionConfig.handler = 'index.handler'
-      functionConfig.runtime = 'nodejs20.x'
+      functionConfig.runtime = 'nodejs22.x'
 
       functionConfig.environment = functionConfig.environment || {}
 

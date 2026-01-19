@@ -583,7 +583,7 @@ class AwsProvider {
               'nodejs14.x',
               'nodejs16.x',
               'nodejs18.x',
-              'nodejs20.x',
+              'nodejs22.x',
               'nodejs22.x',
               'nodejs24.x',
               'provided',
@@ -2255,7 +2255,7 @@ class AwsProvider {
   }
 
   getRuntime(runtime) {
-    const defaultRuntime = 'nodejs20.x'
+    const defaultRuntime = 'nodejs22.x'
     const runtimeSourceValue = this.getRuntimeSourceValue()
     return runtime || runtimeSourceValue.value || defaultRuntime
   }

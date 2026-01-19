@@ -3,7 +3,7 @@ service: legacy-bucket-cs-cli
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   deploymentMethod: changesets
 
 functions:

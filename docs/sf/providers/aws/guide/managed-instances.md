@@ -75,7 +75,7 @@ service: my-service
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   vpc:
     subnetIds:
       - subnet-12345678

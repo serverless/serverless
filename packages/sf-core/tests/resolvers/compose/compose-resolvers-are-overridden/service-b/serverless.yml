@@ -4,7 +4,7 @@ frameworkVersion: '4'
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   lambdaHashingVersion: 20201221
 
 functions:

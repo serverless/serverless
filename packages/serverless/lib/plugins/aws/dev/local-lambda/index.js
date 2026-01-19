@@ -31,7 +31,7 @@ if (__dirname.endsWith('dist')) {
  * @example
  * const config = {
  *   handler: 'index.handler',
- *   runtime: 'nodejs20.x',
+ *   runtime: 'nodejs22.x',
  *   environment: { FOO: 'BAR' },
  *   serviceAbsolutePath: '~/path/to/service'
  * };
@@ -297,7 +297,7 @@ const runtimeWrappers = [
       'nodejs14.x',
       'nodejs16.x',
       'nodejs18.x',
-      'nodejs20.x',
+      'nodejs22.x',
       'nodejs22.x',
       'nodejs24.x',
     ],

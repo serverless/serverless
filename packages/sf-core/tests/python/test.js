@@ -1887,7 +1887,7 @@ test('poetry py3.13 fails packaging if poetry.lock is missing and flag requirePo
 
 test('works with provider.runtime not being python', async (t) => {
   process.chdir('tests/base')
-  sls(['package'], { env: { runtime: 'nodejs20.x' } })
+  sls(['package'], { env: { runtime: 'nodejs22.x' } })
   t.true(
     pathExistsSync('.serverless/sls-py-req-test.zip'),
     'sls-py-req-test is packaged',
