@@ -105,10 +105,13 @@ class AwsDev {
     mainProgress.notice('Connecting')
 
     // TODO: This should be applied more selectively
+    // usePolling is enabled because chokidar v4 removed fsevents support,
+    // causing "EMFILE: too many open files" errors on macOS with large projects
     chokidar
       .watch(this.serverless.config.serviceDir, {
         ignored: /\.serverless/,
         ignoreInitial: true,
+        usePolling: true,
       })
       .on('all', async (event, path) => {
         await this.serverless.pluginManager.spawn('dev-build')
@@ -751,12 +754,16 @@ class AwsDev {
       this.serverless.configurationFilename,
     )
 
-    chokidar.watch(configFilePath).on('change', (event, path) => {
-      logger.warning(
-        `If you've made infrastructure changes, restart the dev command w/ "serverless dev"`,
-      )
-      logger.blankLine()
-    })
+    chokidar
+      .watch(configFilePath, {
+        usePolling: true,
+      })
+      .on('change', (event, path) => {
+        logger.warning(
+          `If you've made infrastructure changes, restart the dev command w/ "serverless dev"`,
+        )
+        logger.blankLine()
+      })
   }
 
   /**
