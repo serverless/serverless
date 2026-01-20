@@ -262,6 +262,17 @@ provider:
 
 The log streams will be generated in a dedicated log group which follows the naming schema `/aws/websocket/{service}-{stage}`.
 
+You can specify an existing external log group by using the `logGroup` property. When set, Serverless Framework will not create a log group and will instead use the specified log group which must already exist:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    websocket:
+      logGroup: /my-existing-log-group/websocket
+```
+
 The default log level will be INFO. You can change this to error with the following:
 
 ```yml
@@ -298,7 +309,7 @@ provider:
       executionLogging: false
 ```
 
-By default, the full requests and responses data will be logged. If you want to disable like so:
+By default, the full requests and responses data will be logged (also known as "Data tracing" in the AWS console). This setting follows `executionLogging` by default: when `executionLogging` is disabled, `fullExecutionData` is also automatically disabled. If you want to explicitly control it:
 
 ```yml
 # serverless.yml

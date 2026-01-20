@@ -659,7 +659,8 @@ provider:
       applicationLogLevel: ERROR
       # The System Log Level to be used, This can only be set if `logFormat` is set to `JSON`
       systemLogLevel: INFO
-      # The LogGroup that will be used by default. If this is set the Framework will not create LogGroups for any functions
+      # Existing external log group to use. If set, the Framework will not create log groups for functions.
+      # The log group must already exist.
       logGroup: /aws/lambda/global-log-group
 
     # Enable HTTP API logs
@@ -667,6 +668,9 @@ provider:
     # Can only be configured if the API is created by Serverless Framework
     httpApi:
       format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
+      # Existing external log group to use. If set, the Framework will not create a log group.
+      # The log group must already exist. (default: /aws/http-api/{stack-name})
+      logGroup: /my-existing-log-group/http-api
 
     # Enable REST API logs
     # This can either be set to `restApi: true` to use defaults, or configured via subproperties
@@ -680,8 +684,11 @@ provider:
       executionLogging: true
       # Log level to use for execution logging: INFO or ERROR
       level: INFO
-      # Log full requests/responses for execution logging (default: true)
+      # Log full requests/responses for execution logging, also known as "Data tracing" in AWS console (default: follows executionLogging)
       fullExecutionData: true
+      # Existing external log group to use. If set, the Framework will not create a log group.
+      # The log group must already exist. (default: /aws/api-gateway/{service}-{stage})
+      logGroup: /my-existing-log-group/rest-api
       # Existing IAM role to use for API Gateway when writing CloudWatch Logs (default: automatically created)
       role: arn:aws:iam::123456:role
       # Whether the API Gateway CloudWatch Logs role setting is not managed by Serverless (default: false)
@@ -698,8 +705,11 @@ provider:
       executionLogging: true
       # Log level to use for execution logging: INFO or ERROR
       level: INFO
-      # Log full requests/responses for execution logging (default: true)
+      # Log full requests/responses for execution logging, also known as "Data tracing" in AWS console (default: follows executionLogging)
       fullExecutionData: true
+      # Existing external log group to use. If set, the Framework will not create a log group.
+      # The log group must already exist. (default: /aws/websocket/{service}-{stage})
+      logGroup: /my-existing-log-group/websocket
 
     # Optional, whether to write CloudWatch logs for custom resource lambdas as added by the framework. Default is true.
     frameworkLambda: false

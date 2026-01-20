@@ -303,6 +303,15 @@ provider:
       format: '{ "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime" }'
 ```
 
+By default, the log group name follows the naming schema `/aws/http-api/{stack-name}`. You can specify an existing external log group by using the `logGroup` property. When set, Serverless Framework will not create a log group and will instead use the specified log group which must already exist:
+
+```yaml
+provider:
+  logs:
+    httpApi:
+      logGroup: /my-existing-log-group/http-api
+```
+
 See [AWS HTTP API Logging](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-logging-variables.html) documentation for more info on variables that can be used
 
 ### Reusing HTTP API in different services

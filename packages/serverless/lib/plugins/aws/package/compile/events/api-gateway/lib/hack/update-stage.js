@@ -314,7 +314,7 @@ function handleLogs() {
     }
 
     const fullExecutionData =
-      logs.fullExecutionData == null ? true : logs.fullExecutionData
+      logs.fullExecutionData == null ? executionLogging : logs.fullExecutionData
     operations.push({
       op: 'replace',
       path: '/*/*/logging/dataTrace',
