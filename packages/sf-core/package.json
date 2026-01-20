@@ -32,7 +32,6 @@
     "url": "git+https://github.com/serverless/serverless.git"
   },
   "author": "Serverless Inc.",
-  "license": "ISC",
   "devDependencies": {
     "@aws-sdk/client-iot": "3.966.0",
     "@aws-sdk/client-lambda": "3.966.0",
