@@ -158,10 +158,6 @@ class HttpApiEvents {
   compileLogGroup() {
     if (!this.config.accessLogFormat) return
 
-    // Skip creating the log group if a custom logGroup is specified
-    // When logGroup is specified, it references an existing external log group
-    if (this.config.logGroup) return
-
     const resource = {
       Type: 'AWS::Logs::LogGroup',
       Properties: {
@@ -205,28 +201,16 @@ class HttpApiEvents {
       Properties: properties,
     })
     if (this.config.accessLogFormat) {
-      if (this.config.logGroup) {
-        // Use the external log group ARN directly
-        properties.AccessLogSettings = {
-          DestinationArn: {
-            'Fn::Sub':
-              'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:' +
-              this.config.logGroup,
-          },
-          Format: this.config.accessLogFormat,
-        }
-      } else {
-        properties.AccessLogSettings = {
-          DestinationArn: {
-            'Fn::GetAtt': [
-              this.provider.naming.getHttpApiLogGroupLogicalId(),
-              'Arn',
-            ],
-          },
-          Format: this.config.accessLogFormat,
-        }
-        resource.DependsOn = this.provider.naming.getHttpApiLogGroupLogicalId()
+      properties.AccessLogSettings = {
+        DestinationArn: {
+          'Fn::GetAtt': [
+            this.provider.naming.getHttpApiLogGroupLogicalId(),
+            'Arn',
+          ],
+        },
+        Format: this.config.accessLogFormat,
       }
+      resource.DependsOn = this.provider.naming.getHttpApiLogGroupLogicalId()
     }
     this.cfTemplate.Outputs.HttpApiId = {
       Description: 'Id of the HTTP API',

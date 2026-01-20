@@ -52,9 +52,7 @@ export default {
       const executionLogging =
         logs.executionLogging == null ? true : logs.executionLogging
       const fullExecutionData =
-        logs.fullExecutionData == null
-          ? executionLogging
-          : logs.fullExecutionData
+        logs.fullExecutionData == null ? true : logs.fullExecutionData
 
       let logFormat = defaultLogFormat
       if (logs.format) {
@@ -84,36 +82,18 @@ export default {
         },
       }
       if (accessLogging) {
-        if (logs.logGroup) {
-          // Use the external log group ARN directly
-          logProperties.AccessLogSettings = {
-            DestinationArn: {
-              'Fn::Sub': `arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:${logs.logGroup}`,
-            },
-            Format: logFormat,
-          }
-        } else {
-          logProperties.AccessLogSettings = {
-            DestinationArn: {
-              'Fn::Sub': `arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:\${${logGroupLogicalId}}`,
-            },
-            Format: logFormat,
-          }
+        logProperties.AccessLogSettings = {
+          DestinationArn: {
+            'Fn::Sub': `arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:\${${logGroupLogicalId}}`,
+          },
+          Format: logFormat,
         }
       }
       Object.assign(stageResource.Properties, logProperties)
 
-      // Only create the log group if a custom logGroup is not specified
-      // When logGroup is specified, it references an existing external log group
-      if (!logs.logGroup) {
-        Object.assign(cfTemplate.Resources, {
-          [logGroupLogicalId]: getLogGroupResource(
-            service,
-            stage,
-            this.provider,
-          ),
-        })
-      }
+      Object.assign(cfTemplate.Resources, {
+        [logGroupLogicalId]: getLogGroupResource(service, stage, this.provider),
+      })
 
       return ensureApiGatewayCloudWatchRole(this.provider)
     })

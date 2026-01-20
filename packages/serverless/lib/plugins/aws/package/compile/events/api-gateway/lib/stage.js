@@ -80,17 +80,13 @@ export default {
         // });
         // --------------------------------------------------------------------------------
 
-        // Only create the log group if a custom logGroup is not specified
-        // When logGroup is specified, it references an existing external log group
-        if (!logs.logGroup) {
-          _.merge(cfTemplate.Resources, {
-            [logGroupLogicalId]: getLogGroupResource(
-              service,
-              stage,
-              this.provider,
-            ),
-          })
-        }
+        _.merge(cfTemplate.Resources, {
+          [logGroupLogicalId]: getLogGroupResource(
+            service,
+            stage,
+            this.provider,
+          ),
+        })
 
         return ensureApiGatewayCloudWatchRole(this.provider)
       }
