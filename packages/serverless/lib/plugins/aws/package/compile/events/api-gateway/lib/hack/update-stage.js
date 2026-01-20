@@ -270,7 +270,8 @@ function handleLogs() {
     const stage = this.provider.getApiGatewayStage()
     const region = this.options.region
     const partition = this.partition
-    const logGroupName = `/aws/api-gateway/${service}-${stage}`
+    const logGroupName =
+      logs.logGroup || `/aws/api-gateway/${service}-${stage}`
 
     operations = []
 
@@ -402,9 +403,11 @@ async function removeAccessLoggingLogGroup() {
   const service = this.state.service.service
   const provider = this.state.service.provider
   const stage = this.provider.getApiGatewayStage()
-  const logGroupName = `/aws/api-gateway/${service}-${stage}`
+  const logs = provider.logs && provider.logs.restApi
+  const logGroupName =
+    (logs && logs.logGroup) || `/aws/api-gateway/${service}-${stage}`
 
-  let accessLogging = provider.logs && provider.logs.restApi
+  let accessLogging = logs
 
   if (accessLogging) {
     accessLogging =
