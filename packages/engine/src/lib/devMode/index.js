@@ -903,6 +903,9 @@ export class ServerlessEngineDevMode {
       },
       ignoreInitial: true,
       followSymlinks: false,
+      // usePolling is enabled because chokidar v4 removed fsevents support,
+      // causing "EMFILE: too many open files" errors on macOS with large projects
+      usePolling: true,
       // Add debounce to prevent rapid-fire events
       awaitWriteFinish: {
         stabilityThreshold: 300,
