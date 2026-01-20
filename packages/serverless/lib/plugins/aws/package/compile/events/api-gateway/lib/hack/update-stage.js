@@ -270,8 +270,7 @@ function handleLogs() {
     const stage = this.provider.getApiGatewayStage()
     const region = this.options.region
     const partition = this.partition
-    const logGroupName =
-      logs.logGroup || `/aws/api-gateway/${service}-${stage}`
+    const logGroupName = logs.logGroup || `/aws/api-gateway/${service}-${stage}`
 
     operations = []
 
