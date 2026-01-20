@@ -1,9 +1,23 @@
+/**
+ * __SF_CORE_VERSION__ is injected at build time by esbuild (see packages/sf-core/esbuild.js).
+ * It contains the framework version and is used to set a custom User-Agent for AWS API requests.
+ */
+/* global __SF_CORE_VERSION__ */
 import fs from 'fs'
 import { addProxyToClient as baseAddProxyToClient } from 'aws-sdk-v3-proxy'
 import { log } from '../logger/index.js'
 import { shouldBypassProxy } from './index.js'
 
 const logger = log.get('utils:proxy:aws')
+
+/**
+ * Custom user agent to identify Serverless Framework requests in AWS.
+ * Only set when running from the bundled distribution (when __SF_CORE_VERSION__ is defined).
+ */
+const customUserAgent =
+  typeof __SF_CORE_VERSION__ !== 'undefined'
+    ? [['serverless-framework', __SF_CORE_VERSION__]]
+    : undefined
 
 /**
  * Check if AWS service endpoints would bypass the proxy based on NO_PROXY
@@ -161,6 +175,13 @@ function buildProxyOptionsFromEnv(overrides = {}) {
  * @returns {T} The same client, enhanced with proxy support if applicable
  */
 export function addProxyToAwsClient(client, options = {}) {
+  // Add custom user-agent to identify Serverless Framework requests
+  // This can be set after client creation because the user-agent middleware
+  // reads from client.config at request time, not at client creation time
+  if (customUserAgent) {
+    client.config.customUserAgent = customUserAgent
+  }
+
   // Check if AWS endpoints should bypass the proxy based on NO_PROXY
   // Note: shouldBypassProxy only returns true when NO_PROXY patterns actually match,
   // not when there's simply no proxy configured
