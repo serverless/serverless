@@ -8,7 +8,6 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC",
   "bin": {
     "serverless": "./dist/sf-core.js",
     "sls": "./dist/sf-core.js"
