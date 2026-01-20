@@ -286,7 +286,9 @@ provider:
       format: '{ "requestId":"$context.requestId",   "ip": "$context.identity.sourceIp" }'
 ```
 
-The existence of the `logs` property enables both access and execution logging. If you want to disable one or both of them, you can do so with the following:
+**Note:** If `logs.websocket` is not set at all, WebSocket API logging will be disabled.
+
+When `logs.websocket` is set (either to `true` or as an object), both access and execution logging are enabled by default. If you want to disable one or both of them, you can do so with the following:
 
 ```yml
 # serverless.yml

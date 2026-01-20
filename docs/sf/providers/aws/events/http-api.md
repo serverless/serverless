@@ -271,6 +271,8 @@ functions:
 
 ### Access logs
 
+**Note:** If `logs.httpApi` is not set at all, HTTP API logging will be disabled.
+
 Deployed stage can have access logging enabled, for that just turn on logs for HTTP API in provider settings as follows:
 
 ```yaml

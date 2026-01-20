@@ -665,12 +665,14 @@ provider:
     # Enable HTTP API logs
     # This can either be set to `httpApi: true` to use defaults, or configured via subproperties
     # Can only be configured if the API is created by Serverless Framework
+    # Note: If this property is not set, HTTP API logging will be disabled
     httpApi:
       format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
 
     # Enable REST API logs
     # This can either be set to `restApi: true` to use defaults, or configured via subproperties
     # Can only be configured if the API is created by Serverless Framework
+    # Note: If this property is not set, API Gateway logging will be disabled
     restApi:
       # Enables HTTP access logs (default: true)
       accessLogging: true
@@ -689,6 +691,7 @@ provider:
 
     # Enable Websocket API logs
     # This can either be set to `websocket: true` to use defaults, or configured via subproperties.
+    # Note: If this property is not set, WebSocket API logging will be disabled
     websocket:
       # Enables HTTP access logs (default: true)
       accessLogging: true
