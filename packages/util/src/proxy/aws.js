@@ -162,17 +162,14 @@ function buildProxyOptionsFromEnv(overrides = {}) {
 }
 
 /**
- * Adds proxy (and optional CA/cafile) support to an AWS SDK v3 client using aws-sdk-v3-proxy,
- * while honoring additional environment variables:
- * - proxy, HTTP_PROXY, http_proxy, HTTPS_PROXY, https_proxy
- * - NO_PROXY, no_proxy (bypasses proxy for matching hosts)
- * - ca, HTTPS_CA, https_ca (PEM content)
- * - cafile, HTTPS_CAFILE, https_cafile (path to PEM file)
+ * Augments an AWS SDK v3 client with proxy support and optional CA configuration derived from environment variables or explicit overrides.
+ *
+ * Honors environment-driven proxy configuration (HTTP_PROXY/HTTPS_PROXY/HTTP/HTTPS proxy, generic proxy), CA/cafile values, NO_PROXY/no_proxy bypass rules, and applies a build-time custom User-Agent when available.
  *
  * @template T
- * @param {T} client - An instance of an AWS SDK v3 client
- * @param {object} [options] - Optional overrides passed to aws-sdk-v3-proxy
- * @returns {T} The same client, enhanced with proxy support if applicable
+ * @param {T} client - An AWS SDK v3 client instance to enhance.
+ * @param {object} [options] - Overrides for proxy behavior passed to aws-sdk-v3-proxy.
+ * @returns {T} The same client instance, enhanced to use the configured proxy and TLS options when applicable. 
  */
 export function addProxyToAwsClient(client, options = {}) {
   // Add custom user-agent to identify Serverless Framework requests
