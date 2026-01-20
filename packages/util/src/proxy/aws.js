@@ -169,7 +169,7 @@ function buildProxyOptionsFromEnv(overrides = {}) {
  * @template T
  * @param {T} client - An AWS SDK v3 client instance to enhance.
  * @param {object} [options] - Overrides for proxy behavior passed to aws-sdk-v3-proxy.
- * @returns {T} The same client instance, enhanced to use the configured proxy and TLS options when applicable. 
+ * @returns {T} The same client instance, enhanced to use the configured proxy and TLS options when applicable.
  */
 export function addProxyToAwsClient(client, options = {}) {
   // Add custom user-agent to identify Serverless Framework requests
