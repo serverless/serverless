@@ -177,10 +177,50 @@ export default {
       .filter(Boolean)
   },
 
+  /**
+   * Get artifact file paths for agents that use code deployment
+   */
+  getAgentArtifactFilePaths() {
+    const agents =
+      this.serverless.service.agents ||
+      this.serverless.configurationInput?.agents ||
+      {}
+
+    return Object.entries(agents)
+      .filter(([, config]) => {
+        // Only runtime agents with code deployment
+        if (config.type !== 'runtime') return false
+
+        const artifact = config.artifact || {}
+
+        // Skip if using container image or Docker build
+        if (artifact.containerImage || artifact.docker) return false
+
+        // Skip if user specified their own S3 bucket
+        if (artifact.s3?.bucket) return false
+
+        // Need entryPoint for code deployment
+        if (!artifact.entryPoint) return false
+
+        // Must have a package artifact (set during packaging)
+        if (!config.package?.artifact) return false
+
+        return true
+      })
+      .map(([name, config]) => {
+        const artifactPath = path.resolve(
+          this.serverless.serviceDir,
+          config.package.artifact,
+        )
+        return artifactPath
+      })
+  },
+
   async uploadFunctionsAndLayers() {
     const artifactFilePaths = [
       ...(await this.getFunctionArtifactFilePaths()),
       ...this.getLayerArtifactFilePaths(),
+      ...this.getAgentArtifactFilePaths(),
     ]
 
     const shouldReportDetailedProgress = artifactFilePaths.length > 1

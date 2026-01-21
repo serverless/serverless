@@ -67,6 +67,7 @@ import pluginAwsDomains from '../plugins/aws/domains/index.js'
 import pluginAxiom from '../plugins/observability/axiom/index.js'
 import pluginPythonRequirements from '../plugins/python/index.js'
 import pluginAwsAppsync from '../plugins/aws/appsync/index.js'
+import pluginAwsBedrockAgentcore from '../plugins/aws/bedrock-agentcore/index.js'
 import pluginPrune from '../plugins/prune/index.js'
 import { createRequire } from 'module'
 
@@ -131,6 +132,7 @@ const internalPlugins = [
   pluginAwsDomains,
   pluginPythonRequirements,
   pluginAwsAppsync,
+  pluginAwsBedrockAgentcore,
   pluginPrune,
 ]
 

@@ -1,0 +1,94 @@
+# Browser and Code Interpreter Example
+# Demonstrates Browser and CodeInterpreter resource configurations
+
+service: browser-code-interpreter
+
+provider:
+  name: aws
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+
+custom:
+  agentCore:
+    defaultTags:
+      Project: BrowserCodeInterpreter
+      Environment: ${self:provider.stage}
+
+agents:
+  # Browser with Public Network Access
+  # Use for general web browsing and scraping
+  publicBrowser:
+    type: browser
+    description: Browser with public internet access
+    network:
+      networkMode: PUBLIC
+    signing:
+      enabled: false
+    tags:
+      Purpose: WebScraping
+
+  # Browser with Session Recording
+  # Records browser sessions to S3 for debugging/auditing
+  recordingBrowser:
+    type: browser
+    description: Browser with session recording enabled
+    network:
+      networkMode: PUBLIC
+    signing:
+      enabled: true
+    recording:
+      enabled: true
+      s3Location:
+        bucket: ${self:service}-recordings-${self:provider.stage}
+        prefix: browser-sessions/
+
+  # Code Interpreter with Sandbox Network
+  # Most secure option - completely isolated execution
+  sandboxCodeInterpreter:
+    type: codeInterpreter
+    description: Sandboxed Python execution environment
+    network:
+      networkMode: SANDBOX
+    tags:
+      SecurityLevel: Maximum
+
+  # Code Interpreter with Public Network
+  # Use when code needs to access external APIs
+  publicCodeInterpreter:
+    type: codeInterpreter
+    description: Python execution with internet access
+    network:
+      networkMode: PUBLIC
+    tags:
+      SecurityLevel: Standard
+
+  # Code Interpreter with VPC Network
+  # Use when code needs access to private resources
+  vpcCodeInterpreter:
+    type: codeInterpreter
+    description: Python execution in VPC
+    network:
+      networkMode: VPC
+      vpcConfig:
+        subnets:
+          - subnet-12345678
+          - subnet-87654321
+        securityGroups:
+          - sg-12345678
+
+  # Combined: Runtime that uses Browser and Code Interpreter
+  researchAgent:
+    type: runtime
+    description: Agent that combines browser and code execution
+    artifact:
+      docker:
+        path: .
+        file: Dockerfile
+        repository: browser-code-interpreter
+    protocol: HTTP
+    network:
+      networkMode: PUBLIC
+    requestHeaders:
+      allowlist:
+        - X-Amzn-Bedrock-AgentCore-Runtime-Custom-Research-Id
+        - X-Amzn-Bedrock-AgentCore-Runtime-Custom-User-Id

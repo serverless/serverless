@@ -137,6 +137,8 @@ class DockerClient {
    * @param {Object} [params.buildArgs={}] - Build arguments to pass to Docker
    * @param {string|Array<string>} [params.buildOptions=[]] - Additional Docker build flags (e.g. '--target production')
    * @param {string|null} [params.aiFramework=null] - AI framework detected in the project
+   * @param {string} [params.platform='linux/amd64'] - Target platform for the image (e.g. 'linux/amd64', 'linux/arm64')
+   * @param {string} [params.builder] - Buildpacks builder image (default: gcr.io/buildpacks/builder, use 'heroku/builder:24' for ARM64)
    * @throws {ServerlessError} If the build fails
    * @returns {Promise<string>} The URI of the built image
    */
@@ -148,6 +150,8 @@ class DockerClient {
     buildArgs = {},
     buildOptions = [],
     aiFramework = null,
+    platform = 'linux/amd64',
+    builder = null,
   }) {
     try {
       if (aiFramework === 'mastra') {
@@ -216,6 +220,7 @@ CMD ["node", "index.mjs"]
           dockerFileString,
           buildArgs,
           buildOptions,
+          platform,
         })
       }
 
@@ -232,6 +237,7 @@ CMD ["node", "index.mjs"]
         imageUri,
         buildArgs,
         buildOptions,
+        platform,
       })
     } catch (error) {
       if (error instanceof ServerlessError) {
@@ -246,6 +252,8 @@ CMD ["node", "index.mjs"]
           containerName,
           containerPath,
           imageUri,
+          platform,
+          builder,
         })
       }
 
@@ -267,6 +275,7 @@ CMD ["node", "index.mjs"]
    * @param {string} [params.dockerFileString] - Optional Dockerfile contents as string
    * @param {Object} [params.buildArgs={}] - Build arguments to pass as --build-arg flags
    * @param {string|Array<string>} [params.buildOptions=[]] - Additional Docker build flags (e.g. '--target production')
+   * @param {string} [params.platform='linux/amd64'] - Target platform for the image
    * @returns {Promise<string>}
    */
   async #buildImageUsingDockerfile({
@@ -276,9 +285,12 @@ CMD ["node", "index.mjs"]
     dockerFileString = null,
     buildArgs = {},
     buildOptions = [],
+    platform = 'linux/amd64',
   }) {
     const buildOutput = []
-    this.logger.debug('Building Docker image using Dockerfile')
+    this.logger.debug(
+      `Building Docker image using Dockerfile for platform ${platform}`,
+    )
 
     const dockerfilePath = dockerFileString
       ? path.join(containerPath, 'Dockerfile')
@@ -291,7 +303,7 @@ CMD ["node", "index.mjs"]
 
       return await new Promise((resolve, reject) => {
         // Start constructing the Docker build command with the base flags
-        const buildCommand = ['build', '--load', '--platform', 'linux/amd64']
+        const buildCommand = ['build', '--load', '--platform', platform]
 
         // Process additional build options if provided.
         if (buildOptions) {
@@ -357,35 +369,58 @@ CMD ["node", "index.mjs"]
 
   /**
    * Build Docker image using Buildpacks
-   * @param {string} containerName
-   * @param {string} containerPath
-   * @param {string} imageUri
+   * @param {Object} params - Build parameters
+   * @param {string} params.containerName - Name of the container
+   * @param {string} params.containerPath - Path to container source
+   * @param {string} params.imageUri - Full image URI with tag
+   * @param {string} [params.platform='linux/amd64'] - Target platform for the image
+   * @param {string} [params.builder] - Buildpacks builder image (default: gcr.io/buildpacks/builder)
    * @returns {Promise<string>}
    */
-  async #buildUsingBuildPack({ containerName, containerPath, imageUri }) {
+  async #buildUsingBuildPack({
+    containerName,
+    containerPath,
+    imageUri,
+    platform = 'linux/amd64',
+    builder = null,
+  }) {
     const buildOutput = []
 
+    // Default to Google Cloud buildpacks builder for backward compatibility
+    // Use heroku/builder:24 for ARM64 support
+    const builderImage =
+      builder ||
+      'gcr.io/buildpacks/builder@sha256:5977b4bd47d3e9ff729eefe9eb99d321d4bba7aa3b14986323133f40b622aef1'
+
     this.logger.debug(
-      `${containerName}: Building Docker image using Buildpacks. Container path: ${containerPath}, Image URI: ${imageUri}`,
+      `${containerName}: Building Docker image using Buildpacks for platform ${platform} with builder ${builderImage}. Container path: ${containerPath}, Image URI: ${imageUri}`,
     )
 
+    // Build pack command arguments
+    const packArgs = [
+      'run',
+      '--rm',
+      '-v',
+      '/var/run/docker.sock:/var/run/docker.sock',
+      '-v',
+      `${containerPath}:/workspace`,
+      '-w',
+      '/workspace',
+      'buildpacksio/pack',
+      'build',
+      imageUri,
+      '--builder',
+      builderImage,
+      '--trust-builder',
+    ]
+
+    // Add platform flag only if using a builder that supports it (like heroku/builder:24)
+    if (builder && platform) {
+      packArgs.push('--platform', platform)
+    }
+
     return await new Promise((resolve, reject) => {
-      const packProcess = spawn('docker', [
-        'run',
-        '--rm',
-        '-v',
-        '/var/run/docker.sock:/var/run/docker.sock',
-        '-v',
-        `${containerPath}:/workspace`,
-        '-w',
-        '/workspace',
-        'buildpacksio/pack',
-        'build',
-        imageUri,
-        '--builder',
-        'gcr.io/buildpacks/builder@sha256:5977b4bd47d3e9ff729eefe9eb99d321d4bba7aa3b14986323133f40b622aef1',
-        '--trust-builder',
-      ])
+      const packProcess = spawn('docker', packArgs)
 
       packProcess.stdout.on('data', (data) =>
         this.#handleBuildOutput({ buildOutput, data }),

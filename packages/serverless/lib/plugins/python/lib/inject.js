@@ -203,6 +203,41 @@ async function injectAllRequirements(funcArtifact) {
         this.options,
       )
     }
+
+    // Step 6: Inject requirements into agent packages
+    const targetAgents = this.targetAgents || []
+    for (const agent of targetAgents) {
+      const agents =
+        this.serverless.service.agents ||
+        this.serverless.configurationInput?.agents ||
+        {}
+      const agentConfig = agents[agent.name]
+
+      if (!agentConfig?.package?.artifact) continue
+
+      const requirementsPath = path.join(
+        this.serverless.serviceDir,
+        '.serverless',
+        `agent-${agent.name}`,
+        'requirements',
+      )
+
+      // Skip if no requirements were installed
+      if (!fse.existsSync(requirementsPath)) continue
+
+      const packagePath = resolveArtifactPath(agentConfig.package.artifact)
+
+      if (this.log) {
+        this.log.info(`Injecting Python packages into agent "${agent.name}"`)
+      }
+
+      await injectRequirements(
+        requirementsPath,
+        packagePath,
+        injectionRelativePath,
+        this.options,
+      )
+    }
   } finally {
     injectProgress && injectProgress.remove()
   }

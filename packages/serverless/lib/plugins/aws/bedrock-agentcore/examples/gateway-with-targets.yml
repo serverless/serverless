@@ -1,0 +1,140 @@
+# Gateway with Targets Example
+# Demonstrates Gateway resource with various target configurations
+
+service: gateway-example
+
+provider:
+  name: aws
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+
+custom:
+  agentCore:
+    defaultTags:
+      Project: GatewayExample
+
+agents:
+  # Public Gateway (no authentication)
+  publicGateway:
+    type: gateway
+    description: Public MCP gateway - no authentication required
+    authorizerType: NONE
+    targets:
+      - name: PublicAPI
+        type: lambda
+        description: Publicly accessible API tool
+        functionArn:
+          Fn::GetAtt:
+            - PublicFunction
+            - Arn
+
+  # IAM-authenticated Gateway (default)
+  iamGateway:
+    type: gateway
+    description: IAM-authenticated MCP gateway
+    # authorizerType: AWS_IAM is default
+    protocolConfiguration:
+      mcp:
+        supportedVersions:
+          - '2024-11-05'
+        instructions: 'Tools for authenticated users'
+    targets:
+      - name: SecureAPI
+        type: lambda
+        description: IAM-protected API tool
+        functionArn:
+          Fn::GetAtt:
+            - SecureFunction
+            - Arn
+
+  # JWT-authenticated Gateway
+  jwtGateway:
+    type: gateway
+    description: JWT-authenticated MCP gateway
+    authorizerType: CUSTOM_JWT
+    authorizerConfiguration:
+      customJwtAuthorizer:
+        discoveryUrl: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_example/.well-known/openid-configuration
+        allowedAudience:
+          - my-api-audience
+        allowedClients:
+          - my-app-client-id
+        allowedScopes:
+          - read
+          - write
+    targets:
+      - name: JWTProtectedAPI
+        type: lambda
+        description: JWT-protected API tool
+        functionArn:
+          Fn::GetAtt:
+            - JWTFunction
+            - Arn
+
+  # Gateway with OAuth credential provider
+  oauthGateway:
+    type: gateway
+    description: Gateway with OAuth-authenticated targets
+    authorizerType: AWS_IAM
+    targets:
+      - name: ExternalOAuthAPI
+        type: lambda
+        description: Tool that accesses external OAuth-protected API
+        functionArn:
+          Fn::GetAtt:
+            - OAuthFunction
+            - Arn
+        credentialProvider:
+          type: OAUTH
+          oauthConfig:
+            providerArn: arn:aws:secretsmanager:us-east-1:123456789012:secret:oauth-credentials
+            scopes:
+              - read
+              - write
+            grantType: CLIENT_CREDENTIALS
+
+  # Gateway with API Key credential provider
+  apiKeyGateway:
+    type: gateway
+    description: Gateway with API key-authenticated targets
+    authorizerType: AWS_IAM
+    targets:
+      - name: ExternalAPIKeyAPI
+        type: lambda
+        description: Tool that accesses external API with API key
+        functionArn:
+          Fn::GetAtt:
+            - APIKeyFunction
+            - Arn
+        credentialProvider:
+          type: API_KEY
+          apiKeyConfig:
+            providerArn: arn:aws:secretsmanager:us-east-1:123456789012:secret:api-key
+            credentialLocation: HEADER
+            credentialParameterName: X-API-Key
+
+functions:
+  public:
+    name: ${self:service}-${self:provider.stage}-public
+    handler: handlers/public.handler
+    runtime: python3.12
+
+  secure:
+    name: ${self:service}-${self:provider.stage}-secure
+    handler: handlers/secure.handler
+    runtime: python3.12
+
+  jwt:
+    name: ${self:service}-${self:provider.stage}-jwt
+    handler: handlers/jwt.handler
+    runtime: python3.12
+
+  oauth:
+    name: ${self:service}-${self:provider.stage}-oauth
+    handler: handlers/oauth.handler
+    runtime: python3.12
+
+  apiKey:
+    name: ${self:service}-${self:provider.stage}-apikey
+    handler: handlers/apikey.handler
+    runtime: python3.12

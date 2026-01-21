@@ -1,0 +1,131 @@
+# Full-Stack Agent Example
+# Comprehensive example showing all AgentCore resource types working together
+
+service: full-stack-agent
+
+provider:
+  name: aws
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+
+custom:
+  agentCore:
+    # Default tags applied to all resources
+    defaultTags:
+      Project: FullStackAgent
+      Environment: ${self:provider.stage}
+
+agents:
+  # Runtime - The main agent runtime
+  mainAgent:
+    type: runtime
+    description: Full-stack AI agent with browser and code execution capabilities
+    artifact:
+      docker:
+        path: .
+        file: Dockerfile
+        repository: full-stack-agent
+    protocol: HTTP
+    network:
+      networkMode: PUBLIC
+    # No authorizer = AWS IAM authentication (default)
+    # Pass allowed headers to the runtime
+    requestHeaders:
+      allowlist:
+        - X-Amzn-Bedrock-AgentCore-Runtime-Custom-User-Id
+        - X-Amzn-Bedrock-AgentCore-Runtime-Custom-Session-Id
+        - X-Amzn-Bedrock-AgentCore-Runtime-Custom-Correlation-Id
+    # Optional: Configure session lifecycle
+    lifecycle:
+      idleRuntimeSessionTimeout: 900 # 15 minutes
+      maxLifetime: 3600 # 1 hour
+
+  # Memory - Conversation history and semantic search
+  agentMemory:
+    type: memory
+    description: Stores conversation history and enables semantic search
+    eventExpiryDuration: 90
+    strategies:
+      - SemanticMemoryStrategy:
+          Name: ConversationSearch
+          Namespaces:
+            - /conversations/{sessionId}
+      - UserPreferenceMemoryStrategy:
+          Name: UserPreferences
+          Namespaces:
+            - /users/{userId}/preferences
+
+  # Browser - For web scraping and browsing
+  webBrowser:
+    type: browser
+    description: Enables web browsing capabilities for the agent
+    network:
+      networkMode: PUBLIC
+    signing:
+      enabled: false
+
+  # Code Interpreter - For code execution
+  codeExecutor:
+    type: codeInterpreter
+    description: Sandboxed Python code execution environment
+    network:
+      networkMode: SANDBOX
+
+  # Workload Identity - For OAuth2 authentication to external services
+  agentIdentity:
+    type: workloadIdentity
+    oauth2ReturnUrls:
+      - https://${self:service}.example.com/auth/callback
+      - http://localhost:3000/auth/callback
+
+  # Gateway - For exposing tools via MCP protocol
+  toolGateway:
+    type: gateway
+    description: MCP gateway for agent tools
+    authorizerType: AWS_IAM
+    protocolConfiguration:
+      mcp:
+        supportedVersions:
+          - '2024-11-05'
+        instructions: 'Use these tools for external integrations'
+        searchType: SEMANTIC
+    targets:
+      - name: WeatherTool
+        type: lambda
+        description: Get current weather for a location
+        functionArn:
+          Fn::GetAtt:
+            - WeatherFunction
+            - Arn
+
+# Lambda function for Gateway target
+functions:
+  weather:
+    name: ${self:service}-${self:provider.stage}-weather
+    handler: handlers/weather.handler
+    runtime: python3.12
+    timeout: 30
+    memorySize: 256
+
+resources:
+  Outputs:
+    AgentRuntimeArn:
+      Description: ARN of the deployed agent runtime
+      Value:
+        Fn::GetAtt:
+          - MainAgentRuntime
+          - AgentRuntimeArn
+
+    AgentMemoryId:
+      Description: ID of the agent memory
+      Value:
+        Fn::GetAtt:
+          - AgentMemoryMemory
+          - MemoryId
+
+    GatewayUrl:
+      Description: URL of the MCP gateway
+      Value:
+        Fn::GetAtt:
+          - ToolGatewayGateway
+          - GatewayUrl

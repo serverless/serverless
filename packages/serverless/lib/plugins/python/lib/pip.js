@@ -256,6 +256,30 @@ async function installRequirements(targetFolder, pluginInstance, funcOptions) {
       }
     }
 
+    // Add ARM64 platform flags for AgentCore agents
+    // AgentCore always runs on Linux ARM64, so we need cross-platform binaries
+    if (funcOptions.isAgent && funcOptions.architecture === 'arm64') {
+      if (log) {
+        log.info('Using ARM64 platform for AgentCore agent requirements')
+      }
+      // Get Python version from agent runtime (e.g., PYTHON_3_13 -> 3.13)
+      const agentRuntime =
+        funcOptions.config?.artifact?.runtime || 'PYTHON_3_13'
+      const pythonVersion = agentRuntime
+        .replace('PYTHON_', '')
+        .replace('_', '.')
+
+      pipCmd.push(
+        '--platform',
+        'manylinux2014_aarch64',
+        '--implementation',
+        'cp',
+        '--python-version',
+        pythonVersion,
+        '--only-binary=:all:',
+      )
+    }
+
     if (!options.dockerizePip) {
       // Push our local OS-specific paths for requirements and target directory
       pipCmd.push(
@@ -948,6 +972,51 @@ async function installAllRequirements() {
         fse.symlink(reqsInstalledAt, symlinkPath, 'junction')
       } else {
         fse.symlink(reqsInstalledAt, symlinkPath)
+      }
+    }
+  }
+
+  // Step 5: Install requirements for agents (always ARM64, always individual)
+  const targetAgents = this.targetAgents || []
+  if (targetAgents.length > 0) {
+    for (const agent of targetAgents) {
+      if (this.log) {
+        this.log.info(
+          `Installing Python requirements for agent "${agent.name}" (ARM64)`,
+        )
+      }
+
+      const reqsInstalledAt = await installRequirementsIfNeeded(
+        agent.module,
+        { ...agent, architecture: 'arm64', isAgent: true },
+        this,
+      )
+
+      // Add requirements into .serverless/agent-{name}/requirements
+      let modulePath = path.join(
+        this.servicePath,
+        '.serverless',
+        `agent-${agent.name}`,
+        'requirements',
+      )
+
+      if (
+        reqsInstalledAt &&
+        !fse.existsSync(modulePath) &&
+        reqsInstalledAt != modulePath
+      ) {
+        // Ensure parent directory exists
+        fse.ensureDirSync(path.dirname(modulePath))
+
+        if (this.options.useStaticCache) {
+          if (process.platform == 'win32') {
+            fse.copySync(reqsInstalledAt, modulePath)
+          } else {
+            fse.symlinkSync(reqsInstalledAt, modulePath)
+          }
+        } else {
+          fse.renameSync(reqsInstalledAt, modulePath)
+        }
       }
     }
   }

@@ -1,0 +1,43 @@
+# Strands Agent with Automatic Code Packaging
+# No Docker required - Framework automatically packages and uploads to S3
+
+service: strands-auto-agent
+
+provider:
+  name: aws
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+
+custom:
+  # Enable Python requirements packaging
+  pythonRequirements: true
+  agentCore:
+    defaultTags:
+      Project: ${self:service}
+      Framework: Strands
+      DeploymentType: AutoPackage
+
+agents:
+  # AgentCore Runtime using automatic code deployment
+  codeAgent:
+    type: runtime
+    description: Strands agent with automatic packaging
+    artifact:
+      # Entry point: path to the Python file
+      # File must use @app.entrypoint from bedrock_agentcore.runtime
+      entryPoint:
+        - handler.py
+      # Runtime defaults to PYTHON_3_13 if not specified
+      # runtime: PYTHON_3_13
+    protocol: HTTP
+    network:
+      networkMode: PUBLIC
+    # Optional: session lifecycle
+    lifecycle:
+      idleRuntimeSessionTimeout: 300  # 5 minutes
+      maxLifetime: 3600               # 1 hour
+    # Optional: exclude test files from package
+    package:
+      patterns:
+        - '!tests/**'
+        - '!*.md'

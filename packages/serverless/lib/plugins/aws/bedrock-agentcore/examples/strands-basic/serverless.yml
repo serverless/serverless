@@ -1,0 +1,31 @@
+# Strands Basic Agent Example
+# Complete, runnable example of a Strands AI agent deployed to AgentCore
+
+service: strands-basic-agent
+
+provider:
+  name: aws
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+
+custom:
+  agentCore:
+    defaultTags:
+      Project: ${self:service}
+      Framework: Strands
+      ManagedBy: Serverless
+
+agents:
+  # AgentCore Runtime - Strands agent deployment
+  strandsAgent:
+    type: runtime
+    description: Basic Strands AI agent with custom tools
+    artifact:
+      docker:
+        path: .
+        file: Dockerfile
+        repository: strands-basic-agent
+    protocol: HTTP
+    network:
+      networkMode: PUBLIC
+    # No authorizer = AWS IAM authentication (default)

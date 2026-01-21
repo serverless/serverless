@@ -4,3 +4,6 @@
 **/.serverless
 .DS_Store
 .idea
+
+# Snyk Security Extension - AI Rules (auto-generated)
+.agent/rules/snyk_rules.md

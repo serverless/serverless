@@ -1,0 +1,30 @@
+# Basic Runtime Example
+# Minimal configuration for deploying a containerized AI agent
+
+service: my-agent
+
+provider:
+  name: aws
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+
+custom:
+  agentCore:
+    defaultTags:
+      Project: ${self:service}
+      ManagedBy: Serverless
+
+agents:
+  # AgentCore Runtime - containerized agent deployment
+  myAgent:
+    type: runtime
+    description: Basic AI agent with HTTP protocol
+    artifact:
+      docker:
+        path: .
+        file: Dockerfile
+        repository: my-agent
+    protocol: HTTP
+    network:
+      networkMode: PUBLIC
+    # No authorizer = AWS IAM authentication (default)
