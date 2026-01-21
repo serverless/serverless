@@ -68,7 +68,7 @@
     "js-yaml": "^4.1.1",
     "json-cycle": "^1.5.0",
     "jszip": "^3.10.1",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "lodash.uniqby": "^4.7.0",
     "luxon": "^3.7.2",
     "memoizee": "^0.4.17",

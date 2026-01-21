@@ -46,7 +46,7 @@
     "chokidar": "^4.0.3",
     "date-fns": "^4.1.0",
     "eventsource": "^3.0.7",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "p-limit": "^6.2.0",
     "zod": "^4.3.5"
   },

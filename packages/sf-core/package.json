@@ -74,7 +74,7 @@
     "https-proxy-agent": "^7.0.6",
     "js-yaml": "^4.1.1",
     "jwt-decode": "^4.0.0",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "open": "^10.2.0",
     "simple-git": "^3.30.0",
     "table": "^6.9.0",
