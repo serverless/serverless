@@ -19,6 +19,7 @@ import { getLogicalId } from './utils/naming.js'
 import { mergeTags } from './utils/tags.js'
 import { defineAgentsSchema } from './validators/schema.js'
 import { DockerBuilder } from './docker/builder.js'
+import { AgentCoreDevMode } from './dev/index.js'
 
 /**
  * Serverless Framework internal plugin for AWS Bedrock AgentCore
@@ -52,6 +53,9 @@ class ServerlessBedrockAgentCore {
 
     // Store built image URIs
     this.builtImages = {}
+
+    // Store build metadata for push phase
+    this.buildMetadata = []
 
     // Flag to prevent compiling resources multiple times
     this.resourcesCompiled = false
@@ -129,6 +133,24 @@ class ServerlessBedrockAgentCore {
               },
             },
           },
+          dev: {
+            usage:
+              'Start local development mode for an AgentCore runtime agent (alternative to "serverless dev --agents")',
+            lifecycleEvents: ['dev'],
+            options: {
+              agent: {
+                usage:
+                  'Name of the agent to run (defaults to first runtime agent)',
+                shortcut: 'a',
+                type: 'string',
+              },
+              port: {
+                usage: 'Port to expose the container on (default: 8080)',
+                shortcut: 'p',
+                type: 'string',
+              },
+            },
+          },
         },
       },
     }
@@ -141,7 +163,7 @@ class ServerlessBedrockAgentCore {
       // Validation phase
       'before:package:initialize': () => this.validateConfig(),
 
-      // Build Docker images before packaging (if configured)
+      // Package phase - build Docker images locally (no AWS operations)
       'before:package:createDeploymentArtifacts': () =>
         this.buildDockerImages(),
 
@@ -151,6 +173,9 @@ class ServerlessBedrockAgentCore {
       'after:package:compileFunctions': () => this.compileAgentCoreResources(),
       'before:package:finalize': () => this.compileAgentCoreResources(),
 
+      // Deploy phase - push Docker images to ECR
+      'before:deploy:deploy': () => this.pushDockerImages(),
+
       // Post-deploy info
       'after:deploy:deploy': () => this.displayDeploymentInfo(),
 
@@ -159,6 +184,7 @@ class ServerlessBedrockAgentCore {
       'agentcore:build:build': () => this.buildDockerImages(),
       'agentcore:invoke:invoke': () => this.invokeAgent(),
       'agentcore:logs:logs': () => this.fetchLogs(),
+      'agentcore:dev:dev': () => this.startDevMode(),
     }
   }
 
@@ -167,6 +193,12 @@ class ServerlessBedrockAgentCore {
    */
   init() {
     this.log.debug(`${this.pluginName} initialized`)
+
+    // Populate service.agents so it's available to other plugins (like aws:info)
+    const agents = this.getAgentsConfig()
+    if (agents && !this.serverless.service.agents) {
+      this.serverless.service.agents = agents
+    }
   }
 
   /**
@@ -214,10 +246,9 @@ class ServerlessBedrockAgentCore {
    * Validate individual agent configuration
    */
   validateAgent(name, config) {
+    // Default type to 'runtime' if not specified
     if (!config.type) {
-      throw new this.serverless.classes.Error(
-        `Agent '${name}' must have a 'type' property (runtime, memory, gateway, browser, codeInterpreter, or workloadIdentity)`,
-      )
+      config.type = 'runtime'
     }
 
     const validTypes = [
@@ -436,7 +467,7 @@ class ServerlessBedrockAgentCore {
   }
 
   /**
-   * Build Docker images for runtime agents that have image configuration
+   * Build Docker images for runtime agents (package phase - local only)
    */
   async buildDockerImages() {
     const agents = this.getAgentsConfig()
@@ -465,12 +496,11 @@ class ServerlessBedrockAgentCore {
           !config.artifact?.entryPoint &&
           !config.artifact?.s3?.bucket
         ) {
-          // No explicit artifact configuration - try buildpacks auto-detection
-          // DockerClient will fall back to buildpacks if no Dockerfile exists
+          // No explicit artifact configuration - look for Dockerfile in root directory
           runtimesToBuild.push({
             name,
             config,
-            imageConfig: { path: '.', buildpacks: true },
+            imageConfig: { path: '.' },
           })
         }
       }
@@ -496,10 +526,12 @@ class ServerlessBedrockAgentCore {
     // Build images defined in provider.ecr.images (Serverless standard pattern)
     if (ecrImages) {
       this.log.info('Building ECR images...')
+      // For now, keep the old behavior for provider.ecr.images (build + push)
+      // TODO: Refactor processImages to also split build/push
       this.builtImages = await builder.processImages(ecrImages, context)
     }
 
-    // Build images for runtimes with docker config
+    // Build images for runtimes with docker config (LOCAL BUILD ONLY)
     for (const { name, imageConfig } of runtimesToBuild) {
       // Handle string reference to provider.ecr.images
       if (typeof imageConfig === 'string') {
@@ -514,14 +546,39 @@ class ServerlessBedrockAgentCore {
 
       if (dockerConfig.path || dockerConfig.repository) {
         this.log.info(`Building Docker image for runtime: ${name}`)
-        const imageUri = await builder.buildAndPushForRuntime(
+        const buildMetadata = await builder.buildForRuntime(
           name,
           dockerConfig,
           context,
         )
-        this.builtImages[name] = imageUri
+
+        // Store image URI for CloudFormation
+        this.builtImages[name] = buildMetadata.imageUri
+
+        // Store metadata for push phase
+        this.buildMetadata.push({ agentName: name, ...buildMetadata })
       }
     }
+  }
+
+  /**
+   * Push Docker images to ECR (deploy phase)
+   */
+  async pushDockerImages() {
+    if (this.buildMetadata.length === 0) {
+      return
+    }
+
+    // Initialize Docker builder
+    const builder = new DockerBuilder(this.serverless, this.log, this.progress)
+
+    // Push all built images
+    for (const metadata of this.buildMetadata) {
+      this.log.info(`Pushing Docker image for runtime: ${metadata.agentName}`)
+      await builder.pushForRuntime(metadata)
+    }
+
+    this.log.info('All Docker images pushed successfully')
   }
 
   /**
@@ -752,6 +809,20 @@ class ServerlessBedrockAgentCore {
     template.Outputs[`${logicalId}Id`] = {
       Description: `ID of ${name} AgentCore Runtime`,
       Value: { 'Fn::GetAtt': [logicalId, 'AgentRuntimeId'] },
+    }
+
+    // Add URL output for easy invocation
+    template.Outputs[`${logicalId}Url`] = {
+      Description: `Invocation URL for ${name} AgentCore Runtime`,
+      Value: {
+        'Fn::Sub': [
+          'https://bedrock-agentcore.${Region}.amazonaws.com/runtimes/${RuntimeArn}/invocations',
+          {
+            Region: { Ref: 'AWS::Region' },
+            RuntimeArn: { 'Fn::GetAtt': [logicalId, 'AgentRuntimeArn'] },
+          },
+        ],
+      },
     }
 
     // Compile RuntimeEndpoints if defined
@@ -1452,6 +1523,117 @@ class ServerlessBedrockAgentCore {
     } catch (error) {
       throw new this.serverless.classes.Error(
         `Failed to fetch logs: ${error.message}`,
+      )
+    }
+  }
+
+  /**
+   * Get the IAM role ARN for an agent from CloudFormation stack outputs
+   */
+  async getRoleArn(agentName) {
+    const stackName = this.provider.naming.getStackName()
+
+    try {
+      const result = await this.provider.request(
+        'CloudFormation',
+        'describeStacks',
+        {
+          StackName: stackName,
+        },
+      )
+
+      const stack = result.Stacks?.[0]
+      if (!stack) {
+        throw new Error(`Stack ${stackName} not found`)
+      }
+
+      // Look for the role ARN output
+      const logicalId = getLogicalId(agentName, 'Runtime')
+      const outputKey = `${logicalId}RoleArn`
+
+      const output = stack.Outputs?.find((o) => o.OutputKey === outputKey)
+      if (!output) {
+        throw new Error(`Role ARN output not found for agent '${agentName}'`)
+      }
+
+      return output.OutputValue
+    } catch (error) {
+      throw new this.serverless.classes.Error(
+        `Failed to get role ARN: ${error.message}`,
+      )
+    }
+  }
+
+  /**
+   * Start local development mode for an AgentCore runtime
+   */
+  async startDevMode() {
+    const path = await import('path')
+
+    // Determine which agent to run
+    let agentName = this.options.agent
+    if (!agentName) {
+      agentName = this.getFirstRuntimeAgent()
+      if (!agentName) {
+        throw new this.serverless.classes.Error(
+          'No runtime agents found in configuration',
+        )
+      }
+    }
+
+    // Verify the agent exists and is a runtime
+    const agents = this.getAgentsConfig()
+    const agentConfig = agents[agentName]
+    if (!agentConfig) {
+      throw new this.serverless.classes.Error(
+        `Agent '${agentName}' not found in configuration`,
+      )
+    }
+    if (agentConfig.type !== 'runtime') {
+      throw new this.serverless.classes.Error(
+        `Agent '${agentName}' is not a runtime agent. Dev mode only supports runtime agents.`,
+      )
+    }
+
+    // Get the port
+    const port = this.options.port ? parseInt(this.options.port, 10) : 8080
+
+    // Get deployed role ARN
+    this.log.notice(`Starting dev mode for agent '${agentName}'...`)
+    this.log.notice('Fetching deployed IAM role ARN...')
+
+    let roleArn
+    try {
+      roleArn = await this.getRoleArn(agentName)
+    } catch (error) {
+      throw new this.serverless.classes.Error(
+        `Failed to get deployed role ARN. Make sure the agent is deployed first.\n` +
+          `Run 'serverless deploy' to deploy the agent.\n` +
+          `Error: ${error.message}`,
+      )
+    }
+
+    this.log.notice(`Using IAM role: ${roleArn}`)
+
+    // Get project path
+    const projectPath = this.serverless.serviceDir
+
+    // Start dev mode
+    const devMode = new AgentCoreDevMode({
+      projectPath,
+      agentName,
+      agentConfig,
+      region: this.provider.getRegion(),
+      roleArn,
+      port,
+    })
+
+    try {
+      await devMode.start()
+    } catch (error) {
+      await devMode.stop()
+      throw new this.serverless.classes.Error(
+        `Dev mode failed: ${error.message}`,
       )
     }
   }

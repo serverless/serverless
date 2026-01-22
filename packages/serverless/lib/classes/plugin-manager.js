@@ -25,6 +25,7 @@ import pluginAwsCommon from '../plugins/aws/common/index.js'
 import pluginAwsPackage from '../plugins/aws/package/index.js'
 import pluginAwsDeploy from '../plugins/aws/deploy/index.js'
 import pluginAwsInvoke from '../plugins/aws/invoke.js'
+import pluginAwsInvokeAgent from '../plugins/aws/invoke-agent.js'
 import pluginAwsDev from '../plugins/aws/dev/index.js'
 import pluginAwsInfo from '../plugins/aws/info/index.js'
 import pluginAwsLogs from '../plugins/aws/logs.js'
@@ -90,6 +91,7 @@ const internalPlugins = [
   pluginAwsPackage,
   pluginAwsDeploy,
   pluginAwsInvoke,
+  pluginAwsInvokeAgent,
   pluginAwsDev,
   pluginAwsInfo,
   pluginAwsLogs,

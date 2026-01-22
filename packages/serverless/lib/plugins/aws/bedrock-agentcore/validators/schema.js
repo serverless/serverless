@@ -19,6 +19,7 @@ export function defineAgentsSchema(serverless) {
             'codeInterpreter',
             'workloadIdentity',
           ],
+          default: 'runtime',
         },
         description: {
           type: 'string',
@@ -429,7 +430,6 @@ export function defineAgentsSchema(serverless) {
           },
         },
       },
-      required: ['type'],
     },
   })
 

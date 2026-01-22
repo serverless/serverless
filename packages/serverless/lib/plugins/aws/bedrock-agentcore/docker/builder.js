@@ -205,29 +205,46 @@ export class DockerBuilder {
   }
 
   /**
-   * Build and push image for a runtime agent
+   * Build image for a runtime agent (package phase - no AWS operations)
+   * @returns {Object} Build metadata including imageUri and repositoryName
    */
-  async buildAndPushForRuntime(agentName, imageConfig, context) {
+  async buildForRuntime(agentName, imageConfig, context) {
     const { serviceName, stage } = context
     const servicePath = this.serverless.serviceDir
 
-    // Repository name
-    const repositoryName =
+    // Repository name (must be lowercase for ECR)
+    const repositoryName = (
       imageConfig.repository || `${serviceName}-${agentName}`
+    ).toLowerCase()
 
-    // Ensure repository exists and get URI
-    const repositoryUri = await this.ensureRepository(repositoryName)
+    // Generate image URI (we'll create ECR repo during push phase)
+    const accountId = await this.getAccountId()
+    const region = this.getRegion()
+    const repositoryUri = `${accountId}.dkr.ecr.${region}.amazonaws.com/${repositoryName}`
 
     // Generate unique image URI with timestamp
     const { imageUri } = this.dockerClient.generateImageUris({
       repositoryUri,
-      folderHash: stage, // Use stage as part of hash for identification
+      folderHash: stage,
     })
 
     this.log.info(`Target image URI: ${imageUri}`)
 
-    // Build the image
+    // Build the image locally
     await this.buildImage(imageUri, imageConfig, servicePath)
+
+    // Return metadata for push phase
+    return { imageUri, repositoryName, imageConfig }
+  }
+
+  /**
+   * Push previously built image to ECR (deploy phase)
+   */
+  async pushForRuntime(buildMetadata) {
+    const { imageUri, repositoryName } = buildMetadata
+
+    // Ensure repository exists
+    await this.ensureRepository(repositoryName)
 
     // Push to ECR
     await this.pushImage(imageUri)
@@ -236,7 +253,21 @@ export class DockerBuilder {
   }
 
   /**
+   * Build and push image for a runtime agent (legacy method for backward compatibility)
+   * @deprecated Use buildForRuntime + pushForRuntime instead
+   */
+  async buildAndPushForRuntime(agentName, imageConfig, context) {
+    const buildMetadata = await this.buildForRuntime(
+      agentName,
+      imageConfig,
+      context,
+    )
+    return await this.pushForRuntime(buildMetadata)
+  }
+
+  /**
    * Process all images defined in provider.ecr.images
+   * @deprecated This method does build+push. Prefer using buildForRuntime + pushForRuntime separately
    */
   async processImages(imagesConfig, context) {
     const imageUris = {}

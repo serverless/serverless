@@ -17,6 +17,19 @@ class AwsInvoke {
 
     this.hooks = {
       'invoke:invoke': async () => {
+        // Ensure at least one of --function or --agent is provided
+        if (!this.options.function && !this.options.agent) {
+          throw new ServerlessError(
+            'One of the required options must be provided: --function (-f) or --agent (-a)',
+            'INVOKE_MISSING_OPTION',
+          )
+        }
+
+        // Skip if --agent is provided (handled by invoke-agent plugin)
+        if (this.options.agent) {
+          return
+        }
+
         this.progress.notice('Invoking function')
         await this.extendedValidate()
         this.log(await this.invoke())

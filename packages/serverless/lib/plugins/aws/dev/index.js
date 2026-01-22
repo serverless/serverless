@@ -72,6 +72,151 @@ class AwsDev {
   }
 
   /**
+   * Check if agents dev mode should be used
+   * @returns {boolean} True if agents dev mode should be used
+   */
+  shouldUseAgentsDevMode() {
+    const agentsExplicitlyRequested = this.options.agents === true
+    const hasFunctions =
+      Object.keys(this.serverless.service.functions || {}).length > 0
+    const hasAgents =
+      Object.keys(this.serverless.service.initialServerlessConfig?.agents || {})
+        .length > 0
+
+    // Explicit --agents flag takes precedence
+    if (agentsExplicitlyRequested) {
+      if (!hasAgents) {
+        throw new ServerlessError(
+          'No agents defined in configuration. Cannot use --agents flag.',
+          'NO_AGENTS_DEFINED',
+        )
+      }
+      return true
+    }
+
+    // If no functions but agents exist, auto-select agents mode
+    if (!hasFunctions && hasAgents) {
+      return true
+    }
+
+    // Default to functions mode
+    return false
+  }
+
+  /**
+   * Start agents dev mode using the AgentCore plugin
+   * @async
+   * @returns {Promise<void>}
+   */
+  async startAgentsDevMode() {
+    const { AgentCoreDevMode } =
+      await import('../bedrock-agentcore/dev/index.js')
+    const { getLogicalId } =
+      await import('../bedrock-agentcore/utils/naming.js')
+
+    const agents = this.serverless.service.initialServerlessConfig?.agents || {}
+    const agentsConfig = Object.entries(agents).filter(
+      ([, config]) => !config.type || config.type === 'runtime',
+    )
+
+    if (agentsConfig.length === 0) {
+      throw new ServerlessError(
+        'No runtime agents found in configuration. Dev mode only supports runtime agents.',
+        'NO_RUNTIME_AGENTS',
+      )
+    }
+
+    // Determine which agent to run
+    let agentName = this.options.agent
+    if (!agentName) {
+      agentName = agentsConfig[0][0]
+    }
+
+    const agentConfig = agents[agentName]
+    if (!agentConfig) {
+      throw new ServerlessError(
+        `Agent '${agentName}' not found in configuration`,
+        'AGENT_NOT_FOUND',
+      )
+    }
+    // Default to 'runtime' if not specified
+    if (!agentConfig.type) {
+      agentConfig.type = 'runtime'
+    }
+
+    if (agentConfig.type !== 'runtime') {
+      throw new ServerlessError(
+        `Agent '${agentName}' is not a runtime agent. Dev mode only supports runtime agents.`,
+        'NOT_RUNTIME_AGENT',
+      )
+    }
+
+    // Get the port
+    const port = this.options.port ? parseInt(this.options.port, 10) : 8080
+
+    // Get deployed role ARN from CloudFormation stack
+    const mainProgress = progress.get('main')
+    mainProgress.notice(`Starting agents dev mode for '${agentName}'...`)
+
+    const stackName = this.provider.naming.getStackName()
+    let roleArn
+
+    try {
+      const result = await this.provider.request(
+        'CloudFormation',
+        'describeStacks',
+        { StackName: stackName },
+      )
+
+      const stack = result.Stacks?.[0]
+      if (!stack) {
+        throw new Error(`Stack ${stackName} not found`)
+      }
+
+      const logicalId = getLogicalId(agentName, 'Runtime')
+      const outputKey = `${logicalId}RoleArn`
+
+      const output = stack.Outputs?.find((o) => o.OutputKey === outputKey)
+      if (!output) {
+        throw new Error(`Role ARN output not found for agent '${agentName}'`)
+      }
+
+      roleArn = output.OutputValue
+    } catch (error) {
+      mainProgress.remove()
+      throw new ServerlessError(
+        `Failed to get deployed role ARN. Make sure the agent is deployed first.\n` +
+          `Run 'serverless deploy' to deploy the agent.\n` +
+          `Error: ${error.message}`,
+        'ROLE_ARN_NOT_FOUND',
+      )
+    }
+
+    mainProgress.remove()
+
+    // Start dev mode
+    const devMode = new AgentCoreDevMode({
+      serverless: this.serverless,
+      projectPath: this.serverless.serviceDir,
+      agentName,
+      agentConfig,
+      region: this.provider.getRegion(),
+      roleArn,
+      port,
+    })
+
+    try {
+      await devMode.start()
+    } catch (error) {
+      await devMode.stop()
+      throw new ServerlessError(
+        `Agents dev mode failed: ${error.message}`,
+        'AGENTS_DEV_MODE_FAILED',
+      )
+    }
+  }
+
+  /**
    * The main handler for dev mode. Steps include:
    * - Packaging the shim and setting it as the service deployment artifact.
    * - Updating the service to use the shim.
@@ -83,6 +228,11 @@ class AwsDev {
    * @returns {Promise<void>} This method is long running, so it does not return a value.
    */
   async dev() {
+    // Check if we should use agents dev mode instead
+    if (this.shouldUseAgentsDevMode()) {
+      return await this.startAgentsDevMode()
+    }
+
     const mainProgress = progress.get('main')
 
     this.serverless.devmodeEnabled = true

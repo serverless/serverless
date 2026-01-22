@@ -1,5 +1,6 @@
 import resolveCfImportValue from '../utils/resolve-cf-import-value.js'
 import ServerlessError from '../../../serverless-error.js'
+import { getLogicalId } from '../bedrock-agentcore/utils/naming.js'
 
 export default {
   async getStackInfo() {
@@ -11,6 +12,7 @@ export default {
       info: {
         functions: [],
         layers: [],
+        agents: [],
         endpoints: [],
         service: this.serverless.service.service,
         stage: this.provider.getStage(),
@@ -103,6 +105,37 @@ export default {
           }
           this.gatheredData.info.layers.push(layerInfo)
         })
+
+        // Agents (Bedrock AgentCore)
+        const agents = this.serverless.service.agents || {}
+        for (const [agentName, agentConfig] of Object.entries(agents)) {
+          const agentInfo = { name: agentName }
+          const agentType = agentConfig.type || 'runtime'
+
+          // Generate the logical ID using the same function as bedrock-agentcore plugin
+          const typeCapitalized =
+            agentType.charAt(0).toUpperCase() + agentType.slice(1)
+          const logicalId = getLogicalId(agentName, typeCapitalized)
+
+          // Look for URL output (for runtime agents)
+          const urlOutput = outputs.find(
+            (o) => o.OutputKey === `${logicalId}Url`,
+          )
+          if (urlOutput) {
+            agentInfo.url = urlOutput.OutputValue
+          } else {
+            // Fallback to ARN if no URL
+            const arnOutput = outputs.find(
+              (o) => o.OutputKey === `${logicalId}Arn`,
+            )
+            if (arnOutput) {
+              agentInfo.arn = arnOutput.OutputValue
+            }
+          }
+
+          agentInfo.type = agentType
+          this.gatheredData.info.agents.push(agentInfo)
+        }
 
         // CloudFront
         const cloudFrontDomainName = outputs.find(

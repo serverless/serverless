@@ -208,6 +208,22 @@ commands.set('dev', {
       usage: 'Show complete invocation events and responses',
       type: 'boolean',
     },
+    agents: {
+      usage:
+        'Use agents dev mode (for AgentCore runtimes). Auto-detected if no functions defined.',
+      type: 'boolean',
+    },
+    agent: {
+      usage:
+        'Name of the agent to run in agents dev mode (defaults to first runtime agent)',
+      shortcut: 'a',
+      type: 'string',
+    },
+    port: {
+      usage: 'Port to expose the agent container on (default: 8080)',
+      shortcut: 'p',
+      type: 'string',
+    },
   },
   lifecycleEvents: ['dev'],
   serviceDependencyMode: 'required',
@@ -216,13 +232,22 @@ commands.set('dev', {
 
 commands.set('invoke', {
   groupName: 'main',
-  usage: 'Invoke a deployed function',
+  usage: 'Invoke a deployed function or agent',
   options: {
     function: {
       type: 'string',
       usage: 'The function name',
-      required: true,
       shortcut: 'f',
+    },
+    agent: {
+      type: 'string',
+      usage: 'The agent name (for AgentCore Runtime agents)',
+      shortcut: 'a',
+    },
+    'session-id': {
+      type: 'string',
+      usage: 'Session ID for multi-turn agent conversations',
+      shortcut: 's',
     },
     qualifier: {
       type: 'string',
