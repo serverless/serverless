@@ -19,7 +19,7 @@ This is the **Serverless Framework** monorepo - a command-line tool for deployin
 /workspace
 ├── packages/                    # npm workspaces
 │   ├── sf-core/                # Main CLI framework (primary package)
-│   ├── serverless/             # Legacy serverless package
+│   ├── serverless/             # Serverless Framework package
 │   ├── engine/                 # Container framework engine (SCF)
 │   ├── mcp/                    # MCP server for AI IDEs
 │   ├── util/                   # Shared utilities
@@ -32,7 +32,7 @@ This is the **Serverless Framework** monorepo - a command-line tool for deployin
 ### Key Packages
 
 - **`packages/sf-core`**: The core Serverless Framework CLI. Most development happens here.
-- **`packages/serverless`**: Legacy package that wraps sf-core for backwards compatibility.
+- **`packages/serverless`**: Serverless Framework package that wraps sf-core.
 - **`packages/engine`**: Serverless Container Framework for deploying containers to AWS Lambda/ECS.
 - **`packages/mcp`**: Model Context Protocol server for AI-powered IDEs (Cursor, Windsurf).
 
