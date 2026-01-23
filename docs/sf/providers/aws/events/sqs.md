@@ -116,6 +116,96 @@ functions:
           maximumConcurrency: 250
 ```
 
+## SQS Provisioned Mode
+
+SQS Provisioned Mode provides dedicated polling resources for your Lambda functions, enabling 3x faster scaling and up to 10x higher concurrency compared to the default on-demand polling mode. This is ideal for high-throughput, latency-sensitive workloads.
+
+### Configuration
+
+Use the `provisioned` property to configure SQS Provisioned Mode:
+
+```yml
+functions:
+  processor:
+    handler: handler.process
+    events:
+      - sqs:
+          arn: arn:aws:sqs:region:XXXXXX:myQueue
+          provisioned:
+            mode: PROVISIONED
+            minimumPollers: 10
+            maximumPollers: 100
+```
+
+### Properties
+
+| Property | Type | Description | Required |
+|----------|------|-------------|----------|
+| `mode` | `PROVISIONED` \| `ON_DEMAND` | The polling mode. `PROVISIONED` uses dedicated resources; `ON_DEMAND` uses shared infrastructure (default AWS behavior). | No |
+| `minimumPollers` | integer (1-200) | Minimum number of dedicated pollers. Only valid when `mode` is `PROVISIONED`. | No |
+| `maximumPollers` | integer (1-2000) | Maximum number of pollers that can scale up to handle increased load. | No |
+
+### Examples
+
+#### High-throughput processing with provisioned pollers
+
+```yml
+functions:
+  highThroughputProcessor:
+    handler: handler.process
+    events:
+      - sqs:
+          arn: arn:aws:sqs:region:XXXXXX:highVolumeQueue
+          batchSize: 100
+          maximumBatchingWindow: 5
+          provisioned:
+            mode: PROVISIONED
+            minimumPollers: 50
+            maximumPollers: 500
+```
+
+#### Switching to on-demand mode
+
+```yml
+functions:
+  lowVolumeProcessor:
+    handler: handler.process
+    events:
+      - sqs:
+          arn: arn:aws:sqs:region:XXXXXX:lowVolumeQueue
+          provisioned:
+            mode: ON_DEMAND
+```
+
+#### Setting only maximum pollers (allows AWS to manage minimum)
+
+```yml
+functions:
+  flexibleProcessor:
+    handler: handler.process
+    events:
+      - sqs:
+          arn: arn:aws:sqs:region:XXXXXX:flexQueue
+          provisioned:
+            maximumPollers: 200
+```
+
+### When to Use Provisioned Mode
+
+- **High-throughput workloads**: When processing millions of messages per hour
+- **Latency-sensitive applications**: When you need faster response to message bursts
+- **Predictable scaling**: When you want guaranteed minimum polling capacity
+- **Cost optimization**: When consistent, high-volume processing justifies dedicated resources
+
+### Validation Rules
+
+- `minimumPollers` can only be set when `mode` is `PROVISIONED` (or mode is not specified)
+- `minimumPollers` must be less than or equal to `maximumPollers`
+- `minimumPollers` range: 1-200
+- `maximumPollers` range: 1-2000
+
+For more details, see the [AWS Lambda SQS Provisioned Mode documentation](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html).
+
 ## IAM Permissions
 
 The Serverless Framework will automatically configure the most minimal set of IAM permissions for you. However you can still add additional permissions if you need to. Read the official [AWS documentation](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-configure-lambda-function-trigger.html) for more information about IAM Permissions for SQS events.

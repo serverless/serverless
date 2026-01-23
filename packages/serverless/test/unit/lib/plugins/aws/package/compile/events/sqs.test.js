@@ -467,5 +467,349 @@ describe('AwsCompileSQSEvents', () => {
 
       expect(() => awsCompileSQSEvents.compileSQSEvents()).not.toThrow()
     })
+
+    describe('provisioned mode', () => {
+      it('should create event source mapping with provisioned mode PROVISIONED', () => {
+        awsCompileSQSEvents.serverless.service.functions = {
+          first: {
+            events: [
+              {
+                sqs: {
+                  arn: 'arn:aws:sqs:region:account:MyQueue',
+                  provisioned: {
+                    mode: 'PROVISIONED',
+                    minimumPollers: 10,
+                    maximumPollers: 100,
+                  },
+                },
+              },
+            ],
+          },
+        }
+
+        awsCompileSQSEvents.compileSQSEvents()
+
+        const resources =
+          awsCompileSQSEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+
+        const eventSourceMappings = Object.entries(resources).filter(
+          ([, resource]) => resource.Type === 'AWS::Lambda::EventSourceMapping',
+        )
+
+        expect(eventSourceMappings.length).toBe(1)
+        expect(
+          eventSourceMappings[0][1].Properties.ProvisionedPollerConfig,
+        ).toEqual({
+          Mode: 'PROVISIONED',
+          MinimumPollers: 10,
+          MaximumPollers: 100,
+        })
+      })
+
+      it('should create event source mapping with provisioned mode ON_DEMAND', () => {
+        awsCompileSQSEvents.serverless.service.functions = {
+          first: {
+            events: [
+              {
+                sqs: {
+                  arn: 'arn:aws:sqs:region:account:MyQueue',
+                  provisioned: {
+                    mode: 'ON_DEMAND',
+                  },
+                },
+              },
+            ],
+          },
+        }
+
+        awsCompileSQSEvents.compileSQSEvents()
+
+        const resources =
+          awsCompileSQSEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+
+        const eventSourceMappings = Object.entries(resources).filter(
+          ([, resource]) => resource.Type === 'AWS::Lambda::EventSourceMapping',
+        )
+
+        expect(eventSourceMappings.length).toBe(1)
+        expect(
+          eventSourceMappings[0][1].Properties.ProvisionedPollerConfig,
+        ).toEqual({
+          Mode: 'ON_DEMAND',
+        })
+      })
+
+      it('should create event source mapping with only maximumPollers', () => {
+        awsCompileSQSEvents.serverless.service.functions = {
+          first: {
+            events: [
+              {
+                sqs: {
+                  arn: 'arn:aws:sqs:region:account:MyQueue',
+                  provisioned: {
+                    maximumPollers: 50,
+                  },
+                },
+              },
+            ],
+          },
+        }
+
+        awsCompileSQSEvents.compileSQSEvents()
+
+        const resources =
+          awsCompileSQSEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+
+        const eventSourceMappings = Object.entries(resources).filter(
+          ([, resource]) => resource.Type === 'AWS::Lambda::EventSourceMapping',
+        )
+
+        expect(eventSourceMappings.length).toBe(1)
+        expect(
+          eventSourceMappings[0][1].Properties.ProvisionedPollerConfig,
+        ).toEqual({
+          MaximumPollers: 50,
+        })
+      })
+
+      it('should create event source mapping with provisioned mode and other settings', () => {
+        awsCompileSQSEvents.serverless.service.functions = {
+          first: {
+            events: [
+              {
+                sqs: {
+                  arn: 'arn:aws:sqs:region:account:MyQueue',
+                  batchSize: 25,
+                  maximumBatchingWindow: 60,
+                  provisioned: {
+                    mode: 'PROVISIONED',
+                    minimumPollers: 5,
+                    maximumPollers: 50,
+                  },
+                },
+              },
+            ],
+          },
+        }
+
+        awsCompileSQSEvents.compileSQSEvents()
+
+        const resources =
+          awsCompileSQSEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+
+        const eventSourceMappings = Object.entries(resources).filter(
+          ([, resource]) => resource.Type === 'AWS::Lambda::EventSourceMapping',
+        )
+
+        expect(eventSourceMappings.length).toBe(1)
+        expect(eventSourceMappings[0][1].Properties.BatchSize).toBe(25)
+        expect(
+          eventSourceMappings[0][1].Properties.MaximumBatchingWindowInSeconds,
+        ).toBe(60)
+        expect(
+          eventSourceMappings[0][1].Properties.ProvisionedPollerConfig,
+        ).toEqual({
+          Mode: 'PROVISIONED',
+          MinimumPollers: 5,
+          MaximumPollers: 50,
+        })
+      })
+
+      it('should throw error when minimumPollers is set with ON_DEMAND mode', () => {
+        awsCompileSQSEvents.serverless.service.functions = {
+          first: {
+            events: [
+              {
+                sqs: {
+                  arn: 'arn:aws:sqs:region:account:MyQueue',
+                  provisioned: {
+                    mode: 'ON_DEMAND',
+                    minimumPollers: 10,
+                  },
+                },
+              },
+            ],
+          },
+        }
+
+        expect(() => awsCompileSQSEvents.compileSQSEvents()).toThrow(
+          /minimumPollers can only be set when mode is PROVISIONED/,
+        )
+      })
+
+      it('should throw error when minimumPollers is greater than maximumPollers', () => {
+        awsCompileSQSEvents.serverless.service.functions = {
+          first: {
+            events: [
+              {
+                sqs: {
+                  arn: 'arn:aws:sqs:region:account:MyQueue',
+                  provisioned: {
+                    mode: 'PROVISIONED',
+                    minimumPollers: 100,
+                    maximumPollers: 50,
+                  },
+                },
+              },
+            ],
+          },
+        }
+
+        expect(() => awsCompileSQSEvents.compileSQSEvents()).toThrow(
+          /minimumPollers \(100\) cannot be greater than maximumPollers \(50\)/,
+        )
+      })
+
+      it('should allow provisioned mode with Fn::GetAtt for arn', () => {
+        awsCompileSQSEvents.serverless.service.functions = {
+          first: {
+            events: [
+              {
+                sqs: {
+                  arn: { 'Fn::GetAtt': ['SomeQueue', 'Arn'] },
+                  provisioned: {
+                    mode: 'PROVISIONED',
+                    minimumPollers: 10,
+                    maximumPollers: 100,
+                  },
+                },
+              },
+            ],
+          },
+        }
+
+        awsCompileSQSEvents.compileSQSEvents()
+
+        const resources =
+          awsCompileSQSEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+
+        const eventSourceMappings = Object.entries(resources).filter(
+          ([, resource]) => resource.Type === 'AWS::Lambda::EventSourceMapping',
+        )
+
+        expect(eventSourceMappings.length).toBe(1)
+        expect(eventSourceMappings[0][1].Properties.EventSourceArn).toEqual({
+          'Fn::GetAtt': ['SomeQueue', 'Arn'],
+        })
+        expect(
+          eventSourceMappings[0][1].Properties.ProvisionedPollerConfig,
+        ).toEqual({
+          Mode: 'PROVISIONED',
+          MinimumPollers: 10,
+          MaximumPollers: 100,
+        })
+      })
+
+      it('should not add ProvisionedPollerConfig when provisioned is not specified', () => {
+        awsCompileSQSEvents.serverless.service.functions = {
+          first: {
+            events: [
+              {
+                sqs: {
+                  arn: 'arn:aws:sqs:region:account:MyQueue',
+                  batchSize: 10,
+                },
+              },
+            ],
+          },
+        }
+
+        awsCompileSQSEvents.compileSQSEvents()
+
+        const resources =
+          awsCompileSQSEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+
+        const eventSourceMappings = Object.entries(resources).filter(
+          ([, resource]) => resource.Type === 'AWS::Lambda::EventSourceMapping',
+        )
+
+        expect(eventSourceMappings.length).toBe(1)
+        expect(
+          eventSourceMappings[0][1].Properties.ProvisionedPollerConfig,
+        ).toBeUndefined()
+      })
+
+      it('should allow minimumPollers without explicit mode (defaults to PROVISIONED behavior)', () => {
+        awsCompileSQSEvents.serverless.service.functions = {
+          first: {
+            events: [
+              {
+                sqs: {
+                  arn: 'arn:aws:sqs:region:account:MyQueue',
+                  provisioned: {
+                    minimumPollers: 10,
+                    maximumPollers: 100,
+                  },
+                },
+              },
+            ],
+          },
+        }
+
+        awsCompileSQSEvents.compileSQSEvents()
+
+        const resources =
+          awsCompileSQSEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+
+        const eventSourceMappings = Object.entries(resources).filter(
+          ([, resource]) => resource.Type === 'AWS::Lambda::EventSourceMapping',
+        )
+
+        expect(eventSourceMappings.length).toBe(1)
+        expect(
+          eventSourceMappings[0][1].Properties.ProvisionedPollerConfig,
+        ).toEqual({
+          MinimumPollers: 10,
+          MaximumPollers: 100,
+        })
+      })
+
+      it('should work with filterPatterns and provisioned mode', () => {
+        awsCompileSQSEvents.serverless.service.functions = {
+          first: {
+            events: [
+              {
+                sqs: {
+                  arn: 'arn:aws:sqs:region:account:MyQueue',
+                  filterPatterns: [{ body: { type: ['order'] } }],
+                  provisioned: {
+                    mode: 'PROVISIONED',
+                    maximumPollers: 200,
+                  },
+                },
+              },
+            ],
+          },
+        }
+
+        awsCompileSQSEvents.compileSQSEvents()
+
+        const resources =
+          awsCompileSQSEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+
+        const eventSourceMappings = Object.entries(resources).filter(
+          ([, resource]) => resource.Type === 'AWS::Lambda::EventSourceMapping',
+        )
+
+        expect(eventSourceMappings.length).toBe(1)
+        expect(
+          eventSourceMappings[0][1].Properties.FilterCriteria,
+        ).toBeDefined()
+        expect(
+          eventSourceMappings[0][1].Properties.ProvisionedPollerConfig,
+        ).toEqual({
+          Mode: 'PROVISIONED',
+          MaximumPollers: 200,
+        })
+      })
+    })
   })
 })
