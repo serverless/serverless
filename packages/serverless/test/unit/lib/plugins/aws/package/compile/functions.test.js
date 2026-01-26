@@ -659,9 +659,7 @@ describe('AwsCompileFunctions', () => {
       }
 
       // This should NOT throw "Cannot read properties of undefined (reading 'Properties')"
-      await expect(
-        awsCompileFunctions.compileFunctions(),
-      ).resolves.not.toThrow()
+      await awsCompileFunctions.compileFunctions()
 
       const resources =
         awsCompileFunctions.serverless.service.provider
