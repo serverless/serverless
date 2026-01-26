@@ -7,13 +7,22 @@ describe('Schema Validator', () => {
   let mockServerless
   let capturedAgentsSchema
   let capturedCustomSchema
+  let capturedProviderAgentsSchema
 
   beforeEach(() => {
     capturedAgentsSchema = null
     capturedCustomSchema = null
+    capturedProviderAgentsSchema = null
 
     mockServerless = {
       configSchemaHandler: {
+        schema: {
+          properties: {
+            provider: {
+              properties: {},
+            },
+          },
+        },
         defineTopLevelProperty: jest.fn((name, schema) => {
           if (name === 'agents') {
             capturedAgentsSchema = schema
@@ -58,26 +67,27 @@ describe('Schema Validator', () => {
       expect(capturedAgentsSchema.additionalProperties.type).toBe('object')
     })
 
-    test('agent schema requires type property', () => {
-      defineAgentsSchema(mockServerless)
-
-      expect(capturedAgentsSchema.additionalProperties.required).toContain(
-        'type',
-      )
-    })
-
-    test('agent schema has valid type enum including all resource types', () => {
+    test('agent schema has valid type enum including all resource types (excluding memory and gateway)', () => {
       defineAgentsSchema(mockServerless)
 
       const typeSchema =
         capturedAgentsSchema.additionalProperties.properties.type
       expect(typeSchema.type).toBe('string')
       expect(typeSchema.enum).toContain('runtime')
-      expect(typeSchema.enum).toContain('memory')
-      expect(typeSchema.enum).toContain('gateway')
       expect(typeSchema.enum).toContain('browser')
       expect(typeSchema.enum).toContain('codeInterpreter')
       expect(typeSchema.enum).toContain('workloadIdentity')
+      // Memory is now defined via agents.memory or agents.<agent>.memory
+      expect(typeSchema.enum).not.toContain('memory')
+      // Gateway is now auto-created when tools exist
+      expect(typeSchema.enum).not.toContain('gateway')
+    })
+
+    test('agents schema includes memory reserved key for shared memory', () => {
+      defineAgentsSchema(mockServerless)
+
+      expect(capturedAgentsSchema.properties.memory).toBeDefined()
+      expect(capturedAgentsSchema.properties.memory.type).toBe('object')
     })
 
     test('agent schema includes description property', () => {
@@ -120,7 +130,7 @@ describe('Schema Validator', () => {
         expect(artifactSchema.properties.s3).toBeDefined()
       })
 
-      test('artifact s3 config includes required bucket and key', () => {
+      test('artifact s3 config includes bucket and key properties', () => {
         defineAgentsSchema(mockServerless)
 
         const s3Schema =
@@ -128,8 +138,8 @@ describe('Schema Validator', () => {
             .properties.s3
         expect(s3Schema.properties.bucket).toBeDefined()
         expect(s3Schema.properties.key).toBeDefined()
-        expect(s3Schema.required).toContain('bucket')
-        expect(s3Schema.required).toContain('key')
+        expect(s3Schema.properties.versionId).toBeDefined()
+        // bucket and key are not required - if omitted, deployment bucket is used
       })
 
       test('artifact includes entryPoint and runtime for S3 code deployment', () => {
@@ -240,165 +250,240 @@ describe('Schema Validator', () => {
       })
     })
 
-    // Memory-specific tests
+    // Memory configuration tests (inline memory on runtime agents)
     describe('memory schema', () => {
-      test('includes eventExpiryDuration with range 7-365', () => {
+      test('runtime agents include memory property (can be string or object)', () => {
         defineAgentsSchema(mockServerless)
 
+        const memorySchema =
+          capturedAgentsSchema.additionalProperties.properties.memory
+        expect(memorySchema.anyOf).toBeDefined()
+        expect(memorySchema.anyOf).toHaveLength(2)
+        // First option: string reference to shared memory
+        expect(memorySchema.anyOf[0].type).toBe('string')
+        // Second option: inline memory config object
+        expect(memorySchema.anyOf[1].type).toBe('object')
+      })
+
+      test('shared memory schema includes expiration with range 7-365', () => {
+        defineAgentsSchema(mockServerless)
+
+        const memorySchema = capturedAgentsSchema.properties.memory
         const expirySchema =
-          capturedAgentsSchema.additionalProperties.properties
-            .eventExpiryDuration
+          memorySchema.additionalProperties.properties.expiration
         expect(expirySchema.type).toBe('number')
         expect(expirySchema.minimum).toBe(7)
         expect(expirySchema.maximum).toBe(365)
       })
 
-      test('includes strategies array', () => {
+      test('shared memory schema includes strategies array', () => {
         defineAgentsSchema(mockServerless)
 
+        const memorySchema = capturedAgentsSchema.properties.memory
         const strategiesSchema =
-          capturedAgentsSchema.additionalProperties.properties.strategies
+          memorySchema.additionalProperties.properties.strategies
         expect(strategiesSchema.type).toBe('array')
         expect(strategiesSchema.items.type).toBe('object')
         expect(strategiesSchema.items.additionalProperties).toBe(true)
       })
 
-      test('includes encryptionKeyArn', () => {
+      test('shared memory schema includes encryptionKey', () => {
         defineAgentsSchema(mockServerless)
 
+        const memorySchema = capturedAgentsSchema.properties.memory
         const encryptionSchema =
-          capturedAgentsSchema.additionalProperties.properties.encryptionKeyArn
+          memorySchema.additionalProperties.properties.encryptionKey
         expect(encryptionSchema.type).toBe('string')
       })
     })
 
-    // Gateway-specific tests
-    describe('gateway schema', () => {
-      test('includes authorizerType enum', () => {
+    // Tools schema tests
+    describe('tools schema', () => {
+      test('agents schema includes tools reserved key for shared tools', () => {
         defineAgentsSchema(mockServerless)
 
-        const authTypeSchema =
-          capturedAgentsSchema.additionalProperties.properties.authorizerType
-        expect(authTypeSchema.type).toBe('string')
-        expect(authTypeSchema.enum).toContain('NONE')
-        expect(authTypeSchema.enum).toContain('AWS_IAM')
-        expect(authTypeSchema.enum).toContain('CUSTOM_JWT')
+        expect(capturedAgentsSchema.properties.tools).toBeDefined()
+        expect(capturedAgentsSchema.properties.tools.type).toBe('object')
       })
 
-      test('includes protocolType with MCP', () => {
+      test('agent schema includes tools property for agent-level tools', () => {
         defineAgentsSchema(mockServerless)
 
-        const protocolTypeSchema =
-          capturedAgentsSchema.additionalProperties.properties.protocolType
-        expect(protocolTypeSchema.type).toBe('string')
-        expect(protocolTypeSchema.enum).toContain('MCP')
+        const toolsSchema =
+          capturedAgentsSchema.additionalProperties.properties.tools
+        expect(toolsSchema.type).toBe('object')
       })
 
-      test('includes authorizerConfiguration with customJwtAuthorizer', () => {
+      test('tool config supports string reference or inline object', () => {
         defineAgentsSchema(mockServerless)
 
-        const authConfigSchema =
-          capturedAgentsSchema.additionalProperties.properties
-            .authorizerConfiguration
-        expect(authConfigSchema.type).toBe('object')
-        expect(authConfigSchema.properties.customJwtAuthorizer).toBeDefined()
-        expect(
-          authConfigSchema.properties.customJwtAuthorizer.properties
-            .allowedScopes,
-        ).toBeDefined()
-        expect(
-          authConfigSchema.properties.customJwtAuthorizer.properties
-            .customClaims,
-        ).toBeDefined()
+        const toolsSchema =
+          capturedAgentsSchema.additionalProperties.properties.tools
+        expect(toolsSchema.additionalProperties.anyOf).toBeDefined()
+        expect(toolsSchema.additionalProperties.anyOf).toHaveLength(2)
+        // String reference
+        expect(toolsSchema.additionalProperties.anyOf[0].type).toBe('string')
+        // Inline object
+        expect(toolsSchema.additionalProperties.anyOf[1].type).toBe('object')
       })
 
-      test('includes protocolConfiguration with mcp settings', () => {
+      test('tool config includes function, openapi, smithy, mcp keys', () => {
         defineAgentsSchema(mockServerless)
 
-        const protocolConfigSchema =
-          capturedAgentsSchema.additionalProperties.properties
-            .protocolConfiguration
-        expect(protocolConfigSchema.type).toBe('object')
-        expect(protocolConfigSchema.properties.mcp).toBeDefined()
-        expect(
-          protocolConfigSchema.properties.mcp.properties.supportedVersions,
-        ).toBeDefined()
-        expect(
-          protocolConfigSchema.properties.mcp.properties.instructions,
-        ).toBeDefined()
-        expect(
-          protocolConfigSchema.properties.mcp.properties.searchType,
-        ).toBeDefined()
+        const toolConfigSchema =
+          capturedAgentsSchema.additionalProperties.properties.tools
+            .additionalProperties.anyOf[1]
+        expect(toolConfigSchema.properties.function).toBeDefined()
+        expect(toolConfigSchema.properties.openapi).toBeDefined()
+        expect(toolConfigSchema.properties.smithy).toBeDefined()
+        expect(toolConfigSchema.properties.mcp).toBeDefined()
       })
 
-      test('includes exceptionLevel', () => {
+      test('tool function can be string or object', () => {
         defineAgentsSchema(mockServerless)
 
-        const exceptionSchema =
-          capturedAgentsSchema.additionalProperties.properties.exceptionLevel
-        expect(exceptionSchema.type).toBe('string')
-        expect(exceptionSchema.enum).toContain('DEBUG')
+        const toolConfigSchema =
+          capturedAgentsSchema.additionalProperties.properties.tools
+            .additionalProperties.anyOf[1]
+        expect(toolConfigSchema.properties.function.anyOf).toBeDefined()
+        expect(toolConfigSchema.properties.function.anyOf[0].type).toBe(
+          'string',
+        )
+        expect(toolConfigSchema.properties.function.anyOf[1].type).toBe(
+          'object',
+        )
       })
 
-      test('includes targets array with target types', () => {
+      test('tool mcp has https pattern', () => {
         defineAgentsSchema(mockServerless)
 
-        const targetsSchema =
-          capturedAgentsSchema.additionalProperties.properties.targets
-        expect(targetsSchema.type).toBe('array')
-        expect(targetsSchema.items.properties.name).toBeDefined()
-        expect(targetsSchema.items.properties.type.enum).toContain('openapi')
-        expect(targetsSchema.items.properties.type.enum).toContain('lambda')
-        expect(targetsSchema.items.properties.type.enum).toContain('smithy')
-        expect(targetsSchema.items.required).toContain('name')
+        const toolConfigSchema =
+          capturedAgentsSchema.additionalProperties.properties.tools
+            .additionalProperties.anyOf[1]
+        expect(toolConfigSchema.properties.mcp.type).toBe('string')
+        expect(toolConfigSchema.properties.mcp.pattern).toBe('^https://.*')
       })
 
-      test('target includes credentialProvider configuration', () => {
+      test('tool config includes toolSchema for function tools', () => {
         defineAgentsSchema(mockServerless)
 
-        const credProviderSchema =
-          capturedAgentsSchema.additionalProperties.properties.targets.items
-            .properties.credentialProvider
-        expect(credProviderSchema.type).toBe('object')
-        expect(credProviderSchema.properties.type.enum).toContain(
+        const toolConfigSchema =
+          capturedAgentsSchema.additionalProperties.properties.tools
+            .additionalProperties.anyOf[1]
+        // toolSchema is defined but accepts any format (validated at runtime/CloudFormation)
+        expect(toolConfigSchema.properties.toolSchema).toBeDefined()
+      })
+
+      test('tool config includes credentials with type enum', () => {
+        defineAgentsSchema(mockServerless)
+
+        const toolConfigSchema =
+          capturedAgentsSchema.additionalProperties.properties.tools
+            .additionalProperties.anyOf[1]
+        const credentialsSchema = toolConfigSchema.properties.credentials
+        expect(credentialsSchema.type).toBe('object')
+        expect(credentialsSchema.properties.type.enum).toContain(
           'GATEWAY_IAM_ROLE',
         )
-        expect(credProviderSchema.properties.type.enum).toContain('OAUTH')
-        expect(credProviderSchema.properties.type.enum).toContain('API_KEY')
+        expect(credentialsSchema.properties.type.enum).toContain('OAUTH')
+        expect(credentialsSchema.properties.type.enum).toContain('API_KEY')
       })
 
-      test('target credentialProvider oauthConfig uses providerArn', () => {
+      test('credentials includes providerArn and scopes for OAUTH', () => {
         defineAgentsSchema(mockServerless)
 
-        const oauthSchema =
-          capturedAgentsSchema.additionalProperties.properties.targets.items
-            .properties.credentialProvider.properties.oauthConfig
-        expect(oauthSchema.properties.providerArn).toBeDefined()
-        expect(oauthSchema.properties.scopes).toBeDefined()
-        expect(oauthSchema.required).toContain('providerArn')
-        expect(oauthSchema.required).toContain('scopes')
+        const toolConfigSchema =
+          capturedAgentsSchema.additionalProperties.properties.tools
+            .additionalProperties.anyOf[1]
+        const credentialsSchema = toolConfigSchema.properties.credentials
+        expect(credentialsSchema.properties.providerArn).toBeDefined()
+        expect(credentialsSchema.properties.scopes).toBeDefined()
+        expect(credentialsSchema.properties.scopes.type).toBe('array')
+      })
+    })
+
+    // Gateway configuration in provider.agents.gateway
+    describe('provider.agents.gateway schema', () => {
+      test('provider schema includes agents.gateway', () => {
+        defineAgentsSchema(mockServerless)
+
+        // Check that provider.agents was added to the schema
+        const providerAgentsSchema =
+          mockServerless.configSchemaHandler.schema.properties.provider
+            .properties.agents
+        expect(providerAgentsSchema).toBeDefined()
+        expect(providerAgentsSchema.properties.gateway).toBeDefined()
       })
 
-      test('target credentialProvider apiKeyConfig uses providerArn', () => {
+      test('gateway config includes authorizerType enum', () => {
         defineAgentsSchema(mockServerless)
 
-        const apiKeySchema =
-          capturedAgentsSchema.additionalProperties.properties.targets.items
-            .properties.credentialProvider.properties.apiKeyConfig
-        expect(apiKeySchema.properties.providerArn).toBeDefined()
-        expect(apiKeySchema.properties.credentialLocation).toBeDefined()
-        expect(apiKeySchema.required).toContain('providerArn')
+        const gatewaySchema =
+          mockServerless.configSchemaHandler.schema.properties.provider
+            .properties.agents.properties.gateway
+        expect(gatewaySchema.properties.authorizerType.enum).toContain('NONE')
+        expect(gatewaySchema.properties.authorizerType.enum).toContain(
+          'AWS_IAM',
+        )
+        expect(gatewaySchema.properties.authorizerType.enum).toContain(
+          'CUSTOM_JWT',
+        )
       })
 
-      test('target includes toolSchema for lambda targets', () => {
+      test('gateway config includes protocolType with MCP', () => {
         defineAgentsSchema(mockServerless)
 
-        const toolSchemaSchema =
-          capturedAgentsSchema.additionalProperties.properties.targets.items
-            .properties.toolSchema
-        expect(toolSchemaSchema.type).toBe('object')
-        expect(toolSchemaSchema.properties.s3).toBeDefined()
-        expect(toolSchemaSchema.properties.inlinePayload).toBeDefined()
+        const gatewaySchema =
+          mockServerless.configSchemaHandler.schema.properties.provider
+            .properties.agents.properties.gateway
+        expect(gatewaySchema.properties.protocolType.enum).toContain('MCP')
+      })
+
+      test('gateway config includes kmsKeyArn with pattern', () => {
+        defineAgentsSchema(mockServerless)
+
+        const gatewaySchema =
+          mockServerless.configSchemaHandler.schema.properties.provider
+            .properties.agents.properties.gateway
+        expect(gatewaySchema.properties.kmsKeyArn).toBeDefined()
+        expect(gatewaySchema.properties.kmsKeyArn.pattern).toContain('kms')
+      })
+
+      test('gateway config includes interceptorConfigurations', () => {
+        defineAgentsSchema(mockServerless)
+
+        const gatewaySchema =
+          mockServerless.configSchemaHandler.schema.properties.provider
+            .properties.agents.properties.gateway
+        expect(gatewaySchema.properties.interceptorConfigurations).toBeDefined()
+        expect(gatewaySchema.properties.interceptorConfigurations.type).toBe(
+          'array',
+        )
+      })
+
+      test('gateway config includes authorizerConfiguration', () => {
+        defineAgentsSchema(mockServerless)
+
+        const gatewaySchema =
+          mockServerless.configSchemaHandler.schema.properties.provider
+            .properties.agents.properties.gateway
+        expect(gatewaySchema.properties.authorizerConfiguration).toBeDefined()
+        expect(
+          gatewaySchema.properties.authorizerConfiguration.properties
+            .customJwtAuthorizer,
+        ).toBeDefined()
+      })
+
+      test('gateway config includes protocolConfiguration', () => {
+        defineAgentsSchema(mockServerless)
+
+        const gatewaySchema =
+          mockServerless.configSchemaHandler.schema.properties.provider
+            .properties.agents.properties.gateway
+        expect(gatewaySchema.properties.protocolConfiguration).toBeDefined()
+        expect(
+          gatewaySchema.properties.protocolConfiguration.properties.mcp,
+        ).toBeDefined()
       })
     })
 

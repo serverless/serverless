@@ -83,12 +83,25 @@ export function buildGatewayProtocolConfiguration(protocolConfig) {
 
 /**
  * Compile a Gateway resource to CloudFormation
+ * @param {string} name - Gateway name
+ * @param {object} config - Gateway configuration
+ * @param {object} context - Serverless context (serviceName, stage)
+ * @param {object} tags - Tags to apply
+ * @param {string} [roleLogicalIdOverride] - Optional override for the role logical ID
  */
-export function compileGateway(name, config, context, tags) {
+export function compileGateway(
+  name,
+  config,
+  context,
+  tags,
+  roleLogicalIdOverride,
+) {
   const { serviceName, stage } = context
   const resourceName = getGatewayResourceName(serviceName, name, stage)
 
-  const roleLogicalId = `${getLogicalId(name, 'Gateway')}Role`
+  // Use provided roleLogicalId or generate one from name
+  const roleLogicalId =
+    roleLogicalIdOverride || `${getLogicalId(name, 'Gateway')}Role`
 
   const authorizerType = config.authorizerType || 'AWS_IAM'
   const protocolType = config.protocolType || 'MCP'

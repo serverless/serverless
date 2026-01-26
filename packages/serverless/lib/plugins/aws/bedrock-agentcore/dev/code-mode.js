@@ -105,6 +105,21 @@ export class AgentCoreCodeMode {
       env: pythonEnv,
     })
 
+    // Immediately attach stdout/stderr listeners to capture early output
+    // This prevents log loss if the process crashes during import/startup
+    this.#process.stdout.on('data', (data) => {
+      const text = data.toString()
+      // Log to debug by default (index.js will handle display formatting)
+      logger.debug(`[stdout] ${text}`)
+    })
+
+    this.#process.stderr.on('data', (data) => {
+      const text = data.toString()
+      // Always show stderr immediately - it contains errors, tracebacks, etc.
+      // Use console.error to ensure immediate visibility even during startup
+      console.error(text)
+    })
+
     // Handle process errors
     this.#process.on('error', (error) => {
       if (error.code === 'ENOENT') {
@@ -121,10 +136,7 @@ export class AgentCoreCodeMode {
     this.#process.on('exit', (code, signal) => {
       if (!this.#isShuttingDown) {
         if (code !== 0) {
-          logger.error(
-            `Python process exited with code ${code}. ` +
-              `Check the logs above for errors.`,
-          )
+          logger.error(`Python process exited with code ${code}.`)
         }
       }
     })

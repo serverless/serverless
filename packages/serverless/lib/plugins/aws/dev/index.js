@@ -114,10 +114,18 @@ class AwsDev {
     const { getLogicalId } =
       await import('../bedrock-agentcore/utils/naming.js')
 
+    // Reserved keys that are not actual agents
+    const RESERVED_AGENT_KEYS = ['memory', 'tools']
+
     const agents = this.serverless.service.initialServerlessConfig?.agents || {}
-    const agentsConfig = Object.entries(agents).filter(
-      ([, config]) => !config.type || config.type === 'runtime',
-    )
+    const agentsConfig = Object.entries(agents).filter(([name, config]) => {
+      // Skip reserved keys (memory, tools) which are not agents
+      if (RESERVED_AGENT_KEYS.includes(name)) {
+        return false
+      }
+      // Only include runtime agents (type: 'runtime' or no type specified for backwards compat)
+      return !config.type || config.type === 'runtime'
+    })
 
     if (agentsConfig.length === 0) {
       throw new ServerlessError(
@@ -154,12 +162,14 @@ class AwsDev {
     // Get the port
     const port = this.options.port ? parseInt(this.options.port, 10) : 8080
 
-    // Get deployed role ARN from CloudFormation stack
+    // Get deployed role ARN and other IDs from CloudFormation stack
     const mainProgress = progress.get('main')
     mainProgress.notice(`Starting agents dev mode for '${agentName}'...`)
 
     const stackName = this.provider.naming.getStackName()
     let roleArn
+    let gatewayUrl
+    let memoryId
 
     try {
       const result = await this.provider.request(
@@ -173,24 +183,72 @@ class AwsDev {
         throw new Error(`Stack ${stackName} not found`)
       }
 
-      const logicalId = getLogicalId(agentName, 'Runtime')
-      const outputKey = `${logicalId}RoleArn`
-
-      const output = stack.Outputs?.find((o) => o.OutputKey === outputKey)
-      if (!output) {
+      // 1. Get Role ARN
+      const roleLogicalId = getLogicalId(agentName, 'Runtime')
+      const roleOutputKey = `${roleLogicalId}RoleArn`
+      const roleOutput = stack.Outputs?.find(
+        (o) => o.OutputKey === roleOutputKey,
+      )
+      if (!roleOutput) {
         throw new Error(`Role ARN output not found for agent '${agentName}'`)
       }
+      roleArn = roleOutput.OutputValue
 
-      roleArn = output.OutputValue
+      // 2. Get Gateway URL if tools are configured
+      const gatewayOutput = stack.Outputs?.find(
+        (o) => o.OutputKey === 'AgentCoreGatewayUrl',
+      )
+      if (gatewayOutput) {
+        gatewayUrl = gatewayOutput.OutputValue
+      }
+
+      // 3. Get Memory ID if memory is configured
+      if (agentConfig.memory) {
+        const memoryName =
+          typeof agentConfig.memory === 'string'
+            ? agentConfig.memory
+            : `${agentName}-memory`
+        const memoryLogicalId = getLogicalId(memoryName, 'Memory')
+        const memoryOutputKey = `${memoryLogicalId}Id`
+        const memoryOutput = stack.Outputs?.find(
+          (o) => o.OutputKey === memoryOutputKey,
+        )
+        if (memoryOutput) {
+          memoryId = memoryOutput.OutputValue
+        }
+      }
     } catch (error) {
       mainProgress.remove()
       throw new ServerlessError(
-        `Failed to get deployed role ARN. Make sure the agent is deployed first.\n` +
+        `Failed to gather deployed agent resources. Make sure the agent is deployed first.\n` +
           `Run 'serverless deploy' to deploy the agent.\n` +
           `Error: ${error.message}`,
-        'ROLE_ARN_NOT_FOUND',
+        'AGENT_RESOURCES_NOT_FOUND',
       )
     }
+
+    // Prepare environment variables
+    const providerEnv = this.serverless.service.provider.environment || {}
+    const agentEnv = agentConfig.environment || {}
+
+    // Merge: provider-level variables first, then agent-level (agent-level overrides provider-level)
+    agentConfig.environment = {
+      ...providerEnv,
+      ...agentEnv,
+    }
+
+    // Inject auto-discovered Bedrock AgentCore resources
+    if (gatewayUrl) {
+      agentConfig.environment.BEDROCK_AGENTCORE_GATEWAY_URL = gatewayUrl
+    }
+    if (memoryId) {
+      agentConfig.environment.BEDROCK_AGENTCORE_MEMORY_ID = memoryId
+    }
+
+    // Add standard SLS_ variables for consistency with regular dev mode
+    agentConfig.environment.SLS_SERVICE = this.serverless.service.service
+    agentConfig.environment.SLS_STAGE = this.provider.getStage()
+    agentConfig.environment.SLS_AGENT = agentName
 
     mainProgress.remove()
 

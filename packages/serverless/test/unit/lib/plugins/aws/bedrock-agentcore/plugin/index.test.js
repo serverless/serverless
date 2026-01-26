@@ -40,7 +40,6 @@ describe('ServerlessBedrockAgentCore', () => {
       expect(pluginInstance.commands.agentcore).toBeDefined()
       expect(pluginInstance.commands.agentcore.commands.info).toBeDefined()
       expect(pluginInstance.commands.agentcore.commands.build).toBeDefined()
-      expect(pluginInstance.commands.agentcore.commands.invoke).toBeDefined()
       expect(pluginInstance.commands.agentcore.commands.logs).toBeDefined()
     })
 
@@ -110,12 +109,12 @@ describe('ServerlessBedrockAgentCore', () => {
     test('returns agents from initialServerlessConfig when service.agents not set', () => {
       delete mockServerless.service.agents
       mockServerless.service.initialServerlessConfig = {
-        agents: { myAgent: { type: 'memory' } },
+        agents: { myAgent: { type: 'gateway' } },
       }
 
       const agents = pluginInstance.getAgentsConfig()
 
-      expect(agents).toEqual({ myAgent: { type: 'memory' } })
+      expect(agents).toEqual({ myAgent: { type: 'gateway' } })
     })
 
     test('returns agents from custom.agents when other sources not set', () => {
@@ -146,7 +145,7 @@ describe('ServerlessBedrockAgentCore', () => {
     test('prioritizes service.agents over other sources', () => {
       mockServerless.service.agents = { fromService: { type: 'runtime' } }
       mockServerless.service.initialServerlessConfig = {
-        agents: { fromInitial: { type: 'memory' } },
+        agents: { fromInitial: { type: 'gateway' } },
       }
 
       const agents = pluginInstance.getAgentsConfig()
@@ -179,10 +178,10 @@ describe('ServerlessBedrockAgentCore', () => {
   })
 
   describe('validateAgent', () => {
-    test('throws error when type is missing', () => {
-      expect(() => pluginInstance.validateAgent('myAgent', {})).toThrow(
-        "Agent 'myAgent' must have a 'type' property",
-      )
+    test('defaults to runtime type when not specified', () => {
+      const config = { artifact: { containerImage: 'test:latest' } }
+      pluginInstance.validateAgent('myAgent', config)
+      expect(config.type).toBe('runtime')
     })
 
     test('throws error for invalid type', () => {
@@ -191,24 +190,18 @@ describe('ServerlessBedrockAgentCore', () => {
       ).toThrow("Agent 'myAgent' has invalid type 'invalid'")
     })
 
+    test('throws error for memory type (no longer valid as agent type)', () => {
+      expect(() =>
+        pluginInstance.validateAgent('myAgent', { type: 'memory' }),
+      ).toThrow("Agent 'myAgent' has invalid type 'memory'")
+    })
+
     test('accepts valid runtime type', () => {
       expect(() =>
         pluginInstance.validateAgent('myAgent', {
           type: 'runtime',
           artifact: { containerImage: 'test:latest' },
         }),
-      ).not.toThrow()
-    })
-
-    test('accepts valid memory type', () => {
-      expect(() =>
-        pluginInstance.validateAgent('myAgent', { type: 'memory' }),
-      ).not.toThrow()
-    })
-
-    test('accepts valid gateway type', () => {
-      expect(() =>
-        pluginInstance.validateAgent('myAgent', { type: 'gateway' }),
       ).not.toThrow()
     })
 
@@ -232,10 +225,11 @@ describe('ServerlessBedrockAgentCore', () => {
   })
 
   describe('validateRuntime', () => {
-    test('throws error when neither image nor artifact is specified', () => {
+    test('accepts runtime with no artifact (buildpacks auto-detection)', () => {
+      // When no artifact config is specified, buildpacks auto-detection will be used
       expect(() =>
         pluginInstance.validateRuntime('myAgent', { type: 'runtime' }),
-      ).toThrow("Runtime 'myAgent' must have either 'image'")
+      ).not.toThrow()
     })
 
     test('accepts artifact.containerImage', () => {
@@ -315,82 +309,92 @@ describe('ServerlessBedrockAgentCore', () => {
     })
   })
 
-  describe('validateMemory', () => {
+  describe('validateMemoryConfig', () => {
     test('accepts valid memory config', () => {
       expect(() =>
-        pluginInstance.validateMemory('myMemory', { type: 'memory' }),
+        pluginInstance.validateMemoryConfig('myMemory', {}),
       ).not.toThrow()
     })
 
-    test('throws error for invalid eventExpiryDuration (too low)', () => {
+    test('throws error for invalid expiration (too low)', () => {
       expect(() =>
-        pluginInstance.validateMemory('myMemory', {
-          type: 'memory',
-          eventExpiryDuration: 5,
+        pluginInstance.validateMemoryConfig('myMemory', {
+          expiration: 5,
         }),
       ).toThrow('must be a number between 7 and 365 days')
     })
 
-    test('throws error for invalid eventExpiryDuration (too high)', () => {
+    test('throws error for invalid expiration (too high)', () => {
       expect(() =>
-        pluginInstance.validateMemory('myMemory', {
-          type: 'memory',
-          eventExpiryDuration: 400,
+        pluginInstance.validateMemoryConfig('myMemory', {
+          expiration: 400,
         }),
       ).toThrow('must be a number between 7 and 365 days')
     })
 
-    test('accepts valid eventExpiryDuration', () => {
+    test('accepts valid expiration', () => {
       expect(() =>
-        pluginInstance.validateMemory('myMemory', {
-          type: 'memory',
-          eventExpiryDuration: 30,
+        pluginInstance.validateMemoryConfig('myMemory', {
+          expiration: 30,
         }),
       ).not.toThrow()
+    })
+
+    test('throws error for non-string encryptionKey', () => {
+      expect(() =>
+        pluginInstance.validateMemoryConfig('myMemory', {
+          encryptionKey: 123,
+        }),
+      ).toThrow('encryptionKey must be a string')
+    })
+
+    test('throws error for non-array strategies', () => {
+      expect(() =>
+        pluginInstance.validateMemoryConfig('myMemory', {
+          strategies: 'not-an-array',
+        }),
+      ).toThrow('strategies must be an array')
     })
   })
 
-  describe('validateGateway', () => {
-    test('accepts valid gateway config', () => {
+  describe('validateRuntime with memory', () => {
+    test('accepts runtime with inline memory config', () => {
       expect(() =>
-        pluginInstance.validateGateway('myGateway', { type: 'gateway' }),
-      ).not.toThrow()
-    })
-
-    test('throws error for invalid authorizerType', () => {
-      expect(() =>
-        pluginInstance.validateGateway('myGateway', {
-          type: 'gateway',
-          authorizerType: 'INVALID',
-        }),
-      ).toThrow("has invalid authorizerType 'INVALID'")
-    })
-
-    test('accepts AWS_IAM authorizerType', () => {
-      expect(() =>
-        pluginInstance.validateGateway('myGateway', {
-          type: 'gateway',
-          authorizerType: 'AWS_IAM',
+        pluginInstance.validateRuntime('myAgent', {
+          type: 'runtime',
+          artifact: { containerImage: 'test:latest' },
+          memory: { expiration: 90 },
         }),
       ).not.toThrow()
     })
 
-    test('throws error for invalid protocolType', () => {
+    test('accepts runtime with shared memory reference', () => {
+      const sharedMemories = { 'shared-memory': { expiration: 90 } }
       expect(() =>
-        pluginInstance.validateGateway('myGateway', {
-          type: 'gateway',
-          protocolType: 'HTTP',
-        }),
-      ).toThrow("has invalid protocolType 'HTTP'")
+        pluginInstance.validateRuntime(
+          'myAgent',
+          {
+            type: 'runtime',
+            artifact: { containerImage: 'test:latest' },
+            memory: 'shared-memory',
+          },
+          sharedMemories,
+        ),
+      ).not.toThrow()
     })
 
-    test('accepts MCP protocolType', () => {
+    test('throws error for invalid memory reference', () => {
       expect(() =>
-        pluginInstance.validateGateway('myGateway', {
-          type: 'gateway',
-          protocolType: 'MCP',
-        }),
-      ).not.toThrow()
+        pluginInstance.validateRuntime(
+          'myAgent',
+          {
+            type: 'runtime',
+            artifact: { containerImage: 'test:latest' },
+            memory: 'non-existent-memory',
+          },
+          {},
+        ),
+      ).toThrow("references memory 'non-existent-memory' which is not defined")
     })
   })
 
@@ -609,7 +613,7 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     test('returns early when no compiled template', () => {
-      mockServerless.service.agents = { myAgent: { type: 'memory' } }
+      mockServerless.service.agents = { myAgent: { type: 'gateway' } }
       mockServerless.service.provider.compiledCloudFormationTemplate = null
 
       pluginInstance.compileAgentCoreResources()
@@ -619,7 +623,7 @@ describe('ServerlessBedrockAgentCore', () => {
 
     test('compiles resources only once (idempotent)', () => {
       mockServerless.service.agents = {
-        myMemory: { type: 'memory' },
+        memory: { myMemory: { expiration: 90 } },
       }
 
       pluginInstance.compileAgentCoreResources()
@@ -645,9 +649,11 @@ describe('ServerlessBedrockAgentCore', () => {
       expect(template.Outputs).toHaveProperty('MyAgentRuntimeArn')
     })
 
-    test('compiles memory resources', () => {
+    test('compiles shared memory resources', () => {
       mockServerless.service.agents = {
-        myMemory: { type: 'memory' },
+        memory: {
+          myMemory: { expiration: 90 },
+        },
       }
 
       pluginInstance.compileAgentCoreResources()
@@ -658,17 +664,125 @@ describe('ServerlessBedrockAgentCore', () => {
       expect(template.Resources).toHaveProperty('MyMemoryMemoryRole')
     })
 
-    test('compiles gateway resources', () => {
+    test('compiles inline memory for runtime', () => {
       mockServerless.service.agents = {
-        myGateway: { type: 'gateway' },
+        myRuntime: {
+          type: 'runtime',
+          artifact: { containerImage: 'test:latest' },
+          memory: { expiration: 90 },
+        },
       }
 
       pluginInstance.compileAgentCoreResources()
 
       const template =
         mockServerless.service.provider.compiledCloudFormationTemplate
-      expect(template.Resources).toHaveProperty('MyGatewayGateway')
-      expect(template.Outputs).toHaveProperty('MyGatewayGatewayUrl')
+      expect(template.Resources).toHaveProperty('MyRuntimeRuntime')
+      // Note: The naming utility converts hyphens to "Dash" in logical IDs
+      expect(template.Resources).toHaveProperty('MyRuntimeDashmemoryMemory')
+      expect(template.Resources).toHaveProperty('MyRuntimeDashmemoryMemoryRole')
+    })
+
+    test('compiles runtime with shared memory reference', () => {
+      mockServerless.service.agents = {
+        memory: {
+          sharedMem: { expiration: 90 },
+        },
+        myRuntime: {
+          type: 'runtime',
+          artifact: { containerImage: 'test:latest' },
+          memory: 'sharedMem',
+        },
+      }
+
+      pluginInstance.compileAgentCoreResources()
+
+      const template =
+        mockServerless.service.provider.compiledCloudFormationTemplate
+      expect(template.Resources).toHaveProperty('SharedMemMemory')
+      expect(template.Resources).toHaveProperty('MyRuntimeRuntime')
+      // Runtime should depend on the shared memory
+      expect(template.Resources.MyRuntimeRuntime.DependsOn).toContain(
+        'SharedMemMemory',
+      )
+      // Memory ARN output should be added
+      expect(template.Outputs).toHaveProperty('MyRuntimeRuntimeMemoryArn')
+    })
+
+    test('injects BEDROCK_AGENTCORE_MEMORY_ID env var for inline memory', () => {
+      mockServerless.service.agents = {
+        myRuntime: {
+          type: 'runtime',
+          artifact: { containerImage: 'test:latest' },
+          memory: { expiration: 90 },
+        },
+      }
+
+      pluginInstance.compileAgentCoreResources()
+
+      const template =
+        mockServerless.service.provider.compiledCloudFormationTemplate
+      const runtime = template.Resources.MyRuntimeRuntime
+      expect(runtime.Properties.EnvironmentVariables).toBeDefined()
+      expect(
+        runtime.Properties.EnvironmentVariables.BEDROCK_AGENTCORE_MEMORY_ID,
+      ).toEqual({
+        'Fn::GetAtt': ['MyRuntimeDashmemoryMemory', 'MemoryId'],
+      })
+    })
+
+    test('injects BEDROCK_AGENTCORE_MEMORY_ID env var for shared memory reference', () => {
+      mockServerless.service.agents = {
+        memory: {
+          sharedMem: { expiration: 90 },
+        },
+        myRuntime: {
+          type: 'runtime',
+          artifact: { containerImage: 'test:latest' },
+          memory: 'sharedMem',
+        },
+      }
+
+      pluginInstance.compileAgentCoreResources()
+
+      const template =
+        mockServerless.service.provider.compiledCloudFormationTemplate
+      const runtime = template.Resources.MyRuntimeRuntime
+      expect(runtime.Properties.EnvironmentVariables).toBeDefined()
+      expect(
+        runtime.Properties.EnvironmentVariables.BEDROCK_AGENTCORE_MEMORY_ID,
+      ).toEqual({
+        'Fn::GetAtt': ['SharedMemMemory', 'MemoryId'],
+      })
+    })
+
+    test('preserves existing env vars when adding BEDROCK_AGENTCORE_MEMORY_ID', () => {
+      mockServerless.service.agents = {
+        myRuntime: {
+          type: 'runtime',
+          artifact: { containerImage: 'test:latest' },
+          memory: { expiration: 90 },
+          environment: {
+            MY_VAR: 'my-value',
+            ANOTHER_VAR: 'another-value',
+          },
+        },
+      }
+
+      pluginInstance.compileAgentCoreResources()
+
+      const template =
+        mockServerless.service.provider.compiledCloudFormationTemplate
+      const runtime = template.Resources.MyRuntimeRuntime
+      expect(runtime.Properties.EnvironmentVariables.MY_VAR).toBe('my-value')
+      expect(runtime.Properties.EnvironmentVariables.ANOTHER_VAR).toBe(
+        'another-value',
+      )
+      expect(
+        runtime.Properties.EnvironmentVariables.BEDROCK_AGENTCORE_MEMORY_ID,
+      ).toEqual({
+        'Fn::GetAtt': ['MyRuntimeDashmemoryMemory', 'MemoryId'],
+      })
     })
 
     test('compiles browser resources', () => {
@@ -723,42 +837,13 @@ describe('ServerlessBedrockAgentCore', () => {
       expect(template.Resources).toHaveProperty('MyAgentv1Endpoint')
     })
 
-    test('compiles gateway with targets', () => {
-      mockServerless.service.agents = {
-        myGateway: {
-          type: 'gateway',
-          targets: [
-            { name: 'myLambda', type: 'lambda', functionName: 'myFunc' },
-          ],
-        },
-      }
-
-      pluginInstance.compileAgentCoreResources()
-
-      const template =
-        mockServerless.service.provider.compiledCloudFormationTemplate
-      expect(template.Resources).toHaveProperty('MyGatewaymyLambdaTarget')
-    })
-
-    test('throws error for gateway target without name', () => {
-      mockServerless.service.agents = {
-        myGateway: {
-          type: 'gateway',
-          roleArn: 'arn:aws:iam::123456789012:role/ExistingRole',
-          targets: [{ description: 'missing name' }],
-        },
-      }
-
-      expect(() => pluginInstance.compileAgentCoreResources()).toThrow(
-        "Gateway 'myGateway' target must have a 'name' property",
-      )
-    })
-
     test('uses provided roleArn instead of generating role', () => {
       mockServerless.service.agents = {
-        myMemory: {
-          type: 'memory',
-          roleArn: 'arn:aws:iam::123456789012:role/CustomRole',
+        memory: {
+          myMemory: {
+            expiration: 90,
+            roleArn: 'arn:aws:iam::123456789012:role/CustomRole',
+          },
         },
       }
 
@@ -771,11 +856,11 @@ describe('ServerlessBedrockAgentCore', () => {
 
     test('logs resource summary', () => {
       mockServerless.service.agents = {
+        memory: { myMemory: { expiration: 90 } },
         myRuntime: {
           type: 'runtime',
           artifact: { containerImage: 'test:latest' },
         },
-        myMemory: { type: 'memory' },
       }
 
       pluginInstance.compileAgentCoreResources()
@@ -793,17 +878,15 @@ describe('ServerlessBedrockAgentCore', () => {
       expect(mockUtils.log.notice).not.toHaveBeenCalled()
     })
 
-    test('displays deployed resources', async () => {
+    test('completes without logging when resources exist', async () => {
       mockServerless.service.agents = {
         myAgent: { type: 'runtime' },
       }
 
       await pluginInstance.displayDeploymentInfo()
 
-      expect(mockUtils.log.notice).toHaveBeenCalledWith(
-        'AgentCore Resources Deployed:',
-      )
-      expect(mockUtils.log.notice).toHaveBeenCalledWith('  myAgent (Runtime)')
+      // No logging output - resources deployed silently
+      expect(mockUtils.log.notice).not.toHaveBeenCalled()
     })
   })
 
@@ -854,7 +937,7 @@ describe('ServerlessBedrockAgentCore', () => {
 
     test('returns first runtime agent name', () => {
       mockServerless.service.agents = {
-        myMemory: { type: 'memory' },
+        myBrowser: { type: 'browser' },
         myRuntime: { type: 'runtime' },
         anotherRuntime: { type: 'runtime' },
       }
@@ -862,6 +945,307 @@ describe('ServerlessBedrockAgentCore', () => {
       const result = pluginInstance.getFirstRuntimeAgent()
 
       expect(result).toBe('myRuntime')
+    })
+
+    test('skips memory reserved key', () => {
+      mockServerless.service.agents = {
+        memory: { sharedMem: { expiration: 90 } },
+        myRuntime: { type: 'runtime' },
+      }
+
+      const result = pluginInstance.getFirstRuntimeAgent()
+
+      expect(result).toBe('myRuntime')
+    })
+
+    test('skips tools reserved key', () => {
+      mockServerless.service.agents = {
+        tools: { myTool: { mcp: 'https://example.com/mcp' } },
+        myRuntime: { type: 'runtime' },
+      }
+
+      const result = pluginInstance.getFirstRuntimeAgent()
+
+      expect(result).toBe('myRuntime')
+    })
+  })
+
+  describe('tools functionality', () => {
+    describe('collectAllTools', () => {
+      test('returns hasTools false when no tools defined', () => {
+        mockServerless.service.agents = {
+          myRuntime: { type: 'runtime' },
+        }
+
+        const result = pluginInstance.collectAllTools(
+          mockServerless.service.agents,
+        )
+
+        expect(result.hasTools).toBe(false)
+        expect(result.sharedTools).toEqual({})
+        expect(result.agentTools).toEqual({})
+      })
+
+      test('returns hasTools true when shared tools defined', () => {
+        mockServerless.service.agents = {
+          tools: { myTool: { mcp: 'https://example.com/mcp' } },
+          myRuntime: { type: 'runtime' },
+        }
+
+        const result = pluginInstance.collectAllTools(
+          mockServerless.service.agents,
+        )
+
+        expect(result.hasTools).toBe(true)
+        expect(result.sharedTools).toEqual({
+          myTool: { mcp: 'https://example.com/mcp' },
+        })
+      })
+
+      test('returns hasTools true when agent has tools', () => {
+        mockServerless.service.agents = {
+          myRuntime: {
+            type: 'runtime',
+            tools: { myTool: { mcp: 'https://example.com/mcp' } },
+          },
+        }
+
+        const result = pluginInstance.collectAllTools(
+          mockServerless.service.agents,
+        )
+
+        expect(result.hasTools).toBe(true)
+        expect(result.agentTools.myRuntime).toBeDefined()
+      })
+
+      test('resolves string references to shared tools', () => {
+        mockServerless.service.agents = {
+          tools: { sharedMcp: { mcp: 'https://example.com/mcp' } },
+          myRuntime: {
+            type: 'runtime',
+            tools: { myTool: 'sharedMcp' },
+          },
+        }
+
+        const result = pluginInstance.collectAllTools(
+          mockServerless.service.agents,
+        )
+
+        expect(result.agentTools.myRuntime.myTool).toEqual({
+          mcp: 'https://example.com/mcp',
+        })
+      })
+    })
+
+    describe('validateToolConfig', () => {
+      test('throws error when function tool missing toolSchema', () => {
+        expect(() =>
+          pluginInstance.validateToolConfig('myTool', { function: 'hello' }),
+        ).toThrow("Tool 'myTool' with function type requires toolSchema")
+      })
+
+      test('does not throw for function tool with toolSchema', () => {
+        expect(() =>
+          pluginInstance.validateToolConfig('myTool', {
+            function: 'hello',
+            toolSchema: [
+              {
+                name: 'test',
+                description: 'test',
+                inputSchema: { type: 'string' },
+              },
+            ],
+          }),
+        ).not.toThrow()
+      })
+
+      test('throws error for invalid MCP URL', () => {
+        expect(() =>
+          pluginInstance.validateToolConfig('myTool', {
+            mcp: 'http://insecure.example.com',
+          }),
+        ).toThrow("Tool 'myTool' mcp endpoint must be a valid https:// URL")
+      })
+
+      test('throws error for OAUTH credentials missing providerArn', () => {
+        expect(() =>
+          pluginInstance.validateToolConfig('myTool', {
+            mcp: 'https://example.com/mcp',
+            credentials: { type: 'OAUTH', scopes: ['read'] },
+          }),
+        ).toThrow(
+          "Tool 'myTool' OAUTH credentials require providerArn and scopes",
+        )
+      })
+
+      test('throws error for API_KEY credentials missing providerArn', () => {
+        expect(() =>
+          pluginInstance.validateToolConfig('myTool', {
+            mcp: 'https://example.com/mcp',
+            credentials: { type: 'API_KEY' },
+          }),
+        ).toThrow("Tool 'myTool' API_KEY credentials require providerArn")
+      })
+    })
+
+    describe('validateConfig with tools', () => {
+      test('throws error when shared tool is a string reference', () => {
+        mockServerless.service.agents = {
+          tools: { myTool: 'some-ref' },
+        }
+
+        expect(() => pluginInstance.validateConfig()).toThrow(
+          "Shared tool 'myTool' cannot be a reference - define it inline",
+        )
+      })
+
+      test('throws error when agent tool references non-existent shared tool', () => {
+        mockServerless.service.agents = {
+          myRuntime: {
+            type: 'runtime',
+            tools: { myTool: 'nonExistentTool' },
+          },
+        }
+
+        expect(() => pluginInstance.validateConfig()).toThrow(
+          "Runtime 'myRuntime' tool 'myTool' references shared tool 'nonExistentTool' which is not defined in agents.tools",
+        )
+      })
+
+      test('validates successfully with valid tool references', () => {
+        mockServerless.service.agents = {
+          tools: { sharedMcp: { mcp: 'https://example.com/mcp' } },
+          myRuntime: {
+            type: 'runtime',
+            tools: { myTool: 'sharedMcp' },
+          },
+        }
+
+        expect(() => pluginInstance.validateConfig()).not.toThrow()
+      })
+    })
+
+    describe('compileAgentCoreResources with tools', () => {
+      test('creates gateway when shared tools exist', () => {
+        mockServerless.service.agents = {
+          tools: { myTool: { mcp: 'https://example.com/mcp' } },
+        }
+
+        pluginInstance.compileAgentCoreResources()
+        const template =
+          mockServerless.service.provider.compiledCloudFormationTemplate
+
+        expect(template.Resources.AgentCoreGateway).toBeDefined()
+        expect(template.Resources.AgentCoreGateway.Type).toBe(
+          'AWS::BedrockAgentCore::Gateway',
+        )
+      })
+
+      test('creates gateway when agent has tools', () => {
+        mockServerless.service.agents = {
+          myRuntime: {
+            type: 'runtime',
+            artifact: { containerImage: 'test:latest' },
+            tools: { myTool: { mcp: 'https://example.com/mcp' } },
+          },
+        }
+
+        pluginInstance.compileAgentCoreResources()
+        const template =
+          mockServerless.service.provider.compiledCloudFormationTemplate
+
+        expect(template.Resources.AgentCoreGateway).toBeDefined()
+      })
+
+      test('does not create gateway when no tools', () => {
+        mockServerless.service.agents = {
+          myRuntime: {
+            type: 'runtime',
+            artifact: { containerImage: 'test:latest' },
+          },
+        }
+
+        pluginInstance.compileAgentCoreResources()
+        const template =
+          mockServerless.service.provider.compiledCloudFormationTemplate
+
+        expect(template.Resources.AgentCoreGateway).toBeUndefined()
+      })
+
+      test('adds gateway outputs', () => {
+        mockServerless.service.agents = {
+          tools: { myTool: { mcp: 'https://example.com/mcp' } },
+        }
+
+        pluginInstance.compileAgentCoreResources()
+        const template =
+          mockServerless.service.provider.compiledCloudFormationTemplate
+
+        expect(template.Outputs.AgentCoreGatewayArn).toBeDefined()
+        expect(template.Outputs.AgentCoreGatewayId).toBeDefined()
+        expect(template.Outputs.AgentCoreGatewayUrl).toBeDefined()
+      })
+
+      test('compiles shared tools as GatewayTarget resources', () => {
+        mockServerless.service.agents = {
+          tools: {
+            'my-mcp': { mcp: 'https://example.com/mcp' },
+          },
+        }
+
+        pluginInstance.compileAgentCoreResources()
+        const template =
+          mockServerless.service.provider.compiledCloudFormationTemplate
+
+        // Tool logical ID is getLogicalId(toolName, 'Tool'):
+        // 'my-mcp' -> 'myDashmcp' -> 'MyDashmcp' -> 'MyDashmcpTool'
+        expect(template.Resources.MyDashmcpTool).toBeDefined()
+        expect(template.Resources.MyDashmcpTool.Type).toBe(
+          'AWS::BedrockAgentCore::GatewayTarget',
+        )
+      })
+    })
+
+    describe('env var injection', () => {
+      test('injects BEDROCK_AGENTCORE_GATEWAY_URL when agent has tools', () => {
+        mockServerless.service.agents = {
+          myRuntime: {
+            type: 'runtime',
+            artifact: { containerImage: 'test-image:latest' },
+            tools: { myTool: { mcp: 'https://example.com/mcp' } },
+          },
+        }
+
+        pluginInstance.compileAgentCoreResources()
+        const template =
+          mockServerless.service.provider.compiledCloudFormationTemplate
+        const runtime = template.Resources.MyRuntimeRuntime
+
+        // EnvironmentVariables is a top-level property in Properties
+        expect(runtime.Properties.EnvironmentVariables).toHaveProperty(
+          'BEDROCK_AGENTCORE_GATEWAY_URL',
+        )
+        expect(
+          runtime.Properties.EnvironmentVariables.BEDROCK_AGENTCORE_GATEWAY_URL,
+        ).toEqual({ 'Fn::GetAtt': ['AgentCoreGateway', 'GatewayUrl'] })
+      })
+
+      test('does not inject gateway URL when agent has no tools', () => {
+        mockServerless.service.agents = {
+          myRuntime: {
+            type: 'runtime',
+            artifact: { containerImage: 'test-image:latest' },
+          },
+        }
+
+        pluginInstance.compileAgentCoreResources()
+        const template =
+          mockServerless.service.provider.compiledCloudFormationTemplate
+        const runtime = template.Resources.MyRuntimeRuntime
+
+        const envVars = runtime.Properties.EnvironmentVariables || {}
+        expect(envVars.BEDROCK_AGENTCORE_GATEWAY_URL).toBeUndefined()
+      })
     })
   })
 
@@ -902,29 +1286,6 @@ describe('ServerlessBedrockAgentCore', () => {
     test('returns default for invalid string', () => {
       const result = pluginInstance.parseTimeAgo('invalid')
       expect(result).toBe(1700000000000 - 60 * 60 * 1000)
-    })
-  })
-
-  describe('invokeAgent', () => {
-    beforeEach(() => {
-      mockOptions.message = 'test message'
-    })
-
-    test('throws error when no runtime agents found', async () => {
-      await expect(pluginInstance.invokeAgent()).rejects.toThrow(
-        'No runtime agents found in configuration',
-      )
-    })
-
-    test('throws error when message not provided', async () => {
-      mockServerless.service.agents = {
-        myAgent: { type: 'runtime' },
-      }
-      mockOptions.message = undefined
-
-      await expect(pluginInstance.invokeAgent()).rejects.toThrow(
-        'Message is required',
-      )
     })
   })
 

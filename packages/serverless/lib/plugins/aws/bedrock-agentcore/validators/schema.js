@@ -1,24 +1,368 @@
 'use strict'
 
 /**
+ * Memory configuration schema (used for both inline and shared memory definitions)
+ * User-friendly property names that map to CFN:
+ *   - expiration -> EventExpiryDuration
+ *   - encryptionKey -> EncryptionKeyArn
+ *   - strategies -> MemoryStrategies
+ */
+const memoryConfigSchema = {
+  type: 'object',
+  properties: {
+    expiration: {
+      type: 'number',
+      minimum: 7,
+      maximum: 365,
+    },
+    encryptionKey: {
+      type: 'string',
+    },
+    strategies: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: true,
+      },
+    },
+    roleArn: {
+      type: 'string',
+      pattern: '^arn:aws(-[^:]+)?:iam::([0-9]{12})?:role/.+$',
+    },
+    description: {
+      type: 'string',
+      minLength: 1,
+      maxLength: 1200,
+    },
+    tags: {
+      type: 'object',
+      additionalProperties: { type: 'string' },
+    },
+  },
+  additionalProperties: false,
+}
+
+/**
+ * Credential provider configuration schema for gateway tools
+ * Maps to CFN CredentialProviderConfiguration
+ */
+const credentialsConfigSchema = {
+  type: 'object',
+  properties: {
+    type: {
+      type: 'string',
+      enum: ['GATEWAY_IAM_ROLE', 'OAUTH', 'API_KEY'],
+      default: 'GATEWAY_IAM_ROLE',
+    },
+    // OAuth config (required when type: OAUTH)
+    providerArn: {
+      type: 'string',
+      pattern: '^arn:([^:]*):([^:]*):([^:]*):([0-9]{12})?:(.+)$',
+    },
+    scopes: {
+      type: 'array',
+      items: { type: 'string', maxLength: 64, minLength: 1 },
+      maxItems: 100,
+    },
+    grantType: {
+      type: 'string',
+      enum: ['AUTHORIZATION_CODE', 'CLIENT_CREDENTIALS'],
+    },
+    defaultReturnUrl: {
+      type: 'string',
+      maxLength: 2048,
+    },
+    customParameters: {
+      type: 'object',
+      additionalProperties: { type: 'string' },
+      maxProperties: 10,
+    },
+    // API Key config (required when type: API_KEY)
+    credentialLocation: {
+      type: 'string',
+      enum: ['HEADER', 'QUERY_PARAMETER'],
+    },
+    credentialParameterName: {
+      type: 'string',
+      maxLength: 64,
+      minLength: 1,
+    },
+    credentialPrefix: {
+      type: 'string',
+      maxLength: 64,
+      minLength: 1,
+    },
+  },
+}
+
+/**
+ * Tool schema item schema - defines structure of a single tool definition
+ * Uses additionalProperties: true at all levels to allow flexible nested structures
+ */
+const toolSchemaItemSchema = {
+  type: 'object',
+  additionalProperties: true,
+}
+
+/**
+ * Tool configuration schema
+ * Supports four target types:
+ *   - function: Lambda function tool (requires toolSchema)
+ *   - openapi: OpenAPI schema tool
+ *   - smithy: Smithy model tool
+ *   - mcp: MCP server endpoint
+ */
+const toolConfigSchema = {
+  type: 'object',
+  properties: {
+    // Lambda function tool - can be string (function name) or object with name/arn
+    function: {
+      anyOf: [
+        { type: 'string' }, // Function name reference
+        {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+            arn: { type: 'string' },
+          },
+          additionalProperties: false,
+        },
+      ],
+    },
+    // OpenAPI schema tool
+    openapi: {
+      type: 'string', // File path or inline content
+    },
+    // Smithy model tool
+    smithy: {
+      type: 'string', // File path or inline content
+    },
+    // MCP server endpoint
+    mcp: {
+      type: 'string', // https:// URL
+      pattern: '^https://.*',
+    },
+    // Tool schema for Lambda tools (required for function tools)
+    // Can be inline array or file path reference
+    // We allow any type here since the actual structure is validated at runtime
+    // and CloudFormation will validate the final structure
+    toolSchema: {},
+    // Credential provider configuration
+    credentials: credentialsConfigSchema,
+    // Optional description
+    description: {
+      type: 'string',
+      maxLength: 200,
+      minLength: 1,
+    },
+  },
+  additionalProperties: false,
+}
+
+/**
+ * Tools collection schema
+ * Object where keys are tool names and values are tool configs or string references
+ */
+const toolsCollectionSchema = {
+  type: 'object',
+  additionalProperties: {
+    anyOf: [
+      { type: 'string' }, // Reference to shared tool by name
+      toolConfigSchema, // Inline tool configuration
+    ],
+  },
+}
+
+/**
+ * Gateway configuration schema for provider.agents.gateway
+ * Configures the auto-created gateway for the service
+ */
+const gatewayConfigSchema = {
+  type: 'object',
+  properties: {
+    authorizerType: {
+      type: 'string',
+      enum: ['NONE', 'AWS_IAM', 'CUSTOM_JWT'],
+      default: 'AWS_IAM',
+    },
+    protocolType: {
+      type: 'string',
+      enum: ['MCP'],
+      default: 'MCP',
+    },
+    description: {
+      type: 'string',
+      maxLength: 200,
+      minLength: 1,
+    },
+    roleArn: {
+      type: 'string',
+      pattern: '^arn:aws(-[^:]+)?:iam::([0-9]{12})?:role/.+$',
+    },
+    kmsKeyArn: {
+      type: 'string',
+      pattern:
+        '^arn:aws(|-cn|-us-gov):kms:[a-zA-Z0-9-]*:[0-9]{12}:key/[a-zA-Z0-9-]{36}$',
+    },
+    exceptionLevel: {
+      type: 'string',
+      enum: ['DEBUG'],
+    },
+    authorizerConfiguration: {
+      type: 'object',
+      properties: {
+        customJwtAuthorizer: {
+          type: 'object',
+          properties: {
+            discoveryUrl: {
+              type: 'string',
+              pattern: '^.+/\\.well-known/openid-configuration$',
+            },
+            allowedAudience: {
+              type: 'array',
+              items: { type: 'string' },
+              minItems: 1,
+            },
+            allowedClients: {
+              type: 'array',
+              items: { type: 'string' },
+              minItems: 1,
+            },
+            allowedScopes: {
+              type: 'array',
+              items: { type: 'string' },
+              minItems: 1,
+            },
+            customClaims: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  inboundTokenClaimName: { type: 'string' },
+                  inboundTokenClaimValueType: {
+                    type: 'string',
+                    enum: ['STRING', 'STRING_ARRAY'],
+                  },
+                  authorizingClaimMatchValue: {
+                    type: 'object',
+                    properties: {
+                      claimMatchOperator: {
+                        type: 'string',
+                        enum: ['EQUALS', 'CONTAINS', 'CONTAINS_ANY'],
+                      },
+                      claimMatchValue: {
+                        type: 'object',
+                        properties: {
+                          matchValueString: { type: 'string' },
+                          matchValueStringList: {
+                            type: 'array',
+                            items: { type: 'string' },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          required: ['discoveryUrl'],
+        },
+      },
+    },
+    protocolConfiguration: {
+      type: 'object',
+      properties: {
+        mcp: {
+          type: 'object',
+          properties: {
+            supportedVersions: {
+              type: 'array',
+              items: { type: 'string' },
+            },
+            instructions: {
+              type: 'string',
+              maxLength: 2048,
+              minLength: 1,
+            },
+            searchType: {
+              type: 'string',
+              enum: ['SEMANTIC'],
+            },
+          },
+        },
+      },
+    },
+    interceptorConfigurations: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          interceptor: {
+            type: 'object',
+            properties: {
+              lambda: {
+                type: 'object',
+                properties: {
+                  arn: { type: 'string' },
+                },
+                required: ['arn'],
+              },
+            },
+          },
+          interceptionPoints: {
+            type: 'array',
+            items: {
+              type: 'string',
+              enum: ['REQUEST', 'RESPONSE'],
+            },
+            minItems: 1,
+            maxItems: 2,
+          },
+          inputConfiguration: {
+            type: 'object',
+            properties: {
+              passRequestHeaders: { type: 'boolean' },
+            },
+          },
+        },
+        required: ['interceptor', 'interceptionPoints'],
+      },
+      minItems: 1,
+      maxItems: 2,
+    },
+    tags: {
+      type: 'object',
+      additionalProperties: { type: 'string' },
+    },
+  },
+}
+
+/**
  * Define JSON Schema validation for the 'agents' top-level configuration
+ *
+ * Reserved keys at agents level:
+ *   - 'memory': Shared memory definitions (not treated as an agent)
+ *   - 'tools': Shared tool definitions (not treated as an agent)
  */
 export function defineAgentsSchema(serverless) {
   serverless.configSchemaHandler.defineTopLevelProperty('agents', {
     type: 'object',
+    properties: {
+      // Reserved key for shared memory
+      memory: {
+        type: 'object',
+        additionalProperties: memoryConfigSchema,
+      },
+      // Reserved key for shared tools
+      tools: toolsCollectionSchema,
+    },
     additionalProperties: {
       type: 'object',
       properties: {
         type: {
           type: 'string',
-          enum: [
-            'runtime',
-            'memory',
-            'gateway',
-            'browser',
-            'codeInterpreter',
-            'workloadIdentity',
-          ],
+          enum: ['runtime', 'browser', 'codeInterpreter', 'workloadIdentity'],
           default: 'runtime',
         },
         description: {
@@ -34,6 +378,19 @@ export function defineAgentsSchema(serverless) {
           type: 'string',
           pattern: '^arn:aws(-[^:]+)?:iam::([0-9]{12})?:role/.+$',
         },
+
+        // Memory configuration for runtime agents
+        // Can be a string (reference to shared memory) or object (inline memory config)
+        memory: {
+          anyOf: [
+            { type: 'string' }, // Reference to shared memory by name
+            memoryConfigSchema, // Inline memory configuration
+          ],
+        },
+
+        // Tools configuration for runtime agents
+        // Object with tool names as keys, values are tool configs or string references
+        tools: toolsCollectionSchema,
 
         // Runtime-specific properties
         artifact: {
@@ -187,221 +544,6 @@ export function defineAgentsSchema(serverless) {
           },
         },
 
-        // Memory-specific properties
-        eventExpiryDuration: {
-          type: 'number',
-          minimum: 7,
-          maximum: 365,
-        },
-        encryptionKeyArn: {
-          type: 'string',
-        },
-        strategies: {
-          type: 'array',
-          items: {
-            type: 'object',
-            additionalProperties: true,
-          },
-        },
-
-        // Gateway-specific properties
-        authorizerType: {
-          type: 'string',
-          enum: ['NONE', 'AWS_IAM', 'CUSTOM_JWT'],
-        },
-        protocolType: {
-          type: 'string',
-          enum: ['MCP'],
-        },
-        authorizerConfiguration: {
-          type: 'object',
-          properties: {
-            customJwtAuthorizer: {
-              type: 'object',
-              properties: {
-                discoveryUrl: { type: 'string' },
-                allowedAudience: {
-                  type: 'array',
-                  items: { type: 'string' },
-                },
-                allowedClients: {
-                  type: 'array',
-                  items: { type: 'string' },
-                },
-                allowedScopes: {
-                  type: 'array',
-                  items: { type: 'string' },
-                },
-                customClaims: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      inboundTokenClaimName: { type: 'string' },
-                      inboundTokenClaimValueType: {
-                        type: 'string',
-                        enum: ['STRING', 'STRING_ARRAY'],
-                      },
-                      authorizingClaimMatchValue: {
-                        type: 'object',
-                        properties: {
-                          claimMatchOperator: {
-                            type: 'string',
-                            enum: ['EQUALS', 'CONTAINS', 'CONTAINS_ANY'],
-                          },
-                          claimMatchValue: {
-                            type: 'object',
-                            properties: {
-                              matchValueString: { type: 'string' },
-                              matchValueStringList: {
-                                type: 'array',
-                                items: { type: 'string' },
-                              },
-                            },
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-              required: ['discoveryUrl'],
-            },
-          },
-        },
-        protocolConfiguration: {
-          type: 'object',
-          properties: {
-            mcp: {
-              type: 'object',
-              properties: {
-                supportedVersions: {
-                  type: 'array',
-                  items: { type: 'string' },
-                },
-                instructions: {
-                  type: 'string',
-                  maxLength: 2048,
-                },
-                searchType: {
-                  type: 'string',
-                  enum: ['SEMANTIC'],
-                },
-              },
-            },
-          },
-        },
-        exceptionLevel: {
-          type: 'string',
-          enum: ['DEBUG'],
-        },
-        kmsKeyArn: {
-          type: 'string',
-        },
-        targets: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              name: { type: 'string' },
-              type: {
-                type: 'string',
-                enum: ['openapi', 'lambda', 'smithy'],
-              },
-              description: { type: 'string' },
-              functionArn: { type: 'string' },
-              functionName: { type: 'string' },
-              s3: {
-                type: 'object',
-                properties: {
-                  bucket: { type: 'string' },
-                  key: { type: 'string' },
-                  uri: { type: 'string' },
-                  bucketOwnerAccountId: { type: 'string' },
-                },
-              },
-              inlinePayload: { type: 'string' },
-              toolSchema: {
-                type: 'object',
-                properties: {
-                  s3: {
-                    type: 'object',
-                    properties: {
-                      bucket: { type: 'string' },
-                      key: { type: 'string' },
-                      uri: { type: 'string' },
-                      bucketOwnerAccountId: { type: 'string' },
-                    },
-                  },
-                  inlinePayload: {
-                    type: 'array',
-                    items: {
-                      type: 'object',
-                      properties: {
-                        name: { type: 'string' },
-                        description: { type: 'string' },
-                        inputSchema: { type: 'object' },
-                        outputSchema: { type: 'object' },
-                      },
-                      required: ['name', 'description', 'inputSchema'],
-                    },
-                  },
-                },
-              },
-              credentialProvider: {
-                type: 'object',
-                properties: {
-                  type: {
-                    type: 'string',
-                    enum: ['GATEWAY_IAM_ROLE', 'OAUTH', 'API_KEY'],
-                  },
-                  oauthConfig: {
-                    type: 'object',
-                    properties: {
-                      providerArn: { type: 'string' },
-                      scopes: {
-                        type: 'array',
-                        items: { type: 'string' },
-                        minItems: 1,
-                      },
-                      grantType: {
-                        type: 'string',
-                        enum: ['AUTHORIZATION_CODE', 'CLIENT_CREDENTIALS'],
-                      },
-                      defaultReturnUrl: { type: 'string' },
-                      customParameters: {
-                        type: 'object',
-                        additionalProperties: { type: 'string' },
-                      },
-                    },
-                    required: ['providerArn', 'scopes'],
-                  },
-                  apiKeyConfig: {
-                    type: 'object',
-                    properties: {
-                      providerArn: { type: 'string' },
-                      credentialLocation: {
-                        type: 'string',
-                        enum: ['HEADER', 'QUERY_PARAMETER'],
-                      },
-                      credentialParameterName: {
-                        type: 'string',
-                        maxLength: 64,
-                      },
-                      credentialPrefix: {
-                        type: 'string',
-                        maxLength: 64,
-                      },
-                    },
-                    required: ['providerArn'],
-                  },
-                },
-              },
-            },
-            required: ['name'],
-          },
-        },
-
         // WorkloadIdentity-specific properties
         oauth2ReturnUrls: {
           type: 'array',
@@ -433,6 +575,7 @@ export function defineAgentsSchema(serverless) {
     },
   })
 
+  // Add custom.agentCore schema for default tags
   serverless.configSchemaHandler.defineCustomProperties({
     type: 'object',
     properties: {
@@ -447,4 +590,27 @@ export function defineAgentsSchema(serverless) {
       },
     },
   })
+
+  // Add provider.agents schema for gateway configuration
+  // We need to directly extend the provider schema since defineProvider would cause collision
+  if (serverless.configSchemaHandler.schema?.properties?.provider?.properties) {
+    serverless.configSchemaHandler.schema.properties.provider.properties.agents =
+      {
+        type: 'object',
+        properties: {
+          gateway: gatewayConfigSchema,
+        },
+        additionalProperties: false,
+      }
+  }
+}
+
+// Export schemas for use in validation and testing
+export {
+  memoryConfigSchema,
+  toolConfigSchema,
+  toolsCollectionSchema,
+  credentialsConfigSchema,
+  gatewayConfigSchema,
+  toolSchemaItemSchema,
 }

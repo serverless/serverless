@@ -62,8 +62,8 @@ describe('Runtime Compiler', () => {
               Prefix: 'agents/my-agent.zip',
             },
           },
-          EntryPoint: ['main.py', 'handler'],
-          Runtime: 'PYTHON_3_12',
+          EntryPoint: ['main.py'],
+          Runtime: 'PYTHON_3_13',
         },
       })
     })
@@ -100,7 +100,7 @@ describe('Runtime Compiler', () => {
       const artifact = {}
 
       expect(() => buildArtifact(artifact)).toThrow(
-        'Artifact must specify either containerImage or s3 configuration',
+        'Artifact must specify either containerImage, s3 (bucket+key), or entryPoint for code deployment',
       )
     })
   })

@@ -108,7 +108,13 @@ export default {
 
         // Agents (Bedrock AgentCore)
         const agents = this.serverless.service.agents || {}
+        const RESERVED_AGENT_KEYS = ['memories', 'tools']
         for (const [agentName, agentConfig] of Object.entries(agents)) {
+          // Skip reserved configuration keys
+          if (RESERVED_AGENT_KEYS.includes(agentName)) {
+            continue
+          }
+
           const agentInfo = { name: agentName }
           const agentType = agentConfig.type || 'runtime'
 

@@ -1,5 +1,9 @@
 'use strict'
 
+import fs from 'fs'
+import path from 'path'
+import { getGatewayTargetName } from '../utils/naming.js'
+
 /**
  * AWS::BedrockAgentCore::GatewayTarget CloudFormation Schema
  *
@@ -8,84 +12,110 @@
  *   - CredentialProviderConfigurations: array (minItems: 1, maxItems: 1)
  *     - CredentialProviderType: enum GATEWAY_IAM_ROLE|OAUTH|API_KEY
  *     - CredentialProvider?: oneOf { OauthCredentialProvider, ApiKeyCredentialProvider }
- *       - OauthCredentialProvider: { ProviderArn (required), Scopes (required), GrantType?,
- *           DefaultReturnUrl?, CustomParameters? }
- *       - ApiKeyCredentialProvider: { ProviderArn (required), CredentialParameterName?,
- *           CredentialPrefix?, CredentialLocation?: HEADER|QUERY_PARAMETER }
  *   - TargetConfiguration: oneOf { Mcp }
  *     - Mcp: oneOf { OpenApiSchema, SmithyModel, Lambda, McpServer }
- *       - Lambda: { LambdaArn (required), ToolSchema (required): { S3 | InlinePayload } }
- *       - OpenApiSchema/SmithyModel: { S3?: { Uri, BucketOwnerAccountId? }, InlinePayload?: string }
- *       - McpServer: { Endpoint: string (https://*) }
  *
- * Optional Properties:
- *   - GatewayIdentifier: string (create-only)
- *   - Description: string, maxLength: 200
- *   - MetadataConfiguration: { AllowedRequestHeaders?, AllowedQueryParameters?, AllowedResponseHeaders? }
- *
- * Read-Only Properties:
- *   - CreatedAt, GatewayArn, LastSynchronizedAt, Status, StatusReasons, TargetId, UpdatedAt
- *
- * ToolDefinition (for Lambda InlinePayload):
- *   - Name (required), Description (required), InputSchema (required), OutputSchema?
- *
- * SchemaDefinition:
- *   - Type: string|number|object|array|boolean|integer (required)
- *   - Properties?, Required?, Items?, Description?
+ * Tool Types (new simplified syntax):
+ *   - function: -> Mcp.Lambda (requires toolSchema)
+ *   - openapi: -> Mcp.OpenApiSchema
+ *   - smithy: -> Mcp.SmithyModel
+ *   - mcp: -> Mcp.McpServer
  */
 
-import { getGatewayTargetName } from '../utils/naming.js'
+/**
+ * Detect target type from tool configuration keys
+ * @param {object} config - Tool configuration
+ * @returns {string} Target type: 'function' | 'openapi' | 'smithy' | 'mcp'
+ */
+export function detectTargetType(config) {
+  if (config.function) return 'function'
+  if (config.openapi) return 'openapi'
+  if (config.smithy) return 'smithy'
+  if (config.mcp) return 'mcp'
+  throw new Error(
+    'Tool configuration must have one of: function, openapi, smithy, or mcp',
+  )
+}
+
+/**
+ * Check if a string value looks like a file path
+ * @param {string} value - String to check
+ * @returns {boolean} True if value appears to be a file path
+ */
+export function isFilePath(value) {
+  if (!value || typeof value !== 'string') return false
+  // Check for common file extensions or path separators
+  return (
+    value.includes('/') ||
+    value.endsWith('.yml') ||
+    value.endsWith('.yaml') ||
+    value.endsWith('.json') ||
+    value.endsWith('.smithy')
+  )
+}
+
+/**
+ * Read file contents for inline payload
+ * @param {string} filePath - Path to file (relative to serviceDir)
+ * @param {string} serviceDir - Service directory path
+ * @returns {string} File contents
+ */
+export function readFileContents(filePath, serviceDir) {
+  const absolutePath = path.resolve(serviceDir, filePath)
+  if (!fs.existsSync(absolutePath)) {
+    throw new Error(`Tool schema/spec file not found: ${filePath}`)
+  }
+  return fs.readFileSync(absolutePath, 'utf-8')
+}
 
 /**
  * Build credential provider configuration for the gateway target
- * Structure: CredentialProviderConfiguration contains:
- * - CredentialProviderType: GATEWAY_IAM_ROLE | OAUTH | API_KEY
- * - CredentialProvider (optional): contains ApiKeyCredentialProvider or OauthCredentialProvider
+ * New simplified structure:
+ *   credentials: { type: OAUTH, providerArn, scopes, ... }
  */
-export function buildCredentialProviderConfigurations(credProvider) {
-  if (!credProvider) {
-    return [
-      {
-        CredentialProviderType: 'GATEWAY_IAM_ROLE',
-      },
-    ]
+export function buildCredentialProviderConfigurations(credentials) {
+  if (!credentials) {
+    return [{ CredentialProviderType: 'GATEWAY_IAM_ROLE' }]
   }
 
   const config = {
-    CredentialProviderType: credProvider.type || 'GATEWAY_IAM_ROLE',
+    CredentialProviderType: credentials.type || 'GATEWAY_IAM_ROLE',
   }
 
-  if (credProvider.type === 'OAUTH' && credProvider.oauthConfig) {
+  if (credentials.type === 'OAUTH') {
+    if (!credentials.providerArn || !credentials.scopes) {
+      throw new Error('OAUTH credentials require providerArn and scopes')
+    }
     config.CredentialProvider = {
       OauthCredentialProvider: {
-        ProviderArn: credProvider.oauthConfig.providerArn,
-        Scopes: credProvider.oauthConfig.scopes,
-        ...(credProvider.oauthConfig.grantType && {
-          GrantType: credProvider.oauthConfig.grantType,
+        ProviderArn: credentials.providerArn,
+        Scopes: credentials.scopes,
+        ...(credentials.grantType && { GrantType: credentials.grantType }),
+        ...(credentials.defaultReturnUrl && {
+          DefaultReturnUrl: credentials.defaultReturnUrl,
         }),
-        ...(credProvider.oauthConfig.defaultReturnUrl && {
-          DefaultReturnUrl: credProvider.oauthConfig.defaultReturnUrl,
-        }),
-        ...(credProvider.oauthConfig.customParameters && {
-          CustomParameters: credProvider.oauthConfig.customParameters,
+        ...(credentials.customParameters && {
+          CustomParameters: credentials.customParameters,
         }),
       },
     }
   }
 
-  if (credProvider.type === 'API_KEY' && credProvider.apiKeyConfig) {
+  if (credentials.type === 'API_KEY') {
+    if (!credentials.providerArn) {
+      throw new Error('API_KEY credentials require providerArn')
+    }
     config.CredentialProvider = {
       ApiKeyCredentialProvider: {
-        ProviderArn: credProvider.apiKeyConfig.providerArn,
-        ...(credProvider.apiKeyConfig.credentialLocation && {
-          CredentialLocation: credProvider.apiKeyConfig.credentialLocation,
+        ProviderArn: credentials.providerArn,
+        ...(credentials.credentialLocation && {
+          CredentialLocation: credentials.credentialLocation,
         }),
-        ...(credProvider.apiKeyConfig.credentialParameterName && {
-          CredentialParameterName:
-            credProvider.apiKeyConfig.credentialParameterName,
+        ...(credentials.credentialParameterName && {
+          CredentialParameterName: credentials.credentialParameterName,
         }),
-        ...(credProvider.apiKeyConfig.credentialPrefix && {
-          CredentialPrefix: credProvider.apiKeyConfig.credentialPrefix,
+        ...(credentials.credentialPrefix && {
+          CredentialPrefix: credentials.credentialPrefix,
         }),
       },
     }
@@ -136,150 +166,220 @@ export function transformSchemaToCloudFormation(schema) {
 }
 
 /**
- * Build Lambda target configuration
+ * Resolve function reference to Lambda ARN
+ * @param {string|object} functionRef - Function name or { name, arn } object
+ * @returns {string|object} Lambda ARN or Fn::GetAtt reference
  */
-export function buildLambdaTargetConfiguration(target, _context) {
-  let functionArn = target.functionArn
-
-  if (target.functionName && !functionArn) {
-    const functionLogicalId =
-      target.functionName
-        .split(/[-_]/)
-        .map(
-          (part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase(),
-        )
-        .join('') + 'LambdaFunction'
-
-    functionArn = { 'Fn::GetAtt': [functionLogicalId, 'Arn'] }
+export function resolveFunctionArn(functionRef) {
+  // Direct ARN
+  if (typeof functionRef === 'object' && functionRef.arn) {
+    return functionRef.arn
   }
 
-  const lambdaConfig = {
-    LambdaArn: functionArn,
+  // Function name (string or object.name)
+  const functionName =
+    typeof functionRef === 'string' ? functionRef : functionRef.name
+
+  if (!functionName) {
+    throw new Error('Function tool requires function name or ARN')
   }
 
-  if (target.toolSchema) {
-    const toolSchema = {}
+  // Convert function name to Serverless Framework logical ID
+  // Following Serverless Framework naming convention:
+  // 1. Replace dashes with 'Dash' and underscores with 'Underscore'
+  // 2. Uppercase only the first character (preserves camelCase)
+  // e.g., 'hello' -> 'HelloLambdaFunction'
+  //       'my-function' -> 'MyDashfunctionLambdaFunction'
+  //       'timeApi' -> 'TimeApiLambdaFunction'
+  const normalizedName = functionName
+    .replace(/-/g, 'Dash')
+    .replace(/_/g, 'Underscore')
+  const functionLogicalId =
+    normalizedName.charAt(0).toUpperCase() +
+    normalizedName.slice(1) +
+    'LambdaFunction'
 
-    if (target.toolSchema.inlinePayload) {
-      toolSchema.InlinePayload = target.toolSchema.inlinePayload.map(
-        (tool) => ({
-          Name: tool.name,
-          Description: tool.description,
-          InputSchema: transformSchemaToCloudFormation(tool.inputSchema),
-          ...(tool.outputSchema && {
-            OutputSchema: transformSchemaToCloudFormation(tool.outputSchema),
-          }),
-        }),
-      )
+  return { 'Fn::GetAtt': [functionLogicalId, 'Arn'] }
+}
+
+/**
+ * Resolve tool schema from file path or inline array
+ * @param {string|array} toolSchema - File path or inline tool definitions
+ * @param {string} serviceDir - Service directory path
+ * @returns {object} CFN ToolSchema object
+ */
+export function resolveToolSchema(toolSchema, serviceDir) {
+  if (!toolSchema) {
+    throw new Error('Function tool requires toolSchema')
+  }
+
+  // File path reference
+  if (typeof toolSchema === 'string') {
+    const contents = readFileContents(toolSchema, serviceDir)
+    // Parse JSON file contents
+    let parsed
+    try {
+      parsed = JSON.parse(contents)
+    } catch {
+      throw new Error(`Failed to parse toolSchema file as JSON: ${toolSchema}`)
     }
-
-    if (target.toolSchema.s3) {
-      toolSchema.S3 = {
-        Uri:
-          target.toolSchema.s3.uri ||
-          `s3://${target.toolSchema.s3.bucket}/${target.toolSchema.s3.key}`,
-        ...(target.toolSchema.s3.bucketOwnerAccountId && {
-          BucketOwnerAccountId: target.toolSchema.s3.bucketOwnerAccountId,
+    // Ensure it's an array
+    const tools = Array.isArray(parsed) ? parsed : [parsed]
+    return {
+      InlinePayload: tools.map((tool) => ({
+        Name: tool.name,
+        Description: tool.description,
+        InputSchema: transformSchemaToCloudFormation(tool.inputSchema),
+        ...(tool.outputSchema && {
+          OutputSchema: transformSchemaToCloudFormation(tool.outputSchema),
         }),
-      }
+      })),
     }
-
-    lambdaConfig.ToolSchema = toolSchema
   }
+
+  // Inline array
+  if (Array.isArray(toolSchema)) {
+    return {
+      InlinePayload: toolSchema.map((tool) => ({
+        Name: tool.name,
+        Description: tool.description,
+        InputSchema: transformSchemaToCloudFormation(tool.inputSchema),
+        ...(tool.outputSchema && {
+          OutputSchema: transformSchemaToCloudFormation(tool.outputSchema),
+        }),
+      })),
+    }
+  }
+
+  throw new Error(
+    'toolSchema must be a file path string or array of tool definitions',
+  )
+}
+
+/**
+ * Build Lambda target configuration
+ * New syntax: { function: 'functionName' | { name, arn }, toolSchema: [...] | 'file.json' }
+ */
+export function buildLambdaTarget(config, serviceDir) {
+  const lambdaArn = resolveFunctionArn(config.function)
+  const toolSchema = resolveToolSchema(config.toolSchema, serviceDir)
 
   return {
     Mcp: {
-      Lambda: lambdaConfig,
+      Lambda: {
+        LambdaArn: lambdaArn,
+        ToolSchema: toolSchema,
+      },
     },
   }
 }
 
 /**
  * Build OpenAPI target configuration
+ * New syntax: { openapi: 'openapi.yml' | 'inline yaml/json string' }
  */
-export function buildOpenApiTargetConfiguration(target) {
-  const openApiConfig = {}
+export function buildOpenApiTarget(config, serviceDir) {
+  const openapiValue = config.openapi
 
-  if (target.s3) {
-    openApiConfig.S3 = {
-      Uri: target.s3.uri || `s3://${target.s3.bucket}/${target.s3.key}`,
-      ...(target.s3.bucketOwnerAccountId && {
-        BucketOwnerAccountId: target.s3.bucketOwnerAccountId,
-      }),
-    }
-  }
-
-  if (target.inlinePayload) {
-    openApiConfig.InlinePayload = target.inlinePayload
+  let inlinePayload
+  if (isFilePath(openapiValue)) {
+    inlinePayload = readFileContents(openapiValue, serviceDir)
+  } else {
+    inlinePayload = openapiValue
   }
 
   return {
     Mcp: {
-      OpenApiSchema: openApiConfig,
+      OpenApiSchema: {
+        InlinePayload: inlinePayload,
+      },
     },
   }
 }
 
 /**
  * Build Smithy target configuration
+ * New syntax: { smithy: 'model.smithy' | 'inline smithy string' }
  */
-export function buildSmithyTargetConfiguration(target) {
-  const smithyConfig = {}
+export function buildSmithyTarget(config, serviceDir) {
+  const smithyValue = config.smithy
 
-  if (target.s3) {
-    smithyConfig.S3 = {
-      Uri: target.s3.uri || `s3://${target.s3.bucket}/${target.s3.key}`,
-      ...(target.s3.bucketOwnerAccountId && {
-        BucketOwnerAccountId: target.s3.bucketOwnerAccountId,
-      }),
-    }
-  }
-
-  if (target.inlinePayload) {
-    smithyConfig.InlinePayload = target.inlinePayload
+  let inlinePayload
+  if (isFilePath(smithyValue)) {
+    inlinePayload = readFileContents(smithyValue, serviceDir)
+  } else {
+    inlinePayload = smithyValue
   }
 
   return {
     Mcp: {
-      SmithyModel: smithyConfig,
+      SmithyModel: {
+        InlinePayload: inlinePayload,
+      },
     },
   }
 }
 
 /**
- * Build target configuration based on target type
+ * Build MCP Server target configuration
+ * New syntax: { mcp: 'https://...' }
  */
-export function buildTargetConfiguration(target, context) {
-  const targetType = target.type || 'lambda'
+export function buildMcpServerTarget(config) {
+  const endpoint = config.mcp
 
-  switch (targetType.toLowerCase()) {
-    case 'lambda':
-      return buildLambdaTargetConfiguration(target, context)
+  if (!endpoint || !endpoint.startsWith('https://')) {
+    throw new Error('MCP server endpoint must be a valid https:// URL')
+  }
+
+  return {
+    Mcp: {
+      McpServer: {
+        Endpoint: endpoint,
+      },
+    },
+  }
+}
+
+/**
+ * Build target configuration based on detected type
+ */
+export function buildTargetConfiguration(config, serviceDir) {
+  const targetType = detectTargetType(config)
+
+  switch (targetType) {
+    case 'function':
+      return buildLambdaTarget(config, serviceDir)
     case 'openapi':
-      return buildOpenApiTargetConfiguration(target)
+      return buildOpenApiTarget(config, serviceDir)
     case 'smithy':
-      return buildSmithyTargetConfiguration(target)
+      return buildSmithyTarget(config, serviceDir)
+    case 'mcp':
+      return buildMcpServerTarget(config)
     default:
-      throw new Error(`Unknown gateway target type: ${targetType}`)
+      throw new Error(`Unknown tool type: ${targetType}`)
   }
 }
 
 /**
  * Compile a GatewayTarget resource to CloudFormation
+ * @param {string} toolName - Tool name
+ * @param {object} config - Tool configuration
+ * @param {string} gatewayLogicalId - Gateway logical ID for reference
+ * @param {string} serviceDir - Service directory path
+ * @returns {object} CloudFormation resource
  */
 export function compileGatewayTarget(
-  gatewayName,
-  targetName,
+  toolName,
   config,
   gatewayLogicalId,
-  context,
+  serviceDir,
 ) {
-  const resourceName = getGatewayTargetName(targetName)
+  const resourceName = getGatewayTargetName(toolName)
 
   const credentialConfigs = buildCredentialProviderConfigurations(
-    config.credentialProvider,
+    config.credentials,
   )
-  const targetConfig = buildTargetConfiguration(config, context)
+  const targetConfig = buildTargetConfiguration(config, serviceDir)
 
   return {
     Type: 'AWS::BedrockAgentCore::GatewayTarget',
@@ -294,4 +394,11 @@ export function compileGatewayTarget(
       ...(config.description && { Description: config.description }),
     },
   }
+}
+
+// Legacy exports for backward compatibility (will be removed)
+export {
+  buildLambdaTarget as buildLambdaTargetConfiguration,
+  buildOpenApiTarget as buildOpenApiTargetConfiguration,
+  buildSmithyTarget as buildSmithyTargetConfiguration,
 }

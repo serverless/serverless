@@ -3,29 +3,20 @@
 /**
  * AWS::BedrockAgentCore::Memory CloudFormation Schema
  *
- * Required Properties:
- *   - Name: string, pattern: [a-zA-Z][a-zA-Z0-9_]{0,47}
- *   - EventExpiryDuration: integer, 7-365 days
+ * User-friendly property names -> CFN properties:
+ *   - expiration -> EventExpiryDuration (7-365 days, default: 30)
+ *   - encryptionKey -> EncryptionKeyArn
+ *   - strategies -> MemoryStrategies
+ *   - description -> Description
+ *   - roleArn -> MemoryExecutionRoleArn
+ *   - tags -> Tags
  *
- * Optional Properties:
- *   - Description: string
- *   - EncryptionKeyArn: string, ARN format
- *   - MemoryExecutionRoleArn: string, ARN format
- *   - MemoryStrategies: array of MemoryStrategy (oneOf):
- *     - SemanticMemoryStrategy: { Name, Description?, Namespaces? }
- *     - SummaryMemoryStrategy: { Name, Description?, Namespaces? }
- *     - UserPreferenceMemoryStrategy: { Name, Description?, Namespaces? }
- *     - CustomMemoryStrategy: { Name, Description?, Namespaces?, Configuration? }
- *     - EpisodicMemoryStrategy: { Name, Description?, Namespaces?, ReflectionConfiguration? }
- *   - Tags: map<string, string>
- *
- * Read-Only Properties:
- *   - MemoryArn, MemoryId, Status, CreatedAt, UpdatedAt, FailureReason
- *
- * Create-Only Properties:
- *   - Name, EncryptionKeyArn
- *
- * Memory Strategy Types: SEMANTIC, SUMMARIZATION, USER_PREFERENCE, CUSTOM, EPISODIC
+ * Memory Strategy Types (use as typed union):
+ *   - SemanticMemoryStrategy: { Name, Description?, Namespaces? }
+ *   - SummaryMemoryStrategy: { Name, Description?, Namespaces? }
+ *   - UserPreferenceMemoryStrategy: { Name, Description?, Namespaces? }
+ *   - CustomMemoryStrategy: { Name, Description?, Namespaces?, Configuration? }
+ *   - EpisodicMemoryStrategy: { Name, Description?, Namespaces?, ReflectionConfiguration? }
  */
 
 import { getResourceName, getLogicalId } from '../utils/naming.js'
@@ -49,23 +40,31 @@ export function buildMemoryStrategies(strategies) {
 
 /**
  * Compile a Memory resource to CloudFormation
+ *
+ * @param {string} name - The memory name
+ * @param {object} config - Memory configuration
+ * @param {object} context - Service context
+ * @param {object} tags - Tags to apply
+ * @param {string} [parentRuntimeName] - If memory is inline on a runtime, the runtime name
  */
-export function compileMemory(name, config, context, tags) {
+export function compileMemory(name, config, context, tags, parentRuntimeName) {
   const { serviceName, stage } = context
   const resourceName = getResourceName(serviceName, name, stage)
   const roleLogicalId = `${getLogicalId(name, 'Memory')}Role`
 
   const strategies = buildMemoryStrategies(config.strategies)
-  const eventExpiryDuration = config.eventExpiryDuration || 30
+
+  // Default expiration to 30 days if not specified
+  const expiration = config.expiration || 30
 
   return {
     Type: 'AWS::BedrockAgentCore::Memory',
     Properties: {
       Name: resourceName,
-      EventExpiryDuration: eventExpiryDuration,
+      EventExpiryDuration: expiration,
       ...(config.description && { Description: config.description }),
-      ...(config.encryptionKeyArn && {
-        EncryptionKeyArn: config.encryptionKeyArn,
+      ...(config.encryptionKey && {
+        EncryptionKeyArn: config.encryptionKey,
       }),
       ...(!config.roleArn && {
         MemoryExecutionRoleArn: { 'Fn::GetAtt': [roleLogicalId, 'Arn'] },

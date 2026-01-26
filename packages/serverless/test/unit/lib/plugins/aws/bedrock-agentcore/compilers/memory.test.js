@@ -83,15 +83,14 @@ describe('Memory Compiler', () => {
       })
     })
 
-    test('uses custom eventExpiryDuration when provided', () => {
+    test('uses custom expiration when provided', () => {
       const config = {
-        type: 'memory',
-        eventExpiryDuration: 90,
+        expiration: 120,
       }
 
       const result = compileMemory('myMemory', config, baseContext, baseTags)
 
-      expect(result.Properties.EventExpiryDuration).toBe(90)
+      expect(result.Properties.EventExpiryDuration).toBe(120)
     })
 
     test('includes description when provided', () => {
@@ -105,10 +104,9 @@ describe('Memory Compiler', () => {
       expect(result.Properties.Description).toBe('Test memory description')
     })
 
-    test('includes encryptionKeyArn when provided', () => {
+    test('includes encryptionKey when provided', () => {
       const config = {
-        type: 'memory',
-        encryptionKeyArn: 'arn:aws:kms:us-west-2:123456789012:key/12345678',
+        encryptionKey: 'arn:aws:kms:us-west-2:123456789012:key/12345678',
       }
 
       const result = compileMemory('myMemory', config, baseContext, baseTags)

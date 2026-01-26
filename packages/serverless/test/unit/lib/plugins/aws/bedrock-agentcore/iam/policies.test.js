@@ -6,8 +6,6 @@ import {
   generateGatewayRole,
   generateBrowserRole,
   generateCodeInterpreterRole,
-  getS3PermissionsForTargets,
-  getSecretsManagerPermissions,
 } from '../../../../../../../lib/plugins/aws/bedrock-agentcore/iam/policies.js'
 
 describe('IAM Policies', () => {
@@ -64,13 +62,51 @@ describe('IAM Policies', () => {
       const result = generateRuntimeRole('myAgent', config, baseContext)
       const statements = result.Properties.Policies[0].PolicyDocument.Statement
 
+      // Runtime uses scoped log group path per AWS docs
       const logsStatement = statements.find((s) =>
         s.Action.includes('logs:CreateLogGroup'),
       )
       expect(logsStatement).toBeDefined()
       expect(logsStatement.Resource['Fn::Sub']).toContain(
-        '/aws/bedrock-agentcore/*',
+        '/aws/bedrock-agentcore/runtimes/*',
       )
+    })
+
+    test('includes X-Ray tracing permissions', () => {
+      const config = {
+        artifact: {
+          containerImage:
+            '123456789.dkr.ecr.us-west-2.amazonaws.com/my-agent:latest',
+        },
+      }
+
+      const result = generateRuntimeRole('myAgent', config, baseContext)
+      const statements = result.Properties.Policies[0].PolicyDocument.Statement
+
+      const xrayStatement = statements.find((s) => s.Sid === 'XRayTracing')
+      expect(xrayStatement).toBeDefined()
+      expect(xrayStatement.Action).toContain('xray:PutTraceSegments')
+    })
+
+    test('includes CloudWatch metrics permissions with namespace condition', () => {
+      const config = {
+        artifact: {
+          containerImage:
+            '123456789.dkr.ecr.us-west-2.amazonaws.com/my-agent:latest',
+        },
+      }
+
+      const result = generateRuntimeRole('myAgent', config, baseContext)
+      const statements = result.Properties.Policies[0].PolicyDocument.Statement
+
+      const metricsStatement = statements.find(
+        (s) => s.Sid === 'CloudWatchMetrics',
+      )
+      expect(metricsStatement).toBeDefined()
+      expect(metricsStatement.Action).toContain('cloudwatch:PutMetricData')
+      expect(
+        metricsStatement.Condition.StringEquals['cloudwatch:namespace'],
+      ).toBe('bedrock-agentcore')
     })
 
     test('includes ECR permissions for container image artifact', () => {
@@ -295,9 +331,9 @@ describe('IAM Policies', () => {
       expect(inferenceProfileStatement).toBeDefined()
     })
 
-    test('includes KMS permissions when encryptionKeyArn is specified', () => {
+    test('includes KMS permissions when encryptionKey is specified', () => {
       const config = {
-        encryptionKeyArn:
+        encryptionKey:
           'arn:aws:kms:us-west-2:123456789012:key/12345678-1234-1234-1234-123456789012',
       }
 
@@ -308,10 +344,10 @@ describe('IAM Policies', () => {
         (s) => Array.isArray(s.Action) && s.Action.includes('kms:Decrypt'),
       )
       expect(kmsStatement).toBeDefined()
-      expect(kmsStatement.Resource).toBe(config.encryptionKeyArn)
+      expect(kmsStatement.Resource).toBe(config.encryptionKey)
     })
 
-    test('does not include KMS permissions when encryptionKeyArn not specified', () => {
+    test('does not include KMS permissions when encryptionKey not specified', () => {
       const config = {}
 
       const result = generateMemoryRole('myMemory', config, baseContext)
@@ -334,16 +370,8 @@ describe('IAM Policies', () => {
       expect(result.Properties.RoleName).toContain('gateway_role')
     })
 
-    test('includes Lambda invocation permissions for Lambda targets', () => {
-      const config = {
-        targets: [
-          {
-            type: 'lambda',
-            functionArn:
-              'arn:aws:lambda:us-west-2:123456789012:function:myFunction',
-          },
-        ],
-      }
+    test('includes broad Lambda invocation permissions for tools', () => {
+      const config = {}
 
       const result = generateGatewayRole('myGateway', config, baseContext)
       const statements = result.Properties.Policies[0].PolicyDocument.Statement
@@ -353,52 +381,9 @@ describe('IAM Policies', () => {
           Array.isArray(s.Action) && s.Action.includes('lambda:InvokeFunction'),
       )
       expect(lambdaStatement).toBeDefined()
-      expect(lambdaStatement.Resource).toContain(
-        'arn:aws:lambda:us-west-2:123456789012:function:myFunction',
+      expect(lambdaStatement.Resource['Fn::Sub']).toBe(
+        'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:*',
       )
-    })
-
-    test('includes Lambda invocation for implicit lambda type with functionArn', () => {
-      const config = {
-        targets: [
-          {
-            functionArn:
-              'arn:aws:lambda:us-west-2:123456789012:function:myFunction',
-          },
-        ],
-      }
-
-      const result = generateGatewayRole('myGateway', config, baseContext)
-      const statements = result.Properties.Policies[0].PolicyDocument.Statement
-
-      const lambdaStatement = statements.find(
-        (s) =>
-          Array.isArray(s.Action) && s.Action.includes('lambda:InvokeFunction'),
-      )
-      expect(lambdaStatement).toBeDefined()
-    })
-
-    test('resolves functionName to Fn::GetAtt reference', () => {
-      const config = {
-        targets: [
-          {
-            type: 'lambda',
-            functionName: 'my-function',
-          },
-        ],
-      }
-
-      const result = generateGatewayRole('myGateway', config, baseContext)
-      const statements = result.Properties.Policies[0].PolicyDocument.Statement
-
-      const lambdaStatement = statements.find(
-        (s) =>
-          Array.isArray(s.Action) && s.Action.includes('lambda:InvokeFunction'),
-      )
-      expect(lambdaStatement).toBeDefined()
-      expect(lambdaStatement.Resource[0]).toEqual({
-        'Fn::GetAtt': ['MyFunctionLambdaFunction', 'Arn'],
-      })
     })
 
     test('includes KMS permissions when kmsKeyArn is specified', () => {
@@ -414,6 +399,36 @@ describe('IAM Policies', () => {
       )
       expect(kmsStatement).toBeDefined()
       expect(kmsStatement.Resource).toBe(config.kmsKeyArn)
+    })
+
+    test('includes CloudWatch Logs permissions', () => {
+      const config = {}
+
+      const result = generateGatewayRole('myGateway', config, baseContext)
+      const statements = result.Properties.Policies[0].PolicyDocument.Statement
+
+      const logsStatement = statements.find((s) =>
+        s.Action.includes('logs:CreateLogGroup'),
+      )
+      expect(logsStatement).toBeDefined()
+      expect(logsStatement.Resource['Fn::Sub']).toContain(
+        '/aws/bedrock-agentcore/*',
+      )
+    })
+
+    test('includes proper tags', () => {
+      const config = {}
+
+      const result = generateGatewayRole('myGateway', config, baseContext)
+
+      expect(result.Properties.Tags).toContainEqual({
+        Key: 'serverless:service',
+        Value: 'test-service',
+      })
+      expect(result.Properties.Tags).toContainEqual({
+        Key: 'agentcore:type',
+        Value: 'gateway-role',
+      })
     })
   })
 
@@ -518,117 +533,6 @@ describe('IAM Policies', () => {
           s.Action.includes('ec2:CreateNetworkInterface'),
       )
       expect(vpcStatement).toBeUndefined()
-    })
-  })
-
-  describe('getS3PermissionsForTargets', () => {
-    test('returns empty array when no S3 targets', () => {
-      const targets = [{ type: 'lambda', functionArn: 'arn:aws:lambda:...' }]
-
-      const result = getS3PermissionsForTargets(targets)
-      expect(result).toEqual([])
-    })
-
-    test('returns S3 permissions for S3 targets', () => {
-      const targets = [
-        {
-          s3: {
-            bucket: 'my-bucket',
-            key: 'specs/openapi.yaml',
-          },
-        },
-      ]
-
-      const result = getS3PermissionsForTargets(targets)
-
-      expect(result).toHaveLength(1)
-      expect(result[0].Action).toContain('s3:GetObject')
-    })
-
-    test('returns permissions for multiple S3 targets', () => {
-      const targets = [
-        {
-          s3: {
-            bucket: 'bucket-1',
-            key: 'file1.yaml',
-          },
-        },
-        {
-          s3: {
-            bucket: 'bucket-2',
-            key: 'file2.yaml',
-          },
-        },
-      ]
-
-      const result = getS3PermissionsForTargets(targets)
-
-      expect(result).toHaveLength(1)
-      expect(result[0].Resource).toHaveLength(2)
-    })
-  })
-
-  describe('getSecretsManagerPermissions', () => {
-    test('returns empty array when no credential providers', () => {
-      const targets = [{ type: 'lambda', functionArn: 'arn:aws:lambda:...' }]
-
-      const result = getSecretsManagerPermissions(targets)
-      expect(result).toEqual([])
-    })
-
-    test('returns Secrets Manager permissions for OAuth config with secretArn', () => {
-      const targets = [
-        {
-          credentialProvider: {
-            oauthConfig: {
-              secretArn:
-                'arn:aws:secretsmanager:us-west-2:123456789012:secret:my-oauth-secret',
-            },
-          },
-        },
-      ]
-
-      const result = getSecretsManagerPermissions(targets)
-
-      expect(result).toHaveLength(1)
-      expect(result[0].Action).toContain('secretsmanager:GetSecretValue')
-      expect(result[0].Resource).toContain(
-        targets[0].credentialProvider.oauthConfig.secretArn,
-      )
-    })
-
-    test('returns Secrets Manager permissions for API key config with secretArn', () => {
-      const targets = [
-        {
-          credentialProvider: {
-            apiKeyConfig: {
-              secretArn:
-                'arn:aws:secretsmanager:us-west-2:123456789012:secret:my-api-key',
-            },
-          },
-        },
-      ]
-
-      const result = getSecretsManagerPermissions(targets)
-
-      expect(result).toHaveLength(1)
-      expect(result[0].Resource).toContain(
-        targets[0].credentialProvider.apiKeyConfig.secretArn,
-      )
-    })
-
-    test('returns empty for credential providers without secretArn', () => {
-      const targets = [
-        {
-          credentialProvider: {
-            type: 'GATEWAY_IAM_ROLE',
-          },
-        },
-      ]
-
-      const result = getSecretsManagerPermissions(targets)
-
-      expect(result).toEqual([])
     })
   })
 })

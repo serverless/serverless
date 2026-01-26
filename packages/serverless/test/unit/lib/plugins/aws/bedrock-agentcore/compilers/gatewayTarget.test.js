@@ -1,44 +1,100 @@
 'use strict'
 
+import fs from 'fs'
+import path from 'path'
 import {
   compileGatewayTarget,
   buildCredentialProviderConfigurations,
   buildTargetConfiguration,
-  buildLambdaTargetConfiguration,
-  buildOpenApiTargetConfiguration,
-  buildSmithyTargetConfiguration,
+  buildLambdaTarget,
+  buildOpenApiTarget,
+  buildSmithyTarget,
+  buildMcpServerTarget,
+  detectTargetType,
+  isFilePath,
   transformSchemaToCloudFormation,
+  resolveFunctionArn,
+  resolveToolSchema,
 } from '../../../../../../../lib/plugins/aws/bedrock-agentcore/compilers/gatewayTarget.js'
 
+// Mock fs module
+jest.mock('fs')
+
 describe('GatewayTarget Compiler', () => {
-  const baseContext = {
-    serviceName: 'test-service',
-    stage: 'dev',
-    region: 'us-west-2',
-    accountId: '123456789012',
-    customConfig: {},
-    defaultTags: {},
-  }
+  const mockServiceDir = '/test/service'
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    fs.existsSync.mockReturnValue(true)
+  })
+
+  describe('detectTargetType', () => {
+    test('detects function type', () => {
+      expect(detectTargetType({ function: 'hello' })).toBe('function')
+    })
+
+    test('detects openapi type', () => {
+      expect(detectTargetType({ openapi: 'openapi.yml' })).toBe('openapi')
+    })
+
+    test('detects smithy type', () => {
+      expect(detectTargetType({ smithy: 'model.smithy' })).toBe('smithy')
+    })
+
+    test('detects mcp type', () => {
+      expect(detectTargetType({ mcp: 'https://mcp.example.com' })).toBe('mcp')
+    })
+
+    test('throws error when no type specified', () => {
+      expect(() => detectTargetType({})).toThrow(
+        'Tool configuration must have one of: function, openapi, smithy, or mcp',
+      )
+    })
+  })
+
+  describe('isFilePath', () => {
+    test('returns true for paths with slashes', () => {
+      expect(isFilePath('./schema.json')).toBe(true)
+      expect(isFilePath('config/openapi.yml')).toBe(true)
+    })
+
+    test('returns true for common file extensions', () => {
+      expect(isFilePath('openapi.yml')).toBe(true)
+      expect(isFilePath('openapi.yaml')).toBe(true)
+      expect(isFilePath('schema.json')).toBe(true)
+      expect(isFilePath('model.smithy')).toBe(true)
+    })
+
+    test('returns false for inline content', () => {
+      expect(isFilePath('openapi: 3.0.0')).toBe(false)
+      expect(isFilePath('{ "type": "object" }')).toBe(false)
+    })
+
+    test('returns false for null/undefined', () => {
+      expect(isFilePath(null)).toBe(false)
+      expect(isFilePath(undefined)).toBe(false)
+    })
+  })
 
   describe('buildCredentialProviderConfigurations', () => {
-    test('defaults to GATEWAY_IAM_ROLE', () => {
+    test('defaults to GATEWAY_IAM_ROLE when no credentials', () => {
       const result = buildCredentialProviderConfigurations(null)
-
       expect(result).toEqual([{ CredentialProviderType: 'GATEWAY_IAM_ROLE' }])
     })
 
-    test('builds OAuth configuration with CredentialProvider wrapper', () => {
-      const credProvider = {
+    test('defaults to GATEWAY_IAM_ROLE when empty credentials', () => {
+      const result = buildCredentialProviderConfigurations({})
+      expect(result).toEqual([{ CredentialProviderType: 'GATEWAY_IAM_ROLE' }])
+    })
+
+    test('builds OAUTH configuration', () => {
+      const credentials = {
         type: 'OAUTH',
-        oauthConfig: {
-          providerArn:
-            'arn:aws:secretsmanager:us-west-2:123456789012:secret:my-oauth',
-          scopes: ['read', 'write'],
-          grantType: 'CLIENT_CREDENTIALS',
-        },
+        providerArn: 'arn:aws:secretsmanager:us-east-1:123456789:secret:oauth',
+        scopes: ['read', 'write'],
       }
 
-      const result = buildCredentialProviderConfigurations(credProvider)
+      const result = buildCredentialProviderConfigurations(credentials)
 
       expect(result).toEqual([
         {
@@ -46,48 +102,64 @@ describe('GatewayTarget Compiler', () => {
           CredentialProvider: {
             OauthCredentialProvider: {
               ProviderArn:
-                'arn:aws:secretsmanager:us-west-2:123456789012:secret:my-oauth',
+                'arn:aws:secretsmanager:us-east-1:123456789:secret:oauth',
               Scopes: ['read', 'write'],
-              GrantType: 'CLIENT_CREDENTIALS',
             },
           },
         },
       ])
     })
 
-    test('builds OAuth configuration with optional properties', () => {
-      const credProvider = {
+    test('builds OAUTH with optional properties', () => {
+      const credentials = {
         type: 'OAUTH',
-        oauthConfig: {
-          providerArn:
-            'arn:aws:secretsmanager:us-west-2:123456789012:secret:my-oauth',
-          scopes: ['read'],
-          defaultReturnUrl: 'https://example.com/callback',
-          customParameters: { tenant: 'my-tenant' },
-        },
+        providerArn: 'arn:aws:secretsmanager:us-east-1:123456789:secret:oauth',
+        scopes: ['read'],
+        grantType: 'CLIENT_CREDENTIALS',
+        defaultReturnUrl: 'https://example.com/callback',
+        customParameters: { tenant: 'my-tenant' },
       }
 
-      const result = buildCredentialProviderConfigurations(credProvider)
+      const result = buildCredentialProviderConfigurations(credentials)
 
       expect(result[0].CredentialProvider.OauthCredentialProvider).toEqual({
-        ProviderArn:
-          'arn:aws:secretsmanager:us-west-2:123456789012:secret:my-oauth',
+        ProviderArn: 'arn:aws:secretsmanager:us-east-1:123456789:secret:oauth',
         Scopes: ['read'],
+        GrantType: 'CLIENT_CREDENTIALS',
         DefaultReturnUrl: 'https://example.com/callback',
         CustomParameters: { tenant: 'my-tenant' },
       })
     })
 
-    test('builds API Key configuration with CredentialProvider wrapper', () => {
-      const credProvider = {
-        type: 'API_KEY',
-        apiKeyConfig: {
-          providerArn:
-            'arn:aws:secretsmanager:us-west-2:123456789012:secret:api-key',
-        },
+    test('throws error when OAUTH missing providerArn', () => {
+      const credentials = {
+        type: 'OAUTH',
+        scopes: ['read'],
       }
 
-      const result = buildCredentialProviderConfigurations(credProvider)
+      expect(() => buildCredentialProviderConfigurations(credentials)).toThrow(
+        'OAUTH credentials require providerArn and scopes',
+      )
+    })
+
+    test('throws error when OAUTH missing scopes', () => {
+      const credentials = {
+        type: 'OAUTH',
+        providerArn: 'arn:aws:secretsmanager:us-east-1:123456789:secret:oauth',
+      }
+
+      expect(() => buildCredentialProviderConfigurations(credentials)).toThrow(
+        'OAUTH credentials require providerArn and scopes',
+      )
+    })
+
+    test('builds API_KEY configuration', () => {
+      const credentials = {
+        type: 'API_KEY',
+        providerArn: 'arn:aws:secretsmanager:us-east-1:123456789:secret:apikey',
+      }
+
+      const result = buildCredentialProviderConfigurations(credentials)
 
       expect(result).toEqual([
         {
@@ -95,44 +167,40 @@ describe('GatewayTarget Compiler', () => {
           CredentialProvider: {
             ApiKeyCredentialProvider: {
               ProviderArn:
-                'arn:aws:secretsmanager:us-west-2:123456789012:secret:api-key',
+                'arn:aws:secretsmanager:us-east-1:123456789:secret:apikey',
             },
           },
         },
       ])
     })
 
-    test('builds API Key configuration with optional properties', () => {
-      const credProvider = {
+    test('builds API_KEY with optional properties', () => {
+      const credentials = {
         type: 'API_KEY',
-        apiKeyConfig: {
-          providerArn:
-            'arn:aws:secretsmanager:us-west-2:123456789012:secret:api-key',
-          credentialLocation: 'HEADER',
-          credentialParameterName: 'X-API-Key',
-          credentialPrefix: 'Bearer ',
-        },
+        providerArn: 'arn:aws:secretsmanager:us-east-1:123456789:secret:apikey',
+        credentialLocation: 'HEADER',
+        credentialParameterName: 'X-API-Key',
+        credentialPrefix: 'Bearer ',
       }
 
-      const result = buildCredentialProviderConfigurations(credProvider)
+      const result = buildCredentialProviderConfigurations(credentials)
 
       expect(result[0].CredentialProvider.ApiKeyCredentialProvider).toEqual({
-        ProviderArn:
-          'arn:aws:secretsmanager:us-west-2:123456789012:secret:api-key',
+        ProviderArn: 'arn:aws:secretsmanager:us-east-1:123456789:secret:apikey',
         CredentialLocation: 'HEADER',
         CredentialParameterName: 'X-API-Key',
         CredentialPrefix: 'Bearer ',
       })
     })
 
-    test('handles GATEWAY_IAM_ROLE type explicitly', () => {
-      const credProvider = {
-        type: 'GATEWAY_IAM_ROLE',
+    test('throws error when API_KEY missing providerArn', () => {
+      const credentials = {
+        type: 'API_KEY',
       }
 
-      const result = buildCredentialProviderConfigurations(credProvider)
-
-      expect(result).toEqual([{ CredentialProviderType: 'GATEWAY_IAM_ROLE' }])
+      expect(() => buildCredentialProviderConfigurations(credentials)).toThrow(
+        'API_KEY credentials require providerArn',
+      )
     })
   })
 
@@ -193,330 +261,353 @@ describe('GatewayTarget Compiler', () => {
     })
   })
 
-  describe('buildLambdaTargetConfiguration', () => {
-    test('builds with functionArn', () => {
-      const target = {
-        type: 'lambda',
-        functionArn:
-          'arn:aws:lambda:us-west-2:123456789012:function:my-function',
-      }
-
-      const result = buildLambdaTargetConfiguration(target, baseContext)
+  describe('resolveFunctionArn', () => {
+    test('resolves string function name to Fn::GetAtt', () => {
+      const result = resolveFunctionArn('hello')
 
       expect(result).toEqual({
-        Mcp: {
-          Lambda: {
-            LambdaArn:
-              'arn:aws:lambda:us-west-2:123456789012:function:my-function',
-          },
-        },
+        'Fn::GetAtt': ['HelloLambdaFunction', 'Arn'],
       })
     })
 
-    test('builds with functionName reference', () => {
-      const target = {
-        type: 'lambda',
-        functionName: 'my-function',
-      }
-
-      const result = buildLambdaTargetConfiguration(target, baseContext)
+    test('resolves hyphenated function name', () => {
+      const result = resolveFunctionArn('my-function')
 
       expect(result).toEqual({
-        Mcp: {
-          Lambda: {
-            LambdaArn: { 'Fn::GetAtt': ['MyFunctionLambdaFunction', 'Arn'] },
-          },
-        },
+        'Fn::GetAtt': ['MyFunctionLambdaFunction', 'Arn'],
       })
     })
 
-    test('includes tool schema with inline payload', () => {
-      const target = {
-        type: 'lambda',
-        functionArn:
-          'arn:aws:lambda:us-west-2:123456789012:function:my-function',
-        toolSchema: {
-          inlinePayload: [
-            {
-              name: 'myTool',
-              description: 'A tool',
-              inputSchema: { type: 'object' },
-            },
-          ],
+    test('resolves object with arn directly', () => {
+      const result = resolveFunctionArn({
+        arn: 'arn:aws:lambda:us-east-1:123456789:function:my-fn',
+      })
+
+      expect(result).toBe('arn:aws:lambda:us-east-1:123456789:function:my-fn')
+    })
+
+    test('resolves object with name', () => {
+      const result = resolveFunctionArn({ name: 'my-function' })
+
+      expect(result).toEqual({
+        'Fn::GetAtt': ['MyFunctionLambdaFunction', 'Arn'],
+      })
+    })
+
+    test('throws error when no function name or ARN', () => {
+      expect(() => resolveFunctionArn({})).toThrow(
+        'Function tool requires function name or ARN',
+      )
+    })
+  })
+
+  describe('resolveToolSchema', () => {
+    test('resolves inline array', () => {
+      const toolSchema = [
+        {
+          name: 'greet',
+          description: 'Greets a user',
+          inputSchema: {
+            type: 'object',
+            properties: { name: { type: 'string' } },
+          },
         },
-      }
+      ]
 
-      const result = buildLambdaTargetConfiguration(target, baseContext)
+      const result = resolveToolSchema(toolSchema, mockServiceDir)
 
-      expect(result.Mcp.Lambda.ToolSchema).toEqual({
+      expect(result).toEqual({
         InlinePayload: [
           {
-            Name: 'myTool',
-            Description: 'A tool',
-            InputSchema: { Type: 'object' },
+            Name: 'greet',
+            Description: 'Greets a user',
+            InputSchema: {
+              Type: 'object',
+              Properties: { name: { Type: 'string' } },
+            },
           },
         ],
       })
     })
 
-    test('includes tool schema with S3 reference', () => {
-      const target = {
-        type: 'lambda',
-        functionArn:
-          'arn:aws:lambda:us-west-2:123456789012:function:my-function',
-        toolSchema: {
-          s3: {
-            bucket: 'my-bucket',
-            key: 'tools.json',
-          },
+    test('resolves file path', () => {
+      const fileContents = JSON.stringify([
+        {
+          name: 'myTool',
+          description: 'A tool',
+          inputSchema: { type: 'string' },
         },
-      }
+      ])
+      fs.readFileSync.mockReturnValue(fileContents)
 
-      const result = buildLambdaTargetConfiguration(target, baseContext)
+      const result = resolveToolSchema('tools.json', mockServiceDir)
 
-      expect(result.Mcp.Lambda.ToolSchema).toEqual({
-        S3: {
-          Uri: 's3://my-bucket/tools.json',
+      expect(fs.readFileSync).toHaveBeenCalledWith(
+        path.resolve(mockServiceDir, 'tools.json'),
+        'utf-8',
+      )
+      expect(result.InlinePayload[0].Name).toBe('myTool')
+    })
+
+    test('throws error when file not found', () => {
+      fs.existsSync.mockReturnValue(false)
+
+      expect(() => resolveToolSchema('missing.json', mockServiceDir)).toThrow(
+        'Tool schema/spec file not found: missing.json',
+      )
+    })
+
+    test('throws error when no toolSchema provided', () => {
+      expect(() => resolveToolSchema(null, mockServiceDir)).toThrow(
+        'Function tool requires toolSchema',
+      )
+    })
+
+    test('includes outputSchema when present', () => {
+      const toolSchema = [
+        {
+          name: 'myTool',
+          description: 'A tool',
+          inputSchema: { type: 'string' },
+          outputSchema: { type: 'object' },
         },
-      })
+      ]
+
+      const result = resolveToolSchema(toolSchema, mockServiceDir)
+
+      expect(result.InlinePayload[0].OutputSchema).toEqual({ Type: 'object' })
     })
   })
 
-  describe('buildOpenApiTargetConfiguration', () => {
-    test('builds with S3 configuration', () => {
-      const target = {
-        type: 'openapi',
-        s3: {
-          bucket: 'my-bucket',
-          key: 'specs/openapi.yaml',
-        },
+  describe('buildLambdaTarget', () => {
+    test('builds with function name reference', () => {
+      const toolSchema = [
+        { name: 'test', description: 'Test', inputSchema: { type: 'string' } },
+      ]
+      const config = {
+        function: 'hello',
+        toolSchema,
       }
 
-      const result = buildOpenApiTargetConfiguration(target)
+      const result = buildLambdaTarget(config, mockServiceDir)
+
+      expect(result).toEqual({
+        Mcp: {
+          Lambda: {
+            LambdaArn: { 'Fn::GetAtt': ['HelloLambdaFunction', 'Arn'] },
+            ToolSchema: {
+              InlinePayload: [
+                {
+                  Name: 'test',
+                  Description: 'Test',
+                  InputSchema: { Type: 'string' },
+                },
+              ],
+            },
+          },
+        },
+      })
+    })
+
+    test('builds with direct ARN', () => {
+      const toolSchema = [
+        { name: 'test', description: 'Test', inputSchema: { type: 'string' } },
+      ]
+      const config = {
+        function: { arn: 'arn:aws:lambda:us-east-1:123456789:function:hello' },
+        toolSchema,
+      }
+
+      const result = buildLambdaTarget(config, mockServiceDir)
+
+      expect(result.Mcp.Lambda.LambdaArn).toBe(
+        'arn:aws:lambda:us-east-1:123456789:function:hello',
+      )
+    })
+  })
+
+  describe('buildOpenApiTarget', () => {
+    test('builds with file path', () => {
+      fs.readFileSync.mockReturnValue('openapi: 3.0.0')
+      const config = { openapi: 'openapi.yml' }
+
+      const result = buildOpenApiTarget(config, mockServiceDir)
 
       expect(result).toEqual({
         Mcp: {
           OpenApiSchema: {
-            S3: {
-              Uri: 's3://my-bucket/specs/openapi.yaml',
-            },
+            InlinePayload: 'openapi: 3.0.0',
           },
         },
       })
     })
 
-    test('builds with inline payload', () => {
-      const target = {
-        type: 'openapi',
-        inlinePayload: 'openapi: 3.0.0\ninfo:\n  title: My API',
-      }
+    test('builds with inline content', () => {
+      const config = { openapi: 'openapi: 3.0.0\ninfo:\n  title: My API' }
 
-      const result = buildOpenApiTargetConfiguration(target)
+      const result = buildOpenApiTarget(config, mockServiceDir)
 
-      expect(result.Mcp.OpenApiSchema.InlinePayload).toBe(
-        'openapi: 3.0.0\ninfo:\n  title: My API',
-      )
-    })
-
-    test('builds with S3 URI directly', () => {
-      const target = {
-        type: 'openapi',
-        s3: { uri: 's3://my-bucket/api.yaml' },
-      }
-
-      const result = buildOpenApiTargetConfiguration(target)
-
-      expect(result.Mcp.OpenApiSchema.S3.Uri).toBe('s3://my-bucket/api.yaml')
-    })
-
-    test('includes bucketOwnerAccountId when provided', () => {
-      const target = {
-        type: 'openapi',
-        s3: {
-          bucket: 'my-bucket',
-          key: 'api.yaml',
-          bucketOwnerAccountId: '987654321098',
+      expect(result).toEqual({
+        Mcp: {
+          OpenApiSchema: {
+            InlinePayload: 'openapi: 3.0.0\ninfo:\n  title: My API',
+          },
         },
-      }
-
-      const result = buildOpenApiTargetConfiguration(target)
-
-      expect(result.Mcp.OpenApiSchema.S3.BucketOwnerAccountId).toBe(
-        '987654321098',
-      )
+      })
     })
   })
 
-  describe('buildSmithyTargetConfiguration', () => {
-    test('builds with S3 configuration', () => {
-      const target = {
-        type: 'smithy',
-        s3: {
-          bucket: 'my-bucket',
-          key: 'models/service.smithy',
-        },
-      }
+  describe('buildSmithyTarget', () => {
+    test('builds with file path', () => {
+      fs.readFileSync.mockReturnValue(
+        'namespace com.example\nservice MyService {}',
+      )
+      const config = { smithy: 'model.smithy' }
 
-      const result = buildSmithyTargetConfiguration(target)
+      const result = buildSmithyTarget(config, mockServiceDir)
 
       expect(result).toEqual({
         Mcp: {
           SmithyModel: {
-            S3: {
-              Uri: 's3://my-bucket/models/service.smithy',
-            },
+            InlinePayload: 'namespace com.example\nservice MyService {}',
           },
         },
       })
     })
 
-    test('builds with inline payload', () => {
-      const target = {
-        type: 'smithy',
-        inlinePayload: 'namespace com.example\nservice MyService {}',
-      }
+    test('builds with inline content', () => {
+      const config = { smithy: 'namespace com.example' }
 
-      const result = buildSmithyTargetConfiguration(target)
+      const result = buildSmithyTarget(config, mockServiceDir)
 
-      expect(result.Mcp.SmithyModel.InlinePayload).toBe(
-        'namespace com.example\nservice MyService {}',
+      expect(result).toEqual({
+        Mcp: {
+          SmithyModel: {
+            InlinePayload: 'namespace com.example',
+          },
+        },
+      })
+    })
+  })
+
+  describe('buildMcpServerTarget', () => {
+    test('builds with https endpoint', () => {
+      const config = { mcp: 'https://mcp.linear.app/mcp' }
+
+      const result = buildMcpServerTarget(config)
+
+      expect(result).toEqual({
+        Mcp: {
+          McpServer: {
+            Endpoint: 'https://mcp.linear.app/mcp',
+          },
+        },
+      })
+    })
+
+    test('throws error for non-https endpoint', () => {
+      const config = { mcp: 'http://insecure.example.com' }
+
+      expect(() => buildMcpServerTarget(config)).toThrow(
+        'MCP server endpoint must be a valid https:// URL',
+      )
+    })
+
+    test('throws error for empty endpoint', () => {
+      const config = { mcp: '' }
+
+      expect(() => buildMcpServerTarget(config)).toThrow(
+        'MCP server endpoint must be a valid https:// URL',
       )
     })
   })
 
   describe('buildTargetConfiguration', () => {
-    test('delegates to lambda builder for lambda type', () => {
-      const target = {
-        type: 'lambda',
-        functionArn:
-          'arn:aws:lambda:us-west-2:123456789012:function:my-function',
-      }
+    test('delegates to lambda builder for function type', () => {
+      const toolSchema = [
+        { name: 'test', description: 'Test', inputSchema: { type: 'string' } },
+      ]
+      const config = { function: 'hello', toolSchema }
 
-      const result = buildTargetConfiguration(target, baseContext)
+      const result = buildTargetConfiguration(config, mockServiceDir)
 
       expect(result.Mcp.Lambda).toBeDefined()
     })
 
     test('delegates to openapi builder for openapi type', () => {
-      const target = {
-        type: 'openapi',
-        s3: { bucket: 'bucket', key: 'key' },
-      }
+      const config = { openapi: 'openapi: 3.0.0' }
 
-      const result = buildTargetConfiguration(target, baseContext)
+      const result = buildTargetConfiguration(config, mockServiceDir)
 
       expect(result.Mcp.OpenApiSchema).toBeDefined()
     })
 
     test('delegates to smithy builder for smithy type', () => {
-      const target = {
-        type: 'smithy',
-        s3: { bucket: 'bucket', key: 'key' },
-      }
+      const config = { smithy: 'namespace test' }
 
-      const result = buildTargetConfiguration(target, baseContext)
+      const result = buildTargetConfiguration(config, mockServiceDir)
 
       expect(result.Mcp.SmithyModel).toBeDefined()
     })
 
-    test('defaults to lambda when type not specified', () => {
-      const target = {
-        functionArn:
-          'arn:aws:lambda:us-west-2:123456789012:function:my-function',
-      }
+    test('delegates to mcp builder for mcp type', () => {
+      const config = { mcp: 'https://example.com/mcp' }
 
-      const result = buildTargetConfiguration(target, baseContext)
+      const result = buildTargetConfiguration(config, mockServiceDir)
 
-      expect(result.Mcp.Lambda).toBeDefined()
-    })
-
-    test('throws error for unknown target type', () => {
-      const target = {
-        type: 'unknown',
-      }
-
-      expect(() => buildTargetConfiguration(target, baseContext)).toThrow(
-        'Unknown gateway target type: unknown',
-      )
+      expect(result.Mcp.McpServer).toBeDefined()
     })
   })
 
   describe('compileGatewayTarget', () => {
-    test('generates valid CloudFormation for Lambda target', () => {
+    test('generates valid CloudFormation for Lambda tool', () => {
+      const toolSchema = [
+        {
+          name: 'greet',
+          description: 'Greets a user',
+          inputSchema: { type: 'string' },
+        },
+      ]
       const config = {
-        name: 'order-api',
-        type: 'lambda',
-        functionArn:
-          'arn:aws:lambda:us-west-2:123456789012:function:my-function',
-        description: 'Order API tool',
+        function: 'hello',
+        toolSchema,
+        description: 'Greeting tool',
       }
 
       const result = compileGatewayTarget(
-        'toolGateway',
-        'order-api',
+        'my-tool',
         config,
-        'ToolgatewayGateway',
-        baseContext,
+        'AgentCoreGateway',
+        mockServiceDir,
       )
 
       expect(result.Type).toBe('AWS::BedrockAgentCore::GatewayTarget')
-      expect(result.DependsOn).toEqual(['ToolgatewayGateway'])
-      expect(result.Properties.Name).toBe('order-api')
+      expect(result.DependsOn).toEqual(['AgentCoreGateway'])
+      expect(result.Properties.Name).toBe('my-tool')
       expect(result.Properties.GatewayIdentifier).toEqual({
-        'Fn::GetAtt': ['ToolgatewayGateway', 'GatewayIdentifier'],
+        'Fn::GetAtt': ['AgentCoreGateway', 'GatewayIdentifier'],
       })
-      expect(result.Properties.Description).toBe('Order API tool')
+      expect(result.Properties.Description).toBe('Greeting tool')
       expect(result.Properties.CredentialProviderConfigurations).toHaveLength(1)
-      expect(result.Properties.TargetConfiguration).toHaveProperty('Mcp')
-      expect(result.Properties.TargetConfiguration.Mcp).toHaveProperty('Lambda')
+      expect(result.Properties.TargetConfiguration.Mcp.Lambda).toBeDefined()
     })
 
-    test('generates valid CloudFormation for OpenAPI target', () => {
+    test('generates valid CloudFormation for MCP tool with credentials', () => {
       const config = {
-        name: 'rest-api',
-        type: 'openapi',
-        s3: {
-          bucket: 'my-bucket',
-          key: 'openapi.yaml',
-        },
-      }
-
-      const result = compileGatewayTarget(
-        'toolGateway',
-        'rest-api',
-        config,
-        'ToolgatewayGateway',
-        baseContext,
-      )
-
-      expect(result.Properties.TargetConfiguration).toHaveProperty('Mcp')
-      expect(result.Properties.TargetConfiguration.Mcp).toHaveProperty(
-        'OpenApiSchema',
-      )
-    })
-
-    test('includes credential provider configuration', () => {
-      const config = {
-        name: 'oauth-api',
-        type: 'lambda',
-        functionArn:
-          'arn:aws:lambda:us-west-2:123456789012:function:my-function',
-        credentialProvider: {
+        mcp: 'https://mcp.example.com/mcp',
+        credentials: {
           type: 'OAUTH',
-          oauthConfig: {
-            providerArn:
-              'arn:aws:secretsmanager:us-west-2:123456789012:secret:oauth',
-            scopes: ['read'],
-          },
+          providerArn:
+            'arn:aws:secretsmanager:us-east-1:123456789:secret:oauth',
+          scopes: ['read'],
         },
       }
 
       const result = compileGatewayTarget(
-        'toolGateway',
-        'oauth-api',
+        'external-mcp',
         config,
-        'ToolgatewayGateway',
-        baseContext,
+        'AgentCoreGateway',
+        mockServiceDir,
       )
 
       expect(result.Properties.CredentialProviderConfigurations[0]).toEqual({
@@ -524,11 +615,14 @@ describe('GatewayTarget Compiler', () => {
         CredentialProvider: {
           OauthCredentialProvider: {
             ProviderArn:
-              'arn:aws:secretsmanager:us-west-2:123456789012:secret:oauth',
+              'arn:aws:secretsmanager:us-east-1:123456789:secret:oauth',
             Scopes: ['read'],
           },
         },
       })
+      expect(result.Properties.TargetConfiguration.Mcp.McpServer.Endpoint).toBe(
+        'https://mcp.example.com/mcp',
+      )
     })
   })
 })

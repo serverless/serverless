@@ -4,7 +4,10 @@ import { compileRuntime } from './compilers/runtime.js'
 import { compileRuntimeEndpoint } from './compilers/runtimeEndpoint.js'
 import { compileMemory } from './compilers/memory.js'
 import { compileGateway } from './compilers/gateway.js'
-import { compileGatewayTarget } from './compilers/gatewayTarget.js'
+import {
+  compileGatewayTarget,
+  detectTargetType,
+} from './compilers/gatewayTarget.js'
 import { compileBrowser } from './compilers/browser.js'
 import { compileCodeInterpreter } from './compilers/codeInterpreter.js'
 import { compileWorkloadIdentity } from './compilers/workloadIdentity.js'
@@ -20,6 +23,9 @@ import { mergeTags } from './utils/tags.js'
 import { defineAgentsSchema } from './validators/schema.js'
 import { DockerBuilder } from './docker/builder.js'
 import { AgentCoreDevMode } from './dev/index.js'
+
+// Reserved keys at agents level (not treated as agent definitions)
+const RESERVED_AGENT_KEYS = ['memory', 'tools']
 
 /**
  * Serverless Framework internal plugin for AWS Bedrock AgentCore
@@ -83,29 +89,6 @@ class ServerlessBedrockAgentCore {
           build: {
             usage: 'Build Docker images for AgentCore runtimes',
             lifecycleEvents: ['build'],
-          },
-          invoke: {
-            usage: 'Invoke a deployed AgentCore runtime agent',
-            lifecycleEvents: ['invoke'],
-            options: {
-              agent: {
-                usage:
-                  'Name of the agent to invoke (defaults to first runtime agent)',
-                shortcut: 'a',
-                type: 'string',
-              },
-              message: {
-                usage: 'Message to send to the agent',
-                shortcut: 'm',
-                type: 'string',
-                required: true,
-              },
-              session: {
-                usage: 'Session ID for conversation continuity',
-                shortcut: 's',
-                type: 'string',
-              },
-            },
           },
           logs: {
             usage: 'Fetch logs for a deployed AgentCore runtime',
@@ -182,7 +165,6 @@ class ServerlessBedrockAgentCore {
       // Custom commands
       'agentcore:info:info': () => this.showInfo(),
       'agentcore:build:build': () => this.buildDockerImages(),
-      'agentcore:invoke:invoke': () => this.invokeAgent(),
       'agentcore:logs:logs': () => this.fetchLogs(),
       'agentcore:dev:dev': () => this.startDevMode(),
     }
@@ -235,17 +217,53 @@ class ServerlessBedrockAgentCore {
       return
     }
 
-    this.log.info(`Validating ${Object.keys(agents).length} agent(s)...`)
+    // Get shared resources for reference validation
+    const sharedMemory = agents.memory || {}
+    const sharedTools = agents.tools || {}
+
+    // Count agents excluding reserved keys
+    const agentCount = Object.keys(agents).filter(
+      (k) => !RESERVED_AGENT_KEYS.includes(k),
+    ).length
+    this.log.info(`Validating ${agentCount} agent(s)...`)
+
+    // Validate shared memory first
+    if (agents.memory) {
+      for (const [memoryName, memoryConfig] of Object.entries(agents.memory)) {
+        this.validateMemoryConfig(memoryName, memoryConfig)
+      }
+    }
+
+    // Validate shared tools
+    if (agents.tools) {
+      for (const [toolName, toolConfig] of Object.entries(agents.tools)) {
+        // Shared tools must be inline configs, not references
+        if (typeof toolConfig === 'string') {
+          throw new this.serverless.classes.Error(
+            `Shared tool '${toolName}' cannot be a reference - define it inline`,
+          )
+        }
+        this.validateToolConfig(toolName, toolConfig)
+      }
+    }
 
     for (const [name, config] of Object.entries(agents)) {
-      this.validateAgent(name, config)
+      // Skip reserved keys
+      if (RESERVED_AGENT_KEYS.includes(name)) {
+        continue
+      }
+      this.validateAgent(name, config, sharedMemory, sharedTools)
     }
   }
 
   /**
    * Validate individual agent configuration
+   * @param {string} name - Agent name
+   * @param {object} config - Agent configuration
+   * @param {object} sharedMemory - Available shared memory definitions for reference validation
+   * @param {object} sharedTools - Available shared tools for reference validation
    */
-  validateAgent(name, config) {
+  validateAgent(name, config, sharedMemory = {}, sharedTools = {}) {
     // Default type to 'runtime' if not specified
     if (!config.type) {
       config.type = 'runtime'
@@ -253,8 +271,6 @@ class ServerlessBedrockAgentCore {
 
     const validTypes = [
       'runtime',
-      'memory',
-      'gateway',
       'browser',
       'codeInterpreter',
       'workloadIdentity',
@@ -268,13 +284,7 @@ class ServerlessBedrockAgentCore {
     // Type-specific validation
     switch (config.type) {
       case 'runtime':
-        this.validateRuntime(name, config)
-        break
-      case 'memory':
-        this.validateMemory(name, config)
-        break
-      case 'gateway':
-        this.validateGateway(name, config)
+        this.validateRuntime(name, config, sharedMemory, sharedTools)
         break
       case 'browser':
         this.validateBrowser(name, config)
@@ -290,8 +300,12 @@ class ServerlessBedrockAgentCore {
 
   /**
    * Validate runtime configuration
+   * @param {string} name - Runtime name
+   * @param {object} config - Runtime configuration
+   * @param {object} sharedMemory - Available shared memory definitions for reference validation
+   * @param {object} sharedTools - Available shared tools for reference validation
    */
-  validateRuntime(name, config) {
+  validateRuntime(name, config, sharedMemory = {}, sharedTools = {}) {
     // Check if using image reference (will be built) or artifact (pre-built)
     const hasImage = config.image !== undefined
     const hasArtifact = config.artifact !== undefined
@@ -337,41 +351,148 @@ class ServerlessBedrockAgentCore {
         }
       }
     }
-  }
 
-  /**
-   * Validate memory configuration
-   */
-  validateMemory(name, config) {
-    if (config.eventExpiryDuration !== undefined) {
-      const duration = config.eventExpiryDuration
-      if (typeof duration !== 'number' || duration < 7 || duration > 365) {
+    // Validate memory configuration if present
+    if (config.memory) {
+      if (typeof config.memory === 'string') {
+        // Memory is a reference to a shared memory - validate it exists
+        if (!sharedMemory[config.memory]) {
+          throw new this.serverless.classes.Error(
+            `Runtime '${name}' references memory '${config.memory}' which is not defined in agents.memory`,
+          )
+        }
+      } else if (typeof config.memory === 'object') {
+        // Inline memory configuration - validate the config
+        this.validateMemoryConfig(`${name}-memory`, config.memory)
+      } else {
         throw new this.serverless.classes.Error(
-          `Memory '${name}' eventExpiryDuration must be a number between 7 and 365 days`,
+          `Runtime '${name}' memory must be either a string (reference to shared memory) or an object (inline memory config)`,
         )
+      }
+    }
+
+    // Validate tools configuration if present
+    if (config.tools) {
+      if (typeof config.tools !== 'object' || Array.isArray(config.tools)) {
+        throw new this.serverless.classes.Error(
+          `Runtime '${name}' tools must be an object with tool names as keys`,
+        )
+      }
+
+      for (const [toolName, toolConfig] of Object.entries(config.tools)) {
+        if (typeof toolConfig === 'string') {
+          // String reference to shared tool - validate it exists
+          if (!sharedTools[toolConfig]) {
+            throw new this.serverless.classes.Error(
+              `Runtime '${name}' tool '${toolName}' references shared tool '${toolConfig}' which is not defined in agents.tools`,
+            )
+          }
+        } else if (typeof toolConfig === 'object') {
+          // Inline tool configuration - validate it
+          this.validateToolConfig(`${name}/${toolName}`, toolConfig)
+        } else {
+          throw new this.serverless.classes.Error(
+            `Runtime '${name}' tool '${toolName}' must be either a string (reference to shared tool) or an object (inline tool config)`,
+          )
+        }
       }
     }
   }
 
   /**
-   * Validate gateway configuration
+   * Validate tool configuration
+   * @param {string} name - Tool name (for error messages)
+   * @param {object} config - Tool configuration
    */
-  validateGateway(name, config) {
-    const validAuthTypes = ['NONE', 'AWS_IAM', 'CUSTOM_JWT']
-    if (
-      config.authorizerType &&
-      !validAuthTypes.includes(config.authorizerType)
-    ) {
+  validateToolConfig(name, config) {
+    // Detect tool type
+    let toolType
+    try {
+      toolType = detectTargetType(config)
+    } catch {
       throw new this.serverless.classes.Error(
-        `Gateway '${name}' has invalid authorizerType '${config.authorizerType}'. Valid types: ${validAuthTypes.join(', ')}`,
+        `Tool '${name}' must have one of: function, openapi, smithy, or mcp`,
       )
     }
 
-    const validProtocols = ['MCP']
-    if (config.protocolType && !validProtocols.includes(config.protocolType)) {
+    // Validate function tools require toolSchema
+    if (toolType === 'function' && !config.toolSchema) {
       throw new this.serverless.classes.Error(
-        `Gateway '${name}' has invalid protocolType '${config.protocolType}'. Valid types: ${validProtocols.join(', ')}`,
+        `Tool '${name}' with function type requires toolSchema`,
       )
+    }
+
+    // Validate MCP server URL pattern
+    if (toolType === 'mcp') {
+      const endpoint = config.mcp
+      if (!endpoint || !endpoint.startsWith('https://')) {
+        throw new this.serverless.classes.Error(
+          `Tool '${name}' mcp endpoint must be a valid https:// URL`,
+        )
+      }
+    }
+
+    // Validate credentials if present
+    if (config.credentials) {
+      const validTypes = ['GATEWAY_IAM_ROLE', 'OAUTH', 'API_KEY']
+      if (
+        config.credentials.type &&
+        !validTypes.includes(config.credentials.type)
+      ) {
+        throw new this.serverless.classes.Error(
+          `Tool '${name}' credentials.type must be one of: ${validTypes.join(', ')}`,
+        )
+      }
+
+      if (config.credentials.type === 'OAUTH') {
+        if (!config.credentials.providerArn || !config.credentials.scopes) {
+          throw new this.serverless.classes.Error(
+            `Tool '${name}' OAUTH credentials require providerArn and scopes`,
+          )
+        }
+      }
+
+      if (config.credentials.type === 'API_KEY') {
+        if (!config.credentials.providerArn) {
+          throw new this.serverless.classes.Error(
+            `Tool '${name}' API_KEY credentials require providerArn`,
+          )
+        }
+      }
+    }
+  }
+
+  /**
+   * Validate memory configuration (used for both inline and shared memory definitions)
+   * Uses user-friendly property names: expiration, encryptionKey, strategies
+   */
+  validateMemoryConfig(name, config) {
+    // Validate expiration (maps to EventExpiryDuration)
+    if (config.expiration !== undefined) {
+      const duration = config.expiration
+      if (typeof duration !== 'number' || duration < 7 || duration > 365) {
+        throw new this.serverless.classes.Error(
+          `Memory '${name}' expiration must be a number between 7 and 365 days`,
+        )
+      }
+    }
+
+    // Validate encryptionKey if present
+    if (config.encryptionKey !== undefined) {
+      if (typeof config.encryptionKey !== 'string') {
+        throw new this.serverless.classes.Error(
+          `Memory '${name}' encryptionKey must be a string (ARN)`,
+        )
+      }
+    }
+
+    // Validate strategies if present
+    if (config.strategies !== undefined) {
+      if (!Array.isArray(config.strategies)) {
+        throw new this.serverless.classes.Error(
+          `Memory '${name}' strategies must be an array`,
+        )
+      }
     }
   }
 
@@ -481,6 +602,10 @@ class ServerlessBedrockAgentCore {
     const runtimesToBuild = []
 
     for (const [name, config] of Object.entries(agents)) {
+      // Skip reserved keys
+      if (RESERVED_AGENT_KEYS.includes(name)) {
+        continue
+      }
       if (config.type === 'runtime') {
         // Check for Docker build config: either top-level 'image' or nested 'artifact.docker'
         if (config.image) {
@@ -612,6 +737,49 @@ class ServerlessBedrockAgentCore {
   }
 
   /**
+   * Get gateway configuration from provider.agents.gateway
+   */
+  getGatewayConfig() {
+    const service = this.serverless.service
+    return service.provider?.agents?.gateway || {}
+  }
+
+  /**
+   * Collect all tools (shared + agent-level) to determine if gateway is needed
+   * Also returns which agents have tools for env var injection
+   */
+  collectAllTools(agents) {
+    const sharedTools = agents.tools || {}
+    const agentTools = {} // Map of agentName -> resolved tools
+
+    for (const [name, config] of Object.entries(agents)) {
+      if (RESERVED_AGENT_KEYS.includes(name)) continue
+      if (config.type !== 'runtime' || !config.tools) continue
+
+      agentTools[name] = {}
+      for (const [toolName, toolConfig] of Object.entries(config.tools)) {
+        if (typeof toolConfig === 'string') {
+          // String reference - use shared tool config
+          agentTools[name][toolName] = sharedTools[toolConfig]
+        } else {
+          // Inline tool config
+          agentTools[name][toolName] = toolConfig
+        }
+      }
+    }
+
+    // Check if any tools exist
+    const hasSharedTools = Object.keys(sharedTools).length > 0
+    const hasAgentTools = Object.keys(agentTools).length > 0
+
+    return {
+      sharedTools,
+      agentTools,
+      hasTools: hasSharedTools || hasAgentTools,
+    }
+  }
+
+  /**
    * Compile all AgentCore resources to CloudFormation
    */
   compileAgentCoreResources() {
@@ -649,29 +817,85 @@ class ServerlessBedrockAgentCore {
       codeInterpreter: 0,
       workloadIdentity: 0,
       endpoints: 0,
-      targets: 0,
+      tools: 0,
     }
 
+    // Collect all tools to determine if gateway is needed
+    const { sharedTools, agentTools, hasTools } = this.collectAllTools(agents)
+
+    // First pass: Compile gateway and shared tools if any tools exist
+    let gatewayLogicalId = null
+    if (hasTools) {
+      gatewayLogicalId = this.compileToolsGateway(context, template)
+      stats.gateway = 1
+
+      // Compile shared tools
+      for (const [toolName, toolConfig] of Object.entries(sharedTools)) {
+        this.compileToolResource(
+          toolName,
+          toolConfig,
+          gatewayLogicalId,
+          context,
+          template,
+        )
+        stats.tools++
+      }
+    }
+
+    // Second pass: Compile shared memory from agents.memory
+    if (agents.memory) {
+      for (const [memoryName, memoryConfig] of Object.entries(agents.memory)) {
+        this.compileMemoryResources(memoryName, memoryConfig, context, template)
+        stats.memory++
+      }
+    }
+
+    // Third pass: Compile all agents (excluding reserved keys)
     for (const [name, config] of Object.entries(agents)) {
+      // Skip reserved keys
+      if (RESERVED_AGENT_KEYS.includes(name)) {
+        continue
+      }
+
       switch (config.type) {
-        case 'runtime':
-          this.compileRuntimeResources(name, config, context, template)
+        case 'runtime': {
+          // Pass gateway info for env var injection
+          const agentHasTools = !!agentTools[name]
+          this.compileRuntimeResources(
+            name,
+            config,
+            context,
+            template,
+            agents.memory,
+            agentHasTools ? gatewayLogicalId : null,
+          )
           stats.runtime++
           if (config.endpoints) {
             stats.endpoints += config.endpoints.length
           }
-          break
-        case 'memory':
-          this.compileMemoryResources(name, config, context, template)
-          stats.memory++
-          break
-        case 'gateway':
-          this.compileGatewayResources(name, config, context, template)
-          stats.gateway++
-          if (config.targets) {
-            stats.targets += config.targets.length
+          // If runtime has inline memory, count it
+          if (config.memory && typeof config.memory === 'object') {
+            stats.memory++
+          }
+          // Compile agent-level tools (inline only, not shared references)
+          if (config.tools) {
+            for (const [toolName, toolConfig] of Object.entries(config.tools)) {
+              // Only compile inline tools (not string references to shared)
+              if (typeof toolConfig === 'object') {
+                const fullToolName = `${name}-${toolName}`
+                this.compileToolResource(
+                  fullToolName,
+                  toolConfig,
+                  gatewayLogicalId,
+                  context,
+                  template,
+                )
+                stats.tools++
+              }
+            }
           }
           break
+        }
         case 'browser':
           this.compileBrowserResources(name, config, context, template)
           stats.browser++
@@ -695,7 +919,7 @@ class ServerlessBedrockAgentCore {
       resourceSummary.push(`${stats.memory} memory(s)`)
     }
     if (stats.gateway > 0) {
-      resourceSummary.push(`${stats.gateway} gateway(s)`)
+      resourceSummary.push(`${stats.gateway} gateway`)
     }
     if (stats.browser > 0) {
       resourceSummary.push(`${stats.browser} browser(s)`)
@@ -712,8 +936,100 @@ class ServerlessBedrockAgentCore {
     if (stats.endpoints > 0) {
       this.log.info(`  - ${stats.endpoints} runtime endpoint(s)`)
     }
-    if (stats.targets > 0) {
-      this.log.info(`  - ${stats.targets} gateway target(s)`)
+    if (stats.tools > 0) {
+      this.log.info(`  - ${stats.tools} tool(s)`)
+    }
+  }
+
+  /**
+   * Compile the auto-created Gateway for tools
+   * @returns {string} Gateway logical ID
+   */
+  compileToolsGateway(context, template) {
+    const gatewayConfig = this.getGatewayConfig()
+    const logicalId = 'AgentCoreGateway'
+    const tags = mergeTags(
+      context.defaultTags,
+      gatewayConfig.tags,
+      context.serviceName,
+      context.stage,
+      'gateway',
+    )
+
+    // Generate IAM role if not provided
+    const roleLogicalId = `${logicalId}Role`
+    if (!gatewayConfig.roleArn) {
+      const roleResource = generateGatewayRole(
+        'gateway',
+        gatewayConfig,
+        context,
+      )
+      template.Resources[roleLogicalId] = roleResource
+
+      template.Outputs[`${logicalId}RoleArn`] = {
+        Description: 'IAM Role ARN for AgentCore Gateway',
+        Value: { 'Fn::GetAtt': [roleLogicalId, 'Arn'] },
+      }
+    }
+
+    // Compile Gateway resource - pass roleLogicalId to ensure correct reference
+    const gatewayResource = compileGateway(
+      'gateway',
+      gatewayConfig,
+      context,
+      tags,
+      roleLogicalId,
+    )
+    template.Resources[logicalId] = gatewayResource
+
+    // Add outputs
+    template.Outputs[`${logicalId}Arn`] = {
+      Description: 'ARN of AgentCore Gateway',
+      Value: { 'Fn::GetAtt': [logicalId, 'GatewayArn'] },
+      Export: {
+        Name: `${context.serviceName}-${context.stage}-GatewayArn`,
+      },
+    }
+
+    template.Outputs[`${logicalId}Id`] = {
+      Description: 'ID of AgentCore Gateway',
+      Value: { 'Fn::GetAtt': [logicalId, 'GatewayIdentifier'] },
+    }
+
+    template.Outputs[`${logicalId}Url`] = {
+      Description: 'URL of AgentCore Gateway',
+      Value: { 'Fn::GetAtt': [logicalId, 'GatewayUrl'] },
+    }
+
+    return logicalId
+  }
+
+  /**
+   * Compile a tool as a GatewayTarget resource
+   */
+  compileToolResource(
+    toolName,
+    toolConfig,
+    gatewayLogicalId,
+    context,
+    template,
+  ) {
+    const logicalId = getLogicalId(toolName, 'Tool')
+    const serviceDir = this.serverless.serviceDir
+
+    // Compile GatewayTarget resource
+    const targetResource = compileGatewayTarget(
+      toolName,
+      toolConfig,
+      gatewayLogicalId,
+      serviceDir,
+    )
+    template.Resources[logicalId] = targetResource
+
+    // Add target output
+    template.Outputs[`${logicalId}Id`] = {
+      Description: `ID of ${toolName} tool (GatewayTarget)`,
+      Value: { 'Fn::GetAtt': [logicalId, 'TargetId'] },
     }
   }
 
@@ -760,8 +1076,21 @@ class ServerlessBedrockAgentCore {
 
   /**
    * Compile Runtime and RuntimeEndpoint resources
+   * @param {string} name - Runtime name
+   * @param {object} config - Runtime configuration
+   * @param {object} context - Service context
+   * @param {object} template - CloudFormation template
+   * @param {object} [sharedMemories] - Shared memory definitions for reference resolution
+   * @param {string} [gatewayLogicalId] - Gateway logical ID for env var injection (if agent has tools)
    */
-  compileRuntimeResources(name, config, context, template) {
+  compileRuntimeResources(
+    name,
+    config,
+    context,
+    template,
+    sharedMemories = {},
+    gatewayLogicalId = null,
+  ) {
     const logicalId = getLogicalId(name, 'Runtime')
     const tags = mergeTags(
       context.defaultTags,
@@ -771,19 +1100,85 @@ class ServerlessBedrockAgentCore {
       name,
     )
 
+    // Track memory logical ID for dependency linking
+    let memoryLogicalId = null
+
+    // Handle memory configuration
+    if (config.memory) {
+      if (typeof config.memory === 'string') {
+        // Reference to shared memory - get its logical ID
+        memoryLogicalId = getLogicalId(config.memory, 'Memory')
+      } else if (typeof config.memory === 'object') {
+        // Inline memory - compile it as a separate resource
+        const inlineMemoryName = `${name}-memory`
+        memoryLogicalId = getLogicalId(inlineMemoryName, 'Memory')
+
+        // Compile the inline memory resource
+        this.compileMemoryResources(
+          inlineMemoryName,
+          config.memory,
+          context,
+          template,
+          name,
+        )
+      }
+    }
+
     // Resolve container image
     const containerImage = this.resolveContainerImage(name, config)
 
-    // Create a modified config with resolved image
+    // Create a modified config with resolved image and env vars
     const resolvedConfig = {
       ...config,
       artifact: containerImage ? { containerImage } : config.artifact,
     }
 
+    // Inject BEDROCK_AGENTCORE_MEMORY_ID env var when memory is configured
+    if (memoryLogicalId) {
+      resolvedConfig.environment = {
+        ...resolvedConfig.environment,
+        BEDROCK_AGENTCORE_MEMORY_ID: {
+          'Fn::GetAtt': [memoryLogicalId, 'MemoryId'],
+        },
+      }
+    }
+
+    // Inject BEDROCK_AGENTCORE_GATEWAY_URL env var when tools are configured
+    if (gatewayLogicalId) {
+      resolvedConfig.environment = {
+        ...resolvedConfig.environment,
+        BEDROCK_AGENTCORE_GATEWAY_URL: {
+          'Fn::GetAtt': [gatewayLogicalId, 'GatewayUrl'],
+        },
+      }
+    }
+
     // Generate IAM role if not provided
     if (!config.roleArn) {
       const roleLogicalId = `${logicalId}Role`
-      const roleResource = generateRuntimeRole(name, resolvedConfig, context)
+
+      // Build role options for memory and gateway access
+      const roleOptions = {}
+      if (memoryLogicalId) {
+        // Pass CFN GetAtt for memory ID to construct ARN
+        roleOptions.memoryResourceRef = {
+          'Fn::GetAtt': [memoryLogicalId, 'MemoryId'],
+        }
+      }
+      if (gatewayLogicalId) {
+        // Pass CFN GetAtt for gateway identifier to construct ARN
+        // Note: Gateway uses 'GatewayIdentifier' not 'GatewayId' per CFN schema
+        roleOptions.gatewayResourceRef = {
+          'Fn::GetAtt': [gatewayLogicalId, 'GatewayIdentifier'],
+        }
+      }
+
+      const roleResource = generateRuntimeRole(
+        name,
+        resolvedConfig,
+        context,
+        roleOptions,
+      )
       template.Resources[roleLogicalId] = roleResource
 
       // Output the role ARN
@@ -795,6 +1190,19 @@ class ServerlessBedrockAgentCore {
 
     // Compile Runtime resource
     const runtimeResource = compileRuntime(name, resolvedConfig, context, tags)
+
+    // Add dependency on memory if present
+    if (memoryLogicalId) {
+      runtimeResource.DependsOn = runtimeResource.DependsOn || []
+      runtimeResource.DependsOn.push(memoryLogicalId)
+
+      // Output the memory ARN associated with this runtime
+      template.Outputs[`${logicalId}MemoryArn`] = {
+        Description: `Memory ARN associated with ${name} runtime`,
+        Value: { 'Fn::GetAtt': [memoryLogicalId, 'MemoryArn'] },
+      }
+    }
+
     template.Resources[logicalId] = runtimeResource
 
     // Add outputs
@@ -854,8 +1262,13 @@ class ServerlessBedrockAgentCore {
 
   /**
    * Compile Memory resources
+   * @param {string} name - Memory name
+   * @param {object} config - Memory configuration (supports user-friendly property names)
+   * @param {object} context - Service context
+   * @param {object} template - CloudFormation template
+   * @param {string} [parentRuntimeName] - If memory is inline on a runtime, the runtime name
    */
-  compileMemoryResources(name, config, context, template) {
+  compileMemoryResources(name, config, context, template, parentRuntimeName) {
     const logicalId = getLogicalId(name, 'Memory')
     const tags = mergeTags(
       context.defaultTags,
@@ -877,13 +1290,23 @@ class ServerlessBedrockAgentCore {
       }
     }
 
-    // Compile Memory resource
-    const memoryResource = compileMemory(name, config, context, tags)
+    // Compile Memory resource (supports user-friendly property names)
+    const memoryResource = compileMemory(
+      name,
+      config,
+      context,
+      tags,
+      parentRuntimeName,
+    )
     template.Resources[logicalId] = memoryResource
 
     // Add outputs
+    const description = parentRuntimeName
+      ? `ARN of ${name} AgentCore Memory (inline for ${parentRuntimeName})`
+      : `ARN of ${name} AgentCore Memory`
+
     template.Outputs[`${logicalId}Arn`] = {
-      Description: `ARN of ${name} AgentCore Memory`,
+      Description: description,
       Value: { 'Fn::GetAtt': [logicalId, 'MemoryArn'] },
       Export: {
         Name: `${context.serviceName}-${context.stage}-${name}-MemoryArn`,
@@ -893,83 +1316,6 @@ class ServerlessBedrockAgentCore {
     template.Outputs[`${logicalId}Id`] = {
       Description: `ID of ${name} AgentCore Memory`,
       Value: { 'Fn::GetAtt': [logicalId, 'MemoryId'] },
-    }
-  }
-
-  /**
-   * Compile Gateway and GatewayTarget resources
-   */
-  compileGatewayResources(name, config, context, template) {
-    const logicalId = getLogicalId(name, 'Gateway')
-    const tags = mergeTags(
-      context.defaultTags,
-      config.tags,
-      context.serviceName,
-      context.stage,
-      name,
-    )
-
-    // Generate IAM role if not provided
-    if (!config.roleArn) {
-      const roleLogicalId = `${logicalId}Role`
-      const roleResource = generateGatewayRole(name, config, context)
-      template.Resources[roleLogicalId] = roleResource
-
-      template.Outputs[`${logicalId}RoleArn`] = {
-        Description: `IAM Role ARN for ${name} gateway`,
-        Value: { 'Fn::GetAtt': [roleLogicalId, 'Arn'] },
-      }
-    }
-
-    // Compile Gateway resource
-    const gatewayResource = compileGateway(name, config, context, tags)
-    template.Resources[logicalId] = gatewayResource
-
-    // Add outputs
-    template.Outputs[`${logicalId}Arn`] = {
-      Description: `ARN of ${name} AgentCore Gateway`,
-      Value: { 'Fn::GetAtt': [logicalId, 'GatewayArn'] },
-      Export: {
-        Name: `${context.serviceName}-${context.stage}-${name}-GatewayArn`,
-      },
-    }
-
-    template.Outputs[`${logicalId}Id`] = {
-      Description: `ID of ${name} AgentCore Gateway`,
-      Value: { 'Fn::GetAtt': [logicalId, 'GatewayIdentifier'] },
-    }
-
-    template.Outputs[`${logicalId}Url`] = {
-      Description: `URL of ${name} AgentCore Gateway`,
-      Value: { 'Fn::GetAtt': [logicalId, 'GatewayUrl'] },
-    }
-
-    // Compile GatewayTargets if defined
-    if (config.targets && config.targets.length > 0) {
-      for (const target of config.targets) {
-        const targetName = target.name
-        if (!targetName) {
-          throw new this.serverless.classes.Error(
-            `Gateway '${name}' target must have a 'name' property`,
-          )
-        }
-
-        const targetLogicalId = getLogicalId(name, `${targetName}Target`)
-        const targetResource = compileGatewayTarget(
-          name,
-          targetName,
-          target,
-          logicalId,
-          context,
-        )
-        template.Resources[targetLogicalId] = targetResource
-
-        // Add target outputs
-        template.Outputs[`${targetLogicalId}Id`] = {
-          Description: `ID of ${name}/${targetName} GatewayTarget`,
-          Value: { 'Fn::GetAtt': [targetLogicalId, 'TargetId'] },
-        }
-      }
     }
   }
 
@@ -1110,12 +1456,7 @@ class ServerlessBedrockAgentCore {
       return
     }
 
-    this.log.notice('AgentCore Resources Deployed:')
-
-    for (const [name, config] of Object.entries(agents)) {
-      const type = config.type.charAt(0).toUpperCase() + config.type.slice(1)
-      this.log.notice(`  ${name} (${type})`)
-    }
+    // Resources deployed - no verbose output needed
   }
 
   /**
@@ -1132,7 +1473,80 @@ class ServerlessBedrockAgentCore {
     this.log.notice('AgentCore Resources:')
     this.log.notice('')
 
+    // Check if gateway exists and show its URL
+    const { hasTools } = this.collectAllTools(agents)
+    if (hasTools) {
+      this.log.notice('Gateway:')
+      this.log.notice('  Auto-created gateway for tools')
+      // Try to get gateway URL from stack outputs
+      try {
+        const stackName = this.provider.naming.getStackName()
+        const result = await this.provider.request(
+          'CloudFormation',
+          'describeStacks',
+          { StackName: stackName },
+        )
+        const stack = result.Stacks?.[0]
+        const urlOutput = stack?.Outputs?.find(
+          (o) => o.OutputKey === 'AgentCoreGatewayUrl',
+        )
+        if (urlOutput) {
+          this.log.notice(`  URL: ${urlOutput.OutputValue}`)
+        }
+      } catch {
+        this.log.notice('  URL: (deploy to see URL)')
+      }
+      this.log.notice('')
+    }
+
+    // Display shared memory
+    if (agents.memory) {
+      this.log.notice('Shared Memory:')
+      for (const [memoryName, memoryConfig] of Object.entries(agents.memory)) {
+        this.log.notice(`  ${memoryName}:`)
+        this.log.notice(`    Type: Memory (shared)`)
+        if (memoryConfig.description) {
+          this.log.notice(`    Description: ${memoryConfig.description}`)
+        }
+        if (memoryConfig.expiration) {
+          this.log.notice(`    Expiration: ${memoryConfig.expiration} days`)
+        }
+        if (this.options.verbose) {
+          this.log.notice(
+            `    Config: ${JSON.stringify(memoryConfig, null, 2)}`,
+          )
+        }
+        this.log.notice('')
+      }
+    }
+
+    // Display shared tools
+    if (agents.tools) {
+      this.log.notice('Shared Tools:')
+      for (const [toolName, toolConfig] of Object.entries(agents.tools)) {
+        this.log.notice(`  ${toolName}:`)
+        try {
+          const toolType = detectTargetType(toolConfig)
+          this.log.notice(`    Type: ${toolType}`)
+        } catch {
+          this.log.notice(`    Type: unknown`)
+        }
+        if (toolConfig.description) {
+          this.log.notice(`    Description: ${toolConfig.description}`)
+        }
+        if (this.options.verbose) {
+          this.log.notice(`    Config: ${JSON.stringify(toolConfig, null, 2)}`)
+        }
+        this.log.notice('')
+      }
+    }
+
+    this.log.notice('Agents:')
     for (const [name, config] of Object.entries(agents)) {
+      // Skip reserved keys
+      if (RESERVED_AGENT_KEYS.includes(name)) {
+        continue
+      }
       const type = config.type.charAt(0).toUpperCase() + config.type.slice(1)
       this.log.notice(`  ${name}:`)
       this.log.notice(`    Type: ${type}`)
@@ -1141,48 +1555,26 @@ class ServerlessBedrockAgentCore {
         this.log.notice(`    Description: ${config.description}`)
       }
 
+      // Show memory info for runtimes
+      if (config.memory) {
+        if (typeof config.memory === 'string') {
+          this.log.notice(`    Memory: ${config.memory} (shared reference)`)
+        } else {
+          this.log.notice(`    Memory: inline`)
+        }
+      }
+
+      // Show tools info for runtimes
+      if (config.tools) {
+        const toolNames = Object.keys(config.tools)
+        this.log.notice(`    Tools: ${toolNames.join(', ')}`)
+      }
+
       if (this.options.verbose) {
         this.log.notice(`    Config: ${JSON.stringify(config, null, 2)}`)
       }
 
       this.log.notice('')
-    }
-  }
-
-  /**
-   * Get the runtime ARN for an agent from CloudFormation stack outputs
-   */
-  async getRuntimeArn(agentName) {
-    const stackName = this.provider.naming.getStackName()
-
-    try {
-      const result = await this.provider.request(
-        'CloudFormation',
-        'describeStacks',
-        {
-          StackName: stackName,
-        },
-      )
-
-      const stack = result.Stacks?.[0]
-      if (!stack) {
-        throw new Error(`Stack ${stackName} not found`)
-      }
-
-      // Look for the runtime ARN output
-      const logicalId = getLogicalId(agentName, 'Runtime')
-      const outputKey = `${logicalId}Arn`
-
-      const output = stack.Outputs?.find((o) => o.OutputKey === outputKey)
-      if (!output) {
-        throw new Error(`Runtime ARN output not found for agent '${agentName}'`)
-      }
-
-      return output.OutputValue
-    } catch (error) {
-      throw new this.serverless.classes.Error(
-        `Failed to get runtime ARN: ${error.message}`,
-      )
     }
   }
 
@@ -1232,119 +1624,16 @@ class ServerlessBedrockAgentCore {
     }
 
     for (const [name, config] of Object.entries(agents)) {
+      // Skip reserved keys
+      if (RESERVED_AGENT_KEYS.includes(name)) {
+        continue
+      }
       if (config.type === 'runtime') {
         return name
       }
     }
 
     return null
-  }
-
-  /**
-   * Invoke a deployed AgentCore runtime agent
-   */
-  async invokeAgent() {
-    const { spawnSync } = await import('child_process')
-    const crypto = await import('crypto')
-    const fs = await import('fs')
-    const os = await import('os')
-    const path = await import('path')
-
-    // Determine which agent to invoke
-    let agentName = this.options.agent
-    if (!agentName) {
-      agentName = this.getFirstRuntimeAgent()
-      if (!agentName) {
-        throw new this.serverless.classes.Error(
-          'No runtime agents found in configuration',
-        )
-      }
-    }
-
-    const message = this.options.message
-    if (!message) {
-      throw new this.serverless.classes.Error(
-        'Message is required. Use --message or -m to specify',
-      )
-    }
-
-    this.log.info(`Invoking agent: ${agentName}`)
-
-    // Get the runtime ARN from stack outputs
-    const runtimeArn = await this.getRuntimeArn(agentName)
-    const region = this.provider.getRegion()
-
-    // Generate or use provided session ID (must be at least 33 characters)
-    const sessionId =
-      this.options.session || `session-${Date.now()}-${crypto.randomUUID()}`
-
-    // Create the payload and base64 encode it (required by AWS CLI)
-    const payload = JSON.stringify({
-      prompt: message,
-    })
-    const payloadBase64 = Buffer.from(payload).toString('base64')
-
-    const outputFile = path.join(
-      os.tmpdir(),
-      `agentcore-response-${Date.now()}.bin`,
-    )
-
-    try {
-      this.log.info(`Session ID: ${sessionId}`)
-      this.log.info('Sending request...')
-      this.log.notice('')
-
-      // Use spawnSync with array arguments to avoid shell injection
-      const args = [
-        'bedrock-agentcore',
-        'invoke-agent-runtime',
-        '--agent-runtime-arn',
-        runtimeArn,
-        '--payload',
-        payloadBase64,
-        '--content-type',
-        'application/json',
-        '--accept',
-        'application/json',
-        '--runtime-session-id',
-        sessionId,
-        '--region',
-        region,
-        outputFile,
-      ]
-
-      const result = spawnSync('aws', args, { stdio: 'inherit' })
-
-      if (result.error) {
-        throw result.error
-      }
-      if (result.status !== 0) {
-        throw new Error(`AWS CLI exited with code ${result.status}`)
-      }
-
-      // Read and display the response
-      if (fs.existsSync(outputFile)) {
-        const response = fs.readFileSync(outputFile, 'utf-8')
-        this.log.notice('Response:')
-        this.log.notice('─'.repeat(50))
-
-        try {
-          // Try to parse and pretty print JSON
-          const parsed = JSON.parse(response)
-          this.log.notice(JSON.stringify(parsed, null, 2))
-        } catch {
-          // If not JSON, print raw
-          this.log.notice(response)
-        }
-
-        this.log.notice('─'.repeat(50))
-      }
-    } finally {
-      // Cleanup temp files
-      if (fs.existsSync(outputFile)) {
-        fs.unlinkSync(outputFile)
-      }
-    }
   }
 
   /**

@@ -2,10 +2,28 @@
 
 import { jest } from '@jest/globals'
 
-// Mock child_process before importing the module
-const mockExecSync = jest.fn()
-jest.unstable_mockModule('child_process', () => ({
-  execSync: mockExecSync,
+// Mock @serverless/util before importing the module
+const mockDockerClient = {
+  ensureIsRunning: jest.fn(),
+  buildImage: jest.fn(),
+  pushImage: jest.fn(),
+  generateImageUris: jest.fn(),
+}
+
+jest.unstable_mockModule('@serverless/util', () => ({
+  DockerClient: jest.fn(() => mockDockerClient),
+}))
+
+// Mock @aws-sdk/client-ecr
+const mockECRClient = {
+  send: jest.fn(),
+}
+
+jest.unstable_mockModule('@aws-sdk/client-ecr', () => ({
+  ECRClient: jest.fn(() => mockECRClient),
+  GetAuthorizationTokenCommand: jest.fn(),
+  DescribeRepositoriesCommand: jest.fn(),
+  CreateRepositoryCommand: jest.fn(),
 }))
 
 // Import after mocking
@@ -25,6 +43,12 @@ describe('DockerBuilder', () => {
       getProvider: jest.fn().mockReturnValue({
         getAccountId: jest.fn().mockResolvedValue('123456789012'),
         getRegion: jest.fn().mockReturnValue('us-west-2'),
+        getCredentials: jest.fn().mockResolvedValue({
+          credentials: {
+            accessKeyId: 'test-key',
+            secretAccessKey: 'test-secret',
+          },
+        }),
       }),
       serviceDir: '/path/to/service',
     }
@@ -48,6 +72,10 @@ describe('DockerBuilder', () => {
     test('gets provider from serverless', () => {
       expect(mockServerless.getProvider).toHaveBeenCalledWith('aws')
     })
+
+    test('creates DockerClient instance', () => {
+      expect(builder.dockerClient).toBe(mockDockerClient)
+    })
   })
 
   describe('getRegion', () => {
@@ -65,90 +93,118 @@ describe('DockerBuilder', () => {
   })
 
   describe('checkDocker', () => {
-    test('returns true when docker is available', () => {
-      mockExecSync.mockReturnValue('Docker version 24.0.0')
+    test('returns true when docker is available', async () => {
+      mockDockerClient.ensureIsRunning.mockResolvedValue(undefined)
 
-      const result = builder.checkDocker()
+      const result = await builder.checkDocker()
 
       expect(result).toBe(true)
+      expect(mockDockerClient.ensureIsRunning).toHaveBeenCalled()
     })
 
-    test('returns false when docker is not available', () => {
-      mockExecSync.mockImplementation(() => {
-        throw new Error('command not found: docker')
-      })
+    test('returns false when docker is not available', async () => {
+      mockDockerClient.ensureIsRunning.mockRejectedValue(
+        new Error('Docker not running'),
+      )
 
-      const result = builder.checkDocker()
+      const result = await builder.checkDocker()
 
       expect(result).toBe(false)
     })
   })
 
-  describe('ecrLogin', () => {
-    test('authenticates with ECR successfully', async () => {
-      mockExecSync
-        .mockReturnValueOnce('aws-ecr-password\n') // get-login-password
-        .mockReturnValueOnce('') // docker login
-
-      const result = await builder.ecrLogin('123456789012', 'us-west-2')
-
-      expect(result).toBe('123456789012.dkr.ecr.us-west-2.amazonaws.com')
-      expect(mockExecSync).toHaveBeenCalledWith(
-        'aws ecr get-login-password --region us-west-2',
-        expect.any(Object),
-      )
-      expect(mockLog.info).toHaveBeenCalledWith('Authenticating with ECR...')
-      expect(mockLog.info).toHaveBeenCalledWith('ECR authentication successful')
-    })
-
-    test('throws error when ECR login fails', async () => {
-      mockExecSync.mockImplementation(() => {
-        throw new Error('Access denied')
+  describe('getEcrAuthToken', () => {
+    test('returns auth token from ECR', async () => {
+      const encodedAuth = Buffer.from('AWS:test-password').toString('base64')
+      mockECRClient.send.mockResolvedValue({
+        authorizationData: [
+          {
+            authorizationToken: encodedAuth,
+            proxyEndpoint:
+              'https://123456789012.dkr.ecr.us-west-2.amazonaws.com',
+          },
+        ],
       })
 
-      await expect(
-        builder.ecrLogin('123456789012', 'us-west-2'),
-      ).rejects.toThrow('ECR login failed: Access denied')
+      const result = await builder.getEcrAuthToken()
+
+      expect(result).toEqual({
+        username: 'AWS',
+        password: 'test-password',
+        serveraddress: 'https://123456789012.dkr.ecr.us-west-2.amazonaws.com',
+      })
+    })
+
+    test('throws error when no authorization data', async () => {
+      mockECRClient.send.mockResolvedValue({
+        authorizationData: null,
+      })
+
+      await expect(builder.getEcrAuthToken()).rejects.toThrow(
+        'Failed to get authorization data from ECR',
+      )
     })
   })
 
   describe('ensureRepository', () => {
-    test('does not create repository if it exists', async () => {
-      mockExecSync.mockReturnValue('{"repositories": []}') // describe-repositories succeeds
+    test('returns existing repository URI if it exists', async () => {
+      mockECRClient.send.mockResolvedValue({
+        repositories: [
+          {
+            repositoryUri:
+              '123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repo',
+          },
+        ],
+      })
 
-      await builder.ensureRepository('my-repo', 'us-west-2')
+      const result = await builder.ensureRepository('my-repo')
 
-      expect(mockExecSync).toHaveBeenCalledTimes(1)
-      expect(mockExecSync).toHaveBeenCalledWith(
-        'aws ecr describe-repositories --repository-names my-repo --region us-west-2',
-        expect.any(Object),
+      expect(result).toBe(
+        '123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repo',
       )
-      expect(mockLog.info).toHaveBeenCalledWith('Repository exists')
+      expect(mockLog.info).toHaveBeenCalledWith(
+        'Checking ECR repository: my-repo',
+      )
     })
 
     test('creates repository if it does not exist', async () => {
-      mockExecSync
-        .mockImplementationOnce(() => {
-          throw new Error('RepositoryNotFoundException')
-        })
-        .mockReturnValueOnce('{}') // create-repository succeeds
+      const notFoundError = new Error('Repository not found')
+      notFoundError.name = 'RepositoryNotFoundException'
 
-      await builder.ensureRepository('my-repo', 'us-west-2')
+      mockECRClient.send
+        .mockRejectedValueOnce(notFoundError) // describe fails
+        .mockResolvedValueOnce({
+          repository: {
+            repositoryUri:
+              '123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repo',
+          },
+        }) // create succeeds
 
-      expect(mockExecSync).toHaveBeenCalledTimes(2)
-      expect(mockExecSync).toHaveBeenNthCalledWith(
-        2,
-        'aws ecr create-repository --repository-name my-repo --region us-west-2',
-        expect.any(Object),
+      const result = await builder.ensureRepository('my-repo')
+
+      expect(result).toBe(
+        '123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repo',
       )
-      expect(mockLog.info).toHaveBeenCalledWith('Creating ECR repository...')
-      expect(mockLog.info).toHaveBeenCalledWith('Repository created')
+      expect(mockLog.info).toHaveBeenCalledWith(
+        'Creating ECR repository: my-repo',
+      )
+    })
+
+    test('throws error for non-NotFound errors', async () => {
+      const accessError = new Error('Access denied')
+      accessError.name = 'AccessDeniedException'
+
+      mockECRClient.send.mockRejectedValue(accessError)
+
+      await expect(builder.ensureRepository('my-repo')).rejects.toThrow(
+        'Access denied',
+      )
     })
   })
 
   describe('buildImage', () => {
     test('builds image with default options', async () => {
-      mockExecSync.mockReturnValue('')
+      mockDockerClient.buildImage.mockResolvedValue(undefined)
 
       const dockerConfig = {
         path: '.',
@@ -161,11 +217,12 @@ describe('DockerBuilder', () => {
         '/path/to/service',
       )
 
-      expect(mockExecSync).toHaveBeenCalledWith(
-        expect.stringContaining(
-          'docker build --platform linux/arm64 -t my-image:latest',
-        ),
-        expect.any(Object),
+      expect(mockDockerClient.buildImage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          imageUri: 'my-image:latest',
+          containerPath: '/path/to/service',
+          platform: 'linux/arm64',
+        }),
       )
       expect(mockLog.info).toHaveBeenCalledWith(
         'Building Docker image: my-image:latest',
@@ -174,7 +231,7 @@ describe('DockerBuilder', () => {
     })
 
     test('uses linux/arm64 as default platform (AgentCore requirement)', async () => {
-      mockExecSync.mockReturnValue('')
+      mockDockerClient.buildImage.mockResolvedValue(undefined)
 
       const dockerConfig = {
         path: '.',
@@ -186,14 +243,15 @@ describe('DockerBuilder', () => {
         '/path/to/service',
       )
 
-      expect(mockExecSync).toHaveBeenCalledWith(
-        expect.stringContaining('--platform linux/arm64'),
-        expect.any(Object),
+      expect(mockDockerClient.buildImage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          platform: 'linux/arm64',
+        }),
       )
     })
 
     test('allows custom platform override', async () => {
-      mockExecSync.mockReturnValue('')
+      mockDockerClient.buildImage.mockResolvedValue(undefined)
 
       const dockerConfig = {
         path: '.',
@@ -206,14 +264,15 @@ describe('DockerBuilder', () => {
         '/path/to/service',
       )
 
-      expect(mockExecSync).toHaveBeenCalledWith(
-        expect.stringContaining('--platform linux/amd64'),
-        expect.any(Object),
+      expect(mockDockerClient.buildImage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          platform: 'linux/amd64',
+        }),
       )
     })
 
     test('includes build args when specified', async () => {
-      mockExecSync.mockReturnValue('')
+      mockDockerClient.buildImage.mockResolvedValue(undefined)
 
       const dockerConfig = {
         path: '.',
@@ -229,18 +288,18 @@ describe('DockerBuilder', () => {
         '/path/to/service',
       )
 
-      expect(mockExecSync).toHaveBeenCalledWith(
-        expect.stringContaining('--build-arg NODE_ENV="production"'),
-        expect.any(Object),
-      )
-      expect(mockExecSync).toHaveBeenCalledWith(
-        expect.stringContaining('--build-arg VERSION="1.0.0"'),
-        expect.any(Object),
+      expect(mockDockerClient.buildImage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          buildArgs: {
+            NODE_ENV: 'production',
+            VERSION: '1.0.0',
+          },
+        }),
       )
     })
 
     test('includes cache from when specified', async () => {
-      mockExecSync.mockReturnValue('')
+      mockDockerClient.buildImage.mockResolvedValue(undefined)
 
       const dockerConfig = {
         path: '.',
@@ -253,85 +312,174 @@ describe('DockerBuilder', () => {
         '/path/to/service',
       )
 
-      expect(mockExecSync).toHaveBeenCalledWith(
-        expect.stringContaining('--cache-from my-image:cache'),
-        expect.any(Object),
+      expect(mockDockerClient.buildImage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          buildOptions: expect.arrayContaining([
+            '--cache-from',
+            'my-image:cache',
+            '--cache-from',
+            'my-image:latest',
+          ]),
+        }),
       )
-      expect(mockExecSync).toHaveBeenCalledWith(
-        expect.stringContaining('--cache-from my-image:latest'),
-        expect.any(Object),
-      )
-    })
-
-    test('includes additional build options when specified', async () => {
-      mockExecSync.mockReturnValue('')
-
-      const dockerConfig = {
-        path: '.',
-        buildOptions: ['--no-cache', '--pull'],
-      }
-
-      await builder.buildImage(
-        'my-image:latest',
-        dockerConfig,
-        '/path/to/service',
-      )
-
-      expect(mockExecSync).toHaveBeenCalledWith(
-        expect.stringContaining('--no-cache --pull'),
-        expect.any(Object),
-      )
-    })
-
-    test('throws error when docker build fails', async () => {
-      mockExecSync.mockImplementation(() => {
-        throw new Error('Build failed')
-      })
-
-      const dockerConfig = { path: '.' }
-
-      await expect(
-        builder.buildImage('my-image:latest', dockerConfig, '/path/to/service'),
-      ).rejects.toThrow('Docker build failed: Build failed')
     })
   })
 
   describe('pushImage', () => {
-    test('tags and pushes image to ECR', async () => {
-      mockExecSync.mockReturnValue('')
+    test('pushes image to ECR', async () => {
+      const encodedAuth = Buffer.from('AWS:test-password').toString('base64')
+      mockECRClient.send.mockResolvedValue({
+        authorizationData: [
+          {
+            authorizationToken: encodedAuth,
+            proxyEndpoint:
+              'https://123456789012.dkr.ecr.us-west-2.amazonaws.com',
+          },
+        ],
+      })
+      mockDockerClient.pushImage.mockResolvedValue(undefined)
 
       const result = await builder.pushImage(
-        'my-image:latest',
-        '123456789012.dkr.ecr.us-west-2.amazonaws.com',
-        'my-repo',
-        'v1.0.0',
+        '123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repo:v1.0.0',
       )
 
       expect(result).toBe(
         '123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repo:v1.0.0',
       )
-      expect(mockExecSync).toHaveBeenCalledWith(
-        'docker tag my-image:latest 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repo:v1.0.0',
-        expect.any(Object),
-      )
-      expect(mockExecSync).toHaveBeenCalledWith(
-        'docker push 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repo:v1.0.0',
-        expect.any(Object),
-      )
+      expect(mockDockerClient.pushImage).toHaveBeenCalledWith({
+        imageUri: '123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repo:v1.0.0',
+        authconfig: expect.objectContaining({
+          username: 'AWS',
+          password: 'test-password',
+        }),
+      })
       expect(mockLog.info).toHaveBeenCalledWith('Push complete')
+    })
+  })
+
+  describe('buildForRuntime', () => {
+    test('builds image for runtime without pushing', async () => {
+      mockDockerClient.generateImageUris.mockReturnValue({
+        imageUri:
+          '123456789012.dkr.ecr.us-west-2.amazonaws.com/my-service-myagent:dev-abc123',
+      })
+      mockDockerClient.buildImage.mockResolvedValue(undefined)
+
+      const imageConfig = {
+        path: '.',
+      }
+      const context = {
+        serviceName: 'my-service',
+        stage: 'dev',
+        region: 'us-west-2',
+      }
+
+      const result = await builder.buildForRuntime(
+        'myAgent',
+        imageConfig,
+        context,
+      )
+
+      expect(result).toEqual({
+        imageUri:
+          '123456789012.dkr.ecr.us-west-2.amazonaws.com/my-service-myagent:dev-abc123',
+        repositoryName: 'my-service-myagent',
+        imageConfig,
+      })
+      expect(mockDockerClient.buildImage).toHaveBeenCalled()
+    })
+
+    test('uses custom repository name when specified', async () => {
+      mockDockerClient.generateImageUris.mockReturnValue({
+        imageUri:
+          '123456789012.dkr.ecr.us-west-2.amazonaws.com/custom-repo:dev-abc123',
+      })
+      mockDockerClient.buildImage.mockResolvedValue(undefined)
+
+      const imageConfig = {
+        path: '.',
+        repository: 'custom-repo',
+      }
+      const context = {
+        serviceName: 'my-service',
+        stage: 'dev',
+        region: 'us-west-2',
+      }
+
+      const result = await builder.buildForRuntime(
+        'myAgent',
+        imageConfig,
+        context,
+      )
+
+      expect(result.repositoryName).toBe('custom-repo')
+    })
+  })
+
+  describe('pushForRuntime', () => {
+    test('pushes previously built image to ECR', async () => {
+      mockECRClient.send
+        .mockResolvedValueOnce({
+          repositories: [
+            {
+              repositoryUri:
+                '123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repo',
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          authorizationData: [
+            {
+              authorizationToken:
+                Buffer.from('AWS:test-password').toString('base64'),
+              proxyEndpoint:
+                'https://123456789012.dkr.ecr.us-west-2.amazonaws.com',
+            },
+          ],
+        })
+      mockDockerClient.pushImage.mockResolvedValue(undefined)
+
+      const buildMetadata = {
+        imageUri: '123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repo:v1.0.0',
+        repositoryName: 'my-repo',
+        imageConfig: { path: '.' },
+      }
+
+      const result = await builder.pushForRuntime(buildMetadata)
+
+      expect(result).toBe(
+        '123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repo:v1.0.0',
+      )
     })
   })
 
   describe('buildAndPushForRuntime', () => {
     test('builds and pushes image for runtime', async () => {
-      // Mock all execSync calls for the full workflow
-      mockExecSync
-        .mockReturnValueOnce('{}') // ensureRepository - describe
-        .mockReturnValueOnce('aws-password\n') // ecrLogin - get-login-password
-        .mockReturnValueOnce('') // ecrLogin - docker login
-        .mockReturnValueOnce('') // buildImage
-        .mockReturnValueOnce('') // pushImage - tag
-        .mockReturnValueOnce('') // pushImage - push
+      mockDockerClient.generateImageUris.mockReturnValue({
+        imageUri:
+          '123456789012.dkr.ecr.us-west-2.amazonaws.com/my-service-myagent:v1.0.0',
+      })
+      mockDockerClient.buildImage.mockResolvedValue(undefined)
+      mockECRClient.send
+        .mockResolvedValueOnce({
+          repositories: [
+            {
+              repositoryUri:
+                '123456789012.dkr.ecr.us-west-2.amazonaws.com/my-service-myagent',
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          authorizationData: [
+            {
+              authorizationToken:
+                Buffer.from('AWS:test-password').toString('base64'),
+              proxyEndpoint:
+                'https://123456789012.dkr.ecr.us-west-2.amazonaws.com',
+            },
+          ],
+        })
+      mockDockerClient.pushImage.mockResolvedValue(undefined)
 
       const imageConfig = {
         path: '.',
@@ -350,63 +498,8 @@ describe('DockerBuilder', () => {
       )
 
       expect(result).toBe(
-        '123456789012.dkr.ecr.us-west-2.amazonaws.com/my-service-myAgent:v1.0.0',
+        '123456789012.dkr.ecr.us-west-2.amazonaws.com/my-service-myagent:v1.0.0',
       )
-    })
-
-    test('uses custom repository name when specified', async () => {
-      mockExecSync
-        .mockReturnValueOnce('{}')
-        .mockReturnValueOnce('aws-password\n')
-        .mockReturnValueOnce('')
-        .mockReturnValueOnce('')
-        .mockReturnValueOnce('')
-        .mockReturnValueOnce('')
-
-      const imageConfig = {
-        path: '.',
-        repository: 'custom-repo',
-      }
-      const context = {
-        serviceName: 'my-service',
-        stage: 'dev',
-        region: 'us-west-2',
-      }
-
-      const result = await builder.buildAndPushForRuntime(
-        'myAgent',
-        imageConfig,
-        context,
-      )
-
-      expect(result).toBe(
-        '123456789012.dkr.ecr.us-west-2.amazonaws.com/custom-repo:dev',
-      )
-    })
-
-    test('uses stage as default tag', async () => {
-      mockExecSync
-        .mockReturnValueOnce('{}')
-        .mockReturnValueOnce('aws-password\n')
-        .mockReturnValueOnce('')
-        .mockReturnValueOnce('')
-        .mockReturnValueOnce('')
-        .mockReturnValueOnce('')
-
-      const imageConfig = { path: '.' }
-      const context = {
-        serviceName: 'my-service',
-        stage: 'production',
-        region: 'us-west-2',
-      }
-
-      const result = await builder.buildAndPushForRuntime(
-        'myAgent',
-        imageConfig,
-        context,
-      )
-
-      expect(result).toContain(':production')
     })
   })
 
@@ -428,17 +521,35 @@ describe('DockerBuilder', () => {
       expect(result.myImage).toBe(
         '123456789.dkr.ecr.us-west-2.amazonaws.com/my-image:latest',
       )
-      expect(mockExecSync).not.toHaveBeenCalled()
+      expect(mockDockerClient.buildImage).not.toHaveBeenCalled()
     })
 
     test('builds and pushes images with path config', async () => {
-      mockExecSync
-        .mockReturnValueOnce('{}')
-        .mockReturnValueOnce('aws-password\n')
-        .mockReturnValueOnce('')
-        .mockReturnValueOnce('')
-        .mockReturnValueOnce('')
-        .mockReturnValueOnce('')
+      mockDockerClient.generateImageUris.mockReturnValue({
+        imageUri:
+          '123456789012.dkr.ecr.us-west-2.amazonaws.com/my-service-myimage:dev',
+      })
+      mockDockerClient.buildImage.mockResolvedValue(undefined)
+      mockECRClient.send
+        .mockResolvedValueOnce({
+          repositories: [
+            {
+              repositoryUri:
+                '123456789012.dkr.ecr.us-west-2.amazonaws.com/my-service-myimage',
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          authorizationData: [
+            {
+              authorizationToken:
+                Buffer.from('AWS:test-password').toString('base64'),
+              proxyEndpoint:
+                'https://123456789012.dkr.ecr.us-west-2.amazonaws.com',
+            },
+          ],
+        })
+      mockDockerClient.pushImage.mockResolvedValue(undefined)
 
       const imagesConfig = {
         myImage: {
@@ -471,7 +582,7 @@ describe('DockerBuilder', () => {
       const result = await builder.processImages(imagesConfig, context)
 
       expect(result.myImage).toBeUndefined()
-      expect(mockExecSync).not.toHaveBeenCalled()
+      expect(mockDockerClient.buildImage).not.toHaveBeenCalled()
     })
   })
 })
