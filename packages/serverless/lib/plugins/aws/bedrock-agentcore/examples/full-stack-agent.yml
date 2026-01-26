@@ -7,6 +7,16 @@ provider:
   name: aws
   region: ${opt:region, 'us-east-1'}
   stage: ${opt:stage, 'dev'}
+  # Gateway configuration (auto-created when tools are defined)
+  agents:
+    gateway:
+      authorizerType: AWS_IAM
+      protocolConfiguration:
+        mcp:
+          supportedVersions:
+            - '2024-11-05'
+          instructions: 'Use these tools for external integrations'
+          searchType: SEMANTIC
 
 custom:
   agentCore:
@@ -15,7 +25,48 @@ custom:
       Project: FullStackAgent
       Environment: ${self:provider.stage}
 
+# Lambda functions used as tools
+functions:
+  weather:
+    name: ${self:service}-${self:provider.stage}-weather
+    handler: handlers/weather.handler
+    runtime: python3.12
+    timeout: 30
+    memorySize: 256
+
 agents:
+  # Shared memory configuration
+  memory:
+    agentMemory:
+      description: Stores conversation history and enables semantic search
+      expiration: 90
+      strategies:
+        - SemanticMemoryStrategy:
+            Name: ConversationSearch
+            Namespaces:
+              - /conversations/{sessionId}
+        - UserPreferenceMemoryStrategy:
+            Name: UserPreferences
+            Namespaces:
+              - /users/{userId}/preferences
+
+  # Shared tools (Gateway is auto-created)
+  tools:
+    weather-tool:
+      function: weather
+      description: Get current weather for a location
+      toolSchema:
+        - name: getWeather
+          description: Get current weather for a location
+          inputSchema:
+            type: object
+            properties:
+              location:
+                type: string
+                description: City name or location
+            required:
+              - location
+
   # Runtime - The main agent runtime
   mainAgent:
     type: runtime
@@ -28,7 +79,6 @@ agents:
     protocol: HTTP
     network:
       networkMode: PUBLIC
-    # No authorizer = AWS IAM authentication (default)
     # Pass allowed headers to the runtime
     requestHeaders:
       allowlist:
@@ -39,21 +89,10 @@ agents:
     lifecycle:
       idleRuntimeSessionTimeout: 900 # 15 minutes
       maxLifetime: 3600 # 1 hour
-
-  # Memory - Conversation history and semantic search
-  agentMemory:
-    type: memory
-    description: Stores conversation history and enables semantic search
-    eventExpiryDuration: 90
-    strategies:
-      - SemanticMemoryStrategy:
-          Name: ConversationSearch
-          Namespaces:
-            - /conversations/{sessionId}
-      - UserPreferenceMemoryStrategy:
-          Name: UserPreferences
-          Namespaces:
-            - /users/{userId}/preferences
+    # Reference shared memory and tools
+    memory: agentMemory
+    tools:
+      weather: weather-tool
 
   # Browser - For web scraping and browsing
   webBrowser:
@@ -78,35 +117,6 @@ agents:
       - https://${self:service}.example.com/auth/callback
       - http://localhost:3000/auth/callback
 
-  # Gateway - For exposing tools via MCP protocol
-  toolGateway:
-    type: gateway
-    description: MCP gateway for agent tools
-    authorizerType: AWS_IAM
-    protocolConfiguration:
-      mcp:
-        supportedVersions:
-          - '2024-11-05'
-        instructions: 'Use these tools for external integrations'
-        searchType: SEMANTIC
-    targets:
-      - name: WeatherTool
-        type: lambda
-        description: Get current weather for a location
-        functionArn:
-          Fn::GetAtt:
-            - WeatherFunction
-            - Arn
-
-# Lambda function for Gateway target
-functions:
-  weather:
-    name: ${self:service}-${self:provider.stage}-weather
-    handler: handlers/weather.handler
-    runtime: python3.12
-    timeout: 30
-    memorySize: 256
-
 resources:
   Outputs:
     AgentRuntimeArn:
@@ -124,8 +134,8 @@ resources:
           - MemoryId
 
     GatewayUrl:
-      Description: URL of the MCP gateway
+      Description: URL of the auto-created MCP gateway
       Value:
         Fn::GetAtt:
-          - ToolGatewayGateway
+          - AgentCoreGateway
           - GatewayUrl

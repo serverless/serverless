@@ -5,27 +5,20 @@ service: strands-basic-agent
 
 provider:
   name: aws
-  region: ${opt:region, 'us-east-1'}
-  stage: ${opt:stage, 'dev'}
-
-custom:
-  agentCore:
-    defaultTags:
-      Project: ${self:service}
-      Framework: Strands
-      ManagedBy: Serverless
 
 agents:
   # AgentCore Runtime - Strands agent deployment
+  # Note: 'type: runtime' is optional as it's the default
   strandsAgent:
-    type: runtime
     description: Basic Strands AI agent with custom tools
     artifact:
       docker:
         path: .
         file: Dockerfile
-        repository: strands-basic-agent
-    protocol: HTTP
-    network:
-      networkMode: PUBLIC
-    # No authorizer = AWS IAM authentication (default)
+    # Optional: Add memory for conversation persistence
+    # memory:
+    #   expiration: 90
+    #   strategies:
+    #     - SemanticMemoryStrategy:
+    #         namespaces:
+    #           - /conversations/{sessionId}

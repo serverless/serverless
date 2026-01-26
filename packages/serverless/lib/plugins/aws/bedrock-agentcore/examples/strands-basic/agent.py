@@ -6,8 +6,8 @@ with custom tools deployed to AgentCore Runtime.
 """
 
 import os
-from datetime import datetime
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
+from datetime import datetime
 from strands import Agent, tool
 
 # Bypass tool consent for automated execution
@@ -78,38 +78,29 @@ Be concise and helpful in your responses. Use tools when appropriate.""",
 
 
 @app.entrypoint
-def invoke(payload, context):
+async def invoke(payload, context):
     """
-    Main entrypoint for the agent - handles incoming requests.
+    Main entrypoint for the agent - handles incoming requests with streaming.
 
     Args:
         payload: The request payload containing the prompt
         context: Runtime context with session info
 
-    Returns:
-        The agent's response
+    Yields:
+        Streaming response events from the agent
     """
     try:
         prompt = payload.get("prompt", "Hello!")
-        
+
         # Create a fresh agent for each request to avoid state issues
         agent = Agent(**AGENT_CONFIG)
 
-        # Invoke the agent with the user's prompt
-        result = agent(prompt)
-
-        # Extract the response text
-        response_text = result.message
-        if isinstance(response_text, dict) and "content" in response_text:
-            # Handle structured response
-            content = response_text["content"]
-            if isinstance(content, list) and len(content) > 0:
-                response_text = content[0].get("text", str(content))
-
-        return {"result": response_text}
+        # Stream the agent response
+        async for event in agent.stream_async(prompt):
+            yield event
     except Exception as e:
         import traceback
-        return {"error": str(e), "traceback": traceback.format_exc()}
+        yield {"error": str(e), "traceback": traceback.format_exc()}
 
 
 if __name__ == "__main__":

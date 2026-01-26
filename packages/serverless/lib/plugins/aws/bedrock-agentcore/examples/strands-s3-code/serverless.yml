@@ -17,8 +17,8 @@ custom:
 
 agents:
   # AgentCore Runtime using S3 code artifact (no Docker)
+  # Note: 'type: runtime' is optional as it's the default
   codeAgent:
-    type: runtime
     description: Strands agent deployed from S3 code artifact
     artifact:
       s3:
@@ -37,3 +37,6 @@ agents:
     lifecycle:
       idleRuntimeSessionTimeout: 300  # 5 minutes
       maxLifetime: 3600               # 1 hour
+    # Optional: Add memory for conversation persistence
+    # memory:
+    #   expiration: 90

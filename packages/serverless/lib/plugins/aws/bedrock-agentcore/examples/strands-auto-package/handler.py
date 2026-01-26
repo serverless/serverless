@@ -9,8 +9,8 @@ which is required for AgentCore S3 code deployment.
 """
 
 import os
-from datetime import datetime
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
+from datetime import datetime
 from strands import Agent, tool
 
 # Bypass tool consent for automated deployments
@@ -69,7 +69,7 @@ def get_weather(city: str) -> str:
         "new york": {"temp": 72, "condition": "Partly cloudy"},
         "london": {"temp": 59, "condition": "Rainy"},
         "tokyo": {"temp": 68, "condition": "Clear"},
-        "paris": {"temp": 64, "condition": "Sunny"},
+        "paris": {"temp": 20, "condition": "Sunny"},
         "sydney": {"temp": 77, "condition": "Warm and sunny"},
     }
 
@@ -96,29 +96,26 @@ Always be helpful and use your tools when appropriate.""",
 
 
 @app.entrypoint
-def invoke(payload, context):
+async def invoke(payload, context):
     """
-    Main entry point for the AgentCore runtime.
+    Main entry point for the AgentCore runtime with streaming support.
 
     Args:
         payload: The request payload containing the prompt
         context: Runtime context information
 
-    Returns:
-        dict: Response with the agent's answer
+    Yields:
+        Streaming events from the agent
     """
     prompt = payload.get("prompt", "Hello!")
 
-    # Run the agent
-    response = agent(prompt)
-
-    return {
-        "response": str(response),
-        "model": "us.amazon.nova-micro-v1:0",
-        "tools_available": ["get_current_time", "calculate", "get_weather"],
-    }
+    # Stream the agent response
+    async for event in agent.stream_async(prompt):
+        yield event
 
 
 if __name__ == "__main__":
     # Run the app when executed directly (for AgentCore runtime)
-    app.run()
+    # Support custom port via PORT environment variable
+    port = int(os.getenv("PORT", 8080))
+    app.run(port=port, host="0.0.0.0")
