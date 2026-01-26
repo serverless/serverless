@@ -465,6 +465,84 @@ function applyEfsPermissions({ functionObject, policyStatements }) {
   policyStatements.push(stmt)
 }
 
+function getDestinationAction(destinationProperty) {
+  if (typeof destinationProperty === 'object') {
+    if (destinationProperty.type === 'function') return 'lambda:InvokeFunction'
+    if (destinationProperty.type === 'sqs') return 'sqs:SendMessage'
+    if (destinationProperty.type === 'sns') return 'sns:Publish'
+    if (destinationProperty.type === 'eventBus') return 'events:PutEvents'
+  }
+
+  if (typeof destinationProperty === 'string') {
+    if (
+      !destinationProperty.startsWith('arn:') ||
+      destinationProperty.includes(':function:')
+    ) {
+      return 'lambda:InvokeFunction'
+    }
+    if (destinationProperty.includes(':sqs:')) return 'sqs:SendMessage'
+    if (destinationProperty.includes(':sns:')) return 'sns:Publish'
+    if (destinationProperty.includes(':event-bus/')) return 'events:PutEvents'
+  }
+
+  return null
+}
+
+function getDestinationArn(destinationProperty, serverless) {
+  if (typeof destinationProperty === 'object') {
+    return destinationProperty.arn
+  }
+
+  if (
+    typeof destinationProperty === 'string' &&
+    destinationProperty.startsWith('arn:')
+  ) {
+    return destinationProperty
+  }
+
+  // It's a function name reference - build an ARN using Fn::Sub
+  // We can't use Fn::GetAtt because it would create a circular dependency
+  // if the target function also uses per-function roles
+  const functionData = serverless.service.getFunction(destinationProperty)
+  if (functionData) {
+    return {
+      'Fn::Sub': `arn:\${AWS::Partition}:lambda:\${AWS::Region}:\${AWS::AccountId}:function:${functionData.name}`,
+    }
+  }
+
+  return destinationProperty
+}
+
+function applyDestinationPermissions({
+  functionObject,
+  policyStatements,
+  serverless,
+}) {
+  const { destinations } = functionObject
+  if (!destinations) return
+
+  const processDestination = (destinationProperty) => {
+    const action = getDestinationAction(destinationProperty)
+    if (!action) return
+
+    const resourceArn = getDestinationArn(destinationProperty, serverless)
+
+    policyStatements.push({
+      Effect: 'Allow',
+      Action: action,
+      Resource: resourceArn,
+    })
+  }
+
+  if (destinations.onSuccess) {
+    processDestination(destinations.onSuccess)
+  }
+
+  if (destinations.onFailure) {
+    processDestination(destinations.onFailure)
+  }
+}
+
 export default function applyPerFunctionPermissions({
   functionName,
   functionObject,
@@ -514,4 +592,5 @@ export default function applyPerFunctionPermissions({
     serverless,
   })
   applyEfsPermissions({ functionObject, policyStatements })
+  applyDestinationPermissions({ functionObject, policyStatements, serverless })
 }

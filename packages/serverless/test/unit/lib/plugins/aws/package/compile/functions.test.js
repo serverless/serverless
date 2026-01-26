@@ -634,6 +634,49 @@ describe('AwsCompileFunctions', () => {
       )
       expect(permission).toBeUndefined()
     })
+
+    it('should NOT access IamRoleLambdaExecution when per-function IAM mode is enabled', async () => {
+      // Remove IamRoleLambdaExecution to simulate per-function IAM mode
+      // where the shared role does not exist
+      delete awsCompileFunctions.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution
+
+      // Set per-function IAM mode
+      awsCompileFunctions.serverless.service.provider.iam = {
+        role: { mode: 'perFunction' },
+      }
+
+      awsCompileFunctions.serverless.service.functions = {
+        trigger: {
+          handler: 'handler',
+          name: 'trigger',
+          destinations: {
+            onSuccess: { type: 'sqs', arn: 'arn:aws:sqs:us-east-1:123:queue' },
+            onFailure: 'target',
+          },
+        },
+        target: { handler: 'handler', name: 'target' },
+      }
+
+      // This should NOT throw "Cannot read properties of undefined (reading 'Properties')"
+      await expect(
+        awsCompileFunctions.compileFunctions(),
+      ).resolves.not.toThrow()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      // EventInvokeConfig should still be created
+      expect(resources.TriggerLambdaEventInvokeConfig).toBeDefined()
+      expect(
+        resources.TriggerLambdaEventInvokeConfig.Properties.DestinationConfig
+          .OnSuccess.Destination,
+      ).toBe('arn:aws:sqs:us-east-1:123:queue')
+      expect(
+        resources.TriggerLambdaEventInvokeConfig.Properties.DestinationConfig
+          .OnFailure.Destination,
+      ).toBe('arn:aws:lambda:us-east-1:123456789012:function:target')
+    })
   })
 
   describe('Function URL', () => {

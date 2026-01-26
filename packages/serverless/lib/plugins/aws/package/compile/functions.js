@@ -1166,7 +1166,13 @@ class AwsCompileFunctions {
 
     if (destinations) {
       const executionRole = this.provider.getCustomExecutionRole(functionObject)
-      const hasAccessPoliciesHandledExternally = Boolean(executionRole)
+      // Check if per-function IAM roles are enabled - in that case, permissions
+      // are handled by roles-per-function-permissions.js, not by the shared role
+      const iamRole = _.get(this.serverless.service, 'provider.iam.role', {})
+      const perFunctionIamRoleEnabled =
+        _.isObject(iamRole) && iamRole.mode === 'perFunction'
+      const hasAccessPoliciesHandledExternally =
+        Boolean(executionRole) || perFunctionIamRoleEnabled
 
       if (destinations.onSuccess) {
         destinationConfig.OnSuccess = {
