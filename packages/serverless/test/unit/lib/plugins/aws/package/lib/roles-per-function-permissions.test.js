@@ -372,4 +372,32 @@ describe('applyPerFunctionPermissions - Destination Permissions', () => {
     )
     expect(destinationPermissions.length).toBe(0)
   })
+
+  it('should call throwError for unsupported destination type', () => {
+    const functionObject = {
+      name: 'test-function',
+      destinations: {
+        onSuccess: {
+          type: 'unsupported',
+          arn: 'arn:aws:unsupported:us-east-1:123456789012:resource',
+        },
+      },
+    }
+
+    const throwError = jest.fn()
+    applyPerFunctionPermissions({
+      functionName: 'myFunc',
+      functionObject,
+      functionIamRole,
+      policyStatements,
+      serverless,
+      provider,
+      throwError,
+    })
+
+    expect(throwError).toHaveBeenCalledWith(
+      expect.stringContaining('Unsupported destination target'),
+      functionObject,
+    )
+  })
 })

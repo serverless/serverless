@@ -517,13 +517,20 @@ function applyDestinationPermissions({
   functionObject,
   policyStatements,
   serverless,
+  throwError,
 }) {
   const { destinations } = functionObject
   if (!destinations) return
 
   const processDestination = (destinationProperty) => {
     const action = getDestinationAction(destinationProperty)
-    if (!action) return
+    if (!action) {
+      throwError(
+        `Unsupported destination target ${JSON.stringify(destinationProperty)} for function: `,
+        functionObject,
+      )
+      return
+    }
 
     const resourceArn = getDestinationArn(destinationProperty, serverless)
 
@@ -592,5 +599,10 @@ export default function applyPerFunctionPermissions({
     serverless,
   })
   applyEfsPermissions({ functionObject, policyStatements })
-  applyDestinationPermissions({ functionObject, policyStatements, serverless })
+  applyDestinationPermissions({
+    functionObject,
+    policyStatements,
+    serverless,
+    throwError,
+  })
 }
