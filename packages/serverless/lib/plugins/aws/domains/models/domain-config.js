@@ -148,11 +148,20 @@ class DomainConfig {
 
   static _getSecurityPolicy(securityPolicy) {
     const securityPolicyDefault = securityPolicy || Globals.tlsVersions.tls_1_2
+
+    // Enhanced security policies (e.g., SecurityPolicy_TLS13_2025_EDGE) are passed through directly
+    // See: https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-security-policies.html
+    if (securityPolicyDefault.startsWith('SecurityPolicy_')) {
+      return securityPolicyDefault
+    }
+
+    // Legacy shorthand support (tls_1_0, tls_1_2)
     const tlsVersionToUse =
       Globals.tlsVersions[securityPolicyDefault.toLowerCase()]
     if (!tlsVersionToUse) {
       throw new ServerlessError(
-        `${securityPolicyDefault} is not a supported securityPolicy, use tls_1_0 or tls_1_2.`,
+        `${securityPolicyDefault} is not a supported securityPolicy. ` +
+          'Use tls_1_0, tls_1_2, or an enhanced policy (e.g., SecurityPolicy_TLS13_2025_EDGE).',
         ServerlessErrorCodes.domains.DOMAIN_CONFIG_INVALID_SECURITY_POLICY,
       )
     }
