@@ -110,27 +110,10 @@ class ServerlessCustomDomain {
   getDefaultApiType() {
     const detectedApiTypes = this.detectApiTypesFromTemplate()
 
-    if (detectedApiTypes.length === 0) {
-      // Fallback to HTTP if no API resources found
-      return Globals.apiTypes.http
-    }
-
-    if (detectedApiTypes.length === 1) {
-      return detectedApiTypes[0]
-    }
-
-    // Multiple API types found - throw error
-    throw new ServerlessError(
-      `Multiple API types detected in CloudFormation template: ${detectedApiTypes.join(', ')}.\n` +
-        'Please explicitly specify the apiType for each domain configuration.\n' +
-        'Example:\n' +
-        'domains:\n' +
-        '  - domainName: api.example.com\n' +
-        '    apiType: rest\n' +
-        '  - domainName: ws.example.com\n' +
-        '    apiType: websocket',
-      ServerlessErrorCodes.domains.DOMAIN_CONFIG_MULTIPLE_API_TYPES_DETECTED,
-    )
+    // Fallback to HTTP if no API resources found
+    return detectedApiTypes.length >= 1
+      ? detectedApiTypes[0]
+      : Globals.apiTypes.http
   }
 
   /**
@@ -146,8 +129,8 @@ class ServerlessCustomDomain {
       .concat(domainsConfig)
       .map((item) => (typeof item === 'string' ? { name: item } : item))
 
-    // Get the default API type from CloudFormation template
-    const defaultApiType = this.getDefaultApiType()
+    // Lazy evaluation: only compute default API type when actually needed
+    let defaultApiType = null
 
     // Loop over the domain configurations and populate the domains array with DomainConfigs
     this.domains = []
@@ -166,6 +149,10 @@ class ServerlessCustomDomain {
       if (!isTypeConfigFound) {
         // Use detected API type if no explicit apiType is provided
         if (!domain.apiType) {
+          // Only compute default when a domain actually needs it
+          if (defaultApiType === null) {
+            defaultApiType = this.getDefaultApiType()
+          }
           domain.apiType = defaultApiType
         }
         this.domains.push(new DomainConfig(domain))
