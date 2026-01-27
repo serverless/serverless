@@ -35,15 +35,18 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 <br/>
 
-**December 2025** – V.4 continues to feature significant updates. Review them all below. In December 2025 we released support for numerous new features announced at AWS re:invent, like new runtimes, new regions, HTTP response streaming with API Gateway, Lambda tenant isolation, and much more. As always, we are more excited about the serverless future than ever.
+**January 2026** – V.4 continues to feature significant updates. Review them all below. In January 2026 we released support for numerous new features like Managed Instances, Durable Functions, Built-in AppSync &Prune plugins, and built-in AWS Login & SSO support. As always, we are more excited about the serverless future than ever.
 
 ## New Features In V.4
 
 Here's a list of everything that's new in V.4, so far:
 
+- **Managed instances** – Native support for EC2-backed Lambda execution to enable higher throughput, predictable capacity, and long-running workloads.
+- **Durable functions** – Built-in support for durable, stateful workflows and long-running orchestrations.
 - **Lambda tenant isolation mode:** Use tenant isolation mode to create distinct Lambda compute environments per tenant to help reduce noisy neighbor effects and isolate high traffic customers more cleanly.
 - **HTTP response streaming:** Stream logs, long-running reports, partial respones, or AI LLM responses from Lambda with API Gateway HTTP APIs.
 - **Per-function IAM roles:** Add per-function IAM policies or switch the entire service to use per-function policies.
+- **Built-in plugins**: Popular community plugins are now first-class, built-in features of the framework, including Python requirements, ApSync, Prune, API Gateway Service Proxy, and more.
 - **Improved Custom Domain Support:** You no longer need an external plugin to automatically configure custom domains and SSL certificates for your APIs and more. It's now built into the [Serverless Framework CLI](https://www.serverless.com/framework/docs/providers/aws/guide/domains).
 - **Integration with Doppler:** You can now easily fetch Secrets from Doppler via [Serverless Framework Variables](https://www.serverless.com/framework/docs/guides/variables/doppler).
 - **Introducing [Serverless MCP](https://www.serverless.com/framework/docs/guides/mcp):** Built for Cursor, Windsurf, and other AI-powered IDEs, it auto-detects cloud resources from your code, fetching logs, state, and config from AWS, enabling you to debug serverless apps directly in your IDE — no AWS console visit needed! Supports Serverless Framework, Cloudformation, and more.
