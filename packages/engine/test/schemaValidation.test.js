@@ -14,6 +14,7 @@ import {
   ConfigEssential,
   ConfigDeploymentAwsApi,
 } from '../src/types.js'
+import { ConfigContainerSchema as ConfigContainerSchemaAws } from '../src/types/aws.js'
 
 describe('Scaling Schema: Custom Error Messages', () => {
   describe('ConfigContainerAwsFargateEcsScaleSchema - min/max error messages', () => {
@@ -270,5 +271,86 @@ describe('ZodError Structure: Issue Format', () => {
     expect(issue).toBeDefined()
     expect(Array.isArray(issue.keys)).toBe(true)
     expect(issue.keys).toContain('notAllowed')
+  })
+})
+
+describe('ConfigContainerSchema (aws.js): Environment Variables', () => {
+  test('should accept container config with environment variables', () => {
+    const containerConfig = {
+      src: './',
+      environment: {
+        NODE_ENV: 'production',
+        API_KEY: 'secret123',
+        PORT: 3000,
+        DEBUG: true,
+      },
+      compute: {
+        type: 'awsFargateEcs',
+        awsFargateEcs: {
+          memory: 8192,
+          cpu: 1024,
+          scale: [{ type: 'desired', desired: 2 }],
+        },
+      },
+      routing: {
+        pathPattern: '/*',
+        pathHealthCheck: '/_health',
+      },
+    }
+
+    const result = ConfigContainerSchemaAws.safeParse(containerConfig)
+    expect(result.success).toBe(true)
+  })
+
+  test('should accept deeply nested environment values', () => {
+    const containerConfig = {
+      src: './',
+      environment: {
+        SIMPLE: 'value',
+        NESTED: {
+          key1: 'value1',
+          key2: {
+            deep: 'nested',
+            array: [1, 2, 3],
+          },
+        },
+      },
+      compute: {
+        type: 'awsFargateEcs',
+        awsFargateEcs: {
+          memory: 512,
+          cpu: 256,
+          scale: [{ type: 'desired', desired: 1 }],
+        },
+      },
+      routing: {
+        pathPattern: '/*',
+        pathHealthCheck: '/_health',
+      },
+    }
+
+    const result = ConfigContainerSchemaAws.safeParse(containerConfig)
+    expect(result.success).toBe(true)
+  })
+
+  test('should accept container config without environment variables', () => {
+    const containerConfig = {
+      src: './',
+      compute: {
+        type: 'awsFargateEcs',
+        awsFargateEcs: {
+          memory: 512,
+          cpu: 256,
+          scale: [{ type: 'desired', desired: 1 }],
+        },
+      },
+      routing: {
+        pathPattern: '/*',
+        pathHealthCheck: '/_health',
+      },
+    }
+
+    const result = ConfigContainerSchemaAws.safeParse(containerConfig)
+    expect(result.success).toBe(true)
   })
 })
