@@ -48,10 +48,11 @@ export default class Globals {
   }
 
   /* eslint camelcase: ["error", {allow: ["^tls_"]}] */
+  // Valid legacy values per AWS API docs: TLS_1_0, TLS_1_2
+  // TLS 1.3 is only available through enhanced SecurityPolicy_* values
   static tlsVersions = {
     tls_1_0: 'TLS_1_0',
     tls_1_2: 'TLS_1_2',
-    tls_1_3: 'TLS_1_3',
   }
 
   static routingPolicies = {

@@ -27,7 +27,7 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
-    "@aws-sdk/client-cloudwatch-logs": "3.966.0",
+    "@aws-sdk/client-cloudwatch-logs": "3.968.0",
     "jest": "^30.2.0"
   }
 }

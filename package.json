@@ -18,7 +18,6 @@
     "release-scripts"
   ],
   "author": "Serverless Inc.",
-  "license": "",
   "devDependencies": {
     "eslint": "^9.39.2",
     "husky": "^9.1.7",
