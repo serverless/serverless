@@ -1,113 +1,34 @@
-# Contributing Guidelines
+# Contributing to serverless
 
-Welcome, and thanks in advance for your help!
-
-## Prerequisites
-
-- **Node.js 24 or greater** is required for development
-- npm (comes with Node.js)
+Thank you for your interest in contributing! Here's how you can help.
 
 ## Getting Started
 
-1. Fork the repository on GitHub, then clone your fork:
+1. Fork the repository
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/serverless.git`
+3. Create a branch: `git checkout -b feature/your-feature`
+4. Make your changes
+5. Commit with a descriptive message
+6. Push to your fork and submit a pull request
 
-   ```bash
-   git clone https://github.com/<your-username>/serverless.git
-   cd serverless
-   npm install
-   ```
+## Reporting Issues
 
-2. Run the framework locally on a test project:
-   ```bash
-   cd /path/to/your/test-project
-   node /path/to/serverless/packages/sf-core/bin/sf-core.js deploy
-   ```
-
-A good first step is to search for open [issues](https://github.com/serverless/serverless/issues). Look for issues labeled [good first issue](https://github.com/serverless/serverless/labels/good%20first%20issue) or [help wanted](https://github.com/serverless/serverless/labels/help%20wanted).
-
-## When You Propose a New Feature or Bug Fix
-
-Please make sure there is an open issue discussing your contribution before jumping into a Pull Request. It's fine to submit a PR without an issue for:
-
-- Documentation updates
-- Obvious bug fixes
-- Maintenance improvements
-
-In non-trivial cases, please propose and let us review an implementation spec (in the corresponding issue) before jumping into implementation.
-
-## When You Want to Work on an Existing Issue
-
-Please write a quick comment in the corresponding issue and ask if the feature is still relevant and that you want to work on it.
-
-We will do our best to respond/review/merge your PR according to priority. Please note that PRs will be closed if there hasn't been activity for ~30 days.
-
-## Reviewing Pull Requests
-
-Another useful way to contribute is to review other people's Pull Requests. Having feedback from multiple people is helpful and reduces the overall time to make a final decision.
-
-## Writing / Improving Documentation
-
-Our documentation lives in the [docs](docs) directory. See a typo or improvement? Feel free to submit a Pull Request!
-
-## Providing Support
-
-Help the community by:
-
-- Replying to [issues on GitHub](https://github.com/serverless/serverless/issues)
-- Chatting in [our Community Slack](https://www.serverless.com/slack)
-- Answering questions in [GitHub Discussions](https://github.com/serverless/serverless/discussions)
-
----
+- Use the GitHub issue tracker
+- Include steps to reproduce the problem
+- Include your environment details (OS, language version, etc.)
 
 ## Code Style
 
-We use [Prettier](https://prettier.io/) for formatting and [ESLint](https://eslint.org/) for static analysis.
+- Follow the existing code style in the project
+- Add tests for new functionality
+- Update documentation as needed
 
-```bash
-# Check formatting
-npm run prettier
+## Pull Requests
 
-# Fix formatting
-npm run prettier:fix
+- Keep PRs focused on a single change
+- Write a clear description of what and why
+- Reference any related issues
 
-# Run linting
-npm run lint
+## License
 
-# Fix lint issues
-npm run lint:fix
-```
-
-### Other Guidelines
-
-- Minimize [lodash](https://lodash.com/) usage - prefer native JavaScript constructs
-- Use async/await and native Promise API for asynchronous code
-
----
-
-## Testing
-
-### Unit Tests
-
-Unit tests run locally without external dependencies:
-
-```bash
-npm run test:unit -w @serverlessinc/sf-core
-npm run test:unit -w serverless
-```
-
-### Integration Tests
-
-Integration tests require AWS credentials and Dashboard access. They run automatically as part of the CI pipeline when you submit a pull request.
-
-For more details, see [TESTING.md](TESTING.md).
-
----
-
-## Code of Conduct
-
-Please read our [code of conduct](CODE_OF_CONDUCT.md). It outlines our core values and will make working together a happier experience.
-
-Thanks for being a contributor to the Serverless Community! :tada:
-
-Cheers,
-The :zap: [Serverless](http://www.serverless.com) Team
+By contributing, you agree that your contributions will be licensed under the same license as the project.
