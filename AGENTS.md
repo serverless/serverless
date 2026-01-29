@@ -31,8 +31,8 @@ This is the **Serverless Framework** monorepo - a command-line tool for deployin
 
 ### Key Packages
 
-- **`packages/sf-core`**: The core Serverless Framework CLI. Most development happens here.
-- **`packages/serverless`**: Serverless Framework package that wraps sf-core.
+- **`packages/sf-core`**: The Serverless Framework CLI that wraps the serverless package. Most development happens here.
+- **`packages/serverless`**: Core Serverless Framework functionality and AWS provider implementation.
 - **`packages/engine`**: Serverless Container Framework for deploying containers to AWS Lambda/ECS.
 - **`packages/mcp`**: Model Context Protocol server for AI-powered IDEs (Cursor, Windsurf).
 
@@ -173,17 +173,6 @@ make build
 - Don't add lodash dependencies - prefer native JS
 - Don't skip the lint/format step
 - Don't modify integration tests without understanding the AWS setup they require
-
-## Environment Variables for Testing
-
-For running integration tests locally (if you have AWS access):
-
-```bash
-export SERVERLESS_LICENSE_KEY_DEV="your-license-key"
-export SERVERLESS_ACCESS_KEY_DEV="your-access-key"
-```
-
-See `TESTING.md` for full AWS prerequisites.
 
 ## Getting Help
 
