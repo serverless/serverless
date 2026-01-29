@@ -92,7 +92,12 @@ export default {
       Object.assign(stageResource.Properties, logProperties)
 
       Object.assign(cfTemplate.Resources, {
-        [logGroupLogicalId]: getLogGroupResource(service, stage, this.provider),
+        [logGroupLogicalId]: getLogGroupResource(
+          service,
+          stage,
+          this.provider,
+          logs,
+        ),
       })
 
       return ensureApiGatewayCloudWatchRole(this.provider)
@@ -100,11 +105,13 @@ export default {
   },
 }
 
-function getLogGroupResource(service, stage, provider) {
+function getLogGroupResource(service, stage, provider, logs) {
+  const logGroupName = logs.logGroup || `/aws/websocket/${service}-${stage}`
+
   const resource = {
     Type: 'AWS::Logs::LogGroup',
     Properties: {
-      LogGroupName: `/aws/websocket/${service}-${stage}`,
+      LogGroupName: logGroupName,
     },
   }
   const logRetentionInDays = provider.getLogRetentionInDays()

@@ -303,6 +303,15 @@ provider:
       format: '{ "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime" }'
 ```
 
+By default, the log group name follows the naming schema `/aws/http-api/{stack-name}`. You can customize it by specifying the `logGroup` property:
+
+```yaml
+provider:
+  logs:
+    httpApi:
+      logGroup: /my-custom-log-group/http-api
+```
+
 See [AWS HTTP API Logging](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-logging-variables.html) documentation for more info on variables that can be used
 
 ### Reusing HTTP API in different services

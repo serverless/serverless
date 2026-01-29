@@ -1808,6 +1808,17 @@ provider:
 
 The log streams will be generated in a dedicated log group which follows the naming schema `/aws/api-gateway/{service}-{stage}`.
 
+You can customize the log group name by specifying the `logGroup` property:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    restApi:
+      logGroup: /my-custom-log-group/rest-api
+```
+
 **Note:** If external API Gateway resource is used and imported via `provider.apiGateway.restApiId` setting, `provider.logs.restApi` setting will be ignored.
 
 To be able to write logs, API Gateway [needs a CloudWatch role configured](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-logging.html). This setting is per region, shared by all the APIs. There are three approaches for handling it:
