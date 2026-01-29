@@ -2,6 +2,11 @@
 
 import { jest } from '@jest/globals'
 import * as given from '../given.js'
+import {
+  collectAllTools,
+  collectGateways,
+  normalizeAuthorizer,
+} from '../../../../../../../lib/plugins/aws/bedrock-agentcore/compilation/orchestrator.js'
 
 describe('ServerlessBedrockAgentCore', () => {
   let mockServerless
@@ -840,13 +845,11 @@ describe('ServerlessBedrockAgentCore', () => {
   describe('tools functionality', () => {
     describe('collectAllTools', () => {
       test('returns hasTools false when no tools defined', () => {
-        mockServerless.service.agents = {
+        const agents = {
           myRuntime: { artifact: { image: 'test' } },
         }
 
-        const result = pluginInstance.collectAllTools(
-          mockServerless.service.agents,
-        )
+        const result = collectAllTools(agents)
 
         expect(result.hasTools).toBe(false)
         expect(result.hasGateways).toBe(false)
@@ -854,14 +857,12 @@ describe('ServerlessBedrockAgentCore', () => {
       })
 
       test('returns hasTools true when shared tools defined', () => {
-        mockServerless.service.agents = {
+        const agents = {
           tools: { myTool: { mcp: 'https://example.com/mcp' } },
           myRuntime: { artifact: { image: 'test' } },
         }
 
-        const result = pluginInstance.collectAllTools(
-          mockServerless.service.agents,
-        )
+        const result = collectAllTools(agents)
 
         expect(result.hasTools).toBe(true)
         expect(result.hasGateways).toBe(false)
@@ -871,7 +872,7 @@ describe('ServerlessBedrockAgentCore', () => {
       })
 
       test('returns hasGateways true when gateways defined', () => {
-        mockServerless.service.agents = {
+        const agents = {
           tools: { myTool: { mcp: 'https://example.com/mcp' } },
           gateways: {
             myGateway: { authorizer: 'AWS_IAM', tools: ['myTool'] },
@@ -879,9 +880,7 @@ describe('ServerlessBedrockAgentCore', () => {
           myRuntime: { artifact: { image: 'test' } },
         }
 
-        const result = pluginInstance.collectAllTools(
-          mockServerless.service.agents,
-        )
+        const result = collectAllTools(agents)
 
         expect(result.hasTools).toBe(true)
         expect(result.hasGateways).toBe(true)
@@ -1062,45 +1061,7 @@ describe('ServerlessBedrockAgentCore', () => {
     })
   })
 
-  describe('parseTimeAgo', () => {
-    beforeEach(() => {
-      jest.spyOn(Date, 'now').mockReturnValue(1700000000000)
-    })
-
-    afterEach(() => {
-      jest.restoreAllMocks()
-    })
-
-    test('returns default 1 hour for null', () => {
-      const result = pluginInstance.parseTimeAgo(null)
-      expect(result).toBe(1700000000000 - 60 * 60 * 1000)
-    })
-
-    test('parses minutes', () => {
-      const result = pluginInstance.parseTimeAgo('30m')
-      expect(result).toBe(1700000000000 - 30 * 60 * 1000)
-    })
-
-    test('parses hours', () => {
-      const result = pluginInstance.parseTimeAgo('2h')
-      expect(result).toBe(1700000000000 - 2 * 60 * 60 * 1000)
-    })
-
-    test('parses days', () => {
-      const result = pluginInstance.parseTimeAgo('1d')
-      expect(result).toBe(1700000000000 - 24 * 60 * 60 * 1000)
-    })
-
-    test('parses date string', () => {
-      const result = pluginInstance.parseTimeAgo('2024-01-01')
-      expect(result).toBe(new Date('2024-01-01').getTime())
-    })
-
-    test('returns default for invalid string', () => {
-      const result = pluginInstance.parseTimeAgo('invalid')
-      expect(result).toBe(1700000000000 - 60 * 60 * 1000)
-    })
-  })
+  // parseTimeAgo tests moved to commands/logs.test.js
 
   describe('fetchLogs', () => {
     test('throws error when no runtime agents found', async () => {
@@ -1112,32 +1073,32 @@ describe('ServerlessBedrockAgentCore', () => {
 
   describe('normalizeAuthorizer', () => {
     test('returns default AWS_IAM for null', () => {
-      const result = pluginInstance.normalizeAuthorizer(null)
+      const result = normalizeAuthorizer(null)
       expect(result).toEqual({ type: 'AWS_IAM' })
     })
 
     test('returns default AWS_IAM for undefined', () => {
-      const result = pluginInstance.normalizeAuthorizer(undefined)
+      const result = normalizeAuthorizer(undefined)
       expect(result).toEqual({ type: 'AWS_IAM' })
     })
 
     test('converts string shorthand to object', () => {
-      const result = pluginInstance.normalizeAuthorizer('NONE')
+      const result = normalizeAuthorizer('NONE')
       expect(result).toEqual({ type: 'NONE' })
     })
 
     test('converts AWS_IAM string to object', () => {
-      const result = pluginInstance.normalizeAuthorizer('AWS_IAM')
+      const result = normalizeAuthorizer('AWS_IAM')
       expect(result).toEqual({ type: 'AWS_IAM' })
     })
 
     test('converts CUSTOM_JWT string to object', () => {
-      const result = pluginInstance.normalizeAuthorizer('CUSTOM_JWT')
+      const result = normalizeAuthorizer('CUSTOM_JWT')
       expect(result).toEqual({ type: 'CUSTOM_JWT' })
     })
 
     test('converts lowercase string to uppercase', () => {
-      const result = pluginInstance.normalizeAuthorizer('none')
+      const result = normalizeAuthorizer('none')
       expect(result).toEqual({ type: 'NONE' })
     })
 
@@ -1149,7 +1110,7 @@ describe('ServerlessBedrockAgentCore', () => {
             'https://auth.example.com/.well-known/openid-configuration',
         },
       }
-      const result = pluginInstance.normalizeAuthorizer(input)
+      const result = normalizeAuthorizer(input)
       expect(result.type).toBe('CUSTOM_JWT')
       expect(result.jwt).toEqual(input.jwt)
     })
@@ -1157,17 +1118,16 @@ describe('ServerlessBedrockAgentCore', () => {
 
   describe('collectGateways', () => {
     test('returns empty object when no gateways defined', () => {
-      mockServerless.service.agents = {
+      const agents = {
         tools: { 'my-tool': { function: 'myFunc' } },
       }
-      const agents = pluginInstance.getAgentsConfig()
-      const result = pluginInstance.collectGateways(agents)
+      const result = collectGateways(agents)
 
       expect(result).toEqual({})
     })
 
     test('collects gateways with normalized authorizers', () => {
-      mockServerless.service.agents = {
+      const agents = {
         gateways: {
           publicGateway: {
             authorizer: 'NONE',
@@ -1179,8 +1139,7 @@ describe('ServerlessBedrockAgentCore', () => {
           },
         },
       }
-      const agents = pluginInstance.getAgentsConfig()
-      const result = pluginInstance.collectGateways(agents)
+      const result = collectGateways(agents)
 
       expect(result.publicGateway.authorizer).toEqual({ type: 'NONE' })
       expect(result.publicGateway.tools).toEqual(['tool1'])
@@ -1191,25 +1150,23 @@ describe('ServerlessBedrockAgentCore', () => {
 
   describe('collectAllTools with gateways', () => {
     test('returns hasGateways false when no gateways', () => {
-      mockServerless.service.agents = {
+      const agents = {
         tools: { 'my-tool': { function: 'myFunc' } },
       }
-      const agents = pluginInstance.getAgentsConfig()
-      const result = pluginInstance.collectAllTools(agents)
+      const result = collectAllTools(agents)
 
       expect(result.hasGateways).toBe(false)
       expect(result.hasTools).toBe(true)
     })
 
     test('returns hasGateways true when gateways defined', () => {
-      mockServerless.service.agents = {
+      const agents = {
         tools: { 'my-tool': { function: 'myFunc' } },
         gateways: {
           myGateway: { authorizer: 'AWS_IAM', tools: ['my-tool'] },
         },
       }
-      const agents = pluginInstance.getAgentsConfig()
-      const result = pluginInstance.collectAllTools(agents)
+      const result = collectAllTools(agents)
 
       expect(result.hasGateways).toBe(true)
       expect(result.hasTools).toBe(true)

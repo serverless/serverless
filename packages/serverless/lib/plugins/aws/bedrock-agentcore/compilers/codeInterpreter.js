@@ -24,42 +24,7 @@
  */
 
 import { getResourceName, getLogicalId } from '../utils/naming.js'
-
-/**
- * Resolve role configuration to CloudFormation value
- * Supports:
- *   - ARN string: used directly
- *   - Logical name string: converted to Fn::GetAtt
- *   - Object (CF intrinsic like Fn::GetAtt, Fn::ImportValue): used directly
- *   - Undefined: falls back to generated role
- */
-function resolveRole(role, generatedRoleLogicalId) {
-  if (!role) {
-    return { 'Fn::GetAtt': [generatedRoleLogicalId, 'Arn'] }
-  }
-  if (typeof role === 'string') {
-    // String can be ARN or logical ID
-    if (role.startsWith('arn:')) {
-      return role
-    }
-    return { 'Fn::GetAtt': [role, 'Arn'] }
-  }
-  if (typeof role === 'object') {
-    // Check if it's a CloudFormation intrinsic function
-    if (
-      role.Ref ||
-      role['Fn::GetAtt'] ||
-      role['Fn::ImportValue'] ||
-      role['Fn::Sub'] ||
-      role['Fn::Join']
-    ) {
-      return role
-    }
-    // Otherwise it's a customization object - use generated role
-    return { 'Fn::GetAtt': [generatedRoleLogicalId, 'Arn'] }
-  }
-  return { 'Fn::GetAtt': [generatedRoleLogicalId, 'Arn'] }
-}
+import { resolveRole } from '../utils/role.js'
 
 /**
  * Build network configuration for CodeInterpreterCustom

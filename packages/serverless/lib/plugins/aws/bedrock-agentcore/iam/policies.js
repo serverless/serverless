@@ -3,6 +3,45 @@
 import { getResourceName } from '../utils/naming.js'
 
 /**
+ * Determine if an IAM role should be generated for a resource
+ * Returns false if role is explicitly provided (ARN or CloudFormation reference)
+ * Returns true if no role specified or role is a customization object
+ *
+ * @param {object} config - Resource configuration
+ * @returns {boolean} True if role should be generated
+ */
+export function shouldGenerateRole(config) {
+  // No role specified - generate with defaults
+  if (!config.role) {
+    return true
+  }
+
+  // Role is a string ARN - don't generate
+  if (typeof config.role === 'string') {
+    return false
+  }
+
+  // Role is an object - check if it's a CF intrinsic or customization
+  if (typeof config.role === 'object') {
+    // CloudFormation intrinsic functions - don't generate
+    if (
+      config.role.Ref ||
+      config.role['Fn::GetAtt'] ||
+      config.role['Fn::ImportValue'] ||
+      config.role['Fn::Sub'] ||
+      config.role['Fn::Join']
+    ) {
+      return false
+    }
+    // Customization object (has statements, managedPolicies, etc.) - generate with customizations
+    return true
+  }
+
+  // Default: generate
+  return true
+}
+
+/**
  * Extract role customizations from config
  * Returns customizations if role is an object, otherwise returns empty defaults
  *

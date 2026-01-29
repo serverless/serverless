@@ -20,6 +20,18 @@ import {
 import { DockerBuilder } from '../docker/builder.js'
 import { AgentCoreCodeMode } from './code-mode.js'
 import fileExists from '../../../../utils/fs/file-exists.js'
+import {
+  LOCAL_DEV_POLICY_SID,
+  getRoleNameFromArn,
+  areCredentialsExpiring,
+  getCredentialExpirationMinutes,
+  findDevPolicyStatementIndex,
+  createDevPolicyStatement,
+  getPolicyPrincipals,
+  isPrincipalInPolicy,
+  addPrincipalToPolicy,
+  calculateBackoffDelay,
+} from './credentials.js'
 
 const logger = log.get('agentcore:dev-mode')
 const devProgress = progress.get('main')
@@ -267,10 +279,7 @@ export class AgentCoreDevMode {
    * @private
    */
   async #ensureLocalDevTrustPolicy(localUserArn) {
-    // Extract role name from ARN
-    const roleArnParts = this.#roleArn.split('/')
-    const roleName = roleArnParts[roleArnParts.length - 1]
-
+    const roleName = getRoleNameFromArn(this.#roleArn)
     logger.debug(`Checking trust policy for role: ${roleName}`)
 
     // Get current trust policy
@@ -287,21 +296,11 @@ export class AgentCoreDevMode {
     )
 
     // Check if local dev policy statement exists
-    const devPolicySid = 'ServerlessAgentCoreLocalDevPolicy'
-    let devPolicyIndex = trustPolicy.Statement.findIndex(
-      (stmt) => stmt.Sid === devPolicySid,
-    )
+    const devPolicyIndex = findDevPolicyStatementIndex(trustPolicy)
 
     if (devPolicyIndex === -1) {
       // Add new dev policy statement
-      trustPolicy.Statement.push({
-        Sid: devPolicySid,
-        Effect: 'Allow',
-        Principal: {
-          AWS: [localUserArn],
-        },
-        Action: 'sts:AssumeRole',
-      })
+      trustPolicy.Statement.push(createDevPolicyStatement(localUserArn))
 
       await this.#iamClient.send(
         new UpdateAssumeRolePolicyCommand({
@@ -316,13 +315,10 @@ export class AgentCoreDevMode {
     } else {
       // Check if local user ARN is already in the policy
       const devPolicy = trustPolicy.Statement[devPolicyIndex]
-      const principals = Array.isArray(devPolicy.Principal?.AWS)
-        ? devPolicy.Principal.AWS
-        : [devPolicy.Principal?.AWS].filter(Boolean)
 
-      if (!principals.includes(localUserArn)) {
+      if (!isPrincipalInPolicy(devPolicy, localUserArn)) {
         // Add local user to existing policy
-        devPolicy.Principal.AWS = [...principals, localUserArn]
+        addPrincipalToPolicy(devPolicy, localUserArn)
 
         await this.#iamClient.send(
           new UpdateAssumeRolePolicyCommand({
@@ -343,10 +339,11 @@ export class AgentCoreDevMode {
    * @private
    */
   async #getTemporaryCredentials() {
+    const maxAttempts = 10
     let attemptCount = 0
     let lastError
 
-    while (attemptCount < 10) {
+    while (attemptCount < maxAttempts) {
       try {
         const response = await this.#stsClient.send(
           new AssumeRoleCommand({
@@ -354,23 +351,26 @@ export class AgentCoreDevMode {
             RoleSessionName: `agentcore-dev-mode-${Date.now()}`,
           }),
         )
+
         // Debug: log credential expiration
+        const minutesUntilExpiry = getCredentialExpirationMinutes(
+          response.Credentials,
+        )
         const expiration = new Date(response.Credentials.Expiration)
-        const now = new Date()
-        const minutesUntilExpiry = Math.round((expiration - now) / 60000)
         logger.debug(
           `Got credentials expiring at ${expiration.toISOString()} (in ${minutesUntilExpiry} minutes)`,
         )
+
         return response.Credentials
       } catch (error) {
         lastError = error
         attemptCount++
-        if (attemptCount < 10) {
-          const sleepTime = 5000 * Math.pow(2, attemptCount - 1)
+        if (attemptCount < maxAttempts) {
+          const sleepTime = calculateBackoffDelay(attemptCount)
           logger.debug(
-            `Retry ${attemptCount}/10 getting credentials in ${sleepTime}ms...`,
+            `Retry ${attemptCount}/${maxAttempts} getting credentials in ${sleepTime}ms...`,
           )
-          await asyncSetTimeout(Math.min(sleepTime, 30000))
+          await asyncSetTimeout(sleepTime)
         }
       }
     }
@@ -803,12 +803,7 @@ export class AgentCoreDevMode {
    * @private
    */
   async #refreshCredentialsIfNeeded(credentials) {
-    // Check if credentials expire in less than 10 minutes
-    const expirationTime = new Date(credentials.Expiration).getTime()
-    const now = Date.now()
-    const tenMinutes = 10 * 60 * 1000
-
-    if (expirationTime - now < tenMinutes) {
+    if (areCredentialsExpiring(credentials)) {
       logger.debug('Refreshing credentials...')
       return await this.#getTemporaryCredentials()
     }

@@ -29,6 +29,8 @@
  */
 
 import { getResourceName, getLogicalId } from '../utils/naming.js'
+import { resolveRole } from '../utils/role.js'
+import { transformCustomClaims } from '../utils/authorizer.js'
 
 /**
  * Build the artifact configuration for the runtime
@@ -123,41 +125,6 @@ function buildNetworkConfiguration(network = {}) {
   }
 
   return config
-}
-
-/**
- * Transform custom claims from camelCase to PascalCase CFN format
- */
-function transformCustomClaims(customClaims) {
-  if (!customClaims || !Array.isArray(customClaims)) {
-    return null
-  }
-
-  return customClaims.map((claim) => ({
-    InboundTokenClaimName: claim.inboundTokenClaimName,
-    InboundTokenClaimValueType: claim.inboundTokenClaimValueType,
-    ...(claim.authorizingClaimMatchValue && {
-      AuthorizingClaimMatchValue: {
-        ClaimMatchOperator: claim.authorizingClaimMatchValue.claimMatchOperator,
-        ...(claim.authorizingClaimMatchValue.claimMatchValue && {
-          ClaimMatchValue: {
-            ...(claim.authorizingClaimMatchValue.claimMatchValue
-              .matchValueString && {
-              MatchValueString:
-                claim.authorizingClaimMatchValue.claimMatchValue
-                  .matchValueString,
-            }),
-            ...(claim.authorizingClaimMatchValue.claimMatchValue
-              .matchValueStringList && {
-              MatchValueStringList:
-                claim.authorizingClaimMatchValue.claimMatchValue
-                  .matchValueStringList,
-            }),
-          },
-        }),
-      },
-    }),
-  }))
 }
 
 /**
@@ -268,45 +235,6 @@ function buildRequestHeaderConfiguration(requestHeaders) {
 }
 
 /**
- * Resolve role configuration to CloudFormation value
- * Supports:
- *   - ARN string: used directly
- *   - Logical name string: converted to Fn::GetAtt
- *   - Object (CF intrinsic like Fn::GetAtt, Fn::ImportValue): used directly
- *   - Undefined: falls back to generated role
- */
-function resolveRole(role, generatedRoleLogicalId) {
-  if (!role) {
-    // Fall back to generated role
-    return { 'Fn::GetAtt': [generatedRoleLogicalId, 'Arn'] }
-  }
-  if (typeof role === 'string') {
-    // String can be ARN or logical ID
-    if (role.startsWith('arn:')) {
-      return role
-    }
-    // Treat as logical name reference
-    return { 'Fn::GetAtt': [role, 'Arn'] }
-  }
-  if (typeof role === 'object') {
-    // Check if it's a CloudFormation intrinsic function
-    if (
-      role.Ref ||
-      role['Fn::GetAtt'] ||
-      role['Fn::ImportValue'] ||
-      role['Fn::Sub'] ||
-      role['Fn::Join']
-    ) {
-      // CloudFormation intrinsic - use as-is
-      return role
-    }
-    // Otherwise it's a customization object - use generated role
-    return { 'Fn::GetAtt': [generatedRoleLogicalId, 'Arn'] }
-  }
-  return { 'Fn::GetAtt': [generatedRoleLogicalId, 'Arn'] }
-}
-
-/**
  * Compile a Runtime resource to CloudFormation
  *
  * @param {string} name - Agent name
@@ -381,5 +309,7 @@ export {
   buildProtocolConfiguration,
   buildEnvironmentVariables,
   buildRequestHeaderConfiguration,
-  resolveRole,
 }
+
+// Re-export resolveRole from utils for backwards compatibility
+export { resolveRole } from '../utils/role.js'
