@@ -32,7 +32,7 @@ describe('CodeInterpreter Compiler', () => {
 
     test('handles PUBLIC mode', () => {
       const network = {
-        networkMode: 'PUBLIC',
+        mode: 'PUBLIC',
       }
 
       const result = buildCodeInterpreterNetworkConfiguration(network)
@@ -42,13 +42,11 @@ describe('CodeInterpreter Compiler', () => {
       })
     })
 
-    test('handles VPC mode with VpcConfig', () => {
+    test('handles VPC mode with flat structure', () => {
       const network = {
-        networkMode: 'VPC',
-        vpcConfig: {
-          subnets: ['subnet-123', 'subnet-456'],
-          securityGroups: ['sg-789'],
-        },
+        mode: 'VPC',
+        subnets: ['subnet-123', 'subnet-456'],
+        securityGroups: ['sg-789'],
       }
 
       const result = buildCodeInterpreterNetworkConfiguration(network)
@@ -62,9 +60,19 @@ describe('CodeInterpreter Compiler', () => {
       })
     })
 
+    test('handles lowercase mode (case-insensitive)', () => {
+      const network = {
+        mode: 'sandbox',
+      }
+
+      const result = buildCodeInterpreterNetworkConfiguration(network)
+
+      expect(result.NetworkMode).toBe('SANDBOX')
+    })
+
     test('does not include VpcConfig for SANDBOX mode', () => {
       const network = {
-        networkMode: 'SANDBOX',
+        mode: 'SANDBOX',
       }
 
       const result = buildCodeInterpreterNetworkConfiguration(network)
@@ -78,9 +86,7 @@ describe('CodeInterpreter Compiler', () => {
 
   describe('compileCodeInterpreter', () => {
     test('generates valid CloudFormation with minimal config', () => {
-      const config = {
-        type: 'codeInterpreter',
-      }
+      const config = {}
 
       const result = compileCodeInterpreter(
         'myCodeInterpreter',
@@ -101,7 +107,6 @@ describe('CodeInterpreter Compiler', () => {
 
     test('includes description when provided', () => {
       const config = {
-        type: 'codeInterpreter',
         description: 'Test code interpreter description',
       }
 
@@ -117,10 +122,9 @@ describe('CodeInterpreter Compiler', () => {
       )
     })
 
-    test('uses provided roleArn when specified', () => {
+    test('uses provided role when specified as ARN', () => {
       const config = {
-        type: 'codeInterpreter',
-        roleArn: 'arn:aws:iam::123456789012:role/MyCustomRole',
+        role: 'arn:aws:iam::123456789012:role/MyCustomRole',
       }
 
       const result = compileCodeInterpreter(
@@ -135,15 +139,29 @@ describe('CodeInterpreter Compiler', () => {
       )
     })
 
-    test('includes network configuration with VPC', () => {
+    test('uses provided role when specified as logical name', () => {
       const config = {
-        type: 'codeInterpreter',
+        role: 'MyCustomRoleLogicalId',
+      }
+
+      const result = compileCodeInterpreter(
+        'myCodeInterpreter',
+        config,
+        baseContext,
+        baseTags,
+      )
+
+      expect(result.Properties.ExecutionRoleArn).toEqual({
+        'Fn::GetAtt': ['MyCustomRoleLogicalId', 'Arn'],
+      })
+    })
+
+    test('includes network configuration with VPC (flat structure)', () => {
+      const config = {
         network: {
-          networkMode: 'VPC',
-          vpcConfig: {
-            subnets: ['subnet-123'],
-            securityGroups: ['sg-456'],
-          },
+          mode: 'VPC',
+          subnets: ['subnet-123'],
+          securityGroups: ['sg-456'],
         },
       }
 
@@ -164,9 +182,7 @@ describe('CodeInterpreter Compiler', () => {
     })
 
     test('includes tags when provided', () => {
-      const config = {
-        type: 'codeInterpreter',
-      }
+      const config = {}
 
       const result = compileCodeInterpreter(
         'myCodeInterpreter',

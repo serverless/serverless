@@ -32,13 +32,11 @@ describe('Browser Compiler', () => {
       })
     })
 
-    test('handles VPC mode with VpcConfig', () => {
+    test('handles VPC mode with flat structure', () => {
       const network = {
-        networkMode: 'VPC',
-        vpcConfig: {
-          subnets: ['subnet-123', 'subnet-456'],
-          securityGroups: ['sg-789'],
-        },
+        mode: 'VPC',
+        subnets: ['subnet-123', 'subnet-456'],
+        securityGroups: ['sg-789'],
       }
 
       const result = buildBrowserNetworkConfiguration(network)
@@ -52,9 +50,21 @@ describe('Browser Compiler', () => {
       })
     })
 
+    test('handles lowercase mode (case-insensitive)', () => {
+      const network = {
+        mode: 'vpc',
+        subnets: ['subnet-123'],
+        securityGroups: ['sg-789'],
+      }
+
+      const result = buildBrowserNetworkConfiguration(network)
+
+      expect(result.NetworkMode).toBe('VPC')
+    })
+
     test('does not include VpcConfig for PUBLIC mode', () => {
       const network = {
-        networkMode: 'PUBLIC',
+        mode: 'PUBLIC',
       }
 
       const result = buildBrowserNetworkConfiguration(network)
@@ -169,9 +179,7 @@ describe('Browser Compiler', () => {
 
   describe('compileBrowser', () => {
     test('generates valid CloudFormation with minimal config', () => {
-      const config = {
-        type: 'browser',
-      }
+      const config = {}
 
       const result = compileBrowser('myBrowser', config, baseContext, baseTags)
 
@@ -187,7 +195,6 @@ describe('Browser Compiler', () => {
 
     test('includes description when provided', () => {
       const config = {
-        type: 'browser',
         description: 'Test browser description',
       }
 
@@ -196,10 +203,9 @@ describe('Browser Compiler', () => {
       expect(result.Properties.Description).toBe('Test browser description')
     })
 
-    test('uses provided roleArn when specified', () => {
+    test('uses provided role when specified as ARN', () => {
       const config = {
-        type: 'browser',
-        roleArn: 'arn:aws:iam::123456789012:role/MyCustomRole',
+        role: 'arn:aws:iam::123456789012:role/MyCustomRole',
       }
 
       const result = compileBrowser('myBrowser', config, baseContext, baseTags)
@@ -209,15 +215,24 @@ describe('Browser Compiler', () => {
       )
     })
 
-    test('includes network configuration with VPC', () => {
+    test('uses provided role when specified as logical name', () => {
       const config = {
-        type: 'browser',
+        role: 'MyCustomRoleLogicalId',
+      }
+
+      const result = compileBrowser('myBrowser', config, baseContext, baseTags)
+
+      expect(result.Properties.ExecutionRoleArn).toEqual({
+        'Fn::GetAtt': ['MyCustomRoleLogicalId', 'Arn'],
+      })
+    })
+
+    test('includes network configuration with VPC (flat structure)', () => {
+      const config = {
         network: {
-          networkMode: 'VPC',
-          vpcConfig: {
-            subnets: ['subnet-123'],
-            securityGroups: ['sg-456'],
-          },
+          mode: 'VPC',
+          subnets: ['subnet-123'],
+          securityGroups: ['sg-456'],
         },
       }
 
@@ -234,7 +249,6 @@ describe('Browser Compiler', () => {
 
     test('includes recording config when provided', () => {
       const config = {
-        type: 'browser',
         recording: {
           enabled: true,
           s3Location: {
@@ -257,7 +271,6 @@ describe('Browser Compiler', () => {
 
     test('includes browser signing when provided', () => {
       const config = {
-        type: 'browser',
         signing: {
           enabled: true,
         },
@@ -271,9 +284,7 @@ describe('Browser Compiler', () => {
     })
 
     test('includes tags when provided', () => {
-      const config = {
-        type: 'browser',
-      }
+      const config = {}
 
       const result = compileBrowser('myBrowser', config, baseContext, baseTags)
 

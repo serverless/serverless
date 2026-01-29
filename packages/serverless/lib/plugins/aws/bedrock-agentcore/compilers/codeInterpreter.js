@@ -26,19 +26,58 @@
 import { getResourceName, getLogicalId } from '../utils/naming.js'
 
 /**
+ * Resolve role configuration to CloudFormation value
+ * Supports:
+ *   - ARN string: used directly
+ *   - Logical name string: converted to Fn::GetAtt
+ *   - Object (CF intrinsic like Fn::GetAtt, Fn::ImportValue): used directly
+ *   - Undefined: falls back to generated role
+ */
+function resolveRole(role, generatedRoleLogicalId) {
+  if (!role) {
+    return { 'Fn::GetAtt': [generatedRoleLogicalId, 'Arn'] }
+  }
+  if (typeof role === 'string') {
+    // String can be ARN or logical ID
+    if (role.startsWith('arn:')) {
+      return role
+    }
+    return { 'Fn::GetAtt': [role, 'Arn'] }
+  }
+  if (typeof role === 'object') {
+    // Check if it's a CloudFormation intrinsic function
+    if (
+      role.Ref ||
+      role['Fn::GetAtt'] ||
+      role['Fn::ImportValue'] ||
+      role['Fn::Sub'] ||
+      role['Fn::Join']
+    ) {
+      return role
+    }
+    // Otherwise it's a customization object - use generated role
+    return { 'Fn::GetAtt': [generatedRoleLogicalId, 'Arn'] }
+  }
+  return { 'Fn::GetAtt': [generatedRoleLogicalId, 'Arn'] }
+}
+
+/**
  * Build network configuration for CodeInterpreterCustom
+ * CodeInterpreter supports: PUBLIC, SANDBOX (default), VPC
  */
 export function buildCodeInterpreterNetworkConfiguration(network = {}) {
-  const networkMode = network.networkMode || 'SANDBOX'
+  // Normalize mode to uppercase, default to SANDBOX
+  const networkMode = (network.mode || 'SANDBOX').toUpperCase()
 
   const config = {
     NetworkMode: networkMode,
   }
 
-  if (networkMode === 'VPC' && network.vpcConfig) {
+  // VPC mode: expect subnets and securityGroups directly on network object
+  if (networkMode === 'VPC' && network.subnets) {
     config.VpcConfig = {
-      Subnets: network.vpcConfig.subnets,
-      SecurityGroups: network.vpcConfig.securityGroups,
+      Subnets: network.subnets,
+      SecurityGroups: network.securityGroups || [],
     }
   }
 
@@ -60,9 +99,7 @@ export function compileCodeInterpreter(name, config, context, tags) {
     Properties: {
       Name: resourceName,
       NetworkConfiguration: networkConfig,
-      ...(config.roleArn
-        ? { ExecutionRoleArn: config.roleArn }
-        : { ExecutionRoleArn: { 'Fn::GetAtt': [roleLogicalId, 'Arn'] } }),
+      ExecutionRoleArn: resolveRole(config.role, roleLogicalId),
       ...(config.description && { Description: config.description }),
       ...(Object.keys(tags).length > 0 && { Tags: tags }),
     },

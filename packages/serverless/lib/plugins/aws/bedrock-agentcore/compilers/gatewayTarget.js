@@ -71,26 +71,38 @@ export function readFileContents(filePath, serviceDir) {
 /**
  * Build credential provider configuration for the gateway target
  * New simplified structure:
- *   credentials: { type: OAUTH, providerArn, scopes, ... }
+ *   credentials: { type: OAUTH, provider, scopes, ... }
+ *
+ * Property mapping:
+ *   - provider -> ProviderArn (Token Vault ARN)
+ *   - location -> CredentialLocation
+ *   - parameterName -> CredentialParameterName
+ *   - prefix -> CredentialPrefix
+ *   - grantType -> GrantType
  */
 export function buildCredentialProviderConfigurations(credentials) {
   if (!credentials) {
     return [{ CredentialProviderType: 'GATEWAY_IAM_ROLE' }]
   }
 
+  // Normalize type to uppercase
+  const credentialType = (credentials.type || 'GATEWAY_IAM_ROLE').toUpperCase()
+
   const config = {
-    CredentialProviderType: credentials.type || 'GATEWAY_IAM_ROLE',
+    CredentialProviderType: credentialType,
   }
 
-  if (credentials.type === 'OAUTH') {
-    if (!credentials.providerArn || !credentials.scopes) {
-      throw new Error('OAUTH credentials require providerArn and scopes')
+  if (credentialType === 'OAUTH') {
+    if (!credentials.provider || !credentials.scopes) {
+      throw new Error('OAUTH credentials require provider and scopes')
     }
+    // Normalize grantType to uppercase
+    const grantType = credentials.grantType?.toUpperCase()
     config.CredentialProvider = {
       OauthCredentialProvider: {
-        ProviderArn: credentials.providerArn,
+        ProviderArn: credentials.provider,
         Scopes: credentials.scopes,
-        ...(credentials.grantType && { GrantType: credentials.grantType }),
+        ...(grantType && { GrantType: grantType }),
         ...(credentials.defaultReturnUrl && {
           DefaultReturnUrl: credentials.defaultReturnUrl,
         }),
@@ -101,21 +113,23 @@ export function buildCredentialProviderConfigurations(credentials) {
     }
   }
 
-  if (credentials.type === 'API_KEY') {
-    if (!credentials.providerArn) {
-      throw new Error('API_KEY credentials require providerArn')
+  if (credentialType === 'API_KEY') {
+    if (!credentials.provider) {
+      throw new Error('API_KEY credentials require provider')
     }
+    // Normalize location to uppercase
+    const location = credentials.location?.toUpperCase()
     config.CredentialProvider = {
       ApiKeyCredentialProvider: {
-        ProviderArn: credentials.providerArn,
-        ...(credentials.credentialLocation && {
-          CredentialLocation: credentials.credentialLocation,
+        ProviderArn: credentials.provider,
+        ...(location && {
+          CredentialLocation: location,
         }),
-        ...(credentials.credentialParameterName && {
-          CredentialParameterName: credentials.credentialParameterName,
+        ...(credentials.parameterName && {
+          CredentialParameterName: credentials.parameterName,
         }),
-        ...(credentials.credentialPrefix && {
-          CredentialPrefix: credentials.credentialPrefix,
+        ...(credentials.prefix && {
+          CredentialPrefix: credentials.prefix,
         }),
       },
     }

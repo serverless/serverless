@@ -1,6 +1,6 @@
-# AgentCore Dev Mode
+# Agents Dev Mode
 
-Local development mode for AWS Bedrock AgentCore runtimes with support for both Docker and code deployment methods.
+Local development mode for AI agents with support for both Docker and code deployment methods.
 
 ## Supported Modes
 
@@ -20,7 +20,7 @@ Local development mode for AWS Bedrock AgentCore runtimes with support for both 
 
 Priority order (matches packaging logic):
 1. `artifact.docker` exists → Docker mode
-2. `artifact.entryPoint` exists (no docker, containerImage, or s3.bucket) → Code mode  
+2. `artifact.entryPoint` exists (no docker, containerImage, or s3.bucket) → Code mode
 3. `Dockerfile` exists in project root → Docker mode (implicit)
 4. None found → Error
 

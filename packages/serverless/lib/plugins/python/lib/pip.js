@@ -263,8 +263,8 @@ async function installRequirements(targetFolder, pluginInstance, funcOptions) {
         log.info('Using ARM64 platform for AgentCore agent requirements')
       }
       // Get Python version from agent runtime (e.g., PYTHON_3_13 -> 3.13)
-      const agentRuntime =
-        funcOptions.config?.artifact?.runtime || 'PYTHON_3_13'
+      // Runtime is now at agent root level, not artifact.runtime
+      const agentRuntime = funcOptions.config?.runtime || 'PYTHON_3_13'
       const pythonVersion = agentRuntime
         .replace('PYTHON_', '')
         .replace('_', '.')
@@ -804,12 +804,18 @@ async function installRequirementsIfNeeded(
   // Then generate our MD5 Sum of this requirements file to determine where it should "go" to and/or pull cache from
   const reqChecksum = sha256Path(slsReqsTxt)
 
+  // For agents, use ARM64 architecture override to ensure separate cache from Lambda functions
+  const architectureOverride = funcOptions.isAgent
+    ? funcOptions.architecture
+    : undefined
+
   // Then figure out where this cache should be, if we're caching, if we're in a module, etc
   const workingReqsFolder = getRequirementsWorkingPath(
     reqChecksum,
     requirementsTxtDirectory,
     options,
     serverless,
+    architectureOverride,
   )
 
   // Check if our static cache is present and is valid

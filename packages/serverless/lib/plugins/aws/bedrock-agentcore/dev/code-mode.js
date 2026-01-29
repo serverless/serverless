@@ -42,9 +42,9 @@ export class AgentCoreCodeMode {
    * Start the Python process
    */
   async start(credentials) {
-    const entryPoint = this.#agentConfig.artifact.entryPoint[0]
-    const entryPointPath = path.resolve(this.#projectPath, entryPoint)
-    const runtime = this.#agentConfig.artifact?.runtime || 'PYTHON_3_13'
+    const handler = this.#agentConfig.handler
+    const handlerPath = path.resolve(this.#projectPath, handler)
+    const runtime = this.#agentConfig.runtime || 'PYTHON_3_13'
 
     // Get Python command
     const pythonCmd = this.#getPythonCommand(runtime)
@@ -55,7 +55,7 @@ export class AgentCoreCodeMode {
     // Setup virtual environment in PATH if available
     this.#setupVirtualEnv()
 
-    logger.debug(`Starting Python process: ${pythonCmd} ${entryPointPath}`)
+    logger.debug(`Starting Python process: ${pythonCmd} ${handlerPath}`)
 
     // Build environment for Python process
     // Match Docker mode (dev/index.js lines 454-465) with minimal environment
@@ -100,7 +100,7 @@ export class AgentCoreCodeMode {
     }
 
     // Start the Python process
-    this.#process = spawn(pythonCmd, [entryPointPath], {
+    this.#process = spawn(pythonCmd, [handlerPath], {
       cwd: this.#projectPath,
       env: pythonEnv,
     })

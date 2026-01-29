@@ -69,9 +69,7 @@ describe('Memory Compiler', () => {
 
   describe('compileMemory', () => {
     test('generates valid CloudFormation with minimal config', () => {
-      const config = {
-        type: 'memory',
-      }
+      const config = {}
 
       const result = compileMemory('myMemory', config, baseContext, baseTags)
 
@@ -95,7 +93,6 @@ describe('Memory Compiler', () => {
 
     test('includes description when provided', () => {
       const config = {
-        type: 'memory',
         description: 'Test memory description',
       }
 
@@ -116,10 +113,9 @@ describe('Memory Compiler', () => {
       )
     })
 
-    test('uses provided roleArn when specified', () => {
+    test('uses provided role when specified as ARN', () => {
       const config = {
-        type: 'memory',
-        roleArn: 'arn:aws:iam::123456789012:role/MyCustomRole',
+        role: 'arn:aws:iam::123456789012:role/MyCustomRole',
       }
 
       const result = compileMemory('myMemory', config, baseContext, baseTags)
@@ -129,9 +125,20 @@ describe('Memory Compiler', () => {
       )
     })
 
+    test('uses provided role when specified as logical name', () => {
+      const config = {
+        role: 'MyCustomRoleLogicalId',
+      }
+
+      const result = compileMemory('myMemory', config, baseContext, baseTags)
+
+      expect(result.Properties.MemoryExecutionRoleArn).toEqual({
+        'Fn::GetAtt': ['MyCustomRoleLogicalId', 'Arn'],
+      })
+    })
+
     test('includes memory strategies when provided', () => {
       const config = {
-        type: 'memory',
         strategies: [
           {
             SemanticMemoryStrategy: {
@@ -155,9 +162,7 @@ describe('Memory Compiler', () => {
     })
 
     test('includes tags when provided', () => {
-      const config = {
-        type: 'memory',
-      }
+      const config = {}
 
       const result = compileMemory('myMemory', config, baseContext, baseTags)
 
@@ -166,7 +171,6 @@ describe('Memory Compiler', () => {
 
     test('omits MemoryStrategies when empty', () => {
       const config = {
-        type: 'memory',
         strategies: [],
       }
 

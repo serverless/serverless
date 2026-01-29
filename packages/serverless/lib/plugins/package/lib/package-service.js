@@ -253,7 +253,7 @@ export default {
   },
 
   /**
-   * Get all agents that need code packaging (have entryPoint, no containerImage/docker/s3.bucket)
+   * Get all agents that need code packaging (have handler, no artifact.image/s3.bucket)
    */
   getAgentsToPackage() {
     const agents =
@@ -263,22 +263,20 @@ export default {
 
     return Object.entries(agents)
       .filter(([, config]) => {
-        // Only runtime agents
-        if (config.type !== 'runtime') return false
+        // Only runtime agents (type defaults to 'runtime' if not specified)
+        const agentType = config.type || 'runtime'
+        if (agentType !== 'runtime') return false
 
         const artifact = config.artifact || {}
 
-        // Skip if using container image
-        if (artifact.containerImage) return false
-
-        // Skip if using Docker build
-        if (artifact.docker) return false
+        // Skip if using container image (string or object with build config)
+        if (artifact.image) return false
 
         // Skip if user specified their own S3 bucket (manual management)
         if (artifact.s3?.bucket) return false
 
-        // Need entryPoint for code deployment
-        if (!artifact.entryPoint) return false
+        // Need handler for code deployment (new schema)
+        if (!config.handler) return false
 
         return true
       })

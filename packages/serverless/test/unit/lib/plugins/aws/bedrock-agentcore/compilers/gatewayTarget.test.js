@@ -1,8 +1,20 @@
 'use strict'
 
-import fs from 'fs'
+import { jest } from '@jest/globals'
 import path from 'path'
-import {
+
+// Mock fs module for ES modules
+const mockFs = {
+  existsSync: jest.fn(),
+  readFileSync: jest.fn(),
+}
+jest.unstable_mockModule('fs', () => ({
+  default: mockFs,
+  ...mockFs,
+}))
+
+// Import after mocking
+const {
   compileGatewayTarget,
   buildCredentialProviderConfigurations,
   buildTargetConfiguration,
@@ -15,17 +27,15 @@ import {
   transformSchemaToCloudFormation,
   resolveFunctionArn,
   resolveToolSchema,
-} from '../../../../../../../lib/plugins/aws/bedrock-agentcore/compilers/gatewayTarget.js'
-
-// Mock fs module
-jest.mock('fs')
+} =
+  await import('../../../../../../../lib/plugins/aws/bedrock-agentcore/compilers/gatewayTarget.js')
 
 describe('GatewayTarget Compiler', () => {
   const mockServiceDir = '/test/service'
 
   beforeEach(() => {
     jest.clearAllMocks()
-    fs.existsSync.mockReturnValue(true)
+    mockFs.existsSync.mockReturnValue(true)
   })
 
   describe('detectTargetType', () => {
@@ -87,10 +97,10 @@ describe('GatewayTarget Compiler', () => {
       expect(result).toEqual([{ CredentialProviderType: 'GATEWAY_IAM_ROLE' }])
     })
 
-    test('builds OAUTH configuration', () => {
+    test('builds OAUTH configuration (new property names)', () => {
       const credentials = {
         type: 'OAUTH',
-        providerArn: 'arn:aws:secretsmanager:us-east-1:123456789:secret:oauth',
+        provider: 'arn:aws:secretsmanager:us-east-1:123456789:secret:oauth',
         scopes: ['read', 'write'],
       }
 
@@ -113,7 +123,7 @@ describe('GatewayTarget Compiler', () => {
     test('builds OAUTH with optional properties', () => {
       const credentials = {
         type: 'OAUTH',
-        providerArn: 'arn:aws:secretsmanager:us-east-1:123456789:secret:oauth',
+        provider: 'arn:aws:secretsmanager:us-east-1:123456789:secret:oauth',
         scopes: ['read'],
         grantType: 'CLIENT_CREDENTIALS',
         defaultReturnUrl: 'https://example.com/callback',
@@ -131,32 +141,48 @@ describe('GatewayTarget Compiler', () => {
       })
     })
 
-    test('throws error when OAUTH missing providerArn', () => {
+    test('handles lowercase grantType (case-insensitive)', () => {
+      const credentials = {
+        type: 'oauth',
+        provider: 'arn:aws:secretsmanager:us-east-1:123456789:secret:oauth',
+        scopes: ['read'],
+        grantType: 'client_credentials',
+      }
+
+      const result = buildCredentialProviderConfigurations(credentials)
+
+      expect(result[0].CredentialProviderType).toBe('OAUTH')
+      expect(
+        result[0].CredentialProvider.OauthCredentialProvider.GrantType,
+      ).toBe('CLIENT_CREDENTIALS')
+    })
+
+    test('throws error when OAUTH missing provider', () => {
       const credentials = {
         type: 'OAUTH',
         scopes: ['read'],
       }
 
       expect(() => buildCredentialProviderConfigurations(credentials)).toThrow(
-        'OAUTH credentials require providerArn and scopes',
+        'OAUTH credentials require provider and scopes',
       )
     })
 
     test('throws error when OAUTH missing scopes', () => {
       const credentials = {
         type: 'OAUTH',
-        providerArn: 'arn:aws:secretsmanager:us-east-1:123456789:secret:oauth',
+        provider: 'arn:aws:secretsmanager:us-east-1:123456789:secret:oauth',
       }
 
       expect(() => buildCredentialProviderConfigurations(credentials)).toThrow(
-        'OAUTH credentials require providerArn and scopes',
+        'OAUTH credentials require provider and scopes',
       )
     })
 
-    test('builds API_KEY configuration', () => {
+    test('builds API_KEY configuration (new property names)', () => {
       const credentials = {
         type: 'API_KEY',
-        providerArn: 'arn:aws:secretsmanager:us-east-1:123456789:secret:apikey',
+        provider: 'arn:aws:secretsmanager:us-east-1:123456789:secret:apikey',
       }
 
       const result = buildCredentialProviderConfigurations(credentials)
@@ -174,13 +200,13 @@ describe('GatewayTarget Compiler', () => {
       ])
     })
 
-    test('builds API_KEY with optional properties', () => {
+    test('builds API_KEY with optional properties (new property names)', () => {
       const credentials = {
         type: 'API_KEY',
-        providerArn: 'arn:aws:secretsmanager:us-east-1:123456789:secret:apikey',
-        credentialLocation: 'HEADER',
-        credentialParameterName: 'X-API-Key',
-        credentialPrefix: 'Bearer ',
+        provider: 'arn:aws:secretsmanager:us-east-1:123456789:secret:apikey',
+        location: 'HEADER',
+        parameterName: 'X-API-Key',
+        prefix: 'Bearer ',
       }
 
       const result = buildCredentialProviderConfigurations(credentials)
@@ -193,13 +219,29 @@ describe('GatewayTarget Compiler', () => {
       })
     })
 
-    test('throws error when API_KEY missing providerArn', () => {
+    test('handles lowercase location (case-insensitive)', () => {
+      const credentials = {
+        type: 'api_key',
+        provider: 'arn:aws:secretsmanager:us-east-1:123456789:secret:apikey',
+        location: 'header',
+      }
+
+      const result = buildCredentialProviderConfigurations(credentials)
+
+      expect(result[0].CredentialProviderType).toBe('API_KEY')
+      expect(
+        result[0].CredentialProvider.ApiKeyCredentialProvider
+          .CredentialLocation,
+      ).toBe('HEADER')
+    })
+
+    test('throws error when API_KEY missing provider', () => {
       const credentials = {
         type: 'API_KEY',
       }
 
       expect(() => buildCredentialProviderConfigurations(credentials)).toThrow(
-        'API_KEY credentials require providerArn',
+        'API_KEY credentials require provider',
       )
     })
   })
@@ -274,7 +316,7 @@ describe('GatewayTarget Compiler', () => {
       const result = resolveFunctionArn('my-function')
 
       expect(result).toEqual({
-        'Fn::GetAtt': ['MyFunctionLambdaFunction', 'Arn'],
+        'Fn::GetAtt': ['MyDashfunctionLambdaFunction', 'Arn'],
       })
     })
 
@@ -290,7 +332,7 @@ describe('GatewayTarget Compiler', () => {
       const result = resolveFunctionArn({ name: 'my-function' })
 
       expect(result).toEqual({
-        'Fn::GetAtt': ['MyFunctionLambdaFunction', 'Arn'],
+        'Fn::GetAtt': ['MyDashfunctionLambdaFunction', 'Arn'],
       })
     })
 
@@ -338,11 +380,11 @@ describe('GatewayTarget Compiler', () => {
           inputSchema: { type: 'string' },
         },
       ])
-      fs.readFileSync.mockReturnValue(fileContents)
+      mockFs.readFileSync.mockReturnValue(fileContents)
 
       const result = resolveToolSchema('tools.json', mockServiceDir)
 
-      expect(fs.readFileSync).toHaveBeenCalledWith(
+      expect(mockFs.readFileSync).toHaveBeenCalledWith(
         path.resolve(mockServiceDir, 'tools.json'),
         'utf-8',
       )
@@ -350,7 +392,7 @@ describe('GatewayTarget Compiler', () => {
     })
 
     test('throws error when file not found', () => {
-      fs.existsSync.mockReturnValue(false)
+      mockFs.existsSync.mockReturnValue(false)
 
       expect(() => resolveToolSchema('missing.json', mockServiceDir)).toThrow(
         'Tool schema/spec file not found: missing.json',
@@ -428,7 +470,7 @@ describe('GatewayTarget Compiler', () => {
 
   describe('buildOpenApiTarget', () => {
     test('builds with file path', () => {
-      fs.readFileSync.mockReturnValue('openapi: 3.0.0')
+      mockFs.readFileSync.mockReturnValue('openapi: 3.0.0')
       const config = { openapi: 'openapi.yml' }
 
       const result = buildOpenApiTarget(config, mockServiceDir)
@@ -459,7 +501,7 @@ describe('GatewayTarget Compiler', () => {
 
   describe('buildSmithyTarget', () => {
     test('builds with file path', () => {
-      fs.readFileSync.mockReturnValue(
+      mockFs.readFileSync.mockReturnValue(
         'namespace com.example\nservice MyService {}',
       )
       const config = { smithy: 'model.smithy' }
@@ -592,13 +634,12 @@ describe('GatewayTarget Compiler', () => {
       expect(result.Properties.TargetConfiguration.Mcp.Lambda).toBeDefined()
     })
 
-    test('generates valid CloudFormation for MCP tool with credentials', () => {
+    test('generates valid CloudFormation for MCP tool with credentials (new property names)', () => {
       const config = {
         mcp: 'https://mcp.example.com/mcp',
         credentials: {
           type: 'OAUTH',
-          providerArn:
-            'arn:aws:secretsmanager:us-east-1:123456789:secret:oauth',
+          provider: 'arn:aws:secretsmanager:us-east-1:123456789:secret:oauth',
           scopes: ['read'],
         },
       }

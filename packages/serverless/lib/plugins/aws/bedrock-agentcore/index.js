@@ -10,7 +10,6 @@ import {
 } from './compilers/gatewayTarget.js'
 import { compileBrowser } from './compilers/browser.js'
 import { compileCodeInterpreter } from './compilers/codeInterpreter.js'
-import { compileWorkloadIdentity } from './compilers/workloadIdentity.js'
 import {
   generateRuntimeRole,
   generateMemoryRole,
@@ -18,14 +17,58 @@ import {
   generateBrowserRole,
   generateCodeInterpreterRole,
 } from './iam/policies.js'
-import { getLogicalId } from './utils/naming.js'
+import { getLogicalId, pascalCase } from './utils/naming.js'
 import { mergeTags } from './utils/tags.js'
 import { defineAgentsSchema } from './validators/schema.js'
 import { DockerBuilder } from './docker/builder.js'
 import { AgentCoreDevMode } from './dev/index.js'
 
-// Reserved keys at agents level (not treated as agent definitions)
-const RESERVED_AGENT_KEYS = ['memory', 'tools']
+// Reserved keys at agents level (not treated as runtime agent definitions)
+const RESERVED_AGENT_KEYS = [
+  'memory',
+  'tools',
+  'gateways',
+  'browsers',
+  'codeInterpreters',
+]
+
+/**
+ * Check if role should be auto-generated
+ * Returns true if role should be generated (no role or role is a customization object)
+ * Returns false if role is an existing ARN or CloudFormation intrinsic
+ *
+ * @param {object} config - Resource configuration
+ * @returns {boolean} True if role should be generated
+ */
+function shouldGenerateRole(config) {
+  // No role specified - generate with defaults
+  if (!config.role) {
+    return true
+  }
+
+  // Role is a string ARN - don't generate
+  if (typeof config.role === 'string') {
+    return false
+  }
+
+  // Role is an object - check if it's a CF intrinsic or customization
+  if (typeof config.role === 'object') {
+    // CloudFormation intrinsic functions - don't generate
+    if (
+      config.role.Ref ||
+      config.role['Fn::GetAtt'] ||
+      config.role['Fn::ImportValue'] ||
+      config.role['Fn::Sub'] ||
+      config.role['Fn::Join']
+    ) {
+      return false
+    }
+    // Customization object (has statements, managedPolicies, etc.) - generate with customizations
+    return true
+  }
+
+  return false
+}
 
 /**
  * Serverless Framework internal plugin for AWS Bedrock AgentCore
@@ -190,15 +233,13 @@ class ServerlessBedrockAgentCore {
     const service = this.serverless.service
     const stage = this.provider.getStage()
     const region = this.provider.getRegion()
-    const customConfig = service.custom?.agentCore || {}
 
     return {
       serviceName: service.service,
       stage,
       region,
       accountId: '${AWS::AccountId}', // CloudFormation intrinsic
-      customConfig,
-      defaultTags: customConfig.defaultTags || {},
+      defaultTags: {},
       // Artifact directory name for S3 uploads (used by code deployment)
       artifactDirectoryName: service.package?.artifactDirectoryName,
       // Custom deployment bucket (string if specified, undefined if auto-generated)
@@ -219,13 +260,18 @@ class ServerlessBedrockAgentCore {
 
     // Get shared resources for reference validation
     const sharedMemory = agents.memory || {}
-    const sharedTools = agents.tools || {}
 
-    // Count agents excluding reserved keys
-    const agentCount = Object.keys(agents).filter(
+    // Count runtime agents (excluding reserved keys)
+    const runtimeAgentCount = Object.keys(agents).filter(
       (k) => !RESERVED_AGENT_KEYS.includes(k),
     ).length
-    this.log.info(`Validating ${agentCount} agent(s)...`)
+    // Count browser and codeInterpreter agents
+    const browserCount = Object.keys(agents.browsers || {}).length
+    const codeInterpreterCount = Object.keys(
+      agents.codeInterpreters || {},
+    ).length
+    const totalAgents = runtimeAgentCount + browserCount + codeInterpreterCount
+    this.log.info(`Validating ${totalAgents} agent(s)...`)
 
     // Validate shared memory first
     if (agents.memory) {
@@ -247,55 +293,119 @@ class ServerlessBedrockAgentCore {
       }
     }
 
+    // Validate gateways and their tool references
+    const sharedTools = agents.tools || {}
+    const sharedGateways = agents.gateways || {}
+    if (agents.gateways) {
+      for (const [gatewayName, gatewayConfig] of Object.entries(
+        agents.gateways,
+      )) {
+        this.validateGatewayConfig(gatewayName, gatewayConfig, sharedTools)
+      }
+    }
+
+    // Validate browsers (reserved key)
+    if (agents.browsers) {
+      for (const [browserName, browserConfig] of Object.entries(
+        agents.browsers,
+      )) {
+        this.validateBrowser(browserName, browserConfig)
+      }
+    }
+
+    // Validate codeInterpreters (reserved key)
+    if (agents.codeInterpreters) {
+      for (const [ciName, ciConfig] of Object.entries(
+        agents.codeInterpreters,
+      )) {
+        this.validateCodeInterpreter(ciName, ciConfig)
+      }
+    }
+
+    // Validate runtime agents (non-reserved keys)
     for (const [name, config] of Object.entries(agents)) {
       // Skip reserved keys
       if (RESERVED_AGENT_KEYS.includes(name)) {
         continue
       }
-      this.validateAgent(name, config, sharedMemory, sharedTools)
+      this.validateAgent(name, config, sharedMemory, sharedGateways)
     }
   }
 
   /**
-   * Validate individual agent configuration
+   * Validate gateway configuration
+   * @param {string} gatewayName - Gateway name
+   * @param {object} gatewayConfig - Gateway configuration
+   * @param {object} sharedTools - Available shared tools for reference validation
+   */
+  validateGatewayConfig(gatewayName, gatewayConfig, sharedTools = {}) {
+    // Validate tools references
+    if (gatewayConfig.tools) {
+      if (!Array.isArray(gatewayConfig.tools)) {
+        throw new this.serverless.classes.Error(
+          `Gateway '${gatewayName}' tools must be an array of tool names`,
+        )
+      }
+
+      for (const toolName of gatewayConfig.tools) {
+        if (typeof toolName !== 'string') {
+          throw new this.serverless.classes.Error(
+            `Gateway '${gatewayName}' tool reference must be a string, got ${typeof toolName}`,
+          )
+        }
+        if (!sharedTools[toolName]) {
+          throw new this.serverless.classes.Error(
+            `Gateway '${gatewayName}' references undefined tool '${toolName}'. Define it in agents.tools first.`,
+          )
+        }
+      }
+    }
+
+    // Validate authorizer if present
+    if (gatewayConfig.authorizer) {
+      const authorizer = gatewayConfig.authorizer
+      const validTypes = ['NONE', 'AWS_IAM', 'CUSTOM_JWT']
+
+      if (typeof authorizer === 'string') {
+        const normalizedType = authorizer.toUpperCase()
+        if (!validTypes.includes(normalizedType)) {
+          throw new this.serverless.classes.Error(
+            `Gateway '${gatewayName}' has invalid authorizer type '${authorizer}'. Valid types: ${validTypes.join(', ')}`,
+          )
+        }
+      } else if (typeof authorizer === 'object') {
+        const normalizedType = authorizer.type?.toUpperCase()
+        if (!normalizedType || !validTypes.includes(normalizedType)) {
+          throw new this.serverless.classes.Error(
+            `Gateway '${gatewayName}' has invalid authorizer.type. Valid types: ${validTypes.join(', ')}`,
+          )
+        }
+        // Validate JWT config is present when type is CUSTOM_JWT
+        if (normalizedType === 'CUSTOM_JWT' && !authorizer.jwt) {
+          throw new this.serverless.classes.Error(
+            `Gateway '${gatewayName}' with CUSTOM_JWT authorizer requires jwt configuration`,
+          )
+        }
+        if (authorizer.jwt && !authorizer.jwt.discoveryUrl) {
+          throw new this.serverless.classes.Error(
+            `Gateway '${gatewayName}' jwt configuration requires discoveryUrl`,
+          )
+        }
+      }
+    }
+  }
+
+  /**
+   * Validate individual runtime agent configuration
+   * Runtime agents are any non-reserved keys under agents
    * @param {string} name - Agent name
    * @param {object} config - Agent configuration
    * @param {object} sharedMemory - Available shared memory definitions for reference validation
-   * @param {object} sharedTools - Available shared tools for reference validation
+   * @param {object} sharedGateways - Available gateways for reference validation
    */
-  validateAgent(name, config, sharedMemory = {}, sharedTools = {}) {
-    // Default type to 'runtime' if not specified
-    if (!config.type) {
-      config.type = 'runtime'
-    }
-
-    const validTypes = [
-      'runtime',
-      'browser',
-      'codeInterpreter',
-      'workloadIdentity',
-    ]
-    if (!validTypes.includes(config.type)) {
-      throw new this.serverless.classes.Error(
-        `Agent '${name}' has invalid type '${config.type}'. Valid types: ${validTypes.join(', ')}`,
-      )
-    }
-
-    // Type-specific validation
-    switch (config.type) {
-      case 'runtime':
-        this.validateRuntime(name, config, sharedMemory, sharedTools)
-        break
-      case 'browser':
-        this.validateBrowser(name, config)
-        break
-      case 'codeInterpreter':
-        this.validateCodeInterpreter(name, config)
-        break
-      case 'workloadIdentity':
-        this.validateWorkloadIdentity(name, config)
-        break
-    }
+  validateAgent(name, config, sharedMemory = {}, sharedGateways = {}) {
+    // All non-reserved keys are runtime agents
+    this.validateRuntime(name, config, sharedMemory, sharedGateways)
   }
 
   /**
@@ -303,29 +413,28 @@ class ServerlessBedrockAgentCore {
    * @param {string} name - Runtime name
    * @param {object} config - Runtime configuration
    * @param {object} sharedMemory - Available shared memory definitions for reference validation
-   * @param {object} sharedTools - Available shared tools for reference validation
+   * @param {object} sharedGateways - Available gateways for reference validation
    */
-  validateRuntime(name, config, sharedMemory = {}, sharedTools = {}) {
-    // Check if using image reference (will be built) or artifact (pre-built)
-    const hasImage = config.image !== undefined
-    const hasArtifact = config.artifact !== undefined
+  validateRuntime(name, config, sharedMemory = {}, sharedGateways = {}) {
+    // Check deployment type: code (handler) or container (artifact.image)
+    const hasHandler = config.handler !== undefined
+    const hasArtifactImage = config.artifact?.image !== undefined
 
-    // If no image or artifact specified, buildpacks auto-detection will be used
+    // Mutual exclusivity: cannot have both handler and artifact.image
+    if (hasHandler && hasArtifactImage) {
+      throw new this.serverless.classes.Error(
+        `Runtime '${name}' cannot specify both 'handler' and 'artifact.image'. Use 'handler' for code deployment or 'artifact.image' for container deployment.`,
+      )
+    }
+
+    // If no handler and no artifact.image specified, buildpacks auto-detection will be used
     // This is valid - DockerClient will build using buildpacks from the service directory
 
-    if (hasArtifact) {
-      // artifact.docker means we need to build
-      if (config.artifact.docker) {
-        // Docker build config is valid
-      } else if (config.artifact.entryPoint && !config.artifact.s3?.bucket) {
-        // Auto-packaging: entryPoint alone (without s3.bucket) means Framework will package
-        // This is valid for code deployment with automatic packaging
-      } else if (!config.artifact.containerImage && !config.artifact.s3) {
-        // Otherwise need containerImage or s3
-        throw new this.serverless.classes.Error(
-          `Runtime '${name}' artifact must specify either 'containerImage', 's3' (bucket/key), 'docker' (for build), or 'entryPoint' (for auto-packaging)`,
-        )
-      }
+    // Validate artifact.s3 requires handler (code deployment)
+    if (config.artifact?.s3 && !hasHandler && !hasArtifactImage) {
+      throw new this.serverless.classes.Error(
+        `Runtime '${name}' with 'artifact.s3' requires 'handler' to be specified for code deployment.`,
+      )
     }
 
     // Validate requestHeaders configuration
@@ -371,30 +480,24 @@ class ServerlessBedrockAgentCore {
       }
     }
 
-    // Validate tools configuration if present
-    if (config.tools) {
-      if (typeof config.tools !== 'object' || Array.isArray(config.tools)) {
+    // Validate gateway configuration if present
+    if (config.gateway) {
+      if (typeof config.gateway !== 'string') {
         throw new this.serverless.classes.Error(
-          `Runtime '${name}' tools must be an object with tool names as keys`,
+          `Runtime '${name}' gateway must be a string reference to a gateway defined in agents.gateways`,
         )
       }
-
-      for (const [toolName, toolConfig] of Object.entries(config.tools)) {
-        if (typeof toolConfig === 'string') {
-          // String reference to shared tool - validate it exists
-          if (!sharedTools[toolConfig]) {
-            throw new this.serverless.classes.Error(
-              `Runtime '${name}' tool '${toolName}' references shared tool '${toolConfig}' which is not defined in agents.tools`,
-            )
-          }
-        } else if (typeof toolConfig === 'object') {
-          // Inline tool configuration - validate it
-          this.validateToolConfig(`${name}/${toolName}`, toolConfig)
-        } else {
-          throw new this.serverless.classes.Error(
-            `Runtime '${name}' tool '${toolName}' must be either a string (reference to shared tool) or an object (inline tool config)`,
-          )
-        }
+      // Only validate gateway reference if gateways are defined
+      // If no gateways are defined but gateway property is set, that's an error
+      if (Object.keys(sharedGateways).length === 0) {
+        throw new this.serverless.classes.Error(
+          `Runtime '${name}' references gateway '${config.gateway}' but no gateways are defined in agents.gateways`,
+        )
+      }
+      if (!sharedGateways[config.gateway]) {
+        throw new this.serverless.classes.Error(
+          `Runtime '${name}' references undefined gateway '${config.gateway}'. Available gateways: ${Object.keys(sharedGateways).join(', ')}`,
+        )
       }
     }
   }
@@ -435,27 +538,25 @@ class ServerlessBedrockAgentCore {
     // Validate credentials if present
     if (config.credentials) {
       const validTypes = ['GATEWAY_IAM_ROLE', 'OAUTH', 'API_KEY']
-      if (
-        config.credentials.type &&
-        !validTypes.includes(config.credentials.type)
-      ) {
+      const normalizedType = config.credentials.type?.toUpperCase()
+      if (normalizedType && !validTypes.includes(normalizedType)) {
         throw new this.serverless.classes.Error(
           `Tool '${name}' credentials.type must be one of: ${validTypes.join(', ')}`,
         )
       }
 
-      if (config.credentials.type === 'OAUTH') {
-        if (!config.credentials.providerArn || !config.credentials.scopes) {
+      if (normalizedType === 'OAUTH') {
+        if (!config.credentials.provider || !config.credentials.scopes) {
           throw new this.serverless.classes.Error(
-            `Tool '${name}' OAUTH credentials require providerArn and scopes`,
+            `Tool '${name}' OAUTH credentials require provider and scopes`,
           )
         }
       }
 
-      if (config.credentials.type === 'API_KEY') {
-        if (!config.credentials.providerArn) {
+      if (normalizedType === 'API_KEY') {
+        if (!config.credentials.provider) {
           throw new this.serverless.classes.Error(
-            `Tool '${name}' API_KEY credentials require providerArn`,
+            `Tool '${name}' API_KEY credentials require provider`,
           )
         }
       }
@@ -498,15 +599,15 @@ class ServerlessBedrockAgentCore {
 
   /**
    * Validate browser configuration
+   * @param {string} name - Browser name
+   * @param {object} config - Browser configuration
    */
   validateBrowser(name, config) {
     const validModes = ['PUBLIC', 'VPC']
-    if (
-      config.network?.networkMode &&
-      !validModes.includes(config.network.networkMode)
-    ) {
+    const networkMode = config.network?.mode?.toUpperCase()
+    if (networkMode && !validModes.includes(networkMode)) {
       throw new this.serverless.classes.Error(
-        `Browser '${name}' has invalid networkMode '${config.network.networkMode}'. Valid modes: ${validModes.join(', ')}`,
+        `Browser '${name}' has invalid network.mode '${config.network.mode}'. Valid modes: ${validModes.join(', ')}`,
       )
     }
 
@@ -524,65 +625,24 @@ class ServerlessBedrockAgentCore {
 
   /**
    * Validate code interpreter configuration
+   * @param {string} name - CodeInterpreter name
+   * @param {object} config - CodeInterpreter configuration
    */
   validateCodeInterpreter(name, config) {
     const validModes = ['PUBLIC', 'SANDBOX', 'VPC']
-    if (
-      config.network?.networkMode &&
-      !validModes.includes(config.network.networkMode)
-    ) {
+    const networkMode = config.network?.mode?.toUpperCase()
+    if (networkMode && !validModes.includes(networkMode)) {
       throw new this.serverless.classes.Error(
-        `CodeInterpreter '${name}' has invalid networkMode '${config.network.networkMode}'. Valid modes: ${validModes.join(', ')}`,
+        `CodeInterpreter '${name}' has invalid network.mode '${config.network.mode}'. Valid modes: ${validModes.join(', ')}`,
       )
     }
 
     // Validate VPC configuration when VPC mode is specified
-    if (config.network?.networkMode === 'VPC') {
-      if (!config.network.vpcConfig) {
+    if (networkMode === 'VPC') {
+      if (!config.network.subnets || config.network.subnets.length === 0) {
         throw new this.serverless.classes.Error(
-          `CodeInterpreter '${name}' requires vpcConfig when networkMode is VPC`,
+          `CodeInterpreter '${name}' requires network.subnets when mode is VPC`,
         )
-      }
-      if (
-        !config.network.vpcConfig.subnets ||
-        config.network.vpcConfig.subnets.length === 0
-      ) {
-        throw new this.serverless.classes.Error(
-          `CodeInterpreter '${name}' vpcConfig must have at least one subnet`,
-        )
-      }
-    }
-  }
-
-  /**
-   * Validate workload identity configuration
-   */
-  validateWorkloadIdentity(name, config) {
-    // Name must be 3-255 characters, pattern: [A-Za-z0-9_.-]+
-    // The naming utility will handle this, but we can validate length
-    if (name.length < 1 || name.length > 255) {
-      throw new this.serverless.classes.Error(
-        `WorkloadIdentity '${name}' name must be between 1 and 255 characters`,
-      )
-    }
-
-    // Validate OAuth2 return URLs if provided
-    if (config.oauth2ReturnUrls) {
-      if (!Array.isArray(config.oauth2ReturnUrls)) {
-        throw new this.serverless.classes.Error(
-          `WorkloadIdentity '${name}' oauth2ReturnUrls must be an array`,
-        )
-      }
-
-      for (const url of config.oauth2ReturnUrls) {
-        // Allow https:// URLs or http://localhost for local development
-        const isHttps = url.startsWith('https://')
-        const isLocalhost = url.startsWith('http://localhost')
-        if (typeof url !== 'string' || (!isHttps && !isLocalhost)) {
-          throw new this.serverless.classes.Error(
-            `WorkloadIdentity '${name}' oauth2ReturnUrls must contain valid HTTPS URLs (or http://localhost for development)`,
-          )
-        }
       }
     }
   }
@@ -602,32 +662,31 @@ class ServerlessBedrockAgentCore {
     const runtimesToBuild = []
 
     for (const [name, config] of Object.entries(agents)) {
-      // Skip reserved keys
+      // Skip reserved keys - only runtime agents need Docker builds
       if (RESERVED_AGENT_KEYS.includes(name)) {
         continue
       }
-      if (config.type === 'runtime') {
-        // Check for Docker build config: either top-level 'image' or nested 'artifact.docker'
-        if (config.image) {
-          runtimesToBuild.push({ name, config, imageConfig: config.image })
-        } else if (config.artifact?.docker) {
-          runtimesToBuild.push({
-            name,
-            config,
-            imageConfig: config.artifact.docker,
-          })
-        } else if (
-          !config.artifact?.containerImage &&
-          !config.artifact?.entryPoint &&
-          !config.artifact?.s3?.bucket
-        ) {
-          // No explicit artifact configuration - look for Dockerfile in root directory
-          runtimesToBuild.push({
-            name,
-            config,
-            imageConfig: { path: '.' },
-          })
-        }
+      // All non-reserved keys are runtime agents
+      // Check for Docker build config: artifact.image as object (not string URI)
+      const artifactImage = config.artifact?.image
+      if (artifactImage && typeof artifactImage === 'object') {
+        // artifact.image is an object with build instructions
+        runtimesToBuild.push({
+          name,
+          config,
+          imageConfig: artifactImage,
+        })
+      } else if (
+        !artifactImage && // No pre-built image URI
+        !config.handler // No code deployment handler
+      ) {
+        // No explicit artifact configuration - use buildpacks auto-detection
+        // Look for Dockerfile in root directory
+        runtimesToBuild.push({
+          name,
+          config,
+          imageConfig: { path: '.' },
+        })
       }
     }
 
@@ -737,45 +796,63 @@ class ServerlessBedrockAgentCore {
   }
 
   /**
-   * Get gateway configuration from provider.agents.gateway
-   */
-  getGatewayConfig() {
-    const service = this.serverless.service
-    return service.provider?.agents?.gateway || {}
-  }
-
-  /**
    * Collect all tools (shared + agent-level) to determine if gateway is needed
    * Also returns which agents have tools for env var injection
+   *
+   * Behavior:
+   * - If gateways is NOT defined: return all tools from agents.tools, hasGateways=false
+   * - If gateways IS defined: return tools, but compilation uses gateway assignments, hasGateways=true
    */
   collectAllTools(agents) {
     const sharedTools = agents.tools || {}
-    const agentTools = {} // Map of agentName -> resolved tools
-
-    for (const [name, config] of Object.entries(agents)) {
-      if (RESERVED_AGENT_KEYS.includes(name)) continue
-      if (config.type !== 'runtime' || !config.tools) continue
-
-      agentTools[name] = {}
-      for (const [toolName, toolConfig] of Object.entries(config.tools)) {
-        if (typeof toolConfig === 'string') {
-          // String reference - use shared tool config
-          agentTools[name][toolName] = sharedTools[toolConfig]
-        } else {
-          // Inline tool config
-          agentTools[name][toolName] = toolConfig
-        }
-      }
-    }
-
-    // Check if any tools exist
-    const hasSharedTools = Object.keys(sharedTools).length > 0
-    const hasAgentTools = Object.keys(agentTools).length > 0
+    const gateways = agents.gateways || {}
+    const hasGateways = Object.keys(gateways).length > 0
+    const hasTools = Object.keys(sharedTools).length > 0
 
     return {
       sharedTools,
-      agentTools,
-      hasTools: hasSharedTools || hasAgentTools,
+      hasTools,
+      hasGateways,
+    }
+  }
+
+  /**
+   * Collect gateway configurations with their tool assignments
+   * Returns a map of gateway names to their configs (with normalized authorizer)
+   */
+  collectGateways(agents) {
+    const gateways = agents.gateways || {}
+    const result = {}
+
+    for (const [gatewayName, gatewayConfig] of Object.entries(gateways)) {
+      result[gatewayName] = {
+        ...gatewayConfig,
+        tools: gatewayConfig.tools || [],
+        // Normalize authorizer (string -> object form)
+        authorizer: this.normalizeAuthorizer(gatewayConfig.authorizer),
+      }
+    }
+
+    return result
+  }
+
+  /**
+   * Normalize authorizer config from string shorthand to object form
+   * Also normalizes case to uppercase for CFN compatibility
+   * @param {string|object} authorizer - 'AWS_IAM' or { type: 'CUSTOM_JWT', jwt: {...} }
+   * @returns {object} - { type: 'AWS_IAM' } or { type: 'CUSTOM_JWT', jwt: {...} }
+   */
+  normalizeAuthorizer(authorizer) {
+    if (!authorizer) {
+      return { type: 'AWS_IAM' } // Default
+    }
+    if (typeof authorizer === 'string') {
+      return { type: authorizer.toUpperCase() }
+    }
+    // Normalize type to uppercase
+    return {
+      ...authorizer,
+      type: authorizer.type?.toUpperCase() || 'AWS_IAM',
     }
   }
 
@@ -815,21 +892,54 @@ class ServerlessBedrockAgentCore {
       gateway: 0,
       browser: 0,
       codeInterpreter: 0,
-      workloadIdentity: 0,
       endpoints: 0,
       tools: 0,
     }
 
-    // Collect all tools to determine if gateway is needed
-    const { sharedTools, agentTools, hasTools } = this.collectAllTools(agents)
+    // Collect all tools and gateway info
+    const { sharedTools, hasTools, hasGateways } = this.collectAllTools(agents)
 
-    // First pass: Compile gateway and shared tools if any tools exist
-    let gatewayLogicalId = null
-    if (hasTools) {
-      gatewayLogicalId = this.compileToolsGateway(context, template)
+    // Map of gateway names to their logical IDs (for agent gateway selection)
+    const gatewayLogicalIds = {}
+
+    // First pass: Compile gateways and tools
+    if (hasGateways) {
+      // Multi-gateway mode: compile each gateway and its tools
+      const gateways = this.collectGateways(agents)
+
+      for (const [gatewayName, gatewayConfig] of Object.entries(gateways)) {
+        const gatewayLogicalId = this.compileNamedGateway(
+          gatewayName,
+          gatewayConfig,
+          context,
+          template,
+        )
+        gatewayLogicalIds[gatewayName] = gatewayLogicalId
+        stats.gateway++
+
+        // Compile tools for this gateway
+        for (const toolName of gatewayConfig.tools) {
+          const toolConfig = sharedTools[toolName]
+          if (toolConfig) {
+            this.compileToolResource(
+              toolName,
+              toolConfig,
+              gatewayLogicalId,
+              context,
+              template,
+              gatewayName, // Include gateway name for unique logical ID
+            )
+            stats.tools++
+          }
+        }
+      }
+    } else if (hasTools) {
+      // Default gateway mode (backwards compat): create single gateway with all tools
+      const gatewayLogicalId = this.compileToolsGateway(context, template)
+      gatewayLogicalIds['_default'] = gatewayLogicalId
       stats.gateway = 1
 
-      // Compile shared tools
+      // Compile all shared tools to the default gateway
       for (const [toolName, toolConfig] of Object.entries(sharedTools)) {
         this.compileToolResource(
           toolName,
@@ -850,64 +960,70 @@ class ServerlessBedrockAgentCore {
       }
     }
 
-    // Third pass: Compile all agents (excluding reserved keys)
+    // Third pass: Compile browsers from reserved key
+    if (agents.browsers) {
+      for (const [browserName, browserConfig] of Object.entries(
+        agents.browsers,
+      )) {
+        this.compileBrowserResources(
+          browserName,
+          browserConfig,
+          context,
+          template,
+        )
+        stats.browser++
+      }
+    }
+
+    // Fourth pass: Compile codeInterpreters from reserved key
+    if (agents.codeInterpreters) {
+      for (const [ciName, ciConfig] of Object.entries(
+        agents.codeInterpreters,
+      )) {
+        this.compileCodeInterpreterResources(
+          ciName,
+          ciConfig,
+          context,
+          template,
+        )
+        stats.codeInterpreter++
+      }
+    }
+
+    // Fifth pass: Compile runtime agents (non-reserved keys)
     for (const [name, config] of Object.entries(agents)) {
       // Skip reserved keys
       if (RESERVED_AGENT_KEYS.includes(name)) {
         continue
       }
 
-      switch (config.type) {
-        case 'runtime': {
-          // Pass gateway info for env var injection
-          const agentHasTools = !!agentTools[name]
-          this.compileRuntimeResources(
-            name,
-            config,
-            context,
-            template,
-            agents.memory,
-            agentHasTools ? gatewayLogicalId : null,
-          )
-          stats.runtime++
-          if (config.endpoints) {
-            stats.endpoints += config.endpoints.length
-          }
-          // If runtime has inline memory, count it
-          if (config.memory && typeof config.memory === 'object') {
-            stats.memory++
-          }
-          // Compile agent-level tools (inline only, not shared references)
-          if (config.tools) {
-            for (const [toolName, toolConfig] of Object.entries(config.tools)) {
-              // Only compile inline tools (not string references to shared)
-              if (typeof toolConfig === 'object') {
-                const fullToolName = `${name}-${toolName}`
-                this.compileToolResource(
-                  fullToolName,
-                  toolConfig,
-                  gatewayLogicalId,
-                  context,
-                  template,
-                )
-                stats.tools++
-              }
-            }
-          }
-          break
-        }
-        case 'browser':
-          this.compileBrowserResources(name, config, context, template)
-          stats.browser++
-          break
-        case 'codeInterpreter':
-          this.compileCodeInterpreterResources(name, config, context, template)
-          stats.codeInterpreter++
-          break
-        case 'workloadIdentity':
-          this.compileWorkloadIdentityResources(name, config, context, template)
-          stats.workloadIdentity++
-          break
+      // All non-reserved keys are runtime agents
+      // Determine which gateway (if any) this agent uses
+      let agentGatewayLogicalId = null
+      if (config.gateway && gatewayLogicalIds[config.gateway]) {
+        // Agent explicitly specifies a gateway
+        agentGatewayLogicalId = gatewayLogicalIds[config.gateway]
+      } else if (!hasGateways && gatewayLogicalIds['_default']) {
+        // No explicit gateway but default exists (backwards compat)
+        agentGatewayLogicalId = gatewayLogicalIds['_default']
+      }
+      // If gateways exist but agent doesn't specify one, no gateway injection
+
+      this.compileRuntimeResources(
+        name,
+        config,
+        context,
+        template,
+        agents.memory,
+        agentGatewayLogicalId,
+      )
+      stats.runtime++
+      if (config.endpoints) {
+        stats.endpoints += config.endpoints.length
+      }
+      // If runtime has inline memory, count it
+      if (config.memory && typeof config.memory === 'object') {
+        stats.memory++
       }
     }
 
@@ -927,9 +1043,6 @@ class ServerlessBedrockAgentCore {
     if (stats.codeInterpreter > 0) {
       resourceSummary.push(`${stats.codeInterpreter} codeInterpreter(s)`)
     }
-    if (stats.workloadIdentity > 0) {
-      resourceSummary.push(`${stats.workloadIdentity} workloadIdentity(s)`)
-    }
 
     this.log.info(`Compiled AgentCore resources: ${resourceSummary.join(', ')}`)
 
@@ -942,11 +1055,12 @@ class ServerlessBedrockAgentCore {
   }
 
   /**
-   * Compile the auto-created Gateway for tools
+   * Compile the auto-created default Gateway for tools (backwards compatibility)
+   * Used when agents.tools exists but agents.gateways does not
    * @returns {string} Gateway logical ID
    */
   compileToolsGateway(context, template) {
-    const gatewayConfig = this.getGatewayConfig()
+    const gatewayConfig = {} // Default config when no explicit gateways defined
     const logicalId = 'AgentCoreGateway'
     const tags = mergeTags(
       context.defaultTags,
@@ -956,20 +1070,14 @@ class ServerlessBedrockAgentCore {
       'gateway',
     )
 
-    // Generate IAM role if not provided
+    // Generate IAM role (always generated for default gateway)
     const roleLogicalId = `${logicalId}Role`
-    if (!gatewayConfig.roleArn) {
-      const roleResource = generateGatewayRole(
-        'gateway',
-        gatewayConfig,
-        context,
-      )
-      template.Resources[roleLogicalId] = roleResource
+    const roleResource = generateGatewayRole('gateway', gatewayConfig, context)
+    template.Resources[roleLogicalId] = roleResource
 
-      template.Outputs[`${logicalId}RoleArn`] = {
-        Description: 'IAM Role ARN for AgentCore Gateway',
-        Value: { 'Fn::GetAtt': [roleLogicalId, 'Arn'] },
-      }
+    template.Outputs[`${logicalId}RoleArn`] = {
+      Description: 'IAM Role ARN for AgentCore Gateway',
+      Value: { 'Fn::GetAtt': [roleLogicalId, 'Arn'] },
     }
 
     // Compile Gateway resource - pass roleLogicalId to ensure correct reference
@@ -1005,7 +1113,92 @@ class ServerlessBedrockAgentCore {
   }
 
   /**
+   * Compile a named Gateway from agents.gateways
+   * @param {string} gatewayName - Gateway name from config
+   * @param {object} gatewayConfig - Gateway configuration (with normalized authorizer)
+   * @param {object} context - Compilation context
+   * @param {object} template - CloudFormation template
+   * @returns {string} Gateway logical ID
+   */
+  compileNamedGateway(gatewayName, gatewayConfig, context, template) {
+    const logicalId = `AgentCoreGateway${pascalCase(gatewayName)}`
+    const tags = mergeTags(
+      context.defaultTags,
+      gatewayConfig.tags,
+      context.serviceName,
+      context.stage,
+      gatewayName,
+    )
+
+    // Build gateway config for compiler
+    // Convert normalized authorizer back to gateway compiler format
+    const compilerConfig = {
+      ...gatewayConfig,
+      authorizerType: gatewayConfig.authorizer?.type || 'AWS_IAM',
+      // Convert jwt to authorizerConfiguration format if present
+      ...(gatewayConfig.authorizer?.jwt && {
+        authorizerConfiguration: {
+          jwt: gatewayConfig.authorizer.jwt,
+        },
+      }),
+    }
+
+    // Generate IAM role if not provided or if role is a customization object
+    const roleLogicalId = `${logicalId}Role`
+    if (shouldGenerateRole(gatewayConfig)) {
+      const roleResource = generateGatewayRole(
+        gatewayName,
+        gatewayConfig,
+        context,
+      )
+      template.Resources[roleLogicalId] = roleResource
+
+      template.Outputs[`${logicalId}RoleArn`] = {
+        Description: `IAM Role ARN for ${gatewayName} Gateway`,
+        Value: { 'Fn::GetAtt': [roleLogicalId, 'Arn'] },
+      }
+    }
+
+    // Compile Gateway resource
+    const gatewayResource = compileGateway(
+      gatewayName,
+      compilerConfig,
+      context,
+      tags,
+      roleLogicalId,
+    )
+    template.Resources[logicalId] = gatewayResource
+
+    // Add outputs
+    template.Outputs[`${logicalId}Arn`] = {
+      Description: `ARN of ${gatewayName} Gateway`,
+      Value: { 'Fn::GetAtt': [logicalId, 'GatewayArn'] },
+      Export: {
+        Name: `${context.serviceName}-${context.stage}-${pascalCase(gatewayName)}GatewayArn`,
+      },
+    }
+
+    template.Outputs[`${logicalId}Id`] = {
+      Description: `ID of ${gatewayName} Gateway`,
+      Value: { 'Fn::GetAtt': [logicalId, 'GatewayIdentifier'] },
+    }
+
+    template.Outputs[`${logicalId}Url`] = {
+      Description: `URL of ${gatewayName} Gateway`,
+      Value: { 'Fn::GetAtt': [logicalId, 'GatewayUrl'] },
+    }
+
+    return logicalId
+  }
+
+  /**
    * Compile a tool as a GatewayTarget resource
+   * @param {string} toolName - Tool name
+   * @param {object} toolConfig - Tool configuration
+   * @param {string} gatewayLogicalId - Gateway logical ID
+   * @param {object} context - Compilation context
+   * @param {object} template - CloudFormation template
+   * @param {string} [gatewayName] - Optional gateway name for unique logical ID (multi-gateway)
    */
   compileToolResource(
     toolName,
@@ -1013,8 +1206,12 @@ class ServerlessBedrockAgentCore {
     gatewayLogicalId,
     context,
     template,
+    gatewayName,
   ) {
-    const logicalId = getLogicalId(toolName, 'Tool')
+    // When same tool is in multiple gateways, include gateway name in logical ID
+    const logicalId = gatewayName
+      ? `${getLogicalId(toolName, 'Tool')}${pascalCase(gatewayName)}`
+      : getLogicalId(toolName, 'Tool')
     const serviceDir = this.serverless.serviceDir
 
     // Compile GatewayTarget resource
@@ -1027,8 +1224,11 @@ class ServerlessBedrockAgentCore {
     template.Resources[logicalId] = targetResource
 
     // Add target output
+    const description = gatewayName
+      ? `ID of ${toolName} tool (GatewayTarget for ${gatewayName})`
+      : `ID of ${toolName} tool (GatewayTarget)`
     template.Outputs[`${logicalId}Id`] = {
-      Description: `ID of ${toolName} tool (GatewayTarget)`,
+      Description: description,
       Value: { 'Fn::GetAtt': [logicalId, 'TargetId'] },
     }
   }
@@ -1037,31 +1237,17 @@ class ServerlessBedrockAgentCore {
    * Resolve the container image for a runtime
    */
   resolveContainerImage(name, config) {
-    // If artifact.containerImage is specified, use it directly
-    if (config.artifact?.containerImage) {
-      return config.artifact.containerImage
+    const artifactImage = config.artifact?.image
+
+    // If artifact.image is a string (pre-built image URI), use it directly
+    if (typeof artifactImage === 'string') {
+      return artifactImage
     }
 
-    // If artifact.docker is specified, check if we built it
-    if (config.artifact?.docker) {
+    // If artifact.image is an object (build config), check if we built it
+    if (typeof artifactImage === 'object' && artifactImage !== null) {
       if (this.builtImages[name]) {
         return this.builtImages[name]
-      }
-    }
-
-    // If image is specified, resolve it
-    if (config.image) {
-      const imageName = typeof config.image === 'string' ? config.image : name
-
-      // Check if we built this image
-      if (this.builtImages[imageName]) {
-        return this.builtImages[imageName]
-      }
-
-      // Check provider.ecr.images for URI
-      const ecrImages = this.serverless.service.provider?.ecr?.images
-      if (ecrImages && ecrImages[imageName]?.uri) {
-        return ecrImages[imageName].uri
       }
     }
 
@@ -1127,10 +1313,20 @@ class ServerlessBedrockAgentCore {
     // Resolve container image
     const containerImage = this.resolveContainerImage(name, config)
 
-    // Create a modified config with resolved image and env vars
+    // Create a modified config with resolved values and normalized artifact format
+    // This normalizes the new schema (handler, runtime at root) to the internal
+    // format expected by the compiler (entryPoint, runtime in artifact)
     const resolvedConfig = {
       ...config,
-      artifact: containerImage ? { containerImage } : config.artifact,
+      artifact: {
+        ...config.artifact,
+        // If we have a resolved container image, set it
+        ...(containerImage && { image: containerImage }),
+        // Normalize handler to entryPoint array for compiler
+        ...(config.handler && { entryPoint: [config.handler] }),
+        // Normalize runtime to artifact.runtime for compiler
+        ...(config.runtime && { runtime: config.runtime }),
+      },
     }
 
     // Inject BEDROCK_AGENTCORE_MEMORY_ID env var when memory is configured
@@ -1153,8 +1349,9 @@ class ServerlessBedrockAgentCore {
       }
     }
 
-    // Generate IAM role if not provided
-    if (!config.roleArn) {
+    // Generate IAM role if not provided or if role is a customization object
+    // Support both 'role' (new) and 'roleArn' (legacy) property names
+    if (shouldGenerateRole(config)) {
       const roleLogicalId = `${logicalId}Role`
 
       // Build role options for memory and gateway access
@@ -1278,8 +1475,9 @@ class ServerlessBedrockAgentCore {
       name,
     )
 
-    // Generate IAM role if not provided
-    if (!config.roleArn) {
+    // Generate IAM role if not provided or if role is a customization object
+    // Support both 'role' (new) and 'roleArn' (legacy) property names
+    if (shouldGenerateRole(config)) {
       const roleLogicalId = `${logicalId}Role`
       const roleResource = generateMemoryRole(name, config, context)
       template.Resources[roleLogicalId] = roleResource
@@ -1332,8 +1530,9 @@ class ServerlessBedrockAgentCore {
       name,
     )
 
-    // Generate IAM role if not provided
-    if (!config.roleArn) {
+    // Generate IAM role if not provided or if role is a customization object
+    // Support both 'role' (new) and 'roleArn' (legacy) property names
+    if (shouldGenerateRole(config)) {
       const roleLogicalId = `${logicalId}Role`
       const roleResource = generateBrowserRole(name, config, context)
       template.Resources[roleLogicalId] = roleResource
@@ -1376,8 +1575,9 @@ class ServerlessBedrockAgentCore {
       name,
     )
 
-    // Generate IAM role if not provided
-    if (!config.roleArn) {
+    // Generate IAM role if not provided or if role is a customization object
+    // Support both 'role' (new) and 'roleArn' (legacy) property names
+    if (shouldGenerateRole(config)) {
       const roleLogicalId = `${logicalId}Role`
       const roleResource = generateCodeInterpreterRole(name, config, context)
       template.Resources[roleLogicalId] = roleResource
@@ -1409,40 +1609,6 @@ class ServerlessBedrockAgentCore {
     template.Outputs[`${logicalId}Id`] = {
       Description: `ID of ${name} AgentCore CodeInterpreter`,
       Value: { 'Fn::GetAtt': [logicalId, 'CodeInterpreterId'] },
-    }
-  }
-
-  /**
-   * Compile WorkloadIdentity resources
-   */
-  compileWorkloadIdentityResources(name, config, context, template) {
-    const logicalId = getLogicalId(name, 'WorkloadIdentity')
-    const tags = mergeTags(
-      context.defaultTags,
-      config.tags,
-      context.serviceName,
-      context.stage,
-      name,
-    )
-
-    // WorkloadIdentity doesn't require an IAM role
-
-    // Compile WorkloadIdentity resource
-    const workloadIdentityResource = compileWorkloadIdentity(
-      name,
-      config,
-      context,
-      tags,
-    )
-    template.Resources[logicalId] = workloadIdentityResource
-
-    // Add outputs
-    template.Outputs[`${logicalId}Arn`] = {
-      Description: `ARN of ${name} AgentCore WorkloadIdentity`,
-      Value: { 'Fn::GetAtt': [logicalId, 'WorkloadIdentityArn'] },
-      Export: {
-        Name: `${context.serviceName}-${context.stage}-${name}-WorkloadIdentityArn`,
-      },
     }
   }
 
@@ -1541,15 +1707,17 @@ class ServerlessBedrockAgentCore {
       }
     }
 
-    this.log.notice('Agents:')
+    // Display runtime agents (non-reserved keys)
+    this.log.notice('Runtime Agents:')
+    let hasRuntimeAgents = false
     for (const [name, config] of Object.entries(agents)) {
       // Skip reserved keys
       if (RESERVED_AGENT_KEYS.includes(name)) {
         continue
       }
-      const type = config.type.charAt(0).toUpperCase() + config.type.slice(1)
+      hasRuntimeAgents = true
       this.log.notice(`  ${name}:`)
-      this.log.notice(`    Type: ${type}`)
+      this.log.notice(`    Type: Runtime`)
 
       if (config.description) {
         this.log.notice(`    Description: ${config.description}`)
@@ -1564,10 +1732,9 @@ class ServerlessBedrockAgentCore {
         }
       }
 
-      // Show tools info for runtimes
-      if (config.tools) {
-        const toolNames = Object.keys(config.tools)
-        this.log.notice(`    Tools: ${toolNames.join(', ')}`)
+      // Show gateway info for runtimes
+      if (config.gateway) {
+        this.log.notice(`    Gateway: ${config.gateway}`)
       }
 
       if (this.options.verbose) {
@@ -1575,6 +1742,43 @@ class ServerlessBedrockAgentCore {
       }
 
       this.log.notice('')
+    }
+    if (!hasRuntimeAgents) {
+      this.log.notice('  (none)')
+      this.log.notice('')
+    }
+
+    // Display browsers
+    if (agents.browsers && Object.keys(agents.browsers).length > 0) {
+      this.log.notice('Browsers:')
+      for (const [name, config] of Object.entries(agents.browsers)) {
+        this.log.notice(`  ${name}:`)
+        if (config.description) {
+          this.log.notice(`    Description: ${config.description}`)
+        }
+        if (this.options.verbose) {
+          this.log.notice(`    Config: ${JSON.stringify(config, null, 2)}`)
+        }
+        this.log.notice('')
+      }
+    }
+
+    // Display codeInterpreters
+    if (
+      agents.codeInterpreters &&
+      Object.keys(agents.codeInterpreters).length > 0
+    ) {
+      this.log.notice('Code Interpreters:')
+      for (const [name, config] of Object.entries(agents.codeInterpreters)) {
+        this.log.notice(`  ${name}:`)
+        if (config.description) {
+          this.log.notice(`    Description: ${config.description}`)
+        }
+        if (this.options.verbose) {
+          this.log.notice(`    Config: ${JSON.stringify(config, null, 2)}`)
+        }
+        this.log.notice('')
+      }
     }
   }
 
@@ -1616,6 +1820,7 @@ class ServerlessBedrockAgentCore {
 
   /**
    * Find the first runtime agent name
+   * All non-reserved keys are runtime agents
    */
   getFirstRuntimeAgent() {
     const agents = this.getAgentsConfig()
@@ -1623,14 +1828,12 @@ class ServerlessBedrockAgentCore {
       return null
     }
 
-    for (const [name, config] of Object.entries(agents)) {
-      // Skip reserved keys
+    for (const [name] of Object.entries(agents)) {
+      // Skip reserved keys - first non-reserved key is a runtime agent
       if (RESERVED_AGENT_KEYS.includes(name)) {
         continue
       }
-      if (config.type === 'runtime') {
-        return name
-      }
+      return name
     }
 
     return null
@@ -1908,7 +2111,10 @@ class ServerlessBedrockAgentCore {
     const projectPath = this.serverless.serviceDir
 
     // Start dev mode
+    const serviceName = this.serverless.service.service
     const devMode = new AgentCoreDevMode({
+      serverless: this.serverless,
+      serviceName,
       projectPath,
       agentName,
       agentConfig,

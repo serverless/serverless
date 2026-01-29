@@ -33,6 +33,7 @@ const devProgress = progress.get('main')
  * - File watching with automatic rebuild/restart
  */
 export class AgentCoreDevMode {
+  #serviceName
   #projectPath
   #agentName
   #agentConfig
@@ -59,6 +60,7 @@ export class AgentCoreDevMode {
    * Creates a new AgentCoreDevMode instance
    * @param {Object} options - Configuration options
    * @param {Object} options.serverless - Serverless instance
+   * @param {string} options.serviceName - Name of the service
    * @param {string} options.projectPath - Path to the project directory
    * @param {string} options.agentName - Name of the agent
    * @param {Object} options.agentConfig - Agent configuration
@@ -68,6 +70,7 @@ export class AgentCoreDevMode {
    */
   constructor({
     serverless,
+    serviceName,
     projectPath,
     agentName,
     agentConfig,
@@ -75,6 +78,7 @@ export class AgentCoreDevMode {
     roleArn,
     port = 8080,
   }) {
+    this.#serviceName = serviceName
     this.#projectPath = projectPath
     this.#agentName = agentName
     this.#agentConfig = agentConfig
@@ -110,15 +114,15 @@ export class AgentCoreDevMode {
   async #detectMode() {
     const artifact = this.#agentConfig.artifact
 
-    // Priority 1: Explicit docker configuration
-    if (artifact?.docker) {
+    // Priority 1: Explicit docker/image build configuration (artifact.image as object)
+    if (artifact?.image && typeof artifact.image === 'object') {
       return 'docker'
     }
 
-    // Priority 2: entryPoint means code mode
+    // Priority 2: handler means code mode
     if (
-      artifact?.entryPoint &&
-      !artifact?.containerImage &&
+      this.#agentConfig.handler &&
+      typeof artifact?.image !== 'string' &&
       !artifact?.s3?.bucket
     ) {
       return 'code'
@@ -133,7 +137,7 @@ export class AgentCoreDevMode {
     // No artifact configuration found
     throw new Error(
       `No artifact configuration found for agent '${this.#agentName}'. ` +
-        `Please specify artifact.docker or artifact.entryPoint in serverless.yml`,
+        `Please specify 'handler' for code mode or 'artifact.image' for container mode in serverless.yml`,
     )
   }
 
@@ -416,15 +420,16 @@ export class AgentCoreDevMode {
    */
   async #buildImage() {
     const imageUri = this.#getImageUri()
+    const artifactImage = this.#agentConfig.artifact?.image
 
-    // Create imageConfig that matches the artifact.docker format
+    // Create imageConfig from artifact.image (object) or defaults
     const imageConfig = {
-      path: this.#agentConfig.artifact?.docker?.path || '.',
-      platform: this.#agentConfig.artifact?.docker?.platform,
-      file: this.#agentConfig.artifact?.docker?.file,
-      buildArgs: this.#agentConfig.artifact?.docker?.buildArgs,
-      buildOptions: this.#agentConfig.artifact?.docker?.buildOptions,
-      cacheFrom: this.#agentConfig.artifact?.docker?.cacheFrom,
+      path: artifactImage?.path || '.',
+      platform: artifactImage?.platform,
+      file: artifactImage?.file,
+      buildArgs: artifactImage?.buildArgs,
+      buildOptions: artifactImage?.buildOptions,
+      cacheFrom: artifactImage?.cacheFrom,
     }
 
     logger.debug(`Building image: ${imageUri}`)
@@ -1218,7 +1223,7 @@ export class AgentCoreDevMode {
    */
   #getImageUri() {
     // Docker requires repository names to be lowercase
-    return `agentcore-${this.#agentName}:local`.toLowerCase()
+    return `${this.#serviceName}-${this.#agentName}:local`.toLowerCase()
   }
 
   /**
@@ -1226,9 +1231,9 @@ export class AgentCoreDevMode {
    * @private
    */
   #getDockerfilePath() {
-    const artifact = this.#agentConfig.artifact
-    if (artifact?.docker?.path) {
-      return path.resolve(this.#projectPath, artifact.docker.path)
+    const artifactImage = this.#agentConfig.artifact?.image
+    if (typeof artifactImage === 'object' && artifactImage?.path) {
+      return path.resolve(this.#projectPath, artifactImage.path)
     }
     // Default to project root
     return this.#projectPath

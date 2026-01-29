@@ -133,22 +133,24 @@ class ServerlessPythonRequirements {
 
     return Object.entries(agents)
       .filter(([, config]) => {
-        // Only runtime agents with code deployment
-        if (config.type !== 'runtime') return false
+        // Only runtime agents (type defaults to 'runtime' if not specified)
+        const agentType = config.type || 'runtime'
+        if (agentType !== 'runtime') return false
 
         const artifact = config.artifact || {}
 
-        // Skip if using container image or Docker build
-        if (artifact.containerImage || artifact.docker) return false
+        // Skip if using container image (string or object with build config)
+        if (artifact.image) return false
 
         // Skip if user specified their own S3 bucket
         if (artifact.s3?.bucket) return false
 
-        // Need entryPoint for code deployment
-        if (!artifact.entryPoint) return false
+        // Need handler for code deployment (new schema)
+        if (!config.handler) return false
 
         // Check for Python runtime (default is PYTHON_3_13)
-        const runtime = artifact.runtime || 'PYTHON_3_13'
+        // Runtime is now at agent root level, not artifact.runtime
+        const runtime = config.runtime || 'PYTHON_3_13'
         return runtime.startsWith('PYTHON')
       })
       .map(([name, config]) => ({

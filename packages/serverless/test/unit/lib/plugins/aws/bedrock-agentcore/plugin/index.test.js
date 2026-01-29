@@ -69,21 +69,6 @@ describe('ServerlessBedrockAgentCore', () => {
       expect(context.region).toBe('us-east-1')
       expect(context.accountId).toBe('${AWS::AccountId}')
     })
-
-    test('includes custom config when present', () => {
-      mockServerless.service.custom = {
-        agentCore: {
-          defaultTags: { Project: 'test' },
-        },
-      }
-      const { plugin } = given.plugin()
-      plugin.serverless.service.custom = mockServerless.service.custom
-
-      const context = plugin.getContext()
-
-      expect(context.customConfig).toEqual({ defaultTags: { Project: 'test' } })
-      expect(context.defaultTags).toEqual({ Project: 'test' })
-    })
   })
 
   describe('getAgentsConfig', () => {
@@ -99,34 +84,36 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     test('returns agents from service.agents', () => {
-      mockServerless.service.agents = { myAgent: { type: 'runtime' } }
+      mockServerless.service.agents = {
+        myAgent: { artifact: { image: 'test' } },
+      }
 
       const agents = pluginInstance.getAgentsConfig()
 
-      expect(agents).toEqual({ myAgent: { type: 'runtime' } })
+      expect(agents).toEqual({ myAgent: { artifact: { image: 'test' } } })
     })
 
     test('returns agents from initialServerlessConfig when service.agents not set', () => {
       delete mockServerless.service.agents
       mockServerless.service.initialServerlessConfig = {
-        agents: { myAgent: { type: 'gateway' } },
+        agents: { myAgent: { artifact: { image: 'test' } } },
       }
 
       const agents = pluginInstance.getAgentsConfig()
 
-      expect(agents).toEqual({ myAgent: { type: 'gateway' } })
+      expect(agents).toEqual({ myAgent: { artifact: { image: 'test' } } })
     })
 
     test('returns agents from custom.agents when other sources not set', () => {
       delete mockServerless.service.agents
       delete mockServerless.service.initialServerlessConfig
       mockServerless.service.custom = {
-        agents: { myAgent: { type: 'gateway' } },
+        agents: { myAgent: { artifact: { image: 'test' } } },
       }
 
       const agents = pluginInstance.getAgentsConfig()
 
-      expect(agents).toEqual({ myAgent: { type: 'gateway' } })
+      expect(agents).toEqual({ myAgent: { artifact: { image: 'test' } } })
     })
 
     test('returns agents from configurationInput when other sources not set', () => {
@@ -134,23 +121,25 @@ describe('ServerlessBedrockAgentCore', () => {
       delete mockServerless.service.initialServerlessConfig
       mockServerless.service.custom = {}
       mockServerless.configurationInput = {
-        agents: { myAgent: { type: 'browser' } },
+        agents: { myAgent: { artifact: { image: 'test' } } },
       }
 
       const agents = pluginInstance.getAgentsConfig()
 
-      expect(agents).toEqual({ myAgent: { type: 'browser' } })
+      expect(agents).toEqual({ myAgent: { artifact: { image: 'test' } } })
     })
 
     test('prioritizes service.agents over other sources', () => {
-      mockServerless.service.agents = { fromService: { type: 'runtime' } }
+      mockServerless.service.agents = {
+        fromService: { artifact: { image: 'test1' } },
+      }
       mockServerless.service.initialServerlessConfig = {
-        agents: { fromInitial: { type: 'gateway' } },
+        agents: { fromInitial: { artifact: { image: 'test2' } } },
       }
 
       const agents = pluginInstance.getAgentsConfig()
 
-      expect(agents).toEqual({ fromService: { type: 'runtime' } })
+      expect(agents).toEqual({ fromService: { artifact: { image: 'test1' } } })
     })
   })
 
@@ -165,8 +154,7 @@ describe('ServerlessBedrockAgentCore', () => {
     test('validates all agents when defined', () => {
       mockServerless.service.agents = {
         myRuntime: {
-          type: 'runtime',
-          artifact: { containerImage: 'test:latest' },
+          artifact: { image: 'test:latest' },
         },
       }
 
@@ -178,73 +166,32 @@ describe('ServerlessBedrockAgentCore', () => {
   })
 
   describe('validateAgent', () => {
-    test('defaults to runtime type when not specified', () => {
-      const config = { artifact: { containerImage: 'test:latest' } }
-      pluginInstance.validateAgent('myAgent', config)
-      expect(config.type).toBe('runtime')
-    })
-
-    test('throws error for invalid type', () => {
+    test('non-reserved keys are treated as runtime agents', () => {
+      const config = { artifact: { image: 'test:latest' } }
+      // No type property needed - all non-reserved keys are runtimes
       expect(() =>
-        pluginInstance.validateAgent('myAgent', { type: 'invalid' }),
-      ).toThrow("Agent 'myAgent' has invalid type 'invalid'")
-    })
-
-    test('throws error for memory type (no longer valid as agent type)', () => {
-      expect(() =>
-        pluginInstance.validateAgent('myAgent', { type: 'memory' }),
-      ).toThrow("Agent 'myAgent' has invalid type 'memory'")
-    })
-
-    test('accepts valid runtime type', () => {
-      expect(() =>
-        pluginInstance.validateAgent('myAgent', {
-          type: 'runtime',
-          artifact: { containerImage: 'test:latest' },
-        }),
-      ).not.toThrow()
-    })
-
-    test('accepts valid browser type', () => {
-      expect(() =>
-        pluginInstance.validateAgent('myAgent', { type: 'browser' }),
-      ).not.toThrow()
-    })
-
-    test('accepts valid codeInterpreter type', () => {
-      expect(() =>
-        pluginInstance.validateAgent('myAgent', { type: 'codeInterpreter' }),
-      ).not.toThrow()
-    })
-
-    test('accepts valid workloadIdentity type', () => {
-      expect(() =>
-        pluginInstance.validateAgent('myAgent', { type: 'workloadIdentity' }),
+        pluginInstance.validateAgent('myAgent', config),
       ).not.toThrow()
     })
   })
 
   describe('validateRuntime', () => {
     test('accepts runtime with no artifact (buildpacks auto-detection)', () => {
-      // When no artifact config is specified, buildpacks auto-detection will be used
-      expect(() =>
-        pluginInstance.validateRuntime('myAgent', { type: 'runtime' }),
-      ).not.toThrow()
+      expect(() => pluginInstance.validateRuntime('myAgent', {})).not.toThrow()
     })
 
-    test('accepts artifact.containerImage', () => {
+    test('accepts artifact.image', () => {
       expect(() =>
         pluginInstance.validateRuntime('myAgent', {
-          type: 'runtime',
-          artifact: { containerImage: 'test:latest' },
+          artifact: { image: 'test:latest' },
         }),
       ).not.toThrow()
     })
 
-    test('accepts artifact.s3', () => {
+    test('accepts artifact.s3 with handler', () => {
       expect(() =>
         pluginInstance.validateRuntime('myAgent', {
-          type: 'runtime',
+          handler: 'agent.py',
           artifact: { s3: { bucket: 'my-bucket', key: 'agent.zip' } },
         }),
       ).not.toThrow()
@@ -253,7 +200,6 @@ describe('ServerlessBedrockAgentCore', () => {
     test('accepts artifact.docker', () => {
       expect(() =>
         pluginInstance.validateRuntime('myAgent', {
-          type: 'runtime',
           artifact: { docker: { path: '.' } },
         }),
       ).not.toThrow()
@@ -262,26 +208,23 @@ describe('ServerlessBedrockAgentCore', () => {
     test('accepts image config', () => {
       expect(() =>
         pluginInstance.validateRuntime('myAgent', {
-          type: 'runtime',
           image: { path: '.', file: 'Dockerfile' },
         }),
       ).not.toThrow()
     })
 
-    test('throws error for invalid artifact config', () => {
+    test('accepts empty artifact (defaults to code deployment)', () => {
       expect(() =>
         pluginInstance.validateRuntime('myAgent', {
-          type: 'runtime',
           artifact: {},
         }),
-      ).toThrow("Runtime 'myAgent' artifact must specify either")
+      ).not.toThrow()
     })
 
     test('validates requestHeaders.allowlist is array', () => {
       expect(() =>
         pluginInstance.validateRuntime('myAgent', {
-          type: 'runtime',
-          artifact: { containerImage: 'test:latest' },
+          artifact: { image: 'test:latest' },
           requestHeaders: { allowlist: 'not-an-array' },
         }),
       ).toThrow("Runtime 'myAgent' requestHeaders.allowlist must be an array")
@@ -291,8 +234,7 @@ describe('ServerlessBedrockAgentCore', () => {
       const headers = Array.from({ length: 21 }, (_, i) => `Header-${i}`)
       expect(() =>
         pluginInstance.validateRuntime('myAgent', {
-          type: 'runtime',
-          artifact: { containerImage: 'test:latest' },
+          artifact: { image: 'test:latest' },
           requestHeaders: { allowlist: headers },
         }),
       ).toThrow('cannot exceed 20 headers')
@@ -301,8 +243,7 @@ describe('ServerlessBedrockAgentCore', () => {
     test('validates requestHeaders.allowlist header names', () => {
       expect(() =>
         pluginInstance.validateRuntime('myAgent', {
-          type: 'runtime',
-          artifact: { containerImage: 'test:latest' },
+          artifact: { image: 'test:latest' },
           requestHeaders: { allowlist: ['Valid-Header', ''] },
         }),
       ).toThrow('contains invalid header name')
@@ -361,8 +302,7 @@ describe('ServerlessBedrockAgentCore', () => {
     test('accepts runtime with inline memory config', () => {
       expect(() =>
         pluginInstance.validateRuntime('myAgent', {
-          type: 'runtime',
-          artifact: { containerImage: 'test:latest' },
+          artifact: { image: 'test:latest' },
           memory: { expiration: 90 },
         }),
       ).not.toThrow()
@@ -374,8 +314,7 @@ describe('ServerlessBedrockAgentCore', () => {
         pluginInstance.validateRuntime(
           'myAgent',
           {
-            type: 'runtime',
-            artifact: { containerImage: 'test:latest' },
+            artifact: { image: 'test:latest' },
             memory: 'shared-memory',
           },
           sharedMemories,
@@ -388,8 +327,7 @@ describe('ServerlessBedrockAgentCore', () => {
         pluginInstance.validateRuntime(
           'myAgent',
           {
-            type: 'runtime',
-            artifact: { containerImage: 'test:latest' },
+            artifact: { image: 'test:latest' },
             memory: 'non-existent-memory',
           },
           {},
@@ -401,33 +339,30 @@ describe('ServerlessBedrockAgentCore', () => {
   describe('validateBrowser', () => {
     test('accepts valid browser config', () => {
       expect(() =>
-        pluginInstance.validateBrowser('myBrowser', { type: 'browser' }),
+        pluginInstance.validateBrowser('myBrowser', {}),
       ).not.toThrow()
     })
 
-    test('throws error for invalid networkMode', () => {
+    test('throws error for invalid mode', () => {
       expect(() =>
         pluginInstance.validateBrowser('myBrowser', {
-          type: 'browser',
-          network: { networkMode: 'PRIVATE' },
+          network: { mode: 'PRIVATE' },
         }),
-      ).toThrow("has invalid networkMode 'PRIVATE'")
+      ).toThrow("has invalid network.mode 'PRIVATE'")
     })
 
-    test('accepts PUBLIC networkMode', () => {
+    test('accepts PUBLIC mode', () => {
       expect(() =>
         pluginInstance.validateBrowser('myBrowser', {
-          type: 'browser',
-          network: { networkMode: 'PUBLIC' },
+          network: { mode: 'PUBLIC' },
         }),
       ).not.toThrow()
     })
 
-    test('accepts VPC networkMode', () => {
+    test('accepts VPC mode', () => {
       expect(() =>
         pluginInstance.validateBrowser('myBrowser', {
-          type: 'browser',
-          network: { networkMode: 'VPC' },
+          network: { mode: 'VPC' },
         }),
       ).not.toThrow()
     })
@@ -435,7 +370,6 @@ describe('ServerlessBedrockAgentCore', () => {
     test('throws error for recording without bucket', () => {
       expect(() =>
         pluginInstance.validateBrowser('myBrowser', {
-          type: 'browser',
           recording: { s3Location: {} },
         }),
       ).toThrow("recording.s3Location must have a 'bucket' property")
@@ -444,7 +378,6 @@ describe('ServerlessBedrockAgentCore', () => {
     test('accepts valid recording config', () => {
       expect(() =>
         pluginInstance.validateBrowser('myBrowser', {
-          type: 'browser',
           recording: { s3Location: { bucket: 'my-bucket' } },
         }),
       ).not.toThrow()
@@ -454,119 +387,49 @@ describe('ServerlessBedrockAgentCore', () => {
   describe('validateCodeInterpreter', () => {
     test('accepts valid codeInterpreter config', () => {
       expect(() =>
-        pluginInstance.validateCodeInterpreter('myCI', {
-          type: 'codeInterpreter',
-        }),
+        pluginInstance.validateCodeInterpreter('myCI', {}),
       ).not.toThrow()
     })
 
-    test('throws error for invalid networkMode', () => {
+    test('throws error for invalid mode', () => {
       expect(() =>
         pluginInstance.validateCodeInterpreter('myCI', {
-          type: 'codeInterpreter',
-          network: { networkMode: 'INVALID' },
+          network: { mode: 'INVALID' },
         }),
-      ).toThrow("has invalid networkMode 'INVALID'")
+      ).toThrow("has invalid network.mode 'INVALID'")
     })
 
-    test('accepts SANDBOX networkMode', () => {
+    test('accepts SANDBOX mode', () => {
       expect(() =>
         pluginInstance.validateCodeInterpreter('myCI', {
-          type: 'codeInterpreter',
-          network: { networkMode: 'SANDBOX' },
+          network: { mode: 'SANDBOX' },
         }),
       ).not.toThrow()
-    })
-
-    test('throws error for VPC mode without vpcConfig', () => {
-      expect(() =>
-        pluginInstance.validateCodeInterpreter('myCI', {
-          type: 'codeInterpreter',
-          network: { networkMode: 'VPC' },
-        }),
-      ).toThrow('requires vpcConfig when networkMode is VPC')
     })
 
     test('throws error for VPC mode without subnets', () => {
       expect(() =>
         pluginInstance.validateCodeInterpreter('myCI', {
-          type: 'codeInterpreter',
-          network: { networkMode: 'VPC', vpcConfig: {} },
+          network: { mode: 'VPC' },
         }),
-      ).toThrow('vpcConfig must have at least one subnet')
+      ).toThrow('requires network.subnets when mode is VPC')
     })
 
-    test('accepts valid VPC config', () => {
+    test('accepts valid VPC config with flat structure', () => {
       expect(() =>
         pluginInstance.validateCodeInterpreter('myCI', {
-          type: 'codeInterpreter',
           network: {
-            networkMode: 'VPC',
-            vpcConfig: { subnets: ['subnet-123'] },
+            mode: 'VPC',
+            subnets: ['subnet-123'],
           },
         }),
       ).not.toThrow()
     })
   })
 
-  describe('validateWorkloadIdentity', () => {
-    test('accepts valid workloadIdentity config', () => {
-      expect(() =>
-        pluginInstance.validateWorkloadIdentity('myWI', {
-          type: 'workloadIdentity',
-        }),
-      ).not.toThrow()
-    })
-
-    test('throws error for name too long', () => {
-      const longName = 'a'.repeat(256)
-      expect(() =>
-        pluginInstance.validateWorkloadIdentity(longName, {
-          type: 'workloadIdentity',
-        }),
-      ).toThrow('name must be between 1 and 255 characters')
-    })
-
-    test('throws error for oauth2ReturnUrls not array', () => {
-      expect(() =>
-        pluginInstance.validateWorkloadIdentity('myWI', {
-          type: 'workloadIdentity',
-          oauth2ReturnUrls: 'not-an-array',
-        }),
-      ).toThrow('oauth2ReturnUrls must be an array')
-    })
-
-    test('throws error for invalid oauth2ReturnUrl', () => {
-      expect(() =>
-        pluginInstance.validateWorkloadIdentity('myWI', {
-          type: 'workloadIdentity',
-          oauth2ReturnUrls: ['http://example.com'],
-        }),
-      ).toThrow('must contain valid HTTPS URLs')
-    })
-
-    test('accepts https oauth2ReturnUrls', () => {
-      expect(() =>
-        pluginInstance.validateWorkloadIdentity('myWI', {
-          type: 'workloadIdentity',
-          oauth2ReturnUrls: ['https://example.com/callback'],
-        }),
-      ).not.toThrow()
-    })
-
-    test('accepts localhost oauth2ReturnUrls', () => {
-      expect(() =>
-        pluginInstance.validateWorkloadIdentity('myWI', {
-          type: 'workloadIdentity',
-          oauth2ReturnUrls: ['http://localhost:3000/callback'],
-        }),
-      ).not.toThrow()
-    })
-  })
-
   describe('resolveContainerImage', () => {
-    test('returns artifact.containerImage when specified', () => {
-      const config = { artifact: { containerImage: 'test:latest' } }
+    test('returns artifact.image when specified', () => {
+      const config = { artifact: { image: 'test:latest' } }
       const result = pluginInstance.resolveContainerImage('myAgent', config)
       expect(result).toBe('test:latest')
     })
@@ -578,22 +441,22 @@ describe('ServerlessBedrockAgentCore', () => {
       expect(result).toBe('built:image')
     })
 
-    test('returns built image for string image reference', () => {
-      pluginInstance.builtImages = { myImage: 'built:image' }
-      const config = { image: 'myImage' }
+    test('returns built image for artifact.image build config', () => {
+      pluginInstance.builtImages = { myAgent: 'built:image' }
+      const config = { artifact: { image: { path: '.', file: 'Dockerfile' } } }
       const result = pluginInstance.resolveContainerImage('myAgent', config)
       expect(result).toBe('built:image')
     })
 
-    test('returns ECR URI from provider.ecr.images', () => {
+    test('returns null for unknown image reference', () => {
       mockServerless.service.provider.ecr = {
         images: {
-          myImage: { uri: 'ecr:uri' },
+          otherImage: { uri: 'ecr:uri' },
         },
       }
-      const config = { image: 'myImage' }
+      const config = { artifact: {} }
       const result = pluginInstance.resolveContainerImage('myAgent', config)
-      expect(result).toBe('ecr:uri')
+      expect(result).toBeNull()
     })
 
     test('returns null when no image found', () => {
@@ -613,7 +476,9 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     test('returns early when no compiled template', () => {
-      mockServerless.service.agents = { myAgent: { type: 'gateway' } }
+      mockServerless.service.agents = {
+        myAgent: { artifact: { image: 'test' } },
+      }
       mockServerless.service.provider.compiledCloudFormationTemplate = null
 
       pluginInstance.compileAgentCoreResources()
@@ -632,11 +497,10 @@ describe('ServerlessBedrockAgentCore', () => {
       expect(mockUtils.log.info).toHaveBeenCalledTimes(1)
     })
 
-    test('compiles runtime resources', () => {
+    test('compiles runtime resources (non-reserved key is treated as runtime)', () => {
       mockServerless.service.agents = {
         myAgent: {
-          type: 'runtime',
-          artifact: { containerImage: 'test:latest' },
+          artifact: { image: 'test:latest' },
         },
       }
 
@@ -667,8 +531,7 @@ describe('ServerlessBedrockAgentCore', () => {
     test('compiles inline memory for runtime', () => {
       mockServerless.service.agents = {
         myRuntime: {
-          type: 'runtime',
-          artifact: { containerImage: 'test:latest' },
+          artifact: { image: 'test:latest' },
           memory: { expiration: 90 },
         },
       }
@@ -678,7 +541,6 @@ describe('ServerlessBedrockAgentCore', () => {
       const template =
         mockServerless.service.provider.compiledCloudFormationTemplate
       expect(template.Resources).toHaveProperty('MyRuntimeRuntime')
-      // Note: The naming utility converts hyphens to "Dash" in logical IDs
       expect(template.Resources).toHaveProperty('MyRuntimeDashmemoryMemory')
       expect(template.Resources).toHaveProperty('MyRuntimeDashmemoryMemoryRole')
     })
@@ -689,8 +551,7 @@ describe('ServerlessBedrockAgentCore', () => {
           sharedMem: { expiration: 90 },
         },
         myRuntime: {
-          type: 'runtime',
-          artifact: { containerImage: 'test:latest' },
+          artifact: { image: 'test:latest' },
           memory: 'sharedMem',
         },
       }
@@ -701,19 +562,16 @@ describe('ServerlessBedrockAgentCore', () => {
         mockServerless.service.provider.compiledCloudFormationTemplate
       expect(template.Resources).toHaveProperty('SharedMemMemory')
       expect(template.Resources).toHaveProperty('MyRuntimeRuntime')
-      // Runtime should depend on the shared memory
       expect(template.Resources.MyRuntimeRuntime.DependsOn).toContain(
         'SharedMemMemory',
       )
-      // Memory ARN output should be added
       expect(template.Outputs).toHaveProperty('MyRuntimeRuntimeMemoryArn')
     })
 
     test('injects BEDROCK_AGENTCORE_MEMORY_ID env var for inline memory', () => {
       mockServerless.service.agents = {
         myRuntime: {
-          type: 'runtime',
-          artifact: { containerImage: 'test:latest' },
+          artifact: { image: 'test:latest' },
           memory: { expiration: 90 },
         },
       }
@@ -737,8 +595,7 @@ describe('ServerlessBedrockAgentCore', () => {
           sharedMem: { expiration: 90 },
         },
         myRuntime: {
-          type: 'runtime',
-          artifact: { containerImage: 'test:latest' },
+          artifact: { image: 'test:latest' },
           memory: 'sharedMem',
         },
       }
@@ -759,8 +616,7 @@ describe('ServerlessBedrockAgentCore', () => {
     test('preserves existing env vars when adding BEDROCK_AGENTCORE_MEMORY_ID', () => {
       mockServerless.service.agents = {
         myRuntime: {
-          type: 'runtime',
-          artifact: { containerImage: 'test:latest' },
+          artifact: { image: 'test:latest' },
           memory: { expiration: 90 },
           environment: {
             MY_VAR: 'my-value',
@@ -785,9 +641,11 @@ describe('ServerlessBedrockAgentCore', () => {
       })
     })
 
-    test('compiles browser resources', () => {
+    test('compiles browser resources from browsers reserved key', () => {
       mockServerless.service.agents = {
-        myBrowser: { type: 'browser' },
+        browsers: {
+          myBrowser: {},
+        },
       }
 
       pluginInstance.compileAgentCoreResources()
@@ -797,9 +655,11 @@ describe('ServerlessBedrockAgentCore', () => {
       expect(template.Resources).toHaveProperty('MyBrowserBrowser')
     })
 
-    test('compiles codeInterpreter resources', () => {
+    test('compiles codeInterpreter resources from codeInterpreters reserved key', () => {
       mockServerless.service.agents = {
-        myCI: { type: 'codeInterpreter' },
+        codeInterpreters: {
+          myCI: {},
+        },
       }
 
       pluginInstance.compileAgentCoreResources()
@@ -809,23 +669,10 @@ describe('ServerlessBedrockAgentCore', () => {
       expect(template.Resources).toHaveProperty('MyCICodeInterpreter')
     })
 
-    test('compiles workloadIdentity resources', () => {
-      mockServerless.service.agents = {
-        myWI: { type: 'workloadIdentity' },
-      }
-
-      pluginInstance.compileAgentCoreResources()
-
-      const template =
-        mockServerless.service.provider.compiledCloudFormationTemplate
-      expect(template.Resources).toHaveProperty('MyWIWorkloadIdentity')
-    })
-
     test('compiles runtime with endpoints', () => {
       mockServerless.service.agents = {
         myAgent: {
-          type: 'runtime',
-          artifact: { containerImage: 'test:latest' },
+          artifact: { image: 'test:latest' },
           endpoints: [{ name: 'v1', description: 'Version 1' }],
         },
       }
@@ -837,12 +684,12 @@ describe('ServerlessBedrockAgentCore', () => {
       expect(template.Resources).toHaveProperty('MyAgentv1Endpoint')
     })
 
-    test('uses provided roleArn instead of generating role', () => {
+    test('uses provided role instead of generating role', () => {
       mockServerless.service.agents = {
         memory: {
           myMemory: {
             expiration: 90,
-            roleArn: 'arn:aws:iam::123456789012:role/CustomRole',
+            role: 'arn:aws:iam::123456789012:role/CustomRole',
           },
         },
       }
@@ -858,8 +705,7 @@ describe('ServerlessBedrockAgentCore', () => {
       mockServerless.service.agents = {
         memory: { myMemory: { expiration: 90 } },
         myRuntime: {
-          type: 'runtime',
-          artifact: { containerImage: 'test:latest' },
+          artifact: { image: 'test:latest' },
         },
       }
 
@@ -880,12 +726,11 @@ describe('ServerlessBedrockAgentCore', () => {
 
     test('completes without logging when resources exist', async () => {
       mockServerless.service.agents = {
-        myAgent: { type: 'runtime' },
+        myAgent: { artifact: { image: 'test' } },
       }
 
       await pluginInstance.displayDeploymentInfo()
 
-      // No logging output - resources deployed silently
       expect(mockUtils.log.notice).not.toHaveBeenCalled()
     })
   })
@@ -901,7 +746,7 @@ describe('ServerlessBedrockAgentCore', () => {
 
     test('shows agent information', async () => {
       mockServerless.service.agents = {
-        myAgent: { type: 'runtime', description: 'Test agent' },
+        myAgent: { description: 'Test agent', artifact: { image: 'test' } },
       }
 
       await pluginInstance.showInfo()
@@ -916,7 +761,7 @@ describe('ServerlessBedrockAgentCore', () => {
 
     test('shows verbose output when option set', async () => {
       mockServerless.service.agents = {
-        myAgent: { type: 'runtime' },
+        myAgent: { artifact: { image: 'test' } },
       }
       mockOptions.verbose = true
 
@@ -935,11 +780,11 @@ describe('ServerlessBedrockAgentCore', () => {
       expect(result).toBeNull()
     })
 
-    test('returns first runtime agent name', () => {
+    test('returns first runtime agent name (non-reserved key)', () => {
       mockServerless.service.agents = {
-        myBrowser: { type: 'browser' },
-        myRuntime: { type: 'runtime' },
-        anotherRuntime: { type: 'runtime' },
+        browsers: { myBrowser: {} },
+        myRuntime: { artifact: { image: 'test' } },
+        anotherRuntime: { artifact: { image: 'test2' } },
       }
 
       const result = pluginInstance.getFirstRuntimeAgent()
@@ -950,7 +795,7 @@ describe('ServerlessBedrockAgentCore', () => {
     test('skips memory reserved key', () => {
       mockServerless.service.agents = {
         memory: { sharedMem: { expiration: 90 } },
-        myRuntime: { type: 'runtime' },
+        myRuntime: { artifact: { image: 'test' } },
       }
 
       const result = pluginInstance.getFirstRuntimeAgent()
@@ -961,7 +806,29 @@ describe('ServerlessBedrockAgentCore', () => {
     test('skips tools reserved key', () => {
       mockServerless.service.agents = {
         tools: { myTool: { mcp: 'https://example.com/mcp' } },
-        myRuntime: { type: 'runtime' },
+        myRuntime: { artifact: { image: 'test' } },
+      }
+
+      const result = pluginInstance.getFirstRuntimeAgent()
+
+      expect(result).toBe('myRuntime')
+    })
+
+    test('skips browsers reserved key', () => {
+      mockServerless.service.agents = {
+        browsers: { myBrowser: {} },
+        myRuntime: { artifact: { image: 'test' } },
+      }
+
+      const result = pluginInstance.getFirstRuntimeAgent()
+
+      expect(result).toBe('myRuntime')
+    })
+
+    test('skips codeInterpreters reserved key', () => {
+      mockServerless.service.agents = {
+        codeInterpreters: { myCI: {} },
+        myRuntime: { artifact: { image: 'test' } },
       }
 
       const result = pluginInstance.getFirstRuntimeAgent()
@@ -974,7 +841,7 @@ describe('ServerlessBedrockAgentCore', () => {
     describe('collectAllTools', () => {
       test('returns hasTools false when no tools defined', () => {
         mockServerless.service.agents = {
-          myRuntime: { type: 'runtime' },
+          myRuntime: { artifact: { image: 'test' } },
         }
 
         const result = pluginInstance.collectAllTools(
@@ -982,14 +849,14 @@ describe('ServerlessBedrockAgentCore', () => {
         )
 
         expect(result.hasTools).toBe(false)
+        expect(result.hasGateways).toBe(false)
         expect(result.sharedTools).toEqual({})
-        expect(result.agentTools).toEqual({})
       })
 
       test('returns hasTools true when shared tools defined', () => {
         mockServerless.service.agents = {
           tools: { myTool: { mcp: 'https://example.com/mcp' } },
-          myRuntime: { type: 'runtime' },
+          myRuntime: { artifact: { image: 'test' } },
         }
 
         const result = pluginInstance.collectAllTools(
@@ -997,17 +864,19 @@ describe('ServerlessBedrockAgentCore', () => {
         )
 
         expect(result.hasTools).toBe(true)
+        expect(result.hasGateways).toBe(false)
         expect(result.sharedTools).toEqual({
           myTool: { mcp: 'https://example.com/mcp' },
         })
       })
 
-      test('returns hasTools true when agent has tools', () => {
+      test('returns hasGateways true when gateways defined', () => {
         mockServerless.service.agents = {
-          myRuntime: {
-            type: 'runtime',
-            tools: { myTool: { mcp: 'https://example.com/mcp' } },
+          tools: { myTool: { mcp: 'https://example.com/mcp' } },
+          gateways: {
+            myGateway: { authorizer: 'AWS_IAM', tools: ['myTool'] },
           },
+          myRuntime: { artifact: { image: 'test' } },
         }
 
         const result = pluginInstance.collectAllTools(
@@ -1015,25 +884,7 @@ describe('ServerlessBedrockAgentCore', () => {
         )
 
         expect(result.hasTools).toBe(true)
-        expect(result.agentTools.myRuntime).toBeDefined()
-      })
-
-      test('resolves string references to shared tools', () => {
-        mockServerless.service.agents = {
-          tools: { sharedMcp: { mcp: 'https://example.com/mcp' } },
-          myRuntime: {
-            type: 'runtime',
-            tools: { myTool: 'sharedMcp' },
-          },
-        }
-
-        const result = pluginInstance.collectAllTools(
-          mockServerless.service.agents,
-        )
-
-        expect(result.agentTools.myRuntime.myTool).toEqual({
-          mcp: 'https://example.com/mcp',
-        })
+        expect(result.hasGateways).toBe(true)
       })
     })
 
@@ -1067,24 +918,22 @@ describe('ServerlessBedrockAgentCore', () => {
         ).toThrow("Tool 'myTool' mcp endpoint must be a valid https:// URL")
       })
 
-      test('throws error for OAUTH credentials missing providerArn', () => {
+      test('throws error for OAUTH credentials missing provider', () => {
         expect(() =>
           pluginInstance.validateToolConfig('myTool', {
             mcp: 'https://example.com/mcp',
             credentials: { type: 'OAUTH', scopes: ['read'] },
           }),
-        ).toThrow(
-          "Tool 'myTool' OAUTH credentials require providerArn and scopes",
-        )
+        ).toThrow("Tool 'myTool' OAUTH credentials require provider and scopes")
       })
 
-      test('throws error for API_KEY credentials missing providerArn', () => {
+      test('throws error for API_KEY credentials missing provider', () => {
         expect(() =>
           pluginInstance.validateToolConfig('myTool', {
             mcp: 'https://example.com/mcp',
             credentials: { type: 'API_KEY' },
           }),
-        ).toThrow("Tool 'myTool' API_KEY credentials require providerArn")
+        ).toThrow("Tool 'myTool' API_KEY credentials require provider")
       })
     })
 
@@ -1099,25 +948,11 @@ describe('ServerlessBedrockAgentCore', () => {
         )
       })
 
-      test('throws error when agent tool references non-existent shared tool', () => {
-        mockServerless.service.agents = {
-          myRuntime: {
-            type: 'runtime',
-            tools: { myTool: 'nonExistentTool' },
-          },
-        }
-
-        expect(() => pluginInstance.validateConfig()).toThrow(
-          "Runtime 'myRuntime' tool 'myTool' references shared tool 'nonExistentTool' which is not defined in agents.tools",
-        )
-      })
-
-      test('validates successfully with valid tool references', () => {
+      test('validates successfully with valid shared tool', () => {
         mockServerless.service.agents = {
           tools: { sharedMcp: { mcp: 'https://example.com/mcp' } },
           myRuntime: {
-            type: 'runtime',
-            tools: { myTool: 'sharedMcp' },
+            artifact: { image: 'test' },
           },
         }
 
@@ -1141,27 +976,10 @@ describe('ServerlessBedrockAgentCore', () => {
         )
       })
 
-      test('creates gateway when agent has tools', () => {
-        mockServerless.service.agents = {
-          myRuntime: {
-            type: 'runtime',
-            artifact: { containerImage: 'test:latest' },
-            tools: { myTool: { mcp: 'https://example.com/mcp' } },
-          },
-        }
-
-        pluginInstance.compileAgentCoreResources()
-        const template =
-          mockServerless.service.provider.compiledCloudFormationTemplate
-
-        expect(template.Resources.AgentCoreGateway).toBeDefined()
-      })
-
       test('does not create gateway when no tools', () => {
         mockServerless.service.agents = {
           myRuntime: {
-            type: 'runtime',
-            artifact: { containerImage: 'test:latest' },
+            artifact: { image: 'test:latest' },
           },
         }
 
@@ -1197,8 +1015,6 @@ describe('ServerlessBedrockAgentCore', () => {
         const template =
           mockServerless.service.provider.compiledCloudFormationTemplate
 
-        // Tool logical ID is getLogicalId(toolName, 'Tool'):
-        // 'my-mcp' -> 'myDashmcp' -> 'MyDashmcp' -> 'MyDashmcpTool'
         expect(template.Resources.MyDashmcpTool).toBeDefined()
         expect(template.Resources.MyDashmcpTool.Type).toBe(
           'AWS::BedrockAgentCore::GatewayTarget',
@@ -1207,12 +1023,11 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     describe('env var injection', () => {
-      test('injects BEDROCK_AGENTCORE_GATEWAY_URL when agent has tools', () => {
+      test('injects BEDROCK_AGENTCORE_GATEWAY_URL when shared tools exist (backwards compat)', () => {
         mockServerless.service.agents = {
+          tools: { myTool: { mcp: 'https://example.com/mcp' } },
           myRuntime: {
-            type: 'runtime',
-            artifact: { containerImage: 'test-image:latest' },
-            tools: { myTool: { mcp: 'https://example.com/mcp' } },
+            artifact: { image: 'test-image:latest' },
           },
         }
 
@@ -1221,7 +1036,6 @@ describe('ServerlessBedrockAgentCore', () => {
           mockServerless.service.provider.compiledCloudFormationTemplate
         const runtime = template.Resources.MyRuntimeRuntime
 
-        // EnvironmentVariables is a top-level property in Properties
         expect(runtime.Properties.EnvironmentVariables).toHaveProperty(
           'BEDROCK_AGENTCORE_GATEWAY_URL',
         )
@@ -1230,11 +1044,10 @@ describe('ServerlessBedrockAgentCore', () => {
         ).toEqual({ 'Fn::GetAtt': ['AgentCoreGateway', 'GatewayUrl'] })
       })
 
-      test('does not inject gateway URL when agent has no tools', () => {
+      test('does not inject gateway URL when no shared tools', () => {
         mockServerless.service.agents = {
           myRuntime: {
-            type: 'runtime',
-            artifact: { containerImage: 'test-image:latest' },
+            artifact: { image: 'test-image:latest' },
           },
         }
 
@@ -1293,6 +1106,288 @@ describe('ServerlessBedrockAgentCore', () => {
     test('throws error when no runtime agents found', async () => {
       await expect(pluginInstance.fetchLogs()).rejects.toThrow(
         'No runtime agents found in configuration',
+      )
+    })
+  })
+
+  describe('normalizeAuthorizer', () => {
+    test('returns default AWS_IAM for null', () => {
+      const result = pluginInstance.normalizeAuthorizer(null)
+      expect(result).toEqual({ type: 'AWS_IAM' })
+    })
+
+    test('returns default AWS_IAM for undefined', () => {
+      const result = pluginInstance.normalizeAuthorizer(undefined)
+      expect(result).toEqual({ type: 'AWS_IAM' })
+    })
+
+    test('converts string shorthand to object', () => {
+      const result = pluginInstance.normalizeAuthorizer('NONE')
+      expect(result).toEqual({ type: 'NONE' })
+    })
+
+    test('converts AWS_IAM string to object', () => {
+      const result = pluginInstance.normalizeAuthorizer('AWS_IAM')
+      expect(result).toEqual({ type: 'AWS_IAM' })
+    })
+
+    test('converts CUSTOM_JWT string to object', () => {
+      const result = pluginInstance.normalizeAuthorizer('CUSTOM_JWT')
+      expect(result).toEqual({ type: 'CUSTOM_JWT' })
+    })
+
+    test('converts lowercase string to uppercase', () => {
+      const result = pluginInstance.normalizeAuthorizer('none')
+      expect(result).toEqual({ type: 'NONE' })
+    })
+
+    test('passes through object form with type normalized to uppercase', () => {
+      const input = {
+        type: 'custom_jwt',
+        jwt: {
+          discoveryUrl:
+            'https://auth.example.com/.well-known/openid-configuration',
+        },
+      }
+      const result = pluginInstance.normalizeAuthorizer(input)
+      expect(result.type).toBe('CUSTOM_JWT')
+      expect(result.jwt).toEqual(input.jwt)
+    })
+  })
+
+  describe('collectGateways', () => {
+    test('returns empty object when no gateways defined', () => {
+      mockServerless.service.agents = {
+        tools: { 'my-tool': { function: 'myFunc' } },
+      }
+      const agents = pluginInstance.getAgentsConfig()
+      const result = pluginInstance.collectGateways(agents)
+
+      expect(result).toEqual({})
+    })
+
+    test('collects gateways with normalized authorizers', () => {
+      mockServerless.service.agents = {
+        gateways: {
+          publicGateway: {
+            authorizer: 'NONE',
+            tools: ['tool1'],
+          },
+          privateGateway: {
+            authorizer: { type: 'AWS_IAM' },
+            tools: ['tool2'],
+          },
+        },
+      }
+      const agents = pluginInstance.getAgentsConfig()
+      const result = pluginInstance.collectGateways(agents)
+
+      expect(result.publicGateway.authorizer).toEqual({ type: 'NONE' })
+      expect(result.publicGateway.tools).toEqual(['tool1'])
+      expect(result.privateGateway.authorizer).toEqual({ type: 'AWS_IAM' })
+      expect(result.privateGateway.tools).toEqual(['tool2'])
+    })
+  })
+
+  describe('collectAllTools with gateways', () => {
+    test('returns hasGateways false when no gateways', () => {
+      mockServerless.service.agents = {
+        tools: { 'my-tool': { function: 'myFunc' } },
+      }
+      const agents = pluginInstance.getAgentsConfig()
+      const result = pluginInstance.collectAllTools(agents)
+
+      expect(result.hasGateways).toBe(false)
+      expect(result.hasTools).toBe(true)
+    })
+
+    test('returns hasGateways true when gateways defined', () => {
+      mockServerless.service.agents = {
+        tools: { 'my-tool': { function: 'myFunc' } },
+        gateways: {
+          myGateway: { authorizer: 'AWS_IAM', tools: ['my-tool'] },
+        },
+      }
+      const agents = pluginInstance.getAgentsConfig()
+      const result = pluginInstance.collectAllTools(agents)
+
+      expect(result.hasGateways).toBe(true)
+      expect(result.hasTools).toBe(true)
+    })
+  })
+
+  describe('multi-gateway compilation', () => {
+    beforeEach(() => {
+      mockServerless.service.provider.compiledCloudFormationTemplate = {
+        Resources: {},
+        Outputs: {},
+      }
+      mockServerless.service.functions = {
+        calculator: { handler: 'calculator.handler' },
+      }
+    })
+
+    test('creates multiple gateways when gateways defined', () => {
+      mockServerless.service.agents = {
+        tools: {
+          'calc-tool': { function: 'calculator', toolSchema: [] },
+        },
+        gateways: {
+          publicGateway: { authorizer: 'NONE', tools: ['calc-tool'] },
+          privateGateway: { authorizer: 'AWS_IAM', tools: ['calc-tool'] },
+        },
+        myAgent: {
+          artifact: {
+            image:
+              '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest',
+          },
+        },
+      }
+
+      pluginInstance.compileAgentCoreResources()
+
+      const template =
+        mockServerless.service.provider.compiledCloudFormationTemplate
+      expect(template.Resources).toHaveProperty('AgentCoreGatewayPublicGateway')
+      expect(template.Resources).toHaveProperty(
+        'AgentCoreGatewayPrivateGateway',
+      )
+    })
+
+    test('creates separate GatewayTargets per gateway when same tool in multiple gateways', () => {
+      mockServerless.service.agents = {
+        tools: {
+          'calc-tool': { function: 'calculator', toolSchema: [] },
+        },
+        gateways: {
+          publicGateway: { authorizer: 'NONE', tools: ['calc-tool'] },
+          privateGateway: { authorizer: 'AWS_IAM', tools: ['calc-tool'] },
+        },
+        myAgent: {
+          artifact: {
+            image:
+              '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest',
+          },
+        },
+      }
+
+      pluginInstance.compileAgentCoreResources()
+
+      const template =
+        mockServerless.service.provider.compiledCloudFormationTemplate
+      expect(template.Resources).toHaveProperty('CalcDashtoolToolPublicGateway')
+      expect(template.Resources).toHaveProperty(
+        'CalcDashtoolToolPrivateGateway',
+      )
+    })
+
+    test('backwards compat: creates default gateway when no gateways but tools exist', () => {
+      mockServerless.service.agents = {
+        tools: {
+          'calc-tool': { function: 'calculator', toolSchema: [] },
+        },
+        myAgent: {
+          artifact: {
+            image:
+              '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest',
+          },
+        },
+      }
+
+      pluginInstance.compileAgentCoreResources()
+
+      const template =
+        mockServerless.service.provider.compiledCloudFormationTemplate
+      expect(template.Resources).toHaveProperty('AgentCoreGateway')
+      expect(template.Resources).not.toHaveProperty(
+        'AgentCoreGatewayPublicGateway',
+      )
+    })
+  })
+
+  describe('agent gateway selection', () => {
+    beforeEach(() => {
+      mockServerless.service.provider.compiledCloudFormationTemplate = {
+        Resources: {},
+        Outputs: {},
+      }
+      mockServerless.service.functions = {
+        calculator: { handler: 'calculator.handler' },
+      }
+    })
+
+    test('injects GATEWAY_URL when agent specifies gateway', () => {
+      mockServerless.service.agents = {
+        tools: {
+          'calc-tool': { function: 'calculator', toolSchema: [] },
+        },
+        gateways: {
+          privateGateway: { authorizer: 'AWS_IAM', tools: ['calc-tool'] },
+        },
+        myAgent: {
+          artifact: {
+            image:
+              '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest',
+          },
+          gateway: 'privateGateway',
+        },
+      }
+
+      pluginInstance.compileAgentCoreResources()
+
+      const template =
+        mockServerless.service.provider.compiledCloudFormationTemplate
+      const runtime = template.Resources.MyAgentRuntime
+      expect(runtime.Properties.EnvironmentVariables).toHaveProperty(
+        'BEDROCK_AGENTCORE_GATEWAY_URL',
+      )
+    })
+
+    test('does NOT inject GATEWAY_URL when agent does not specify gateway in multi-gateway mode', () => {
+      mockServerless.service.agents = {
+        tools: {
+          'calc-tool': { function: 'calculator', toolSchema: [] },
+        },
+        gateways: {
+          privateGateway: { authorizer: 'AWS_IAM', tools: ['calc-tool'] },
+        },
+        myAgent: {
+          artifact: {
+            image:
+              '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest',
+          },
+        },
+      }
+
+      pluginInstance.compileAgentCoreResources()
+
+      const template =
+        mockServerless.service.provider.compiledCloudFormationTemplate
+      const runtime = template.Resources.MyAgentRuntime
+      const envVars = runtime.Properties.EnvironmentVariables || {}
+      expect(envVars.BEDROCK_AGENTCORE_GATEWAY_URL).toBeUndefined()
+    })
+
+    test('backwards compat: injects GATEWAY_URL for all agents when no gateways but tools exist', () => {
+      mockServerless.service.agents = {
+        tools: {
+          'calc-tool': { function: 'calculator', toolSchema: [] },
+        },
+        myAgent: {
+          artifact: {
+            image:
+              '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest',
+          },
+        },
+      }
+
+      pluginInstance.compileAgentCoreResources()
+
+      const template =
+        mockServerless.service.provider.compiledCloudFormationTemplate
+      const runtime = template.Resources.MyAgentRuntime
+      expect(runtime.Properties.EnvironmentVariables).toHaveProperty(
+        'BEDROCK_AGENTCORE_GATEWAY_URL',
       )
     })
   })

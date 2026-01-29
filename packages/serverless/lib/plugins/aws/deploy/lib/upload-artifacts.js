@@ -188,19 +188,20 @@ export default {
 
     return Object.entries(agents)
       .filter(([, config]) => {
-        // Only runtime agents with code deployment
-        if (config.type !== 'runtime') return false
+        // Only runtime agents with code deployment (type defaults to 'runtime')
+        const agentType = config.type || 'runtime'
+        if (agentType !== 'runtime') return false
 
         const artifact = config.artifact || {}
 
-        // Skip if using container image or Docker build
-        if (artifact.containerImage || artifact.docker) return false
+        // Skip if using container image (string or object with build config)
+        if (artifact.image) return false
 
         // Skip if user specified their own S3 bucket
         if (artifact.s3?.bucket) return false
 
-        // Need entryPoint for code deployment
-        if (!artifact.entryPoint) return false
+        // Need handler for code deployment (new schema)
+        if (!config.handler) return false
 
         // Must have a package artifact (set during packaging)
         if (!config.package?.artifact) return false

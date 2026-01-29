@@ -61,7 +61,7 @@ agents:
       networkMode: PUBLIC # PUBLIC or VPC
     # Optional: JWT authorization (omit for IAM auth)
     authorizer:
-      customJwtAuthorizer:
+      jwt:
         discoveryUrl: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_xxx/.well-known/openid-configuration
         allowedAudience:
           - my-client-id

@@ -29,18 +29,55 @@
 import { getLogicalId, getGatewayResourceName } from '../utils/naming.js'
 
 /**
- * Build authorizer configuration for the gateway
+ * Transform custom claims from camelCase to PascalCase CFN format
  */
-export function buildGatewayAuthorizerConfiguration(authConfig) {
-  if (!authConfig || !authConfig.customJwtAuthorizer) {
+function transformCustomClaims(customClaims) {
+  if (!customClaims || !Array.isArray(customClaims)) {
     return null
   }
 
-  const jwtConfig = authConfig.customJwtAuthorizer
+  return customClaims.map((claim) => ({
+    InboundTokenClaimName: claim.inboundTokenClaimName,
+    InboundTokenClaimValueType: claim.inboundTokenClaimValueType,
+    ...(claim.authorizingClaimMatchValue && {
+      AuthorizingClaimMatchValue: {
+        ClaimMatchOperator: claim.authorizingClaimMatchValue.claimMatchOperator,
+        ...(claim.authorizingClaimMatchValue.claimMatchValue && {
+          ClaimMatchValue: {
+            ...(claim.authorizingClaimMatchValue.claimMatchValue
+              .matchValueString && {
+              MatchValueString:
+                claim.authorizingClaimMatchValue.claimMatchValue
+                  .matchValueString,
+            }),
+            ...(claim.authorizingClaimMatchValue.claimMatchValue
+              .matchValueStringList && {
+              MatchValueStringList:
+                claim.authorizingClaimMatchValue.claimMatchValue
+                  .matchValueStringList,
+            }),
+          },
+        }),
+      },
+    }),
+  }))
+}
+
+/**
+ * Build authorizer configuration for the gateway
+ */
+export function buildGatewayAuthorizerConfiguration(authConfig) {
+  if (!authConfig || !authConfig.jwt) {
+    return null
+  }
+
+  const jwtConfig = authConfig.jwt
 
   if (!jwtConfig.discoveryUrl) {
-    throw new Error('Gateway CustomJWTAuthorizer requires discoveryUrl')
+    throw new Error('Gateway JWT authorizer requires discoveryUrl')
   }
+
+  const transformedClaims = transformCustomClaims(jwtConfig.customClaims)
 
   return {
     CustomJWTAuthorizer: {
@@ -54,35 +91,97 @@ export function buildGatewayAuthorizerConfiguration(authConfig) {
       ...(jwtConfig.allowedScopes && {
         AllowedScopes: jwtConfig.allowedScopes,
       }),
-      ...(jwtConfig.customClaims && { CustomClaims: jwtConfig.customClaims }),
+      ...(transformedClaims && {
+        CustomClaims: transformedClaims,
+      }),
     },
   }
 }
 
 /**
  * Build protocol configuration for the gateway
+ *
+ * Format:
+ *   protocol:
+ *     type: MCP
+ *     supportedVersions: [...]
+ *     instructions: "..."
+ *     searchType: SEMANTIC
+ *
  * CFN structure: { Mcp: { SupportedVersions?, Instructions?, SearchType? } }
  */
 export function buildGatewayProtocolConfiguration(protocolConfig) {
-  if (!protocolConfig || !protocolConfig.mcp) {
+  if (!protocolConfig) {
     return null
   }
 
-  const mcpConfig = protocolConfig.mcp
+  const hasContent =
+    protocolConfig.supportedVersions ||
+    protocolConfig.instructions ||
+    protocolConfig.searchType
+  if (!hasContent) {
+    return null
+  }
 
   return {
     Mcp: {
-      ...(mcpConfig.supportedVersions && {
-        SupportedVersions: mcpConfig.supportedVersions,
+      ...(protocolConfig.supportedVersions && {
+        SupportedVersions: protocolConfig.supportedVersions,
       }),
-      ...(mcpConfig.instructions && { Instructions: mcpConfig.instructions }),
-      ...(mcpConfig.searchType && { SearchType: mcpConfig.searchType }),
+      ...(protocolConfig.instructions && {
+        Instructions: protocolConfig.instructions,
+      }),
+      ...(protocolConfig.searchType && {
+        SearchType: protocolConfig.searchType.toUpperCase(),
+      }),
     },
   }
 }
 
 /**
+ * Resolve role configuration to CloudFormation value
+ * Supports:
+ *   - ARN string: used directly
+ *   - Logical name string: converted to Fn::GetAtt
+ *   - Object (CF intrinsic like Fn::GetAtt, Fn::ImportValue): used directly
+ *   - Undefined: falls back to generated role
+ */
+function resolveRole(role, generatedRoleLogicalId) {
+  if (!role) {
+    return { 'Fn::GetAtt': [generatedRoleLogicalId, 'Arn'] }
+  }
+  if (typeof role === 'string') {
+    // String can be ARN or logical ID
+    if (role.startsWith('arn:')) {
+      return role
+    }
+    return { 'Fn::GetAtt': [role, 'Arn'] }
+  }
+  if (typeof role === 'object') {
+    // Check if it's a CloudFormation intrinsic function
+    if (
+      role.Ref ||
+      role['Fn::GetAtt'] ||
+      role['Fn::ImportValue'] ||
+      role['Fn::Sub'] ||
+      role['Fn::Join']
+    ) {
+      return role
+    }
+    // Otherwise it's a customization object - use generated role
+    return { 'Fn::GetAtt': [generatedRoleLogicalId, 'Arn'] }
+  }
+  return { 'Fn::GetAtt': [generatedRoleLogicalId, 'Arn'] }
+}
+
+/**
  * Compile a Gateway resource to CloudFormation
+ *
+ * Supported formats:
+ *   authorizer: 'NONE' | 'AWS_IAM' | 'CUSTOM_JWT' | { type: 'CUSTOM_JWT', jwt: {...} }
+ *   protocol: { type: 'MCP', instructions: ..., ... }
+ *   role: 'arn:...' | { name, statements, managedPolicies, ... }
+ *
  * @param {string} name - Gateway name
  * @param {object} config - Gateway configuration
  * @param {object} context - Serverless context (serviceName, stage)
@@ -103,15 +202,42 @@ export function compileGateway(
   const roleLogicalId =
     roleLogicalIdOverride || `${getLogicalId(name, 'Gateway')}Role`
 
-  const authorizerType = config.authorizerType || 'AWS_IAM'
-  const protocolType = config.protocolType || 'MCP'
+  // Handle authorizer configuration
+  // Supports both string shorthand and object:
+  //   authorizer: 'NONE'           (string shorthand)
+  //   authorizer: { type: 'CUSTOM_JWT', jwt: {...} }  (object)
+  let authorizerType
+  let authConfig
+  if (config.authorizer) {
+    if (typeof config.authorizer === 'string') {
+      // String shorthand (e.g., 'NONE', 'AWS_IAM')
+      authorizerType = config.authorizer.toUpperCase()
+    } else {
+      // Authorizer object with type and jwt
+      authorizerType = (config.authorizer.type || 'AWS_IAM').toUpperCase()
+      if (config.authorizer.jwt) {
+        authConfig = buildGatewayAuthorizerConfiguration({
+          jwt: config.authorizer.jwt,
+        })
+      }
+    }
+  } else {
+    // Default to AWS_IAM if not specified
+    authorizerType = 'AWS_IAM'
+  }
 
-  const authConfig = buildGatewayAuthorizerConfiguration(
-    config.authorizerConfiguration,
-  )
-  const protocolConfig = buildGatewayProtocolConfiguration(
-    config.protocolConfiguration,
-  )
+  // Handle protocol configuration
+  let protocolType
+  let protocolConfig
+  if (config.protocol) {
+    protocolType = (config.protocol.type || 'MCP').toUpperCase()
+    protocolConfig = buildGatewayProtocolConfiguration(config.protocol)
+  } else {
+    // Default to MCP if not specified
+    protocolType = 'MCP'
+  }
+
+  const role = config.role
 
   return {
     Type: 'AWS::BedrockAgentCore::Gateway',
@@ -119,12 +245,14 @@ export function compileGateway(
       Name: resourceName,
       AuthorizerType: authorizerType,
       ProtocolType: protocolType,
-      RoleArn: config.roleArn || { 'Fn::GetAtt': [roleLogicalId, 'Arn'] },
+      RoleArn: resolveRole(role, roleLogicalId),
       ...(config.description && { Description: config.description }),
       ...(authConfig && { AuthorizerConfiguration: authConfig }),
       ...(protocolConfig && { ProtocolConfiguration: protocolConfig }),
-      ...(config.kmsKeyArn && { KmsKeyArn: config.kmsKeyArn }),
-      ...(config.exceptionLevel && { ExceptionLevel: config.exceptionLevel }),
+      ...(config.kmsKey && { KmsKeyArn: config.kmsKey }),
+      ...(config.exceptionLevel && {
+        ExceptionLevel: config.exceptionLevel?.toUpperCase(),
+      }),
       ...(Object.keys(tags).length > 0 && { Tags: tags }),
     },
   }

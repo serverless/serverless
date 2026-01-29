@@ -28,10 +28,9 @@ describe('Runtime Compiler', () => {
   }
 
   describe('buildArtifact', () => {
-    test('builds container image artifact', () => {
+    test('builds container image artifact from artifact.image string', () => {
       const artifact = {
-        containerImage:
-          '123456789.dkr.ecr.us-west-2.amazonaws.com/my-agent:latest',
+        image: '123456789.dkr.ecr.us-west-2.amazonaws.com/my-agent:latest',
       }
 
       const result = buildArtifact(artifact)
@@ -96,11 +95,11 @@ describe('Runtime Compiler', () => {
       })
     })
 
-    test('throws error when neither containerImage nor s3 is specified', () => {
+    test('throws error when neither image nor s3 is specified', () => {
       const artifact = {}
 
       expect(() => buildArtifact(artifact)).toThrow(
-        'Artifact must specify either containerImage, s3 (bucket+key), or entryPoint for code deployment',
+        'Artifact must specify either image (container URI), s3 (bucket+key), or entryPoint (code deployment)',
       )
     })
   })
@@ -114,13 +113,11 @@ describe('Runtime Compiler', () => {
       })
     })
 
-    test('handles VPC mode with NetworkModeConfig', () => {
+    test('handles VPC mode with NetworkModeConfig (new flat structure)', () => {
       const network = {
-        networkMode: 'VPC',
-        vpcConfig: {
-          subnets: ['subnet-123', 'subnet-456'],
-          securityGroups: ['sg-789'],
-        },
+        mode: 'VPC',
+        subnets: ['subnet-123', 'subnet-456'],
+        securityGroups: ['sg-789'],
       }
 
       const result = buildNetworkConfiguration(network)
@@ -134,9 +131,21 @@ describe('Runtime Compiler', () => {
       })
     })
 
+    test('handles lowercase mode (case-insensitive)', () => {
+      const network = {
+        mode: 'vpc',
+        subnets: ['subnet-123'],
+        securityGroups: ['sg-789'],
+      }
+
+      const result = buildNetworkConfiguration(network)
+
+      expect(result.NetworkMode).toBe('VPC')
+    })
+
     test('does not include NetworkModeConfig for PUBLIC mode', () => {
       const network = {
-        networkMode: 'PUBLIC',
+        mode: 'PUBLIC',
       }
 
       const result = buildNetworkConfiguration(network)
@@ -154,14 +163,14 @@ describe('Runtime Compiler', () => {
       expect(result).toBeNull()
     })
 
-    test('returns null when authorizer has no customJwtAuthorizer', () => {
+    test('returns null when authorizer has no jwt', () => {
       const result = buildAuthorizerConfiguration({})
       expect(result).toBeNull()
     })
 
     test('builds CustomJWTAuthorizer with all properties', () => {
       const authorizer = {
-        customJwtAuthorizer: {
+        jwt: {
           discoveryUrl:
             'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_abc123/.well-known/openid-configuration',
           allowedAudience: ['my-app-client-id'],
@@ -183,7 +192,7 @@ describe('Runtime Compiler', () => {
 
     test('builds CustomJWTAuthorizer with only required discoveryUrl', () => {
       const authorizer = {
-        customJwtAuthorizer: {
+        jwt: {
           discoveryUrl:
             'https://auth.example.com/.well-known/openid-configuration',
         },
@@ -199,15 +208,15 @@ describe('Runtime Compiler', () => {
       })
     })
 
-    test('throws error when customJwtAuthorizer missing discoveryUrl', () => {
+    test('throws error when jwt authorizer missing discoveryUrl', () => {
       const authorizer = {
-        customJwtAuthorizer: {
+        jwt: {
           allowedAudience: ['my-app'],
         },
       }
 
       expect(() => buildAuthorizerConfiguration(authorizer)).toThrow(
-        'CustomJWTAuthorizer requires discoveryUrl',
+        'JWT authorizer requires discoveryUrl',
       )
     })
   })
@@ -263,19 +272,24 @@ describe('Runtime Compiler', () => {
       expect(result).toBeNull()
     })
 
-    test('returns protocol string directly', () => {
-      const result = buildProtocolConfiguration('MCP')
+    test('returns protocol type string from protocol object', () => {
+      const result = buildProtocolConfiguration({ type: 'MCP' })
       expect(result).toBe('MCP')
     })
 
     test('handles HTTP protocol', () => {
-      const result = buildProtocolConfiguration('HTTP')
+      const result = buildProtocolConfiguration({ type: 'HTTP' })
       expect(result).toBe('HTTP')
     })
 
     test('handles A2A protocol', () => {
-      const result = buildProtocolConfiguration('A2A')
+      const result = buildProtocolConfiguration({ type: 'A2A' })
       expect(result).toBe('A2A')
+    })
+
+    test('handles lowercase protocol type (case-insensitive)', () => {
+      const result = buildProtocolConfiguration({ type: 'mcp' })
+      expect(result).toBe('MCP')
     })
   })
 
@@ -343,10 +357,8 @@ describe('Runtime Compiler', () => {
   describe('compileRuntime', () => {
     test('generates valid CloudFormation with minimal config', () => {
       const config = {
-        type: 'runtime',
         artifact: {
-          containerImage:
-            '123456789.dkr.ecr.us-west-2.amazonaws.com/my-agent:latest',
+          image: '123456789.dkr.ecr.us-west-2.amazonaws.com/my-agent:latest',
         },
       }
 
@@ -372,12 +384,10 @@ describe('Runtime Compiler', () => {
 
     test('includes optional properties when provided', () => {
       const config = {
-        type: 'runtime',
         description: 'Test agent',
-        protocol: 'MCP',
+        protocol: { type: 'MCP' },
         artifact: {
-          containerImage:
-            '123456789.dkr.ecr.us-west-2.amazonaws.com/my-agent:latest',
+          image: '123456789.dkr.ecr.us-west-2.amazonaws.com/my-agent:latest',
         },
         environment: {
           MODEL_ID: 'anthropic.claude-sonnet-4-20250514',
@@ -393,13 +403,11 @@ describe('Runtime Compiler', () => {
       })
     })
 
-    test('uses provided roleArn when specified', () => {
+    test('uses provided role when specified as ARN', () => {
       const config = {
-        type: 'runtime',
-        roleArn: 'arn:aws:iam::123456789012:role/MyCustomRole',
+        role: 'arn:aws:iam::123456789012:role/MyCustomRole',
         artifact: {
-          containerImage:
-            '123456789.dkr.ecr.us-west-2.amazonaws.com/my-agent:latest',
+          image: '123456789.dkr.ecr.us-west-2.amazonaws.com/my-agent:latest',
         },
       }
 
@@ -410,12 +418,25 @@ describe('Runtime Compiler', () => {
       )
     })
 
+    test('uses provided role when specified as logical name', () => {
+      const config = {
+        role: 'MyCustomRoleLogicalId',
+        artifact: {
+          image: '123456789.dkr.ecr.us-west-2.amazonaws.com/my-agent:latest',
+        },
+      }
+
+      const result = compileRuntime('myAgent', config, baseContext, baseTags)
+
+      expect(result.Properties.RoleArn).toEqual({
+        'Fn::GetAtt': ['MyCustomRoleLogicalId', 'Arn'],
+      })
+    })
+
     test('includes RequestHeaderConfiguration when requestHeaders is provided', () => {
       const config = {
-        type: 'runtime',
         artifact: {
-          containerImage:
-            '123456789.dkr.ecr.us-west-2.amazonaws.com/my-agent:latest',
+          image: '123456789.dkr.ecr.us-west-2.amazonaws.com/my-agent:latest',
         },
         requestHeaders: {
           allowlist: ['X-Custom-Header', 'Authorization'],
@@ -431,10 +452,8 @@ describe('Runtime Compiler', () => {
 
     test('includes tags when provided', () => {
       const config = {
-        type: 'runtime',
         artifact: {
-          containerImage:
-            '123456789.dkr.ecr.us-west-2.amazonaws.com/my-agent:latest',
+          image: '123456789.dkr.ecr.us-west-2.amazonaws.com/my-agent:latest',
         },
       }
 

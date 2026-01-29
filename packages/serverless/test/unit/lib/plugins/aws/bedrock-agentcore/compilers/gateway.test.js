@@ -27,25 +27,25 @@ describe('Gateway Compiler', () => {
       expect(buildGatewayAuthorizerConfiguration(null)).toBeNull()
     })
 
-    test('returns null when customJwtAuthorizer is missing', () => {
+    test('returns null when jwt is missing', () => {
       expect(buildGatewayAuthorizerConfiguration({})).toBeNull()
     })
 
     test('throws error when discoveryUrl is missing', () => {
       const authConfig = {
-        customJwtAuthorizer: {
+        jwt: {
           allowedAudience: ['api://my-api'],
         },
       }
 
       expect(() => buildGatewayAuthorizerConfiguration(authConfig)).toThrow(
-        'Gateway CustomJWTAuthorizer requires discoveryUrl',
+        'Gateway JWT authorizer requires discoveryUrl',
       )
     })
 
     test('builds authorizer configuration with required discoveryUrl', () => {
       const authConfig = {
-        customJwtAuthorizer: {
+        jwt: {
           discoveryUrl:
             'https://auth.example.com/.well-known/openid-configuration',
           allowedAudience: ['api://my-api'],
@@ -67,7 +67,7 @@ describe('Gateway Compiler', () => {
 
     test('builds authorizer configuration with allowedScopes', () => {
       const authConfig = {
-        customJwtAuthorizer: {
+        jwt: {
           discoveryUrl:
             'https://auth.example.com/.well-known/openid-configuration',
           allowedScopes: ['read', 'write'],
@@ -87,7 +87,7 @@ describe('Gateway Compiler', () => {
 
     test('builds authorizer configuration with only required fields', () => {
       const authConfig = {
-        customJwtAuthorizer: {
+        jwt: {
           discoveryUrl:
             'https://auth.example.com/.well-known/openid-configuration',
         },
@@ -109,16 +109,15 @@ describe('Gateway Compiler', () => {
       expect(buildGatewayProtocolConfiguration(null)).toBeNull()
     })
 
-    test('returns null when mcp is missing', () => {
+    test('returns null when protocol has no relevant properties', () => {
       expect(buildGatewayProtocolConfiguration({})).toBeNull()
     })
 
-    test('builds MCP protocol configuration with instructions', () => {
+    test('builds MCP protocol configuration with instructions (new flat structure)', () => {
       const protocolConfig = {
-        mcp: {
-          instructions: 'Use these tools to interact with the system',
-          supportedVersions: ['2024-11-05'],
-        },
+        type: 'MCP',
+        instructions: 'Use these tools to interact with the system',
+        supportedVersions: ['2024-11-05'],
       }
 
       const result = buildGatewayProtocolConfiguration(protocolConfig)
@@ -133,9 +132,8 @@ describe('Gateway Compiler', () => {
 
     test('builds MCP protocol configuration with searchType', () => {
       const protocolConfig = {
-        mcp: {
-          searchType: 'SEMANTIC',
-        },
+        type: 'MCP',
+        searchType: 'SEMANTIC',
       }
 
       const result = buildGatewayProtocolConfiguration(protocolConfig)
@@ -150,9 +148,7 @@ describe('Gateway Compiler', () => {
 
   describe('compileGateway', () => {
     test('generates valid CloudFormation with minimal config', () => {
-      const config = {
-        type: 'gateway',
-      }
+      const config = {}
 
       const result = compileGateway(
         'toolGateway',
@@ -170,20 +166,19 @@ describe('Gateway Compiler', () => {
       })
     })
 
-    test('includes optional properties when provided', () => {
+    test('includes optional properties when provided (new structure)', () => {
       const config = {
-        type: 'gateway',
         description: 'Gateway for agent tools',
-        authorizerType: 'CUSTOM_JWT',
-        kmsKeyArn: 'arn:aws:kms:us-west-2:123456789012:key/12345678',
-        exceptionLevel: 'DEBUG',
-        authorizerConfiguration: {
-          customJwtAuthorizer: {
+        authorizer: {
+          type: 'CUSTOM_JWT',
+          jwt: {
             discoveryUrl:
               'https://auth.example.com/.well-known/openid-configuration',
             allowedAudience: ['api://my-api'],
           },
         },
+        kmsKey: 'arn:aws:kms:us-west-2:123456789012:key/12345678',
+        exceptionLevel: 'DEBUG',
       }
 
       const result = compileGateway(
@@ -208,14 +203,12 @@ describe('Gateway Compiler', () => {
       })
     })
 
-    test('includes protocol configuration when provided', () => {
+    test('includes protocol configuration when provided (new flat structure)', () => {
       const config = {
-        type: 'gateway',
-        protocolConfiguration: {
-          mcp: {
-            instructions: 'Gateway instructions',
-            supportedVersions: ['2024-11-05'],
-          },
+        protocol: {
+          type: 'MCP',
+          instructions: 'Gateway instructions',
+          supportedVersions: ['2024-11-05'],
         },
       }
 
@@ -234,10 +227,9 @@ describe('Gateway Compiler', () => {
       })
     })
 
-    test('uses provided roleArn when specified', () => {
+    test('uses provided role when specified as ARN', () => {
       const config = {
-        type: 'gateway',
-        roleArn: 'arn:aws:iam::123456789012:role/MyCustomRole',
+        role: 'arn:aws:iam::123456789012:role/MyCustomRole',
       }
 
       const result = compileGateway(
@@ -252,10 +244,26 @@ describe('Gateway Compiler', () => {
       )
     })
 
-    test('supports NONE authorizer type', () => {
+    test('uses provided role when specified as logical name', () => {
       const config = {
-        type: 'gateway',
-        authorizerType: 'NONE',
+        role: 'MyCustomRoleLogicalId',
+      }
+
+      const result = compileGateway(
+        'toolGateway',
+        config,
+        baseContext,
+        baseTags,
+      )
+
+      expect(result.Properties.RoleArn).toEqual({
+        'Fn::GetAtt': ['MyCustomRoleLogicalId', 'Arn'],
+      })
+    })
+
+    test('supports NONE authorizer type (string shorthand)', () => {
+      const config = {
+        authorizer: 'NONE',
       }
 
       const result = compileGateway(
@@ -269,10 +277,23 @@ describe('Gateway Compiler', () => {
       expect(result.Properties.AuthorizerConfiguration).toBeUndefined()
     })
 
-    test('includes tags when provided', () => {
+    test('supports lowercase authorizer type (case-insensitive)', () => {
       const config = {
-        type: 'gateway',
+        authorizer: 'none',
       }
+
+      const result = compileGateway(
+        'toolGateway',
+        config,
+        baseContext,
+        baseTags,
+      )
+
+      expect(result.Properties.AuthorizerType).toBe('NONE')
+    })
+
+    test('includes tags when provided', () => {
+      const config = {}
 
       const result = compileGateway(
         'toolGateway',

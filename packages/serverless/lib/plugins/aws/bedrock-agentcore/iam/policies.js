@@ -3,6 +3,76 @@
 import { getResourceName } from '../utils/naming.js'
 
 /**
+ * Extract role customizations from config
+ * Returns customizations if role is an object, otherwise returns empty defaults
+ *
+ * @param {object} config - Resource configuration
+ * @returns {object} Role customizations (name, statements, managedPolicies, permissionsBoundary, tags)
+ */
+function getRoleCustomizations(config) {
+  // If no role or role is a string (ARN), return empty customizations
+  if (!config.role || typeof config.role === 'string') {
+    return {
+      name: null,
+      statements: [],
+      managedPolicies: [],
+      permissionsBoundary: null,
+      tags: {},
+    }
+  }
+
+  // If role is a CloudFormation intrinsic (has Ref, Fn::GetAtt, etc.), return empty
+  if (
+    config.role.Ref ||
+    config.role['Fn::GetAtt'] ||
+    config.role['Fn::ImportValue']
+  ) {
+    return {
+      name: null,
+      statements: [],
+      managedPolicies: [],
+      permissionsBoundary: null,
+      tags: {},
+    }
+  }
+
+  // Extract customizations from role object
+  return {
+    name: config.role.name || null,
+    statements: config.role.statements || [],
+    managedPolicies: config.role.managedPolicies || [],
+    permissionsBoundary: config.role.permissionsBoundary || null,
+    tags: config.role.tags || {},
+  }
+}
+
+/**
+ * Merge custom tags with existing tags (CloudFormation format)
+ * Converts simple object format { Key: "Value" } to CloudFormation array format
+ *
+ * @param {Array} existingTags - Existing tags in CloudFormation format
+ * @param {object} customTags - Custom tags in simple object format
+ * @returns {Array} Merged tags in CloudFormation format
+ */
+function mergeTags(existingTags, customTags) {
+  if (!customTags || !Object.keys(customTags).length) {
+    return existingTags
+  }
+
+  // Convert existing tags array to object
+  const tagMap = {}
+  for (const tag of existingTags) {
+    tagMap[tag.Key] = tag.Value
+  }
+
+  // Merge with custom tags
+  Object.assign(tagMap, customTags)
+
+  // Convert back to CloudFormation array format
+  return Object.entries(tagMap).map(([Key, Value]) => ({ Key, Value }))
+}
+
+/**
  * Generate IAM role for AgentCore Runtime
  *
  * @param {string} name - Agent name
@@ -67,7 +137,7 @@ export function generateRuntimeRole(name, config, context, options = {}) {
             },
           },
           // ECR permissions for container images
-          ...(config.artifact?.containerImage
+          ...(config.artifact?.image
             ? [
                 {
                   Sid: 'ECRTokenAccess',
@@ -254,8 +324,8 @@ export function generateRuntimeRole(name, config, context, options = {}) {
     },
   ]
 
-  // VPC permissions - only when networkMode is VPC
-  if (config.network?.networkMode === 'VPC') {
+  // VPC permissions - only when mode is VPC
+  if (config.network?.mode?.toUpperCase() === 'VPC') {
     policies[0].PolicyDocument.Statement.push({
       Sid: 'VPCNetworkInterfaces',
       Effect: 'Allow',
@@ -270,10 +340,19 @@ export function generateRuntimeRole(name, config, context, options = {}) {
     })
   }
 
-  return {
+  // Extract role customizations
+  const customizations = getRoleCustomizations(config)
+
+  // Merge custom statements into policy
+  if (customizations.statements.length > 0) {
+    policies[0].PolicyDocument.Statement.push(...customizations.statements)
+  }
+
+  // Build base role
+  const role = {
     Type: 'AWS::IAM::Role',
     Properties: {
-      RoleName: roleName,
+      RoleName: customizations.name || roleName,
       AssumeRolePolicyDocument: assumeRolePolicy,
       Policies: policies,
       Tags: [
@@ -284,6 +363,23 @@ export function generateRuntimeRole(name, config, context, options = {}) {
       ],
     },
   }
+
+  // Add managed policies if provided
+  if (customizations.managedPolicies.length > 0) {
+    role.Properties.ManagedPolicyArns = customizations.managedPolicies
+  }
+
+  // Add permission boundary if provided
+  if (customizations.permissionsBoundary) {
+    role.Properties.PermissionsBoundary = customizations.permissionsBoundary
+  }
+
+  // Merge custom tags with default tags
+  if (Object.keys(customizations.tags).length > 0) {
+    role.Properties.Tags = mergeTags(role.Properties.Tags, customizations.tags)
+  }
+
+  return role
 }
 
 /**
@@ -378,10 +474,19 @@ export function generateMemoryRole(name, config, context) {
     },
   ]
 
-  return {
+  // Extract role customizations
+  const customizations = getRoleCustomizations(config)
+
+  // Merge custom statements into policy
+  if (customizations.statements.length > 0) {
+    policies[0].PolicyDocument.Statement.push(...customizations.statements)
+  }
+
+  // Build base role
+  const role = {
     Type: 'AWS::IAM::Role',
     Properties: {
-      RoleName: roleName,
+      RoleName: customizations.name || roleName,
       AssumeRolePolicyDocument: assumeRolePolicy,
       Policies: policies,
       Tags: [
@@ -392,6 +497,23 @@ export function generateMemoryRole(name, config, context) {
       ],
     },
   }
+
+  // Add managed policies if provided
+  if (customizations.managedPolicies.length > 0) {
+    role.Properties.ManagedPolicyArns = customizations.managedPolicies
+  }
+
+  // Add permission boundary if provided
+  if (customizations.permissionsBoundary) {
+    role.Properties.PermissionsBoundary = customizations.permissionsBoundary
+  }
+
+  // Merge custom tags with default tags
+  if (Object.keys(customizations.tags).length > 0) {
+    role.Properties.Tags = mergeTags(role.Properties.Tags, customizations.tags)
+  }
+
+  return role
 }
 
 /**
@@ -458,8 +580,8 @@ export function generateGatewayRole(name, config, context) {
                       'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:*',
                   },
           },
-          // KMS permissions - only when kmsKeyArn is specified
-          ...(config.kmsKeyArn
+          // KMS permissions - only when kmsKey is specified
+          ...(config.kmsKey
             ? [
                 {
                   Sid: 'KMSAccess',
@@ -470,19 +592,82 @@ export function generateGatewayRole(name, config, context) {
                     'kms:GenerateDataKey',
                     'kms:DescribeKey',
                   ],
-                  Resource: config.kmsKeyArn,
+                  Resource: config.kmsKey,
                 },
               ]
             : []),
+          // OAuth/Token Vault permissions - required for OAuth and API Key credential providers
+          // Gateway needs these to fetch tokens from AgentCore Identity Token Vault
+          {
+            Sid: 'WorkloadIdentityAccess',
+            Effect: 'Allow',
+            Action: [
+              'bedrock-agentcore:GetWorkloadAccessTokenForJWT',
+              'bedrock-agentcore:GetWorkloadAccessToken',
+            ],
+            Resource: [
+              {
+                'Fn::Sub':
+                  'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/*',
+              },
+              {
+                'Fn::Sub':
+                  'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/*/workload-identity/*',
+              },
+            ],
+          },
+          // Token Vault permissions - for OAuth and API Key credential retrieval
+          // These actions are called on both token-vault and workload-identity resources
+          {
+            Sid: 'TokenVaultAccess',
+            Effect: 'Allow',
+            Action: [
+              'bedrock-agentcore:GetResourceOauth2Token',
+              'bedrock-agentcore:GetResourceApiKey',
+            ],
+            Resource: [
+              {
+                'Fn::Sub':
+                  'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:token-vault/*',
+              },
+              {
+                'Fn::Sub':
+                  'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/*',
+              },
+              {
+                'Fn::Sub':
+                  'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/*/workload-identity/*',
+              },
+            ],
+          },
+          // Secrets Manager - OAuth credential providers store secrets here
+          {
+            Sid: 'SecretsManagerAccess',
+            Effect: 'Allow',
+            Action: ['secretsmanager:GetSecretValue'],
+            Resource: {
+              'Fn::Sub':
+                'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*',
+            },
+          },
         ],
       },
     },
   ]
 
-  return {
+  // Extract role customizations
+  const customizations = getRoleCustomizations(config)
+
+  // Merge custom statements into policy
+  if (customizations.statements.length > 0) {
+    policies[0].PolicyDocument.Statement.push(...customizations.statements)
+  }
+
+  // Build base role
+  const role = {
     Type: 'AWS::IAM::Role',
     Properties: {
-      RoleName: roleName,
+      RoleName: customizations.name || roleName,
       AssumeRolePolicyDocument: assumeRolePolicy,
       Policies: policies,
       Tags: [
@@ -493,6 +678,23 @@ export function generateGatewayRole(name, config, context) {
       ],
     },
   }
+
+  // Add managed policies if provided
+  if (customizations.managedPolicies.length > 0) {
+    role.Properties.ManagedPolicyArns = customizations.managedPolicies
+  }
+
+  // Add permission boundary if provided
+  if (customizations.permissionsBoundary) {
+    role.Properties.PermissionsBoundary = customizations.permissionsBoundary
+  }
+
+  // Merge custom tags with default tags
+  if (Object.keys(customizations.tags).length > 0) {
+    role.Properties.Tags = mergeTags(role.Properties.Tags, customizations.tags)
+  }
+
+  return role
 }
 
 /**
@@ -553,8 +755,8 @@ export function generateBrowserRole(name, config, context) {
                 },
               ]
             : []),
-          // VPC network interfaces - only when networkMode is VPC
-          ...(config.network?.networkMode === 'VPC'
+          // VPC network interfaces - only when mode is VPC
+          ...(config.network?.mode?.toUpperCase() === 'VPC'
             ? [
                 {
                   Sid: 'VPCNetworkInterfaces',
@@ -575,10 +777,19 @@ export function generateBrowserRole(name, config, context) {
     },
   ]
 
-  return {
+  // Extract role customizations
+  const customizations = getRoleCustomizations(config)
+
+  // Merge custom statements into policy
+  if (customizations.statements.length > 0) {
+    policies[0].PolicyDocument.Statement.push(...customizations.statements)
+  }
+
+  // Build base role
+  const role = {
     Type: 'AWS::IAM::Role',
     Properties: {
-      RoleName: roleName,
+      RoleName: customizations.name || roleName,
       AssumeRolePolicyDocument: assumeRolePolicy,
       Policies: policies,
       Tags: [
@@ -589,6 +800,23 @@ export function generateBrowserRole(name, config, context) {
       ],
     },
   }
+
+  // Add managed policies if provided
+  if (customizations.managedPolicies.length > 0) {
+    role.Properties.ManagedPolicyArns = customizations.managedPolicies
+  }
+
+  // Add permission boundary if provided
+  if (customizations.permissionsBoundary) {
+    role.Properties.PermissionsBoundary = customizations.permissionsBoundary
+  }
+
+  // Merge custom tags with default tags
+  if (Object.keys(customizations.tags).length > 0) {
+    role.Properties.Tags = mergeTags(role.Properties.Tags, customizations.tags)
+  }
+
+  return role
 }
 
 /**
@@ -636,8 +864,8 @@ export function generateCodeInterpreterRole(name, config, context) {
                 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/bedrock-agentcore/*',
             },
           },
-          // VPC network interfaces - only when networkMode is VPC
-          ...(config.network?.networkMode === 'VPC'
+          // VPC network interfaces - only when mode is VPC
+          ...(config.network?.mode?.toUpperCase() === 'VPC'
             ? [
                 {
                   Sid: 'VPCNetworkInterfaces',
@@ -658,10 +886,19 @@ export function generateCodeInterpreterRole(name, config, context) {
     },
   ]
 
-  return {
+  // Extract role customizations
+  const customizations = getRoleCustomizations(config)
+
+  // Merge custom statements into policy
+  if (customizations.statements.length > 0) {
+    policies[0].PolicyDocument.Statement.push(...customizations.statements)
+  }
+
+  // Build base role
+  const role = {
     Type: 'AWS::IAM::Role',
     Properties: {
-      RoleName: roleName,
+      RoleName: customizations.name || roleName,
       AssumeRolePolicyDocument: assumeRolePolicy,
       Policies: policies,
       Tags: [
@@ -672,4 +909,21 @@ export function generateCodeInterpreterRole(name, config, context) {
       ],
     },
   }
+
+  // Add managed policies if provided
+  if (customizations.managedPolicies.length > 0) {
+    role.Properties.ManagedPolicyArns = customizations.managedPolicies
+  }
+
+  // Add permission boundary if provided
+  if (customizations.permissionsBoundary) {
+    role.Properties.PermissionsBoundary = customizations.permissionsBoundary
+  }
+
+  // Merge custom tags with default tags
+  if (Object.keys(customizations.tags).length > 0) {
+    role.Properties.Tags = mergeTags(role.Properties.Tags, customizations.tags)
+  }
+
+  return role
 }
