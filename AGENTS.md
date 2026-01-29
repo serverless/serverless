@@ -7,6 +7,7 @@ Instructions for AI coding agents working on the Serverless Framework repository
 This is the **Serverless Framework** monorepo - a command-line tool for deploying serverless applications to AWS Lambda and other managed cloud services. The framework uses YAML configuration to deploy code and cloud infrastructure.
 
 **Tech Stack:**
+
 - Node.js 24+ (ES Modules)
 - Go (for binary installer)
 - npm workspaces for package management
