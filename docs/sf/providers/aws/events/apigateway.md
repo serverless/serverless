@@ -1864,7 +1864,9 @@ provider:
 
 Valid values are INFO, ERROR.
 
-The existence of the `logs` property enables both access and execution logging. If you want to disable one or both of them, you can do so with the following:
+**Note:** If `logs.restApi` is not set at all, API Gateway logging will be disabled.
+
+When `logs.restApi` is set (either to `true` or as an object), both access and execution logging are enabled by default. If you want to disable one or both of them, you can do so with the following:
 
 ```yml
 # serverless.yml
