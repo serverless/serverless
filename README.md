@@ -55,7 +55,7 @@ Here's a list of everything that's new in V.4, so far:
 - **Native TypeScript Support:** You can now use `.ts` handlers in your AWS Lambda functions in `serverless.yml` and have them build automatically upon deploy. [ESBuild](https://esbuild.github.io/) is now included in the Framework which makes this possible. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/building).
 - **The AWS AI Stack:** V.4 is optimized for [the AWS AI Stack](https://github.com/serverless/aws-ai-stack). Deploy a full-stack, serverless, boilerplate for AI applications on AWS, featuring Bedrock LLMs like Claude 3.5 Sonnet and Llama3.1 and much more.
 - **New Dev Mode:** Run `serverless dev` to have events from your live architecture routed to your local code, enabling you to make fast changes without deployment. [More info here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
-- **Latest Runtime Support:** Support for Node.js 22 (`nodejs24.x`), Python 3.14 (`python3.14`), and Java 25 (`java25`) on AWS Lambda.
+- **Latest Runtime Support:** Support for Node.js 24 (`nodejs24.x`), Python 3.14 (`python3.14`), and Java 25 (`java25`) on AWS Lambda.
 - **Latest Region Support:** Support for all major regions, including the newly announced `ap-southeast-6` in New Zealand.
 - **New Stages Property:** Easily organize stage-specific config via `stages` and set `default` config to fallback to.
 - **Improved Compose Experience:** Serverless Compose now has a beautiful new CLI experience that better demonstrates what is being deployed.
