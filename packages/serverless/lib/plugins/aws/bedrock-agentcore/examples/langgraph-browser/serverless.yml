@@ -1,0 +1,12 @@
+# LangGraph Browser Example
+# Deploy: serverless deploy
+# Test: python test-invoke.py
+
+service: langgraph-browser
+
+provider:
+  name: aws
+  region: us-east-1
+
+agents:
+  browserAgent: {}

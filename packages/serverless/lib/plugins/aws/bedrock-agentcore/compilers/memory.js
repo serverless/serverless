@@ -4,7 +4,7 @@
  * AWS::BedrockAgentCore::Memory CloudFormation Schema
  *
  * User-friendly property names -> CFN properties:
- *   - expiration -> EventExpiryDuration (7-365 days, default: 30)
+ *   - expiration -> EventExpiryDuration (3-365 days, default: 30)
  *   - encryptionKey -> EncryptionKeyArn
  *   - strategies -> MemoryStrategies
  *   - description -> Description

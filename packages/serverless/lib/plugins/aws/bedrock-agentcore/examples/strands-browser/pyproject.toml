@@ -1,0 +1,17 @@
+[project]
+name = "strands-browser-agent"
+version = "1.0.0"
+description = "Strands agent with AgentCore Browser for web automation"
+requires-python = ">=3.12"
+
+dependencies = [
+    "bedrock-agentcore>=0.1.0",
+    "strands-agents>=1.0.0",
+    "strands-agents-tools>=0.1.0",
+    "nest_asyncio>=1.5.0",
+    "playwright>=1.42.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

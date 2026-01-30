@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "langgraph-browser-custom-agent"
+version = "1.0.0"
+description = "LangGraph agent with custom browser and session recording"
+requires-python = ">=3.10"
+dependencies = [
+    "bedrock-agentcore>=0.1.0",
+    "langchain>=0.3.0",
+    "langchain-aws>=0.2.0",
+    "langgraph>=0.2.0",
+    "playwright>=1.42.0",
+    "nest_asyncio>=1.5.0",
+]

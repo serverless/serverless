@@ -153,13 +153,22 @@ class ServerlessPythonRequirements {
         const runtime = config.runtime || 'PYTHON_3_13'
         return runtime.startsWith('PYTHON')
       })
-      .map(([name, config]) => ({
-        name,
-        config,
-        module: '.', // Agents always use service root
-        isAgent: true,
-        architecture: 'arm64', // AgentCore always uses ARM64
-      }))
+      .map(([name, config]) => {
+        // Get AgentCore runtime (e.g., PYTHON_3_12, PYTHON_3_13)
+        const agentRuntime = config.runtime || 'PYTHON_3_13'
+        // Map to Lambda format (e.g., python3.12, python3.13) for Docker image selection
+        const lambdaRuntime = agentRuntime
+          .toLowerCase()
+          .replace('python_3_', 'python3.')
+        return {
+          name,
+          config,
+          module: '.', // Agents always use service root
+          isAgent: true,
+          architecture: 'arm64', // AgentCore always uses ARM64
+          runtime: lambdaRuntime,
+        }
+      })
   }
 
   /**

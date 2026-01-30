@@ -3,19 +3,10 @@
 /**
  * Merge tags from multiple sources with proper precedence
  */
-export function mergeTags(
-  defaultTags = {},
-  resourceTags = {},
-  serviceName,
-  stage,
-  resourceName,
-) {
+export function mergeTags(defaultTags = {}, resourceTags = {}) {
   const tags = {
     ...defaultTags,
     ...resourceTags,
-    'serverless:service': serviceName,
-    'serverless:stage': stage,
-    'agentcore:resource': resourceName,
   }
 
   return tags

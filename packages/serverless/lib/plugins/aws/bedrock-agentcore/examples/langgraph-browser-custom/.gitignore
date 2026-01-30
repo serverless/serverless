@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Serverless Framework
+.serverless/
+
+# Local testing
+*.log
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test outputs
+recordings/

@@ -21,11 +21,7 @@ describe('Runtime Compiler', () => {
     defaultTags: {},
   }
 
-  const baseTags = {
-    'serverless:service': 'test-service',
-    'serverless:stage': 'dev',
-    'agentcore:resource': 'myAgent',
-  }
+  const baseTags = {}
 
   describe('buildArtifact', () => {
     test('builds container image artifact from artifact.image string', () => {
@@ -456,10 +452,26 @@ describe('Runtime Compiler', () => {
           image: '123456789.dkr.ecr.us-west-2.amazonaws.com/my-agent:latest',
         },
       }
+      const customTags = {
+        Environment: 'production',
+        Team: 'platform',
+      }
 
-      const result = compileRuntime('myAgent', config, baseContext, baseTags)
+      const result = compileRuntime('myAgent', config, baseContext, customTags)
 
-      expect(result.Properties.Tags).toEqual(baseTags)
+      expect(result.Properties.Tags).toEqual(customTags)
+    })
+
+    test('omits Tags when no tags provided', () => {
+      const config = {
+        artifact: {
+          image: '123456789.dkr.ecr.us-west-2.amazonaws.com/my-agent:latest',
+        },
+      }
+
+      const result = compileRuntime('myAgent', config, baseContext, {})
+
+      expect(result.Properties.Tags).toBeUndefined()
     })
   })
 })

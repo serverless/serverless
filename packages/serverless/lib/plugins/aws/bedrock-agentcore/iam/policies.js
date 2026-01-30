@@ -98,17 +98,8 @@ function mergeTags(existingTags, customTags) {
     return existingTags
   }
 
-  // Convert existing tags array to object
-  const tagMap = {}
-  for (const tag of existingTags) {
-    tagMap[tag.Key] = tag.Value
-  }
-
-  // Merge with custom tags
-  Object.assign(tagMap, customTags)
-
-  // Convert back to CloudFormation array format
-  return Object.entries(tagMap).map(([Key, Value]) => ({ Key, Value }))
+  // Convert custom tags object to CloudFormation array format
+  return Object.entries(customTags).map(([Key, Value]) => ({ Key, Value }))
 }
 
 /**
@@ -394,12 +385,6 @@ export function generateRuntimeRole(name, config, context, options = {}) {
       RoleName: customizations.name || roleName,
       AssumeRolePolicyDocument: assumeRolePolicy,
       Policies: policies,
-      Tags: [
-        { Key: 'serverless:service', Value: serviceName },
-        { Key: 'serverless:stage', Value: stage },
-        { Key: 'agentcore:resource', Value: name },
-        { Key: 'agentcore:type', Value: 'runtime-role' },
-      ],
     },
   }
 
@@ -413,9 +398,9 @@ export function generateRuntimeRole(name, config, context, options = {}) {
     role.Properties.PermissionsBoundary = customizations.permissionsBoundary
   }
 
-  // Merge custom tags with default tags
+  // Add custom tags if provided
   if (Object.keys(customizations.tags).length > 0) {
-    role.Properties.Tags = mergeTags(role.Properties.Tags, customizations.tags)
+    role.Properties.Tags = mergeTags({}, customizations.tags)
   }
 
   return role
@@ -528,12 +513,6 @@ export function generateMemoryRole(name, config, context) {
       RoleName: customizations.name || roleName,
       AssumeRolePolicyDocument: assumeRolePolicy,
       Policies: policies,
-      Tags: [
-        { Key: 'serverless:service', Value: serviceName },
-        { Key: 'serverless:stage', Value: stage },
-        { Key: 'agentcore:resource', Value: name },
-        { Key: 'agentcore:type', Value: 'memory-role' },
-      ],
     },
   }
 
@@ -547,9 +526,9 @@ export function generateMemoryRole(name, config, context) {
     role.Properties.PermissionsBoundary = customizations.permissionsBoundary
   }
 
-  // Merge custom tags with default tags
+  // Add custom tags if provided
   if (Object.keys(customizations.tags).length > 0) {
-    role.Properties.Tags = mergeTags(role.Properties.Tags, customizations.tags)
+    role.Properties.Tags = mergeTags({}, customizations.tags)
   }
 
   return role
@@ -709,12 +688,6 @@ export function generateGatewayRole(name, config, context) {
       RoleName: customizations.name || roleName,
       AssumeRolePolicyDocument: assumeRolePolicy,
       Policies: policies,
-      Tags: [
-        { Key: 'serverless:service', Value: serviceName },
-        { Key: 'serverless:stage', Value: stage },
-        { Key: 'agentcore:resource', Value: name },
-        { Key: 'agentcore:type', Value: 'gateway-role' },
-      ],
     },
   }
 
@@ -728,9 +701,9 @@ export function generateGatewayRole(name, config, context) {
     role.Properties.PermissionsBoundary = customizations.permissionsBoundary
   }
 
-  // Merge custom tags with default tags
+  // Add custom tags if provided
   if (Object.keys(customizations.tags).length > 0) {
-    role.Properties.Tags = mergeTags(role.Properties.Tags, customizations.tags)
+    role.Properties.Tags = mergeTags({}, customizations.tags)
   }
 
   return role
@@ -831,12 +804,6 @@ export function generateBrowserRole(name, config, context) {
       RoleName: customizations.name || roleName,
       AssumeRolePolicyDocument: assumeRolePolicy,
       Policies: policies,
-      Tags: [
-        { Key: 'serverless:service', Value: serviceName },
-        { Key: 'serverless:stage', Value: stage },
-        { Key: 'agentcore:resource', Value: name },
-        { Key: 'agentcore:type', Value: 'browser-role' },
-      ],
     },
   }
 
@@ -850,9 +817,9 @@ export function generateBrowserRole(name, config, context) {
     role.Properties.PermissionsBoundary = customizations.permissionsBoundary
   }
 
-  // Merge custom tags with default tags
+  // Add custom tags if provided
   if (Object.keys(customizations.tags).length > 0) {
-    role.Properties.Tags = mergeTags(role.Properties.Tags, customizations.tags)
+    role.Properties.Tags = mergeTags({}, customizations.tags)
   }
 
   return role
@@ -940,12 +907,6 @@ export function generateCodeInterpreterRole(name, config, context) {
       RoleName: customizations.name || roleName,
       AssumeRolePolicyDocument: assumeRolePolicy,
       Policies: policies,
-      Tags: [
-        { Key: 'serverless:service', Value: serviceName },
-        { Key: 'serverless:stage', Value: stage },
-        { Key: 'agentcore:resource', Value: name },
-        { Key: 'agentcore:type', Value: 'codeinterpreter-role' },
-      ],
     },
   }
 
@@ -959,9 +920,9 @@ export function generateCodeInterpreterRole(name, config, context) {
     role.Properties.PermissionsBoundary = customizations.permissionsBoundary
   }
 
-  // Merge custom tags with default tags
+  // Add custom tags if provided
   if (Object.keys(customizations.tags).length > 0) {
-    role.Properties.Tags = mergeTags(role.Properties.Tags, customizations.tags)
+    role.Properties.Tags = mergeTags({}, customizations.tags)
   }
 
   return role

@@ -31,20 +31,8 @@ const iamPolicyStatementSchema = {
     NotAction: {
       anyOf: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }],
     },
-    Resource: {
-      anyOf: [
-        { type: 'string' },
-        { type: 'array', items: { type: 'string' } },
-        { type: 'object' }, // CloudFormation intrinsics
-      ],
-    },
-    NotResource: {
-      anyOf: [
-        { type: 'string' },
-        { type: 'array', items: { type: 'string' } },
-        { type: 'object' },
-      ],
-    },
+    Resource: { $ref: '#/definitions/awsIamPolicyResource' },
+    NotResource: { $ref: '#/definitions/awsIamPolicyResource' },
     Condition: { type: 'object' },
     Principal: {
       anyOf: [{ type: 'string' }, { type: 'object' }],
@@ -107,7 +95,7 @@ const memoryConfigSchema = {
   properties: {
     expiration: {
       type: 'number',
-      minimum: 7,
+      minimum: 3,
       maximum: 365,
     },
     encryptionKey: {
@@ -702,10 +690,7 @@ const runtimeAgentSchema = {
     protocol: {
       anyOf: ['HTTP', 'MCP', 'A2A'].map(caseInsensitive),
     },
-    environment: {
-      type: 'object',
-      additionalProperties: { type: 'string' },
-    },
+    environment: { $ref: '#/definitions/awsLambdaEnvironment' },
     network: networkSchema,
     // Runtime authorizer - same structure as Gateway
     // Note: Runtime only supports CUSTOM_JWT (NONE = no authorizer, AWS_IAM not supported)

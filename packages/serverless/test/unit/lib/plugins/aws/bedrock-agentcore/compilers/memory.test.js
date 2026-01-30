@@ -15,11 +15,7 @@ describe('Memory Compiler', () => {
     defaultTags: {},
   }
 
-  const baseTags = {
-    'serverless:service': 'test-service',
-    'serverless:stage': 'dev',
-    'agentcore:resource': 'myMemory',
-  }
+  const baseTags = {}
 
   describe('buildMemoryStrategies', () => {
     test('returns null for null strategies', () => {
@@ -163,10 +159,22 @@ describe('Memory Compiler', () => {
 
     test('includes tags when provided', () => {
       const config = {}
+      const customTags = {
+        Environment: 'production',
+        Team: 'platform',
+      }
 
-      const result = compileMemory('myMemory', config, baseContext, baseTags)
+      const result = compileMemory('myMemory', config, baseContext, customTags)
 
-      expect(result.Properties.Tags).toEqual(baseTags)
+      expect(result.Properties.Tags).toEqual(customTags)
+    })
+
+    test('omits Tags when no tags provided', () => {
+      const config = {}
+
+      const result = compileMemory('myMemory', config, baseContext, {})
+
+      expect(result.Properties.Tags).toBeUndefined()
     })
 
     test('omits MemoryStrategies when empty', () => {

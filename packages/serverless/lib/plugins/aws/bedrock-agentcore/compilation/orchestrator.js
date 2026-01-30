@@ -308,13 +308,7 @@ export function normalizeAuthorizer(authorizer) {
 export function compileToolsGateway(context, template) {
   const gatewayConfig = {} // Default config when no explicit gateways defined
   const logicalId = 'AgentCoreGateway'
-  const tags = mergeTags(
-    context.defaultTags,
-    gatewayConfig.tags,
-    context.serviceName,
-    context.stage,
-    'gateway',
-  )
+  const tags = mergeTags(context.defaultTags, gatewayConfig.tags)
 
   // Generate IAM role (always generated for default gateway)
   const roleLogicalId = `${logicalId}Role`
@@ -374,13 +368,7 @@ export function compileNamedGateway(
   template,
 ) {
   const logicalId = `AgentCoreGateway${pascalCase(gatewayName)}`
-  const tags = mergeTags(
-    context.defaultTags,
-    gatewayConfig.tags,
-    context.serviceName,
-    context.stage,
-    gatewayName,
-  )
+  const tags = mergeTags(context.defaultTags, gatewayConfig.tags)
 
   // Build gateway config for compiler
   // Convert normalized authorizer back to gateway compiler format
@@ -540,13 +528,7 @@ export function compileRuntimeResources(
   builtImages = {},
 ) {
   const logicalId = getLogicalId(name, 'Runtime')
-  const tags = mergeTags(
-    context.defaultTags,
-    config.tags,
-    context.serviceName,
-    context.stage,
-    name,
-  )
+  const tags = mergeTags(context.defaultTags, config.tags)
 
   // Track memory logical ID for dependency linking
   let memoryLogicalId = null
@@ -736,13 +718,7 @@ export function compileMemoryResources(
   parentRuntimeName,
 ) {
   const logicalId = getLogicalId(name, 'Memory')
-  const tags = mergeTags(
-    context.defaultTags,
-    config.tags,
-    context.serviceName,
-    context.stage,
-    name,
-  )
+  const tags = mergeTags(context.defaultTags, config.tags)
 
   // Generate IAM role if not provided or if role is a customization object
   // Support both 'role' (new) and 'roleArn' (legacy) property names
@@ -796,13 +772,7 @@ export function compileMemoryResources(
  */
 export function compileBrowserResources(name, config, context, template) {
   const logicalId = getLogicalId(name, 'Browser')
-  const tags = mergeTags(
-    context.defaultTags,
-    config.tags,
-    context.serviceName,
-    context.stage,
-    name,
-  )
+  const tags = mergeTags(context.defaultTags, config.tags)
 
   // Generate IAM role if not provided or if role is a customization object
   // Support both 'role' (new) and 'roleArn' (legacy) property names
@@ -851,13 +821,7 @@ export function compileCodeInterpreterResources(
   template,
 ) {
   const logicalId = getLogicalId(name, 'CodeInterpreter')
-  const tags = mergeTags(
-    context.defaultTags,
-    config.tags,
-    context.serviceName,
-    context.stage,
-    name,
-  )
+  const tags = mergeTags(context.defaultTags, config.tags)
 
   // Generate IAM role if not provided or if role is a customization object
   // Support both 'role' (new) and 'roleArn' (legacy) property names

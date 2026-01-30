@@ -1,0 +1,10 @@
+[project]
+name = "langgraph-memory-agent"
+version = "1.0.0"
+description = "LangGraph agent with AgentCore Memory for conversation persistence"
+dependencies = [
+    "bedrock-agentcore>=1.1.0",
+    "langgraph>=0.2.0",
+    "langchain-aws>=0.2.0",
+    "langchain-core>=0.3.0",
+]

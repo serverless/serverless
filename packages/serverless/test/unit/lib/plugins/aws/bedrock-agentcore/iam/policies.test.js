@@ -289,14 +289,7 @@ describe('IAM Policies', () => {
 
       const result = generateRuntimeRole('myAgent', config, baseContext)
 
-      expect(result.Properties.Tags).toContainEqual({
-        Key: 'serverless:service',
-        Value: 'test-service',
-      })
-      expect(result.Properties.Tags).toContainEqual({
-        Key: 'agentcore:type',
-        Value: 'runtime-role',
-      })
+      expect(result.Properties.Tags).toBeUndefined()
     })
 
     // IAM Customization Tests
@@ -405,13 +398,7 @@ describe('IAM Policies', () => {
 
       const result = generateRuntimeRole('myAgent', config, baseContext)
 
-      // Check default tags still exist
-      expect(result.Properties.Tags).toContainEqual({
-        Key: 'serverless:service',
-        Value: 'test-service',
-      })
-
-      // Check custom tags were added
+      // Check only custom tags are present (no default tags)
       expect(result.Properties.Tags).toContainEqual({
         Key: 'Environment',
         Value: 'production',
@@ -420,6 +407,7 @@ describe('IAM Policies', () => {
         Key: 'Team',
         Value: 'platform',
       })
+      expect(result.Properties.Tags).toHaveLength(2)
     })
 
     test('handles role as string (backward compatibility)', () => {
@@ -660,19 +648,12 @@ describe('IAM Policies', () => {
       )
     })
 
-    test('includes proper tags', () => {
+    test('has no default tags', () => {
       const config = {}
 
       const result = generateGatewayRole('myGateway', config, baseContext)
 
-      expect(result.Properties.Tags).toContainEqual({
-        Key: 'serverless:service',
-        Value: 'test-service',
-      })
-      expect(result.Properties.Tags).toContainEqual({
-        Key: 'agentcore:type',
-        Value: 'gateway-role',
-      })
+      expect(result.Properties.Tags).toBeUndefined()
     })
 
     // IAM Customization Tests
@@ -725,10 +706,7 @@ describe('IAM Policies', () => {
 
       expect(result.Type).toBe('AWS::IAM::Role')
       expect(result.Properties.RoleName).toContain('browser_role')
-      expect(result.Properties.Tags).toContainEqual({
-        Key: 'agentcore:type',
-        Value: 'browser-role',
-      })
+      expect(result.Properties.Tags).toBeUndefined()
     })
 
     test('includes S3 permissions for recording', () => {
@@ -805,10 +783,7 @@ describe('IAM Policies', () => {
 
       expect(result.Type).toBe('AWS::IAM::Role')
       expect(result.Properties.RoleName).toContain('ci_role')
-      expect(result.Properties.Tags).toContainEqual({
-        Key: 'agentcore:type',
-        Value: 'codeinterpreter-role',
-      })
+      expect(result.Properties.Tags).toBeUndefined()
     })
 
     test('includes VPC permissions when mode is VPC', () => {

@@ -8,14 +8,10 @@ import {
 
 describe('Tags Utilities', () => {
   describe('mergeTags', () => {
-    test('returns serverless and agentcore tags with empty inputs', () => {
-      const result = mergeTags({}, {}, 'my-service', 'dev', 'myAgent')
+    test('returns empty object with empty inputs', () => {
+      const result = mergeTags({}, {})
 
-      expect(result).toEqual({
-        'serverless:service': 'my-service',
-        'serverless:stage': 'dev',
-        'agentcore:resource': 'myAgent',
-      })
+      expect(result).toEqual({})
     })
 
     test('includes default tags', () => {
@@ -24,11 +20,10 @@ describe('Tags Utilities', () => {
         Team: 'platform',
       }
 
-      const result = mergeTags(defaultTags, {}, 'my-service', 'dev', 'myAgent')
+      const result = mergeTags(defaultTags, {})
 
       expect(result.Environment).toBe('production')
       expect(result.Team).toBe('platform')
-      expect(result['serverless:service']).toBe('my-service')
     })
 
     test('includes resource-specific tags', () => {
@@ -37,7 +32,7 @@ describe('Tags Utilities', () => {
         Version: '1.0',
       }
 
-      const result = mergeTags({}, resourceTags, 'my-service', 'dev', 'myAgent')
+      const result = mergeTags({}, resourceTags)
 
       expect(result.Project).toBe('my-project')
       expect(result.Version).toBe('1.0')
@@ -52,36 +47,28 @@ describe('Tags Utilities', () => {
         Environment: 'custom',
       }
 
-      const result = mergeTags(
-        defaultTags,
-        resourceTags,
-        'my-service',
-        'dev',
-        'myAgent',
-      )
+      const result = mergeTags(defaultTags, resourceTags)
 
       expect(result.Environment).toBe('custom')
       expect(result.Team).toBe('platform')
     })
 
-    test('serverless tags always override user tags', () => {
+    test('merges all tags from both sources', () => {
       const defaultTags = {
-        'serverless:service': 'overridden',
+        Environment: 'production',
+        Team: 'platform',
       }
       const resourceTags = {
-        'serverless:stage': 'also-overridden',
+        Project: 'my-project',
+        Version: '1.0',
       }
 
-      const result = mergeTags(
-        defaultTags,
-        resourceTags,
-        'my-service',
-        'dev',
-        'myAgent',
-      )
+      const result = mergeTags(defaultTags, resourceTags)
 
-      expect(result['serverless:service']).toBe('my-service')
-      expect(result['serverless:stage']).toBe('dev')
+      expect(result.Environment).toBe('production')
+      expect(result.Team).toBe('platform')
+      expect(result.Project).toBe('my-project')
+      expect(result.Version).toBe('1.0')
     })
   })
 

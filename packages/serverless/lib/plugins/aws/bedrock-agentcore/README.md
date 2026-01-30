@@ -155,7 +155,7 @@ agents:
 | Property              | Required | Description                         |
 | --------------------- | -------- | ----------------------------------- |
 | `type`                | Yes      | `memory`                            |
-| `eventExpiryDuration` | No       | Days to retain (7-365, default: 30) |
+| `eventExpiryDuration` | No       | Days to retain (3-365, default: 30) |
 | `strategies`          | No       | Memory strategies array             |
 | `description`         | No       | Memory description                  |
 | `encryptionKeyArn`    | No       | KMS key for encryption              |
@@ -438,6 +438,21 @@ The plugin automatically creates CloudFormation outputs for each resource:
 ## Supported AWS Regions
 
 AWS Bedrock AgentCore is available in select regions. Check AWS documentation for current availability.
+
+## Examples
+
+See the [examples directory](./examples/) for complete working examples:
+
+- [langgraph-basic-docker](./examples/langgraph-basic-docker/) - Minimal LangGraph agent with Docker
+- [langgraph-basic-code](./examples/langgraph-basic-code/) - LangGraph agent with code deployment
+- [langgraph-gateway](./examples/langgraph-gateway/) - LangGraph agent with custom Lambda tools via Gateway
+- [langgraph-multi-gateway](./examples/langgraph-multi-gateway/) - Multiple gateways with different authorization
+- [langgraph-memory](./examples/langgraph-memory/) - LangGraph agent with conversation persistence
+- [langgraph-browser](./examples/langgraph-browser/) - LangGraph agent with browser automation
+- [langgraph-browser-custom](./examples/langgraph-browser-custom/) - Custom browser with session recording
+- [langgraph-code-interpreter](./examples/langgraph-code-interpreter/) - LangGraph agent with code execution
+- [langgraph-code-interpreter-custom](./examples/langgraph-code-interpreter-custom/) - Custom code interpreter with PUBLIC network
+- [strands-browser](./examples/strands-browser/) - Strands Agents with browser automation
 
 ## Related Resources
 

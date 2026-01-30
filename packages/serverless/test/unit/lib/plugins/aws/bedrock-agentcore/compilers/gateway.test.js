@@ -16,11 +16,7 @@ describe('Gateway Compiler', () => {
     defaultTags: {},
   }
 
-  const baseTags = {
-    'serverless:service': 'test-service',
-    'serverless:stage': 'dev',
-    'agentcore:resource': 'toolGateway',
-  }
+  const baseTags = {}
 
   describe('buildGatewayAuthorizerConfiguration', () => {
     test('returns null for empty config', () => {
@@ -294,15 +290,27 @@ describe('Gateway Compiler', () => {
 
     test('includes tags when provided', () => {
       const config = {}
+      const customTags = {
+        Environment: 'production',
+        Team: 'platform',
+      }
 
       const result = compileGateway(
         'toolGateway',
         config,
         baseContext,
-        baseTags,
+        customTags,
       )
 
-      expect(result.Properties.Tags).toEqual(baseTags)
+      expect(result.Properties.Tags).toEqual(customTags)
+    })
+
+    test('omits Tags when no tags provided', () => {
+      const config = {}
+
+      const result = compileGateway('toolGateway', config, baseContext, {})
+
+      expect(result.Properties.Tags).toBeUndefined()
     })
   })
 })

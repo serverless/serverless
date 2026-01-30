@@ -1,9 +1,0 @@
-.git
-.gitignore
-.serverless
-node_modules
-__pycache__
-*.pyc
-.env
-.env.*
-README.md

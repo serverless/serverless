@@ -17,11 +17,7 @@ describe('Browser Compiler', () => {
     defaultTags: {},
   }
 
-  const baseTags = {
-    'serverless:service': 'test-service',
-    'serverless:stage': 'dev',
-    'agentcore:resource': 'myBrowser',
-  }
+  const baseTags = {}
 
   describe('buildBrowserNetworkConfiguration', () => {
     test('defaults to PUBLIC network mode', () => {
@@ -285,10 +281,27 @@ describe('Browser Compiler', () => {
 
     test('includes tags when provided', () => {
       const config = {}
+      const customTags = {
+        Environment: 'production',
+        Team: 'platform',
+      }
 
-      const result = compileBrowser('myBrowser', config, baseContext, baseTags)
+      const result = compileBrowser(
+        'myBrowser',
+        config,
+        baseContext,
+        customTags,
+      )
 
-      expect(result.Properties.Tags).toEqual(baseTags)
+      expect(result.Properties.Tags).toEqual(customTags)
+    })
+
+    test('omits Tags when no tags provided', () => {
+      const config = {}
+
+      const result = compileBrowser('myBrowser', config, baseContext, {})
+
+      expect(result.Properties.Tags).toBeUndefined()
     })
   })
 })
