@@ -30,6 +30,7 @@
     ]
   },
   "overrides": {
-    "help-me": "^5.0.0"
+    "help-me": "^5.0.0",
+    "fast-xml-parser": "^5.3.4"
   }
 }
