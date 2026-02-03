@@ -231,7 +231,7 @@ const handlePayloadTooLarge = async (topic, message, payloadSize) => {
   const errorMessage = `Request payload (${(payloadSize / 1024).toFixed(1)} KB) exceeds 125 KB Dev Mode limit. Deploy and invoke the function to test with large requests.`
   console.error(errorMessage)
 
-  const notificationTopic = topic.replace('/request', '/error')
+  const notificationTopic = topic.replace(/\/request$/, '/error')
 
   await new Promise((resolve) => {
     device.publish(
