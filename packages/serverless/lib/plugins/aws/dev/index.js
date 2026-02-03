@@ -24,6 +24,10 @@ if (__dirname.endsWith('dist')) {
   __dirname = path.join(__dirname, '../lib/plugins/aws/dev')
 }
 
+const MQTT_PAYLOAD_LIMIT = 125 * 1024 // 125 KB
+const PAYLOAD_LIMIT_EXCEEDED_INSTRUCTION =
+  'Deploy and invoke the function to test with large responses.'
+
 /**
  * Constructs an instance of the dev mode plugin, setting up initial properties
  * and configuring hooks based on command inputs.
@@ -618,6 +622,10 @@ class AwsDev {
       device.subscribe(this.getTopicId(`${functionName}/request`), {
         qos: 1,
       })
+      // Subscribe to error topic for payload limit notifications
+      device.subscribe(this.getTopicId(`${functionName}/error`), {
+        qos: 1,
+      })
     }
 
     /**
@@ -638,6 +646,21 @@ class AwsDev {
        * Just ignore it.
        */
       if (functionName === '_heartbeat') {
+        return
+      }
+
+      /**
+       * Handle error notifications from the shim (e.g., payload too large)
+       */
+      if (topic.endsWith('/error')) {
+        const { error, event, awsRequestId } = JSON.parse(buffer.toString())
+        if (event) {
+          const invocationColorFn = awsRequestId
+            ? stringToSafeColor(awsRequestId)
+            : (str) => str
+          this.logFunctionEvent(functionName, event, false, invocationColorFn)
+        }
+        log.error(error)
         return
       }
 
@@ -713,6 +736,32 @@ class AwsDev {
         log.blankLine()
       }
 
+      // attach the requestId that corresponds to this response
+      response.requestId = context.awsRequestId
+
+      const responsePayload = JSON.stringify(response)
+
+      // Check response size before publishing to prevent connection breakage
+      if (responsePayload.length > MQTT_PAYLOAD_LIMIT) {
+        const payloadSizeInKb = (responsePayload.length / 1024).toFixed(1)
+        const errorMessage = `Response (${payloadSizeInKb} KB) exceeds 125 KB Dev Mode limit. ${PAYLOAD_LIMIT_EXCEEDED_INSTRUCTION}`
+
+        log.error(errorMessage)
+
+        device.publish(
+          this.getTopicId(`${functionName}/response`),
+          JSON.stringify({
+            requestId: context.awsRequestId,
+            error: {
+              name: 'PayloadTooLargeError',
+              message: errorMessage,
+            },
+          }),
+          { qos: 1 },
+        )
+        return
+      }
+
       this.logFunctionResponse(
         functionName,
         response.response,
@@ -720,13 +769,10 @@ class AwsDev {
         invocationColorFn,
       )
 
-      // attach the requestId that corresponds to this response
-      response.requestId = context.awsRequestId
-
       // Publish the result back to the function
       device.publish(
         this.getTopicId(`${functionName}/response`),
-        JSON.stringify(response),
+        responsePayload,
         {
           qos: 1,
         },

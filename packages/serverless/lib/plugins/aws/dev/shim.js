@@ -174,11 +174,93 @@ const waitForMessage = async (id) => {
  * or rejects with an error if the publication fails.
  * @throws Will log an error to the console and reject the promise if publishing the message fails.
  */
+const MQTT_PAYLOAD_LIMIT = 125 * 1024 // 125 KB - AWS IoT Core limit is 128 KB, leave buffer
+
+/**
+ * Builds a minimal event object with only the fields needed by getEventLog.
+ * Supports: API Gateway v1/v2, EventBridge, S3, SQS, SNS
+ * @param {Object} event - The full Lambda event object
+ * @returns {Object} Minimal event with only metadata fields
+ */
+const buildMinimalEvent = (event) => {
+  if (!event) return undefined
+
+  return {
+    // API Gateway v1 (REST)
+    httpMethod: event.httpMethod,
+    path: event.path,
+    // API Gateway v2 (HTTP)
+    routeKey: event.routeKey,
+    requestContext: event.requestContext,
+    // EventBridge
+    'detail-type': event['detail-type'],
+    source: event.source,
+    // S3, SQS, SNS - only include first record with needed fields
+    Records: event.Records?.[0]
+      ? [
+          {
+            eventSource: event.Records[0].eventSource,
+            EventSource: event.Records[0].EventSource, // SNS uses capital E
+            eventName: event.Records[0].eventName,
+            eventSourceARN: event.Records[0].eventSourceARN,
+            messageId: event.Records[0].messageId,
+            s3: event.Records[0].s3
+              ? { bucket: { name: event.Records[0].s3.bucket?.name } }
+              : undefined,
+            Sns: event.Records[0].Sns
+              ? {
+                  TopicArn: event.Records[0].Sns.TopicArn,
+                  Subject: event.Records[0].Sns.Subject,
+                  MessageId: event.Records[0].Sns.MessageId,
+                }
+              : undefined,
+          },
+        ]
+      : undefined,
+  }
+}
+
+/**
+ * Handles the case when the payload exceeds the MQTT limit.
+ * Publishes an error notification to the CLI and throws an error.
+ * @param {string} topic - The original MQTT topic
+ * @param {Object} message - The message that exceeded the limit
+ * @param {number} payloadSize - Size of the payload in bytes
+ */
+const handlePayloadTooLarge = async (topic, message, payloadSize) => {
+  const errorMessage = `Request payload (${(payloadSize / 1024).toFixed(1)} KB) exceeds 125 KB Dev Mode limit. Deploy and invoke the function to test with large requests.`
+  console.error(errorMessage)
+
+  const notificationTopic = topic.replace('/request', '/error')
+
+  await new Promise((resolve) => {
+    device.publish(
+      notificationTopic,
+      JSON.stringify({
+        error: errorMessage,
+        event: buildMinimalEvent(message?.event),
+        awsRequestId: message?.context?.awsRequestId,
+      }),
+      { qos: 1 },
+      resolve,
+    )
+  })
+
+  throw new Error(`[${process.env.SLS_FUNCTION}] ${errorMessage}`)
+}
+
 const publishMessage = async (topic, message) => {
+  const payload = message ? JSON.stringify(message) : '{}'
+  const payloadSize = Buffer.byteLength(payload, 'utf8')
+
+  if (payloadSize > MQTT_PAYLOAD_LIMIT) {
+    await handlePayloadTooLarge(topic, message, payloadSize)
+  }
+
   return new Promise((resolve, reject) => {
     device.publish(
       topic,
-      message ? JSON.stringify(message) : '{}',
+      payload,
       {
         qos: 1, // Quality of Service level. This gives the message prioirty.
       },
@@ -189,8 +271,6 @@ const publishMessage = async (topic, message) => {
           )
           reject(error)
         } else {
-          console.log('Message successfully published to AWS IoT topic:')
-          console.log(topic)
           resolve(message)
         }
       },
@@ -210,25 +290,8 @@ const publishMessage = async (topic, message) => {
  * @returns {Promise<Object>} The response from `waitForResponse`, expected to be the result of the external operation initiated by publishing the message.
  */
 export const handler = async (event, context) => {
-  const {
-    functionName,
-    functionVersion,
-    memoryLimitInMB,
-    logGroupName,
-    logStreamName,
-    clientContext,
-    identity,
-    invokedFunctionArn,
-    awsRequestId,
-    callbackWaitsForEmptyEventLoop,
-  } = context // Extract the context properties that are not functions
-
-  await publishMessage(topics.request, {
-    event, // Send the event to the local machine
-    environment: envVarsToSend, // Send the environment variables to the local machine
-    context: {
-      // Send the context properties to the local machine
-      awsRequestId,
+  try {
+    const {
       functionName,
       functionVersion,
       memoryLimitInMB,
@@ -237,16 +300,43 @@ export const handler = async (event, context) => {
       clientContext,
       identity,
       invokedFunctionArn,
+      awsRequestId,
       callbackWaitsForEmptyEventLoop,
-    },
-  })
+    } = context // Extract the context properties that are not functions
 
-  // Wait for the response from the local machine, or a timeout message if no response is received
-  const response = await Promise.race([
-    waitForResponse(awsRequestId),
-    waitForNoResponse(),
-  ])
+    await publishMessage(topics.request, {
+      event, // Send the event to the local machine
+      environment: envVarsToSend, // Send the environment variables to the local machine
+      context: {
+        // Send the context properties to the local machine
+        awsRequestId,
+        functionName,
+        functionVersion,
+        memoryLimitInMB,
+        logGroupName,
+        logStreamName,
+        clientContext,
+        identity,
+        invokedFunctionArn,
+        callbackWaitsForEmptyEventLoop,
+      },
+    })
 
-  // return the response to the Lambda caller
-  return response
+    // Wait for the response from the local machine, or a timeout message if no response is received
+    const response = await Promise.race([
+      waitForResponse(awsRequestId),
+      waitForNoResponse(),
+    ])
+
+    // return the response to the Lambda caller
+    return response
+  } catch (error) {
+    console.error('Dev Mode Error:', error)
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        message: error.message,
+      }),
+    }
+  }
 }
