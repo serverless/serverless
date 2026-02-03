@@ -740,10 +740,11 @@ class AwsDev {
       response.requestId = context.awsRequestId
 
       const responsePayload = JSON.stringify(response)
+      const responsePayloadSize = Buffer.byteLength(responsePayload, 'utf8')
 
       // Check response size before publishing to prevent connection breakage
-      if (responsePayload.length > MQTT_PAYLOAD_LIMIT) {
-        const payloadSizeInKb = (responsePayload.length / 1024).toFixed(1)
+      if (responsePayloadSize > MQTT_PAYLOAD_LIMIT) {
+        const payloadSizeInKb = (responsePayloadSize / 1024).toFixed(1)
         const errorMessage = `Response (${payloadSizeInKb} KB) exceeds 125 KB Dev Mode limit. ${PAYLOAD_LIMIT_EXCEEDED_INSTRUCTION}`
 
         log.error(errorMessage)

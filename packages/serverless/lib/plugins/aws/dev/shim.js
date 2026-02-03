@@ -290,8 +290,25 @@ const publishMessage = async (topic, message) => {
  * @returns {Promise<Object>} The response from `waitForResponse`, expected to be the result of the external operation initiated by publishing the message.
  */
 export const handler = async (event, context) => {
-  try {
-    const {
+  const {
+    functionName,
+    functionVersion,
+    memoryLimitInMB,
+    logGroupName,
+    logStreamName,
+    clientContext,
+    identity,
+    invokedFunctionArn,
+    awsRequestId,
+    callbackWaitsForEmptyEventLoop,
+  } = context // Extract the context properties that are not functions
+
+  await publishMessage(topics.request, {
+    event, // Send the event to the local machine
+    environment: envVarsToSend, // Send the environment variables to the local machine
+    context: {
+      // Send the context properties to the local machine
+      awsRequestId,
       functionName,
       functionVersion,
       memoryLimitInMB,
@@ -300,43 +317,16 @@ export const handler = async (event, context) => {
       clientContext,
       identity,
       invokedFunctionArn,
-      awsRequestId,
       callbackWaitsForEmptyEventLoop,
-    } = context // Extract the context properties that are not functions
+    },
+  })
 
-    await publishMessage(topics.request, {
-      event, // Send the event to the local machine
-      environment: envVarsToSend, // Send the environment variables to the local machine
-      context: {
-        // Send the context properties to the local machine
-        awsRequestId,
-        functionName,
-        functionVersion,
-        memoryLimitInMB,
-        logGroupName,
-        logStreamName,
-        clientContext,
-        identity,
-        invokedFunctionArn,
-        callbackWaitsForEmptyEventLoop,
-      },
-    })
+  // Wait for the response from the local machine, or a timeout message if no response is received
+  const response = await Promise.race([
+    waitForResponse(awsRequestId),
+    waitForNoResponse(),
+  ])
 
-    // Wait for the response from the local machine, or a timeout message if no response is received
-    const response = await Promise.race([
-      waitForResponse(awsRequestId),
-      waitForNoResponse(),
-    ])
-
-    // return the response to the Lambda caller
-    return response
-  } catch (error) {
-    console.error('Dev Mode Error:', error)
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        message: error.message,
-      }),
-    }
-  }
+  // return the response to the Lambda caller
+  return response
 }
