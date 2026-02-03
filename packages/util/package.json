@@ -12,7 +12,7 @@
   "author": "Serverless Inc.",
   "dependencies": {
     "aws-sdk-v3-proxy": "^2.2.0",
-    "@aws-sdk/client-s3": "3.972.0",
+    "@aws-sdk/client-s3": "3.974.0",
     "chalk": "^5.6.2",
     "dockerode": "^4.0.9",
     "enquirer": "^2.4.1",
