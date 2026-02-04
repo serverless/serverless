@@ -21,7 +21,7 @@
     "sls": "run.js"
   },
   "dependencies": {
-    "axios": "^1.13.3",
+    "axios": "^1.13.4",
     "axios-proxy-builder": "^0.1.2",
     "rimraf": "^5.0.10",
     "xml2js": "0.6.2"
