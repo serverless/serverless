@@ -4,22 +4,22 @@
   "description": "Reusable utility functions for frameworks",
   "main": "index.js",
   "type": "module",
-  "prettier": "@serverlessinc/standards",
   "scripts": {
-    "prettier": "prettier -c .",
-    "prettier:fix": "prettier \"src/**/*\" --write"
+    "lint": "eslint",
+    "prettier": "prettier -c . --ignore-path ../../.prettierignore",
+    "prettier:fix": "prettier -w . --ignore-path ../../.prettierignore"
   },
   "author": "Serverless Inc.",
   "dependencies": {
     "aws-sdk-v3-proxy": "^2.2.0",
-    "@aws-sdk/client-s3": "3.958.0",
+    "@aws-sdk/client-s3": "3.981.0",
     "chalk": "^5.6.2",
     "dockerode": "^4.0.9",
     "enquirer": "^2.4.1",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "ora": "^8.2.0",
-    "undici": "^6.22.0",
+    "undici": "^6.23.0",
     "uuid": "^13.0.0",
-    "zod": "^3.25.76"
+    "zod": "^4.3.6"
   }
 }

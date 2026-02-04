@@ -18,6 +18,8 @@ const generateTemporaryPathOnDestinationDevice = (destPath) => {
   return path.join(dirName, tempName)
 }
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
 /**
  * Allows a file to be moved (renamed) even across filesystem boundaries.
  *
@@ -30,7 +32,8 @@ const generateTemporaryPathOnDestinationDevice = (destPath) => {
  * @param {*} oldPath the original file that should be moved
  * @param {*} newPath the path to move the file to
  */
-async function safeMoveFile(oldPath, newPath) {
+
+async function safeMoveFile(oldPath, newPath, retries = 3) {
   try {
     // Golden path, we simply rename the file in an atomic operation
     await fse.rename(oldPath, newPath)
@@ -47,6 +50,11 @@ async function safeMoveFile(oldPath, newPath) {
       await fse.rename(tempPath, newPath)
       // Delete the old file once both the above operations succeed
       await fse.remove(oldPath)
+    } else if (err.code === 'EPERM' && retries > 0) {
+      // Windows-specific: EPERM can occur transiently file handle timing issues.
+      // Retry with exponential backoff.
+      await sleep(100 * Math.pow(2, 3 - retries))
+      return safeMoveFile(oldPath, newPath, retries - 1)
     } else {
       throw err
     }

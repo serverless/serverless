@@ -1,20 +1,17 @@
 {
   "name": "serverless",
-  "version": "4.30.0",
+  "version": "4.31.2",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "prettier": "prettier -c .",
-    "prettier:fix": "prettier --write .",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "prettier": "prettier -c . --ignore-path ../../.prettierignore",
+    "prettier:fix": "prettier -w . --ignore-path ../../.prettierignore",
     "postinstall": "node ./postInstall.js"
   },
-  "prettier": "@serverlessinc/standards",
   "keywords": [],
   "author": "Serverless Inc.",
-  "license": "",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/serverless/serverless.git"
@@ -24,18 +21,12 @@
     "sls": "run.js"
   },
   "dependencies": {
-    "axios": "^1.13.2",
+    "axios": "^1.13.3",
     "axios-proxy-builder": "^0.1.2",
     "rimraf": "^5.0.10",
     "xml2js": "0.6.2"
   },
-  "devDependencies": {
-    "eslint": "^8.57.1",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-n": "^17.23.1",
-    "eslint-plugin-promise": "^7.2.1"
-  },
+  "devDependencies": {},
   "publishConfig": {
     "access": "public"
   },

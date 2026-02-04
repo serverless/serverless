@@ -67,6 +67,7 @@ import pluginAwsDomains from '../plugins/aws/domains/index.js'
 import pluginAxiom from '../plugins/observability/axiom/index.js'
 import pluginPythonRequirements from '../plugins/python/index.js'
 import pluginAwsAppsync from '../plugins/aws/appsync/index.js'
+import pluginPrune from '../plugins/prune/index.js'
 import { createRequire } from 'module'
 
 const internalPlugins = [
@@ -130,6 +131,7 @@ const internalPlugins = [
   pluginAwsDomains,
   pluginPythonRequirements,
   pluginAwsAppsync,
+  pluginPrune,
 ]
 
 // Describe core-bundled plugins so we can coordinate loading with any legacy entries in `plugins:`
@@ -174,6 +176,11 @@ const bundledPluginDefinitions = [
             ...context,
           })
         : true,
+  },
+  {
+    module: pluginPrune,
+    externalNames: ['serverless-prune-plugin'],
+    allowCommunityOverride: true,
   },
 ]
 

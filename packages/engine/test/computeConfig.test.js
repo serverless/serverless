@@ -68,14 +68,14 @@ describe('AWS Compute Configuration Schema Validation', () => {
       invalidConfigs.forEach((config) => {
         const result = ConfigContainerAwsFargateEcs.safeParse(config)
         expect(result.success).toBe(false)
-        const error = result.error.errors[0]
+        const error = result.error.issues[0]
 
         if (config.cpu < 256) {
           expect(error.code).toBe('too_small')
-          expect(error.message).toMatch(/must be greater than or equal to 256/)
+          expect(error.message).toMatch(/>=256|greater than or equal to 256/)
         } else if (config.cpu > 16384) {
           expect(error.code).toBe('too_big')
-          expect(error.message).toMatch(/must be less than or equal to 16384/)
+          expect(error.message).toMatch(/<=16384|less than or equal to 16384/)
         } else {
           // For invalid CPU values that are within range but not in allowed values
           expect(error.code).toBe('custom')
@@ -95,14 +95,14 @@ describe('AWS Compute Configuration Schema Validation', () => {
       invalidConfigs.forEach((config) => {
         const result = ConfigContainerAwsFargateEcs.safeParse(config)
         expect(result.success).toBe(false)
-        const error = result.error.errors[0]
+        const error = result.error.issues[0]
 
         if (config.memory < 512) {
           expect(error.code).toBe('too_small')
-          expect(error.message).toMatch(/must be greater than or equal to 512/)
+          expect(error.message).toMatch(/>=512|greater than or equal to 512/)
         } else if (config.memory > 122880) {
           expect(error.code).toBe('too_big')
-          expect(error.message).toMatch(/must be less than or equal to 122880/)
+          expect(error.message).toMatch(/<=122880|less than or equal to 122880/)
         }
       })
     })
@@ -117,7 +117,7 @@ describe('AWS Compute Configuration Schema Validation', () => {
       invalidConfigs.forEach((config) => {
         const result = ConfigContainerAwsFargateEcs.safeParse(config)
         expect(result.success).toBe(false)
-        const error = result.error.errors[0]
+        const error = result.error.issues[0]
         expect(error.code).toBe('awsFargateEcs.cpu-memory-conflict')
         expect(error.message).toBe('CPU 256 requires memory 512, 1024, or 2048')
       })

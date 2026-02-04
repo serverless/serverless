@@ -1,4 +1,4 @@
-name: "CI: Binary Installer"
+name: 'CI: Binary Installer'
 
 permissions:
   contents: read
@@ -6,7 +6,7 @@ permissions:
 on:
   workflow_dispatch:
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - '.github/workflows/ci-binary-installer.yml'
       - 'binary-installer/**'
@@ -17,17 +17,17 @@ defaults:
 
 jobs:
   test-binary-installer:
-    name: "Test: Binary Installer"
+    name: 'Test: Binary Installer'
     runs-on: ubuntu-latest
     steps:
-      - name: "Checkout Code"
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: "Setup: Go"
-        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
+      - name: 'Checkout Code'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: 'Setup: Go'
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
         with:
           go-version: '>=1.25'
           cache-dependency-path: binary-installer/go.sum
-      - name: "Test: Unit"
+      - name: 'Test: Unit'
         run: make test
-      - name: "Build: Production"
+      - name: 'Build: Production'
         run: make build-prod

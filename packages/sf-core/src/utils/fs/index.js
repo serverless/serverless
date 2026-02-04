@@ -3,14 +3,19 @@
  * Use asynchronous functions rather than synchronous
  * for better performance and to avoid blocking the event loop.
  */
+
+/* global __SF_CORE_VERSION__ */
+
 import fsp from 'fs/promises'
 import path from 'path'
 import { randomUUID } from 'crypto'
 import os from 'os'
 import yaml from 'js-yaml'
+import { createRequire } from 'node:module'
 import _ from 'lodash'
 import AdmZip from 'adm-zip'
-import dotenv from 'dotenv'
+
+const require = createRequire(import.meta.url)
 
 /**
  * Checks if a file exists and is a regular file.
@@ -192,51 +197,6 @@ const parseDeclarativeConfig = (filePath, contents) => {
 }
 
 /**
- * Read a dotenv file and return the parsed content.
- * NOTE: This does not automatically set environment variables.
- * If params are provided, search in a custom path.
- * Otherwise, search in the current working directory.
- * Can accept .env.dev, .env.prod, .env, etc.
- * A staged .env file takes priority over a default .env file.
- * @returns Object with environment variables
- */
-const loadDotEnvFile = async ({ customPath = null, stageName = null }) => {
-  // Set path to current working directory if not provided
-  const envPath = customPath || process.cwd()
-
-  // If the path specifies a directory, search for a .env and staged .env file in it
-  if (await dirExists(envPath)) {
-    const defaultEnvPath = path.resolve(envPath, '.env')
-    const stageFilePath = stageName
-      ? path.resolve(envPath, `.env.${stageName}`)
-      : null
-
-    let envDefault = {}
-    if (await fileExists(defaultEnvPath)) {
-      const data = dotenv.config({
-        path: defaultEnvPath,
-      }).parsed
-      envDefault = data || {}
-    }
-
-    let envStage = {}
-    if (stageFilePath && (await fileExists(stageFilePath))) {
-      const data = dotenv.config({
-        path: stageFilePath,
-      }).parsed
-      envStage = data || {}
-    }
-    // Merge default and staged environment variables, with staged taking priority
-    return { ...envDefault, ...envStage }
-  }
-
-  // If the path specifies a file, use it
-  if (await fileExists(envPath)) {
-    return dotenv.config({ path: envPath }).parsed
-  }
-}
-
-/**
  * CloudFormation intrinsic functions need to be parsed as YAML.
  */
 const cloudformationIntrinsicFunctionNames = [
@@ -338,7 +298,9 @@ const getConfigFilePath = async (options) => {
       if (await fsp.stat(eventualServiceConfigPath)) {
         return eventualServiceConfigPath
       }
-    } catch (err) {}
+    } catch (err) {
+      if (err.code !== 'ENOENT') throw err
+    }
   }
   return null
 }
@@ -720,7 +682,6 @@ const saveRcAuthenticatedUser = async ({
 
   // Optionally delete user information
   if (deleteUserInfo) {
-    // eslint-disable-next-line
     delete config.users[userId]
     // Remove user session
     config.userId = null
@@ -934,20 +895,25 @@ const writeAwsCredentialsToFile = async ({
  * Get Versions
  */
 const getVersions = async () => {
-  const currentScriptPath = process.argv[1] // Gets the path of the Node.js script being run
   const versions = {}
-  const pathSfCorePackageJson = path.resolve(
-    currentScriptPath,
-    '../..',
-    'package.json',
-  )
-  if (await fileExists(pathSfCorePackageJson)) {
-    versions.serverless_framework = JSON.parse(
-      await readFile(pathSfCorePackageJson, 'utf8'),
-    )
-    versions.serverless_framework =
-      versions.serverless_framework.version || null
+
+  // 1. Primary: Use build-time injected version (Production)
+  if (typeof __SF_CORE_VERSION__ !== 'undefined') {
+    versions.serverless_framework = __SF_CORE_VERSION__
+    return versions
   }
+
+  // 2. Fallback: Local Development / Tests
+  try {
+    const pkgName = '@serverlessinc/sf-core/package.json'
+    const pkgPath = require.resolve(pkgName)
+    const pkg = JSON.parse(await fsp.readFile(pkgPath, 'utf8'))
+
+    versions.serverless_framework = pkg.version || null
+  } catch (err) {
+    // Silent fallback
+  }
+
   return versions
 }
 
@@ -960,7 +926,6 @@ export {
   copyDirContents,
   removeFileOrDirectory,
   parseDeclarativeConfig,
-  loadDotEnvFile,
   renameTemplateInAllFiles,
   renameDirectory,
   getConfigFilePath,

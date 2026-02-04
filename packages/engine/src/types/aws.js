@@ -22,7 +22,7 @@ const JSONValue = z.lazy(() =>
     z.number(),
     z.boolean(),
     z.array(JSONValue),
-    z.record(JSONValue),
+    z.record(z.string(), JSONValue),
   ]),
 )
 
@@ -99,7 +99,7 @@ export const ConfigContainerSchema = z
   .object({
     src: z.string().describe('Path to the container source code'),
     environment: z
-      .record(JSONValue)
+      .record(z.string(), JSONValue)
       .optional()
       .describe('Environment variables to pass to the container'),
     compute: ConfigContainerCompute.describe(

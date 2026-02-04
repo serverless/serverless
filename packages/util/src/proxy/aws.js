@@ -1,9 +1,23 @@
+/**
+ * __SF_CORE_VERSION__ is injected at build time by esbuild (see packages/sf-core/esbuild.js).
+ * It contains the framework version and is used to set a custom User-Agent for AWS API requests.
+ */
+/* global __SF_CORE_VERSION__ */
 import fs from 'fs'
 import { addProxyToClient as baseAddProxyToClient } from 'aws-sdk-v3-proxy'
 import { log } from '../logger/index.js'
 import { shouldBypassProxy } from './index.js'
 
 const logger = log.get('utils:proxy:aws')
+
+/**
+ * Custom user agent to identify Serverless Framework requests in AWS.
+ * Only set when running from the bundled distribution (when __SF_CORE_VERSION__ is defined).
+ */
+const customUserAgent =
+  typeof __SF_CORE_VERSION__ !== 'undefined'
+    ? [['serverless-framework', __SF_CORE_VERSION__]]
+    : undefined
 
 /**
  * Check if AWS service endpoints would bypass the proxy based on NO_PROXY
@@ -148,19 +162,23 @@ function buildProxyOptionsFromEnv(overrides = {}) {
 }
 
 /**
- * Adds proxy (and optional CA/cafile) support to an AWS SDK v3 client using aws-sdk-v3-proxy,
- * while honoring additional environment variables:
- * - proxy, HTTP_PROXY, http_proxy, HTTPS_PROXY, https_proxy
- * - NO_PROXY, no_proxy (bypasses proxy for matching hosts)
- * - ca, HTTPS_CA, https_ca (PEM content)
- * - cafile, HTTPS_CAFILE, https_cafile (path to PEM file)
+ * Augments an AWS SDK v3 client with proxy support and optional CA configuration derived from environment variables or explicit overrides.
+ *
+ * Honors environment-driven proxy configuration (HTTP_PROXY/HTTPS_PROXY/HTTP/HTTPS proxy, generic proxy), CA/cafile values, NO_PROXY/no_proxy bypass rules, and applies a build-time custom User-Agent when available.
  *
  * @template T
- * @param {T} client - An instance of an AWS SDK v3 client
- * @param {object} [options] - Optional overrides passed to aws-sdk-v3-proxy
- * @returns {T} The same client, enhanced with proxy support if applicable
+ * @param {T} client - An AWS SDK v3 client instance to enhance.
+ * @param {object} [options] - Overrides for proxy behavior passed to aws-sdk-v3-proxy.
+ * @returns {T} The same client instance, enhanced to use the configured proxy and TLS options when applicable.
  */
 export function addProxyToAwsClient(client, options = {}) {
+  // Add custom user-agent to identify Serverless Framework requests
+  // This can be set after client creation because the user-agent middleware
+  // reads from client.config at request time, not at client creation time
+  if (customUserAgent) {
+    client.config.customUserAgent = customUserAgent
+  }
+
   // Check if AWS endpoints should bypass the proxy based on NO_PROXY
   // Note: shouldBypassProxy only returns true when NO_PROXY patterns actually match,
   // not when there's simply no proxy configured

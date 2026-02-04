@@ -413,6 +413,12 @@ class Esbuild {
           mergedOptions.sourcemap =
             this.serverless.service.build.esbuild.sourcemap.type
         }
+      } else if (
+        typeof this.serverless.service.build.esbuild.sourcemap === 'object'
+      ) {
+        // When sourcemap is an object without type (e.g., { setNodeOptions: false }),
+        // default to true for esbuild compatibility
+        mergedOptions.sourcemap = true
       }
 
       return mergedOptions

@@ -23,7 +23,7 @@ const JSONValue = z.lazy(() =>
     z.number(),
     z.boolean(),
     z.array(JSONValue),
-    z.record(JSONValue),
+    z.record(z.string(), JSONValue),
   ]),
 )
 
@@ -172,9 +172,12 @@ const ConfigContainerAwsFargateEcsScaleSchemaMin = z
   .object({
     type: z.literal('min'),
     min: z.number({
-      required_error:
-        'A scaling object with key "min" must have a number value',
-      invalid_type_error: '"min" must be a number',
+      error: (issue) => {
+        if (issue.input === undefined) {
+          return 'A scaling object with key "min" must have a number value'
+        }
+        return '"min" must be a number'
+      },
     }),
   })
   .strict()
@@ -189,9 +192,12 @@ const ConfigContainerAwsFargateEcsScaleSchemaMax = z
   .object({
     type: z.literal('max'),
     max: z.number({
-      required_error:
-        'A scaling object with key "max" must have a number value',
-      invalid_type_error: '"max" must be a number',
+      error: (issue) => {
+        if (issue.input === undefined) {
+          return 'A scaling object with key "max" must have a number value'
+        }
+        return '"max" must be a number'
+      },
     }),
   })
   .strict()
@@ -307,10 +313,12 @@ const ConfigContainerAwsFargateEcsScaleSchemaTarget = z
     type: z.literal('target'),
     target: z
       .enum(['cpu', 'memory', 'albRequestsPerTarget'], {
-        required_error:
-          'A scaling object with key "target" must have a value of "cpu", "memory", or "albRequestsPerTarget"',
-        invalid_type_error:
-          '"target" must be either "cpu", "memory", or "albRequestsPerTarget"',
+        error: (issue) => {
+          if (issue.input === undefined) {
+            return 'A scaling object with key "target" must have a value of "cpu", "memory", or "albRequestsPerTarget"'
+          }
+          return '"target" must be either "cpu", "memory", or "albRequestsPerTarget"'
+        },
       })
       .describe('Specifies whether scaling is targeting CPU or memory'),
     value: z
@@ -357,9 +365,12 @@ const ConfigContainerAwsFargateEcsScaleSchemaDesired = z
     type: z.literal('desired'),
     desired: z
       .number({
-        required_error:
-          'A scaling object with key "desired" must have a number value',
-        invalid_type_error: '"desired" must be a number',
+        error: (issue) => {
+          if (issue.input === undefined) {
+            return 'A scaling object with key "desired" must have a number value'
+          }
+          return '"desired" must be a number'
+        },
       })
       .default(5),
   })
@@ -957,7 +968,7 @@ export const ConfigContainerSchema = z
   .object({
     src: z.string().describe('Path to the container source code'),
     environment: z
-      .record(JSONValue)
+      .record(z.string(), JSONValue)
       .optional()
       .describe('Environment variables to pass to the container'),
     compute: ConfigContainerCompute.describe(
@@ -1452,7 +1463,7 @@ export const ConfigSfaiAwsAgentSchema = z
     name: z.string().describe('The name of the agent'),
     src: z.string().describe('Path to the agent code'),
     environment: z
-      .record(JSONValue)
+      .record(z.string(), JSONValue)
       .optional()
       .describe('Environment variables to pass to the container'),
     type: z

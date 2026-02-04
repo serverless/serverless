@@ -41,9 +41,8 @@ jest.unstable_mockModule('@serverless/util', () => ({
 }))
 
 // Import after mocking
-const { resolveVariableFromS3 } = await import(
-  '../../../src/lib/resolvers/providers/aws/s3.js'
-)
+const { resolveVariableFromS3 } =
+  await import('../../../src/lib/resolvers/providers/aws/s3.js')
 
 describe('S3 Resolver', () => {
   let mockLogger

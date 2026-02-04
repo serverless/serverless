@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`Basic Invalid should validate: Invalid WAF rules 1`] = `"/apiKeys/0/wafRules/0: must be a valid WAF rule"`;
 

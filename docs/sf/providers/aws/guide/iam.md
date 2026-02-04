@@ -207,6 +207,7 @@ functions:
 ```
 
 Notes:
+
 - When `provider.iam.role.mode: perFunction` is set, the Framework creates a distinct IAM role for every function in the service.
 - Each role inherits the list-like fields from `provider.iam.role` (`statements`, `managedPolicies`, `tags`) and can extend them with additional function-level values.
 - Non‑list fields such as `path`, `name`, and `permissionsBoundary` can be overridden per function via `functions.<name>.iam.role.*`.
@@ -256,6 +257,7 @@ functions:
 ```
 
 Notes:
+
 - A per-function role is created when `iam.role.statements` or `iam.role.managedPolicies` is set on the function.
 - Per-function roles are not generated when a provider-level role is configured. If `provider.role` is set, or `provider.iam.role` references an existing role (ARN/CFN reference/object that resolves to an ARN), all functions use that role.
 - Use `iam.inheritStatements: true` to merge `provider.iam.role.statements` into the function role in this mode.
@@ -276,9 +278,9 @@ When a per-function role is generated, the Framework augments it with sensible d
   - Adds permissions to create/write logs for the function's log group:
     - `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents` on the resolved log group.
     - Resolved Log Group precedence:
-      1) `functions.<name>.logs.logGroup`
-      2) `provider.logs.lambda.logGroup`
-      3) default `/aws/lambda/<functionName>`.
+      1. `functions.<name>.logs.logGroup`
+      2. `provider.logs.lambda.logGroup`
+      3. default `/aws/lambda/<functionName>`.
 
 - VPC access (when VPC is configured)
   - If `functions.<name>.vpc` or `provider.vpc` is set: attaches managed policy `arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole`.
@@ -325,13 +327,13 @@ When a per-function role is generated, the Framework augments it with sensible d
   - When function‑level or provider‑level Lambda tracing is enabled, adds:
     - `xray:PutTraceSegments`
     - `xray:PutTelemetryRecords`
-    on `*`.
+      on `*`.
 
 - EFS access (when `fileSystemConfig` is used)
   - If `functions.<name>.fileSystemConfig.arn` is set, adds:
     - `elasticfilesystem:ClientMount`
     - `elasticfilesystem:ClientWrite`
-    on that EFS access point ARN.
+      on that EFS access point ARN.
 
 Example:
 

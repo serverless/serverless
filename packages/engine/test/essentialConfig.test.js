@@ -13,7 +13,7 @@ describe('Essential Configuration Schema Validation', () => {
     test('should reject stage names that are too short', () => {
       const result = ConfigStage.safeParse('ab')
       expect(result.success).toBe(false)
-      expect(result.error.errors[0].message).toBe(
+      expect(result.error.issues[0].message).toBe(
         '"stage" must be at least 3 characters long',
       )
     })
@@ -21,7 +21,7 @@ describe('Essential Configuration Schema Validation', () => {
     test('should reject stage names that are too long', () => {
       const result = ConfigStage.safeParse('very-long-stage-name-exceeds-limit')
       expect(result.success).toBe(false)
-      expect(result.error.errors[0].message).toBe(
+      expect(result.error.issues[0].message).toBe(
         '"stage" must be at most 16 characters long',
       )
     })
@@ -38,7 +38,7 @@ describe('Essential Configuration Schema Validation', () => {
       invalidStages.forEach((stage) => {
         const result = ConfigStage.safeParse(stage)
         expect(result.success).toBe(false)
-        expect(result.error.errors[0].message).toBe(
+        expect(result.error.issues[0].message).toBe(
           '"stage" can only contain letters, numbers, hyphens, and underscores',
         )
       })

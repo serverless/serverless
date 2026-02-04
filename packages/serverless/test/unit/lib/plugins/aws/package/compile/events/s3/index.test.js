@@ -29,15 +29,12 @@ jest.unstable_mockModule(
 )
 
 // Import after mocking
-const { default: AwsCompileS3Events } = await import(
-  '../../../../../../../../../lib/plugins/aws/package/compile/events/s3/index.js'
-)
-const { default: AwsProvider } = await import(
-  '../../../../../../../../../lib/plugins/aws/provider.js'
-)
-const { default: Serverless } = await import(
-  '../../../../../../../../../lib/serverless.js'
-)
+const { default: AwsCompileS3Events } =
+  await import('../../../../../../../../../lib/plugins/aws/package/compile/events/s3/index.js')
+const { default: AwsProvider } =
+  await import('../../../../../../../../../lib/plugins/aws/provider.js')
+const { default: Serverless } =
+  await import('../../../../../../../../../lib/serverless.js')
 
 describe('AwsCompileS3Events', () => {
   let serverless

@@ -64,8 +64,8 @@ export const handler = async (event) => {
   return {
     statusCode: 200,
     body: JSON.stringify('Hello from Lambda!'),
-  };
-};
+  }
+}
 ```
 
 You can deploy it with the following command:

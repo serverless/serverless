@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import path from 'path'
 import readConfig from '@serverless/framework/lib/configuration/read.js'
 import url from 'url'

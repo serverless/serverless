@@ -123,10 +123,10 @@ functions:
 ```javascript
 // handler.js
 
-'use strict';
+'use strict'
 
 module.exports.hello = function (event, context, callback) {
-  console.log(event); // Contains incoming request data (e.g., query params, headers and more)
+  console.log(event) // Contains incoming request data (e.g., query params, headers and more)
 
   const response = {
     statusCode: 200,
@@ -134,10 +134,10 @@ module.exports.hello = function (event, context, callback) {
       'x-custom-header': 'My Header Value',
     },
     body: JSON.stringify({ message: 'Hello World!' }),
-  };
+  }
 
-  callback(null, response);
-};
+  callback(null, response)
+}
 ```
 
 **Note:** When the body is a JSON-Document, you must parse it yourself:
@@ -373,7 +373,7 @@ If you want to use CORS with the lambda-proxy integration, remember to include t
 ```javascript
 // handler.js
 
-'use strict';
+'use strict'
 
 module.exports.hello = function (event, context, callback) {
   const response = {
@@ -385,10 +385,10 @@ module.exports.hello = function (event, context, callback) {
       'Access-Control-Allow-Credentials': true,
     },
     body: JSON.stringify({ message: 'Hello World!' }),
-  };
+  }
 
-  callback(null, response);
-};
+  callback(null, response)
+}
 ```
 
 ### HTTP Endpoints with `AWS_IAM` Authorizers
@@ -953,10 +953,11 @@ functions:
           method: get
           # Proxy integrations only (AWS_PROXY / HTTP_PROXY)
           response:
-            transferMode: STREAM  # BUFFERED (default) or STREAM
+            transferMode: STREAM # BUFFERED (default) or STREAM
 ```
 
 Notes:
+
 - Applicable only to proxy integrations; other `response` mappings remain ignored for proxies.
 - Cannot be combined with `http.async` (async invokes cannot stream a response).
 - For Lambda proxy, ensure your function uses the streaming API (e.g., `awslambda.streamifyResponse`).
@@ -1199,8 +1200,8 @@ module.exports.hello = (event, context, callback) => {
     statusCode: 404,
     body: 'Not found',
     headers: { 'Content-Type': 'text/plain' },
-  });
-};
+  })
+}
 ```
 
 #### Available Status Codes
@@ -1225,8 +1226,8 @@ Here's an example which shows you how you can raise a 404 HTTP status from withi
 
 ```javascript
 module.exports.hello = (event, context, callback) => {
-  callback(new Error('[404] Not found'));
-};
+  callback(new Error('[404] Not found'))
+}
 ```
 
 #### Custom Status Codes
@@ -1740,8 +1741,8 @@ Having that in your Lambda function, you need to ensure that the correct `conten
 e.g., Assuming that there's an `image.jpg` file located aside of `binaryExample.js` lambda handler, the handler can be set up as follows:
 
 ```js
-const fsp = require('fs').promises;
-const path = require('path');
+const fsp = require('fs').promises
+const path = require('path')
 
 module.exports.handler = async () => ({
   statusCode: 200,
@@ -1750,7 +1751,7 @@ module.exports.handler = async () => ({
     'base64',
   ),
   isBase64Encoded: true,
-});
+})
 ```
 
 ## Detailed CloudWatch Metrics
@@ -1863,7 +1864,9 @@ provider:
 
 Valid values are INFO, ERROR.
 
-The existence of the `logs` property enables both access and execution logging. If you want to disable one or both of them, you can do so with the following:
+**Note:** If `logs.restApi` is not set at all, API Gateway logging will be disabled.
+
+When `logs.restApi` is set (either to `true` or as an object), both access and execution logging are enabled by default. If you want to disable one or both of them, you can do so with the following:
 
 ```yml
 # serverless.yml
@@ -1964,9 +1967,9 @@ provider:
   name: aws
   apiGateway:
     endpoint:
-      securityPolicy: SecurityPolicy_TLS13_2025_EDGE  # Recommended: Use TLS 1.2 or higher
-      accessMode: basic       # Optional: Set endpoint access mode (basic or strict)
-      disable: false          # Optional: Disable the default execute-api endpoint
+      securityPolicy: SecurityPolicy_TLS13_2025_EDGE # Recommended: Use TLS 1.2 or higher
+      accessMode: basic # Optional: Set endpoint access mode (basic or strict)
+      disable: false # Optional: Disable the default execute-api endpoint
 
 functions:
   hello:
@@ -1982,6 +1985,7 @@ functions:
 When using an enhanced security policy (policies starting with `SecurityPolicy_`), you must also specify the `accessMode` under the `endpoint` block. This property determines how API Gateway validates the request's `Host` header against the Server Name Indication (SNI). See the [Endpoint Access Mode documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-security-policies.html#apigateway-security-policies-endpoint-access-mode) for more details.
 
 Supported values:
+
 - `basic` (Default) - Standard validation.
 - `strict` - Enforces stricter validation to prevent domain fronting.
 
@@ -1990,11 +1994,13 @@ Supported values:
 The supported values for `securityPolicy` depend on your API's type. For a complete list of supported security policies, see the [AWS API Gateway documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-security-policies.html).
 
 **Legacy Policies:**
+
 - `TLS_1_0` - Supports TLS 1.0, 1.1, and 1.2
 - `TLS_1_2` - Enforces TLS 1.2 or higher
 
 **Enhanced Policies (TLS 1.3 support):**
 To use TLS 1.3 or specific cipher suites, use an enhanced security policy (starting with `SecurityPolicy_`).
+
 - Example: `SecurityPolicy_TLS13_2025_EDGE` (Enforces TLS 1.3)
 
 **Security Recommendation:** Use enhanced policy like `SecurityPolicy_TLS13_2025_EDGE` to protect your API.

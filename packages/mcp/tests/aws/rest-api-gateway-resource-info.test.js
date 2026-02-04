@@ -35,9 +35,8 @@ jest.unstable_mockModule(
 )
 
 // Import the module under test (after mocking)
-const { getRestApiGatewayResourceInfo } = await import(
-  '../../src/lib/aws/resource-info.js'
-)
+const { getRestApiGatewayResourceInfo } =
+  await import('../../src/lib/aws/resource-info.js')
 
 describe('REST API Gateway Resource Info', () => {
   beforeEach(() => {

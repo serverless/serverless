@@ -22,7 +22,7 @@ describe('parseDuration', () => {
   })
 
   it('should throw on invalid duration', () => {
-    expect(() => parseDuration('foo')).toThrowError()
+    expect(() => parseDuration('foo')).toThrow()
   })
 
   it('should auto-fix 1y durations to 365 days', () => {

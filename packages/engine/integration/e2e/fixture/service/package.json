@@ -7,9 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC",
   "dependencies": {
     "express": "^4.21.2",
-    "@aws-sdk/client-s3": "^3.525.0"
+    "@aws-sdk/client-s3": "3.981.0"
   }
 }
