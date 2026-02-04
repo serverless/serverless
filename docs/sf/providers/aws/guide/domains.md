@@ -132,7 +132,7 @@ provider:
   domain:
     name: api.example.com
     basePath: v1
-    apiType: httpApi
+    apiType: http
     endpointType: regional
 
 functions:
@@ -170,7 +170,7 @@ provider:
   domain:
     name: api.example.com # Required: Your custom domain name
     basePath: v1 # Optional: Base path for API mapping
-    apiType: httpApi # Optional: API type (httpApi, rest, websocket)
+    apiType: http # Optional: API type (http, rest, websocket)
     endpointType: regional # Optional: Endpoint type (regional, edge)
 ```
 
@@ -182,10 +182,10 @@ You can configure multiple domains for the same service:
 provider:
   domains:
     - name: api.example.com
-      apiType: httpApi
+      apiType: http
       basePath: v1
     - name: api-staging.example.com
-      apiType: httpApi
+      apiType: http
       basePath: v1
     - name: websocket.example.com
       apiType: websocket
@@ -199,7 +199,7 @@ Below are all available configuration options for custom domains:
 | ------------------------------ | -------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`                         | string         | Yes      | Your custom domain name (e.g., `api.example.com`)                                                                                                                                                                                     |
 | `basePath`                     | string         | No       | Base path for API mapping (e.g., `v1`, `api`)                                                                                                                                                                                         |
-| `apiType`                      | string         | No       | API type: `httpApi`, `rest`, or `websocket`. Defaults to `httpApi`. Please note that Serverless Framework Services can only have 1 of each API Type. Therefore, when you specify `apiType` it will be auto-mapped to the correct one. |
+| `apiType`                      | string         | No       | API type: `http`, `rest`, or `websocket`. Defaults to `http`. Please note that Serverless Framework Services can only have 1 of each API Type. Therefore, when you specify `apiType` it will be auto-mapped to the correct one. |
 | `endpointType`                 | string         | No       | Endpoint type: `regional` or `edge`. Defaults to `regional`                                                                                                                                                                           |
 | `certificateArn`               | string         | No       | ARN of existing ACM certificate. If not provided, a new certificate will be created                                                                                                                                                   |
 | `certificateName`              | string         | No       | Name of existing ACM certificate to use instead of creating a new one                                                                                                                                                                 |
@@ -227,7 +227,7 @@ provider:
   domain:
     name: api.example.com
     basePath: v1
-    apiType: httpApi
+    apiType: http
     endpointType: regional
     certificateArn: arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012
     createRoute53Record: true
@@ -262,7 +262,7 @@ service: my-service
 provider:
   domain:
     name: api.example.com
-    apiType: httpApi
+    apiType: http
 
 functions:
   hello:
@@ -381,7 +381,7 @@ provider:
   runtime: nodejs20.x
   domains:
     - name: api.example.com
-      apiType: httpApi
+      apiType: http
       basePath: v1
     - name: websocket.example.com
       apiType: websocket
@@ -456,7 +456,7 @@ provider:
     name: api.example.com
     certificateArn: arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012
     createRoute53Record: false
-    apiType: httpApi
+    apiType: http
     endpointType: regional
 
 functions:
@@ -486,7 +486,7 @@ After deploying your service, you'll need to create DNS records in your registra
 | `certificateArn`      | Yes      | ARN of the manually created ACM certificate                 |
 | `createRoute53Record` | Yes      | Set to `false` to prevent automatic Route53 record creation |
 | `name`                | Yes      | Your custom domain name                                     |
-| `apiType`             | No       | API type (httpApi, rest, websocket) - defaults to httpApi   |
+| `apiType`             | No       | API type (http, rest, websocket) - defaults to http         |
 | `endpointType`        | No       | Endpoint type (regional, edge) - defaults to regional       |
 | `basePath`            | No       | Base path for API mapping                                   |
 
@@ -500,7 +500,7 @@ provider:
     - name: api.example.com
       certificateArn: arn:aws:acm:us-east-1:123456789012:certificate/api-cert-12345
       createRoute53Record: false
-      apiType: httpApi
+      apiType: http
     - name: websocket.example.com
       certificateArn: arn:aws:acm:us-east-1:123456789012:certificate/ws-cert-12345
       createRoute53Record: false
