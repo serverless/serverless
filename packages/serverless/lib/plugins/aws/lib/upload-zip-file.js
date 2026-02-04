@@ -20,6 +20,11 @@ export default {
     let streamError
     artifactStream.on('error', (error) => (streamError = error))
 
+    // Use statSync to get the actual file size (follows symlinks).
+    // This is necessary because AWS SDK v3's lib-storage uses lstatSync internally,
+    // which returns the symlink size instead of the target file size.
+    const fileSize = fs.statSync(filename).size
+
     const key = `${s3KeyDirname}/${basename}`
     logger.debug('upload to %s/%s', this.bucketName, key)
     let params = {
@@ -27,6 +32,7 @@ export default {
       Key: key,
       Body: artifactStream,
       ContentType: 'application/zip',
+      ContentLength: fileSize,
       Metadata: {
         filesha256: fileHash,
       },
