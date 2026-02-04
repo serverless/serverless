@@ -799,10 +799,12 @@ class AwsDev {
           })
 
           if (confirmed) {
-            mainProgress.notice('Removing service stack')
+            // Get fresh progress instance (the one captured in connect() may have been removed)
+            const removalProgress = progress.get('main')
+            removalProgress.notice('Removing service')
             await this.serverless.pluginManager.spawn('remove')
-            mainProgress.remove()
-            logger.success('Stack removed successfully')
+            removalProgress.remove()
+            logger.success('Service removed successfully')
           } else {
             logger.blankLine()
             logger.warning(
