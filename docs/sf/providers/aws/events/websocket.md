@@ -262,6 +262,17 @@ provider:
 
 The log streams will be generated in a dedicated log group which follows the naming schema `/aws/websocket/{service}-{stage}`.
 
+You can customize the log group name by specifying the `logGroup` property:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    websocket:
+      logGroup: /my-custom-log-group/websocket
+```
+
 The default log level will be INFO. You can change this to error with the following:
 
 ```yml
