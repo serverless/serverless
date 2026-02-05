@@ -19,7 +19,7 @@
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest tests/"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.25.3",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "@serverless/engine": "*",
     "@serverless/framework": "*",
     "eventsource": "^3.0.7",
