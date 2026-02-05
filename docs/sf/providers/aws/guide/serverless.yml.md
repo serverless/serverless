@@ -158,8 +158,8 @@ provider:
     name: api.example.com
     # Base path for API mapping (optional, e.g., 'v1', 'api')
     basePath: v1
-    # API type: 'httpApi', 'rest', or 'websocket' (optional, auto-detected from CloudFormation template)
-    apiType: httpApi
+    # API type: 'http', 'rest', or 'websocket' (optional, auto-detected from CloudFormation template)
+    apiType: http
     # Endpoint type: 'regional' or 'edge' (optional, default: 'regional')
     endpointType: regional
     # ARN of existing ACM certificate (optional, will create new if not provided)
@@ -203,7 +203,7 @@ provider:
   # OR multiple domains (object format)
   domains:
     - name: api.example.com
-      apiType: httpApi
+      apiType: http
       basePath: v1
     - name: websocket.example.com
       apiType: websocket
@@ -665,12 +665,14 @@ provider:
     # Enable HTTP API logs
     # This can either be set to `httpApi: true` to use defaults, or configured via subproperties
     # Can only be configured if the API is created by Serverless Framework
+    # Note: If this property is not set, HTTP API logging will be disabled
     httpApi:
       format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
 
     # Enable REST API logs
     # This can either be set to `restApi: true` to use defaults, or configured via subproperties
     # Can only be configured if the API is created by Serverless Framework
+    # Note: If this property is not set, API Gateway logging will be disabled
     restApi:
       # Enables HTTP access logs (default: true)
       accessLogging: true
@@ -689,6 +691,7 @@ provider:
 
     # Enable Websocket API logs
     # This can either be set to `websocket: true` to use defaults, or configured via subproperties.
+    # Note: If this property is not set, WebSocket API logging will be disabled
     websocket:
       # Enables HTTP access logs (default: true)
       accessLogging: true

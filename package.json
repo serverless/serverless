@@ -22,7 +22,7 @@
     "eslint": "^9.39.2",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "prettier": "^3.8.0"
+    "prettier": "^3.8.1"
   },
   "lint-staged": {
     "*.{js,ts,tsx,jsx}": [
@@ -30,6 +30,7 @@
     ]
   },
   "overrides": {
-    "help-me": "^5.0.0"
+    "help-me": "^5.0.0",
+    "fast-xml-parser": "^5.3.4"
   }
 }

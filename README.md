@@ -35,24 +35,27 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 <br/>
 
-**December 2025** – V.4 continues to feature significant updates. Review them all below. In December 2025 we released support for numerous new features announced at AWS re:invent, like new runtimes, new regions, HTTP response streaming with API Gateway, Lambda tenant isolation, and much more. As always, we are more excited about the serverless future than ever.
+**January 2026** – V.4 continues to feature significant updates. Review them all below. In January 2026 we released support for numerous new features like Managed Instances, Durable Functions, Built-in AppSync & Prune plugins, and built-in AWS Login & SSO support. As always, we are more excited about the serverless future than ever.
 
 ## New Features In V.4
 
 Here's a list of everything that's new in V.4, so far:
 
-- **Lambda tenant isolation mode:** Use tenant isolation mode to create distinct Lambda compute environments per tenant to help reduce noisy neighbor effects and isolate high traffic customers more cleanly.
-- **HTTP response streaming:** Stream logs, long-running reports, partial respones, or AI LLM responses from Lambda with API Gateway HTTP APIs.
+- **Managed instances** – Native support for EC2-backed Lambda execution to enable higher throughput, predictable capacity, and long-running workloads.
+- **Durable functions** – Built-in support for durable, stateful workflows and long-running orchestrations.
+- **Lambda tenant isolation mode:** Use tenant isolation mode to create distinct Lambda compute environments per tenant to help reduce noisy neighbor effects and isolate high-traffic customers more cleanly.
+- **HTTP response streaming:** Stream logs, long-running reports, partial responses, or AI LLM responses from Lambda with API Gateway HTTP APIs.
 - **Per-function IAM roles:** Add per-function IAM policies or switch the entire service to use per-function policies.
+- **Built-in plugins**: Popular community plugins are now first-class, built-in features of the framework, including Python requirements, AppSync, Prune, API Gateway Service Proxy, and more.
 - **Improved Custom Domain Support:** You no longer need an external plugin to automatically configure custom domains and SSL certificates for your APIs and more. It's now built into the [Serverless Framework CLI](https://www.serverless.com/framework/docs/providers/aws/guide/domains).
 - **Integration with Doppler:** You can now easily fetch Secrets from Doppler via [Serverless Framework Variables](https://www.serverless.com/framework/docs/guides/variables/doppler).
 - **Introducing [Serverless MCP](https://www.serverless.com/framework/docs/guides/mcp):** Built for Cursor, Windsurf, and other AI-powered IDEs, it auto-detects cloud resources from your code, fetching logs, state, and config from AWS, enabling you to debug serverless apps directly in your IDE — no AWS console visit needed! Supports Serverless Framework, Cloudformation, and more.
 - **Introducing the [Serverless Container Framework](https://github.com/serverless/containers):** One solution to deploy serverless workloads everywhere - This is a new YAML file that works with the Serverless Framework CLI that gives you one experience to easily deploy containers to AWS Lambda and AWS ECS Fargate and migrate between them w/ zero-downtime — all without re-architecting. We launched this as a way to reduce large Lambda bills and give folks flexibility, but it is rapidly become the greatest developer experience for containers on AWS. Support for Google Cloud Run, Azure and more are coming soon.
-- **Support for AWS SAM, AWS Cloudformation, & Traditional Serverless Framework Projects:** Now, you can use one tool to deploy all three of these IaC project files. [More info here](https://www.serverless.com/framework/docs/guides/sam)
-- **Native Typescript Support:** You can now use `.ts` handlers in your AWS Lambda functions in `serverless.yml` and have them build automatically upon deploy. [ESBuild](https://esbuild.github.io/) is now included in the Framework which makes this possible. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/building).
+- **Support for AWS SAM, AWS CloudFormation, & Traditional Serverless Framework Projects:** Now, you can use one tool to deploy all three of these IaC project files. [More info here](https://www.serverless.com/framework/docs/guides/sam)
+- **Native TypeScript Support:** You can now use `.ts` handlers in your AWS Lambda functions in `serverless.yml` and have them build automatically upon deploy. [ESBuild](https://esbuild.github.io/) is now included in the Framework which makes this possible. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/building).
 - **The AWS AI Stack:** V.4 is optimized for [the AWS AI Stack](https://github.com/serverless/aws-ai-stack). Deploy a full-stack, serverless, boilerplate for AI applications on AWS, featuring Bedrock LLMs like Claude 3.5 Sonnet and Llama3.1 and much more.
 - **New Dev Mode:** Run `serverless dev` to have events from your live architecture routed to your local code, enabling you to make fast changes without deployment. [More info here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
-- **Latest Runtime Support:** Support for Node.js 22 (`nodejs24.x`, Python 3.14 (`python3.14`) and Java 25 (`java25`), on AWS Lambda.
+- **Latest Runtime Support:** Support for Node.js 24 (`nodejs24.x`), Python 3.14 (`python3.14`), and Java 25 (`java25`) on AWS Lambda.
 - **Latest Region Support:** Support for all major regions, including the newly announced `ap-southeast-6` in New Zealand.
 - **New Stages Property:** Easily organize stage-specific config via `stages` and set `default` config to fallback to.
 - **Improved Compose Experience:** Serverless Compose now has a beautiful new CLI experience that better demonstrates what is being deployed.

@@ -224,6 +224,11 @@ commands.set('dev', {
       shortcut: 'p',
       type: 'string',
     },
+    'remove-on-exit': {
+      usage:
+        'Remove the service stack when exiting dev mode (with confirmation)',
+      type: 'boolean',
+    },
   },
   lifecycleEvents: ['dev'],
   serviceDependencyMode: 'required',
