@@ -786,6 +786,14 @@ export class AgentCoreDevMode {
       if (this.#readline && !this.#isInvoking && !this.#isShuttingDown) {
         // Small delay to let process stabilize
         await asyncSetTimeout(500)
+
+        // Toggle raw mode off then on to reset terminal state
+        // This fixes readline input issues after log streaming
+        if (process.stdin.isTTY && process.stdin.setRawMode) {
+          process.stdin.setRawMode(false)
+          process.stdin.setRawMode(true)
+        }
+
         this.#readline.resume()
         this.#readline.prompt()
       }
@@ -961,6 +969,15 @@ export class AgentCoreDevMode {
 
       // Resume readline and redisplay prompt (only if not shutting down)
       if (this.#readline && !this.#isShuttingDown) {
+        // Wait for server logs to display before showing prompt
+        await asyncSetTimeout(1000)
+
+        // Toggle raw mode off then on to reset terminal state
+        if (process.stdin.isTTY && process.stdin.setRawMode) {
+          process.stdin.setRawMode(false)
+          process.stdin.setRawMode(true)
+        }
+
         this.#readline.resume()
         this.#readline.prompt()
       }
@@ -1087,33 +1104,43 @@ export class AgentCoreDevMode {
   }
 
   /**
-   * Handle JSON response
+   * Handle non-streaming response (JSON or plain text)
    * @private
    */
   async #handleJsonResponse(response) {
-    const data = await response.json()
+    const text = await response.text()
+
+    // Try to parse as JSON first
+    let data
+    try {
+      data = JSON.parse(text)
+    } catch {
+      // Not JSON, treat as plain text response
+      process.stdout.write(text + '\n')
+      return
+    }
 
     // Extract response text from various possible formats
     if (typeof data === 'string') {
       process.stdout.write(data + '\n')
     } else if (data.result) {
-      const text =
+      const resultText =
         typeof data.result === 'string'
           ? data.result
           : JSON.stringify(data.result)
-      process.stdout.write(text + '\n')
+      process.stdout.write(resultText + '\n')
     } else if (data.response) {
-      const text =
+      const responseText =
         typeof data.response === 'string'
           ? data.response
           : JSON.stringify(data.response)
-      process.stdout.write(text + '\n')
+      process.stdout.write(responseText + '\n')
     } else if (data.message) {
-      const text =
+      const messageText =
         typeof data.message === 'string'
           ? data.message
           : JSON.stringify(data.message)
-      process.stdout.write(text + '\n')
+      process.stdout.write(messageText + '\n')
     } else if (data.error) {
       logger.error(`Error: ${data.error}`)
       if (data.traceback) {
