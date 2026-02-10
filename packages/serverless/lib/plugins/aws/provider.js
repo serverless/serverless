@@ -573,6 +573,7 @@ class AwsProvider {
             enum: [
               'dotnet6',
               'dotnet8',
+              'dotnet10',
               'go1.x',
               'java25',
               'java21',
