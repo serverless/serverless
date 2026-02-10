@@ -1,0 +1,26 @@
+{
+  "name": "langgraph-basic",
+  "version": "1.0.0",
+  "description": "Minimal LangGraph JS agent for AWS Bedrock AgentCore",
+  "type": "module",
+  "main": "agent.js",
+  "keywords": [
+    "langgraph",
+    "langchain",
+    "bedrock",
+    "agentcore",
+    "serverless",
+    "ai-agent",
+    "js"
+  ],
+  "dependencies": {
+    "@langchain/aws": "^0.1.0",
+    "@langchain/core": "^0.3.0",
+    "@langchain/langgraph": "^0.2.0",
+    "bedrock-agentcore": "^0.2.0",
+    "zod": "^3.23.0"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}

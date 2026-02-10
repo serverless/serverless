@@ -110,7 +110,7 @@ agents:
   browserAgent: {}
 ```
 
-See the [Browser documentation](../../../../../../docs/sf/providers/aws/guide/agents/browser.md) for full configuration options.
+See the [Browser documentation](../../../../../../../docs/sf/providers/aws/guide/agents/browser.md) for full configuration options.
 
 ## Cleanup
 
@@ -120,6 +120,6 @@ serverless remove
 
 ## Next Steps
 
-- [Browser Documentation](../../../../../../docs/sf/providers/aws/guide/agents/browser.md) - Full configuration reference
+- [Browser Documentation](../../../../../../../docs/sf/providers/aws/guide/agents/browser.md) - Full configuration reference
 - [Memory Example](../langgraph-memory/) - Add conversation persistence
 - [Gateway Example](../langgraph-gateway/) - Add custom Lambda tools

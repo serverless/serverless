@@ -117,14 +117,13 @@ class AwsDev {
       await import('../bedrock-agentcore/dev/index.js')
     const { getLogicalId } =
       await import('../bedrock-agentcore/utils/naming.js')
-
-    // Reserved keys that are not actual agents
-    const RESERVED_AGENT_KEYS = ['memory', 'tools']
+    const { isReservedAgentKey } =
+      await import('../bedrock-agentcore/validators/config.js')
 
     const agents = this.serverless.service.initialServerlessConfig?.agents || {}
     const agentsConfig = Object.entries(agents).filter(([name, config]) => {
-      // Skip reserved keys (memory, tools) which are not agents
-      if (RESERVED_AGENT_KEYS.includes(name)) {
+      // Skip reserved keys (tools, gateways, browsers, etc.) which are not runtime agents
+      if (isReservedAgentKey(name)) {
         return false
       }
       // Only include runtime agents (type: 'runtime' or no type specified for backwards compat)
@@ -174,6 +173,7 @@ class AwsDev {
     let roleArn
     let gatewayUrl
     let memoryId
+    let stackOutputs = []
 
     try {
       const result = await this.provider.request(
@@ -186,6 +186,7 @@ class AwsDev {
       if (!stack) {
         throw new Error(`Stack ${stackName} not found`)
       }
+      stackOutputs = stack.Outputs || []
 
       // 1. Get Role ARN
       const roleLogicalId = getLogicalId(agentName, 'Runtime')
@@ -241,6 +242,12 @@ class AwsDev {
       ...agentEnv,
     }
 
+    // Resolve CloudFormation intrinsic functions (e.g. !GetAtt, !Ref, !ImportValue)
+    // in environment variables from their deployed stack values.
+    const resolveCfEnvVars = (await import('../utils/resolve-cf-env-vars.js'))
+      .default
+    await resolveCfEnvVars(this.provider, agentConfig.environment, stackOutputs)
+
     // Inject auto-discovered Bedrock AgentCore resources
     if (gatewayUrl) {
       agentConfig.environment.BEDROCK_AGENTCORE_GATEWAY_URL = gatewayUrl
@@ -259,6 +266,7 @@ class AwsDev {
     // Start dev mode
     const devMode = new AgentCoreDevMode({
       serverless: this.serverless,
+      serviceName: this.serverless.service.service,
       projectPath: this.serverless.serviceDir,
       agentName,
       agentConfig,
@@ -274,6 +282,7 @@ class AwsDev {
       throw new ServerlessError(
         `Agents dev mode failed: ${error.message}`,
         'AGENTS_DEV_MODE_FAILED',
+        { stack: false },
       )
     }
   }
@@ -297,7 +306,7 @@ class AwsDev {
 
     const mainProgress = progress.get('main')
 
-    this.serverless.devmodeEnabled = true
+    this.serverless.functionsDevModeEnabled = true
     logger.logoDevMode()
 
     // Educate
@@ -371,6 +380,9 @@ class AwsDev {
       if (hook.pluginName === 'AwsDev') {
         continue
       }
+      if (hook.pluginName === 'ServerlessBedrockAgentCore') {
+        continue
+      }
       hook.hook = async () => {}
     }
 
@@ -378,6 +390,9 @@ class AwsDev {
       'before:package:createDeploymentArtifacts'
     ] || []) {
       if (hook.pluginName === 'AwsDev') {
+        continue
+      }
+      if (hook.pluginName === 'ServerlessBedrockAgentCore') {
         continue
       }
       hook.hook = async () => {}

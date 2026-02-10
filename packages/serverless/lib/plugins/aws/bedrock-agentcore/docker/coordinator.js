@@ -62,8 +62,10 @@ export async function buildDockerImages(config) {
       !artifactImage && // No pre-built image URI
       !agentConfig.handler // No code deployment handler
     ) {
-      // No explicit artifact configuration - use buildpacks auto-detection
-      // Look for Dockerfile in root directory
+      // No explicit artifact configuration - auto-detect Dockerfile or use buildpacks
+      log.info(
+        `Runtime '${name}': No handler or artifact.image specified - using Dockerfile or auto-create Docker image`,
+      )
       runtimesToBuild.push({
         name,
         config: agentConfig,
@@ -83,7 +85,7 @@ export async function buildDockerImages(config) {
   const dockerAvailable = await builder.checkDocker()
   if (!dockerAvailable) {
     throw new serverless.classes.Error(
-      'Docker is required to build agent images but was not found. Please install Docker.',
+      'Docker is required to build agent images but was not found. Please run or install Docker.',
     )
   }
 

@@ -6,7 +6,8 @@ import { createInterface } from 'readline'
 import { randomUUID } from 'crypto'
 import chokidar from 'chokidar'
 import chalk from 'chalk'
-import { DockerClient, log, progress } from '@serverless/util'
+import { log, progress } from '@serverless/util'
+import { DockerClient } from '@serverless/util/src/docker/index.js'
 import {
   GetRoleCommand,
   IAMClient,
@@ -146,11 +147,11 @@ export class AgentCoreDevMode {
       return 'docker'
     }
 
-    // No artifact configuration found
-    throw new Error(
-      `No artifact configuration found for agent '${this.#agentName}'. ` +
-        `Please specify 'handler' for code mode or 'artifact.image' for container mode in serverless.yml`,
-    )
+    // Default: Implicit Docker mode (Buildpacks)
+    // This matches the behavior of 'sls deploy' (coordinator.js) which defaults to buildpacks
+    // if no handler or artifact.image is specified.
+    logger.debug(`No explicit mode detected. Defaulting to Docker mode.`)
+    return 'docker'
   }
 
   /**
@@ -699,6 +700,12 @@ export class AgentCoreDevMode {
 
     this.#watcher.on('all', async (event, filePath) => {
       if (this.#isShuttingDown) return
+
+      // Clear the readline prompt line so the rebuild notice doesn't
+      // appear as if the user typed it after "You: "
+      if (this.#readline) {
+        process.stdout.write('\n')
+      }
 
       const relativePath = path.relative(watchPath, filePath)
       logger.notice(`Detected ${event} in ${relativePath}. Rebuilding...`)

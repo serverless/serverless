@@ -1,7 +1,8 @@
 'use strict'
 
 import path from 'path'
-import { DockerClient } from '@serverless/util'
+import { ServerlessError } from '@serverless/util'
+import { DockerClient } from '@serverless/util/src/docker/index.js'
 
 /**
  * Docker image builder for AgentCore runtimes
@@ -142,13 +143,87 @@ export class DockerBuilder {
     const context = dockerConfig.path || '.'
     const platform = dockerConfig.platform || 'linux/arm64'
     const contextPath = path.resolve(servicePath, context)
+    const buildOptions = dockerConfig.buildOptions || []
+
+    // Use heroku builder for ARM64 buildpacks support
+    // AgentCore requires ARM64, and heroku/builder:24 supports --platform flag
+    const builder =
+      platform === 'linux/arm64'
+        ? 'heroku/builder:24@sha256:ad175c86d61399f70bbdab31bbd8b22b34f2d0e2c88e329edb49a8416003b734'
+        : null
 
     this.log.info(`Building Docker image: ${imageUri}`)
     this.log.info(`  Context: ${contextPath}`)
     this.log.info(`  Platform: ${platform}`)
 
-    // Prepare build options
-    const buildOptions = dockerConfig.buildOptions || []
+    // Detect build strategy and log it for user visibility
+    const dockerfileToCheck = path.resolve(
+      contextPath,
+      dockerConfig.file || 'Dockerfile',
+    )
+    try {
+      const fs = await import('fs/promises')
+      await fs.access(dockerfileToCheck)
+      this.log.info(
+        `  Build strategy: Dockerfile (${dockerConfig.file || 'Dockerfile'})`,
+      )
+    } catch {
+      this.log.info(
+        `  Build strategy: Buildpacks (builder: ${builder || 'default'})`,
+      )
+
+      // VALIDATION: Buildpacks for Node.js require a lockfile
+      // If package.json exists but no lockfile, dependencies won't be installed
+      try {
+        const fs = await import('fs/promises')
+        const packageJsonPath = path.resolve(contextPath, 'package.json')
+        await fs.access(packageJsonPath)
+
+        // package.json exists, check for lockfiles
+        const lockfiles = [
+          'package-lock.json',
+          'npm-shrinkwrap.json',
+          'yarn.lock',
+          'pnpm-lock.yaml',
+        ]
+        let lockfileFound = false
+        for (const lockfile of lockfiles) {
+          try {
+            await fs.access(path.resolve(contextPath, lockfile))
+            lockfileFound = true
+            break
+          } catch {
+            // Check next lockfile
+          }
+        }
+
+        if (!lockfileFound) {
+          throw new ServerlessError(
+            'Missing lockfile for Node.js project. Deployment requires a lockfile (package-lock.json, yarn.lock, or pnpm-lock.yaml) to ensure consistent dependencies. Please generate a lockfile (e.g., run "npm install") and try again.',
+            'MISSING_LOCKFILE',
+            { stack: false },
+          )
+        }
+      } catch (error) {
+        // Ignore if package.json missing (not a Node.js project)
+        // Re-throw if it's our validation error
+        if (
+          error.code !== 'ENOENT' ||
+          error.message.includes('Missing lockfile')
+        ) {
+          throw error
+        }
+      }
+
+      return await this.dockerClient.buildImage({
+        containerName: imageUri.split(':')[0].split('/').pop(),
+        containerPath: contextPath,
+        imageUri,
+        buildOptions, // These are docker build options, might be ignored by buildpacks path but passed for consistency
+        platform,
+        builder,
+      })
+    }
 
     // Add cache-from if specified
     if (dockerConfig.cacheFrom) {
@@ -168,10 +243,6 @@ export class DockerBuilder {
       )
       dockerFileString = await fs.readFile(dockerfilePath, 'utf-8')
     }
-
-    // Use heroku builder for ARM64 buildpacks support
-    // AgentCore requires ARM64, and heroku/builder:24 supports --platform flag
-    const builder = platform === 'linux/arm64' ? 'heroku/builder:24' : null
 
     await this.dockerClient.buildImage({
       containerName: imageUri.split(':')[0].split('/').pop(),

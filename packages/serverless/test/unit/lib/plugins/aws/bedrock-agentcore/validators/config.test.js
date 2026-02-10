@@ -108,12 +108,12 @@ describe('validators/config', () => {
 
     it('should throw for invalid expiration', () => {
       expect(() =>
-        validateMemoryConfig('myMemory', { expiration: 5 }, throwError),
-      ).toThrow('expiration must be a number between 7 and 365')
+        validateMemoryConfig('myMemory', { expiration: 2 }, throwError),
+      ).toThrow('expiration must be a number between 3 and 365')
 
       expect(() =>
         validateMemoryConfig('myMemory', { expiration: 400 }, throwError),
-      ).toThrow('expiration must be a number between 7 and 365')
+      ).toThrow('expiration must be a number between 3 and 365')
     })
 
     it('should throw for non-string encryptionKey', () => {

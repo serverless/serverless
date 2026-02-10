@@ -1,0 +1,13 @@
+# MCP Server Example
+#
+# A JavaScript MCP server deployed to AWS Bedrock AgentCore Runtime.
+# Exposes tools (add, multiply, get_current_time) via the Model Context Protocol.
+
+service: mcp-server
+
+provider:
+  name: aws
+
+agents:
+  assistant:
+    protocol: MCP

@@ -16,7 +16,7 @@ import os
 
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from langchain.chat_models import init_chat_model
-from langchain_aws.tools import create_browser_toolkit
+from langchain_ aws.tools import create_browser_toolkit
 from langgraph.prebuilt import create_react_agent
 
 # Setup logging

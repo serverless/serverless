@@ -11,6 +11,15 @@ const mockDockerClient = {
 }
 
 jest.unstable_mockModule('@serverless/util', () => ({
+  ServerlessError: class ServerlessError extends Error {
+    constructor(message, code) {
+      super(message)
+      this.code = code
+    }
+  },
+}))
+
+jest.unstable_mockModule('@serverless/util/src/docker/index.js', () => ({
   DockerClient: jest.fn(() => mockDockerClient),
 }))
 
@@ -26,6 +35,14 @@ jest.unstable_mockModule('@aws-sdk/client-ecr', () => ({
   CreateRepositoryCommand: jest.fn(),
 }))
 
+// Mock fs/promises so Dockerfile detection works in tests
+const mockFsAccess = jest.fn()
+const mockFsReadFile = jest.fn()
+jest.unstable_mockModule('fs/promises', () => ({
+  access: mockFsAccess,
+  readFile: mockFsReadFile,
+}))
+
 // Import after mocking
 const { DockerBuilder } =
   await import('../../../../../../../lib/plugins/aws/bedrock-agentcore/docker/builder.js')
@@ -38,6 +55,10 @@ describe('DockerBuilder', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+
+    // Default: Dockerfile exists (access resolves)
+    mockFsAccess.mockResolvedValue(undefined)
+    mockFsReadFile.mockResolvedValue('')
 
     mockServerless = {
       getProvider: jest.fn().mockReturnValue({

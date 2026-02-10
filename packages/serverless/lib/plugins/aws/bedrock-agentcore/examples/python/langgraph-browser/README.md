@@ -148,4 +148,4 @@ serverless remove
 
 - [Gateway Example](../langgraph-gateway/) - Add custom Lambda tools
 - [Memory Example](../langgraph-memory/) - Add conversation persistence
-- [Browser Documentation](../../../../../../docs/sf/providers/aws/guide/agents/browser.md) - Full configuration reference
+- [Browser Documentation](../../../../../../../docs/sf/providers/aws/guide/agents/browser.md) - Full configuration reference

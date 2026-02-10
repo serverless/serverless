@@ -2,8 +2,10 @@ import path from 'node:path'
 import fs from 'fs'
 import { spawn } from 'node:child_process'
 import Dockerode from 'dockerode'
-import { ServerlessError, log } from '@serverless/util'
+import { ServerlessError } from '../errors/index.js'
+import { log } from '../logger/index.js'
 import { writeFile } from 'fs/promises'
+import { getRcConfig } from '../rc/index.js'
 
 /**
  * Docker client wrapper class providing high-level Docker operations
@@ -396,10 +398,20 @@ CMD ["node", "index.mjs"]
       `${containerName}: Building Docker image using Buildpacks for platform ${platform} with builder ${builderImage}. Container path: ${containerPath}, Image URI: ${imageUri}`,
     )
 
+    // Read frameworkId from .serverlessrc for buildpack volume caching
+    let volumeKey = null
+    try {
+      const rcConfig = await getRcConfig('serverless')
+      volumeKey = rcConfig?.frameworkId || null
+    } catch {
+      // .serverlessrc not available, skip
+    }
+
     // Build pack command arguments
     const packArgs = [
       'run',
       '--rm',
+      ...(volumeKey ? ['-e', `PACK_VOLUME_KEY=${volumeKey}`] : []),
       '-v',
       '/var/run/docker.sock:/var/run/docker.sock',
       '-v',
@@ -412,6 +424,10 @@ CMD ["node", "index.mjs"]
       '--builder',
       builderImage,
       '--trust-builder',
+      '--cache',
+      `type=build;format=volume;name=${containerName}-build-cache`,
+      '--cache',
+      `type=launch;format=volume;name=${containerName}-launch-cache`,
     ]
 
     // Add platform flag only if using a builder that supports it (like heroku/builder:24)

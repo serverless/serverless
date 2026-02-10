@@ -443,16 +443,32 @@ AWS Bedrock AgentCore is available in select regions. Check AWS documentation fo
 
 See the [examples directory](./examples/) for complete working examples:
 
-- [langgraph-basic-docker](./examples/langgraph-basic-docker/) - Minimal LangGraph agent with Docker
-- [langgraph-basic-code](./examples/langgraph-basic-code/) - LangGraph agent with code deployment
-- [langgraph-gateway](./examples/langgraph-gateway/) - LangGraph agent with custom Lambda tools via Gateway
-- [langgraph-multi-gateway](./examples/langgraph-multi-gateway/) - Multiple gateways with different authorization
-- [langgraph-memory](./examples/langgraph-memory/) - LangGraph agent with conversation persistence
-- [langgraph-browser](./examples/langgraph-browser/) - LangGraph agent with browser automation
-- [langgraph-browser-custom](./examples/langgraph-browser-custom/) - Custom browser with session recording
-- [langgraph-code-interpreter](./examples/langgraph-code-interpreter/) - LangGraph agent with code execution
-- [langgraph-code-interpreter-custom](./examples/langgraph-code-interpreter-custom/) - Custom code interpreter with PUBLIC network
-- [strands-browser](./examples/strands-browser/) - Strands Agents with browser automation
+**Python:**
+
+- [langgraph-basic-docker](./examples/python/langgraph-basic-docker/) - Minimal LangGraph agent with Docker
+- [langgraph-basic-code](./examples/python/langgraph-basic-code/) - LangGraph agent with code deployment
+- [langgraph-gateway](./examples/python/langgraph-gateway/) - LangGraph agent with custom Lambda tools via Gateway
+- [langgraph-multi-gateway](./examples/python/langgraph-multi-gateway/) - Multiple gateways with different authorization
+- [langgraph-memory](./examples/python/langgraph-memory/) - LangGraph agent with conversation persistence
+- [langgraph-browser](./examples/python/langgraph-browser/) - LangGraph agent with browser automation
+- [langgraph-browser-custom](./examples/python/langgraph-browser-custom/) - Custom browser with session recording
+- [langgraph-code-interpreter](./examples/python/langgraph-code-interpreter/) - LangGraph agent with code execution
+- [langgraph-code-interpreter-custom](./examples/python/langgraph-code-interpreter-custom/) - Custom code interpreter with PUBLIC network
+- [strands-browser](./examples/python/strands-browser/) - Strands Agents with browser automation
+
+**JavaScript:**
+
+- [langgraph-basic](./examples/javascript/langgraph-basic/) - LangGraph JS agent (no Dockerfile)
+- [langgraph-basic-dockerfile](./examples/javascript/langgraph-basic-dockerfile/) - Minimal LangGraph JS agent with Dockerfile
+- [langgraph-browser](./examples/javascript/langgraph-browser/) - LangGraph JS agent with browser automation
+- [langgraph-browser-custom](./examples/javascript/langgraph-browser-custom/) - Custom browser with session recording
+- [langgraph-code-interpreter](./examples/javascript/langgraph-code-interpreter/) - LangGraph JS agent with code execution
+- [langgraph-code-interpreter-custom](./examples/javascript/langgraph-code-interpreter-custom/) - Custom code interpreter with PUBLIC network
+- [langgraph-gateway](./examples/javascript/langgraph-gateway/) - LangGraph JS agent with Lambda tools via Gateway
+- [langgraph-memory](./examples/javascript/langgraph-memory/) - LangGraph JS agent with conversation persistence
+- [langgraph-multi-gateway](./examples/javascript/langgraph-multi-gateway/) - Multiple gateways with different authorization
+- [mcp-server](./examples/javascript/mcp-server/) - JavaScript MCP server
+- [strands-browser](./examples/javascript/strands-browser/) - Strands Agents JS with browser automation
 
 ## Related Resources
 

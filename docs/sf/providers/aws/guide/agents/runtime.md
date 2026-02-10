@@ -467,9 +467,9 @@ agents:
 
 ## Examples
 
-- [LangGraph Docker](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/langgraph-basic-docker/) - LangGraph with Docker deployment
-- [LangGraph Code](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/langgraph-basic-code/) - LangGraph with code deployment
-- [LangGraph Memory](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/langgraph-memory/) - LangGraph with conversation persistence
+- [LangGraph Docker](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-docker/) - LangGraph with Docker deployment
+- [LangGraph Code](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-code/) - LangGraph with code deployment
+- [LangGraph Memory](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-memory/) - LangGraph with conversation persistence
 
 ## Next Steps
 

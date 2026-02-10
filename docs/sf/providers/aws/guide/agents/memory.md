@@ -350,7 +350,7 @@ agents:
 
 ## Examples
 
-- [LangGraph with Memory](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/langgraph-memory) - LangGraph agent with conversation persistence
+- [LangGraph with Memory](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-memory) - LangGraph agent with conversation persistence
 
 ## Next Steps
 

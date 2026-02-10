@@ -1,6 +1,7 @@
 import resolveCfImportValue from '../utils/resolve-cf-import-value.js'
 import ServerlessError from '../../../serverless-error.js'
-import { getLogicalId } from '../bedrock-agentcore/utils/naming.js'
+import { getLogicalId, pascalCase } from '../bedrock-agentcore/utils/naming.js'
+import { isReservedAgentKey } from '../bedrock-agentcore/validators/config.js'
 
 export default {
   async getStackInfo() {
@@ -108,10 +109,9 @@ export default {
 
         // Agents (Bedrock AgentCore)
         const agents = this.serverless.service.agents || {}
-        const RESERVED_AGENT_KEYS = ['memories', 'tools']
         for (const [agentName, agentConfig] of Object.entries(agents)) {
           // Skip reserved configuration keys
-          if (RESERVED_AGENT_KEYS.includes(agentName)) {
+          if (isReservedAgentKey(agentName)) {
             continue
           }
 
@@ -141,6 +141,22 @@ export default {
 
           agentInfo.type = agentType
           this.gatheredData.info.agents.push(agentInfo)
+        }
+
+        // Gateways (Bedrock AgentCore) — shown inside agents section
+        const agentGateways = agents.gateways || {}
+        for (const [gatewayName] of Object.entries(agentGateways)) {
+          const logicalId = `AgentCoreGateway${pascalCase(gatewayName)}`
+          const gatewayInfo = { name: gatewayName }
+
+          const urlOutput = outputs.find(
+            (o) => o.OutputKey === `${logicalId}Url`,
+          )
+          if (urlOutput) {
+            gatewayInfo.url = urlOutput.OutputValue
+          }
+
+          this.gatheredData.info.agents.push(gatewayInfo)
         }
 
         // CloudFront

@@ -265,9 +265,9 @@ describe('ServerlessBedrockAgentCore', () => {
     test('throws error for invalid expiration (too low)', () => {
       expect(() =>
         pluginInstance.validateMemoryConfig('myMemory', {
-          expiration: 5,
+          expiration: 2,
         }),
-      ).toThrow('must be a number between 7 and 365 days')
+      ).toThrow('must be a number between 3 and 365 days')
     })
 
     test('throws error for invalid expiration (too high)', () => {
@@ -275,7 +275,7 @@ describe('ServerlessBedrockAgentCore', () => {
         pluginInstance.validateMemoryConfig('myMemory', {
           expiration: 400,
         }),
-      ).toThrow('must be a number between 7 and 365 days')
+      ).toThrow('must be a number between 3 and 365 days')
     })
 
     test('accepts valid expiration', () => {

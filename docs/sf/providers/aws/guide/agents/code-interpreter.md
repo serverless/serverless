@@ -348,8 +348,8 @@ result3 = await agent.ainvoke(
 
 ## Examples
 
-- [LangGraph Code Interpreter](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/langgraph-code-interpreter) - Basic code execution with default interpreter
-- [LangGraph Code Interpreter Custom](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/langgraph-code-interpreter-custom) - Custom interpreter with PUBLIC network mode
+- [LangGraph Code Interpreter](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-code-interpreter) - Basic code execution with default interpreter
+- [LangGraph Code Interpreter Custom](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-code-interpreter-custom) - Custom interpreter with PUBLIC network mode
 
 ## Next Steps
 

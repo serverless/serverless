@@ -1,0 +1,18 @@
+{
+  "name": "mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server deployed to AWS Bedrock AgentCore Runtime",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.24.0",
+    "express": "^5.1.0",
+    "zod": "^3.25.0"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}

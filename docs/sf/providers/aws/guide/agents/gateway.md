@@ -294,12 +294,12 @@ async def get_gateway_tools():
             return tools.tools
 ```
 
-For a complete implementation, see the [langgraph-gateway example](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/langgraph-gateway/).
+For a complete implementation, see the [langgraph-gateway example](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-gateway/).
 
 ## Examples
 
-- [LangGraph Gateway](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/langgraph-gateway/) - Basic gateway with Lambda tools
-- [LangGraph Multi-Gateway](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/langgraph-multi-gateway/) - Multiple gateways with different authorization
+- [LangGraph Gateway](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-gateway/) - Basic gateway with Lambda tools
+- [LangGraph Multi-Gateway](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-multi-gateway/) - Multiple gateways with different authorization
 
 ## Next Steps
 

@@ -1,0 +1,17 @@
+# LangGraph Code Interpreter Example
+#
+# Demonstrates using AWS-managed default code interpreter
+# for code execution in AI agents.
+#
+# Deploy: serverless deploy
+# Test: RUNTIME_ARN=<arn> node test-invoke.js
+
+service: langgraph-code-interpreter
+
+provider:
+  name: aws
+
+agents:
+  # Runtime agent with code execution capabilities
+  # Uses AWS-managed default code interpreter (SANDBOX mode)
+  codeAgent: {}

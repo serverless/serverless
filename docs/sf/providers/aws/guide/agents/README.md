@@ -81,8 +81,8 @@ serverless deploy
 ```
 
 **See full examples:**
-- [Docker deployment](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/langgraph-basic-docker) - Container-based (any language)
-- [Code deployment](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/langgraph-basic-code) - Python with automatic packaging
+- [Docker deployment](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-docker) - Container-based (any language)
+- [Code deployment](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-code) - Python with automatic packaging
 
 ## Deployment Options
 
@@ -227,10 +227,10 @@ serverless info
 ## Examples
 
 - **Basic Agent** - LangGraph with simple tools
-  - [Docker deployment](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/langgraph-basic-docker) - Container-based (any language)
-  - [Code deployment](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/langgraph-basic-code) - Python with auto-packaging
+  - [Docker deployment](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-docker) - Container-based (any language)
+  - [Code deployment](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-code) - Python with auto-packaging
 - **Memory** - Conversation persistence
-  - [LangGraph with Memory](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/langgraph-memory) - Persist conversations across invocations
+  - [LangGraph with Memory](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-memory) - Persist conversations across invocations
 
 ## Next Steps
 

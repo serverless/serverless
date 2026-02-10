@@ -227,8 +227,8 @@ describe('Schema Validator', () => {
 
         const envSchema =
           capturedAgentsSchema.additionalProperties.properties.environment
-        expect(envSchema.type).toBe('object')
-        expect(envSchema.additionalProperties.type).toBe('string')
+        // Environment uses $ref to the shared awsLambdaEnvironment definition
+        expect(envSchema.$ref).toBe('#/definitions/awsLambdaEnvironment')
       })
     })
 
@@ -247,14 +247,14 @@ describe('Schema Validator', () => {
         expect(memorySchema.anyOf[1].type).toBe('object')
       })
 
-      test('shared memory schema includes expiration with range 7-365', () => {
+      test('shared memory schema includes expiration with range 3-365', () => {
         defineAgentsSchema(mockServerless)
 
         const memorySchema = capturedAgentsSchema.properties.memory
         const expirySchema =
           memorySchema.additionalProperties.properties.expiration
         expect(expirySchema.type).toBe('number')
-        expect(expirySchema.minimum).toBe(7)
+        expect(expirySchema.minimum).toBe(3)
         expect(expirySchema.maximum).toBe(365)
       })
 

@@ -1,0 +1,11 @@
+service: langgraph-memory
+
+provider:
+  name: aws
+  region: us-east-1
+
+agents:
+  # LangGraph agent with memory for conversation persistence
+  chatbot:
+    memory:
+      expiration: 30  # Days until memory events expire (3-365)

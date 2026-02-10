@@ -309,9 +309,9 @@ agents:
 
 ## Examples
 
-- [LangGraph Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/langgraph-browser) - LangChain/LangGraph with browser toolkit
-- [LangGraph Browser Custom](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/langgraph-browser-custom) - Custom browser with session recording
-- [Strands Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/strands-browser) - Strands Agents with AgentCoreBrowser
+- [LangGraph Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-browser) - LangChain/LangGraph with browser toolkit
+- [LangGraph Browser Custom](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-browser-custom) - Custom browser with session recording
+- [Strands Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/strands-browser) - Strands Agents with AgentCoreBrowser
 
 ## Next Steps
 
