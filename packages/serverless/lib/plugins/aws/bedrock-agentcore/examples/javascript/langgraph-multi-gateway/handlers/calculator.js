@@ -73,7 +73,6 @@ function safeCalculate(expression) {
   const keys = Object.keys(mathFunctions)
   const values = Object.values(mathFunctions)
 
-  // eslint-disable-next-line no-new-func
   const fn = new Function(...keys, `"use strict"; return (${expr})`)
   const result = fn(...values)
 

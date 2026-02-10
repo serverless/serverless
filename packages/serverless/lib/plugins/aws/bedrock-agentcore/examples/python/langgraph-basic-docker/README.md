@@ -46,6 +46,7 @@ serverless deploy
 ```
 
 The framework will:
+
 - Build the Docker image
 - Push to Amazon ECR
 - Deploy AgentCore Runtime
@@ -118,11 +119,13 @@ START → chatbot → [decide: use tool or respond]
 ### Docker Deployment
 
 The Dockerfile:
+
 - Uses Python 3.12 slim base image
 - Installs dependencies from `pyproject.toml`
 - Runs the agent with `python agent.py`
 
 AgentCore automatically:
+
 - Builds the image
 - Pushes to ECR
 - Updates the Runtime with the new image
@@ -137,7 +140,7 @@ Change the model in `serverless.yml`:
 agents:
   chatbot:
     environment:
-      MODEL_ID: anthropic.claude-3-5-sonnet-20241022-v2:0  # or another Bedrock model
+      MODEL_ID: anthropic.claude-3-5-sonnet-20241022-v2:0 # or another Bedrock model
 ```
 
 ### Add More Tools
@@ -163,7 +166,7 @@ The minimal configuration auto-detects Dockerfile:
 
 ```yml
 agents:
-  chatbot: {}  # Empty braces required by YAML
+  chatbot: {} # Empty braces required by YAML
 ```
 
 Add optional runtime configuration as needed:
@@ -174,10 +177,10 @@ agents:
     environment:
       CUSTOM_VAR: value
     lifecycle:
-      idleRuntimeSessionTimeout: 900  # Idle timeout (60-28800 seconds)
-      maxLifetime: 3600  # Max lifetime (60-28800 seconds)
+      idleRuntimeSessionTimeout: 900 # Idle timeout (60-28800 seconds)
+      maxLifetime: 3600 # Max lifetime (60-28800 seconds)
     network:
-      mode: VPC  # VPC deployment
+      mode: VPC # VPC deployment
       subnets: [subnet-xxx]
       securityGroups: [sg-xxx]
 ```

@@ -33,12 +33,14 @@ sls dev
 ```
 
 This will:
+
 1. Build the Docker image
 2. Start the container with AWS credentials injected
 3. Open an interactive chat interface
 4. Watch for file changes and auto-rebuild
 
 Try these prompts:
+
 - "What time is it?"
 - "What time is it in Tokyo?"
 - "Calculate 25 multiplied by 4"
@@ -108,12 +110,12 @@ User Input
 
 ### Tools Available
 
-| Tool | Description |
-|------|-------------|
+| Tool               | Description                                  |
+| ------------------ | -------------------------------------------- |
 | `get_current_time` | Get current date/time with optional timezone |
-| `add` | Add two numbers |
-| `multiply` | Multiply two numbers |
-| `divide` | Divide two numbers |
+| `add`              | Add two numbers                              |
+| `multiply`         | Multiply two numbers                         |
+| `divide`           | Divide two numbers                           |
 
 ### Configuration
 
@@ -131,6 +133,7 @@ agents:
 ```
 
 The Dockerfile is auto-detected, and default settings are applied:
+
 - Protocol: HTTP
 - Network: PUBLIC
 - Port: 8080
@@ -153,7 +156,7 @@ const myNewTool = tool(
     schema: z.object({
       input: z.string().describe('Input parameter'),
     }),
-  }
+  },
 )
 
 // Add to tools array

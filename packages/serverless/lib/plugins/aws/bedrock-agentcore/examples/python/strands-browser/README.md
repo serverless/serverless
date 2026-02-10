@@ -53,7 +53,7 @@ This example uses the AWS-managed default browser. No `agents.browsers` configur
 
 ```yaml
 agents:
-  browserAgent: {}  # Auto-detects Dockerfile
+  browserAgent: {} # Auto-detects Dockerfile
 ```
 
 ### Strands Integration
@@ -76,17 +76,20 @@ agent = Agent(
 ### Example Prompts
 
 **Web Search:**
+
 ```
 Search for the latest news about AWS and summarize the top 3 headlines
 ```
 
 **Financial Analysis:**
+
 ```
 Analyze the Tesla stock page at https://www.marketwatch.com/investing/stock/tsla
 and provide key financial metrics
 ```
 
 **Data Extraction:**
+
 ```
 Visit https://aws.amazon.com/about-aws/whats-new/ and list the 5 most recent announcements
 ```

@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - AgentCore Code Interpreter Configuration
-description: Add Python code execution capabilities to your AI agents using AgentCore Code Interpreter
+description: Add code execution capabilities to your AI agents using AgentCore Code Interpreter
 short_title: Code Interpreter
 keywords:
   [
@@ -9,8 +9,11 @@ keywords:
     'AgentCore',
     'Code Interpreter',
     'Python Execution',
+    'JavaScript Execution',
+    'TypeScript Execution',
     'Data Analysis',
     'LangGraph',
+    'Strands',
   ]
 -->
 
@@ -22,7 +25,7 @@ keywords:
 
 # Code Interpreter Configuration
 
-Code Interpreter enables your AI agents to execute Python code in secure, isolated sandbox environments. Agents can perform calculations, analyze data, generate visualizations, and manipulate files through code execution.
+Code Interpreter enables your AI agents to execute Python, JavaScript, and TypeScript code in secure, isolated sandbox environments. Agents can perform calculations, analyze data, generate visualizations, and manipulate files through code execution.
 
 ## Quick Start
 
@@ -38,7 +41,7 @@ provider:
   region: us-east-1
 
 agents:
-  codeAgent: {}  # Auto-detects Dockerfile
+  codeAgent: {} # Auto-detects Dockerfile
 ```
 
 **Agent code (`agent.py`):**
@@ -94,36 +97,139 @@ The framework automatically handles code interpreter infrastructure - no additio
 
 When your agent uses the code interpreter:
 
-1. **Agent Request**: Your agent calls a code execution tool with Python code
+1. **Agent Request**: Your agent calls a code execution tool with code to run
 2. **AWS Infrastructure**: AgentCore manages sandbox environments in isolated microVMs
-3. **Code Execution**: Python code runs securely with persistent state within a session
+3. **Code Execution**: Code runs securely with persistent state within a session
 4. **Response**: Results (text, files, visualizations) flow back to your agent
 
 ```
-Agent → LangGraph → CodeInterpreter → AWS Sandbox → Results
+Agent → Code Tool → AWS Sandbox → Results
 ```
 
-## Available Tools
+## Capabilities
 
-The code interpreter toolkit provides these tools:
+The code interpreter sandbox provides a full execution environment where your agent can:
 
-| Tool | Description |
-|------|-------------|
-| `execute_code` | Run Python/JavaScript/TypeScript code with persistent state |
-| `execute_command` | Run shell commands in the environment |
-| `read_files` | Read content of files in the environment |
-| `write_files` | Create or update files |
-| `list_files` | List files in directories |
-| `delete_files` | Remove files from the environment |
-| `upload_file` | Upload files with semantic descriptions |
-| `install_packages` | Install Python packages |
-| `start_command_execution` | Start long-running commands asynchronously |
-| `get_task` | Check status of an async task |
-| `stop_task` | Stop a running async task |
+- **Execute code** in Python, JavaScript, or TypeScript with persistent state across calls
+- **Run shell commands** for system-level operations
+- **Read, write, and manage files** in the sandbox filesystem
+- **Install packages** to extend the environment (e.g., `pip install pandas`)
+- **Run long-running tasks** asynchronously and check their status
 
-## Using Code Interpreter with LangGraph
+## Using Code Interpreter in JavaScript
+
+The `bedrock-agentcore` SDK provides `CodeInterpreter` for sandboxed code execution in JavaScript agents.
 
 ### Basic Pattern
+
+```javascript
+import { BedrockAgentCoreApp } from 'bedrock-agentcore/runtime'
+import { CodeInterpreter } from 'bedrock-agentcore/code-interpreter'
+import { createReactAgent } from '@langchain/langgraph/prebuilt'
+import { ChatBedrockConverse } from '@langchain/aws'
+import { tool } from '@langchain/core/tools'
+import { z } from 'zod'
+
+const codeInterpreter = new CodeInterpreter({ region: 'us-east-1' })
+
+// Define code execution tools wrapping CodeInterpreter methods
+const executeCode = tool(
+  async ({ code, language }) => {
+    const result = await codeInterpreter.executeCode({
+      code,
+      language: language || 'python',
+    })
+    return result || 'Code executed successfully (no output)'
+  },
+  {
+    name: 'execute_code',
+    description:
+      'Execute code in a secure sandbox. Supports Python, JavaScript, and TypeScript.',
+    schema: z.object({
+      code: z.string().describe('Code to execute'),
+      language: z
+        .enum(['python', 'javascript', 'typescript'])
+        .optional()
+        .describe('Programming language (default: python)'),
+    }),
+  },
+)
+
+const executeCommand = tool(
+  async ({ command }) => {
+    const result = await codeInterpreter.executeCommand({ command })
+    return result || 'Command executed successfully (no output)'
+  },
+  {
+    name: 'execute_command',
+    description: 'Execute a shell command in the sandbox.',
+    schema: z.object({
+      command: z.string().describe('Shell command to execute'),
+    }),
+  },
+)
+
+const readFiles = tool(
+  async ({ paths }) => {
+    const result = await codeInterpreter.readFiles({ paths })
+    return result || 'No content'
+  },
+  {
+    name: 'read_files',
+    description: 'Read contents of files in the sandbox.',
+    schema: z.object({
+      paths: z.array(z.string()).describe('List of file paths to read'),
+    }),
+  },
+)
+
+// Create agent with code interpreter tools
+const model = new ChatBedrockConverse({
+  model: 'us.anthropic.claude-sonnet-4-20250514-v1:0',
+  region: 'us-east-1',
+})
+
+const agent = createReactAgent({
+  llm: model,
+  tools: [executeCode, executeCommand, readFiles],
+})
+
+const app = new BedrockAgentCoreApp({
+  invocationHandler: {
+    requestSchema: z.object({ prompt: z.string() }),
+    async process(request) {
+      try {
+        const result = await agent.invoke({
+          messages: [{ role: 'user', content: request.prompt }],
+        })
+        return { result: result.messages.at(-1).content }
+      } finally {
+        await codeInterpreter.stopSession()
+      }
+    },
+  },
+})
+
+app.run()
+```
+
+**Dependencies (`package.json`):**
+
+```json
+{
+  "dependencies": {
+    "bedrock-agentcore": "^0.1.0",
+    "@langchain/langgraph": "^0.2.0",
+    "@langchain/aws": "^0.1.0",
+    "@langchain/core": "^0.3.0",
+    "zod": "^3.23.0"
+  }
+}
+```
+
+## Using Code Interpreter in Python
+
+### LangGraph
 
 ```python
 from langchain_aws.tools import create_code_interpreter_toolkit
@@ -181,28 +287,59 @@ agent = create_react_agent(
 )
 ```
 
+### Strands Agents
+
+Strands provides a streamlined integration through `AgentCoreCodeInterpreter`:
+
+```python
+from strands import Agent
+from strands_tools.code_interpreter import AgentCoreCodeInterpreter
+
+# Initialize code interpreter (uses AWS-managed default)
+code_interpreter = AgentCoreCodeInterpreter(region="us-east-1")
+
+# Create agent with code execution capability
+agent = Agent(
+    tools=[code_interpreter.code_interpreter],
+    model="us.anthropic.claude-sonnet-4-20250514-v1:0",
+    system_prompt="""You are a data analyst that can execute code.
+Use the code interpreter to perform calculations, analyze data, and create visualizations."""
+)
+
+# Use the agent
+result = agent("Create a bar chart of the top 10 programming languages by popularity")
+```
+
+**Dependencies (`requirements.txt`):**
+
+```
+bedrock-agentcore>=0.1.0
+strands-agents>=1.0.0
+strands-agents-tools>=0.1.0
+```
+
 ## Custom Code Interpreter Resources
 
 For advanced scenarios, define custom code interpreter resources with specific configurations:
 
 ### When to Use Custom Code Interpreters
 
-| Scenario | Recommendation |
-|----------|----------------|
-| Basic code execution | Use AWS-managed default |
-| Need external API access | Define custom with PUBLIC mode |
-| Access VPC resources | Define custom with VPC mode |
-| Maximum isolation | Define custom with SANDBOX mode |
+| Scenario                 | Recommendation                  |
+| ------------------------ | ------------------------------- |
+| Basic code execution     | Use AWS-managed default         |
+| Need external API access | Define custom with PUBLIC mode  |
+| Access VPC resources     | Define custom with VPC mode     |
+| Maximum isolation        | Define custom with SANDBOX mode |
 
 ### Network Modes
 
 Code Interpreter supports three network modes:
 
-| Mode | Description | Use Case |
-|------|-------------|----------|
+| Mode      | Description                                      | Use Case                            |
+| --------- | ------------------------------------------------ | ----------------------------------- |
 | `SANDBOX` | Completely isolated, no network access (default) | Maximum security, local computation |
-| `PUBLIC` | Can access external internet | Fetch APIs, download packages |
-| `VPC` | Access to VPC resources | Connect to private databases |
+| `PUBLIC`  | Can access external internet                     | Fetch APIs, download packages       |
+| `VPC`     | Access to VPC resources                          | Connect to private databases        |
 
 ### Basic Custom Code Interpreter
 
@@ -252,25 +389,76 @@ agents:
 
 ### Using Custom Code Interpreter in Agent Code
 
-When using a custom code interpreter, pass its identifier to the client:
+Unlike memory and gateway, the framework does not automatically inject the code interpreter ID into your runtime agent. You must wire it manually using CloudFormation references in your `serverless.yml`:
+
+```yml
+agents:
+  # Define the custom code interpreter
+  codeInterpreters:
+    publicInterpreter:
+      description: Code interpreter with public internet access
+      network:
+        mode: PUBLIC
+
+  # Runtime agent that uses the custom code interpreter
+  codeAgent:
+    environment:
+      # Pass the interpreter ID using CloudFormation !GetAtt
+      CUSTOM_INTERPRETER_ID: !GetAtt PublicInterpreterCodeInterpreter.CodeInterpreterId
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - bedrock-agentcore:InvokeCodeInterpreter
+            - bedrock-agentcore:CreateCodeInterpreter
+            - bedrock-agentcore:StartCodeInterpreterSession
+            - bedrock-agentcore:StopCodeInterpreterSession
+            - bedrock-agentcore:DeleteCodeInterpreter
+            - bedrock-agentcore:ListCodeInterpreters
+            - bedrock-agentcore:GetCodeInterpreter
+            - bedrock-agentcore:GetCodeInterpreterSession
+            - bedrock-agentcore:ListCodeInterpreterSessions
+          Resource: !GetAtt PublicInterpreterCodeInterpreter.CodeInterpreterArn
+```
+
+Then in your agent code, use the environment variable to connect to the custom interpreter:
+
+**JavaScript:**
+
+```javascript
+import { CodeInterpreter } from 'bedrock-agentcore/code-interpreter'
+
+const CUSTOM_INTERPRETER_ID = process.env.CUSTOM_INTERPRETER_ID
+
+const codeInterpreter = new CodeInterpreter({
+  region: 'us-east-1',
+  identifier: CUSTOM_INTERPRETER_ID,
+})
+
+const result = await codeInterpreter.executeCode({
+  code: "print('Hello from custom interpreter!')",
+  language: 'python',
+})
+
+await codeInterpreter.stopSession()
+```
+
+**Python:**
 
 ```python
+import os
 from bedrock_agentcore.tools.code_interpreter_client import CodeInterpreter
 
-# Get custom interpreter ID from environment
 CUSTOM_INTERPRETER_ID = os.environ.get("CUSTOM_INTERPRETER_ID")
 
-# Create client with custom identifier
 code_interpreter = CodeInterpreter(region="us-east-1")
 code_interpreter.start(identifier=CUSTOM_INTERPRETER_ID)
 
-# Execute code
 response = code_interpreter.invoke(
     method="executeCode",
     params={"code": "print('Hello from custom interpreter!')", "language": "python"}
 )
 
-# Clean up
 code_interpreter.stop()
 ```
 
@@ -278,20 +466,20 @@ code_interpreter.stop()
 
 ### Code Interpreter Properties
 
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| `network` | object | Yes | Network configuration |
-| `description` | string | No | Human-readable description |
-| `role` | string/object | No | IAM role ARN or configuration |
-| `tags` | object | No | Resource tags |
+| Property      | Type          | Required | Description                              |
+| ------------- | ------------- | -------- | ---------------------------------------- |
+| `network`     | object        | No       | Network configuration (default: SANDBOX) |
+| `description` | string        | No       | Human-readable description               |
+| `role`        | string/object | No       | IAM role ARN or configuration            |
+| `tags`        | object        | No       | Resource tags                            |
 
 ### Network Configuration
 
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| `mode` | string | Yes | `SANDBOX` (default), `PUBLIC`, or `VPC` |
-| `subnets` | array | VPC only | VPC subnet IDs |
-| `securityGroups` | array | VPC only | Security group IDs |
+| Property         | Type   | Required | Description                             |
+| ---------------- | ------ | -------- | --------------------------------------- |
+| `mode`           | string | Yes      | `SANDBOX` (default), `PUBLIC`, or `VPC` |
+| `subnets`        | array  | VPC only | VPC subnet IDs                          |
+| `securityGroups` | array  | VPC only | Security group IDs                      |
 
 ## IAM Role Configuration
 
@@ -347,6 +535,13 @@ result3 = await agent.ainvoke(
 ```
 
 ## Examples
+
+**JavaScript:**
+
+- [LangGraph Code Interpreter](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-code-interpreter) - Basic code execution with default interpreter
+- [LangGraph Code Interpreter Custom](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-code-interpreter-custom) - Custom interpreter with PUBLIC network mode
+
+**Python:**
 
 - [LangGraph Code Interpreter](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-code-interpreter) - Basic code execution with default interpreter
 - [LangGraph Code Interpreter Custom](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-code-interpreter-custom) - Custom interpreter with PUBLIC network mode

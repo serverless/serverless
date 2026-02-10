@@ -11,12 +11,12 @@ A Strands Agents JavaScript agent with AgentCore Browser for web automation.
 
 ## How It Differs from LangGraph Browser
 
-| Aspect | LangGraph Browser | Strands Browser |
-|--------|------------------|-----------------|
-| Framework | LangGraph JS | Strands Agents SDK |
-| Tool setup | Manual `tool()` wrappers | Ready-made `BrowserTools` |
-| Agent pattern | ReAct agent | Native Strands agent |
-| Streaming | Non-streaming response | Supports streaming |
+| Aspect        | LangGraph Browser        | Strands Browser           |
+| ------------- | ------------------------ | ------------------------- |
+| Framework     | LangGraph JS             | Strands Agents SDK        |
+| Tool setup    | Manual `tool()` wrappers | Ready-made `BrowserTools` |
+| Agent pattern | ReAct agent              | Native Strands agent      |
+| Streaming     | Non-streaming response   | Supports streaming        |
 
 ## Quick Start
 

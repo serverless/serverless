@@ -229,6 +229,7 @@ class AwsDev {
           `Run 'serverless deploy' to deploy the agent.\n` +
           `Error: ${error.message}`,
         'AGENT_RESOURCES_NOT_FOUND',
+        { stack: false },
       )
     }
 
@@ -266,6 +267,7 @@ class AwsDev {
     // Start dev mode
     const devMode = new AgentCoreDevMode({
       serverless: this.serverless,
+      provider: this.provider,
       serviceName: this.serverless.service.service,
       projectPath: this.serverless.serviceDir,
       agentName,

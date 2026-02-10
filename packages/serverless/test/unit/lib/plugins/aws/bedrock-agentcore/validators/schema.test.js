@@ -109,6 +109,21 @@ describe('Schema Validator', () => {
         expect(handlerSchema.type).toBe('string')
       })
 
+      test('includes runtime property with Lambda-style values (case-insensitive)', () => {
+        defineAgentsSchema(mockServerless)
+
+        const runtimeSchema =
+          capturedAgentsSchema.additionalProperties.properties.runtime
+        expect(runtimeSchema).toBeDefined()
+        expect(runtimeSchema.anyOf).toBeDefined()
+        expect(runtimeSchema.anyOf).toHaveLength(4)
+        // Each entry should be a case-insensitive regex pattern
+        runtimeSchema.anyOf.forEach((entry) => {
+          expect(entry.type).toBe('string')
+          expect(entry.regexp).toBeDefined()
+        })
+      })
+
       test('includes artifact property with image and s3', () => {
         defineAgentsSchema(mockServerless)
 

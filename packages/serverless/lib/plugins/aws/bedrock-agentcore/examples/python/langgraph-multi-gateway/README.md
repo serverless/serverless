@@ -63,6 +63,7 @@ serverless deploy
 ```
 
 This deploys:
+
 - Two Lambda functions (calculator, internal lookup)
 - Two gateways (public, private)
 - Two agents (public, private)
@@ -105,11 +106,11 @@ print(json.loads(response['response'].read()))
 
 ### Gateway Authorization Types
 
-| Type | Use Case | Example |
-|------|----------|---------|
-| `NONE` | Public tools, no auth needed | Calculator, weather |
-| `AWS_IAM` | Internal tools, requires IAM | User lookup, database access |
-| `CUSTOM_JWT` | Third-party auth via JWT | OAuth-protected APIs |
+| Type         | Use Case                     | Example                      |
+| ------------ | ---------------------------- | ---------------------------- |
+| `NONE`       | Public tools, no auth needed | Calculator, weather          |
+| `AWS_IAM`    | Internal tools, requires IAM | User lookup, database access |
+| `CUSTOM_JWT` | Third-party auth via JWT     | OAuth-protected APIs         |
 
 ### serverless.yml Structure
 
@@ -161,16 +162,16 @@ agents:
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `serverless.yml` | Infrastructure with multiple gateways |
-| `public_agent.py` | Agent using public gateway |
-| `private_agent.py` | Agent using private gateway |
-| `handlers/calculator.py` | Public calculator tool |
-| `handlers/internal_lookup.py` | Private user lookup tool |
-| `Dockerfile.public` | Public agent container |
-| `Dockerfile.private` | Private agent container |
-| `pyproject.toml` | Python dependencies |
+| File                          | Purpose                               |
+| ----------------------------- | ------------------------------------- |
+| `serverless.yml`              | Infrastructure with multiple gateways |
+| `public_agent.py`             | Agent using public gateway            |
+| `private_agent.py`            | Agent using private gateway           |
+| `handlers/calculator.py`      | Public calculator tool                |
+| `handlers/internal_lookup.py` | Private user lookup tool              |
+| `Dockerfile.public`           | Public agent container                |
+| `Dockerfile.private`          | Private agent container               |
+| `pyproject.toml`              | Python dependencies                   |
 
 ## Security Best Practices
 

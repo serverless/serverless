@@ -30,10 +30,10 @@ Response
 
 ## SDK Methods Used
 
-| Method | Purpose |
-|--------|---------|
-| `MemoryClient.list_events()` | Retrieve recent conversation history |
-| `MemoryClient.create_event()` | Save conversation turns |
+| Method                        | Purpose                              |
+| ----------------------------- | ------------------------------------ |
+| `MemoryClient.list_events()`  | Retrieve recent conversation history |
+| `MemoryClient.create_event()` | Save conversation turns              |
 
 ## Prerequisites
 
@@ -52,6 +52,7 @@ serverless deploy
 ```
 
 The framework will:
+
 - Create AgentCore Memory resource
 - Build the Docker image
 - Push to Amazon ECR
@@ -70,6 +71,7 @@ python3 test-invoke.py
 ```
 
 The test script will:
+
 1. Tell the agent "My name is Alice"
 2. Ask "What is my name?" (agent uses `list_events` tool to recall)
 3. Verify the agent remembers "Alice"
@@ -121,6 +123,7 @@ def list_events():
 ```
 
 The LLM **decides** when to call this tool based on:
+
 - User asking about past conversations
 - References to previous context
 - Requests to "remember" or "recall"
@@ -156,7 +159,7 @@ memory_client.create_event(
 agents:
   chatbot:
     memory:
-      expiration: 90  # 90 days (valid range: 3-365)
+      expiration: 90 # 90 days (valid range: 3-365)
 ```
 
 ### Memory Strategies (Advanced)

@@ -5,12 +5,14 @@ Local development mode for AI agents with support for both Docker and code deplo
 ## Supported Modes
 
 ### Docker Mode
+
 - **When:** Agent has `artifact.docker` configuration or Dockerfile exists
 - **Process:** Builds Docker image, runs container
 - **Benefits:** Full isolation, exact production match
 - **File watching:** Watches Dockerfile directory
 
 ### Code Mode
+
 - **When:** Agent has `artifact.entryPoint` configuration
 - **Process:** Runs Python directly (no Docker)
 - **Benefits:** Faster startup, easier debugging
@@ -19,6 +21,7 @@ Local development mode for AI agents with support for both Docker and code deplo
 ## Mode Detection
 
 Priority order (matches packaging logic):
+
 1. `artifact.docker` exists → Docker mode
 2. `artifact.entryPoint` exists (no docker, containerImage, or s3.bucket) → Code mode
 3. `Dockerfile` exists in project root → Docker mode (implicit)
@@ -36,6 +39,7 @@ Priority order (matches packaging logic):
 ## Code Mode Requirements
 
 ### User Handler Requirements
+
 For custom port support, users should modify their handler:
 
 ```python
@@ -45,6 +49,7 @@ if __name__ == "__main__":
 ```
 
 ### Python Environment
+
 - Python 3.12+ recommended
 - **Virtual environment strongly recommended** for proper AWS credential isolation
   - Prevents boto3 from accessing system-level AWS config (`~/.aws/config`, SSO cache)
@@ -53,6 +58,7 @@ if __name__ == "__main__":
 - Dependencies must be installed (`pip install -r requirements.txt`)
 
 ### File Structure
+
 ```
 my-agent/
 ├── handler.py          # Entry point (artifact.entryPoint)
@@ -86,6 +92,7 @@ dev/index.js (main)
 ## Configuration
 
 ### Docker Mode Example
+
 ```yaml
 agents:
   myAgent:
@@ -97,6 +104,7 @@ agents:
 ```
 
 ### Code Mode Example
+
 ```yaml
 agents:
   myAgent:
@@ -120,6 +128,7 @@ serverless dev --agent myAgent --port 9000
 ## Implementation Notes
 
 ### AWS Credentials
+
 - **Both modes use identical credential handling:**
   - Temporary STS credentials obtained via AssumeRole (60-minute expiration)
   - Credentials automatically refreshed on rebuild (when file changes detected)
@@ -130,20 +139,25 @@ serverless dev --agent myAgent --port 9000
   - Virtual environment provides additional isolation from system boto3 config
 
 ### Port Configuration
+
 - Docker mode: Maps container port 8080 to host `--port`
 - Code mode: Sets `PORT` environment variable (user handler must read it)
 
 ### Crash Handling
+
 - Process/container crashes → Show error and exit dev mode
 - No auto-restart (user fixes issue and restarts manually)
 
 ### Python Version Detection
+
 - Converts `PYTHON_3_13` → `python3.13` command
 - Windows: Uses `python.exe`
 - Checks installed version and warns on mismatch
 
 ### File Watching Exclusions
+
 Both modes exclude:
+
 - `venv/`, `.venv/`
 - `__pycache__/`, `*.pyc`
 - `node_modules/`

@@ -628,10 +628,10 @@ const runtimeAgentSchema = {
       // Python file for the agent entry point, e.g., 'agent.py'
     },
     runtime: {
-      anyOf: ['PYTHON_3_10', 'PYTHON_3_11', 'PYTHON_3_12', 'PYTHON_3_13'].map(
+      anyOf: ['python3.10', 'python3.11', 'python3.12', 'python3.13'].map(
         caseInsensitive,
       ),
-      // Defaults to PYTHON_3_13 for code deployment
+      // Defaults to python3.13 for code deployment
     },
 
     // Artifact configuration for container images or custom S3 locations

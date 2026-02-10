@@ -11,11 +11,11 @@ This example demonstrates using a custom code interpreter with PUBLIC network mo
 
 ## Network Mode Comparison
 
-| Mode | Network Access | Use Case |
-|------|---------------|----------|
-| SANDBOX (default) | None | Maximum security, local computation |
-| PUBLIC (this example) | Internet | Fetch APIs, download data |
-| VPC | Private VPC | Access internal resources |
+| Mode                  | Network Access | Use Case                            |
+| --------------------- | -------------- | ----------------------------------- |
+| SANDBOX (default)     | None           | Maximum security, local computation |
+| PUBLIC (this example) | Internet       | Fetch APIs, download data           |
+| VPC                   | Private VPC    | Access internal resources           |
 
 ## Project Structure
 
@@ -73,7 +73,7 @@ agents:
     publicInterpreter:
       description: Code interpreter with public internet access
       network:
-        mode: PUBLIC  # Enables external network access
+        mode: PUBLIC # Enables external network access
 ```
 
 ### Agent Code

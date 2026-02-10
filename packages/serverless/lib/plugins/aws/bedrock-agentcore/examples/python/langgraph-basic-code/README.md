@@ -46,6 +46,7 @@ serverless deploy
 ```
 
 The framework will:
+
 - Package Python code with dependencies
 - Upload to Amazon S3
 - Deploy AgentCore Runtime with managed Python runtime
@@ -117,26 +118,28 @@ START → chatbot → [decide: use tool or respond]
 ### Code Deployment
 
 The configuration specifies:
+
 - `handler: agent.py` - Entry point file (triggers code deployment mode)
 - `package.patterns` - Files to include
 
 Dependencies in `requirements.txt` are bundled automatically via `custom.pythonRequirements.dockerizePip: true`, which ensures dependencies are compiled for the target Linux runtime.
 
 AgentCore automatically:
+
 - Packages code with dependencies
 - Uploads to S3
 - Deploys to managed Python runtime
 
 ## Code vs Docker Deployment
 
-| Aspect | Code (this example) | Docker |
-|--------|---------------------|--------|
-| Configuration | `handler: agent.py` | `chatbot: {}` |
-| Dependencies | `requirements.txt` | `pyproject.toml` + Dockerfile |
-| Build | Automatic packaging to S3 | Docker image to ECR |
-| Runtime | AWS managed Python | Custom container |
-| Languages | Python only | Any language |
-| Setup | No Dockerfile needed | Dockerfile required |
+| Aspect        | Code (this example)       | Docker                        |
+| ------------- | ------------------------- | ----------------------------- |
+| Configuration | `handler: agent.py`       | `chatbot: {}`                 |
+| Dependencies  | `requirements.txt`        | `pyproject.toml` + Dockerfile |
+| Build         | Automatic packaging to S3 | Docker image to ECR           |
+| Runtime       | AWS managed Python        | Custom container              |
+| Languages     | Python only               | Any language                  |
+| Setup         | No Dockerfile needed      | Dockerfile required           |
 
 ## Configuration
 
@@ -189,8 +192,8 @@ agents:
     environment:
       CUSTOM_VAR: value
     lifecycle:
-      idleRuntimeSessionTimeout: 900  # Idle timeout (60-28800 seconds)
-      maxLifetime: 3600  # Max lifetime (60-28800 seconds)
+      idleRuntimeSessionTimeout: 900 # Idle timeout (60-28800 seconds)
+      maxLifetime: 3600 # Max lifetime (60-28800 seconds)
 ```
 
 ## Cleanup

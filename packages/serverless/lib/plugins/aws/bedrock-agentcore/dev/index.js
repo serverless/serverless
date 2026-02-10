@@ -6,7 +6,8 @@ import { createInterface } from 'readline'
 import { randomUUID } from 'crypto'
 import chokidar from 'chokidar'
 import chalk from 'chalk'
-import { log, progress } from '@serverless/util'
+import { EventSourceParserStream } from 'eventsource-parser/stream'
+import { addProxyToAwsClient, log, progress } from '@serverless/util'
 import { DockerClient } from '@serverless/util/src/docker/index.js'
 import {
   GetRoleCommand,
@@ -22,16 +23,15 @@ import { DockerBuilder } from '../docker/builder.js'
 import { AgentCoreCodeMode } from './code-mode.js'
 import fileExists from '../../../../utils/fs/file-exists.js'
 import {
-  LOCAL_DEV_POLICY_SID,
-  getRoleNameFromArn,
-  areCredentialsExpiring,
-  getCredentialExpirationMinutes,
-  findDevPolicyStatementIndex,
-  createDevPolicyStatement,
-  getPolicyPrincipals,
-  isPrincipalInPolicy,
   addPrincipalToPolicy,
+  areCredentialsExpiring,
   calculateBackoffDelay,
+  createDevPolicyStatement,
+  findDevPolicyStatementIndex,
+  getCredentialExpirationMinutes,
+  getRoleNameFromArn,
+  isPrincipalInPolicy,
+  normalizeAssumedRoleArn,
 } from './credentials.js'
 
 const logger = log.get('agentcore:dev-mode')
@@ -52,6 +52,7 @@ export class AgentCoreDevMode {
   #agentConfig
   #region
   #roleArn
+  #provider
   #mode // 'docker' or 'code'
   #docker
   #dockerBuilder
@@ -73,6 +74,7 @@ export class AgentCoreDevMode {
    * Creates a new AgentCoreDevMode instance
    * @param {Object} options - Configuration options
    * @param {Object} options.serverless - Serverless instance
+   * @param {Object} options.provider - AWS provider instance
    * @param {string} options.serviceName - Name of the service
    * @param {string} options.projectPath - Path to the project directory
    * @param {string} options.agentName - Name of the agent
@@ -83,6 +85,7 @@ export class AgentCoreDevMode {
    */
   constructor({
     serverless,
+    provider,
     serviceName,
     projectPath,
     agentName,
@@ -98,6 +101,7 @@ export class AgentCoreDevMode {
     this.#region = region
     this.#roleArn = roleArn
     this.#port = port
+    this.#provider = provider
 
     // Mode detection will happen in start()
     this.#mode = null
@@ -110,14 +114,26 @@ export class AgentCoreDevMode {
     this.#pendingRebuild = false
     this.#isShuttingDown = false
 
-    // Initialize AWS clients
-    this.#iamClient = new IAMClient({ region })
-    this.#stsClient = new STSClient({ region })
-
     // Chat state
     this.#sessionId = randomUUID()
     this.#readline = null
     this.#isInvoking = false
+  }
+
+  /**
+   * Initialize AWS SDK clients with provider-resolved credentials and proxy support.
+   * Must be called before any AWS operations since getCredentials() is async.
+   * @private
+   */
+  async #initAwsClients() {
+    const credentials = await this.#provider.getCredentials()
+
+    this.#iamClient = addProxyToAwsClient(
+      new IAMClient({ region: this.#region, credentials }),
+    )
+    this.#stsClient = addProxyToAwsClient(
+      new STSClient({ region: this.#region, credentials }),
+    )
   }
 
   /**
@@ -165,13 +181,30 @@ export class AgentCoreDevMode {
       this.#mode = await this.#detectMode()
       logger.debug(`Using ${this.#mode} mode`)
 
-      // Get caller identity for trust policy
+      // Initialize AWS clients with provider-resolved credentials and proxy
       devProgress.notice('Configuring IAM trust policy...')
-      const callerIdentity = await this.#getCallerIdentity()
-      logger.debug(`Local user ARN: ${callerIdentity.Arn}`)
+      await this.#initAwsClients()
+
+      // Get caller identity for trust policy
+      const callerIdentity = await this.#stsClient.send(
+        new GetCallerIdentityCommand({}),
+      )
+      const callerArn = callerIdentity.Arn
+      logger.debug(`Local user ARN: ${callerArn}`)
+
+      /**
+       * Normalize the caller ARN to an IAM role ARN.
+       * SSO sessions return arn:aws:sts::ACCOUNT:assumed-role/ROLE/SESSION
+       * but trust policies need arn:aws:iam::ACCOUNT:role/... to work
+       * reliably without waiting for IAM eventual consistency.
+       */
+      const principalArn = normalizeAssumedRoleArn(callerArn)
+      if (principalArn !== callerArn) {
+        logger.debug(`Normalized principal ARN: ${principalArn}`)
+      }
 
       // Ensure trust policy allows local user to assume role
-      await this.#ensureLocalDevTrustPolicy(callerIdentity.Arn)
+      await this.#ensureLocalDevTrustPolicy(principalArn)
       devProgress.remove()
 
       // Get temporary credentials
@@ -265,17 +298,6 @@ export class AgentCoreDevMode {
   }
 
   /**
-   * Get caller identity from STS
-   * @private
-   */
-  async #getCallerIdentity() {
-    const response = await this.#stsClient.send(
-      new GetCallerIdentityCommand({}),
-    )
-    return response
-  }
-
-  /**
    * Ensure the IAM role's trust policy allows the local user to assume it
    * @private
    */
@@ -299,6 +321,15 @@ export class AgentCoreDevMode {
     // Check if local dev policy statement exists
     const devPolicyIndex = findDevPolicyStatementIndex(trustPolicy)
 
+    /**
+     * IAM trust policy propagation takes ~10-20 seconds. We must wait long
+     * enough for the policy to propagate BEFORE the first AssumeRole call,
+     * because a premature call that returns AccessDenied causes STS to
+     * negatively cache that authorization decision -- subsequent retries
+     * will also fail until the cache expires (several minutes).
+     */
+    const TRUST_POLICY_PROPAGATION_WAIT_MS = 5000
+
     if (devPolicyIndex === -1) {
       // Add new dev policy statement
       trustPolicy.Statement.push(createDevPolicyStatement(localUserArn))
@@ -310,9 +341,8 @@ export class AgentCoreDevMode {
         }),
       )
 
-      // Wait for policy to propagate
       logger.debug('Waiting for trust policy to propagate...')
-      await asyncSetTimeout(5000)
+      await asyncSetTimeout(TRUST_POLICY_PROPAGATION_WAIT_MS)
     } else {
       // Check if local user ARN is already in the policy
       const devPolicy = trustPolicy.Statement[devPolicyIndex]
@@ -328,9 +358,8 @@ export class AgentCoreDevMode {
           }),
         )
 
-        // Wait for policy to propagate
         logger.debug('Waiting for trust policy to propagate...')
-        await asyncSetTimeout(5000)
+        await asyncSetTimeout(TRUST_POLICY_PROPAGATION_WAIT_MS)
       }
     }
   }
@@ -451,7 +480,8 @@ export class AgentCoreDevMode {
   async #startContainer(credentials) {
     const imageUri = this.#getImageUri()
     // Docker container names should be lowercase
-    const containerName = `agentcore-dev-${this.#agentName}`.toLowerCase()
+    const containerName =
+      `sls-dev-${this.#serviceName}-${this.#agentName}`.toLowerCase()
 
     // Remove existing container if it exists
     await this.#docker.removeContainer({ containerName })
@@ -608,24 +638,22 @@ export class AgentCoreDevMode {
       return
     }
 
-    // Try to parse as JSON to identify structured logs
-    // Only consider it a JSON log if it's a structured object (starts with {)
-    // This avoids treating raw numbers/strings as valid JSON logs
-    let isJsonLog = false
-    if (text.trim().startsWith('{')) {
-      try {
-        JSON.parse(text)
-        isJsonLog = true
-      } catch {
-        // Not valid JSON
-      }
+    /**
+     * If readline is active, clear the prompt line before logging
+     * so logs don't interleave with the "You: " prompt.
+     */
+    if (this.#readline) {
+      process.stdout.clearLine(0)
+      process.stdout.cursorTo(0)
     }
 
-    // Display structured JSON logs (like server status messages)
-    if (isJsonLog) {
-      logger.aside(text)
+    // Display all agent logs using aside() for visual separation from chat
+    logger.aside(text)
+
+    /** Redraw the prompt after the log */
+    if (this.#readline && !this.#isInvoking) {
+      this.#readline.prompt(true)
     }
-    // Suppress all non-JSON output to avoid displaying raw event data fragments
   }
 
   /**
@@ -992,74 +1020,27 @@ export class AgentCoreDevMode {
   }
 
   /**
-   * Handle SSE streaming response
+   * Handle SSE streaming response using spec-compliant parser
    * @private
    */
   async #handleStreamingResponse(response) {
-    const reader = response.body.getReader()
-    const decoder = new TextDecoder()
-    let buffer = ''
+    const eventStream = response.body
+      .pipeThrough(new TextDecoderStream())
+      .pipeThrough(new EventSourceParserStream())
 
-    try {
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        buffer += decoder.decode(value, { stream: true })
-
-        // Process the buffer - handle both SSE format and raw Python repr
-        // SSE format: "data: {...}\n\ndata: {...}\n\n"
-        // Raw format: "{'data': '...',...}{'data': '...',...}"
-
-        // First try SSE format (lines starting with data:)
-        const lines = buffer.split('\n')
-        let processedSse = false
-
-        for (let i = 0; i < lines.length - 1; i++) {
-          const line = lines[i]
-          if (line.startsWith('data:')) {
-            processedSse = true
-            const data = line.slice(5).trim()
-            if (data && data !== '[DONE]') {
-              this.#processStreamData(data)
-            }
-          }
-        }
-
-        if (processedSse) {
-          // Keep only the last incomplete line
-          buffer = lines[lines.length - 1]
-        } else {
-          // Not SSE format - try to extract from raw Python repr
-          // Look for complete Python dict patterns: {...}
-          const extracted = this.#extractAllTextFromPythonRepr(buffer)
-          if (extracted.text) {
-            process.stdout.write(extracted.text)
-          }
-          // Keep any remaining unprocessed content
-          buffer = extracted.remaining
-        }
-      }
-
-      // Process any remaining buffer content
-      if (buffer.trim()) {
-        const extracted = this.#extractAllTextFromPythonRepr(buffer)
-        if (extracted.text) {
-          process.stdout.write(extracted.text)
-        }
-      }
-    } finally {
-      reader.releaseLock()
+    for await (const event of eventStream) {
+      if (event.data === '[DONE]') break
+      this.#processStreamData(event.data, event.event)
     }
 
     process.stdout.write('\n')
   }
 
   /**
-   * Process a single data chunk (JSON or Python repr)
+   * Process a single SSE event data payload
    * @private
    */
-  #processStreamData(data) {
+  #processStreamData(data, eventType) {
     try {
       const parsed = JSON.parse(data)
 
@@ -1078,36 +1059,9 @@ export class AgentCoreDevMode {
         process.stdout.write(text)
       }
     } catch {
-      // Not JSON, try Python repr
-      const text = this.#extractTextFromPythonRepr(data)
-      if (text) {
-        process.stdout.write(text)
-      }
+      /** Plain text SSE data (e.g., "data: Hello! How") */
+      process.stdout.write(data)
     }
-  }
-
-  /**
-   * Extract all text from concatenated Python repr dicts
-   * @private
-   */
-  #extractAllTextFromPythonRepr(buffer) {
-    let text = ''
-    let remaining = buffer
-
-    // Match all occurrences of 'data': 'value' or "data": "value"
-    const regex = /['"]data['"]\s*:\s*['"]([^'"]*)['"]/g
-    let match
-
-    while ((match = regex.exec(buffer)) !== null) {
-      text += match[1]
-    }
-
-    // If we extracted any text, the buffer is consumed
-    if (text) {
-      remaining = ''
-    }
-
-    return { text, remaining }
   }
 
   /**
@@ -1163,12 +1117,7 @@ export class AgentCoreDevMode {
    * @private
    */
   #extractTextFromEvent(event) {
-    // If event is a string, it might be Python repr wrapped in JSON
     if (typeof event === 'string') {
-      // Check if it's Python repr format - skip it (return null to suppress)
-      if (event.includes("'data':") || event.includes('<strands.')) {
-        return null
-      }
       return event
     }
 
@@ -1212,37 +1161,6 @@ export class AgentCoreDevMode {
     if (event.choices?.[0]?.delta?.content) {
       return event.choices[0].delta.content
     }
-    return null
-  }
-
-  /**
-   * Extract text from Python repr format (as a fallback)
-   * Input: "{'data': 'Hello', 'delta': {'text': 'Hello'}, ...}"
-   * Output: "Hello"
-   * @private
-   */
-  #extractTextFromPythonRepr(pythonRepr) {
-    try {
-      // Simple regex to extract 'data': 'value'
-      // Matches: 'data': 'Hello' or "data": "Hello"
-      const simpleDataMatch = pythonRepr.match(
-        /['"]data['"]\s*:\s*['"]([^'"]+)['"]/,
-      )
-      if (simpleDataMatch && simpleDataMatch[1]) {
-        return simpleDataMatch[1]
-      }
-
-      // Try delta.text as fallback
-      const simpleDeltaMatch = pythonRepr.match(
-        /['"]text['"]\s*:\s*['"]([^'"]+)['"]/,
-      )
-      if (simpleDeltaMatch && simpleDeltaMatch[1]) {
-        return simpleDeltaMatch[1]
-      }
-    } catch (error) {
-      // Extraction failed, return null
-    }
-
     return null
   }
 

@@ -724,6 +724,7 @@ class ServerlessBedrockAgentCore {
     const serviceName = this.serverless.service.service
     const devMode = new AgentCoreDevMode({
       serverless: this.serverless,
+      provider: this.provider,
       serviceName,
       projectPath,
       agentName,

@@ -11,16 +11,16 @@ A LangGraph JavaScript agent with AWS-managed browser capabilities deployed to B
 
 ## Tools Available
 
-| Tool | Description |
-|------|-------------|
-| `navigate` | Navigate to a URL |
-| `click` | Click an element by CSS selector |
-| `type_text` | Type text into an input element |
-| `get_text` | Extract text from the page or element |
-| `get_html` | Get HTML content of the page or element |
-| `screenshot` | Take a screenshot |
-| `evaluate` | Execute JavaScript in the page |
-| `wait_for_element` | Wait for an element to appear |
+| Tool               | Description                             |
+| ------------------ | --------------------------------------- |
+| `navigate`         | Navigate to a URL                       |
+| `click`            | Click an element by CSS selector        |
+| `type_text`        | Type text into an input element         |
+| `get_text`         | Extract text from the page or element   |
+| `get_html`         | Get HTML content of the page or element |
+| `screenshot`       | Take a screenshot                       |
+| `evaluate`         | Execute JavaScript in the page          |
+| `wait_for_element` | Wait for an element to appear           |
 
 ## Quick Start
 

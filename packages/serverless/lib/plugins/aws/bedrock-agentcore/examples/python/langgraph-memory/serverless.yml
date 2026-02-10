@@ -9,4 +9,4 @@ agents:
   # Docker auto-detected from Dockerfile in current directory
   chatbot:
     memory:
-      expiration: 30  # Days until memory events expire (3-365)
+      expiration: 30 # Days until memory events expire (3-365)

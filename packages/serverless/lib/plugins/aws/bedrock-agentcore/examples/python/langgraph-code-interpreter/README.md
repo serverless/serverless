@@ -82,15 +82,15 @@ await toolkit.cleanup()
 
 The toolkit provides these tools:
 
-| Tool | Description |
-|------|-------------|
-| `execute_code` | Run Python/JS/TS code |
-| `execute_command` | Run shell commands |
-| `read_files` | Read file contents |
-| `write_files` | Create/update files |
-| `list_files` | List directory contents |
-| `delete_files` | Remove files |
-| `upload_file` | Upload with description |
+| Tool               | Description             |
+| ------------------ | ----------------------- |
+| `execute_code`     | Run Python/JS/TS code   |
+| `execute_command`  | Run shell commands      |
+| `read_files`       | Read file contents      |
+| `write_files`      | Create/update files     |
+| `list_files`       | List directory contents |
+| `delete_files`     | Remove files            |
+| `upload_file`      | Upload with description |
 | `install_packages` | Install Python packages |
 
 ## Example Prompts

@@ -43,6 +43,7 @@ serverless deploy
 ```
 
 The framework will:
+
 - Build the Docker image
 - Push to Amazon ECR
 - Deploy the Calculator Lambda function
@@ -108,7 +109,7 @@ agents:
             required:
               - expression
 
-  chatbot: {}  # Default gateway auto-created
+  chatbot: {} # Default gateway auto-created
 ```
 
 ### Tool Discovery
@@ -134,13 +135,13 @@ result = await session.call_tool("calculate", {"expression": "25 * 4"})
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `serverless.yml` | Infrastructure configuration |
-| `agent.py` | LangGraph agent with gateway tool discovery |
-| `handlers/calculator.py` | Calculator Lambda function |
-| `Dockerfile` | Container definition |
-| `pyproject.toml` | Python dependencies |
+| File                     | Purpose                                     |
+| ------------------------ | ------------------------------------------- |
+| `serverless.yml`         | Infrastructure configuration                |
+| `agent.py`               | LangGraph agent with gateway tool discovery |
+| `handlers/calculator.py` | Calculator Lambda function                  |
+| `Dockerfile`             | Container definition                        |
+| `pyproject.toml`         | Python dependencies                         |
 
 ## Adding More Tools
 

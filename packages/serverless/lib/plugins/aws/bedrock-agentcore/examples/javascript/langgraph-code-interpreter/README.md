@@ -11,13 +11,13 @@ A LangGraph JavaScript agent with AWS-managed code interpreter for sandboxed cod
 
 ## Tools Available
 
-| Tool | Description |
-|------|-------------|
-| `execute_code` | Execute Python/JS/TS code in sandbox |
-| `execute_command` | Run shell commands |
-| `read_files` | Read file contents |
-| `write_files` | Write files |
-| `list_files` | List directory contents |
+| Tool              | Description                          |
+| ----------------- | ------------------------------------ |
+| `execute_code`    | Execute Python/JS/TS code in sandbox |
+| `execute_command` | Run shell commands                   |
+| `read_files`      | Read file contents                   |
+| `write_files`     | Write files                          |
+| `list_files`      | List directory contents              |
 
 ## Quick Start
 

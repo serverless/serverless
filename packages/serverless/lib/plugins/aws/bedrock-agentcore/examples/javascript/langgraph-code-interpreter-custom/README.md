@@ -11,11 +11,11 @@ A LangGraph JavaScript agent with a custom code interpreter that has PUBLIC netw
 
 ## How It Differs from Default
 
-| Aspect | Default | Custom |
-|--------|---------|--------|
-| Network | SANDBOX (no network) | PUBLIC (internet access) |
-| Identifier | `aws.codeinterpreter.v1` | Your own interpreter ID |
-| Use case | Isolated computation | External API calls, web scraping |
+| Aspect     | Default                  | Custom                           |
+| ---------- | ------------------------ | -------------------------------- |
+| Network    | SANDBOX (no network)     | PUBLIC (internet access)         |
+| Identifier | `aws.codeinterpreter.v1` | Your own interpreter ID          |
+| Use case   | Isolated computation     | External API calls, web scraping |
 
 ## Quick Start
 

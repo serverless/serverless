@@ -148,18 +148,14 @@ class ServerlessPythonRequirements {
         // Need handler for code deployment (new schema)
         if (!config.handler) return false
 
-        // Check for Python runtime (default is PYTHON_3_13)
-        // Runtime is now at agent root level, not artifact.runtime
-        const runtime = config.runtime || 'PYTHON_3_13'
-        return runtime.startsWith('PYTHON')
+        // Check for Python runtime (default is python3.13)
+        // Runtime is now at agent root level in Lambda format (e.g. python3.12)
+        const runtime = (config.runtime || 'python3.13').toLowerCase()
+        return runtime.startsWith('python3.')
       })
       .map(([name, config]) => {
-        // Get AgentCore runtime (e.g., PYTHON_3_12, PYTHON_3_13)
-        const agentRuntime = config.runtime || 'PYTHON_3_13'
-        // Map to Lambda format (e.g., python3.12, python3.13) for Docker image selection
-        const lambdaRuntime = agentRuntime
-          .toLowerCase()
-          .replace('python_3_', 'python3.')
+        // Runtime is already in Lambda format (e.g. python3.12, python3.13)
+        const lambdaRuntime = (config.runtime || 'python3.13').toLowerCase()
         return {
           name,
           config,

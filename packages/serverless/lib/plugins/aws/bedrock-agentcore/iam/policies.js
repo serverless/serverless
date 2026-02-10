@@ -3,6 +3,47 @@
 import { getResourceName } from '../utils/naming.js'
 
 /**
+ * Parse an ECR image URI and return a scoped repository ARN using CloudFormation intrinsics.
+ * Falls back to a wildcard repository ARN if the URI is not a valid ECR image URI.
+ *
+ * ECR URI format: {account_id}.dkr.ecr.{region}.amazonaws.com/{repository_name}:{tag}
+ * ECR URI format: {account_id}.dkr.ecr.{region}.amazonaws.com/{repository_name}@{digest}
+ *
+ * @param {string} imageUri - ECR image URI
+ * @returns {object} CloudFormation Fn::Sub resource ARN scoped to the specific repository,
+ *   or wildcard repository ARN if parsing fails
+ */
+export function resolveEcrRepositoryArn(imageUri) {
+  const wildcardArn = {
+    'Fn::Sub':
+      'arn:${AWS::Partition}:ecr:${AWS::Region}:${AWS::AccountId}:repository/*',
+  }
+
+  if (typeof imageUri !== 'string') {
+    return wildcardArn
+  }
+
+  const match = imageUri.match(/^(\d+)\.dkr\.ecr\.([^.]+)\.[^/]+\/([^:@]+)/)
+
+  if (!match) {
+    return wildcardArn
+  }
+
+  const [, accountId, region, repositoryName] = match
+
+  return {
+    'Fn::Sub': [
+      'arn:${AWS::Partition}:ecr:${Region}:${AccountId}:repository/${RepositoryName}',
+      {
+        Region: region,
+        AccountId: accountId,
+        RepositoryName: repositoryName,
+      },
+    ],
+  }
+}
+
+/**
  * Determine if an IAM role should be generated for a resource
  * Returns false if role is explicitly provided (ARN or CloudFormation reference)
  * Returns true if no role specified or role is a customization object
@@ -130,6 +171,12 @@ export function generateRuntimeRole(name, config, context, options = {}) {
           StringEquals: {
             'aws:SourceAccount': { Ref: 'AWS::AccountId' },
           },
+          ArnLike: {
+            'aws:SourceArn': {
+              'Fn::Sub':
+                'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:*',
+            },
+          },
         },
       },
     ],
@@ -178,15 +225,8 @@ export function generateRuntimeRole(name, config, context, options = {}) {
                 {
                   Sid: 'ECRImageAccess',
                   Effect: 'Allow',
-                  Action: [
-                    'ecr:BatchCheckLayerAvailability',
-                    'ecr:GetDownloadUrlForLayer',
-                    'ecr:BatchGetImage',
-                  ],
-                  Resource: {
-                    'Fn::Sub':
-                      'arn:${AWS::Partition}:ecr:${AWS::Region}:${AWS::AccountId}:repository/*',
-                  },
+                  Action: ['ecr:GetDownloadUrlForLayer', 'ecr:BatchGetImage'],
+                  Resource: resolveEcrRepositoryArn(config.artifact.image),
                 },
               ]
             : []),
@@ -222,11 +262,19 @@ export function generateRuntimeRole(name, config, context, options = {}) {
               },
               {
                 'Fn::Sub':
+                  'arn:${AWS::Partition}:bedrock:*:*:application-inference-profile/*',
+              },
+              {
+                'Fn::Sub':
                   'arn:${AWS::Partition}:bedrock:*:*:provisioned-model/*',
               },
             ],
           },
-          // Marketplace subscriptions - required for marketplace models
+          // Marketplace subscriptions for auto-enabling third-party models (e.g. Anthropic Claude).
+          // These are one-time administrative actions, only needed the first time a marketplace
+          // model is used in an account. Once subscribed, only bedrock:InvokeModel is needed.
+          // Included here for convenience so agents can auto-enable marketplace models without
+          // requiring a separate admin step. Resource-level scoping is not supported.
           {
             Sid: 'MarketplaceSubscriptions',
             Effect: 'Allow',
@@ -261,15 +309,26 @@ export function generateRuntimeRole(name, config, context, options = {}) {
             },
           },
           // Memory permissions - when agent has memory configured
-          // Required for reading conversation history (ListEvents) and saving messages (CreateEvent)
+          // Short-term: event-based conversation history within sessions
+          // Long-term: extracted insights and records across sessions
           ...(memoryResourceRef
             ? [
                 {
                   Sid: 'MemoryAccess',
                   Effect: 'Allow',
                   Action: [
-                    'bedrock-agentcore:ListEvents',
+                    // Short-term memory (events/sessions)
                     'bedrock-agentcore:CreateEvent',
+                    'bedrock-agentcore:GetEvent',
+                    'bedrock-agentcore:ListEvents',
+                    'bedrock-agentcore:DeleteEvent',
+                    'bedrock-agentcore:ListSessions',
+                    'bedrock-agentcore:ListActors',
+                    // Long-term memory (extracted records)
+                    'bedrock-agentcore:RetrieveMemoryRecords',
+                    'bedrock-agentcore:ListMemoryRecords',
+                    'bedrock-agentcore:GetMemoryRecord',
+                    // Memory resource metadata
                     'bedrock-agentcore:GetMemory',
                   ],
                   Resource:
@@ -304,7 +363,7 @@ export function generateRuntimeRole(name, config, context, options = {}) {
                 },
               ]
             : []),
-          // Browser permissions - for use_bedrock_browser tool (strands-agents-tools)
+          // Browser permissions
           // Allows agents to use the AWS-managed default browser for web browsing/search
           {
             Sid: 'BrowserAccess',
@@ -321,7 +380,6 @@ export function generateRuntimeRole(name, config, context, options = {}) {
               'bedrock-agentcore:UpdateBrowserStream',
               'bedrock-agentcore:ConnectBrowserAutomationStream',
               'bedrock-agentcore:ConnectBrowserLiveViewStream',
-              'bedrock-agentcore:InvokeBrowser',
             ],
             Resource: {
               'Fn::Sub':
@@ -354,21 +412,10 @@ export function generateRuntimeRole(name, config, context, options = {}) {
     },
   ]
 
-  // VPC permissions - only when mode is VPC
-  if (config.network?.mode?.toUpperCase() === 'VPC') {
-    policies[0].PolicyDocument.Statement.push({
-      Sid: 'VPCNetworkInterfaces',
-      Effect: 'Allow',
-      Action: [
-        'ec2:CreateNetworkInterface',
-        'ec2:DescribeNetworkInterfaces',
-        'ec2:DeleteNetworkInterface',
-        'ec2:AssignPrivateIpAddresses',
-        'ec2:UnassignPrivateIpAddresses',
-      ],
-      Resource: '*',
-    })
-  }
+  // VPC network interface management is handled by the service-linked role
+  // AWSServiceRoleForBedrockAgentCoreNetwork (BedrockAgentCoreNetworkServiceRolePolicy),
+  // which is automatically created when VPC mode is configured.
+  // No EC2 permissions are needed on the execution role.
 
   // Extract role customizations
   const customizations = getRoleCustomizations(config)
@@ -426,85 +473,25 @@ export function generateMemoryRole(name, config, context) {
           StringEquals: {
             'aws:SourceAccount': { Ref: 'AWS::AccountId' },
           },
+          ArnLike: {
+            'aws:SourceArn': {
+              'Fn::Sub':
+                'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:*',
+            },
+          },
         },
       },
     ],
   }
 
-  const policies = [
-    {
-      PolicyName: `${roleName}-base-policy`,
-      PolicyDocument: {
-        Version: '2012-10-17',
-        Statement: [
-          // CloudWatch Logs - Memory needs logging for processing
-          {
-            Effect: 'Allow',
-            Action: [
-              'logs:CreateLogGroup',
-              'logs:CreateLogStream',
-              'logs:PutLogEvents',
-            ],
-            Resource: {
-              'Fn::Sub':
-                'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/bedrock-agentcore/*',
-            },
-          },
-          // Bedrock model invocation - required for memory strategies (extraction, consolidation)
-          {
-            Sid: 'BedrockModelInvocation',
-            Effect: 'Allow',
-            Action: [
-              'bedrock:InvokeModel',
-              'bedrock:InvokeModelWithResponseStream',
-            ],
-            Resource: {
-              'Fn::Sub': 'arn:${AWS::Partition}:bedrock:*::foundation-model/*',
-            },
-          },
-          // Bedrock inference profiles for cross-region inference
-          {
-            Sid: 'BedrockInferenceProfiles',
-            Effect: 'Allow',
-            Action: [
-              'bedrock:InvokeModel',
-              'bedrock:InvokeModelWithResponseStream',
-              'bedrock:GetInferenceProfile',
-            ],
-            Resource: [
-              'arn:aws:bedrock:*:*:inference-profile/us.*',
-              'arn:aws:bedrock:*:*:inference-profile/eu.*',
-              'arn:aws:bedrock:*:*:inference-profile/global.*',
-            ],
-          },
-          // KMS permissions - only when encryptionKey is specified
-          ...(config.encryptionKey
-            ? [
-                {
-                  Sid: 'KMSAccess',
-                  Effect: 'Allow',
-                  Action: [
-                    'kms:Decrypt',
-                    'kms:Encrypt',
-                    'kms:GenerateDataKey',
-                    'kms:DescribeKey',
-                  ],
-                  Resource: config.encryptionKey,
-                },
-              ]
-            : []),
-        ],
-      },
-    },
-  ]
-
   // Extract role customizations
   const customizations = getRoleCustomizations(config)
 
-  // Merge custom statements into policy
-  if (customizations.statements.length > 0) {
-    policies[0].PolicyDocument.Statement.push(...customizations.statements)
-  }
+  // Bedrock model invocation permissions for memory strategies (extraction, consolidation)
+  // are provided by the AWS managed policy, per official docs:
+  // https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/long-term-configuring-custom-strategies.html
+  const managedPolicyArn =
+    'arn:aws:iam::aws:policy/AmazonBedrockAgentCoreMemoryBedrockModelInferenceExecutionRolePolicy'
 
   // Build base role
   const role = {
@@ -512,13 +499,21 @@ export function generateMemoryRole(name, config, context) {
     Properties: {
       RoleName: customizations.name || roleName,
       AssumeRolePolicyDocument: assumeRolePolicy,
-      Policies: policies,
+      ManagedPolicyArns: [managedPolicyArn, ...customizations.managedPolicies],
     },
   }
 
-  // Add managed policies if provided
-  if (customizations.managedPolicies.length > 0) {
-    role.Properties.ManagedPolicyArns = customizations.managedPolicies
+  // Only add inline policy if user provided custom statements
+  if (customizations.statements.length > 0) {
+    role.Properties.Policies = [
+      {
+        PolicyName: `${roleName}-custom-policy`,
+        PolicyDocument: {
+          Version: '2012-10-17',
+          Statement: customizations.statements,
+        },
+      },
+    ]
   }
 
   // Add permission boundary if provided
@@ -553,6 +548,12 @@ export function generateGatewayRole(name, config, context) {
         Condition: {
           StringEquals: {
             'aws:SourceAccount': { Ref: 'AWS::AccountId' },
+          },
+          ArnLike: {
+            'aws:SourceArn': {
+              'Fn::Sub':
+                'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:*',
+            },
           },
         },
       },
@@ -614,60 +615,66 @@ export function generateGatewayRole(name, config, context) {
                 },
               ]
             : []),
-          // OAuth/Token Vault permissions - required for OAuth and API Key credential providers
+          // OAuth/Token Vault permissions - only when tools use OAuth or API Key credential providers
+          // Per AWS docs: https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-outbound-auth.html
           // Gateway needs these to fetch tokens from AgentCore Identity Token Vault
-          {
-            Sid: 'WorkloadIdentityAccess',
-            Effect: 'Allow',
-            Action: [
-              'bedrock-agentcore:GetWorkloadAccessTokenForJWT',
-              'bedrock-agentcore:GetWorkloadAccessToken',
-            ],
-            Resource: [
-              {
-                'Fn::Sub':
-                  'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/*',
-              },
-              {
-                'Fn::Sub':
-                  'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/*/workload-identity/*',
-              },
-            ],
-          },
-          // Token Vault permissions - for OAuth and API Key credential retrieval
-          // These actions are called on both token-vault and workload-identity resources
-          {
-            Sid: 'TokenVaultAccess',
-            Effect: 'Allow',
-            Action: [
-              'bedrock-agentcore:GetResourceOauth2Token',
-              'bedrock-agentcore:GetResourceApiKey',
-            ],
-            Resource: [
-              {
-                'Fn::Sub':
-                  'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:token-vault/*',
-              },
-              {
-                'Fn::Sub':
-                  'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/*',
-              },
-              {
-                'Fn::Sub':
-                  'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/*/workload-identity/*',
-              },
-            ],
-          },
-          // Secrets Manager - OAuth credential providers store secrets here
-          {
-            Sid: 'SecretsManagerAccess',
-            Effect: 'Allow',
-            Action: ['secretsmanager:GetSecretValue'],
-            Resource: {
-              'Fn::Sub':
-                'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*',
-            },
-          },
+          ...(config.hasCredentialProviders
+            ? [
+                {
+                  Sid: 'WorkloadIdentityAccess',
+                  Effect: 'Allow',
+                  Action: [
+                    'bedrock-agentcore:GetWorkloadAccessTokenForJWT',
+                    'bedrock-agentcore:GetWorkloadAccessToken',
+                  ],
+                  Resource: [
+                    {
+                      'Fn::Sub':
+                        'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/*',
+                    },
+                    {
+                      'Fn::Sub':
+                        'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/*/workload-identity/*',
+                    },
+                  ],
+                },
+                // Token Vault permissions - for OAuth and API Key credential retrieval
+                // These actions are called on both token-vault and workload-identity resources
+                {
+                  Sid: 'TokenVaultAccess',
+                  Effect: 'Allow',
+                  Action: [
+                    'bedrock-agentcore:GetResourceOauth2Token',
+                    'bedrock-agentcore:GetResourceApiKey',
+                  ],
+                  Resource: [
+                    {
+                      'Fn::Sub':
+                        'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:token-vault/*',
+                    },
+                    {
+                      'Fn::Sub':
+                        'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/*',
+                    },
+                    {
+                      'Fn::Sub':
+                        'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/*/workload-identity/*',
+                    },
+                  ],
+                },
+                // Secrets Manager - credential providers store secrets here
+                // Scoped to bedrock-agentcore-identity* prefix used by AgentCore Identity
+                {
+                  Sid: 'SecretsManagerAccess',
+                  Effect: 'Allow',
+                  Action: ['secretsmanager:GetSecretValue'],
+                  Resource: {
+                    'Fn::Sub':
+                      'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:bedrock-agentcore-identity*',
+                  },
+                },
+              ]
+            : []),
         ],
       },
     },
@@ -729,6 +736,12 @@ export function generateBrowserRole(name, config, context) {
           StringEquals: {
             'aws:SourceAccount': { Ref: 'AWS::AccountId' },
           },
+          ArnLike: {
+            'aws:SourceArn': {
+              'Fn::Sub':
+                'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:*',
+            },
+          },
         },
       },
     ],
@@ -754,36 +767,33 @@ export function generateBrowserRole(name, config, context) {
                 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/bedrock-agentcore/*',
             },
           },
-          // S3 permissions for recording - scoped to specific bucket/prefix
+          // S3 permissions for session recording - scoped to specific bucket/prefix
+          // Per AWS docs: https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/browser-resource-session-management.html
           ...(config.recording?.s3Location
             ? [
                 {
                   Sid: 'S3Recording',
                   Effect: 'Allow',
-                  Action: ['s3:PutObject', 's3:GetObject'],
+                  Action: [
+                    's3:PutObject',
+                    's3:ListMultipartUploadParts',
+                    's3:AbortMultipartUpload',
+                  ],
                   Resource: {
                     'Fn::Sub': `arn:\${AWS::Partition}:s3:::${config.recording.s3Location.bucket}/${config.recording.s3Location.prefix || ''}*`,
+                  },
+                  Condition: {
+                    StringEquals: {
+                      'aws:ResourceAccount': { Ref: 'AWS::AccountId' },
+                    },
                   },
                 },
               ]
             : []),
-          // VPC network interfaces - only when mode is VPC
-          ...(config.network?.mode?.toUpperCase() === 'VPC'
-            ? [
-                {
-                  Sid: 'VPCNetworkInterfaces',
-                  Effect: 'Allow',
-                  Action: [
-                    'ec2:CreateNetworkInterface',
-                    'ec2:DescribeNetworkInterfaces',
-                    'ec2:DeleteNetworkInterface',
-                    'ec2:AssignPrivateIpAddresses',
-                    'ec2:UnassignPrivateIpAddresses',
-                  ],
-                  Resource: '*',
-                },
-              ]
-            : []),
+          // VPC network interface management is handled by the service-linked role
+          // AWSServiceRoleForBedrockAgentCoreNetwork (BedrockAgentCoreNetworkServiceRolePolicy),
+          // which is automatically created when VPC mode is configured.
+          // No EC2 permissions are needed on the execution role.
         ],
       },
     },
@@ -845,6 +855,12 @@ export function generateCodeInterpreterRole(name, config, context) {
           StringEquals: {
             'aws:SourceAccount': { Ref: 'AWS::AccountId' },
           },
+          ArnLike: {
+            'aws:SourceArn': {
+              'Fn::Sub':
+                'arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:*',
+            },
+          },
         },
       },
     ],
@@ -870,23 +886,10 @@ export function generateCodeInterpreterRole(name, config, context) {
                 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/bedrock-agentcore/*',
             },
           },
-          // VPC network interfaces - only when mode is VPC
-          ...(config.network?.mode?.toUpperCase() === 'VPC'
-            ? [
-                {
-                  Sid: 'VPCNetworkInterfaces',
-                  Effect: 'Allow',
-                  Action: [
-                    'ec2:CreateNetworkInterface',
-                    'ec2:DescribeNetworkInterfaces',
-                    'ec2:DeleteNetworkInterface',
-                    'ec2:AssignPrivateIpAddresses',
-                    'ec2:UnassignPrivateIpAddresses',
-                  ],
-                  Resource: '*',
-                },
-              ]
-            : []),
+          // VPC network interface management is handled by the service-linked role
+          // AWSServiceRoleForBedrockAgentCoreNetwork (BedrockAgentCoreNetworkServiceRolePolicy),
+          // which is automatically created when VPC mode is configured.
+          // No EC2 permissions are needed on the execution role.
         ],
       },
     },

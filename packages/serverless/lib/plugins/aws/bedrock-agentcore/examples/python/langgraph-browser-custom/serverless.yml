@@ -57,7 +57,7 @@ agents:
               - s3:ListMultipartUploadParts
             Resource:
               - !GetAtt RecordingsBucket.Arn
-              - !Sub "${RecordingsBucket.Arn}/*"
+              - !Sub '${RecordingsBucket.Arn}/*'
 
   # Runtime agent that uses the custom browser
   browserAgent:
@@ -83,4 +83,3 @@ agents:
             - bedrock-agentcore:ConnectBrowserAutomationStream
             - bedrock-agentcore:ConnectBrowserLiveViewStream
           Resource: !GetAtt CustomBrowserBrowser.BrowserArn
-

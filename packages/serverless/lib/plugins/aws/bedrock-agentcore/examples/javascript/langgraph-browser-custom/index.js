@@ -19,6 +19,8 @@
  * - RECORDINGS_BUCKET: S3 bucket where recordings are stored
  */
 
+/* global document */
+
 import { BedrockAgentCoreApp } from 'bedrock-agentcore/runtime'
 import { Browser } from 'bedrock-agentcore/browser'
 import { createReactAgent } from '@langchain/langgraph/prebuilt'

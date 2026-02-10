@@ -4,10 +4,10 @@ A JavaScript MCP server deployed to AWS Bedrock AgentCore Runtime. Exposes simpl
 
 ## Tools
 
-| Tool | Description |
-| --- | --- |
-| `add` | Add two numbers together |
-| `multiply` | Multiply two numbers together |
+| Tool               | Description                                            |
+| ------------------ | ------------------------------------------------------ |
+| `add`              | Add two numbers together                               |
+| `multiply`         | Multiply two numbers together                          |
 | `get_current_time` | Get the current date and time (with optional timezone) |
 
 ## Prerequisites

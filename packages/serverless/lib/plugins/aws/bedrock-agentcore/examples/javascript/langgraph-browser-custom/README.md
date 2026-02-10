@@ -11,12 +11,12 @@ A LangGraph JavaScript agent using a custom AgentCore browser with session recor
 
 ## How It Differs from Default Browser
 
-| Aspect | Default Browser | Custom Browser |
-|--------|----------------|----------------|
-| Identifier | `aws.browser.v1` | Your own browser ID |
-| Recording | Not available | S3 recording with configurable prefix |
-| Signing | Not configurable | Enabled for reduced CAPTCHAs |
-| Network | Default | Configurable (PUBLIC/VPC) |
+| Aspect     | Default Browser  | Custom Browser                        |
+| ---------- | ---------------- | ------------------------------------- |
+| Identifier | `aws.browser.v1` | Your own browser ID                   |
+| Recording  | Not available    | S3 recording with configurable prefix |
+| Signing    | Not configurable | Enabled for reduced CAPTCHAs          |
+| Network    | Default          | Configurable (PUBLIC/VPC)             |
 
 ## Quick Start
 

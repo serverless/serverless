@@ -11,13 +11,13 @@ This example demonstrates using a **custom AgentCore browser** with session reco
 
 ## Default vs Custom Browser
 
-| Feature | Default Browser | Custom Browser |
-|---------|-----------------|----------------|
-| Identifier | `aws.browser.v1` | Your custom ID |
-| Session Recording | Not available | Configurable |
-| Request Signing | Not available | Configurable |
-| VPC Access | Not available | Configurable |
-| IAM Role | AWS-managed | Custom role |
+| Feature           | Default Browser  | Custom Browser |
+| ----------------- | ---------------- | -------------- |
+| Identifier        | `aws.browser.v1` | Your custom ID |
+| Session Recording | Not available    | Configurable   |
+| Request Signing   | Not available    | Configurable   |
+| VPC Access        | Not available    | Configurable   |
+| IAM Role          | AWS-managed      | Custom role    |
 
 ## Project Structure
 
@@ -61,6 +61,7 @@ serverless deploy
 ```
 
 Example output:
+
 ```
 agents:
   browserAgent: https://bedrock-agentcore.us-east-1.amazonaws.com/runtimes/arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/xxx/invocations
@@ -159,9 +160,9 @@ agents:
     customBrowser:
       description: Browser with custom configuration
       network:
-        mode: PUBLIC  # or VPC
+        mode: PUBLIC # or VPC
       signing:
-        enabled: true  # Reduces CAPTCHAs
+        enabled: true # Reduces CAPTCHAs
       recording:
         enabled: true
         s3Location:

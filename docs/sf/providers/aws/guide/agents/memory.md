@@ -31,10 +31,11 @@ Add memory to any agent with a single property:
 agents:
   myAgent:
     memory:
-      expiration: 30  # Days until memory events expire (3-365)
+      expiration: 30 # Days until memory events expire (3-365)
 ```
 
 The framework automatically:
+
 - Creates the AgentCore Memory resource
 - Injects `BEDROCK_AGENTCORE_MEMORY_ID` environment variable into your runtime
 - Grants necessary IAM permissions
@@ -68,7 +69,7 @@ Define memory directly on an agent. Best for simple, single-agent deployments:
 agents:
   myAgent:
     memory:
-      expiration: 30  # 30 days
+      expiration: 30 # 30 days
 ```
 
 ### Shared Memory (Multiple Agents)
@@ -79,14 +80,14 @@ Define memory at the `agents.memory` level and reference by name. Best when mult
 agents:
   memory:
     conversations:
-      expiration: 90  # 90 days
+      expiration: 90 # 90 days
       description: Shared conversation memory
 
   chatbot:
-    memory: conversations  # Reference by name
+    memory: conversations # Reference by name
 
   assistant:
-    memory: conversations  # Same memory, different agent
+    memory: conversations # Same memory, different agent
 ```
 
 ## Memory Strategies
@@ -101,7 +102,7 @@ Enables similarity-based search across conversation history. Use when agents nee
 agents:
   memory:
     searchable:
-      expiration: 90  # 90 days
+      expiration: 90 # 90 days
       strategies:
         - SemanticMemoryStrategy:
             Name: ConversationSearch
@@ -119,7 +120,7 @@ Maintains condensed conversation context. Use for long conversations where full 
 agents:
   memory:
     summarized:
-      expiration: 90  # 90 days
+      expiration: 90 # 90 days
       strategies:
         - SummaryMemoryStrategy:
             Name: ConversationSummary
@@ -136,7 +137,7 @@ Tracks user preferences across sessions. Use for personalization that persists b
 agents:
   memory:
     preferences:
-      expiration: 365  # Maximum retention (1 year)
+      expiration: 365 # Maximum retention (1 year)
       strategies:
         - UserPreferenceMemoryStrategy:
             Name: UserSettings
@@ -153,7 +154,7 @@ Stores episodic memories with reflection capabilities. Use for agents that need 
 agents:
   memory:
     episodes:
-      expiration: 30  # 30 days
+      expiration: 30 # 30 days
       strategies:
         - EpisodicMemoryStrategy:
             Name: Episodes
@@ -170,7 +171,7 @@ Application-specific memory handling with custom configuration.
 agents:
   memory:
     custom:
-      expiration: 30  # 30 days
+      expiration: 30 # 30 days
       strategies:
         - CustomMemoryStrategy:
             Name: ApplicationSpecific
@@ -188,7 +189,7 @@ Combine multiple strategies for comprehensive memory management:
 agents:
   memory:
     comprehensive:
-      expiration: 90  # 90 days
+      expiration: 90 # 90 days
       strategies:
         # Semantic search for finding relevant conversations
         - SemanticMemoryStrategy:
@@ -262,24 +263,52 @@ events = memory_client.list_events(
 )
 ```
 
-### SDK Methods Reference
+**JavaScript:**
 
-| Method | Description |
-|--------|-------------|
-| `create_event()` | Save a conversation turn (user + assistant messages) |
-| `list_events()` | Retrieve conversation history for a session |
-| `retrieve_memories()` | Search long-term memories (requires strategies) |
-| `get_last_k_turns()` | Get the last K conversation turns |
+```javascript
+import {
+  BedrockAgentCoreClient,
+  CreateEventCommand,
+  ListEventsCommand,
+} from '@aws-sdk/client-bedrock-agentcore'
+
+const MEMORY_ID = process.env.BEDROCK_AGENTCORE_MEMORY_ID
+const client = new BedrockAgentCoreClient()
+
+// Save conversation turn
+await client.send(
+  new CreateEventCommand({
+    memoryId: MEMORY_ID,
+    actorId: 'user-123',
+    sessionId: 'session-456',
+    eventTimestamp: new Date(),
+    payload: [
+      { conversational: { content: { text: "What's the weather?" }, role: 'USER' } },
+      { conversational: { content: { text: 'Today is sunny!' }, role: 'ASSISTANT' } },
+    ],
+  }),
+)
+
+// Retrieve conversation history
+const { events } = await client.send(
+  new ListEventsCommand({
+    memoryId: MEMORY_ID,
+    actorId: 'user-123',
+    sessionId: 'session-456',
+    maxResults: 10,
+  }),
+)
+```
 
 ## IAM Role Configuration
 
-The framework automatically adds memory permissions to the agent's IAM role. To customize:
+The framework automatically creates an IAM role for each memory resource. This role includes the AWS managed policy `AmazonBedrockAgentCoreMemoryBedrockModelInferenceExecutionRolePolicy`, which grants Bedrock model invocation permissions required for memory strategies (extraction, consolidation). You can add custom statements alongside this managed policy:
 
 ```yml
 agents:
   memory:
     conversations:
-      expiration: 30  # 30 days
+      expiration: 30 # 30 days
       role:
         name: custom-memory-role
         statements:
@@ -295,26 +324,26 @@ agents:
 
 ### Memory Properties
 
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| `expiration` | number | Yes | Days until memory events expire (3-365) |
-| `description` | string | No | Human-readable description |
-| `encryptionKey` | string | No | KMS key ARN for encryption |
-| `strategies` | array | No | Memory processing strategies |
-| `role` | string/object | No | IAM role ARN or configuration |
-| `tags` | object | No | Resource tags |
+| Property        | Type          | Required | Description                                          |
+| --------------- | ------------- | -------- | ---------------------------------------------------- |
+| `expiration`    | number        | No       | Days until memory events expire (3-365, default: 30) |
+| `description`   | string        | No       | Human-readable description              |
+| `encryptionKey` | string        | No       | KMS key ARN for encryption              |
+| `strategies`    | array         | No       | Memory processing strategies            |
+| `role`          | string/object | No       | IAM role ARN or configuration           |
+| `tags`          | object        | No       | Resource tags                           |
 
 ### Strategy Properties
 
 Each strategy type has specific properties:
 
-| Strategy | Required Properties | Optional Properties |
-|----------|---------------------|---------------------|
-| `SemanticMemoryStrategy` | `Name` | `Description`, `Namespaces` |
-| `SummaryMemoryStrategy` | `Name` | `Description`, `Namespaces` |
-| `UserPreferenceMemoryStrategy` | `Name` | `Description`, `Namespaces` |
-| `EpisodicMemoryStrategy` | `Name` | `Description`, `Namespaces` |
-| `CustomMemoryStrategy` | `Name` | `Description`, `Configuration` |
+| Strategy                       | Required Properties | Optional Properties                                      |
+| ------------------------------ | ------------------- | -------------------------------------------------------- |
+| `SemanticMemoryStrategy`       | `Name`              | `Description`, `Namespaces`                              |
+| `SummaryMemoryStrategy`        | `Name`              | `Description`, `Namespaces`                              |
+| `UserPreferenceMemoryStrategy` | `Name`              | `Description`, `Namespaces`                              |
+| `EpisodicMemoryStrategy`       | `Name`              | `Description`, `Namespaces`, `ReflectionConfiguration`   |
+| `CustomMemoryStrategy`         | `Name`              | `Description`, `Namespaces`, `Configuration`             |
 
 ## Complete Example
 
@@ -330,7 +359,7 @@ agents:
   memory:
     conversationMemory:
       description: Production conversation memory
-      expiration: 90  # 90 days
+      expiration: 90 # 90 days
       strategies:
         - SemanticMemoryStrategy:
             Name: ConversationSearch
@@ -345,10 +374,16 @@ agents:
 
   # Agent with shared memory reference
   chatbot:
-    memory: conversationMemory  # Reference shared memory
+    memory: conversationMemory # Reference shared memory
 ```
 
 ## Examples
+
+**JavaScript:**
+
+- [LangGraph with Memory](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-memory) - LangGraph agent with conversation persistence
+
+**Python:**
 
 - [LangGraph with Memory](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-memory) - LangGraph agent with conversation persistence
 

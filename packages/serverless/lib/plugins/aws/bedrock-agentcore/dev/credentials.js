@@ -121,15 +121,27 @@ export function getPolicyPrincipals(policyStatement) {
 }
 
 /**
- * Check if a user ARN is already in a policy statement
+ * Check if a user ARN is already in a policy statement.
+ * Checks both the exact ARN and the normalized form, so that
+ * a previously written session ARN is recognized after normalization.
  *
  * @param {object} policyStatement - Policy statement object
- * @param {string} userArn - ARN to check
+ * @param {string} userArn - ARN to check (already normalized)
  * @returns {boolean} True if the ARN is in the policy
  */
 export function isPrincipalInPolicy(policyStatement, userArn) {
   const principals = getPolicyPrincipals(policyStatement)
-  return principals.includes(userArn)
+  if (principals.includes(userArn)) {
+    return true
+  }
+  /**
+   * Also check if any existing principal normalizes to the same ARN.
+   * This handles the transition where an old session ARN was stored
+   * and we now compare against the normalized role ARN.
+   */
+  return principals.some(
+    (existing) => normalizeAssumedRoleArn(existing) === userArn,
+  )
 }
 
 /**
@@ -144,6 +156,50 @@ export function addPrincipalToPolicy(policyStatement, userArn) {
   if (!principals.includes(userArn)) {
     policyStatement.Principal.AWS = [...principals, userArn]
   }
+}
+
+/**
+ * Normalize an STS assumed-role session ARN to an IAM role ARN.
+ *
+ * When using AWS SSO, GetCallerIdentity returns a session ARN like:
+ *   arn:aws:sts::123456789012:assumed-role/AWSReservedSSO_Admin_abc123/user@example.com
+ *
+ * Trust policies require the IAM role ARN format to work reliably:
+ *   arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Admin_abc123
+ *
+ * For non-SSO assumed roles (e.g. arn:aws:sts::ACCOUNT:assumed-role/MyRole/session),
+ * it normalizes to:
+ *   arn:aws:iam::ACCOUNT:role/MyRole
+ *
+ * For ARNs that are already IAM role or user ARNs, returns them as-is.
+ *
+ * @param {string} arn - The ARN from GetCallerIdentity
+ * @returns {string} The normalized IAM principal ARN
+ */
+export function normalizeAssumedRoleArn(arn) {
+  /**
+   * Match STS assumed-role session ARNs:
+   * arn:aws:sts::ACCOUNT:assumed-role/ROLE_NAME/SESSION_NAME
+   */
+  const assumedRoleMatch = arn.match(
+    /^arn:aws:sts::(\d+):assumed-role\/(.+?)\/[^/]+$/,
+  )
+  if (!assumedRoleMatch) {
+    return arn
+  }
+
+  const accountId = assumedRoleMatch[1]
+  const roleName = assumedRoleMatch[2]
+
+  /**
+   * SSO roles have names starting with AWSReservedSSO_.
+   * Their IAM role ARN includes the aws-reserved/sso.amazonaws.com path prefix.
+   */
+  if (roleName.startsWith('AWSReservedSSO_')) {
+    return `arn:aws:iam::${accountId}:role/aws-reserved/sso.amazonaws.com/${roleName}`
+  }
+
+  return `arn:aws:iam::${accountId}:role/${roleName}`
 }
 
 /**

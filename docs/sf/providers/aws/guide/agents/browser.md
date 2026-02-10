@@ -22,7 +22,7 @@ keywords:
 
 # Browser Configuration
 
-Browser enables your AI agents to navigate web pages, extract information, and interact with websites. AgentCore provides managed browser infrastructure that integrates seamlessly with the Strands Agents framework.
+Browser enables your AI agents to navigate web pages, extract information, and interact with websites. AgentCore provides managed browser infrastructure that works with any agent framework — Strands Agents provides the most streamlined Python integration via `AgentCoreBrowser`, while JavaScript agents can use `PlaywrightBrowser` from the `bedrock-agentcore` SDK.
 
 ## Quick Start
 
@@ -38,7 +38,7 @@ provider:
   region: us-east-1
 
 agents:
-  webAgent: {}  # Auto-detects Dockerfile
+  webAgent: {} # Auto-detects Dockerfile
 ```
 
 **Agent code (`agent.py`):**
@@ -83,18 +83,111 @@ The framework automatically handles browser infrastructure - no additional confi
 
 When your agent uses the browser tool:
 
-1. **Agent Request**: Your Strands agent calls `browser_tool.browser` with navigation instructions
+1. **Agent Request**: Your agent calls the browser tool with navigation instructions
 2. **AWS Infrastructure**: AgentCore manages browser sessions in isolated environments
 3. **Web Interaction**: The browser navigates, clicks, extracts content as instructed
 4. **Response**: Results flow back to your agent for processing
 
 ```
-Agent → Strands → AgentCoreBrowser → AWS Browser Service → Website → Response
+Agent → Browser Tool → AWS Browser Service → Website → Response
 ```
 
-## Using Browser with Strands Agents
+## Using Browser in JavaScript
 
-Strands provides the best integration with AgentCore Browser through `strands_tools.browser.AgentCoreBrowser`.
+The `bedrock-agentcore` SDK provides `PlaywrightBrowser` for browser automation in JavaScript agents.
+
+### Basic Pattern
+
+```javascript
+import { BedrockAgentCoreApp } from 'bedrock-agentcore/runtime'
+import { PlaywrightBrowser } from 'bedrock-agentcore/browser/playwright'
+import { createReactAgent } from '@langchain/langgraph/prebuilt'
+import { ChatBedrockConverse } from '@langchain/aws'
+import { tool } from '@langchain/core/tools'
+import { z } from 'zod'
+
+const browser = new PlaywrightBrowser({ region: 'us-east-1' })
+
+// Define browser tools wrapping PlaywrightBrowser methods
+const navigate = tool(
+  async ({ url }) => {
+    await browser.navigate({ url, waitUntil: 'domcontentloaded' })
+    return `Navigated to ${url}`
+  },
+  {
+    name: 'navigate',
+    description: 'Navigate to a URL in the browser.',
+    schema: z.object({ url: z.string().describe('The URL to navigate to') }),
+  },
+)
+
+const getText = tool(
+  async ({ selector }) => {
+    const text = await browser.getText({ selector })
+    return text || 'No text found'
+  },
+  {
+    name: 'get_text',
+    description: 'Extract text content from elements.',
+    schema: z.object({ selector: z.string().describe('CSS selector') }),
+  },
+)
+
+const screenshot = tool(
+  async () => {
+    const data = await browser.screenshot()
+    return `Screenshot captured (${data.length} bytes)`
+  },
+  {
+    name: 'screenshot',
+    description: 'Take a screenshot of the current page.',
+    schema: z.object({}),
+  },
+)
+
+// Create agent with browser tools
+const model = new ChatBedrockConverse({
+  model: 'us.anthropic.claude-sonnet-4-20250514-v1:0',
+  region: 'us-east-1',
+})
+
+const agent = createReactAgent({
+  llm: model,
+  tools: [navigate, getText, screenshot],
+})
+
+const app = new BedrockAgentCoreApp({
+  invocationHandler: {
+    requestSchema: z.object({ prompt: z.string() }),
+    async handler({ request }) {
+      const result = await agent.invoke({
+        messages: [{ role: 'user', content: request.prompt }],
+      })
+      return { response: result.messages.at(-1).content }
+    },
+  },
+})
+
+app.run()
+```
+
+**Dependencies (`package.json`):**
+
+```json
+{
+  "dependencies": {
+    "bedrock-agentcore": "^0.1.0",
+    "@langchain/langgraph": "^0.2.0",
+    "@langchain/aws": "^0.1.0",
+    "@langchain/core": "^0.3.0",
+    "zod": "^3.23.0"
+  }
+}
+```
+
+## Using Browser in Python (Strands Agents)
+
+Strands provides the most streamlined Python integration with AgentCore Browser through `strands_tools.browser.AgentCoreBrowser`.
 
 ### Basic Pattern
 
@@ -166,12 +259,12 @@ For advanced scenarios, define custom browser resources with specific configurat
 
 ### When to Use Custom Browsers
 
-| Scenario | Recommendation |
-|----------|----------------|
-| Basic web browsing | Use AWS-managed default |
-| Need session recording | Define custom browser |
+| Scenario                  | Recommendation                      |
+| ------------------------- | ----------------------------------- |
+| Basic web browsing        | Use AWS-managed default             |
+| Need session recording    | Define custom browser               |
 | Access VPC-only resources | Define custom browser with VPC mode |
-| Require request signing | Define custom browser with signing |
+| Require request signing   | Define custom browser with signing  |
 
 ### Basic Custom Browser
 
@@ -228,42 +321,43 @@ agents:
 
 ### Browser Properties
 
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| `network` | object | Yes | Network configuration |
-| `description` | string | No | Human-readable description (1-1200 chars) |
-| `recording` | object | No | Session recording configuration |
-| `signing` | object | No | Request signing configuration |
-| `role` | string/object | No | IAM role ARN or configuration |
-| `tags` | object | No | Resource tags |
+| Property      | Type          | Required | Description                               |
+| ------------- | ------------- | -------- | ----------------------------------------- |
+| `network`     | object        | No       | Network configuration (default: PUBLIC)   |
+| `description` | string        | No       | Human-readable description (1-1200 chars) |
+| `recording`   | object        | No       | Session recording configuration           |
+| `signing`     | object        | No       | Request signing configuration             |
+| `role`        | string/object | No       | IAM role ARN or configuration             |
+| `tags`        | object        | No       | Resource tags                             |
 
 ### Network Configuration
 
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| `mode` | string | Yes | `PUBLIC` or `VPC` |
-| `subnets` | array | VPC only | VPC subnet IDs |
-| `securityGroups` | array | VPC only | Security group IDs |
+| Property         | Type   | Required | Description        |
+| ---------------- | ------ | -------- | ------------------ |
+| `mode`           | string | Yes      | `PUBLIC` or `VPC`  |
+| `subnets`        | array  | VPC only | VPC subnet IDs     |
+| `securityGroups` | array  | VPC only | Security group IDs |
 
 ### Recording Configuration
 
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| `enabled` | boolean | No | Enable session recording |
-| `s3Location.bucket` | string | If enabled | S3 bucket for recordings |
-| `s3Location.prefix` | string | No | S3 key prefix |
+| Property            | Type    | Required      | Description              |
+| ------------------- | ------- | ------------- | ------------------------ |
+| `enabled`           | boolean | No            | Enable session recording |
+| `s3Location.bucket` | string  | If enabled    | S3 bucket for recordings |
+| `s3Location.prefix` | string  | If s3Location | S3 key prefix            |
 
 ### Signing Configuration
 
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| `enabled` | boolean | No | Enable request signing |
+| Property  | Type    | Required | Description            |
+| --------- | ------- | -------- | ---------------------- |
+| `enabled` | boolean | No       | Enable request signing |
 
 ## Session Recording
 
 Session recording captures browser interactions for debugging and compliance:
 
 **Use cases:**
+
 - Debug failed browser automation
 - Audit agent behavior for compliance
 - Review extracted data accuracy
@@ -308,6 +402,14 @@ agents:
 ```
 
 ## Examples
+
+**JavaScript:**
+
+- [LangGraph Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-browser) - LangGraph with PlaywrightBrowser toolkit
+- [LangGraph Browser Custom](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-browser-custom) - Custom browser with session recording
+- [Strands Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/strands-browser) - Strands Agents with BrowserTools
+
+**Python:**
 
 - [LangGraph Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-browser) - LangChain/LangGraph with browser toolkit
 - [LangGraph Browser Custom](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-browser-custom) - Custom browser with session recording

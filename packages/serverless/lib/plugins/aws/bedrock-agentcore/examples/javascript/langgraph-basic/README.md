@@ -20,8 +20,8 @@ When no Dockerfile is found in the project directory, the Serverless Framework a
 
 ### Key Files
 
-| File | Purpose |
-|------|---------|
+| File           | Purpose                                                         |
+| -------------- | --------------------------------------------------------------- |
 | `package.json` | Declares dependencies; `engines.node` specifies Node.js version |
 
 ## Quick Start

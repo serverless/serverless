@@ -50,19 +50,19 @@ python test-invoke.py
 
 The example uses `langchain_aws.tools.create_browser_toolkit` which provides these tools:
 
-| Tool | Description |
-|------|-------------|
-| `navigate_browser` | Navigate to a URL |
-| `click_element` | Click on an element using CSS selector |
-| `type_text` | Type text into an input field |
-| `extract_text` | Extract all text content from the page |
-| `extract_hyperlinks` | Extract all hyperlinks from the page |
-| `get_elements` | Get elements matching a CSS selector |
-| `current_webpage` | Get the current page URL and title |
-| `navigate_back` | Go back to the previous page |
-| `take_screenshot` | Take a screenshot of the page |
-| `scroll_page` | Scroll the page in a direction |
-| `wait_for_element` | Wait for an element to appear |
+| Tool                 | Description                            |
+| -------------------- | -------------------------------------- |
+| `navigate_browser`   | Navigate to a URL                      |
+| `click_element`      | Click on an element using CSS selector |
+| `type_text`          | Type text into an input field          |
+| `extract_text`       | Extract all text content from the page |
+| `extract_hyperlinks` | Extract all hyperlinks from the page   |
+| `get_elements`       | Get elements matching a CSS selector   |
+| `current_webpage`    | Get the current page URL and title     |
+| `navigate_back`      | Go back to the previous page           |
+| `take_screenshot`    | Take a screenshot of the page          |
+| `scroll_page`        | Scroll the page in a direction         |
+| `wait_for_element`   | Wait for an element to appear          |
 
 ### LangGraph Agent
 
@@ -107,21 +107,25 @@ config_user2 = {"configurable": {"thread_id": "user-2"}}
 ## Example Prompts
 
 **Navigation:**
+
 ```
 Navigate to https://example.com and tell me the main heading
 ```
 
 **Extract Links:**
+
 ```
 Navigate to https://aws.amazon.com and extract the first 5 hyperlinks
 ```
 
 **Page Analysis:**
+
 ```
 Navigate to https://python.org and describe the main sections
 ```
 
 **Form Interaction:**
+
 ```
 Navigate to https://google.com, type "AWS Lambda" in the search box
 ```

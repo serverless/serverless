@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - AgentCore Gateway Configuration
-description: Add custom Lambda function tools to your AI agents using AgentCore Gateway
+description: Add custom tools to your AI agents using AgentCore Gateway -- Lambda functions, OpenAPI endpoints, Smithy models, or MCP servers
 short_title: Gateway
 keywords:
   [
@@ -22,7 +22,7 @@ keywords:
 
 # Gateway Configuration
 
-A Gateway exposes your Lambda functions as tools that AI agents can discover and invoke. This allows agents to call your custom business logic, access databases, integrate with APIs, and more.
+A Gateway exposes tools that AI agents can discover and invoke -- Lambda functions, OpenAPI endpoints, Smithy models, or external MCP servers. This allows agents to call your custom business logic, access databases, integrate with APIs, and more.
 
 ## Quick Start
 
@@ -60,6 +60,7 @@ agents:
 ```
 
 The Serverless Framework automatically:
+
 - Creates a default gateway with all tools attached
 - Injects `BEDROCK_AGENTCORE_GATEWAY_URL` into your agent's environment
 - Configures IAM permissions for tool invocation
@@ -70,11 +71,11 @@ When you define tools, the framework creates an AgentCore Gateway that:
 
 1. **Discovers Tools**: Your agent receives a `BEDROCK_AGENTCORE_GATEWAY_URL` environment variable
 2. **Exposes via MCP**: Tools are exposed using the Model Context Protocol (MCP)
-3. **Invokes Lambda**: When the agent calls a tool, the gateway invokes your Lambda function
+3. **Invokes Target**: When the agent calls a tool, the gateway invokes the target (Lambda function, API endpoint, or MCP server)
 4. **Returns Results**: Results flow back to the agent for processing
 
 ```
-Agent → Gateway (MCP) → Lambda Function → Response
+Agent → Gateway (MCP) → Target (Lambda / API / MCP Server) → Response
 ```
 
 ## Tool Types
@@ -107,11 +108,11 @@ agents:
 
 **Lambda Function Reference:**
 
-| Format | Description |
-|--------|-------------|
-| `function: myFunction` | Reference to `functions.myFunction` |
-| `function: { name: myFunction }` | Explicit name reference |
-| `function: { arn: arn:aws:lambda:... }` | External Lambda ARN |
+| Format                                  | Description                         |
+| --------------------------------------- | ----------------------------------- |
+| `function: myFunction`                  | Reference to `functions.myFunction` |
+| `function: { name: myFunction }`        | Explicit name reference             |
+| `function: { arn: arn:aws:lambda:... }` | External Lambda ARN                 |
 
 ### OpenAPI Tools
 
@@ -122,6 +123,17 @@ agents:
   tools:
     weatherApi:
       openapi: ./weather-openapi.yml
+```
+
+### Smithy Model Tools
+
+Define tools using [Smithy](https://smithy.io/) interface definitions:
+
+```yml
+agents:
+  tools:
+    myApi:
+      smithy: ./my-api.smithy
 ```
 
 ### MCP Server Tools
@@ -163,15 +175,16 @@ agents:
               - query
 ```
 
-| Property | Required | Description |
-|----------|----------|-------------|
-| `name` | Yes | Tool name the agent uses to invoke it |
-| `description` | Yes | What the tool does (helps LLM decide when to use it) |
-| `inputSchema` | Yes | JSON Schema defining input parameters |
+| Property       | Required | Description                                          |
+| -------------- | -------- | ---------------------------------------------------- |
+| `name`         | Yes      | Tool name the agent uses to invoke it                |
+| `description`  | Yes      | What the tool does (helps LLM decide when to use it) |
+| `inputSchema`  | Yes      | JSON Schema defining input parameters                |
+| `outputSchema` | No       | JSON Schema defining output parameters               |
 
 ## Tool Credentials
 
-For tools that need authentication when calling external APIs:
+By default, tools use `GATEWAY_IAM_ROLE` credentials -- no extra configuration needed. For tools that need authentication when calling external APIs, configure OAuth or API Key credentials:
 
 **OAuth Credentials:**
 
@@ -187,6 +200,8 @@ agents:
         scopes:
           - playlist-read-private
         defaultReturnUrl: https://myapp.com/callback
+        customParameters: # Optional: additional OAuth parameters
+          access_type: offline
 ```
 
 **API Key Credentials:**
@@ -201,7 +216,16 @@ agents:
         provider: arn:aws:bedrock-agentcore:us-east-1:123456789012:token-vault/weather-key
         location: HEADER
         parameterName: X-API-Key
+        prefix: Bearer # Optional: value prefix (e.g., "Bearer" for Authorization header)
 ```
+
+**Credential types:**
+
+| Type               | Description                                        |
+| ------------------ | -------------------------------------------------- |
+| `GATEWAY_IAM_ROLE` | Default -- uses the gateway's IAM role (no config) |
+| `OAUTH`            | OAuth 2.0 via AgentCore Token Vault                |
+| `API_KEY`          | API key via AgentCore Token Vault                  |
 
 ## Multiple Gateways
 
@@ -238,11 +262,11 @@ agents:
 
 ### Gateway Authorization Options
 
-| Type | Description |
-|------|-------------|
-| `NONE` | No authentication required |
-| `AWS_IAM` | AWS IAM authentication (SigV4) |
-| `CUSTOM_JWT` | JWT token validation |
+| Type         | Description                    |
+| ------------ | ------------------------------ |
+| `NONE`       | No authentication required     |
+| `AWS_IAM`    | AWS IAM authentication (SigV4) |
+| `CUSTOM_JWT` | JWT token validation           |
 
 **JWT Authorization:**
 
@@ -264,20 +288,47 @@ agents:
 
 ### Gateway Configuration Options
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `authorizer` | string/object | Authorization configuration |
-| `tools` | array | Tool names to include |
-| `protocol` | object | Protocol settings (MCP) |
-| `description` | string | Gateway description |
-| `role` | string/object | IAM role configuration |
-| `kmsKey` | string | KMS key ARN for encryption |
-| `exceptionLevel` | string | `DEBUG` for verbose errors |
-| `tags` | object | Resource tags |
+| Property         | Type          | Description                 |
+| ---------------- | ------------- | --------------------------- |
+| `authorizer`     | string/object | Authorization configuration |
+| `tools`          | array         | Tool names to include       |
+| `protocol`       | object        | Protocol settings (MCP)     |
+| `description`    | string        | Gateway description         |
+| `role`           | string/object | IAM role configuration      |
+| `kmsKey`         | string        | KMS key ARN for encryption  |
+| `exceptionLevel` | string        | `DEBUG` for verbose errors  |
+| `tags`           | object        | Resource tags               |
+
+### Protocol Configuration
+
+Customize the MCP protocol settings for your gateway:
+
+```yml
+agents:
+  gateways:
+    myGateway:
+      protocol:
+        type: MCP
+        instructions: 'Use the calculator tool for any mathematical operations'
+        searchType: SEMANTIC
+        supportedVersions:
+          - '2025-11-25'
+      tools:
+        - calculator
+```
+
+| Property            | Required | Description                                              |
+| ------------------- | -------- | -------------------------------------------------------- |
+| `type`              | No       | Protocol type (default: `MCP`, only supported value)     |
+| `instructions`      | No       | Instructions for tool discovery (max 2048 chars)         |
+| `searchType`        | No       | `SEMANTIC` for semantic tool matching                    |
+| `supportedVersions` | No       | Array of supported MCP protocol versions                 |
 
 ## Using Gateway Tools in Your Agent
 
 Your agent receives `BEDROCK_AGENTCORE_GATEWAY_URL` automatically. Use the MCP client to discover and call tools:
+
+**Python:**
 
 ```python
 import os
@@ -294,9 +345,33 @@ async def get_gateway_tools():
             return tools.tools
 ```
 
-For a complete implementation, see the [langgraph-gateway example](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-gateway/).
+**JavaScript:**
+
+```javascript
+import { Client } from '@modelcontextprotocol/sdk/client/index.js'
+import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js'
+
+const GATEWAY_URL = process.env.BEDROCK_AGENTCORE_GATEWAY_URL
+
+async function getGatewayTools() {
+  const transport = new SSEClientTransport(new URL(GATEWAY_URL))
+  const client = new Client({ name: 'my-agent', version: '1.0.0' })
+  await client.connect(transport)
+  const { tools } = await client.listTools()
+  return tools
+}
+```
+
+For complete implementations, see the gateway examples in the [Examples](#examples) section below.
 
 ## Examples
+
+**JavaScript:**
+
+- [LangGraph Gateway](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-gateway/) - Basic gateway with Lambda tools
+- [LangGraph Multi-Gateway](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-multi-gateway/) - Multiple gateways with different authorization
+
+**Python:**
 
 - [LangGraph Gateway](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-gateway/) - Basic gateway with Lambda tools
 - [LangGraph Multi-Gateway](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-multi-gateway/) - Multiple gateways with different authorization

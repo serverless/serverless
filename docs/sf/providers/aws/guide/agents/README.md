@@ -24,11 +24,11 @@ keywords:
 
 # AI Agents
 
-AWS Bedrock AgentCore is a fully managed service for deploying AI agents with memory, custom tools, web browsing, and code execution capabilities. The Serverless Framework provisions and manages AgentCore infrastructure alongside your Lambda functions.
+AWS Bedrock AgentCore is a fully managed service for deploying AI agents built with any framework -- LangGraph, Strands Agents, CrewAI, or your own custom code. It provides memory, custom tools, web browsing, and code execution capabilities. The Serverless Framework provisions and manages AgentCore infrastructure alongside your Lambda functions.
 
 ## Quick Start
 
-Deploy your first AI agent with three components:
+Deploy your first AI agent with a minimal configuration and your agent code.
 
 **1. Configuration (`serverless.yml`):**
 
@@ -43,28 +43,128 @@ agents:
   chatbot: {}
 ```
 
-The framework auto-detects the `Dockerfile` and handles the build, push to ECR, and deployment.
-
 > **Note**: Use `{}` for an empty agent configuration. YAML requires explicit empty braces.
 
-**2. Agent code (`agent.py`):**
+**2. Agent code:**
+
+**JavaScript (`index.js`):**
+
+```javascript
+import { BedrockAgentCoreApp } from 'bedrock-agentcore/runtime'
+import { z } from 'zod'
+
+// Your agent setup - use any framework (LangGraph, Strands Agents, CrewAI, etc.)
+const agent = createYourAgent()
+
+const app = new BedrockAgentCoreApp({
+  invocationHandler: {
+    requestSchema: z.object({
+      prompt: z.string(),
+    }),
+    async process(request) {
+      // Your agent logic
+      const result = await agent.invoke(request.prompt)
+      return result
+    },
+  },
+})
+
+app.run()
+```
+
+**Python (`agent.py`):**
 
 ```python
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
+
+# Your agent setup - use any framework (LangGraph, Strands Agents, CrewAI, etc.)
+agent = create_your_agent()
 
 app = BedrockAgentCoreApp()
 
 @app.entrypoint
 def agent_invocation(payload, context):
-    # Your agent logic (LangGraph, Strands, etc.)
-    user_message = payload.get("prompt")
-    result = your_agent.invoke(user_message)
+    # Your agent logic
+    result = agent.invoke(payload.get("prompt"))
     return {"result": result}
 
 app.run()
 ```
 
-**3. Container (`Dockerfile`):**
+**3. Deploy:**
+
+```bash
+serverless deploy
+```
+
+The Framework automatically builds a Docker image from your source code, pushes it to ECR, and deploys the agent. No Dockerfile is needed.
+
+**See full examples:**
+
+- JavaScript: [Auto-build](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-basic) · [Dockerfile](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-basic-dockerfile)
+- Python: [Docker deployment](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-docker) · [Code deployment](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-code)
+
+## What the Framework Manages
+
+When you run `serverless deploy`, the Framework automatically handles:
+
+- **Docker image builds** - Builds from your Dockerfile or automatically from source code, pushes to ECR
+- **IAM roles** - Creates least-privilege execution roles for each agent component (runtime, memory, gateway, browser, code interpreter)
+- **CloudFormation resources** - Provisions Runtime, Endpoint, Gateway, Memory, Browser, and Code Interpreter resources
+- **Environment variables** - Injects memory IDs, gateway URLs, and other references into your agent's environment
+- **Code packaging** - For Python code deployment, packages and uploads code to S3
+
+You write the agent logic and `serverless.yml` configuration; the Framework handles the infrastructure.
+
+## Deployment Options
+
+AgentCore supports three deployment methods:
+
+### Auto-build (No Dockerfile)
+
+The simplest option. The Framework automatically builds a Docker image from your source code:
+
+```yml
+agents:
+  myAgent: {} # No Dockerfile needed
+```
+
+**Requirements for auto-build:**
+
+For **Node.js** projects:
+
+- `package.json` - required
+- A lockfile - required (`package-lock.json`, `yarn.lock`, or `pnpm-lock.yaml`)
+- Entry point: `index.js` or `server.js` in project root, or a `start` script in `package.json`
+- Node.js version: set via `engines.node` in `package.json` (defaults to latest LTS)
+
+For **Python** projects:
+
+- `requirements.txt` or `pyproject.toml` - required for dependency installation
+
+**Best for:** Getting started quickly, simple projects
+
+### Dockerfile Deployment
+
+Provide your own Dockerfile for full control. The Framework auto-detects it:
+
+```yml
+agents:
+  myAgent: {} # Auto-detects Dockerfile in project directory
+```
+
+**Node.js Dockerfile:**
+
+```dockerfile
+FROM node:20-slim
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+COPY . .
+CMD ["node", "index.js"]
+```
+
+**Python Dockerfile:**
 
 ```dockerfile
 FROM python:3.12-slim
@@ -72,29 +172,6 @@ WORKDIR /app
 COPY . .
 RUN pip install -r requirements.txt
 CMD ["python", "agent.py"]
-```
-
-**Deploy:**
-
-```bash
-serverless deploy
-```
-
-**See full examples:**
-- [Docker deployment](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-docker) - Container-based (any language)
-- [Code deployment](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-code) - Python with automatic packaging
-
-## Deployment Options
-
-AgentCore supports two deployment methods:
-
-### Docker/Image Deployment
-
-Use any language and framework. The framework **auto-detects** your `Dockerfile`:
-
-```yml
-agents:
-  myAgent: {}  # Minimal - auto-detects Dockerfile
 ```
 
 Add optional configuration as needed:
@@ -105,11 +182,11 @@ agents:
     environment:
       MODEL_ID: us.anthropic.claude-sonnet-4-5-20250929-v1:0
     lifecycle:
-      idleRuntimeSessionTimeout: 900  # seconds (60-28800)
-      maxLifetime: 3600  # seconds (60-28800)
+      idleRuntimeSessionTimeout: 900 # seconds (60-28800)
+      maxLifetime: 3600 # seconds (60-28800)
 ```
 
-**Best for:** Multi-language projects, complex dependencies, full control
+**Best for:** Multi-language projects, complex dependencies, full control over the container
 
 ### Code Deployment (Python Only)
 
@@ -118,8 +195,8 @@ Deploy Python code directly without Docker:
 ```yml
 agents:
   myAgent:
-    handler: agent.main  # Triggers code deployment mode
-    runtime: PYTHON_3_13  # or PYTHON_3_10, PYTHON_3_11, PYTHON_3_12
+    handler: agent.main # Triggers code deployment mode
+    runtime: python3.13 # or python3.10, python3.11, python3.12
     environment:
       MODEL_ID: us.anthropic.claude-sonnet-4-5-20250929-v1:0
 ```
@@ -135,11 +212,13 @@ AgentCore provides infrastructure components that you reference in your agent co
 - **[Memory](./memory.md)** - Conversation persistence and context management
 - **[Browser](./browser.md)** - Managed web automation capabilities
 - **[Code Interpreter](./code-interpreter.md)** - Secure Python code execution
+- **[Dev Mode](./dev.md)** - Local development with hot reload
 
 ## Prerequisites
 
 - AWS account with [Bedrock model access](https://console.aws.amazon.com/bedrock/home#/modelaccess)
-- Docker installed (for image deployment)
+- Docker installed (for image deployment and auto-build)
+- Node.js 20+ (for JavaScript agents)
 - Serverless Framework v4+
 
 ## Configuration Reference
@@ -153,15 +232,15 @@ agents:
     artifact:
       image: # Docker deployment
     # OR
-    handler: agent.main  # Code deployment
-    runtime: PYTHON_3_12
+    handler: agent.main # Code deployment
+    runtime: python3.12
 
     # Optional configuration
     environment:
-      MODEL_ID: anthropic.claude-sonnet-4-5-20250929-v1:0
+      MODEL_ID: us.anthropic.claude-sonnet-4-5-20250929-v1:0
     lifecycle:
-      idleRuntimeSessionTimeout: 900  # seconds (60-28800)
-      maxLifetime: 3600  # seconds (60-28800)
+      idleRuntimeSessionTimeout: 900 # seconds (60-28800)
+      maxLifetime: 3600 # seconds (60-28800)
     tags:
       team: ai
       project: chatbot
@@ -173,12 +252,12 @@ agents:
 agents:
   memory:
     conversations:
-      expiration: 30  # days
+      expiration: 30 # days
       strategies:
         - type: semantic
 
   myAgent:
-    memory: conversations  # Reference memory by name
+    memory: conversations # Reference memory by name
 ```
 
 **Learn more:** [Memory Configuration](./memory.md)
@@ -204,33 +283,76 @@ agents:
         - calculator
 
   myAgent:
-    gateway: default  # Reference gateway by name
+    gateway: default # Reference gateway by name
 ```
 
 **Learn more:** [Gateway Configuration](./gateway.md)
 
 ## Development & Testing
 
-Test your agents locally and remotely:
-
 ```bash
-# Local development mode (runs agent in Docker locally)
+# Local development mode - runs agent locally with hot reload
 serverless dev
 
-# Invoke deployed agent
-serverless invoke --function myAgent --data '{"prompt": "Hello!"}'
+# Invoke a deployed agent
+serverless invoke --agent myAgent --data '{"prompt": "Hello!"}'
 
 # View deployment info
 serverless info
 ```
 
+`serverless dev` runs your agent locally in Docker, injects AWS credentials, watches for file changes, and provides an interactive chat CLI. See [Dev Mode](./dev.md) for details.
+
+`serverless invoke --agent` supports `--data`, `--path` (file input), and `--session-id` (for multi-turn conversations).
+
 ## Examples
 
-- **Basic Agent** - LangGraph with simple tools
-  - [Docker deployment](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-docker) - Container-based (any language)
-  - [Code deployment](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-code) - Python with auto-packaging
-- **Memory** - Conversation persistence
-  - [LangGraph with Memory](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-memory) - Persist conversations across invocations
+### Basic Agent
+
+LangGraph with simple tools:
+
+- JavaScript: [Auto-build](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-basic) · [Dockerfile](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-basic-dockerfile)
+- Python: [Docker](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-docker) · [Code deployment](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-code)
+
+### Streaming
+
+Real-time token streaming via SSE:
+
+- JavaScript: [LangGraph Streaming](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-streaming)
+
+### Memory
+
+Conversation persistence across invocations:
+
+- JavaScript: [LangGraph Memory](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-memory)
+- Python: [LangGraph Memory](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-memory)
+
+### Gateway (Custom Tools)
+
+Connect Lambda functions and APIs as agent tools:
+
+- JavaScript: [LangGraph Gateway](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-gateway) · [Multi-Gateway](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-multi-gateway)
+- Python: [LangGraph Gateway](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-gateway) · [Multi-Gateway](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-multi-gateway)
+
+### Browser
+
+Web automation and content extraction:
+
+- JavaScript: [LangGraph Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-browser) · [Custom Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-browser-custom) · [Strands Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/strands-browser)
+- Python: [LangGraph Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-browser) · [Custom Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-browser-custom) · [Strands Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/strands-browser)
+
+### Code Interpreter
+
+Secure Python code execution:
+
+- JavaScript: [LangGraph Code Interpreter](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-code-interpreter) · [Custom Code Interpreter](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-code-interpreter-custom)
+- Python: [LangGraph Code Interpreter](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-code-interpreter) · [Custom Code Interpreter](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-code-interpreter-custom)
+
+### MCP Server
+
+Deploy an MCP server as an AgentCore runtime:
+
+- JavaScript: [MCP Server](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/mcp-server)
 
 ## Next Steps
 
@@ -239,3 +361,4 @@ serverless info
 - [Memory Strategies](./memory.md) - Enable conversation context
 - [Browser Tool](./browser.md) - Web automation capabilities
 - [Code Interpreter](./code-interpreter.md) - Python code execution
+- [Dev Mode](./dev.md) - Local development workflow

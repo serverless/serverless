@@ -27,6 +27,7 @@ import {
 } from '../iam/policies.js'
 import { getLogicalId, pascalCase } from '../utils/naming.js'
 import { mergeTags } from '../utils/tags.js'
+import { normalizeRuntime } from '../utils/runtime.js'
 import { isReservedAgentKey } from '../validators/config.js'
 
 /**
@@ -95,6 +96,12 @@ export function compileAgentCoreResources(config) {
     const gateways = collectGateways(agents)
 
     for (const [gatewayName, gatewayConfig] of Object.entries(gateways)) {
+      // Detect if any tools use OAuth/API Key credential providers
+      gatewayConfig.hasCredentialProviders = hasOAuthOrApiKeyTools(
+        gatewayConfig.tools || [],
+        sharedTools,
+      )
+
       const gatewayLogicalId = compileNamedGateway(
         gatewayName,
         gatewayConfig,
@@ -123,7 +130,7 @@ export function compileAgentCoreResources(config) {
     }
   } else if (hasTools) {
     // Default gateway mode (backwards compat): create single gateway with all tools
-    const gatewayLogicalId = compileToolsGateway(context, template)
+    const gatewayLogicalId = compileToolsGateway(context, template, sharedTools)
     gatewayLogicalIds['_default'] = gatewayLogicalId
     stats.gateway = 1
 
@@ -254,6 +261,27 @@ export function collectAllTools(agents) {
 }
 
 /**
+ * Check if any tools in the given list use OAuth or API Key credential providers
+ * Used to conditionally include Token Vault / Workload Identity / Secrets Manager
+ * permissions in the gateway execution role.
+ *
+ * @param {string[]} toolNames - Array of tool names to check
+ * @param {object} sharedTools - Map of tool names to their configs
+ * @returns {boolean} True if any tool uses OAUTH or API_KEY credentials
+ */
+export function hasOAuthOrApiKeyTools(toolNames, sharedTools) {
+  return toolNames.some((toolName) => {
+    const tool = sharedTools[toolName]
+    return (
+      tool &&
+      ['OAUTH', 'API_KEY'].includes(
+        (tool.credentials?.type || '').toUpperCase(),
+      )
+    )
+  })
+}
+
+/**
  * Collect gateway configurations with their tool assignments
  * Returns a map of gateway names to their configs (with normalized authorizer)
  *
@@ -303,10 +331,17 @@ export function normalizeAuthorizer(authorizer) {
  *
  * @param {object} context - Compilation context
  * @param {object} template - CloudFormation template
+ * @param {object} sharedTools - Map of tool names to their configs (for credential detection)
  * @returns {string} Gateway logical ID
  */
-export function compileToolsGateway(context, template) {
-  const gatewayConfig = {} // Default config when no explicit gateways defined
+export function compileToolsGateway(context, template, sharedTools = {}) {
+  const gatewayConfig = {
+    // Detect if any tools use OAuth/API Key credential providers
+    hasCredentialProviders: hasOAuthOrApiKeyTools(
+      Object.keys(sharedTools),
+      sharedTools,
+    ),
+  }
   const logicalId = 'AgentCoreGateway'
   const tags = mergeTags(context.defaultTags, gatewayConfig.tags)
 
@@ -568,8 +603,8 @@ export function compileRuntimeResources(
       ...(containerImage && { image: containerImage }),
       // Normalize handler to entryPoint array for compiler
       ...(config.handler && { entryPoint: [config.handler] }),
-      // Normalize runtime to artifact.runtime for compiler
-      ...(config.runtime && { runtime: config.runtime }),
+      // Normalize runtime to artifact.runtime for compiler (maps e.g. python3.12 → PYTHON_3_12)
+      ...(config.runtime && { runtime: normalizeRuntime(config.runtime) }),
     },
   }
 
