@@ -47,9 +47,10 @@ serverless deploy
 2. **Note the runtime ARN** from the output:
 
 ```
-agents:
+ai:
   codeInterpreters: N/A
-  codeAgent: https://bedrock-agentcore.us-east-1.amazonaws.com/runtimes/arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/.../invocations
+  agents:
+    codeAgent: https://bedrock-agentcore.us-east-1.amazonaws.com/runtimes/arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/.../invocations
 ```
 
 ## Testing
@@ -68,7 +69,7 @@ The test asks the agent to fetch data from GitHub's public API. This would fail 
 ### Custom Interpreter Configuration
 
 ```yaml
-agents:
+ai:
   codeInterpreters:
     publicInterpreter:
       description: Code interpreter with public internet access

@@ -30,7 +30,7 @@ resources:
               Status: Enabled
               ExpirationInDays: 7
 
-agents:
+ai:
   # Custom browser with session recording enabled
   # This creates a AWS::BedrockAgentCore::BrowserCustom resource
   browsers:
@@ -60,26 +60,27 @@ agents:
               - !Sub '${RecordingsBucket.Arn}/*'
 
   # Runtime agent that uses the custom browser
-  browserAgent:
-    environment:
-      # Pass the custom browser ID to the agent
-      # Logical ID: getLogicalId('customBrowser', 'Browser') = 'CustomBrowserBrowser'
-      CUSTOM_BROWSER_ID: !GetAtt CustomBrowserBrowser.BrowserId
-      RECORDINGS_BUCKET: ${self:service}-recordings-${sls:stage}
-    # Grant permission to use the custom browser
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - bedrock-agentcore:CreateBrowser
-            - bedrock-agentcore:ListBrowsers
-            - bedrock-agentcore:GetBrowser
-            - bedrock-agentcore:DeleteBrowser
-            - bedrock-agentcore:StartBrowserSession
-            - bedrock-agentcore:ListBrowserSessions
-            - bedrock-agentcore:GetBrowserSession
-            - bedrock-agentcore:StopBrowserSession
-            - bedrock-agentcore:UpdateBrowserStream
-            - bedrock-agentcore:ConnectBrowserAutomationStream
-            - bedrock-agentcore:ConnectBrowserLiveViewStream
-          Resource: !GetAtt CustomBrowserBrowser.BrowserArn
+  agents:
+    browserAgent:
+      environment:
+        # Pass the custom browser ID to the agent
+        # Logical ID: getLogicalId('customBrowser', 'Browser') = 'CustomBrowserBrowser'
+        CUSTOM_BROWSER_ID: !GetAtt CustomBrowserBrowser.BrowserId
+        RECORDINGS_BUCKET: ${self:service}-recordings-${sls:stage}
+      # Grant permission to use the custom browser
+      role:
+        statements:
+          - Effect: Allow
+            Action:
+              - bedrock-agentcore:CreateBrowser
+              - bedrock-agentcore:ListBrowsers
+              - bedrock-agentcore:GetBrowser
+              - bedrock-agentcore:DeleteBrowser
+              - bedrock-agentcore:StartBrowserSession
+              - bedrock-agentcore:ListBrowserSessions
+              - bedrock-agentcore:GetBrowserSession
+              - bedrock-agentcore:StopBrowserSession
+              - bedrock-agentcore:UpdateBrowserStream
+              - bedrock-agentcore:ConnectBrowserAutomationStream
+              - bedrock-agentcore:ConnectBrowserLiveViewStream
+            Resource: !GetAtt CustomBrowserBrowser.BrowserArn

@@ -137,10 +137,11 @@ AgentCore automatically:
 Change the model in `serverless.yml`:
 
 ```yml
-agents:
-  chatbot:
-    environment:
-      MODEL_ID: anthropic.claude-3-5-sonnet-20241022-v2:0 # or another Bedrock model
+ai:
+  agents:
+    chatbot:
+      environment:
+        MODEL_ID: anthropic.claude-3-5-sonnet-20241022-v2:0 # or another Bedrock model
 ```
 
 ### Add More Tools
@@ -165,24 +166,26 @@ tools = [get_current_time, calculate, search_database]
 The minimal configuration auto-detects Dockerfile:
 
 ```yml
-agents:
-  chatbot: {} # Empty braces required by YAML
+ai:
+  agents:
+    chatbot: {} # Empty braces required by YAML
 ```
 
 Add optional runtime configuration as needed:
 
 ```yml
-agents:
-  chatbot:
-    environment:
-      CUSTOM_VAR: value
-    lifecycle:
-      idleRuntimeSessionTimeout: 900 # Idle timeout (60-28800 seconds)
-      maxLifetime: 3600 # Max lifetime (60-28800 seconds)
-    network:
-      mode: VPC # VPC deployment
-      subnets: [subnet-xxx]
-      securityGroups: [sg-xxx]
+ai:
+  agents:
+    chatbot:
+      environment:
+        CUSTOM_VAR: value
+      lifecycle:
+        idleRuntimeSessionTimeout: 900 # Idle timeout (60-28800 seconds)
+        maxLifetime: 3600 # Max lifetime (60-28800 seconds)
+      network:
+        mode: VPC # VPC deployment
+        subnets: [subnet-xxx]
+        securityGroups: [sg-xxx]
 ```
 
 ## Cleanup

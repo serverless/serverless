@@ -84,8 +84,9 @@ class AwsDev {
     const hasFunctions =
       Object.keys(this.serverless.service.functions || {}).length > 0
     const hasAgents =
-      Object.keys(this.serverless.service.initialServerlessConfig?.agents || {})
-        .length > 0
+      Object.keys(
+        this.serverless.service.initialServerlessConfig?.ai?.agents || {},
+      ).length > 0
 
     // Explicit --agents flag takes precedence
     if (agentsExplicitlyRequested) {
@@ -115,17 +116,12 @@ class AwsDev {
   async startAgentsDevMode() {
     const { AgentCoreDevMode } =
       await import('../bedrock-agentcore/dev/index.js')
-    const { getLogicalId } =
+    const { getLogicalId, getGatewayLogicalId } =
       await import('../bedrock-agentcore/utils/naming.js')
-    const { isReservedAgentKey } =
-      await import('../bedrock-agentcore/validators/config.js')
 
-    const agents = this.serverless.service.initialServerlessConfig?.agents || {}
-    const agentsConfig = Object.entries(agents).filter(([name, config]) => {
-      // Skip reserved keys (tools, gateways, browsers, etc.) which are not runtime agents
-      if (isReservedAgentKey(name)) {
-        return false
-      }
+    const aiConfig = this.serverless.service.initialServerlessConfig?.ai || {}
+    const agents = aiConfig.agents || {}
+    const agentsConfig = Object.entries(agents).filter(([, config]) => {
       // Only include runtime agents (type: 'runtime' or no type specified for backwards compat)
       return !config.type || config.type === 'runtime'
     })
@@ -140,25 +136,24 @@ class AwsDev {
     // Determine which agent to run
     let agentName = this.options.agent
     if (!agentName) {
+      if (agentsConfig.length > 1) {
+        throw new ServerlessError(
+          `Multiple agents found. Use -a to specify which agent to run in dev mode:\n` +
+            agentsConfig.map(([n]) => `  - ${n}`).join('\n'),
+          'MULTIPLE_AGENTS_NO_SELECTION',
+          { stack: false },
+        )
+      }
       agentName = agentsConfig[0][0]
     }
 
     const agentConfig = agents[agentName]
     if (!agentConfig) {
       throw new ServerlessError(
-        `Agent '${agentName}' not found in configuration`,
+        `Agent '${agentName}' not found in configuration. Available agents:\n` +
+          agentsConfig.map(([n]) => `  - ${n}`).join('\n'),
         'AGENT_NOT_FOUND',
-      )
-    }
-    // Default to 'runtime' if not specified
-    if (!agentConfig.type) {
-      agentConfig.type = 'runtime'
-    }
-
-    if (agentConfig.type !== 'runtime') {
-      throw new ServerlessError(
-        `Agent '${agentName}' is not a runtime agent. Dev mode only supports runtime agents.`,
-        'NOT_RUNTIME_AGENT',
+        { stack: false },
       )
     }
 
@@ -199,12 +194,26 @@ class AwsDev {
       }
       roleArn = roleOutput.OutputValue
 
-      // 2. Get Gateway URL if tools are configured
-      const gatewayOutput = stack.Outputs?.find(
-        (o) => o.OutputKey === 'AgentCoreGatewayUrl',
-      )
-      if (gatewayOutput) {
-        gatewayUrl = gatewayOutput.OutputValue
+      // 2. Get Gateway URL - resolve from agent's gateway reference or default
+      // Mirrors compiler logic: named gateway if agent specifies one,
+      // default gateway if no explicit gateways defined, otherwise none
+      const hasGateways = Boolean(aiConfig.gateways)
+      if (agentConfig.gateway) {
+        const gatewayOutputKey = `${getGatewayLogicalId(agentConfig.gateway)}Url`
+        const gatewayOutput = stackOutputs.find(
+          (o) => o.OutputKey === gatewayOutputKey,
+        )
+        if (gatewayOutput) {
+          gatewayUrl = gatewayOutput.OutputValue
+        }
+      } else if (!hasGateways) {
+        const gatewayOutputKey = `${getGatewayLogicalId()}Url`
+        const gatewayOutput = stackOutputs.find(
+          (o) => o.OutputKey === gatewayOutputKey,
+        )
+        if (gatewayOutput) {
+          gatewayUrl = gatewayOutput.OutputValue
+        }
       }
 
       // 3. Get Memory ID if memory is configured

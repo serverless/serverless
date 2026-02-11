@@ -328,7 +328,7 @@ export class AgentCoreDevMode {
      * negatively cache that authorization decision -- subsequent retries
      * will also fail until the cache expires (several minutes).
      */
-    const TRUST_POLICY_PROPAGATION_WAIT_MS = 5000
+    const TRUST_POLICY_PROPAGATION_WAIT_MS = 10000
 
     if (devPolicyIndex === -1) {
       // Add new dev policy statement

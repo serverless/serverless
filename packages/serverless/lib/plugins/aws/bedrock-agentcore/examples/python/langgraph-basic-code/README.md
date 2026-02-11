@@ -157,11 +157,12 @@ llm = init_chat_model(
 Or use an environment variable:
 
 ```yml
-agents:
-  chatbot:
-    handler: agent.py
-    environment:
-      MODEL_ID: us.anthropic.claude-sonnet-4-5-20250929-v1:0
+ai:
+  agents:
+    chatbot:
+      handler: agent.py
+      environment:
+        MODEL_ID: us.anthropic.claude-sonnet-4-5-20250929-v1:0
 ```
 
 ### Add More Tools
@@ -186,14 +187,15 @@ tools = [get_current_time, add, multiply, search_database]
 Add optional runtime configuration:
 
 ```yml
-agents:
-  chatbot:
-    handler: agent.py
-    environment:
-      CUSTOM_VAR: value
-    lifecycle:
-      idleRuntimeSessionTimeout: 900 # Idle timeout (60-28800 seconds)
-      maxLifetime: 3600 # Max lifetime (60-28800 seconds)
+ai:
+  agents:
+    chatbot:
+      handler: agent.py
+      environment:
+        CUSTOM_VAR: value
+      lifecycle:
+        idleRuntimeSessionTimeout: 900 # Idle timeout (60-28800 seconds)
+        maxLifetime: 3600 # Max lifetime (60-28800 seconds)
 ```
 
 ## Cleanup

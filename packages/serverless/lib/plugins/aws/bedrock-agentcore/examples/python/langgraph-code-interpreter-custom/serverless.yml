@@ -13,7 +13,7 @@ service: langgraph-code-interpreter-custom
 provider:
   name: aws
 
-agents:
+ai:
   # Custom code interpreter with PUBLIC network access
   # This creates a AWS::BedrockAgentCore::CodeInterpreterCustom resource
   codeInterpreters:
@@ -25,24 +25,25 @@ agents:
         Purpose: ExternalAPIAccess
 
   # Runtime agent that uses the custom code interpreter
-  codeAgent:
-    environment:
-      # Pass the custom interpreter ID to the agent
-      # Logical ID: getLogicalId('publicInterpreter', 'CodeInterpreter') = 'PublicInterpreterCodeInterpreter'
-      CUSTOM_INTERPRETER_ID: !GetAtt PublicInterpreterCodeInterpreter.CodeInterpreterId
-    # Grant permission to use the custom code interpreter
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - bedrock-agentcore:InvokeCodeInterpreter
-            - bedrock-agentcore:CreateCodeInterpreter
-            - bedrock-agentcore:StartCodeInterpreterSession
-            - bedrock-agentcore:InvokeCodeInterpreter
-            - bedrock-agentcore:StopCodeInterpreterSession
-            - bedrock-agentcore:DeleteCodeInterpreter
-            - bedrock-agentcore:ListCodeInterpreters
-            - bedrock-agentcore:GetCodeInterpreter
-            - bedrock-agentcore:GetCodeInterpreterSession
-            - bedrock-agentcore:ListCodeInterpreterSessions
-          Resource: !GetAtt PublicInterpreterCodeInterpreter.CodeInterpreterArn
+  agents:
+    codeAgent:
+      environment:
+        # Pass the custom interpreter ID to the agent
+        # Logical ID: getLogicalId('publicInterpreter', 'CodeInterpreter') = 'PublicInterpreterCodeInterpreter'
+        CUSTOM_INTERPRETER_ID: !GetAtt PublicInterpreterCodeInterpreter.CodeInterpreterId
+      # Grant permission to use the custom code interpreter
+      role:
+        statements:
+          - Effect: Allow
+            Action:
+              - bedrock-agentcore:InvokeCodeInterpreter
+              - bedrock-agentcore:CreateCodeInterpreter
+              - bedrock-agentcore:StartCodeInterpreterSession
+              - bedrock-agentcore:InvokeCodeInterpreter
+              - bedrock-agentcore:StopCodeInterpreterSession
+              - bedrock-agentcore:DeleteCodeInterpreter
+              - bedrock-agentcore:ListCodeInterpreters
+              - bedrock-agentcore:GetCodeInterpreter
+              - bedrock-agentcore:GetCodeInterpreterSession
+              - bedrock-agentcore:ListCodeInterpreterSessions
+            Resource: !GetAtt PublicInterpreterCodeInterpreter.CodeInterpreterArn

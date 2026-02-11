@@ -157,6 +157,20 @@ export function pascalCase(name) {
 }
 
 /**
+ * Get the CloudFormation logical ID for a Gateway resource.
+ *
+ * @param {string} [gatewayName] - Gateway name (omit or pass undefined/null for the default gateway)
+ * @returns {string} CloudFormation logical ID
+ * @example
+ * getGatewayLogicalId()                 // 'AgentCoreGateway'
+ * getGatewayLogicalId('publicGateway')  // 'AgentCoreGatewayPublicGateway'
+ */
+export function getGatewayLogicalId(gatewayName) {
+  if (!gatewayName) return 'AgentCoreGateway'
+  return `AgentCoreGateway${pascalCase(gatewayName)}`
+}
+
+/**
  * Sanitize a name by removing all non-alphanumeric characters.
  *
  * @param {string} name - The name to sanitize

@@ -5,11 +5,12 @@ import ServerlessBedrockAgentCore from '../../../../../../lib/plugins/aws/bedroc
 
 /**
  * Creates a minimal mock Serverless object for testing.
+ * Uses ai top-level property (agents, memory, tools, etc. as nested properties).
  */
-export const createServerless = (agents = {}) => ({
+export const createServerless = (ai = {}) => ({
   service: {
     service: 'test-service',
-    agents,
+    ai,
     provider: {
       compiledCloudFormationTemplate: {
         Resources: {},
@@ -58,8 +59,8 @@ export const createMockUtils = () => ({
   writeText: jest.fn(),
 })
 
-export const plugin = (agents = {}) => {
-  const serverless = createServerless(agents)
+export const plugin = (ai = {}) => {
+  const serverless = createServerless(ai)
   const options = {}
   const utils = createMockUtils()
   return {

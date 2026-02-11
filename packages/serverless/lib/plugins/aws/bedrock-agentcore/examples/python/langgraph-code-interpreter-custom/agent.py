@@ -8,7 +8,7 @@ Key difference from default interpreter:
 - Default: Uses "aws.codeinterpreter.v1" identifier (SANDBOX - no network)
 - Custom: Uses your own interpreter ID with PUBLIC network access
 
-The custom interpreter is defined in serverless.yml under agents.codeInterpreters
+The custom interpreter is defined in serverless.yml under ai.codeInterpreters
 and provides:
 - PUBLIC network mode for external API access
 - Ability to fetch data from internet

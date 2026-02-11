@@ -256,10 +256,9 @@ export default {
    * Get all agents that need code packaging (have handler, no artifact.image/s3.bucket)
    */
   getAgentsToPackage() {
-    const agents =
-      this.serverless.service.agents ||
-      this.serverless.configurationInput?.agents ||
-      {}
+    const aiConfig =
+      this.serverless.service.ai || this.serverless.configurationInput?.ai || {}
+    const agents = aiConfig.agents || {}
 
     return Object.entries(agents)
       .filter(([, config]) => {
@@ -287,11 +286,9 @@ export default {
    * Package an agent for code deployment
    */
   async packageAgent(agentName) {
-    const agents =
-      this.serverless.service.agents ||
-      this.serverless.configurationInput?.agents ||
-      {}
-    const agentConfig = agents[agentName]
+    const aiConfig =
+      this.serverless.service.ai || this.serverless.configurationInput?.ai || {}
+    const agentConfig = (aiConfig.agents || {})[agentName]
 
     if (!agentConfig) return null
 
@@ -323,11 +320,9 @@ export default {
   },
 
   async resolveFilePathsAgent(agentName) {
-    const agents =
-      this.serverless.service.agents ||
-      this.serverless.configurationInput?.agents ||
-      {}
-    const agentConfig = agents[agentName]
+    const aiConfig =
+      this.serverless.service.ai || this.serverless.configurationInput?.ai || {}
+    const agentConfig = (aiConfig.agents || {})[agentName]
     const agentPackageConfig = agentConfig?.package || {}
 
     // Agent-specific exclusions (Python cache files)

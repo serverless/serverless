@@ -11,7 +11,8 @@ service: langgraph-code-interpreter
 provider:
   name: aws
 
-agents:
-  # Runtime agent with code execution capabilities
-  # Uses AWS-managed default code interpreter (SANDBOX mode)
-  codeAgent: {}
+ai:
+  agents:
+    # Runtime agent with code execution capabilities
+    # Uses AWS-managed default code interpreter (SANDBOX mode)
+    codeAgent: {}

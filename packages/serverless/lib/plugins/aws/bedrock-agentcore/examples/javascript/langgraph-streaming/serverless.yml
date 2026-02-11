@@ -8,6 +8,7 @@ service: langgraph-streaming
 provider:
   name: aws
 
-agents:
-  # Runtime agent - no Dockerfile needed, image built from source automatically
-  assistant: {}
+ai:
+  agents:
+    # Runtime agent - no Dockerfile needed, image built from source automatically
+    assistant: {}

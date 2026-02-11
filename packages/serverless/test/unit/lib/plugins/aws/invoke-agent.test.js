@@ -1,10 +1,10 @@
 import { jest } from '@jest/globals'
 import AwsInvokeAgent from '../../../../../lib/plugins/aws/invoke-agent.js'
 
-const createServerless = (agents = {}) => ({
+const createServerless = (aiConfig = {}) => ({
   service: {
     service: 'test-service',
-    agents,
+    ai: aiConfig,
   },
   getProvider: jest.fn().mockReturnValue({
     getRegion: jest.fn().mockReturnValue('us-east-1'),
@@ -40,11 +40,11 @@ describe('AwsInvokeAgent', () => {
 
   beforeEach(() => {
     serverless = createServerless({
-      myAgent: {
-        type: 'runtime',
+      agents: {
+        myAgent: {
+          type: 'runtime',
+        },
       },
-      tools: {}, // Reserved key
-      memories: {}, // Reserved key
     })
 
     options = {
@@ -96,7 +96,7 @@ describe('AwsInvokeAgent', () => {
     })
 
     test('throws error when agent type is not runtime', async () => {
-      serverless.service.agents.myAgent.type = 'memory'
+      serverless.service.ai.agents.myAgent.type = 'memory'
       options.agent = 'myAgent'
       awsInvokeAgent.options = options
 
@@ -106,7 +106,7 @@ describe('AwsInvokeAgent', () => {
     })
 
     test('defaults agent type to runtime when not specified', async () => {
-      delete serverless.service.agents.myAgent.type
+      delete serverless.service.ai.agents.myAgent.type
       options.agent = 'myAgent'
       awsInvokeAgent.options = options
 

@@ -13,7 +13,7 @@ service: langgraph-code-interpreter-custom
 provider:
   name: aws
 
-agents:
+ai:
   # Custom code interpreter with PUBLIC network access
   codeInterpreters:
     publicInterpreter:
@@ -24,20 +24,21 @@ agents:
         Purpose: ExternalAPIAccess
 
   # Runtime agent that uses the custom code interpreter
-  codeAgent:
-    environment:
-      CUSTOM_INTERPRETER_ID: !GetAtt PublicInterpreterCodeInterpreter.CodeInterpreterId
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - bedrock-agentcore:InvokeCodeInterpreter
-            - bedrock-agentcore:CreateCodeInterpreter
-            - bedrock-agentcore:StartCodeInterpreterSession
-            - bedrock-agentcore:StopCodeInterpreterSession
-            - bedrock-agentcore:DeleteCodeInterpreter
-            - bedrock-agentcore:ListCodeInterpreters
-            - bedrock-agentcore:GetCodeInterpreter
-            - bedrock-agentcore:GetCodeInterpreterSession
-            - bedrock-agentcore:ListCodeInterpreterSessions
-          Resource: !GetAtt PublicInterpreterCodeInterpreter.CodeInterpreterArn
+  agents:
+    codeAgent:
+      environment:
+        CUSTOM_INTERPRETER_ID: !GetAtt PublicInterpreterCodeInterpreter.CodeInterpreterId
+      role:
+        statements:
+          - Effect: Allow
+            Action:
+              - bedrock-agentcore:InvokeCodeInterpreter
+              - bedrock-agentcore:CreateCodeInterpreter
+              - bedrock-agentcore:StartCodeInterpreterSession
+              - bedrock-agentcore:StopCodeInterpreterSession
+              - bedrock-agentcore:DeleteCodeInterpreter
+              - bedrock-agentcore:ListCodeInterpreters
+              - bedrock-agentcore:GetCodeInterpreter
+              - bedrock-agentcore:GetCodeInterpreterSession
+              - bedrock-agentcore:ListCodeInterpreterSessions
+            Resource: !GetAtt PublicInterpreterCodeInterpreter.CodeInterpreterArn

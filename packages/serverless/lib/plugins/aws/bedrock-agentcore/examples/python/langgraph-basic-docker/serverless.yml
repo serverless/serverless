@@ -4,7 +4,8 @@ provider:
   name: aws
   region: us-east-1
 
-agents:
-  # Minimal LangGraph agent with built-in tools
-  # Docker auto-detected from Dockerfile in current directory
-  chatbot: {}
+ai:
+  agents:
+    # Minimal LangGraph agent with built-in tools
+    # Docker auto-detected from Dockerfile in current directory
+    chatbot: {}

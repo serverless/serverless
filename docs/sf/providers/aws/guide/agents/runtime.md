@@ -38,8 +38,9 @@ Use Docker for multi-language projects, complex dependencies, or full control ov
 **Minimal configuration (auto-detection):**
 
 ```yml
-agents:
-  myAgent: {}
+ai:
+  agents:
+    myAgent: {}
 ```
 
 The framework automatically detects a `Dockerfile` in the current directory and handles:
@@ -52,25 +53,27 @@ The framework automatically detects a `Dockerfile` in the current directory and 
 **Explicit Dockerfile configuration:**
 
 ```yml
-agents:
-  myAgent:
-    artifact:
-      image:
-        file: Dockerfile.agent # Custom Dockerfile name
-        path: ./agent # Build context directory
-        repository: my-agent-repo # Custom ECR repository name
-        buildArgs: # Docker build arguments
-          PYTHON_VERSION: '3.12'
-          ENV: production
+ai:
+  agents:
+    myAgent:
+      artifact:
+        image:
+          file: Dockerfile.agent # Custom Dockerfile name
+          path: ./agent # Build context directory
+          repository: my-agent-repo # Custom ECR repository name
+          buildArgs: # Docker build arguments
+            PYTHON_VERSION: '3.12'
+            ENV: production
 ```
 
 **Pre-built image:**
 
 ```yml
-agents:
-  myAgent:
-    artifact:
-      image: 123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest
+ai:
+  agents:
+    myAgent:
+      artifact:
+        image: 123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest
 ```
 
 Use pre-built images when:
@@ -86,10 +89,11 @@ Deploy Python code directly without Docker. Best for simple agents with standard
 **Basic code deployment:**
 
 ```yml
-agents:
-  myAgent:
-    handler: agent.py
-    runtime: python3.12
+ai:
+  agents:
+    myAgent:
+      handler: agent.py
+      runtime: python3.12
 ```
 
 The `handler` property triggers code deployment mode. The framework packages your Python code and uploads it to S3.
@@ -104,15 +108,16 @@ The `handler` property triggers code deployment mode. The framework packages you
 **With custom S3 location:**
 
 ```yml
-agents:
-  myAgent:
-    handler: main.py
-    runtime: python3.12
-    artifact:
-      s3:
-        bucket: my-artifacts-bucket
-        key: agents/my-agent.zip
-        versionId: abc123 # Optional: specific version
+ai:
+  agents:
+    myAgent:
+      handler: main.py
+      runtime: python3.12
+      artifact:
+        s3:
+          bucket: my-artifacts-bucket
+          key: agents/my-agent.zip
+          versionId: abc123 # Optional: specific version
 ```
 
 Use custom S3 locations when:
@@ -126,17 +131,18 @@ Use custom S3 locations when:
 Control which files are included in the code package, same as [Lambda function packaging](https://www.serverless.com/framework/docs/providers/aws/guide/packaging):
 
 ```yml
-agents:
-  myAgent:
-    handler: agent.py
-    package:
-      patterns:
-        - '!tests/**'
-        - '!docs/**'
-      include:
-        - 'lib/**'
-      exclude:
-        - '*.pyc'
+ai:
+  agents:
+    myAgent:
+      handler: agent.py
+      package:
+        patterns:
+          - '!tests/**'
+          - '!docs/**'
+        include:
+          - 'lib/**'
+        exclude:
+          - '*.pyc'
 ```
 
 ## Network Configuration
@@ -148,10 +154,11 @@ Control how your runtime connects to the network.
 Your agent is accessible over the internet with AWS authentication.
 
 ```yml
-agents:
-  myAgent:
-    network:
-      mode: PUBLIC
+ai:
+  agents:
+    myAgent:
+      network:
+        mode: PUBLIC
 ```
 
 **Use PUBLIC mode when:**
@@ -165,15 +172,16 @@ agents:
 Deploy your agent within a Virtual Private Cloud for enhanced security.
 
 ```yml
-agents:
-  myAgent:
-    network:
-      mode: VPC
-      subnets:
-        - subnet-0123456789abcdef0
-        - subnet-0123456789abcdef1
-      securityGroups:
-        - sg-0123456789abcdef0
+ai:
+  agents:
+    myAgent:
+      network:
+        mode: VPC
+        subnets:
+          - subnet-0123456789abcdef0
+          - subnet-0123456789abcdef1
+        securityGroups:
+          - sg-0123456789abcdef0
 ```
 
 **Use VPC mode when:**
@@ -197,8 +205,9 @@ Control who can invoke your runtime.
 Without an authorizer, your runtime uses AWS SigV4 authentication. Callers must have valid AWS credentials and IAM permissions.
 
 ```yml
-agents:
-  myAgent: {} # Uses AWS IAM by default
+ai:
+  agents:
+    myAgent: {} # Uses AWS IAM by default
 ```
 
 ### JWT Authentication
@@ -206,19 +215,20 @@ agents:
 Protect your runtime with JWT tokens from an OIDC-compliant identity provider (Cognito, Auth0, Okta, etc.).
 
 ```yml
-agents:
-  myAgent:
-    authorizer:
-      type: CUSTOM_JWT
-      jwt:
-        discoveryUrl: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_xxxxx/.well-known/openid-configuration
-        allowedAudience:
-          - my-app-client-id
-        allowedClients:
-          - my-app-client-id
-        allowedScopes:
-          - openid
-          - profile
+ai:
+  agents:
+    myAgent:
+      authorizer:
+        type: CUSTOM_JWT
+        jwt:
+          discoveryUrl: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_xxxxx/.well-known/openid-configuration
+          allowedAudience:
+            - my-app-client-id
+          allowedClients:
+            - my-app-client-id
+          allowedScopes:
+            - openid
+            - profile
 ```
 
 **JWT configuration options:**
@@ -234,19 +244,20 @@ agents:
 **Custom claims validation:**
 
 ```yml
-agents:
-  myAgent:
-    authorizer:
-      type: CUSTOM_JWT
-      jwt:
-        discoveryUrl: https://.../.well-known/openid-configuration
-        customClaims:
-          - inboundTokenClaimName: department
-            inboundTokenClaimValueType: STRING
-            authorizingClaimMatchValue:
-              claimMatchOperator: EQUALS
-              claimMatchValue:
-                matchValueString: engineering
+ai:
+  agents:
+    myAgent:
+      authorizer:
+        type: CUSTOM_JWT
+        jwt:
+          discoveryUrl: https://.../.well-known/openid-configuration
+          customClaims:
+            - inboundTokenClaimName: department
+              inboundTokenClaimValueType: STRING
+              authorizingClaimMatchValue:
+                claimMatchOperator: EQUALS
+                claimMatchValue:
+                  matchValueString: engineering
 ```
 
 You can combine the JWT configuration above with any of the deployment examples in the [Examples](#examples) section below.
@@ -256,11 +267,12 @@ You can combine the JWT configuration above with any of the deployment examples 
 Control session timeouts and runtime lifetime.
 
 ```yml
-agents:
-  myAgent:
-    lifecycle:
-      idleRuntimeSessionTimeout: 900 # seconds (60-28800)
-      maxLifetime: 3600 # seconds (60-28800)
+ai:
+  agents:
+    myAgent:
+      lifecycle:
+        idleRuntimeSessionTimeout: 900 # seconds (60-28800)
+        maxLifetime: 3600 # seconds (60-28800)
 ```
 
 | Property                    | Range    | Default | Description                                     |
@@ -280,9 +292,10 @@ agents:
 Specify the communication protocol for your runtime.
 
 ```yml
-agents:
-  myAgent:
-    protocol: HTTP # HTTP, MCP, or A2A
+ai:
+  agents:
+    myAgent:
+      protocol: HTTP # HTTP, MCP, or A2A
 ```
 
 | Protocol | Description                      | Use Case                                       |
@@ -296,21 +309,22 @@ agents:
 Create named endpoints for your runtime. Endpoints let you manage versioned access points -- for example, a production endpoint tracking the latest version and a staging endpoint pinned to a specific version.
 
 ```yml
-agents:
-  myAgent:
-    endpoints:
-      - name: production
-        description: Production endpoint, always tracks latest
-      - name: staging
-        version: '1'
-        description: Staging endpoint pinned to version 1
+ai:
+  agents:
+    myAgent:
+      endpoints:
+        - name: production
+          description: Production endpoint, always tracks latest
+        - name: staging
+          version: '1'
+          description: Staging endpoint pinned to version 1
 ```
 
-| Property      | Required | Description                                                     |
-| ------------- | -------- | --------------------------------------------------------------- |
+| Property      | Required | Description                                                      |
+| ------------- | -------- | ---------------------------------------------------------------- |
 | `name`        | No       | Endpoint name (auto-generated if omitted, defaults to `default`) |
-| `version`     | No       | Pin to a specific runtime version (omit to track latest)        |
-| `description` | No       | Human-readable description (max 256 chars)                      |
+| `version`     | No       | Pin to a specific runtime version (omit to track latest)         |
+| `description` | No       | Human-readable description (max 256 chars)                       |
 
 Each endpoint creates an `AWS::BedrockAgentCore::RuntimeEndpoint` CloudFormation resource with its own ARN, available as a stack output.
 
@@ -319,13 +333,14 @@ Each endpoint creates an `AWS::BedrockAgentCore::RuntimeEndpoint` CloudFormation
 Pass configuration to your runtime via environment variables.
 
 ```yml
-agents:
-  myAgent:
-    environment:
-      MODEL_ID: us.anthropic.claude-sonnet-4-5-20250929-v1:0
-      LOG_LEVEL: INFO
-      MAX_TOKENS: '4096'
-      API_ENDPOINT: https://api.example.com
+ai:
+  agents:
+    myAgent:
+      environment:
+        MODEL_ID: us.anthropic.claude-sonnet-4-5-20250929-v1:0
+        LOG_LEVEL: INFO
+        MAX_TOKENS: '4096'
+        API_ENDPOINT: https://api.example.com
 ```
 
 **Best practices:**
@@ -339,13 +354,14 @@ agents:
 Control which HTTP headers are passed through to your runtime.
 
 ```yml
-agents:
-  myAgent:
-    requestHeaders:
-      allowlist:
-        - X-Trace-Id
-        - X-Request-Id
-        - X-Correlation-Id
+ai:
+  agents:
+    myAgent:
+      requestHeaders:
+        allowlist:
+          - X-Trace-Id
+          - X-Request-Id
+          - X-Correlation-Id
 ```
 
 **Use cases:**
@@ -363,8 +379,9 @@ The framework automatically creates an IAM role with required permissions. You c
 ### Auto-generated Role (Default)
 
 ```yml
-agents:
-  myAgent: {} # Role created automatically
+ai:
+  agents:
+    myAgent: {} # Role created automatically
 ```
 
 The auto-generated role includes permissions for:
@@ -389,9 +406,10 @@ The auto-generated role includes permissions for:
 Use an existing IAM role:
 
 ```yml
-agents:
-  myAgent:
-    role: arn:aws:iam::123456789012:role/MyCustomAgentRole
+ai:
+  agents:
+    myAgent:
+      role: arn:aws:iam::123456789012:role/MyCustomAgentRole
 ```
 
 ### Role Customization
@@ -399,24 +417,25 @@ agents:
 Add custom permissions to the auto-generated role:
 
 ```yml
-agents:
-  myAgent:
-    role:
-      name: my-agent-role # Optional: custom role name
-      statements:
-        - Effect: Allow
-          Action:
-            - s3:GetObject
-            - s3:PutObject
-          Resource: arn:aws:s3:::my-bucket/*
-        - Effect: Allow
-          Action: secretsmanager:GetSecretValue
-          Resource: arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-*
-      managedPolicies:
-        - arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess
-      permissionsBoundary: arn:aws:iam::123456789012:policy/MyPermissionsBoundary
-      tags:
-        CostCenter: AI-Team
+ai:
+  agents:
+    myAgent:
+      role:
+        name: my-agent-role # Optional: custom role name
+        statements:
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+            Resource: arn:aws:s3:::my-bucket/*
+          - Effect: Allow
+            Action: secretsmanager:GetSecretValue
+            Resource: arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-*
+        managedPolicies:
+          - arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess
+        permissionsBoundary: arn:aws:iam::123456789012:policy/MyPermissionsBoundary
+        tags:
+          CostCenter: AI-Team
 ```
 
 | Property              | Description                        |
@@ -432,14 +451,15 @@ agents:
 Add metadata to your runtime for organization and cost tracking.
 
 ```yml
-agents:
-  myAgent:
-    description: Production customer service agent with memory and tools
-    tags:
-      Team: AI
-      Project: CustomerService
-      Environment: production
-      CostCenter: CC-1234
+ai:
+  agents:
+    myAgent:
+      description: Production customer service agent with memory and tools
+      tags:
+        Team: AI
+        Project: CustomerService
+        Environment: production
+        CostCenter: CC-1234
 ```
 
 | Property      | Limit               | Description                          |
@@ -458,87 +478,88 @@ provider:
   name: aws
   region: us-east-1
 
-agents:
-  myAgent:
-    # Description
-    description: Production AI agent with full configuration
+ai:
+  agents:
+    myAgent:
+      # Description
+      description: Production AI agent with full configuration
 
-    # Deployment (choose one approach)
-    artifact:
-      image:
-        file: Dockerfile
-        path: ./agent
-        repository: my-agent-repo
-        buildArgs:
-          ENV: production
+      # Deployment (choose one approach)
+      artifact:
+        image:
+          file: Dockerfile
+          path: ./agent
+          repository: my-agent-repo
+          buildArgs:
+            ENV: production
 
-    # OR for code deployment:
-    # handler: agent.py
-    # runtime: python3.12
+      # OR for code deployment:
+      # handler: agent.py
+      # runtime: python3.12
 
-    # Protocol
-    protocol: HTTP
+      # Protocol
+      protocol: HTTP
 
-    # Endpoints (named access points for the runtime)
-    endpoints:
-      - name: production
-        description: Tracks latest version
-      - name: staging
-        version: '1'
-        description: Pinned to version 1
+      # Endpoints (named access points for the runtime)
+      endpoints:
+        - name: production
+          description: Tracks latest version
+        - name: staging
+          version: '1'
+          description: Pinned to version 1
 
-    # Networking
-    network:
-      mode: PUBLIC
-      # For VPC:
-      # mode: VPC
-      # subnets: [subnet-xxx]
-      # securityGroups: [sg-xxx]
+      # Networking
+      network:
+        mode: PUBLIC
+        # For VPC:
+        # mode: VPC
+        # subnets: [subnet-xxx]
+        # securityGroups: [sg-xxx]
 
-    # Authentication
-    authorizer:
-      type: CUSTOM_JWT
-      jwt:
-        discoveryUrl: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_xxx/.well-known/openid-configuration
-        allowedAudience:
-          - my-client-id
-        allowedClients:
-          - my-client-id
+      # Authentication
+      authorizer:
+        type: CUSTOM_JWT
+        jwt:
+          discoveryUrl: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_xxx/.well-known/openid-configuration
+          allowedAudience:
+            - my-client-id
+          allowedClients:
+            - my-client-id
 
-    # Lifecycle
-    lifecycle:
-      idleRuntimeSessionTimeout: 900
-      maxLifetime: 3600
+      # Lifecycle
+      lifecycle:
+        idleRuntimeSessionTimeout: 900
+        maxLifetime: 3600
 
-    # Environment
-    environment:
-      MODEL_ID: us.anthropic.claude-sonnet-4-5-20250929-v1:0
-      LOG_LEVEL: INFO
+      # Environment
+      environment:
+        MODEL_ID: us.anthropic.claude-sonnet-4-5-20250929-v1:0
+        LOG_LEVEL: INFO
 
-    # Headers
-    requestHeaders:
-      allowlist:
-        - X-Trace-Id
+      # Headers
+      requestHeaders:
+        allowlist:
+          - X-Trace-Id
 
-    # Memory - enables conversation persistence (see memory.md)
-    # Automatically adds memory read/write permissions to the runtime role
-    memory: myMemory
+      # Memory - enables conversation persistence (see memory.md)
+      # Automatically adds memory read/write permissions to the runtime role
+      memory: myMemory
 
-    # Gateway - connects tools to your agent (see gateway.md)
-    # Automatically adds gateway invocation permissions to the runtime role
-    gateway: myGateway
+      # Gateway - connects tools to your agent (see gateway.md)
+      # Automatically adds gateway invocation permissions to the runtime role
+      gateway: myGateway
 
-    # IAM Role
-    role:
-      statements:
-        - Effect: Allow
-          Action: s3:GetObject
-          Resource: arn:aws:s3:::my-bucket/*
+      # IAM Role
+      role:
+        statements:
+          - Effect: Allow
+            Action: s3:GetObject
+            Resource: arn:aws:s3:::my-bucket/*
 
-    # Metadata
-    tags:
-      Team: AI
-      Environment: production
+      # Metadata
+      tags:
+        Team: AI
+        Environment: production
 ```
 
 ## Examples

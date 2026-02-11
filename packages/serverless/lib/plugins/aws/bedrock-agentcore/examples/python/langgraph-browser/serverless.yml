@@ -8,5 +8,6 @@ provider:
   name: aws
   region: us-east-1
 
-agents:
-  browserAgent: {}
+ai:
+  agents:
+    browserAgent: {}

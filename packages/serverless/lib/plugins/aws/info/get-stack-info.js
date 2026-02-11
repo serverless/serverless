@@ -1,7 +1,6 @@
 import resolveCfImportValue from '../utils/resolve-cf-import-value.js'
 import ServerlessError from '../../../serverless-error.js'
 import { getLogicalId, pascalCase } from '../bedrock-agentcore/utils/naming.js'
-import { isReservedAgentKey } from '../bedrock-agentcore/validators/config.js'
 
 export default {
   async getStackInfo() {
@@ -108,13 +107,8 @@ export default {
         })
 
         // Agents (Bedrock AgentCore)
-        const agents = this.serverless.service.agents || {}
+        const agents = this.serverless.service.ai?.agents || {}
         for (const [agentName, agentConfig] of Object.entries(agents)) {
-          // Skip reserved configuration keys
-          if (isReservedAgentKey(agentName)) {
-            continue
-          }
-
           const agentInfo = { name: agentName }
           const agentType = agentConfig.type || 'runtime'
 
@@ -144,7 +138,7 @@ export default {
         }
 
         // Gateways (Bedrock AgentCore) — shown inside agents section
-        const agentGateways = agents.gateways || {}
+        const agentGateways = this.serverless.service.ai?.gateways || {}
         for (const [gatewayName] of Object.entries(agentGateways)) {
           const logicalId = `AgentCoreGateway${pascalCase(gatewayName)}`
           const gatewayInfo = { name: gatewayName }

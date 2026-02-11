@@ -28,10 +28,11 @@ Memory enables your AI agents to persist conversation history and context across
 Add memory to any agent with a single property:
 
 ```yml
-agents:
-  myAgent:
-    memory:
-      expiration: 30 # Days until memory events expire (3-365)
+ai:
+  agents:
+    myAgent:
+      memory:
+        expiration: 30 # Days until memory events expire (3-365)
 ```
 
 The framework automatically:
@@ -66,28 +67,30 @@ Request 3 (session: xyz-789)  # Different session
 Define memory directly on an agent. Best for simple, single-agent deployments:
 
 ```yml
-agents:
-  myAgent:
-    memory:
-      expiration: 30 # 30 days
+ai:
+  agents:
+    myAgent:
+      memory:
+        expiration: 30 # 30 days
 ```
 
 ### Shared Memory (Multiple Agents)
 
-Define memory at the `agents.memory` level and reference by name. Best when multiple agents need access to the same conversation history:
+Define memory at the `ai.memory` level and reference by name. Best when multiple agents need access to the same conversation history:
 
 ```yml
-agents:
+ai:
   memory:
     conversations:
       expiration: 90 # 90 days
       description: Shared conversation memory
 
-  chatbot:
-    memory: conversations # Reference by name
+  agents:
+    chatbot:
+      memory: conversations # Reference by name
 
-  assistant:
-    memory: conversations # Same memory, different agent
+    assistant:
+      memory: conversations # Same memory, different agent
 ```
 
 ## Memory Strategies
@@ -99,7 +102,7 @@ Strategies define how memory processes and retrieves conversation data. They're 
 Enables similarity-based search across conversation history. Use when agents need to find relevant past conversations.
 
 ```yml
-agents:
+ai:
   memory:
     searchable:
       expiration: 90 # 90 days
@@ -117,7 +120,7 @@ agents:
 Maintains condensed conversation context. Use for long conversations where full history exceeds token limits.
 
 ```yml
-agents:
+ai:
   memory:
     summarized:
       expiration: 90 # 90 days
@@ -134,7 +137,7 @@ agents:
 Tracks user preferences across sessions. Use for personalization that persists beyond individual conversations.
 
 ```yml
-agents:
+ai:
   memory:
     preferences:
       expiration: 365 # Maximum retention (1 year)
@@ -151,7 +154,7 @@ agents:
 Stores episodic memories with reflection capabilities. Use for agents that need to learn from past experiences.
 
 ```yml
-agents:
+ai:
   memory:
     episodes:
       expiration: 30 # 30 days
@@ -168,7 +171,7 @@ agents:
 Application-specific memory handling with custom configuration.
 
 ```yml
-agents:
+ai:
   memory:
     custom:
       expiration: 30 # 30 days
@@ -186,7 +189,7 @@ agents:
 Combine multiple strategies for comprehensive memory management:
 
 ```yml
-agents:
+ai:
   memory:
     comprehensive:
       expiration: 90 # 90 days
@@ -283,8 +286,18 @@ await client.send(
     sessionId: 'session-456',
     eventTimestamp: new Date(),
     payload: [
-      { conversational: { content: { text: "What's the weather?" }, role: 'USER' } },
-      { conversational: { content: { text: 'Today is sunny!' }, role: 'ASSISTANT' } },
+      {
+        conversational: {
+          content: { text: "What's the weather?" },
+          role: 'USER',
+        },
+      },
+      {
+        conversational: {
+          content: { text: 'Today is sunny!' },
+          role: 'ASSISTANT',
+        },
+      },
     ],
   }),
 )
@@ -305,7 +318,7 @@ const { events } = await client.send(
 The framework automatically creates an IAM role for each memory resource. This role includes the AWS managed policy `AmazonBedrockAgentCoreMemoryBedrockModelInferenceExecutionRolePolicy`, which grants Bedrock model invocation permissions required for memory strategies (extraction, consolidation). You can add custom statements alongside this managed policy:
 
 ```yml
-agents:
+ai:
   memory:
     conversations:
       expiration: 30 # 30 days
@@ -327,23 +340,23 @@ agents:
 | Property        | Type          | Required | Description                                          |
 | --------------- | ------------- | -------- | ---------------------------------------------------- |
 | `expiration`    | number        | No       | Days until memory events expire (3-365, default: 30) |
-| `description`   | string        | No       | Human-readable description              |
-| `encryptionKey` | string        | No       | KMS key ARN for encryption              |
-| `strategies`    | array         | No       | Memory processing strategies            |
-| `role`          | string/object | No       | IAM role ARN or configuration           |
-| `tags`          | object        | No       | Resource tags                           |
+| `description`   | string        | No       | Human-readable description                           |
+| `encryptionKey` | string        | No       | KMS key ARN for encryption                           |
+| `strategies`    | array         | No       | Memory processing strategies                         |
+| `role`          | string/object | No       | IAM role ARN or configuration                        |
+| `tags`          | object        | No       | Resource tags                                        |
 
 ### Strategy Properties
 
 Each strategy type has specific properties:
 
-| Strategy                       | Required Properties | Optional Properties                                      |
-| ------------------------------ | ------------------- | -------------------------------------------------------- |
-| `SemanticMemoryStrategy`       | `Name`              | `Description`, `Namespaces`                              |
-| `SummaryMemoryStrategy`        | `Name`              | `Description`, `Namespaces`                              |
-| `UserPreferenceMemoryStrategy` | `Name`              | `Description`, `Namespaces`                              |
-| `EpisodicMemoryStrategy`       | `Name`              | `Description`, `Namespaces`, `ReflectionConfiguration`   |
-| `CustomMemoryStrategy`         | `Name`              | `Description`, `Namespaces`, `Configuration`             |
+| Strategy                       | Required Properties | Optional Properties                                    |
+| ------------------------------ | ------------------- | ------------------------------------------------------ |
+| `SemanticMemoryStrategy`       | `Name`              | `Description`, `Namespaces`                            |
+| `SummaryMemoryStrategy`        | `Name`              | `Description`, `Namespaces`                            |
+| `UserPreferenceMemoryStrategy` | `Name`              | `Description`, `Namespaces`                            |
+| `EpisodicMemoryStrategy`       | `Name`              | `Description`, `Namespaces`, `ReflectionConfiguration` |
+| `CustomMemoryStrategy`         | `Name`              | `Description`, `Namespaces`, `Configuration`           |
 
 ## Complete Example
 
@@ -354,7 +367,7 @@ provider:
   name: aws
   region: us-east-1
 
-agents:
+ai:
   # Shared memory with multiple strategies
   memory:
     conversationMemory:
@@ -373,8 +386,9 @@ agents:
         Environment: production
 
   # Agent with shared memory reference
-  chatbot:
-    memory: conversationMemory # Reference shared memory
+  agents:
+    chatbot:
+      memory: conversationMemory # Reference shared memory
 ```
 
 ## Examples

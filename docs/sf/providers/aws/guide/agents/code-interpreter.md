@@ -40,8 +40,9 @@ provider:
   name: aws
   region: us-east-1
 
-agents:
-  codeAgent: {} # Auto-detects Dockerfile
+ai:
+  agents:
+    codeAgent: {} # Auto-detects Dockerfile
 ```
 
 **Agent code (`agent.py`):**
@@ -344,7 +345,7 @@ Code Interpreter supports three network modes:
 ### Basic Custom Code Interpreter
 
 ```yml
-agents:
+ai:
   codeInterpreters:
     analyzer:
       description: Python execution environment
@@ -359,7 +360,7 @@ agents:
 Enable external API access for your code:
 
 ```yml
-agents:
+ai:
   codeInterpreters:
     publicAnalyzer:
       description: Code interpreter with internet access
@@ -374,7 +375,7 @@ agents:
 Access private resources through VPC:
 
 ```yml
-agents:
+ai:
   codeInterpreters:
     vpcAnalyzer:
       description: Code interpreter for internal resources
@@ -392,7 +393,7 @@ agents:
 Unlike memory and gateway, the framework does not automatically inject the code interpreter ID into your runtime agent. You must wire it manually using CloudFormation references in your `serverless.yml`:
 
 ```yml
-agents:
+ai:
   # Define the custom code interpreter
   codeInterpreters:
     publicInterpreter:
@@ -401,24 +402,25 @@ agents:
         mode: PUBLIC
 
   # Runtime agent that uses the custom code interpreter
-  codeAgent:
-    environment:
-      # Pass the interpreter ID using CloudFormation !GetAtt
-      CUSTOM_INTERPRETER_ID: !GetAtt PublicInterpreterCodeInterpreter.CodeInterpreterId
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - bedrock-agentcore:InvokeCodeInterpreter
-            - bedrock-agentcore:CreateCodeInterpreter
-            - bedrock-agentcore:StartCodeInterpreterSession
-            - bedrock-agentcore:StopCodeInterpreterSession
-            - bedrock-agentcore:DeleteCodeInterpreter
-            - bedrock-agentcore:ListCodeInterpreters
-            - bedrock-agentcore:GetCodeInterpreter
-            - bedrock-agentcore:GetCodeInterpreterSession
-            - bedrock-agentcore:ListCodeInterpreterSessions
-          Resource: !GetAtt PublicInterpreterCodeInterpreter.CodeInterpreterArn
+  agents:
+    codeAgent:
+      environment:
+        # Pass the interpreter ID using CloudFormation !GetAtt
+        CUSTOM_INTERPRETER_ID: !GetAtt PublicInterpreterCodeInterpreter.CodeInterpreterId
+      role:
+        statements:
+          - Effect: Allow
+            Action:
+              - bedrock-agentcore:InvokeCodeInterpreter
+              - bedrock-agentcore:CreateCodeInterpreter
+              - bedrock-agentcore:StartCodeInterpreterSession
+              - bedrock-agentcore:StopCodeInterpreterSession
+              - bedrock-agentcore:DeleteCodeInterpreter
+              - bedrock-agentcore:ListCodeInterpreters
+              - bedrock-agentcore:GetCodeInterpreter
+              - bedrock-agentcore:GetCodeInterpreterSession
+              - bedrock-agentcore:ListCodeInterpreterSessions
+            Resource: !GetAtt PublicInterpreterCodeInterpreter.CodeInterpreterArn
 ```
 
 Then in your agent code, use the environment variable to connect to the custom interpreter:
@@ -486,7 +488,7 @@ code_interpreter.stop()
 The framework automatically creates IAM roles with necessary permissions. To customize:
 
 ```yml
-agents:
+ai:
   codeInterpreters:
     customInterpreter:
       network:

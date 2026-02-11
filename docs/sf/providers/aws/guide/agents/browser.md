@@ -37,8 +37,9 @@ provider:
   name: aws
   region: us-east-1
 
-agents:
-  webAgent: {} # Auto-detects Dockerfile
+ai:
+  agents:
+    webAgent: {} # Auto-detects Dockerfile
 ```
 
 **Agent code (`agent.py`):**
@@ -269,7 +270,7 @@ For advanced scenarios, define custom browser resources with specific configurat
 ### Basic Custom Browser
 
 ```yml
-agents:
+ai:
   browsers:
     webBrowser:
       description: Web scraping browser
@@ -284,7 +285,7 @@ agents:
 Record browser sessions to S3 for debugging and auditing:
 
 ```yml
-agents:
+ai:
   browsers:
     recordingBrowser:
       description: Browser with session recording enabled
@@ -304,7 +305,7 @@ agents:
 Access internal resources through VPC:
 
 ```yml
-agents:
+ai:
   browsers:
     privateBrowser:
       description: Browser for internal resources
@@ -366,7 +367,7 @@ Session recording captures browser interactions for debugging and compliance:
 **Configuration:**
 
 ```yml
-agents:
+ai:
   browsers:
     auditBrowser:
       network:
@@ -385,7 +386,7 @@ Recordings are stored in the specified S3 bucket and can be reviewed to understa
 The framework automatically creates IAM roles with necessary permissions. To customize:
 
 ```yml
-agents:
+ai:
   browsers:
     customBrowser:
       network:

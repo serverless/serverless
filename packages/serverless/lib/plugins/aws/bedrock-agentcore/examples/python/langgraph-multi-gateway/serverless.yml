@@ -13,7 +13,7 @@ functions:
     handler: handlers/internal_lookup.handler
     runtime: python3.13
 
-agents:
+ai:
   # Define tools that will be assigned to different gateways
   tools:
     calculator:
@@ -62,16 +62,17 @@ agents:
 
   # Public agent - uses the public gateway with calculator tool
   # Can be invoked without additional IAM permissions
-  publicAgent:
-    artifact:
-      image:
-        file: Dockerfile.public
-    gateway: publicGateway
+  agents:
+    publicAgent:
+      artifact:
+        image:
+          file: Dockerfile.public
+      gateway: publicGateway
 
-  # Private agent - uses the private gateway with internal lookup tool
-  # Requires AWS IAM authentication for tool calls
-  privateAgent:
-    artifact:
-      image:
-        file: Dockerfile.private
-    gateway: privateGateway
+    # Private agent - uses the private gateway with internal lookup tool
+    # Requires AWS IAM authentication for tool calls
+    privateAgent:
+      artifact:
+        image:
+          file: Dockerfile.private
+      gateway: privateGateway

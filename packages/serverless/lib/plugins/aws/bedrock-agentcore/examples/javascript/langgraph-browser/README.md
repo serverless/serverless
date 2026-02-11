@@ -7,7 +7,7 @@ A LangGraph JavaScript agent with AWS-managed browser capabilities deployed to B
 - **Browser Automation**: Navigate, click, type, extract text, take screenshots
 - **LangGraph JS**: ReAct agent pattern with browser tools
 - **Claude Sonnet 4.5**: Powered by Amazon Bedrock
-- **Minimal Configuration**: Just `agents: { browserAgent: {} }` in `serverless.yml`
+- **Minimal Configuration**: Just `ai: { agents: { browserAgent: {} } }` in `serverless.yml`
 
 ## Tools Available
 

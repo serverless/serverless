@@ -52,7 +52,7 @@ export function validateGatewayConfig(
       }
       if (!sharedTools[toolName]) {
         throwError(
-          `Gateway '${gatewayName}' references undefined tool '${toolName}'. Define it in agents.tools first.`,
+          `Gateway '${gatewayName}' references undefined tool '${toolName}'. Define it in ai.tools first.`,
         )
       }
     }
@@ -161,7 +161,7 @@ export function validateRuntime(
       // Memory is a reference to a shared memory - validate it exists
       if (!sharedMemory[config.memory]) {
         throwError(
-          `Runtime '${name}' references memory '${config.memory}' which is not defined in agents.memory`,
+          `Runtime '${name}' references memory '${config.memory}' which is not defined in ai.memory`,
         )
       }
     } else if (typeof config.memory === 'object') {
@@ -178,14 +178,14 @@ export function validateRuntime(
   if (config.gateway) {
     if (typeof config.gateway !== 'string') {
       throwError(
-        `Runtime '${name}' gateway must be a string reference to a gateway defined in agents.gateways`,
+        `Runtime '${name}' gateway must be a string reference to a gateway defined in ai.gateways`,
       )
     }
     // Only validate gateway reference if gateways are defined
     // If no gateways are defined but gateway property is set, that's an error
     if (Object.keys(sharedGateways).length === 0) {
       throwError(
-        `Runtime '${name}' references gateway '${config.gateway}' but no gateways are defined in agents.gateways`,
+        `Runtime '${name}' references gateway '${config.gateway}' but no gateways are defined in ai.gateways`,
       )
     }
     if (!sharedGateways[config.gateway]) {

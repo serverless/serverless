@@ -8,8 +8,9 @@ custom:
   pythonRequirements:
     dockerizePip: true
 
-agents:
-  # Minimal LangGraph agent with built-in tools
-  # Code deployment (uses Docker only for dependency packaging)
-  chatbot:
-    handler: agent.py
+ai:
+  agents:
+    # Minimal LangGraph agent with built-in tools
+    # Code deployment (uses Docker only for dependency packaging)
+    chatbot:
+      handler: agent.py

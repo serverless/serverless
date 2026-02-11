@@ -39,8 +39,9 @@ serverless deploy
 2. **Note the runtime ARN** from the output:
 
 ```
-agents:
-  codeAgent: https://bedrock-agentcore.us-east-1.amazonaws.com/runtimes/arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/.../invocations
+ai:
+  agents:
+    codeAgent: https://bedrock-agentcore.us-east-1.amazonaws.com/runtimes/arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/.../invocations
 ```
 
 ## Testing

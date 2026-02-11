@@ -94,7 +94,7 @@ functions:
     handler: handlers/calculator.handler
     runtime: python3.13
 
-agents:
+ai:
   tools:
     calculator:
       function: calculatorFunction
@@ -109,7 +109,8 @@ agents:
             required:
               - expression
 
-  chatbot: {} # Default gateway auto-created
+  agents:
+    chatbot: {} # Default gateway auto-created
 ```
 
 ### Tool Discovery
@@ -157,7 +158,7 @@ functions:
     handler: handlers/weather.handler
     runtime: python3.13
 
-agents:
+ai:
   tools:
     calculator:
       function: calculatorFunction
@@ -176,7 +177,8 @@ agents:
             required:
               - city
 
-  chatbot: {}
+  agents:
+    chatbot: {}
 ```
 
 ## Cleanup

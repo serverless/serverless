@@ -26,7 +26,7 @@ A Gateway exposes tools that AI agents can discover and invoke -- Lambda functio
 
 ## Quick Start
 
-Define tools in `agents.tools` and they become available to your agents automatically:
+Define tools in `ai.tools` and they become available to your agents automatically:
 
 ```yml
 service: my-agent
@@ -40,7 +40,7 @@ functions:
     handler: handlers/calculator.handler
     runtime: python3.13
 
-agents:
+ai:
   tools:
     calculator:
       function: calculatorFunction
@@ -56,7 +56,8 @@ agents:
             required:
               - expression
 
-  chatbot: {}
+  agents:
+    chatbot: {}
 ```
 
 The Serverless Framework automatically:
@@ -90,7 +91,7 @@ functions:
     handler: handler.main
     runtime: python3.13
 
-agents:
+ai:
   tools:
     myTool:
       function: myFunction
@@ -119,7 +120,7 @@ agents:
 Expose HTTP APIs as tools using OpenAPI specifications:
 
 ```yml
-agents:
+ai:
   tools:
     weatherApi:
       openapi: ./weather-openapi.yml
@@ -130,7 +131,7 @@ agents:
 Define tools using [Smithy](https://smithy.io/) interface definitions:
 
 ```yml
-agents:
+ai:
   tools:
     myApi:
       smithy: ./my-api.smithy
@@ -141,7 +142,7 @@ agents:
 Connect to external MCP servers:
 
 ```yml
-agents:
+ai:
   tools:
     externalTool:
       mcp: https://my-mcp-server.example.com/mcp
@@ -152,7 +153,7 @@ agents:
 The `toolSchema` defines how the agent understands and invokes your tool:
 
 ```yml
-agents:
+ai:
   tools:
     search:
       function: searchFunction
@@ -189,7 +190,7 @@ By default, tools use `GATEWAY_IAM_ROLE` credentials -- no extra configuration n
 **OAuth Credentials:**
 
 ```yml
-agents:
+ai:
   tools:
     spotify:
       openapi: ./spotify-openapi.yml
@@ -207,7 +208,7 @@ agents:
 **API Key Credentials:**
 
 ```yml
-agents:
+ai:
   tools:
     weather:
       openapi: ./weather-api.yml
@@ -232,7 +233,7 @@ agents:
 For advanced scenarios where you need different authorization levels or tool subsets, define explicit gateways:
 
 ```yml
-agents:
+ai:
   tools:
     calculator:
       function: calculatorFunction
@@ -253,11 +254,12 @@ agents:
       tools:
         - internalLookup
 
-  publicAgent:
-    gateway: publicGateway
+  agents:
+    publicAgent:
+      gateway: publicGateway
 
-  privateAgent:
-    gateway: privateGateway
+    privateAgent:
+      gateway: privateGateway
 ```
 
 ### Gateway Authorization Options
@@ -271,7 +273,7 @@ agents:
 **JWT Authorization:**
 
 ```yml
-agents:
+ai:
   gateways:
     secureGateway:
       authorizer:
@@ -304,7 +306,7 @@ agents:
 Customize the MCP protocol settings for your gateway:
 
 ```yml
-agents:
+ai:
   gateways:
     myGateway:
       protocol:
@@ -317,12 +319,12 @@ agents:
         - calculator
 ```
 
-| Property            | Required | Description                                              |
-| ------------------- | -------- | -------------------------------------------------------- |
-| `type`              | No       | Protocol type (default: `MCP`, only supported value)     |
-| `instructions`      | No       | Instructions for tool discovery (max 2048 chars)         |
-| `searchType`        | No       | `SEMANTIC` for semantic tool matching                    |
-| `supportedVersions` | No       | Array of supported MCP protocol versions                 |
+| Property            | Required | Description                                          |
+| ------------------- | -------- | ---------------------------------------------------- |
+| `type`              | No       | Protocol type (default: `MCP`, only supported value) |
+| `instructions`      | No       | Instructions for tool discovery (max 2048 chars)     |
+| `searchType`        | No       | `SEMANTIC` for semantic tool matching                |
+| `supportedVersions` | No       | Array of supported MCP protocol versions             |
 
 ## Using Gateway Tools in Your Agent
 

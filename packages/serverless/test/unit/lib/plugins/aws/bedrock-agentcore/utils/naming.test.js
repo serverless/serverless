@@ -6,6 +6,7 @@ import {
   getGatewayTargetName,
   getWorkloadIdentityName,
   getLogicalId,
+  getGatewayLogicalId,
   getNestedLogicalId,
   sanitizeName,
   getNormalizedResourceName,
@@ -107,6 +108,38 @@ describe('Naming Utilities', () => {
     test('handles mixed separators', () => {
       const result = getLogicalId('my-agent_v2', 'Gateway')
       expect(result).toBe('MyDashagentUnderscorev2Gateway')
+    })
+  })
+
+  describe('getGatewayLogicalId', () => {
+    test('returns default gateway logical ID when no name provided', () => {
+      expect(getGatewayLogicalId()).toBe('AgentCoreGateway')
+    })
+
+    test('returns default gateway logical ID for undefined', () => {
+      expect(getGatewayLogicalId(undefined)).toBe('AgentCoreGateway')
+    })
+
+    test('returns default gateway logical ID for null', () => {
+      expect(getGatewayLogicalId(null)).toBe('AgentCoreGateway')
+    })
+
+    test('returns named gateway logical ID with PascalCase', () => {
+      expect(getGatewayLogicalId('publicGateway')).toBe(
+        'AgentCoreGatewayPublicGateway',
+      )
+    })
+
+    test('handles kebab-case gateway names', () => {
+      expect(getGatewayLogicalId('public-gateway')).toBe(
+        'AgentCoreGatewayPublicGateway',
+      )
+    })
+
+    test('handles snake_case gateway names', () => {
+      expect(getGatewayLogicalId('private_gateway')).toBe(
+        'AgentCoreGatewayPrivateGateway',
+      )
     })
   })
 

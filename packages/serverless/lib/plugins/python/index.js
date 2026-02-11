@@ -126,10 +126,9 @@ class ServerlessPythonRequirements {
    * Get agents that need Python requirements installation (code deployment)
    */
   get targetAgents() {
-    const agents =
-      this.serverless.service.agents ||
-      this.serverless.configurationInput?.agents ||
-      {}
+    const aiConfig =
+      this.serverless.service.ai || this.serverless.configurationInput?.ai || {}
+    const agents = aiConfig.agents || {}
 
     return Object.entries(agents)
       .filter(([, config]) => {

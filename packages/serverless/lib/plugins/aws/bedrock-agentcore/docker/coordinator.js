@@ -8,13 +8,12 @@
  */
 
 import { DockerBuilder } from './builder.js'
-import { isReservedAgentKey } from '../validators/config.js'
 
 /**
  * Build Docker images for runtime agents (package phase - local only)
  *
  * @param {object} config - Configuration object
- * @param {object} config.agents - Agent configurations
+ * @param {object} config.aiConfig - AI configuration (ai: block from serverless.yml)
  * @param {object} config.ecrImages - ECR images from provider.ecr.images
  * @param {object} config.context - Service context
  * @param {object} config.serverless - Serverless instance
@@ -26,7 +25,7 @@ import { isReservedAgentKey } from '../validators/config.js'
  */
 export async function buildDockerImages(config) {
   const {
-    agents,
+    aiConfig,
     ecrImages,
     context,
     serverless,
@@ -36,18 +35,16 @@ export async function buildDockerImages(config) {
     buildMetadata,
   } = config
 
-  if (!agents) {
+  if (!aiConfig?.agents) {
     return
   }
+
+  const agents = aiConfig.agents
 
   // Find runtimes that need Docker builds
   const runtimesToBuild = []
 
   for (const [name, agentConfig] of Object.entries(agents)) {
-    // Skip reserved keys - only runtime agents need Docker builds
-    if (isReservedAgentKey(name)) {
-      continue
-    }
     // All non-reserved keys are runtime agents
     // Check for Docker build config: artifact.image as object (not string URI)
     const artifactImage = agentConfig.artifact?.image

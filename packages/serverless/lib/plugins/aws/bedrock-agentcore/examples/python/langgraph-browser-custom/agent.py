@@ -8,7 +8,7 @@ Key difference from default browser:
 - Default: Uses "aws.browser.v1" identifier
 - Custom: Uses your own browser ID with custom configuration
 
-The custom browser is defined in serverless.yml under agents.browsers
+The custom browser is defined in serverless.yml under ai.browsers
 and provides:
 - Session recording to S3 for debugging/auditing
 - Request signing for reduced CAPTCHAs

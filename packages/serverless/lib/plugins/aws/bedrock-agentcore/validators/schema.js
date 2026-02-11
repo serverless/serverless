@@ -422,14 +422,14 @@ const networkSchema = {
 }
 
 /**
- * Gateway entry schema for agents.gateways entries
+ * Gateway entry schema for ai.gateways entries
  * Each gateway has an authorizer (string shorthand or object) and tools array
  */
 const gatewayEntrySchema = {
   type: 'object',
   properties: {
     authorizer: authorizerSchema,
-    // Tools - array of tool names referencing agents.tools
+    // Tools - array of tool names referencing ai.tools
     tools: {
       type: 'array',
       items: { type: 'string' },
@@ -474,7 +474,7 @@ const gatewayEntrySchema = {
 }
 
 /**
- * Gateways collection schema for agents.gateways
+ * Gateways collection schema for ai.gateways
  * Object where keys are gateway names and values are gateway configs
  */
 const gatewaysCollectionSchema = {
@@ -483,7 +483,7 @@ const gatewaysCollectionSchema = {
 }
 
 /**
- * Browser configuration schema for agents.browsers entries
+ * Browser configuration schema for ai.browsers entries
  */
 const browserConfigSchema = {
   type: 'object',
@@ -539,7 +539,7 @@ const browserConfigSchema = {
 }
 
 /**
- * CodeInterpreter configuration schema for agents.codeInterpreters entries
+ * CodeInterpreter configuration schema for ai.codeInterpreters entries
  */
 const codeInterpreterConfigSchema = {
   type: 'object',
@@ -576,7 +576,7 @@ const codeInterpreterConfigSchema = {
 
 /**
  * Runtime agent configuration schema
- * Used for additionalProperties in agents (non-reserved keys)
+ * Used for additionalProperties in ai.agents (dynamic agent keys)
  */
 const runtimeAgentSchema = {
   type: 'object',
@@ -617,7 +617,7 @@ const runtimeAgentSchema = {
     },
 
     // Gateway reference for runtime agents
-    // String reference to a gateway defined in agents.gateways
+    // String reference to a gateway defined in ai.gateways
     gateway: {
       type: 'string',
     },
@@ -736,43 +736,47 @@ const runtimeAgentSchema = {
 }
 
 /**
- * Define JSON Schema validation for the 'agents' top-level configuration
+ * Define JSON Schema validation for the 'ai' top-level configuration
  *
- * Reserved keys at agents level:
- *   - 'memory': Shared memory definitions
- *   - 'tools': Shared tool definitions
- *   - 'gateways': Gateway definitions with tool assignments
- *   - 'browsers': Browser resource definitions
- *   - 'codeInterpreters': CodeInterpreter resource definitions
- *
- * Any other key is treated as a Runtime agent definition.
+ * Structure:
+ *   ai:
+ *     agents:           # Runtime agent definitions (dynamic keys)
+ *     memory:           # Shared memory definitions
+ *     tools:            # Shared tool definitions
+ *     gateways:         # Gateway definitions with tool assignments
+ *     browsers:         # Browser resource definitions
+ *     codeInterpreters: # CodeInterpreter resource definitions
  */
 export function defineAgentsSchema(serverless) {
-  serverless.configSchemaHandler.defineTopLevelProperty('agents', {
+  serverless.configSchemaHandler.defineTopLevelProperty('ai', {
     type: 'object',
     properties: {
-      // Reserved key for shared memory
+      // Runtime agent definitions (dynamic keys)
+      agents: {
+        type: 'object',
+        additionalProperties: runtimeAgentSchema,
+      },
+      // Shared memory definitions
       memory: {
         type: 'object',
         additionalProperties: memoryConfigSchema,
       },
-      // Reserved key for shared tools
+      // Shared tool definitions
       tools: toolsCollectionSchema,
-      // Reserved key for gateways with tool assignments
+      // Gateway definitions with tool assignments
       gateways: gatewaysCollectionSchema,
-      // Reserved key for browser resources
+      // Browser resource definitions
       browsers: {
         type: 'object',
         additionalProperties: browserConfigSchema,
       },
-      // Reserved key for code interpreter resources
+      // CodeInterpreter resource definitions
       codeInterpreters: {
         type: 'object',
         additionalProperties: codeInterpreterConfigSchema,
       },
     },
-    // Any non-reserved key is a runtime agent
-    additionalProperties: runtimeAgentSchema,
+    additionalProperties: false,
   })
 }
 

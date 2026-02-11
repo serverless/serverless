@@ -8,7 +8,7 @@ A minimal LangGraph JavaScript agent deployed to AWS Bedrock AgentCore without a
 - **LangGraph JS**: ReAct agent pattern with tool calling
 - **Claude Sonnet 4.5**: Powered by Amazon Bedrock
 - **Simple Tools**: Calculator operations
-- **Minimal Configuration**: Just `agents: { assistant: {} }` in `serverless.yml`
+- **Minimal Configuration**: Just `ai: { agents: { assistant: {} } }` in `serverless.yml`
 
 ## How It Works
 

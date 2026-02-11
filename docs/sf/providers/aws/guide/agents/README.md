@@ -39,8 +39,9 @@ provider:
   name: aws
   region: us-east-1
 
-agents:
-  chatbot: {}
+ai:
+  agents:
+    chatbot: {}
 ```
 
 > **Note**: Use `{}` for an empty agent configuration. YAML requires explicit empty braces.
@@ -125,8 +126,9 @@ AgentCore supports three deployment methods:
 The simplest option. The Framework automatically builds a Docker image from your source code:
 
 ```yml
-agents:
-  myAgent: {} # No Dockerfile needed
+ai:
+  agents:
+    myAgent: {} # No Dockerfile needed
 ```
 
 **Requirements for auto-build:**
@@ -149,8 +151,9 @@ For **Python** projects:
 Provide your own Dockerfile for full control. The Framework auto-detects it:
 
 ```yml
-agents:
-  myAgent: {} # Auto-detects Dockerfile in project directory
+ai:
+  agents:
+    myAgent: {} # Auto-detects Dockerfile in project directory
 ```
 
 **Node.js Dockerfile:**
@@ -177,13 +180,14 @@ CMD ["python", "agent.py"]
 Add optional configuration as needed:
 
 ```yml
-agents:
-  myAgent:
-    environment:
-      MODEL_ID: us.anthropic.claude-sonnet-4-5-20250929-v1:0
-    lifecycle:
-      idleRuntimeSessionTimeout: 900 # seconds (60-28800)
-      maxLifetime: 3600 # seconds (60-28800)
+ai:
+  agents:
+    myAgent:
+      environment:
+        MODEL_ID: us.anthropic.claude-sonnet-4-5-20250929-v1:0
+      lifecycle:
+        idleRuntimeSessionTimeout: 900 # seconds (60-28800)
+        maxLifetime: 3600 # seconds (60-28800)
 ```
 
 **Best for:** Multi-language projects, complex dependencies, full control over the container
@@ -193,12 +197,13 @@ agents:
 Deploy Python code directly without Docker:
 
 ```yml
-agents:
-  myAgent:
-    handler: agent.main # Triggers code deployment mode
-    runtime: python3.13 # or python3.10, python3.11, python3.12
-    environment:
-      MODEL_ID: us.anthropic.claude-sonnet-4-5-20250929-v1:0
+ai:
+  agents:
+    myAgent:
+      handler: agent.main # Triggers code deployment mode
+      runtime: python3.13 # or python3.10, python3.11, python3.12
+      environment:
+        MODEL_ID: us.anthropic.claude-sonnet-4-5-20250929-v1:0
 ```
 
 **Best for:** Simple Python agents, faster iterations, no Docker setup
@@ -226,38 +231,40 @@ AgentCore provides infrastructure components that you reference in your agent co
 ### Basic Runtime
 
 ```yml
-agents:
-  myAgent:
-    # Deployment method (choose one)
-    artifact:
-      image: # Docker deployment
-    # OR
-    handler: agent.main # Code deployment
-    runtime: python3.12
+ai:
+  agents:
+    myAgent:
+      # Deployment method (choose one)
+      artifact:
+        image: # Docker deployment
+      # OR
+      handler: agent.main # Code deployment
+      runtime: python3.12
 
-    # Optional configuration
-    environment:
-      MODEL_ID: us.anthropic.claude-sonnet-4-5-20250929-v1:0
-    lifecycle:
-      idleRuntimeSessionTimeout: 900 # seconds (60-28800)
-      maxLifetime: 3600 # seconds (60-28800)
-    tags:
-      team: ai
-      project: chatbot
+      # Optional configuration
+      environment:
+        MODEL_ID: us.anthropic.claude-sonnet-4-5-20250929-v1:0
+      lifecycle:
+        idleRuntimeSessionTimeout: 900 # seconds (60-28800)
+        maxLifetime: 3600 # seconds (60-28800)
+      tags:
+        team: ai
+        project: chatbot
 ```
 
 ### With Memory
 
 ```yml
-agents:
+ai:
   memory:
     conversations:
       expiration: 30 # days
       strategies:
         - type: semantic
 
-  myAgent:
-    memory: conversations # Reference memory by name
+  agents:
+    myAgent:
+      memory: conversations # Reference memory by name
 ```
 
 **Learn more:** [Memory Configuration](./memory.md)
@@ -265,7 +272,7 @@ agents:
 ### With Gateway (Custom Tools)
 
 ```yml
-agents:
+ai:
   tools:
     calculator:
       function:
@@ -282,8 +289,9 @@ agents:
       tools:
         - calculator
 
-  myAgent:
-    gateway: default # Reference gateway by name
+  agents:
+    myAgent:
+      gateway: default # Reference gateway by name
 ```
 
 **Learn more:** [Gateway Configuration](./gateway.md)

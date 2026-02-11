@@ -207,11 +207,11 @@ async function injectAllRequirements(funcArtifact) {
     // Step 6: Inject requirements into agent packages
     const targetAgents = this.targetAgents || []
     for (const agent of targetAgents) {
-      const agents =
-        this.serverless.service.agents ||
-        this.serverless.configurationInput?.agents ||
+      const aiConfig =
+        this.serverless.service.ai ||
+        this.serverless.configurationInput?.ai ||
         {}
-      const agentConfig = agents[agent.name]
+      const agentConfig = (aiConfig.agents || {})[agent.name]
 
       if (!agentConfig?.package?.artifact) continue
 

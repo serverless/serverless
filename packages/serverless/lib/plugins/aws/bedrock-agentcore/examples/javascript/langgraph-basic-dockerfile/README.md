@@ -128,8 +128,9 @@ provider:
   name: aws
   region: us-east-1
 
-agents:
-  assistant: {}
+ai:
+  agents:
+    assistant: {}
 ```
 
 The Dockerfile is auto-detected, and default settings are applied:

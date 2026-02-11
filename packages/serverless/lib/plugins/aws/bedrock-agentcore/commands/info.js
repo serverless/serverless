@@ -9,18 +9,18 @@
 
 import { detectTargetType } from '../compilers/gatewayTarget.js'
 import { collectAllTools } from '../compilation/orchestrator.js'
-import { isReservedAgentKey } from '../validators/config.js'
+import { getGatewayLogicalId } from '../utils/naming.js'
 
 /**
  * Display deployment information after deploy
  *
  * @param {object} config - Configuration object
- * @param {object} config.agents - Agent configurations
+ * @param {object} config.aiConfig - AI configuration (ai: block from serverless.yml)
  */
 export function displayDeploymentInfo(config) {
-  const { agents } = config
+  const { aiConfig } = config
 
-  if (!agents || Object.keys(agents).length === 0) {
+  if (!aiConfig || Object.keys(aiConfig).length === 0) {
     return
   }
 
@@ -31,15 +31,15 @@ export function displayDeploymentInfo(config) {
  * Show information about AgentCore resources
  *
  * @param {object} config - Configuration object
- * @param {object} config.agents - Agent configurations
+ * @param {object} config.aiConfig - AI configuration (ai: block from serverless.yml)
  * @param {object} config.log - Logger instance
  * @param {object} config.options - Command options (e.g., verbose)
  * @param {object} config.provider - Serverless provider instance
  */
 export async function showInfo(config) {
-  const { agents, log, options, provider } = config
+  const { aiConfig, log, options, provider } = config
 
-  if (!agents || Object.keys(agents).length === 0) {
+  if (!aiConfig || Object.keys(aiConfig).length === 0) {
     log.notice('No AgentCore resources defined in this service.')
     return
   }
@@ -48,7 +48,7 @@ export async function showInfo(config) {
   log.notice('')
 
   // Check if gateway exists and show its URL
-  const { hasTools } = collectAllTools(agents)
+  const { hasTools } = collectAllTools(aiConfig)
   if (hasTools) {
     log.notice('Gateway:')
     log.notice('  Auto-created gateway for tools')
@@ -64,7 +64,7 @@ export async function showInfo(config) {
       )
       const stack = result.Stacks?.[0]
       const urlOutput = stack?.Outputs?.find(
-        (o) => o.OutputKey === 'AgentCoreGatewayUrl',
+        (o) => o.OutputKey === `${getGatewayLogicalId()}Url`,
       )
       if (urlOutput) {
         log.notice(`  URL: ${urlOutput.OutputValue}`)
@@ -76,9 +76,9 @@ export async function showInfo(config) {
   }
 
   // Display shared memory
-  if (agents.memory) {
+  if (aiConfig.memory) {
     log.notice('Shared Memory:')
-    for (const [memoryName, memoryConfig] of Object.entries(agents.memory)) {
+    for (const [memoryName, memoryConfig] of Object.entries(aiConfig.memory)) {
       log.notice(`  ${memoryName}:`)
       log.notice(`    Type: Memory (shared)`)
       if (memoryConfig.description) {
@@ -95,9 +95,9 @@ export async function showInfo(config) {
   }
 
   // Display shared tools
-  if (agents.tools) {
+  if (aiConfig.tools) {
     log.notice('Shared Tools:')
-    for (const [toolName, toolConfig] of Object.entries(agents.tools)) {
+    for (const [toolName, toolConfig] of Object.entries(aiConfig.tools)) {
       log.notice(`  ${toolName}:`)
       try {
         const toolType = detectTargetType(toolConfig)
@@ -115,14 +115,11 @@ export async function showInfo(config) {
     }
   }
 
-  // Display runtime agents (non-reserved keys)
+  // Display runtime agents
+  const agents = aiConfig.agents || {}
   log.notice('Runtime Agents:')
   let hasRuntimeAgents = false
   for (const [name, agentConfig] of Object.entries(agents)) {
-    // Skip reserved keys
-    if (isReservedAgentKey(name)) {
-      continue
-    }
     hasRuntimeAgents = true
     log.notice(`  ${name}:`)
     log.notice(`    Type: Runtime`)
@@ -157,9 +154,9 @@ export async function showInfo(config) {
   }
 
   // Display browsers
-  if (agents.browsers && Object.keys(agents.browsers).length > 0) {
+  if (aiConfig.browsers && Object.keys(aiConfig.browsers).length > 0) {
     log.notice('Browsers:')
-    for (const [name, browserConfig] of Object.entries(agents.browsers)) {
+    for (const [name, browserConfig] of Object.entries(aiConfig.browsers)) {
       log.notice(`  ${name}:`)
       if (browserConfig.description) {
         log.notice(`    Description: ${browserConfig.description}`)
@@ -173,11 +170,11 @@ export async function showInfo(config) {
 
   // Display codeInterpreters
   if (
-    agents.codeInterpreters &&
-    Object.keys(agents.codeInterpreters).length > 0
+    aiConfig.codeInterpreters &&
+    Object.keys(aiConfig.codeInterpreters).length > 0
   ) {
     log.notice('Code Interpreters:')
-    for (const [name, ciConfig] of Object.entries(agents.codeInterpreters)) {
+    for (const [name, ciConfig] of Object.entries(aiConfig.codeInterpreters)) {
       log.notice(`  ${name}:`)
       if (ciConfig.description) {
         log.notice(`    Description: ${ciConfig.description}`)

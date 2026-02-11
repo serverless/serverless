@@ -5,10 +5,10 @@ import { defineAgentsSchema } from '../../../../../../../lib/plugins/aws/bedrock
 
 describe('Schema Validator', () => {
   let mockServerless
-  let capturedAgentsSchema
+  let capturedAiSchema
 
   beforeEach(() => {
-    capturedAgentsSchema = null
+    capturedAiSchema = null
 
     mockServerless = {
       configSchemaHandler: {
@@ -20,8 +20,8 @@ describe('Schema Validator', () => {
           },
         },
         defineTopLevelProperty: jest.fn((name, schema) => {
-          if (name === 'agents') {
-            capturedAgentsSchema = schema
+          if (name === 'ai') {
+            capturedAiSchema = schema
           }
         }),
         defineCustomProperties: jest.fn(),
@@ -30,50 +30,55 @@ describe('Schema Validator', () => {
   })
 
   describe('defineAgentsSchema', () => {
-    test('defines agents top-level property', () => {
+    test('defines ai top-level property', () => {
       defineAgentsSchema(mockServerless)
 
       expect(
         mockServerless.configSchemaHandler.defineTopLevelProperty,
-      ).toHaveBeenCalledWith('agents', expect.any(Object))
+      ).toHaveBeenCalledWith('ai', expect.any(Object))
     })
 
-    test('agents schema is object type with additionalProperties', () => {
+    test('ai schema is object type with additionalProperties false and agents under properties', () => {
       defineAgentsSchema(mockServerless)
 
-      expect(capturedAgentsSchema.type).toBe('object')
-      expect(capturedAgentsSchema.additionalProperties).toBeDefined()
-      expect(capturedAgentsSchema.additionalProperties.type).toBe('object')
-    })
-
-    test('agents schema includes memory reserved key for shared memory', () => {
-      defineAgentsSchema(mockServerless)
-
-      expect(capturedAgentsSchema.properties.memory).toBeDefined()
-      expect(capturedAgentsSchema.properties.memory.type).toBe('object')
-    })
-
-    test('agents schema includes browsers reserved key', () => {
-      defineAgentsSchema(mockServerless)
-
-      expect(capturedAgentsSchema.properties.browsers).toBeDefined()
-      expect(capturedAgentsSchema.properties.browsers.type).toBe('object')
-    })
-
-    test('agents schema includes codeInterpreters reserved key', () => {
-      defineAgentsSchema(mockServerless)
-
-      expect(capturedAgentsSchema.properties.codeInterpreters).toBeDefined()
-      expect(capturedAgentsSchema.properties.codeInterpreters.type).toBe(
+      expect(capturedAiSchema.type).toBe('object')
+      expect(capturedAiSchema.additionalProperties).toBe(false)
+      expect(capturedAiSchema.properties.agents).toBeDefined()
+      expect(
+        capturedAiSchema.properties.agents.additionalProperties,
+      ).toBeDefined()
+      expect(capturedAiSchema.properties.agents.additionalProperties.type).toBe(
         'object',
       )
+    })
+
+    test('ai schema includes memory property for shared memory', () => {
+      defineAgentsSchema(mockServerless)
+
+      expect(capturedAiSchema.properties.memory).toBeDefined()
+      expect(capturedAiSchema.properties.memory.type).toBe('object')
+    })
+
+    test('ai schema includes browsers property', () => {
+      defineAgentsSchema(mockServerless)
+
+      expect(capturedAiSchema.properties.browsers).toBeDefined()
+      expect(capturedAiSchema.properties.browsers.type).toBe('object')
+    })
+
+    test('ai schema includes codeInterpreters property', () => {
+      defineAgentsSchema(mockServerless)
+
+      expect(capturedAiSchema.properties.codeInterpreters).toBeDefined()
+      expect(capturedAiSchema.properties.codeInterpreters.type).toBe('object')
     })
 
     test('agent schema includes description property', () => {
       defineAgentsSchema(mockServerless)
 
-      const descSchema =
-        capturedAgentsSchema.additionalProperties.properties.description
+      const runtimeAgentSchema =
+        capturedAiSchema.properties.agents.additionalProperties
+      const descSchema = runtimeAgentSchema.properties.description
       expect(descSchema.type).toBe('string')
       expect(descSchema.minLength).toBe(1)
       expect(descSchema.maxLength).toBe(1200)
@@ -82,8 +87,9 @@ describe('Schema Validator', () => {
     test('agent schema includes tags property', () => {
       defineAgentsSchema(mockServerless)
 
-      const tagsSchema =
-        capturedAgentsSchema.additionalProperties.properties.tags
+      const runtimeAgentSchema =
+        capturedAiSchema.properties.agents.additionalProperties
+      const tagsSchema = runtimeAgentSchema.properties.tags
       expect(tagsSchema.type).toBe('object')
       expect(tagsSchema.additionalProperties.type).toBe('string')
     })
@@ -91,8 +97,9 @@ describe('Schema Validator', () => {
     test('agent schema includes role property (supports ARN, logical name, or CF intrinsic)', () => {
       defineAgentsSchema(mockServerless)
 
-      const roleSchema =
-        capturedAgentsSchema.additionalProperties.properties.role
+      const runtimeAgentSchema =
+        capturedAiSchema.properties.agents.additionalProperties
+      const roleSchema = runtimeAgentSchema.properties.role
       expect(roleSchema).toBeDefined()
       // role supports string or object (CF intrinsic)
       expect(roleSchema.anyOf).toBeDefined()
@@ -104,7 +111,8 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const handlerSchema =
-          capturedAgentsSchema.additionalProperties.properties.handler
+          capturedAiSchema.properties.agents.additionalProperties.properties
+            .handler
         expect(handlerSchema).toBeDefined()
         expect(handlerSchema.type).toBe('string')
       })
@@ -113,7 +121,8 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const runtimeSchema =
-          capturedAgentsSchema.additionalProperties.properties.runtime
+          capturedAiSchema.properties.agents.additionalProperties.properties
+            .runtime
         expect(runtimeSchema).toBeDefined()
         expect(runtimeSchema.anyOf).toBeDefined()
         expect(runtimeSchema.anyOf).toHaveLength(4)
@@ -128,7 +137,8 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const artifactSchema =
-          capturedAgentsSchema.additionalProperties.properties.artifact
+          capturedAiSchema.properties.agents.additionalProperties.properties
+            .artifact
         expect(artifactSchema.type).toBe('object')
         expect(artifactSchema.properties.image).toBeDefined()
         expect(artifactSchema.properties.s3).toBeDefined()
@@ -138,8 +148,8 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const imageSchema =
-          capturedAgentsSchema.additionalProperties.properties.artifact
-            .properties.image
+          capturedAiSchema.properties.agents.additionalProperties.properties
+            .artifact.properties.image
         expect(imageSchema.anyOf).toBeDefined()
         expect(imageSchema.anyOf).toHaveLength(2)
         // String option for pre-built image URI
@@ -156,8 +166,8 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const s3Schema =
-          capturedAgentsSchema.additionalProperties.properties.artifact
-            .properties.s3
+          capturedAiSchema.properties.agents.additionalProperties.properties
+            .artifact.properties.s3
         expect(s3Schema.properties.bucket).toBeDefined()
         expect(s3Schema.properties.key).toBeDefined()
         expect(s3Schema.properties.versionId).toBeDefined()
@@ -167,7 +177,8 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const authSchema =
-          capturedAgentsSchema.additionalProperties.properties.authorizer
+          capturedAiSchema.properties.agents.additionalProperties.properties
+            .authorizer
         expect(authSchema).toBeDefined()
         // Authorizer uses anyOf - case-insensitive strings plus object option
         expect(authSchema.anyOf).toBeDefined()
@@ -177,7 +188,8 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const networkSchema =
-          capturedAgentsSchema.additionalProperties.properties.network
+          capturedAiSchema.properties.agents.additionalProperties.properties
+            .network
         expect(networkSchema.type).toBe('object')
         expect(networkSchema.properties.mode).toBeDefined()
         expect(networkSchema.properties.subnets).toBeDefined()
@@ -188,7 +200,8 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const authSchema =
-          capturedAgentsSchema.additionalProperties.properties.authorizer
+          capturedAiSchema.properties.agents.additionalProperties.properties
+            .authorizer
         // Authorizer can be string or object
         expect(authSchema.anyOf).toBeDefined()
         // Find the object option
@@ -202,7 +215,8 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const lifecycleSchema =
-          capturedAgentsSchema.additionalProperties.properties.lifecycle
+          capturedAiSchema.properties.agents.additionalProperties.properties
+            .lifecycle
         expect(lifecycleSchema.type).toBe('object')
         expect(lifecycleSchema.properties.idleRuntimeSessionTimeout.type).toBe(
           'number',
@@ -222,7 +236,8 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const endpointsSchema =
-          capturedAgentsSchema.additionalProperties.properties.endpoints
+          capturedAiSchema.properties.agents.additionalProperties.properties
+            .endpoints
         expect(endpointsSchema.type).toBe('array')
         expect(endpointsSchema.items.properties.name).toBeDefined()
         expect(endpointsSchema.items.properties.version).toBeDefined()
@@ -232,7 +247,8 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const requestHeadersSchema =
-          capturedAgentsSchema.additionalProperties.properties.requestHeaders
+          capturedAiSchema.properties.agents.additionalProperties.properties
+            .requestHeaders
         expect(requestHeadersSchema.type).toBe('object')
         expect(requestHeadersSchema.properties.allowlist.type).toBe('array')
       })
@@ -241,7 +257,8 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const envSchema =
-          capturedAgentsSchema.additionalProperties.properties.environment
+          capturedAiSchema.properties.agents.additionalProperties.properties
+            .environment
         // Environment uses $ref to the shared awsLambdaEnvironment definition
         expect(envSchema.$ref).toBe('#/definitions/awsLambdaEnvironment')
       })
@@ -253,7 +270,8 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const memorySchema =
-          capturedAgentsSchema.additionalProperties.properties.memory
+          capturedAiSchema.properties.agents.additionalProperties.properties
+            .memory
         expect(memorySchema.anyOf).toBeDefined()
         expect(memorySchema.anyOf).toHaveLength(2)
         // First option: string reference to shared memory
@@ -265,7 +283,7 @@ describe('Schema Validator', () => {
       test('shared memory schema includes expiration with range 3-365', () => {
         defineAgentsSchema(mockServerless)
 
-        const memorySchema = capturedAgentsSchema.properties.memory
+        const memorySchema = capturedAiSchema.properties.memory
         const expirySchema =
           memorySchema.additionalProperties.properties.expiration
         expect(expirySchema.type).toBe('number')
@@ -276,7 +294,7 @@ describe('Schema Validator', () => {
       test('shared memory schema includes strategies array', () => {
         defineAgentsSchema(mockServerless)
 
-        const memorySchema = capturedAgentsSchema.properties.memory
+        const memorySchema = capturedAiSchema.properties.memory
         const strategiesSchema =
           memorySchema.additionalProperties.properties.strategies
         expect(strategiesSchema.type).toBe('array')
@@ -287,26 +305,26 @@ describe('Schema Validator', () => {
       test('shared memory schema includes encryptionKey', () => {
         defineAgentsSchema(mockServerless)
 
-        const memorySchema = capturedAgentsSchema.properties.memory
+        const memorySchema = capturedAiSchema.properties.memory
         const encryptionSchema =
           memorySchema.additionalProperties.properties.encryptionKey
         expect(encryptionSchema.type).toBe('string')
       })
     })
 
-    // Tools schema tests (shared tools at agents.tools level)
+    // Tools schema tests (shared tools at ai.tools level)
     describe('tools schema', () => {
-      test('agents schema includes tools reserved key for shared tools', () => {
+      test('ai schema includes tools property for shared tools', () => {
         defineAgentsSchema(mockServerless)
 
-        expect(capturedAgentsSchema.properties.tools).toBeDefined()
-        expect(capturedAgentsSchema.properties.tools.type).toBe('object')
+        expect(capturedAiSchema.properties.tools).toBeDefined()
+        expect(capturedAiSchema.properties.tools.type).toBe('object')
       })
 
       test('shared tool config supports string reference or inline object', () => {
         defineAgentsSchema(mockServerless)
 
-        const toolsSchema = capturedAgentsSchema.properties.tools
+        const toolsSchema = capturedAiSchema.properties.tools
         expect(toolsSchema.additionalProperties.anyOf).toBeDefined()
         expect(toolsSchema.additionalProperties.anyOf).toHaveLength(2)
         // String reference
@@ -319,7 +337,7 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const toolConfigSchema =
-          capturedAgentsSchema.properties.tools.additionalProperties.anyOf[1]
+          capturedAiSchema.properties.tools.additionalProperties.anyOf[1]
         expect(toolConfigSchema.properties.function).toBeDefined()
         expect(toolConfigSchema.properties.openapi).toBeDefined()
         expect(toolConfigSchema.properties.smithy).toBeDefined()
@@ -330,7 +348,7 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const toolConfigSchema =
-          capturedAgentsSchema.properties.tools.additionalProperties.anyOf[1]
+          capturedAiSchema.properties.tools.additionalProperties.anyOf[1]
         expect(toolConfigSchema.properties.function.anyOf).toBeDefined()
         expect(toolConfigSchema.properties.function.anyOf[0].type).toBe(
           'string',
@@ -344,7 +362,7 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const toolConfigSchema =
-          capturedAgentsSchema.properties.tools.additionalProperties.anyOf[1]
+          capturedAiSchema.properties.tools.additionalProperties.anyOf[1]
         expect(toolConfigSchema.properties.mcp.type).toBe('string')
         expect(toolConfigSchema.properties.mcp.pattern).toBe('^https://.*')
       })
@@ -353,7 +371,7 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const toolConfigSchema =
-          capturedAgentsSchema.properties.tools.additionalProperties.anyOf[1]
+          capturedAiSchema.properties.tools.additionalProperties.anyOf[1]
         expect(toolConfigSchema.properties.toolSchema).toBeDefined()
       })
 
@@ -361,7 +379,7 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const toolConfigSchema =
-          capturedAgentsSchema.properties.tools.additionalProperties.anyOf[1]
+          capturedAiSchema.properties.tools.additionalProperties.anyOf[1]
         const credentialsSchema = toolConfigSchema.properties.credentials
         expect(credentialsSchema.type).toBe('object')
         // type is case-insensitive, so check for anyOf with pattern
@@ -372,7 +390,7 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const toolConfigSchema =
-          capturedAgentsSchema.properties.tools.additionalProperties.anyOf[1]
+          capturedAiSchema.properties.tools.additionalProperties.anyOf[1]
         const credentialsSchema = toolConfigSchema.properties.credentials
         expect(credentialsSchema.properties.provider).toBeDefined()
         expect(credentialsSchema.properties.scopes).toBeDefined()
@@ -380,13 +398,13 @@ describe('Schema Validator', () => {
       })
     })
 
-    // Browser-specific tests (via agents.browsers reserved key)
+    // Browser-specific tests (via ai.browsers property)
     describe('browsers schema', () => {
       test('includes recording configuration', () => {
         defineAgentsSchema(mockServerless)
 
         const browserSchema =
-          capturedAgentsSchema.properties.browsers.additionalProperties
+          capturedAiSchema.properties.browsers.additionalProperties
         const recordingSchema = browserSchema.properties.recording
         expect(recordingSchema.type).toBe('object')
         expect(recordingSchema.properties.enabled.type).toBe('boolean')
@@ -397,7 +415,7 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const browserSchema =
-          capturedAgentsSchema.properties.browsers.additionalProperties
+          capturedAiSchema.properties.browsers.additionalProperties
         const signingSchema = browserSchema.properties.signing
         expect(signingSchema.type).toBe('object')
         expect(signingSchema.properties.enabled.type).toBe('boolean')
@@ -407,20 +425,20 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const browserSchema =
-          capturedAgentsSchema.properties.browsers.additionalProperties
+          capturedAiSchema.properties.browsers.additionalProperties
         const networkSchema = browserSchema.properties.network
         expect(networkSchema.type).toBe('object')
         expect(networkSchema.properties.mode).toBeDefined()
       })
     })
 
-    // CodeInterpreter-specific tests (via agents.codeInterpreters reserved key)
+    // CodeInterpreter-specific tests (via ai.codeInterpreters property)
     describe('codeInterpreters schema', () => {
       test('includes network configuration with mode supporting SANDBOX', () => {
         defineAgentsSchema(mockServerless)
 
         const ciSchema =
-          capturedAgentsSchema.properties.codeInterpreters.additionalProperties
+          capturedAiSchema.properties.codeInterpreters.additionalProperties
         const networkSchema = ciSchema.properties.network
         expect(networkSchema.type).toBe('object')
         expect(networkSchema.properties.mode).toBeDefined()
@@ -430,7 +448,7 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const ciSchema =
-          capturedAgentsSchema.properties.codeInterpreters.additionalProperties
+          capturedAiSchema.properties.codeInterpreters.additionalProperties
         expect(ciSchema.properties.description).toBeDefined()
         expect(ciSchema.properties.description.type).toBe('string')
       })
@@ -438,17 +456,17 @@ describe('Schema Validator', () => {
 
     // Gateways schema tests
     describe('gateways schema', () => {
-      test('agents schema includes gateways reserved key', () => {
+      test('ai schema includes gateways property', () => {
         defineAgentsSchema(mockServerless)
 
-        expect(capturedAgentsSchema.properties.gateways).toBeDefined()
-        expect(capturedAgentsSchema.properties.gateways.type).toBe('object')
+        expect(capturedAiSchema.properties.gateways).toBeDefined()
+        expect(capturedAiSchema.properties.gateways.type).toBe('object')
       })
 
       test('gateway entry schema has authorizer property with anyOf for string or object', () => {
         defineAgentsSchema(mockServerless)
 
-        const gatewaysSchema = capturedAgentsSchema.properties.gateways
+        const gatewaysSchema = capturedAiSchema.properties.gateways
         const gatewayEntrySchema = gatewaysSchema.additionalProperties
         expect(gatewayEntrySchema.properties.authorizer).toBeDefined()
         expect(gatewayEntrySchema.properties.authorizer.anyOf).toBeDefined()
@@ -459,7 +477,7 @@ describe('Schema Validator', () => {
       test('gateway entry authorizer string enum includes valid types (case-insensitive)', () => {
         defineAgentsSchema(mockServerless)
 
-        const gatewaysSchema = capturedAgentsSchema.properties.gateways
+        const gatewaysSchema = capturedAiSchema.properties.gateways
         const gatewayEntrySchema = gatewaysSchema.additionalProperties
         // First 3 items are case-insensitive string patterns
         const authorizerStringSchema =
@@ -472,7 +490,7 @@ describe('Schema Validator', () => {
       test('gateway entry authorizer object includes type and jwt properties', () => {
         defineAgentsSchema(mockServerless)
 
-        const gatewaysSchema = capturedAgentsSchema.properties.gateways
+        const gatewaysSchema = capturedAiSchema.properties.gateways
         const gatewayEntrySchema = gatewaysSchema.additionalProperties
         // Object option is the 4th element (index 3) after the 3 case-insensitive string patterns
         const authorizerObjectSchema =
@@ -486,7 +504,7 @@ describe('Schema Validator', () => {
       test('gateway entry tools property is array of strings', () => {
         defineAgentsSchema(mockServerless)
 
-        const gatewaysSchema = capturedAgentsSchema.properties.gateways
+        const gatewaysSchema = capturedAiSchema.properties.gateways
         const gatewayEntrySchema = gatewaysSchema.additionalProperties
         expect(gatewayEntrySchema.properties.tools).toBeDefined()
         expect(gatewayEntrySchema.properties.tools.type).toBe('array')
@@ -496,7 +514,7 @@ describe('Schema Validator', () => {
       test('gateway entry includes protocol property as object with type and instructions', () => {
         defineAgentsSchema(mockServerless)
 
-        const gatewaysSchema = capturedAgentsSchema.properties.gateways
+        const gatewaysSchema = capturedAiSchema.properties.gateways
         const gatewayEntrySchema = gatewaysSchema.additionalProperties
         expect(gatewayEntrySchema.properties.protocol).toBeDefined()
         expect(gatewayEntrySchema.properties.protocol.type).toBe('object')
@@ -511,7 +529,7 @@ describe('Schema Validator', () => {
       test('gateway entry includes standard gateway properties', () => {
         defineAgentsSchema(mockServerless)
 
-        const gatewaysSchema = capturedAgentsSchema.properties.gateways
+        const gatewaysSchema = capturedAiSchema.properties.gateways
         const gatewayEntrySchema = gatewaysSchema.additionalProperties
         expect(gatewayEntrySchema.properties.description).toBeDefined()
         expect(gatewayEntrySchema.properties.role).toBeDefined()
@@ -526,7 +544,8 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const gatewaySchema =
-          capturedAgentsSchema.additionalProperties.properties.gateway
+          capturedAiSchema.properties.agents.additionalProperties.properties
+            .gateway
         expect(gatewaySchema).toBeDefined()
         expect(gatewaySchema.type).toBe('string')
       })
@@ -538,7 +557,8 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const roleSchema =
-          capturedAgentsSchema.additionalProperties.properties.role
+          capturedAiSchema.properties.agents.additionalProperties.properties
+            .role
         expect(roleSchema).toBeDefined()
         expect(roleSchema.anyOf).toBeDefined()
         expect(roleSchema.anyOf.length).toBeGreaterThanOrEqual(2)
@@ -552,7 +572,8 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const roleSchema =
-          capturedAgentsSchema.additionalProperties.properties.role
+          capturedAiSchema.properties.agents.additionalProperties.properties
+            .role
         const objectSchemas = roleSchema.anyOf.filter(
           (s) => s.type === 'object',
         )
@@ -574,7 +595,7 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const memorySchema =
-          capturedAgentsSchema.properties.memory.additionalProperties
+          capturedAiSchema.properties.memory.additionalProperties
         const roleSchema = memorySchema.properties.role
         expect(roleSchema.anyOf).toBeDefined()
 
@@ -591,7 +612,7 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const gatewayEntrySchema =
-          capturedAgentsSchema.properties.gateways.additionalProperties
+          capturedAiSchema.properties.gateways.additionalProperties
         const roleSchema = gatewayEntrySchema.properties.role
         expect(roleSchema.anyOf).toBeDefined()
 
@@ -603,7 +624,7 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const browserSchema =
-          capturedAgentsSchema.properties.browsers.additionalProperties
+          capturedAiSchema.properties.browsers.additionalProperties
         const roleSchema = browserSchema.properties.role
         expect(roleSchema.anyOf).toBeDefined()
 
@@ -615,7 +636,7 @@ describe('Schema Validator', () => {
         defineAgentsSchema(mockServerless)
 
         const ciSchema =
-          capturedAgentsSchema.properties.codeInterpreters.additionalProperties
+          capturedAiSchema.properties.codeInterpreters.additionalProperties
         const roleSchema = ciSchema.properties.role
         expect(roleSchema.anyOf).toBeDefined()
 

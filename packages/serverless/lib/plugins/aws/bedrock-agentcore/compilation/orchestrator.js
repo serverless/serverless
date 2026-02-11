@@ -25,16 +25,18 @@ import {
   generateCodeInterpreterRole,
   shouldGenerateRole,
 } from '../iam/policies.js'
-import { getLogicalId, pascalCase } from '../utils/naming.js'
+import {
+  getLogicalId,
+  getGatewayLogicalId,
+  pascalCase,
+} from '../utils/naming.js'
 import { mergeTags } from '../utils/tags.js'
 import { normalizeRuntime } from '../utils/runtime.js'
-import { isReservedAgentKey } from '../validators/config.js'
-
 /**
  * Compile all AgentCore resources to CloudFormation
  *
  * @param {object} config - Configuration object
- * @param {object} config.agents - Agent configurations
+ * @param {object} config.aiConfig - AI configuration (ai: block from serverless.yml)
  * @param {object} config.context - Compilation context
  * @param {object} config.template - CloudFormation template
  * @param {object} config.builtImages - Map of runtime names to built Docker images
@@ -45,7 +47,7 @@ import { isReservedAgentKey } from '../validators/config.js'
  */
 export function compileAgentCoreResources(config) {
   const {
-    agents,
+    aiConfig,
     context,
     template,
     builtImages,
@@ -59,7 +61,7 @@ export function compileAgentCoreResources(config) {
     return null
   }
 
-  if (!agents || Object.keys(agents).length === 0) {
+  if (!aiConfig || Object.keys(aiConfig).length === 0) {
     return null
   }
 
@@ -85,7 +87,7 @@ export function compileAgentCoreResources(config) {
   }
 
   // Collect all tools and gateway info
-  const { sharedTools, hasTools, hasGateways } = collectAllTools(agents)
+  const { sharedTools, hasTools, hasGateways } = collectAllTools(aiConfig)
 
   // Map of gateway names to their logical IDs (for agent gateway selection)
   const gatewayLogicalIds = {}
@@ -93,7 +95,7 @@ export function compileAgentCoreResources(config) {
   // First pass: Compile gateways and tools
   if (hasGateways) {
     // Multi-gateway mode: compile each gateway and its tools
-    const gateways = collectGateways(agents)
+    const gateways = collectGateways(aiConfig)
 
     for (const [gatewayName, gatewayConfig] of Object.entries(gateways)) {
       // Detect if any tools use OAuth/API Key credential providers
@@ -148,40 +150,37 @@ export function compileAgentCoreResources(config) {
     }
   }
 
-  // Second pass: Compile shared memory from agents.memory
-  if (agents.memory) {
-    for (const [memoryName, memoryConfig] of Object.entries(agents.memory)) {
+  // Second pass: Compile shared memory from ai.memory
+  if (aiConfig.memory) {
+    for (const [memoryName, memoryConfig] of Object.entries(aiConfig.memory)) {
       compileMemoryResources(memoryName, memoryConfig, context, template)
       stats.memory++
     }
   }
 
-  // Third pass: Compile browsers from reserved key
-  if (agents.browsers) {
+  // Third pass: Compile browsers from ai.browsers
+  if (aiConfig.browsers) {
     for (const [browserName, browserConfig] of Object.entries(
-      agents.browsers,
+      aiConfig.browsers,
     )) {
       compileBrowserResources(browserName, browserConfig, context, template)
       stats.browser++
     }
   }
 
-  // Fourth pass: Compile codeInterpreters from reserved key
-  if (agents.codeInterpreters) {
-    for (const [ciName, ciConfig] of Object.entries(agents.codeInterpreters)) {
+  // Fourth pass: Compile codeInterpreters from ai.codeInterpreters
+  if (aiConfig.codeInterpreters) {
+    for (const [ciName, ciConfig] of Object.entries(
+      aiConfig.codeInterpreters,
+    )) {
       compileCodeInterpreterResources(ciName, ciConfig, context, template)
       stats.codeInterpreter++
     }
   }
 
-  // Fifth pass: Compile runtime agents (non-reserved keys)
+  // Fifth pass: Compile runtime agents from ai.agents
+  const agents = aiConfig.agents || {}
   for (const [name, runtimeConfig] of Object.entries(agents)) {
-    // Skip reserved keys
-    if (isReservedAgentKey(name)) {
-      continue
-    }
-
-    // All non-reserved keys are runtime agents
     // Determine which gateway (if any) this agent uses
     let agentGatewayLogicalId = null
     if (runtimeConfig.gateway && gatewayLogicalIds[runtimeConfig.gateway]) {
@@ -198,7 +197,7 @@ export function compileAgentCoreResources(config) {
       runtimeConfig,
       context,
       template,
-      agents.memory,
+      aiConfig.memory,
       agentGatewayLogicalId,
       builtImages,
     )
@@ -244,12 +243,12 @@ export function compileAgentCoreResources(config) {
 /**
  * Collect all tools and gateway metadata
  *
- * @param {object} agents - Agent configurations
+ * @param {object} aiConfig - AI configuration (ai: block)
  * @returns {object} Object with sharedTools, hasTools, hasGateways
  */
-export function collectAllTools(agents) {
-  const sharedTools = agents.tools || {}
-  const gateways = agents.gateways || {}
+export function collectAllTools(aiConfig) {
+  const sharedTools = aiConfig.tools || {}
+  const gateways = aiConfig.gateways || {}
   const hasGateways = Object.keys(gateways).length > 0
   const hasTools = Object.keys(sharedTools).length > 0
 
@@ -285,11 +284,11 @@ export function hasOAuthOrApiKeyTools(toolNames, sharedTools) {
  * Collect gateway configurations with their tool assignments
  * Returns a map of gateway names to their configs (with normalized authorizer)
  *
- * @param {object} agents - Agent configurations
+ * @param {object} aiConfig - AI configuration (ai: block)
  * @returns {object} Map of gateway names to normalized configs
  */
-export function collectGateways(agents) {
-  const gateways = agents.gateways || {}
+export function collectGateways(aiConfig) {
+  const gateways = aiConfig.gateways || {}
   const result = {}
 
   for (const [gatewayName, gatewayConfig] of Object.entries(gateways)) {
@@ -327,7 +326,7 @@ export function normalizeAuthorizer(authorizer) {
 
 /**
  * Compile the auto-created default Gateway for tools (backwards compatibility)
- * Used when agents.tools exists but agents.gateways does not
+ * Used when ai.tools exists but ai.gateways does not
  *
  * @param {object} context - Compilation context
  * @param {object} template - CloudFormation template
@@ -342,7 +341,7 @@ export function compileToolsGateway(context, template, sharedTools = {}) {
       sharedTools,
     ),
   }
-  const logicalId = 'AgentCoreGateway'
+  const logicalId = getGatewayLogicalId()
   const tags = mergeTags(context.defaultTags, gatewayConfig.tags)
 
   // Generate IAM role (always generated for default gateway)
@@ -388,7 +387,7 @@ export function compileToolsGateway(context, template, sharedTools = {}) {
 }
 
 /**
- * Compile a named Gateway from agents.gateways
+ * Compile a named Gateway from ai.gateways
  *
  * @param {string} gatewayName - Gateway name from config
  * @param {object} gatewayConfig - Gateway configuration (with normalized authorizer)
@@ -402,7 +401,7 @@ export function compileNamedGateway(
   context,
   template,
 ) {
-  const logicalId = `AgentCoreGateway${pascalCase(gatewayName)}`
+  const logicalId = getGatewayLogicalId(gatewayName)
   const tags = mergeTags(context.defaultTags, gatewayConfig.tags)
 
   // Build gateway config for compiler

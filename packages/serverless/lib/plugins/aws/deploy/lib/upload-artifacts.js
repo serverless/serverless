@@ -181,10 +181,9 @@ export default {
    * Get artifact file paths for agents that use code deployment
    */
   getAgentArtifactFilePaths() {
-    const agents =
-      this.serverless.service.agents ||
-      this.serverless.configurationInput?.agents ||
-      {}
+    const aiConfig =
+      this.serverless.service.ai || this.serverless.configurationInput?.ai || {}
+    const agents = aiConfig.agents || {}
 
     return Object.entries(agents)
       .filter(([, config]) => {

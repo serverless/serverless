@@ -43,11 +43,12 @@ class AwsInvokeAgent {
    * Validate the agent exists and get input data
    */
   async validateAgent() {
-    const agents = this.getAgentsConfig()
+    const aiConfig = this.getAiConfig()
+    const agents = aiConfig?.agents
 
     if (!agents) {
       throw new ServerlessError(
-        'No agents defined in serverless.yml',
+        'No agents defined in serverless.yml under ai.agents',
         'NO_AGENTS_DEFINED',
       )
     }
@@ -132,25 +133,21 @@ class AwsInvokeAgent {
   }
 
   /**
-   * Get agents configuration
+   * Get ai configuration
    */
-  getAgentsConfig() {
+  getAiConfig() {
     const service = this.serverless.service
 
-    if (service.agents) {
-      return service.agents
+    if (service.ai) {
+      return service.ai
     }
 
-    if (service.initialServerlessConfig?.agents) {
-      return service.initialServerlessConfig.agents
+    if (service.initialServerlessConfig?.ai) {
+      return service.initialServerlessConfig.ai
     }
 
-    if (service.custom?.agents) {
-      return service.custom.agents
-    }
-
-    if (this.serverless.configurationInput?.agents) {
-      return this.serverless.configurationInput.agents
+    if (this.serverless.configurationInput?.ai) {
+      return this.serverless.configurationInput.ai
     }
 
     return null

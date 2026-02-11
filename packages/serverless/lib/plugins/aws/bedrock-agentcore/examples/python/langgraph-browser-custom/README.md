@@ -63,11 +63,12 @@ serverless deploy
 Example output:
 
 ```
-agents:
-  browserAgent: https://bedrock-agentcore.us-east-1.amazonaws.com/runtimes/arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/xxx/invocations
+ai:
+  agents:
+    browserAgent: https://bedrock-agentcore.us-east-1.amazonaws.com/runtimes/arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/xxx/invocations
 
-browsers:
-  customBrowser: custom-browser-id-xxx
+  browsers:
+    customBrowser: custom-browser-id-xxx
 ```
 
 ## Testing
@@ -155,7 +156,7 @@ for obj in response.get('Contents', []):
 ### Custom Browser Settings
 
 ```yaml
-agents:
+ai:
   browsers:
     customBrowser:
       description: Browser with custom configuration
@@ -173,7 +174,7 @@ agents:
 ### VPC Configuration (Optional)
 
 ```yaml
-agents:
+ai:
   browsers:
     privateBrowser:
       network:

@@ -150,8 +150,9 @@ Dev mode supports two execution modes, detected automatically based on your proj
 Builds a Docker image locally and runs it in a container. This is the default mode for most projects.
 
 ```yml
-agents:
-  myAgent: {} # Dockerfile auto-detected
+ai:
+  agents:
+    myAgent: {} # Dockerfile auto-detected
 ```
 
 - Builds image as `<service>-<agent>:local`
@@ -165,10 +166,11 @@ agents:
 Runs the Python process directly without Docker. Faster startup and iteration, ideal for rapid development.
 
 ```yml
-agents:
-  myAgent:
-    handler: agent.py
-    runtime: python3.13
+ai:
+  agents:
+    myAgent:
+      handler: agent.py
+      runtime: python3.13
 ```
 
 - Spawns the Python process directly from the project directory
@@ -269,11 +271,12 @@ Dev mode injects the following environment variables into your agent process/con
 Any variables defined in `environment` in your `serverless.yml` are also injected:
 
 ```yml
-agents:
-  myAgent:
-    environment:
-      MODEL_ID: us.anthropic.claude-sonnet-4-20250514-v1:0
-      MY_API_KEY: ${ssm:/my/api/key}
+ai:
+  agents:
+    myAgent:
+      environment:
+        MODEL_ID: us.anthropic.claude-sonnet-4-20250514-v1:0
+        MY_API_KEY: ${ssm:/my/api/key}
 ```
 
 ## Interactive Chat
@@ -390,9 +393,10 @@ Dev mode detected a different Python version than configured. Install the correc
 python3.13 --version
 
 # Or update serverless.yml
-agents:
-  myAgent:
-    runtime: python3.12  # Match your installed version
+ai:
+  agents:
+    myAgent:
+      runtime: python3.12  # Match your installed version
 ```
 
 ### Credentials fail after trust policy update

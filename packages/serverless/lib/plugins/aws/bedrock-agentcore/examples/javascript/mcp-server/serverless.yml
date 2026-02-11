@@ -8,6 +8,7 @@ service: mcp-server
 provider:
   name: aws
 
-agents:
-  assistant:
-    protocol: MCP
+ai:
+  agents:
+    assistant:
+      protocol: MCP

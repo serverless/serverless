@@ -41,17 +41,10 @@ describe('ServerlessBedrockAgentCore', () => {
       expect(pluginInstance.hooks).toHaveProperty('after:deploy:deploy')
     })
 
-    test('defines agentcore commands', () => {
-      expect(pluginInstance.commands.agentcore).toBeDefined()
-      expect(pluginInstance.commands.agentcore.commands.info).toBeDefined()
-      expect(pluginInstance.commands.agentcore.commands.build).toBeDefined()
-      expect(pluginInstance.commands.agentcore.commands.logs).toBeDefined()
-    })
-
     test('calls defineAgentsSchema', () => {
       expect(
         mockServerless.configSchemaHandler.defineTopLevelProperty,
-      ).toHaveBeenCalledWith('agents', expect.any(Object))
+      ).toHaveBeenCalledWith('ai', expect.any(Object))
     })
   })
 
@@ -76,90 +69,86 @@ describe('ServerlessBedrockAgentCore', () => {
     })
   })
 
-  describe('getAgentsConfig', () => {
-    test('returns null when no agents defined', () => {
-      delete mockServerless.service.agents
+  describe('getAiConfig', () => {
+    test('returns null when no ai config defined', () => {
+      delete mockServerless.service.ai
       delete mockServerless.service.initialServerlessConfig
-      mockServerless.service.custom = {}
       mockServerless.configurationInput = {}
 
-      const agents = pluginInstance.getAgentsConfig()
+      const aiConfig = pluginInstance.getAiConfig()
 
-      expect(agents).toBeNull()
+      expect(aiConfig).toBeNull()
     })
 
-    test('returns agents from service.agents', () => {
-      mockServerless.service.agents = {
-        myAgent: { artifact: { image: 'test' } },
+    test('returns ai config from service.ai', () => {
+      mockServerless.service.ai = {
+        agents: { myAgent: { artifact: { image: 'test' } } },
       }
 
-      const agents = pluginInstance.getAgentsConfig()
+      const aiConfig = pluginInstance.getAiConfig()
 
-      expect(agents).toEqual({ myAgent: { artifact: { image: 'test' } } })
+      expect(aiConfig).toEqual({
+        agents: { myAgent: { artifact: { image: 'test' } } },
+      })
     })
 
-    test('returns agents from initialServerlessConfig when service.agents not set', () => {
-      delete mockServerless.service.agents
+    test('returns ai config from initialServerlessConfig when service.ai not set', () => {
+      delete mockServerless.service.ai
       mockServerless.service.initialServerlessConfig = {
-        agents: { myAgent: { artifact: { image: 'test' } } },
+        ai: { agents: { myAgent: { artifact: { image: 'test' } } } },
       }
 
-      const agents = pluginInstance.getAgentsConfig()
+      const aiConfig = pluginInstance.getAiConfig()
 
-      expect(agents).toEqual({ myAgent: { artifact: { image: 'test' } } })
-    })
-
-    test('returns agents from custom.agents when other sources not set', () => {
-      delete mockServerless.service.agents
-      delete mockServerless.service.initialServerlessConfig
-      mockServerless.service.custom = {
+      expect(aiConfig).toEqual({
         agents: { myAgent: { artifact: { image: 'test' } } },
-      }
-
-      const agents = pluginInstance.getAgentsConfig()
-
-      expect(agents).toEqual({ myAgent: { artifact: { image: 'test' } } })
+      })
     })
 
-    test('returns agents from configurationInput when other sources not set', () => {
-      delete mockServerless.service.agents
+    test('returns ai config from configurationInput when other sources not set', () => {
+      delete mockServerless.service.ai
       delete mockServerless.service.initialServerlessConfig
-      mockServerless.service.custom = {}
       mockServerless.configurationInput = {
-        agents: { myAgent: { artifact: { image: 'test' } } },
+        ai: { agents: { myAgent: { artifact: { image: 'test' } } } },
       }
 
-      const agents = pluginInstance.getAgentsConfig()
+      const aiConfig = pluginInstance.getAiConfig()
 
-      expect(agents).toEqual({ myAgent: { artifact: { image: 'test' } } })
+      expect(aiConfig).toEqual({
+        agents: { myAgent: { artifact: { image: 'test' } } },
+      })
     })
 
-    test('prioritizes service.agents over other sources', () => {
-      mockServerless.service.agents = {
-        fromService: { artifact: { image: 'test1' } },
+    test('prioritizes service.ai over other sources', () => {
+      mockServerless.service.ai = {
+        agents: { fromService: { artifact: { image: 'test1' } } },
       }
       mockServerless.service.initialServerlessConfig = {
-        agents: { fromInitial: { artifact: { image: 'test2' } } },
+        ai: { agents: { fromInitial: { artifact: { image: 'test2' } } } },
       }
 
-      const agents = pluginInstance.getAgentsConfig()
+      const aiConfig = pluginInstance.getAiConfig()
 
-      expect(agents).toEqual({ fromService: { artifact: { image: 'test1' } } })
+      expect(aiConfig).toEqual({
+        agents: { fromService: { artifact: { image: 'test1' } } },
+      })
     })
   })
 
   describe('validateConfig', () => {
-    test('skips validation when no agents defined', () => {
+    test('skips validation when no ai config defined', () => {
       expect(() => pluginInstance.validateConfig()).not.toThrow()
       expect(mockUtils.log.debug).toHaveBeenCalledWith(
-        'No agents defined, skipping AgentCore compilation',
+        'No ai config defined, skipping AgentCore compilation',
       )
     })
 
     test('validates all agents when defined', () => {
-      mockServerless.service.agents = {
-        myRuntime: {
-          artifact: { image: 'test:latest' },
+      mockServerless.service.ai = {
+        agents: {
+          myRuntime: {
+            artifact: { image: 'test:latest' },
+          },
         },
       }
 
@@ -472,7 +461,7 @@ describe('ServerlessBedrockAgentCore', () => {
   })
 
   describe('compileAgentCoreResources', () => {
-    test('returns early when no agents defined', () => {
+    test('returns early when no ai config defined', () => {
       pluginInstance.compileAgentCoreResources()
 
       expect(mockUtils.log.info).not.toHaveBeenCalledWith(
@@ -481,8 +470,8 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     test('returns early when no compiled template', () => {
-      mockServerless.service.agents = {
-        myAgent: { artifact: { image: 'test' } },
+      mockServerless.service.ai = {
+        agents: { myAgent: { artifact: { image: 'test' } } },
       }
       mockServerless.service.provider.compiledCloudFormationTemplate = null
 
@@ -492,7 +481,7 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     test('compiles resources only once (idempotent)', () => {
-      mockServerless.service.agents = {
+      mockServerless.service.ai = {
         memory: { myMemory: { expiration: 90 } },
       }
 
@@ -502,10 +491,12 @@ describe('ServerlessBedrockAgentCore', () => {
       expect(mockUtils.log.info).toHaveBeenCalledTimes(1)
     })
 
-    test('compiles runtime resources (non-reserved key is treated as runtime)', () => {
-      mockServerless.service.agents = {
-        myAgent: {
-          artifact: { image: 'test:latest' },
+    test('compiles runtime resources from ai.agents', () => {
+      mockServerless.service.ai = {
+        agents: {
+          myAgent: {
+            artifact: { image: 'test:latest' },
+          },
         },
       }
 
@@ -518,8 +509,8 @@ describe('ServerlessBedrockAgentCore', () => {
       expect(template.Outputs).toHaveProperty('MyAgentRuntimeArn')
     })
 
-    test('compiles shared memory resources', () => {
-      mockServerless.service.agents = {
+    test('compiles shared memory resources from ai.memory', () => {
+      mockServerless.service.ai = {
         memory: {
           myMemory: { expiration: 90 },
         },
@@ -534,10 +525,12 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     test('compiles inline memory for runtime', () => {
-      mockServerless.service.agents = {
-        myRuntime: {
-          artifact: { image: 'test:latest' },
-          memory: { expiration: 90 },
+      mockServerless.service.ai = {
+        agents: {
+          myRuntime: {
+            artifact: { image: 'test:latest' },
+            memory: { expiration: 90 },
+          },
         },
       }
 
@@ -551,13 +544,15 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     test('compiles runtime with shared memory reference', () => {
-      mockServerless.service.agents = {
+      mockServerless.service.ai = {
         memory: {
           sharedMem: { expiration: 90 },
         },
-        myRuntime: {
-          artifact: { image: 'test:latest' },
-          memory: 'sharedMem',
+        agents: {
+          myRuntime: {
+            artifact: { image: 'test:latest' },
+            memory: 'sharedMem',
+          },
         },
       }
 
@@ -574,10 +569,12 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     test('injects BEDROCK_AGENTCORE_MEMORY_ID env var for inline memory', () => {
-      mockServerless.service.agents = {
-        myRuntime: {
-          artifact: { image: 'test:latest' },
-          memory: { expiration: 90 },
+      mockServerless.service.ai = {
+        agents: {
+          myRuntime: {
+            artifact: { image: 'test:latest' },
+            memory: { expiration: 90 },
+          },
         },
       }
 
@@ -595,13 +592,15 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     test('injects BEDROCK_AGENTCORE_MEMORY_ID env var for shared memory reference', () => {
-      mockServerless.service.agents = {
+      mockServerless.service.ai = {
         memory: {
           sharedMem: { expiration: 90 },
         },
-        myRuntime: {
-          artifact: { image: 'test:latest' },
-          memory: 'sharedMem',
+        agents: {
+          myRuntime: {
+            artifact: { image: 'test:latest' },
+            memory: 'sharedMem',
+          },
         },
       }
 
@@ -619,13 +618,15 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     test('preserves existing env vars when adding BEDROCK_AGENTCORE_MEMORY_ID', () => {
-      mockServerless.service.agents = {
-        myRuntime: {
-          artifact: { image: 'test:latest' },
-          memory: { expiration: 90 },
-          environment: {
-            MY_VAR: 'my-value',
-            ANOTHER_VAR: 'another-value',
+      mockServerless.service.ai = {
+        agents: {
+          myRuntime: {
+            artifact: { image: 'test:latest' },
+            memory: { expiration: 90 },
+            environment: {
+              MY_VAR: 'my-value',
+              ANOTHER_VAR: 'another-value',
+            },
           },
         },
       }
@@ -646,8 +647,8 @@ describe('ServerlessBedrockAgentCore', () => {
       })
     })
 
-    test('compiles browser resources from browsers reserved key', () => {
-      mockServerless.service.agents = {
+    test('compiles browser resources from ai.browsers', () => {
+      mockServerless.service.ai = {
         browsers: {
           myBrowser: {},
         },
@@ -660,8 +661,8 @@ describe('ServerlessBedrockAgentCore', () => {
       expect(template.Resources).toHaveProperty('MyBrowserBrowser')
     })
 
-    test('compiles codeInterpreter resources from codeInterpreters reserved key', () => {
-      mockServerless.service.agents = {
+    test('compiles codeInterpreter resources from ai.codeInterpreters', () => {
+      mockServerless.service.ai = {
         codeInterpreters: {
           myCI: {},
         },
@@ -675,10 +676,12 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     test('compiles runtime with endpoints', () => {
-      mockServerless.service.agents = {
-        myAgent: {
-          artifact: { image: 'test:latest' },
-          endpoints: [{ name: 'v1', description: 'Version 1' }],
+      mockServerless.service.ai = {
+        agents: {
+          myAgent: {
+            artifact: { image: 'test:latest' },
+            endpoints: [{ name: 'v1', description: 'Version 1' }],
+          },
         },
       }
 
@@ -690,7 +693,7 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     test('uses provided role instead of generating role', () => {
-      mockServerless.service.agents = {
+      mockServerless.service.ai = {
         memory: {
           myMemory: {
             expiration: 90,
@@ -707,10 +710,12 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     test('logs resource summary', () => {
-      mockServerless.service.agents = {
+      mockServerless.service.ai = {
         memory: { myMemory: { expiration: 90 } },
-        myRuntime: {
-          artifact: { image: 'test:latest' },
+        agents: {
+          myRuntime: {
+            artifact: { image: 'test:latest' },
+          },
         },
       }
 
@@ -723,15 +728,15 @@ describe('ServerlessBedrockAgentCore', () => {
   })
 
   describe('displayDeploymentInfo', () => {
-    test('returns early when no agents', async () => {
+    test('returns early when no ai config', async () => {
       await pluginInstance.displayDeploymentInfo()
 
       expect(mockUtils.log.notice).not.toHaveBeenCalled()
     })
 
     test('completes without logging when resources exist', async () => {
-      mockServerless.service.agents = {
-        myAgent: { artifact: { image: 'test' } },
+      mockServerless.service.ai = {
+        agents: { myAgent: { artifact: { image: 'test' } } },
       }
 
       await pluginInstance.displayDeploymentInfo()
@@ -740,129 +745,27 @@ describe('ServerlessBedrockAgentCore', () => {
     })
   })
 
-  describe('showInfo', () => {
-    test('shows message when no agents defined', async () => {
-      await pluginInstance.showInfo()
-
-      expect(mockUtils.log.notice).toHaveBeenCalledWith(
-        'No AgentCore resources defined in this service.',
-      )
-    })
-
-    test('shows agent information', async () => {
-      mockServerless.service.agents = {
-        myAgent: { description: 'Test agent', artifact: { image: 'test' } },
-      }
-
-      await pluginInstance.showInfo()
-
-      expect(mockUtils.log.notice).toHaveBeenCalledWith('AgentCore Resources:')
-      expect(mockUtils.log.notice).toHaveBeenCalledWith('  myAgent:')
-      expect(mockUtils.log.notice).toHaveBeenCalledWith('    Type: Runtime')
-      expect(mockUtils.log.notice).toHaveBeenCalledWith(
-        '    Description: Test agent',
-      )
-    })
-
-    test('shows verbose output when option set', async () => {
-      mockServerless.service.agents = {
-        myAgent: { artifact: { image: 'test' } },
-      }
-      mockOptions.verbose = true
-
-      await pluginInstance.showInfo()
-
-      expect(mockUtils.log.notice).toHaveBeenCalledWith(
-        expect.stringContaining('Config:'),
-      )
-    })
-  })
-
-  describe('getFirstRuntimeAgent', () => {
-    test('returns null when no agents', () => {
-      const result = pluginInstance.getFirstRuntimeAgent()
-
-      expect(result).toBeNull()
-    })
-
-    test('returns first runtime agent name (non-reserved key)', () => {
-      mockServerless.service.agents = {
-        browsers: { myBrowser: {} },
-        myRuntime: { artifact: { image: 'test' } },
-        anotherRuntime: { artifact: { image: 'test2' } },
-      }
-
-      const result = pluginInstance.getFirstRuntimeAgent()
-
-      expect(result).toBe('myRuntime')
-    })
-
-    test('skips memory reserved key', () => {
-      mockServerless.service.agents = {
-        memory: { sharedMem: { expiration: 90 } },
-        myRuntime: { artifact: { image: 'test' } },
-      }
-
-      const result = pluginInstance.getFirstRuntimeAgent()
-
-      expect(result).toBe('myRuntime')
-    })
-
-    test('skips tools reserved key', () => {
-      mockServerless.service.agents = {
-        tools: { myTool: { mcp: 'https://example.com/mcp' } },
-        myRuntime: { artifact: { image: 'test' } },
-      }
-
-      const result = pluginInstance.getFirstRuntimeAgent()
-
-      expect(result).toBe('myRuntime')
-    })
-
-    test('skips browsers reserved key', () => {
-      mockServerless.service.agents = {
-        browsers: { myBrowser: {} },
-        myRuntime: { artifact: { image: 'test' } },
-      }
-
-      const result = pluginInstance.getFirstRuntimeAgent()
-
-      expect(result).toBe('myRuntime')
-    })
-
-    test('skips codeInterpreters reserved key', () => {
-      mockServerless.service.agents = {
-        codeInterpreters: { myCI: {} },
-        myRuntime: { artifact: { image: 'test' } },
-      }
-
-      const result = pluginInstance.getFirstRuntimeAgent()
-
-      expect(result).toBe('myRuntime')
-    })
-  })
-
   describe('tools functionality', () => {
     describe('collectAllTools', () => {
       test('returns hasTools false when no tools defined', () => {
-        const agents = {
-          myRuntime: { artifact: { image: 'test' } },
+        const aiConfig = {
+          agents: { myRuntime: { artifact: { image: 'test' } } },
         }
 
-        const result = collectAllTools(agents)
+        const result = collectAllTools(aiConfig)
 
         expect(result.hasTools).toBe(false)
         expect(result.hasGateways).toBe(false)
         expect(result.sharedTools).toEqual({})
       })
 
-      test('returns hasTools true when shared tools defined', () => {
-        const agents = {
+      test('returns hasTools true when shared tools defined in ai.tools', () => {
+        const aiConfig = {
           tools: { myTool: { mcp: 'https://example.com/mcp' } },
-          myRuntime: { artifact: { image: 'test' } },
+          agents: { myRuntime: { artifact: { image: 'test' } } },
         }
 
-        const result = collectAllTools(agents)
+        const result = collectAllTools(aiConfig)
 
         expect(result.hasTools).toBe(true)
         expect(result.hasGateways).toBe(false)
@@ -871,16 +774,16 @@ describe('ServerlessBedrockAgentCore', () => {
         })
       })
 
-      test('returns hasGateways true when gateways defined', () => {
-        const agents = {
+      test('returns hasGateways true when gateways defined in ai.gateways', () => {
+        const aiConfig = {
           tools: { myTool: { mcp: 'https://example.com/mcp' } },
           gateways: {
             myGateway: { authorizer: 'AWS_IAM', tools: ['myTool'] },
           },
-          myRuntime: { artifact: { image: 'test' } },
+          agents: { myRuntime: { artifact: { image: 'test' } } },
         }
 
-        const result = collectAllTools(agents)
+        const result = collectAllTools(aiConfig)
 
         expect(result.hasTools).toBe(true)
         expect(result.hasGateways).toBe(true)
@@ -938,7 +841,7 @@ describe('ServerlessBedrockAgentCore', () => {
 
     describe('validateConfig with tools', () => {
       test('throws error when shared tool is a string reference', () => {
-        mockServerless.service.agents = {
+        mockServerless.service.ai = {
           tools: { myTool: 'some-ref' },
         }
 
@@ -948,10 +851,12 @@ describe('ServerlessBedrockAgentCore', () => {
       })
 
       test('validates successfully with valid shared tool', () => {
-        mockServerless.service.agents = {
+        mockServerless.service.ai = {
           tools: { sharedMcp: { mcp: 'https://example.com/mcp' } },
-          myRuntime: {
-            artifact: { image: 'test' },
+          agents: {
+            myRuntime: {
+              artifact: { image: 'test' },
+            },
           },
         }
 
@@ -960,8 +865,8 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     describe('compileAgentCoreResources with tools', () => {
-      test('creates gateway when shared tools exist', () => {
-        mockServerless.service.agents = {
+      test('creates gateway when shared tools exist in ai.tools', () => {
+        mockServerless.service.ai = {
           tools: { myTool: { mcp: 'https://example.com/mcp' } },
         }
 
@@ -976,9 +881,11 @@ describe('ServerlessBedrockAgentCore', () => {
       })
 
       test('does not create gateway when no tools', () => {
-        mockServerless.service.agents = {
-          myRuntime: {
-            artifact: { image: 'test:latest' },
+        mockServerless.service.ai = {
+          agents: {
+            myRuntime: {
+              artifact: { image: 'test:latest' },
+            },
           },
         }
 
@@ -990,7 +897,7 @@ describe('ServerlessBedrockAgentCore', () => {
       })
 
       test('adds gateway outputs', () => {
-        mockServerless.service.agents = {
+        mockServerless.service.ai = {
           tools: { myTool: { mcp: 'https://example.com/mcp' } },
         }
 
@@ -1004,7 +911,7 @@ describe('ServerlessBedrockAgentCore', () => {
       })
 
       test('compiles shared tools as GatewayTarget resources', () => {
-        mockServerless.service.agents = {
+        mockServerless.service.ai = {
           tools: {
             'my-mcp': { mcp: 'https://example.com/mcp' },
           },
@@ -1023,10 +930,12 @@ describe('ServerlessBedrockAgentCore', () => {
 
     describe('env var injection', () => {
       test('injects BEDROCK_AGENTCORE_GATEWAY_URL when shared tools exist (backwards compat)', () => {
-        mockServerless.service.agents = {
+        mockServerless.service.ai = {
           tools: { myTool: { mcp: 'https://example.com/mcp' } },
-          myRuntime: {
-            artifact: { image: 'test-image:latest' },
+          agents: {
+            myRuntime: {
+              artifact: { image: 'test-image:latest' },
+            },
           },
         }
 
@@ -1044,9 +953,11 @@ describe('ServerlessBedrockAgentCore', () => {
       })
 
       test('does not inject gateway URL when no shared tools', () => {
-        mockServerless.service.agents = {
-          myRuntime: {
-            artifact: { image: 'test-image:latest' },
+        mockServerless.service.ai = {
+          agents: {
+            myRuntime: {
+              artifact: { image: 'test-image:latest' },
+            },
           },
         }
 
@@ -1058,16 +969,6 @@ describe('ServerlessBedrockAgentCore', () => {
         const envVars = runtime.Properties.EnvironmentVariables || {}
         expect(envVars.BEDROCK_AGENTCORE_GATEWAY_URL).toBeUndefined()
       })
-    })
-  })
-
-  // parseTimeAgo tests moved to commands/logs.test.js
-
-  describe('fetchLogs', () => {
-    test('throws error when no runtime agents found', async () => {
-      await expect(pluginInstance.fetchLogs()).rejects.toThrow(
-        'No runtime agents found in configuration',
-      )
     })
   })
 
@@ -1118,16 +1019,16 @@ describe('ServerlessBedrockAgentCore', () => {
 
   describe('collectGateways', () => {
     test('returns empty object when no gateways defined', () => {
-      const agents = {
+      const aiConfig = {
         tools: { 'my-tool': { function: 'myFunc' } },
       }
-      const result = collectGateways(agents)
+      const result = collectGateways(aiConfig)
 
       expect(result).toEqual({})
     })
 
-    test('collects gateways with normalized authorizers', () => {
-      const agents = {
+    test('collects gateways from ai.gateways with normalized authorizers', () => {
+      const aiConfig = {
         gateways: {
           publicGateway: {
             authorizer: 'NONE',
@@ -1139,7 +1040,7 @@ describe('ServerlessBedrockAgentCore', () => {
           },
         },
       }
-      const result = collectGateways(agents)
+      const result = collectGateways(aiConfig)
 
       expect(result.publicGateway.authorizer).toEqual({ type: 'NONE' })
       expect(result.publicGateway.tools).toEqual(['tool1'])
@@ -1149,24 +1050,24 @@ describe('ServerlessBedrockAgentCore', () => {
   })
 
   describe('collectAllTools with gateways', () => {
-    test('returns hasGateways false when no gateways', () => {
-      const agents = {
+    test('returns hasGateways false when no gateways in ai', () => {
+      const aiConfig = {
         tools: { 'my-tool': { function: 'myFunc' } },
       }
-      const result = collectAllTools(agents)
+      const result = collectAllTools(aiConfig)
 
       expect(result.hasGateways).toBe(false)
       expect(result.hasTools).toBe(true)
     })
 
-    test('returns hasGateways true when gateways defined', () => {
-      const agents = {
+    test('returns hasGateways true when gateways defined in ai.gateways', () => {
+      const aiConfig = {
         tools: { 'my-tool': { function: 'myFunc' } },
         gateways: {
           myGateway: { authorizer: 'AWS_IAM', tools: ['my-tool'] },
         },
       }
-      const result = collectAllTools(agents)
+      const result = collectAllTools(aiConfig)
 
       expect(result.hasGateways).toBe(true)
       expect(result.hasTools).toBe(true)
@@ -1184,8 +1085,8 @@ describe('ServerlessBedrockAgentCore', () => {
       }
     })
 
-    test('creates multiple gateways when gateways defined', () => {
-      mockServerless.service.agents = {
+    test('creates multiple gateways when ai.gateways defined', () => {
+      mockServerless.service.ai = {
         tools: {
           'calc-tool': { function: 'calculator', toolSchema: [] },
         },
@@ -1193,10 +1094,12 @@ describe('ServerlessBedrockAgentCore', () => {
           publicGateway: { authorizer: 'NONE', tools: ['calc-tool'] },
           privateGateway: { authorizer: 'AWS_IAM', tools: ['calc-tool'] },
         },
-        myAgent: {
-          artifact: {
-            image:
-              '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest',
+        agents: {
+          myAgent: {
+            artifact: {
+              image:
+                '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest',
+            },
           },
         },
       }
@@ -1212,7 +1115,7 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     test('creates separate GatewayTargets per gateway when same tool in multiple gateways', () => {
-      mockServerless.service.agents = {
+      mockServerless.service.ai = {
         tools: {
           'calc-tool': { function: 'calculator', toolSchema: [] },
         },
@@ -1220,10 +1123,12 @@ describe('ServerlessBedrockAgentCore', () => {
           publicGateway: { authorizer: 'NONE', tools: ['calc-tool'] },
           privateGateway: { authorizer: 'AWS_IAM', tools: ['calc-tool'] },
         },
-        myAgent: {
-          artifact: {
-            image:
-              '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest',
+        agents: {
+          myAgent: {
+            artifact: {
+              image:
+                '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest',
+            },
           },
         },
       }
@@ -1239,14 +1144,16 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     test('backwards compat: creates default gateway when no gateways but tools exist', () => {
-      mockServerless.service.agents = {
+      mockServerless.service.ai = {
         tools: {
           'calc-tool': { function: 'calculator', toolSchema: [] },
         },
-        myAgent: {
-          artifact: {
-            image:
-              '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest',
+        agents: {
+          myAgent: {
+            artifact: {
+              image:
+                '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest',
+            },
           },
         },
       }
@@ -1274,19 +1181,21 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     test('injects GATEWAY_URL when agent specifies gateway', () => {
-      mockServerless.service.agents = {
+      mockServerless.service.ai = {
         tools: {
           'calc-tool': { function: 'calculator', toolSchema: [] },
         },
         gateways: {
           privateGateway: { authorizer: 'AWS_IAM', tools: ['calc-tool'] },
         },
-        myAgent: {
-          artifact: {
-            image:
-              '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest',
+        agents: {
+          myAgent: {
+            artifact: {
+              image:
+                '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest',
+            },
+            gateway: 'privateGateway',
           },
-          gateway: 'privateGateway',
         },
       }
 
@@ -1301,17 +1210,19 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     test('does NOT inject GATEWAY_URL when agent does not specify gateway in multi-gateway mode', () => {
-      mockServerless.service.agents = {
+      mockServerless.service.ai = {
         tools: {
           'calc-tool': { function: 'calculator', toolSchema: [] },
         },
         gateways: {
           privateGateway: { authorizer: 'AWS_IAM', tools: ['calc-tool'] },
         },
-        myAgent: {
-          artifact: {
-            image:
-              '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest',
+        agents: {
+          myAgent: {
+            artifact: {
+              image:
+                '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest',
+            },
           },
         },
       }
@@ -1326,14 +1237,16 @@ describe('ServerlessBedrockAgentCore', () => {
     })
 
     test('backwards compat: injects GATEWAY_URL for all agents when no gateways but tools exist', () => {
-      mockServerless.service.agents = {
+      mockServerless.service.ai = {
         tools: {
           'calc-tool': { function: 'calculator', toolSchema: [] },
         },
-        myAgent: {
-          artifact: {
-            image:
-              '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest',
+        agents: {
+          myAgent: {
+            artifact: {
+              image:
+                '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest',
+            },
           },
         },
       }

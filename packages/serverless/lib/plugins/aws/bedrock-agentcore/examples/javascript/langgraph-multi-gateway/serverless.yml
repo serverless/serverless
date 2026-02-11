@@ -13,7 +13,7 @@ functions:
     handler: handlers/internal-lookup.handler
     runtime: nodejs20.x
 
-agents:
+ai:
   # Define tools that will be assigned to different gateways
   tools:
     calculator:
@@ -59,15 +59,16 @@ agents:
         - internalLookup
 
   # Public agent - uses the public gateway with calculator tool
-  publicAgent:
-    artifact:
-      image:
-        file: Dockerfile.public
-    gateway: publicGateway
+  agents:
+    publicAgent:
+      artifact:
+        image:
+          file: Dockerfile.public
+      gateway: publicGateway
 
-  # Private agent - uses the private gateway with internal lookup tool
-  privateAgent:
-    artifact:
-      image:
-        file: Dockerfile.private
-    gateway: privateGateway
+    # Private agent - uses the private gateway with internal lookup tool
+    privateAgent:
+      artifact:
+        image:
+          file: Dockerfile.private
+      gateway: privateGateway

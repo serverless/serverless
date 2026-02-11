@@ -156,10 +156,11 @@ memory_client.create_event(
 ### Memory Expiration
 
 ```yaml
-agents:
-  chatbot:
-    memory:
-      expiration: 90 # 90 days (valid range: 3-365)
+ai:
+  agents:
+    chatbot:
+      memory:
+        expiration: 90 # 90 days (valid range: 3-365)
 ```
 
 ### Memory Strategies (Advanced)
@@ -167,15 +168,16 @@ agents:
 Add strategies for long-term memory features:
 
 ```yaml
-agents:
-  chatbot:
-    memory:
-      expiration: 30
-      strategies:
-        - SemanticMemoryStrategy:
-            Name: ConversationSearch
-            Namespaces:
-              - /conversations/{sessionId}
+ai:
+  agents:
+    chatbot:
+      memory:
+        expiration: 30
+        strategies:
+          - SemanticMemoryStrategy:
+              Name: ConversationSearch
+              Namespaces:
+                - /conversations/{sessionId}
 ```
 
 ## Cleanup

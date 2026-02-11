@@ -115,7 +115,7 @@ print(json.loads(response['response'].read()))
 ### serverless.yml Structure
 
 ```yml
-agents:
+ai:
   tools:
     publicTool:
       function: publicFunction
@@ -134,11 +134,12 @@ agents:
       authorizer: AWS_IAM
       tools: [privateTool]
 
-  publicAgent:
-    gateway: publicGateway
+  agents:
+    publicAgent:
+      gateway: publicGateway
 
-  privateAgent:
-    gateway: privateGateway
+    privateAgent:
+      gateway: privateGateway
 ```
 
 ### JWT Authorization Example
@@ -146,7 +147,7 @@ agents:
 For more sophisticated authentication:
 
 ```yml
-agents:
+ai:
   gateways:
     jwtGateway:
       authorizer:

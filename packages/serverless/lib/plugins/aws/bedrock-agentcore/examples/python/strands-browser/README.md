@@ -34,8 +34,9 @@ serverless deploy
 After deployment, note the runtime ARN from the output:
 
 ```
-agents:
-  browserAgent: https://bedrock-agentcore.us-east-1.amazonaws.com/runtimes/arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/xxx/invocations
+ai:
+  agents:
+    browserAgent: https://bedrock-agentcore.us-east-1.amazonaws.com/runtimes/arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/xxx/invocations
 ```
 
 ### 3. Test
@@ -49,11 +50,12 @@ python test-invoke.py
 
 ### AWS-Managed Browser
 
-This example uses the AWS-managed default browser. No `agents.browsers` configuration is needed in `serverless.yml`:
+This example uses the AWS-managed default browser. No `ai.browsers` configuration is needed in `serverless.yml`:
 
 ```yaml
-agents:
-  browserAgent: {} # Auto-detects Dockerfile
+ai:
+  agents:
+    browserAgent: {} # Auto-detects Dockerfile
 ```
 
 ### Strands Integration
@@ -99,7 +101,7 @@ Visit https://aws.amazon.com/about-aws/whats-new/ and list the 5 most recent ann
 If you need session recording, VPC access, or request signing, define a custom browser:
 
 ```yaml
-agents:
+ai:
   browsers:
     customBrowser:
       network:
@@ -110,7 +112,8 @@ agents:
           bucket: my-recordings
           prefix: sessions/
 
-  browserAgent: {}
+  agents:
+    browserAgent: {}
 ```
 
 See the [Browser documentation](../../../../../../../docs/sf/providers/aws/guide/agents/browser.md) for full configuration options.
