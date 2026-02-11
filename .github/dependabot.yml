@@ -78,10 +78,24 @@ updates:
       - dependency-name: 'glob'
         # glob v11 drops support for Node.js 18
         versions: ['>= 11.0.0']
+      - dependency-name: '@axiomhq/js'
+        # @axiomhq/js v1.4.0 drops support for Node.js 18
+        versions: ['>= 1.4.0']
 
   # Maintain Go dependencies
   - package-ecosystem: 'gomod'
     directory: '/binary-installer'
+    schedule:
+      interval: 'weekly'
+    cooldown:
+      default-days: 5
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
+
+  # Maintain Maven dependencies for Java runtime wrapper
+  - package-ecosystem: 'maven'
+    directory: '/packages/serverless/lib/plugins/aws/invoke-local/runtime-wrappers/java'
     schedule:
       interval: 'weekly'
     cooldown:
