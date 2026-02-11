@@ -144,11 +144,28 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
       return null
     }
 
+    const effectiveCertificateArn =
+      domain.certificateArn || domain.domainInfo?.certificateArn
+
+    if (!effectiveCertificateArn) {
+      throw new ServerlessError(
+        `V2 - Failed to update custom domain '${domain.givenDomainName}':\nCertificate ARN is required to update API Gateway V2 domain security policy.`,
+        ServerlessErrorCodes.domains.API_GATEWAY_CUSTOM_DOMAIN_UPDATE_FAILED,
+      )
+    }
+
+    const domainNameConfigurations = [
+      {
+        CertificateArn: effectiveCertificateArn,
+        SecurityPolicy: domain.securityPolicy,
+      },
+    ]
+
     try {
       if (Globals.options?.debug) {
         Logging.logInfo(
           `V2 - Sending custom domain update request for '${domain.givenDomainName}': ${JSON.stringify(
-            [{ SecurityPolicy: domain.securityPolicy }],
+            domainNameConfigurations,
           )}`,
         )
       }
@@ -156,11 +173,7 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
       const domainInfo = await this.apiGateway.send(
         new UpdateDomainNameCommand({
           DomainName: domain.givenDomainName,
-          DomainNameConfigurations: [
-            {
-              SecurityPolicy: domain.securityPolicy,
-            },
-          ],
+          DomainNameConfigurations: domainNameConfigurations,
         }),
       )
       return new DomainInfo(domainInfo)

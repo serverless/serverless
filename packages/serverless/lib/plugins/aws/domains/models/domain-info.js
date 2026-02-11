@@ -34,6 +34,11 @@ class DomainInfo {
         data.DomainNameConfigurations[0].SecurityPolicy) ||
       this.defaultSecurityPolicy
 
+    this.certificateArn =
+      data.certificateArn ||
+      (data.DomainNameConfigurations &&
+        data.DomainNameConfigurations[0].CertificateArn)
+
     this.accessMode = data.endpointAccessMode
   }
 }

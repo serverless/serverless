@@ -184,7 +184,7 @@ provider:
       Comment: 'Custom domain for API'
     # Enable split-horizon DNS for private hosted zones (optional)
     splitHorizonDns: false
-    # Security policy for the domain (optional, e.g., 'TLS_1_2').
+    # Security policy for the domain (optional). API Gateway V2 domains support only TLS_1_2.
     securityPolicy: TLS_1_2
     # API Gateway endpoint access mode (optional: basic or strict, REST only with single-level basePath)
     accessMode: strict

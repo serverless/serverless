@@ -92,6 +92,11 @@ describe('DomainConfig', () => {
       expect(result).toBeUndefined()
     })
 
+    it('should return undefined when accessMode is empty string', () => {
+      const result = DomainConfig._getAccessMode('')
+      expect(result).toBeUndefined()
+    })
+
     it('should return BASIC for basic (case-insensitive)', () => {
       const result = DomainConfig._getAccessMode('basic')
       expect(result).toBe('BASIC')
@@ -130,6 +135,17 @@ describe('DomainConfig', () => {
 
       expect(config.hasSecurityPolicyConfigured).toBe(false)
       expect(config.hasAccessModeConfigured).toBe(false)
+    })
+
+    it('keeps hasAccessModeConfigured true when accessMode is explicitly unset', () => {
+      const config = new DomainConfig({
+        name: 'api.example.com',
+        apiType: 'rest',
+        accessMode: '',
+      })
+
+      expect(config.hasAccessModeConfigured).toBe(true)
+      expect(config.accessMode).toBeUndefined()
     })
   })
 })

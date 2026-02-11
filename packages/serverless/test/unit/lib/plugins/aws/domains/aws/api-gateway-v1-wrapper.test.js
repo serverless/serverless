@@ -117,6 +117,34 @@ describe('APIGatewayV1Wrapper', () => {
     ])
   })
 
+  it('updates only endpointAccessMode when explicit accessMode unset is requested', async () => {
+    const wrapper = new APIGatewayV1Wrapper()
+    const sendMock = jest
+      .spyOn(wrapper.apiGateway, 'send')
+      .mockResolvedValue({ regionalDomainName: 'd.example.com' })
+
+    await wrapper.updateCustomDomain({
+      givenDomainName: 'api.example.com',
+      domainInfo: {
+        securityPolicy: 'TLS_1_2',
+        accessMode: 'BASIC',
+      },
+      hasSecurityPolicyConfigured: true,
+      hasAccessModeConfigured: true,
+      securityPolicy: 'TLS_1_2',
+      accessMode: undefined,
+    })
+
+    expect(sendMock).toHaveBeenCalledTimes(1)
+    expect(sendMock.mock.calls[0][0].input.patchOperations).toEqual([
+      {
+        op: 'replace',
+        path: '/endpointAccessMode',
+        value: undefined,
+      },
+    ])
+  })
+
   it('does not call update when no explicit field has drift', async () => {
     const wrapper = new APIGatewayV1Wrapper()
     const sendMock = jest.spyOn(wrapper.apiGateway, 'send')

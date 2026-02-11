@@ -12,8 +12,8 @@ import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
 class DomainConfig {
   constructor(config) {
     this.enabled = evaluateBoolean(config.enabled, true)
-    this.hasSecurityPolicyConfigured = config.securityPolicy !== undefined
-    this.hasAccessModeConfigured = config.accessMode !== undefined
+    this.hasSecurityPolicyConfigured = config.securityPolicy != null
+    this.hasAccessModeConfigured = config.accessMode != null
     this.givenDomainName = config.name || config.domainName
     this.certificateArn = config.certificateArn
     this.certificateName = config.certificateName

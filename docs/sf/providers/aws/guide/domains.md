@@ -248,7 +248,7 @@ functions:
   hello:
     handler: src/hello.handler
     events:
-      - httpApi:
+      - http:
           path: /users
           method: get
 ```
@@ -422,10 +422,12 @@ functions:
 Keep these rules in mind when configuring domain security:
 
 - `accessMode` is only supported for REST domains managed through API Gateway V1.
+- `accessMode` (`basic` or `strict`) requires an enhanced `securityPolicy` value that starts with `SecurityPolicy_`.
 - `accessMode` is not supported for `http` or `websocket` APIs.
 - For domain flows routed through API Gateway V2, use `TLS_1_2` for `securityPolicy`.
 - REST domains with multi-level `basePath` values (for example, `v1/test`) are managed through API Gateway V2, so the same `TLS_1_2` guidance applies.
 - When a custom domain already exists, Serverless Framework reconciles only explicitly configured `securityPolicy` and `accessMode` values. Omitted fields are left unchanged.
+- For API Gateway V2 `securityPolicy` reconciliation, Serverless resolves certificate context from `certificateArn` in config or from the existing domain before sending the update request.
 
 ## Prerequisites
 

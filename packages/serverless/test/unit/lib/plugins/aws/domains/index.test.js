@@ -103,7 +103,7 @@ describe('ServerlessCustomDomain', () => {
     )
   })
 
-  it('does not throw when accessMode is configured for REST with single-level basePath', () => {
+  it('throws when accessMode is configured for REST with single-level basePath and non-enhanced securityPolicy', () => {
     const mockServerless = createMockServerless()
     mockServerless.service.provider.domains = [
       {
@@ -111,6 +111,44 @@ describe('ServerlessCustomDomain', () => {
         apiType: 'rest',
         basePath: 'v1',
         accessMode: 'STRICT',
+      },
+    ]
+
+    const plugin = new ServerlessCustomDomain(mockServerless, {})
+    plugin.initializeVariables()
+
+    expect(() => plugin.validateDomainConfigs()).toThrow(
+      /requires an enhanced 'securityPolicy'/,
+    )
+  })
+
+  it('does not throw when accessMode is configured for REST with single-level basePath and enhanced securityPolicy', () => {
+    const mockServerless = createMockServerless()
+    mockServerless.service.provider.domains = [
+      {
+        name: 'rest.api.example.com',
+        apiType: 'rest',
+        basePath: 'v1',
+        accessMode: 'STRICT',
+        securityPolicy: 'SecurityPolicy_TLS13_2025_EDGE',
+      },
+    ]
+
+    const plugin = new ServerlessCustomDomain(mockServerless, {})
+    plugin.initializeVariables()
+
+    expect(() => plugin.validateDomainConfigs()).not.toThrow()
+  })
+
+  it('does not throw for explicit accessMode unset on REST single-level basePath', () => {
+    const mockServerless = createMockServerless()
+    mockServerless.service.provider.domains = [
+      {
+        name: 'rest.api.example.com',
+        apiType: 'rest',
+        basePath: 'v1',
+        accessMode: '',
+        securityPolicy: 'TLS_1_2',
       },
     ]
 
@@ -136,6 +174,22 @@ describe('ServerlessCustomDomain', () => {
     expect(() => plugin.validateDomainConfigs()).toThrow(
       /not supported for API Gateway V2 domains/,
     )
+  })
+
+  it('throws when TLS_1_0 is configured for v2 domains', () => {
+    const mockServerless = createMockServerless()
+    mockServerless.service.provider.domains = [
+      {
+        name: 'http.api.example.com',
+        apiType: 'http',
+        securityPolicy: 'TLS_1_0',
+      },
+    ]
+
+    const plugin = new ServerlessCustomDomain(mockServerless, {})
+    plugin.initializeVariables()
+
+    expect(() => plugin.validateDomainConfigs()).toThrow(/Use 'TLS_1_2'/)
   })
 
   it('does not throw when TLS_1_2 is configured for v2 domains', () => {

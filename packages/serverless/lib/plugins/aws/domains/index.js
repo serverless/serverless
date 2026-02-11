@@ -187,11 +187,11 @@ class ServerlessCustomDomain {
       if (
         domain.hasSecurityPolicyConfigured &&
         this.usesApiGatewayV2(domain) &&
-        !Object.values(Globals.tlsVersions).includes(domain.securityPolicy)
+        domain.securityPolicy !== Globals.tlsVersions.tls_1_2
       ) {
         throw new ServerlessError(
           `'securityPolicy' '${domain.securityPolicy}' is not supported for API Gateway V2 domains. ` +
-            "Use 'TLS_1_0' or 'TLS_1_2'.",
+            "Use 'TLS_1_2'.",
           ServerlessErrorCodes.domains
             .DOMAIN_VALIDATION_INCOMPATIBLE_SECURITY_POLICY,
         )
@@ -203,6 +203,19 @@ class ServerlessCustomDomain {
             `Domain '${domain.givenDomainName}' resolves to API Gateway V2 because ` +
             `${domain.apiType === Globals.apiTypes.rest ? "the 'basePath' uses multiple segments" : `'apiType' is '${domain.apiType.toLowerCase()}'`}. ` +
             "Remove 'accessMode' or use a single-level basePath on a REST domain.",
+          ServerlessErrorCodes.domains
+            .DOMAIN_VALIDATION_INCOMPATIBLE_ACCESS_MODE,
+        )
+      }
+
+      if (
+        domain.accessMode &&
+        !this.usesApiGatewayV2(domain) &&
+        !domain.securityPolicy.startsWith('SecurityPolicy_')
+      ) {
+        throw new ServerlessError(
+          `'accessMode' requires an enhanced 'securityPolicy' (SecurityPolicy_*) for API Gateway V1 domains. ` +
+            `Domain '${domain.givenDomainName}' is using '${domain.securityPolicy}'.`,
           ServerlessErrorCodes.domains
             .DOMAIN_VALIDATION_INCOMPATIBLE_ACCESS_MODE,
         )
