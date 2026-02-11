@@ -24,7 +24,7 @@ jobs:
           go-version: '>=1.25'
           cache-dependency-path: binary-installer/go.sum
       - name: 'Setup: AWS Credentials'
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           role-to-assume: arn:aws:iam::802587217904:role/GithubActionsDeploymentRole
           aws-region: us-east-1
