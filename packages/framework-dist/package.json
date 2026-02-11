@@ -18,6 +18,6 @@
     "@aws-sdk/signature-v4a": "3.972.0",
     "ajv": "8.17.1",
     "ajv-formats": "3.0.1",
-    "esbuild": "0.27.2"
+    "esbuild": "0.27.3"
   }
 }
