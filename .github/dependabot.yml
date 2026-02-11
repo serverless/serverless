@@ -78,6 +78,9 @@ updates:
       - dependency-name: 'glob'
         # glob v11 drops support for Node.js 18
         versions: ['>= 11.0.0']
+      - dependency-name: '@axiomhq/js'
+        # @axiomhq/js v1.4.0 drops support for Node.js 18
+        versions: ['>= 1.4.0']
 
   # Maintain Go dependencies
   - package-ecosystem: 'gomod'
