@@ -90,6 +90,17 @@ updates:
       semver-minor-days: 7
       semver-patch-days: 3
 
+  # Maintain Maven dependencies for Java runtime wrapper
+  - package-ecosystem: 'maven'
+    directory: '/packages/serverless/lib/plugins/aws/invoke-local/runtime-wrappers/java'
+    schedule:
+      interval: 'weekly'
+    cooldown:
+      default-days: 5
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
+
   # Maintain GitHub Actions
   - package-ecosystem: 'github-actions'
     directory: '/'
