@@ -40,9 +40,8 @@ jest.unstable_mockModule('@serverless/util', () => ({
   },
 }))
 
-const { default: AwsDev } = await import(
-  '../../../../../lib/plugins/aws/dev/index.js'
-)
+const { default: AwsDev } =
+  await import('../../../../../lib/plugins/aws/dev/index.js')
 
 const createServerless = () => {
   const provider = {
