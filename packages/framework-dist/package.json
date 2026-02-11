@@ -13,8 +13,8 @@
     "sls": "./dist/sf-core.js"
   },
   "dependencies": {
-    "@aws-sdk/client-cloudfront-keyvaluestore": "3.981.0",
-    "@aws-sdk/signature-v4-crt": "3.981.0",
+    "@aws-sdk/client-cloudfront-keyvaluestore": "3.982.0",
+    "@aws-sdk/signature-v4-crt": "3.982.0",
     "@aws-sdk/signature-v4a": "3.972.0",
     "ajv": "8.17.1",
     "ajv-formats": "3.0.1",
