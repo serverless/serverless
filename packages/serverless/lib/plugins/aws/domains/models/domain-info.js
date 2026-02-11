@@ -33,6 +33,8 @@ class DomainInfo {
       (data.DomainNameConfigurations &&
         data.DomainNameConfigurations[0].SecurityPolicy) ||
       this.defaultSecurityPolicy
+
+    this.accessMode = data.endpointAccessMode
   }
 }
 

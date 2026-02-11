@@ -6,6 +6,7 @@ import {
   CreateDomainNameCommand,
   GetDomainNameCommand,
   DeleteDomainNameCommand,
+  UpdateDomainNameCommand,
   CreateApiMappingCommand,
   GetApiMappingsCommand,
   UpdateApiMappingCommand,
@@ -130,6 +131,43 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
       throw new ServerlessError(
         `V2 - Failed to delete custom domain '${domain.givenDomainName}':\n${err.message}`,
         ServerlessErrorCodes.domains.API_GATEWAY_CUSTOM_DOMAIN_DELETION_FAILED,
+        { originalMessage: err.message },
+      )
+    }
+  }
+
+  async updateCustomDomain(domain) {
+    if (
+      !domain.hasSecurityPolicyConfigured ||
+      domain.domainInfo?.securityPolicy === domain.securityPolicy
+    ) {
+      return null
+    }
+
+    try {
+      if (Globals.options?.debug) {
+        Logging.logInfo(
+          `V2 - Sending custom domain update request for '${domain.givenDomainName}': ${JSON.stringify(
+            [{ SecurityPolicy: domain.securityPolicy }],
+          )}`,
+        )
+      }
+
+      const domainInfo = await this.apiGateway.send(
+        new UpdateDomainNameCommand({
+          DomainName: domain.givenDomainName,
+          DomainNameConfigurations: [
+            {
+              SecurityPolicy: domain.securityPolicy,
+            },
+          ],
+        }),
+      )
+      return new DomainInfo(domainInfo)
+    } catch (err) {
+      throw new ServerlessError(
+        `V2 - Failed to update custom domain '${domain.givenDomainName}':\n${err.message}`,
+        ServerlessErrorCodes.domains.API_GATEWAY_CUSTOM_DOMAIN_UPDATE_FAILED,
         { originalMessage: err.message },
       )
     }

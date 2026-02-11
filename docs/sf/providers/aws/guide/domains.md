@@ -18,7 +18,7 @@ keywords:
 
 The Serverless Framework v4 provides built-in support for configuring custom domains for your APIs. This feature automatically handles SSL certificate creation, Route53 DNS configuration, and API Gateway domain mapping.
 
-> **Acknowledgement:**  
+> **Acknowledgement:**
 > Big shout out to [Amplify Education](https://amplify.com/) for creating and maintaining [the original Serverless Domain Manager plugin](https://github.com/amplify-education/serverless-domain-manager). The custom domains feature in the Serverless Framework v4 was made possible thanks to their hard work and contributions to the community.
 
 ## Quick Start
@@ -172,6 +172,7 @@ provider:
     basePath: v1 # Optional: Base path for API mapping
     apiType: http # Optional: API type (http, rest, websocket)
     endpointType: regional # Optional: Endpoint type (regional, edge)
+    accessMode: strict # Optional: REST only (single-level basePath)
 ```
 
 ### Multiple Domains
@@ -211,7 +212,8 @@ Below are all available configuration options for custom domains:
 | `route53Region`                | string         | No       | AWS region for Route53 operations                                                                                                                                                                                               |
 | `route53Params`                | object         | No       | Additional parameters to pass to Route53 API calls                                                                                                                                                                              |
 | `splitHorizonDns`              | boolean        | No       | Enable split-horizon DNS for private hosted zones                                                                                                                                                                               |
-| `securityPolicy`               | string         | No       | Security policy for the domain (e.g., `TLS_1_2`)                                                                                                                                                                                |
+| `securityPolicy`               | string         | No       | Security policy for the domain. For domain flows routed through API Gateway V2, use `TLS_1_2`                                                                                                                                   |
+| `accessMode`                   | string         | No       | API Gateway endpoint access mode: `basic` or `strict` (REST domains managed by API Gateway V1 only)                                                                                                                             |
 | `tlsTruststoreUri`             | string         | No       | S3 URI of the truststore for mutual TLS authentication                                                                                                                                                                          |
 | `tlsTruststoreVersion`         | string         | No       | Version of the TLS truststore                                                                                                                                                                                                   |
 | `enabled`                      | boolean/string | No       | Whether the domain is enabled. Can be a boolean or a condition string                                                                                                                                                           |
@@ -227,13 +229,14 @@ provider:
   domain:
     name: api.example.com
     basePath: v1
-    apiType: http
+    apiType: rest
     endpointType: regional
     certificateArn: arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012
     createRoute53Record: true
     createRoute53IPv6Record: true
     hostedZoneId: Z1PA6795UKMFR9
     securityPolicy: TLS_1_2
+    accessMode: strict
     enabled: true
     allowPathMatching: false
     preserveExternalPathMappings: false
@@ -414,6 +417,16 @@ functions:
           method: get
 ```
 
+### Security Policy and Reconciliation Notes
+
+Keep these rules in mind when configuring domain security:
+
+- `accessMode` is only supported for REST domains managed through API Gateway V1.
+- `accessMode` is not supported for `http` or `websocket` APIs.
+- For domain flows routed through API Gateway V2, use `TLS_1_2` for `securityPolicy`.
+- REST domains with multi-level `basePath` values (for example, `v1/test`) are managed through API Gateway V2, so the same `TLS_1_2` guidance applies.
+- When a custom domain already exists, Serverless Framework reconciles only explicitly configured `securityPolicy` and `accessMode` values. Omitted fields are left unchanged.
+
 ## Prerequisites
 
 ### Route53 Hosted Zone
@@ -489,6 +502,7 @@ After deploying your service, you'll need to create DNS records in your registra
 | `apiType`             | No       | API type (http, rest, websocket) - defaults to http         |
 | `endpointType`        | No       | Endpoint type (regional, edge) - defaults to regional       |
 | `basePath`            | No       | Base path for API mapping                                   |
+| `accessMode`          | No       | `basic` or `strict` (REST + single-level basePath only)     |
 
 ### Example with Multiple Domains
 

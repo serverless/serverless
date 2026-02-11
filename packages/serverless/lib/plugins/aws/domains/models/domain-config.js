@@ -12,6 +12,8 @@ import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
 class DomainConfig {
   constructor(config) {
     this.enabled = evaluateBoolean(config.enabled, true)
+    this.hasSecurityPolicyConfigured = config.securityPolicy !== undefined
+    this.hasAccessModeConfigured = config.accessMode !== undefined
     this.givenDomainName = config.name || config.domainName
     this.certificateArn = config.certificateArn
     this.certificateName = config.certificateName
@@ -46,6 +48,7 @@ class DomainConfig {
     )
     this.tlsTruststoreVersion = config.tlsTruststoreVersion
     this.securityPolicy = DomainConfig._getSecurityPolicy(config.securityPolicy)
+    this.accessMode = DomainConfig._getAccessMode(config.accessMode)
     this.route53Params = DomainConfig._getRoute53Params(
       config.route53Params,
       this.endpointType,
@@ -167,6 +170,22 @@ class DomainConfig {
     }
 
     return tlsVersionToUse
+  }
+
+  static _getAccessMode(accessMode) {
+    if (!accessMode) {
+      return undefined
+    }
+
+    const accessModeToUse = Globals.accessModes[accessMode.toLowerCase()]
+    if (!accessModeToUse) {
+      throw new ServerlessError(
+        `${accessMode} is not a supported accessMode, use BASIC or STRICT.`,
+        ServerlessErrorCodes.domains.DOMAIN_CONFIG_INVALID_ACCESS_MODE,
+      )
+    }
+
+    return accessModeToUse
   }
 
   static _getRoute53Params(route53Params, endpointType) {

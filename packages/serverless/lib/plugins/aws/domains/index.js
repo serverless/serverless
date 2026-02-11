@@ -146,8 +146,8 @@ class ServerlessCustomDomain {
       .concat(domainsConfig)
       .map((item) => (typeof item === 'string' ? { name: item } : item))
 
-    // Get the default API type from CloudFormation template
-    const defaultApiType = this.getDefaultApiType()
+    // Lazy evaluation: compute default API type only when needed
+    let defaultApiType = null
 
     // Loop over the domain configurations and populate the domains array with DomainConfigs
     this.domains = []
@@ -166,6 +166,9 @@ class ServerlessCustomDomain {
       if (!isTypeConfigFound) {
         // Use detected API type if no explicit apiType is provided
         if (!domain.apiType) {
+          if (defaultApiType === null) {
+            defaultApiType = this.getDefaultApiType()
+          }
           domain.apiType = defaultApiType
         }
         this.domains.push(new DomainConfig(domain))
@@ -181,6 +184,30 @@ class ServerlessCustomDomain {
    */
   validateDomainConfigs() {
     this.domains.forEach((domain) => {
+      if (
+        domain.hasSecurityPolicyConfigured &&
+        this.usesApiGatewayV2(domain) &&
+        !Object.values(Globals.tlsVersions).includes(domain.securityPolicy)
+      ) {
+        throw new ServerlessError(
+          `'securityPolicy' '${domain.securityPolicy}' is not supported for API Gateway V2 domains. ` +
+            "Use 'TLS_1_0' or 'TLS_1_2'.",
+          ServerlessErrorCodes.domains
+            .DOMAIN_VALIDATION_INCOMPATIBLE_SECURITY_POLICY,
+        )
+      }
+
+      if (domain.accessMode && this.usesApiGatewayV2(domain)) {
+        throw new ServerlessError(
+          `'accessMode' is only supported for REST domains managed by API Gateway V1. ` +
+            `Domain '${domain.givenDomainName}' resolves to API Gateway V2 because ` +
+            `${domain.apiType === Globals.apiTypes.rest ? "the 'basePath' uses multiple segments" : `'apiType' is '${domain.apiType.toLowerCase()}'`}. ` +
+            "Remove 'accessMode' or use a single-level basePath on a REST domain.",
+          ServerlessErrorCodes.domains
+            .DOMAIN_VALIDATION_INCOMPATIBLE_ACCESS_MODE,
+        )
+      }
+
       if (domain.apiType === Globals.apiTypes.rest) {
         // No validation for REST API types
       } else if (domain.apiType === Globals.apiTypes.http) {
@@ -231,20 +258,25 @@ class ServerlessCustomDomain {
     this.s3Wrapper = new S3Wrapper(Globals.credentials)
   }
 
+  usesApiGatewayV2(domain) {
+    if (domain.apiType !== Globals.apiTypes.rest) {
+      return true
+    }
+
+    // Multi-level base path mappings for REST domains are managed through the v2 APIs.
+    // https://github.com/amplify-education/serverless-domain-manager/issues/558
+    // https://aws.amazon.com/blogs/compute/using-multiple-segments-in-amazon-api-gateway-base-path-mapping/
+    // endpointAccessMode exists only on v1 CreateDomainName, so those paths cannot honor accessMode.
+    return domain.basePath.includes('/')
+  }
+
   getApiGateway(domain) {
     // 1. https://stackoverflow.com/questions/72339224/aws-v1-vs-v2-api-for-listing-apis-on-aws-api-gateway-return-different-data-for-t
     // 2. https://aws.amazon.com/blogs/compute/announcing-http-apis-for-amazon-api-gateway/
     // There are currently two API Gateway namespaces for managing API Gateway deployments.
     // The API V1 namespace represents REST APIs and API V2 represents WebSocket APIs and the new HTTP APIs.
     // You can create an HTTP API by using the AWS Management Console, CLI, APIs, CloudFormation, SDKs, or the Serverless Application Model (SAM).
-    if (domain.apiType !== Globals.apiTypes.rest) {
-      return this.apiGatewayV2Wrapper
-    }
-
-    // multi-level base path mapping is supported by Gateway V2
-    // https://github.com/amplify-education/serverless-domain-manager/issues/558
-    // https://aws.amazon.com/blogs/compute/using-multiple-segments-in-amazon-api-gateway-base-path-mapping/
-    if (domain.basePath.includes('/')) {
+    if (this.usesApiGatewayV2(domain)) {
       return this.apiGatewayV2Wrapper
     }
 
@@ -352,9 +384,17 @@ class ServerlessCustomDomain {
         Logging.logInfo(`Custom domain '${domain.givenDomainName}' was created.
                  New domains may take up to 40 minutes to be initialized.`)
       } else {
-        Logging.logInfo(
-          `Custom domain '${domain.givenDomainName}' already exists.`,
-        )
+        const updatedDomainInfo = await apiGateway.updateCustomDomain(domain)
+        if (updatedDomainInfo) {
+          domain.domainInfo = updatedDomainInfo
+          Logging.logInfo(
+            `Custom domain '${domain.givenDomainName}' was updated.`,
+          )
+        } else {
+          Logging.logInfo(
+            `Custom domain '${domain.givenDomainName}' already exists.`,
+          )
+        }
       }
       await route53.changeResourceRecordSet(ChangeAction.UPSERT, domain)
     } catch (err) {
