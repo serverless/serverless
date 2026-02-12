@@ -38,17 +38,41 @@ class AwsCompileCognitoUserPoolEvents {
       'aws',
       'cognitoUserPool',
       {
+        description: `Cognito User Pool trigger event configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/cognito-user-pool
+@remarks Cognito User Pool authorizer for ALB.
+@remarks ARN of the Cognito User Pool.
+@example
+cognitoUserPool:
+  pool: my-user-pool
+  trigger: PreSignUp`,
         type: 'object',
         properties: {
           pool: {
+            description: `User Pool name or ARN.
+@example 'my-user-pool'`,
             type: 'string',
             maxLength: 128,
             pattern: '^[\\w\\s+=,.@-]+$',
           },
-          trigger: { enum: validTriggerSources },
-          existing: { type: 'boolean' },
-          forceDeploy: { type: 'boolean' },
-          kmsKeyId: { $ref: '#/definitions/awsKmsArn' },
+          trigger: {
+            description: `Trigger type (e.g., 'PreSignUp', 'PostConfirmation').
+@see https://www.serverless.com/framework/docs/providers/aws/events/cognito-user-pool#valid-triggers
+@example 'PreSignUp'`,
+            enum: validTriggerSources,
+          },
+          existing: {
+            description: `Set true if User Pool already exists.`,
+            type: 'boolean',
+          },
+          forceDeploy: {
+            description: `Force custom resource update for existing pool trigger mapping.`,
+            type: 'boolean',
+          },
+          kmsKeyId: {
+            description: `KMS key id or ARN for custom sender triggers.`,
+            $ref: '#/definitions/awsKmsArn',
+          },
         },
         required: ['pool', 'trigger'],
         additionalProperties: false,

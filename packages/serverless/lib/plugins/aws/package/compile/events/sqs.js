@@ -11,22 +11,59 @@ class AwsCompileSQSEvents {
     }
 
     this.serverless.configSchemaHandler.defineFunctionEvent('aws', 'sqs', {
+      description: `SQS event configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/sqs
+@remarks SQS queue ARN or CloudFormation reference.
+@remarks SQS queue event.
+@example
+events:
+  - sqs:
+      arn: arn:aws:sqs:region:account:queue
+      batchSize: 10
+      functionResponseType: ReportBatchItemFailures`,
       anyOf: [
         { $ref: '#/definitions/awsArnString' },
         {
           type: 'object',
           properties: {
-            arn: { $ref: '#/definitions/awsArn' },
-            batchSize: { type: 'integer', minimum: 1, maximum: 10000 },
-            enabled: { type: 'boolean' },
+            arn: {
+              description: `SQS queue ARN or CloudFormation reference.
+@example 'arn:aws:sqs:us-east-1:123456789:my-queue'`,
+              $ref: '#/definitions/awsArn',
+            },
+            batchSize: {
+              description: `Number of messages to retrieve per batch (1-10000).
+@default 10`,
+              type: 'integer',
+              minimum: 1,
+              maximum: 10000,
+            },
+            enabled: {
+              description: `Enable or disable the event source mapping.
+@default true`,
+              type: 'boolean',
+            },
             maximumBatchingWindow: {
+              description: `Maximum time to wait for a full batch in seconds (0-300).`,
               type: 'integer',
               minimum: 0,
               maximum: 300,
             },
-            functionResponseType: { enum: ['ReportBatchItemFailures'] },
-            filterPatterns: { $ref: '#/definitions/filterPatterns' },
-            maximumConcurrency: { type: 'integer', minimum: 2, maximum: 1000 },
+            functionResponseType: {
+              description: `Enable partial batch failure reporting.`,
+              enum: ['ReportBatchItemFailures'],
+            },
+            filterPatterns: {
+              description: `Event filter patterns.
+@see https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventfiltering.html`,
+              $ref: '#/definitions/filterPatterns',
+            },
+            maximumConcurrency: {
+              description: `Maximum concurrent batches processed by Lambda.`,
+              type: 'integer',
+              minimum: 2,
+              maximum: 1000,
+            },
           },
           required: ['arn'],
           additionalProperties: false,

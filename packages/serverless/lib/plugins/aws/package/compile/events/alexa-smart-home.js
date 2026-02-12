@@ -14,13 +14,22 @@ class AwsCompileAlexaSmartHomeEvents {
       'aws',
       'alexaSmartHome',
       {
+        description: `Alexa Smart Home event configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/alexa-smart-home
+@remarks Alexa Smart Home application ID.`,
         anyOf: [
           { $ref: '#/definitions/awsAlexaEventToken' },
           {
             type: 'object',
             properties: {
-              appId: { $ref: '#/definitions/awsAlexaEventToken' },
-              enabled: { type: 'boolean' },
+              appId: {
+                description: `Alexa Smart Home application ID.`,
+                $ref: '#/definitions/awsAlexaEventToken',
+              },
+              enabled: {
+                description: `Enable or disable invocation permission.`,
+                type: 'boolean',
+              },
             },
             required: ['appId'],
             additionalProperties: false,

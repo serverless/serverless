@@ -2,8 +2,8 @@
 // Internal version of the historical community plugin; exported so core can bundle it directly
 import {
   addVendorHelper,
-  removeVendorHelper,
   packRequirements,
+  removeVendorHelper,
 } from './lib/zip.js'
 import { injectAllRequirements } from './lib/inject.js'
 import { layerRequirements } from './lib/layer.js'
@@ -140,6 +140,8 @@ class ServerlessPythonRequirements {
       this.serverless.configSchemaHandler.defineFunctionProperties('aws', {
         properties: {
           module: {
+            description: `Python module directory containing the function handler.
+@remarks Used by the bundled Python requirements integration.`,
             type: 'string',
           },
         },

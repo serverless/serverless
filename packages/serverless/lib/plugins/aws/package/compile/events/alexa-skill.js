@@ -10,13 +10,25 @@ class AwsCompileAlexaSkillEvents {
       'aws',
       'alexaSkill',
       {
+        description: `Alexa Skill event configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/alexa-skill
+@remarks Alexa Skill application ID.
+@example
+alexaSkill:
+  appId: amzn1.ask.skill.xxx-xxx-xxx`,
         anyOf: [
           { $ref: '#/definitions/awsAlexaEventToken' },
           {
             type: 'object',
             properties: {
-              appId: { $ref: '#/definitions/awsAlexaEventToken' },
-              enabled: { type: 'boolean' },
+              appId: {
+                description: `Alexa Skill application ID.`,
+                $ref: '#/definitions/awsAlexaEventToken',
+              },
+              enabled: {
+                description: `Enable or disable invocation permission.`,
+                type: 'boolean',
+              },
             },
             required: ['appId'],
             additionalProperties: false,

@@ -20,25 +20,55 @@ class AwsCompileCloudFrontEvents {
     this.cachePolicies = new Set()
 
     const originObjectSchema = {
+      description: `CloudFront origin configuration.`,
       type: 'object',
       properties: {
-        ConnectionAttempts: { type: 'integer', minimum: 1, maximum: 3 },
-        ConnectionTimeout: { type: 'integer', minimum: 1, maximum: 10 },
+        ConnectionAttempts: {
+          description: `Number of connection attempts CloudFront makes to the origin.`,
+          type: 'integer',
+          minimum: 1,
+          maximum: 3,
+        },
+        ConnectionTimeout: {
+          description: `Connection timeout to the origin in seconds.`,
+          type: 'integer',
+          minimum: 1,
+          maximum: 10,
+        },
         CustomOriginConfig: {
+          description: `Custom HTTP origin configuration.`,
           type: 'object',
           properties: {
-            HTTPPort: { type: 'integer', minimum: 0, maximum: 65535 },
-            HTTPSPort: { type: 'integer', minimum: 0, maximum: 65535 },
+            HTTPPort: {
+              description: `HTTP port for custom origin.`,
+              type: 'integer',
+              minimum: 0,
+              maximum: 65535,
+            },
+            HTTPSPort: {
+              description: `HTTPS port for custom origin.`,
+              type: 'integer',
+              minimum: 0,
+              maximum: 65535,
+            },
             OriginKeepaliveTimeout: {
+              description: `Keepalive timeout to the origin in seconds.`,
               type: 'integer',
               minimum: 1,
               maximum: 60,
             },
             OriginProtocolPolicy: {
+              description: `Protocol policy used by CloudFront when connecting to origin.`,
               enum: ['http-only', 'match-viewer', 'https-only'],
             },
-            OriginReadTimeout: { type: 'integer', minimum: 1, maximum: 60 },
+            OriginReadTimeout: {
+              description: `Read timeout from origin in seconds.`,
+              type: 'integer',
+              minimum: 1,
+              maximum: 60,
+            },
             OriginSSLProtocols: {
+              description: `TLS/SSL protocol versions allowed for HTTPS origin requests.`,
               type: 'array',
               items: { enum: ['SSLv3', 'TLSv1', 'TLSv1.1', 'TLSv1.2'] },
             },
@@ -47,28 +77,36 @@ class AwsCompileCloudFrontEvents {
           required: ['OriginProtocolPolicy'],
         },
         DomainName: {
+          description: `Origin domain name.`,
           anyOf: [{ type: 'string' }, { $ref: '#/definitions/awsCfFunction' }],
         },
         OriginAccessControlId: {
+          description: `CloudFront Origin Access Control ID.`,
           anyOf: [{ type: 'string' }, { $ref: '#/definitions/awsCfFunction' }],
         },
         OriginCustomHeaders: {
+          description: `Custom headers forwarded to origin.`,
           type: 'array',
           items: {
             type: 'object',
             properties: {
-              HeaderName: { type: 'string' },
-              HeaderValue: { type: 'string' },
+              HeaderName: { type: 'string', description: `Header name.` },
+              HeaderValue: { type: 'string', description: `Header value.` },
             },
             additionalProperties: false,
             required: ['HeaderName', 'HeaderValue'],
           },
         },
-        OriginPath: { type: 'string' },
+        OriginPath: {
+          description: `Optional path prefix added to origin requests.`,
+          type: 'string',
+        },
         S3OriginConfig: {
+          description: `S3 origin configuration.`,
           type: 'object',
           properties: {
             OriginAccessIdentity: {
+              description: `Legacy CloudFront Origin Access Identity value.`,
               anyOf: [
                 {
                   type: 'string',
@@ -93,6 +131,7 @@ class AwsCompileCloudFrontEvents {
       type: 'object',
       properties: {
         AllowedMethods: {
+          description: `Allowed HTTP methods for this cache behavior.`,
           anyOf: [
             {
               type: 'array',
@@ -125,6 +164,7 @@ class AwsCompileCloudFrontEvents {
           ],
         },
         CachedMethods: {
+          description: `Methods cached by CloudFront.`,
           anyOf: [
             {
               type: 'array',
@@ -140,38 +180,63 @@ class AwsCompileCloudFrontEvents {
             },
           ],
         },
-        CachePolicyId: { type: 'string' },
-        Compress: { type: 'boolean' },
-        FieldLevelEncryptionId: { type: 'string' },
+        CachePolicyId: {
+          description: `CloudFront Cache Policy ID.`,
+          type: 'string',
+        },
+        Compress: {
+          description: `Enable automatic compression.`,
+          type: 'boolean',
+        },
+        FieldLevelEncryptionId: {
+          description: `Field-level encryption configuration ID.`,
+          type: 'string',
+        },
         OriginRequestPolicyId: {
+          description: `CloudFront Origin Request Policy ID.`,
           anyOf: [{ type: 'string' }, { $ref: '#/definitions/awsCfFunction' }],
         },
         ResponseHeadersPolicyId: {
+          description: `CloudFront Response Headers Policy ID.`,
           anyOf: [{ type: 'string' }, { $ref: '#/definitions/awsCfFunction' }],
         },
-        SmoothStreaming: { type: 'boolean' },
-        TrustedSigners: { type: 'array', items: { type: 'string' } },
+        SmoothStreaming: {
+          description: `Enable Microsoft Smooth Streaming.`,
+          type: 'boolean',
+        },
+        TrustedSigners: {
+          description: `AWS account IDs trusted to sign private content URLs.`,
+          type: 'array',
+          items: { type: 'string' },
+        },
         ViewerProtocolPolicy: {
+          description: `Viewer protocol policy.`,
           enum: ['allow-all', 'redirect-to-https', 'https-only'],
         },
         TrustedKeyGroups: {
+          description: `Trusted key groups for signed URLs/cookies.`,
           type: 'array',
           items: {
             anyOf: [{ type: 'string' }, { $ref: '#/definitions/awsCfRef' }],
           },
         },
-        MaxTTL: { type: 'number' },
-        MinTTL: { type: 'number' },
-        DefaultTTL: { type: 'number' },
+        MaxTTL: { description: `Maximum TTL in seconds.`, type: 'number' },
+        MinTTL: { description: `Minimum TTL in seconds.`, type: 'number' },
+        DefaultTTL: { description: `Default TTL in seconds.`, type: 'number' },
         ForwardedValues: {
+          description: `Legacy forwarding configuration.`,
           type: 'object',
           properties: {
             Cookies: {
+              description: `Cookie forwarding settings.`,
               anyOf: [
                 {
                   type: 'object',
                   properties: {
-                    Forward: { enum: ['all', 'none'] },
+                    Forward: {
+                      description: `Cookie forwarding mode.`,
+                      enum: ['all', 'none'],
+                    },
                   },
                   additionalProperties: false,
                   required: ['Forward'],
@@ -179,8 +244,12 @@ class AwsCompileCloudFrontEvents {
                 {
                   type: 'object',
                   properties: {
-                    Forward: { const: 'whitelist' },
+                    Forward: {
+                      description: `Cookie forwarding mode.`,
+                      const: 'whitelist',
+                    },
                     WhitelistedNames: {
+                      description: `Cookie names to forward.`,
                       type: 'array',
                       items: { type: 'string' },
                     },
@@ -190,9 +259,20 @@ class AwsCompileCloudFrontEvents {
                 },
               ],
             },
-            Headers: { type: 'array', items: { type: 'string' } },
-            QueryString: { type: 'boolean' },
-            QueryStringCacheKeys: { type: 'array', items: { type: 'string' } },
+            Headers: {
+              description: `Request headers to forward.`,
+              type: 'array',
+              items: { type: 'string' },
+            },
+            QueryString: {
+              description: `Whether to forward query strings.`,
+              type: 'boolean',
+            },
+            QueryStringCacheKeys: {
+              description: `Query string keys included in cache key.`,
+              type: 'array',
+              items: { type: 'string' },
+            },
           },
           additionalProperties: false,
           required: ['QueryString'],
@@ -205,19 +285,39 @@ class AwsCompileCloudFrontEvents {
       'aws',
       'cloudFront',
       {
+        description: `CloudFront Lambda@Edge event configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/cloudfront
+@example
+cloudFront:
+  eventType: origin-request
+  origin:
+    DomainName: my-bucket.s3.amazonaws.com`,
         type: 'object',
         properties: {
-          behavior: behaviorObjectSchema,
+          behavior: {
+            description: `CloudFront cache behavior overrides for this Lambda@Edge trigger.
+@see https://www.serverless.com/framework/docs/providers/aws/events/cloudfront#cache-behavior-configuration`,
+            ...behaviorObjectSchema,
+          },
           cachePolicy: {
+            description: `Cache policy reference by id or name.`,
             type: 'object',
             properties: {
-              id: { $ref: '#/definitions/awsCfInstruction' },
-              name: { type: 'string', minLength: 1 },
+              id: {
+                description: `Existing cache policy id.`,
+                $ref: '#/definitions/awsCfInstruction',
+              },
+              name: {
+                description: `Named cache policy from provider.cloudFront.cachePolicies.`,
+                type: 'string',
+                minLength: 1,
+              },
             },
             oneOf: [{ required: ['id'] }, { required: ['name'] }],
             additionalProperties: false,
           },
           eventType: {
+            description: `Lambda@Edge trigger: 'viewer-request', 'origin-request', 'origin-response', 'viewer-response'.`,
             enum: [
               'viewer-request',
               'origin-request',
@@ -225,9 +325,16 @@ class AwsCompileCloudFrontEvents {
               'viewer-response',
             ],
           },
-          isDefaultOrigin: { type: 'boolean' },
-          includeBody: { type: 'boolean' },
+          isDefaultOrigin: {
+            description: `Treat this origin as the default distribution origin.`,
+            type: 'boolean',
+          },
+          includeBody: {
+            description: `Include request body in Lambda event.`,
+            type: 'boolean',
+          },
           origin: {
+            description: `CloudFront origin configuration.`,
             anyOf: [{ type: 'string', format: 'uri' }, originObjectSchema],
           },
           // Allowed characters reference:
@@ -235,6 +342,7 @@ class AwsCompileCloudFrontEvents {
           // Still note it doesn't reference "?" character, which appears in prior examples,
           // Hence it's now included in this regex
           pathPattern: {
+            description: `URL path pattern to match.`,
             type: 'string',
             pattern: '^([A-Za-z0-9_.*?$/~"\'@:+-]|&amp;)+$',
           },

@@ -57,9 +57,20 @@ class AwsCompileEventBridgeEvents {
       'aws',
       'eventBridge',
       {
+        description: `EventBridge event configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/event-bridge
+@remarks EventBridge configuration options.
+@remarks EventBridge/CloudWatch input transformer.
+@remarks EventBridge/CloudWatch event detail pattern.
+@remarks EventBridge pattern for existing event sources.
+@remarks EventBridge pattern with full event matching.
+@remarks CloudWatch Events/EventBridge event.`,
         type: 'object',
         properties: {
           eventBus: {
+            description: `Custom event bus name or ARN.
+@see https://www.serverless.com/framework/docs/providers/aws/events/event-bridge#using-a-different-event-bus
+@example 'my-custom-bus'`,
             anyOf: [
               { type: 'string', minLength: 1 },
               { $ref: '#/definitions/awsArnString' },
@@ -70,6 +81,7 @@ class AwsCompileEventBridgeEvents {
                 type: 'object',
                 properties: {
                   'Fn::GetAtt': {
+                    description: `GetAtt reference to an EventBus Name attribute.`,
                     type: 'array',
                     minItems: 2,
                     maxItems: 2,
@@ -84,61 +96,110 @@ class AwsCompileEventBridgeEvents {
               },
             ],
           },
-          schedule: { pattern: '^(?:cron|rate)\\(.+\\)$', type: 'string' },
+          schedule: {
+            description: `Schedule expression (rate or cron).`,
+            pattern: '^(?:cron|rate)\\(.+\\)$',
+            type: 'string',
+          },
           name: {
+            description: `Custom rule name.`,
             type: 'string',
             pattern: '[a-zA-Z0-9-_.]+',
             minLength: 1,
             maxLength: 64,
           },
-          description: { type: 'string', maxLength: 512 },
-          enabled: { type: 'boolean' },
+          description: {
+            description: `Rule description.`,
+            type: 'string',
+            maxLength: 512,
+          },
+          enabled: {
+            description: `Enable or disable the rule.`,
+            type: 'boolean',
+          },
           pattern: {
+            description: `EventBridge pattern with full event matching.
+@see https://docs.aws.amazon.com/eventbridge/latest/userguide/aws-events.html
+@example
+pattern:
+  source:
+    - aws.ec2
+  detail-type:
+    - EC2 Instance State-change Notification`,
             type: 'object',
             properties: {
-              version: {},
-              id: {},
-              'detail-type': {},
-              source: {},
-              account: {},
-              time: {},
-              region: {},
-              resources: {},
-              detail: {},
-              $or: { type: 'array' },
+              version: { description: `Event schema version.` },
+              id: { description: `Event id filter.` },
+              'detail-type': { description: `Detail type filter.` },
+              source: { description: `Event source identifiers.` },
+              account: { description: `AWS account filter.` },
+              time: { description: `Event timestamp filter.` },
+              region: { description: `AWS region filter.` },
+              resources: { description: `Resource ARN filter list.` },
+              detail: {
+                description: `EventBridge/CloudWatch event detail pattern.`,
+              },
+              $or: {
+                description: `OR-combined event pattern clauses.`,
+                type: 'array',
+              },
             },
             additionalProperties: false,
           },
-          input: { type: 'object' },
-          inputPath: { type: 'string', minLength: 1, maxLength: 256 },
+          input: {
+            description: `Static payload passed to the target.`,
+            type: 'object',
+          },
+          inputPath: {
+            description: `JSON path to extract input from event.`,
+            type: 'string',
+            minLength: 1,
+            maxLength: 256,
+          },
           inputTransformer: {
+            description: `EventBridge/CloudWatch input transformer.
+@see https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-transform-target-input.html`,
             type: 'object',
             properties: {
               inputPathsMap: {
+                description: `Map of JSON path expressions to variable names.
+@example { instance: '$.detail.instance-id' }`,
                 type: 'object',
                 additionalProperties: { type: 'string', minLength: 1 },
               },
-              inputTemplate: { type: 'string', minLength: 1, maxLength: 8192 },
+              inputTemplate: {
+                description: `Template for the transformed input.
+@example '{"instance": <instance>}'`,
+                type: 'string',
+                minLength: 1,
+                maxLength: 8192,
+              },
             },
             required: ['inputTemplate'],
             additionalProperties: false,
           },
           retryPolicy: {
+            description: `Retry behavior for failed target invocations.`,
             type: 'object',
             properties: {
               maximumEventAge: {
+                description: `Maximum event age in seconds before EventBridge drops the event.`,
                 type: 'integer',
                 minimum: 60,
                 maximum: 86400,
               },
               maximumRetryAttempts: {
+                description: `Maximum number of retry attempts.`,
                 type: 'integer',
                 minimum: 0,
                 maximum: 185,
               },
             },
           },
-          deadLetterQueueArn: { $ref: '#/definitions/awsArn' },
+          deadLetterQueueArn: {
+            description: `Dead-letter queue ARN for undeliverable events.`,
+            $ref: '#/definitions/awsArn',
+          },
         },
         anyOf: [{ required: ['pattern'] }, { required: ['schedule'] }],
       },

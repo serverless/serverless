@@ -41,11 +41,13 @@ const methodPathPattern = new RegExp(
 )
 
 const requestParametersSchema = {
+  description: `Request parameter mapping configuration.`,
   type: 'object',
   additionalProperties: {
     anyOf: [
       { type: 'boolean' },
       {
+        description: `Request parameter object with mapping metadata.`,
         type: 'object',
         properties: {
           required: { type: 'boolean' },
@@ -58,20 +60,33 @@ const requestParametersSchema = {
 }
 
 const authorizerSchema = {
+  description: `HTTP event authorizer configuration.`,
   anyOf: [
     { type: 'string' },
     {
+      description: `Detailed authorizer configuration object.`,
       type: 'object',
       properties: {
         arn: { $ref: '#/definitions/awsArn' },
         authorizerId: { $ref: '#/definitions/awsCfInstruction' },
         claims: { type: 'array', items: { type: 'string' } },
-        identitySource: { type: 'string' },
+        identitySource: {
+          description: `Identity source expression for the authorizer.
+@default 'method.request.header.Authorization'`,
+          type: 'string',
+        },
         identityValidationExpression: { type: 'string' },
         managedExternally: { type: 'boolean' },
         name: { type: 'string' },
-        resultTtlInSeconds: { type: 'integer', minimum: 0, maximum: 3600 },
+        resultTtlInSeconds: {
+          description: `Authorizer cache TTL in seconds (0-3600).
+@default 300`,
+          type: 'integer',
+          minimum: 0,
+          maximum: 3600,
+        },
         scopes: {
+          description: `OAuth scopes required for access.`,
           type: 'array',
           items: {
             anyOf: [
@@ -81,6 +96,8 @@ const authorizerSchema = {
           },
         },
         type: {
+          description: `Authorizer type.
+@example 'token'`,
           anyOf: [
             'token',
             'cognito_user_pools',
@@ -97,9 +114,11 @@ const authorizerSchema = {
 }
 
 const corsSchema = {
+  description: `CORS configuration for REST API events.`,
   anyOf: [
     { type: 'boolean' },
     {
+      description: `Detailed CORS options.`,
       type: 'object',
       properties: {
         allowCredentials: { type: 'boolean' },
@@ -109,6 +128,8 @@ const corsSchema = {
         methods: { type: 'array', items: { enum: allowedMethods } },
         origin: { type: 'string' },
         origins: {
+          description: `Allowed origin list.
+@example ['https://example.com']`,
           type: 'array',
           items: { type: 'string' },
         },
@@ -119,11 +140,13 @@ const corsSchema = {
 }
 
 const requestSchema = {
+  description: `Request integration mapping configuration.`,
   type: 'object',
   properties: {
     contentHandling: contentHandlingSchema,
     method: { type: 'string', regexp: methodPattern.toString() },
     parameters: {
+      description: `Request parameter mappings by location.`,
       type: 'object',
       properties: {
         querystrings: requestParametersSchema,
@@ -134,10 +157,13 @@ const requestSchema = {
     },
     passThrough: { enum: ['NEVER', 'WHEN_NO_MATCH', 'WHEN_NO_TEMPLATES'] },
     schemas: {
+      description: `Request body schemas by content-type.
+@example { 'application/json': 'schemaId' }`,
       type: 'object',
       additionalProperties: { anyOf: [{ type: 'object' }, { type: 'string' }] },
     },
     template: {
+      description: `Request templates keyed by content-type.`,
       type: 'object',
       additionalProperties: { type: 'string' },
     },
@@ -147,32 +173,40 @@ const requestSchema = {
 }
 
 const responseSchema = {
+  description: `Response integration mapping configuration.`,
   type: 'object',
   properties: {
     contentHandling: contentHandlingSchema,
     headers: {
+      description: `Response header mappings.`,
       type: 'object',
       additionalProperties: { type: 'string' },
     },
     template: { type: 'string' },
     transferMode: {
+      description: `Streaming transfer mode.`,
       anyOf: ['BUFFERED', 'STREAM'].map(caseInsensitive),
     },
     statusCodes: {
+      description: `Response mappings keyed by status code.`,
       type: 'object',
       propertyNames: {
+        description: `Three-digit HTTP status code key.`,
         type: 'string',
         pattern: '^\\d{3}$',
       },
       additionalProperties: {
+        description: `Per-status-code response mapping.`,
         type: 'object',
         properties: {
           headers: {
+            description: `Headers added to this status response.`,
             type: 'object',
             additionalProperties: { type: 'string' },
           },
           pattern: { type: 'string' },
           template: {
+            description: `Response template string or map keyed by content-type.`,
             anyOf: [
               { type: 'string' },
               {
@@ -196,19 +230,44 @@ class AwsCompileApigEvents {
     this.provider = this.serverless.getProvider('aws')
 
     this.serverless.configSchemaHandler.defineFunctionEvent('aws', 'http', {
+      description: `REST API Gateway event configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/apigateway
+@example
+http:
+  path: users/{id}
+  method: get`,
       anyOf: [
         { type: 'string', regexp: methodPathPattern.toString() },
         {
           type: 'object',
           properties: {
-            async: { type: 'boolean' },
-            authorizer: authorizerSchema,
-            connectionId: { $ref: '#/definitions/awsCfInstruction' },
+            async: {
+              description: `Invoke Lambda asynchronously.
+@see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#using-asynchronous-integration`,
+              type: 'boolean',
+            },
+            authorizer: {
+              description: `Custom/Cognito/IAM authorizer configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#http-endpoints-with-custom-authorizers`,
+              ...authorizerSchema,
+            },
+            connectionId: {
+              description: `VPC Link connection id.`,
+              $ref: '#/definitions/awsCfInstruction',
+            },
             connectionType: {
+              description: `Connection type for integration.`,
               anyOf: ['vpc-link', 'VPC_LINK'].map(caseInsensitive),
             },
-            cors: corsSchema,
+            cors: {
+              description: `CORS configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#enabling-cors`,
+              ...corsSchema,
+            },
             integration: {
+              description: `API Gateway integration type.
+@default 'lambda-proxy'
+@see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#lambda-integration`,
               anyOf: [
                 'LAMBDA_PROXY',
                 'LAMBDA-PROXY',
@@ -222,13 +281,41 @@ class AwsCompileApigEvents {
                 'MOCK',
               ].map(caseInsensitive),
             },
-            method: { type: 'string', regexp: methodPattern.toString() },
-            operationId: { type: 'string' },
-            path: { type: 'string', regexp: /^(?:\*|\/?\S*)$/.toString() },
-            private: { type: 'boolean' },
-            request: requestSchema,
-            response: responseSchema,
-            timeoutInMillis: { type: 'integer', minimum: 50 },
+            method: {
+              description: `HTTP method.
+@example 'get'`,
+              type: 'string',
+              regexp: methodPattern.toString(),
+            },
+            operationId: {
+              description: `OpenAPI operation id.`,
+              type: 'string',
+            },
+            path: {
+              description: `HTTP route path.
+@example 'users/{id}'`,
+              type: 'string',
+              regexp: /^(?:\*|\/?\S*)$/.toString(),
+            },
+            private: {
+              description: `Require API key for this route.
+@see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#setting-api-keys-for-your-rest-api`,
+              type: 'boolean',
+            },
+            request: {
+              description: `Request mapping and validation configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#request-schema-validators`,
+              ...requestSchema,
+            },
+            response: {
+              description: `Response mapping configuration.`,
+              ...responseSchema,
+            },
+            timeoutInMillis: {
+              description: `Integration timeout in milliseconds.`,
+              type: 'integer',
+              minimum: 50,
+            },
           },
           required: ['path', 'method'],
           additionalProperties: false,

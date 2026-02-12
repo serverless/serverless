@@ -12,27 +12,84 @@ class AwsCompileSNSEvents {
     }
 
     this.serverless.configSchemaHandler.defineFunctionEvent('aws', 'sns', {
+      description: `SNS event configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/sns
+@remarks SNS redrive (dead letter queue) policy.
+@remarks ARN of existing SNS topic.
+@remarks Name for new SNS topic.
+@remarks URL of the DLQ (SQS).
+@remarks SNS topic event.
+@example
+events:
+  - sns:
+      arn: arn:aws:sns:region:account:topic
+      filterPolicy:
+        type:
+          - order`,
       anyOf: [
         { type: 'string', maxLength: 256, pattern: '^[\\w-]+$' },
         { $ref: '#/definitions/awsArnString' },
         {
           type: 'object',
           properties: {
-            arn: { $ref: '#/definitions/awsArn' },
-            topicName: { type: 'string', maxLength: 256, pattern: '^[\\w-]+$' },
-            displayName: { type: 'string', minLength: 1 },
-            filterPolicy: { type: 'object' },
-            filterPolicyScope: { type: 'string' },
+            arn: {
+              description: `ARN of existing SNS topic.`,
+              $ref: '#/definitions/awsArn',
+            },
+            topicName: {
+              description: `Name for new SNS topic.
+@example 'my-topic'`,
+              type: 'string',
+              maxLength: 256,
+              pattern: '^[\\w-]+$',
+            },
+            displayName: {
+              description: `Display name for the topic.`,
+              type: 'string',
+              minLength: 1,
+            },
+            filterPolicy: {
+              description: `Message attribute filter policy.
+@see https://docs.aws.amazon.com/sns/latest/dg/sns-subscription-filter-policies.html
+@example
+filterPolicy:
+  type:
+    - order`,
+              type: 'object',
+            },
+            filterPolicyScope: {
+              description: `Scope for evaluating filter policy.
+@example 'MessageAttributes'`,
+              type: 'string',
+            },
             redrivePolicy: {
+              description: `SNS redrive (dead letter queue) policy.
+@see https://www.serverless.com/framework/docs/providers/aws/events/sns#setting-a-redrive-policy
+@remarks URL of the DLQ (SQS).`,
               type: 'object',
               properties: {
-                deadLetterTargetArn: { $ref: '#/definitions/awsArnString' },
-                deadLetterTargetRef: { type: 'string', minLength: 1 },
+                deadLetterTargetArn: {
+                  description: `ARN of the dead letter queue.`,
+                  $ref: '#/definitions/awsArnString',
+                },
+                deadLetterTargetRef: {
+                  description: `CloudFormation Ref to the dead letter queue.`,
+                  type: 'string',
+                  minLength: 1,
+                },
                 deadLetterTargetImport: {
+                  description: `Import existing dead letter queue.`,
                   type: 'object',
                   properties: {
-                    arn: { $ref: '#/definitions/awsArnString' },
-                    url: { type: 'string', minLength: 1 },
+                    arn: {
+                      description: `ARN of the DLQ.`,
+                      $ref: '#/definitions/awsArnString',
+                    },
+                    url: {
+                      description: `URL of the DLQ (SQS).`,
+                      type: 'string',
+                      minLength: 1,
+                    },
                   },
                   required: ['arn', 'url'],
                   additionalProperties: false,
@@ -46,6 +103,7 @@ class AwsCompileSNSEvents {
               additionalProperties: false,
             },
             kmsMasterKeyId: {
+              description: `KMS key id or ARN used to encrypt the topic.`,
               anyOf: [
                 { $ref: '#/definitions/awsArn' },
                 { $ref: '#/definitions/awsCfFunction' },
