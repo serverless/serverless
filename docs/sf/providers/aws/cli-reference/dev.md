@@ -35,7 +35,7 @@ serverless dev
 - `--stage` or `-s` The stage in your service that you want to activate a development session for.
 - `--region` or `-r` The region in that stage that you want to active a development session for.
 - `--aws-profile` The AWS profile you want to use.
-- `--remove-on-exit` Prompt to remove the deployed service stack when exiting Dev Mode with Ctrl+C.
+- `--on-exit=remove` Prompt to remove the deployed service stack when exiting Dev Mode with Ctrl+C.
 
 **Note:** While it is possible, we do not recommend activating a development session in your `prod` stage.
 
