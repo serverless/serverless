@@ -15,6 +15,10 @@ class APIGatewayBase {
     throw new Error('deleteCustomDomain method must be implemented')
   }
 
+  updateCustomDomain(domain) {
+    throw new Error('updateCustomDomain method must be implemented')
+  }
+
   createBasePathMapping(domain) {
     throw new Error('createBasePathMapping method must be implemented')
   }

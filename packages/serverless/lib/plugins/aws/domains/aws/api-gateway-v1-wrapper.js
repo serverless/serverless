@@ -6,6 +6,7 @@ import {
   CreateDomainNameCommand,
   GetDomainNameCommand,
   DeleteDomainNameCommand,
+  UpdateDomainNameCommand,
   CreateBasePathMappingCommand,
   GetBasePathMappingsCommand,
   UpdateBasePathMappingCommand,
@@ -49,6 +50,10 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
       },
       securityPolicy: domain.securityPolicy,
       tags: providerTags,
+    }
+
+    if (domain.accessMode) {
+      params.endpointAccessMode = domain.accessMode
     }
 
     const isEdgeType = domain.endpointType === Globals.endpointTypes.edge
@@ -123,6 +128,60 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
       throw new ServerlessError(
         `V1 - Failed to delete custom domain '${domain.givenDomainName}':\n${err.message}`,
         ServerlessErrorCodes.domains.API_GATEWAY_CUSTOM_DOMAIN_DELETION_FAILED,
+        { originalMessage: err.message },
+      )
+    }
+  }
+
+  async updateCustomDomain(domain) {
+    const patchOperations = []
+
+    if (
+      domain.hasSecurityPolicyConfigured &&
+      domain.domainInfo?.securityPolicy !== domain.securityPolicy
+    ) {
+      patchOperations.push({
+        op: 'replace',
+        path: '/securityPolicy',
+        value: domain.securityPolicy,
+      })
+    }
+
+    if (
+      domain.hasAccessModeConfigured &&
+      domain.domainInfo?.accessMode !== domain.accessMode
+    ) {
+      patchOperations.push({
+        op: 'replace',
+        path: '/endpointAccessMode',
+        value: domain.accessMode,
+      })
+    }
+
+    if (patchOperations.length === 0) {
+      return null
+    }
+
+    try {
+      if (Globals.options?.debug) {
+        Logging.logInfo(
+          `V1 - Sending custom domain update request for '${domain.givenDomainName}': ${JSON.stringify(
+            patchOperations,
+          )}`,
+        )
+      }
+
+      const domainInfo = await this.apiGateway.send(
+        new UpdateDomainNameCommand({
+          domainName: domain.givenDomainName,
+          patchOperations,
+        }),
+      )
+      return new DomainInfo(domainInfo)
+    } catch (err) {
+      throw new ServerlessError(
+        `V1 - Failed to update custom domain '${domain.givenDomainName}':\n${err.message}`,
+        ServerlessErrorCodes.domains.API_GATEWAY_CUSTOM_DOMAIN_UPDATE_FAILED,
         { originalMessage: err.message },
       )
     }

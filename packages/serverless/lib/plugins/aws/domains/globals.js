@@ -23,6 +23,11 @@ export default class Globals {
     regional: 'REGIONAL',
   }
 
+  static accessModes = {
+    basic: 'BASIC',
+    strict: 'STRICT',
+  }
+
   static apiTypes = {
     http: 'HTTP',
     rest: 'REST',
