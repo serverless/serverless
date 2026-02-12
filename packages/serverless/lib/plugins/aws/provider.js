@@ -998,6 +998,9 @@ class AwsProvider {
                 anyOf: [{ type: 'boolean' }, { type: 'string' }],
               },
               securityPolicy: { type: 'string' },
+              accessMode: {
+                anyOf: ['BASIC', 'STRICT'].map(caseInsensitive),
+              },
               autoDomain: { type: 'boolean' },
               autoDomainWaitFor: { type: 'string' },
               allowPathMatching: { type: 'boolean' },
