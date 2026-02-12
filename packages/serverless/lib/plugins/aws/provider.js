@@ -1316,6 +1316,10 @@ tags:
                 description: `TLS security policy for the domain.`,
                 type: 'string',
               },
+              accessMode: {
+                description: `Endpoint access mode of the domain.`,
+                anyOf: ['BASIC', 'STRICT'].map(caseInsensitive),
+              },
               autoDomain: {
                 description: `Automatically create or update the custom domain.`,
                 type: 'boolean',

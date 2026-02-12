@@ -1,6 +1,18 @@
 import DomainConfig from '../../../../../../../lib/plugins/aws/domains/models/domain-config.js'
+import Globals from '../../../../../../../lib/plugins/aws/domains/globals.js'
 
 describe('DomainConfig', () => {
+  beforeEach(() => {
+    Globals.options = {}
+    Globals.serverless = {
+      service: {
+        provider: {
+          stage: 'dev',
+        },
+      },
+    }
+  })
+
   describe('_getSecurityPolicy', () => {
     describe('legacy security policies', () => {
       it('should return TLS_1_2 as default when no policy is specified', () => {
@@ -71,6 +83,69 @@ describe('DomainConfig', () => {
         )
         expect(result).toBe('SecurityPolicy_FUTURE_POLICY')
       })
+    })
+  })
+
+  describe('_getAccessMode', () => {
+    it('should return undefined when accessMode is not specified', () => {
+      const result = DomainConfig._getAccessMode(undefined)
+      expect(result).toBeUndefined()
+    })
+
+    it('should return undefined when accessMode is empty string', () => {
+      const result = DomainConfig._getAccessMode('')
+      expect(result).toBeUndefined()
+    })
+
+    it('should return BASIC for basic (case-insensitive)', () => {
+      const result = DomainConfig._getAccessMode('basic')
+      expect(result).toBe('BASIC')
+    })
+
+    it('should return STRICT for strict (case-insensitive)', () => {
+      const result = DomainConfig._getAccessMode('STRICT')
+      expect(result).toBe('STRICT')
+    })
+
+    it('should throw for invalid accessMode', () => {
+      expect(() => DomainConfig._getAccessMode('invalid')).toThrow(
+        /is not a supported accessMode/,
+      )
+    })
+  })
+
+  describe('constructor explicit configuration flags', () => {
+    it('sets hasSecurityPolicyConfigured and hasAccessModeConfigured when values are provided', () => {
+      const config = new DomainConfig({
+        name: 'api.example.com',
+        apiType: 'rest',
+        securityPolicy: 'TLS_1_2',
+        accessMode: 'STRICT',
+      })
+
+      expect(config.hasSecurityPolicyConfigured).toBe(true)
+      expect(config.hasAccessModeConfigured).toBe(true)
+    })
+
+    it('does not set explicit flags when values are omitted', () => {
+      const config = new DomainConfig({
+        name: 'api.example.com',
+        apiType: 'rest',
+      })
+
+      expect(config.hasSecurityPolicyConfigured).toBe(false)
+      expect(config.hasAccessModeConfigured).toBe(false)
+    })
+
+    it('keeps hasAccessModeConfigured true when accessMode is explicitly unset', () => {
+      const config = new DomainConfig({
+        name: 'api.example.com',
+        apiType: 'rest',
+        accessMode: '',
+      })
+
+      expect(config.hasAccessModeConfigured).toBe(true)
+      expect(config.accessMode).toBeUndefined()
     })
   })
 })
