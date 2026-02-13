@@ -583,19 +583,37 @@ test('uv py3.13 can package flask with default options', async (t) => {
   t.end()
 })
 
-test('uv installer is used when installer=uv', async (t) => {
-  process.chdir('tests/uv_installer')
-  const { stderr } = sls(['package'], {
-    env: { SLS_DEBUG: '*' },
-    noThrow: true,
-  })
-  // In debug mode we expect to see uv pip invocation in logs, or an explicit uv-not-found error
-  t.true(
-    stderr && stderr.includes('uv pip install'),
-    'uv installer used (debug shows uv pip)',
-  )
-  t.end()
-})
+test(
+  'uv installer with dockerizePip packages successfully',
+  async (t) => {
+    process.chdir('tests/uv_installer')
+    const { stderr } = sls(['package'], {
+      env: { SLS_DEBUG: '*', dockerizePip: 'true' },
+    })
+
+    t.true(
+      stderr && stderr.includes('uv pip install'),
+      'uv installer used (debug shows uv pip)',
+    )
+    t.false(
+      stderr && stderr.includes('Stripping -e flag from requirement .'),
+      'no -e stripping warning emitted',
+    )
+    t.false(
+      stderr &&
+        stderr.includes(
+          'does not appear to be a Python project, as neither `pyproject.toml` nor `setup.py` are present',
+        ),
+      'no root-project metadata error emitted',
+    )
+
+    const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
+    t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+    t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+    t.end()
+  },
+  { skip: !canUseDocker() || brokenOn('win32') },
+)
 
 test('uv py3.13 can package flask with slim option', async (t) => {
   process.chdir('tests/uv')
@@ -683,14 +701,39 @@ test('uv py3.13 doesnt package bottle with noDeploy option', async (t) => {
   t.end()
 })
 
-test('uv py3.13 auto-reinstalls local packages (based on pyproject.toml name)', async (t) => {
+test('uv_local_package: uv py3.13 excludes root project from requirements export', async (t) => {
   process.chdir('tests/uv_local_package')
+  const { stderr } = sls(['package'], { env: { SLS_DEBUG: '*' } })
+
+  t.false(
+    stderr && stderr.includes('Stripping -e flag from requirement .'),
+    'no -e stripping warning emitted',
+  )
+
+  const zipData = await readFile('.serverless/sls-py-req-test.zip')
+  const zip = await new JSZip().loadAsync(zipData)
+  const files = Object.keys(zip.files).map((f) => f.replace(/\\/g, '/'))
+
+  t.false(
+    files.some((f) => f.endsWith('my_local_package/__init__.py')),
+    'root package is not injected into artifact',
+  )
+  t.true(
+    files.some((f) => f.endsWith('flask/__init__.py')),
+    'flask is packaged',
+  )
+
+  t.end()
+})
+
+test('uv_path_dependency: uv py3.13 auto-reinstalls local path dependency', async (t) => {
+  process.chdir('tests/uv_path_dependency')
 
   // Initial package of version 1.0.0
   sls(['package'], { env: { SLS_DEBUG: '*' } })
 
-  // Modify source code of local package to version 2.0.0
-  const initPyPath = `src${sep}my_local_package${sep}__init__.py`
+  // Modify source code of local path dependency to version 2.0.0
+  const initPyPath = `local_pkg${sep}src${sep}my_path_package${sep}__init__.py`
   const originalContent = await readFile(initPyPath, { encoding: 'utf-8' })
   const newContent = originalContent.replace(
     'VERSION = "1.0.0"',
@@ -702,40 +745,31 @@ test('uv py3.13 auto-reinstalls local packages (based on pyproject.toml name)', 
     // Repackage to verify changes are picked up correctly
     const { stderr } = sls(['package'], { env: { SLS_DEBUG: '*' } })
 
-    // Verify Force reinstall was triggered
     t.true(
       stderr &&
-        stderr.includes('Force reinstalling local package: my-local-package'),
-      'Logs indicate forced reinstall of local package',
+        stderr.includes('Force reinstalling local package: my-path-package'),
+      'Logs indicate forced reinstall of local path dependency',
     )
 
     const zipData = await readFile('.serverless/sls-py-req-test.zip')
     const zip = await new JSZip().loadAsync(zipData)
+    const files = Object.keys(zip.files).map((f) => f.replace(/\\/g, '/'))
 
-    let fileInZip = zip.file(`my_local_package${sep}__init__.py`)
+    const pathDepFile = files.find((f) =>
+      f.endsWith('my_path_package/__init__.py'),
+    )
+    t.ok(pathDepFile, 'my_path_package/__init__.py found in zip')
 
-    if (!fileInZip) {
-      const files = Object.keys(zip.files)
-      const match = files.find((f) =>
-        f.endsWith('my_local_package/__init__.py'),
-      )
-      if (match) fileInZip = zip.file(match)
-    }
-
-    t.ok(fileInZip, 'my_local_package/__init__.py found in zip')
-
-    if (fileInZip) {
-      const content = await fileInZip.async('string')
+    if (pathDepFile) {
+      const content = await zip.file(pathDepFile).async('string')
       t.true(
         content.includes('VERSION = "2.0.0"'),
-        'Packaged artifact reflects source changes',
+        'Packaged artifact reflects path dependency source changes',
       )
     }
 
-    // Verify flask (transitive dependency) is also packaged
-    const files = Object.keys(zip.files)
     t.true(
-      files.some((f) => f.includes(`flask${sep}__init__.py`)),
+      files.some((f) => f.endsWith('flask/__init__.py')),
       'flask is packaged',
     )
   } finally {
