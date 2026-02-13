@@ -15,8 +15,7 @@ class AwsCompileAlexaSmartHomeEvents {
       'alexaSmartHome',
       {
         description: `Alexa Smart Home event configuration.
-@see https://www.serverless.com/framework/docs/providers/aws/events/alexa-smart-home
-@remarks Alexa Smart Home application ID.`,
+@see https://www.serverless.com/framework/docs/providers/aws/events/alexa-smart-home`,
         anyOf: [
           { $ref: '#/definitions/awsAlexaEventToken' },
           {

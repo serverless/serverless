@@ -12,7 +12,6 @@ class AwsCompileAlexaSkillEvents {
       {
         description: `Alexa Skill event configuration.
 @see https://www.serverless.com/framework/docs/providers/aws/events/alexa-skill
-@remarks Alexa Skill application ID.
 @example
 alexaSkill:
   appId: amzn1.ask.skill.xxx-xxx-xxx`,

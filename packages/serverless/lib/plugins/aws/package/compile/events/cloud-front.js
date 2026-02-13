@@ -295,9 +295,9 @@ cloudFront:
         type: 'object',
         properties: {
           behavior: {
+            ...behaviorObjectSchema,
             description: `CloudFront cache behavior overrides for this Lambda@Edge trigger.
 @see https://www.serverless.com/framework/docs/providers/aws/events/cloudfront#cache-behavior-configuration`,
-            ...behaviorObjectSchema,
           },
           cachePolicy: {
             description: `Cache policy reference by id or name.`,

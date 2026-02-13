@@ -53,11 +53,11 @@ class AwsCompileAlbEvents {
 @see https://www.serverless.com/framework/docs/providers/aws/events/alb`,
       type: 'object',
       properties: {
-        authorizer: defineArray({
+        authorizer: {
           description: `ALB authorizer names configured in provider.alb.authorizers.
 @see https://www.serverless.com/framework/docs/providers/aws/events/alb#add-cognitocustom-idp-provider-authentication`,
-          type: 'string',
-        }),
+          ...defineArray({ type: 'string' }),
+        },
         conditions: {
           description: `ALB listener rule conditions.`,
           type: 'object',
@@ -69,28 +69,34 @@ class AwsCompileAlbEvents {
                 ALB_HTTP_HEADER_SCHEMA,
               ],
             },
-            host: defineArray({
+            host: {
               description: `Host header match patterns.`,
-              type: 'string',
-              pattern: '^[A-Za-z0-9*?.-]+$',
-              maxLength: 128,
-            }),
-            ip: defineArray(
-              { type: 'string', description: `Source IP CIDR values.` },
-              { uniqueItems: true },
-            ),
-            method: defineArray({
+              ...defineArray({
+                type: 'string',
+                pattern: '^[A-Za-z0-9*?.-]+$',
+                maxLength: 128,
+              }),
+            },
+            ip: {
+              description: `Source IP CIDR values.`,
+              ...defineArray({ type: 'string' }, { uniqueItems: true }),
+            },
+            method: {
               description: `HTTP method match patterns.`,
-              type: 'string',
-              pattern: '^[A-Z_-]+$',
-              maxLength: 40,
-            }),
-            path: defineArray({
+              ...defineArray({
+                type: 'string',
+                pattern: '^[A-Z_-]+$',
+                maxLength: 40,
+              }),
+            },
+            path: {
               description: `Path match patterns.`,
-              type: 'string',
-              pattern: '^([A-Za-z0-9*?_.$/~"\'@:+-]|&amp;)+$',
-              maxLength: 128,
-            }),
+              ...defineArray({
+                type: 'string',
+                pattern: '^([A-Za-z0-9*?_.$/~"\'@:+-]|&amp;)+$',
+                maxLength: 128,
+              }),
+            },
             query: {
               description: `Query string match conditions.`,
               type: 'object',

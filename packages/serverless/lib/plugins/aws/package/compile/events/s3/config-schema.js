@@ -343,7 +343,11 @@ export default {
                 type: 'string',
                 format: 'iso-date-time',
               },
-              ExpirationInDays: cfValue({ type: 'integer', minimum: 0 }),
+              ExpirationInDays: cfValue({
+                description: `Days after creation before objects expire.`,
+                type: 'integer',
+                minimum: 0,
+              }),
               Id: {
                 description: `Unique identifier for this lifecycle rule.`,
                 type: 'string',

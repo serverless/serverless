@@ -13,8 +13,6 @@ class AwsCompileSQSEvents {
     this.serverless.configSchemaHandler.defineFunctionEvent('aws', 'sqs', {
       description: `SQS event configuration.
 @see https://www.serverless.com/framework/docs/providers/aws/events/sqs
-@remarks SQS queue ARN or CloudFormation reference.
-@remarks SQS queue event.
 @example
 events:
   - sqs:

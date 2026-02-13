@@ -14,11 +14,6 @@ class AwsCompileSNSEvents {
     this.serverless.configSchemaHandler.defineFunctionEvent('aws', 'sns', {
       description: `SNS event configuration.
 @see https://www.serverless.com/framework/docs/providers/aws/events/sns
-@remarks SNS redrive (dead letter queue) policy.
-@remarks ARN of existing SNS topic.
-@remarks Name for new SNS topic.
-@remarks URL of the DLQ (SQS).
-@remarks SNS topic event.
 @example
 events:
   - sns:
@@ -64,8 +59,7 @@ filterPolicy:
             },
             redrivePolicy: {
               description: `SNS redrive (dead letter queue) policy.
-@see https://www.serverless.com/framework/docs/providers/aws/events/sns#setting-a-redrive-policy
-@remarks URL of the DLQ (SQS).`,
+@see https://www.serverless.com/framework/docs/providers/aws/events/sns#setting-a-redrive-policy`,
               type: 'object',
               properties: {
                 deadLetterTargetArn: {

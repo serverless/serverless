@@ -40,8 +40,6 @@ class AwsCompileCognitoUserPoolEvents {
       {
         description: `Cognito User Pool trigger event configuration.
 @see https://www.serverless.com/framework/docs/providers/aws/events/cognito-user-pool
-@remarks Cognito User Pool authorizer for ALB.
-@remarks ARN of the Cognito User Pool.
 @example
 cognitoUserPool:
   pool: my-user-pool

@@ -58,13 +58,7 @@ class AwsCompileEventBridgeEvents {
       'eventBridge',
       {
         description: `EventBridge event configuration.
-@see https://www.serverless.com/framework/docs/providers/aws/events/event-bridge
-@remarks EventBridge configuration options.
-@remarks EventBridge/CloudWatch input transformer.
-@remarks EventBridge/CloudWatch event detail pattern.
-@remarks EventBridge pattern for existing event sources.
-@remarks EventBridge pattern with full event matching.
-@remarks CloudWatch Events/EventBridge event.`,
+@see https://www.serverless.com/framework/docs/providers/aws/events/event-bridge`,
         type: 'object',
         properties: {
           eventBus: {

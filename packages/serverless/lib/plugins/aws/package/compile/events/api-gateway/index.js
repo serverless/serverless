@@ -247,9 +247,9 @@ http:
               type: 'boolean',
             },
             authorizer: {
+              ...authorizerSchema,
               description: `Custom/Cognito/IAM authorizer configuration.
 @see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#http-endpoints-with-custom-authorizers`,
-              ...authorizerSchema,
             },
             connectionId: {
               description: `VPC Link connection id.`,
@@ -260,9 +260,9 @@ http:
               anyOf: ['vpc-link', 'VPC_LINK'].map(caseInsensitive),
             },
             cors: {
+              ...corsSchema,
               description: `CORS configuration.
 @see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#enabling-cors`,
-              ...corsSchema,
             },
             integration: {
               description: `API Gateway integration type.
@@ -303,13 +303,13 @@ http:
               type: 'boolean',
             },
             request: {
+              ...requestSchema,
               description: `Request mapping and validation configuration.
 @see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#request-schema-validators`,
-              ...requestSchema,
             },
             response: {
-              description: `Response mapping configuration.`,
               ...responseSchema,
+              description: `Response mapping configuration.`,
             },
             timeoutInMillis: {
               description: `Integration timeout in milliseconds.`,
