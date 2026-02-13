@@ -70,7 +70,15 @@ async function uvToRequirements(pluginInstance) {
     const outPath = path.join(servicePath, '.serverless', 'requirements.txt')
     await spawn(
       'uv',
-      ['export', '--no-dev', '--frozen', '--no-hashes', '-o', outPath],
+      [
+        'export',
+        '--no-dev',
+        '--frozen',
+        '--no-hashes',
+        '--no-emit-project',
+        '-o',
+        outPath,
+      ],
       { cwd: moduleProjectPath },
     )
   } finally {
