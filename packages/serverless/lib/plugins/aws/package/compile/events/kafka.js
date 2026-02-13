@@ -12,13 +12,28 @@ class AwsCompileKafkaEvents {
     }
 
     this.serverless.configSchemaHandler.defineFunctionEvent('aws', 'kafka', {
+      description: `Self-managed Apache Kafka event configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/kafka
+@see https://docs.aws.amazon.com/lambda/latest/dg/with-kafka.html
+@remarks Self-managed Kafka event.
+@example
+events:
+  - kafka:
+      accessConfigurations:
+        saslScram512Auth: arn:aws:secretsmanager:region:account:secret:name
+      bootstrapServers:
+        - broker1.example.com:9092
+      topic: my-topic
+      batchSize: 100`,
       type: 'object',
       properties: {
         accessConfigurations: {
+          description: `Self-managed Kafka access configuration.`,
           type: 'object',
           minProperties: 1,
           properties: {
             vpcSubnet: {
+              description: `VPC subnet ids used by the event source mapping.`,
               type: 'array',
               minItems: 1,
               items: {
@@ -27,6 +42,7 @@ class AwsCompileKafkaEvents {
               },
             },
             vpcSecurityGroup: {
+              description: `VPC security group ids used by the event source mapping.`,
               type: 'array',
               minItems: 1,
               items: {
@@ -35,26 +51,31 @@ class AwsCompileKafkaEvents {
               },
             },
             saslPlainAuth: {
+              description: `Secrets Manager ARNs for SASL/PLAIN auth.`,
               type: 'array',
               minItems: 1,
               items: { $ref: '#/definitions/awsSecretsManagerArnString' },
             },
             saslScram256Auth: {
+              description: `Secrets Manager ARNs for SASL/SCRAM-256 auth.`,
               type: 'array',
               minItems: 1,
               items: { $ref: '#/definitions/awsSecretsManagerArnString' },
             },
             saslScram512Auth: {
+              description: `Secrets Manager ARNs for SASL/SCRAM-512 auth.`,
               type: 'array',
               minItems: 1,
               items: { $ref: '#/definitions/awsSecretsManagerArnString' },
             },
             clientCertificateTlsAuth: {
+              description: `Secrets Manager ARNs containing client TLS certificates.`,
               type: 'array',
               minItems: 1,
               items: { $ref: '#/definitions/awsSecretsManagerArnString' },
             },
             serverRootCaCertificate: {
+              description: `Secrets Manager ARNs containing server root CA certificates.`,
               type: 'array',
               minItems: 1,
               items: { $ref: '#/definitions/awsSecretsManagerArnString' },
@@ -63,19 +84,23 @@ class AwsCompileKafkaEvents {
           additionalProperties: false,
         },
         batchSize: {
+          description: `Maximum number of records to retrieve in a single batch.`,
           type: 'number',
           minimum: 1,
           maximum: 10000,
         },
         maximumBatchingWindow: {
+          description: `Maximum batching window in seconds.`,
           type: 'number',
           minimum: 0,
           maximum: 300,
         },
         enabled: {
+          description: `Enable or disable the event source mapping.`,
           type: 'boolean',
         },
         bootstrapServers: {
+          description: `Kafka bootstrap servers.`,
           type: 'array',
           minItems: 1,
           items: {
@@ -83,16 +108,20 @@ class AwsCompileKafkaEvents {
           },
         },
         startingPosition: {
+          description: `Where Lambda starts reading in the stream.`,
           type: 'string',
           enum: ['LATEST', 'TRIM_HORIZON', 'AT_TIMESTAMP'],
         },
         startingPositionTimestamp: {
+          description: `Start timestamp used when startingPosition is AT_TIMESTAMP.`,
           type: 'number',
         },
         topic: {
+          description: `Topic to consume from.`,
           type: 'string',
         },
         consumerGroupId: {
+          description: `Consumer group ID for the Kafka consumer.`,
           type: 'string',
           maxLength: 200,
           pattern: '[a-zA-Z0-9-/*:_+=.@-]*',

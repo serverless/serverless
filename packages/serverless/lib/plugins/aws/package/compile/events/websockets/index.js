@@ -51,16 +51,35 @@ class AwsCompileWebsockets {
       'aws',
       'websocket',
       {
+        description: `WebSocket API event configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/websocket
+@remarks ID of existing WebSocket API.
+@example
+events:
+  - websocket:
+      route: $connect
+      authorizer: myAuth
+  - websocket:
+      route: sendMessage`,
         anyOf: [
           { type: 'string' },
           {
             type: 'object',
             properties: {
-              route: { type: 'string' },
+              route: {
+                description: `WebSocket route key.
+@see https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-route-keys-connect-disconnect.html
+@example '$connect' | '$disconnect' | '$default' | 'sendMessage'`,
+                type: 'string',
+              },
               routeResponseSelectionExpression: {
+                description: `Route response selection expression.
+@example '$default'`,
                 const: '$default',
               },
               authorizer: {
+                description: `WebSocket API authorizer configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/websocket#using-authorizers`,
                 anyOf: [
                   { $ref: '#/definitions/awsArnString' },
                   { $ref: '#/definitions/functionName' },

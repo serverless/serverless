@@ -11,6 +11,7 @@ const schema = {
      * Except for the min length, which was 5, but is now 2
      */
     org: {
+      description: `Serverless Platform organization name.`,
       type: 'string',
       pattern: '^[a-z0-9]*$',
       minLength: 2,
@@ -24,6 +25,7 @@ const schema = {
      * Except for the min length, which was 5, but is now 2
      */
     app: {
+      description: `Serverless Platform application name.`,
       type: 'string',
       pattern: '^(?!-)[a-z0-9]+(?:-[a-z0-9]+)*(?<!-)$',
       minLength: 2,
@@ -35,6 +37,7 @@ const schema = {
      * For use with the Serverless Platform's Outputs feature
      */
     outputs: {
+      description: `Service outputs accessible by other services via the Serverless Platform.`,
       type: 'object',
       additionalProperties: {
         anyOf: [
@@ -54,10 +57,14 @@ const schema = {
      *
      *  The default is `warn`, and will be set to `error` in v2
      */
-    configValidationMode: { enum: ['error', 'warn', 'off'] },
+    configValidationMode: {
+      description: `Config validation strictness: 'warn', 'error', or 'off'.`,
+      enum: ['error', 'warn', 'off'],
+    },
     // Deprecated
     console: { anyOf: [{ type: 'boolean' }, { type: 'object' }] },
     custom: {
+      description: `Custom variables accessible via \${self:custom.xxx}.`,
       type: 'object',
       properties: {},
       required: [],
@@ -69,9 +76,12 @@ const schema = {
       additionalProperties: false,
     },
     deprecationNotificationMode: {
+      description: `How to handle deprecation warnings.`,
       enum: ['error', 'warn', 'warn:summary'],
     },
     disabledDeprecations: {
+      description: `Array of deprecation codes to suppress.
+@example ['LAMBDA_HASHING_VERSION_V2']`,
       anyOf: [
         { const: '*' },
         {
@@ -81,6 +91,13 @@ const schema = {
       ],
     },
     build: {
+      description: `Native build configuration for TypeScript/JavaScript bundling.
+@since v4
+@see https://www.serverless.com/framework/docs/providers/aws/guide/building
+@example
+build:
+  esbuild:
+    bundle: true`,
       anyOf: [
         { type: 'string' },
         {
@@ -89,8 +106,19 @@ const schema = {
         },
       ],
     },
-    frameworkVersion: { type: 'string' },
+    frameworkVersion: {
+      type: 'string',
+      description: `Serverless Framework version constraint (e.g., '3', '>=2.0.0 <4.0.0').
+@see https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml#root-properties
+@example '4'`,
+    },
     functions: {
+      description: `Function definitions for the service.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions
+@example
+functions:
+  hello:
+    handler: handler.hello`,
       type: 'object',
       patternProperties: {
         [functionNamePattern]: {
@@ -128,21 +156,64 @@ const schema = {
       },
       additionalProperties: false,
     },
-    licenseKey: { type: 'string' },
+    licenseKey: {
+      description: `Serverless Framework license key.
+@since v4
+@see https://www.serverless.com/framework/docs/guides/license-keys
+@example '\${env:SERVERLESS_LICENSE_KEY}'`,
+      type: 'string',
+    },
     package: {
+      description: `Packaging configuration for deployment artifacts.`,
       type: 'object',
       properties: {
-        artifact: { type: 'string' },
-        exclude: { type: 'array', items: { type: 'string' } },
-        excludeDevDependencies: { type: 'boolean' },
-        include: { type: 'array', items: { type: 'string' } },
-        individually: { type: 'boolean' },
-        path: { type: 'string' },
-        patterns: { type: 'array', items: { type: 'string' } },
+        artifact: {
+          description: `Path to a pre-built deployment artifact.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/packaging#artifact
+@example '.serverless/my-artifact.zip'`,
+          type: 'string',
+        },
+        exclude: {
+          description: `Glob patterns of files to exclude.
+@deprecated Use patterns instead.`,
+          type: 'array',
+          items: { type: 'string' },
+        },
+        excludeDevDependencies: {
+          description: `Whether to exclude devDependencies from the package.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/packaging#development-dependencies
+@default true`,
+          type: 'boolean',
+        },
+        include: {
+          description: `Glob patterns of files to include.
+@deprecated Use patterns instead.`,
+          type: 'array',
+          items: { type: 'string' },
+        },
+        individually: {
+          description: `Package each function as an individual artifact.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/packaging#packaging-functions-separately
+@default false`,
+          type: 'boolean',
+        },
+        path: {
+          description: `Path to a pre-existing package directory.`,
+          type: 'string',
+        },
+        patterns: {
+          description: `Glob patterns for including/excluding files (prefix with ! to exclude).
+@see https://www.serverless.com/framework/docs/providers/aws/guide/packaging#patterns
+@example ['!node_modules/**', 'src/**']`,
+          type: 'array',
+          items: { type: 'string' },
+        },
       },
       additionalProperties: false,
     },
     params: {
+      description: `Stage-specific parameters accessible via \${param:xxx}.
+@deprecated Use stages instead.`,
       type: 'object',
       patternProperties: {
         [stagePattern]: {
@@ -152,6 +223,14 @@ const schema = {
       additionalProperties: false,
     },
     stages: {
+      description: `Stage-specific configuration for parameters, observability, and integrations.
+@since v4
+@see https://www.serverless.com/framework/docs/guides/stages
+@example
+stages:
+  default:
+    params:
+      tableName: users`,
       type: 'object',
       patternProperties: {
         [stagePattern]: {
@@ -181,6 +260,9 @@ const schema = {
       additionalProperties: false,
     },
     plugins: {
+      description: `Plugins to extend Serverless functionality.
+@see https://www.serverless.com/framework/docs/guides/plugins/creating-plugins
+@example ['serverless-offline', 'serverless-webpack']`,
       anyOf: [
         {
           type: 'object',
@@ -202,6 +284,13 @@ const schema = {
      * Provider specific properties are extended in respected provider plugins.
      */
     provider: {
+      description: `AWS provider configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml
+@example
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1`,
       type: 'object',
       properties: {
         // "name" is configured as const by loaded provider
@@ -209,7 +298,12 @@ const schema = {
       required: ['name'],
       additionalProperties: false,
     },
-    service: { $ref: '#/definitions/serviceName' },
+    service: {
+      $ref: '#/definitions/serviceName',
+      description: `Service name or configuration object.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml
+@example service: my-service`,
+    },
     state: {
       anyOf: [
         {
@@ -223,7 +317,10 @@ const schema = {
         { type: 'string' },
       ],
     },
-    useDotenv: { const: true },
+    useDotenv: {
+      description: `Enable loading environment variables from .env files.`,
+      const: true,
+    },
     variablesResolutionMode: { type: 'string', enum: ['20210219', '20210326'] },
   },
   additionalProperties: false,
@@ -237,7 +334,12 @@ const schema = {
       type: 'string',
       pattern: functionNamePattern,
     },
-    serviceName: { type: 'string', pattern: '^[a-zA-Z][0-9a-zA-Z-]+$' },
+    serviceName: {
+      type: 'string',
+      pattern: '^[a-zA-Z][0-9a-zA-Z-]+$',
+      description: `Service name value used by the framework to group and namespace resources.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml`,
+    },
     stage: { type: 'string', pattern: stagePattern },
   },
 }

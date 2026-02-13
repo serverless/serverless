@@ -23,6 +23,8 @@ const DATASOURCE_TYPES = [
 
 export const appSyncSchema = {
   type: 'object',
+  description: `Schema for \`appSync\` top-level configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/appsync`,
   definitions: {
     stringOrIntrinsicFunction: {
       oneOf: [
@@ -36,6 +38,8 @@ export const appSyncSchema = {
       errorMessage: 'must be a string or a CloudFormation intrinsic function',
     },
     lambdaFunctionConfig: {
+      description: `Lambda resolver/authorizer reference.
+@remarks Exactly one of \`functionName\`, \`functionArn\`, or \`function\` must be provided.`,
       oneOf: [
         {
           type: 'object',
@@ -68,7 +72,8 @@ export const appSyncSchema = {
     auth: {
       type: 'object',
       title: 'Authentication',
-      description: 'Authentication type and definition',
+      description: `Authentication type and definition.
+@see https://www.serverless.com/framework/docs/providers/aws/events/appsync`,
       properties: {
         type: {
           type: 'string',
@@ -263,6 +268,7 @@ export const appSyncSchema = {
       errorMessage: 'must be a valid environment definition',
     },
     dataSource: {
+      description: `Data source configuration reference used by resolvers.`,
       if: { type: 'object' },
       then: { $ref: '#/definitions/dataSourceConfig' },
       else: {

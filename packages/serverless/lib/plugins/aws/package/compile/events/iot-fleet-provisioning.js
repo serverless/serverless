@@ -16,12 +16,26 @@ class AwsCompileIotFleetProvisioningEvents {
       'aws',
       'iotFleetProvisioning',
       {
+        description: `IoT Fleet Provisioning pre-provisioning hook configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/iot`,
         type: 'object',
         properties: {
-          enabled: { type: 'boolean' },
-          provisioningRoleArn: { $ref: '#/definitions/awsArn' },
-          templateBody: { type: 'object' },
-          templateName: { type: 'string' },
+          enabled: {
+            description: `Enable or disable the provisioning template.`,
+            type: 'boolean',
+          },
+          provisioningRoleArn: {
+            description: `IAM role ARN used by IoT Fleet Provisioning.`,
+            $ref: '#/definitions/awsArn',
+          },
+          templateBody: {
+            description: `Provisioning template document body.`,
+            type: 'object',
+          },
+          templateName: {
+            description: `Provisioning template name.`,
+            type: 'string',
+          },
         },
         required: ['templateBody', 'provisioningRoleArn'],
         additionalProperties: false,

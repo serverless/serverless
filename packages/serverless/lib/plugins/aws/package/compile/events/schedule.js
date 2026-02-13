@@ -20,12 +20,25 @@ class AwsCompileScheduledEvents {
     }
 
     this.serverless.configSchemaHandler.defineFunctionEvent('aws', 'schedule', {
+      description: `Schedule event configuration (EventBridge Scheduler).
+@see https://www.serverless.com/framework/docs/providers/aws/events/schedule
+@example
+events:
+  - schedule:
+      rate: rate(5 minutes)
+      enabled: true
+      input:
+        key: value
+  - schedule: cron(0 12 * * ? *)`,
       anyOf: [
         { type: 'string', pattern: scheduleSyntax },
         {
           type: 'object',
           properties: {
             rate: {
+              description: `Schedule expression (rate or cron).
+@remarks Scheduled event (cron/rate).
+@example 'rate(5 minutes)' | 'cron(0 12 * * ? *)'`,
               type: 'array',
               minItems: 1,
               items: {
@@ -38,15 +51,26 @@ class AwsCompileScheduledEvents {
                 ],
               },
             },
-            enabled: { type: 'boolean' },
+            enabled: {
+              description: `Whether the schedule is enabled.
+@default true`,
+              type: 'boolean',
+            },
             name: {
+              description: `Schedule name.`,
               type: 'string',
               minLength: 1,
               maxLength: 64,
               pattern: '[\\.\\-_A-Za-z0-9]+',
             },
-            description: { type: 'string', maxLength: 512 },
+            description: {
+              description: `Schedule description.`,
+              type: 'string',
+              maxLength: 512,
+            },
             input: {
+              description: `Input payload to pass to Lambda.
+@example { key: 'value' }`,
               anyOf: [
                 { type: 'string', maxLength: 8192 },
                 {
@@ -68,25 +92,39 @@ class AwsCompileScheduledEvents {
                 },
               ],
             },
-            inputPath: { type: 'string', maxLength: 256 },
+            inputPath: {
+              description: `JSON path to extract input from event.`,
+              type: 'string',
+              maxLength: 256,
+            },
             inputTransformer: {
+              description: `Input transformation configuration.`,
               type: 'object',
               properties: {
                 inputTemplate: {
+                  description: `Template for the transformed input.
+@example '{"instance": <instance>}'`,
                   type: 'string',
                   minLength: 1,
                   maxLength: 8192,
                 },
-                inputPathsMap: { type: 'object' },
+                inputPathsMap: {
+                  description: `Map of JSON path expressions to variable names.
+@example { instance: '$.detail.instance-id' }`,
+                  type: 'object',
+                },
               },
               required: ['inputTemplate'],
               additionalProperties: false,
             },
             method: {
+              description: `Scheduler backend mode. \`eventBus\` uses AWS::Events::Rule, \`scheduler\` uses AWS::Scheduler::Schedule.
+@default 'eventBus'`,
               type: 'string',
               enum: [METHOD_EVENT_BUS, METHOD_SCHEDULER],
             },
             timezone: {
+              description: `IANA timezone name. Supported only when method is \`scheduler\`.`,
               type: 'string',
               pattern: '[\\w\\-\\/]+',
             },

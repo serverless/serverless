@@ -11,9 +11,17 @@ class AwsCompileRabbitMQEvents {
     }
 
     this.serverless.configSchemaHandler.defineFunctionEvent('aws', 'rabbitmq', {
+      description: `RabbitMQ event source mapping configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/rabbitmq
+@example
+rabbitmq:
+  arn: arn:aws:mq:us-east-1:123456789:broker:my-broker:b-abc-123
+  queue: my-queue
+  basicAuthArn: arn:aws:secretsmanager:us-east-1:123456789:secret:my-secret`,
       type: 'object',
       properties: {
         arn: {
+          description: `Amazon MQ (RabbitMQ) broker ARN.`,
           anyOf: [
             {
               type: 'string',
@@ -25,6 +33,7 @@ class AwsCompileRabbitMQEvents {
           ],
         },
         basicAuthArn: {
+          description: `Secrets Manager ARN containing RabbitMQ credentials.`,
           anyOf: [
             { $ref: '#/definitions/awsSecretsManagerArnString' },
             { $ref: '#/definitions/awsCfImport' },
@@ -32,22 +41,27 @@ class AwsCompileRabbitMQEvents {
           ],
         },
         batchSize: {
+          description: `Maximum number of records to retrieve in a single batch.`,
           type: 'number',
           minimum: 1,
           maximum: 10000,
         },
         maximumBatchingWindow: {
+          description: `Maximum batching window in seconds.`,
           type: 'number',
           minimum: 0,
           maximum: 300,
         },
         enabled: {
+          description: `Enable or disable the event source mapping.`,
           type: 'boolean',
         },
         queue: {
+          description: `Queue name to consume from.`,
           type: 'string',
         },
         virtualHost: {
+          description: `RabbitMQ virtual host to connect to.`,
           type: 'string',
         },
         filterPatterns: { $ref: '#/definitions/filterPatterns' },

@@ -13,9 +13,17 @@ class AwsCompileMSKEvents {
     }
 
     this.serverless.configSchemaHandler.defineFunctionEvent('aws', 'msk', {
+      description: `Amazon MSK (Managed Streaming for Kafka) event configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/msk
+@remarks Amazon MSK event.
+@example
+msk:
+  arn: arn:aws:kafka:us-east-1:123456789:cluster/my-cluster/abc-123
+  topic: my-kafka-topic`,
       type: 'object',
       properties: {
         arn: {
+          description: `MSK cluster ARN.`,
           anyOf: [
             { $ref: '#/definitions/awsArnString' },
             { $ref: '#/definitions/awsCfImport' },
@@ -23,35 +31,50 @@ class AwsCompileMSKEvents {
           ],
         },
         batchSize: {
+          description: `Maximum number of records to retrieve in a single batch.`,
           type: 'number',
           minimum: 1,
           maximum: 10000,
         },
         maximumBatchingWindow: {
+          description: `Maximum batching window in seconds.`,
           type: 'number',
           minimum: 0,
           maximum: 300,
         },
         enabled: {
+          description: `Enable or disable the event source mapping.`,
           type: 'boolean',
         },
         startingPosition: {
+          description: `Where Lambda starts reading in the stream.`,
           type: 'string',
           enum: ['LATEST', 'TRIM_HORIZON', 'AT_TIMESTAMP'],
         },
         startingPositionTimestamp: {
+          description: `Start timestamp used when startingPosition is AT_TIMESTAMP.`,
           type: 'number',
         },
         topic: {
+          description: `Kafka topic to consume from.
+@example 'my-kafka-topic'`,
           type: 'string',
         },
-        saslScram512: { $ref: '#/definitions/awsArnString' },
+        saslScram512: {
+          description: `Secrets Manager ARN for SASL/SCRAM-512 auth.`,
+          $ref: '#/definitions/awsArnString',
+        },
         consumerGroupId: {
+          description: `Kafka consumer group id for this mapping.`,
           type: 'string',
           maxLength: 200,
           pattern: '[a-zA-Z0-9-/*:_+=.@-]*',
         },
-        filterPatterns: { $ref: '#/definitions/filterPatterns' },
+        filterPatterns: {
+          description: `Event filter patterns.
+@see https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventfiltering.html`,
+          $ref: '#/definitions/filterPatterns',
+        },
       },
       additionalProperties: false,
       required: ['arn', 'topic'],

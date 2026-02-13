@@ -44,6 +44,8 @@ class ServerlessAppsyncPlugin {
     // custom validation in `validateConfig()` for better AppSync-specific
     // error messages. For SF, just validate that `appSync` is an object.
     this.serverless.configSchemaHandler.defineTopLevelProperty('appSync', {
+      description: `AppSync service configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/appsync`,
       type: 'object',
     })
 

@@ -47,22 +47,53 @@ const constants = {
 const imageNamePattern = '^[a-z][a-z0-9-_]{1,31}$'
 
 const apiGatewayUsagePlan = {
+  description: `API Gateway usage plan throttling and quota configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#setting-api-keys-for-your-rest-api
+@example
+usagePlan:
+  quota:
+    limit: 5000
+    period: MONTH
+  throttle:
+    burstLimit: 200
+    rateLimit: 100`,
   type: 'object',
   properties: {
     quota: {
+      description: `Daily/weekly/monthly request quota limits.`,
       type: 'object',
       properties: {
-        limit: { type: 'integer', minimum: 0 },
-        offset: { type: 'integer', minimum: 0 },
-        period: { enum: ['DAY', 'WEEK', 'MONTH'] },
+        limit: {
+          description: `Maximum number of requests allowed in the period.`,
+          type: 'integer',
+          minimum: 0,
+        },
+        offset: {
+          description: `Number of requests subtracted from the initial quota window.`,
+          type: 'integer',
+          minimum: 0,
+        },
+        period: {
+          description: `Quota period unit.`,
+          enum: ['DAY', 'WEEK', 'MONTH'],
+        },
       },
       additionalProperties: false,
     },
     throttle: {
+      description: `Burst and steady-state request rate controls.`,
       type: 'object',
       properties: {
-        burstLimit: { type: 'integer', minimum: 0 },
-        rateLimit: { type: 'integer', minimum: 0 },
+        burstLimit: {
+          description: `Maximum requests allowed in a short burst.`,
+          type: 'integer',
+          minimum: 0,
+        },
+        rateLimit: {
+          description: `Steady-state requests per second.`,
+          type: 'integer',
+          minimum: 0,
+        },
       },
       additionalProperties: false,
     },
@@ -71,27 +102,55 @@ const apiGatewayUsagePlan = {
 }
 
 const baseAlbAuthorizerProperties = {
-  onUnauthenticatedRequest: { enum: ['allow', 'authenticate', 'deny'] },
+  onUnauthenticatedRequest: {
+    description: `Behavior when the incoming request is unauthenticated.`,
+    enum: ['allow', 'authenticate', 'deny'],
+  },
   requestExtraParams: {
+    description: `Additional query parameters forwarded to the identity provider.`,
     type: 'object',
     maxProperties: 10,
     additionalProperties: { type: 'string' },
   },
-  scope: { type: 'string' },
-  sessionCookieName: { type: 'string' },
-  sessionTimeout: { type: 'integer', minimum: 0 },
+  scope: {
+    description: `OAuth scope string requested during authentication.`,
+    type: 'string',
+  },
+  sessionCookieName: {
+    description: `Name of the authentication session cookie.`,
+    type: 'string',
+  },
+  sessionTimeout: {
+    description: `Session timeout in seconds.`,
+    type: 'integer',
+    minimum: 0,
+  },
 }
 
 const oidcAlbAuthorizer = {
+  description: `OIDC authorizer configuration for ALB listeners.
+@see https://www.serverless.com/framework/docs/providers/aws/events/alb#add-cognitocustom-idp-provider-authentication`,
   type: 'object',
   properties: {
-    type: { const: 'oidc' },
-    authorizationEndpoint: { format: 'uri', type: 'string' },
-    clientId: { type: 'string' },
-    clientSecret: { type: 'string' },
-    issuer: { format: 'uri', type: 'string' },
-    tokenEndpoint: { format: 'uri', type: 'string' },
-    userInfoEndpoint: { format: 'uri', type: 'string' },
+    type: { description: `Authorizer type discriminator.`, const: 'oidc' },
+    authorizationEndpoint: {
+      description: `OIDC authorization endpoint URL.`,
+      format: 'uri',
+      type: 'string',
+    },
+    clientId: { description: `OIDC client identifier.`, type: 'string' },
+    clientSecret: { description: `OIDC client secret.`, type: 'string' },
+    issuer: { description: `OIDC issuer URL.`, format: 'uri', type: 'string' },
+    tokenEndpoint: {
+      description: `OIDC token endpoint URL.`,
+      format: 'uri',
+      type: 'string',
+    },
+    userInfoEndpoint: {
+      description: `OIDC userinfo endpoint URL.`,
+      format: 'uri',
+      type: 'string',
+    },
     ...baseAlbAuthorizerProperties,
   },
   required: [
@@ -106,12 +165,23 @@ const oidcAlbAuthorizer = {
 }
 
 const cognitoAlbAuthorizer = {
+  description: `Amazon Cognito authorizer configuration for ALB listeners.
+@see https://www.serverless.com/framework/docs/providers/aws/events/alb#add-cognitocustom-idp-provider-authentication`,
   type: 'object',
   properties: {
-    type: { const: 'cognito' },
-    userPoolArn: { $ref: '#/definitions/awsArn' },
-    userPoolClientId: { type: 'string' },
-    userPoolDomain: { type: 'string' },
+    type: { description: `Authorizer type discriminator.`, const: 'cognito' },
+    userPoolArn: {
+      description: `ARN of the Cognito User Pool.`,
+      $ref: '#/definitions/awsArn',
+    },
+    userPoolClientId: {
+      description: `Cognito app client identifier.`,
+      type: 'string',
+    },
+    userPoolDomain: {
+      description: `Cognito User Pool domain prefix or domain name.`,
+      type: 'string',
+    },
     ...baseAlbAuthorizerProperties,
   },
   required: ['type', 'userPoolArn', 'userPoolClientId', 'userPoolDomain'],
@@ -184,24 +254,29 @@ class AwsProvider {
       serverless.configSchemaHandler.defineProvider('aws', {
         definitions: {
           awsAccountId: {
+            description: `12-digit AWS account identifier.`,
             type: 'string',
             pattern: '^\\d{12}$',
           },
           awsAlbListenerArn: {
+            description: `ALB listener ARN string.`,
             type: 'string',
             pattern: ALB_LISTENER_REGEXP.source,
           },
           awsAlexaEventToken: {
+            description: `Alexa Skill or Smart Home application ID token.`,
             type: 'string',
             minLength: 0,
             maxLength: 256,
             pattern: '^[a-zA-Z0-9._\\-]+$',
           },
           awsApiGatewayAbbreviatedArn: {
+            description: `Abbreviated ARN for API Gateway resource policies.`,
             type: 'string',
             pattern: '^execute-api:/',
           },
           awsApiGatewayApiKeys: {
+            description: `API Gateway API key definitions.`,
             type: 'array',
             items: {
               anyOf: [
@@ -228,31 +303,52 @@ class AwsProvider {
             },
           },
           awsApiGatewayApiKeysProperties: {
+            description: `API Gateway API key configuration.`,
             type: 'object',
             properties: {
-              name: { type: 'string' },
-              value: { type: 'string' },
-              description: { type: 'string' },
-              customerId: { type: 'string' },
-              enabled: { type: 'boolean' },
+              name: { description: `API key name.`, type: 'string' },
+              value: {
+                description: `API key value (20-128 characters).`,
+                type: 'string',
+              },
+              description: {
+                description: `Description of the API key.`,
+                type: 'string',
+              },
+              customerId: {
+                description: `Customer ID for usage tracking.`,
+                type: 'string',
+              },
+              enabled: {
+                description: `Whether the API key is enabled.
+@default true`,
+                type: 'boolean',
+              },
             },
             additionalProperties: false,
           },
           awsHttpApiPayload: {
+            description: `HTTP API payload format version.
+@default '2.0'
+@see https://www.serverless.com/framework/docs/providers/aws/events/http-api#event-payload-format
+@example 2.0`,
             type: 'string',
             enum: ['1.0', '2.0'],
           },
           awsArn: {
+            description: `AWS ARN string or CloudFormation intrinsic that resolves to an ARN.`,
             anyOf: [
               { $ref: '#/definitions/awsArnString' },
               { $ref: '#/definitions/awsCfFunction' },
             ],
           },
           awsArnString: {
+            description: `AWS ARN string starting with arn:.`,
             type: 'string',
             pattern: '^arn:',
           },
           awsCfArrayInstruction: {
+            description: `Array of CloudFormation instructions or Fn::Split.`,
             anyOf: [
               {
                 type: 'array',
@@ -262,11 +358,13 @@ class AwsProvider {
             ],
           },
           awsSecretsManagerArnString: {
+            description: `AWS Secrets Manager secret ARN.`,
             type: 'string',
             pattern:
               'arn:[a-z-]+:secretsmanager:[a-z0-9-]+:\\d+:secret:[A-Za-z0-9/_+=.@-]+',
           },
           awsCfFunction: {
+            description: `CloudFormation intrinsic function.`,
             anyOf: [
               { $ref: '#/definitions/awsCfImport' },
               { $ref: '#/definitions/awsCfJoin' },
@@ -278,11 +376,13 @@ class AwsProvider {
             ],
           },
           awsCfForEach: {
+            description: `CloudFormation Fn::ForEach loop construct.`,
             type: 'array',
             minItems: 3,
             maxItems: 3,
           },
           awsCfGetAtt: {
+            description: `CloudFormation Fn::GetAtt intrinsic function.`,
             type: 'object',
             properties: {
               'Fn::GetAtt': {
@@ -296,6 +396,7 @@ class AwsProvider {
             additionalProperties: false,
           },
           awsCfGetAZs: {
+            description: `CloudFormation Fn::GetAZs intrinsic function.`,
             type: 'object',
             properties: {
               'Fn::GetAZs': {
@@ -309,6 +410,7 @@ class AwsProvider {
             additionalProperties: false,
           },
           awsCfImport: {
+            description: `CloudFormation Fn::ImportValue intrinsic function.`,
             type: 'object',
             properties: {
               'Fn::ImportValue': {},
@@ -317,6 +419,7 @@ class AwsProvider {
             required: ['Fn::ImportValue'],
           },
           awsCfIf: {
+            description: `CloudFormation Fn::If conditional intrinsic function.`,
             type: 'object',
             properties: {
               'Fn::If': {
@@ -330,6 +433,7 @@ class AwsProvider {
             additionalProperties: false,
           },
           awsCfImportLocallyResolvable: {
+            description: `CloudFormation Fn::ImportValue that resolves to a string.`,
             type: 'object',
             properties: {
               'Fn::ImportValue': { type: 'string' },
@@ -338,12 +442,14 @@ class AwsProvider {
             required: ['Fn::ImportValue'],
           },
           awsCfInstruction: {
+            description: `String value or CloudFormation intrinsic function.`,
             anyOf: [
               { type: 'string', minLength: 1 },
               { $ref: '#/definitions/awsCfFunction' },
             ],
           },
           awsCfJoin: {
+            description: `CloudFormation Fn::Join intrinsic function.`,
             type: 'object',
             properties: {
               'Fn::Join': {
@@ -358,6 +464,7 @@ class AwsProvider {
             additionalProperties: false,
           },
           awsCfSelect: {
+            description: `CloudFormation Fn::Select intrinsic function.`,
             type: 'object',
             properties: {
               'Fn::Select': {
@@ -383,6 +490,7 @@ class AwsProvider {
             additionalProperties: false,
           },
           awsCfRef: {
+            description: `CloudFormation Ref intrinsic function.`,
             type: 'object',
             properties: {
               Ref: { type: 'string', minLength: 1 },
@@ -391,6 +499,7 @@ class AwsProvider {
             additionalProperties: false,
           },
           awsCfSplit: {
+            description: `CloudFormation Fn::Split intrinsic function.`,
             type: 'object',
             properties: {
               'Fn::Split': {
@@ -409,6 +518,7 @@ class AwsProvider {
             additionalProperties: false,
           },
           awsCfFindInMap: {
+            description: `CloudFormation Fn::FindInMap intrinsic function.`,
             type: 'object',
             properties: {
               'Fn::FindInMap': {
@@ -427,6 +537,7 @@ class AwsProvider {
             additionalProperties: false,
           },
           awsCfSub: {
+            description: `CloudFormation Fn::Sub intrinsic function.`,
             type: 'object',
             properties: {
               'Fn::Sub': {},
@@ -435,12 +546,14 @@ class AwsProvider {
             additionalProperties: false,
           },
           awsCfBase64: {
+            description: `CloudFormation Fn::Base64 intrinsic function.`,
             type: 'object',
             properties: {
               'Fn::Base64': {},
             },
           },
           awsCfToJsonString: {
+            description: `CloudFormation Fn::ToJsonString intrinsic function.`,
             type: 'object',
             properties: {
               'Fn::ToJsonString': {
@@ -452,12 +565,14 @@ class AwsProvider {
           },
           awsIamPolicyAction: { type: 'array', items: { type: 'string' } },
           awsIamPolicyPrincipal: {
+            description: `IAM policy principal specification.`,
             anyOf: [
               { const: '*' },
               {
                 type: 'object',
                 properties: {
                   AWS: {
+                    description: `AWS account principals (account IDs or ARNs).`,
                     anyOf: [
                       { const: '*' },
                       { $ref: '#/definitions/awsCfIf' },
@@ -481,6 +596,7 @@ class AwsProvider {
             ],
           },
           awsIamPolicyResource: {
+            description: `IAM policy resource specification.`,
             anyOf: [
               { const: '*' },
               { $ref: '#/definitions/awsArn' },
@@ -499,19 +615,41 @@ class AwsProvider {
           },
           // Definition of Statement taken from https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_grammar.html#policies-grammar-bnf
           awsIamPolicyStatements: {
+            description: `IAM policy statement array.`,
             type: 'array',
             items: {
               type: 'object',
               properties: {
-                Sid: { type: 'string' },
-                Effect: { enum: ['Allow', 'Deny'] },
-                Action: { $ref: '#/definitions/awsIamPolicyAction' },
-                NotAction: { $ref: '#/definitions/awsIamPolicyAction' },
+                Sid: {
+                  description: `Statement identifier for reference.`,
+                  type: 'string',
+                },
+                Effect: {
+                  description: `Whether to allow or deny the actions.`,
+                  enum: ['Allow', 'Deny'],
+                },
+                Action: {
+                  description: `Service actions this statement applies to.`,
+                  $ref: '#/definitions/awsIamPolicyAction',
+                },
+                NotAction: {
+                  description: `Service actions excluded from this statement.`,
+                  $ref: '#/definitions/awsIamPolicyAction',
+                },
                 Principal: { $ref: '#/definitions/awsIamPolicyPrincipal' },
                 NotPrincipal: { $ref: '#/definitions/awsIamPolicyPrincipal' },
-                Resource: { $ref: '#/definitions/awsIamPolicyResource' },
-                NotResource: { $ref: '#/definitions/awsIamPolicyResource' },
-                Condition: { type: 'object' },
+                Resource: {
+                  description: `Resources this statement applies to.`,
+                  $ref: '#/definitions/awsIamPolicyResource',
+                },
+                NotResource: {
+                  description: `Resources excluded from this statement.`,
+                  $ref: '#/definitions/awsIamPolicyResource',
+                },
+                Condition: {
+                  description: `Conditions under which this statement applies.`,
+                  type: 'object',
+                },
               },
               additionalProperties: false,
               allOf: [
@@ -532,13 +670,26 @@ class AwsProvider {
             },
           },
           awsKmsArn: {
+            description: `KMS key ARN or CloudFormation intrinsic.`,
             anyOf: [
               { $ref: '#/definitions/awsCfFunction' },
               { type: 'string', pattern: '^arn:aws[a-z-]*:kms' },
             ],
           },
-          awsLambdaArchitecture: { enum: ['arm64', 'x86_64'] },
+          awsLambdaArchitecture: {
+            description: `Lambda instruction set architecture.
+@default 'x86_64'
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#instruction-set-architecture
+@example arm64`,
+            enum: ['arm64', 'x86_64'],
+          },
           awsLambdaEnvironment: {
+            description: `Lambda environment variables map.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#environment-variables
+@example
+environment:
+  TABLE_NAME: my-table
+  STAGE: \${sls:stage}`,
             type: 'object',
             patternProperties: {
               '^[A-Za-z_][a-zA-Z0-9_]*$': {
@@ -553,15 +704,22 @@ class AwsProvider {
             additionalProperties: false,
           },
           awsLambdaLayers: {
+            description: `Array of Lambda layer ARNs.`,
             type: 'array',
             items: { $ref: '#/definitions/awsArn' },
           },
           awsLambdaMemorySize: {
+            description: `Lambda memory size in MB (128-10240).
+@default 1024
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#configuration
+@example 1024`,
             type: 'integer',
             minimum: 128,
             maximum: 32768,
           },
           awsLambdaRole: {
+            description: `Lambda execution role ARN or CloudFormation reference.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/iam#custom-iam-roles`,
             anyOf: [
               { type: 'string', minLength: 1 },
               { $ref: '#/definitions/awsCfSub' },
@@ -570,6 +728,10 @@ class AwsProvider {
             ],
           },
           awsLambdaRuntime: {
+            description: `Lambda runtime identifier.
+@default 'nodejs20.x'
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions
+@example nodejs20.x`,
             enum: [
               'dotnet6',
               'dotnet8',
@@ -605,40 +767,58 @@ class AwsProvider {
             ],
           },
           awsLambdaRuntimeManagement: {
+            description: `Lambda runtime management configuration.`,
             oneOf: [
-              { enum: ['auto', 'onFunctionUpdate'] },
+              {
+                description: `Shorthand runtime management mode.`,
+                enum: ['auto', 'onFunctionUpdate'],
+              },
               {
                 type: 'object',
                 properties: {
-                  mode: { enum: ['auto', 'onFunctionUpdate', 'manual'] },
-                  arn: { $ref: '#/definitions/awsArn' },
+                  mode: {
+                    description: `Runtime management mode.`,
+                    enum: ['auto', 'onFunctionUpdate', 'manual'],
+                  },
+                  arn: {
+                    description: `Runtime version ARN used with manual runtime management mode.`,
+                    $ref: '#/definitions/awsArn',
+                  },
                 },
                 additionalProperties: false,
               },
             ],
           },
           awsLambdaTenancy: {
+            description: `Lambda tenancy settings for dedicated tenancy environments.`,
             type: 'object',
             properties: {
-              mode: { anyOf: ['PER_TENANT'].map(caseInsensitive) },
+              mode: {
+                description: `Tenancy mode.`,
+                anyOf: ['PER_TENANT'].map(caseInsensitive),
+              },
             },
             additionalProperties: false,
             required: ['mode'],
           },
           awsLambdaCapacityProviderInstanceRequirements: {
+            description: `EC2 instance type requirements for capacity provider compute.`,
             type: 'object',
             properties: {
               allowedInstanceTypes: {
+                description: `Allowed EC2 instance types.`,
                 type: 'array',
                 minItems: 1,
                 items: { type: 'string' },
               },
               excludedInstanceTypes: {
+                description: `Excluded EC2 instance types.`,
                 type: 'array',
                 minItems: 1,
                 items: { type: 'string' },
               },
               architectures: {
+                description: `Required CPU architectures for compute instances.`,
                 type: 'array',
                 minItems: 1,
                 maxItems: 1,
@@ -648,17 +828,21 @@ class AwsProvider {
             additionalProperties: false,
           },
           awsLambdaCapacityProviderScalingConfig: {
+            description: `Auto-scaling configuration for a capacity provider.`,
             type: 'object',
             properties: {
               mode: {
+                description: `Scaling mode: auto or manual.`,
                 anyOf: ['auto', 'manual'].map(caseInsensitive),
               },
               maxVCpuCount: {
+                description: `Maximum vCPU count for the capacity provider fleet.`,
                 type: 'integer',
                 minimum: 12,
                 maximum: 15000,
               },
               policies: {
+                description: `Target tracking scaling policies.`,
                 type: 'array',
                 minItems: 1,
                 maxItems: 10,
@@ -666,9 +850,11 @@ class AwsProvider {
                   type: 'object',
                   properties: {
                     predefinedMetricType: {
+                      description: `Predefined metric used for target tracking.`,
                       enum: ['LambdaCapacityProviderAverageCPUUtilization'],
                     },
                     targetValue: {
+                      description: `Target value for the scaling metric.`,
                       type: 'number',
                       minimum: 0,
                       maximum: 100,
@@ -682,9 +868,11 @@ class AwsProvider {
             additionalProperties: false,
           },
           awsLambdaCapacityProviderConfig: {
+            description: `Capacity provider configuration with permissions, VPC, and scaling.`,
             type: 'object',
             properties: {
               permissions: {
+                description: `IAM permission configuration for the capacity provider.`,
                 type: 'object',
                 properties: {
                   operatorRole: { $ref: '#/definitions/awsArn' },
@@ -693,9 +881,11 @@ class AwsProvider {
               },
               vpc: { $ref: '#/definitions/awsLambdaCapacityProviderVpcConfig' },
               instanceRequirements: {
+                description: `EC2 instance type requirements.`,
                 $ref: '#/definitions/awsLambdaCapacityProviderInstanceRequirements',
               },
               scaling: {
+                description: `Auto-scaling configuration.`,
                 $ref: '#/definitions/awsLambdaCapacityProviderScalingConfig',
               },
               kmsKeyArn: { $ref: '#/definitions/awsKmsArn' },
@@ -703,14 +893,17 @@ class AwsProvider {
             additionalProperties: false,
           },
           awsLambdaCapacityProviderFunctionScaling: {
+            description: `Function-level scaling limits for a capacity provider.`,
             type: 'object',
             properties: {
               min: {
+                description: `Minimum number of provisioned instances.`,
                 type: 'integer',
                 minimum: 0,
                 maximum: 15000,
               },
               max: {
+                description: `Maximum number of provisioned instances.`,
                 type: 'integer',
                 minimum: 0,
                 maximum: 15000,
@@ -719,38 +912,46 @@ class AwsProvider {
             additionalProperties: false,
           },
           awsLambdaCapacityProviderFunctionConfig: {
+            description: `Function-specific capacity provider assignment settings.`,
             type: 'object',
             required: ['name'],
             properties: {
               name: {
+                description: `Capacity provider name.`,
                 anyOf: [
                   { type: 'string' },
                   { $ref: '#/definitions/awsCfFunction' },
                 ],
               },
               maxConcurrency: {
+                description: `Maximum concurrency routed to this capacity provider.`,
                 type: 'integer',
                 minimum: 1,
                 maximum: 1600,
               },
               memoryPerVCpu: {
+                description: `Memory-to-vCPU ratio.`,
                 enum: [2, 4, 8],
               },
               scaling: {
+                description: `Scaling configuration for this provider assignment.`,
                 $ref: '#/definitions/awsLambdaCapacityProviderFunctionScaling',
               },
             },
             additionalProperties: false,
           },
           awsLambdaDurableConfig: {
+            description: `Durable function execution configuration.`,
             type: 'object',
             properties: {
               executionTimeout: {
+                description: `Maximum execution time in seconds for durable functions.`,
                 type: 'integer',
                 minimum: 1,
                 maximum: 31622400,
               },
               retentionPeriodInDays: {
+                description: `Execution history retention period in days.`,
                 type: 'integer',
                 minimum: 1,
                 maximum: 90,
@@ -759,16 +960,34 @@ class AwsProvider {
             additionalProperties: false,
             required: ['executionTimeout'],
           },
-          awsLambdaTimeout: { type: 'integer', minimum: 1, maximum: 900 },
+          awsLambdaTimeout: {
+            description: `Lambda timeout in seconds (1-900).
+@default 6
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#configuration`,
+            type: 'integer',
+            minimum: 1,
+            maximum: 900,
+          },
           awsLambdaTracing: {
+            description: `Lambda X-Ray tracing mode or boolean toggle.`,
             anyOf: [{ enum: ['Active', 'PassThrough'] }, { type: 'boolean' }],
           },
           awsLambdaVersioning: { type: 'boolean' },
           awsLambdaVpcConfig: {
+            description: `VPC configuration for Lambda functions.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#vpc-configuration
+@example
+vpc:
+  securityGroupIds:
+    - sg-xxxxxxxx
+  subnetIds:
+    - subnet-xxxxxxxx
+    - subnet-yyyyyyyy`,
             type: 'object',
             properties: {
               ipv6AllowedForDualStack: { type: 'boolean' },
               securityGroupIds: {
+                description: `Security group IDs for the Lambda network interfaces.`,
                 anyOf: [
                   {
                     type: 'array',
@@ -785,6 +1004,7 @@ class AwsProvider {
                 ],
               },
               subnetIds: {
+                description: `Subnet IDs where Lambda creates network interfaces.`,
                 anyOf: [
                   {
                     type: 'array',
@@ -805,9 +1025,11 @@ class AwsProvider {
             required: ['securityGroupIds', 'subnetIds'],
           },
           awsLambdaCapacityProviderVpcConfig: {
+            description: `VPC configuration for capacity provider compute resources.`,
             type: 'object',
             properties: {
               securityGroupIds: {
+                description: `Security group IDs for compute instances.`,
                 anyOf: [
                   {
                     type: 'array',
@@ -824,6 +1046,7 @@ class AwsProvider {
                 ],
               },
               subnetIds: {
+                description: `Subnet IDs for compute instances.`,
                 anyOf: [
                   {
                     type: 'array',
@@ -844,14 +1067,17 @@ class AwsProvider {
             required: ['securityGroupIds', 'subnetIds'],
           },
           awsLogicalResourceId: {
+            description: `CloudFormation logical resource ID pattern.`,
             type: 'string',
             pattern: '^[#A-Za-z0-9-_./]+[*]?$',
           },
           awsLogGroupName: {
+            description: `CloudWatch Logs log group name.`,
             type: 'string',
             pattern: '^[/#A-Za-z0-9-_.]+$',
           },
           awsLogRetentionInDays: {
+            description: `CloudWatch Logs retention period in days.`,
             type: 'number',
             // https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutRetentionPolicy.html#API_PutRetentionPolicy_RequestSyntax
             enum: [
@@ -860,20 +1086,28 @@ class AwsProvider {
             ],
           },
           awsLambdaLoggingConfiguration: {
+            description: `Lambda advanced logging configuration.`,
             type: 'object',
             properties: {
               applicationLogLevel: {
+                description: `Application log level threshold.`,
                 type: 'string',
                 enum: ['DEBUG', 'ERROR', 'FATAL', 'INFO', 'TRACE', 'WARN'],
               },
-              logFormat: { type: 'string', enum: ['JSON', 'Text'] },
+              logFormat: {
+                description: `Log output format.`,
+                type: 'string',
+                enum: ['JSON', 'Text'],
+              },
               logGroup: {
+                description: `CloudWatch Logs group name.`,
                 type: 'string',
                 pattern: '[\\.\\-_/#A-Za-z0-9]+',
                 minLength: 1,
                 maxLength: 512,
               },
               systemLogLevel: {
+                description: `System log level threshold.`,
                 type: 'string',
                 enum: ['DEBUG', 'INFO', 'WARN'],
               },
@@ -881,12 +1115,19 @@ class AwsProvider {
             additionalProperties: false,
           },
           awsLogDataProtectionPolicy: {
+            description: `CloudWatch Logs data protection policy document.`,
             type: 'object',
             properties: {
-              Name: { type: 'string' },
-              Description: { type: 'string' },
-              Version: { type: 'string' },
-              Statement: { type: 'array' },
+              Name: { description: `Policy name.`, type: 'string' },
+              Description: {
+                description: `Policy description.`,
+                type: 'string',
+              },
+              Version: {
+                description: `Policy document version.`,
+                type: 'string',
+              },
+              Statement: { description: `Policy statements.`, type: 'array' },
             },
             additionalProperties: false,
             required: ['Name', 'Version', 'Statement'],
@@ -894,6 +1135,7 @@ class AwsProvider {
           awsResourceCondition: { type: 'string' },
           awsResourceDependsOn: { type: 'array', items: { type: 'string' } },
           awsResourcePolicyResource: {
+            description: `API Gateway resource policy resource ARN.`,
             anyOf: [
               { const: '*' },
               { $ref: '#/definitions/awsArn' },
@@ -913,21 +1155,41 @@ class AwsProvider {
             ],
           },
           awsResourcePolicyStatements: {
+            description: `API Gateway resource policy statements.`,
             type: 'array',
             items: {
               type: 'object',
               properties: {
-                Sid: { type: 'string' },
-                Effect: { enum: ['Allow', 'Deny'] },
-                Action: { $ref: '#/definitions/awsIamPolicyAction' },
-                NotAction: { $ref: '#/definitions/awsIamPolicyAction' },
+                Sid: {
+                  description: `Statement identifier for reference.`,
+                  type: 'string',
+                },
+                Effect: {
+                  description: `Whether to allow or deny the actions.`,
+                  enum: ['Allow', 'Deny'],
+                },
+                Action: {
+                  description: `Service actions this statement applies to.`,
+                  $ref: '#/definitions/awsIamPolicyAction',
+                },
+                NotAction: {
+                  description: `Service actions excluded from this statement.`,
+                  $ref: '#/definitions/awsIamPolicyAction',
+                },
                 Principal: { $ref: '#/definitions/awsIamPolicyPrincipal' },
                 NotPrincipal: { $ref: '#/definitions/awsIamPolicyPrincipal' },
-                Resource: { $ref: '#/definitions/awsResourcePolicyResource' },
-                NotResource: {
+                Resource: {
+                  description: `Resources this statement applies to.`,
                   $ref: '#/definitions/awsResourcePolicyResource',
                 },
-                Condition: { type: 'object' },
+                NotResource: {
+                  description: `Resources excluded from this policy statement.`,
+                  $ref: '#/definitions/awsResourcePolicyResource',
+                },
+                Condition: {
+                  description: `Conditions under which this statement applies.`,
+                  type: 'object',
+                },
               },
               additionalProperties: false,
               allOf: [
@@ -948,6 +1210,12 @@ class AwsProvider {
             },
           },
           awsResourceTags: {
+            description: `AWS resource tags map.
+@example
+tags:
+  Environment: production
+  Team: backend
+  Project: my-service`,
             type: 'object',
             patternProperties: {
               '^(?!aws:)[\\w./=+:\\-_\\x20]{1,128}$': {
@@ -958,6 +1226,7 @@ class AwsProvider {
             additionalProperties: false,
           },
           awsS3BucketName: {
+            description: `Valid S3 bucket name.`,
             type: 'string',
             // pattern sourced from https://stackoverflow.com/questions/50480924/regex-for-s3-bucket-name
             pattern:
@@ -966,57 +1235,133 @@ class AwsProvider {
             maxLength: 63,
           },
           ecrImageUri: {
+            description: `ECR container image URI.`,
             type: 'string',
             pattern:
               '^\\d+\\.dkr\\.ecr\\.[a-z0-9-]+..amazonaws.com\\/([^@]+)|([^@:]+@sha256:[a-f0-9]{64})$',
           },
           filterPatterns: {
+            description: `Event filter pattern for SQS, DynamoDB Streams, Kinesis.`,
             type: 'array',
             minItems: 1,
             maxItems: 10,
             items: { type: 'object' },
           },
           awsCustomDomain: {
+            description: `Custom domain configuration object.`,
             type: 'object',
             properties: {
-              name: { type: 'string' },
-              basePath: { type: 'string' },
-              certificateName: { type: 'string' },
-              certificateArn: { type: 'string' },
-              createRoute53Record: { type: 'boolean' },
-              createRoute53IPv6Record: { type: 'boolean' },
-              route53Profile: { type: 'string' },
-              route53Region: { type: 'string' },
-              endpointType: { type: 'string' },
-              apiType: { type: 'string' },
-              tlsTruststoreUri: { type: 'string' },
-              tlsTruststoreVersion: { type: 'string' },
-              hostedZoneId: { type: 'string' },
-              hostedZonePrivate: { type: 'boolean' },
-              splitHorizonDns: { type: 'boolean' },
+              name: { description: `Custom domain name.`, type: 'string' },
+              basePath: {
+                description: `Base path mapping for the API.`,
+                type: 'string',
+              },
+              certificateName: {
+                description: `Certificate name in ACM.`,
+                type: 'string',
+              },
+              certificateArn: {
+                description: `ACM certificate ARN.`,
+                type: 'string',
+              },
+              createRoute53Record: {
+                description: `Create Route53 A alias record.`,
+                type: 'boolean',
+              },
+              createRoute53IPv6Record: {
+                description: `Create Route53 AAAA alias record.`,
+                type: 'boolean',
+              },
+              route53Profile: {
+                description: `AWS profile used for Route53 operations.`,
+                type: 'string',
+              },
+              route53Region: {
+                description: `Region used for Route53 and ACM lookups.`,
+                type: 'string',
+              },
+              endpointType: {
+                description: `API Gateway endpoint type for the domain.`,
+                type: 'string',
+              },
+              apiType: {
+                description: `API type for domain mapping.`,
+                type: 'string',
+              },
+              tlsTruststoreUri: {
+                description: `S3 URI of the truststore for mutual TLS.`,
+                type: 'string',
+              },
+              tlsTruststoreVersion: {
+                description: `S3 version id of the truststore.`,
+                type: 'string',
+              },
+              hostedZoneId: {
+                description: `Route53 hosted zone id for DNS records.`,
+                type: 'string',
+              },
+              hostedZonePrivate: {
+                description: `Whether the hosted zone is private.`,
+                type: 'boolean',
+              },
+              splitHorizonDns: {
+                description: `Enable split-horizon DNS behavior.`,
+                type: 'boolean',
+              },
               enabled: {
+                description: `Enable domain manager execution.`,
                 anyOf: [{ type: 'boolean' }, { type: 'string' }],
               },
-              securityPolicy: { type: 'string' },
+              securityPolicy: {
+                description: `TLS security policy for the domain.`,
+                type: 'string',
+              },
               accessMode: {
+                description: `Endpoint access mode of the domain.`,
                 anyOf: ['BASIC', 'STRICT'].map(caseInsensitive),
               },
-              autoDomain: { type: 'boolean' },
-              autoDomainWaitFor: { type: 'string' },
-              allowPathMatching: { type: 'boolean' },
-              route53Params: { type: 'object', additionalProperties: true },
-              preserveExternalPathMappings: { type: 'boolean' },
+              autoDomain: {
+                description: `Automatically create or update the custom domain.`,
+                type: 'boolean',
+              },
+              autoDomainWaitFor: {
+                description: `Wait duration before giving up domain creation.`,
+                type: 'string',
+              },
+              allowPathMatching: {
+                description: `Match existing base paths when mapping routes.`,
+                type: 'boolean',
+              },
+              route53Params: {
+                description: `Additional Route53 record parameters.`,
+                type: 'object',
+                additionalProperties: true,
+              },
+              preserveExternalPathMappings: {
+                description: `Keep path mappings not managed by this service.`,
+                type: 'boolean',
+              },
             },
             additionalProperties: true,
           },
         },
         provider: {
+          description: `AWS provider configuration properties.`,
           properties: {
             alb: {
+              description: `Application Load Balancer configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/alb`,
               type: 'object',
               properties: {
-                targetGroupPrefix: { type: 'string', maxLength: 16 },
+                targetGroupPrefix: {
+                  description: `Prefix for generated ALB target group names.
+@example 'myapp'`,
+                  type: 'string',
+                  maxLength: 16,
+                },
                 authorizers: {
+                  description: `Named ALB authorizer definitions.
+@see https://www.serverless.com/framework/docs/providers/aws/events/alb#add-cognitocustom-idp-provider-authentication`,
                   type: 'object',
                   additionalProperties: {
                     anyOf: [oidcAlbAuthorizer, cognitoAlbAuthorizer],
@@ -1026,40 +1371,83 @@ class AwsProvider {
               additionalProperties: false,
             },
             apiGateway: {
+              description: `REST API Gateway (v1) configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/apigateway`,
               type: 'object',
               properties: {
                 apiKeys: { $ref: '#/definitions/awsApiGatewayApiKeys' },
                 apiKeySourceType: {
+                  description: `Location where API Gateway reads API keys from.
+@default 'HEADER'
+@see https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-api-key-source.html`,
                   anyOf: ['HEADER', 'AUTHORIZER'].map(caseInsensitive),
                 },
                 binaryMediaTypes: {
+                  description: `MIME types treated as binary payloads.
+@see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#binary-media-types
+@example ['image/*', 'application/pdf']`,
                   type: 'array',
                   items: { type: 'string', pattern: '^\\S+\\/\\S+$' },
                 },
-                description: { type: 'string' },
-                disableDefaultEndpoint: { type: 'boolean' },
+                description: {
+                  description: `REST API description.`,
+                  type: 'string',
+                },
+                disableDefaultEndpoint: {
+                  description: `Disable the default execute-api endpoint.`,
+                  type: 'boolean',
+                },
                 endpoint: {
+                  description: `REST API endpoint configuration.`,
                   type: 'object',
                   properties: {
-                    securityPolicy: { type: 'string' },
+                    securityPolicy: {
+                      description: `TLS security policy for custom domain endpoints.`,
+                      type: 'string',
+                    },
                     accessMode: {
+                      description: `Private API endpoint access mode.`,
                       anyOf: ['BASIC', 'STRICT'].map(caseInsensitive),
                     },
-                    disable: { type: 'boolean' },
+                    disable: {
+                      description: `Disable endpoint creation for this API.`,
+                      type: 'boolean',
+                    },
                   },
                   additionalProperties: false,
                 },
-                metrics: { type: 'boolean' },
+                metrics: {
+                  description: `Enable CloudWatch metrics for API Gateway.
+@see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#detailed-cloudwatch-metrics`,
+                  type: 'boolean',
+                },
                 minimumCompressionSize: {
+                  description: `Minimum response size in bytes before compression is applied.
+@see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#compression
+@example 1024`,
                   type: 'integer',
                   minimum: 0,
                   maximum: 10485760,
                 },
                 resourcePolicy: {
+                  description: `Resource policy statements for controlling API access.
+@see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#resource-policy
+@example
+resourcePolicy:
+  - Effect: Allow
+    Principal: '*'
+    Action: execute-api:Invoke
+    Resource: execute-api:/*/*/*`,
                   $ref: '#/definitions/awsResourcePolicyStatements',
                 },
-                restApiId: { $ref: '#/definitions/awsCfInstruction' },
+                restApiId: {
+                  description: `Existing REST API identifier.
+@example 'abcd1234xy'`,
+                  $ref: '#/definitions/awsCfInstruction',
+                },
                 restApiResources: {
+                  description: `Existing REST API resource path-to-id mappings.
+@example { '/users': 'abc123' }`,
                   anyOf: [
                     {
                       type: 'array',
@@ -1077,19 +1465,31 @@ class AwsProvider {
                   ],
                 },
                 restApiRootResourceId: {
+                  description: `Root resource id of an existing REST API.`,
                   $ref: '#/definitions/awsCfInstruction',
                 },
                 request: {
+                  description: `Request schema definitions for API Gateway models.`,
                   type: 'object',
                   properties: {
                     schemas: {
+                      description: `Named request model schemas.`,
                       type: 'object',
                       additionalProperties: {
                         type: 'object',
                         properties: {
-                          schema: { type: 'object' },
-                          name: { type: 'string' },
-                          description: { type: 'string' },
+                          schema: {
+                            description: `JSON Schema object.`,
+                            type: 'object',
+                          },
+                          name: {
+                            description: `Display name for this model.`,
+                            type: 'string',
+                          },
+                          description: {
+                            description: `Model description.`,
+                            type: 'string',
+                          },
                         },
                         required: ['schema'],
                         additionalProperties: false,
@@ -1098,10 +1498,22 @@ class AwsProvider {
                   },
                   additionalProperties: false,
                 },
-                shouldStartNameWithService: { type: 'boolean' },
-                stage: { type: 'string' },
-                timeoutInMillis: { type: 'integer', minimum: 50 },
+                shouldStartNameWithService: {
+                  description: `Prefix API name with service name.`,
+                  type: 'boolean',
+                },
+                stage: {
+                  description: `Custom stage name for the REST API deployment.`,
+                  type: 'string',
+                },
+                timeoutInMillis: {
+                  description: `Integration timeout in milliseconds.`,
+                  type: 'integer',
+                  minimum: 50,
+                },
                 usagePlan: {
+                  description: `Usage plan definition for this REST API.
+@see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#setting-api-keys-for-your-rest-api`,
                   anyOf: [
                     apiGatewayUsagePlan,
                     {
@@ -1114,13 +1526,20 @@ class AwsProvider {
                     },
                   ],
                 },
-                websocketApiId: { $ref: '#/definitions/awsCfInstruction' },
+                websocketApiId: {
+                  description: `ID of existing WebSocket API.`,
+                  $ref: '#/definitions/awsCfInstruction',
+                },
               },
               additionalProperties: false,
             },
-            apiName: { type: 'string' },
+            apiName: {
+              description: `Custom REST API name.`,
+              type: 'string',
+            },
             // Accept either a string or an object for provider.domain
             domain: {
+              description: `Single custom domain configuration entry.`,
               anyOf: [
                 { type: 'string' },
                 { $ref: '#/definitions/awsCustomDomain' },
@@ -1128,6 +1547,7 @@ class AwsProvider {
             },
             // Accept an array of strings/objects, or a single object for provider.domains
             domains: {
+              description: `Domain configuration entries for API Gateway custom domains.`,
               anyOf: [
                 {
                   type: 'array',
@@ -1141,12 +1561,23 @@ class AwsProvider {
                 { $ref: '#/definitions/awsCustomDomain' },
               ],
             },
-            architecture: { $ref: '#/definitions/awsLambdaArchitecture' },
-            cfnRole: { $ref: '#/definitions/awsArn' },
+            architecture: {
+              description: `Default Lambda architecture for all functions.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#instruction-set-architecture`,
+              $ref: '#/definitions/awsLambdaArchitecture',
+            },
+            cfnRole: {
+              description: `CloudFormation deployment role ARN.
+@deprecated Use provider.iam.deploymentRole instead.`,
+              $ref: '#/definitions/awsArn',
+            },
             cloudFront: {
+              description: `CloudFront cache policy configuration for edge/event integrations.
+@see https://www.serverless.com/framework/docs/providers/aws/events/cloudfront`,
               type: 'object',
               properties: {
                 cachePolicies: {
+                  description: `Named CloudFront cache policy definitions.`,
                   type: 'object',
                   additionalProperties: {
                     type: 'object',
@@ -1156,15 +1587,19 @@ class AwsProvider {
                       MaxTTL: { type: 'integer', minimum: 0 },
                       MinTTL: { type: 'integer', minimum: 0 },
                       ParametersInCacheKeyAndForwardedToOrigin: {
+                        description: `Parameters included in the cache key and forwarded to the origin.`,
                         type: 'object',
                         properties: {
                           CookiesConfig: {
+                            description: `Cookie forwarding and caching behavior.`,
                             type: 'object',
                             properties: {
                               CookieBehavior: {
+                                description: `Cookie inclusion behavior for cache key.`,
                                 enum: ['none', 'whitelist', 'allExcept', 'all'],
                               },
                               Cookies: {
+                                description: `Cookie names to include in the cache key.`,
                                 type: 'array',
                                 items: { type: 'string' },
                               },
@@ -1175,10 +1610,12 @@ class AwsProvider {
                           EnableAcceptEncodingBrotli: { type: 'boolean' },
                           EnableAcceptEncodingGzip: { type: 'boolean' },
                           HeadersConfig: {
+                            description: `Header forwarding and caching behavior.`,
                             type: 'object',
                             properties: {
                               HeaderBehavior: { enum: ['none', 'whitelist'] },
                               Headers: {
+                                description: `Header names to include in the cache key.`,
                                 type: 'array',
                                 items: { type: 'string' },
                               },
@@ -1187,12 +1624,15 @@ class AwsProvider {
                             additionalProperties: false,
                           },
                           QueryStringsConfig: {
+                            description: `Query string forwarding and caching behavior.`,
                             type: 'object',
                             properties: {
                               QueryStringBehavior: {
+                                description: `Query string inclusion behavior for cache key.`,
                                 enum: ['none', 'whitelist', 'allExcept', 'all'],
                               },
                               QueryStrings: {
+                                description: `Query string names to include in the cache key.`,
                                 type: 'array',
                                 items: { type: 'string' },
                               },
@@ -1223,60 +1663,146 @@ class AwsProvider {
               additionalProperties: false,
             },
             deploymentBucket: {
+              description: `S3 deployment bucket configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml#deployment-bucket
+@example
+deploymentBucket:
+  name: my-company-deployments`,
               anyOf: [
                 { $ref: '#/definitions/awsS3BucketName' },
                 {
                   type: 'object',
                   properties: {
-                    blockPublicAccess: { type: 'boolean' },
-                    skipPolicySetup: { type: 'boolean' },
+                    blockPublicAccess: {
+                      description: `Block all public access settings on the bucket.
+@default false`,
+                      type: 'boolean',
+                    },
+                    skipPolicySetup: {
+                      description: `Skip automatic deployment bucket policy setup.`,
+                      type: 'boolean',
+                    },
                     maxPreviousDeploymentArtifacts: {
+                      description: `Maximum number of previous deployment artifacts to retain.
+@default 5`,
                       type: 'integer',
                       minimum: 0,
                     },
-                    name: { $ref: '#/definitions/awsS3BucketName' },
-                    versioning: { type: 'boolean' },
-                    serverSideEncryption: { enum: ['AES256', 'aws:kms'] },
-                    sseCustomerAlgorithim: { type: 'string' },
-                    sseCustomerKey: { type: 'string' },
-                    sseCustomerKeyMD5: { type: 'string' },
-                    sseKMSKeyId: { type: 'string' },
-                    tags: { $ref: '#/definitions/awsResourceTags' },
+                    name: {
+                      description: `Name of an existing deployment bucket.
+@example 'my-company-deployments'`,
+                      $ref: '#/definitions/awsS3BucketName',
+                    },
+                    versioning: {
+                      description: `Enable bucket versioning.`,
+                      type: 'boolean',
+                    },
+                    serverSideEncryption: {
+                      description: `Server-side encryption algorithm.
+@example 'AES256'`,
+                      enum: ['AES256', 'aws:kms'],
+                    },
+                    sseCustomerAlgorithim: {
+                      description: `SSE-C algorithm.`,
+                      type: 'string',
+                    },
+                    sseCustomerKey: {
+                      description: `SSE-C key.`,
+                      type: 'string',
+                    },
+                    sseCustomerKeyMD5: {
+                      description: `MD5 digest for the SSE-C key.`,
+                      type: 'string',
+                    },
+                    sseKMSKeyId: {
+                      description: `KMS key id used for SSE-KMS encryption.`,
+                      type: 'string',
+                    },
+                    tags: {
+                      description: `Deployment bucket resource tags.`,
+                      $ref: '#/definitions/awsResourceTags',
+                    },
                   },
                   additionalProperties: false,
                 },
               ],
             },
-            deploymentPrefix: { type: 'string' },
-            disableRollback: { type: 'boolean' },
+            deploymentPrefix: {
+              description: `S3 key prefix for deployment artifacts.
+@default 'serverless'`,
+              type: 'string',
+            },
+            disableRollback: {
+              description: `Disable automatic CloudFormation rollback on failure.
+@default false`,
+              type: 'boolean',
+            },
             endpointType: {
+              description: `REST API Gateway endpoint type.
+@default 'edge'
+@see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#configuring-endpoint-types`,
               anyOf: ['REGIONAL', 'EDGE', 'PRIVATE'].map(caseInsensitive),
             },
-            environment: { $ref: '#/definitions/awsLambdaEnvironment' },
+            environment: {
+              description: `Default environment variables for all functions.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#environment-variables`,
+              $ref: '#/definitions/awsLambdaEnvironment',
+            },
             eventBridge: {
+              description: `EventBridge provider-level configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/event-bridge`,
               type: 'object',
               properties: {
-                useCloudFormation: { type: 'boolean' },
+                useCloudFormation: {
+                  description: `Use CloudFormation for EventBridge rules instead of direct AWS API.
+@default true`,
+                  type: 'boolean',
+                },
               },
               additionalProperties: false,
             },
             httpApi: {
+              description: `HTTP API Gateway (v2) configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/http-api
+@example
+httpApi:
+  cors: true
+  authorizers:
+    myAuthorizer:
+      type: jwt
+      identitySource: $request.header.Authorization
+      issuerUrl: https://example.com/
+      audience:
+        - my-audience`,
               type: 'object',
               properties: {
                 authorizers: {
+                  description: `Named HTTP API authorizer definitions.
+@see https://www.serverless.com/framework/docs/providers/aws/events/http-api#jwt-authorizers`,
                   type: 'object',
                   additionalProperties: {
                     oneOf: [
                       {
                         type: 'object',
                         properties: {
-                          type: { const: 'jwt' },
-                          name: { type: 'string' },
+                          type: {
+                            description: `Authorizer type discriminator.`,
+                            const: 'jwt',
+                          },
+                          name: {
+                            description: `Logical authorizer name.`,
+                            type: 'string',
+                          },
                           identitySource: {
+                            description: `JWT identity source expression.`,
                             $ref: '#/definitions/awsCfInstruction',
                           },
-                          issuerUrl: { $ref: '#/definitions/awsCfInstruction' },
+                          issuerUrl: {
+                            description: `JWT issuer URL.`,
+                            $ref: '#/definitions/awsCfInstruction',
+                          },
                           audience: {
+                            description: `JWT audience values.`,
                             anyOf: [
                               { $ref: '#/definitions/awsCfInstruction' },
                               {
@@ -1294,23 +1820,44 @@ class AwsProvider {
                       {
                         type: 'object',
                         properties: {
-                          type: { const: 'request' },
-                          name: { type: 'string' },
-                          functionName: { type: 'string' },
+                          type: {
+                            description: `Authorizer type discriminator.`,
+                            const: 'request',
+                          },
+                          name: {
+                            description: `Logical authorizer name.`,
+                            type: 'string',
+                          },
+                          functionName: {
+                            description: `Authorizer function name in this service.`,
+                            type: 'string',
+                          },
                           functionArn: {
+                            description: `ARN of an external authorizer function.`,
                             $ref: '#/definitions/awsCfInstruction',
                           },
-                          managedExternally: { type: 'boolean' },
+                          managedExternally: {
+                            description: `Mark authorizer as externally managed.`,
+                            type: 'boolean',
+                          },
                           resultTtlInSeconds: {
+                            description: `Authorizer cache TTL in seconds.
+@default 300`,
                             type: 'integer',
                             minimum: 0,
                             maximum: 3600,
                           },
-                          enableSimpleResponses: { type: 'boolean' },
+                          enableSimpleResponses: {
+                            description: `Enable simple response format.`,
+                            type: 'boolean',
+                          },
                           payloadVersion: {
+                            description: `Lambda authorizer payload format version.`,
                             $ref: '#/definitions/awsHttpApiPayload',
                           },
                           identitySource: {
+                            description: `Identity sources that contribute to cache key.
+@default '$request.header.Authorization'`,
                             anyOf: [
                               { $ref: '#/definitions/awsCfInstruction' },
                               {
@@ -1328,98 +1875,189 @@ class AwsProvider {
                   },
                 },
                 cors: {
+                  description: `CORS settings for HTTP API routes.
+@see https://www.serverless.com/framework/docs/providers/aws/events/http-api#cors-setup
+@example
+cors:
+  allowedOrigins:
+    - https://example.com
+  allowedHeaders:
+    - Content-Type
+    - Authorization
+  allowedMethods:
+    - GET
+    - POST`,
                   anyOf: [
                     { type: 'boolean' },
                     {
                       type: 'object',
                       properties: {
-                        allowCredentials: { type: 'boolean' },
+                        allowCredentials: {
+                          description: `Allow credentials in cross-origin requests.`,
+                          type: 'boolean',
+                        },
                         allowedHeaders: {
+                          description: `Allowed request headers.`,
                           type: 'array',
                           items: { type: 'string' },
                         },
                         allowedMethods: {
+                          description: `Allowed HTTP methods.`,
                           type: 'array',
                           items: { type: 'string' },
                         },
                         allowedOrigins: {
+                          description: `Allowed origin domains.
+@example ['https://example.com']`,
                           type: 'array',
                           items: { type: 'string' },
                         },
                         exposedResponseHeaders: {
+                          description: `Headers exposed to browsers.`,
                           type: 'array',
                           items: { type: 'string' },
                         },
-                        maxAge: { type: 'integer', minimum: 0 },
+                        maxAge: {
+                          description: `Preflight cache duration in seconds.
+@example 86400`,
+                          type: 'integer',
+                          minimum: 0,
+                        },
                       },
                       additionalProperties: false,
                     },
                   ],
                 },
                 id: {
+                  description: `Existing HTTP API id.`,
                   anyOf: [
                     { type: 'string' },
                     { $ref: '#/definitions/awsCfImportLocallyResolvable' },
                   ],
                 },
-                name: { type: 'string' },
-                payload: { type: 'string' },
-                metrics: { type: 'boolean' },
-                useProviderTags: { const: true },
-                disableDefaultEndpoint: { type: 'boolean' },
-                shouldStartNameWithService: { type: 'boolean' },
+                name: { description: `Custom HTTP API name.`, type: 'string' },
+                payload: {
+                  description: `Default payload format version.
+@default '2.0'
+@see https://www.serverless.com/framework/docs/providers/aws/events/http-api#event-payload-format
+@example '1.0'`,
+                  type: 'string',
+                },
+                metrics: {
+                  description: `Enable CloudWatch metrics for HTTP API.
+@default false
+@see https://www.serverless.com/framework/docs/providers/aws/events/http-api#detailed-metrics`,
+                  type: 'boolean',
+                },
+                useProviderTags: {
+                  description: `Inherit provider tags for HTTP API resources.`,
+                  const: true,
+                },
+                disableDefaultEndpoint: {
+                  description: `Disable the default execute-api endpoint.`,
+                  type: 'boolean',
+                },
+                shouldStartNameWithService: {
+                  description: `Prefix HTTP API name with service name.`,
+                  type: 'boolean',
+                },
               },
               additionalProperties: false,
             },
             iam: {
+              description: `IAM configuration for Lambda execution and deployment roles.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/iam
+@example
+iam:
+  role:
+    statements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+          - dynamodb:Scan
+        Resource: arn:aws:dynamodb:*:*:table/my-table`,
               type: 'object',
               properties: {
                 role: {
+                  description: `Execution role ARN or role configuration object.`,
                   anyOf: [
                     { $ref: '#/definitions/awsLambdaRole' },
                     {
                       type: 'object',
                       properties: {
                         mode: {
+                          description: `IAM role management mode.`,
                           enum: ['shared', 'perFunction'],
                         },
                         name: {
+                          description: `Custom IAM role name.`,
                           type: 'string',
                           pattern: '^[A-Za-z0-9/_+=,.@-]{1,64}$',
                         },
                         path: {
+                          description: `IAM role path.`,
                           type: 'string',
                           pattern: '(^\\/$)|(^\\/[\u0021-\u007f]+\\/$)',
                         },
                         managedPolicies: {
+                          description: `Managed policy ARNs attached to this role.`,
                           type: 'array',
                           items: { $ref: '#/definitions/awsArn' },
                         },
                         statements: {
+                          description: `Inline IAM statements attached to this role.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/iam#the-default-iam-role
+@see https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements.html`,
                           $ref: '#/definitions/awsIamPolicyStatements',
                         },
-                        permissionBoundary: { $ref: '#/definitions/awsArn' },
-                        permissionsBoundary: { $ref: '#/definitions/awsArn' },
-                        tags: { $ref: '#/definitions/awsResourceTags' },
+                        permissionBoundary: {
+                          description: `Legacy permission boundary property name.
+@deprecated Use permissionsBoundary instead.`,
+                          $ref: '#/definitions/awsArn',
+                        },
+                        permissionsBoundary: {
+                          description: `Permissions boundary ARN.
+@see https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html`,
+                          $ref: '#/definitions/awsArn',
+                        },
+                        tags: {
+                          description: `Tags applied to the IAM role.`,
+                          $ref: '#/definitions/awsResourceTags',
+                        },
                       },
                       additionalProperties: false,
                     },
                   ],
                 },
-                deploymentRole: { $ref: '#/definitions/awsArn' },
+                deploymentRole: {
+                  description: `IAM role assumed by CloudFormation during deployment.`,
+                  $ref: '#/definitions/awsArn',
+                },
               },
               additionalProperties: false,
             },
             iamManagedPolicies: {
+              description: `Managed policy ARNs attached to the default execution role.
+@deprecated Use provider.iam.role.managedPolicies instead.`,
               type: 'array',
               items: { $ref: '#/definitions/awsArn' },
             },
-            iamRoleStatements: { $ref: '#/definitions/awsIamPolicyStatements' },
+            iamRoleStatements: {
+              description: `Inline IAM statements attached to the default execution role.
+@deprecated Use provider.iam.role.statements instead.`,
+              $ref: '#/definitions/awsIamPolicyStatements',
+            },
             ecr: {
+              description: `ECR image build configuration for container-based Lambda functions.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml#docker-image-deployments-in-ecr`,
               type: 'object',
               properties: {
-                scanOnPush: { type: 'boolean' },
+                scanOnPush: {
+                  description: `Enable ECR vulnerability scanning on image push.`,
+                  type: 'boolean',
+                },
                 images: {
+                  description: `Named local image build definitions.`,
                   type: 'object',
                   patternProperties: {
                     [imageNamePattern]: {
@@ -1427,23 +2065,41 @@ class AwsProvider {
                         {
                           type: 'object',
                           properties: {
-                            uri: { $ref: '#/definitions/ecrImageUri' },
-                            path: { type: 'string' },
-                            file: { type: 'string' },
+                            uri: {
+                              description: `Fully qualified prebuilt ECR image URI.`,
+                              $ref: '#/definitions/ecrImageUri',
+                            },
+                            path: {
+                              description: `Directory containing Docker build context.`,
+                              type: 'string',
+                            },
+                            file: {
+                              description: `Dockerfile path relative to build context.`,
+                              type: 'string',
+                            },
                             buildArgs: {
+                              description: `Docker build arguments.`,
                               type: 'object',
                               additionalProperties: { type: 'string' },
                             },
                             buildOptions: {
+                              description: `Additional docker build options.`,
                               type: 'array',
                               items: { type: 'string' },
                             },
                             cacheFrom: {
+                              description: `Images used as build cache sources.`,
                               type: 'array',
                               items: { type: 'string' },
                             },
-                            platform: { type: 'string' },
-                            provenance: { type: 'string' },
+                            platform: {
+                              description: `Image platform target, for example linux/arm64.`,
+                              type: 'string',
+                            },
+                            provenance: {
+                              description: `Build provenance mode.`,
+                              type: 'string',
+                            },
                           },
                           additionalProperties: false,
                         },
@@ -1458,70 +2114,152 @@ class AwsProvider {
               required: ['images'],
               additionalProperties: false,
             },
-            kmsKeyArn: { $ref: '#/definitions/awsKmsArn' },
+            kmsKeyArn: {
+              description: `KMS key ARN used to encrypt Lambda environment variables.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#kms-keys
+@example 'arn:aws:kms:us-east-1:123456789:key/abc-123'`,
+              $ref: '#/definitions/awsKmsArn',
+            },
             lambdaHashingVersion: {
+              description: `Lambda artifact hashing strategy.
+@deprecated No longer needed in v4.`,
               type: 'string',
               enum: ['20200924', '20201221'],
             },
-            layers: { $ref: '#/definitions/awsLambdaLayers' },
+            layers: {
+              description: `Default Lambda layers for all functions.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/layers
+@example
+layers:
+  - arn:aws:lambda:us-east-1:123456789:layer:my-layer:1`,
+              $ref: '#/definitions/awsLambdaLayers',
+            },
             capacityProviders: {
+              description: `Lambda capacity provider definitions.
+@since v4`,
               type: 'object',
               additionalProperties: {
                 $ref: '#/definitions/awsLambdaCapacityProviderConfig',
               },
             },
             logRetentionInDays: {
+              description: `Default CloudWatch Logs retention period in days.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#log-group-resources
+@example 14`,
               $ref: '#/definitions/awsLogRetentionInDays',
             },
             logDataProtectionPolicy: {
+              description: `CloudWatch Logs data protection policy document.`,
               $ref: '#/definitions/awsLogDataProtectionPolicy',
             },
             logs: {
+              description: `CloudWatch logging configuration for Lambda, REST API, HTTP API, and WebSocket API.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml#logs
+@example
+logs:
+  restApi:
+    accessLogging: true
+    executionLogging: true
+    level: INFO
+  httpApi: true`,
               type: 'object',
               properties: {
-                frameworkLambda: { type: 'boolean' },
-                lambda: { $ref: '#/definitions/awsLambdaLoggingConfiguration' },
+                frameworkLambda: {
+                  description: `Enable or disable Serverless Framework internal Lambda logging.`,
+                  type: 'boolean',
+                },
+                lambda: {
+                  description: `Default logging configuration for Lambda functions.`,
+                  $ref: '#/definitions/awsLambdaLoggingConfiguration',
+                },
                 httpApi: {
+                  description: `HTTP API logging configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/http-api#access-logs
+@see https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-logging.html`,
                   anyOf: [
                     { type: 'boolean' },
                     {
                       type: 'object',
                       properties: {
-                        format: { type: 'string' },
+                        format: {
+                          description: `Access log format string.`,
+                          type: 'string',
+                        },
                       },
                       additionalProperties: false,
                     },
                   ],
                 },
                 restApi: {
+                  description: `REST API CloudWatch logging configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#logs
+@see https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-logging.html`,
                   anyOf: [
                     { type: 'boolean' },
                     {
                       type: 'object',
                       properties: {
-                        accessLogging: { type: 'boolean' },
-                        executionLogging: { type: 'boolean' },
-                        format: { type: 'string' },
-                        fullExecutionData: { type: 'boolean' },
-                        level: { enum: ['INFO', 'ERROR'] },
-                        role: { $ref: '#/definitions/awsArn' },
-                        roleManagedExternally: { type: 'boolean' },
+                        accessLogging: {
+                          description: `Enable access logs.`,
+                          type: 'boolean',
+                        },
+                        executionLogging: {
+                          description: `Enable execution logs.`,
+                          type: 'boolean',
+                        },
+                        format: {
+                          description: `Access log format string.`,
+                          type: 'string',
+                        },
+                        fullExecutionData: {
+                          description: `Include full request/response data in execution logs.`,
+                          type: 'boolean',
+                        },
+                        level: {
+                          description: `Execution log level.`,
+                          enum: ['INFO', 'ERROR'],
+                        },
+                        role: {
+                          description: `IAM role ARN used by API Gateway for log delivery.`,
+                          $ref: '#/definitions/awsArn',
+                        },
+                        roleManagedExternally: {
+                          description: `Set true when the log delivery role is managed outside the service.`,
+                          type: 'boolean',
+                        },
                       },
                       additionalProperties: false,
                     },
                   ],
                 },
                 websocket: {
+                  description: `WebSocket API logging configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/websocket#logs`,
                   anyOf: [
                     { type: 'boolean' },
                     {
                       type: 'object',
                       properties: {
-                        accessLogging: { type: 'boolean' },
-                        executionLogging: { type: 'boolean' },
-                        format: { type: 'string' },
-                        fullExecutionData: { type: 'boolean' },
-                        level: { enum: ['INFO', 'ERROR'] },
+                        accessLogging: {
+                          description: `Enable access logs.`,
+                          type: 'boolean',
+                        },
+                        executionLogging: {
+                          description: `Enable execution logs.`,
+                          type: 'boolean',
+                        },
+                        format: {
+                          description: `Access log format string.`,
+                          type: 'string',
+                        },
+                        fullExecutionData: {
+                          description: `Include full request/response data in execution logs.`,
+                          type: 'boolean',
+                        },
+                        level: {
+                          description: `Execution log level.`,
+                          enum: ['INFO', 'ERROR'],
+                        },
                       },
                       additionalProperties: false,
                     },
@@ -1529,13 +2267,30 @@ class AwsProvider {
                 },
               },
             },
-            memorySize: { $ref: '#/definitions/awsLambdaMemorySize' },
+            memorySize: {
+              description: `Default Lambda memory size in MB (128-10240).
+@default 1024`,
+              $ref: '#/definitions/awsLambdaMemorySize',
+            },
             notificationArns: {
+              description: `SNS topic ARNs for CloudFormation stack notifications.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml#general-settings
+@example ['arn:aws:sns:us-east-1:123456789:my-topic']`,
               type: 'array',
               items: { $ref: '#/definitions/awsArnString' },
             },
-            profile: { type: 'string' },
+            profile: {
+              description: `AWS shared credentials profile name.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/credentials
+@example 'my-company-profile'`,
+              type: 'string',
+            },
             region: {
+              description: `AWS region for deployment.
+@default 'us-east-1'
+@see https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml#general-settings
+@see https://docs.aws.amazon.com/general/latest/gr/lambda-service.html
+@example us-east-1`,
               enum: [
                 'us-east-1',
                 'us-east-2',
@@ -1580,13 +2335,27 @@ class AwsProvider {
                 'mx-central-1',
               ],
             },
-            resolver: { type: 'string' },
-            role: { $ref: '#/definitions/awsLambdaRole' },
-            rolePermissionsBoundary: { $ref: '#/definitions/awsArnString' },
+            resolver: {
+              description: `Custom variable resolver name.`,
+              type: 'string',
+            },
+            role: {
+              description: `Default Lambda execution role ARN or reference.
+@deprecated Use provider.iam.role instead.`,
+              $ref: '#/definitions/awsLambdaRole',
+            },
+            rolePermissionsBoundary: {
+              description: `Permissions boundary ARN for the default execution role.
+@deprecated Use provider.iam.role.permissionsBoundary instead.`,
+              $ref: '#/definitions/awsArnString',
+            },
             rollbackConfiguration: {
+              description: `CloudFormation rollback trigger configuration.
+@see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-rollback-triggers.html`,
               type: 'object',
               properties: {
                 RollbackTriggers: {
+                  description: `CloudWatch Alarms that trigger an automatic rollback.`,
                   type: 'array',
                   items: {
                     type: 'object',
@@ -1602,24 +2371,52 @@ class AwsProvider {
               },
               additionalProperties: false,
             },
-            runtime: { $ref: '#/definitions/awsLambdaRuntime' },
+            runtime: {
+              description: `Default Lambda runtime.`,
+              $ref: '#/definitions/awsLambdaRuntime',
+            },
             runtimeManagement: {
+              description: `Default Lambda runtime management mode.`,
               $ref: '#/definitions/awsLambdaRuntimeManagement',
             },
-            build: { type: 'string' },
-            deploymentMethod: { enum: ['changesets', 'direct'] },
-            enableLegacyDeploymentBucket: { type: 'boolean' },
+            build: {
+              description: `Provider-level build strategy.
+@since v4`,
+              type: 'string',
+            },
+            deploymentMethod: {
+              description: `CloudFormation deployment strategy.
+@default 'direct'
+@see https://www.serverless.com/framework/docs/providers/aws/guide/deploying#deployment-method`,
+              enum: ['changesets', 'direct'],
+            },
+            enableLegacyDeploymentBucket: {
+              description: `Use legacy stack-managed deployment bucket behavior.
+@since v4`,
+              type: 'boolean',
+            },
             s3: {
+              description: `Named S3 bucket definitions for reuse from function \`s3\` events.
+@see https://www.serverless.com/framework/docs/providers/aws/events/s3`,
               type: 'object',
               additionalProperties: awsS3ConfigSchema,
             },
-            stage: { $ref: '#/definitions/stage' },
+            stage: {
+              description: `Default deployment stage.
+@default 'dev'
+@see https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml#general-settings`,
+              $ref: '#/definitions/stage',
+            },
             stackName: {
+              description: `Custom CloudFormation stack name.
+@example my-service-prod`,
               type: 'string',
               pattern: '^[a-zA-Z][a-zA-Z0-9-]*$',
               maxLength: 128,
             },
             stackParameters: {
+              description: `CloudFormation stack parameter overrides.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml`,
               type: 'array',
               items: {
                 type: 'object',
@@ -1632,51 +2429,143 @@ class AwsProvider {
                 additionalProperties: false,
               },
             },
-            stackPolicy: { $ref: '#/definitions/awsIamPolicyStatements' },
-            stackTags: { $ref: '#/definitions/awsResourceTags' },
-            tags: { $ref: '#/definitions/awsResourceTags' },
-            timeout: { $ref: '#/definitions/awsLambdaTimeout' },
+            stackPolicy: {
+              description: `CloudFormation stack policy statements.
+@see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/protect-stack-resources.html
+@example
+stackPolicy:
+  - Effect: Allow
+    Principal: '*'
+    Action: 'Update:*'
+    Resource: '*'`,
+              $ref: '#/definitions/awsIamPolicyStatements',
+            },
+            stackTags: {
+              description: `Tags applied to CloudFormation stack resources.
+@see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#tags-stack-tags`,
+              $ref: '#/definitions/awsResourceTags',
+            },
+            tags: {
+              description: `Tags applied to Lambda functions and supporting resources.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#tags`,
+              $ref: '#/definitions/awsResourceTags',
+            },
+            timeout: {
+              description: `Default Lambda timeout in seconds (1-900).
+@default 6`,
+              $ref: '#/definitions/awsLambdaTimeout',
+            },
             tracing: {
+              description: `X-Ray tracing settings for Lambda and API Gateway.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#aws-x-ray-tracing
+@example
+tracing:
+  apiGateway: true
+  lambda: true`,
               type: 'object',
               properties: {
-                apiGateway: { type: 'boolean' },
-                lambda: { $ref: '#/definitions/awsLambdaTracing' },
+                apiGateway: {
+                  description: `Enable tracing on API Gateway stages.
+@see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#aws-x-ray-tracing`,
+                  type: 'boolean',
+                },
+                lambda: {
+                  description: `Lambda tracing mode.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#aws-x-ray-tracing`,
+                  $ref: '#/definitions/awsLambdaTracing',
+                },
               },
               additionalProperties: false,
             },
-            vpc: { $ref: '#/definitions/awsLambdaVpcConfig' },
-            vpcEndpointIds: { $ref: '#/definitions/awsCfArrayInstruction' },
-            versionFunctions: { $ref: '#/definitions/awsLambdaVersioning' },
+            vpc: {
+              description: `Default VPC networking settings for Lambda functions.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#vpc-configuration`,
+              $ref: '#/definitions/awsLambdaVpcConfig',
+            },
+            vpcEndpointIds: {
+              description: `VPC endpoint ids used by private API Gateway endpoints.`,
+              $ref: '#/definitions/awsCfArrayInstruction',
+            },
+            versionFunctions: {
+              description: `Whether to create and manage Lambda versions by default.
+@default true
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#versioning-deployed-functions`,
+              $ref: '#/definitions/awsLambdaVersioning',
+            },
             websocket: {
+              description: `WebSocket API provider options.
+@see https://www.serverless.com/framework/docs/providers/aws/events/websocket`,
               type: 'object',
               properties: {
-                useProviderTags: { type: 'boolean' },
+                useProviderTags: {
+                  description: `Apply provider.tags to WebSocket resources.`,
+                  type: 'boolean',
+                },
               },
               additionalProperties: false,
             },
-            websocketsApiName: { type: 'string' },
+            websocketsApiName: {
+              description: `Custom WebSocket API name.`,
+              type: 'string',
+            },
             kinesis: {
+              description: `Kinesis stream integration settings.`,
               type: 'object',
               properties: {
-                consumerNamingMode: { const: 'serviceSpecific' },
+                consumerNamingMode: {
+                  description: `Kinesis consumer naming mode.`,
+                  const: 'serviceSpecific',
+                },
               },
               additionalProperties: false,
             },
-            websocketsApiRouteSelectionExpression: { type: 'string' },
-            websocketsDescription: { type: 'string' },
+            websocketsApiRouteSelectionExpression: {
+              description: `WebSocket route selection expression.
+@default '$request.body.action'`,
+              type: 'string',
+            },
+            websocketsDescription: {
+              description: `WebSocket API description.`,
+              type: 'string',
+            },
           },
         },
         function: {
+          description: `AWS Lambda function configuration properties.`,
           properties: {
-            architecture: { $ref: '#/definitions/awsLambdaArchitecture' },
-            awsKmsKeyArn: { $ref: '#/definitions/awsKmsArn' },
-            condition: { $ref: '#/definitions/awsResourceCondition' },
-            dependsOn: { $ref: '#/definitions/awsResourceDependsOn' },
-            description: { type: 'string', maxLength: 256 },
+            architecture: {
+              description: `Function-level Lambda architecture override.`,
+              $ref: '#/definitions/awsLambdaArchitecture',
+            },
+            awsKmsKeyArn: {
+              description: `Function-level KMS key ARN.
+@deprecated Use kmsKeyArn instead.`,
+              $ref: '#/definitions/awsKmsArn',
+            },
+            condition: {
+              description: `CloudFormation condition controlling function resource creation.`,
+              $ref: '#/definitions/awsResourceCondition',
+            },
+            dependsOn: {
+              description: `CloudFormation resource dependencies for the function.`,
+              $ref: '#/definitions/awsResourceDependsOn',
+            },
+            description: {
+              description: `Function description shown in Lambda console.`,
+              type: 'string',
+              maxLength: 256,
+            },
             destinations: {
+              description: `Lambda destination configuration for asynchronous invocation outcomes.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#destinations
+@example
+destinations:
+  onSuccess: arn:aws:sns:us-east-1:123456789012:my-topic
+  onFailure: arn:aws:sqs:us-east-1:123456789012:my-dlq`,
               type: 'object',
               properties: {
                 onSuccess: {
+                  description: `Destination for successful asynchronous invocations.`,
                   anyOf: [
                     { type: 'string', minLength: 1 },
                     {
@@ -1691,6 +2580,7 @@ class AwsProvider {
                   ],
                 },
                 onFailure: {
+                  description: `Destination for failed asynchronous invocations.`,
                   anyOf: [
                     { type: 'string', minLength: 1 },
                     {
@@ -1707,17 +2597,29 @@ class AwsProvider {
               },
               additionalProperties: false,
             },
-            disableLogs: { type: 'boolean' },
-            environment: { $ref: '#/definitions/awsLambdaEnvironment' },
+            disableLogs: {
+              description: `Disable creation of default CloudWatch log group for this function.`,
+              type: 'boolean',
+            },
+            environment: {
+              description: `Function-level environment variables.`,
+              $ref: '#/definitions/awsLambdaEnvironment',
+            },
             ephemeralStorageSize: {
+              description: `Ephemeral storage size in MB for /tmp (512-10240).
+@default 512
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#ephemeral-storage`,
               type: 'integer',
               minimum: 512,
               maximum: 10240,
             },
             fileSystemConfig: {
+              description: `EFS access point mount configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#efs-configuration`,
               type: 'object',
               properties: {
                 arn: {
+                  description: `EFS access point ARN.`,
                   anyOf: [
                     {
                       type: 'string',
@@ -1730,6 +2632,7 @@ class AwsProvider {
                   ],
                 },
                 localMountPath: {
+                  description: `Local mount path in the Lambda function (/mnt/...).`,
                   type: 'string',
                   pattern: '^/mnt/[a-zA-Z0-9-_.]+$',
                 },
@@ -1737,8 +2640,14 @@ class AwsProvider {
               additionalProperties: false,
               required: ['localMountPath', 'arn'],
             },
-            handler: { type: 'string' },
+            handler: {
+              description: `Function handler entrypoint.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#configuration
+@example handler: handler.hello`,
+              type: 'string',
+            },
             image: {
+              description: `Container image configuration.`,
               anyOf: [
                 { $ref: '#/definitions/ecrImageUri' },
                 {
@@ -1749,20 +2658,27 @@ class AwsProvider {
                   type: 'object',
                   properties: {
                     name: {
+                      description: `Name of the local image definition in provider.ecr.images.`,
                       type: 'string',
                       pattern: imageNamePattern,
                     },
-                    uri: { $ref: '#/definitions/ecrImageUri' },
+                    uri: {
+                      description: `Fully qualified ECR image URI.`,
+                      $ref: '#/definitions/ecrImageUri',
+                    },
                     workingDirectory: {
+                      description: `Container working directory override.`,
                       type: 'string',
                     },
                     command: {
+                      description: `Container command override.`,
                       type: 'array',
                       items: {
                         type: 'string',
                       },
                     },
                     entryPoint: {
+                      description: `Container entrypoint override.`,
                       type: 'array',
                       items: {
                         type: 'string',
@@ -1773,28 +2689,57 @@ class AwsProvider {
                 },
               ],
             },
-            kmsKeyArn: { $ref: '#/definitions/awsKmsArn' },
-            snapStart: { type: 'boolean' },
-            layers: { $ref: '#/definitions/awsLambdaLayers' },
+            kmsKeyArn: {
+              description: `KMS key ARN for function environment encryption.`,
+              $ref: '#/definitions/awsKmsArn',
+            },
+            snapStart: {
+              description: `Enable Lambda SnapStart.
+@since v4`,
+              type: 'boolean',
+            },
+            layers: {
+              description: `Function-level Lambda layers.`,
+              $ref: '#/definitions/awsLambdaLayers',
+            },
             logRetentionInDays: {
+              description: `CloudWatch Logs retention period in days for this function.`,
               $ref: '#/definitions/awsLogRetentionInDays',
             },
             logDataProtectionPolicy: {
+              description: `CloudWatch Logs data protection policy for this function log group.`,
               $ref: '#/definitions/awsLogDataProtectionPolicy',
             },
             logs: {
+              description: `Function-level structured logging configuration.`,
               $ref: '#/definitions/awsLambdaLoggingConfiguration',
             },
-            maximumEventAge: { type: 'integer', minimum: 60, maximum: 21600 },
-            maximumRetryAttempts: { type: 'integer', minimum: 0, maximum: 2 },
-            memorySize: { $ref: '#/definitions/awsLambdaMemorySize' },
+            maximumEventAge: {
+              description: `Maximum age in seconds for async events before discard (60-21600).`,
+              type: 'integer',
+              minimum: 60,
+              maximum: 21600,
+            },
+            maximumRetryAttempts: {
+              description: `Maximum retry attempts for async invocations (0-2).`,
+              type: 'integer',
+              minimum: 0,
+              maximum: 2,
+            },
+            memorySize: {
+              description: `Function-level memory size in MB.`,
+              $ref: '#/definitions/awsLambdaMemorySize',
+            },
             onError: {
+              description: `Dead-letter destination for failed asynchronous invocations.`,
               anyOf: [
                 { type: 'string', pattern: '^arn:aws[a-z-]*:sns' },
                 { $ref: '#/definitions/awsCfFunction' },
               ],
             },
             package: {
+              description: `Function-level packaging overrides.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/packaging`,
               type: 'object',
               properties: {
                 artifact: { type: 'string' },
@@ -1806,6 +2751,7 @@ class AwsProvider {
               additionalProperties: false,
             },
             provisionedConcurrency: cfValue({
+              description: `Provisioned concurrency settings for this function.`,
               anyOf: [
                 { type: 'integer', minimum: 0 },
                 {
@@ -1819,17 +2765,45 @@ class AwsProvider {
                 },
               ],
             }),
-            reservedConcurrency: cfValue({ type: 'integer', minimum: 0 }),
-            role: { $ref: '#/definitions/awsLambdaRole' },
-            runtime: { $ref: '#/definitions/awsLambdaRuntime' },
-            build: { type: 'string' },
+            reservedConcurrency: cfValue({
+              description: `Reserved concurrency limit for this function.`,
+              type: 'integer',
+              minimum: 0,
+            }),
+            role: {
+              description: `Function execution role.`,
+              $ref: '#/definitions/awsLambdaRole',
+            },
+            runtime: {
+              description: `Function runtime override.`,
+              $ref: '#/definitions/awsLambdaRuntime',
+            },
+            build: {
+              description: `Function-level build strategy.
+@since v4`,
+              type: 'string',
+            },
             runtimeManagement: {
+              description: `Function-level runtime management mode.`,
               $ref: '#/definitions/awsLambdaRuntimeManagement',
             },
-            tags: { $ref: '#/definitions/awsResourceTags' },
-            tenancy: { $ref: '#/definitions/awsLambdaTenancy' },
-            durableConfig: { $ref: '#/definitions/awsLambdaDurableConfig' },
+            tags: {
+              description: `Function-level resource tags.`,
+              $ref: '#/definitions/awsResourceTags',
+            },
+            tenancy: {
+              description: `Lambda tenancy configuration.
+@since v4`,
+              $ref: '#/definitions/awsLambdaTenancy',
+            },
+            durableConfig: {
+              description: `Lambda durable execution settings.
+@since v4`,
+              $ref: '#/definitions/awsLambdaDurableConfig',
+            },
             capacityProvider: {
+              description: `Capacity provider assignment for this function.
+@since v4`,
               anyOf: [
                 { type: 'string' },
                 { $ref: '#/definitions/awsCfFunction' },
@@ -1838,53 +2812,78 @@ class AwsProvider {
                 },
               ],
             },
-            timeout: { $ref: '#/definitions/awsLambdaTimeout' },
-            tracing: { $ref: '#/definitions/awsLambdaTracing' },
+            timeout: {
+              description: `Function timeout in seconds.`,
+              $ref: '#/definitions/awsLambdaTimeout',
+            },
+            tracing: {
+              description: `Function-level X-Ray tracing mode.`,
+              $ref: '#/definitions/awsLambdaTracing',
+            },
             url: {
+              description: `Lambda Function URL configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#lambda-function-urls`,
               anyOf: [
                 { type: 'boolean' },
                 {
                   type: 'object',
                   properties: {
-                    authorizer: { type: 'string', enum: ['aws_iam'] },
+                    authorizer: {
+                      description: `Function URL authorizer type.`,
+                      type: 'string',
+                      enum: ['aws_iam'],
+                    },
                     cors: {
+                      description: `CORS configuration for the Function URL.`,
                       anyOf: [
                         { type: 'boolean' },
                         {
                           type: 'object',
                           properties: {
-                            allowCredentials: { type: 'boolean' },
+                            allowCredentials: {
+                              description: `Allow credentials in cross-origin requests.`,
+                              type: 'boolean',
+                            },
                             allowedHeaders: {
+                              description: `Allowed request headers.`,
                               type: 'array',
                               minItems: 1,
                               maxItems: 100,
                               items: { type: 'string' },
                             },
                             allowedMethods: {
+                              description: `Allowed HTTP methods.`,
                               type: 'array',
                               minItems: 1,
                               maxItems: 6,
                               items: { type: 'string' },
                             },
                             allowedOrigins: {
+                              description: `Allowed origin domains.`,
                               type: 'array',
                               minItems: 1,
                               maxItems: 100,
                               items: { type: 'string' },
                             },
                             exposedResponseHeaders: {
+                              description: `Response headers exposed to browsers.`,
                               type: 'array',
                               minItems: 1,
                               maxItems: 100,
                               items: { type: 'string' },
                             },
-                            maxAge: { type: 'integer', minimum: 0 },
+                            maxAge: {
+                              description: `Preflight cache duration in seconds.`,
+                              type: 'integer',
+                              minimum: 0,
+                            },
                           },
                           additionalProperties: false,
                         },
                       ],
                     },
                     invokeMode: {
+                      description: `Function URL invoke mode.`,
                       type: 'string',
                       enum: ['BUFFERED', 'RESPONSE_STREAM'],
                     },
@@ -1893,12 +2892,22 @@ class AwsProvider {
                 },
               ],
             },
-            versionFunction: { $ref: '#/definitions/awsLambdaVersioning' },
-            vpc: { $ref: '#/definitions/awsLambdaVpcConfig' },
+            versionFunction: {
+              description: `Enable or disable versioning for this function.`,
+              $ref: '#/definitions/awsLambdaVersioning',
+            },
+            vpc: {
+              description: `Function-level VPC networking settings.`,
+              $ref: '#/definitions/awsLambdaVpcConfig',
+            },
             httpApi: {
+              description: `Function-level HTTP API event defaults.`,
               type: 'object',
               properties: {
-                payload: { $ref: '#/definitions/awsHttpApiPayload' },
+                payload: {
+                  description: `Default HTTP API payload format for this function.`,
+                  $ref: '#/definitions/awsHttpApiPayload',
+                },
               },
               additionalProperties: false,
             },
@@ -1906,11 +2915,13 @@ class AwsProvider {
           additionalProperties: false,
         },
         layers: {
+          description: `Layer definitions for AWS Lambda layers.`,
           type: 'object',
           additionalProperties: {
             type: 'object',
             properties: {
               allowedAccounts: {
+                description: `AWS accounts allowed to access the published layer version.`,
                 type: 'array',
                 items: {
                   type: 'string',
@@ -1919,18 +2930,29 @@ class AwsProvider {
                 },
               },
               compatibleArchitectures: {
+                description: `Architectures supported by the layer.`,
                 type: 'array',
                 items: { $ref: '#/definitions/awsLambdaArchitecture' },
                 maxItems: 2,
               },
               compatibleRuntimes: {
+                description: `Lambda runtimes compatible with this layer.`,
                 type: 'array',
                 items: { $ref: '#/definitions/awsLambdaRuntime' },
                 maxItems: 15,
               },
-              description: { type: 'string', maxLength: 256 },
-              licenseInfo: { type: 'string', maxLength: 512 },
+              description: {
+                description: `Layer description.`,
+                type: 'string',
+                maxLength: 256,
+              },
+              licenseInfo: {
+                description: `Layer license information string.`,
+                type: 'string',
+                maxLength: 512,
+              },
               name: {
+                description: `Layer name or full layer ARN prefix.`,
                 type: 'string',
                 minLength: 1,
                 maxLength: 140,
@@ -1938,46 +2960,78 @@ class AwsProvider {
                   '^((arn:[a-zA-Z0-9-]+:lambda:[a-zA-Z0-9-]+:\\d{12}:layer:[a-zA-Z0-9-_]+)|[a-zA-Z0-9-_]+)$',
               },
               package: {
+                description: `Layer packaging configuration.`,
                 type: 'object',
                 properties: {
-                  artifact: { type: 'string' },
-                  exclude: { type: 'array', items: { type: 'string' } },
-                  include: { type: 'array', items: { type: 'string' } },
-                  patterns: { type: 'array', items: { type: 'string' } },
+                  artifact: {
+                    description: `Path to prebuilt layer artifact zip.`,
+                    type: 'string',
+                  },
+                  exclude: {
+                    description: `Legacy exclude globs for layer packaging.`,
+                    type: 'array',
+                    items: { type: 'string' },
+                  },
+                  include: {
+                    description: `Legacy include globs for layer packaging.`,
+                    type: 'array',
+                    items: { type: 'string' },
+                  },
+                  patterns: {
+                    description: `Include/exclude glob patterns for layer packaging.`,
+                    type: 'array',
+                    items: { type: 'string' },
+                  },
                 },
                 additionalProperties: false,
               },
-              path: { type: 'string' },
-              retain: { type: 'boolean' },
+              path: {
+                description: `Directory containing layer source files.`,
+                type: 'string',
+              },
+              retain: {
+                description: `Retain previous layer versions on stack updates.`,
+                type: 'boolean',
+              },
             },
             additionalProperties: false,
           },
         },
         resources: {
+          description: `CloudFormation template extensions merged into the generated stack.`,
           type: 'object',
           properties: {
             AWSTemplateFormatVersion: {
+              description: `CloudFormation template format version.`,
               type: 'string',
             },
             Conditions: {
+              description: `CloudFormation condition definitions.
+@see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/conditions-section-structure.html`,
               type: 'object',
             },
             Description: {
+              description: `CloudFormation template description.`,
               type: 'string',
             },
             Mappings: {
+              description: `CloudFormation mapping definitions.`,
               type: 'object',
             },
             Metadata: {
+              description: `CloudFormation template metadata block.`,
               type: 'object',
             },
             // According to https://s3.amazonaws.com/cfn-resource-specifications-us-east-1-prod/schemas/2.15.0/all-spec.json
             // `Outputs` is just an "object", though it seems like this is under-specifying that section a bit.
             // See also https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html
             Outputs: {
+              description: `CloudFormation outputs section.
+@see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html`,
               type: 'object',
             },
             Parameters: {
+              description: `CloudFormation parameters section.`,
               type: 'object',
             },
             // Not replicating the full JSON schema from https://s3.amazonaws.com/cfn-resource-specifications-us-east-1-prod/schemas/2.15.0/all-spec.json
@@ -1986,13 +3040,19 @@ class AwsProvider {
             // The only required attribute is `Type`; `Properties` and other common attributes are optional.
             // See also https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html
             Resources: {
+              description: `Additional CloudFormation resources and transform macros.
+@see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html`,
               type: 'object',
               properties: {
                 'Fn::Transform': {
+                  description: `CloudFormation transform declaration.`,
                   type: 'object',
                   properties: {
-                    Name: { type: 'string' },
-                    Parameters: { type: 'object' },
+                    Name: { description: `Transform name.`, type: 'string' },
+                    Parameters: {
+                      description: `Transform parameters.`,
+                      type: 'object',
+                    },
                   },
                   required: ['Name'],
                   additionalProperties: false,
@@ -2007,17 +3067,40 @@ class AwsProvider {
                     {
                       type: 'object',
                       properties: {
-                        Type: { type: 'string' },
-                        Properties: { type: 'object' },
-                        CreationPolicy: { type: 'object' },
-                        DeletionPolicy: { type: 'string' },
+                        Type: {
+                          description: `CloudFormation resource type.`,
+                          type: 'string',
+                        },
+                        Properties: {
+                          description: `CloudFormation resource properties.`,
+                          type: 'object',
+                        },
+                        CreationPolicy: {
+                          description: `CreationPolicy attribute.`,
+                          type: 'object',
+                        },
+                        DeletionPolicy: {
+                          description: `DeletionPolicy attribute.`,
+                          type: 'string',
+                        },
                         DependsOn: {
+                          description: `DependsOn attribute.`,
                           $ref: '#/definitions/awsResourceDependsOn',
                         },
-                        Metadata: { type: 'object' },
-                        UpdatePolicy: { type: 'object' },
-                        UpdateReplacePolicy: { type: 'string' },
+                        Metadata: {
+                          description: `Metadata attribute.`,
+                          type: 'object',
+                        },
+                        UpdatePolicy: {
+                          description: `UpdatePolicy attribute.`,
+                          type: 'object',
+                        },
+                        UpdateReplacePolicy: {
+                          description: `UpdateReplacePolicy attribute.`,
+                          type: 'string',
+                        },
                         Condition: {
+                          description: `Condition attribute.`,
                           $ref: '#/definitions/awsResourceCondition',
                         },
                       },
@@ -2033,10 +3116,12 @@ class AwsProvider {
               additionalProperties: false,
             },
             Transform: {
+              description: `CloudFormation transforms list.`,
               type: 'array',
               items: { type: 'string' },
             },
             extensions: {
+              description: `Resource extensions for resources generated by the framework.`,
               type: 'object',
               patternProperties: {
                 // names have the same restrictions as CloudFormation Resources section
@@ -2047,14 +3132,38 @@ class AwsProvider {
                   // this is different than the above schema for `Resources`, which allows the `Type` attribute.
                   // extensions are explicitly meant to extend the definition of existing resources.
                   properties: {
-                    Properties: { type: 'object' },
-                    CreationPolicy: { type: 'object' },
-                    DeletionPolicy: { type: 'string' },
-                    DependsOn: { $ref: '#/definitions/awsResourceDependsOn' },
-                    Metadata: { type: 'object' },
-                    UpdatePolicy: { type: 'object' },
-                    UpdateReplacePolicy: { type: 'string' },
-                    Condition: { $ref: '#/definitions/awsResourceCondition' },
+                    Properties: {
+                      description: `Properties override.`,
+                      type: 'object',
+                    },
+                    CreationPolicy: {
+                      description: `CreationPolicy override.`,
+                      type: 'object',
+                    },
+                    DeletionPolicy: {
+                      description: `DeletionPolicy override.`,
+                      type: 'string',
+                    },
+                    DependsOn: {
+                      description: `DependsOn override.`,
+                      $ref: '#/definitions/awsResourceDependsOn',
+                    },
+                    Metadata: {
+                      description: `Metadata override.`,
+                      type: 'object',
+                    },
+                    UpdatePolicy: {
+                      description: `UpdatePolicy override.`,
+                      type: 'object',
+                    },
+                    UpdateReplacePolicy: {
+                      description: `UpdateReplacePolicy override.`,
+                      type: 'string',
+                    },
+                    Condition: {
+                      description: `Condition override.`,
+                      $ref: '#/definitions/awsResourceCondition',
+                    },
                   },
                   additionalProperties: false,
                 },
@@ -2087,6 +3196,7 @@ class AwsProvider {
           type: 'object',
           properties: {
             'serverless-iam-roles-per-function': {
+              description: `Compatibility schema for serverless-iam-roles-per-function plugin options.`,
               type: 'object',
               properties: {
                 defaultInherit: { type: 'boolean' },
@@ -2101,22 +3211,27 @@ class AwsProvider {
         serverless.configSchemaHandler.defineFunctionProperties('aws', {
           properties: {
             iam: {
+              description: `Function-level IAM role overrides.`,
               type: 'object',
               properties: {
                 inheritStatements: { type: 'boolean' },
                 role: {
+                  description: `Per-function IAM role configuration.`,
                   type: 'object',
                   properties: {
                     name: { type: 'string' },
                     statements: {
+                      description: `Inline IAM policy statements for this function.`,
                       $ref: '#/definitions/awsIamPolicyStatements',
                     },
                     permissionsBoundary: { $ref: '#/definitions/awsArn' },
                     managedPolicies: {
+                      description: `Managed policy ARNs attached to this function role.`,
                       type: 'array',
                       items: { $ref: '#/definitions/awsArn' },
                     },
                     path: {
+                      description: `IAM role path for this function.`,
                       type: 'string',
                       pattern: '(^\\/$)|(^\\/[\\u0021-\\u007f]+\\/$)',
                     },
