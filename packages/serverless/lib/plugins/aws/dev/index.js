@@ -317,6 +317,8 @@ class AwsDev {
 
     const mainProgress = progress.get('main')
 
+    this.validateOnExitOption()
+
     this.serverless.functionsDevModeEnabled = true
     logger.logoDevMode()
 
@@ -1021,7 +1023,7 @@ class AwsDev {
       mainProgress.remove()
       logger.blankLine()
 
-      if (this.options['remove-on-exit']) {
+      if (this.options['on-exit'] === 'remove') {
         const serviceName = this.serverless.service.getServiceName()
         const stage = this.provider.getStage()
         const region = this.provider.getRegion()
@@ -1081,6 +1083,22 @@ class AwsDev {
         )
         logger.blankLine()
       })
+  }
+
+  validateOnExitOption() {
+    const onExitOption = this.options['on-exit']
+
+    if (onExitOption === undefined) {
+      return
+    }
+
+    if (onExitOption !== 'remove') {
+      throw new ServerlessError(
+        'Option "--on-exit" must be "remove".',
+        'INVALID_DEV_ON_EXIT_OPTION',
+        { stack: false },
+      )
+    }
   }
 
   /**

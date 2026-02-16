@@ -184,8 +184,10 @@ provider:
       Comment: 'Custom domain for API'
     # Enable split-horizon DNS for private hosted zones (optional)
     splitHorizonDns: false
-    # Security policy for the domain (optional, e.g., 'TLS_1_2')
+    # Security policy for the domain (optional). API Gateway V2 domains support only TLS_1_2.
     securityPolicy: TLS_1_2
+    # API Gateway endpoint access mode (optional: basic or strict, REST only with single-level basePath)
+    accessMode: strict
     # S3 URI of truststore for mutual TLS authentication (optional, regional endpoints only)
     tlsTruststoreUri: s3://bucket-name/truststore.pem
     # Version of the TLS truststore (optional)
@@ -433,8 +435,8 @@ provider:
     endpoint:
       # TLS security policy for the REST API
       securityPolicy: SecurityPolicy_TLS13_2025_EDGE
-      # Endpoint access mode for enhanced security policies: BASIC or STRICT
-      accessMode: BASIC
+      # Endpoint access mode for enhanced security policies: basic or strict
+      accessMode: basic
       # Disable the default execute-api endpoint
       disable: false
 ```

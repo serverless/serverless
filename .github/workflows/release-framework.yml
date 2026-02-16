@@ -61,7 +61,7 @@ jobs:
           registry-url: 'https://npm.pkg.github.com'
           scope: '@serverlessinc'
       - name: 'Setup: AWS Credentials'
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           role-to-assume: arn:aws:iam::762003938904:role/GithubActionsDeploymentRole
           aws-region: us-east-1
@@ -120,7 +120,7 @@ jobs:
       - name: 'Build: Framework'
         run: npm run build
       - name: 'Setup: AWS Credentials'
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           role-to-assume: arn:aws:iam::377024778620:role/GithubActionsDeploymentRole
           aws-region: us-east-1
@@ -157,7 +157,7 @@ jobs:
           registry-url: 'https://npm.pkg.github.com'
           scope: '@serverlessinc'
       - name: 'Setup: AWS Credentials'
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           role-to-assume: arn:aws:iam::802587217904:role/GithubActionsDeploymentRole
           aws-region: us-east-1

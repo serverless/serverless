@@ -573,6 +573,7 @@ class AwsProvider {
             enum: [
               'dotnet6',
               'dotnet8',
+              'dotnet10',
               'go1.x',
               'java25',
               'java21',
@@ -997,6 +998,9 @@ class AwsProvider {
                 anyOf: [{ type: 'boolean' }, { type: 'string' }],
               },
               securityPolicy: { type: 'string' },
+              accessMode: {
+                anyOf: ['BASIC', 'STRICT'].map(caseInsensitive),
+              },
               autoDomain: { type: 'boolean' },
               autoDomainWaitFor: { type: 'string' },
               allowPathMatching: { type: 'boolean' },
