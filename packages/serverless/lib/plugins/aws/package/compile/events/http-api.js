@@ -158,10 +158,13 @@ class HttpApiEvents {
   compileLogGroup() {
     if (!this.config.accessLogFormat) return
 
+    const logGroupName =
+      this.config.logGroup || this.provider.naming.getHttpApiLogGroupName()
+
     const resource = {
       Type: 'AWS::Logs::LogGroup',
       Properties: {
-        LogGroupName: this.provider.naming.getHttpApiLogGroupName(),
+        LogGroupName: logGroupName,
       },
     }
 
@@ -544,6 +547,9 @@ Object.defineProperties(
             protocol: '$context.protocol',
             responseLength: '$context.responseLength',
           })}`
+        if (userLogsConfig.logGroup) {
+          this.config.logGroup = userLogsConfig.logGroup
+        }
       }
 
       for (const [functionName, functionData] of Object.entries(

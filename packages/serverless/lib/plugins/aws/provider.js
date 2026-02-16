@@ -1488,6 +1488,7 @@ class AwsProvider {
                       type: 'object',
                       properties: {
                         format: { type: 'string' },
+                        logGroup: { type: 'string' },
                       },
                       additionalProperties: false,
                     },
@@ -1504,6 +1505,7 @@ class AwsProvider {
                         format: { type: 'string' },
                         fullExecutionData: { type: 'boolean' },
                         level: { enum: ['INFO', 'ERROR'] },
+                        logGroup: { type: 'string' },
                         role: { $ref: '#/definitions/awsArn' },
                         roleManagedExternally: { type: 'boolean' },
                       },
@@ -1522,6 +1524,7 @@ class AwsProvider {
                         format: { type: 'string' },
                         fullExecutionData: { type: 'boolean' },
                         level: { enum: ['INFO', 'ERROR'] },
+                        logGroup: { type: 'string' },
                       },
                       additionalProperties: false,
                     },

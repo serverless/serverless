@@ -670,6 +670,8 @@ provider:
     # Note: If this property is not set, HTTP API logging will be disabled
     httpApi:
       format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
+      # Custom log group name (default: /aws/http-api/{stack-name})
+      logGroup: /my-custom-log-group/http-api
 
     # Enable REST API logs
     # This can either be set to `restApi: true` to use defaults, or configured via subproperties
@@ -686,6 +688,8 @@ provider:
       level: INFO
       # Log full requests/responses for execution logging (default: true)
       fullExecutionData: true
+      # Custom log group name (default: /aws/api-gateway/{service}-{stage})
+      logGroup: /my-custom-log-group/rest-api
       # Existing IAM role to use for API Gateway when writing CloudWatch Logs (default: automatically created)
       role: arn:aws:iam::123456:role
       # Whether the API Gateway CloudWatch Logs role setting is not managed by Serverless (default: false)
@@ -705,6 +709,8 @@ provider:
       level: INFO
       # Log full requests/responses for execution logging (default: true)
       fullExecutionData: true
+      # Custom log group name (default: /aws/websocket/{service}-{stage})
+      logGroup: /my-custom-log-group/websocket
 
     # Optional, whether to write CloudWatch logs for custom resource lambdas as added by the framework. Default is true.
     frameworkLambda: false
