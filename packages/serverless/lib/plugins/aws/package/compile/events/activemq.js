@@ -11,9 +11,17 @@ class AwsCompileActiveMQEvents {
     }
 
     this.serverless.configSchemaHandler.defineFunctionEvent('aws', 'activemq', {
+      description: `ActiveMQ event source mapping configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/activemq
+@example
+activemq:
+  arn: arn:aws:mq:us-east-1:123456789:broker:my-broker:b-abc-123
+  queue: my-queue
+  basicAuthArn: arn:aws:secretsmanager:us-east-1:123456789:secret:my-secret`,
       type: 'object',
       properties: {
         arn: {
+          description: `Amazon MQ (ActiveMQ) broker ARN.`,
           anyOf: [
             {
               type: 'string',
@@ -25,6 +33,7 @@ class AwsCompileActiveMQEvents {
           ],
         },
         basicAuthArn: {
+          description: `Secrets Manager ARN containing ActiveMQ credentials.`,
           anyOf: [
             { $ref: '#/definitions/awsSecretsManagerArnString' },
             { $ref: '#/definitions/awsCfImport' },
@@ -32,19 +41,23 @@ class AwsCompileActiveMQEvents {
           ],
         },
         batchSize: {
+          description: `Maximum number of records to retrieve in a single batch.`,
           type: 'number',
           minimum: 1,
           maximum: 10000,
         },
         maximumBatchingWindow: {
+          description: `Maximum batching window in seconds.`,
           type: 'number',
           minimum: 0,
           maximum: 300,
         },
         enabled: {
+          description: `Enable or disable the event source mapping.`,
           type: 'boolean',
         },
         queue: {
+          description: `Queue name to consume from.`,
           type: 'string',
         },
         filterPatterns: { $ref: '#/definitions/filterPatterns' },

@@ -41,7 +41,7 @@
     "@smithy/node-http-handler": "^4.4.9",
     "@smithy/util-retry": "^4.2.8",
     "adm-zip": "^0.5.16",
-    "ajv": "8.17.1",
+    "ajv": "8.18.0",
     "ajv-errors": "^3.0.0",
     "ajv-formats": "3.0.1",
     "appdirectory": "^0.1.0",

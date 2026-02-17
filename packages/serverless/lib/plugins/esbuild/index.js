@@ -80,35 +80,52 @@ class Esbuild {
 
   _defineSchema() {
     this.serverless.configSchemaHandler.defineBuildProperty('esbuild', {
+      description: `esbuild configuration for bundling TypeScript/JavaScript.
+@since v4
+@see https://www.serverless.com/framework/docs/providers/aws/guide/building#esbuild`,
       anyOf: [
         {
           type: 'object',
           properties: {
             // The node modules that should not be bundled
-            external: { type: 'array', items: { type: 'string' } },
+            external: {
+              description: `Node modules to exclude from bundle.
+@example ['aws-sdk']`,
+              type: 'array',
+              items: { type: 'string' },
+            },
             // These are node modules that should not be bundled but also not included in the package.json
             exclude: { type: 'array', items: { type: 'string' } },
             // The packages config, this can be set to override the behavior of external
             packages: { type: 'string', enum: ['external'] },
-            // The concurrency to use for building functions. By default it will be set to the number of functions to build.
-            // Meaning that all functions will be built concurrently.
-            buildConcurrency: { type: 'number' },
+            buildConcurrency: {
+              description: `Number of concurrent function builds. All functions are built concurrently by default.`,
+              type: 'number',
+            },
             // Whether to bundle or not. Default is true
             bundle: { type: 'boolean' },
             // Whether to minify or not. Default is false
             minify: { type: 'boolean' },
             // If set to a boolean, true, then framework uses external sourcemaps and enables it on functions by default.
             sourcemap: {
+              description: `Sourcemap generation configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/building#configuration`,
               anyOf: [
                 { type: 'boolean' },
                 {
                   type: 'object',
                   properties: {
                     type: {
+                      description: `Sourcemap generation type.
+@default 'linked'`,
                       type: 'string',
                       enum: ['inline', 'linked', 'external'],
                     },
-                    setNodeOptions: { type: 'boolean' },
+                    setNodeOptions: {
+                      description: `Whether to set NODE_OPTIONS=--enable-source-maps.
+@default false`,
+                      type: 'boolean',
+                    },
                   },
                 },
               ],

@@ -78,26 +78,46 @@ class HttpApiEvents {
     }
 
     this.serverless.configSchemaHandler.defineFunctionEvent('aws', 'httpApi', {
+      description: `HTTP API Gateway event configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/http-api
+@example
+events:
+  - httpApi:
+      path: /users/{id}
+      method: GET
+      authorizer:
+        name: myAuth`,
       anyOf: [
         { type: 'string', regexp: methodPathPattern.toString() },
         {
           type: 'object',
           properties: {
             authorizer: {
+              description: `Authorizer configuration or reference.
+@see https://www.serverless.com/framework/docs/providers/aws/events/http-api#jwt-authorizers`,
               anyOf: [
                 { type: 'string' },
                 {
                   type: 'object',
                   properties: {
                     id: {
+                      description: `Authorizer id or ARN reference.`,
                       anyOf: [
                         { type: 'string' },
                         { $ref: '#/definitions/awsCfFunction' },
                       ],
                     },
-                    name: { type: 'string' },
-                    scopes: { type: 'array', items: { type: 'string' } },
+                    name: {
+                      description: `Name of a provider-level HTTP API authorizer.`,
+                      type: 'string',
+                    },
+                    scopes: {
+                      description: `OAuth scopes required for this route.`,
+                      type: 'array',
+                      items: { type: 'string' },
+                    },
                     type: {
+                      description: `Authorizer type.`,
                       type: 'string',
                       enum: ['request', 'jwt', 'aws_iam'],
                     },
@@ -111,8 +131,18 @@ class HttpApiEvents {
                 },
               ],
             },
-            method: { type: 'string', regexp: methodPattern.toString() },
-            path: { type: 'string', regexp: /^(?:\*|\/\S*)$/.toString() },
+            method: {
+              description: `HTTP method.
+@example 'GET'`,
+              type: 'string',
+              regexp: methodPattern.toString(),
+            },
+            path: {
+              description: `HTTP route path.
+@example '/users/{id}'`,
+              type: 'string',
+              regexp: /^(?:\*|\/\S*)$/.toString(),
+            },
           },
           required: ['path'],
           additionalProperties: false,
