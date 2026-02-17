@@ -369,17 +369,10 @@ export function generateRuntimeRole(name, config, context, options = {}) {
             Sid: 'BrowserAccess',
             Effect: 'Allow',
             Action: [
-              'bedrock-agentcore:CreateBrowser',
-              'bedrock-agentcore:ListBrowsers',
-              'bedrock-agentcore:GetBrowser',
-              'bedrock-agentcore:DeleteBrowser',
               'bedrock-agentcore:StartBrowserSession',
-              'bedrock-agentcore:ListBrowserSessions',
-              'bedrock-agentcore:GetBrowserSession',
               'bedrock-agentcore:StopBrowserSession',
               'bedrock-agentcore:UpdateBrowserStream',
               'bedrock-agentcore:ConnectBrowserAutomationStream',
-              'bedrock-agentcore:ConnectBrowserLiveViewStream',
             ],
             Resource: {
               'Fn::Sub':
@@ -392,15 +385,9 @@ export function generateRuntimeRole(name, config, context, options = {}) {
             Sid: 'CodeInterpreterAccess',
             Effect: 'Allow',
             Action: [
-              'bedrock-agentcore:CreateCodeInterpreter',
               'bedrock-agentcore:StartCodeInterpreterSession',
               'bedrock-agentcore:InvokeCodeInterpreter',
               'bedrock-agentcore:StopCodeInterpreterSession',
-              'bedrock-agentcore:DeleteCodeInterpreter',
-              'bedrock-agentcore:ListCodeInterpreters',
-              'bedrock-agentcore:GetCodeInterpreter',
-              'bedrock-agentcore:GetCodeInterpreterSession',
-              'bedrock-agentcore:ListCodeInterpreterSessions',
             ],
             Resource: {
               'Fn::Sub':

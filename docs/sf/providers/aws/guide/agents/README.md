@@ -305,6 +305,12 @@ serverless dev
 # Invoke a deployed agent
 serverless invoke --agent myAgent --data '{"prompt": "Hello!"}'
 
+# View agent logs
+serverless logs --agent myAgent
+
+# Tail agent logs in real-time
+serverless logs --agent myAgent --tail
+
 # View deployment info
 serverless info
 ```
@@ -312,6 +318,8 @@ serverless info
 `serverless dev` runs your agent locally in Docker, injects AWS credentials, watches for file changes, and provides an interactive chat CLI. See [Dev Mode](./dev.md) for details.
 
 `serverless invoke --agent` supports `--data`, `--path` (file input), and `--session-id` (for multi-turn conversations).
+
+`serverless logs --agent` supports `--tail`, `--startTime`, `--filter`, and `--interval` -- the same options as function logs.
 
 ## Examples
 

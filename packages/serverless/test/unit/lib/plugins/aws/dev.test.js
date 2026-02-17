@@ -91,4 +91,91 @@ describe('AwsDev', () => {
       }
     })
   })
+
+  describe('#validateModeOption()', () => {
+    it('should not throw when --mode is not provided', () => {
+      expect(() => awsDev.validateModeOption()).not.toThrow()
+    })
+
+    it('should not throw when --mode is "functions"', () => {
+      awsDev.options.mode = 'functions'
+
+      expect(() => awsDev.validateModeOption()).not.toThrow()
+    })
+
+    it('should not throw when --mode is "agents"', () => {
+      awsDev.options.mode = 'agents'
+
+      expect(() => awsDev.validateModeOption()).not.toThrow()
+    })
+
+    it('should throw when --mode has an unsupported value', () => {
+      awsDev.options.mode = 'foo'
+
+      expect(() => awsDev.validateModeOption()).toThrow(
+        'Option "--mode" must be one of: functions, agents.',
+      )
+
+      try {
+        awsDev.validateModeOption()
+      } catch (error) {
+        expect(error.code).toBe('INVALID_DEV_MODE_OPTION')
+      }
+    })
+  })
+
+  describe('#shouldUseAgentsDevMode()', () => {
+    it('should return false when --mode is "functions"', () => {
+      awsDev.options.mode = 'functions'
+
+      expect(awsDev.shouldUseAgentsDevMode()).toBe(false)
+    })
+
+    it('should return true when --mode is "agents" and agents are defined', () => {
+      awsDev.options.mode = 'agents'
+      awsDev.serverless.service.initialServerlessConfig = {
+        ai: { agents: { myAgent: {} } },
+      }
+
+      expect(awsDev.shouldUseAgentsDevMode()).toBe(true)
+    })
+
+    it('should throw when --mode is "agents" but no agents are defined', () => {
+      awsDev.options.mode = 'agents'
+
+      expect(() => awsDev.shouldUseAgentsDevMode()).toThrow(
+        'No agents defined in configuration. Cannot use --mode agents.',
+      )
+
+      try {
+        awsDev.shouldUseAgentsDevMode()
+      } catch (error) {
+        expect(error.code).toBe('NO_AGENTS_DEFINED')
+      }
+    })
+
+    it('should auto-detect agents mode when no functions but agents exist', () => {
+      awsDev.serverless.service.functions = {}
+      awsDev.serverless.service.initialServerlessConfig = {
+        ai: { agents: { myAgent: {} } },
+      }
+
+      expect(awsDev.shouldUseAgentsDevMode()).toBe(true)
+    })
+
+    it('should default to functions mode when both functions and agents exist', () => {
+      awsDev.serverless.service.functions = { myFunc: {} }
+      awsDev.serverless.service.initialServerlessConfig = {
+        ai: { agents: { myAgent: {} } },
+      }
+
+      expect(awsDev.shouldUseAgentsDevMode()).toBe(false)
+    })
+
+    it('should default to functions mode when no functions and no agents exist', () => {
+      awsDev.serverless.service.functions = {}
+
+      expect(awsDev.shouldUseAgentsDevMode()).toBe(false)
+    })
+  })
 })

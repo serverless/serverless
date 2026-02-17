@@ -1,0 +1,45 @@
+# LangGraph Comprehensive Example
+#
+# Demonstrates multiple AgentCore capabilities in a single agent:
+# - Lambda function tool via gateway (calculator)
+# - Direct MCP server (AWS Knowledge -- public endpoint, connected in agent code)
+# - Default browser (web automation)
+# - Default code interpreter (sandboxed execution)
+# - Memory (conversation persistence)
+#
+# Deploy: serverless deploy
+# Test:   serverless invoke -a assistant -d "Hello"
+# Suite:  RUNTIME_ARN=<arn> node test-invoke.js
+
+service: langgraph-comprehensive
+
+provider:
+  name: aws
+  region: us-east-1
+
+functions:
+  calculatorFunction:
+    handler: handlers/calculator.handler
+    runtime: nodejs24.x
+
+ai:
+  tools:
+    # Lambda function tool -- math expression evaluator
+    calculator:
+      function: calculatorFunction
+      toolSchema:
+        - name: calculate
+          description: Evaluate a mathematical expression. Supports basic arithmetic (+, -, *, /, **) and functions like sqrt, sin, cos, etc.
+          inputSchema:
+            type: object
+            properties:
+              expression:
+                type: string
+                description: Mathematical expression to evaluate (e.g., "2 + 2 * 3", "sqrt(16)")
+            required:
+              - expression
+
+  agents:
+    assistant:
+      memory:
+        expiration: 30 # Days until memory events expire (3-365)

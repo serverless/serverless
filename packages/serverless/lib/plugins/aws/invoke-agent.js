@@ -3,8 +3,13 @@
 import path from 'path'
 import stdin from 'get-stdin'
 import ServerlessError from '../../serverless-error.js'
-import { writeText } from '@serverless/util'
 import { getLogicalId } from './bedrock-agentcore/utils/naming.js'
+import {
+  AGENTCORE_INVOKE_ACCEPT_HEADER,
+  consumeSseTextStream,
+  decodeAgentStreamChunk,
+  isDoneSseEvent,
+} from './bedrock-agentcore/utils/streaming.js'
 
 /**
  * Plugin for invoking AgentCore Runtime agents
@@ -58,18 +63,6 @@ class AwsInvokeAgent {
       throw new ServerlessError(
         `Agent '${this.options.agent}' not found in serverless.yml. Available agents: ${Object.keys(agents).join(', ')}`,
         'AGENT_NOT_FOUND',
-      )
-    }
-
-    // Default to 'runtime' if not specified
-    if (!agentConfig.type) {
-      agentConfig.type = 'runtime'
-    }
-
-    if (agentConfig.type !== 'runtime') {
-      throw new ServerlessError(
-        `Agent '${this.options.agent}' is of type '${agentConfig.type}', but only 'runtime' agents can be invoked.`,
-        'INVALID_AGENT_TYPE',
       )
     }
 
@@ -229,7 +222,7 @@ class AwsInvokeAgent {
     const params = {
       agentRuntimeArn: runtimeArn,
       contentType: 'application/json',
-      accept: 'application/json',
+      accept: AGENTCORE_INVOKE_ACCEPT_HEADER,
       payload: Buffer.from(JSON.stringify(payload)),
     }
 
@@ -244,55 +237,12 @@ class AwsInvokeAgent {
 
       this.progress.remove()
 
-      // Handle streaming response
       if (response.response) {
-        let buffer = ''
-        const decoder = new TextDecoder()
-
-        for await (const chunk of response.response) {
-          // The SDK yields raw Uint8Array/Buffer chunks directly
-          let data = null
-
-          // Check if chunk is a Buffer or Uint8Array (array-like with numeric keys)
-          if (chunk instanceof Uint8Array || Buffer.isBuffer(chunk)) {
-            data = decoder.decode(chunk, { stream: true })
-          }
-          // Fallback: chunk.chunk.bytes (other Bedrock APIs)
-          else if (chunk.chunk?.bytes) {
-            data = decoder.decode(chunk.chunk.bytes, { stream: true })
-          }
-          // Fallback: Direct bytes on chunk
-          else if (chunk.bytes) {
-            data = decoder.decode(chunk.bytes, { stream: true })
-          }
-
-          if (data) {
-            buffer += data
-
-            // Bedrock AgentCore returns SSE-style "data: " lines
-            if (buffer.includes('\n')) {
-              const lines = buffer.split('\n')
-              buffer = lines.pop() // Keep the last partial line in buffer
-
-              for (const line of lines) {
-                const trimmed = line.trim()
-                if (trimmed.startsWith('data:')) {
-                  const lineData = trimmed.slice(5).trim()
-                  if (lineData && lineData !== '[DONE]') {
-                    this.#processStreamData(lineData)
-                  }
-                } else if (trimmed) {
-                  // Fallback for non-SSE JSON
-                  this.#processStreamData(trimmed)
-                }
-              }
-            }
-          }
-        }
-
-        // Process any remaining data in buffer
-        if (buffer.trim()) {
-          this.#processStreamData(buffer.trim())
+        const contentType = response.contentType || ''
+        if (contentType.includes('text/event-stream')) {
+          await this.#writeSseStream(response.response)
+        } else {
+          await this.#writeNonSseStream(response.response)
         }
 
         this.logger.blankLine()
@@ -326,91 +276,84 @@ class AwsInvokeAgent {
   }
 
   /**
-   * Process a single data chunk from the stream
+   * Decode and write SSE events from invoke stream as raw passthrough output.
    * @private
    */
-  #processStreamData(data) {
-    if (!data) return
+  async #writeSseStream(responseStream) {
+    await consumeSseTextStream(
+      this.#toTextChunks(responseStream),
+      async ({ data }) => {
+        if (isDoneSseEvent(data)) return
+        if (data) {
+          process.stdout.write(data)
+        }
+      },
+    )
+  }
 
+  /**
+   * Decode and write non-SSE output from invoke stream.
+   * @private
+   */
+  async #writeNonSseStream(responseStream) {
+    let output = ''
+    for await (const chunk of this.#toTextChunks(responseStream)) {
+      output += chunk
+    }
+
+    if (!output) return
+
+    if (this.#writeAgentError(output)) {
+      return
+    }
+
+    process.stdout.write(output)
+  }
+
+  /**
+   * Render a structured agent error payload if present.
+   * @private
+   */
+  #writeAgentError(output) {
     try {
-      const parsed = JSON.parse(data)
+      const parsed = JSON.parse(output)
+      if (!parsed?.error && !parsed?.error_type) return false
 
-      // Check for error response from the agent
-      if (parsed.error || parsed.error_type) {
-        this.logger.blankLine()
-        this.logger.error('Agent Error:')
-        if (parsed.error_type) {
-          this.logger.error(`  Type: ${parsed.error_type}`)
-        }
-        if (parsed.error) {
-          this.logger.error(`  Error: ${parsed.error}`)
-        }
-        if (parsed.message && parsed.message !== parsed.error) {
-          this.logger.error(`  Message: ${parsed.message}`)
-        }
-        this.logger.blankLine()
-        this.logger.notice(
-          'Tip: Check agent logs with: sls logs --agent <name>',
-        )
-        return
+      this.logger.blankLine()
+      this.logger.error('Agent Error:')
+      if (parsed.error_type) {
+        this.logger.error(`  Type: ${parsed.error_type}`)
       }
-
-      const text = this.#extractTextFromEvent(parsed)
-      if (text) {
-        process.stdout.write(text)
+      if (parsed.error) {
+        this.logger.error(`  Error: ${parsed.error}`)
       }
+      if (parsed.message && parsed.message !== parsed.error) {
+        this.logger.error(`  Message: ${parsed.message}`)
+      }
+      this.logger.blankLine()
+      return true
     } catch {
-      // If not JSON, it might contain raw data or partial JSON
-      // We skip raw debug data like Python reprs that were reported by the user
-      if (data.includes("'data':") || data.includes('<strands.')) {
-        return
-      }
-      // If it looks like a simple string, output it
-      if (!data.startsWith('{') && !data.startsWith('[')) {
-        process.stdout.write(data)
-      }
+      return false
     }
   }
 
   /**
-   * Extract text content from an SSE event
+   * Convert a runtime response stream into decoded text chunks.
    * @private
    */
-  #extractTextFromEvent(event) {
-    // BedrockAgentCore format: {"event": {"contentBlockDelta": {"delta": {"text": "Hello"}}}}
-    if (event.event?.contentBlockDelta?.delta?.text !== undefined) {
-      return event.event.contentBlockDelta.delta.text
-    }
-
-    // Strands result format
-    if (event.result && typeof event.result === 'string') {
-      return event.result + '\n'
-    }
-
-    // Skip non-content events (init, start, messageStart, etc.)
-    if (
-      event.init_event_loop ||
-      event.start ||
-      event.start_event_loop ||
-      event.event?.messageStart ||
-      event.event?.contentBlockStart ||
-      event.event?.contentBlockStop ||
-      event.event?.messageStop ||
-      event.event?.metadata
-    ) {
-      return null
-    }
-
-    // If we can't identify it but it has data, check if it's the 'data' field itself
-    if (event.data && typeof event.data === 'string') {
-      // Filter out technical data events
-      if (event.data.includes("'data':") || event.data.includes('<strands.')) {
-        return null
+  async *#toTextChunks(responseStream) {
+    const decoder = new TextDecoder()
+    for await (const chunk of responseStream) {
+      const decoded = decodeAgentStreamChunk(chunk, decoder)
+      if (decoded) {
+        yield decoded
       }
-      return event.data
     }
 
-    return null
+    const tail = decoder.decode()
+    if (tail) {
+      yield tail
+    }
   }
 }
 

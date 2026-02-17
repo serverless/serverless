@@ -290,7 +290,6 @@ class ServerlessBedrockAgentCore {
       context,
       serverless: this.serverless,
       log: this.log,
-      progress: this.progress,
       builtImages: this.builtImages,
       buildMetadata: this.buildMetadata,
     })
@@ -304,7 +303,6 @@ class ServerlessBedrockAgentCore {
       buildMetadata: this.buildMetadata,
       serverless: this.serverless,
       log: this.log,
-      progress: this.progress,
     })
   }
 

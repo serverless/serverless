@@ -118,7 +118,8 @@ class DockerClient {
     const timestamp = new Date()
       .toISOString()
       .replace(/[:.]/g, '')
-      .replace(/[TZ]/g, '-')
+      .replace('T', '-')
+      .replace('Z', '')
     const tag = folderHash
       ? `${timestamp}-${folderHash.substring(0, 8)}`
       : 'latest'
@@ -425,9 +426,9 @@ CMD ["node", "index.mjs"]
       builderImage,
       '--trust-builder',
       '--cache',
-      `type=build;format=volume;name=${containerName}-build-cache`,
+      `type=build;format=volume;name=sls-${containerName}-build-cache`,
       '--cache',
-      `type=launch;format=volume;name=${containerName}-launch-cache`,
+      `type=launch;format=volume;name=sls-${containerName}-launch-cache`,
     ]
 
     // Add platform flag only if using a builder that supports it (like heroku/builder:24)

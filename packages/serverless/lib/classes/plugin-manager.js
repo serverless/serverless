@@ -29,6 +29,7 @@ import pluginAwsInvokeAgent from '../plugins/aws/invoke-agent.js'
 import pluginAwsDev from '../plugins/aws/dev/index.js'
 import pluginAwsInfo from '../plugins/aws/info/index.js'
 import pluginAwsLogs from '../plugins/aws/logs.js'
+import pluginAwsLogsAgent from '../plugins/aws/logs-agent.js'
 import pluginAwsMetrics from '../plugins/aws/metrics.js'
 import pluginAwsRemove from '../plugins/aws/remove/index.js'
 import pluginAwsRollback from '../plugins/aws/rollback.js'
@@ -95,6 +96,7 @@ const internalPlugins = [
   pluginAwsDev,
   pluginAwsInfo,
   pluginAwsLogs,
+  pluginAwsLogsAgent,
   pluginAwsMetrics,
   pluginAwsRemove,
   pluginAwsRollback,

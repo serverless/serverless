@@ -76,11 +76,31 @@ class AwsDev {
   }
 
   /**
+   * Validate the --mode option value
+   */
+  validateModeOption() {
+    const validModes = ['functions', 'agents']
+    const mode = this.options.mode
+
+    if (mode === undefined) {
+      return
+    }
+
+    if (!validModes.includes(mode)) {
+      throw new ServerlessError(
+        `Option "--mode" must be one of: ${validModes.join(', ')}.`,
+        'INVALID_DEV_MODE_OPTION',
+        { stack: false },
+      )
+    }
+  }
+
+  /**
    * Check if agents dev mode should be used
    * @returns {boolean} True if agents dev mode should be used
    */
   shouldUseAgentsDevMode() {
-    const agentsExplicitlyRequested = this.options.agents === true
+    const mode = this.options.mode
     const hasFunctions =
       Object.keys(this.serverless.service.functions || {}).length > 0
     const hasAgents =
@@ -88,23 +108,28 @@ class AwsDev {
         this.serverless.service.initialServerlessConfig?.ai?.agents || {},
       ).length > 0
 
-    // Explicit --agents flag takes precedence
-    if (agentsExplicitlyRequested) {
+    if (mode === 'agents') {
       if (!hasAgents) {
         throw new ServerlessError(
-          'No agents defined in configuration. Cannot use --agents flag.',
+          'No agents defined in configuration. Cannot use --mode agents.',
           'NO_AGENTS_DEFINED',
         )
       }
       return true
     }
 
-    // If no functions but agents exist, auto-select agents mode
+    if (mode === 'functions') {
+      return false
+    }
+
+    /**
+     * No explicit --mode provided: auto-detect based on configuration.
+     * If no functions but agents exist, auto-select agents mode.
+     */
     if (!hasFunctions && hasAgents) {
       return true
     }
 
-    // Default to functions mode
     return false
   }
 
@@ -310,7 +335,8 @@ class AwsDev {
    * @returns {Promise<void>} This method is long running, so it does not return a value.
    */
   async dev() {
-    // Check if we should use agents dev mode instead
+    this.validateModeOption()
+
     if (this.shouldUseAgentsDevMode()) {
       return await this.startAgentsDevMode()
     }

@@ -1,8 +1,8 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Logs
-description: View logs of your AWS Lambda Function within your terminal using the Serverless Framework.
+description: View logs of your AWS Lambda Function or AgentCore agent within your terminal using the Serverless Framework.
 short_title: Commands - Logs
-keywords: ['Serverless', 'Framework', 'logs', 'AWS Lambda', 'CloudWatch']
+keywords: ['Serverless', 'Framework', 'logs', 'AWS Lambda', 'CloudWatch', 'AgentCore', 'AI Agents']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -13,20 +13,26 @@ keywords: ['Serverless', 'Framework', 'logs', 'AWS Lambda', 'CloudWatch']
 
 # AWS - Logs
 
-Lets you watch the logs of a specific function.
+Lets you watch the logs of a specific function or agent.
 
 ```bash
+# Lambda function logs
 serverless logs -f hello
+
+# Agent logs
+serverless logs -a myAgent
 
 # Optionally tail the logs with --tail or -t
 serverless logs -f hello -t
+serverless logs -a myAgent -t
 ```
 
 This command returns as many log events as can fit in 1MB (up to 10,000 log events). You can use the `--filter` option to ensure the logs you're looking for are included.
 
 ## Options
 
-- `--function` or `-f` The function you want to fetch the logs for. **Required**
+- `--function` or `-f` The function you want to fetch the logs for. **Required when not using `--agent`.**
+- `--agent` or `-a` The agent name (for AgentCore Runtime agents). **Required when not using `--function`.** Cannot be used together with `--function`.
 - `--stage` or `-s` The stage you want to view the function logs for. If not provided, the plugin will use the default stage listed in `serverless.yml`. If that doesn't exist either it'll just fetch the logs from the `dev` stage.
 - `--region` or `-r` The region you want to view the function logs for. If not provided, the plugin will use the default region listed in `serverless.yml`. If that doesn't exist either it'll just fetch the logs from the `us-east-1` region.
 - `--aws-profile` The AWS profile you want to use.
@@ -93,3 +99,31 @@ serverless logs -f hello --filter serverless
 ```
 
 This will fetch only the logs that contain the string `serverless`
+
+### Agents
+
+**Note:** Agent logs come from CloudWatch log groups created by Bedrock AgentCore. The agent must have been invoked at least once for logs to be available.
+
+```bash
+serverless logs -a myAgent
+```
+
+This will fetch agent logs from the last 10 minutes.
+
+```bash
+serverless logs -a myAgent --startTime 1h
+```
+
+This will fetch agent logs from the past hour.
+
+```bash
+serverless logs -a myAgent -t
+```
+
+Tail the agent's CloudWatch log output and print new log messages as they arrive.
+
+```bash
+serverless logs -a myAgent --filter "ERROR"
+```
+
+This will fetch only the agent logs that contain the string `ERROR`.

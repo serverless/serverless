@@ -6,7 +6,6 @@ import { createInterface } from 'readline'
 import { randomUUID } from 'crypto'
 import chokidar from 'chokidar'
 import chalk from 'chalk'
-import { EventSourceParserStream } from 'eventsource-parser/stream'
 import { addProxyToAwsClient, log, progress } from '@serverless/util'
 import { DockerClient } from '@serverless/util/src/docker/index.js'
 import {
@@ -22,6 +21,12 @@ import {
 import { DockerBuilder } from '../docker/builder.js'
 import { AgentCoreCodeMode } from './code-mode.js'
 import fileExists from '../../../../utils/fs/file-exists.js'
+import {
+  AGENTCORE_INVOKE_ACCEPT_HEADER,
+  consumeSseTextStream,
+  decodeAgentStreamChunk,
+  isDoneSseEvent,
+} from '../utils/streaming.js'
 import {
   addPrincipalToPolicy,
   areCredentialsExpiring,
@@ -959,7 +964,7 @@ export class AgentCoreDevMode {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Accept: 'text/event-stream, application/json',
+          Accept: AGENTCORE_INVOKE_ACCEPT_HEADER,
           'X-Amzn-Bedrock-AgentCore-Runtime-Session-Id': this.#sessionId,
         },
         body: JSON.stringify({ prompt: message }),
@@ -1024,14 +1029,13 @@ export class AgentCoreDevMode {
    * @private
    */
   async #handleStreamingResponse(response) {
-    const eventStream = response.body
-      .pipeThrough(new TextDecoderStream())
-      .pipeThrough(new EventSourceParserStream())
-
-    for await (const event of eventStream) {
-      if (event.data === '[DONE]') break
-      this.#processStreamData(event.data, event.event)
-    }
+    await consumeSseTextStream(
+      this.#toTextChunks(response.body),
+      ({ data }) => {
+        if (isDoneSseEvent(data)) return
+        this.#processStreamData(data)
+      },
+    )
 
     process.stdout.write('\n')
   }
@@ -1040,7 +1044,7 @@ export class AgentCoreDevMode {
    * Process a single SSE event data payload
    * @private
    */
-  #processStreamData(data, eventType) {
+  #processStreamData(data) {
     try {
       const parsed = JSON.parse(data)
 
@@ -1162,6 +1166,29 @@ export class AgentCoreDevMode {
       return event.choices[0].delta.content
     }
     return null
+  }
+
+  /**
+   * Convert a stream body into decoded text chunks.
+   * @private
+   */
+  async *#toTextChunks(streamBody) {
+    if (!streamBody) {
+      return
+    }
+
+    const decoder = new TextDecoder()
+    for await (const chunk of streamBody) {
+      const decoded = decodeAgentStreamChunk(chunk, decoder)
+      if (decoded) {
+        yield decoded
+      }
+    }
+
+    const tail = decoder.decode()
+    if (tail) {
+      yield tail
+    }
   }
 
   /**

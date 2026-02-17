@@ -208,10 +208,11 @@ commands.set('dev', {
       usage: 'Show complete invocation events and responses',
       type: 'boolean',
     },
-    agents: {
+    mode: {
       usage:
-        'Use agents dev mode (for AgentCore runtimes). Auto-detected if no functions defined.',
-      type: 'boolean',
+        'Dev mode type: "functions" (default) or "agents" (for AgentCore runtimes). Auto-detected if not specified.',
+      shortcut: 'm',
+      type: 'string',
     },
     agent: {
       usage:
@@ -363,13 +364,17 @@ commands.set('invoke local', {
 
 commands.set('logs', {
   groupName: 'main',
-  usage: 'Output the logs of a deployed function',
+  usage: 'Output the logs of a deployed function or agent',
   options: {
     function: {
       type: 'string',
       usage: 'The function name',
-      required: true,
       shortcut: 'f',
+    },
+    agent: {
+      type: 'string',
+      usage: 'The agent name',
+      shortcut: 'a',
     },
     tail: {
       usage: 'Tail the log output',

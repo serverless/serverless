@@ -21,6 +21,17 @@ class AwsLogs {
 
     this.hooks = {
       'logs:logs': async () => {
+        if (!this.options.function && !this.options.agent) {
+          throw new ServerlessError(
+            'One of the required options must be provided: --function (-f) or --agent (-a)',
+            'LOGS_MISSING_OPTION',
+          )
+        }
+
+        if (this.options.agent) {
+          return
+        }
+
         if (!this.options.tail) {
           this.progress.notice('Fetching logs')
         } else {

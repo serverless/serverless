@@ -8,6 +8,7 @@
  */
 
 import { DockerBuilder } from './builder.js'
+import { progress } from '@serverless/util'
 
 /**
  * Build Docker images for runtime agents (package phase - local only)
@@ -18,7 +19,6 @@ import { DockerBuilder } from './builder.js'
  * @param {object} config.context - Service context
  * @param {object} config.serverless - Serverless instance
  * @param {object} config.log - Logger instance
- * @param {object} config.progress - Progress instance
  * @param {object} config.builtImages - Mutable map to store built image URIs
  * @param {array} config.buildMetadata - Mutable array to store build metadata for push phase
  * @returns {Promise<void>}
@@ -30,7 +30,6 @@ export async function buildDockerImages(config) {
     context,
     serverless,
     log,
-    progress,
     builtImages,
     buildMetadata,
   } = config
@@ -133,18 +132,20 @@ export async function buildDockerImages(config) {
  * @param {array} config.buildMetadata - Build metadata from build phase
  * @param {object} config.serverless - Serverless instance
  * @param {object} config.log - Logger instance
- * @param {object} config.progress - Progress instance
  * @returns {Promise<void>}
  */
 export async function pushDockerImages(config) {
-  const { buildMetadata, serverless, log, progress } = config
+  const { buildMetadata, serverless, log } = config
 
   if (buildMetadata.length === 0) {
     return
   }
 
+  const mainProgress = progress.get('main')
+  mainProgress.notice('Uploading')
+
   // Initialize Docker builder
-  const builder = new DockerBuilder(serverless, log, progress)
+  const builder = new DockerBuilder(serverless, log)
 
   // Push all built images
   for (const metadata of buildMetadata) {
