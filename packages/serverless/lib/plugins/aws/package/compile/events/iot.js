@@ -11,22 +11,33 @@ class AwsCompileIoTEvents {
     }
 
     this.serverless.configSchemaHandler.defineFunctionEvent('aws', 'iot', {
+      description: `AWS IoT event configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/iot
+@example
+iot:
+  sql: "SELECT * FROM 'my/topic'"`,
       type: 'object',
       properties: {
         sql: {
+          description: `SQL statement for the rule query.
+@example "SELECT * FROM 'my/topic'"`,
           type: 'string',
         },
         sqlVersion: {
+          description: `SQL version (e.g., '2016-03-23').`,
           type: 'string',
           enum: ['2015-10-08', '2016-03-23', 'beta'],
         },
         name: {
+          description: `IoT rule name.`,
           type: 'string',
         },
         enabled: {
+          description: `Enable/disable the rule.`,
           type: 'boolean',
         },
         description: {
+          description: `Rule description.`,
           type: 'string',
         },
       },

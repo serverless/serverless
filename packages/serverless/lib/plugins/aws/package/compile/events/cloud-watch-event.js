@@ -15,14 +15,39 @@ class AwsCompileCloudWatchEventEvents {
       'aws',
       'cloudwatchEvent',
       {
+        description: `EventBridge rule (formerly CloudWatch Events) configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/cloudwatch-event
+@example
+cloudwatchEvent:
+  event:
+    source:
+      - aws.ec2
+    detail-type:
+      - EC2 Instance State-change Notification`,
         type: 'object',
         properties: {
-          event: { type: 'object' },
+          event: {
+            description: `EventBridge pattern object used to match events.
+@example
+event:
+  source:
+    - aws.ec2
+  detail-type:
+    - EC2 Instance State-change Notification`,
+            type: 'object',
+          },
           input: {
+            description: `Static payload passed to the target.`,
             anyOf: [{ type: 'string', maxLength: 8192 }, { type: 'object' }],
           },
-          inputPath: { type: 'string', minLength: 1, maxLength: 256 },
+          inputPath: {
+            description: `JSONPath expression selecting part of the event as input.`,
+            type: 'string',
+            minLength: 1,
+            maxLength: 256,
+          },
           inputTransformer: {
+            description: `Input transformation template.`,
             type: 'object',
             properties: {
               inputPathsMap: {
@@ -34,14 +59,22 @@ class AwsCompileCloudWatchEventEvents {
             required: ['inputTemplate'],
             additionalProperties: false,
           },
-          description: { type: 'string', maxLength: 512 },
+          description: {
+            description: `Rule description.`,
+            type: 'string',
+            maxLength: 512,
+          },
           name: {
+            description: `Custom rule name.`,
             type: 'string',
             pattern: '[a-zA-Z0-9-_.]+',
             minLength: 1,
             maxLength: 64,
           },
-          enabled: { type: 'boolean' },
+          enabled: {
+            description: `Enable or disable the rule.`,
+            type: 'boolean',
+          },
         },
         additionalProperties: false,
       },

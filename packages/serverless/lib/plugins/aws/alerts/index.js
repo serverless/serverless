@@ -13,6 +13,12 @@ class AlertsPlugin {
     serverless.configSchemaHandler.defineFunctionProperties('aws', {
       properties: {
         alarms: {
+          description: `CloudWatch alarm definitions to attach to this function via the alerts plugin.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/alerts
+@example
+alarms:
+  - functionErrors
+  - functionThrottles`,
           type: 'array',
         },
       },

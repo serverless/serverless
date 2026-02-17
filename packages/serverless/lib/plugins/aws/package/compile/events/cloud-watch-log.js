@@ -15,13 +15,24 @@ class AwsCompileCloudWatchLogEvents {
       'aws',
       'cloudwatchLog',
       {
+        description: `CloudWatch Logs subscription event configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/cloudwatch-log`,
         anyOf: [
           { $ref: '#/definitions/awsLogGroupName' },
           {
             type: 'object',
             properties: {
-              logGroup: { $ref: '#/definitions/awsLogGroupName' },
-              filter: { type: 'string' },
+              logGroup: {
+                description: `CloudWatch Log Group name.
+@example '/aws/lambda/my-function'`,
+                $ref: '#/definitions/awsLogGroupName',
+              },
+              filter: {
+                description: `CloudWatch Logs subscription filter pattern.
+@see https://www.serverless.com/framework/docs/providers/aws/events/cloudwatch-log#specifying-a-filter
+@example '{ $.errorCode != 0 }'`,
+                type: 'string',
+              },
             },
             required: ['logGroup'],
             additionalProperties: false,

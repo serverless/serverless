@@ -34,42 +34,99 @@ class AwsCompileStreamEvents {
     }
 
     this.serverless.configSchemaHandler.defineFunctionEvent('aws', 'stream', {
+      description: `DynamoDB/Kinesis stream event configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/streams
+@remarks Stream ARN or CloudFormation reference.
+@remarks Stream type.
+@example
+events:
+  - stream:
+      arn: arn:aws:dynamodb:region:account:table/name/stream/timestamp
+      type: dynamodb
+      batchSize: 100
+      startingPosition: LATEST
+      functionResponseType: ReportBatchItemFailures`,
       anyOf: [
         { $ref: '#/definitions/awsArnString' },
         {
           type: 'object',
           properties: {
             // arn constraints are listed in oneOf property of this schema
-            arn: {},
-            type: { enum: ['dynamodb', 'kinesis'] },
-            batchSize: { type: 'integer', minimum: 1, maximum: 10000 },
-            parallelizationFactor: { type: 'integer', minimum: 1, maximum: 10 },
+            arn: {
+              description: `Stream ARN or CloudFormation reference.
+@example 'arn:aws:dynamodb:us-east-1:123456789:table/my-table/stream/2024-01-01T00:00:00.000'`,
+            },
+            type: {
+              description: `Stream type.
+@example 'dynamodb'`,
+              enum: ['dynamodb', 'kinesis'],
+            },
+            batchSize: {
+              description: `Number of records per batch.
+@default 10`,
+              type: 'integer',
+              minimum: 1,
+              maximum: 10000,
+            },
+            parallelizationFactor: {
+              description: `Number of concurrent batches per shard (1-10).
+@default 1`,
+              type: 'integer',
+              minimum: 1,
+              maximum: 10,
+            },
             startingPosition: {
+              description: `Where to start reading.
+@default 'TRIM_HORIZON'
+@example 'LATEST' | 'TRIM_HORIZON'`,
               enum: ['LATEST', 'TRIM_HORIZON', 'AT_TIMESTAMP'],
             },
-            startingPositionTimestamp: { type: 'number' },
-            enabled: { type: 'boolean' },
+            startingPositionTimestamp: {
+              description: `Start timestamp used when startingPosition is AT_TIMESTAMP.`,
+              type: 'number',
+            },
+            enabled: {
+              description: `Enable or disable the event source mapping.
+@default true`,
+              type: 'boolean',
+            },
             consumer: {
+              description: `Kinesis consumer config (true for managed consumer, or consumer ARN).`,
               anyOf: [{ const: true }, { $ref: '#/definitions/awsArn' }],
             },
-            batchWindow: { type: 'integer', minimum: 0, maximum: 300 },
+            batchWindow: {
+              description: `Maximum batching window in seconds.`,
+              type: 'integer',
+              minimum: 0,
+              maximum: 300,
+            },
             maximumRetryAttempts: {
+              description: `Maximum retry attempts before discarding a batch.`,
               type: 'integer',
               minimum: -1,
               maximum: 10000,
             },
-            bisectBatchOnFunctionError: { type: 'boolean' },
+            bisectBatchOnFunctionError: {
+              description: `Split batch in half when function returns an error.`,
+              type: 'boolean',
+            },
             maximumRecordAgeInSeconds: {
+              description: `Maximum record age before records are discarded.`,
               anyOf: [
                 { const: -1 },
                 { type: 'integer', minimum: 60, maximum: 604800 },
               ],
             },
-            functionResponseType: { enum: ['ReportBatchItemFailures'] },
+            functionResponseType: {
+              description: `Enable partial batch item failure response mode.`,
+              enum: ['ReportBatchItemFailures'],
+            },
             destinations: {
+              description: `Destination configuration for failed batches.`,
               type: 'object',
               properties: {
                 onFailure: {
+                  description: `Destination target for failed batch records.`,
                   anyOf: [
                     { $ref: '#/definitions/awsArnString' },
                     {
@@ -102,11 +159,16 @@ class AwsCompileStreamEvents {
               required: ['onFailure'],
             },
             tumblingWindowInSeconds: {
+              description: `Tumbling window duration in seconds for aggregation.`,
               type: 'integer',
               minimum: 0,
               maximum: 900,
             },
-            filterPatterns: { $ref: '#/definitions/filterPatterns' },
+            filterPatterns: {
+              description: `Event filter patterns.
+@see https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventfiltering.html`,
+              $ref: '#/definitions/filterPatterns',
+            },
           },
           additionalProperties: false,
           anyOf: [

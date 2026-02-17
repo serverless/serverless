@@ -10,33 +10,56 @@ class AwsCompileS3Events {
     this.provider = this.serverless.getProvider('aws')
 
     this.serverless.configSchemaHandler.defineFunctionEvent('aws', 's3', {
+      description: `S3 bucket notification event configuration.
+@see https://www.serverless.com/framework/docs/providers/aws/events/s3
+@example
+s3:
+  bucket: my-bucket
+  event: s3:ObjectCreated:*`,
       anyOf: [
         { type: 'string' },
         {
           type: 'object',
           properties: {
             bucket: {
+              description: `Bucket name or CloudFormation reference.`,
               anyOf: [
                 { type: 'string' },
                 { $ref: '#/definitions/awsCfFunction' },
                 { $ref: '#/definitions/awsCfIf' },
               ],
             },
-            event: { type: 'string', pattern: '^s3:.+$' },
-            existing: { type: 'boolean' },
-            forceDeploy: { type: 'boolean' },
+            event: {
+              description: `S3 event name (for example \`s3:ObjectCreated:*\`).
+@see https://www.serverless.com/framework/docs/providers/aws/events/s3#setting-the-specific-trigger-event
+@example 's3:ObjectCreated:*'`,
+              type: 'string',
+              pattern: '^s3:.+$',
+            },
+            existing: {
+              description: `Whether the bucket already exists.`,
+              type: 'boolean',
+            },
+            forceDeploy: {
+              description: `Force custom resource update for existing bucket notifications.`,
+              type: 'boolean',
+            },
             rules: {
+              description: `Object key filter rules (prefix/suffix).
+@see https://www.serverless.com/framework/docs/providers/aws/events/s3#setting-filter-rules`,
               type: 'array',
               items: {
                 type: 'object',
                 properties: {
                   prefix: {
+                    description: `Object key prefix filter.`,
                     anyOf: [
                       { type: 'string' },
                       { $ref: '#/definitions/awsCfFunction' },
                     ],
                   },
                   suffix: {
+                    description: `Object key suffix filter.`,
                     anyOf: [
                       { type: 'string' },
                       { $ref: '#/definitions/awsCfFunction' },
