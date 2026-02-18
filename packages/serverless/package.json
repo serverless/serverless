@@ -63,7 +63,7 @@
     "graphql": "^16.6.0",
     "https-proxy-agent": "^7.0.6",
     "is-docker": "^3.0.0",
-    "is-wsl": "^3.1.0",
+    "is-wsl": "^3.1.1",
     "joi": "^17.13.3",
     "js-yaml": "^4.1.1",
     "json-cycle": "^1.5.0",
