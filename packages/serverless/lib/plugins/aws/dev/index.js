@@ -394,7 +394,7 @@ class AwsDev {
       functionConfig.originalHandler = functionConfig.handler
 
       functionConfig.handler = 'index.handler'
-      functionConfig.runtime = 'nodejs20.x'
+      functionConfig.runtime = localRuntime
 
       functionConfig.environment = functionConfig.environment || {}
 
