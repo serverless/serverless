@@ -262,12 +262,14 @@ async function installRequirements(targetFolder, pluginInstance, funcOptions) {
       if (log) {
         log.info('Using ARM64 platform for AgentCore agent requirements')
       }
-      // Get Python version from agent runtime (e.g., PYTHON_3_13 -> 3.13)
-      // Runtime is now at agent root level, not artifact.runtime
-      const agentRuntime = funcOptions.config?.runtime || 'PYTHON_3_13'
+      // Extract Python version from agent runtime for cross-compilation.
+      // Handles both user-facing format (python3.13) and CF format (PYTHON_3_13).
+      const agentRuntime = funcOptions.config?.runtime || 'python3.13'
       const pythonVersion = agentRuntime
-        .replace('PYTHON_', '')
-        .replace('_', '.')
+        .toLowerCase()
+        .replace(/^python/, '')
+        .replace(/^_/, '')
+        .replace(/_/g, '.')
 
       pipCmd.push(
         '--platform',

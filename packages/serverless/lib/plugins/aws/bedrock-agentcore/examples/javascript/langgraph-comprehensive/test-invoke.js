@@ -136,7 +136,7 @@ async function invokeAgent(inputText, sessionId) {
 const tests = {
   calculator: {
     label: 'Calculator (Lambda function tool via Gateway)',
-    prompt: 'What is sqrt(144) + 25 * 3?',
+    prompt: 'What is 12 + 75?',
   },
   knowledge: {
     label: 'AWS Knowledge (direct MCP connection)',
@@ -173,7 +173,7 @@ const tests = {
   combined: {
     label: 'Combined (multiple tools in one query)',
     prompt:
-      'Use the calculator to compute 1000000 * 0.0000002 * 0.125, which represents the cost of 1 million Lambda invocations at 128MB for 200ms.',
+      'Use the calculator to compute 200 * 0.125 to find the cost per invocation, then multiply 0.0000002 * 1000000 to find the total invocations cost.',
   },
 }
 

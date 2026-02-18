@@ -73,7 +73,7 @@ async function main() {
   // Test public agent
   if ((AGENT_TYPE === 'both' || AGENT_TYPE === 'public') && PUBLIC_ARN) {
     console.log('Testing Public Agent (calculator via public gateway)\n')
-    await invokeAgent(PUBLIC_ARN, 'What is sqrt(144) + 25 * 3?', 'Public')
+    await invokeAgent(PUBLIC_ARN, 'What is 12 + 75?', 'Public')
   }
 
   // Test private agent

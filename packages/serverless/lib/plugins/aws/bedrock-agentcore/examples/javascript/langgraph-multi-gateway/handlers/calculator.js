@@ -1,7 +1,8 @@
 /**
  * Calculator Lambda function - exposed as a public Gateway tool.
  *
- * This function evaluates mathematical expressions safely.
+ * Performs basic arithmetic on two numbers via a Gateway tool.
+ * The agent can break complex calculations into multiple calls.
  */
 
 export const handler = async (event) => {
@@ -44,43 +45,34 @@ export const handler = async (event) => {
   }
 }
 
+/**
+ * Perform basic arithmetic on two numbers.
+ * Accepts expressions in the form "number operator number" (e.g. "2 + 3", "10 / 5").
+ * For complex calculations the agent can decompose them into multiple calls.
+ */
 function safeCalculate(expression) {
-  const expr = expression.replace(/\^/g, '**')
-
-  if (
-    !/^[\d\s+\-*/().,%eE]+$/.test(expr) &&
-    !/^[\w\s+\-*/().,%]+$/.test(expr)
-  ) {
-    throw new Error(`Invalid expression: ${expression}`)
-  }
-
-  const mathFunctions = {
-    sqrt: Math.sqrt,
-    sin: Math.sin,
-    cos: Math.cos,
-    tan: Math.tan,
-    log: Math.log,
-    log10: Math.log10,
-    abs: Math.abs,
-    floor: Math.floor,
-    ceil: Math.ceil,
-    round: Math.round,
-    pow: Math.pow,
-    pi: Math.PI,
-    e: Math.E,
-  }
-
-  const keys = Object.keys(mathFunctions)
-  const values = Object.values(mathFunctions)
-
-  const fn = new Function(...keys, `"use strict"; return (${expr})`)
-  const result = fn(...values)
-
-  if (typeof result !== 'number' || !isFinite(result)) {
+  const match = expression.match(/^\s*([\d.]+)\s*([+\-*/])\s*([\d.]+)\s*$/)
+  if (!match) {
     throw new Error(
-      `Expression did not evaluate to a finite number: ${expression}`,
+      'Use format: "number operator number" (e.g., "2 + 3", "10 / 5")',
     )
   }
 
-  return result
+  const [, a, op, b] = match
+  const left = parseFloat(a)
+  const right = parseFloat(b)
+
+  switch (op) {
+    case '+':
+      return left + right
+    case '-':
+      return left - right
+    case '*':
+      return left * right
+    case '/':
+      if (right === 0) throw new Error('Division by zero')
+      return left / right
+    default:
+      throw new Error(`Unknown operator: ${op}`)
+  }
 }

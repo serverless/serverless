@@ -72,12 +72,12 @@ async function main() {
   console.log('='.repeat(50) + '\n')
 
   console.log('Test 1: Calculator via Gateway\n')
-  await invokeAgent('What is sqrt(144) + 25 * 3?')
+  await invokeAgent('What is 12 + 75?')
 
   console.log('='.repeat(50))
 
-  console.log('\nTest 2: Complex expression\n')
-  await invokeAgent('Calculate sin(pi/2) + cos(0)')
+  console.log('\nTest 2: Multi-step calculation\n')
+  await invokeAgent('What is 100 / 4? Then multiply that result by 3.')
 
   console.log('='.repeat(50))
   console.log('All tests completed!')

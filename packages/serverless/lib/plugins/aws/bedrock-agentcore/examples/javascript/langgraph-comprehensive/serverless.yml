@@ -29,13 +29,13 @@ ai:
       function: calculatorFunction
       toolSchema:
         - name: calculate
-          description: Evaluate a mathematical expression. Supports basic arithmetic (+, -, *, /, **) and functions like sqrt, sin, cos, etc.
+          description: Perform basic arithmetic on two numbers. Supports +, -, *, /. For complex calculations, break them into multiple calls.
           inputSchema:
             type: object
             properties:
               expression:
                 type: string
-                description: Mathematical expression to evaluate (e.g., "2 + 2 * 3", "sqrt(16)")
+                description: Arithmetic expression in "number operator number" format (e.g., "2 + 3", "10 / 5")
             required:
               - expression
 

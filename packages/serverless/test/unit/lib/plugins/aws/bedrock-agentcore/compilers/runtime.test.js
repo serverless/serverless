@@ -473,5 +473,89 @@ describe('Runtime Compiler', () => {
 
       expect(result.Properties.Tags).toBeUndefined()
     })
+
+    test('derives S3 artifact key from package.artifact using basename', () => {
+      const config = {
+        artifact: {
+          entryPoint: ['main.py'],
+          runtime: 'PYTHON_3_13',
+        },
+        package: {
+          artifact: '.serverless/my-agent.zip',
+        },
+      }
+
+      const contextWithArtifactDir = {
+        ...baseContext,
+        artifactDirectoryName: 'serverless/test-service/dev/1234',
+      }
+
+      const result = compileRuntime(
+        'myAgent',
+        config,
+        contextWithArtifactDir,
+        baseTags,
+      )
+
+      expect(
+        result.Properties.AgentRuntimeArtifact.CodeConfiguration.Code.S3.Prefix,
+      ).toBe('serverless/test-service/dev/1234/my-agent.zip')
+    })
+
+    test('derives S3 artifact key from custom absolute path', () => {
+      const config = {
+        artifact: {
+          entryPoint: ['main.py'],
+          runtime: 'PYTHON_3_13',
+        },
+        package: {
+          artifact: '/tmp/build/my-agent.zip',
+        },
+      }
+
+      const contextWithArtifactDir = {
+        ...baseContext,
+        artifactDirectoryName: 'serverless/test-service/dev/1234',
+      }
+
+      const result = compileRuntime(
+        'myAgent',
+        config,
+        contextWithArtifactDir,
+        baseTags,
+      )
+
+      expect(
+        result.Properties.AgentRuntimeArtifact.CodeConfiguration.Code.S3.Prefix,
+      ).toBe('serverless/test-service/dev/1234/my-agent.zip')
+    })
+
+    test('derives S3 artifact key from relative path', () => {
+      const config = {
+        artifact: {
+          entryPoint: ['main.py'],
+          runtime: 'PYTHON_3_13',
+        },
+        package: {
+          artifact: './build/output/agent-code.zip',
+        },
+      }
+
+      const contextWithArtifactDir = {
+        ...baseContext,
+        artifactDirectoryName: 'serverless/test-service/dev/1234',
+      }
+
+      const result = compileRuntime(
+        'myAgent',
+        config,
+        contextWithArtifactDir,
+        baseTags,
+      )
+
+      expect(
+        result.Properties.AgentRuntimeArtifact.CodeConfiguration.Code.S3.Prefix,
+      ).toBe('serverless/test-service/dev/1234/agent-code.zip')
+    })
   })
 })

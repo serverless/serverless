@@ -1,59 +1,40 @@
 /**
  * Calculator Lambda function -- exposed as a Gateway tool.
  *
- * Evaluates mathematical expressions safely using a restricted evaluator.
- * Supports basic arithmetic, math functions, and constants.
+ * Performs basic arithmetic on two numbers via a Gateway tool.
+ * The agent can break complex calculations into multiple calls.
  */
-
-const FUNCTIONS = {
-  sqrt: Math.sqrt,
-  sin: Math.sin,
-  cos: Math.cos,
-  tan: Math.tan,
-  log: Math.log,
-  log10: Math.log10,
-  abs: Math.abs,
-  floor: Math.floor,
-  ceil: Math.ceil,
-  round: Math.round,
-  pow: Math.pow,
-}
-
-const CONSTANTS = {
-  pi: Math.PI,
-  e: Math.E,
-}
 
 /**
- * Safely evaluate a mathematical expression.
- *
- * Replaces known function names and constants with their Math equivalents,
- * validates the expression contains only safe characters, then evaluates it.
+ * Perform basic arithmetic on two numbers.
+ * Accepts expressions in the form "number operator number" (e.g. "2 + 3", "10 / 5").
+ * For complex calculations the agent can decompose them into multiple calls.
  */
 function safeCalculate(expression) {
-  let expr = expression.replace(/\^/g, '**')
-
-  for (const [name, value] of Object.entries(CONSTANTS)) {
-    expr = expr.replace(new RegExp(`\\b${name}\\b`, 'gi'), String(value))
-  }
-
-  for (const name of Object.keys(FUNCTIONS)) {
-    expr = expr.replace(new RegExp(`\\b${name}\\b`, 'gi'), `Math.${name}`)
-  }
-
-  if (!/^[\d\s+\-*/().,%eE<>Math.a-z]+$/.test(expr)) {
-    throw new Error(`Unsafe characters in expression: ${expression}`)
-  }
-
-  const result = new Function(`"use strict"; return (${expr})`)()
-
-  if (typeof result !== 'number' || !isFinite(result)) {
+  const match = expression.match(/^\s*([\d.]+)\s*([+\-*/])\s*([\d.]+)\s*$/)
+  if (!match) {
     throw new Error(
-      `Expression did not evaluate to a finite number: ${expression}`,
+      'Use format: "number operator number" (e.g., "2 + 3", "10 / 5")',
     )
   }
 
-  return result
+  const [, a, op, b] = match
+  const left = parseFloat(a)
+  const right = parseFloat(b)
+
+  switch (op) {
+    case '+':
+      return left + right
+    case '-':
+      return left - right
+    case '*':
+      return left * right
+    case '/':
+      if (right === 0) throw new Error('Division by zero')
+      return left / right
+    default:
+      throw new Error(`Unknown operator: ${op}`)
+  }
 }
 
 export const handler = async (event) => {

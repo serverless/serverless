@@ -28,6 +28,7 @@
  * Managed Runtimes: PYTHON_3_10, PYTHON_3_11, PYTHON_3_12, PYTHON_3_13
  */
 
+import path from 'node:path'
 import { getResourceName, getLogicalId } from '../utils/naming.js'
 import { resolveRole } from '../utils/role.js'
 import { transformCustomClaims } from '../utils/authorizer.js'
@@ -259,11 +260,8 @@ export function compileRuntime(name, config, context, tags) {
     typeof artifactConfig.image !== 'string'
 
   if (isCodeDeployment && config.package?.artifact) {
-    // Build the S3 key from artifact directory and artifact filename
-    const artifactFileName = config.package.artifact.replace(
-      /^\.serverless\//,
-      '',
-    )
+    // Use basename to match the upload key (package-service uploads with basename only)
+    const artifactFileName = path.basename(config.package.artifact)
     artifactOptions.artifactKey = artifactDirectoryName
       ? `${artifactDirectoryName}/${artifactFileName}`
       : artifactFileName

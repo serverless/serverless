@@ -404,7 +404,7 @@ describe('IAM Policies', () => {
       expect(memoryStatement).toBeUndefined()
     })
 
-    test('includes browser permissions with exactly 11 actions matching AWS docs', () => {
+    test('includes browser permissions with 4 essential actions', () => {
       const config = {
         artifact: {
           image: '123456789.dkr.ecr.us-west-2.amazonaws.com/my-agent:latest',
@@ -417,19 +417,12 @@ describe('IAM Policies', () => {
       const browserStatement = statements.find((s) => s.Sid === 'BrowserAccess')
       expect(browserStatement).toBeDefined()
       expect(browserStatement.Action).toEqual([
-        'bedrock-agentcore:CreateBrowser',
-        'bedrock-agentcore:ListBrowsers',
-        'bedrock-agentcore:GetBrowser',
-        'bedrock-agentcore:DeleteBrowser',
         'bedrock-agentcore:StartBrowserSession',
-        'bedrock-agentcore:ListBrowserSessions',
-        'bedrock-agentcore:GetBrowserSession',
         'bedrock-agentcore:StopBrowserSession',
         'bedrock-agentcore:UpdateBrowserStream',
         'bedrock-agentcore:ConnectBrowserAutomationStream',
-        'bedrock-agentcore:ConnectBrowserLiveViewStream',
       ])
-      expect(browserStatement.Action).toHaveLength(11)
+      expect(browserStatement.Action).toHaveLength(4)
       expect(browserStatement.Action).not.toContain(
         'bedrock-agentcore:InvokeBrowser',
       )
