@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Minimal LangGraph JS agent for AWS Bedrock AgentCore",
   "type": "module",
-  "main": "agent.js",
+  "main": "index.js",
   "keywords": [
     "langgraph",
     "langchain",

@@ -153,12 +153,8 @@ export class AgentCoreDevMode {
       return 'docker'
     }
 
-    // Priority 2: handler means code mode
-    if (
-      this.#agentConfig.handler &&
-      typeof artifact?.image !== 'string' &&
-      !artifact?.s3?.bucket
-    ) {
+    // Priority 2: handler means code mode (artifact.s3 is for deploy packaging, irrelevant locally)
+    if (this.#agentConfig.handler && typeof artifact?.image !== 'string') {
       return 'code'
     }
 

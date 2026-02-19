@@ -351,6 +351,11 @@ export function validateBrowser(name, config, throwError) {
           `Browser '${name}' recording.s3Location must have a 'bucket' property`,
         )
       }
+      if (!config.recording.s3Location.prefix) {
+        throwError(
+          `Browser '${name}' recording.s3Location must have a 'prefix' property`,
+        )
+      }
     }
   }
 }
