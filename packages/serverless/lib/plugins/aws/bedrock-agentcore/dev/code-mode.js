@@ -172,6 +172,7 @@ export class AgentCoreCodeMode {
     }
 
     this.#process = null
+    this.#isShuttingDown = false
   }
 
   /**

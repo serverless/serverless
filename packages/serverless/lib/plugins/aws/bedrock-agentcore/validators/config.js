@@ -308,6 +308,12 @@ export function validateBrowser(name, config, throwError) {
     )
   }
 
+  if (networkMode === 'VPC') {
+    if (!config.network.subnets || config.network.subnets.length === 0) {
+      throwError(`Browser '${name}' requires network.subnets when mode is VPC`)
+    }
+  }
+
   // Validate recording configuration
   if (config.recording) {
     if (config.recording.s3Location) {
