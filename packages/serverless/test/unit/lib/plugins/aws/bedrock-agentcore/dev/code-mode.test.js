@@ -1,5 +1,6 @@
 'use strict'
 
+import path from 'path'
 import {
   jest,
   describe,
@@ -9,6 +10,8 @@ import {
   afterEach,
 } from '@jest/globals'
 import EventEmitter from 'events'
+
+const isWin = process.platform === 'win32'
 
 const mockSpawn = jest.fn()
 const mockExecP = jest.fn()
@@ -97,8 +100,8 @@ describe('AgentCoreCodeMode', () => {
       await mode.start(mockCredentials)
 
       expect(mockSpawn).toHaveBeenCalledWith(
-        'python3.13',
-        [expect.stringContaining('agents/main.py')],
+        isWin ? 'python.exe' : 'python3.13',
+        [expect.stringContaining(`agents${path.sep}main.py`)],
         expect.objectContaining({
           cwd: '/home/user/my-agent',
           env: expect.objectContaining({
@@ -123,7 +126,7 @@ describe('AgentCoreCodeMode', () => {
       await mode.start(mockCredentials)
 
       expect(mockSpawn).toHaveBeenCalledWith(
-        'python3.13',
+        isWin ? 'python.exe' : 'python3.13',
         expect.any(Array),
         expect.any(Object),
       )
@@ -137,7 +140,7 @@ describe('AgentCoreCodeMode', () => {
       await mode.start(mockCredentials)
 
       expect(mockSpawn).toHaveBeenCalledWith(
-        'python3.12',
+        isWin ? 'python.exe' : 'python3.12',
         expect.any(Array),
         expect.any(Object),
       )
@@ -151,7 +154,7 @@ describe('AgentCoreCodeMode', () => {
       await mode.start(mockCredentials)
 
       expect(mockSpawn).toHaveBeenCalledWith(
-        'python3.12',
+        isWin ? 'python.exe' : 'python3.12',
         expect.any(Array),
         expect.any(Object),
       )
