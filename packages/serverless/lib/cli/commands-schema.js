@@ -254,7 +254,6 @@ commands.set('invoke', {
       type: 'string',
       usage:
         'Session ID for multi-turn agent conversations (minimum 33 characters)',
-      shortcut: 's',
       minLength: 33,
     },
     qualifier: {
