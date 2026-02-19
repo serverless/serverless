@@ -36,14 +36,7 @@ ai:
         statements:
           - Effect: Allow
             Action:
-              - bedrock-agentcore:InvokeCodeInterpreter
-              - bedrock-agentcore:CreateCodeInterpreter
               - bedrock-agentcore:StartCodeInterpreterSession
               - bedrock-agentcore:InvokeCodeInterpreter
               - bedrock-agentcore:StopCodeInterpreterSession
-              - bedrock-agentcore:DeleteCodeInterpreter
-              - bedrock-agentcore:ListCodeInterpreters
-              - bedrock-agentcore:GetCodeInterpreter
-              - bedrock-agentcore:GetCodeInterpreterSession
-              - bedrock-agentcore:ListCodeInterpreterSessions
             Resource: !GetAtt PublicInterpreterCodeInterpreter.CodeInterpreterArn

@@ -70,6 +70,11 @@ export function validateGatewayConfig(
           `Gateway '${gatewayName}' has invalid authorizer type '${authorizer}'. Valid types: ${validTypes.join(', ')}`,
         )
       }
+      if (normalizedType === 'CUSTOM_JWT') {
+        throwError(
+          `Gateway '${gatewayName}' with CUSTOM_JWT authorizer requires jwt configuration. Use object form: authorizer: { type: 'custom_jwt', jwt: { discoveryUrl: '...' } }`,
+        )
+      }
     } else if (typeof authorizer === 'object') {
       const normalizedType = authorizer.type?.toUpperCase()
       if (!normalizedType || !validTypes.includes(normalizedType)) {

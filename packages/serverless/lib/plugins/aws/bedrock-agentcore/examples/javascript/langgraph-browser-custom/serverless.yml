@@ -67,15 +67,8 @@ ai:
         statements:
           - Effect: Allow
             Action:
-              - bedrock-agentcore:CreateBrowser
-              - bedrock-agentcore:ListBrowsers
-              - bedrock-agentcore:GetBrowser
-              - bedrock-agentcore:DeleteBrowser
               - bedrock-agentcore:StartBrowserSession
-              - bedrock-agentcore:ListBrowserSessions
-              - bedrock-agentcore:GetBrowserSession
               - bedrock-agentcore:StopBrowserSession
               - bedrock-agentcore:UpdateBrowserStream
               - bedrock-agentcore:ConnectBrowserAutomationStream
-              - bedrock-agentcore:ConnectBrowserLiveViewStream
             Resource: !GetAtt CustomBrowserBrowser.BrowserArn

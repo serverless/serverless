@@ -214,10 +214,16 @@ class AwsDev {
       const roleOutput = stack.Outputs?.find(
         (o) => o.OutputKey === roleOutputKey,
       )
-      if (!roleOutput) {
+      if (roleOutput) {
+        roleArn = roleOutput.OutputValue
+      } else if (
+        typeof agentConfig.role === 'string' &&
+        agentConfig.role.startsWith('arn:')
+      ) {
+        roleArn = agentConfig.role
+      } else {
         throw new Error(`Role ARN output not found for agent '${agentName}'`)
       }
-      roleArn = roleOutput.OutputValue
 
       // 2. Get Gateway URL - resolve from agent's gateway reference or default
       // Mirrors compiler logic: named gateway if agent specifies one,

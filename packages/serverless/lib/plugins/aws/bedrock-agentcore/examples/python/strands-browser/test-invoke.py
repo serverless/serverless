@@ -48,7 +48,7 @@ def invoke_agent(prompt: str) -> dict:
     response = client.invoke_agent_runtime(
         agentRuntimeArn=RUNTIME_ARN,
         runtimeSessionId=session_id,
-        payload=json.dumps({"prompt": prompt})
+        payload=json.dumps({"prompt": prompt}).encode("utf-8")
     )
 
     # Read the streaming response (SSE) incrementally

@@ -40,7 +40,7 @@ const executePythonCode = tool(
 
     const codeInterpreter = new CodeInterpreter({
       region: AWS_REGION,
-      identifier: CUSTOM_INTERPRETER_ID,
+      ...(CUSTOM_INTERPRETER_ID && { identifier: CUSTOM_INTERPRETER_ID }),
     })
 
     try {

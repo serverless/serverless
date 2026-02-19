@@ -44,11 +44,11 @@ The `ai` top-level property has six sections. Each resource type lives in its ow
 
 ```yaml
 ai:
-  agents:           # Runtime agent definitions
-  memory:           # Shared memory definitions
-  tools:            # Tool definitions (Lambda, OpenAPI, Smithy, MCP)
-  gateways:         # Gateway definitions with tool assignments
-  browsers:         # Custom browser definitions
+  agents: # Runtime agent definitions
+  memory: # Shared memory definitions
+  tools: # Tool definitions (Lambda, OpenAPI, Smithy, MCP)
+  gateways: # Gateway definitions with tool assignments
+  browsers: # Custom browser definitions
   codeInterpreters: # Custom code interpreter definitions
 ```
 
@@ -139,37 +139,37 @@ ai:
 
 #### Runtime Agent Properties
 
-| Property | Required | Description |
-| --- | --- | --- |
-| `description` | No | Agent description (max 1200 chars) |
-| `artifact.image` | No | Container image URI (string) or build config (object) |
-| `artifact.image.path` | No | Docker build context path (default: `.`) |
-| `artifact.image.file` | No | Dockerfile name (default: `Dockerfile`) |
-| `artifact.image.repository` | No | ECR repository name |
-| `artifact.image.buildArgs` | No | Docker build arguments (key-value pairs) |
-| `artifact.s3.bucket` | No | S3 bucket for code artifact |
-| `artifact.s3.key` | No | S3 key for code artifact |
-| `handler` | No | Python entry point file (e.g., `agent.py`) |
-| `runtime` | No | `python3.10`, `python3.11`, `python3.12`, or `python3.13` |
-| `protocol` | No | `http`, `mcp`, or `a2a` |
-| `network.mode` | No | `public` or `vpc` |
-| `network.subnets` | No | VPC subnet IDs (required for vpc mode) |
-| `network.securityGroups` | No | VPC security group IDs (required for vpc mode) |
-| `authorizer` | No | String (`none`, `custom_jwt`) or object with `type` and `jwt` |
-| `authorizer.jwt.discoveryUrl` | Yes* | OIDC discovery URL (*required for custom_jwt) |
-| `authorizer.jwt.allowedAudience` | No | Array of allowed audience values |
-| `authorizer.jwt.allowedClients` | No | Array of allowed client IDs |
-| `lifecycle.idleRuntimeSessionTimeout` | No | Session idle timeout in seconds (60-28800) |
-| `lifecycle.maxLifetime` | No | Max session lifetime in seconds (60-28800) |
-| `requestHeaders.allowlist` | No | Headers to forward to runtime (max 20) |
-| `memory` | No | Inline memory config (object) or reference to `ai.memory` entry (string) |
-| `gateway` | No | Reference to a gateway defined in `ai.gateways` |
-| `environment` | No | Environment variables (same as Lambda) |
-| `package.patterns` | No | File include/exclude patterns for packaging |
-| `package.artifact` | No | Pre-built artifact path |
-| `endpoints` | No | Runtime endpoint definitions |
-| `role` | No | IAM role ARN (string) or customization object |
-| `tags` | No | Resource tags (key-value pairs) |
+| Property                              | Required | Description                                                              |
+| ------------------------------------- | -------- | ------------------------------------------------------------------------ |
+| `description`                         | No       | Agent description (max 1200 chars)                                       |
+| `artifact.image`                      | No       | Container image URI (string) or build config (object)                    |
+| `artifact.image.path`                 | No       | Docker build context path (default: `.`)                                 |
+| `artifact.image.file`                 | No       | Dockerfile name (default: `Dockerfile`)                                  |
+| `artifact.image.repository`           | No       | ECR repository name                                                      |
+| `artifact.image.buildArgs`            | No       | Docker build arguments (key-value pairs)                                 |
+| `artifact.s3.bucket`                  | No       | S3 bucket for code artifact                                              |
+| `artifact.s3.key`                     | No       | S3 key for code artifact                                                 |
+| `handler`                             | No       | Python entry point file (e.g., `agent.py`)                               |
+| `runtime`                             | No       | `python3.10`, `python3.11`, `python3.12`, or `python3.13`                |
+| `protocol`                            | No       | `http`, `mcp`, or `a2a`                                                  |
+| `network.mode`                        | No       | `public` or `vpc`                                                        |
+| `network.subnets`                     | No       | VPC subnet IDs (required for vpc mode)                                   |
+| `network.securityGroups`              | No       | VPC security group IDs (required for vpc mode)                           |
+| `authorizer`                          | No       | String (`none`, `custom_jwt`) or object with `type` and `jwt`            |
+| `authorizer.jwt.discoveryUrl`         | No       | OIDC discovery URL (\*required for custom_jwt)                           |
+| `authorizer.jwt.allowedAudience`      | No       | Array of allowed audience values                                         |
+| `authorizer.jwt.allowedClients`       | No       | Array of allowed client IDs                                              |
+| `lifecycle.idleRuntimeSessionTimeout` | No       | Session idle timeout in seconds (60-28800)                               |
+| `lifecycle.maxLifetime`               | No       | Max session lifetime in seconds (60-28800)                               |
+| `requestHeaders.allowlist`            | No       | Headers to forward to runtime (max 20)                                   |
+| `memory`                              | No       | Inline memory config (object) or reference to `ai.memory` entry (string) |
+| `gateway`                             | No       | Reference to a gateway defined in `ai.gateways`                          |
+| `environment`                         | No       | Environment variables (same as Lambda)                                   |
+| `package.patterns`                    | No       | File include/exclude patterns for packaging                              |
+| `package.artifact`                    | No       | Pre-built artifact path                                                  |
+| `endpoints`                           | No       | Runtime endpoint definitions                                             |
+| `role`                                | No       | IAM role ARN (string) or customization object                            |
+| `tags`                                | No       | Resource tags (key-value pairs)                                          |
 
 One of `artifact.image`, `handler`, or auto-detected Dockerfile is required.
 
@@ -238,14 +238,14 @@ ai:
 
 #### Memory Properties
 
-| Property | Required | Description |
-| --- | --- | --- |
-| `expiration` | No | Days to retain events (3-365, default: 30) |
-| `strategies` | No | Memory strategies array |
-| `description` | No | Memory description (max 1200 chars) |
-| `encryptionKey` | No | KMS key ARN for encryption |
-| `role` | No | IAM role ARN (string) or customization object |
-| `tags` | No | Resource tags (key-value pairs) |
+| Property        | Required | Description                                   |
+| --------------- | -------- | --------------------------------------------- |
+| `expiration`    | No       | Days to retain events (3-365, default: 30)    |
+| `strategies`    | No       | Memory strategies array                       |
+| `description`   | No       | Memory description (max 1200 chars)           |
+| `encryptionKey` | No       | KMS key ARN for encryption                    |
+| `role`          | No       | IAM role ARN (string) or customization object |
+| `tags`          | No       | Resource tags (key-value pairs)               |
 
 #### Memory Strategy Types
 
@@ -354,15 +354,15 @@ ai:
 
 #### Tool Properties
 
-| Property | Required | Description |
-| --- | --- | --- |
-| `function` | No | Lambda function name (string) or `{ name, arn }` object |
-| `openapi` | No | OpenAPI schema file path or inline content |
-| `smithy` | No | Smithy model file path or inline content |
-| `mcp` | No | MCP server HTTPS endpoint URL |
-| `toolSchema` | No | Tool schema array (required for `function` tools) |
-| `credentials` | No | Credential provider configuration |
-| `description` | No | Tool description (max 200 chars) |
+| Property      | Required | Description                                             |
+| ------------- | -------- | ------------------------------------------------------- |
+| `function`    | No       | Lambda function name (string) or `{ name, arn }` object |
+| `openapi`     | No       | OpenAPI schema file path or inline content              |
+| `smithy`      | No       | Smithy model file path or inline content                |
+| `mcp`         | No       | MCP server HTTPS endpoint URL                           |
+| `toolSchema`  | No       | Tool schema array (required for `function` tools)       |
+| `credentials` | No       | Credential provider configuration                       |
+| `description` | No       | Tool description (max 200 chars)                        |
 
 Exactly one of `function`, `openapi`, `smithy`, or `mcp` should be specified.
 
@@ -390,11 +390,11 @@ ai:
         grantType: client_credentials
 ```
 
-| Credential Type | Properties |
-| --- | --- |
-| `gateway_iam_role` (default) | No additional config needed |
-| `oauth` | `provider` (Token Vault ARN), `scopes`, `grantType`, `defaultReturnUrl`, `customParameters` |
-| `api_key` | `location` (`header` or `query_parameter`), `parameterName`, `prefix` |
+| Credential Type              | Properties                                                                                  |
+| ---------------------------- | ------------------------------------------------------------------------------------------- |
+| `gateway_iam_role` (default) | No additional config needed                                                                 |
+| `oauth`                      | `provider` (Token Vault ARN), `scopes`, `grantType`, `defaultReturnUrl`, `customParameters` |
+| `api_key`                    | `location` (`header` or `query_parameter`), `parameterName`, `prefix`                       |
 
 ### Gateways (`ai.gateways`)
 
@@ -498,19 +498,19 @@ ai:
 
 #### Gateway Properties
 
-| Property | Required | Description |
-| --- | --- | --- |
-| `authorizer` | No | String (`none`, `aws_iam`, `custom_jwt`) or object with `type` and `jwt` |
-| `tools` | No | Array of tool names referencing entries in `ai.tools` |
-| `protocol` | No | MCP protocol configuration |
-| `protocol.instructions` | No | Instructions for the agent (max 2048 chars) |
-| `protocol.searchType` | No | `semantic` |
-| `protocol.supportedVersions` | No | Supported MCP versions |
-| `description` | No | Gateway description (max 200 chars) |
-| `role` | No | IAM role ARN (string) or customization object |
-| `kmsKey` | No | KMS key ARN for encryption |
-| `exceptionLevel` | No | `debug` |
-| `tags` | No | Resource tags (key-value pairs) |
+| Property                     | Required | Description                                                              |
+| ---------------------------- | -------- | ------------------------------------------------------------------------ |
+| `authorizer`                 | No       | String (`none`, `aws_iam`, `custom_jwt`) or object with `type` and `jwt` |
+| `tools`                      | No       | Array of tool names referencing entries in `ai.tools`                    |
+| `protocol`                   | No       | MCP protocol configuration                                               |
+| `protocol.instructions`      | No       | Instructions for the agent (max 2048 chars)                              |
+| `protocol.searchType`        | No       | `semantic`                                                               |
+| `protocol.supportedVersions` | No       | Supported MCP versions                                                   |
+| `description`                | No       | Gateway description (max 200 chars)                                      |
+| `role`                       | No       | IAM role ARN (string) or customization object                            |
+| `kmsKey`                     | No       | KMS key ARN for encryption                                               |
+| `exceptionLevel`             | No       | `debug`                                                                  |
+| `tags`                       | No       | Resource tags (key-value pairs)                                          |
 
 ### Browsers (`ai.browsers`)
 
@@ -532,18 +532,18 @@ ai:
           prefix: browser-sessions/
 ```
 
-| Property | Required | Description |
-| --- | --- | --- |
-| `network.mode` | No | `public` or `vpc` (default: `public`) |
-| `network.subnets` | No | VPC subnet IDs (required for vpc mode) |
-| `network.securityGroups` | No | VPC security group IDs (required for vpc mode) |
-| `signing.enabled` | No | Enable request signing |
-| `recording.enabled` | No | Enable session recording |
-| `recording.s3Location.bucket` | Yes* | S3 bucket for recordings (*required when recording enabled) |
-| `recording.s3Location.prefix` | Yes* | S3 prefix for recordings (*required when recording enabled) |
-| `description` | No | Browser description (max 1200 chars) |
-| `role` | No | IAM role ARN (string) or customization object |
-| `tags` | No | Resource tags (key-value pairs) |
+| Property                      | Required | Description                                                  |
+| ----------------------------- | -------- | ------------------------------------------------------------ |
+| `network.mode`                | No       | `public` or `vpc` (default: `public`)                        |
+| `network.subnets`             | No       | VPC subnet IDs (required for vpc mode)                       |
+| `network.securityGroups`      | No       | VPC security group IDs (required for vpc mode)               |
+| `signing.enabled`             | No       | Enable request signing                                       |
+| `recording.enabled`           | No       | Enable session recording                                     |
+| `recording.s3Location.bucket` | No       | S3 bucket for recordings (\*required when recording enabled) |
+| `recording.s3Location.prefix` | No       | S3 prefix for recordings (\*required when recording enabled) |
+| `description`                 | No       | Browser description (max 1200 chars)                         |
+| `role`                        | No       | IAM role ARN (string) or customization object                |
+| `tags`                        | No       | Resource tags (key-value pairs)                              |
 
 ### CodeInterpreters (`ai.codeInterpreters`)
 
@@ -558,14 +558,14 @@ ai:
         mode: public
 ```
 
-| Property | Required | Description |
-| --- | --- | --- |
-| `network.mode` | No | `sandbox` (default), `public`, or `vpc` |
-| `network.subnets` | No | VPC subnet IDs (required for vpc mode) |
-| `network.securityGroups` | No | VPC security group IDs (required for vpc mode) |
-| `description` | No | CodeInterpreter description (max 1200 chars) |
-| `role` | No | IAM role ARN (string) or customization object |
-| `tags` | No | Resource tags (key-value pairs) |
+| Property                 | Required | Description                                    |
+| ------------------------ | -------- | ---------------------------------------------- |
+| `network.mode`           | No       | `sandbox` (default), `public`, or `vpc`        |
+| `network.subnets`        | No       | VPC subnet IDs (required for vpc mode)         |
+| `network.securityGroups` | No       | VPC security group IDs (required for vpc mode) |
+| `description`            | No       | CodeInterpreter description (max 1200 chars)   |
+| `role`                   | No       | IAM role ARN (string) or customization object  |
+| `tags`                   | No       | Resource tags (key-value pairs)                |
 
 ## IAM Role Customization
 

@@ -97,7 +97,7 @@ def invoke_agent(prompt: str) -> dict:
     response = agentcore_client.invoke_agent_runtime(
         agentRuntimeArn=RUNTIME_ARN,
         runtimeSessionId=session_id,
-        payload=json.dumps({"prompt": prompt})
+        payload=json.dumps({"prompt": prompt}).encode("utf-8")
     )
 
     # Read response
