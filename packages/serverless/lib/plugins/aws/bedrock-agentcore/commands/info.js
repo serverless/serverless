@@ -47,32 +47,45 @@ export async function showInfo(config) {
   log.notice('AgentCore Resources:')
   log.notice('')
 
-  // Check if gateway exists and show its URL
-  const { hasTools } = collectAllTools(aiConfig)
-  if (hasTools) {
-    log.notice('Gateway:')
-    log.notice('  Auto-created gateway for tools')
-    // Try to get gateway URL from stack outputs
+  const { hasTools, hasGateways } = collectAllTools(aiConfig)
+
+  if (hasTools || hasGateways) {
+    let stack
     try {
       const stackName = provider.naming.getStackName()
       const result = await provider.request(
         'CloudFormation',
         'describeStacks',
-        {
-          StackName: stackName,
-        },
+        { StackName: stackName },
       )
-      const stack = result.Stacks?.[0]
+      stack = result.Stacks?.[0]
+    } catch {
+      // stack not yet deployed
+    }
+
+    log.notice('Gateways:')
+
+    if (hasGateways) {
+      for (const [gatewayName] of Object.entries(aiConfig.gateways)) {
+        log.notice(`  ${gatewayName}:`)
+        const urlOutput = stack?.Outputs?.find(
+          (o) => o.OutputKey === `${getGatewayLogicalId(gatewayName)}Url`,
+        )
+        log.notice(
+          `    URL: ${urlOutput ? urlOutput.OutputValue : '(deploy to see URL)'}`,
+        )
+        log.notice('')
+      }
+    } else {
+      log.notice('  default:')
       const urlOutput = stack?.Outputs?.find(
         (o) => o.OutputKey === `${getGatewayLogicalId()}Url`,
       )
-      if (urlOutput) {
-        log.notice(`  URL: ${urlOutput.OutputValue}`)
-      }
-    } catch {
-      log.notice('  URL: (deploy to see URL)')
+      log.notice(
+        `    URL: ${urlOutput ? urlOutput.OutputValue : '(deploy to see URL)'}`,
+      )
+      log.notice('')
     }
-    log.notice('')
   }
 
   // Display shared memory
