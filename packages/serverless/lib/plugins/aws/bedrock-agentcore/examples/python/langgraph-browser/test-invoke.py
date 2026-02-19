@@ -38,7 +38,7 @@ def invoke_agent(prompt: str) -> dict:
     session_id = str(uuid.uuid4())
 
     print(f"\n{'='*60}")
-    print(f"🌐 Invoking LangGraph Browser Agent")
+    print("🌐 Invoking LangGraph Browser Agent")
     print(f"📍 Runtime ARN: {RUNTIME_ARN}")
     print(f"🔑 Session ID: {session_id}")
     print(f"💬 Prompt: {prompt}")

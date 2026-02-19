@@ -260,6 +260,38 @@ describe('ServerlessBedrockAgentCore', () => {
         }),
       ).toThrow('contains invalid header name')
     })
+
+    test('accepts PUBLIC network mode', () => {
+      expect(() =>
+        pluginInstance.validateRuntime('myAgent', {
+          network: { mode: 'public' },
+        }),
+      ).not.toThrow()
+    })
+
+    test('accepts VPC network mode with subnets', () => {
+      expect(() =>
+        pluginInstance.validateRuntime('myAgent', {
+          network: { mode: 'vpc', subnets: ['subnet-123'] },
+        }),
+      ).not.toThrow()
+    })
+
+    test('rejects SANDBOX network mode', () => {
+      expect(() =>
+        pluginInstance.validateRuntime('myAgent', {
+          network: { mode: 'sandbox' },
+        }),
+      ).toThrow("invalid network.mode 'sandbox'. Valid modes: PUBLIC, VPC")
+    })
+
+    test('rejects VPC network mode without subnets', () => {
+      expect(() =>
+        pluginInstance.validateRuntime('myAgent', {
+          network: { mode: 'vpc' },
+        }),
+      ).toThrow('requires network.subnets when mode is VPC')
+    })
   })
 
   describe('validateMemoryConfig', () => {
@@ -466,6 +498,17 @@ describe('ServerlessBedrockAgentCore', () => {
       const config = { artifact: { image: { path: '.', file: 'Dockerfile' } } }
       const result = pluginInstance.resolveContainerImage('myAgent', config)
       expect(result).toBe('built:image')
+    })
+
+    test('resolves named ECR image reference from builtImages', () => {
+      pluginInstance.builtImages = {
+        myEcrImage: '123456.dkr.ecr.us-east-1.amazonaws.com/my-repo:latest',
+      }
+      const config = { artifact: { image: 'myEcrImage' } }
+      const result = pluginInstance.resolveContainerImage('myAgent', config)
+      expect(result).toBe(
+        '123456.dkr.ecr.us-east-1.amazonaws.com/my-repo:latest',
+      )
     })
 
     test('returns null for unknown image reference', () => {

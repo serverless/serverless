@@ -520,9 +520,9 @@ export function compileToolResource(
 export function resolveContainerImage(name, config, builtImages) {
   const artifactImage = config.artifact?.image
 
-  // If artifact.image is a string (pre-built image URI), use it directly
+  // If artifact.image is a string, resolve named ECR image references or use as direct URI
   if (typeof artifactImage === 'string') {
-    return artifactImage
+    return builtImages[artifactImage] || artifactImage
   }
 
   // If artifact.image is an object (build config), check if we built it
@@ -628,7 +628,6 @@ export function compileRuntimeResources(
   }
 
   // Generate IAM role if not provided or if role is a customization object
-  // Support both 'role' (new) and 'roleArn' (legacy) property names
   if (shouldGenerateRole(config)) {
     const roleLogicalId = `${logicalId}Role`
 
@@ -755,7 +754,6 @@ export function compileMemoryResources(
   const tags = mergeTags(context.defaultTags, config.tags)
 
   // Generate IAM role if not provided or if role is a customization object
-  // Support both 'role' (new) and 'roleArn' (legacy) property names
   if (shouldGenerateRole(config)) {
     const roleLogicalId = `${logicalId}Role`
     const roleResource = generateMemoryRole(name, config, context)
@@ -809,7 +807,6 @@ export function compileBrowserResources(name, config, context, template) {
   const tags = mergeTags(context.defaultTags, config.tags)
 
   // Generate IAM role if not provided or if role is a customization object
-  // Support both 'role' (new) and 'roleArn' (legacy) property names
   if (shouldGenerateRole(config)) {
     const roleLogicalId = `${logicalId}Role`
     const roleResource = generateBrowserRole(name, config, context)
@@ -858,7 +855,6 @@ export function compileCodeInterpreterResources(
   const tags = mergeTags(context.defaultTags, config.tags)
 
   // Generate IAM role if not provided or if role is a customization object
-  // Support both 'role' (new) and 'roleArn' (legacy) property names
   if (shouldGenerateRole(config)) {
     const roleLogicalId = `${logicalId}Role`
     const roleResource = generateCodeInterpreterRole(name, config, context)

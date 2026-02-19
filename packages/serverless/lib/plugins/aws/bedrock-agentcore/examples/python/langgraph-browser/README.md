@@ -28,9 +28,9 @@ langgraph-browser/
 serverless deploy
 ```
 
-### 2. Note the Runtime ARN
+### 2. Note the Runtime Endpoint URL
 
-After deployment, note the runtime ARN from the output:
+After deployment, note the runtime endpoint URL from the output (the ARN is embedded in the URL path):
 
 ```yaml
 ai:

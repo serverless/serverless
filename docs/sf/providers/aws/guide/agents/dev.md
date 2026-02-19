@@ -48,7 +48,7 @@ serverless dev
 
 **3. Chat with your agent** -- once the agent is ready, you'll see:
 
-```
+```text
 Dev mode running on http://localhost:8080
 
 Session ID: a1b2c3d4-...
@@ -79,7 +79,7 @@ When you run `serverless dev`, the framework:
 6. **Watches for file changes** -- rebuilds/restarts automatically when source files change
 7. **Starts interactive chat** -- readline CLI with streaming response support
 
-```
+```text
 serverless dev
     │
     ├── Read CloudFormation stack outputs (Role ARN, Gateway URL, Memory ID)
@@ -293,7 +293,7 @@ Dev mode provides a built-in CLI for chatting with your local agent.
 
 The chat CLI sends HTTP POST requests to your local agent:
 
-```
+```text
 POST http://localhost:<port>/invocations
 Content-Type: application/json
 Accept: text/event-stream
@@ -360,7 +360,7 @@ Dev mode detects the virtual environment via the `VIRTUAL_ENV` environment varia
 
 ### File Structure
 
-```
+```text
 my-agent/
 ├── agent.py              # Entry point (handler)
 ├── requirements.txt      # Dependencies

@@ -72,7 +72,7 @@ app.run()
 
 **Dependencies (`requirements.txt`):**
 
-```
+```text
 bedrock-agentcore>=0.1.0
 strands-agents>=1.0.0
 strands-agents-tools>=0.1.0
@@ -89,7 +89,7 @@ When your agent uses the browser tool:
 3. **Web Interaction**: The browser navigates, clicks, extracts content as instructed
 4. **Response**: Results flow back to your agent for processing
 
-```
+```text
 Agent → Browser Tool → AWS Browser Service → Website → Response
 ```
 

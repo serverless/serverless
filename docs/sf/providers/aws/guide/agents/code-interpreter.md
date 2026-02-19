@@ -85,7 +85,7 @@ app.run()
 
 **Dependencies (`requirements.txt`):**
 
-```
+```text
 bedrock-agentcore>=0.1.0
 langchain>=0.3.0
 langchain-aws>=0.2.0
@@ -103,7 +103,7 @@ When your agent uses the code interpreter:
 3. **Code Execution**: Code runs securely with persistent state within a session
 4. **Response**: Results (text, files, visualizations) flow back to your agent
 
-```
+```text
 Agent → Code Tool → AWS Sandbox → Results
 ```
 
@@ -313,7 +313,7 @@ result = agent("Create a bar chart of the top 10 programming languages by popula
 
 **Dependencies (`requirements.txt`):**
 
-```
+```text
 bedrock-agentcore>=0.1.0
 strands-agents>=1.0.0
 strands-agents-tools>=0.1.0

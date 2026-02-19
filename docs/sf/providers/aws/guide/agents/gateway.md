@@ -75,7 +75,7 @@ When you define tools, the framework creates an AgentCore Gateway that:
 3. **Invokes Target**: When the agent calls a tool, the gateway invokes the target (Lambda function, API endpoint, or MCP server)
 4. **Returns Results**: Results flow back to the agent for processing
 
-```
+```text
 Agent → Gateway (MCP) → Target (Lambda / API / MCP Server) → Response
 ```
 

@@ -193,6 +193,21 @@ export function validateRuntime(
     }
   }
 
+  // Validate network mode: Runtime only supports PUBLIC and VPC (not SANDBOX)
+  const validModes = ['PUBLIC', 'VPC']
+  const networkMode = config.network?.mode?.toUpperCase()
+  if (networkMode && !validModes.includes(networkMode)) {
+    throwError(
+      `Runtime '${name}' has invalid network.mode '${config.network.mode}'. Valid modes: ${validModes.join(', ')}`,
+    )
+  }
+
+  if (networkMode === 'VPC') {
+    if (!config.network.subnets || config.network.subnets.length === 0) {
+      throwError(`Runtime '${name}' requires network.subnets when mode is VPC`)
+    }
+  }
+
   // Validate gateway configuration if present
   if (config.gateway) {
     if (typeof config.gateway !== 'string') {

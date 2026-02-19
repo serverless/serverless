@@ -78,7 +78,7 @@ async function testInitialize() {
   const result = await invoke(
     'initialize',
     {
-      protocolVersion: '2025-06-18',
+      protocolVersion: '2025-11-25',
       clientInfo: { name: 'test-client', version: '1.0.0' },
       capabilities: {},
     },

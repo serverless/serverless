@@ -45,7 +45,7 @@ The framework automatically:
 
 Memory persists conversation data tied to a **session ID**. When your agent receives a request, the session ID determines which conversation history to load.
 
-```
+```text
 Request 1 (session: abc-123)
   User: "My name is Alice"
   Agent: "Nice to meet you, Alice!"

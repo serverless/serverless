@@ -36,7 +36,7 @@ langgraph-code-interpreter/
 serverless deploy
 ```
 
-2. **Note the runtime ARN** from the output:
+2. **Note the runtime endpoint URL** from the output (the ARN is embedded in the URL path):
 
 ```yaml
 ai:

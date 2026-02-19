@@ -167,7 +167,10 @@ export class DockerBuilder {
       this.log.info(
         `  Build strategy: Dockerfile (${dockerConfig.file || 'Dockerfile'})`,
       )
-    } catch {
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        throw error
+      }
       this.log.info(
         `  Build strategy: Buildpacks (builder: ${builder || 'default'})`,
       )
