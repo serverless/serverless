@@ -1,0 +1,21 @@
+{
+  "name": "langgraph-browser-custom",
+  "version": "1.0.0",
+  "description": "LangGraph JS agent with custom AgentCore Browser and session recording",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@langchain/aws": "^1.2.2",
+    "@langchain/core": "^1.1.19",
+    "@langchain/langgraph": "^1.1.4",
+    "bedrock-agentcore": "^0.2.0",
+    "playwright": "^1.58.2",
+    "zod": "^4.3.6"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}

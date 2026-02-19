@@ -151,6 +151,20 @@ export default {
     }
   },
 
+  displayAgents() {
+    const info = this.gatheredData.info
+
+    if (info.agents && info.agents.length > 0) {
+      const outputSectionItems = []
+      info.agents.forEach((agent) => {
+        // Display URL if available, otherwise ARN
+        const value = agent.url || agent.arn || 'N/A'
+        outputSectionItems.push(`${agent.name}: ${value}`)
+      })
+      this.serverless.serviceOutputs.set('agents', outputSectionItems)
+    }
+  },
+
   displayStackOutputs() {
     this.serverless.stackOutputs = Object.fromEntries(
       this.gatheredData.outputs.map(({ OutputKey, OutputValue }) => [

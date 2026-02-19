@@ -1,0 +1,74 @@
+service: langgraph-multi-gateway
+
+provider:
+  name: aws
+  region: us-east-1
+
+functions:
+  calculatorFunction:
+    handler: handlers/calculator.handler
+    runtime: nodejs20.x
+
+  internalLookupFunction:
+    handler: handlers/internal-lookup.handler
+    runtime: nodejs20.x
+
+ai:
+  # Define tools that will be assigned to different gateways
+  tools:
+    calculator:
+      function: calculatorFunction
+      toolSchema:
+        - name: calculate
+          description: Perform basic arithmetic on two numbers. Supports +, -, *, /. For complex calculations, break them into multiple calls.
+          inputSchema:
+            type: object
+            properties:
+              expression:
+                type: string
+                description: Arithmetic expression in "number operator number" format (e.g., "2 + 3", "10 / 5")
+            required:
+              - expression
+
+    internalLookup:
+      function: internalLookupFunction
+      toolSchema:
+        - name: lookup_user
+          description: Look up internal user information by user ID. Returns name, email, and department.
+          inputSchema:
+            type: object
+            properties:
+              userId:
+                type: string
+                description: The user ID to look up (e.g., "USR001")
+            required:
+              - userId
+
+  # Define multiple gateways with different authorization
+  gateways:
+    # Public gateway - no authentication required
+    publicGateway:
+      authorizer: NONE
+      tools:
+        - calculator
+
+    # Private gateway - AWS IAM authentication required
+    privateGateway:
+      authorizer: AWS_IAM
+      tools:
+        - internalLookup
+
+  # Public agent - uses the public gateway with calculator tool
+  agents:
+    publicAgent:
+      artifact:
+        image:
+          file: Dockerfile.public
+      gateway: publicGateway
+
+    # Private agent - uses the private gateway with internal lookup tool
+    privateAgent:
+      artifact:
+        image:
+          file: Dockerfile.private
+      gateway: privateGateway

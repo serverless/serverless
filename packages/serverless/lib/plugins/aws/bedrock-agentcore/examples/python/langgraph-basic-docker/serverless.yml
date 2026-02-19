@@ -1,0 +1,11 @@
+service: langgraph-basic-docker
+
+provider:
+  name: aws
+  region: us-east-1
+
+ai:
+  agents:
+    # Minimal LangGraph agent with built-in tools
+    # Docker auto-detected from Dockerfile in current directory
+    chatbot: {}

@@ -1,0 +1,13 @@
+# LangGraph Browser Example
+# Deploy: serverless deploy
+# Test: RUNTIME_ARN=<arn> node test-invoke.js
+
+service: langgraph-browser
+
+provider:
+  name: aws
+  region: us-east-1
+
+ai:
+  agents:
+    browserAgent: {}

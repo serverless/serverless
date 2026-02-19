@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "langgraph-code-interpreter-custom-agent"
+version = "1.0.0"
+requires-python = ">=3.12"
+dependencies = [
+    "bedrock-agentcore>=1.3.0",
+    "langchain>=1.2.10",
+    "langchain-aws>=1.2.5",
+    "langgraph>=1.0.8",
+]

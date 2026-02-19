@@ -1,0 +1,13 @@
+# Strands Browser Example
+# Deploy: serverless deploy
+# Test: python test-invoke.py
+
+service: strands-browser
+
+provider:
+  name: aws
+  region: us-east-1
+
+ai:
+  agents:
+    browserAgent: {}

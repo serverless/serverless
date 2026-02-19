@@ -1,0 +1,32 @@
+service: langgraph-gateway
+
+provider:
+  name: aws
+  region: us-east-1
+
+functions:
+  calculatorFunction:
+    handler: handlers/calculator.handler
+    runtime: python3.13
+
+ai:
+  # Define tools that will be available to the agent via Gateway
+  tools:
+    calculator:
+      function: calculatorFunction
+      toolSchema:
+        - name: calculate
+          description: Evaluate a mathematical expression. Supports basic arithmetic (+, -, *, /, **) and functions like sqrt, sin, cos, etc.
+          inputSchema:
+            type: object
+            properties:
+              expression:
+                type: string
+                description: Mathematical expression to evaluate (e.g., "2 + 2 * 3", "sqrt(16)")
+            required:
+              - expression
+
+  # LangGraph agent with gateway tools
+  # A default gateway is automatically created with all tools
+  agents:
+    chatbot: {}

@@ -208,6 +208,23 @@ commands.set('dev', {
       usage: 'Show complete invocation events and responses',
       type: 'boolean',
     },
+    mode: {
+      usage:
+        'Dev mode type: "functions" (default) or "agents" (for AgentCore runtimes). Auto-detected if not specified.',
+      shortcut: 'm',
+      type: 'string',
+    },
+    agent: {
+      usage:
+        'Name of the agent to run in agents dev mode (defaults to first runtime agent)',
+      shortcut: 'a',
+      type: 'string',
+    },
+    port: {
+      usage: 'Port to expose the agent container on (default: 8080)',
+      shortcut: 'p',
+      type: 'string',
+    },
     'on-exit': {
       usage:
         'What to do when exiting dev mode. Allowed value: "remove" (with confirmation)',
@@ -221,13 +238,23 @@ commands.set('dev', {
 
 commands.set('invoke', {
   groupName: 'main',
-  usage: 'Invoke a deployed function',
+  usage: 'Invoke a deployed function or agent',
   options: {
     function: {
       type: 'string',
       usage: 'The function name',
-      required: true,
       shortcut: 'f',
+    },
+    agent: {
+      type: 'string',
+      usage: 'The agent name (for AgentCore Runtime agents)',
+      shortcut: 'a',
+    },
+    'session-id': {
+      type: 'string',
+      usage:
+        'Session ID for multi-turn agent conversations (minimum 33 characters)',
+      minLength: 33,
     },
     qualifier: {
       type: 'string',
@@ -336,13 +363,17 @@ commands.set('invoke local', {
 
 commands.set('logs', {
   groupName: 'main',
-  usage: 'Output the logs of a deployed function',
+  usage: 'Output the logs of a deployed function or agent',
   options: {
     function: {
       type: 'string',
       usage: 'The function name',
-      required: true,
       shortcut: 'f',
+    },
+    agent: {
+      type: 'string',
+      usage: 'The agent name',
+      shortcut: 'a',
     },
     tail: {
       usage: 'Tail the log output',

@@ -1,0 +1,28 @@
+{
+  "name": "langgraph-streaming",
+  "version": "1.0.0",
+  "description": "LangGraph JS agent with real-time LLM token streaming for AWS Bedrock AgentCore",
+  "type": "module",
+  "main": "index.js",
+  "keywords": [
+    "langgraph",
+    "langchain",
+    "bedrock",
+    "agentcore",
+    "serverless",
+    "ai-agent",
+    "streaming",
+    "sse",
+    "js"
+  ],
+  "dependencies": {
+    "@langchain/aws": "^1.2.2",
+    "@langchain/core": "^1.1.19",
+    "@langchain/langgraph": "^1.1.4",
+    "bedrock-agentcore": "^0.2.0",
+    "zod": "^4.3.6"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}

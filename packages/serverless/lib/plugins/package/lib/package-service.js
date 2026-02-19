@@ -131,6 +131,17 @@ export default {
       }),
     )
 
+    // Package agents that need code deployment
+    const agentsToPackage = this.getAgentsToPackage()
+    packagePromises = packagePromises.concat(
+      agentsToPackage.map(async ({ name, config }) => {
+        config.package = config.package || {}
+        if (config.package.artifact) return
+        log.info(`Packaging agent "${name}"`)
+        await this.packageAgent(name)
+      }),
+    )
+
     await Promise.all(packagePromises)
     if (shouldPackageService) {
       if (this.serverless.service.package.artifact) {
@@ -239,6 +250,103 @@ export default {
           return artifactPath
         }),
       )
+  },
+
+  /**
+   * Get all agents that need code packaging (have handler, no artifact.image/s3.bucket)
+   */
+  getAgentsToPackage() {
+    const aiConfig =
+      this.serverless.service.ai || this.serverless.configurationInput?.ai || {}
+    const agents = aiConfig.agents || {}
+
+    return Object.entries(agents)
+      .filter(([, config]) => {
+        // Only runtime agents (type defaults to 'runtime' if not specified)
+        const agentType = config.type || 'runtime'
+        if (agentType !== 'runtime') return false
+
+        const artifact = config.artifact || {}
+
+        // Skip if using container image (string or object with build config)
+        if (artifact.image) return false
+
+        // Skip if user specified their own S3 bucket (manual management)
+        if (artifact.s3?.bucket) return false
+
+        // Need handler for code deployment (new schema)
+        if (!config.handler) return false
+
+        return true
+      })
+      .map(([name, config]) => ({ name, config }))
+  },
+
+  /**
+   * Package an agent for code deployment
+   */
+  async packageAgent(agentName) {
+    const aiConfig =
+      this.serverless.service.ai || this.serverless.configurationInput?.ai || {}
+    const agentConfig = (aiConfig.agents || {})[agentName]
+
+    if (!agentConfig) return null
+
+    const agentPackageConfig = agentConfig.package || {}
+
+    // Use the artifact in agent config if provided (pre-packaged)
+    if (agentPackageConfig.artifact) {
+      const filePath = path.resolve(
+        this.serverless.serviceDir,
+        agentPackageConfig.artifact,
+      )
+      agentConfig.package = agentConfig.package || {}
+      agentConfig.package.artifact = filePath
+      return filePath
+    }
+
+    const zipFileName = `agent-${agentName}.zip`
+
+    const filePaths = await this.resolveFilePathsAgent(agentName)
+    const artifactPath = await this.zipFiles(filePaths, zipFileName)
+
+    agentConfig.package = agentConfig.package || {}
+    agentConfig.package.artifact = path.relative(
+      this.serverless.serviceDir,
+      artifactPath,
+    )
+
+    return artifactPath
+  },
+
+  async resolveFilePathsAgent(agentName) {
+    const aiConfig =
+      this.serverless.service.ai || this.serverless.configurationInput?.ai || {}
+    const agentConfig = (aiConfig.agents || {})[agentName]
+    const agentPackageConfig = agentConfig?.package || {}
+
+    // Agent-specific exclusions (Python cache files)
+    const agentExcludes = [
+      '**/__pycache__/**',
+      '**/*.pyc',
+      '**/*.pyo',
+      '**/.pytest_cache/**',
+      '**/*.egg-info/**',
+    ]
+
+    return this.resolveFilePathsFromPatterns(
+      await this.excludeDevDependencies({
+        exclude: this.getExcludes(
+          [...agentExcludes, ...(agentPackageConfig.exclude || [])],
+          true,
+        ),
+        include: this.getIncludes([
+          ...(agentPackageConfig.include || []),
+          ...(agentPackageConfig.patterns || []),
+        ]),
+        contextName: `agent "${agentName}"`,
+      }),
+    )
   },
 
   async resolveFilePathsAll() {

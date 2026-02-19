@@ -36,6 +36,7 @@ class AwsInfo {
               'displayEndpoints',
               'displayFunctions',
               'displayLayers',
+              'displayAgents',
               'displayStackOutputs',
             ],
           },
@@ -64,6 +65,7 @@ class AwsInfo {
       'aws:info:displayEndpoints': async () => this.displayEndpoints(),
       'aws:info:displayFunctions': async () => this.displayFunctions(),
       'aws:info:displayLayers': async () => this.displayLayers(),
+      'aws:info:displayAgents': async () => this.displayAgents(),
       'aws:info:displayStackOutputs': async () => this.displayStackOutputs(),
       'after:aws:info:gatherData': () => {
         if (this.gatheredData && this.gatheredData.info.resourceCount >= 450) {

@@ -57,9 +57,10 @@ function checkForAndDeleteMaxCacheVersions({ serverless, options, log }) {
 /**
  * The working path that all requirements will be compiled into
  * @param  {string} subfolder
- * @param  {string} servicePath
+ * @param  {string} requirementsTxtDirectory
  * @param  {Object} options
  * @param  {Object} serverless
+ * @param  {string} [architectureOverride] - Optional architecture override (e.g., 'arm64' for AgentCore agents)
  * @return {string}
  */
 function getRequirementsWorkingPath(
@@ -67,11 +68,16 @@ function getRequirementsWorkingPath(
   requirementsTxtDirectory,
   options,
   serverless,
+  architectureOverride,
 ) {
   // If we want to use the static cache
   if (options && options.useStaticCache) {
     if (subfolder) {
-      const architecture = serverless.service.provider.architecture || 'x86_64'
+      // Use architecture override if provided (for agents), otherwise use provider architecture
+      const architecture =
+        architectureOverride ||
+        serverless.service.provider.architecture ||
+        'x86_64'
       subfolder = `${subfolder}_${architecture}_slspyc`
     }
     // If we have max number of cache items...

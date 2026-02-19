@@ -25,9 +25,11 @@ import pluginAwsCommon from '../plugins/aws/common/index.js'
 import pluginAwsPackage from '../plugins/aws/package/index.js'
 import pluginAwsDeploy from '../plugins/aws/deploy/index.js'
 import pluginAwsInvoke from '../plugins/aws/invoke.js'
+import pluginAwsInvokeAgent from '../plugins/aws/invoke-agent.js'
 import pluginAwsDev from '../plugins/aws/dev/index.js'
 import pluginAwsInfo from '../plugins/aws/info/index.js'
 import pluginAwsLogs from '../plugins/aws/logs.js'
+import pluginAwsLogsAgent from '../plugins/aws/logs-agent.js'
 import pluginAwsMetrics from '../plugins/aws/metrics.js'
 import pluginAwsRemove from '../plugins/aws/remove/index.js'
 import pluginAwsRollback from '../plugins/aws/rollback.js'
@@ -67,6 +69,7 @@ import pluginAwsDomains from '../plugins/aws/domains/index.js'
 import pluginAxiom from '../plugins/observability/axiom/index.js'
 import pluginPythonRequirements from '../plugins/python/index.js'
 import pluginAwsAppsync from '../plugins/aws/appsync/index.js'
+import pluginAwsBedrockAgentcore from '../plugins/aws/bedrock-agentcore/index.js'
 import pluginPrune from '../plugins/prune/index.js'
 import { createRequire } from 'module'
 
@@ -89,9 +92,11 @@ const internalPlugins = [
   pluginAwsPackage,
   pluginAwsDeploy,
   pluginAwsInvoke,
+  pluginAwsInvokeAgent,
   pluginAwsDev,
   pluginAwsInfo,
   pluginAwsLogs,
+  pluginAwsLogsAgent,
   pluginAwsMetrics,
   pluginAwsRemove,
   pluginAwsRollback,
@@ -131,6 +136,7 @@ const internalPlugins = [
   pluginAwsDomains,
   pluginPythonRequirements,
   pluginAwsAppsync,
+  pluginAwsBedrockAgentcore,
   pluginPrune,
 ]
 

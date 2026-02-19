@@ -1,0 +1,13 @@
+service: langgraph-memory
+
+provider:
+  name: aws
+  region: us-east-1
+
+ai:
+  agents:
+    # LangGraph agent with memory for conversation persistence
+    # Docker auto-detected from Dockerfile in current directory
+    chatbot:
+      memory:
+        expiration: 30 # Days until memory events expire (3-365)

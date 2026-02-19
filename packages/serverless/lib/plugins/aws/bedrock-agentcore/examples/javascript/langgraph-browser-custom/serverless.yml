@@ -1,0 +1,74 @@
+# LangGraph Custom Browser Example
+#
+# Demonstrates using a custom browser with session recording
+# instead of the AWS-managed default browser.
+#
+# Deploy: serverless deploy
+# Test: RUNTIME_ARN=<arn> node test-invoke.js
+
+service: langgraph-browser-custom
+
+provider:
+  name: aws
+  region: us-east-1
+
+resources:
+  Resources:
+    # S3 bucket for browser session recordings
+    RecordingsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-recordings-${sls:stage}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        LifecycleConfiguration:
+          Rules:
+            - Id: DeleteOldRecordings
+              Status: Enabled
+              ExpirationInDays: 7
+
+ai:
+  # Custom browser with session recording enabled
+  browsers:
+    customBrowser:
+      description: Custom browser with session recording for validation
+      network:
+        mode: PUBLIC
+      signing:
+        enabled: true
+      recording:
+        enabled: true
+        s3Location:
+          bucket: ${self:service}-recordings-${sls:stage}
+          prefix: browser-sessions/
+      role:
+        statements:
+          - Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+              - s3:ListBucket
+              - s3:AbortMultipartUpload
+              - s3:ListMultipartUploadParts
+            Resource:
+              - !GetAtt RecordingsBucket.Arn
+              - !Sub '${RecordingsBucket.Arn}/*'
+
+  # Runtime agent that uses the custom browser
+  agents:
+    browserAgent:
+      environment:
+        CUSTOM_BROWSER_ID: !GetAtt CustomBrowserBrowser.BrowserId
+        RECORDINGS_BUCKET: ${self:service}-recordings-${sls:stage}
+      role:
+        statements:
+          - Effect: Allow
+            Action:
+              - bedrock-agentcore:StartBrowserSession
+              - bedrock-agentcore:StopBrowserSession
+              - bedrock-agentcore:UpdateBrowserStream
+              - bedrock-agentcore:ConnectBrowserAutomationStream
+            Resource: !GetAtt CustomBrowserBrowser.BrowserArn

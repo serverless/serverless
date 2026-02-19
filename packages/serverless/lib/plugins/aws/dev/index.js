@@ -83,6 +83,260 @@ class AwsDev {
   }
 
   /**
+   * Validate the --mode option value
+   */
+  validateModeOption() {
+    const validModes = ['functions', 'agents']
+    const mode = this.options.mode
+
+    if (mode === undefined) {
+      return
+    }
+
+    if (!validModes.includes(mode)) {
+      throw new ServerlessError(
+        `Option "--mode" must be one of: ${validModes.join(', ')}.`,
+        'INVALID_DEV_MODE_OPTION',
+        { stack: false },
+      )
+    }
+  }
+
+  /**
+   * Check if agents dev mode should be used
+   * @returns {boolean} True if agents dev mode should be used
+   */
+  shouldUseAgentsDevMode() {
+    const mode = this.options.mode
+    const hasFunctions =
+      Object.keys(this.serverless.service.functions || {}).length > 0
+    const hasAgents =
+      Object.keys(
+        this.serverless.service.initialServerlessConfig?.ai?.agents || {},
+      ).length > 0
+
+    if (mode === 'agents') {
+      if (!hasAgents) {
+        throw new ServerlessError(
+          'No agents defined in configuration. Cannot use --mode agents.',
+          'NO_AGENTS_DEFINED',
+        )
+      }
+      return true
+    }
+
+    if (mode === 'functions') {
+      return false
+    }
+
+    /**
+     * No explicit --mode provided: auto-detect based on configuration.
+     * If no functions but agents exist, auto-select agents mode.
+     */
+    if (!hasFunctions && hasAgents) {
+      return true
+    }
+
+    return false
+  }
+
+  /**
+   * Start agents dev mode using the AgentCore plugin
+   * @async
+   * @returns {Promise<void>}
+   */
+  async startAgentsDevMode() {
+    const { AgentCoreDevMode } =
+      await import('../bedrock-agentcore/dev/index.js')
+    const { getLogicalId, getGatewayLogicalId } =
+      await import('../bedrock-agentcore/utils/naming.js')
+
+    const aiConfig = this.serverless.service.initialServerlessConfig?.ai || {}
+    const agents = aiConfig.agents || {}
+    const agentsConfig = Object.entries(agents).filter(([, config]) => {
+      // Only include runtime agents (type: 'runtime' or no type specified for backwards compat)
+      return !config.type || config.type === 'runtime'
+    })
+
+    if (agentsConfig.length === 0) {
+      throw new ServerlessError(
+        'No runtime agents found in configuration. Dev mode only supports runtime agents.',
+        'NO_RUNTIME_AGENTS',
+      )
+    }
+
+    // Determine which agent to run
+    let agentName = this.options.agent
+    if (!agentName) {
+      if (agentsConfig.length > 1) {
+        throw new ServerlessError(
+          `Multiple agents found. Use -a to specify which agent to run in dev mode:\n` +
+            agentsConfig.map(([n]) => `  - ${n}`).join('\n'),
+          'MULTIPLE_AGENTS_NO_SELECTION',
+          { stack: false },
+        )
+      }
+      agentName = agentsConfig[0][0]
+    }
+
+    const agentConfig = agents[agentName]
+    if (!agentConfig) {
+      throw new ServerlessError(
+        `Agent '${agentName}' not found in configuration. Available agents:\n` +
+          agentsConfig.map(([n]) => `  - ${n}`).join('\n'),
+        'AGENT_NOT_FOUND',
+        { stack: false },
+      )
+    }
+
+    // Get the port
+    const port = this.options.port ? parseInt(this.options.port, 10) : 8080
+
+    // Get deployed role ARN and other IDs from CloudFormation stack
+    const mainProgress = progress.get('main')
+    mainProgress.notice(`Starting agents dev mode for '${agentName}'...`)
+
+    const stackName = this.provider.naming.getStackName()
+    let roleArn
+    let gatewayUrl
+    let memoryId
+    let stackOutputs = []
+
+    try {
+      const result = await this.provider.request(
+        'CloudFormation',
+        'describeStacks',
+        { StackName: stackName },
+      )
+
+      const stack = result.Stacks?.[0]
+      if (!stack) {
+        throw new Error(`Stack ${stackName} not found`)
+      }
+      stackOutputs = stack.Outputs || []
+
+      // 1. Get Role ARN
+      const roleLogicalId = getLogicalId(agentName, 'Runtime')
+      const roleOutputKey = `${roleLogicalId}RoleArn`
+      const roleOutput = stack.Outputs?.find(
+        (o) => o.OutputKey === roleOutputKey,
+      )
+      if (roleOutput) {
+        roleArn = roleOutput.OutputValue
+      } else if (
+        typeof agentConfig.role === 'string' &&
+        agentConfig.role.startsWith('arn:')
+      ) {
+        roleArn = agentConfig.role
+      } else {
+        throw new Error(`Role ARN output not found for agent '${agentName}'`)
+      }
+
+      // 2. Get Gateway URL - resolve from agent's gateway reference or default
+      // Mirrors compiler logic: named gateway if agent specifies one,
+      // default gateway if no explicit gateways defined, otherwise none
+      const hasGateways = Object.keys(aiConfig.gateways || {}).length > 0
+      if (agentConfig.gateway) {
+        const gatewayOutputKey = `${getGatewayLogicalId(agentConfig.gateway)}Url`
+        const gatewayOutput = stackOutputs.find(
+          (o) => o.OutputKey === gatewayOutputKey,
+        )
+        if (gatewayOutput) {
+          gatewayUrl = gatewayOutput.OutputValue
+        }
+      } else if (!hasGateways) {
+        const gatewayOutputKey = `${getGatewayLogicalId()}Url`
+        const gatewayOutput = stackOutputs.find(
+          (o) => o.OutputKey === gatewayOutputKey,
+        )
+        if (gatewayOutput) {
+          gatewayUrl = gatewayOutput.OutputValue
+        }
+      }
+
+      // 3. Get Memory ID if memory is configured
+      if (agentConfig.memory) {
+        const memoryName =
+          typeof agentConfig.memory === 'string'
+            ? agentConfig.memory
+            : `${agentName}-memory`
+        const memoryLogicalId = getLogicalId(memoryName, 'Memory')
+        const memoryOutputKey = `${memoryLogicalId}Id`
+        const memoryOutput = stack.Outputs?.find(
+          (o) => o.OutputKey === memoryOutputKey,
+        )
+        if (memoryOutput) {
+          memoryId = memoryOutput.OutputValue
+        }
+      }
+    } catch (error) {
+      mainProgress.remove()
+      throw new ServerlessError(
+        `Failed to gather deployed agent resources. Make sure the agent is deployed first.\n` +
+          `Run 'serverless deploy' to deploy the agent.\n` +
+          `Error: ${error.message}`,
+        'AGENT_RESOURCES_NOT_FOUND',
+        { stack: false },
+      )
+    }
+
+    // Prepare environment variables
+    const providerEnv = this.serverless.service.provider.environment || {}
+    const agentEnv = agentConfig.environment || {}
+
+    // Merge: provider-level variables first, then agent-level (agent-level overrides provider-level)
+    agentConfig.environment = {
+      ...providerEnv,
+      ...agentEnv,
+    }
+
+    // Resolve CloudFormation intrinsic functions (e.g. !GetAtt, !Ref, !ImportValue)
+    // in environment variables from their deployed stack values.
+    const resolveCfEnvVars = (await import('../utils/resolve-cf-env-vars.js'))
+      .default
+    await resolveCfEnvVars(this.provider, agentConfig.environment, stackOutputs)
+
+    // Inject auto-discovered Bedrock AgentCore resources
+    if (gatewayUrl) {
+      agentConfig.environment.BEDROCK_AGENTCORE_GATEWAY_URL = gatewayUrl
+    }
+    if (memoryId) {
+      agentConfig.environment.BEDROCK_AGENTCORE_MEMORY_ID = memoryId
+    }
+
+    // Add standard SLS_ variables for consistency with regular dev mode
+    agentConfig.environment.SLS_SERVICE = this.serverless.service.service
+    agentConfig.environment.SLS_STAGE = this.provider.getStage()
+    agentConfig.environment.SLS_AGENT = agentName
+
+    mainProgress.remove()
+
+    // Start dev mode
+    const devMode = new AgentCoreDevMode({
+      serverless: this.serverless,
+      provider: this.provider,
+      serviceName: this.serverless.service.service,
+      projectPath: this.serverless.serviceDir,
+      agentName,
+      agentConfig,
+      region: this.provider.getRegion(),
+      roleArn,
+      port,
+    })
+
+    try {
+      await devMode.start()
+    } catch (error) {
+      await devMode.stop()
+      throw new ServerlessError(
+        `Agents dev mode failed: ${error.message}`,
+        'AGENTS_DEV_MODE_FAILED',
+        { stack: false },
+      )
+    }
+  }
+
+  /**
    * The main handler for dev mode. Steps include:
    * - Packaging the shim and setting it as the service deployment artifact.
    * - Updating the service to use the shim.
@@ -94,6 +348,12 @@ class AwsDev {
    * @returns {Promise<void>} This method is long running, so it does not return a value.
    */
   async dev() {
+    this.validateModeOption()
+
+    if (this.shouldUseAgentsDevMode()) {
+      return await this.startAgentsDevMode()
+    }
+
     const mainProgress = progress.get('main')
 
     this.validateOnExitOption()
@@ -172,6 +432,9 @@ class AwsDev {
       if (hook.pluginName === 'AwsDev') {
         continue
       }
+      if (hook.pluginName === 'ServerlessBedrockAgentCore') {
+        continue
+      }
       hook.hook = async () => {}
     }
 
@@ -179,6 +442,9 @@ class AwsDev {
       'before:package:createDeploymentArtifacts'
     ] || []) {
       if (hook.pluginName === 'AwsDev') {
+        continue
+      }
+      if (hook.pluginName === 'ServerlessBedrockAgentCore') {
         continue
       }
       hook.hook = async () => {}

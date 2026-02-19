@@ -1,0 +1,78 @@
+service: langgraph-multi-gateway
+
+provider:
+  name: aws
+  region: us-east-1
+
+functions:
+  calculatorFunction:
+    handler: handlers/calculator.handler
+    runtime: python3.13
+
+  internalLookupFunction:
+    handler: handlers/internal_lookup.handler
+    runtime: python3.13
+
+ai:
+  # Define tools that will be assigned to different gateways
+  tools:
+    calculator:
+      function: calculatorFunction
+      toolSchema:
+        - name: calculate
+          description: Evaluate a mathematical expression. Supports basic arithmetic and functions like sqrt, sin, cos.
+          inputSchema:
+            type: object
+            properties:
+              expression:
+                type: string
+                description: Mathematical expression to evaluate (e.g., "2 + 2 * 3", "sqrt(16)")
+            required:
+              - expression
+
+    internalLookup:
+      function: internalLookupFunction
+      toolSchema:
+        - name: lookup_user
+          description: Look up internal user information by user ID. Returns name, email, and department.
+          inputSchema:
+            type: object
+            properties:
+              userId:
+                type: string
+                description: The user ID to look up (e.g., "USR001")
+            required:
+              - userId
+
+  # Define multiple gateways with different authorization
+  gateways:
+    # Public gateway - no authentication required
+    # Use for tools that don't access sensitive data
+    publicGateway:
+      authorizer: NONE
+      tools:
+        - calculator
+
+    # Private gateway - AWS IAM authentication required
+    # Use for tools that access internal/sensitive data
+    privateGateway:
+      authorizer: AWS_IAM
+      tools:
+        - internalLookup
+
+  # Public agent - uses the public gateway with calculator tool
+  # Can be invoked without additional IAM permissions
+  agents:
+    publicAgent:
+      artifact:
+        image:
+          file: Dockerfile.public
+      gateway: publicGateway
+
+    # Private agent - uses the private gateway with internal lookup tool
+    # Requires AWS IAM authentication for tool calls
+    privateAgent:
+      artifact:
+        image:
+          file: Dockerfile.private
+      gateway: privateGateway

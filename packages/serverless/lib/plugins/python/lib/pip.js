@@ -256,6 +256,32 @@ async function installRequirements(targetFolder, pluginInstance, funcOptions) {
       }
     }
 
+    // Add ARM64 platform flags for AgentCore agents
+    // AgentCore always runs on Linux ARM64, so we need cross-platform binaries
+    if (funcOptions.isAgent && funcOptions.architecture === 'arm64') {
+      if (log) {
+        log.info('Using ARM64 platform for AgentCore agent requirements')
+      }
+      // Extract Python version from agent runtime for cross-compilation.
+      // Handles both user-facing format (python3.13) and CF format (PYTHON_3_13).
+      const agentRuntime = funcOptions.config?.runtime || 'python3.13'
+      const pythonVersion = agentRuntime
+        .toLowerCase()
+        .replace(/^python/, '')
+        .replace(/^_/, '')
+        .replace(/_/g, '.')
+
+      pipCmd.push(
+        '--platform',
+        'manylinux2014_aarch64',
+        '--implementation',
+        'cp',
+        '--python-version',
+        pythonVersion,
+        '--only-binary=:all:',
+      )
+    }
+
     if (!options.dockerizePip) {
       // Push our local OS-specific paths for requirements and target directory
       pipCmd.push(
@@ -780,12 +806,18 @@ async function installRequirementsIfNeeded(
   // Then generate our MD5 Sum of this requirements file to determine where it should "go" to and/or pull cache from
   const reqChecksum = sha256Path(slsReqsTxt)
 
+  // For agents, use ARM64 architecture override to ensure separate cache from Lambda functions
+  const architectureOverride = funcOptions.isAgent
+    ? funcOptions.architecture
+    : undefined
+
   // Then figure out where this cache should be, if we're caching, if we're in a module, etc
   const workingReqsFolder = getRequirementsWorkingPath(
     reqChecksum,
     requirementsTxtDirectory,
     options,
     serverless,
+    architectureOverride,
   )
 
   // Check if our static cache is present and is valid
@@ -948,6 +980,51 @@ async function installAllRequirements() {
         fse.symlink(reqsInstalledAt, symlinkPath, 'junction')
       } else {
         fse.symlink(reqsInstalledAt, symlinkPath)
+      }
+    }
+  }
+
+  // Step 5: Install requirements for agents (always ARM64, always individual)
+  const targetAgents = this.targetAgents || []
+  if (targetAgents.length > 0) {
+    for (const agent of targetAgents) {
+      if (this.log) {
+        this.log.info(
+          `Installing Python requirements for agent "${agent.name}" (ARM64)`,
+        )
+      }
+
+      const reqsInstalledAt = await installRequirementsIfNeeded(
+        agent.module,
+        { ...agent, architecture: 'arm64', isAgent: true },
+        this,
+      )
+
+      // Add requirements into .serverless/agent-{name}/requirements
+      let modulePath = path.join(
+        this.servicePath,
+        '.serverless',
+        `agent-${agent.name}`,
+        'requirements',
+      )
+
+      if (
+        reqsInstalledAt &&
+        !fse.existsSync(modulePath) &&
+        reqsInstalledAt != modulePath
+      ) {
+        // Ensure parent directory exists
+        fse.ensureDirSync(path.dirname(modulePath))
+
+        if (this.options.useStaticCache) {
+          if (process.platform == 'win32') {
+            fse.copySync(reqsInstalledAt, modulePath)
+          } else {
+            fse.symlinkSync(reqsInstalledAt, modulePath)
+          }
+        } else {
+          fse.renameSync(reqsInstalledAt, modulePath)
+        }
       }
     }
   }

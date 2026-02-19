@@ -1,0 +1,14 @@
+# LangGraph JS Minimal Example
+#
+# A minimal LangGraph JavaScript agent with built-in tools.
+# Docker is auto-detected from Dockerfile in current directory.
+
+service: langgraph-basic-dockerfile
+
+provider:
+  name: aws
+
+ai:
+  agents:
+    # Runtime agent - Docker auto-detected, no extra config needed
+    assistant: {}

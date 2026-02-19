@@ -1,0 +1,16 @@
+service: langgraph-basic-code
+
+provider:
+  name: aws
+  region: us-east-1
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+
+ai:
+  agents:
+    # Minimal LangGraph agent with built-in tools
+    # Code deployment (uses Docker only for dependency packaging)
+    chatbot:
+      handler: agent.py

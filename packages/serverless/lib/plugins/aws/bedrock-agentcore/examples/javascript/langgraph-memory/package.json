@@ -1,0 +1,21 @@
+{
+  "name": "langgraph-memory",
+  "version": "1.0.0",
+  "description": "LangGraph JS agent with AgentCore Memory for conversation persistence",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-agentcore": "^3.985.0",
+    "@langchain/aws": "^1.2.2",
+    "@langchain/core": "^1.1.19",
+    "@langchain/langgraph": "^1.1.4",
+    "bedrock-agentcore": "^0.2.0",
+    "zod": "^4.3.6"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}

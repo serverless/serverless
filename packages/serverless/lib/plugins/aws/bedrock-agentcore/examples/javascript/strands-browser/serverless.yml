@@ -1,0 +1,13 @@
+# Strands Browser Example
+# Deploy: serverless deploy
+# Test: RUNTIME_ARN=<arn> node test-invoke.js
+
+service: strands-browser
+
+provider:
+  name: aws
+  region: us-east-1
+
+ai:
+  agents:
+    browserAgent: {}

@@ -1,0 +1,38 @@
+# LangGraph Custom Code Interpreter Example
+#
+# Demonstrates using a custom code interpreter with PUBLIC network mode
+# instead of the AWS-managed default (SANDBOX) interpreter.
+#
+# PUBLIC mode allows code to access external APIs and internet resources.
+#
+# Deploy: serverless deploy
+# Test: RUNTIME_ARN=<arn> node test-invoke.js
+
+service: langgraph-code-interpreter-custom
+
+provider:
+  name: aws
+
+ai:
+  # Custom code interpreter with PUBLIC network access
+  codeInterpreters:
+    publicInterpreter:
+      description: Code interpreter with public internet access
+      network:
+        mode: PUBLIC
+      tags:
+        Purpose: ExternalAPIAccess
+
+  # Runtime agent that uses the custom code interpreter
+  agents:
+    codeAgent:
+      environment:
+        CUSTOM_INTERPRETER_ID: !GetAtt PublicInterpreterCodeInterpreter.CodeInterpreterId
+      role:
+        statements:
+          - Effect: Allow
+            Action:
+              - bedrock-agentcore:StartCodeInterpreterSession
+              - bedrock-agentcore:InvokeCodeInterpreter
+              - bedrock-agentcore:StopCodeInterpreterSession
+            Resource: !GetAtt PublicInterpreterCodeInterpreter.CodeInterpreterArn

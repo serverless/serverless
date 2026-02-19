@@ -1,0 +1,32 @@
+service: langgraph-gateway
+
+provider:
+  name: aws
+  region: us-east-1
+
+functions:
+  calculatorFunction:
+    handler: handlers/calculator.handler
+    runtime: nodejs20.x
+
+ai:
+  # Define tools that will be available to the agent via Gateway
+  tools:
+    calculator:
+      function: calculatorFunction
+      toolSchema:
+        - name: calculate
+          description: Perform basic arithmetic on two numbers. Supports +, -, *, /. For complex calculations, break them into multiple calls.
+          inputSchema:
+            type: object
+            properties:
+              expression:
+                type: string
+                description: Arithmetic expression in "number operator number" format (e.g., "2 + 3", "10 / 5")
+            required:
+              - expression
+
+  # LangGraph agent with gateway tools
+  # A default gateway is automatically created with all tools
+  agents:
+    chatbot: {}

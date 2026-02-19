@@ -1,0 +1,14 @@
+# LangGraph JS Streaming Example
+#
+# A LangGraph JavaScript agent with real-time LLM token streaming.
+# The container image is built automatically from source code.
+
+service: langgraph-streaming
+
+provider:
+  name: aws
+
+ai:
+  agents:
+    # Runtime agent - no Dockerfile needed, image built from source automatically
+    assistant: {}

@@ -1,0 +1,14 @@
+# LangGraph JS Example
+#
+# A minimal LangGraph JavaScript agent for AWS Bedrock AgentCore.
+# The container image is built automatically from source code.
+
+service: langgraph-basic
+
+provider:
+  name: aws
+
+ai:
+  agents:
+    # Runtime agent - no Dockerfile needed, image built from source automatically
+    assistant: {}

@@ -123,6 +123,50 @@ class ServerlessPythonRequirements {
   }
 
   /**
+   * Get agents that need Python requirements installation (code deployment)
+   */
+  get targetAgents() {
+    const aiConfig =
+      this.serverless.service.ai || this.serverless.configurationInput?.ai || {}
+    const agents = aiConfig.agents || {}
+
+    return Object.entries(agents)
+      .filter(([, config]) => {
+        // Only runtime agents (type defaults to 'runtime' if not specified)
+        const agentType = config.type || 'runtime'
+        if (agentType !== 'runtime') return false
+
+        const artifact = config.artifact || {}
+
+        // Skip if using container image (string or object with build config)
+        if (artifact.image) return false
+
+        // Skip if user specified their own S3 bucket
+        if (artifact.s3?.bucket) return false
+
+        // Need handler for code deployment (new schema)
+        if (!config.handler) return false
+
+        // Check for Python runtime (default is python3.13)
+        // Runtime is now at agent root level in Lambda format (e.g. python3.12)
+        const runtime = (config.runtime || 'python3.13').toLowerCase()
+        return runtime.startsWith('python3.')
+      })
+      .map(([name, config]) => {
+        // Runtime is already in Lambda format (e.g. python3.12, python3.13)
+        const lambdaRuntime = (config.runtime || 'python3.13').toLowerCase()
+        return {
+          name,
+          config,
+          module: '.', // Agents always use service root
+          isAgent: true,
+          architecture: 'arm64', // AgentCore always uses ARM64
+          runtime: lambdaRuntime,
+        }
+      })
+  }
+
+  /**
    * The plugin constructor
    * @param {Object} serverless
    * @param {Object} options
@@ -206,10 +250,15 @@ class ServerlessPythonRequirements {
       }
       // Service-level hook: check if ANY function uses Python
       const allFunctions = this.serverless.service.functions || {}
-      return Object.values(allFunctions).some((func) => {
+      const hasPythonFunction = Object.values(allFunctions).some((func) => {
         const runtime = func.runtime || providerRuntime
         return runtime && runtime.startsWith('python')
       })
+
+      // Also check if any agents need Python requirements
+      const hasPythonAgent = this.targetAgents.length > 0
+
+      return hasPythonFunction || hasPythonAgent
     }
 
     const clean = async () => {

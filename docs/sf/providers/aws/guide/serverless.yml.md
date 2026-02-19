@@ -1577,6 +1577,440 @@ layers:
     retain: false
 ```
 
+## AI Agents
+
+Deploy AI agents to [AWS Bedrock AgentCore](./agents/README.md) alongside your Lambda functions. The `ai` property is the top-level container for all AgentCore resources: agents, tools, gateways, memory, browsers, and code interpreters. See [complete documentation](./agents/README.md) for more details.
+
+```yml
+# serverless.yml
+
+ai:
+  agents:
+    # Agent name (used as a logical identifier)
+    myAgent:
+      # Optional description (1-1200 chars)
+      description: My AI agent
+
+      # Optional tags applied to the CloudFormation resource
+      tags:
+        team: platform
+        env: prod
+
+      # IAM role for the agent runtime. Can be:
+      #   - A string (existing IAM role ARN or logical name)
+      #   - An object to customize the auto-generated role
+      #   - A CloudFormation intrinsic function
+      role: arn:aws:iam::123456789012:role/my-agent-role
+      # OR customize the auto-generated role:
+      role:
+        # Optional custom role name (max 64 chars)
+        name: my-agent-role
+        # Additional IAM policy statements
+        statements:
+          - Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+            Resource: '*'
+        # Attach existing managed policies
+        managedPolicies:
+          - arn:aws:iam::aws:policy/ReadOnlyAccess
+        # Optional permissions boundary
+        permissionsBoundary: arn:aws:iam::123456789012:policy/boundary
+        # Optional tags on the role
+        tags:
+          key: value
+
+      # Memory for conversation persistence.
+      # Can be a string (reference to a shared memory in ai.memory) or an inline config.
+      memory: sharedMemory # reference to ai.memory.sharedMemory
+      # OR inline memory config:
+      memory:
+        expiration: 30 # Days until events expire (3-365)
+
+      # Reference to a gateway defined in ai.gateways (string)
+      gateway: myGateway
+
+      # Code deployment (Python only): entry point file
+      handler: agent.py
+      # Python runtime for code deployment (default: python3.13)
+      runtime: python3.13 # python3.10 | python3.11 | python3.12 | python3.13
+
+      # Artifact configuration for container or code deployment
+      artifact:
+        # Container image: string (pre-built ECR URI) or object (build config)
+        image: 123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest
+        # OR build from source:
+        image:
+          # Dockerfile path relative to service root (default: Dockerfile)
+          file: Dockerfile
+          # Docker build context directory (default: .)
+          path: ./agent
+          # ECR repository name (auto-created if omitted)
+          repository: my-agent-repo
+          # Docker --build-arg values injected at build time
+          buildArgs:
+            NODE_ENV: production
+        # Optional S3 location for code deployment artifact
+        s3:
+          bucket: my-deployment-bucket
+          key: agent.zip
+          versionId: abc123
+
+      # Packaging rules (same as Lambda functions)
+      package:
+        patterns:
+          - 'src/**'
+          - '!**/*.test.js'
+        artifact: path/to/agent.zip
+
+      # Invocation protocol (default: http)
+      protocol: http # http | mcp | a2a
+
+      # Environment variables injected into the agent container
+      environment:
+        MODEL_ID: anthropic.claude-3-5-sonnet-20241022-v2:0
+        LOG_LEVEL: info
+
+      # Network configuration
+      network:
+        # Network mode (default: public)
+        mode: public # public | vpc
+        # Required when mode is vpc
+        subnets:
+          - subnet-aaaa1111
+          - subnet-bbbb2222
+        securityGroups:
+          - sg-12345678
+
+      # Authorizer for inbound requests to the agent runtime.
+      # String shorthand or object form. Runtime supports: none, custom_jwt
+      # (aws_iam is not supported for runtime authorizers)
+      authorizer: none # none | custom_jwt
+      # OR object form with JWT config (required when type is custom_jwt):
+      authorizer:
+        type: custom_jwt
+        jwt:
+          # Required: OIDC discovery URL (must end with /.well-known/openid-configuration)
+          discoveryUrl: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_xxxx/.well-known/openid-configuration
+          # Optional: allowed JWT audiences
+          allowedAudience:
+            - my-client-id
+          # Optional: allowed OAuth clients
+          allowedClients:
+            - my-client-id
+          # Optional: required scopes
+          allowedScopes:
+            - openid
+            - profile
+          # Optional: custom claim matching rules
+          customClaims:
+            - inboundTokenClaimName: custom:org
+              inboundTokenClaimValueType: string # string | string_array
+              authorizingClaimMatchValue:
+                claimMatchOperator: equals # equals | contains | contains_any
+                claimMatchValue:
+                  # Use matchValueString for a single value:
+                  matchValueString: my-org
+                  # OR matchValueStringList for multiple values (e.g., with contains_any):
+                  matchValueStringList:
+                    - org-a
+                    - org-b
+
+      # Session lifecycle settings
+      lifecycle:
+        # Seconds of inactivity before a session is stopped (60-28800, default: AWS default)
+        idleRuntimeSessionTimeout: 300
+        # Maximum lifetime of a session in seconds (60-28800, default: AWS default)
+        maxLifetime: 3600
+
+      # Named endpoints exposed by the agent runtime
+      endpoints:
+        - name: default
+          version: '1'
+          description: Primary agent endpoint
+
+      # HTTP request headers to forward into the agent runtime
+      requestHeaders:
+        # Allowlist of header names to pass through (1-20 items)
+        allowlist:
+          - x-correlation-id
+          - x-user-id
+```
+
+### Tools
+
+Define tools that Lambda functions, OpenAPI specs, Smithy models, or MCP servers expose to agents via a Gateway:
+
+```yml
+# serverless.yml
+
+ai:
+  tools:
+    # Tool name (logical identifier, referenced by gateways and agents)
+    myLambdaTool:
+      # Lambda function tool: function name defined in the functions block
+      function: myFunction
+      # OR object form with explicit name or ARN:
+      function:
+        name: myFunction # function name in this service
+        arn: arn:aws:lambda:us-east-1:123456789012:function:external-fn # external ARN
+
+      # Tool schema (required for function tools): describes the tools the Lambda exposes
+      toolSchema:
+        - name: my_tool
+          description: Does something useful
+          inputSchema:
+            type: object
+            properties:
+              input:
+                type: string
+                description: The input value
+            required:
+              - input
+
+      # Optional description (1-200 chars)
+      description: My Lambda-backed tool
+
+      # Credential provider for Gateway-to-tool authentication
+      credentials:
+        # Credential type (default: gateway_iam_role)
+        type: gateway_iam_role # gateway_iam_role | oauth | api_key
+
+    myOpenApiTool:
+      # OpenAPI schema tool: path to OpenAPI spec file
+      openapi: openapi/my-api.yaml
+
+    mySmithyTool:
+      # Smithy model tool: path to Smithy model file
+      smithy: smithy/my-model.smithy
+
+    myMcpTool:
+      # MCP server tool: https:// URL of the MCP server endpoint
+      mcp: https://my-mcp-server.example.com/mcp
+      credentials:
+        type: oauth
+        # Token Vault OAuth provider ARN (required for oauth)
+        provider: arn:aws:bedrock-agentcore:us-east-1:123456789012:token-vault/my-vault
+        # Required OAuth scopes
+        scopes:
+          - openid
+          - read:data
+        # OAuth grant type
+        grantType: client_credentials # authorization_code | client_credentials
+        # Optional: redirect URL for authorization_code flow
+        defaultReturnUrl: https://my-app.example.com/callback
+        # Optional: additional OAuth parameters (max 10)
+        customParameters:
+          audience: my-api
+
+    myApiKeyTool:
+      mcp: https://my-api.example.com/mcp
+      credentials:
+        type: api_key
+        # Where to send the API key
+        location: header # header | query_parameter
+        # Header or query parameter name
+        parameterName: x-api-key
+        # Optional prefix (e.g., "Bearer ")
+        prefix: 'Bearer '
+```
+
+### Gateways
+
+Create AgentCore Gateways that expose tools to agents:
+
+```yml
+# serverless.yml
+
+ai:
+  gateways:
+    # Gateway name (logical identifier, referenced by ai.agents[].gateway)
+    myGateway:
+      # Authorizer for inbound requests to the gateway
+      authorizer: none # none | aws_iam | custom_jwt
+      # OR object form:
+      authorizer:
+        type: custom_jwt
+        jwt:
+          discoveryUrl: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_xxxx/.well-known/openid-configuration
+          allowedAudience:
+            - my-client-id
+          allowedClients:
+            - my-client-id
+          allowedScopes:
+            - openid
+          customClaims:
+            - inboundTokenClaimName: custom:role
+              inboundTokenClaimValueType: string # string | string_array
+              authorizingClaimMatchValue:
+                claimMatchOperator: equals # equals | contains | contains_any
+                claimMatchValue:
+                  matchValueString: admin
+                  # OR matchValueStringList for multiple values:
+                  # matchValueStringList:
+                  #   - admin
+                  #   - superadmin
+
+      # Tools exposed by this gateway (references to ai.tools keys)
+      tools:
+        - myLambdaTool
+        - myMcpTool
+
+      # MCP protocol configuration for the gateway
+      protocol:
+        type: mcp # Only mcp is supported
+        # Optional: supported MCP spec versions
+        supportedVersions:
+          - '2025-11-25'
+        # Optional: system instructions passed to the agent (1-2048 chars)
+        instructions: You are a helpful assistant with access to calculation tools.
+        # Optional: search strategy for tool discovery
+        searchType: semantic
+
+      # Optional description (1-200 chars)
+      description: Public tools gateway
+
+      # IAM role (same structure as ai.agents[].role)
+      role:
+        statements:
+          - Effect: Allow
+            Action:
+              - lambda:InvokeFunction
+            Resource: '*'
+
+      # Optional KMS key ARN for encrypting gateway data
+      kmsKey: arn:aws:kms:us-east-1:123456789012:key/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+
+      # Set to 'debug' to include detailed error info in gateway responses
+      exceptionLevel: debug
+
+      # Optional tags
+      tags:
+        env: prod
+```
+
+### Memory
+
+Define shared memory resources for conversation persistence:
+
+```yml
+# serverless.yml
+
+ai:
+  memory:
+    # Memory name (logical identifier, referenced by ai.agents[].memory)
+    myMemory:
+      # Days until memory events expire (3-365)
+      expiration: 30
+
+      # Optional KMS key ARN for encrypting memory data
+      encryptionKey: arn:aws:kms:us-east-1:123456789012:key/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+
+      # Optional memory consolidation strategies (array of strategy objects).
+      # Shape is determined by the AWS Bedrock AgentCore Memory API.
+      strategies:
+        - memoryStrategyType: SEMANTIC
+
+      # IAM role (same structure as ai.agents[].role)
+      role:
+        statements:
+          - Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+            Resource: '*'
+
+      # Optional description (1-1200 chars)
+      description: Shared conversation memory
+
+      # Optional tags
+      tags:
+        team: platform
+```
+
+### Browsers
+
+Create managed browser resources for web automation:
+
+```yml
+# serverless.yml
+
+ai:
+  browsers:
+    # Browser name (logical identifier)
+    myBrowser:
+      # Optional description (1-1200 chars)
+      description: Browser with session recording
+
+      # Optional tags
+      tags:
+        purpose: web-automation
+
+      # IAM role (same structure as ai.agents[].role)
+      role:
+        statements:
+          - Effect: Allow
+            Action:
+              - s3:PutObject
+            Resource: arn:aws:s3:::my-recordings-bucket/*
+
+      # Optional session recording configuration
+      recording:
+        enabled: true
+        # S3 location for recording storage (required when enabled)
+        s3Location:
+          bucket: my-recordings-bucket
+          prefix: browser-sessions/
+
+      # Optional: enable request signing for browser sessions
+      signing:
+        enabled: true
+
+      # Network configuration (default: public)
+      network:
+        mode: public # public | vpc
+        subnets:
+          - subnet-aaaa1111
+        securityGroups:
+          - sg-12345678
+```
+
+### Code Interpreters
+
+Create managed code interpreter resources for sandboxed code execution:
+
+```yml
+# serverless.yml
+
+ai:
+  codeInterpreters:
+    # Code interpreter name (logical identifier)
+    myInterpreter:
+      # Optional description (1-1200 chars)
+      description: Sandboxed code execution environment
+
+      # Optional tags
+      tags:
+        purpose: data-analysis
+
+      # IAM role (same structure as ai.agents[].role)
+      role:
+        statements:
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+            Resource: arn:aws:s3:::my-data-bucket/*
+
+      # Network configuration
+      network:
+        # sandbox: isolated (default), public: internet access, vpc: private VPC
+        mode: sandbox # sandbox | public | vpc
+        # Required when mode is vpc:
+        subnets:
+          - subnet-aaaa1111
+        securityGroups:
+          - sg-12345678
+```
+
 ## AWS Resources
 
 [Customize the CloudFormation template](./services.md#serverlessyml), for example to deploy extra CloudFormation resource:

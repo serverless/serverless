@@ -1,0 +1,19 @@
+{
+  "name": "strands-browser",
+  "version": "1.0.0",
+  "description": "Strands Agents SDK with AgentCore Browser for web automation",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@strands-agents/sdk": "^0.2.1",
+    "bedrock-agentcore": "^0.2.0",
+    "playwright": "^1.58.2",
+    "zod": "^4.3.6"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}

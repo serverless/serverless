@@ -1,0 +1,24 @@
+{
+  "name": "langgraph-gateway",
+  "version": "1.0.0",
+  "description": "LangGraph JS agent with Gateway tools via MCP protocol",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@aws-sdk/credential-provider-node": "^3.972.6",
+    "@langchain/aws": "^1.2.2",
+    "@langchain/core": "^1.1.19",
+    "@langchain/langgraph": "^1.1.4",
+    "@langchain/mcp-adapters": "^1.1.2",
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "aws4fetch": "^1.0.20",
+    "bedrock-agentcore": "^0.2.0",
+    "zod": "^4.3.6"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}
