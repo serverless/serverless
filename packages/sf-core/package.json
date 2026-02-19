@@ -1,6 +1,6 @@
 {
   "name": "@serverlessinc/sf-core",
-  "version": "4.32.0",
+  "version": "4.33.0",
   "main": "src/index.js",
   "type": "module",
   "scripts": {
