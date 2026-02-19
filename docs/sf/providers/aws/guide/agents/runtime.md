@@ -1,4 +1,4 @@
-  <!--
+<!--
 title: Serverless Framework - AgentCore Runtime Configuration
 description: Configure AgentCore Runtime agents with deployment options, networking, authentication, and lifecycle management
 short_title: Runtime
