@@ -14,7 +14,7 @@
   "author": "Serverless Inc.",
   "devDependencies": {},
   "dependencies": {
-    "@aws-sdk/client-s3": "3.982.0",
+    "@aws-sdk/client-s3": "3.993.0",
     "mongodb": "^7.1.0"
   }
 }
