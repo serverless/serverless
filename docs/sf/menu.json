@@ -74,6 +74,15 @@
     "Deployment Bucket": "guides/deployment-bucket",
     "State": "guides/state",
     "Python support": "providers/aws/guide/python",
+    "AI Agents": {
+      "Overview": "providers/aws/guide/agents",
+      "Runtime": "providers/aws/guide/agents/runtime",
+      "Gateway": "providers/aws/guide/agents/gateway",
+      "Memory": "providers/aws/guide/agents/memory",
+      "Browser": "providers/aws/guide/agents/browser",
+      "Code Interpreter": "providers/aws/guide/agents/code-interpreter",
+      "Dev Mode": "providers/aws/guide/agents/dev"
+    },
     "API Gateway Proxy": "providers/aws/guide/api-gateway-aws-proxy",
     "AppSync": {
       "Overview": "providers/aws/guide/appsync",
