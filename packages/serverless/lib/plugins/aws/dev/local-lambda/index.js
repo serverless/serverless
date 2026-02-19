@@ -288,19 +288,21 @@ const fileExists = async (filePath) => {
  *   - List of runtime versions that the wrapper supports
  *   - List of file extensions that the wrapper supports
  */
+const SUPPORTED_NODE_RUNTIMES = [
+  'nodejs14.x',
+  'nodejs16.x',
+  'nodejs18.x',
+  'nodejs20.x',
+  'nodejs22.x',
+  'nodejs24.x',
+]
+
 const runtimeWrappers = [
   {
     command: 'node',
     arguments: [],
     path: path.join(__dirname, 'runtime-wrappers/node.js'),
-    versions: [
-      'nodejs14.x',
-      'nodejs16.x',
-      'nodejs18.x',
-      'nodejs20.x',
-      'nodejs22.x',
-      'nodejs24.x',
-    ],
+    versions: SUPPORTED_NODE_RUNTIMES,
     extensions: ['.js', '.mjs', '.cjs', '.ts', '.mts', '.cts'],
   },
 ]
