@@ -138,12 +138,12 @@ Dev mode supports two execution modes, detected automatically based on your proj
 
 ### Mode Detection Priority
 
-| Priority | Condition                                | Mode               |
-| -------- | ---------------------------------------- | ------------------ |
-| 1        | `artifact.image` is configured           | Docker             |
-| 2        | `handler` is set (no image config)       | Code (Python only) |
-| 3        | `Dockerfile` exists in project root      | Docker             |
-| 4        | Default (image auto-creation)            | Docker             |
+| Priority | Condition                           | Mode               |
+| -------- | ----------------------------------- | ------------------ |
+| 1        | `artifact.image` is configured      | Docker             |
+| 2        | `handler` is set (no image config)  | Code (Python only) |
+| 3        | `Dockerfile` exists in project root | Docker             |
+| 4        | Default (image auto-creation)       | Docker             |
 
 ### Docker Mode
 

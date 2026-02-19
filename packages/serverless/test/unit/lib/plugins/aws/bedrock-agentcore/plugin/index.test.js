@@ -430,9 +430,19 @@ describe('ServerlessBedrockAgentCore', () => {
     test('accepts valid recording config', () => {
       expect(() =>
         pluginInstance.validateBrowser('myBrowser', {
-          recording: { s3Location: { bucket: 'my-bucket' } },
+          recording: {
+            s3Location: { bucket: 'my-bucket', prefix: 'sessions/' },
+          },
         }),
       ).not.toThrow()
+    })
+
+    test('throws error for recording without prefix', () => {
+      expect(() =>
+        pluginInstance.validateBrowser('myBrowser', {
+          recording: { s3Location: { bucket: 'my-bucket' } },
+        }),
+      ).toThrow("recording.s3Location must have a 'prefix' property")
     })
   })
 

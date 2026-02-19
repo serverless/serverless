@@ -137,7 +137,7 @@ describe('validators/config', () => {
     it('should pass for valid browser config', () => {
       const config = {
         network: { mode: 'PUBLIC' },
-        recording: { s3Location: { bucket: 'my-bucket' } },
+        recording: { s3Location: { bucket: 'my-bucket', prefix: 'sessions/' } },
       }
 
       expect(() =>
@@ -158,6 +158,14 @@ describe('validators/config', () => {
 
       expect(() => validateBrowser('myBrowser', config, throwError)).toThrow(
         "Browser 'myBrowser' recording.s3Location must have a 'bucket' property",
+      )
+    })
+
+    it('should throw for missing s3Location prefix', () => {
+      const config = { recording: { s3Location: { bucket: 'my-bucket' } } }
+
+      expect(() => validateBrowser('myBrowser', config, throwError)).toThrow(
+        "Browser 'myBrowser' recording.s3Location must have a 'prefix' property",
       )
     })
   })
