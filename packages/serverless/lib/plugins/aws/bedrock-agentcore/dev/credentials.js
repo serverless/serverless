@@ -178,28 +178,31 @@ export function addPrincipalToPolicy(policyStatement, userArn) {
  */
 export function normalizeAssumedRoleArn(arn) {
   /**
-   * Match STS assumed-role session ARNs:
+   * Match STS assumed-role session ARNs across all partitions:
    * arn:aws:sts::ACCOUNT:assumed-role/ROLE_NAME/SESSION_NAME
+   * arn:aws-us-gov:sts::ACCOUNT:assumed-role/ROLE_NAME/SESSION_NAME
+   * arn:aws-cn:sts::ACCOUNT:assumed-role/ROLE_NAME/SESSION_NAME
    */
   const assumedRoleMatch = arn.match(
-    /^arn:aws:sts::(\d+):assumed-role\/(.+?)\/[^/]+$/,
+    /^arn:(aws[\w-]*):sts::(\d+):assumed-role\/(.+?)\/[^/]+$/,
   )
   if (!assumedRoleMatch) {
     return arn
   }
 
-  const accountId = assumedRoleMatch[1]
-  const roleName = assumedRoleMatch[2]
+  const partition = assumedRoleMatch[1]
+  const accountId = assumedRoleMatch[2]
+  const roleName = assumedRoleMatch[3]
 
   /**
    * SSO roles have names starting with AWSReservedSSO_.
    * Their IAM role ARN includes the aws-reserved/sso.amazonaws.com path prefix.
    */
   if (roleName.startsWith('AWSReservedSSO_')) {
-    return `arn:aws:iam::${accountId}:role/aws-reserved/sso.amazonaws.com/${roleName}`
+    return `arn:${partition}:iam::${accountId}:role/aws-reserved/sso.amazonaws.com/${roleName}`
   }
 
-  return `arn:aws:iam::${accountId}:role/${roleName}`
+  return `arn:${partition}:iam::${accountId}:role/${roleName}`
 }
 
 /**

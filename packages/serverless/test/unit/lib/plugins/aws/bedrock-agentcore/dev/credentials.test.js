@@ -19,6 +19,7 @@ import {
   isPrincipalInPolicy,
   addPrincipalToPolicy,
   calculateBackoffDelay,
+  normalizeAssumedRoleArn,
 } from '../../../../../../../lib/plugins/aws/bedrock-agentcore/dev/credentials.js'
 
 describe('dev/credentials', () => {
@@ -215,6 +216,62 @@ describe('dev/credentials', () => {
       }
       addPrincipalToPolicy(statement, 'arn:user1')
       expect(statement.Principal.AWS).toEqual(['arn:user1', 'arn:user2'])
+    })
+  })
+
+  describe('normalizeAssumedRoleArn', () => {
+    it('should return arn as-is when not an assumed-role session ARN', () => {
+      const arn = 'arn:aws:iam::123456789012:role/my-role'
+      expect(normalizeAssumedRoleArn(arn)).toBe(arn)
+    })
+
+    it('should normalize standard assumed-role session ARN to IAM role ARN', () => {
+      expect(
+        normalizeAssumedRoleArn(
+          'arn:aws:sts::123456789012:assumed-role/MyRole/session',
+        ),
+      ).toBe('arn:aws:iam::123456789012:role/MyRole')
+    })
+
+    it('should normalize SSO assumed-role ARN with aws-reserved path', () => {
+      expect(
+        normalizeAssumedRoleArn(
+          'arn:aws:sts::123456789012:assumed-role/AWSReservedSSO_Admin_abc123/user@example.com',
+        ),
+      ).toBe(
+        'arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Admin_abc123',
+      )
+    })
+
+    it('should preserve GovCloud partition in normalized ARN', () => {
+      expect(
+        normalizeAssumedRoleArn(
+          'arn:aws-us-gov:sts::123456789012:assumed-role/MyRole/session',
+        ),
+      ).toBe('arn:aws-us-gov:iam::123456789012:role/MyRole')
+    })
+
+    it('should preserve China partition in normalized ARN', () => {
+      expect(
+        normalizeAssumedRoleArn(
+          'arn:aws-cn:sts::123456789012:assumed-role/MyRole/session',
+        ),
+      ).toBe('arn:aws-cn:iam::123456789012:role/MyRole')
+    })
+
+    it('should preserve GovCloud partition for SSO assumed-role ARN', () => {
+      expect(
+        normalizeAssumedRoleArn(
+          'arn:aws-us-gov:sts::123456789012:assumed-role/AWSReservedSSO_Admin_abc123/user@example.com',
+        ),
+      ).toBe(
+        'arn:aws-us-gov:iam::123456789012:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Admin_abc123',
+      )
+    })
+
+    it('should return IAM user ARN as-is', () => {
+      const arn = 'arn:aws:iam::123456789012:user/dev-user'
+      expect(normalizeAssumedRoleArn(arn)).toBe(arn)
     })
   })
 

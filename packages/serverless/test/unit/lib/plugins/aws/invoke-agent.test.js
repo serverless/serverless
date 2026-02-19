@@ -160,6 +160,67 @@ describe('AwsInvokeAgent', () => {
   })
 
   describe('invoke', () => {
+    test('wraps plain string --data in { prompt } payload', async () => {
+      options.data = 'Hello world'
+      awsInvokeAgent.options = options
+
+      mockSend.mockResolvedValue({
+        contentType: 'application/json',
+        response: toAsyncIterable([Buffer.from('ok')]),
+      })
+
+      await awsInvokeAgent.invoke()
+
+      const sentPayload = JSON.parse(
+        Buffer.from(
+          InvokeAgentRuntimeCommand.mock.calls[0][0].payload,
+        ).toString(),
+      )
+      expect(sentPayload).toEqual({ prompt: 'Hello world' })
+    })
+
+    test('sends JSON object --data as-is without double-wrapping', async () => {
+      options.data = { prompt: 'Hello' }
+      awsInvokeAgent.options = options
+
+      mockSend.mockResolvedValue({
+        contentType: 'application/json',
+        response: toAsyncIterable([Buffer.from('ok')]),
+      })
+
+      await awsInvokeAgent.invoke()
+
+      const sentPayload = JSON.parse(
+        Buffer.from(
+          InvokeAgentRuntimeCommand.mock.calls[0][0].payload,
+        ).toString(),
+      )
+      expect(sentPayload).toEqual({ prompt: 'Hello' })
+    })
+
+    test('sends arbitrary JSON object --data as-is', async () => {
+      options.data = { prompt: 'Hello', sessionId: 'abc', extra: 'field' }
+      awsInvokeAgent.options = options
+
+      mockSend.mockResolvedValue({
+        contentType: 'application/json',
+        response: toAsyncIterable([Buffer.from('ok')]),
+      })
+
+      await awsInvokeAgent.invoke()
+
+      const sentPayload = JSON.parse(
+        Buffer.from(
+          InvokeAgentRuntimeCommand.mock.calls[0][0].payload,
+        ).toString(),
+      )
+      expect(sentPayload).toEqual({
+        prompt: 'Hello',
+        sessionId: 'abc',
+        extra: 'field',
+      })
+    })
+
     test('sends invoke request with SSE-compatible accept header', async () => {
       mockSend.mockResolvedValue({
         contentType: 'application/json',

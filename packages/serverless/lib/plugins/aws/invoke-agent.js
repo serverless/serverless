@@ -188,21 +188,15 @@ class AwsInvokeAgent {
   async invoke() {
     const runtimeArn = await this.getRuntimeArn()
 
-    // Build the payload - wrap in { prompt: ... } format
-    let promptData = this.options.data
-    if (typeof promptData === 'object') {
-      // If data is already an object with prompt, use as-is
-      if (!promptData.prompt) {
-        promptData = JSON.stringify(promptData)
-      }
-    }
-
-    const payload = {
-      prompt:
-        typeof promptData === 'string'
-          ? promptData
-          : JSON.stringify(promptData),
-    }
+    // Build the payload - if data is an object, send as-is; otherwise wrap string in { prompt: ... }
+    const promptData = this.options.data
+    const payload =
+      typeof promptData === 'object'
+        ? promptData
+        : {
+            prompt:
+              typeof promptData === 'string' ? promptData : String(promptData),
+          }
 
     this.logger.debug(`Invoking agent runtime: ${runtimeArn}`)
     this.logger.debug(`Payload: ${JSON.stringify(payload)}`)
