@@ -183,8 +183,9 @@ class AwsLogsAgent {
     if (!logStreamNames || !logStreamNames.length) {
       if (this.options.tail) {
         const newLogStreamNames = await this.getLogStreams()
-        await this.showLogs(newLogStreamNames)
+        return this.showLogs(newLogStreamNames)
       }
+      return
     }
 
     const params = {

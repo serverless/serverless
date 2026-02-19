@@ -129,7 +129,6 @@ service: langgraph-basic-dockerfile
 
 provider:
   name: aws
-  region: us-east-1
 
 ai:
   agents:
