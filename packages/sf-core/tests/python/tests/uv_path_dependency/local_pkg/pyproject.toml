@@ -3,7 +3,7 @@ name = "my-path-package"
 version = "1.0.0"
 requires-python = ">=3.12"
 dependencies = [
-  "flask==3.0.3",
+  "flask==3.1.3",
 ]
 
 [build-system]
