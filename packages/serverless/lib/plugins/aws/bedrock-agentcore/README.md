@@ -4,14 +4,14 @@ Deploy AWS Bedrock AgentCore resources with Serverless Framework.
 
 ## Features
 
-- Define AgentCore resources in `serverless.yml` using the `agents` top-level property
-- Supports all AgentCore resource types:
-  - **Runtime** - Deploy containerized AI agents
-  - **Memory** - Conversation history with semantic search
-  - **Gateway** - External API integrations (MCP protocol)
-  - **Browser** - Web browsing capabilities
-  - **CodeInterpreter** - Sandboxed code execution
-  - **WorkloadIdentity** - OAuth2 authentication
+- Define AgentCore resources in `serverless.yml` using the `ai` top-level property
+- Supports AgentCore resource types:
+  - **Runtime Agents** (`ai.agents`) - Deploy containerized or code-deployed AI agents
+  - **Memory** (`ai.memory`) - Conversation history with semantic search
+  - **Tools** (`ai.tools`) - Lambda, OpenAPI, Smithy, and MCP tool definitions
+  - **Gateways** (`ai.gateways`) - Route tools to agents via MCP protocol
+  - **Browsers** (`ai.browsers`) - Web browsing capabilities
+  - **CodeInterpreters** (`ai.codeInterpreters`) - Sandboxed code execution
 - Auto-generates IAM roles with least-privilege permissions
 - Automatic tagging and naming conventions
 - CloudFormation outputs for cross-stack references
@@ -25,141 +25,227 @@ provider:
   name: aws
   region: us-east-1
 
-agents:
-  myAgent:
-    type: runtime
-    description: My AI agent
-    artifact:
-      docker:
-        path: .
-        file: Dockerfile
-        repository: my-agent
-    protocol: HTTP
-    network:
-      networkMode: PUBLIC
-    # Omit 'authorizer' for IAM authentication (default)
+ai:
+  agents:
+    myAgent:
+      description: My AI agent
+      artifact:
+        image:
+          path: .
+          file: Dockerfile
+      protocol: http
+      network:
+        mode: public
+```
+
+## Configuration Structure
+
+The `ai` top-level property has six sections. Each resource type lives in its own section — there is no `type` discriminator property.
+
+```yaml
+ai:
+  agents:           # Runtime agent definitions
+  memory:           # Shared memory definitions
+  tools:            # Tool definitions (Lambda, OpenAPI, Smithy, MCP)
+  gateways:         # Gateway definitions with tool assignments
+  browsers:         # Custom browser definitions
+  codeInterpreters: # Custom code interpreter definitions
 ```
 
 ## Resource Types
 
-### Runtime
+### Runtime Agents (`ai.agents`)
 
-Deploy containerized AI agents with the AgentCore Runtime.
+Deploy AI agents as containerized services or Python code packages.
 
-```yaml
-agents:
-  myAgent:
-    type: runtime
-    description: My AI agent
-    artifact:
-      docker:
-        path: .
-        file: Dockerfile
-        repository: my-agent
-    protocol: HTTP # HTTP, MCP, or A2A
-    network:
-      networkMode: PUBLIC # PUBLIC or VPC
-    # Optional: JWT authorization (omit for IAM auth)
-    authorizer:
-      jwt:
-        discoveryUrl: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_xxx/.well-known/openid-configuration
-        allowedAudience:
-          - my-client-id
-    # Optional: Pass specific headers to the runtime
-    requestHeaders:
-      allowlist:
-        - X-User-Id
-        - X-Session-Id
-        - Authorization
-    # Optional: Lifecycle configuration
-    lifecycle:
-      idleRuntimeSessionTimeout: 900 # 60-28800 seconds
-      maxLifetime: 28800 # 60-28800 seconds
-```
+#### Docker Deployment
 
-#### S3 Code Deployment (Alternative to Docker)
-
-For Python agents, you can deploy code directly from S3 without Docker:
+The framework auto-detects a `Dockerfile` in the current directory. For the simplest case:
 
 ```yaml
-agents:
-  myAgent:
-    type: runtime
-    artifact:
-      s3:
-        bucket: my-bucket
-        key: agent.zip
-      runtime: PYTHON_3_12 # PYTHON_3_10, PYTHON_3_11, PYTHON_3_12, PYTHON_3_13
-      entryPoint:
-        - main.py
-        - handler
+ai:
+  agents:
+    chatbot: {}
 ```
 
-| Property                                         | Required | Description                                   |
-| ------------------------------------------------ | -------- | --------------------------------------------- |
-| `type`                                           | Yes      | `runtime`                                     |
-| `artifact.docker.path`                           | Yes\*    | Docker build context path                     |
-| `artifact.docker.file`                           | No       | Dockerfile name (default: Dockerfile)         |
-| `artifact.docker.repository`                     | No       | ECR repository name                           |
-| `artifact.containerImage`                        | Yes\*    | Pre-built container image URI                 |
-| `artifact.s3.bucket`                             | Yes\*    | S3 bucket for code artifact                   |
-| `artifact.s3.key`                                | Yes\*    | S3 key for code artifact                      |
-| `artifact.runtime`                               | No       | Python runtime (default: PYTHON_3_12)         |
-| `artifact.entryPoint`                            | No       | Entry point array (default: main.py, handler) |
-| `protocol`                                       | No       | `HTTP`, `MCP`, or `A2A`                       |
-| `network.networkMode`                            | No       | `PUBLIC` or `VPC`                             |
-| `authorizer.customJwtAuthorizer`                 | No       | JWT authorizer config (omit for IAM auth)     |
-| `authorizer.customJwtAuthorizer.discoveryUrl`    | Yes\*\*  | OIDC discovery URL                            |
-| `authorizer.customJwtAuthorizer.allowedAudience` | No       | Array of allowed audience values              |
-| `authorizer.customJwtAuthorizer.allowedClients`  | No       | Array of allowed client IDs                   |
-| `lifecycle.idleRuntimeSessionTimeout`            | No       | Session idle timeout (60-28800s)              |
-| `lifecycle.maxLifetime`                          | No       | Max session lifetime (60-28800s)              |
-| `requestHeaders.allowlist`                       | No       | Headers to pass to runtime (max 20)           |
-| `description`                                    | No       | Runtime description                           |
-| `roleArn`                                        | No       | Custom IAM role ARN                           |
-
-\*One of `artifact.docker`, `artifact.containerImage`, or `artifact.s3` is required
-
-\*\*Required when using `customJwtAuthorizer`
-
-### Memory
-
-Store conversation history with semantic search and summarization.
+With explicit Docker configuration:
 
 ```yaml
-agents:
-  conversationMemory:
-    type: memory
-    description: Conversation memory with semantic search
-    eventExpiryDuration: 90
-    strategies:
-      # Semantic search strategy
-      - SemanticMemoryStrategy:
-          Name: ConversationSearch
-          Namespaces:
-            - /conversations/{sessionId}
-
-      # Summarization strategy
-      - SummaryMemoryStrategy:
-          Name: SessionSummary
-          Namespaces:
-            - /sessions/{sessionId}
-
-      # User preference strategy
-      - UserPreferenceMemoryStrategy:
-          Name: UserPrefs
-          Namespaces:
-            - /users/{userId}/preferences
+ai:
+  agents:
+    myAgent:
+      description: My AI agent
+      artifact:
+        image:
+          path: .
+          file: Dockerfile
+          repository: my-agent
+          buildArgs:
+            NODE_ENV: production
+      protocol: http
+      network:
+        mode: public
+      authorizer:
+        type: custom_jwt
+        jwt:
+          discoveryUrl: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_xxx/.well-known/openid-configuration
+          allowedAudience:
+            - my-client-id
+      requestHeaders:
+        allowlist:
+          - X-User-Id
+          - X-Session-Id
+          - Authorization
+      lifecycle:
+        idleRuntimeSessionTimeout: 900
+        maxLifetime: 28800
 ```
 
-| Property              | Required | Description                         |
-| --------------------- | -------- | ----------------------------------- |
-| `type`                | Yes      | `memory`                            |
-| `eventExpiryDuration` | No       | Days to retain (3-365, default: 30) |
-| `strategies`          | No       | Memory strategies array             |
-| `description`         | No       | Memory description                  |
-| `encryptionKeyArn`    | No       | KMS key for encryption              |
-| `roleArn`             | No       | Custom IAM role ARN                 |
+#### Pre-built Container Image
+
+```yaml
+ai:
+  agents:
+    myAgent:
+      artifact:
+        image: 123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest
+```
+
+#### Python Code Deployment (No Docker)
+
+For Python agents, deploy code directly without building a container:
+
+```yaml
+ai:
+  agents:
+    myAgent:
+      handler: agent.py
+      runtime: python3.13
+```
+
+With custom S3 artifact location:
+
+```yaml
+ai:
+  agents:
+    myAgent:
+      handler: agent.py
+      runtime: python3.12
+      artifact:
+        s3:
+          bucket: my-bucket
+          key: agent.zip
+```
+
+#### Runtime Agent Properties
+
+| Property | Required | Description |
+| --- | --- | --- |
+| `description` | No | Agent description (max 1200 chars) |
+| `artifact.image` | No | Container image URI (string) or build config (object) |
+| `artifact.image.path` | No | Docker build context path (default: `.`) |
+| `artifact.image.file` | No | Dockerfile name (default: `Dockerfile`) |
+| `artifact.image.repository` | No | ECR repository name |
+| `artifact.image.buildArgs` | No | Docker build arguments (key-value pairs) |
+| `artifact.s3.bucket` | No | S3 bucket for code artifact |
+| `artifact.s3.key` | No | S3 key for code artifact |
+| `handler` | No | Python entry point file (e.g., `agent.py`) |
+| `runtime` | No | `python3.10`, `python3.11`, `python3.12`, or `python3.13` |
+| `protocol` | No | `http`, `mcp`, or `a2a` |
+| `network.mode` | No | `public` or `vpc` |
+| `network.subnets` | No | VPC subnet IDs (required for vpc mode) |
+| `network.securityGroups` | No | VPC security group IDs (required for vpc mode) |
+| `authorizer` | No | String (`none`, `custom_jwt`) or object with `type` and `jwt` |
+| `authorizer.jwt.discoveryUrl` | Yes* | OIDC discovery URL (*required for custom_jwt) |
+| `authorizer.jwt.allowedAudience` | No | Array of allowed audience values |
+| `authorizer.jwt.allowedClients` | No | Array of allowed client IDs |
+| `lifecycle.idleRuntimeSessionTimeout` | No | Session idle timeout in seconds (60-28800) |
+| `lifecycle.maxLifetime` | No | Max session lifetime in seconds (60-28800) |
+| `requestHeaders.allowlist` | No | Headers to forward to runtime (max 20) |
+| `memory` | No | Inline memory config (object) or reference to `ai.memory` entry (string) |
+| `gateway` | No | Reference to a gateway defined in `ai.gateways` |
+| `environment` | No | Environment variables (same as Lambda) |
+| `package.patterns` | No | File include/exclude patterns for packaging |
+| `package.artifact` | No | Pre-built artifact path |
+| `endpoints` | No | Runtime endpoint definitions |
+| `role` | No | IAM role ARN (string) or customization object |
+| `tags` | No | Resource tags (key-value pairs) |
+
+One of `artifact.image`, `handler`, or auto-detected Dockerfile is required.
+
+#### Agent Authorizer
+
+The authorizer can be a string shorthand or an object:
+
+```yaml
+# String shorthand — no auth
+authorizer: none
+
+# Object form — JWT auth
+authorizer:
+  type: custom_jwt
+  jwt:
+    discoveryUrl: https://example.com/.well-known/openid-configuration
+    allowedAudience:
+      - my-client-id
+    allowedClients:
+      - my-app-client
+    allowedScopes:
+      - read
+      - write
+```
+
+Omitting `authorizer` defaults to IAM authentication.
+
+### Memory (`ai.memory`)
+
+Store conversation history with semantic search and summarization. Memory can be defined as a shared resource in `ai.memory` or inline on an agent.
+
+#### Shared Memory
+
+```yaml
+ai:
+  memory:
+    conversationMemory:
+      description: Conversation memory with semantic search
+      expiration: 90
+      strategies:
+        - SemanticMemoryStrategy:
+            Name: ConversationSearch
+            Namespaces:
+              - /conversations/{sessionId}
+
+        - SummaryMemoryStrategy:
+            Name: SessionSummary
+            Namespaces:
+              - /sessions/{sessionId}
+
+        - UserPreferenceMemoryStrategy:
+            Name: UserPrefs
+            Namespaces:
+              - /users/{userId}/preferences
+```
+
+#### Inline Memory on Agent
+
+```yaml
+ai:
+  agents:
+    chatbot:
+      memory:
+        expiration: 30
+```
+
+#### Memory Properties
+
+| Property | Required | Description |
+| --- | --- | --- |
+| `expiration` | No | Days to retain events (3-365, default: 30) |
+| `strategies` | No | Memory strategies array |
+| `description` | No | Memory description (max 1200 chars) |
+| `encryptionKey` | No | KMS key ARN for encryption |
+| `role` | No | IAM role ARN (string) or customization object |
+| `tags` | No | Resource tags (key-value pairs) |
 
 #### Memory Strategy Types
 
@@ -210,173 +296,329 @@ agents:
       enabled: true
 ```
 
-### Browser
+### Tools (`ai.tools`)
 
-Enable web browsing capabilities for agents.
+Define tools that agents can use via gateways. Four target types are supported.
+
+#### Lambda Function Tool
 
 ```yaml
-agents:
-  webBrowser:
-    type: browser
-    description: Web browser for agent
-    network:
-      networkMode: PUBLIC # PUBLIC or VPC
-    signing:
-      enabled: true
-    recording:
-      enabled: true
-      s3Location:
-        bucket: my-recordings-bucket
-        prefix: browser-sessions/
+ai:
+  tools:
+    calculator:
+      function: calculatorFunction
+      toolSchema:
+        - name: calculate
+          description: Perform basic arithmetic
+          inputSchema:
+            type: object
+            properties:
+              expression:
+                type: string
+                description: Arithmetic expression
+            required:
+              - expression
+
+functions:
+  calculatorFunction:
+    handler: handlers/calculator.handler
+    runtime: nodejs24.x
 ```
 
-| Property               | Required | Description                               |
-| ---------------------- | -------- | ----------------------------------------- |
-| `type`                 | Yes      | `browser`                                 |
-| `network.networkMode`  | No       | `PUBLIC` or `VPC` (default: `PUBLIC`)     |
-| `network.vpcConfig`    | No       | VPC configuration (required for VPC mode) |
-| `signing.enabled`      | No       | Enable request signing                    |
-| `recording.enabled`    | No       | Enable session recording                  |
-| `recording.s3Location` | No       | S3 bucket/prefix for recordings           |
-| `description`          | No       | Browser description                       |
-| `roleArn`              | No       | Custom IAM role ARN                       |
-
-### CodeInterpreter
-
-Enable sandboxed code execution.
+#### OpenAPI Tool
 
 ```yaml
-agents:
-  codeExecutor:
-    type: codeInterpreter
-    description: Python code execution
-    network:
-      networkMode: SANDBOX # SANDBOX, PUBLIC, or VPC
+ai:
+  tools:
+    weatherApi:
+      openapi: ./schemas/weather-api.yml
 ```
 
-| Property              | Required | Description                                        |
-| --------------------- | -------- | -------------------------------------------------- |
-| `type`                | Yes      | `codeInterpreter`                                  |
-| `network.networkMode` | No       | `SANDBOX`, `PUBLIC`, or `VPC` (default: `SANDBOX`) |
-| `network.vpcConfig`   | No       | VPC configuration (required for VPC mode)          |
-| `description`         | No       | CodeInterpreter description                        |
-| `roleArn`             | No       | Custom IAM role ARN                                |
-
-### WorkloadIdentity
-
-Enable OAuth2 authentication for agents to access external services.
+#### Smithy Tool
 
 ```yaml
-agents:
-  agentIdentity:
-    type: workloadIdentity
-    oauth2ReturnUrls:
-      - https://example.com/callback
-      - http://localhost:3000/auth/callback
+ai:
+  tools:
+    myService:
+      smithy: ./schemas/service.smithy
 ```
 
-| Property           | Required | Description                  |
-| ------------------ | -------- | ---------------------------- |
-| `type`             | Yes      | `workloadIdentity`           |
-| `oauth2ReturnUrls` | No       | Allowed OAuth2 redirect URLs |
-
-### Gateway
-
-Integrate external APIs as agent tools via MCP protocol.
+#### MCP Server Tool
 
 ```yaml
-agents:
-  # Gateway without authentication
-  publicGateway:
-    type: gateway
-    description: Public API gateway
-    authorizerType: NONE
-    targets:
-      - name: WeatherAPI
-        type: lambda
-        description: Get weather data
-        functionArn:
-          Fn::GetAtt:
-            - WeatherFunction
-            - Arn
-
-  # Gateway with JWT authentication
-  secureGateway:
-    type: gateway
-    description: Secure API gateway with JWT auth
-    authorizerType: CUSTOM_JWT
-    authorizerConfiguration:
-      customJwtAuthorizer:
-        discoveryUrl: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_xxx/.well-known/openid-configuration
-        allowedAudience:
-          - my-client-id
-        allowedClients:
-          - my-app-client
-        allowedScopes:
-          - read
-          - write
-    protocolConfiguration:
-      mcp:
-        supportedVersions:
-          - '2024-11-05'
-        instructions: 'Use these tools for external API access'
-        searchType: SEMANTIC
-    targets:
-      - name: SecureAPI
-        type: lambda
-        functionArn:
-          Fn::GetAtt:
-            - SecureFunction
-            - Arn
+ai:
+  tools:
+    knowledge:
+      mcp: https://knowledge-mcp.global.api.aws
 ```
 
-| Property                                                      | Required | Description                                                        |
-| ------------------------------------------------------------- | -------- | ------------------------------------------------------------------ |
-| `type`                                                        | Yes      | `gateway`                                                          |
-| `authorizerType`                                              | No       | `NONE`, `AWS_IAM`, or `CUSTOM_JWT` (default: `AWS_IAM`)            |
-| `authorizerConfiguration.customJwtAuthorizer`                 | No\*     | JWT authorizer config (required when `authorizerType: CUSTOM_JWT`) |
-| `authorizerConfiguration.customJwtAuthorizer.discoveryUrl`    | Yes\*\*  | OIDC discovery URL                                                 |
-| `authorizerConfiguration.customJwtAuthorizer.allowedAudience` | No       | Array of allowed audience values                                   |
-| `authorizerConfiguration.customJwtAuthorizer.allowedClients`  | No       | Array of allowed client IDs                                        |
-| `authorizerConfiguration.customJwtAuthorizer.allowedScopes`   | No       | Array of allowed OAuth scopes                                      |
-| `protocolConfiguration.mcp`                                   | No       | MCP protocol configuration                                         |
-| `protocolType`                                                | No       | `MCP` (default: `MCP`)                                             |
-| `targets`                                                     | No       | Gateway targets (Lambda functions)                                 |
-| `description`                                                 | No       | Gateway description                                                |
-| `roleArn`                                                     | No       | Custom IAM role ARN                                                |
-| `kmsKeyArn`                                                   | No       | KMS key for encryption                                             |
+#### Tool Properties
 
-\*Required when `authorizerType` is `CUSTOM_JWT`
+| Property | Required | Description |
+| --- | --- | --- |
+| `function` | No | Lambda function name (string) or `{ name, arn }` object |
+| `openapi` | No | OpenAPI schema file path or inline content |
+| `smithy` | No | Smithy model file path or inline content |
+| `mcp` | No | MCP server HTTPS endpoint URL |
+| `toolSchema` | No | Tool schema array (required for `function` tools) |
+| `credentials` | No | Credential provider configuration |
+| `description` | No | Tool description (max 200 chars) |
 
-\*\*Required when using `customJwtAuthorizer`
+Exactly one of `function`, `openapi`, `smithy`, or `mcp` should be specified.
 
-#### Gateway Targets
-
-Lambda function targets for the gateway:
+#### Tool Credentials
 
 ```yaml
-targets:
-  - name: MyTool
-    type: lambda
-    description: Description shown to agents
-    functionArn: arn:aws:lambda:us-east-1:123456789012:function:MyFunction
-    credentialProvider:
-      oauthCredentialProvider:
-        providerArn: arn:aws:secretsmanager:us-east-1:123456789012:secret:oauth-creds
+ai:
+  tools:
+    externalApi:
+      function: apiFunction
+      toolSchema:
+        - name: fetch_data
+          description: Fetch external data
+          inputSchema:
+            type: object
+            properties:
+              query:
+                type: string
+      credentials:
+        type: oauth
+        provider: arn:aws:secretsmanager:us-east-1:123456789012:secret:oauth-creds
         scopes:
           - read
           - write
+        grantType: client_credentials
+```
+
+| Credential Type | Properties |
+| --- | --- |
+| `gateway_iam_role` (default) | No additional config needed |
+| `oauth` | `provider` (Token Vault ARN), `scopes`, `grantType`, `defaultReturnUrl`, `customParameters` |
+| `api_key` | `location` (`header` or `query_parameter`), `parameterName`, `prefix` |
+
+### Gateways (`ai.gateways`)
+
+Gateways route tools to agents via MCP protocol. When `ai.tools` is defined without `ai.gateways`, a default gateway is auto-created with all tools assigned.
+
+#### Explicit Gateways
+
+```yaml
+ai:
+  tools:
+    calculator:
+      function: calculatorFunction
+      toolSchema:
+        - name: calculate
+          description: Perform arithmetic
+          inputSchema:
+            type: object
+            properties:
+              expression:
+                type: string
+            required:
+              - expression
+
+    internalLookup:
+      function: internalLookupFunction
+      toolSchema:
+        - name: lookup_user
+          description: Look up internal user info
+          inputSchema:
+            type: object
+            properties:
+              userId:
+                type: string
+            required:
+              - userId
+
+  gateways:
+    publicGateway:
+      authorizer: none
+      tools:
+        - calculator
+
+    privateGateway:
+      authorizer: aws_iam
+      tools:
+        - internalLookup
+
+  agents:
+    publicAgent:
+      gateway: publicGateway
+
+    privateAgent:
+      gateway: privateGateway
+```
+
+#### Default Gateway (Auto-created)
+
+When tools exist but no gateways are defined, a default gateway is created with all tools:
+
+```yaml
+ai:
+  tools:
+    calculator:
+      function: calculatorFunction
+      toolSchema:
+        - name: calculate
+          description: Perform arithmetic
+          inputSchema:
+            type: object
+            properties:
+              expression:
+                type: string
+
+  agents:
+    chatbot: {}
+```
+
+#### Gateway with JWT Auth
+
+```yaml
+ai:
+  gateways:
+    secureGateway:
+      authorizer:
+        type: custom_jwt
+        jwt:
+          discoveryUrl: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_xxx/.well-known/openid-configuration
+          allowedAudience:
+            - my-client-id
+          allowedClients:
+            - my-app-client
+          allowedScopes:
+            - read
+            - write
+      protocol:
+        instructions: Use these tools for external API access
+        searchType: semantic
+      tools:
+        - myTool
+```
+
+#### Gateway Properties
+
+| Property | Required | Description |
+| --- | --- | --- |
+| `authorizer` | No | String (`none`, `aws_iam`, `custom_jwt`) or object with `type` and `jwt` |
+| `tools` | No | Array of tool names referencing entries in `ai.tools` |
+| `protocol` | No | MCP protocol configuration |
+| `protocol.instructions` | No | Instructions for the agent (max 2048 chars) |
+| `protocol.searchType` | No | `semantic` |
+| `protocol.supportedVersions` | No | Supported MCP versions |
+| `description` | No | Gateway description (max 200 chars) |
+| `role` | No | IAM role ARN (string) or customization object |
+| `kmsKey` | No | KMS key ARN for encryption |
+| `exceptionLevel` | No | `debug` |
+| `tags` | No | Resource tags (key-value pairs) |
+
+### Browsers (`ai.browsers`)
+
+Define custom browser resources. For the default AWS-managed browser, no configuration is needed — the agent auto-detects it. Custom browsers are for advanced use cases like session recording or VPC mode.
+
+```yaml
+ai:
+  browsers:
+    customBrowser:
+      description: Custom browser with session recording
+      network:
+        mode: public
+      signing:
+        enabled: true
+      recording:
+        enabled: true
+        s3Location:
+          bucket: my-recordings-bucket
+          prefix: browser-sessions/
+```
+
+| Property | Required | Description |
+| --- | --- | --- |
+| `network.mode` | No | `public` or `vpc` (default: `public`) |
+| `network.subnets` | No | VPC subnet IDs (required for vpc mode) |
+| `network.securityGroups` | No | VPC security group IDs (required for vpc mode) |
+| `signing.enabled` | No | Enable request signing |
+| `recording.enabled` | No | Enable session recording |
+| `recording.s3Location.bucket` | Yes* | S3 bucket for recordings (*required when recording enabled) |
+| `recording.s3Location.prefix` | Yes* | S3 prefix for recordings (*required when recording enabled) |
+| `description` | No | Browser description (max 1200 chars) |
+| `role` | No | IAM role ARN (string) or customization object |
+| `tags` | No | Resource tags (key-value pairs) |
+
+### CodeInterpreters (`ai.codeInterpreters`)
+
+Define custom code interpreter resources. For the default AWS-managed code interpreter (sandbox mode), no configuration is needed. Custom interpreters are for public or vpc network modes.
+
+```yaml
+ai:
+  codeInterpreters:
+    publicInterpreter:
+      description: Code interpreter with public internet access
+      network:
+        mode: public
+```
+
+| Property | Required | Description |
+| --- | --- | --- |
+| `network.mode` | No | `sandbox` (default), `public`, or `vpc` |
+| `network.subnets` | No | VPC subnet IDs (required for vpc mode) |
+| `network.securityGroups` | No | VPC security group IDs (required for vpc mode) |
+| `description` | No | CodeInterpreter description (max 1200 chars) |
+| `role` | No | IAM role ARN (string) or customization object |
+| `tags` | No | Resource tags (key-value pairs) |
+
+## IAM Role Customization
+
+All resource types support IAM role customization. You can provide an existing role ARN or customize the auto-generated role.
+
+#### Existing Role ARN
+
+```yaml
+ai:
+  agents:
+    myAgent:
+      role: arn:aws:iam::123456789012:role/MyCustomRole
+```
+
+#### Role Customization
+
+Add custom IAM statements, managed policies, or a permissions boundary to the auto-generated role:
+
+```yaml
+ai:
+  agents:
+    myAgent:
+      role:
+        name: MyAgentRole
+        statements:
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+            Resource: arn:aws:s3:::my-bucket/*
+        managedPolicies:
+          - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+        permissionsBoundary: arn:aws:iam::123456789012:policy/MyBoundary
+        tags:
+          Team: AI
+```
+
+CloudFormation intrinsic functions are also supported for the `role` property:
+
+```yaml
+role:
+  Fn::GetAtt:
+    - MyCustomRole
+    - Arn
 ```
 
 ## Commands
 
 ```bash
-sls agentcore info        # Show defined resources
-sls agentcore build       # Build Docker images
-sls agentcore invoke      # Invoke a deployed agent
-sls agentcore logs        # Fetch logs for a runtime
-sls package               # Generate CloudFormation
 sls deploy                # Deploy to AWS
+sls dev                   # Local development with hot reload
+sls invoke --agent myAgent -d "Hello"  # Invoke a deployed agent
+sls logs --agent myAgent  # Fetch agent logs
+sls package               # Generate CloudFormation
 sls remove                # Remove deployed resources
 ```
 
@@ -396,44 +638,32 @@ custom:
 
 ### VPC Configuration
 
-For resources that support VPC mode:
+For resources that support vpc mode:
 
 ```yaml
 network:
-  networkMode: VPC
-  vpcConfig:
-    subnets:
-      - subnet-12345678
-      - subnet-87654321
-    securityGroups:
-      - sg-12345678
-```
-
-### Custom IAM Roles
-
-Bring your own IAM roles instead of auto-generated ones:
-
-```yaml
-agents:
-  myAgent:
-    type: runtime
-    roleArn: arn:aws:iam::123456789012:role/MyCustomRole
-    # ... other config
+  mode: vpc
+  subnets:
+    - subnet-12345678
+    - subnet-87654321
+  securityGroups:
+    - sg-12345678
 ```
 
 ## CloudFormation Outputs
 
 The plugin automatically creates CloudFormation outputs for each resource:
 
-- `{AgentName}RuntimeArn` - Runtime ARN
-- `{AgentName}RuntimeId` - Runtime ID
-- `{AgentName}MemoryArn` - Memory ARN
-- `{AgentName}MemoryId` - Memory ID
-- `{AgentName}GatewayArn` - Gateway ARN
-- `{AgentName}GatewayUrl` - Gateway URL
-- `{AgentName}BrowserArn` - Browser ARN
-- `{AgentName}CodeInterpreterArn` - CodeInterpreter ARN
-- `{AgentName}WorkloadIdentityArn` - WorkloadIdentity ARN
+- `{Name}RuntimeArn` - Runtime ARN
+- `{Name}RuntimeId` - Runtime ID
+- `{Name}MemoryArn` - Memory ARN
+- `{Name}MemoryId` - Memory ID
+- `{Name}GatewayArn` - Gateway ARN
+- `{Name}GatewayUrl` - Gateway URL
+- `{Name}BrowserArn` - Browser ARN
+- `{Name}BrowserId` - Browser ID
+- `{Name}CodeInterpreterArn` - CodeInterpreter ARN
+- `{Name}CodeInterpreterId` - CodeInterpreter ID
 
 ## Supported AWS Regions
 
@@ -453,7 +683,7 @@ See the [examples directory](./examples/) for complete working examples:
 - [langgraph-browser](./examples/python/langgraph-browser/) - LangGraph agent with browser automation
 - [langgraph-browser-custom](./examples/python/langgraph-browser-custom/) - Custom browser with session recording
 - [langgraph-code-interpreter](./examples/python/langgraph-code-interpreter/) - LangGraph agent with code execution
-- [langgraph-code-interpreter-custom](./examples/python/langgraph-code-interpreter-custom/) - Custom code interpreter with PUBLIC network
+- [langgraph-code-interpreter-custom](./examples/python/langgraph-code-interpreter-custom/) - Custom code interpreter with public network
 - [strands-browser](./examples/python/strands-browser/) - Strands Agents with browser automation
 
 **JavaScript:**
@@ -463,7 +693,7 @@ See the [examples directory](./examples/) for complete working examples:
 - [langgraph-browser](./examples/javascript/langgraph-browser/) - LangGraph JS agent with browser automation
 - [langgraph-browser-custom](./examples/javascript/langgraph-browser-custom/) - Custom browser with session recording
 - [langgraph-code-interpreter](./examples/javascript/langgraph-code-interpreter/) - LangGraph JS agent with code execution
-- [langgraph-code-interpreter-custom](./examples/javascript/langgraph-code-interpreter-custom/) - Custom code interpreter with PUBLIC network
+- [langgraph-code-interpreter-custom](./examples/javascript/langgraph-code-interpreter-custom/) - Custom code interpreter with public network
 - [langgraph-gateway](./examples/javascript/langgraph-gateway/) - LangGraph JS agent with Lambda tools via Gateway
 - [langgraph-memory](./examples/javascript/langgraph-memory/) - LangGraph JS agent with conversation persistence
 - [langgraph-multi-gateway](./examples/javascript/langgraph-multi-gateway/) - Multiple gateways with different authorization
@@ -474,4 +704,3 @@ See the [examples directory](./examples/) for complete working examples:
 
 - [AWS Bedrock AgentCore Documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-core.html)
 - [Strands Agents SDK](https://github.com/strands-agents/sdk-python) - Python framework for building agents
-- [Google ADK](https://github.com/google/adk-python) - Alternative agent framework

@@ -222,7 +222,7 @@ class AwsDev {
       // 2. Get Gateway URL - resolve from agent's gateway reference or default
       // Mirrors compiler logic: named gateway if agent specifies one,
       // default gateway if no explicit gateways defined, otherwise none
-      const hasGateways = Boolean(aiConfig.gateways)
+      const hasGateways = Object.keys(aiConfig.gateways || {}).length > 0
       if (agentConfig.gateway) {
         const gatewayOutputKey = `${getGatewayLogicalId(agentConfig.gateway)}Url`
         const gatewayOutput = stackOutputs.find(
@@ -345,7 +345,7 @@ class AwsDev {
 
     this.validateOnExitOption()
 
-    this.serverless.functionsDevModeEnabled = true
+    this.serverless.devmodeEnabled = true
     logger.logoDevMode()
 
     // Educate

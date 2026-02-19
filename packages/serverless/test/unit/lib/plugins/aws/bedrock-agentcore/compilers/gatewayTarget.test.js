@@ -63,9 +63,13 @@ describe('GatewayTarget Compiler', () => {
   })
 
   describe('isFilePath', () => {
-    test('returns true for paths with slashes', () => {
+    test('returns true for relative paths starting with dot', () => {
       expect(isFilePath('./schema.json')).toBe(true)
-      expect(isFilePath('config/openapi.yml')).toBe(true)
+      expect(isFilePath('../config/openapi.yml')).toBe(true)
+    })
+
+    test('returns true for absolute paths', () => {
+      expect(isFilePath('/home/user/schema.json')).toBe(true)
     })
 
     test('returns true for common file extensions', () => {
@@ -73,11 +77,22 @@ describe('GatewayTarget Compiler', () => {
       expect(isFilePath('openapi.yaml')).toBe(true)
       expect(isFilePath('schema.json')).toBe(true)
       expect(isFilePath('model.smithy')).toBe(true)
+      expect(isFilePath('config/openapi.yml')).toBe(true)
+    })
+
+    test('returns false for inline content with slashes', () => {
+      expect(isFilePath('openapi: 3.0.0\npaths:\n  /pets:')).toBe(false)
+      expect(isFilePath('namespace com.example\nresource /pets')).toBe(false)
     })
 
     test('returns false for inline content', () => {
       expect(isFilePath('openapi: 3.0.0')).toBe(false)
       expect(isFilePath('{ "type": "object" }')).toBe(false)
+    })
+
+    test('returns false for URLs', () => {
+      expect(isFilePath('https://example.com/api/schema.json')).toBe(false)
+      expect(isFilePath('http://localhost:3000/openapi.yml')).toBe(false)
     })
 
     test('returns false for null/undefined', () => {

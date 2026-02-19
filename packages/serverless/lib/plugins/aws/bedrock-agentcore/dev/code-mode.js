@@ -44,7 +44,7 @@ export class AgentCoreCodeMode {
   async start(credentials) {
     const handler = this.#agentConfig.handler
     const handlerPath = path.resolve(this.#projectPath, handler)
-    const runtime = this.#agentConfig.runtime || 'PYTHON_3_13'
+    const runtime = this.#agentConfig.runtime || 'python3.13'
 
     // Get Python command
     const pythonCmd = this.#getPythonCommand(runtime)
@@ -217,9 +217,11 @@ export class AgentCoreCodeMode {
       return 'python.exe'
     }
 
-    // Convert PYTHON_3_13 to python3.13
-    // Remove PYTHON_ prefix, replace remaining underscores with dots, prepend 'python'
-    const version = runtime.replace('PYTHON_', '').replace(/_/g, '.')
+    const version = runtime
+      .toLowerCase()
+      .replace(/^python/, '')
+      .replace(/^_/, '')
+      .replace(/_/g, '.')
     return `python${version}`
   }
 
@@ -250,8 +252,10 @@ export class AgentCoreCodeMode {
       const { stdout } = await execP(`${pythonCmd} --version`)
       const installedVersion = stdout.trim() // "Python 3.13.1"
       const expectedVersion = expectedRuntime
-        .replace('PYTHON_', '')
-        .replace(/_/g, '.') // "3.13"
+        .toLowerCase()
+        .replace(/^python/, '')
+        .replace(/^_/, '')
+        .replace(/_/g, '.')
 
       if (!installedVersion.includes(expectedVersion)) {
         logger.warning(

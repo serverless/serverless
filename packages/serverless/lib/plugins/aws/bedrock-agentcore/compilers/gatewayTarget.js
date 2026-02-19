@@ -44,9 +44,10 @@ export function detectTargetType(config) {
  */
 export function isFilePath(value) {
   if (!value || typeof value !== 'string') return false
-  // Check for common file extensions or path separators
+  if (/^https?:\/\//i.test(value)) return false
   return (
-    value.includes('/') ||
+    value.startsWith('.') ||
+    value.startsWith('/') ||
     value.endsWith('.yml') ||
     value.endsWith('.yaml') ||
     value.endsWith('.json') ||

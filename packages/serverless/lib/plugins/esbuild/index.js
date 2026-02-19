@@ -710,7 +710,7 @@ class Esbuild {
         ),
       )
     } catch (err) {
-      if (this.serverless.functionsDevModeEnabled === true) {
+      if (this.serverless.devmodeEnabled === true) {
         return
       }
       throw new ServerlessError(err.message, 'ESBULD_BUILD_ERROR')
