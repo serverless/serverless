@@ -1,5 +1,6 @@
 'use strict'
 
+import path from 'path'
 import { jest } from '@jest/globals'
 
 // Mock @serverless/util before importing the module
@@ -241,7 +242,7 @@ describe('DockerBuilder', () => {
       expect(mockDockerClient.buildImage).toHaveBeenCalledWith(
         expect.objectContaining({
           imageUri: 'my-image:latest',
-          containerPath: '/path/to/service',
+          containerPath: path.resolve('/path/to/service', '.'),
           platform: 'linux/arm64',
         }),
       )
