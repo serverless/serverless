@@ -24,6 +24,13 @@ if (__dirname.endsWith('dist')) {
   __dirname = path.join(__dirname, '../lib/plugins/aws/dev')
 }
 
+const AWS_LAMBDA_SUPPORTED_NODE_RUNTIMES = [
+  'nodejs18.x',
+  'nodejs20.x',
+  'nodejs22.x',
+  'nodejs24.x',
+]
+
 const MQTT_PAYLOAD_LIMIT = 125 * 1024 // 125 KB
 const PAYLOAD_LIMIT_EXCEEDED_INSTRUCTION =
   'Deploy and invoke the function to test with large responses.'
@@ -283,7 +290,7 @@ class AwsDev {
    * Updates the serverless service configuration with dev mode config needed for the shim to work. Specifically:
    *   1. Update all AWS Lambda functions' IAM roles to allow all IoT actions.
    *   2. Update all AWS Lambad function's handler to 'index.handler' as set in the shim
-   *   3. Update all AWS Lambda functions' runtime to 'nodejs20.x' as expected by the shim
+   *   3. Update all AWS Lambda functions' runtime to match the local Node.js runtime when supported by AWS Lambda
    *   4. Update all AWS Lambda functions' environment variables to include the IoT endpoint and a function identifier.
    *
    * This method also backs up the original IAM configuration and function configurations to allow for later restoration.
@@ -331,7 +338,18 @@ class AwsDev {
     const stageName = this.serverless.getProvider('aws').getStage()
     const localRuntimeVersion = process.version.split('.')[0].replace('v', '')
     const localRuntime = `nodejs${localRuntimeVersion}.x`
+    const runtimeForShim = AWS_LAMBDA_SUPPORTED_NODE_RUNTIMES.includes(
+      localRuntime,
+    )
+      ? localRuntime
+      : 'nodejs20.x'
     let atLeastOneRuntimeVersionMismatch = false
+
+    if (runtimeForShim !== localRuntime) {
+      logger.warning(
+        `Your local machine is using Node.js v${localRuntimeVersion}, which is not yet supported by AWS Lambda. Falling back to ${runtimeForShim} for dev mode deployment.`,
+      )
+    }
 
     const allFunctions = this.serverless.service.getAllFunctions()
 
@@ -377,8 +395,7 @@ class AwsDev {
       return false
     })
 
-    // Warn the user if the local runtime version does not match event one function runtime version
-    if (atLeastOneRuntimeVersionMismatch) {
+    if (atLeastOneRuntimeVersionMismatch && runtimeForShim === localRuntime) {
       logger.warning(
         `Your local machine is using Node.js v${localRuntimeVersion}, while at least one of your functions is not. Ensure matching runtime versions for accurate testing.`,
       )
@@ -394,7 +411,7 @@ class AwsDev {
       functionConfig.originalHandler = functionConfig.handler
 
       functionConfig.handler = 'index.handler'
-      functionConfig.runtime = 'nodejs20.x'
+      functionConfig.runtime = runtimeForShim
 
       functionConfig.environment = functionConfig.environment || {}
 
