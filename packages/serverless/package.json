@@ -58,7 +58,7 @@
     "filesize": "^11.0.13",
     "fs-extra": "^11.3.3",
     "get-stdin": "^9.0.0",
-    "glob": "^10.5.0",
+    "glob": "^12.0.0",
     "globby": "^14.1.0",
     "graphql": "^16.6.0",
     "https-proxy-agent": "^7.0.6",
