@@ -200,7 +200,7 @@ Deploy Python code directly without Docker:
 ai:
   agents:
     myAgent:
-      handler: agent.main # Triggers code deployment mode
+      handler: agent.py # Triggers code deployment mode
       runtime: python3.13 # or python3.10, python3.11, python3.12
       environment:
         MODEL_ID: us.anthropic.claude-sonnet-4-5-20250929-v1:0
@@ -238,7 +238,7 @@ ai:
       artifact:
         image: # Docker deployment
       # OR
-      handler: agent.main # Code deployment
+      handler: agent.py # Code deployment
       runtime: python3.12
 
       # Optional configuration
@@ -260,7 +260,8 @@ ai:
     conversations:
       expiration: 30 # days
       strategies:
-        - type: semantic
+        - SemanticMemoryStrategy:
+            Name: Conversations
 
   agents:
     myAgent:
@@ -275,14 +276,17 @@ ai:
 ai:
   tools:
     calculator:
-      function:
-        name: calculatorFunction
+      function: calculatorFunction
       toolSchema:
         - name: calculate
           description: Perform calculations
-          parameters:
-            expression:
-              type: string
+          inputSchema:
+            type: object
+            properties:
+              expression:
+                type: string
+            required:
+              - expression
 
   gateways:
     default:

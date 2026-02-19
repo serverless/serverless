@@ -370,13 +370,13 @@ For complete implementations, see the gateway examples in the [Examples](#exampl
 
 **JavaScript:**
 
-- [LangGraph Gateway](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-gateway/) - Basic gateway with Lambda tools
-- [LangGraph Multi-Gateway](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-multi-gateway/) - Multiple gateways with different authorization
+- [LangGraph Gateway](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-gateway) - Basic gateway with Lambda tools
+- [LangGraph Multi-Gateway](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-multi-gateway) - Multiple gateways with different authorization
 
 **Python:**
 
-- [LangGraph Gateway](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-gateway/) - Basic gateway with Lambda tools
-- [LangGraph Multi-Gateway](https://github.com/serverless/serverless/blob/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-multi-gateway/) - Multiple gateways with different authorization
+- [LangGraph Gateway](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-gateway) - Basic gateway with Lambda tools
+- [LangGraph Multi-Gateway](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-multi-gateway) - Multiple gateways with different authorization
 
 ## Next Steps
 

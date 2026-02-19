@@ -41,7 +41,11 @@ async function resolveCfEnvVars(provider, envVars, stackOutputs = []) {
             )
           }
         } else if (envValue['Fn::GetAtt']) {
-          const [logicalId, attr] = envValue['Fn::GetAtt']
+          const getAttValue = envValue['Fn::GetAtt']
+          const [logicalId, attr] =
+            typeof getAttValue === 'string'
+              ? getAttValue.split('.')
+              : getAttValue
           let resolved = null
 
           for (const [outputKey, outputValue] of Object.entries(outputMap)) {
