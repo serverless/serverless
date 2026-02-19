@@ -12,7 +12,7 @@ A LangGraph agent demonstrating AgentCore Memory for conversation persistence us
 
 ## Architecture
 
-```
+```text
 User Message
      ↓
 AgentCore Runtime → LangGraph Agent

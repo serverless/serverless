@@ -191,6 +191,24 @@ describe('ServerlessBedrockAgentCore', () => {
       ).not.toThrow()
     })
 
+    test('throws error for artifact.s3 without bucket', () => {
+      expect(() =>
+        pluginInstance.validateRuntime('myAgent', {
+          handler: 'agent.py',
+          artifact: { s3: { key: 'agent.zip' } },
+        }),
+      ).toThrow("artifact.s3 requires 'bucket' to be specified")
+    })
+
+    test('throws error for artifact.s3 without key', () => {
+      expect(() =>
+        pluginInstance.validateRuntime('myAgent', {
+          handler: 'agent.py',
+          artifact: { s3: { bucket: 'my-bucket' } },
+        }),
+      ).toThrow("artifact.s3 requires 'key' to be specified")
+    })
+
     test('accepts artifact.docker', () => {
       expect(() =>
         pluginInstance.validateRuntime('myAgent', {
@@ -353,12 +371,20 @@ describe('ServerlessBedrockAgentCore', () => {
       ).not.toThrow()
     })
 
-    test('accepts VPC mode', () => {
+    test('accepts VPC mode with subnets', () => {
+      expect(() =>
+        pluginInstance.validateBrowser('myBrowser', {
+          network: { mode: 'VPC', subnets: ['subnet-abc123'] },
+        }),
+      ).not.toThrow()
+    })
+
+    test('throws error for VPC mode without subnets', () => {
       expect(() =>
         pluginInstance.validateBrowser('myBrowser', {
           network: { mode: 'VPC' },
         }),
-      ).not.toThrow()
+      ).toThrow('requires network.subnets when mode is VPC')
     })
 
     test('throws error for recording without bucket', () => {

@@ -18,7 +18,7 @@ A JavaScript MCP server deployed to AWS Bedrock AgentCore Runtime. Exposes simpl
 
 ## Project structure
 
-```
+```text
 mcp-server/
 ├── index.js          # MCP server (Express + @modelcontextprotocol/sdk)
 ├── package.json      # Dependencies and start script

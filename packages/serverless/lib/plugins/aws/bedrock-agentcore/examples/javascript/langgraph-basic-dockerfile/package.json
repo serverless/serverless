@@ -6,10 +6,10 @@
   "main": "agent.js",
   "scripts": {
     "start": "node agent.js",
-    "dev": "sls agentcore dev",
+    "dev": "sls dev",
     "deploy": "sls deploy",
-    "invoke": "sls invoke agent --agent assistant",
-    "logs": "sls agentcore logs --agent assistant --tail",
+    "invoke": "sls invoke --agent assistant",
+    "logs": "sls logs --agent assistant --tail",
     "remove": "sls remove"
   },
   "keywords": [

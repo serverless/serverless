@@ -136,6 +136,20 @@ export function validateRuntime(
     )
   }
 
+  // Validate artifact.s3 requires both bucket and key
+  if (config.artifact?.s3) {
+    if (!config.artifact.s3.bucket) {
+      throwError(
+        `Runtime '${name}' artifact.s3 requires 'bucket' to be specified.`,
+      )
+    }
+    if (!config.artifact.s3.key) {
+      throwError(
+        `Runtime '${name}' artifact.s3 requires 'key' to be specified.`,
+      )
+    }
+  }
+
   // Validate requestHeaders configuration
   if (config.requestHeaders) {
     if (config.requestHeaders.allowlist) {

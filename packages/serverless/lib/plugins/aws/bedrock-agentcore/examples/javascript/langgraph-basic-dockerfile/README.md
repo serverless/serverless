@@ -56,9 +56,12 @@ sls deploy
 
 ```bash
 # Via Serverless Framework CLI
-sls invoke agent --agent assistant --data '{"prompt":"Hello! What can you help me with?"}'
+sls invoke --agent assistant --data '{"prompt":"Hello! What can you help me with?"}'
 
-# Or via curl (replace URL with your runtime URL from `sls agentcore info`)
+# Plain string is also supported:
+# sls invoke --agent assistant -d "Hello! What can you help me with?"
+
+# Or via curl (replace URL with your runtime URL from `sls info`)
 curl -X POST https://your-runtime-url/invoke \
   -H "Content-Type: application/json" \
   -d '{"prompt":"Hello! What can you help me with?"}'
@@ -72,7 +75,7 @@ sls remove
 
 ## Project Structure
 
-```
+```text
 langgraph-basic-dockerfile/
 ├── serverless.yml    # Serverless Framework configuration
 ├── agent.js          # LangGraph JS agent with tools
@@ -85,7 +88,7 @@ langgraph-basic-dockerfile/
 
 ### Agent Architecture
 
-```
+```text
 User Input
     │
     ▼

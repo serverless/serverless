@@ -14,7 +14,7 @@ A LangGraph agent demonstrating multiple AgentCore capabilities in a single depl
 
 ## Architecture
 
-```
+```text
 User Request --> AgentCore Runtime --> agents/index.js
                                         |
                                     LangGraph ReAct Agent

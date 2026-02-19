@@ -14,7 +14,7 @@ A minimal LangGraph agent demonstrating core AgentCore concepts using code deplo
 
 ## Architecture
 
-```
+```text
 User Request → AgentCore Runtime → agent_invocation()
                                       ↓
                                    LangGraph
@@ -105,7 +105,7 @@ serverless dev
 
 ### The LangGraph
 
-```
+```text
 START → chatbot → [decide: use tool or respond]
            ↑            ↓
            └─── tools ←┘

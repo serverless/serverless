@@ -49,7 +49,10 @@ sls deploy
 
 ```bash
 # Via Serverless Framework CLI
-sls invoke agent --agent assistant --data '{"prompt":"What is 25 multiplied by 4?"}'
+sls invoke --agent assistant --data '{"prompt":"What is 25 multiplied by 4?"}'
+
+# Plain string is also supported:
+# sls invoke --agent assistant -d "What is 25 multiplied by 4?"
 ```
 
 ### Remove
@@ -60,7 +63,7 @@ sls remove
 
 ## Project Structure
 
-```
+```text
 langgraph-basic/
 ├── serverless.yml    # Serverless Framework configuration
 ├── index.js          # LangGraph JS agent with tools

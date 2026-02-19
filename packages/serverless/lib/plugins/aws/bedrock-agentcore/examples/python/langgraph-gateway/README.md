@@ -12,7 +12,7 @@ A LangGraph agent demonstrating how to add custom Lambda function tools via Agen
 
 ## Architecture
 
-```
+```text
 User Request → AgentCore Runtime → agent_invocation()
                                       ↓
                                    LangGraph

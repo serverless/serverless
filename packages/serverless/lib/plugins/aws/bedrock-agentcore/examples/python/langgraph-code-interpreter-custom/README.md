@@ -19,7 +19,7 @@ This example demonstrates using a custom code interpreter with PUBLIC network mo
 
 ## Project Structure
 
-```
+```text
 langgraph-code-interpreter-custom/
 ├── serverless.yml     # Custom interpreter + agent configuration
 ├── agent.py           # LangGraph agent with custom interpreter
@@ -46,7 +46,7 @@ serverless deploy
 
 2. **Note the runtime ARN** from the output:
 
-```
+```yaml
 ai:
   codeInterpreters: N/A
   agents:

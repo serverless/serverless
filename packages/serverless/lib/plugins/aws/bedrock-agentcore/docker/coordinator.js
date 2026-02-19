@@ -145,7 +145,7 @@ export async function pushDockerImages(config) {
   mainProgress.notice('Uploading')
 
   // Initialize Docker builder
-  const builder = new DockerBuilder(serverless, log)
+  const builder = new DockerBuilder(serverless, log, progress)
 
   // Push all built images
   for (const metadata of buildMetadata) {

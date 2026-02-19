@@ -11,7 +11,7 @@ This example demonstrates using AWS-managed default code interpreter with a Lang
 
 ## Project Structure
 
-```
+```text
 langgraph-code-interpreter/
 ├── serverless.yml     # Serverless Framework configuration
 ├── agent.py           # LangGraph agent with code interpreter
@@ -38,7 +38,7 @@ serverless deploy
 
 2. **Note the runtime ARN** from the output:
 
-```
+```yaml
 ai:
   agents:
     codeAgent: https://bedrock-agentcore.us-east-1.amazonaws.com/runtimes/arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/.../invocations

@@ -21,7 +21,7 @@ This example demonstrates using a **custom AgentCore browser** with session reco
 
 ## Project Structure
 
-```
+```text
 langgraph-browser-custom/
 ├── serverless.yml      # Defines custom browser + S3 bucket + runtime
 ├── agent.py            # LangGraph agent using custom browser
@@ -62,7 +62,7 @@ serverless deploy
 
 Example output:
 
-```
+```yaml
 ai:
   agents:
     browserAgent: https://bedrock-agentcore.us-east-1.amazonaws.com/runtimes/arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/xxx/invocations
@@ -84,7 +84,7 @@ python test-invoke.py
 
 ### Expected Output
 
-```
+```text
 LangGraph Custom Browser Agent - Validation Test
 Recordings Bucket: langgraph-browser-custom-recordings-dev
 Region: us-east-1

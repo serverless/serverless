@@ -49,7 +49,7 @@ const browseWebpage = tool(
 
     const browserClient = new Browser({
       region: AWS_REGION,
-      identifier: CUSTOM_BROWSER_ID,
+      ...(CUSTOM_BROWSER_ID && { identifier: CUSTOM_BROWSER_ID }),
     })
 
     try {

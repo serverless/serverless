@@ -11,7 +11,7 @@ This example demonstrates using AgentCore Browser with the Strands Agents framew
 
 ## Project Structure
 
-```
+```text
 strands-browser/
 ├── serverless.yml      # Serverless configuration
 ├── agent.py            # Strands agent with browser tool
@@ -33,7 +33,7 @@ serverless deploy
 
 After deployment, note the runtime ARN from the output:
 
-```
+```yaml
 ai:
   agents:
     browserAgent: https://bedrock-agentcore.us-east-1.amazonaws.com/runtimes/arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/xxx/invocations
@@ -79,20 +79,20 @@ agent = Agent(
 
 **Web Search:**
 
-```
+```text
 Search for the latest news about AWS and summarize the top 3 headlines
 ```
 
 **Financial Analysis:**
 
-```
+```text
 Analyze the Tesla stock page at https://www.marketwatch.com/investing/stock/tsla
 and provide key financial metrics
 ```
 
 **Data Extraction:**
 
-```
+```text
 Visit https://aws.amazon.com/about-aws/whats-new/ and list the 5 most recent announcements
 ```
 

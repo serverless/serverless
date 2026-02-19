@@ -12,7 +12,7 @@ A multi-agent setup with public and private gateways, each with different author
 
 ## Architecture
 
-```
+```text
                     +-----------------+
                     |   Calculator    |  (Lambda - nodejs20.x)
                     |   Function      |

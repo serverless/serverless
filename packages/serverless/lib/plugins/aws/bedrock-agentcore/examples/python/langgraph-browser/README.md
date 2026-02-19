@@ -10,7 +10,7 @@ This example demonstrates using AgentCore Browser with LangChain/LangGraph for w
 
 ## Project Structure
 
-```
+```text
 langgraph-browser/
 ├── serverless.yml      # Serverless configuration
 ├── agent.py            # LangGraph agent with browser toolkit
@@ -32,7 +32,7 @@ serverless deploy
 
 After deployment, note the runtime ARN from the output:
 
-```
+```yaml
 ai:
   agents:
     browserAgent: https://bedrock-agentcore.us-east-1.amazonaws.com/runtimes/arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/xxx/invocations
@@ -109,25 +109,25 @@ config_user2 = {"configurable": {"thread_id": "user-2"}}
 
 **Navigation:**
 
-```
+```text
 Navigate to https://example.com and tell me the main heading
 ```
 
 **Extract Links:**
 
-```
+```text
 Navigate to https://aws.amazon.com and extract the first 5 hyperlinks
 ```
 
 **Page Analysis:**
 
-```
+```text
 Navigate to https://python.org and describe the main sections
 ```
 
 **Form Interaction:**
 
-```
+```text
 Navigate to https://google.com, type "AWS Lambda" in the search box
 ```
 

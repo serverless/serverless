@@ -59,11 +59,8 @@ def invoke_agent(input_text: str):
                     content.append(line)
             print("\nComplete response:", "\n".join(content))
         elif response.get("contentType") == "application/json":
-            # Handle standard JSON response
-            content = []
-            for chunk in response.get("response", []):
-                content.append(chunk.decode('utf-8'))
-            print(json.loads(''.join(content)))
+            body = response["response"].read().decode("utf-8")
+            print(json.loads(body))
         else:
             # Print raw response for other content types
             print(response)

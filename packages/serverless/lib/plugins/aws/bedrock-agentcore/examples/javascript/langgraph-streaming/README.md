@@ -77,7 +77,10 @@ sls deploy
 
 ```bash
 # Via Serverless Framework CLI
-sls invoke agent --agent assistant --data '{"prompt":"Write a haiku about streaming data."}'
+sls invoke --agent assistant --data '{"prompt":"Write a haiku about streaming data."}'
+
+# Plain string is also supported:
+# sls invoke --agent assistant -d "Write a haiku about streaming data."
 ```
 
 ### Test Streaming Locally
@@ -94,7 +97,7 @@ sls remove
 
 ## Project Structure
 
-```
+```text
 langgraph-streaming/
 ├── serverless.yml    # Serverless Framework configuration
 ├── index.js          # LangGraph JS agent with streaming

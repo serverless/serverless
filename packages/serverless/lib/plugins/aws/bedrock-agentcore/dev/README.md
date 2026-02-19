@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
 ### File Structure
 
-```
+```text
 my-agent/
 ├── handler.py          # Entry point (artifact.entryPoint)
 ├── requirements.txt    # Dependencies
@@ -69,7 +69,7 @@ my-agent/
 
 ## Architecture
 
-```
+```text
 dev/index.js (main)
 ├── Detects mode (Docker vs Code)
 ├── Manages AWS credentials

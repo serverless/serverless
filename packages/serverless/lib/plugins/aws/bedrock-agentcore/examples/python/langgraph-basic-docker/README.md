@@ -14,7 +14,7 @@ A minimal LangGraph agent demonstrating core AgentCore concepts using Docker/con
 
 ## Architecture
 
-```
+```text
 User Request → AgentCore Runtime → agent_invocation()
                                       ↓
                                    LangGraph
@@ -106,7 +106,7 @@ This runs your agent in a local Docker container, allowing you to test changes q
 
 ### The LangGraph
 
-```
+```text
 START → chatbot → [decide: use tool or respond]
            ↑            ↓
            └─── tools ←┘

@@ -11,7 +11,7 @@ Demonstrates multiple AgentCore Gateways with different authorization types and 
 
 ## Architecture
 
-```
+```text
                     ┌─────────────────────────────────────────────┐
                     │              AgentCore Service              │
                     ├─────────────────────────────────────────────┤
