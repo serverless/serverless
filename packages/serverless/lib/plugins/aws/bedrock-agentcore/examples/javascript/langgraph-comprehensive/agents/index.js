@@ -36,7 +36,7 @@ import {
   ListEventsCommand,
 } from '@aws-sdk/client-bedrock-agentcore'
 import { ChatBedrockConverse } from '@langchain/aws'
-import { createReactAgent } from '@langchain/langgraph/prebuilt'
+import { createAgent } from 'langchain'
 import { tool } from '@langchain/core/tools'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
@@ -491,7 +491,7 @@ const app = new BedrockAgentCoreApp({
           `Agent tools (${allTools.length}): ${allTools.map((t) => t.name).join(', ')}`,
         )
 
-        const agent = createReactAgent({ llm, tools: allTools })
+        const agent = createAgent({ model: llm, tools: allTools })
 
         const recentHistory = await loadRecentHistory(sessionId, actorId)
         if (recentHistory.length > 0) {

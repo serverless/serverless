@@ -100,7 +100,7 @@ The agent in `agents/index.js` combines six tool sources:
 5. **Memory tool** -- `list_events` using `ListEventsCommand` from the AWS SDK
 6. **Memory saving** -- automatic `CreateEventCommand` after each response
 
-All tools are merged and passed to `createReactAgent`, which lets Claude decide which tool to use.
+All tools are merged and passed to `createAgent`, which lets Claude decide which tool to use.
 
 ### Auto-build
 

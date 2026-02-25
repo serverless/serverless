@@ -14,10 +14,10 @@
     "js"
   ],
   "dependencies": {
-    "@langchain/aws": "^0.1.0",
-    "@langchain/core": "^0.3.0",
-    "@langchain/langgraph": "^0.2.0",
+    "@langchain/aws": "^1.2.5",
+    "@langchain/core": "^1.1.28",
     "bedrock-agentcore": "^0.2.0",
+    "langchain": "^1.2.27",
     "zod": "^3.23.0"
   },
   "engines": {

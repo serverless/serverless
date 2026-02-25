@@ -23,7 +23,7 @@
 
 import { BedrockAgentCoreApp } from 'bedrock-agentcore/runtime'
 import { Browser } from 'bedrock-agentcore/browser'
-import { createReactAgent } from '@langchain/langgraph/prebuilt'
+import { createAgent } from 'langchain'
 import { ChatBedrockConverse } from '@langchain/aws'
 import { tool } from '@langchain/core/tools'
 import { z } from 'zod'
@@ -107,8 +107,8 @@ const model = new ChatBedrockConverse({
 })
 
 // Create LangGraph agent with our custom browser tool
-const agent = createReactAgent({
-  llm: model,
+const agent = createAgent({
+  model,
   tools: [browseWebpage],
 })
 
