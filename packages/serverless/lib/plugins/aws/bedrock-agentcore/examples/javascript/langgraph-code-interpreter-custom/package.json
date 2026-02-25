@@ -8,10 +8,10 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@langchain/aws": "^1.2.2",
-    "@langchain/core": "^1.1.19",
-    "@langchain/langgraph": "^1.1.4",
+    "@langchain/aws": "^1.2.5",
+    "@langchain/core": "^1.1.28",
     "bedrock-agentcore": "^0.2.0",
+    "langchain": "^1.2.27",
     "zod": "^4.3.6"
   },
   "engines": {

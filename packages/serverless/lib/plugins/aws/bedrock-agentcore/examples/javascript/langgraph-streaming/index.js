@@ -13,7 +13,7 @@
  */
 
 import { BedrockAgentCoreApp } from 'bedrock-agentcore/runtime'
-import { createReactAgent } from '@langchain/langgraph/prebuilt'
+import { createAgent } from 'langchain'
 import { ChatBedrockConverse } from '@langchain/aws'
 import { tool } from '@langchain/core/tools'
 import { z } from 'zod'
@@ -114,10 +114,10 @@ const divide = tool(
 const tools = [getCurrentTime, add, multiply, divide]
 
 /**
- * Create LangGraph ReAct agent
+ * Create LangGraph agent
  */
-const agent = createReactAgent({
-  llm: model,
+const agent = createAgent({
+  model,
   tools,
 })
 

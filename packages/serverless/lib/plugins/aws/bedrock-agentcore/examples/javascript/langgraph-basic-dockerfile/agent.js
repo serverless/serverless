@@ -3,13 +3,13 @@
  *
  * This agent demonstrates:
  * - BedrockAgentCoreApp entrypoint pattern for JavaScript
- * - LangGraph JS with Claude Sonnet 4.5 via Bedrock
+ * - LangChain createAgent (backed by LangGraph) with Claude Sonnet 4.5 via Bedrock
  * - Simple tool integration (calculator, time)
  * - Docker-based deployment
  */
 
 import { BedrockAgentCoreApp } from 'bedrock-agentcore/runtime'
-import { createReactAgent } from '@langchain/langgraph/prebuilt'
+import { createAgent } from 'langchain'
 import { ChatBedrockConverse } from '@langchain/aws'
 import { tool } from '@langchain/core/tools'
 import { z } from 'zod'
@@ -110,10 +110,10 @@ const divide = tool(
 // Collect all tools
 const tools = [getCurrentTime, add, multiply, divide]
 
-// Create LangGraph ReAct agent
+// Create LangGraph agent
 // This creates a graph that alternates between calling the LLM and executing tools
-const agent = createReactAgent({
-  llm: model,
+const agent = createAgent({
+  model,
   tools,
 })
 

@@ -126,7 +126,7 @@ The `bedrock-agentcore` SDK provides `CodeInterpreter` for sandboxed code execut
 ```javascript
 import { BedrockAgentCoreApp } from 'bedrock-agentcore/runtime'
 import { CodeInterpreter } from 'bedrock-agentcore/code-interpreter'
-import { createReactAgent } from '@langchain/langgraph/prebuilt'
+import { createAgent } from 'langchain'
 import { ChatBedrockConverse } from '@langchain/aws'
 import { tool } from '@langchain/core/tools'
 import { z } from 'zod'
@@ -190,8 +190,8 @@ const model = new ChatBedrockConverse({
   region: 'us-east-1',
 })
 
-const agent = createReactAgent({
-  llm: model,
+const agent = createAgent({
+  model,
   tools: [executeCode, executeCommand, readFiles],
 })
 
@@ -219,10 +219,10 @@ app.run()
 ```json
 {
   "dependencies": {
-    "bedrock-agentcore": "^0.1.0",
-    "@langchain/langgraph": "^0.2.0",
-    "@langchain/aws": "^0.1.0",
-    "@langchain/core": "^0.3.0",
+    "bedrock-agentcore": "^0.2.0",
+    "@langchain/aws": "^1.2.5",
+    "@langchain/core": "^1.1.28",
+    "langchain": "^1.2.27",
     "zod": "^3.23.0"
   }
 }

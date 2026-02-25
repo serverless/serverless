@@ -16,7 +16,7 @@
 
 import { BedrockAgentCoreApp } from 'bedrock-agentcore/runtime'
 import { CodeInterpreter } from 'bedrock-agentcore/code-interpreter'
-import { createReactAgent } from '@langchain/langgraph/prebuilt'
+import { createAgent } from 'langchain'
 import { ChatBedrockConverse } from '@langchain/aws'
 import { tool } from '@langchain/core/tools'
 import { z } from 'zod'
@@ -78,8 +78,8 @@ const model = new ChatBedrockConverse({
 })
 
 // Create LangGraph agent with our custom code execution tool
-const agent = createReactAgent({
-  llm: model,
+const agent = createAgent({
+  model,
   tools: [executePythonCode],
 })
 

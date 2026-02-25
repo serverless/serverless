@@ -11,7 +11,7 @@
 
 import { BedrockAgentCoreApp } from 'bedrock-agentcore/runtime'
 import { PlaywrightBrowser } from 'bedrock-agentcore/browser/playwright'
-import { createReactAgent } from '@langchain/langgraph/prebuilt'
+import { createAgent } from 'langchain'
 import { ChatBedrockConverse } from '@langchain/aws'
 import { tool } from '@langchain/core/tools'
 import { z } from 'zod'
@@ -201,9 +201,9 @@ const model = new ChatBedrockConverse({
   region: AWS_REGION,
 })
 
-// Create LangGraph ReAct agent with browser tools
-const agent = createReactAgent({
-  llm: model,
+// Create LangGraph agent with browser tools
+const agent = createAgent({
+  model,
   tools,
 })
 
