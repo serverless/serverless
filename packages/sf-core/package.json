@@ -68,7 +68,7 @@
     "@smithy/util-retry": "^4.2.8",
     "adm-zip": "^0.5.16",
     "child-process-ext": "^3.0.2",
-    "dotenv": "^17.2.4",
+    "dotenv": "^17.3.1",
     "fs-extra": "^11.3.3",
     "graceful-fs": "^4.2.11",
     "https-proxy-agent": "^7.0.6",
