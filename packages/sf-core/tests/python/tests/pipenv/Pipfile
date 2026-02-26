@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-Flask = "==3.0.3"
+Flask = "==3.1.3"
 bottle = "*"
 boto3 = "*"
 
