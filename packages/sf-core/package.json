@@ -76,7 +76,7 @@
     "jwt-decode": "^4.0.0",
     "lodash": "^4.17.23",
     "open": "^10.2.0",
-    "simple-git": "^3.30.0",
+    "simple-git": "^3.31.1",
     "table": "^6.9.0",
     "traverse": "^0.6.11",
     "type": "^2.7.3",
