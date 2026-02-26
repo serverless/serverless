@@ -19,7 +19,7 @@
   ],
   "author": "Serverless Inc.",
   "devDependencies": {
-    "eslint": "^9.39.2",
+    "eslint": "^9.39.3",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "prettier": "^3.8.1"
