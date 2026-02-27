@@ -8,7 +8,7 @@
     "start": "node agents/index.js"
   },
   "dependencies": {
-    "@aws-sdk/client-bedrock-agentcore": "^3.985.0",
+    "@aws-sdk/client-bedrock-agentcore": "^3.993.0",
     "@aws-sdk/credential-provider-node": "^3.972.6",
     "@langchain/aws": "^1.2.5",
     "@langchain/core": "^1.1.28",
