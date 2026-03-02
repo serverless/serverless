@@ -63,7 +63,7 @@ jobs:
       - name: 'Setup: Link Framework CLI (Windows)'
         if: runner.os == 'Windows'
         run: |
-          node .github/setup-sls-cmd.js
+          node .github/setup-sls-cmd.cjs
           echo "${{ github.workspace }}\.github\bin" >> $env:GITHUB_PATH
 
       - name: 'Test: Python Requirements'
