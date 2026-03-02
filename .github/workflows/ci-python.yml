@@ -65,9 +65,8 @@ jobs:
         shell: cmd
         run: |
           mkdir .github\bin
-          copy packages\sf-core\bin\sf-core.js .github\bin\sls.js
-          echo node "${{ github.workspace }}\.github\bin\sls.js" %%* > "${{ github.workspace }}\.github\bin\sls.cmd"
-          echo ${{ github.workspace }}\.github\bin>> %GITHUB_PATH%
+          echo @node "%~dp0..\..\packages\sf-core\bin\sf-core.js" %* > .github\bin\sls.cmd
+          echo %CD%\.github\bin>> %GITHUB_PATH%
 
       - name: 'Test: Python Requirements'
         run: |
