@@ -950,12 +950,12 @@ async function installAllRequirements() {
             // Windows can't symlink so we have to copy on Windows,
             // it's not as fast, but at least it works
             if (process.platform == 'win32') {
-              await fse.copy(reqsInstalledAt, modulePath)
+              fse.copySync(reqsInstalledAt, modulePath)
             } else {
-              await fse.symlink(reqsInstalledAt, modulePath)
+              fse.symlink(reqsInstalledAt, modulePath)
             }
           } else {
-            await fse.rename(reqsInstalledAt, modulePath)
+            fse.rename(reqsInstalledAt, modulePath)
           }
         }
         doneModules.push(func.module)
@@ -977,9 +977,9 @@ async function installAllRequirements() {
     ) {
       // Windows can't symlink so we have to use junction on Windows
       if (process.platform == 'win32') {
-        await fse.symlink(reqsInstalledAt, symlinkPath, 'junction')
+        fse.symlink(reqsInstalledAt, symlinkPath, 'junction')
       } else {
-        await fse.symlink(reqsInstalledAt, symlinkPath)
+        fse.symlink(reqsInstalledAt, symlinkPath)
       }
     }
   }
