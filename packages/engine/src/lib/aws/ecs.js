@@ -35,16 +35,28 @@ export class AwsEcsClient {
    */
   async getOrCreateCluster(resourceNameBase) {
     const clusterName = `${resourceNameBase}`
-    const describeClusterResponse = await this.client.send(
-      new DescribeClustersCommand({ clusters: [clusterName] }),
-    )
-    if (
-      describeClusterResponse.clusters &&
-      describeClusterResponse.clusters.length > 0 &&
-      describeClusterResponse.clusters[0].status === 'ACTIVE'
-    ) {
-      logger.debug('Retrieved ECS Cluster')
-      return describeClusterResponse.clusters[0].clusterArn
+    try {
+      const describeClusterResponse = await this.client.send(
+        new DescribeClustersCommand({ clusters: [clusterName] }),
+      )
+      if (
+        describeClusterResponse.clusters &&
+        describeClusterResponse.clusters.length > 0 &&
+        describeClusterResponse.clusters[0].status === 'ACTIVE'
+      ) {
+        logger.debug('Retrieved ECS Cluster')
+        return describeClusterResponse.clusters[0].clusterArn
+      }
+    } catch (error) {
+      const name = error.name
+      if (
+        error instanceof ResourceNotFoundException ||
+        name === 'ResourceNotFoundException'
+      ) {
+        logger.debug(`Cluster ${clusterName} not found, creating a new one`)
+      } else {
+        throw error
+      }
     }
 
     const command = new CreateClusterCommand({ clusterName })
@@ -61,19 +73,31 @@ export class AwsEcsClient {
    */
   async getService({ clusterArn, resourceNameBase, containerName }) {
     const serviceName = `${resourceNameBase}-${containerName}`
-    const describeServiceResponse = await this.client.send(
-      new DescribeServicesCommand({
-        cluster: clusterArn,
-        services: [serviceName],
-      }),
-    )
+    try {
+      const describeServiceResponse = await this.client.send(
+        new DescribeServicesCommand({
+          cluster: clusterArn,
+          services: [serviceName],
+        }),
+      )
 
-    const service = describeServiceResponse.services?.[0]
-    if (!service) {
-      logger.debug(`Service ${serviceName} not found in cluster ${clusterArn}`)
-      return null
+      const service = describeServiceResponse.services?.[0]
+      if (!service) {
+        logger.debug(`Service ${serviceName} not found in cluster ${clusterArn}`)
+        return null
+      }
+      return service
+    } catch (error) {
+      const name = error.name
+      if (
+        error instanceof ServiceNotFoundException ||
+        name === 'ServiceNotFoundException'
+      ) {
+        logger.debug(`Service ${serviceName} not found in cluster ${clusterArn}`)
+        return null
+      }
+      throw error
     }
-    return service
   }
 
   /**
@@ -83,34 +107,46 @@ export class AwsEcsClient {
    */
   async deleteClusterIfEmpty(resourceNameBase) {
     const clusterName = `${resourceNameBase}`
-    // Check if the cluster exists
-    const describeClusterResponse = await this.client.send(
-      new DescribeClustersCommand({ clusters: [clusterName] }),
-    )
-
-    if (
-      describeClusterResponse.clusters &&
-      describeClusterResponse.clusters.length > 0
-    ) {
-      // Cluster exists, check for services
-      const listServicesResponse = await this.client.send(
-        new ListServicesCommand({ cluster: clusterName }),
+    try {
+      // Check if the cluster exists
+      const describeClusterResponse = await this.client.send(
+        new DescribeClustersCommand({ clusters: [clusterName] }),
       )
 
       if (
-        listServicesResponse.serviceArns &&
-        listServicesResponse.serviceArns.length === 0
+        describeClusterResponse.clusters &&
+        describeClusterResponse.clusters.length > 0
       ) {
-        // No services in the cluster, delete it
-        await this.client.send(
-          new DeleteClusterCommand({ cluster: clusterName }),
+        // Cluster exists, check for services
+        const listServicesResponse = await this.client.send(
+          new ListServicesCommand({ cluster: clusterName }),
         )
-        logger.debug(`Deleted empty cluster: ${clusterName}`)
+
+        if (
+          listServicesResponse.serviceArns &&
+          listServicesResponse.serviceArns.length === 0
+        ) {
+          // No services in the cluster, delete it
+          await this.client.send(
+            new DeleteClusterCommand({ cluster: clusterName }),
+          )
+          logger.debug(`Deleted empty cluster: ${clusterName}`)
+        } else {
+          logger.debug(`Cluster ${clusterName} has services, not deleting`)
+        }
       } else {
-        logger.debug(`Cluster ${clusterName} has services, not deleting`)
+        logger.debug(`Cluster ${clusterName} does not exist`)
       }
-    } else {
-      logger.debug(`Cluster ${clusterName} does not exist`)
+    } catch (error) {
+      const name = error.name
+      if (
+        error instanceof ResourceNotFoundException ||
+        name === 'ResourceNotFoundException'
+      ) {
+        logger.debug(`Cluster ${clusterName} does not exist`)
+        return
+      }
+      throw error
     }
   }
 
@@ -140,7 +176,7 @@ export class AwsEcsClient {
       ) {
         return null
       }
-      return null
+      throw error
     }
   }
 
@@ -207,9 +243,17 @@ export class AwsEcsClient {
       ],
     })
 
-    const registerTaskDefinitionResponse = await this.client.send(
-      registerTaskDefinitionCommand,
-    )
+    let registerTaskDefinitionResponse
+    try {
+      registerTaskDefinitionResponse = await this.client.send(
+        registerTaskDefinitionCommand,
+      )
+    } catch (error) {
+      throw new ServerlessError(
+        `Failed to register task definition for ${serviceName}: ${error.message}`,
+        'AWS_ECS_FAILED_TO_REGISTER_TASK_DEFINITION',
+      )
+    }
 
     if (!registerTaskDefinitionResponse.taskDefinition?.taskDefinitionArn) {
       throw new ServerlessError(
@@ -285,7 +329,15 @@ export class AwsEcsClient {
       healthCheckGracePeriodSeconds: 5,
     })
 
-    let createServiceResponse = await this.client.send(createServiceCommand)
+    let createServiceResponse
+    try {
+      createServiceResponse = await this.client.send(createServiceCommand)
+    } catch (error) {
+      throw new ServerlessError(
+        `Failed to create Fargate service "${resourceNameBase}-${containerName}": ${error.message}`,
+        'AWS_ECS_FAILED_TO_CREATE_FARGATE_SERVICE',
+      )
+    }
     if (!createServiceResponse.service?.serviceArn) {
       throw new ServerlessError(
         'Failed to create Fargate service',
@@ -312,20 +364,34 @@ export class AwsEcsClient {
     logger.debug(
       `Stopped Fargate service "${containerName}" in cluster "${resourceNameBase}"`,
     )
-    const describeServiceResponse = await this.client.send(
-      new DescribeServicesCommand({
-        services: [`${resourceNameBase}-${containerName}`],
-        cluster: `${resourceNameBase}`,
-      }),
-    )
-    const serviceArn = describeServiceResponse.services?.[0]?.serviceArn
-    if (serviceArn) {
-      await this.client.send(
-        new DeleteServiceCommand({
+    try {
+      const describeServiceResponse = await this.client.send(
+        new DescribeServicesCommand({
+          services: [`${resourceNameBase}-${containerName}`],
           cluster: `${resourceNameBase}`,
-          service: `${resourceNameBase}-${containerName}`,
         }),
       )
+      const serviceArn = describeServiceResponse.services?.[0]?.serviceArn
+      if (serviceArn) {
+        await this.client.send(
+          new DeleteServiceCommand({
+            cluster: `${resourceNameBase}`,
+            service: `${resourceNameBase}-${containerName}`,
+          }),
+        )
+      }
+    } catch (error) {
+      const name = error.name
+      if (
+        error instanceof ServiceNotFoundException ||
+        name === 'ServiceNotFoundException'
+      ) {
+        logger.debug(
+          `Service ${resourceNameBase}-${containerName} not found, skipping delete`,
+        )
+        return
+      }
+      throw error
     }
   }
 
@@ -399,7 +465,14 @@ export class AwsEcsClient {
     }
 
     const updateServiceCommand = new UpdateServiceCommand(updateServiceParams)
-    return await this.client.send(updateServiceCommand)
+    try {
+      return await this.client.send(updateServiceCommand)
+    } catch (error) {
+      throw new ServerlessError(
+        `Failed to update Fargate service "${serviceName}": ${error.message}`,
+        'AWS_ECS_FAILED_TO_UPDATE_FARGATE_SERVICE',
+      )
+    }
   }
 
   /**
@@ -502,12 +575,25 @@ export class AwsEcsClient {
       `Creating or updating Fargate service "${resourceNameBase}-${containerName}" in cluster "${clusterArn}"`,
     )
 
-    const describeServiceResponse = await this.client.send(
-      new DescribeServicesCommand({
-        services: [`${resourceNameBase}-${containerName}`],
-        cluster: clusterArn,
-      }),
-    )
+    let describeServiceResponse
+    try {
+      describeServiceResponse = await this.client.send(
+        new DescribeServicesCommand({
+          services: [`${resourceNameBase}-${containerName}`],
+          cluster: clusterArn,
+        }),
+      )
+    } catch (error) {
+      const name = error.name
+      if (
+        error instanceof ServiceNotFoundException ||
+        name === 'ServiceNotFoundException'
+      ) {
+        describeServiceResponse = { services: [] }
+      } else {
+        throw error
+      }
+    }
     const serviceArn = describeServiceResponse.services?.[0]?.serviceArn
     if (
       serviceArn &&
@@ -568,10 +654,22 @@ export class AwsEcsClient {
       params.status = statusArray
     }
 
-    const res = await this.client.send(
-      new ListServiceDeploymentsCommand(params),
-    )
-    return res.serviceDeployments?.[0] || null
+    try {
+      const res = await this.client.send(
+        new ListServiceDeploymentsCommand(params),
+      )
+      return res.serviceDeployments?.[0] || null
+    } catch (error) {
+      const name = error.name
+      if (
+        error instanceof ServiceNotFoundException ||
+        name === 'ServiceNotFoundException'
+      ) {
+        logger.debug(`Service ${serviceName} not found`)
+        return null
+      }
+      throw error
+    }
   }
 
   /**
@@ -580,27 +678,39 @@ export class AwsEcsClient {
    * @returns {Promise<string>} - The most recent service failure event
    */
   async getMostRecentServiceFailureEvent(serviceArn) {
-    const describeServiceResponse = await this.client.send(
-      new DescribeServicesCommand({
-        services: [serviceArn],
-        cluster: serviceArn.split('/')[1],
-      }),
-    )
+    try {
+      const describeServiceResponse = await this.client.send(
+        new DescribeServicesCommand({
+          services: [serviceArn],
+          cluster: serviceArn.split('/')[1],
+        }),
+      )
 
-    logger.debug(
-      `Getting most recent service failure event for service "${serviceArn}"`,
-      describeServiceResponse,
-    )
+      logger.debug(
+        `Getting most recent service failure event for service "${serviceArn}"`,
+        describeServiceResponse,
+      )
 
-    const service = describeServiceResponse.services?.[0]
-    if (service && service.events?.length > 0) {
-      const events = service.events.filter((event) => {
-        return event.message.includes('is unhealthy in (target-group')
-      })
+      const service = describeServiceResponse.services?.[0]
+      if (service && service.events?.length > 0) {
+        const events = service.events.filter((event) => {
+          return event.message.includes('is unhealthy in (target-group')
+        })
 
-      if (events.length > 0) {
-        return events[0].message
+        if (events.length > 0) {
+          return events[0].message
+        }
       }
+    } catch (error) {
+      const name = error.name
+      if (
+        error instanceof ServiceNotFoundException ||
+        name === 'ServiceNotFoundException'
+      ) {
+        logger.debug(`Service ${serviceArn} not found`)
+        return undefined
+      }
+      throw error
     }
   }
 
