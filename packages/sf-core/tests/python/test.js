@@ -265,6 +265,27 @@ test('default pythonBin can package flask with default options', async (t) => {
   t.end()
 })
 
+test('zip entries use forward slashes for paths', async (t) => {
+  process.chdir('tests/base')
+  sls(['package'], { env: { pythonBin: getPythonBin(3) } })
+  const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
+  const backslashEntries = zipfiles.filter((f) => f.includes('\\'))
+  t.deepEqual(
+    backslashEntries,
+    [],
+    'no zip entries should contain backslashes (ZIP spec requires forward slashes)',
+  )
+  t.true(
+    zipfiles.includes('flask/__init__.py'),
+    'flask is packaged with forward-slash path',
+  )
+  t.true(
+    zipfiles.includes('boto3/__init__.py'),
+    'boto3 is packaged with forward-slash path',
+  )
+  t.end()
+})
+
 test('py3.13 packages have the same hash', async (t) => {
   process.chdir('tests/base')
   sls(['package'], { env: {} })

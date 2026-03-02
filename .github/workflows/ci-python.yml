@@ -15,9 +15,13 @@ on:
 
 jobs:
   test-python:
-    name: 'Test: Python Requirements'
+    name: 'Test: Python Requirements (${{ matrix.os }})'
     if: ${{ !github.event.pull_request.draft }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, gh-windows-latest]
     steps:
       - name: 'Checkout Code'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -47,13 +51,23 @@ jobs:
       - name: 'Install: Dependencies'
         run: npm ci
 
-      - name: 'Setup: Link Framework CLI'
+      - name: 'Setup: Link Framework CLI (Unix)'
+        if: runner.os != 'Windows'
         run: |
           chmod +x packages/sf-core/bin/sf-core.js
           mkdir -p .github/bin
           ln -sf "${{ github.workspace }}/packages/sf-core/bin/sf-core.js" \
             "${{ github.workspace }}/.github/bin/sls"
           echo "${{ github.workspace }}/.github/bin" >> $GITHUB_PATH
+
+      - name: 'Setup: Link Framework CLI (Windows)'
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          mkdir .github\bin
+          copy packages\sf-core\bin\sf-core.js .github\bin\sls.js
+          echo node "${{ github.workspace }}\.github\bin\sls.js" %%* > "${{ github.workspace }}\.github\bin\sls.cmd"
+          echo ${{ github.workspace }}\.github\bin>> %GITHUB_PATH%
 
       - name: 'Test: Python Requirements'
         run: |
