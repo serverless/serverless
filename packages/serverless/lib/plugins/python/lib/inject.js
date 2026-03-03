@@ -30,7 +30,9 @@ async function injectRequirements(
   const pairs = files
     .map((file) => [
       file,
-      path.join(injectionRelativePath, path.relative(requirementsPath, file)),
+      path
+        .join(injectionRelativePath, path.relative(requirementsPath, file))
+        .replace(/\\/g, '/'),
     ])
     .filter(
       ([file, relativeFile]) =>
