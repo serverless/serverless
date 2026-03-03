@@ -269,37 +269,7 @@ test('zip entries use forward slashes for paths', async (t) => {
   process.chdir('tests/base')
   sls(['package'], { env: { pythonBin: getPythonBin(3) } })
 
-  // Diagnostic logging for CI debugging
-  const serverlessDir = '.serverless'
-  if (fsExtra.existsSync(serverlessDir)) {
-    const contents = fsExtra.readdirSync(serverlessDir)
-    console.log(`  [diag] .serverless/ contents: ${JSON.stringify(contents)}`)
-    const reqsPath = join(serverlessDir, 'requirements')
-    if (fsExtra.existsSync(reqsPath)) {
-      const stat = fsExtra.lstatSync(reqsPath)
-      console.log(
-        `  [diag] requirements is symlink: ${stat.isSymbolicLink()}, isDir: ${stat.isDirectory()}`,
-      )
-      if (stat.isSymbolicLink()) {
-        console.log(
-          `  [diag] requirements symlink target: ${fsExtra.readlinkSync(reqsPath)}`,
-        )
-      }
-      const reqContents = fsExtra.readdirSync(reqsPath)
-      console.log(
-        `  [diag] requirements/ has ${reqContents.length} entries, first 10: ${JSON.stringify(reqContents.slice(0, 10))}`,
-      )
-    } else {
-      console.log('  [diag] WARNING: .serverless/requirements does NOT exist')
-    }
-  } else {
-    console.log('  [diag] WARNING: .serverless/ directory does NOT exist')
-  }
-
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  console.log(
-    `  [diag] zip has ${zipfiles.length} entries, first 15: ${JSON.stringify(zipfiles.slice(0, 15))}`,
-  )
 
   const backslashEntries = zipfiles.filter((f) => f.includes('\\'))
   t.deepEqual(

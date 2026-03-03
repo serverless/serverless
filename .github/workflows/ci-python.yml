@@ -12,6 +12,12 @@ on:
       - '.github/workflows/ci-python.yml'
       - 'packages/serverless/lib/plugins/python/**'
       - 'packages/sf-core/tests/python/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ci-python.yml'
+      - 'packages/serverless/lib/plugins/python/**'
+      - 'packages/sf-core/tests/python/**'
 
 jobs:
   test-python:
@@ -21,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, gh-windows-latest]
+        os: ${{ github.event_name == 'pull_request' && fromJSON('["ubuntu-latest"]') || fromJSON('["ubuntu-latest", "gh-windows-latest"]') }}
     steps:
       - name: 'Checkout Code'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
