@@ -1,7 +1,5 @@
 FROM node:20-alpine
 
-RUN apk update && apk upgrade --no-cache
-
 WORKDIR /app
 
 # Copy package files
