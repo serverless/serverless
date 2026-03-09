@@ -62,7 +62,7 @@
     "get-stdin": "^9.0.0",
     "glob": "^10.5.0",
     "globby": "^14.1.0",
-    "graphql": "^16.6.0",
+    "graphql": "^16.13.0",
     "https-proxy-agent": "^7.0.6",
     "is-docker": "^3.0.0",
     "is-wsl": "^3.1.1",
