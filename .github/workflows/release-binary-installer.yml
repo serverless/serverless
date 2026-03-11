@@ -21,7 +21,7 @@ jobs:
       - name: 'Setup: Go'
         uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
-          go-version: '>=1.25'
+          go-version: '>=1.26.1'
           cache-dependency-path: binary-installer/go.sum
       - name: 'Setup: AWS Credentials'
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
