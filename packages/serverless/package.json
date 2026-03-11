@@ -87,7 +87,7 @@
     "semver": "^7.7.4",
     "sha256-file": "^1.0.0",
     "shell-quote": "^1.8.3",
-    "strip-ansi": "^7.1.2",
+    "strip-ansi": "^7.2.0",
     "terminal-link": "^4.0.0",
     "timers-ext": "^0.1.8",
     "toml": "^3.0.0",
