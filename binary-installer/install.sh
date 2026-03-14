@@ -60,29 +60,29 @@ if [[ $SHELLTYPE = "fish" ]]; then
   printf "\n${yellow}Added ~/.serverless/bin to fish_user_paths universal variable$reset."
 elif [[ $SHELLTYPE = "zsh" ]]; then
   SHELL_CONFIG=$HOME/.zshrc
-  if [ ! -r $SHELL_CONFIG ] || (! `grep -q '.serverless/bin' $SHELL_CONFIG`); then
+  if [ ! -r $SHELL_CONFIG ] || ! grep -q '.serverless/bin' "$SHELL_CONFIG"; then
     add_to_path $SHELL_CONFIG
   fi
 else
   SHELL_CONFIG=$HOME/.bashrc
-  if [ ! -r $SHELL_CONFIG ] || (! `grep -q '.serverless/bin' $SHELL_CONFIG`); then
+  if [ ! -r $SHELL_CONFIG ] || ! grep -q '.serverless/bin' "$SHELL_CONFIG"; then
     add_to_path $SHELL_CONFIG
   fi
   SHELL_CONFIG=$HOME/.bash_profile
   if [[ -r $SHELL_CONFIG ]]; then  if [[ -r $SHELL_CONFIG ]]; then
 
-    if [[ ! $(grep -q '.serverless/bin' $SHELL_CONFIG) ]]; then
+    if ! grep -q '.serverless/bin' "$SHELL_CONFIG"; then
       add_to_path $SHELL_CONFIG
     fi
   else
     SHELL_CONFIG=$HOME/.bash_login
     if [[ -r $SHELL_CONFIG ]]; then
-      if [[ ! $(grep -q '.serverless/bin' $SHELL_CONFIG) ]]; then
+      if ! grep -q '.serverless/bin' "$SHELL_CONFIG"; then
         add_to_path $SHELL_CONFIG
       fi
     else
       SHELL_CONFIG=$HOME/.profile
-      if [ ! -r $SHELL_CONFIG ] || (! `grep -q '.serverless/bin' $SHELL_CONFIG`); then
+      if [ ! -r $SHELL_CONFIG ] || ! grep -q '.serverless/bin' "$SHELL_CONFIG"; then
         add_to_path $SHELL_CONFIG
       fi
     fi
