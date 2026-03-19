@@ -260,8 +260,31 @@ test('default pythonBin can package flask with default options', async (t) => {
   process.chdir('tests/base')
   sls(['package'], { env: {} })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
-  t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
+  t.end()
+})
+
+test('zip entries use forward slashes for paths', async (t) => {
+  process.chdir('tests/base')
+  sls(['package'], { env: { pythonBin: getPythonBin(3) } })
+
+  const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
+
+  const backslashEntries = zipfiles.filter((f) => f.includes('\\'))
+  t.deepEqual(
+    backslashEntries,
+    [],
+    'no zip entries should contain backslashes (ZIP spec requires forward slashes)',
+  )
+  t.true(
+    zipfiles.includes('flask/__init__.py'),
+    'flask is packaged with forward-slash path',
+  )
+  t.true(
+    zipfiles.includes('boto3/__init__.py'),
+    'boto3 is packaged with forward-slash path',
+  )
   t.end()
 })
 
@@ -302,11 +325,11 @@ test('mixed runtimes - shared packaging (no individually)', async (t) => {
   // Verify shared package contains Python dependencies but not Node-only artifacts
   const sharedZip = await listZipFiles('.serverless/sls-mixed-rt-shared.zip')
   t.true(
-    sharedZip.includes(`requests${sep}__init__.py`),
+    sharedZip.includes(`requests/__init__.py`),
     'requests is packaged in shared package',
   )
   t.true(
-    sharedZip.includes(`certifi${sep}__init__.py`),
+    sharedZip.includes(`certifi/__init__.py`),
     'certifi is packaged in shared package',
   )
   t.true(
@@ -325,8 +348,8 @@ test('py3.13 can package flask with default options', async (t) => {
   process.chdir('tests/base')
   sls(['package'], { env: { pythonBin: getPythonBin(3) } })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
-  t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
   t.end()
 })
 
@@ -341,7 +364,7 @@ test(
       },
     })
     const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-    t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+    t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
     t.end()
   },
   { skip: brokenOn('win32') },
@@ -356,8 +379,8 @@ test('py3.13 can package flask with nested', async (t) => {
     },
   })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
-  t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
   t.end()
 })
 
@@ -371,7 +394,7 @@ test('py3.13 can package flask with zip option', async (t) => {
   )
   t.true(zipfiles.includes(`unzip_requirements.py`), 'unzip util is packaged')
   t.false(
-    zipfiles.includes(`flask${sep}__init__.py`),
+    zipfiles.includes(`flask/__init__.py`),
     "flask isn't packaged on its own",
   )
   t.end()
@@ -381,7 +404,7 @@ test('py3.13 can package flask with slim option', async (t) => {
   process.chdir('tests/base')
   sls(['package'], { env: { slim: 'true', pythonBin: getPythonBin(3) } })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
   t.deepEqual(
     zipfiles.filter((filename) => filename.endsWith('.pyc')),
     [],
@@ -399,7 +422,7 @@ test('py3.13 can package flask with slim & slimPatterns options', async (t) => {
   copySync('_slimPatterns.yml', 'slimPatterns.yml')
   sls(['package'], { env: { slim: 'true' } })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
   t.deepEqual(
     zipfiles.filter((filename) => filename.endsWith('.pyc')),
     [],
@@ -424,7 +447,7 @@ test("py3.13 doesn't package bottle with noDeploy option", async (t) => {
   ])
   sls(['package'], { env: { pythonBin: getPythonBin(3) } })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
   t.false(zipfiles.includes(`bottle.py`), 'bottle is NOT packaged')
   t.end()
 })
@@ -438,8 +461,8 @@ test('py3.13 can package boto3 with editable', async (t) => {
     },
   })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
-  t.true(zipfiles.includes(`botocore${sep}__init__.py`), 'botocore is packaged')
+  t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
+  t.true(zipfiles.includes(`botocore/__init__.py`), 'botocore is packaged')
   t.end()
 })
 
@@ -449,8 +472,8 @@ test(
     process.chdir('tests/base')
     sls(['package'], { env: { dockerizePip: 'true' } })
     const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-    t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
-    t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+    t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
+    t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
     t.end()
   },
   { skip: !canUseDocker() || brokenOn('win32') },
@@ -462,7 +485,7 @@ test(
     process.chdir('tests/base')
     sls(['package'], { env: { dockerizePip: 'true', slim: 'true' } })
     const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-    t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+    t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
     t.deepEqual(
       zipfiles.filter((filename) => filename.endsWith('.pyc')),
       [],
@@ -485,7 +508,7 @@ test(
     copySync('_slimPatterns.yml', 'slimPatterns.yml')
     sls(['package'], { env: { dockerizePip: 'true', slim: 'true' } })
     const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-    t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+    t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
     t.deepEqual(
       zipfiles.filter((filename) => filename.endsWith('.pyc')),
       [],
@@ -516,7 +539,7 @@ test(
     )
     t.true(zipfiles.includes(`unzip_requirements.py`), 'unzip util is packaged')
     t.false(
-      zipfiles.includes(`flask${sep}__init__.py`),
+      zipfiles.includes(`flask/__init__.py`),
       "flask isn't packaged on its own",
     )
     t.true(
@@ -545,7 +568,7 @@ test(
     )
     t.true(zipfiles.includes(`unzip_requirements.py`), 'unzip util is packaged')
     t.false(
-      zipfiles.includes(`flask${sep}__init__.py`),
+      zipfiles.includes(`flask/__init__.py`),
       "flask isn't packaged on its own",
     )
     t.true(
@@ -561,10 +584,10 @@ test('pipenv py3.13 can package flask with default options', async (t) => {
   process.chdir('tests/pipenv')
   sls(['package'], { env: {} })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
-  t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
   t.false(
-    zipfiles.includes(`pytest${sep}__init__.py`),
+    zipfiles.includes(`pytest/__init__.py`),
     'dev-package pytest is NOT packaged',
   )
   t.end()
@@ -578,8 +601,8 @@ test('uv py3.13 can package flask with default options', async (t) => {
     'uv export used',
   )
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
-  t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
   t.end()
 })
 
@@ -608,8 +631,8 @@ test(
     )
 
     const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-    t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
-    t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+    t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
+    t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
     t.end()
   },
   { skip: !canUseDocker() || brokenOn('win32') },
@@ -623,7 +646,7 @@ test('uv py3.13 can package flask with slim option', async (t) => {
     'uv export used',
   )
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
   t.deepEqual(
     zipfiles.filter((filename) => filename.endsWith('.pyc')),
     [],
@@ -645,7 +668,7 @@ test('uv py3.13 can package flask with slim & slimPatterns options', async (t) =
     'uv export used',
   )
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
   t.deepEqual(
     zipfiles.filter((filename) => filename.endsWith('.pyc')),
     [],
@@ -675,7 +698,7 @@ test('uv py3.13 can package flask with zip option', async (t) => {
   )
   t.true(zipfiles.includes(`unzip_requirements.py`), 'unzip util is packaged')
   t.false(
-    zipfiles.includes(`flask${sep}__init__.py`),
+    zipfiles.includes(`flask/__init__.py`),
     "flask isn't packaged on its own",
   )
   t.end()
@@ -696,7 +719,7 @@ test('uv py3.13 doesnt package bottle with noDeploy option', async (t) => {
     'uv export used',
   )
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
   t.false(zipfiles.includes(`bottle.py`), 'bottle is NOT packaged')
   t.end()
 })
@@ -783,7 +806,7 @@ test('pipenv py3.13 can package flask with slim option', async (t) => {
   process.chdir('tests/pipenv')
   sls(['package'], { env: { slim: 'true' } })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
   t.deepEqual(
     zipfiles.filter((filename) => filename.endsWith('.pyc')),
     [],
@@ -802,7 +825,7 @@ test('pipenv py3.13 can package flask with slim & slimPatterns options', async (
   copySync('_slimPatterns.yml', 'slimPatterns.yml')
   sls(['package'], { env: { slim: 'true' } })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
   t.deepEqual(
     zipfiles.filter((filename) => filename.endsWith('.pyc')),
     [],
@@ -826,7 +849,7 @@ test('pipenv py3.13 can package flask with zip option', async (t) => {
   )
   t.true(zipfiles.includes(`unzip_requirements.py`), 'unzip util is packaged')
   t.false(
-    zipfiles.includes(`flask${sep}__init__.py`),
+    zipfiles.includes(`flask/__init__.py`),
     "flask isn't packaged on its own",
   )
   t.end()
@@ -843,7 +866,7 @@ test("pipenv py3.13 doesn't package bottle with noDeploy option", async (t) => {
   ])
   sls(['package'], { env: {} })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
   t.false(zipfiles.includes(`bottle.py`), 'bottle is NOT packaged')
   t.end()
 })
@@ -852,8 +875,8 @@ test('non build pyproject.toml uses requirements.txt', async (t) => {
   process.chdir('tests/non_build_pyproject')
   sls(['package'], { env: {} })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
-  t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
   t.end()
 })
 
@@ -861,8 +884,8 @@ test('non build uv project uses requirements.txt when useUv=false', async (t) =>
   process.chdir('tests/non_build_uv')
   sls(['package'], { env: {} })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
-  t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
   t.end()
 })
 
@@ -878,9 +901,9 @@ test('poetry py3.13 can package flask with default options', async (t) => {
   process.chdir('tests/poetry')
   sls(['package'], { env: {} })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
   t.true(zipfiles.includes(`bottle.py`), 'bottle is packaged')
-  t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+  t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
   t.end()
 })
 
@@ -888,7 +911,7 @@ test('poetry py3.13 can package flask with slim option', async (t) => {
   process.chdir('tests/poetry')
   sls(['package'], { env: { slim: 'true' } })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
   t.deepEqual(
     zipfiles.filter((filename) => filename.endsWith('.pyc')),
     [],
@@ -907,7 +930,7 @@ test('poetry py3.13 can package flask with slim & slimPatterns options', async (
   copySync('_slimPatterns.yml', 'slimPatterns.yml')
   sls(['package'], { env: { slim: 'true' } })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
   t.deepEqual(
     zipfiles.filter((filename) => filename.endsWith('.pyc')),
     [],
@@ -931,7 +954,7 @@ test('poetry py3.13 can package flask with zip option', async (t) => {
   )
   t.true(zipfiles.includes(`unzip_requirements.py`), 'unzip util is packaged')
   t.false(
-    zipfiles.includes(`flask${sep}__init__.py`),
+    zipfiles.includes(`flask/__init__.py`),
     "flask isn't packaged on its own",
   )
   t.end()
@@ -948,7 +971,7 @@ test("poetry py3.13 doesn't package bottle with noDeploy option", async (t) => {
   ])
   sls(['package'], { env: {} })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
   t.false(zipfiles.includes(`bottle.py`), 'bottle is NOT packaged')
   t.end()
 })
@@ -965,7 +988,7 @@ test('py3.13 can package flask with zip option and no explicit include', async (
   )
   t.true(zipfiles.includes(`unzip_requirements.py`), 'unzip util is packaged')
   t.false(
-    zipfiles.includes(`flask${sep}__init__.py`),
+    zipfiles.includes(`flask/__init__.py`),
     "flask isn't packaged on its own",
   )
   t.end()
@@ -975,8 +998,8 @@ test('py3.13 can package lambda-decorators using vendor option', async (t) => {
   process.chdir('tests/base')
   sls(['package'], { env: { vendor: './vendor' } })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
-  t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
   t.true(
     zipfiles.includes(`lambda_decorators.py`),
     'lambda_decorators.py is packaged',
@@ -1001,8 +1024,8 @@ test(
     chmodSync(`foobar`, perm)
     sls(['package'], { env: { vendor: './vendor' } })
     const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-    t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
-    t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+    t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
+    t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
     t.true(
       zipfiles.includes(`lambda_decorators.py`),
       'lambda_decorators.py is packaged',
@@ -1035,8 +1058,8 @@ test('py3.13 can package flask in a project with a space in it', async (t) => {
   process.chdir('tests/base with a space')
   sls(['package'], { env: {} })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
-  t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
   t.end()
 })
 
@@ -1047,8 +1070,8 @@ test(
     process.chdir('tests/base with a space')
     sls(['package'], { env: { dockerizePip: 'true' } })
     const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-    t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
-    t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+    t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
+    t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
     t.end()
   },
   { skip: !canUseDocker() || brokenOn('win32') },
@@ -1059,9 +1082,9 @@ test('py3.13 supports custom file name with fileName option', async (t) => {
   writeFileSync('puck', 'requests')
   sls(['package'], { env: { fileName: 'puck' } })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`requests${sep}__init__.py`), 'requests is packaged')
-  t.false(zipfiles.includes(`flask${sep}__init__.py`), 'flask is NOT packaged')
-  t.false(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is NOT packaged')
+  t.true(zipfiles.includes(`requests/__init__.py`), 'requests is packaged')
+  t.false(zipfiles.includes(`flask/__init__.py`), 'flask is NOT packaged')
+  t.false(zipfiles.includes(`boto3/__init__.py`), 'boto3 is NOT packaged')
   t.end()
 })
 
@@ -1085,7 +1108,7 @@ test("py3.13 doesn't package bottle with zip option", async (t) => {
   )
   t.true(zipfiles.includes(`unzip_requirements.py`), 'unzip util is packaged')
   t.false(
-    zipfiles.includes(`flask${sep}__init__.py`),
+    zipfiles.includes(`flask/__init__.py`),
     "flask isn't packaged on its own",
   )
   t.true(
@@ -1106,7 +1129,7 @@ test('py3.13 can package flask with slim, slimPatterns & slimPatternsAppendDefau
     env: { slim: 'true', slimPatternsAppendDefaults: 'false' },
   })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
   t.true(
     zipfiles.filter((filename) => filename.endsWith('.pyc')).length >= 1,
     'pyc files are packaged',
@@ -1132,7 +1155,7 @@ test(
       },
     })
     const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-    t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+    t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
     t.true(
       zipfiles.filter((filename) => filename.endsWith('.pyc')).length >= 1,
       'pyc files are packaged',
@@ -1155,7 +1178,7 @@ test('pipenv py3.13 can package flask with slim & slimPatterns & slimPatternsApp
     env: { slim: 'true', slimPatternsAppendDefaults: 'false' },
   })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
   t.true(
     zipfiles.filter((filename) => filename.endsWith('.pyc')).length >= 1,
     'pyc files are packaged',
@@ -1176,7 +1199,7 @@ test('poetry py3.13 can package flask with slim & slimPatterns & slimPatternsApp
     env: { slim: 'true', slimPatternsAppendDefaults: 'false' },
   })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
   t.true(
     zipfiles.filter((filename) => filename.endsWith('.pyc')).length >= 1,
     'pyc files are packaged',
@@ -1196,9 +1219,9 @@ test('poetry py3.13 can package flask with package individually option', async (
   const zipfiles = await listZipFiles(
     '.serverless/module1-sls-py-req-test-dev-hello.zip',
   )
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
   t.true(zipfiles.includes(`bottle.py`), 'bottle is packaged')
-  t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+  t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
   t.end()
 })
 
@@ -1207,7 +1230,7 @@ test('py3.13 can package flask with package individually option', async (t) => {
   sls(['package'], { env: { individually: 'true' } })
   const zipfiles_hello = await listZipFiles('.serverless/hello.zip')
   t.false(
-    zipfiles_hello.includes(`fn2${sep}__init__.py`),
+    zipfiles_hello.includes(`fn2/__init__.py`),
     'fn2 is NOT packaged in function hello',
   )
   t.true(
@@ -1219,13 +1242,13 @@ test('py3.13 can package flask with package individually option', async (t) => {
     'dataclasses is NOT packaged in function hello',
   )
   t.true(
-    zipfiles_hello.includes(`flask${sep}__init__.py`),
+    zipfiles_hello.includes(`flask/__init__.py`),
     'flask is packaged in function hello',
   )
 
   const zipfiles_hello2 = await listZipFiles('.serverless/hello2.zip')
   t.false(
-    zipfiles_hello2.includes(`fn2${sep}__init__.py`),
+    zipfiles_hello2.includes(`fn2/__init__.py`),
     'fn2 is NOT packaged in function hello2',
   )
   t.true(
@@ -1237,13 +1260,13 @@ test('py3.13 can package flask with package individually option', async (t) => {
     'dataclasses is NOT packaged in function hello2',
   )
   t.true(
-    zipfiles_hello2.includes(`flask${sep}__init__.py`),
+    zipfiles_hello2.includes(`flask/__init__.py`),
     'flask is packaged in function hello2',
   )
 
   const zipfiles_hello3 = await listZipFiles('.serverless/hello3.zip')
   t.false(
-    zipfiles_hello3.includes(`fn2${sep}__init__.py`),
+    zipfiles_hello3.includes(`fn2/__init__.py`),
     'fn2 is NOT packaged in function hello3',
   )
   t.true(
@@ -1255,7 +1278,7 @@ test('py3.13 can package flask with package individually option', async (t) => {
     'dataclasses is NOT packaged in function hello3',
   )
   t.false(
-    zipfiles_hello3.includes(`flask${sep}__init__.py`),
+    zipfiles_hello3.includes(`flask/__init__.py`),
     'flask is NOT packaged in function hello3',
   )
 
@@ -1263,7 +1286,7 @@ test('py3.13 can package flask with package individually option', async (t) => {
     '.serverless/fn2-sls-py-req-test-dev-hello4.zip',
   )
   t.false(
-    zipfiles_hello4.includes(`fn2${sep}__init__.py`),
+    zipfiles_hello4.includes(`fn2/__init__.py`),
     'fn2 is NOT packaged in function hello4',
   )
   t.true(
@@ -1275,7 +1298,7 @@ test('py3.13 can package flask with package individually option', async (t) => {
     'dataclasses is packaged in function hello4',
   )
   t.false(
-    zipfiles_hello4.includes(`flask${sep}__init__.py`),
+    zipfiles_hello4.includes(`flask/__init__.py`),
     'flask is NOT packaged in function hello4',
   )
 
@@ -1296,7 +1319,7 @@ test('py3.13 can package flask with package individually & slim option', async (
     'no pyc files packaged in function hello',
   )
   t.true(
-    zipfiles_hello.includes(`flask${sep}__init__.py`),
+    zipfiles_hello.includes(`flask/__init__.py`),
     'flask is packaged in function hello',
   )
   t.false(
@@ -1315,7 +1338,7 @@ test('py3.13 can package flask with package individually & slim option', async (
     'no pyc files packaged in function hello2',
   )
   t.true(
-    zipfiles_hello2.includes(`flask${sep}__init__.py`),
+    zipfiles_hello2.includes(`flask/__init__.py`),
     'flask is packaged in function hello2',
   )
   t.false(
@@ -1334,7 +1357,7 @@ test('py3.13 can package flask with package individually & slim option', async (
     'no pyc files packaged in function hello3',
   )
   t.false(
-    zipfiles_hello3.includes(`flask${sep}__init__.py`),
+    zipfiles_hello3.includes(`flask/__init__.py`),
     'flask is NOT packaged in function hello3',
   )
 
@@ -1350,7 +1373,7 @@ test('py3.13 can package flask with package individually & slim option', async (
     'dataclasses is packaged in function hello4',
   )
   t.false(
-    zipfiles_hello4.includes(`flask${sep}__init__.py`),
+    zipfiles_hello4.includes(`flask/__init__.py`),
     'flask is NOT packaged in function hello4',
   )
   t.deepEqual(
@@ -1377,15 +1400,15 @@ test('py3.13 can package only requirements of module', async (t) => {
     'handler2.py is NOT packaged at root level in function hello1',
   )
   t.true(
-    zipfiles_hello.includes(`pyaml${sep}__init__.py`),
+    zipfiles_hello.includes(`pyaml/__init__.py`),
     'pyaml is packaged in function hello1',
   )
   t.true(
-    zipfiles_hello.includes(`boto3${sep}__init__.py`),
+    zipfiles_hello.includes(`boto3/__init__.py`),
     'boto3 is packaged in function hello1',
   )
   t.false(
-    zipfiles_hello.includes(`flask${sep}__init__.py`),
+    zipfiles_hello.includes(`flask/__init__.py`),
     'flask is NOT packaged in function hello1',
   )
 
@@ -1401,15 +1424,15 @@ test('py3.13 can package only requirements of module', async (t) => {
     'handler1.py is NOT packaged at root level in function hello2',
   )
   t.false(
-    zipfiles_hello2.includes(`pyaml${sep}__init__.py`),
+    zipfiles_hello2.includes(`pyaml/__init__.py`),
     'pyaml is NOT packaged in function hello2',
   )
   t.false(
-    zipfiles_hello2.includes(`boto3${sep}__init__.py`),
+    zipfiles_hello2.includes(`boto3/__init__.py`),
     'boto3 is NOT packaged in function hello2',
   )
   t.true(
-    zipfiles_hello2.includes(`flask${sep}__init__.py`),
+    zipfiles_hello2.includes(`flask/__init__.py`),
     'flask is packaged in function hello2',
   )
 
@@ -1425,7 +1448,7 @@ test('py3.13 can package lambda-decorators using vendor and invidiually option',
     'handler.py is packaged at root level in function hello',
   )
   t.true(
-    zipfiles_hello.includes(`flask${sep}__init__.py`),
+    zipfiles_hello.includes(`flask/__init__.py`),
     'flask is packaged in function hello',
   )
   t.true(
@@ -1443,7 +1466,7 @@ test('py3.13 can package lambda-decorators using vendor and invidiually option',
     'handler.py is packaged at root level in function hello2',
   )
   t.true(
-    zipfiles_hello2.includes(`flask${sep}__init__.py`),
+    zipfiles_hello2.includes(`flask/__init__.py`),
     'flask is packaged in function hello2',
   )
   t.true(
@@ -1461,7 +1484,7 @@ test('py3.13 can package lambda-decorators using vendor and invidiually option',
     'handler.py is packaged at root level in function hello3',
   )
   t.false(
-    zipfiles_hello3.includes(`flask${sep}__init__.py`),
+    zipfiles_hello3.includes(`flask/__init__.py`),
     'flask is NOT packaged in function hello3',
   )
   t.false(
@@ -1485,7 +1508,7 @@ test('py3.13 can package lambda-decorators using vendor and invidiually option',
     'dataclasses is packaged in function hello4',
   )
   t.false(
-    zipfiles_hello4.includes(`flask${sep}__init__.py`),
+    zipfiles_hello4.includes(`flask/__init__.py`),
     'flask is NOT packaged in function hello4',
   )
   t.end()
@@ -1582,7 +1605,7 @@ test(
       'handler2.py is packaged at root level in function hello2',
     )
     t.true(
-      zipfiles_hello2.includes(`flask${sep}__init__.py`),
+      zipfiles_hello2.includes(`flask/__init__.py`),
       'flask is packaged in function hello2',
     )
   },
@@ -1599,7 +1622,7 @@ test(
 
     const zipfiles_hello = await listZipFiles('.serverless/hello1.zip')
     t.true(
-      zipfiles_hello.includes(`module1${sep}handler1.ts`),
+      zipfiles_hello.includes(`module1/handler1.ts`),
       'handler1.ts is packaged in module dir for hello1',
     )
     t.false(
@@ -1607,7 +1630,7 @@ test(
       'handler2.py is NOT packaged at root level in function hello1',
     )
     t.false(
-      zipfiles_hello.includes(`flask${sep}__init__.py`),
+      zipfiles_hello.includes(`flask/__init__.py`),
       'flask is NOT packaged in function hello1',
     )
 
@@ -1622,19 +1645,19 @@ test(
       'handler2.py is packaged at root level in function hello2',
     )
     t.false(
-      zipfiles_hello2.includes(`module1${sep}handler1.ts`),
+      zipfiles_hello2.includes(`module1/handler1.ts`),
       'handler1.ts is NOT included at module1 level in hello2',
     )
     t.false(
-      zipfiles_hello2.includes(`pyaml${sep}__init__.py`),
+      zipfiles_hello2.includes(`pyaml/__init__.py`),
       'pyaml is NOT packaged in function hello2',
     )
     t.false(
-      zipfiles_hello2.includes(`boto3${sep}__init__.py`),
+      zipfiles_hello2.includes(`boto3/__init__.py`),
       'boto3 is NOT included in zipfile',
     )
     t.true(
-      zippedReqs.includes(`flask${sep}__init__.py`),
+      zippedReqs.includes(`flask/__init__.py`),
       'flask is packaged in function hello2 in requirements.zip',
     )
 
@@ -1865,7 +1888,7 @@ test(
     )
 
     const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-    t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+    t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
     t.deepEqual(
       zipfiles.filter((filename) => filename.endsWith('.pyc')),
       [],
@@ -1937,9 +1960,9 @@ test('poetry py3.13 packages additional optional packages', async (t) => {
     },
   })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
   t.true(zipfiles.includes(`bottle.py`), 'bottle is packaged')
-  t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+  t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
   t.end()
 })
 
@@ -1952,9 +1975,9 @@ test('poetry py3.13 skips additional optional packages specified in withoutGroup
     },
   })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
   t.false(zipfiles.includes(`bottle.py`), 'bottle is NOT packaged')
-  t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+  t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
   t.end()
 })
 
@@ -1966,9 +1989,9 @@ test('poetry py3.13 only installs optional packages specified in onlyGroups', as
     },
   })
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.false(zipfiles.includes(`flask${sep}__init__.py`), 'flask is NOT packaged')
+  t.false(zipfiles.includes(`flask/__init__.py`), 'flask is NOT packaged')
   t.false(zipfiles.includes(`bottle.py`), 'bottle is NOT packaged')
-  t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+  t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
   t.end()
 })
 
@@ -1978,14 +2001,8 @@ test(
     process.chdir('tests/scaleway_provider')
     sls(['package'], { env: {} })
     const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-    t.true(
-      zipfiles.includes(`package${sep}flask${sep}__init__.py`),
-      'flask is packaged',
-    )
-    t.true(
-      zipfiles.includes(`package${sep}boto3${sep}__init__.py`),
-      'boto3 is packaged',
-    )
+    t.true(zipfiles.includes(`package/flask/__init__.py`), 'flask is packaged')
+    t.true(zipfiles.includes(`package/boto3/__init__.py`), 'boto3 is packaged')
     t.end()
   },
   { skip: true }, // sls v4 supports aws provider only
@@ -2002,11 +2019,11 @@ test('function-level individually: basic single function', async (t) => {
     'handler.py is packaged in individual function',
   )
   t.true(
-    individualZip.includes(`requests${sep}__init__.py`),
+    individualZip.includes(`requests/__init__.py`),
     'requests is packaged in individual function',
   )
   t.true(
-    individualZip.includes(`certifi${sep}__init__.py`),
+    individualZip.includes(`certifi/__init__.py`),
     'certifi (requests dependency) is packaged in individual function',
   )
 
@@ -2027,11 +2044,11 @@ test('function-level individually: mixed packaging (individual + shared)', async
   // Verify individual function package contains Python dependencies
   const individualZip = await listZipFiles('.serverless/individualFunction.zip')
   t.true(
-    individualZip.includes(`requests${sep}__init__.py`),
+    individualZip.includes(`requests/__init__.py`),
     'requests is packaged in individual function',
   )
   t.true(
-    individualZip.includes(`certifi${sep}__init__.py`),
+    individualZip.includes(`certifi/__init__.py`),
     'certifi is packaged in individual function',
   )
 
@@ -2040,11 +2057,11 @@ test('function-level individually: mixed packaging (individual + shared)', async
     '.serverless/sls-py-func-level-mixed-pkg.zip',
   )
   t.true(
-    sharedZip.includes(`requests${sep}__init__.py`),
+    sharedZip.includes(`requests/__init__.py`),
     'requests is packaged in shared package',
   )
   t.true(
-    sharedZip.includes(`certifi${sep}__init__.py`),
+    sharedZip.includes(`certifi/__init__.py`),
     'certifi is packaged in shared package',
   )
 
@@ -2058,11 +2075,11 @@ test('function-level individually: mixed runtimes (Node provider, Python individ
   // Verify Python function package contains Python dependencies
   const pythonZip = await listZipFiles('.serverless/pythonFunction.zip')
   t.true(
-    pythonZip.includes(`requests${sep}__init__.py`),
+    pythonZip.includes(`requests/__init__.py`),
     'requests is packaged in Python function',
   )
   t.true(
-    pythonZip.includes(`certifi${sep}__init__.py`),
+    pythonZip.includes(`certifi/__init__.py`),
     'certifi is packaged in Python function',
   )
 
@@ -2071,11 +2088,11 @@ test('function-level individually: mixed runtimes (Node provider, Python individ
     '.serverless/sls-py-func-level-mixed-rt.zip',
   )
   t.false(
-    sharedZip.includes(`requests${sep}__init__.py`),
+    sharedZip.includes(`requests/__init__.py`),
     'requests is NOT in shared package (no shared Python functions)',
   )
   t.false(
-    sharedZip.includes(`certifi${sep}__init__.py`),
+    sharedZip.includes(`certifi/__init__.py`),
     'certifi is NOT in shared package (no shared Python functions)',
   )
 
@@ -2097,7 +2114,7 @@ test('function-level individually: zip mode basic', async (t) => {
     'unzip helper is packaged in individual function',
   )
   t.false(
-    individualZip.includes(`requests${sep}__init__.py`),
+    individualZip.includes(`requests/__init__.py`),
     "requests is NOT packaged directly (it's in .requirements.zip)",
   )
 
@@ -2173,22 +2190,22 @@ test('function-level individually: multiple functions', async (t) => {
   // Verify function1 package contains Python dependencies
   const function1Zip = await listZipFiles('.serverless/function1.zip')
   t.true(
-    function1Zip.includes(`requests${sep}__init__.py`),
+    function1Zip.includes(`requests/__init__.py`),
     'requests is packaged in function1',
   )
   t.true(
-    function1Zip.includes(`certifi${sep}__init__.py`),
+    function1Zip.includes(`certifi/__init__.py`),
     'certifi is packaged in function1',
   )
 
   // Verify function2 package contains Python dependencies
   const function2Zip = await listZipFiles('.serverless/function2.zip')
   t.true(
-    function2Zip.includes(`requests${sep}__init__.py`),
+    function2Zip.includes(`requests/__init__.py`),
     'requests is packaged in function2',
   )
   t.true(
-    function2Zip.includes(`certifi${sep}__init__.py`),
+    function2Zip.includes(`certifi/__init__.py`),
     'certifi is packaged in function2',
   )
 
@@ -2208,7 +2225,7 @@ test('function-level individually: slim mode', async (t) => {
   // Verify individual function package is slimmed
   const individualZip = await listZipFiles('.serverless/individualFunction.zip')
   t.true(
-    individualZip.includes(`requests${sep}__init__.py`),
+    individualZip.includes(`requests/__init__.py`),
     'requests is packaged in individual function',
   )
   t.deepEqual(
@@ -2225,7 +2242,7 @@ test('function-level individually: slim mode', async (t) => {
   // Verify shared package is slimmed
   const sharedZip = await listZipFiles('.serverless/sls-py-func-level-slim.zip')
   t.true(
-    sharedZip.includes(`requests${sep}__init__.py`),
+    sharedZip.includes(`requests/__init__.py`),
     'requests is packaged in shared package',
   )
   t.deepEqual(
@@ -2254,11 +2271,11 @@ test('function-level individually: subdirectories (module paths)', async (t) => 
     'handler1.py is packaged at root level in module1 function',
   )
   t.true(
-    module1Zip.includes(`requests${sep}__init__.py`),
+    module1Zip.includes(`requests/__init__.py`),
     'requests is packaged in module1 function',
   )
   t.true(
-    module1Zip.includes(`certifi${sep}__init__.py`),
+    module1Zip.includes(`certifi/__init__.py`),
     'certifi is packaged in module1 function',
   )
 
@@ -2271,11 +2288,11 @@ test('function-level individually: subdirectories (module paths)', async (t) => 
     'handler2.py is packaged at root level in module2 function',
   )
   t.true(
-    module2Zip.includes(`requests${sep}__init__.py`),
+    module2Zip.includes(`requests/__init__.py`),
     'requests is packaged in module2 function',
   )
   t.true(
-    module2Zip.includes(`certifi${sep}__init__.py`),
+    module2Zip.includes(`certifi/__init__.py`),
     'certifi is packaged in module2 function',
   )
 
@@ -2323,11 +2340,11 @@ test('function-level individually: all functions individual (no shared)', async 
     ),
   )
   t.true(
-    function1Zip.includes(`requests${sep}__init__.py`),
+    function1Zip.includes(`requests/__init__.py`),
     'requests is packaged in function1',
   )
   t.true(
-    function1Zip.includes(`certifi${sep}__init__.py`),
+    function1Zip.includes(`certifi/__init__.py`),
     'certifi is packaged in function1',
   )
 
@@ -2339,11 +2356,11 @@ test('function-level individually: all functions individual (no shared)', async 
     ),
   )
   t.true(
-    function2Zip.includes(`requests${sep}__init__.py`),
+    function2Zip.includes(`requests/__init__.py`),
     'requests is packaged in function2',
   )
   t.true(
-    function2Zip.includes(`certifi${sep}__init__.py`),
+    function2Zip.includes(`certifi/__init__.py`),
     'certifi is packaged in function2',
   )
 
@@ -2371,11 +2388,11 @@ test('function-level individually: override service-level setting', async (t) =>
   // Verify individual function package contains Python dependencies
   const individualZip = await listZipFiles('.serverless/individualFunction.zip')
   t.true(
-    individualZip.includes(`requests${sep}__init__.py`),
+    individualZip.includes(`requests/__init__.py`),
     'requests is packaged in individual function',
   )
   t.true(
-    individualZip.includes(`certifi${sep}__init__.py`),
+    individualZip.includes(`certifi/__init__.py`),
     'certifi is packaged in individual function',
   )
 
@@ -2384,11 +2401,11 @@ test('function-level individually: override service-level setting', async (t) =>
     '.serverless/sls-py-func-level-override.zip',
   )
   t.true(
-    sharedZip.includes(`requests${sep}__init__.py`),
+    sharedZip.includes(`requests/__init__.py`),
     'requests is packaged in shared package',
   )
   t.true(
-    sharedZip.includes(`certifi${sep}__init__.py`),
+    sharedZip.includes(`certifi/__init__.py`),
     'certifi is packaged in shared package',
   )
 
