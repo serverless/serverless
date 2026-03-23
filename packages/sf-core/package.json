@@ -40,7 +40,7 @@
     "cross-env": "^10.1.0",
     "cross-spawn": "^7.0.6",
     "date-fns": "^4.1.0",
-    "esbuild": "0.27.3",
+    "esbuild": "0.27.4",
     "glob": "^10.5.0",
     "jest": "^30.3.0",
     "jszip": "^3.10.1",
