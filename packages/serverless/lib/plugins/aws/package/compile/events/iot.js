@@ -58,6 +58,7 @@ iot:
               additionalProperties: false,
             },
           },
+          required: ['lambda'],
           additionalProperties: false,
         },
       },
@@ -133,13 +134,53 @@ iot:
                 awsIotSqlVersion
             }
 
-            if (event.iot.errorAction) {
-              topicRuleResource.Properties.TopicRulePayload.ErrorAction = {}
-              if (event.iot.errorAction.lambda) {
-                topicRuleResource.Properties.TopicRulePayload.ErrorAction.Lambda = {
+            if (event.iot.errorAction?.lambda) {
+              topicRuleResource.Properties.TopicRulePayload.ErrorAction = {
+                Lambda: {
                   FunctionArn: event.iot.errorAction.lambda.functionArn,
-                }
+                },
               }
+
+              const errorLambdaPermissionLogicalId =
+                this.provider.naming.getLambdaIotPermissionLogicalId(
+                  functionName,
+                  iotNumberInFunction,
+                ) + 'ErrorAction'
+
+              const errorPermissionResource = {
+                Type: 'AWS::Lambda::Permission',
+                DependsOn: _.get(functionObj.targetAlias, 'logicalId'),
+                Properties: {
+                  FunctionName: event.iot.errorAction.lambda.functionArn,
+                  Action: 'lambda:InvokeFunction',
+                  Principal: 'iot.amazonaws.com',
+                  SourceArn: {
+                    'Fn::Join': [
+                      '',
+                      [
+                        'arn:',
+                        { Ref: 'AWS::Partition' },
+                        ':iot:',
+                        { Ref: 'AWS::Region' },
+                        ':',
+                        { Ref: 'AWS::AccountId' },
+                        ':rule/',
+                        { Ref: iotLogicalId },
+                      ],
+                    ],
+                  },
+                },
+              }
+
+              const newErrorPermissionObject = {
+                [errorLambdaPermissionLogicalId]: errorPermissionResource,
+              }
+
+              _.merge(
+                this.serverless.service.provider.compiledCloudFormationTemplate
+                  .Resources,
+                newErrorPermissionObject,
+              )
             }
 
             const permissionResource = {

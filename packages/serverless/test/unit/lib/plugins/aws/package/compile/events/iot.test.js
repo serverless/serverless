@@ -275,6 +275,20 @@ describe('AwsCompileIoTEvents', () => {
           FunctionArn: 'arn:aws:lambda:us-east-1:123456789012:function:errorHandler',
         },
       })
+
+      // Should create Lambda permission for error action
+      expect(resources.FirstLambdaPermissionIotTopicRule1ErrorAction.Type).toBe(
+        'AWS::Lambda::Permission',
+      )
+      expect(
+        resources.FirstLambdaPermissionIotTopicRule1ErrorAction.Properties.Action,
+      ).toBe('lambda:InvokeFunction')
+      expect(
+        resources.FirstLambdaPermissionIotTopicRule1ErrorAction.Properties.Principal,
+      ).toBe('iot.amazonaws.com')
+      expect(
+        resources.FirstLambdaPermissionIotTopicRule1ErrorAction.Properties.FunctionName,
+      ).toBe('arn:aws:lambda:us-east-1:123456789012:function:errorHandler')
     })
 
     it('should create resources for multiple functions', () => {
