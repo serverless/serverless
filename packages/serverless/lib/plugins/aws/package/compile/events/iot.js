@@ -40,6 +40,26 @@ iot:
           description: `Rule description.`,
           type: 'string',
         },
+        errorAction: {
+          description: `Error action configuration for the rule.
+@see https://docs.aws.amazon.com/iot/latest/developerguide/rule-error-handling.html`,
+          type: 'object',
+          properties: {
+            lambda: {
+              description: `Lambda function ARN for error handling.`,
+              type: 'object',
+              properties: {
+                functionArn: {
+                  description: `ARN of the Lambda function.`,
+                  type: 'string',
+                },
+              },
+              required: ['functionArn'],
+              additionalProperties: false,
+            },
+          },
+          additionalProperties: false,
+        },
       },
       required: ['sql'],
       additionalProperties: false,
@@ -111,6 +131,15 @@ iot:
             if (awsIotSqlVersion) {
               topicRuleResource.Properties.TopicRulePayload.AwsIotSqlVersion =
                 awsIotSqlVersion
+            }
+
+            if (event.iot.errorAction) {
+              topicRuleResource.Properties.TopicRulePayload.ErrorAction = {}
+              if (event.iot.errorAction.lambda) {
+                topicRuleResource.Properties.TopicRulePayload.ErrorAction.Lambda = {
+                  FunctionArn: event.iot.errorAction.lambda.functionArn,
+                }
+              }
             }
 
             const permissionResource = {

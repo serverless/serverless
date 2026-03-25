@@ -244,6 +244,39 @@ describe('AwsCompileIoTEvents', () => {
       ).toBe('2016-03-23')
     })
 
+    it('should support errorAction with lambda functionArn', () => {
+      awsCompileIoTEvents.serverless.service.functions = {
+        first: {
+          events: [
+            {
+              iot: {
+                sql: "SELECT * FROM 'topic_1'",
+                errorAction: {
+                  lambda: {
+                    functionArn: 'arn:aws:lambda:us-east-1:123456789012:function:errorHandler',
+                  },
+                },
+              },
+            },
+          ],
+        },
+      }
+
+      awsCompileIoTEvents.compileIoTEvents()
+
+      const resources =
+        awsCompileIoTEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+
+      expect(
+        resources.FirstIotTopicRule1.Properties.TopicRulePayload.ErrorAction,
+      ).toEqual({
+        Lambda: {
+          FunctionArn: 'arn:aws:lambda:us-east-1:123456789012:function:errorHandler',
+        },
+      })
+    })
+
     it('should create resources for multiple functions', () => {
       awsCompileIoTEvents.serverless.service.functions = {
         first: {
