@@ -21,8 +21,8 @@
     "sls": "run.js"
   },
   "dependencies": {
-    "rimraf": "^5.0.10",
-    "undici": "^6.24.1"
+    "rimraf": "5.0.10",
+    "undici": "6.24.1"
   },
   "devDependencies": {},
   "publishConfig": {
