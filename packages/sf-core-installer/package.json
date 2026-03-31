@@ -22,8 +22,7 @@
   },
   "dependencies": {
     "rimraf": "^5.0.10",
-    "undici": "^6.24.1",
-    "xml2js": "0.6.2"
+    "undici": "^6.24.1"
   },
   "devDependencies": {},
   "publishConfig": {
