@@ -12,6 +12,9 @@
     "serverless": "./dist/sf-core.js",
     "sls": "./dist/sf-core.js"
   },
+  "overrides": {
+    "axios": "1.13.6"
+  },
   "dependencies": {
     "@aws-sdk/client-cloudfront-keyvaluestore": "3.1015.0",
     "@aws-sdk/signature-v4-crt": "3.1015.0",
