@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "4.33.1",
+  "version": "4.33.2",
   "description": "",
   "main": "index.js",
   "scripts": {
