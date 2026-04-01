@@ -93,6 +93,17 @@ updates:
       semver-minor-days: 7
       semver-patch-days: 3
 
+  # Maintain sf-core-installer dependencies (excluded from workspace, has its own shrinkwrap)
+  - package-ecosystem: 'npm'
+    directory: '/packages/sf-core-installer'
+    schedule:
+      interval: 'weekly'
+    cooldown:
+      default-days: 5
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
+
   # Maintain Go dependencies
   - package-ecosystem: 'gomod'
     directory: '/binary-installer'

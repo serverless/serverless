@@ -16,6 +16,7 @@
   "workspaces": [
     "packages/*",
     "!packages/framework-dist",
+    "!packages/sf-core-installer",
     "release-scripts"
   ],
   "author": "Serverless Inc.",
