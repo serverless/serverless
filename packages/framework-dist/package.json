@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-cloudfront-keyvaluestore": "3.1016.0",
-    "@aws-sdk/signature-v4-crt": "3.1015.0",
+    "@aws-sdk/signature-v4-crt": "3.1016.0",
     "@aws-sdk/signature-v4a": "3.1009.0",
     "ajv": "8.18.0",
     "ajv-formats": "3.0.1",
