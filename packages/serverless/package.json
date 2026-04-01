@@ -59,7 +59,7 @@
     "fastest-levenshtein": "^1.0.16",
     "filesize": "^11.0.15",
     "fs-extra": "^11.3.4",
-    "get-stdin": "^9.0.0",
+    "get-stdin": "^10.0.0",
     "glob": "^10.5.0",
     "globby": "^14.1.0",
     "graphql": "^16.13.2",
