@@ -8,6 +8,9 @@ updates:
   # Maintain NPM dependencies
   - package-ecosystem: 'npm'
     directory: '/'
+    exclude-paths:
+      - 'packages/framework-dist/**'
+      - 'packages/sf-core-installer/**'
     schedule:
       interval: 'weekly'
     versioning-strategy: increase
@@ -89,6 +92,10 @@ updates:
       semver-major-days: 30
       semver-minor-days: 7
       semver-patch-days: 3
+    groups:
+      aws-sdk:
+        patterns:
+          - '@aws-sdk/*'
 
   # Maintain sf-core-installer dependencies (excluded from workspace, has its own shrinkwrap)
   - package-ecosystem: 'npm'
