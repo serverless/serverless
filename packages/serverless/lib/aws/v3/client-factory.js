@@ -12,6 +12,7 @@ import * as IAM from '@aws-sdk/client-iam'
 import * as APIGatewayNS from '@aws-sdk/client-api-gateway'
 import * as ApiGatewayV2NS from '@aws-sdk/client-apigatewayv2'
 import * as IoTNS from '@aws-sdk/client-iot'
+import * as SESV2 from '@aws-sdk/client-sesv2'
 import { addProxyToAwsClient } from '@serverless/util'
 
 const nsByService = {
@@ -26,9 +27,14 @@ const nsByService = {
   APIGateway: APIGatewayNS,
   ApiGatewayV2: ApiGatewayV2NS,
   IoT: IoTNS,
+  SESv2: SESV2,
 }
 
-export const canonicalizeServiceName = (name) => (name === 'Iot' ? 'IoT' : name)
+export const canonicalizeServiceName = (name) => {
+  if (name === 'Iot') return 'IoT'
+  if (name === 'SESV2') return 'SESv2'
+  return name
+}
 export const getNamespaceForService = (name) =>
   nsByService[canonicalizeServiceName(name)]
 export const pascalCase = (s) =>

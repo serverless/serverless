@@ -30,6 +30,7 @@
     "@aws-sdk/client-iam": "3.1015.0",
     "@aws-sdk/client-iot": "3.1015.0",
     "@aws-sdk/client-lambda": "3.1015.0",
+    "@aws-sdk/client-sesv2": "3.1015.0",
     "@aws-sdk/client-route-53": "3.1015.0",
     "@aws-sdk/client-s3": "3.1015.0",
     "@aws-sdk/client-sts": "3.1015.0",
