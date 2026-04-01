@@ -82,6 +82,17 @@ updates:
         # @axiomhq/js v1.4.0 drops support for Node.js 18
         versions: ['>= 1.4.0']
 
+  # Maintain framework-dist dependencies (excluded from workspace, has its own shrinkwrap)
+  - package-ecosystem: 'npm'
+    directory: '/packages/framework-dist'
+    schedule:
+      interval: 'weekly'
+    cooldown:
+      default-days: 5
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
+
   # Maintain Go dependencies
   - package-ecosystem: 'gomod'
     directory: '/binary-installer'
