@@ -150,6 +150,51 @@ describe('zipService', () => {
       expect(updatedParams.include).toContain('user-defined-include-me')
       expect(updatedParams.zipFileName).toBe(params.zipFileName)
     })
+
+    it('should correctly exclude dev dependencies when serviceDir is a symlink', async () => {
+      // Create a real directory and a symlink pointing to it
+      const realDir = path.join(tmpDirPath, 'real-service')
+      const symlinkDir = path.join(tmpDirPath, 'symlink-service')
+      fs.mkdirSync(realDir, { recursive: true })
+      fs.symlinkSync(realDir, symlinkDir)
+
+      // Set up package.json with a dev dependency
+      fs.writeFileSync(
+        path.join(realDir, 'package.json'),
+        JSON.stringify({
+          name: 'test-service',
+          devDependencies: { 'dev-dep': '1.0.0' },
+          dependencies: {},
+        }),
+      )
+
+      // Create node_modules structure
+      fs.mkdirSync(path.join(realDir, 'node_modules', 'dev-dep'), {
+        recursive: true,
+      })
+      fs.writeFileSync(
+        path.join(realDir, 'node_modules', 'dev-dep', 'package.json'),
+        JSON.stringify({ name: 'dev-dep', version: '1.0.0' }),
+      )
+
+      // Point serviceDir to the symlink path
+      serverless.serviceDir = symlinkDir
+      serverless.config.serviceDir = symlinkDir
+      packagePlugin = new Package(serverless, {})
+
+      const updatedParams = await packagePlugin.excludeDevDependencies(params)
+
+      // The dev dependency should be excluded via glob patterns
+      const hasDevDepExclusion = updatedParams.exclude.some(
+        (pattern) =>
+          pattern.includes('node_modules/dev-dep') ||
+          pattern.includes('node_modules\\dev-dep'),
+      )
+      expect(hasDevDepExclusion).toBe(true)
+
+      // Clean up symlink
+      fs.unlinkSync(symlinkDir)
+    })
   })
 
   describe('#zip()', () => {

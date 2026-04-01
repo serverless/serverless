@@ -270,7 +270,7 @@ async function excludeNodeDevDependencies(serviceDir) {
           if (dependencies.length) {
             return pMap(
               dependencies,
-              (item) => item.replace(path.join(serviceDir, path.sep), ''),
+              (item) => path.relative(serviceDir, item),
               { concurrency: os.cpus().length },
             )
               .then((processedDependencies) => {
