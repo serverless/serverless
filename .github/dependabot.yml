@@ -81,6 +81,9 @@ updates:
       - dependency-name: '@axiomhq/js'
         # @axiomhq/js v1.4.0 drops support for Node.js 18
         versions: ['>= 1.4.0']
+      - dependency-name: 'get-stdin'
+        # get-stdin v10 drops support for Node.js 18
+        versions: ['>= 10.0.0']
 
   # Maintain framework-dist dependencies (excluded from workspace, has its own shrinkwrap)
   - package-ecosystem: 'npm'
