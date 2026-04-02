@@ -8,8 +8,8 @@
       "name": "@serverlessinc/framework-alpha",
       "version": "4.3.3",
       "dependencies": {
-        "@aws-sdk/client-cloudfront-keyvaluestore": "3.1016.0",
-        "@aws-sdk/signature-v4-crt": "3.1016.0",
+        "@aws-sdk/client-cloudfront-keyvaluestore": "3.1017.0",
+        "@aws-sdk/signature-v4-crt": "3.1017.0",
         "@aws-sdk/signature-v4a": "3.1009.0",
         "ajv": "8.18.0",
         "ajv-formats": "3.0.1",
@@ -146,9 +146,9 @@
       }
     },
     "node_modules/@aws-sdk/client-cloudfront-keyvaluestore": {
-      "version": "3.1016.0",
-      "resolved": "https://registry.npmjs.org/@aws-sdk/client-cloudfront-keyvaluestore/-/client-cloudfront-keyvaluestore-3.1016.0.tgz",
-      "integrity": "sha512-R7YgNVW9XkJsW2vyNlWllS0LnM7Bxz4V1PYAbrEAlnIzuMr5cuUxEqy7f9KrViIAVkbui9AaQ3bjvuVXinbImg==",
+      "version": "3.1017.0",
+      "resolved": "https://registry.npmjs.org/@aws-sdk/client-cloudfront-keyvaluestore/-/client-cloudfront-keyvaluestore-3.1017.0.tgz",
+      "integrity": "sha512-4P0jcy40O9V0eS/MQQ+bi/9Sg9/W1zCvzlmZXWeD1qHqlRfrYJUvlwMDkwLLFAn02nkIDtHLxUjFgFewODO3Zw==",
       "license": "Apache-2.0",
       "dependencies": {
         "@aws-crypto/sha256-browser": "5.2.0",
@@ -160,7 +160,7 @@
         "@aws-sdk/middleware-recursion-detection": "^3.972.8",
         "@aws-sdk/middleware-user-agent": "^3.972.25",
         "@aws-sdk/region-config-resolver": "^3.972.9",
-        "@aws-sdk/signature-v4-multi-region": "^3.996.12",
+        "@aws-sdk/signature-v4-multi-region": "^3.996.13",
         "@aws-sdk/types": "^3.973.6",
         "@aws-sdk/util-endpoints": "^3.996.5",
         "@aws-sdk/util-user-agent-browser": "^3.972.8",
@@ -547,13 +547,13 @@
       }
     },
     "node_modules/@aws-sdk/signature-v4-crt": {
-      "version": "3.1016.0",
-      "resolved": "https://registry.npmjs.org/@aws-sdk/signature-v4-crt/-/signature-v4-crt-3.1016.0.tgz",
-      "integrity": "sha512-IRnrkFK67nWpUcm92qaYal3VBXVCpRjQAS9Aw7Q7PCExZX0GxQfbQW3DRGFi8puGJa8mQ0c0AxbGZCs3O+QUww==",
+      "version": "3.1017.0",
+      "resolved": "https://registry.npmjs.org/@aws-sdk/signature-v4-crt/-/signature-v4-crt-3.1017.0.tgz",
+      "integrity": "sha512-32mBzsC7EtBte8+1qLsI0Huu1Tas1mE6Gke9ih3VxcOz0wAuoVEUyO3IxgxUlYJ8cqoqLBafraoVW5axK/91ug==",
       "license": "Apache-2.0",
       "dependencies": {
         "@aws-sdk/crt-loader": "^3.972.25",
-        "@aws-sdk/signature-v4-multi-region": "^3.996.12",
+        "@aws-sdk/signature-v4-multi-region": "^3.996.13",
         "@aws-sdk/types": "^3.973.6",
         "@smithy/querystring-parser": "^4.2.12",
         "@smithy/signature-v4": "^5.3.12",
