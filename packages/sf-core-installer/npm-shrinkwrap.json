@@ -1,12 +1,12 @@
 {
   "name": "serverless",
-  "version": "4.33.2",
+  "version": "4.33.3",
   "lockfileVersion": 3,
   "requires": true,
   "packages": {
     "": {
       "name": "serverless",
-      "version": "4.33.2",
+      "version": "4.33.3",
       "hasInstallScript": true,
       "dependencies": {
         "rimraf": "5.0.10",
