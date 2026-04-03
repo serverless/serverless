@@ -322,8 +322,8 @@ class Compose {
                   const stateValue =
                     state?.localState?.[splitKey[0]]?.outputs?.[splitKey[1]]
                   if (!stateValue) {
-                    if (command[0] === 'print') {
-                      serviceParams[key] = 'NOT_AVAILABLE_IN_PRINT_COMMAND'
+                    if (command[0] === 'print' || command[0] === 'package') {
+                      serviceParams[key] = 'NOT_AVAILABLE_AT_PACKAGE_TIME'
                     } else if (command[0] === 'remove') {
                       serviceParams[key] = ''
                     } else {
@@ -490,12 +490,12 @@ class Compose {
     } = runnerOutput || {}
 
     const serviceUniqueIdProvided = serviceUniqueId && runnerType
-
-    if (
-      serviceUniqueIdProvided &&
+    const hasOutputs =
       returnedState &&
-      command[0] !== 'get-state'
-    ) {
+      returnedState.outputs &&
+      Object.keys(returnedState.outputs).length > 0
+
+    if (serviceUniqueIdProvided && hasOutputs && command[0] !== 'get-state') {
       await state?.putServiceState({
         serviceUniqueId,
         runnerType,
@@ -505,10 +505,10 @@ class Compose {
 
     if (
       state?.localState &&
-      (returnedState || graph.predecessors(alias)?.length)
+      (hasOutputs || graph.predecessors(alias)?.length)
     ) {
       state.localState[alias] =
-        returnedState ||
+        (hasOutputs ? returnedState : null) ||
         (serviceUniqueIdProvided
           ? await state?.getServiceState({
               serviceUniqueId,
