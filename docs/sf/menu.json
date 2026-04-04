@@ -100,6 +100,7 @@
     },
     "Deploying SAM/CFN Templates": "guides/sam",
     "Workflow Tips": "guides/workflow",
+    "Programmatic API": "guides/programmatic-api",
     "Plugins": {
       "Overview": "guides/plugins",
       "Creating Plugins": "guides/plugins/creating-plugins",

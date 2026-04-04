@@ -201,6 +201,8 @@ module.exports = MyPlugin
 
 **Note:** configuration values are only resolved _after_ plugins are initialized. Do not try to read configuration in the plugin constructor, as variables aren't resolved yet. Read configuration in lifecycle events only.
 
+See the [Programmatic API](../../programmatic-api.md) documentation for more details on the `serverless` instance.
+
 ## CLI options
 
 The `options` parameter provides access to the CLI options provided to the command:
