@@ -15,19 +15,24 @@ async function createZipFile(srcDirPath, outputFilePath) {
       zlib: { level: 9 },
     })
 
-    output.on('open', () => {
+    output.on('open', async () => {
       archive.pipe(output)
 
-      files.forEach((file) => {
-        // TODO: update since this is REALLY slow
-        if (fs.lstatSync(file.input).isFile()) {
-          archive.append(fs.createReadStream(file.input), {
-            name: file.output,
+      try {
+        await Promise.all(
+          files.map(async (file) => {
+            const stats = await fs.promises.lstat(file.input)
+            if (stats.isFile()) {
+              archive.append(fs.createReadStream(file.input), {
+                name: file.output,
+              })
+            }
           })
-        }
-      })
-
-      archive.finalize()
+        )
+        archive.finalize()
+      } catch (err) {
+        reject(err)
+      }
     })
 
     archive.on('error', (err) => reject(err))
