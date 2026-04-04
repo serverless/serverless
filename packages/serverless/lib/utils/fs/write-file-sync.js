@@ -8,7 +8,7 @@ function writeFileSync(filePath, conts, cycles) {
 
   fse.mkdirsSync(path.dirname(filePath))
 
-  if (filePath.indexOf('.json') !== -1 && typeof contents !== 'string') {
+  if (filePath.endsWith('.json') && typeof contents !== 'string') {
     if (cycles) {
       contents = jc.stringify(contents, null, 2)
     } else {
@@ -16,8 +16,8 @@ function writeFileSync(filePath, conts, cycles) {
     }
   }
 
-  const yamlFileExists = filePath.indexOf('.yaml') !== -1
-  const ymlFileExists = filePath.indexOf('.yml') !== -1
+  const yamlFileExists = filePath.endsWith('.yaml')
+  const ymlFileExists = filePath.endsWith('.yml')
 
   if ((yamlFileExists || ymlFileExists) && typeof contents !== 'string') {
     contents = yaml.dump(contents)
