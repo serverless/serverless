@@ -2614,17 +2614,22 @@ destinations:
               maximum: 10240,
             },
             fileSystemConfig: {
-              description: `EFS access point mount configuration.
-@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#efs-configuration`,
+              description: `File system mount configuration (EFS or S3 Files).
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#file-system-configuration`,
               type: 'object',
               properties: {
                 arn: {
-                  description: `EFS access point ARN.`,
+                  description: `File system access point ARN (EFS or S3 Files).`,
                   anyOf: [
                     {
                       type: 'string',
                       pattern:
                         '^arn:aws[a-zA-Z-]*:elasticfilesystem:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-[1-9]{1}:[0-9]{12}:access-point/fsap-[a-f0-9]{17}$',
+                    },
+                    {
+                      type: 'string',
+                      pattern:
+                        '^arn:aws[a-zA-Z-]*:s3files:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-[1-9]{1}:[0-9]{12}:file-system/fs-[0-9a-f]{17,40}/access-point/fsap-[0-9a-f]{17,40}$',
                     },
                     { $ref: '#/definitions/awsCfGetAtt' },
                     { $ref: '#/definitions/awsCfJoin' },
@@ -2635,6 +2640,10 @@ destinations:
                   description: `Local mount path in the Lambda function (/mnt/...).`,
                   type: 'string',
                   pattern: '^/mnt/[a-zA-Z0-9-_.]+$',
+                },
+                type: {
+                  description: `File system type. Auto-detected from literal ARN strings. Required when using CloudFormation references with S3 Files.`,
+                  enum: ['efs', 's3files'],
                 },
               },
               additionalProperties: false,
