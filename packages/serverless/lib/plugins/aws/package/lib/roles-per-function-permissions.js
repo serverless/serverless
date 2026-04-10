@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import resolveFileSystemType from '../../utils/resolve-file-system-type.js'
 
 function applyLogPermissions({
   functionObject,
@@ -452,13 +453,19 @@ function applyXrayPermissions({
   }
 }
 
-function applyEfsPermissions({ functionObject, policyStatements }) {
+function applyFileSystemPermissions({ functionObject, policyStatements }) {
   const fileSystemConfig = functionObject.fileSystemConfig
   if (!fileSystemConfig || !fileSystemConfig.arn) return
 
+  const fsType = resolveFileSystemType(fileSystemConfig)
+  const actions =
+    fsType === 's3files'
+      ? ['s3files:ClientMount', 's3files:ClientWrite']
+      : ['elasticfilesystem:ClientMount', 'elasticfilesystem:ClientWrite']
+
   const stmt = {
     Effect: 'Allow',
-    Action: ['elasticfilesystem:ClientMount', 'elasticfilesystem:ClientWrite'],
+    Action: actions,
     Resource: [fileSystemConfig.arn],
   }
 
@@ -598,7 +605,7 @@ export default function applyPerFunctionPermissions({
     policyStatements,
     serverless,
   })
-  applyEfsPermissions({ functionObject, policyStatements })
+  applyFileSystemPermissions({ functionObject, policyStatements })
   applyDestinationPermissions({
     functionObject,
     policyStatements,
