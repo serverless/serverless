@@ -400,6 +400,102 @@ describe('applyPerFunctionPermissions - Destination Permissions', () => {
       functionObject,
     )
   })
+
+  it('should preserve aws:SourceAccount trust condition when adding CloudFront principal', () => {
+    functionIamRole.Properties.AssumeRolePolicyDocument.Statement[0].Condition =
+      {
+        StringEquals: {
+          'aws:SourceAccount': { Ref: 'AWS::AccountId' },
+        },
+      }
+
+    const functionObject = {
+      name: 'test-function',
+      events: [
+        {
+          cloudFront: {
+            eventType: 'viewer-request',
+            origin: 's3://bucketname.s3.amazonaws.com/files',
+          },
+        },
+      ],
+    }
+
+    applyPerFunctionPermissions({
+      functionName: 'myFunc',
+      functionObject,
+      functionIamRole,
+      policyStatements,
+      serverless,
+      provider,
+      throwError: jest.fn(),
+    })
+
+    expect(functionIamRole.Properties.AssumeRolePolicyDocument).toEqual({
+      Statement: [
+        {
+          Effect: 'Allow',
+          Principal: {
+            Service: ['lambda.amazonaws.com', 'edgelambda.amazonaws.com'],
+          },
+          Action: 'sts:AssumeRole',
+          Condition: {
+            StringEquals: {
+              'aws:SourceAccount': { Ref: 'AWS::AccountId' },
+            },
+          },
+        },
+      ],
+    })
+  })
+
+  it('should preserve aws:SourceAccount trust condition when adding Scheduler principal', () => {
+    functionIamRole.Properties.AssumeRolePolicyDocument.Statement[0].Condition =
+      {
+        StringEquals: {
+          'aws:SourceAccount': { Ref: 'AWS::AccountId' },
+        },
+      }
+
+    const functionObject = {
+      name: 'test-function',
+      events: [
+        {
+          schedule: {
+            method: 'scheduler',
+            rate: 'rate(5 minutes)',
+          },
+        },
+      ],
+    }
+
+    applyPerFunctionPermissions({
+      functionName: 'myFunc',
+      functionObject,
+      functionIamRole,
+      policyStatements,
+      serverless,
+      provider,
+      throwError: jest.fn(),
+    })
+
+    expect(functionIamRole.Properties.AssumeRolePolicyDocument).toEqual({
+      Statement: [
+        {
+          Effect: 'Allow',
+          Principal: {
+            Service: ['lambda.amazonaws.com', 'scheduler.amazonaws.com'],
+          },
+          Action: 'sts:AssumeRole',
+          Condition: {
+            StringEquals: {
+              'aws:SourceAccount': { Ref: 'AWS::AccountId' },
+            },
+          },
+        },
+      ],
+    })
+  })
 })
 
 describe('applyPerFunctionPermissions - File System Permissions', () => {
