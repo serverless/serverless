@@ -757,8 +757,8 @@ describe('AwsCompileFunctions', () => {
       }
     })
 
-    describe('FileSystemConfig (EFS)', () => {
-      it('should configure FileSystemConfigs and IAM permissions when VPC is set', async () => {
+    describe('FileSystemConfig', () => {
+      it('should configure FileSystemConfigs and EFS IAM permissions when VPC is set', async () => {
         awsCompileFunctions.serverless.service.functions = {
           func: {
             handler: 'handler',
@@ -800,6 +800,112 @@ describe('AwsCompileFunctions', () => {
         })
       })
 
+      it('should configure S3 Files IAM permissions when S3 Files ARN is used', async () => {
+        const s3FilesArn =
+          'arn:aws:s3files:us-east-1:123456789012:file-system/fs-0abcdef1234567890/access-point/fsap-0abcdef1234567890'
+        awsCompileFunctions.serverless.service.functions = {
+          func: {
+            handler: 'handler',
+            name: 'func',
+            vpc: { securityGroupIds: ['sg-1'], subnetIds: ['sub-1'] },
+            fileSystemConfig: {
+              localMountPath: '/mnt/s3data',
+              arn: s3FilesArn,
+            },
+          },
+        }
+
+        await awsCompileFunctions.compileFunctions()
+
+        const resources =
+          awsCompileFunctions.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+        const props = resources.FuncLambdaFunction.Properties
+
+        expect(props.FileSystemConfigs).toEqual([
+          {
+            Arn: s3FilesArn,
+            LocalMountPath: '/mnt/s3data',
+          },
+        ])
+
+        const policy =
+          resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument
+            .Statement
+        expect(policy).toContainEqual({
+          Effect: 'Allow',
+          Action: ['s3files:ClientMount', 's3files:ClientWrite'],
+          Resource: [s3FilesArn],
+        })
+      })
+
+      it('should use S3 Files IAM permissions when type is explicitly set to s3files', async () => {
+        const cfRef = {
+          'Fn::GetAtt': ['MyS3FilesAccessPoint', 'AccessPointArn'],
+        }
+        awsCompileFunctions.serverless.service.functions = {
+          func: {
+            handler: 'handler',
+            name: 'func',
+            vpc: { securityGroupIds: ['sg-1'], subnetIds: ['sub-1'] },
+            fileSystemConfig: {
+              localMountPath: '/mnt/s3data',
+              arn: cfRef,
+              type: 's3files',
+            },
+          },
+        }
+
+        await awsCompileFunctions.compileFunctions()
+
+        const resources =
+          awsCompileFunctions.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+
+        expect(
+          resources.FuncLambdaFunction.Properties.FileSystemConfigs,
+        ).toEqual([{ Arn: cfRef, LocalMountPath: '/mnt/s3data' }])
+
+        const policy =
+          resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument
+            .Statement
+        expect(policy).toContainEqual({
+          Effect: 'Allow',
+          Action: ['s3files:ClientMount', 's3files:ClientWrite'],
+          Resource: [cfRef],
+        })
+      })
+
+      it('should default to EFS IAM permissions when CF reference is used without type', async () => {
+        const cfRef = { 'Fn::GetAtt': ['MyAccessPoint', 'AccessPointArn'] }
+        awsCompileFunctions.serverless.service.functions = {
+          func: {
+            handler: 'handler',
+            name: 'func',
+            vpc: { securityGroupIds: ['sg-1'], subnetIds: ['sub-1'] },
+            fileSystemConfig: {
+              localMountPath: '/mnt/data',
+              arn: cfRef,
+            },
+          },
+        }
+
+        await awsCompileFunctions.compileFunctions()
+
+        const policy =
+          awsCompileFunctions.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution
+            .Properties.Policies[0].PolicyDocument.Statement
+        expect(policy).toContainEqual({
+          Effect: 'Allow',
+          Action: [
+            'elasticfilesystem:ClientMount',
+            'elasticfilesystem:ClientWrite',
+          ],
+          Resource: [cfRef],
+        })
+      })
+
       it('should throw error if fileSystemConfig is set without VPC', async () => {
         awsCompileFunctions.serverless.service.functions = {
           func: {
@@ -808,6 +914,22 @@ describe('AwsCompileFunctions', () => {
             fileSystemConfig: {
               localMountPath: '/mnt/efs',
               arn: 'arn:aws:elasticfilesystem:...',
+            },
+          },
+        }
+        await expect(awsCompileFunctions.compileFunctions()).rejects.toThrow(
+          /ensure that function has vpc configured/,
+        )
+      })
+
+      it('should throw error if S3 Files fileSystemConfig is set without VPC', async () => {
+        awsCompileFunctions.serverless.service.functions = {
+          func: {
+            handler: 'handler',
+            name: 'func',
+            fileSystemConfig: {
+              localMountPath: '/mnt/s3data',
+              arn: 'arn:aws:s3files:us-east-1:123456789012:file-system/fs-0abcdef1234567890/access-point/fsap-0abcdef1234567890',
             },
           },
         }

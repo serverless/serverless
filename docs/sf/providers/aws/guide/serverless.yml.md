@@ -941,12 +941,14 @@ functions:
         type: sns
         arn:
           Ref: SomeTopicName
-    # Mount an EFS filesystem
+    # Mount a file system (EFS or S3 Files)
     fileSystemConfig:
-      # ARN of EFS Access Point
+      # ARN of EFS or S3 Files Access Point
       arn: arn:aws:elasticfilesystem:us-east-1:11111111:access-point/fsap-a1a1a1
-      # Path under which EFS will be mounted and accessible in Lambda
+      # Path under which the file system will be mounted and accessible in Lambda
       localMountPath: /mnt/example
+      # File system type - auto-detected from ARN, required for CF references with S3 Files
+      # type: efs | s3files
     # Maximum retry attempts when an asynchronous invocation fails (between 0 and 2; default: 2)
     maximumRetryAttempts: 1
     # Maximum event age in seconds when invoking asynchronously (between 60 and 21600)

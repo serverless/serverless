@@ -497,3 +497,186 @@ describe('applyPerFunctionPermissions - Destination Permissions', () => {
     })
   })
 })
+
+describe('applyPerFunctionPermissions - File System Permissions', () => {
+  let serverless
+  let provider
+  let policyStatements
+  let functionIamRole
+
+  beforeEach(() => {
+    provider = {
+      naming: {
+        getLogGroupName: jest.fn((name) => `/aws/lambda/${name}`),
+      },
+    }
+    serverless = {
+      service: {
+        provider: {},
+        getFunction: jest.fn((name) => ({
+          name: `test-service-dev-${name}`,
+        })),
+      },
+      getProvider: jest.fn(() => provider),
+    }
+    policyStatements = []
+    functionIamRole = {
+      Properties: {
+        ManagedPolicyArns: [],
+        AssumeRolePolicyDocument: {
+          Statement: [
+            {
+              Effect: 'Allow',
+              Principal: { Service: 'lambda.amazonaws.com' },
+              Action: 'sts:AssumeRole',
+            },
+          ],
+        },
+      },
+    }
+  })
+
+  it('should add EFS permissions for EFS ARN', () => {
+    const efsArn =
+      'arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-0abcdef1234567890'
+    const functionObject = {
+      name: 'test-function',
+      fileSystemConfig: {
+        arn: efsArn,
+        localMountPath: '/mnt/efs',
+      },
+    }
+
+    applyPerFunctionPermissions({
+      functionName: 'myFunc',
+      functionObject,
+      functionIamRole,
+      policyStatements,
+      serverless,
+      provider,
+      throwError: jest.fn(),
+    })
+
+    expect(policyStatements).toContainEqual({
+      Effect: 'Allow',
+      Action: [
+        'elasticfilesystem:ClientMount',
+        'elasticfilesystem:ClientWrite',
+      ],
+      Resource: [efsArn],
+    })
+  })
+
+  it('should add S3 Files permissions for S3 Files ARN', () => {
+    const s3FilesArn =
+      'arn:aws:s3files:us-east-1:123456789012:file-system/fs-0abcdef1234567890/access-point/fsap-0abcdef1234567890'
+    const functionObject = {
+      name: 'test-function',
+      fileSystemConfig: {
+        arn: s3FilesArn,
+        localMountPath: '/mnt/s3data',
+      },
+    }
+
+    applyPerFunctionPermissions({
+      functionName: 'myFunc',
+      functionObject,
+      functionIamRole,
+      policyStatements,
+      serverless,
+      provider,
+      throwError: jest.fn(),
+    })
+
+    expect(policyStatements).toContainEqual({
+      Effect: 'Allow',
+      Action: ['s3files:ClientMount', 's3files:ClientWrite'],
+      Resource: [s3FilesArn],
+    })
+  })
+
+  it('should add S3 Files permissions when type is explicitly set to s3files', () => {
+    const cfRef = {
+      'Fn::GetAtt': ['MyS3FilesAccessPoint', 'AccessPointArn'],
+    }
+    const functionObject = {
+      name: 'test-function',
+      fileSystemConfig: {
+        arn: cfRef,
+        localMountPath: '/mnt/s3data',
+        type: 's3files',
+      },
+    }
+
+    applyPerFunctionPermissions({
+      functionName: 'myFunc',
+      functionObject,
+      functionIamRole,
+      policyStatements,
+      serverless,
+      provider,
+      throwError: jest.fn(),
+    })
+
+    expect(policyStatements).toContainEqual({
+      Effect: 'Allow',
+      Action: ['s3files:ClientMount', 's3files:ClientWrite'],
+      Resource: [cfRef],
+    })
+  })
+
+  it('should default to EFS permissions when CF reference is used without type', () => {
+    const cfRef = { 'Fn::GetAtt': ['MyAccessPoint', 'AccessPointArn'] }
+    const functionObject = {
+      name: 'test-function',
+      fileSystemConfig: {
+        arn: cfRef,
+        localMountPath: '/mnt/data',
+      },
+    }
+
+    applyPerFunctionPermissions({
+      functionName: 'myFunc',
+      functionObject,
+      functionIamRole,
+      policyStatements,
+      serverless,
+      provider,
+      throwError: jest.fn(),
+    })
+
+    expect(policyStatements).toContainEqual({
+      Effect: 'Allow',
+      Action: [
+        'elasticfilesystem:ClientMount',
+        'elasticfilesystem:ClientWrite',
+      ],
+      Resource: [cfRef],
+    })
+  })
+
+  it('should not add permissions when fileSystemConfig is not set', () => {
+    const functionObject = {
+      name: 'test-function',
+    }
+
+    applyPerFunctionPermissions({
+      functionName: 'myFunc',
+      functionObject,
+      functionIamRole,
+      policyStatements,
+      serverless,
+      provider,
+      throwError: jest.fn(),
+    })
+
+    expect(
+      policyStatements.some(
+        (s) =>
+          s.Action &&
+          (s.Action.includes('elasticfilesystem:ClientMount') ||
+            s.Action.includes('s3files:ClientMount')),
+      ),
+    ).toBe(false)
+  })
+})

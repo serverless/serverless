@@ -1,3 +1,14 @@
+/**
+ * AWS AppSync support for Serverless Framework
+ *
+ * Originally derived from serverless-appsync-plugin
+ * (https://github.com/sid88in/serverless-appsync-plugin)
+ * Copyright (c) 2018 Siddharth Gupta and contributors
+ * Licensed under the MIT License
+ *
+ * See THIRD_PARTY_LICENSES in the repository root for the full license text.
+ */
+
 import _ from 'lodash'
 const { forEach, last, merge } = _
 import { getAppSyncConfig } from './get-appsync-config.js'

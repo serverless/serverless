@@ -1,5 +1,15 @@
+/**
+ * Python requirements support for Serverless Framework
+ *
+ * Originally derived from serverless-python-requirements
+ * (https://github.com/UnitedIncome/serverless-python-requirements)
+ * Copyright (c) 2016 Logan Raarup and contributors
+ * Licensed under the MIT License
+ *
+ * See THIRD_PARTY_LICENSES in the repository root for the full license text.
+ */
+
 /* jshint ignore:start */
-// Internal version of the historical community plugin; exported so core can bundle it directly
 import {
   addVendorHelper,
   packRequirements,

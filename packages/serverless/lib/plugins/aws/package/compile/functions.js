@@ -6,6 +6,7 @@ import deepSortObjectByKey from '../../../../utils/deep-sort-object-by-key.js'
 import getHashForFilePath from '../lib/get-hash-for-file-path.js'
 import resolveLambdaTarget from '../../utils/resolve-lambda-target.js'
 import parseS3URI from '../../utils/parse-s3-uri.js'
+import resolveFileSystemType from '../../utils/resolve-file-system-type.js'
 import { log, ServerlessError } from '@serverless/util'
 
 const defaultCors = {
@@ -734,12 +735,15 @@ class AwsCompileFunctions {
 
       const iamRoleLambdaExecution = cfTemplate.Resources.IamRoleLambdaExecution
 
+      const fsType = resolveFileSystemType(fileSystemConfig)
+      const actions =
+        fsType === 's3files'
+          ? ['s3files:ClientMount', 's3files:ClientWrite']
+          : ['elasticfilesystem:ClientMount', 'elasticfilesystem:ClientWrite']
+
       const stmt = {
         Effect: 'Allow',
-        Action: [
-          'elasticfilesystem:ClientMount',
-          'elasticfilesystem:ClientWrite',
-        ],
+        Action: actions,
         Resource: [fileSystemConfig.arn],
       }
 

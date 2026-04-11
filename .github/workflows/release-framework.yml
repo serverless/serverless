@@ -29,9 +29,10 @@ jobs:
       - name: 'Checkout Code'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: 'Setup: Node.js'
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: 24.x
+          check-latest: true
           cache: npm
       - name: 'Install: Dependencies'
         run: |
@@ -54,9 +55,10 @@ jobs:
       - name: 'Checkout Code'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: 'Setup: Node.js'
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: 24.x
+          check-latest: true
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
           scope: '@serverlessinc'
@@ -103,9 +105,10 @@ jobs:
         with:
           fetch-depth: 50
       - name: 'Setup: Node.js'
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: 24.x
+          check-latest: true
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
           scope: '@serverlessinc'
@@ -150,9 +153,10 @@ jobs:
       - name: 'Checkout Code'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: 'Setup: Node.js'
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: 24.x
+          check-latest: true
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
           scope: '@serverlessinc'
@@ -190,9 +194,10 @@ jobs:
       - name: 'Checkout Code'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: 'Setup: Node.js'
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: 24.x
+          check-latest: true
           cache: npm
           scope: '@serverless'
           registry-url: https://registry.npmjs.org

@@ -19,7 +19,7 @@
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest tests/"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.27.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@serverless/engine": "*",
     "@serverless/framework": "*",
     "eventsource": "^3.0.7",
@@ -27,7 +27,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@aws-sdk/client-cloudwatch-logs": "3.993.0",
-    "jest": "^30.2.0"
+    "@aws-sdk/client-cloudwatch-logs": "3.1017.0",
+    "jest": "^30.3.0"
   }
 }
