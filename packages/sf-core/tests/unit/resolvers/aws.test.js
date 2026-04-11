@@ -4,6 +4,7 @@ import { jest } from '@jest/globals'
 const mockResolveVariableFromSsm = jest.fn()
 const mockResolveVariableFromS3 = jest.fn()
 const mockResolveVariableFromCloudFormation = jest.fn()
+const mockResolveValueFromAppConfig = jest.fn()
 const mockGetAwsCredentials = jest.fn()
 const mockStsSend = jest.fn()
 
@@ -29,6 +30,14 @@ jest.unstable_mockModule(
   '../../../src/lib/resolvers/providers/aws/cf.js',
   () => ({
     resolveVariableFromCloudFormation: mockResolveVariableFromCloudFormation,
+  }),
+)
+
+// Mock AppConfig module
+jest.unstable_mockModule(
+  '../../../src/lib/resolvers/providers/aws/appconfig.js',
+  () => ({
+    resolveValueFromAppConfig: mockResolveValueFromAppConfig,
   }),
 )
 
@@ -74,6 +83,7 @@ describe('Aws Resolver', () => {
     mockResolveVariableFromSsm.mockReset()
     mockResolveVariableFromS3.mockReset()
     mockResolveVariableFromCloudFormation.mockReset()
+    mockResolveValueFromAppConfig.mockReset()
     mockGetAwsCredentials.mockReset()
     mockStsSend.mockReset()
   })
@@ -331,6 +341,33 @@ describe('Aws Resolver', () => {
       expect(result).toBe('cf-output')
       expect(mockResolveVariableFromCloudFormation).toHaveBeenCalled()
     })
+
+    test('routes to AppConfig resolver', async () => {
+      mockResolveValueFromAppConfig.mockResolvedValue('appconfig-value')
+
+      const resolver = new Aws({
+        logger: mockLogger,
+        providerConfig: {},
+        serviceConfigFile: {},
+        configFileDirPath: '/tmp',
+        options: {},
+        stage: 'dev',
+        dashboard: null,
+        composeParams: null,
+        resolveVariableFunc: jest.fn(),
+        resolveConfigurationPropertyFunc: jest.fn(),
+      })
+      resolver.credentials = { accessKeyId: 'test', secretAccessKey: 'test' }
+
+      const result = await resolver.resolveVariable({
+        resolverType: 'appconfig',
+        resolutionDetails: {},
+        key: 'my-app/my-env/my-profile',
+      })
+
+      expect(result).toBe('appconfig-value')
+      expect(mockResolveValueFromAppConfig).toHaveBeenCalled()
+    })
   })
 
   describe('special keys', () => {
@@ -391,7 +428,7 @@ describe('Aws Resolver', () => {
     })
 
     test('has correct resolvers', () => {
-      expect(Aws.resolvers).toEqual(['ssm', 's3', 'cf'])
+      expect(Aws.resolvers).toEqual(['ssm', 's3', 'cf', 'appconfig'])
     })
 
     test('has correct default resolver', () => {

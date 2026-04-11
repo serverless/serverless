@@ -50,6 +50,7 @@
     "tape-promise": "^4.0.0"
   },
   "dependencies": {
+    "@aws-sdk/client-appconfigdata": "3.1017.0",
     "@aws-sdk/client-cloudformation": "3.1017.0",
     "@aws-sdk/client-s3": "3.1017.0",
     "@aws-sdk/client-ssm": "3.1017.0",
