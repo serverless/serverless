@@ -45,6 +45,12 @@ export default {
             logRetentionInDays
         }
 
+        const logKmsKeyArn =
+          functionObject.logKmsKeyArn || this.provider.getLogKmsKeyArn()
+        if (logKmsKeyArn) {
+          newLogGroup[logGroupLogicalId].Properties.KmsKeyId = logKmsKeyArn
+        }
+
         const logDataProtectionPolicy =
           functionObject.logDataProtectionPolicy ||
           this.provider.getLogDataProtectionPolicy()
