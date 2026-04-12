@@ -2148,6 +2148,12 @@ layers:
 @example 14`,
               $ref: '#/definitions/awsLogRetentionInDays',
             },
+            logKmsKeyArn: {
+              description: `Default KMS CMK Key ARN for encrypting the Lambda CloudWatch log groups.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#log-group-resources
+@example 'arn:aws:kms:us-east-1:123456789:key/abc-123'`,
+              $ref: '#/definitions/awsKmsArn',
+            },
             logDataProtectionPolicy: {
               description: `CloudWatch Logs data protection policy document.`,
               $ref: '#/definitions/awsLogDataProtectionPolicy',
@@ -2714,6 +2720,10 @@ destinations:
             logRetentionInDays: {
               description: `CloudWatch Logs retention period in days for this function.`,
               $ref: '#/definitions/awsLogRetentionInDays',
+            },
+            logKmsKeyArn: {
+              description: `KMS CMK Key ARN for encrypting the Lambda CloudWatch log groups.`,
+              $ref: '#/definitions/awsKmsArn',
             },
             logDataProtectionPolicy: {
               description: `CloudWatch Logs data protection policy for this function log group.`,
@@ -3570,6 +3580,10 @@ destinations:
 
   getLogRetentionInDays() {
     return this.serverless.service.provider.logRetentionInDays
+  }
+
+  getLogKmsKeyArn() {
+    return this.serverless.service.provider.logKmsKeyArn
   }
 
   getLogDataProtectionPolicy() {

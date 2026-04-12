@@ -696,6 +696,8 @@ You can opt out of the default behavior by setting `disableLogs: true`
 
 You can also specify the duration for CloudWatch log retention by setting `logRetentionInDays`.
 
+You can encrypt auto-created Lambda log groups with a customer-managed KMS key by setting `logKmsKeyArn`.
+
 You can specify the DataProtectionPolicy for the LogGroup by setting `logDataProtectionPolicy`. On how to define the policy consult the [aws docs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data-start.html).
 
 ```yml
@@ -706,6 +708,7 @@ functions:
   goodBye:
     handler: handler.goodBye
     logRetentionInDays: 14
+    logKmsKeyArn: arn:aws:kms:us-east-1:123456789012:key/abc12345-6789-4abc-def0-1234567890ab
     logDataProtectionPolicy:
       Name: data-protection-policy
 ```
