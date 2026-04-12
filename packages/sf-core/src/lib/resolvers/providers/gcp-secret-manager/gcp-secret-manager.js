@@ -40,7 +40,7 @@ export class GcpSecretManager extends AbstractProvider {
   }
 
   resolveVariable = async ({ resolverType, resolutionDetails, key }) => {
-    super.resolveVariable({ resolverType, resolutionDetails, key })
+    await super.resolveVariable({ resolverType, resolutionDetails, key })
 
     if (resolverType === 'gcpSecretManager') {
       const credentials = await this.resolveCredentials()

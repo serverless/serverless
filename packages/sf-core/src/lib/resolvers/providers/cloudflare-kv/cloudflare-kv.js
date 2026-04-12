@@ -40,7 +40,7 @@ export class CloudflareKv extends AbstractProvider {
   }
 
   resolveVariable = async ({ resolverType, resolutionDetails, key }) => {
-    super.resolveVariable({ resolverType, resolutionDetails, key })
+    await super.resolveVariable({ resolverType, resolutionDetails, key })
 
     if (resolverType === 'cloudflareKv') {
       const credentials = await this.resolveCredentials()
