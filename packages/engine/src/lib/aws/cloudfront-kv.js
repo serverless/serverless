@@ -1,4 +1,3 @@
-import '@aws-sdk/signature-v4-crt'
 import '@aws-sdk/signature-v4a'
 import {
   CloudFrontClient,

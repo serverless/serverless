@@ -1,0 +1,5 @@
+# SEA build extraction artifacts (created on first run of the binary)
+.sea-extracted
+bin/
+lib/
+docs/
