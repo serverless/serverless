@@ -19,6 +19,7 @@ import fileExists from '../../../utils/fs/file-exists.js'
 import resolveCfImportValue from '../utils/resolve-cf-import-value.js'
 import resolveCfRefValue from '../utils/resolve-cf-ref-value.js'
 import importEsm from '../../../utils/import-esm.js'
+import loadExternalModule from '../../../utils/load-external-module.js'
 import { log, progress, writeText } from '@serverless/util'
 import { setTimeout } from 'timers/promises'
 
@@ -170,7 +171,7 @@ class AwsInvokeLocal {
     }
     if (absolutePath.endsWith('.js')) {
       // to support js - export as an input data
-      this.options[key] = await import(absolutePath)
+      this.options[key] = await loadExternalModule(absolutePath)
       return
     }
     const contents = await (async () => {
@@ -1125,11 +1126,11 @@ class AwsInvokeLocal {
 
     async function loadModule(modulePath) {
       try {
-        return await import(modulePath)
+        return await loadExternalModule(modulePath)
       } catch (error) {
         if (error.code === 'ERR_REQUIRE_ESM') {
           // Already in ESM format, use the utility if necessary or retry with a different method
-          return await importEsm(`${modulePath}.js`)
+          return await loadExternalModule(`${modulePath}.js`)
         } else if (
           error.code === 'MODULE_NOT_FOUND' ||
           error.code === 'ERR_MODULE_NOT_FOUND'
@@ -1137,7 +1138,7 @@ class AwsInvokeLocal {
           // Attempt to import with `.js` extension
           const pathToHandler = `${modulePath}.js`
           try {
-            return await import(pathToHandler)
+            return await loadExternalModule(pathToHandler)
           } catch (innerError) {
             // Throw original error if still "MODULE_NOT_FOUND", as not finding module with `.js` might be confusing
             if (innerError.code !== 'MODULE_NOT_FOUND') {

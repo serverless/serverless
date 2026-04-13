@@ -165,6 +165,10 @@ add_asset "$SLS_LIB/plugins/aws/dev/local-lambda/runtime-wrappers/node.js" \
 add_asset "$SLS_LIB/plugins/python/unzip_requirements.py" \
           "lib/plugins/python/unzip_requirements.py"
 
+# SEA import bridge (enables loading external ESM modules from SEA context)
+add_asset "$SLS_LIB/utils/sea-import-bridge.cjs" \
+          "lib/utils/sea-import-bridge.cjs"
+
 # CFN runner JSON (statuses.json, base.json)
 SF_CORE_SRC="${SCRIPT_DIR}/src"
 add_asset "$SF_CORE_SRC/lib/runners/cfn/aws/statuses.json" "dist/statuses.json"

@@ -10,6 +10,7 @@ import pLimit from 'p-limit'
 import { globby } from 'globby'
 import micromatch from 'micromatch'
 import ServerlessError from '../../serverless-error.js'
+import loadExternalModule from '../../utils/load-external-module.js'
 import { log } from '@serverless/util'
 
 const nodeRuntimeRe = /nodejs(?<version>\d+).x/
@@ -394,7 +395,7 @@ class Esbuild {
         )
 
         // This is a dynamic import because we want to support both CommonJS and ESM
-        const configFile = await import(pathToFileURL(configFilePath).href)
+        const configFile = await loadExternalModule(configFilePath)
 
         const configFunction = configFile.default || configFile
 

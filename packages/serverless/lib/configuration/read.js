@@ -5,6 +5,7 @@ import yaml from 'js-yaml'
 import toml from 'toml'
 import cloudformationSchema from '@serverlessinc/sf-core/src/utils/fs/cloudformation-schema.js'
 import ServerlessError from '../serverless-error.js'
+import loadExternalModule from '../utils/load-external-module.js'
 import { require as tsxRequire } from 'tsx/cjs/api'
 
 const buildAndLoadServerlessTsFile = async (serviceDir, configurationPath) => {
@@ -94,7 +95,7 @@ const parseConfigurationFile = async (configurationPath) => {
     case '.mjs':
     case '.js': {
       try {
-        const content = await import(configurationPath)
+        const content = await loadExternalModule(configurationPath)
         // Support ES default export
         return content.default || content
       } catch (error) {

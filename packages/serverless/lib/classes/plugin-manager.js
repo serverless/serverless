@@ -6,6 +6,7 @@ import ServerlessError from '../serverless-error.js'
 import renderCommandHelp from '../cli/render-help/command.js'
 import tokenizeException from '../utils/tokenize-exception.js'
 import { fileURLToPath, pathToFileURL } from 'url'
+import loadExternalModule from '../utils/load-external-module.js'
 // Load Plugins
 import pluginPackage from '../plugins/package/package.js'
 import pluginDeploy from '../plugins/deploy.js'
@@ -493,7 +494,7 @@ class PluginManager {
     const localPluginPath = await require(serviceDir, pluginListedName)
 
     if (localPluginPath) {
-      return await import(pathToFileURL(localPluginPath))
+      return await loadExternalModule(localPluginPath)
     }
 
     /**
@@ -504,7 +505,7 @@ class PluginManager {
     ), pluginListedName)
 
     if (externalPluginPath) {
-      return await import(pathToFileURL(externalPluginPath))
+      return await loadExternalModule(externalPluginPath)
     }
 
     /**
