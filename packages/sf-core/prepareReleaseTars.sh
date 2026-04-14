@@ -6,8 +6,7 @@ s3_bucket="install.serverless.com"
 
 if [ "$is_canary" = true ]; then
     s3_bucket="install.serverless-dev.com"
-    # For canary builds, append the git SHA
-    version="$(git rev-parse --short HEAD)"
+    sha="$(git rev-parse --short HEAD)"
 fi
 
 echo "Preparing release for version ${version}"
@@ -21,12 +20,15 @@ aws s3 cp s3://${s3_bucket}/releases.json ./
 node updateReleasesJson.cjs
 node prepareDistributionTarballs.js
 cd ../../framework-dist
+
+# Read the version set by prepareDistributionTarballs.js
+pack_version=$(node -p "require('./package.json').version")
 npm pack
 if [ "$is_canary" = true ]; then
-    aws s3 cp ./serverless-npm-${version}.tgz s3://${s3_bucket}/archives/canary-${version}.tgz
-    aws s3 cp ./serverless-npm-${version}.tgz s3://${s3_bucket}/archives/canary.tgz
+    aws s3 cp ./serverless-npm-${pack_version}.tgz s3://${s3_bucket}/archives/canary-${sha}.tgz
+    aws s3 cp ./serverless-npm-${pack_version}.tgz s3://${s3_bucket}/archives/canary.tgz
 else
-    aws s3 cp ./serverless-npm-${version}.tgz s3://${s3_bucket}/archives/serverless-${version}.tgz
+    aws s3 cp ./serverless-npm-${pack_version}.tgz s3://${s3_bucket}/archives/serverless-${version}.tgz
 fi
 
 cd ../sf-core/scripts

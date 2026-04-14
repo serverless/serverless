@@ -1,4 +1,4 @@
-import { readFile, writeFile, cp } from 'fs/promises'
+import { readFile, cp } from 'fs/promises'
 import { glob } from 'glob'
 import path from 'path'
 import { execSync } from 'child_process'
@@ -9,19 +9,13 @@ let version = sfCorePackageJson.version
 // Handle canary builds
 if (process.env.IS_CANARY === 'true') {
   const gitSha = execSync('git rev-parse --short HEAD').toString().trim()
-  version = `${gitSha}`
+  version = `0.0.0-canary.${gitSha}`
 }
 
-const frameworkDistPackageJson = JSON.parse(
-  await readFile('../../framework-dist/package.json', 'utf8'),
-)
-
-frameworkDistPackageJson.version = version
-
-await writeFile(
-  '../../framework-dist/package.json',
-  `${JSON.stringify(frameworkDistPackageJson, null, 2)}\n`,
-)
+// Set version in both package.json and npm-shrinkwrap.json
+execSync(`npm version "${version}" --no-git-tag-version --allow-same-version`, {
+  cwd: path.resolve('../../framework-dist'),
+})
 
 const files = await glob('../../serverless/lib/plugins/aws/package/lib/*.json')
 
