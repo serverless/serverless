@@ -1,12 +1,12 @@
 {
-  "name": "@serverlessinc/framework-alpha",
-  "version": "4.3.3",
+  "name": "serverless-npm",
+  "version": "0.0.0",
   "lockfileVersion": 3,
   "requires": true,
   "packages": {
     "": {
-      "name": "@serverlessinc/framework-alpha",
-      "version": "4.3.3",
+      "name": "serverless-npm",
+      "version": "0.0.0",
       "dependencies": {
         "@aws-sdk/client-cloudfront-keyvaluestore": "3.1017.0",
         "@aws-sdk/signature-v4-crt": "3.1017.0",

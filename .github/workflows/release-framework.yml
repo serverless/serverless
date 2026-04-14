@@ -127,11 +127,24 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::377024778620:role/GithubActionsDeploymentRole
           aws-region: us-east-1
+      - name: 'Prepare: NPM Package'
+        run: node scripts/prepareNpmPackage.js
       - name: 'Release: Upload Tarballs'
         run: bash prepareReleaseTars.sh
       - name: 'Release: Invalidate Cache'
         run: |
           aws cloudfront create-invalidation --distribution-id E1USPSJN28WQ8U --paths "/*"
+      - name: 'Prepare: NPM Canary Version'
+        working-directory: ./packages/framework-dist
+        run: npm version "0.0.0-canary.$(git rev-parse --short HEAD)" --no-git-tag-version
+      - name: 'Setup: NPM Registry'
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: 24.x
+          registry-url: https://registry.npmjs.org
+      - name: 'Release: NPM Canary Package'
+        working-directory: ./packages/framework-dist
+        run: npm publish --tag canary
       - name: 'Release: Tag Version'
         id: tag_if_new_version
         continue-on-error: true
@@ -175,6 +188,8 @@ jobs:
           ../../../../../../node_modules/.bin/esbuild ./shim.js --bundle --platform=node --minify --outfile=./shim.min.js
       - name: 'Build: Framework'
         run: npm run build
+      - name: 'Prepare: NPM Package'
+        run: node scripts/prepareNpmPackage.js
       - name: 'Release: Upload Tarballs'
         run: bash prepareReleaseTars.sh
         env:
@@ -183,6 +198,14 @@ jobs:
         run: |
           aws cloudfront create-invalidation --distribution-id E3OEL4OJF1G5FG --paths "/releases.json"
           aws cloudfront create-invalidation --distribution-id E3OEL4OJF1G5FG --paths "/versions.json"
+      - name: 'Setup: NPM Registry'
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: 24.x
+          registry-url: https://registry.npmjs.org
+      - name: 'Release: NPM Package'
+        working-directory: ./packages/framework-dist
+        run: npm publish
   release-npm:
     name: 'Release: NPM Installer'
     needs: release-stable

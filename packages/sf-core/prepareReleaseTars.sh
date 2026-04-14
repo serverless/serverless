@@ -23,10 +23,10 @@ node prepareDistributionTarballs.js
 cd ../../framework-dist
 npm pack
 if [ "$is_canary" = true ]; then
-    aws s3 cp ./serverlessinc-framework-alpha-${version}.tgz s3://${s3_bucket}/archives/canary-${version}.tgz
-    aws s3 cp ./serverlessinc-framework-alpha-${version}.tgz s3://${s3_bucket}/archives/canary.tgz
+    aws s3 cp ./serverless-npm-${version}.tgz s3://${s3_bucket}/archives/canary-${version}.tgz
+    aws s3 cp ./serverless-npm-${version}.tgz s3://${s3_bucket}/archives/canary.tgz
 else
-    aws s3 cp ./serverlessinc-framework-alpha-${version}.tgz s3://${s3_bucket}/archives/serverless-${version}.tgz
+    aws s3 cp ./serverless-npm-${version}.tgz s3://${s3_bucket}/archives/serverless-${version}.tgz
 fi
 
 cd ../sf-core/scripts

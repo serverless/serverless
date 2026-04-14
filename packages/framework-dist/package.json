@@ -1,13 +1,7 @@
 {
-  "name": "@serverlessinc/framework-alpha",
-  "version": "4.3.3",
-  "description": "",
-  "main": "index.js",
+  "name": "serverless-npm",
+  "version": "0.0.0",
   "type": "module",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
   "bin": {
     "serverless": "./dist/sf-core.js",
     "sls": "./dist/sf-core.js"

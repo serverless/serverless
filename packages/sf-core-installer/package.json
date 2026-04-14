@@ -1,7 +1,6 @@
 {
   "name": "serverless",
   "version": "4.34.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "lint": "eslint",
@@ -10,7 +9,15 @@
     "prettier:fix": "prettier -w . --ignore-path ../../.prettierignore",
     "postinstall": "node ./postInstall.js"
   },
-  "keywords": [],
+  "keywords": [
+    "serverless",
+    "lambda",
+    "aws",
+    "amazon",
+    "cloud",
+    "iac",
+    "infrastructure as code"
+  ],
   "author": "Serverless Inc.",
   "repository": {
     "type": "git",
