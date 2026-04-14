@@ -198,6 +198,9 @@ jobs:
         run: |
           aws cloudfront create-invalidation --distribution-id E3OEL4OJF1G5FG --paths "/releases.json"
           aws cloudfront create-invalidation --distribution-id E3OEL4OJF1G5FG --paths "/versions.json"
+      - name: 'Prepare: NPM Stable Version'
+        working-directory: ./packages/framework-dist
+        run: npm version "$(node -p "require('./package.json').version")" --no-git-tag-version --allow-same-version
       - name: 'Setup: NPM Registry'
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
