@@ -760,7 +760,6 @@ class Esbuild {
           const zipPath = path.join(
             this.serverless.config.serviceDir,
             '.serverless',
-            'build',
             zipName,
           )
 
@@ -884,7 +883,6 @@ class Esbuild {
     const zipPath = path.join(
       this.serverless.config.serviceDir,
       '.serverless',
-      'build',
       zipName,
     )
 
