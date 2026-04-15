@@ -10,7 +10,7 @@ dependencies = [
 
 [dependency-groups]
 test = [
-  "pytest==7.4.2",
+  "pytest==9.0.3",
   "pytest-cov==4.0.0",
 ]
 
