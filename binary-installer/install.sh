@@ -69,7 +69,7 @@ else
     add_to_path "$SHELL_CONFIG"
   fi
   SHELL_CONFIG=$HOME/.bash_profile
-  if [[ -r "$SHELL_CONFIG" ]]; then  if [[ -r "$SHELL_CONFIG" ]]; then
+  if [[ -r "$SHELL_CONFIG" ]]; then
 
     if ! grep -q '.serverless/bin' "$SHELL_CONFIG"; then
       add_to_path "$SHELL_CONFIG"
@@ -87,7 +87,6 @@ else
       fi
     fi
   fi
-fi
 fi
 
 
