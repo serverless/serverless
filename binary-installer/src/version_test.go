@@ -804,12 +804,9 @@ func TestArchiveHasDependencies_MalformedJSON(t *testing.T) {
 	dir := t.TempDir()
 	_ = os.WriteFile(filepath.Join(dir, "package.json"),
 		[]byte(`{not valid json`), 0o644)
-	has, err := archiveHasDependencies(dir)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if has {
-		t.Fatal("expected false (skip npm install) for malformed JSON — can't determine deps")
+	_, err := archiveHasDependencies(dir)
+	if err == nil {
+		t.Fatal("expected error for malformed JSON")
 	}
 }
 

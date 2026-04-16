@@ -513,17 +513,21 @@ func archiveHasDependencies(packageDir string) (bool, error) {
 		Dependencies map[string]string `json:"dependencies"`
 	}
 
-	data, err := os.ReadFile(filepath.Join(packageDir, "package.json"))
+	packageJsonPath := filepath.Join(packageDir, "package.json")
+	data, err := os.ReadFile(packageJsonPath)
 	if err != nil {
-		// If package.json doesn't exist, skip npm install — running npm install
-		// without package.json would fail anyway.
-		return false, nil
+		if os.IsNotExist(err) {
+			// No package.json — skip npm install.
+			return false, nil
+		}
+		// File exists but can't be read (permissions, I/O error) — fail the install.
+		return false, fmt.Errorf("reading %s: %w", packageJsonPath, err)
 	}
 
 	var pkg packageJSON
 	if err := json.Unmarshal(data, &pkg); err != nil {
-		// If JSON is malformed, skip npm install — can't determine deps.
-		return false, nil
+		// Corrupted package.json — fail the install rather than silently continuing.
+		return false, fmt.Errorf("parsing %s: %w", packageJsonPath, err)
 	}
 
 	return len(pkg.Dependencies) > 0, nil

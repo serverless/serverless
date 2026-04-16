@@ -4,16 +4,16 @@ import { createRequire } from 'module'
 import { glob } from 'glob'
 import os from 'os'
 import path from 'path'
+import { fileURLToPath } from 'url'
 
 const { readFile, writeFile, cp, mkdir, chmod } = fsp
 
-// Resolve packages from the workspace, not from framework-dist (which has no deps).
-// ajv is a dep of packages/serverless; esbuild is a devDep of packages/sf-core.
-const serverlessRequire = createRequire(
-  path.resolve(import.meta.dirname, '../../serverless/package.json'),
-)
-const sfCoreRequire = createRequire(
-  path.resolve(import.meta.dirname, '../package.json'),
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// Resolve packages from packages/serverless, not from framework-dist (which has no deps).
+// Both ajv and esbuild are dependencies of packages/serverless.
+const resolveFromServerless = createRequire(
+  path.resolve(__dirname, '../../serverless/package.json'),
 )
 
 const sfCorePackageJson = JSON.parse(await readFile('../package.json', 'utf8'))
@@ -124,27 +124,30 @@ await Promise.all([
 
 // Resolve package versions from workspace node_modules (not framework-dist)
 const ajvPkg = JSON.parse(
-  await readFile(serverlessRequire.resolve('ajv/package.json'), 'utf8'),
+  await readFile(resolveFromServerless.resolve('ajv/package.json'), 'utf8'),
 )
 const ajvFormatsPkg = JSON.parse(
-  await readFile(serverlessRequire.resolve('ajv-formats/package.json'), 'utf8'),
+  await readFile(
+    resolveFromServerless.resolve('ajv-formats/package.json'),
+    'utf8',
+  ),
 )
 
 await Promise.all([
   cp(
-    serverlessRequire.resolve('ajv/dist/runtime/equal'),
+    resolveFromServerless.resolve('ajv/dist/runtime/equal'),
     `${distNodeModules}/ajv/dist/runtime/equal.js`,
   ),
   cp(
-    serverlessRequire.resolve('ajv/dist/runtime/ucs2length'),
+    resolveFromServerless.resolve('ajv/dist/runtime/ucs2length'),
     `${distNodeModules}/ajv/dist/runtime/ucs2length.js`,
   ),
   cp(
-    serverlessRequire.resolve('ajv-formats/dist/formats'),
+    resolveFromServerless.resolve('ajv-formats/dist/formats'),
     `${distNodeModules}/ajv-formats/dist/formats.js`,
   ),
   cp(
-    serverlessRequire.resolve('fast-deep-equal'),
+    resolveFromServerless.resolve('fast-deep-equal'),
     `${distNodeModules}/fast-deep-equal/index.js`,
   ),
   writeFile(
@@ -166,7 +169,7 @@ await Promise.all([
 
 // --- Download esbuild platform binaries for all 5 supported platforms ---
 const esbuildPkg = JSON.parse(
-  await readFile(sfCoreRequire.resolve('esbuild/package.json'), 'utf8'),
+  await readFile(resolveFromServerless.resolve('esbuild/package.json'), 'utf8'),
 )
 const esbuildVersion = esbuildPkg.version
 
