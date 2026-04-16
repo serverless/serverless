@@ -1,6 +1,6 @@
 {
   "name": "@serverlessinc/framework-alpha",
-  "version": "4.3.3",
+  "version": "4.34.0",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -12,12 +12,5 @@
     "serverless": "./dist/sf-core.js",
     "sls": "./dist/sf-core.js"
   },
-  "dependencies": {
-    "@aws-sdk/client-cloudfront-keyvaluestore": "3.1017.0",
-    "@aws-sdk/signature-v4-crt": "3.1017.0",
-    "@aws-sdk/signature-v4a": "3.1009.0",
-    "ajv": "8.18.0",
-    "ajv-formats": "3.0.1",
-    "esbuild": "0.27.4"
-  }
+  "dependencies": {}
 }

@@ -13,10 +13,11 @@ import deepSortObjectByKey from '../../utils/deep-sort-object-by-key.js'
 import ensureExists from '../../utils/ensure-exists.js'
 import ServerlessError from '../../serverless-error.js'
 
+// NOTE: Unlike other files that redirect __dirname from dist/ to lib/... when bundled,
+// this file keeps __dirname as-is. When bundled, __dirname = dist/, which makes
+// requireFromString resolve require("ajv/dist/runtime/...") from dist/node_modules/.
+// See resolve-ajv-validate.js usage at line 87 for the requireFromString virtual path.
 let __dirname = path.dirname(fileURLToPath(import.meta.url))
-if (__dirname.endsWith('dist')) {
-  __dirname = path.join(__dirname, '../lib/classes/config-schema-handler')
-}
 
 const getCacheDir = async () => {
   // Come up with a unique string for the current day-month-year

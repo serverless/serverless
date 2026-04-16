@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -414,5 +415,455 @@ func TestGetVersion_NoSupportedVersions(t *testing.T) {
 	metadata.WriteLocalMetadata("4.0.0")
 	if _, err := getVersion("", false); err == nil {
 		t.Fatalf("expected error when no supported versions available")
+	}
+}
+
+// --- Unit tests for bundled archive helpers ---
+
+func TestArchiveHasDependencies_WithDeps(t *testing.T) {
+	dir := t.TempDir()
+	_ = os.WriteFile(filepath.Join(dir, "package.json"),
+		[]byte(`{"dependencies":{"esbuild":"0.27.3"}}`), 0o644)
+
+	has, err := archiveHasDependencies(dir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !has {
+		t.Fatal("expected true for archive with dependencies")
+	}
+}
+
+func TestArchiveHasDependencies_EmptyDeps(t *testing.T) {
+	dir := t.TempDir()
+	_ = os.WriteFile(filepath.Join(dir, "package.json"),
+		[]byte(`{"dependencies":{}}`), 0o644)
+
+	has, err := archiveHasDependencies(dir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if has {
+		t.Fatal("expected false for archive with empty dependencies")
+	}
+}
+
+func TestArchiveHasDependencies_NoDepsField(t *testing.T) {
+	dir := t.TempDir()
+	_ = os.WriteFile(filepath.Join(dir, "package.json"),
+		[]byte(`{"name":"test"}`), 0o644)
+
+	has, err := archiveHasDependencies(dir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if has {
+		t.Fatal("expected false when dependencies field is absent")
+	}
+}
+
+func TestCleanupUnusedEsbuildBinaries(t *testing.T) {
+	esbuildDir := filepath.Join(t.TempDir(), "@esbuild")
+
+	platforms := []string{"darwin-arm64", "darwin-x64", "linux-arm64", "linux-x64", "win32-x64"}
+	for _, p := range platforms {
+		dir := filepath.Join(esbuildDir, p, "bin")
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		_ = os.WriteFile(filepath.Join(dir, "esbuild"), []byte("binary"), 0o755)
+	}
+
+	cleanupUnusedEsbuildBinaries(esbuildDir)
+
+	currentPlatform := esbuildPlatformDir()
+	if currentPlatform == "" {
+		t.Skip("unsupported platform")
+	}
+
+	entries, err := os.ReadDir(esbuildDir)
+	if err != nil {
+		t.Fatalf("read dir: %v", err)
+	}
+
+	if len(entries) != 1 {
+		names := make([]string, 0, len(entries))
+		for _, e := range entries {
+			names = append(names, e.Name())
+		}
+		t.Fatalf("expected 1 remaining dir, got %d: %v", len(entries), names)
+	}
+	if entries[0].Name() != currentPlatform {
+		t.Fatalf("expected %s to remain, got %s", currentPlatform, entries[0].Name())
+	}
+}
+
+// =============================================================================
+// bundled archive compatibility matrix tests
+//
+// Four scenarios for binary installer ↔ archive compatibility:
+//
+//   Old Go binary + Old archive  → npm install runs (pre-existing behavior)
+//   Old Go binary + New archive  → npm install is a no-op (empty deps)
+//   New Go binary + Old archive  → archiveHasDependencies=true → npm install
+//   New Go binary + New archive  → archiveHasDependencies=false → skip, cleanup
+//
+// The "old Go binary" always runs npm install unconditionally, so its behavior
+// is determined entirely by the archive contents. The new Go binary uses
+// archiveHasDependencies() to decide, then cleanupUnusedEsbuildBinaries().
+// =============================================================================
+
+var allEsbuildPlatforms = []string{
+	"darwin-arm64", "darwin-x64", "linux-arm64", "linux-x64", "win32-x64",
+}
+
+// createOldArchive builds a temp directory that looks like an extracted old-style
+// archive: package.json has real dependencies, no dist/node_modules/.
+func createOldArchive(t *testing.T) string {
+	t.Helper()
+	root := filepath.Join(t.TempDir(), "package")
+	if err := os.MkdirAll(filepath.Join(root, "dist"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	_ = os.WriteFile(filepath.Join(root, "dist", "sf-core.js"), []byte("// bundle"), 0o644)
+	_ = os.WriteFile(filepath.Join(root, "package.json"), []byte(`{
+  "name": "@serverlessinc/framework-alpha",
+  "version": "4.3.3",
+  "dependencies": {
+    "@aws-sdk/client-cloudfront-keyvaluestore": "3.1017.0",
+    "@aws-sdk/signature-v4-crt": "3.1017.0",
+    "@aws-sdk/signature-v4a": "3.1009.0",
+    "ajv": "8.18.0",
+    "ajv-formats": "3.0.1",
+    "esbuild": "0.27.4"
+  }
+}`), 0o644)
+	return root
+}
+
+// createNewArchive builds a temp directory that looks like an extracted new-style
+// (bundled archive) archive: no dependencies, esbuild binaries + ajv runtime files
+// shipped in dist/node_modules/.
+func createNewArchive(t *testing.T) string {
+	t.Helper()
+	root := filepath.Join(t.TempDir(), "package")
+	if err := os.MkdirAll(filepath.Join(root, "dist"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	_ = os.WriteFile(filepath.Join(root, "dist", "sf-core.js"), []byte("// bundle"), 0o644)
+	_ = os.WriteFile(filepath.Join(root, "package.json"), []byte(`{
+  "name": "@serverlessinc/framework-alpha",
+  "version": "4.4.0",
+  "dependencies": {}
+}`), 0o644)
+
+	// Create esbuild platform binaries for all 5 platforms
+	for _, p := range allEsbuildPlatforms {
+		var binPath string
+		if p == "win32-x64" {
+			binPath = filepath.Join(root, "dist", "node_modules", "@esbuild", p, "esbuild.exe")
+		} else {
+			binPath = filepath.Join(root, "dist", "node_modules", "@esbuild", p, "bin", "esbuild")
+		}
+		if err := os.MkdirAll(filepath.Dir(binPath), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		_ = os.WriteFile(binPath, []byte("#!/fake/esbuild"), 0o755)
+	}
+
+	// Create ajv runtime files
+	for _, dir := range []string{
+		"ajv/dist/runtime",
+		"ajv-formats/dist",
+		"fast-deep-equal",
+	} {
+		if err := os.MkdirAll(filepath.Join(root, "dist", "node_modules", dir), 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	distNM := filepath.Join(root, "dist", "node_modules")
+	_ = os.WriteFile(filepath.Join(distNM, "ajv", "package.json"), []byte(`{"name":"ajv"}`), 0o644)
+	_ = os.WriteFile(filepath.Join(distNM, "ajv", "dist", "runtime", "equal.js"), []byte("// equal"), 0o644)
+	_ = os.WriteFile(filepath.Join(distNM, "ajv", "dist", "runtime", "ucs2length.js"), []byte("// ucs2"), 0o644)
+	_ = os.WriteFile(filepath.Join(distNM, "ajv-formats", "package.json"), []byte(`{"name":"ajv-formats"}`), 0o644)
+	_ = os.WriteFile(filepath.Join(distNM, "ajv-formats", "dist", "formats.js"), []byte("// formats"), 0o644)
+	_ = os.WriteFile(filepath.Join(distNM, "fast-deep-equal", "package.json"), []byte(`{"name":"fast-deep-equal"}`), 0o644)
+	_ = os.WriteFile(filepath.Join(distNM, "fast-deep-equal", "index.js"), []byte("// equal"), 0o644)
+
+	return root
+}
+
+// esbuildPlatformDirs returns the set of @esbuild/<platform> directories present
+// under the given dist/node_modules/@esbuild path.
+func esbuildPlatformDirs(esbuildDir string) []string {
+	entries, err := os.ReadDir(esbuildDir)
+	if err != nil {
+		return nil
+	}
+	var dirs []string
+	for _, e := range entries {
+		if e.IsDir() {
+			dirs = append(dirs, e.Name())
+		}
+	}
+	return dirs
+}
+
+// --- Scenario 1: Old Go binary + Old archive ---
+// The old binary always runs npm install. We verify that the archive has deps,
+// meaning npm install would actually install packages (not a no-op).
+
+func TestCompat_OldBinary_OldArchive(t *testing.T) {
+	packageDir := createOldArchive(t)
+
+	// The old Go binary doesn't call archiveHasDependencies — it always runs
+	// npm install. We verify the archive IS the old format (has dependencies),
+	// so npm install would install the 6 packages.
+	hasDeps, err := archiveHasDependencies(packageDir)
+	if err != nil {
+		t.Fatalf("archiveHasDependencies: %v", err)
+	}
+	if !hasDeps {
+		t.Fatal("old archive should report dependencies present")
+	}
+
+	// Verify: no dist/node_modules/ exists (old archive doesn't ship them)
+	esbuildDir := filepath.Join(packageDir, "dist", "node_modules", "@esbuild")
+	if _, err := os.Stat(esbuildDir); !os.IsNotExist(err) {
+		t.Fatal("old archive should NOT have dist/node_modules/@esbuild/")
+	}
+}
+
+// --- Scenario 2: Old Go binary + New archive ---
+// The old binary still runs npm install, but with empty deps it's a no-op.
+// The esbuild binaries are already shipped in dist/node_modules/.
+
+func TestCompat_OldBinary_NewArchive(t *testing.T) {
+	packageDir := createNewArchive(t)
+
+	// The old Go binary doesn't call archiveHasDependencies — it always runs
+	// npm install. We verify the archive has no deps, so npm install is a no-op.
+	hasDeps, err := archiveHasDependencies(packageDir)
+	if err != nil {
+		t.Fatalf("archiveHasDependencies: %v", err)
+	}
+	if hasDeps {
+		t.Fatal("new archive should report no dependencies")
+	}
+
+	// Verify: all 5 esbuild platform binaries are present (shipped in archive)
+	esbuildDir := filepath.Join(packageDir, "dist", "node_modules", "@esbuild")
+	dirs := esbuildPlatformDirs(esbuildDir)
+	if len(dirs) != 5 {
+		t.Fatalf("expected 5 esbuild platform dirs, got %d: %v", len(dirs), dirs)
+	}
+
+	// Verify: ajv runtime files are present
+	for _, file := range []string{
+		"ajv/dist/runtime/equal.js",
+		"ajv/dist/runtime/ucs2length.js",
+		"ajv-formats/dist/formats.js",
+		"fast-deep-equal/index.js",
+	} {
+		p := filepath.Join(packageDir, "dist", "node_modules", file)
+		if _, err := os.Stat(p); err != nil {
+			t.Fatalf("missing ajv runtime file %s: %v", file, err)
+		}
+	}
+
+	// After the old binary's npm install (no-op), all 5 binaries remain
+	// untouched — old binary has no cleanup logic. Verify they're still there.
+	dirsAfter := esbuildPlatformDirs(esbuildDir)
+	if len(dirsAfter) != 5 {
+		t.Fatalf("old binary should not remove any platform dirs, got %d: %v", len(dirsAfter), dirsAfter)
+	}
+}
+
+// --- Scenario 3: New Go binary + Old archive ---
+// The new binary reads package.json, finds dependencies → runs npm install.
+// No esbuild cleanup needed (old archive has no dist/node_modules/@esbuild/).
+
+func TestCompat_NewBinary_OldArchive(t *testing.T) {
+	packageDir := createOldArchive(t)
+
+	// New binary checks archiveHasDependencies → true → npm install path
+	hasDeps, err := archiveHasDependencies(packageDir)
+	if err != nil {
+		t.Fatalf("archiveHasDependencies: %v", err)
+	}
+	if !hasDeps {
+		t.Fatal("old archive should trigger npm install path")
+	}
+
+	// The new binary would run npm install here. We can't run npm in tests,
+	// but we verify the decision is correct.
+
+	// Verify: dist/node_modules/@esbuild doesn't exist (old archive)
+	esbuildDir := filepath.Join(packageDir, "dist", "node_modules", "@esbuild")
+	if _, err := os.Stat(esbuildDir); !os.IsNotExist(err) {
+		t.Fatal("old archive should not have dist/node_modules/@esbuild/")
+	}
+
+	// cleanupUnusedEsbuildBinaries should be a no-op (dir doesn't exist)
+	cleanupUnusedEsbuildBinaries(esbuildDir) // should not panic
+}
+
+// --- Scenario 4: New Go binary + New archive ---
+// The new binary reads package.json, finds no deps → skips npm install,
+// cleans up 4 unused esbuild platform binaries.
+
+func TestCompat_NewBinary_NewArchive(t *testing.T) {
+	currentPlatform := esbuildPlatformDir()
+	if currentPlatform == "" {
+		t.Skipf("unsupported platform: %s-%s", runtime.GOOS, runtime.GOARCH)
+	}
+
+	packageDir := createNewArchive(t)
+
+	// New binary checks archiveHasDependencies → false → skip npm install
+	hasDeps, err := archiveHasDependencies(packageDir)
+	if err != nil {
+		t.Fatalf("archiveHasDependencies: %v", err)
+	}
+	if hasDeps {
+		t.Fatal("new archive should skip npm install path")
+	}
+
+	// Verify: all 5 platforms present before cleanup
+	esbuildDir := filepath.Join(packageDir, "dist", "node_modules", "@esbuild")
+	dirsBefore := esbuildPlatformDirs(esbuildDir)
+	if len(dirsBefore) != 5 {
+		t.Fatalf("expected 5 platforms before cleanup, got %d: %v", len(dirsBefore), dirsBefore)
+	}
+
+	// New binary runs cleanup
+	cleanupUnusedEsbuildBinaries(esbuildDir)
+
+	// Verify: only the current platform remains
+	dirsAfter := esbuildPlatformDirs(esbuildDir)
+	if len(dirsAfter) != 1 {
+		t.Fatalf("expected 1 platform after cleanup, got %d: %v", len(dirsAfter), dirsAfter)
+	}
+	if dirsAfter[0] != currentPlatform {
+		t.Fatalf("expected %s to remain, got %s", currentPlatform, dirsAfter[0])
+	}
+
+	// Verify: the kept platform's binary still exists
+	var expectedBinary string
+	if currentPlatform == "win32-x64" {
+		expectedBinary = filepath.Join(esbuildDir, currentPlatform, "esbuild.exe")
+	} else {
+		expectedBinary = filepath.Join(esbuildDir, currentPlatform, "bin", "esbuild")
+	}
+	if _, err := os.Stat(expectedBinary); err != nil {
+		t.Fatalf("current platform binary should still exist at %s: %v", expectedBinary, err)
+	}
+
+	// Verify: ajv runtime files are untouched by cleanup
+	for _, file := range []string{
+		"ajv/dist/runtime/equal.js",
+		"ajv/dist/runtime/ucs2length.js",
+		"ajv-formats/dist/formats.js",
+		"fast-deep-equal/index.js",
+		"ajv/package.json",
+		"ajv-formats/package.json",
+		"fast-deep-equal/package.json",
+	} {
+		p := filepath.Join(packageDir, "dist", "node_modules", file)
+		if _, err := os.Stat(p); err != nil {
+			t.Fatalf("ajv file should be untouched after cleanup: %s: %v", file, err)
+		}
+	}
+
+	// Verify: disk space saved — removed dirs should not exist
+	for _, p := range allEsbuildPlatforms {
+		if p == currentPlatform {
+			continue
+		}
+		removedDir := filepath.Join(esbuildDir, p)
+		if _, err := os.Stat(removedDir); !os.IsNotExist(err) {
+			t.Fatalf("platform %s should have been removed, but still exists", p)
+		}
+	}
+}
+
+// --- archiveHasDependencies edge cases ---
+
+func TestArchiveHasDependencies_MissingFile(t *testing.T) {
+	dir := t.TempDir()
+	has, err := archiveHasDependencies(dir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if has {
+		t.Fatal("expected false (skip npm install) when package.json missing — npm install would fail anyway")
+	}
+}
+
+func TestArchiveHasDependencies_MalformedJSON(t *testing.T) {
+	dir := t.TempDir()
+	_ = os.WriteFile(filepath.Join(dir, "package.json"),
+		[]byte(`{not valid json`), 0o644)
+	has, err := archiveHasDependencies(dir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if has {
+		t.Fatal("expected false (skip npm install) for malformed JSON — can't determine deps")
+	}
+}
+
+// --- esbuildPlatformDir ---
+
+func TestEsbuildPlatformDir(t *testing.T) {
+	dir := esbuildPlatformDir()
+	if dir == "" {
+		t.Skipf("unsupported platform: %s-%s", runtime.GOOS, runtime.GOARCH)
+	}
+	if !validEsbuildPlatforms[dir] {
+		t.Fatalf("unexpected platform dir: %s", dir)
+	}
+}
+
+// --- cleanupUnusedEsbuildBinaries edge cases ---
+
+func TestCleanupUnusedEsbuildBinaries_MissingDir(t *testing.T) {
+	cleanupUnusedEsbuildBinaries("/nonexistent/path")
+}
+
+func TestCleanupUnusedEsbuildBinaries_UnknownDirsUntouched(t *testing.T) {
+	esbuildDir := filepath.Join(t.TempDir(), "@esbuild")
+
+	// Create known platforms + an unknown directory
+	for _, p := range append(allEsbuildPlatforms, "unknown-platform") {
+		dir := filepath.Join(esbuildDir, p)
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		_ = os.WriteFile(filepath.Join(dir, "marker"), []byte("x"), 0o644)
+	}
+
+	cleanupUnusedEsbuildBinaries(esbuildDir)
+
+	currentPlatform := esbuildPlatformDir()
+	if currentPlatform == "" {
+		t.Skip("unsupported platform")
+	}
+
+	// Unknown dir must survive cleanup (not in allowlist → not deleted)
+	unknownDir := filepath.Join(esbuildDir, "unknown-platform")
+	if _, err := os.Stat(unknownDir); err != nil {
+		t.Fatalf("unknown-platform dir should NOT be deleted: %v", err)
+	}
+
+	// Current platform dir must survive
+	if _, err := os.Stat(filepath.Join(esbuildDir, currentPlatform)); err != nil {
+		t.Fatalf("current platform dir should survive: %v", err)
+	}
+
+	// Remaining: current platform + unknown = 2
+	dirs := esbuildPlatformDirs(esbuildDir)
+	if len(dirs) != 2 {
+		t.Fatalf("expected 2 dirs (current + unknown), got %d: %v", len(dirs), dirs)
 	}
 }
