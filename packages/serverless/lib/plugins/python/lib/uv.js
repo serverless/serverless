@@ -68,19 +68,29 @@ async function uvToRequirements(pluginInstance) {
     await getUvVersion(pluginInstance)
     fse.ensureDirSync(path.join(servicePath, '.serverless'))
     const outPath = path.join(servicePath, '.serverless', 'requirements.txt')
-    await spawn(
-      'uv',
-      [
-        'export',
-        '--no-dev',
-        '--frozen',
-        '--no-hashes',
-        '--no-emit-project',
-        '-o',
-        outPath,
-      ],
-      { cwd: moduleProjectPath },
-    )
+    const args = [
+      'export',
+      '--no-dev',
+      '--frozen',
+      '--no-hashes',
+      '--no-emit-project',
+      '-o',
+      outPath,
+      ...(options.uvOptionalDependencies.length
+        ? options.uvOptionalDependencies.flatMap((group) => ['--extra', group])
+        : []),
+      ...(options.uvWithGroups.length
+        ? options.uvWithGroups.flatMap((group) => ['--group', group])
+        : []),
+      ...(options.uvWithoutGroups.length
+        ? options.uvWithoutGroups.flatMap((group) => ['--no-group', group])
+        : []),
+      ...(options.uvOnlyGroups.length
+        ? options.uvOnlyGroups.flatMap((group) => ['--only-group', group])
+        : []),
+    ]
+
+    await spawn('uv', args, { cwd: moduleProjectPath })
   } finally {
     generateRequirementsProgress && generateRequirementsProgress.remove()
   }

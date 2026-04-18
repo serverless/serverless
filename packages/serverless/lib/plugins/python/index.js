@@ -67,6 +67,10 @@ class ServerlessPythonRequirements {
         poetryWithGroups: [],
         poetryWithoutGroups: [],
         poetryOnlyGroups: [],
+        uvWithGroups: [],
+        uvWithoutGroups: [],
+        uvOnlyGroups: [],
+        uvOptionalDependencies: [],
       },
       (this.serverless.service.custom &&
         this.serverless.service.custom.pythonRequirements) ||
