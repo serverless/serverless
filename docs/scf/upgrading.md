@@ -109,7 +109,7 @@ cp serverless.containers.yml serverless.containers.yml.backup
 
 ### Update Your Configuration
 
-In your `serverless.containers.yml`, change the `name` property to create an entirely seperate stack of new infrastructure that does not have names that collide with existing infrastructure (in the case of testing on the same AWS account).
+In your `serverless.containers.yml`, change the `name` property to create an entirely separate stack of new infrastructure that does not have names that collide with existing infrastructure (in the case of testing on the same AWS account).
 
 Next, change the deployment type:
 
