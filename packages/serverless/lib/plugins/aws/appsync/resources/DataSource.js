@@ -108,7 +108,7 @@ export class DataSource {
           ],
         ],
       })
-    // FIXME: can we validate this and make TS infer mutually eclusive types?
+    // FIXME: can we validate this and make TS infer mutually exclusive types?
     if (!endpoint) {
       throw new Error('Specify either endpoint or domain')
     }
