@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "rimraf": "5.0.10",
-    "undici": "6.24.1"
+    "undici": "6.25.0"
   },
   "devDependencies": {},
   "publishConfig": {
