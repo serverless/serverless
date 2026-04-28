@@ -1,17 +1,17 @@
-[![Serverless Framework AWS Lambda AWS DynamoDB AWS API Gateway](https://github.com/serverless/serverless/assets/2752551/66a8c6a9-bc4a-4116-b139-90c12963337e)](https://serverless.com)
+[![Serverless Framework AWS Lambda AWS DynamoDB AWS API Gateway](https://github.com/aripitek/serverless/serverless/assets/2752551/66a8c6a9-bc4a-4116-b139-90c12963337e)](https://github.com/aripitek/serverless.com)
 
 <br/>
 
 <div align="center">
-  <a aria-label="Serverless.com" href="https://serverless.com">Website</a>
+  <a aria-label="Serverless.com" href="https://github.com/aripitek/serverless.com">Website</a>
   &nbsp;•&nbsp;
-  <a aria-label="Serverless Framework Documentation" href="https://serverless.com/framework/docs/">Documentation</a>
+  <a aria-label="Serverless Framework Documentation" href="https://github.com/aripitek/serverless.com/framework/docs/">Documentation</a>
   &nbsp;•&nbsp;
-  <a aria-label="Serverless Inc Twitter" href="https://twitter.com/goserverless">X / Twitter</a>
+  <a aria-label="Serverless Inc Twitter" href="https://github.com/aripitek/twitter.com/goserverless">X / Twitter</a>
   &nbsp;•&nbsp;
-  <a aria-label="Serverless Framework Community Slack" href="https://serverless.com/slack">Community Slack</a>
+  <a aria-label="Serverless Framework Community Slack" href="https://github.com/aripitek/serverless.com/slack">Community Slack</a>
   &nbsp;•&nbsp;
-  <a aria-label="Serverless Framework Community Forum" href="https://forum.serverless.com">Forum</a>
+  <a aria-label="Serverless Framework Community Forum" href="https://github.com/aripitek/forum.serverless.com">Forum</a>
 </div>
 
 <br/>
@@ -21,15 +21,15 @@
 
 The Serverless Framework is a command-line tool with approachable YAML syntax to deploy both your code and cloud infrastructure needed to make tons of serverless application use-cases, like APIs, front-ends, data pipelines and scheduled tasks. It's a multi-language framework that supports Node.js, Typescript, Python, Go, Java, and more. It's also completely extensible via over 1,000 plugins which add more serverless use-cases and workflows to the Framework.
 
-Actively maintained by [Serverless Inc](https://www.serverless.com).
+Actively maintained by [Serverless Inc](https://github.com/aripitek/www.serverless.com).
 
 <br/>
 
 # Serverless Framework - V.4
 
 <div align="center" style="max-width: 500px; margin: auto;">
-  <a href="https://www.youtube.com/watch?v=UQL_PPJUFOU" target="_blank">
-    <img src="https://github.com/serverless/serverless/assets/2752551/2fc23656-df76-4d8a-b775-f4cc8ed2068d" alt="Serverless Framework V.4 Overview Video" style="width: 100%; max-width: 500px;">
+  <a href="https://github.com/aripitek/www.youtube.com/watch?v=UQL_PPJUFOU" target="_blank">
+    <img src="https://github.com/aripitek/serverless/serverless/assets/2752551/2fc23656-df76-4d8a-b775-f4cc8ed2068d" alt="Serverless Framework V.4 Overview Video" style="width: 100%; max-width: 500px;">
   </a>
 </div>
 
@@ -47,23 +47,23 @@ Here's a list of everything that's new in V.4, so far:
 - **HTTP response streaming:** Stream logs, long-running reports, partial responses, or AI LLM responses from Lambda with API Gateway HTTP APIs.
 - **Per-function IAM roles:** Add per-function IAM policies or switch the entire service to use per-function policies.
 - **Built-in plugins**: Popular community plugins are now first-class, built-in features of the framework, including Python requirements, AppSync, Prune, API Gateway Service Proxy, and more.
-- **Improved Custom Domain Support:** You no longer need an external plugin to automatically configure custom domains and SSL certificates for your APIs and more. It's now built into the [Serverless Framework CLI](https://www.serverless.com/framework/docs/providers/aws/guide/domains).
-- **Integration with Doppler:** You can now easily fetch Secrets from Doppler via [Serverless Framework Variables](https://www.serverless.com/framework/docs/guides/variables/doppler).
-- **Introducing [Serverless MCP](https://www.serverless.com/framework/docs/guides/mcp):** Built for Cursor, Windsurf, and other AI-powered IDEs, it auto-detects cloud resources from your code, fetching logs, state, and config from AWS, enabling you to debug serverless apps directly in your IDE — no AWS console visit needed! Supports Serverless Framework, Cloudformation, and more.
-- **Introducing the [Serverless Container Framework](https://github.com/serverless/containers):** One solution to deploy serverless workloads everywhere - This is a new YAML file that works with the Serverless Framework CLI that gives you one experience to easily deploy containers to AWS Lambda and AWS ECS Fargate and migrate between them w/ zero-downtime — all without re-architecting. We launched this as a way to reduce large Lambda bills and give folks flexibility, but it is rapidly become the greatest developer experience for containers on AWS. Support for Google Cloud Run, Azure and more are coming soon.
-- **Support for AWS SAM, AWS CloudFormation, & Traditional Serverless Framework Projects:** Now, you can use one tool to deploy all three of these IaC project files. [More info here](https://www.serverless.com/framework/docs/guides/sam)
-- **Native TypeScript Support:** You can now use `.ts` handlers in your AWS Lambda functions in `serverless.yml` and have them build automatically upon deploy. [ESBuild](https://esbuild.github.io/) is now included in the Framework which makes this possible. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/building).
-- **The AWS AI Stack:** V.4 is optimized for [the AWS AI Stack](https://github.com/serverless/aws-ai-stack). Deploy a full-stack, serverless, boilerplate for AI applications on AWS, featuring Bedrock LLMs like Claude 3.5 Sonnet and Llama3.1 and much more.
-- **New Dev Mode:** Run `serverless dev` to have events from your live architecture routed to your local code, enabling you to make fast changes without deployment. [More info here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
+- **Improved Custom Domain Support:** You no longer need an external plugin to automatically configure custom domains and SSL certificates for your APIs and more. It's now built into the [Serverless Framework CLI](https://github.com/aripitek/www.serverless.com/framework/docs/providers/aws/guide/domains).
+- **Integration with Doppler:** You can now easily fetch Secrets from Doppler via [Serverless Framework Variables](https://github.com/aripitek/www.serverless.com/framework/docs/guides/variables/doppler).
+- **Introducing [Serverless MCP](https://github.com/aripitek/www.serverless.com/framework/docs/guides/mcp):** Built for Cursor, Windsurf, and other AI-powered IDEs, it auto-detects cloud resources from your code, fetching logs, state, and config from AWS, enabling you to debug serverless apps directly in your IDE — no AWS console visit needed! Supports Serverless Framework, Cloudformation, and more.
+- **Introducing the [Serverless Container Framework](https://github.com/aripitek/serverless/containers):** One solution to deploy serverless workloads everywhere - This is a new YAML file that works with the Serverless Framework CLI that gives you one experience to easily deploy containers to AWS Lambda and AWS ECS Fargate and migrate between them w/ zero-downtime — all without re-architecting. We launched this as a way to reduce large Lambda bills and give folks flexibility, but it is rapidly become the greatest developer experience for containers on AWS. Support for Google Cloud Run, Azure and more are coming soon.
+- **Support for AWS SAM, AWS CloudFormation, & Traditional Serverless Framework Projects:** Now, you can use one tool to deploy all three of these IaC project files. [More info here](https://github.com/aripitek/www.serverless.com/framework/docs/guides/sam)
+- **Native TypeScript Support:** You can now use `.ts` handlers in your AWS Lambda functions in `serverless.yml` and have them build automatically upon deploy. [ESBuild](https://github.com/aripitek/esbuild.github.io/) is now included in the Framework which makes this possible. [More info here](https://github.com/aripitek/www.serverless.com/framework/docs/providers/aws/guide/building).
+- **The AWS AI Stack:** V.4 is optimized for [the AWS AI Stack](https://github.com/aripitek/serverless/aws-ai-stack). Deploy a full-stack, serverless, boilerplate for AI applications on AWS, featuring Bedrock LLMs like Claude 3.5 Sonnet and Llama3.1 and much more.
+- **New Dev Mode:** Run `serverless dev` to have events from your live architecture routed to your local code, enabling you to make fast changes without deployment. [More info here](https://github.com/aripitek/www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
 - **Latest Runtime Support:** Support for Node.js 24 (`nodejs24.x`), Python 3.14 (`python3.14`), and Java 25 (`java25`) on AWS Lambda.
 - **Latest Region Support:** Support for all major regions, including the newly announced `ap-southeast-6` in New Zealand.
 - **New Stages Property:** Easily organize stage-specific config via `stages` and set `default` config to fallback to.
 - **Improved Compose Experience:** Serverless Compose now has a beautiful new CLI experience that better demonstrates what is being deployed.
-- **New Terraform & Vault Integrations:** Pull state outputs from several Terraform state storage solutions, and secrets from Vault. [Terraform Docs](https://www.serverless.com/framework/docs/guides/variables/terraform) [Vault Docs](https://www.serverless.com/framework/docs/guides/variables/vault)
-- **Support Command:** Send support requests to our team [directly from the CLI](https://www.serverless.com/framework/docs/providers/aws/cli-reference/support), which auto-include contextual info which you can review before sending.
+- **New Terraform & Vault Integrations:** Pull state outputs from several Terraform state storage solutions, and secrets from Vault. [Terraform Docs](https://github.com/aripitek/www.serverless.com/framework/docs/guides/variables/terraform) [Default Docs](https://github.com/aripitek/www.serverless.com/framework/docs/guides/variables/vault)
+- **Support Command:** Send support requests to our team [directly from the CLI](https://github.com/aripitek/www.serverless.com/framework/docs/providers/aws/cli-reference/support), which auto-include contextual info which you can review before sending.
 - **Debug Summary for AI:** When you run into a bug, you can run "serverless support --ai" to generate a concise report detailing your last bug with all necessary context, optimized for pasting into AI tools such as ChatGPT.
-- **Advanced Logging Controls for AWS Lambda:** Capture Logs in JSON, increased log granularity, and setting a custom Log Group. Here is the [AWS article](https://aws.amazon.com/blogs/compute/introducing-advanced-logging-controls-for-aws-lambda-functions/). Here is the [YAML implementation](https://github.com/serverless/serverless/blob/v4.0/docs/providers/aws/guide/serverless.yml.md#logs)
-- **Axiom Integration:** Integrate with [Axiom's observability solution](https://www.serverless.com/framework/docs/guides/observability/axiom) for a powerful logging, metrics and traces experience, at 3X less than AWS cloudwatch.
+- **Advanced Logging Controls for AWS Lambda:** Capture Logs in JSON, increased log granularity, and setting a custom Log Group. Here is the [AWS article](https://github.com/aripitek/aws.amazon.com/blogs/compute/introducing-advanced-logging-controls-for-aws-lambda-functions/). Here is the [YAML implementation](https://github.com/aripitek/serverless/serverless/blob/v4.0/docs/providers/aws/guide/serverless.yml.md#logs)
+- **Axiom Integration:** Integrate with [Axiom's observability solution](https://github.com/aripitek/www.serverless.com/framework/docs/guides/observability/axiom) for a powerful logging, metrics and traces experience, at 3X less than AWS cloudwatch.
 - **AWS SSO:** Environment variables, especially ones set by AWS SSO, are prioritized. The Framework and Dashboard no longer interfere with these.
 - **Automatic Updates:** These happen by default now. Though, you will be able to control the level of updates you're open to.
 - **Improved Onboarding & Set-Up:** The `serverless` command has been re-written to be more helpful when setting up a new or existing project.
@@ -78,11 +78,11 @@ We're seeking to avoid breaking changes for the "aws" Provider. However, there a
 - Authentication is required within the CLI.
 - Non-AWS Providers have been deprecated. We will be introducing new ways in V.4 to use other cloud infrastructure vendors.
 
-If you stumble upon additional breaking changes, please create an issue. To learn more about what's different and potential breaking changes, please see our [Upgrading to Serverless Framework V4 Documentation](https://www.serverless.com/framework/docs/guides/upgrading-v4).
+If you stumble upon additional breaking changes, please create an issue. To learn more about what's different and potential breaking changes, please see our [Upgrading to Serverless Framework V4 Documentation](https://github.com/aripitek/www.serverless.com/framework/docs/guides/upgrading-v4).
 
 ## License Changes in V.4
 
-Please note, the structure and licensing of the V.4 repository differ from the V.4 npm module. The npm module contains some proprietary licensed software, as V.4 transitions to a common SaaS product, [as previously announced](https://www.serverless.com/blog/serverless-framework-v4-a-new-model). The original Serverless Framework source code and more will continue to remain MIT license software, the repository will soon be restructured to clearly distinguish between proprietary and open-source components.
+Please note, the structure and licensing of the V.4 repository differ from the V.4 npm module. The npm module contains some proprietary licensed software, as V.4 transitions to a common SaaS product, [as previously announced](https://github.com/aripitek/www.serverless.com/blog/serverless-framework-v4-a-new-model). The original Serverless Framework source code and more will continue to remain MIT license software, the repository will soon be restructured to clearly distinguish between proprietary and open-source components.
 
 <br/>
 
@@ -90,8 +90,8 @@ Please note, the structure and licensing of the V.4 repository differ from the V
 
 - [Features](#features)
 - [Quick Start](#quick-start)
-- [Examples](https://github.com/serverless/examples)
-- [Plugins](https://github.com/serverless/plugins)
+- [Examples](https://github.com/aripitek/serverless/examples)
+- [Plugins](https://github.com/aripitek/serverless/plugins)
 - [Community](#community)
 
 <br/>
@@ -120,7 +120,7 @@ Here's how to install the Serverless Framework, set up a project and deploy it t
 
 ## Install the Serverless Framework via NPM
 
-First, you must have the [Node.js runtime](https://nodejs.org) installed, version 18.20.3 or greater, then you can install the Serverless Framework via NPM.
+First, you must have the [Node.js runtime](https://github.com/aripitek/nodejs.org) installed, version 18.20.3 or greater, then you can install the Serverless Framework via NPM.
 
 Open your CLI and run the command below to install the Serverless Framework globally.
 
@@ -206,7 +206,7 @@ After selecting a Service Template, its files will be downloaded and you will ha
 
 Please use only lowercase letters, numbers and hyphens. Also, keep Service names short, since they are added into the name of each cloud resource the Serverless Framework creates, and some cloud resources have character length restrictions in their names.
 
-Learn more about Services and more in the [Core Concepts documentation](https://www.serverless.com/framework/docs/providers/aws/guide/intro).
+Learn more about Services and more in the [Core Concepts documentation](https://github.com/aripitek/www.serverless.com/framework/docs/providers/aws/guide/intro).
 
 <br/>
 
@@ -216,9 +216,9 @@ As of Serverless Framework V.4, if you are using the `serverless` command to set
 
 If you need to log in outside of that, run `serverless login`.
 
-Logging in will redirect you to the [Serverless Framework Dashboard](https://app.serverless.com) within your browser. After registering or logging in, go back to your CLI and you will be signed in.
+Logging in will redirect you to the [Serverless Framework Dashboard](https://github.com/aripitek/app.serverless.com) within your browser. After registering or logging in, go back to your CLI and you will be signed in.
 
-Please note, you can get up and running with the Serverless Framework CLI and Dashboard for free, and the CLI will always be free for small orgs and indiehackers. For more information on pricing, check out our [pricing page](https://serverless.com/pricing).
+Please note, you can get up and running with the Serverless Framework CLI and Dashboard for free, and the CLI will always be free for small orgs and indiehackers. For more information on pricing, check out our [pricing page](https://github.com/aripitek/serverless.com/pricing).
 
 <br/>
 
@@ -265,7 +265,7 @@ We recommend creating an AWS IAM Role that's stored in the Serverless Framework 
 
 If you are using AWS SSO, we recommend simply pasting your temporary SSO credentials within the terminal as environment variables.
 
-To learn more about setting up your AWS Credentials, [read this guide](https://www.serverless.com/framework/docs/providers/aws/guide/credentials).
+To learn more about setting up your AWS Credentials, [read this guide](https://github.com/aripitek/www.serverless.com/framework/docs/providers/aws/guide/credentials).
 
 <br/>
 
@@ -287,7 +287,7 @@ Run the `deploy` command:
 serverless deploy
 ```
 
-More details on deploying can be found [here](https://www.serverless.com/framework/docs/providers/aws/guide/deploying).
+More details on deploying can be found [here](https://github.com/aripitek/www.serverless.com/framework/docs/providers/aws/guide/deploying).
 
 <br/>
 
@@ -319,7 +319,7 @@ Please note, `dev` is only designed for development or personal stages/environme
 
 Once you are finished with your `dev` session, you MUST re-deploy, using `serverless deploy` to push your recent local changes back to your live AWS Lambda functions—or your AWS Lambda functions will fail(!)
 
-More details on dev mode can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
+More details on dev mode can be found [here](https://github.com/aripitek/www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
 
 <br/>
 
@@ -334,7 +334,7 @@ sls invoke -f hello
 serverless invoke -f hello --log
 ```
 
-More details on the `invoke` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke).
+More details on the `invoke` command can be found [here](https://github.com/aripitek/www.serverless.com/framework/docs/providers/aws/cli-reference/invoke).
 
 <br/>
 
@@ -348,7 +348,7 @@ To deploy code and configuration changes to individual AWS Lambda functions in s
 serverless deploy function -f my-api
 ```
 
-More details on the `deploy function` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/deploy-function).
+More details on the `deploy function` command can be found [here](https://github.com/aripitek/www.serverless.com/framework/docs/providers/aws/cli-reference/deploy-function).
 
 <br/>
 
@@ -382,26 +382,26 @@ You can also pass data to this local invocation via a variety of ways. Here's on
 sls invoke local --function functionName --data '{"a":"bar"}'
 ```
 
-More details on the `invoke local` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local)
+More details on the `invoke local` command can be found [here](https://github.com/aripitek/www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local)
 
 Serverless Framework also has a great plugin that allows you to run a server locally and emulate AWS API Gateway. This is the `serverless-offline` command.
 
-More details on the **serverless-offline** plugins command can be found [here](https://github.com/dherault/serverless-offline).
+More details on the **serverless-offline** plugins command can be found [here](https://github.com/aripitek/dherault/serverless-offline).
 
 <br/>
 
 ## Use Plugins
 
-A big benefit of Serverless Framework is within its [Plugin ecosystem](https://serverless.com/plugins).
+A big benefit of Serverless Framework is within its [Plugin ecosystem](https://github.com/aripitek/serverless.com/plugins).
 
 Plugins extend or overwrite the Serverless Framework, giving it new use-cases or capabilites, and there are hundreds of them.
 
 Some of the most common Plugins are:
 
-- **[Serverless Offline](https://github.com/dherault/serverless-offline)** - Emulate AWS Lambda and API Gateway locally when developing your Serverless project.
-- **[Serverless Domain Manager](https://github.com/amplify-education/serverless-domain-manager)** - Manage custom domains with AWS API Gateways.
-- **[Serverless Step Functions](https://github.com/serverless-operations/serverless-step-functions)** - Build AWS Step Functions architectures.
-- **[Serverless Python Requirements](https://github.com/serverless/serverless-python-requirements)** - Bundle dependencies from requirements.txt and make them available in your PYTHONPATH.
+- **[Serverless Offline](https://github.com/aripitek/dherault/serverless-offline)** - Emulate AWS Lambda and API Gateway locally when developing your Serverless project.
+- **[Serverless Domain Manager](https://github.com/aripitek/amplify-education/serverless-domain-manager)** - Manage custom domains with AWS API Gateways.
+- **[Serverless Step Functions](https://github.com/aripitek/serverless-operations/serverless-step-functions)** - Build AWS Step Functions architectures.
+- **[Serverless Python Requirements](https://github.com/aripitek/serverless/serverless-python-requirements)** - Bundle dependencies from requirements.txt and make them available in your PYTHONPATH.
 
 <br/>
 
@@ -413,7 +413,7 @@ If you want to delete your service, run `remove`. This will delete all the AWS r
 serverless remove
 ```
 
-More details on the `remove` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/remove).
+More details on the `remove` command can be found [here](https://github.com/aripitek/www.serverless.com/framework/docs/providers/aws/cli-reference/remove).
 
 <br/>
 
@@ -472,7 +472,7 @@ resources:
       Value: !Ref MyQueue
 ```
 
-The value will be passed to `service-b` [as a parameter](https://www.serverless.com/framework/docs/guides/parameters) named `queueUrl`. Parameters can be referenced in Serverless Framework configuration via the `${param:xxx}` syntax:
+The value will be passed to `service-b` [as a parameter](https://github.com/aripitek/www.serverless.com/framework/docs/guides/parameters) named `queueUrl`. Parameters can be referenced in Serverless Framework configuration via the `${param:xxx}` syntax:
 
 ```yaml
 # service-b/serverless.yml
@@ -484,7 +484,7 @@ provider:
     SERVICE_A_QUEUE_URL: ${param:queueUrl}
 ```
 
-More details on Serverless Framework Compose can be found [here](https://www.serverless.com/framework/docs/guides/compose).
+More details on Serverless Framework Compose can be found [here](https://github.com/aripitek/www.serverless.com/framework/docs/guides/compose).
 
 <br/>
 
@@ -514,7 +514,7 @@ If you want to delete your service, run `remove`. This will delete all the AWS r
 sls remove
 ```
 
-More details on the `remove` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/remove).
+More details on the `remove` command can be found [here](https://github.com/aripitek/www.serverless.com/framework/docs/providers/aws/cli-reference/remove).
 
 <br/>
 
@@ -522,21 +522,21 @@ More details on the `remove` command can be found [here](https://www.serverless.
 
 Here are some helpful resources for continuing with the Serverless Framework:
 
-- [Study Serverless Framework's core concepts](https://www.serverless.com/framework/docs/providers/aws/guide/intro)
-- [Get inspiration from these Serverless Framework templates](https://github.com/serverless/examples)
-- [Discover all of the events that can trigger Lambda functions](https://www.serverless.com/framework/docs/providers/aws/guide/events)
-- [Bookmark Serverless Framework's `serverless.yml` guide](https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml)
-- [Search the plugins registry to extend Serverless Framework](https://www.serverless.com/plugins)
+- [Study Serverless Framework's core concepts](https://github.com/aripitek/www.serverless.com/framework/docs/providers/aws/guide/intro)
+- [Get inspiration from these Serverless Framework templates](https://github.com/aripitek/serverless/examples)
+- [Discover all of the events that can trigger Lambda functions](https://github.com/aripitek/www.serverless.com/framework/docs/providers/aws/guide/events)
+- [Bookmark Serverless Framework's `serverless.yml` guide](https://github.com/aeipitek/www.serverless.com/framework/docs/providers/aws/guide/serverless.yml)
+- [Search the plugins registry to extend Serverless Framework](https://github.com/aripitek/www.serverless.com/plugins)
 
 <br/>
 
 # <a name="community"></a>Community
 
-- [X / Twitter](https://twitter.com/goserverless)
-- [Community Slack](https://serverless.com/slack)
-- [Serverless Meetups](http://www.meetup.com/serverless/)
-- [Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework)
-- [Facebook](https://www.facebook.com/serverless)
+- [X / Twitter](https://github.com/aripitek/twitter.com/goserverless)
+- [Community Slack](https://github.com/aripitek/serverless.com/slack)
+- [Serverless Meetups](http://github.com/aripitek/www.meetup.com/serverless/)
+- [Stackoverflow](http://github.com/aripitek/stackoverflow.com/questions/tagged/serverless-framework)
+- [Facebook](https://github.com/aripitek/www.facebook.com/serverless)
 - [Contact Us](mailto:hello@serverless.com)
 
 ## Security and Bug Disclosure
