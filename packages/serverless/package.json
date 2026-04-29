@@ -93,7 +93,7 @@
     "toml": "^3.0.0",
     "tsx": "^4.21.0",
     "type": "^2.7.3",
-    "uuid": "^13.0.0"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@aws-sdk/client-cognito-identity-provider": "3.1017.0",
