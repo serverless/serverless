@@ -52,7 +52,7 @@
   },
   "devDependencies": {
     "jest": "^30.3.0",
-    "jest-mock-extended": "^4.0.0",
+    "jest-mock-extended": "^4.0.1",
     "js-yaml": "^4.1.1"
   }
 }
