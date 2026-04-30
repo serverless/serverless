@@ -33,6 +33,9 @@
   },
   "overrides": {
     "help-me": "^5.0.0",
-    "fast-xml-parser": "^5.3.6"
+    "fast-xml-parser": "^5.3.6",
+    "aws-sdk": {
+      "uuid": "^11.1.1"
+    }
   }
 }

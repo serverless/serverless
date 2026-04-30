@@ -84,6 +84,9 @@ updates:
       - dependency-name: 'get-stdin'
         # get-stdin v10 drops support for Node.js 18
         versions: ['>= 10.0.0']
+      - dependency-name: 'uuid'
+        # uuid v14 drops support for Node.js 18
+        versions: ['>= 14.0.0']
 
   # Maintain framework-dist dependencies (excluded from workspace, has its own shrinkwrap)
   - package-ecosystem: 'npm'
