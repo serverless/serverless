@@ -5,12 +5,14 @@
 
 version: 2
 updates:
-  # Maintain NPM dependencies
+  # Maintain NPM dependencies across the workspace and the standalone packages
+  # (framework-dist, sf-core-installer) that are excluded from the workspace.
+  # Using `directories` keeps version bumps in sync across all manifests.
   - package-ecosystem: 'npm'
-    directory: '/'
-    exclude-paths:
-      - 'packages/framework-dist/**'
-      - 'packages/sf-core-installer/**'
+    directories:
+      - '/'
+      - '/packages/framework-dist'
+      - '/packages/sf-core-installer'
     schedule:
       interval: 'weekly'
     versioning-strategy: increase
@@ -87,36 +89,6 @@ updates:
       - dependency-name: 'uuid'
         # uuid v14 drops support for Node.js 18
         versions: ['>= 14.0.0']
-
-  # Maintain framework-dist dependencies (excluded from workspace, has its own shrinkwrap)
-  - package-ecosystem: 'npm'
-    directory: '/packages/framework-dist'
-    schedule:
-      interval: 'weekly'
-    cooldown:
-      default-days: 5
-      semver-major-days: 30
-      semver-minor-days: 7
-      semver-patch-days: 3
-    groups:
-      aws-sdk:
-        patterns:
-          - '@aws-sdk/*'
-
-  # Maintain sf-core-installer dependencies (excluded from workspace, has its own shrinkwrap)
-  - package-ecosystem: 'npm'
-    directory: '/packages/sf-core-installer'
-    schedule:
-      interval: 'weekly'
-    cooldown:
-      default-days: 5
-      semver-major-days: 30
-      semver-minor-days: 7
-      semver-patch-days: 3
-    ignore:
-      - dependency-name: 'undici'
-        # undici v7 drops support for Node.js 18
-        versions: ['>= 7.0.0']
       - dependency-name: 'rimraf'
         # rimraf v6 drops support for Node.js 18
         versions: ['>= 6.0.0']
