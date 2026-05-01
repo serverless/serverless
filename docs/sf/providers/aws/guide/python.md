@@ -181,6 +181,8 @@ bottle = {git = "ssh://git@github.com/bottlepy/bottle.git", tag = "0.12.16"}
 
 [`uv`](https://docs.astral.sh/uv/) projects behave just like Pipenv or Poetry projects. When a `uv.lock` file is present and `custom.pythonRequirements.useUv` is not disabled, the Framework will run `uv export --no-dev --frozen --no-hashes` to generate an intermediate `requirements.txt` in `.serverless/requirements.txt` before packaging. Set `useUv: false` if you prefer to manage that file yourself.
 
+### Using uv to install dependencies
+
 If you also want uv to drive the installation step (instead of invoking `python -m pip`), opt-in via `custom.pythonRequirements.installer: uv`:
 
 ```yaml
@@ -191,6 +193,31 @@ custom:
 ```
 
 The uv CLI must be available wherever the build runs (your workstation or the Docker image when `dockerizePip` is enabled). When `dockerizePip` is enabled, `installer: uv` is configured, and the default AWS build images are used (the `public.ecr.aws/sam/build-python...` images selected by the Framework), uv is installed automatically inside the container before running `uv pip install`. If you configure a custom Docker image via `dockerImage` or `dockerFile`, you are responsible for ensuring uv is available in that image.
+
+### Optional dependencies and groups
+
+By default, the Framework exports only the base `[project.dependencies]` and excludes dev dependencies (`--no-dev` is always applied). Optional dependencies (`[project.optional-dependencies]`) and custom dependency groups (`[dependency-groups]`) are not included unless you opt in.
+
+Use the following options to control which extras and groups are included in the deployment package:
+
+| Option                   | uv flag        | Description                                                        |
+| ------------------------ | -------------- | ------------------------------------------------------------------ |
+| `uvOptionalDependencies` | `--extra`      | Include optional dependency extras                                 |
+| `uvWithGroups`           | `--group`      | Include additional dependency groups                               |
+| `uvWithoutGroups`        | `--no-group`   | Exclude specific dependency groups                                 |
+| `uvOnlyGroups`           | `--only-group` | Include **only** the specified groups (excludes base dependencies) |
+
+```yaml
+custom:
+  pythonRequirements:
+    useUv: true
+    uvOptionalDependencies:
+      - aws # includes [project.optional-dependencies].aws
+    uvWithGroups:
+      - lambda-extras # includes [dependency-groups].lambda-extras
+```
+
+To include dev dependencies, add the `dev` group explicitly via `uvWithGroups: [dev]`.
 
 ## Dealing with Lambda's size limitations
 
