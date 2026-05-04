@@ -964,8 +964,13 @@ async function installAllRequirements() {
   }
 
   // Step 4: Install requirements for shared package
-  // Only install if there are Python functions using the shared package
-  if (sharedPackagedFuncs.length > 0) {
+  // Install when there are Python functions using shared packaging, or when
+  // the service is layer-only (no functions but custom.pythonRequirements.layer
+  // is configured) so layerRequirements() has a populated .serverless/requirements
+  // directory to zip.
+  const isLayerOnlyService =
+    pythonFuncs.length === 0 && Boolean(this.options.layer)
+  if (sharedPackagedFuncs.length > 0 || isLayerOnlyService) {
     const reqsInstalledAt = await installRequirementsIfNeeded('', {}, this)
     // Add symlinks into .serverless for so it's easier for injecting and for users to see where reqs are
     let symlinkPath = path.join(this.servicePath, '.serverless', `requirements`)

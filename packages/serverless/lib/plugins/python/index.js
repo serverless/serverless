@@ -272,7 +272,15 @@ class ServerlessPythonRequirements {
       // Also check if any agents need Python requirements
       const hasPythonAgent = this.targetAgents.length > 0
 
-      return hasPythonFunction || hasPythonAgent
+      // Layer-only services have no functions but still need the hooks to run
+      // so that layerRequirements() can build PythonRequirementsLambdaLayer.
+      const layerConfigured = Boolean(
+        this.serverless.service.custom?.pythonRequirements?.layer,
+      )
+      const hasPythonLayerOnly =
+        layerConfigured && providerRuntime?.startsWith('python')
+
+      return hasPythonFunction || hasPythonAgent || hasPythonLayerOnly
     }
 
     const clean = async () => {

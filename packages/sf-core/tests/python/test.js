@@ -265,6 +265,33 @@ test('default pythonBin can package flask with default options', async (t) => {
   t.end()
 })
 
+test('layer-only service (no functions) still produces lambda layer', async (t) => {
+  process.chdir('tests/layer_only')
+  sls(['package'], { env: {} })
+
+  const cfn = JSON.parse(
+    await readFile(
+      '.serverless/cloudformation-template-update-stack.json',
+      'utf8',
+    ),
+  )
+  t.ok(
+    cfn.Resources?.PythonRequirementsLambdaLayer,
+    'PythonRequirementsLambdaLayer resource is generated',
+  )
+  t.ok(
+    cfn.Outputs?.PythonRequirementsLambdaLayerQualifiedArn,
+    'PythonRequirementsLambdaLayerQualifiedArn output is generated',
+  )
+
+  const layerZip = await listZipFiles('.serverless/pythonRequirements.zip')
+  t.true(
+    layerZip.some((p) => p.startsWith('python/six')),
+    'six is packaged into the layer zip',
+  )
+  t.end()
+})
+
 test('py3.13 packages have the same hash', async (t) => {
   process.chdir('tests/base')
   sls(['package'], { env: {} })
