@@ -62,7 +62,6 @@ describe('Serverless Framework Service - ESBuild Package Individually', () => {
       const zipPath = path.join(
         configFileDirPath,
         '.serverless',
-        'build',
         `${functionName}.zip`,
       )
       const exists = existsSync(zipPath)

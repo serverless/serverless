@@ -1,8 +1,7 @@
 const os = require('os')
-const { configureProxy } = require('axios-proxy-builder')
-const axios = require('axios')
+const { ProxyAgent } = require('undici')
 
-const { existsSync, mkdirSync, rmSync, createWriteStream } = require('fs')
+const { existsSync, mkdirSync, rmSync, writeFileSync } = require('fs')
 const { join } = require('path')
 const { spawnSync } = require('child_process')
 
@@ -11,6 +10,55 @@ const rimraf = require('rimraf')
 const error = (msg) => {
   console.error(msg)
   process.exit(1)
+}
+
+const formatHostName = (hostname) => hostname.replace(/^\.*/, '.').toLowerCase()
+
+const parseNoProxyZone = (zone) => {
+  zone = zone.trim()
+  const zoneParts = zone.split(':', 2)
+  const zoneHost = formatHostName(zoneParts[0])
+  const zonePort = zoneParts[1]
+  const hasPort = zone.indexOf(':') > -1
+  return { hostname: zoneHost, port: zonePort, hasPort }
+}
+
+const shouldBypassProxy = (requestURL) => {
+  const noProxy = process.env.NO_PROXY || process.env.no_proxy || ''
+  if (noProxy === '*') return true
+  if (noProxy === '') return false
+
+  const port =
+    requestURL.port || (requestURL.protocol === 'https:' ? '443' : '80')
+  const hostname = formatHostName(requestURL.hostname)
+
+  return noProxy
+    .split(',')
+    .map(parseNoProxyZone)
+    .some((noProxyZone) => {
+      const isMatchedAt = hostname.indexOf(noProxyZone.hostname)
+      const hostnameMatched =
+        isMatchedAt > -1 &&
+        isMatchedAt === hostname.length - noProxyZone.hostname.length
+      if (noProxyZone.hasPort) {
+        return port === noProxyZone.port && hostnameMatched
+      }
+      return hostnameMatched
+    })
+}
+
+const getProxyUrl = (url) => {
+  const requestURL = new URL(url)
+
+  if (shouldBypassProxy(requestURL)) return null
+
+  if (requestURL.protocol === 'http:') {
+    return process.env.HTTP_PROXY || process.env.http_proxy || null
+  }
+  if (requestURL.protocol === 'https:') {
+    return process.env.HTTPS_PROXY || process.env.https_proxy || null
+  }
+  return null
 }
 
 class Binary {
@@ -87,7 +135,7 @@ class Binary {
     }
   }
 
-  install(fetchOptions, suppressLogs = false) {
+  install(suppressLogs = false) {
     if (this.exists()) {
       if (!suppressLogs) {
         console.error(
@@ -117,19 +165,20 @@ class Binary {
       this.removeBinary()
     })
 
-    return axios({ ...fetchOptions, url: this.url, responseType: 'stream' })
+    const proxyUrl = getProxyUrl(this.url)
+    const fetchOptions = proxyUrl
+      ? { dispatcher: new ProxyAgent(proxyUrl) }
+      : {}
+
+    return fetch(this.url, fetchOptions)
       .then((res) => {
-        return new Promise((resolve, reject) => {
-          const writeStream = createWriteStream(this.binaryPath, {
-            mode: 0o755,
-          })
-          res.data.pipe(writeStream)
-          writeStream.on('error', (err) => {
-            writeStream.close()
-            reject(err)
-          })
-          writeStream.on('close', () => resolve())
-        })
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`)
+        }
+        return res.arrayBuffer()
+      })
+      .then((buffer) => {
+        writeFileSync(this.binaryPath, Buffer.from(buffer), { mode: 0o755 })
       })
       .then(() => {
         if (!suppressLogs) {
@@ -142,10 +191,8 @@ class Binary {
       })
   }
 
-  run(fetchOptions) {
-    const promise = !this.exists()
-      ? this.install(fetchOptions, true)
-      : Promise.resolve()
+  run() {
+    const promise = !this.exists() ? this.install(true) : Promise.resolve()
 
     promise
       .then(() => {
@@ -213,10 +260,7 @@ const getBinary = () => {
 
 const install = async () => {
   const binary = getBinary()
-
-  const proxy = configureProxy(binary.url)
-
-  return binary.install(proxy, true) // Suppresses logs from binary-install
+  return binary.install(true) // Suppresses logs from binary-install
 }
 
 const run = async () => {

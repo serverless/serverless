@@ -17,6 +17,8 @@ export default [
       'no-unused-vars': 'off',
       'no-useless-escape': 'off',
       'no-async-promise-executor': 'off',
+      'no-useless-assignment': 'off',
+      'preserve-caught-error': 'off',
     },
   },
   {

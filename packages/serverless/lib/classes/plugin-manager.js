@@ -976,8 +976,6 @@ class PluginManager {
       for (const { hook } of this.hooks.initialize || []) await hook()
     }
 
-    let deferredBackendNotificationRequest
-
     try {
       await this.invoke(commandsArray)
     } catch (commandException) {
@@ -992,17 +990,11 @@ class PluginManager {
           }`,
         )
       } finally {
-        await deferredBackendNotificationRequest
         throw commandException // eslint-disable-line no-unsafe-finally
       }
     }
 
-    try {
-      for (const { hook } of this.hooks.finalize || []) await hook()
-    } catch (finalizeHookException) {
-      await deferredBackendNotificationRequest
-      throw finalizeHookException
-    }
+    for (const { hook } of this.hooks.finalize || []) await hook()
   }
 
   /**

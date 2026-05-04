@@ -5,9 +5,14 @@
 
 version: 2
 updates:
-  # Maintain NPM dependencies
+  # Maintain NPM dependencies across the workspace and the standalone packages
+  # (framework-dist, sf-core-installer) that are excluded from the workspace.
+  # Using `directories` keeps version bumps in sync across all manifests.
   - package-ecosystem: 'npm'
-    directory: '/'
+    directories:
+      - '/'
+      - '/packages/framework-dist'
+      - '/packages/sf-core-installer'
     schedule:
       interval: 'weekly'
     versioning-strategy: increase
@@ -63,9 +68,6 @@ updates:
       - dependency-name: 'undici'
         # undici v7 drops support for Node.js 18
         versions: ['>= 7.0.0']
-      - dependency-name: 'rimraf'
-        # rimraf v6 drops support for Node.js 18
-        versions: ['>= 6.0.0']
       - dependency-name: 'terminal-link'
         # terminal-link v5 drops support for Node.js 18
         versions: ['>= 5.0.0']
@@ -81,6 +83,15 @@ updates:
       - dependency-name: '@axiomhq/js'
         # @axiomhq/js v1.4.0 drops support for Node.js 18
         versions: ['>= 1.4.0']
+      - dependency-name: 'get-stdin'
+        # get-stdin v10 drops support for Node.js 18
+        versions: ['>= 10.0.0']
+      - dependency-name: 'uuid'
+        # uuid v14 drops support for Node.js 18
+        versions: ['>= 14.0.0']
+      - dependency-name: 'rimraf'
+        # rimraf v6 drops support for Node.js 18
+        versions: ['>= 6.0.0']
 
   # Maintain Go dependencies
   - package-ecosystem: 'gomod'

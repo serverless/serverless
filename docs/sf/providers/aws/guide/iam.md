@@ -329,11 +329,11 @@ When a per-function role is generated, the Framework augments it with sensible d
     - `xray:PutTelemetryRecords`
       on `*`.
 
-- EFS access (when `fileSystemConfig` is used)
-  - If `functions.<name>.fileSystemConfig.arn` is set, adds:
-    - `elasticfilesystem:ClientMount`
-    - `elasticfilesystem:ClientWrite`
-      on that EFS access point ARN.
+- File system access (when `fileSystemConfig` is used)
+  - If `functions.<name>.fileSystemConfig.arn` is set:
+    - For EFS: adds `elasticfilesystem:ClientMount` and `elasticfilesystem:ClientWrite` on that access point ARN.
+    - For S3 Files: adds `s3files:ClientMount` and `s3files:ClientWrite` on that access point ARN.
+  - The file system type is auto-detected from the ARN. When using CloudFormation references, set `fileSystemConfig.type` to `s3files` explicitly.
 
 Example:
 
@@ -342,7 +342,7 @@ functions:
   func1:
     handler: handler.func1
     # SQS and Streams events automatically grant minimal read permissions
-    # WebSockets, MQ, Kafka/MSK, CloudFront, Scheduler, X-Ray and EFS will also
+    # WebSockets, MQ, Kafka/MSK, CloudFront, Scheduler, X-Ray, EFS and S3 Files will also
     # add the necessary IAM permissions when configured below.
     events:
       - sqs: arn:aws:sqs:${aws:region}:${aws:accountId}:myQueue

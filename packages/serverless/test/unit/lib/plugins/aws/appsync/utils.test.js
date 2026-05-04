@@ -33,15 +33,15 @@ describe('parseDuration', () => {
 describe('parseDateTimeOrDuration', () => {
   it('should parse valid date', () => {
     expect(
-      parseDateTimeOrDuration('2021-12-31T16:57:00+00:00'),
-    ).toMatchInlineSnapshot(`"2021-12-31T16:57:00.000+00:00"`)
+      parseDateTimeOrDuration('2021-12-31T16:57:00+00:00').toMillis(),
+    ).toBe(new Date('2021-12-31T16:57:00.000Z').getTime())
 
-    expect(parseDateTimeOrDuration('10m')).toMatchInlineSnapshot(
-      `"2020-01-01T16:50:00.000+00:00"`,
+    expect(parseDateTimeOrDuration('10m').toMillis()).toBe(
+      new Date('2020-01-01T16:50:00.000Z').getTime(),
     )
 
-    expect(parseDateTimeOrDuration('1h')).toMatchInlineSnapshot(
-      `"2020-01-01T16:00:00.000+00:00"`,
+    expect(parseDateTimeOrDuration('1h').toMillis()).toBe(
+      new Date('2020-01-01T16:00:00.000Z').getTime(),
     )
 
     expect(function () {
