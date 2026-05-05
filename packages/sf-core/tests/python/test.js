@@ -641,10 +641,10 @@ test('uv py3.13 can package flask with optional dependencies', async (t) => {
     'uv export used',
   )
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
-  t.true(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
+  t.true(zipfiles.includes(`boto3/__init__.py`), 'boto3 is packaged')
   t.false(
-    zipfiles.includes(`pytest_cov${sep}__init__.py`),
+    zipfiles.includes(`pytest_cov/__init__.py`),
     'pytest-cov is NOT packaged',
   )
   t.end()
@@ -658,12 +658,9 @@ test('uv py3.13 can package flask with optional groups', async (t) => {
     'uv export used',
   )
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
-  t.false(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is NOT packaged')
-  t.true(
-    zipfiles.includes(`pytest_cov${sep}__init__.py`),
-    'pytest-cov is packaged',
-  )
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
+  t.false(zipfiles.includes(`boto3/__init__.py`), 'boto3 is NOT packaged')
+  t.true(zipfiles.includes(`pytest_cov/__init__.py`), 'pytest-cov is packaged')
   t.end()
 })
 
@@ -675,12 +672,9 @@ test('uv py3.13 can package with only groups', async (t) => {
     'uv export used',
   )
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.false(zipfiles.includes(`flask${sep}__init__.py`), 'flask is NOT packaged')
-  t.false(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is NOT packaged')
-  t.true(
-    zipfiles.includes(`pytest_cov${sep}__init__.py`),
-    'pytest-cov is packaged',
-  )
+  t.false(zipfiles.includes(`flask/__init__.py`), 'flask is NOT packaged')
+  t.false(zipfiles.includes(`boto3/__init__.py`), 'boto3 is NOT packaged')
+  t.true(zipfiles.includes(`pytest_cov/__init__.py`), 'pytest-cov is packaged')
   t.end()
 })
 
@@ -692,10 +686,10 @@ test('uv py3.13 can package with groups and without groups combined', async (t) 
     'uv export used',
   )
   const zipfiles = await listZipFiles('.serverless/sls-py-req-test.zip')
-  t.true(zipfiles.includes(`flask${sep}__init__.py`), 'flask is packaged')
-  t.false(zipfiles.includes(`boto3${sep}__init__.py`), 'boto3 is NOT packaged')
+  t.true(zipfiles.includes(`flask/__init__.py`), 'flask is packaged')
+  t.false(zipfiles.includes(`boto3/__init__.py`), 'boto3 is NOT packaged')
   t.false(
-    zipfiles.includes(`pytest_cov${sep}__init__.py`),
+    zipfiles.includes(`pytest_cov/__init__.py`),
     'pytest-cov is NOT packaged',
   )
   t.end()
