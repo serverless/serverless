@@ -13,7 +13,7 @@ import { wrapServerWithAnalytics } from './utils/analytics-utils.js'
  * @param {Function} options.sendAnalytics - Optional function to send analytics events
  * @returns {Object} - Server instance and express app
  */
-export async function startSseServer({ port = 3001, sendAnalytics } = {}) {
+export async function startSseServer({ port = 3001, sendAnalytics, authToken } = {}) {
   const app = express()
   // IMPORTANT: Do not add any global body-parsing middleware so that the raw POST stream remains available
 
@@ -37,6 +37,15 @@ export async function startSseServer({ port = 3001, sendAnalytics } = {}) {
    * Establishes an SSE connection and stores the transport by its sessionId.
    */
   app.get('/sse', async (req, res) => {
+    if (authToken) {
+      const authHeader = req.headers['authorization']
+      const providedToken =
+        authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : req.query.token
+      if (providedToken !== authToken) {
+        res.status(401).send('Unauthorized')
+        return
+      }
+    }
     const transport = new SSEServerTransport('/messages', res)
     await server.connect(transport)
 
