@@ -200,9 +200,9 @@ describe('@graphql-tools/merge compatibility tests', () => {
       directive @aws_auth(cognito_groups: [String]) on FIELD_DEFINITION | OBJECT
       directive @aws_cognito_user_pools(cognito_groups: [String]) on FIELD_DEFINITION | OBJECT
       directive @aws_subscribe(mutations: [String]) on FIELD_DEFINITION
-      directive @canonical on OBJECT
-      directive @hidden on OBJECT
-      directive @renamed on OBJECT
+      directive @canonical on OBJECT | FIELD_DEFINITION
+      directive @hidden on OBJECT | FIELD_DEFINITION
+      directive @renamed on OBJECT | FIELD_DEFINITION
       scalar AWSDate
       scalar AWSTime
       scalar AWSDateTime

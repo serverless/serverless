@@ -1,0 +1,9 @@
+service: sls-py-req-layer-only
+
+provider:
+  name: aws
+  runtime: python3.13
+
+custom:
+  pythonRequirements:
+    layer: true

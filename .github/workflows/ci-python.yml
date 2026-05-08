@@ -12,18 +12,28 @@ on:
       - '.github/workflows/ci-python.yml'
       - 'packages/serverless/lib/plugins/python/**'
       - 'packages/sf-core/tests/python/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ci-python.yml'
+      - 'packages/serverless/lib/plugins/python/**'
+      - 'packages/sf-core/tests/python/**'
 
 jobs:
   test-python:
-    name: 'Test: Python Requirements'
+    name: 'Test: Python Requirements (${{ matrix.os }})'
     if: ${{ !github.event.pull_request.draft }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ github.event_name == 'pull_request' && fromJSON('["ubuntu-latest"]') || fromJSON('["ubuntu-latest", "gh-windows-latest"]') }}
     steps:
       - name: 'Checkout Code'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: 'Setup: Node.js'
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: 24.x
           check-latest: true
@@ -48,13 +58,20 @@ jobs:
       - name: 'Install: Dependencies'
         run: npm ci
 
-      - name: 'Setup: Link Framework CLI'
+      - name: 'Setup: Link Framework CLI (Unix)'
+        if: runner.os != 'Windows'
         run: |
           chmod +x packages/sf-core/bin/sf-core.js
           mkdir -p .github/bin
           ln -sf "${{ github.workspace }}/packages/sf-core/bin/sf-core.js" \
             "${{ github.workspace }}/.github/bin/sls"
           echo "${{ github.workspace }}/.github/bin" >> $GITHUB_PATH
+
+      - name: 'Setup: Link Framework CLI (Windows)'
+        if: runner.os == 'Windows'
+        run: |
+          node .github/setup-sls-cmd.cjs
+          echo "${{ github.workspace }}\.github\bin" >> $env:GITHUB_PATH
 
       - name: 'Test: Python Requirements'
         run: |

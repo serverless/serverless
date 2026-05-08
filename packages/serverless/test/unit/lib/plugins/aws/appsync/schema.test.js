@@ -57,6 +57,14 @@ describe('schema', () => {
     expect(schema.generateSchema()).toMatchSnapshot()
   })
 
+  it('should accept Merged API directives on OBJECT and FIELD_DEFINITION', () => {
+    const api = new Api(given.appSyncConfig(), plugin)
+    const schema = new Schema(api, [
+      'test/unit/lib/plugins/aws/appsync/fixtures/schemas/merged-api/schema.graphql',
+    ])
+    expect(() => schema.generateSchema()).not.toThrow()
+  })
+
   it('should handle absolute paths with servicePath', () => {
     const api = new Api(given.appSyncConfig(), plugin)
     const schema = new Schema(api, [
