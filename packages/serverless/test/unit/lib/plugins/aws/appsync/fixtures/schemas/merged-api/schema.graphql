@@ -1,0 +1,20 @@
+type Query {
+  user(id: ID!): User! @canonical
+  internalAuthority(id: ID!): Authority! @hidden
+  legacyMessage(id: ID!): Message @renamed
+}
+
+type User @canonical {
+  id: ID!
+  name: String!
+}
+
+type Authority @hidden {
+  id: ID!
+  secret: String!
+}
+
+type Message @renamed {
+  id: ID!
+  body: String!
+}
