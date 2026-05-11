@@ -58,7 +58,7 @@
     "ext": "^1.7.0",
     "fastest-levenshtein": "^1.0.16",
     "filesize": "^11.0.17",
-    "fs-extra": "^11.3.4",
+    "fs-extra": "^11.3.5",
     "get-stdin": "^9.0.0",
     "glob": "^10.5.0",
     "globby": "^14.1.0",
@@ -93,7 +93,7 @@
     "toml": "^3.0.0",
     "tsx": "^4.21.0",
     "type": "^2.7.3",
-    "uuid": "^13.0.0"
+    "uuid": "^13.0.2"
   },
   "devDependencies": {
     "@aws-sdk/client-cognito-identity-provider": "3.1041.0",
