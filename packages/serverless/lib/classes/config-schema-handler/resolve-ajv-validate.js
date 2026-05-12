@@ -15,8 +15,9 @@ import ServerlessError from '../../serverless-error.js'
 
 // NOTE: Unlike other files that redirect __dirname from dist/ to lib/... when bundled,
 // this file keeps __dirname as-is. When bundled, __dirname = dist/, which makes
-// requireFromString resolve require("ajv/dist/runtime/...") from dist/node_modules/.
-// See resolve-ajv-validate.js usage at line 87 for the requireFromString virtual path.
+// requireFromString (called below with a virtual path under __dirname) resolve
+// `require("ajv/dist/runtime/...")` from dist/node_modules/, where
+// prepareDistributionTarballs.js ships the ajv runtime files.
 let __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const getCacheDir = async () => {

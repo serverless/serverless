@@ -533,28 +533,33 @@ func archiveHasDependencies(packageDir string) (bool, error) {
 	return len(pkg.Dependencies) > 0, nil
 }
 
-// esbuildPlatformDir maps the current Go runtime OS/ARCH to the esbuild npm
-// package directory name. Returns empty string for unsupported platforms.
-func esbuildPlatformDir() string {
-	platformMap := map[string]string{
-		"darwin-arm64":  "darwin-arm64",
-		"darwin-amd64":  "darwin-x64",
-		"linux-arm64":   "linux-arm64",
-		"linux-amd64":   "linux-x64",
-		"windows-amd64": "win32-x64",
-	}
-	return platformMap[runtime.GOOS+"-"+runtime.GOARCH]
+// goPlatformToEsbuildDir maps "<GOOS>-<GOARCH>" to the corresponding esbuild npm
+// package directory name. Single source of truth for both the current-platform
+// lookup (esbuildPlatformDir) and the deletion allowlist (validEsbuildPlatforms).
+var goPlatformToEsbuildDir = map[string]string{
+	"darwin-arm64":  "darwin-arm64",
+	"darwin-amd64":  "darwin-x64",
+	"linux-arm64":   "linux-arm64",
+	"linux-amd64":   "linux-x64",
+	"windows-amd64": "win32-x64",
 }
 
-// validEsbuildPlatforms is the set of known esbuild platform directory names.
-// Used to validate entries before removal to prevent path traversal.
-var validEsbuildPlatforms = map[string]bool{
-	"darwin-arm64": true,
-	"darwin-x64":   true,
-	"linux-arm64":  true,
-	"linux-x64":    true,
-	"win32-x64":    true,
+// esbuildPlatformDir returns the esbuild platform-binary directory name for the
+// current Go runtime, or "" if the platform isn't supported.
+func esbuildPlatformDir() string {
+	return goPlatformToEsbuildDir[runtime.GOOS+"-"+runtime.GOARCH]
 }
+
+// validEsbuildPlatforms is the set of known esbuild platform directory names,
+// derived from goPlatformToEsbuildDir. Used as an allowlist before deletion to
+// prevent path traversal.
+var validEsbuildPlatforms = func() map[string]bool {
+	m := make(map[string]bool, len(goPlatformToEsbuildDir))
+	for _, dir := range goPlatformToEsbuildDir {
+		m[dir] = true
+	}
+	return m
+}()
 
 // cleanupUnusedEsbuildBinaries removes esbuild platform binary directories for
 // platforms other than the current one. The archive ships all 5 platform binaries;
