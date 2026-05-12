@@ -21,7 +21,7 @@ aws s3 cp s3://${s3_bucket}/releases.json ./
 node updateReleasesJson.cjs
 node prepareDistributionTarballs.js
 cd ../../framework-dist
-npm pack
+bash ../sf-core/scripts/pack-framework-dist.sh
 if [ "$is_canary" = true ]; then
     aws s3 cp ./serverlessinc-framework-alpha-${version}.tgz s3://${s3_bucket}/archives/canary-${version}.tgz
     aws s3 cp ./serverlessinc-framework-alpha-${version}.tgz s3://${s3_bucket}/archives/canary.tgz
