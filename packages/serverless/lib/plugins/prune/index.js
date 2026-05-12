@@ -1,3 +1,14 @@
+/**
+ * Lambda version pruning support for Serverless Framework
+ *
+ * Originally derived from serverless-prune-plugin
+ * (https://github.com/claygregory/serverless-prune-plugin)
+ * Copyright (c) 2017 Clay Gregory and contributors
+ * Licensed under the MIT License
+ *
+ * See THIRD_PARTY_LICENSES in the repository root for the full license text.
+ */
+
 import cliCommandsSchema from '../../cli/commands-schema.js'
 import { log } from '@serverless/util'
 

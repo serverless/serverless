@@ -1,3 +1,14 @@
+/**
+ * API Gateway service proxy support for Serverless Framework
+ *
+ * Originally derived from serverless-apigateway-service-proxy
+ * (https://github.com/serverless-operations/serverless-apigateway-service-proxy)
+ * Copyright (c) 2019 Takahiro Horike and contributors
+ * Licensed under the MIT License
+ *
+ * See THIRD_PARTY_LICENSES in the repository root for the full license text.
+ */
+
 import { log } from '@serverless/util'
 import compileRestApi from '../package/compile/events/api-gateway/lib/rest-api.js'
 import compileResources from '../package/compile/events/api-gateway/lib/resources.js'

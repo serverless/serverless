@@ -1,5 +1,15 @@
+/**
+ * Python requirements support for Serverless Framework
+ *
+ * Originally derived from serverless-python-requirements
+ * (https://github.com/UnitedIncome/serverless-python-requirements)
+ * Copyright (c) 2016 Logan Raarup and contributors
+ * Licensed under the MIT License
+ *
+ * See THIRD_PARTY_LICENSES in the repository root for the full license text.
+ */
+
 /* jshint ignore:start */
-// Internal version of the historical community plugin; exported so core can bundle it directly
 import {
   addVendorHelper,
   packRequirements,
@@ -57,6 +67,10 @@ class ServerlessPythonRequirements {
         poetryWithGroups: [],
         poetryWithoutGroups: [],
         poetryOnlyGroups: [],
+        uvWithGroups: [],
+        uvWithoutGroups: [],
+        uvOnlyGroups: [],
+        uvOptionalDependencies: [],
       },
       (this.serverless.service.custom &&
         this.serverless.service.custom.pythonRequirements) ||
@@ -258,7 +272,15 @@ class ServerlessPythonRequirements {
       // Also check if any agents need Python requirements
       const hasPythonAgent = this.targetAgents.length > 0
 
-      return hasPythonFunction || hasPythonAgent
+      // Layer-only services have no functions but still need the hooks to run
+      // so that layerRequirements() can build PythonRequirementsLambdaLayer.
+      const layerConfigured = Boolean(
+        this.serverless.service.custom?.pythonRequirements?.layer,
+      )
+      const hasPythonLayerOnly =
+        layerConfigured && providerRuntime?.startsWith('python')
+
+      return hasPythonFunction || hasPythonAgent || hasPythonLayerOnly
     }
 
     const clean = async () => {

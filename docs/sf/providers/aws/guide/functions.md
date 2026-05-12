@@ -850,9 +850,13 @@ functions:
     maximumRetryAttempts: 1
 ```
 
-## EFS Configuration
+## File System Configuration
 
-You can use [Amazon EFS with Lambda](https://docs.aws.amazon.com/lambda/latest/dg/services-efs.html) by adding a `fileSystemConfig` property in the function configuration in `serverless.yml`. `fileSystemConfig` should be an object that contains the `arn` and `localMountPath` properties. The `arn` property should reference an existing EFS Access Point, where the `localMountPath` should specify the absolute path under which the file system will be mounted. Here's an example configuration:
+You can mount file systems on Lambda functions by adding a `fileSystemConfig` property in the function configuration in `serverless.yml`. Both [Amazon EFS](https://docs.aws.amazon.com/lambda/latest/dg/configuration-filesystem.html) and [Amazon S3 Files](https://docs.aws.amazon.com/lambda/latest/dg/configuration-filesystem-s3files.html) are supported.
+
+`fileSystemConfig` should be an object that contains the `arn` and `localMountPath` properties. The `arn` property should reference an existing access point (EFS or S3 Files), where the `localMountPath` should specify the absolute path under which the file system will be mounted. A VPC configuration is required for both file system types.
+
+### EFS Example
 
 ```yml
 # serverless.yml
@@ -871,6 +875,43 @@ functions:
       subnetIds:
         - subnetId1
 ```
+
+### S3 Files Example
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    fileSystemConfig:
+      localMountPath: /mnt/s3data
+      arn: arn:aws:s3files:us-east-1:111111111111:file-system/fs-0abcdef1234567890/access-point/fsap-0abcdef1234567890
+    vpc:
+      securityGroupIds:
+        - securityGroupId1
+      subnetIds:
+        - subnetId1
+```
+
+The file system type is automatically detected from the ARN. When using CloudFormation references for the ARN, specify the `type` field explicitly:
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    fileSystemConfig:
+      localMountPath: /mnt/s3data
+      arn: !GetAtt MyS3FilesAccessPoint.AccessPointArn
+      type: s3files
+    vpc:
+      securityGroupIds:
+        - securityGroupId1
+      subnetIds:
+        - subnetId1
+```
+
+The framework automatically adds the required IAM permissions: `elasticfilesystem:ClientMount` and `elasticfilesystem:ClientWrite` for EFS, or `s3files:ClientMount` and `s3files:ClientWrite` for S3 Files.
+
+> **Note:** Optionally, for the best S3 Files read performance on functions with 512 MB or more memory, add `s3:GetObject` and `s3:GetObjectVersion` permissions for your S3 bucket via `provider.iam.role.statements`.
 
 ## Ephemeral storage
 
