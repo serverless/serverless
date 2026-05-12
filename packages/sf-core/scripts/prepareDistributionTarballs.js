@@ -1,5 +1,6 @@
 import fsp from 'fs/promises'
 import { execFileSync, execSync } from 'child_process'
+import { createHash } from 'crypto'
 import { createRequire } from 'module'
 import { glob } from 'glob'
 import os from 'os'
@@ -173,6 +174,31 @@ const esbuildPkg = JSON.parse(
 )
 const esbuildVersion = esbuildPkg.version
 
+// Load the workspace's package-lock.json so we can verify each downloaded
+// tarball against the integrity hash npm recorded at install time. Same trust
+// anchor as `npm install` — protects against registry tampering between install
+// and release builds.
+const packageLock = JSON.parse(
+  await readFile(path.resolve(__dirname, '../../../package-lock.json'), 'utf8'),
+)
+
+function expectedIntegrity(pkg) {
+  const entry = packageLock.packages?.[`node_modules/@esbuild/${pkg}`]
+  if (!entry?.integrity) {
+    throw new Error(
+      `package-lock.json has no integrity hash for @esbuild/${pkg}. Run \`npm install\` to regenerate.`,
+    )
+  }
+  // SRI format: "<algo>-<base64>"
+  const [algo, expected] = entry.integrity.split('-', 2)
+  if (!algo || !expected) {
+    throw new Error(
+      `Malformed integrity for @esbuild/${pkg}: ${entry.integrity}`,
+    )
+  }
+  return { algo, expected }
+}
+
 const platforms = [
   { pkg: 'darwin-arm64', binary: 'bin/esbuild' },
   { pkg: 'darwin-x64', binary: 'bin/esbuild' },
@@ -185,6 +211,7 @@ async function downloadEsbuildBinary(pkg, binary) {
   const tarballUrl = `https://registry.npmjs.org/@esbuild/${pkg}/-/${pkg}-${esbuildVersion}.tgz`
   const destDir = `${distNodeModules}/@esbuild/${pkg}`
   const destPath = path.join(destDir, binary)
+  const { algo, expected } = expectedIntegrity(pkg)
 
   await mkdir(path.dirname(destPath), { recursive: true })
 
@@ -198,6 +225,15 @@ async function downloadEsbuildBinary(pkg, binary) {
     )
   }
   const tarballBuffer = Buffer.from(await response.arrayBuffer())
+
+  // Verify integrity before writing to disk.
+  const actual = createHash(algo).update(tarballBuffer).digest('base64')
+  if (actual !== expected) {
+    throw new Error(
+      `Integrity check failed for @esbuild/${pkg}@${esbuildVersion}\n  expected: ${algo}-${expected}\n  got:      ${algo}-${actual}`,
+    )
+  }
+
   await writeFile(tmpTarball, tarballBuffer)
 
   execFileSync('tar', [
