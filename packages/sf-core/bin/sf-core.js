@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'fs'
 import gracefulFs from 'graceful-fs'
+import { isMainThread } from 'node:worker_threads'
 import './blankLine.js'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
@@ -60,12 +61,18 @@ export const errorHandler = (error) => {
   }
   process.exit(1)
 }
-run()
-  .catch(errorHandler)
-  .finally(() => {
-    // Remove all Progress renderers
-    progress.cleanup()
-  })
+// Only run the CLI entry on the main thread. When this bundle is loaded by a
+// Worker thread (e.g. esbuild's transformSync spawns `new Worker(__filename)`),
+// re-running the CLI causes duplicate startup and can deadlock the main thread
+// via Atomics.wait. See issue #13574.
+if (isMainThread) {
+  run()
+    .catch(errorHandler)
+    .finally(() => {
+      // Remove all Progress renderers
+      progress.cleanup()
+    })
 
-process.once('uncaughtException', errorHandler)
-process.once('unhandledRejection', errorHandler)
+  process.once('uncaughtException', errorHandler)
+  process.once('unhandledRejection', errorHandler)
+}
