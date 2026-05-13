@@ -168,10 +168,34 @@ await Promise.all([
   ),
 ])
 
+// --- Ship esbuild's Node API as a sibling file ---
+// sf-core.js marks esbuild as external (see packages/sf-core/esbuild.js) so
+// that __filename inside esbuild's Worker spawn resolves to esbuild's own
+// runtime entry, not the framework bundle. Without this, esbuild's
+// transformSync would re-execute the entire CLI inside the Worker. See
+// issue #13574 and upstream esbuild's "cannot be bundled" guard.
+//
+// Copy the entire esbuild package minus `bin/`. The `bin/` entry holds
+// the build-host's native binary, which we don't need — the per-platform
+// binaries are shipped separately below into `@esbuild/<platform>/`,
+// which is what esbuild's runtime resolves via
+// `require.resolve('@esbuild/<platform>/…')`. Everything else (lib/,
+// package.json, LICENSE, README, etc.) ships verbatim so we stay correct
+// even if upstream reorganizes the JS or adds new files.
+const esbuildPkgPath = resolveFromServerless.resolve('esbuild/package.json')
+const esbuildSrcDir = path.dirname(esbuildPkgPath)
+const esbuildPkg = JSON.parse(await readFile(esbuildPkgPath, 'utf8'))
+const esbuildDistDir = `${distNodeModules}/esbuild`
+
+await cp(esbuildSrcDir, esbuildDistDir, {
+  recursive: true,
+  filter: (src) => {
+    const [first] = path.relative(esbuildSrcDir, src).split(path.sep)
+    return first !== 'bin'
+  },
+})
+
 // --- Download esbuild platform binaries for all 5 supported platforms ---
-const esbuildPkg = JSON.parse(
-  await readFile(resolveFromServerless.resolve('esbuild/package.json'), 'utf8'),
-)
 const esbuildVersion = esbuildPkg.version
 
 // Load the workspace's package-lock.json so we can verify each downloaded
