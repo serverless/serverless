@@ -427,57 +427,70 @@ func downloadFrameworkVersion(releaseRecord *ReleaseRecord, shouldCheckForUpdate
 				return "", fmt.Errorf("unexpected tar entry type %q in %s", string(header.Typeflag), header.Name)
 			}
 		}
-		cmd := exec.CommandContext(ctx, "npm", "install", "--no-audit", "--no-fund", "--no-progress")
-		cmd.Env = os.Environ()
-		cmd.Dir = filepath.Join(releasePath, "package")
-
-		// Capture combined output for failure reporting while staying silent on success
-		output, err := cmd.CombinedOutput()
+		// Check if the archive has dependencies — new archives (bundled archive format) have
+		// no dependencies and ship esbuild binaries directly in dist/node_modules/.
+		needsNpmInstall, err := archiveHasDependencies(filepath.Join(releasePath, "package"))
 		if err != nil {
-			stopSpinner()
+			return "", fmt.Errorf("checking archive dependencies: %w", err)
+		}
 
-			// Cancellation fast-path
-			if errors.Is(err, context.Canceled) {
-				return "", context.Canceled
-			}
+		if needsNpmInstall {
+			cmd := exec.CommandContext(ctx, "npm", "install", "--no-audit", "--no-fund", "--no-progress")
+			cmd.Env = os.Environ()
+			cmd.Dir = filepath.Join(releasePath, "package")
 
-			// Child exited abnormally — check for signal
-			var ee *exec.ExitError
-			if errors.As(err, &ee) {
+			// Capture combined output for failure reporting while staying silent on success
+			output, err := cmd.CombinedOutput()
+			if err != nil {
+				stopSpinner()
 
-				// Windows Ctrl-C/Break (STATUS_CONTROL_C_EXIT)
-				if runtime.GOOS == "windows" {
-					const statusControlCExit = uint32(0xC000013A)
-					if uint32(ee.ExitCode()) == statusControlCExit {
-						return "", context.Canceled
-					}
+				// Cancellation fast-path
+				if errors.Is(err, context.Canceled) {
+					return "", context.Canceled
 				}
 
-				if ws, ok := ee.Sys().(syscall.WaitStatus); ok && ws.Signaled() {
-					sig := ws.Signal()
-					switch sig {
-					case syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL:
-						// Normalize to cancel and skip noisy logs
-						return "", context.Canceled
-					default:
-						// e.g., SIGKILL → 128+9=137
-						fmt.Fprintf(os.Stderr, "npm install failed (exit code %d)\n", 128+int(sig))
+				// Child exited abnormally — check for signal
+				var ee *exec.ExitError
+				if errors.As(err, &ee) {
+
+					// Windows Ctrl-C/Break (STATUS_CONTROL_C_EXIT)
+					if runtime.GOOS == "windows" {
+						const statusControlCExit = uint32(0xC000013A)
+						if uint32(ee.ExitCode()) == statusControlCExit {
+							return "", context.Canceled
+						}
+					}
+
+					if ws, ok := ee.Sys().(syscall.WaitStatus); ok && ws.Signaled() {
+						sig := ws.Signal()
+						switch sig {
+						case syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL:
+							// Normalize to cancel and skip noisy logs
+							return "", context.Canceled
+						default:
+							// e.g., SIGKILL → 128+9=137
+							fmt.Fprintf(os.Stderr, "npm install failed (exit code %d)\n", 128+int(sig))
+						}
+					} else {
+						// Normal non-zero exit
+						fmt.Fprintf(os.Stderr, "npm install failed (exit code %d)\n", ee.ExitCode())
 					}
 				} else {
-					// Normal non-zero exit
-					fmt.Fprintf(os.Stderr, "npm install failed (exit code %d)\n", ee.ExitCode())
+					// Not an ExitError; print a generic failure line
+					fmt.Fprintf(os.Stderr, "npm install failed\n")
 				}
-			} else {
-				// Not an ExitError; print a generic failure line
-				fmt.Fprintf(os.Stderr, "npm install failed\n")
+				fmt.Fprintf(os.Stderr, "dir: %s\n", cmd.Dir)
+				fmt.Fprintf(os.Stderr, "command: npm install --no-audit --no-fund --no-progress\n")
+				fmt.Fprintf(os.Stderr, "error: %v\n", err)
+				if len(output) > 0 {
+					os.Stderr.Write(output)
+				}
+				return "", fmt.Errorf("npm install failed: %w", err)
 			}
-			fmt.Fprintf(os.Stderr, "dir: %s\n", cmd.Dir)
-			fmt.Fprintf(os.Stderr, "command: npm install --no-audit --no-fund --no-progress\n")
-			fmt.Fprintf(os.Stderr, "error: %v\n", err)
-			if len(output) > 0 {
-				os.Stderr.Write(output)
-			}
-			return "", fmt.Errorf("npm install failed: %w", err)
+		} else {
+			// New archive format: all deps bundled, esbuild binaries shipped.
+			// Clean up unused platform esbuild binaries to save ~40MB disk space.
+			cleanupUnusedEsbuildBinaries(filepath.Join(releasePath, "package", "dist", "node_modules", "@esbuild"))
 		}
 
 		metadata.WriteLocalMetadata(string(releaseRecord.Version))
@@ -490,6 +503,84 @@ func downloadFrameworkVersion(releaseRecord *ReleaseRecord, shouldCheckForUpdate
 		}
 	}
 	return releasePath, nil
+}
+
+// archiveHasDependencies reads the extracted package.json and returns true if
+// the archive has npm dependencies that require `npm install`. New archives
+// (bundled archive format) have no dependencies — all deps are bundled or shipped directly.
+func archiveHasDependencies(packageDir string) (bool, error) {
+	type packageJSON struct {
+		Dependencies map[string]string `json:"dependencies"`
+	}
+
+	packageJsonPath := filepath.Join(packageDir, "package.json")
+	data, err := os.ReadFile(packageJsonPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// No package.json — skip npm install.
+			return false, nil
+		}
+		// File exists but can't be read (permissions, I/O error) — fail the install.
+		return false, fmt.Errorf("reading %s: %w", packageJsonPath, err)
+	}
+
+	var pkg packageJSON
+	if err := json.Unmarshal(data, &pkg); err != nil {
+		// Corrupted package.json — fail the install rather than silently continuing.
+		return false, fmt.Errorf("parsing %s: %w", packageJsonPath, err)
+	}
+
+	return len(pkg.Dependencies) > 0, nil
+}
+
+// goPlatformToEsbuildDir maps "<GOOS>-<GOARCH>" to the corresponding esbuild npm
+// package directory name. Single source of truth for both the current-platform
+// lookup (esbuildPlatformDir) and the deletion allowlist (validEsbuildPlatforms).
+var goPlatformToEsbuildDir = map[string]string{
+	"darwin-arm64":  "darwin-arm64",
+	"darwin-amd64":  "darwin-x64",
+	"linux-arm64":   "linux-arm64",
+	"linux-amd64":   "linux-x64",
+	"windows-amd64": "win32-x64",
+}
+
+// esbuildPlatformDir returns the esbuild platform-binary directory name for the
+// current Go runtime, or "" if the platform isn't supported.
+func esbuildPlatformDir() string {
+	return goPlatformToEsbuildDir[runtime.GOOS+"-"+runtime.GOARCH]
+}
+
+// validEsbuildPlatforms is the set of known esbuild platform directory names,
+// derived from goPlatformToEsbuildDir. Used as an allowlist before deletion to
+// prevent path traversal.
+var validEsbuildPlatforms = func() map[string]bool {
+	m := make(map[string]bool, len(goPlatformToEsbuildDir))
+	for _, dir := range goPlatformToEsbuildDir {
+		m[dir] = true
+	}
+	return m
+}()
+
+// cleanupUnusedEsbuildBinaries removes esbuild platform binary directories for
+// platforms other than the current one. The archive ships all 5 platform binaries;
+// after extraction we keep only the one matching the current OS/ARCH.
+func cleanupUnusedEsbuildBinaries(esbuildDir string) {
+	currentPlatform := esbuildPlatformDir()
+	if currentPlatform == "" {
+		return
+	}
+
+	entries, err := os.ReadDir(esbuildDir)
+	if err != nil {
+		return
+	}
+
+	for _, entry := range entries {
+		name := entry.Name()
+		if entry.IsDir() && name != currentPlatform && validEsbuildPlatforms[name] {
+			os.RemoveAll(filepath.Join(esbuildDir, name))
+		}
+	}
 }
 
 type ReleaseRecord struct {

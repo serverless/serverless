@@ -15,16 +15,15 @@ await esbuild.build({
   format: 'esm',
   entryPoints: ['./bin/sf-core.js'],
   outfile: '../framework-dist/dist/sf-core.js',
-  external: [
-    'esbuild',
-    'ajv',
-    'ajv-formats',
-    '@aws-sdk/signature-v4-crt',
-    '@aws-sdk/signature-v4a',
-    '@aws-sdk/client-cloudfront-keyvaluestore',
-  ],
   inject: ['injects-shim.js'],
   bundle: true,
+  // Keep esbuild external so its lib/main.js stays a separate file in the
+  // dist. Bundling esbuild inlines its code, which makes __filename inside
+  // the Worker it spawns for transformSync point at the bundle — that causes
+  // the Worker to re-execute the entire CLI. esbuild's docs and upstream
+  // guard explicitly warn that "the esbuild JavaScript API cannot be
+  // bundled". See issue #13574.
+  external: ['esbuild'],
   minify: false,
   minifyIdentifiers: false,
   minifySyntax: true,
