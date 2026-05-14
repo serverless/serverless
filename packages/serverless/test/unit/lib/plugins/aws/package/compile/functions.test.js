@@ -1360,6 +1360,64 @@ describe('AwsCompileFunctions', () => {
     })
   })
 
+  describe('Recursive Loop', () => {
+    it('should support functions[].recursiveLoop set to Allow', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          recursiveLoop: 'Allow',
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const props = resources.FuncLambdaFunction.Properties
+
+      expect(props.RecursiveLoop).toBe('Allow')
+    })
+
+    it('should support functions[].recursiveLoop set to Terminate', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          recursiveLoop: 'Terminate',
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const props = resources.FuncLambdaFunction.Properties
+
+      expect(props.RecursiveLoop).toBe('Terminate')
+    })
+
+    it('should not set RecursiveLoop when functions[].recursiveLoop is not provided', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const props = resources.FuncLambdaFunction.Properties
+
+      expect(props.RecursiveLoop).toBeUndefined()
+    })
+  })
+
   describe('Provisioned Concurrency', () => {
     beforeEach(() => {
       // Mock the naming function for provisioned concurrency

@@ -2774,6 +2774,10 @@ destinations:
                 },
               ],
             }),
+            recursiveLoop: {
+              description: `Recursive loop detection setting for this function.`,
+              enum: ['Allow', 'Terminate'],
+            },
             reservedConcurrency: cfValue({
               description: `Reserved concurrency limit for this function.`,
               type: 'integer',

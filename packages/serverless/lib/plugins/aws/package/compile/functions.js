@@ -770,6 +770,10 @@ class AwsCompileFunctions {
         functionObject.reservedConcurrency
     }
 
+    if (functionObject.recursiveLoop) {
+      functionResource.Properties.RecursiveLoop = functionObject.recursiveLoop
+    }
+
     if (
       !functionObject.disableLogs &&
       !functionObject?.logs?.logGroup &&
@@ -861,6 +865,7 @@ class AwsCompileFunctions {
       if (!functionObject.image) delete functionProperties.Code
       // Properties applied to function globally (not specific to version or alias)
       delete functionProperties.ReservedConcurrentExecutions
+      delete functionProperties.RecursiveLoop
       delete functionProperties.Tags
 
       const lambdaHashingVersion =
