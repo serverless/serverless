@@ -16,7 +16,6 @@ echo "Using S3 bucket: ${s3_bucket}"
 # cd $upload_temp_dir
 cd ./scripts
 
-version_folder=$(git describe --tags --abbrev=0)
 aws s3 cp s3://${s3_bucket}/releases.json ./
 node updateReleasesJson.cjs
 node prepareDistributionTarballs.js
