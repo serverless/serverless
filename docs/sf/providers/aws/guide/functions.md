@@ -325,6 +325,8 @@ Alternatively lambda environment can be configured through docker images. Image 
 
 Serverless will create an ECR repository for your image, but it currently does not manage updates to it. An ECR repository is created only for new services or the first time that a function configured with an `image` is deployed. In service configuration, you can configure the ECR repository to scan for CVEs via the `provider.ecr.scanOnPush` property, which is `false` by default. (See [documentation](https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html))
 
+To bound how much the repository grows over time, set `provider.ecr.maxImages` to a positive integer. The framework will attach an ECR [lifecycle policy](https://docs.aws.amazon.com/AmazonECR/latest/userguide/LifecyclePolicies.html) that expires the oldest images once the count exceeds the configured value. Pick a value that comfortably covers the published Lambda function versions you might still need to roll back to, since they reference image digests that the lifecycle rule may expire. The deployer principal needs `ecr:PutLifecyclePolicy` permission on the repository.
+
 In service configuration, images can be configured via `provider.ecr.images`. To define an image that will be built locally, you need to specify `path` property, which should point to valid docker context directory. Optionally, you can also set `file` to specify Dockerfile that should be used when building an image. It is also possible to define images that already exist in AWS ECR repository. In order to do that, you need to define `uri` property, which should follow `<account>.dkr.ecr.<region>.amazonaws.com/<repository>@<digest>` or `<account>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>` format.
 
 Additionally, you can define arguments that will be passed to the `docker build` command via the following properties:
@@ -345,6 +347,7 @@ provider:
   name: aws
   ecr:
     scanOnPush: true
+    maxImages: 10
     images:
       baseimage:
         path: ./path/to/context
@@ -413,7 +416,7 @@ functions:
         - flag
 ```
 
-During the first deployment when locally built images are used, Framework will automatically create a dedicated ECR repository to store these images, with name `serverless-<service>-<stage>`. Currently, the Framework will not remove older versions of images uploaded to ECR as they still might be in use by versioned functions. During `sls remove`, the created ECR repository will be removed. During deployment, Framework will attempt to `docker login` to ECR if needed. Depending on your local configuration, docker authorization token might be stored unencrypted. Please refer to documentation for more details: https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+During the first deployment when locally built images are used, Framework will automatically create a dedicated ECR repository to store these images, with name `serverless-<service>-<stage>`. By default the Framework keeps every pushed image in place, since previously published function versions may still point at older digests; opt in to automatic expiry with `provider.ecr.maxImages` (see above). During `sls remove`, the created ECR repository will be removed. During deployment, Framework will attempt to `docker login` to ECR if needed. Depending on your local configuration, docker authorization token might be stored unencrypted. Please refer to documentation for more details: https://docs.docker.com/engine/reference/commandline/login/#credentials-store
 
 ## Instruction set architecture
 

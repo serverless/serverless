@@ -2056,6 +2056,11 @@ iam:
                   description: `Enable ECR vulnerability scanning on image push.`,
                   type: 'boolean',
                 },
+                maxImages: {
+                  description: `Cap on how many images the ECR repository retains. When set, the framework installs an ECR lifecycle rule that expires the oldest images beyond this count.`,
+                  type: 'integer',
+                  minimum: 1,
+                },
                 images: {
                   description: `Named local image build definitions.`,
                   type: 'object',
@@ -3803,7 +3808,7 @@ Object.defineProperties(
       { promise: true },
     ),
     getOrCreateEcrRepository: d(
-      async function (scanOnPush) {
+      async function (scanOnPush, maxImages) {
         const registryId = await this.getAccountId()
         const repositoryName = this.naming.getEcrRepositoryName()
         let repositoryUri
@@ -3828,6 +3833,28 @@ Object.defineProperties(
           })
           repositoryUri = result.repository.repositoryUri
         }
+        if (maxImages) {
+          await this.request('ECR', 'putLifecyclePolicy', {
+            repositoryName,
+            lifecyclePolicyText: JSON.stringify({
+              rules: [
+                {
+                  // ECR requires a rule with `tagStatus: any` to have the
+                  // highest priority (evaluated last). Reserve a high slot so
+                  // future tag-scoped rules can occupy lower priorities.
+                  rulePriority: 1000,
+                  description: 'Cap retained images (provider.ecr.maxImages)',
+                  selection: {
+                    tagStatus: 'any',
+                    countType: 'imageCountMoreThan',
+                    countNumber: maxImages,
+                  },
+                  action: { type: 'expire' },
+                },
+              ],
+            }),
+          })
+        }
         return {
           repositoryUri,
           repositoryName,
@@ -3846,6 +3873,7 @@ Object.defineProperties(
         platform,
         provenance,
         scanOnPush,
+        maxImages,
       }) {
         const imageProgress = progress.get(`containerImage:${imageName}`)
         await this.ensureDockerIsAvailable()
@@ -3871,7 +3899,7 @@ Object.defineProperties(
         }
 
         const { repositoryUri, repositoryName } =
-          await this.getOrCreateEcrRepository(scanOnPush)
+          await this.getOrCreateEcrRepository(scanOnPush, maxImages)
 
         const localTag = `${repositoryName}:${imageName}`
         const remoteTag = `${repositoryUri}:${imageName}`
@@ -4069,6 +4097,11 @@ Object.defineProperties(
           defaultScanOnPush,
         )
 
+        const maxImagesDefinedInProvider = _.get(
+          this.serverless.service.provider,
+          'ecr.maxImages',
+        )
+
         if (!imageDefinedInProvider) {
           throw new ServerlessError(
             `Referenced "${imageName}" not defined in "provider.ecr.images"`,
@@ -4135,6 +4168,7 @@ Object.defineProperties(
               provenance:
                 imageDefinedInProvider.provenance || defaultProvenance,
               scanOnPush: imageScanDefinedInProvider,
+              maxImages: maxImagesDefinedInProvider,
             })
           }
           return await this.resolveImageUriAndShaFromUri(
@@ -4155,6 +4189,7 @@ Object.defineProperties(
           platform: imageDefinedInProvider.platform || defaultPlatform,
           provenance: imageDefinedInProvider.provenance || defaultProvenance,
           scanOnPush: imageScanDefinedInProvider,
+          maxImages: maxImagesDefinedInProvider,
         })
       },
       { promise: true },
