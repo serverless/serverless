@@ -2057,7 +2057,7 @@ iam:
                   type: 'boolean',
                 },
                 maxImages: {
-                  description: `Cap on how many images the ECR repository retains. When set, the framework installs an ECR lifecycle rule that expires the oldest images beyond this count.`,
+                  description: `Cap on how many superseded image versions the ECR repository retains. When set, the framework installs an ECR lifecycle rule that expires older untagged versions beyond this count. Currently-tagged images (the live digest for every entry under provider.ecr.images) are never expired.`,
                   type: 'integer',
                   minimum: 1,
                 },
@@ -3839,13 +3839,16 @@ Object.defineProperties(
             lifecyclePolicyText: JSON.stringify({
               rules: [
                 {
-                  // ECR requires a rule with `tagStatus: any` to have the
-                  // highest priority (evaluated last). Reserve a high slot so
-                  // future tag-scoped rules can occupy lower priorities.
+                  // High priority slot reserved so future tag-scoped rules can
+                  // occupy lower priorities. `tagStatus: untagged` keeps every
+                  // currently-tagged image (the live digest for each
+                  // `provider.ecr.images.*` entry) safe — only superseded
+                  // versions that have lost their tag are counted.
                   rulePriority: 1000,
-                  description: 'Cap retained images (provider.ecr.maxImages)',
+                  description:
+                    'Expire superseded image versions (provider.ecr.maxImages)',
                   selection: {
-                    tagStatus: 'any',
+                    tagStatus: 'untagged',
                     countType: 'imageCountMoreThan',
                     countNumber: maxImages,
                   },

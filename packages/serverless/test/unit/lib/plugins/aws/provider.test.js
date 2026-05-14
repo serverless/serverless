@@ -498,9 +498,10 @@ describe('AwsProvider', () => {
         rules: [
           {
             rulePriority: 1000,
-            description: 'Cap retained images (provider.ecr.maxImages)',
+            description:
+              'Expire superseded image versions (provider.ecr.maxImages)',
             selection: {
-              tagStatus: 'any',
+              tagStatus: 'untagged',
               countType: 'imageCountMoreThan',
               countNumber: 10,
             },
