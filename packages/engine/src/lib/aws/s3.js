@@ -24,6 +24,13 @@ export class AwsS3Client {
    * @returns {AwsS3Client} The initialized S3 service.
    */
   constructor(awsConfig = {}) {
+    if (process.env.AWS_ENDPOINT_URL) {
+      awsConfig = {
+        ...awsConfig,
+        forcePathStyle: true,
+        endpoint: process.env.AWS_ENDPOINT_URL,
+      }
+    }
     this.client = addProxyToAwsClient(
       new S3Client({
         ...awsConfig,
