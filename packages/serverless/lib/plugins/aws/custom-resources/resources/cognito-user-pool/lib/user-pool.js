@@ -95,6 +95,14 @@ async function updateConfiguration(config) {
           LambdaVersion: poolConfig.LambdaVersion,
         }
         LambdaConfig.KMSKeyID = poolConfig.KMSKeyID
+      } else if (
+        poolConfig.Trigger === 'PreTokenGeneration' &&
+        poolConfig.LambdaVersion
+      ) {
+        LambdaConfig.PreTokenGenerationConfig = {
+          LambdaArn: lambdaArn,
+          LambdaVersion: poolConfig.LambdaVersion,
+        }
       } else {
         LambdaConfig[poolConfig.Trigger] = lambdaArn
       }
@@ -135,6 +143,13 @@ async function removeConfiguration(config) {
 function removeExistingLambdas(lambdaConfig, lambdaArn) {
   const res = Object.fromEntries(
     Object.entries(lambdaConfig).filter(([key, value]) => {
+      if (
+        key === 'PreTokenGenerationConfig' &&
+        value &&
+        value.LambdaArn === lambdaArn
+      ) {
+        return false
+      }
       return (
         !(customSenderSources.includes(key) && value.LambdaArn === lambdaArn) &&
         value !== lambdaArn
