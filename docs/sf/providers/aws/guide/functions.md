@@ -452,7 +452,7 @@ functions:
       retentionPeriodInDays: 14 # Optional. How long to retain execution history (1-90 days, default: 14)
 ```
 
-**Note:** Durable Functions are currently supported only for Node.js 22+ and Python 3.13+ runtimes. Enabling `durableConfig` will automatically enable function versioning (`versionFunctions: true`) as durable functions require qualified ARNs.
+**Note:** Durable Functions are currently supported only for Node.js 22+ and Python 3.13+ runtimes. Enabling `durableConfig` will automatically enable function versioning (`versionFunctions: true`) and publish an `AWS::Lambda::Alias` named `durable` pointing at the latest version, because AWS rejects unqualified invocations of durable functions. All event-source integrations (schedule, EventBridge, SNS, API Gateway, etc.) target this alias so invocations succeed without further configuration. Setting `versionFunction: false` together with `durableConfig` is rejected.
 
 When using the default IAM role, the `AWSLambdaBasicDurableExecutionRolePolicy` managed policy is automatically attached to grant necessary permissions. If you provide a custom role, you must ensure it has the required permissions.
 

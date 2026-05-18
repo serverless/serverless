@@ -467,6 +467,14 @@ class AwsCompileFunctions {
           )
         }
 
+        if (functionObject.versionFunction === false) {
+          throw new ServerlessError(
+            `Function "${functionName}" has "durableConfig" set but "versionFunction" is explicitly disabled. Durable Functions require versioning to publish a stable alias for qualified invocations.`,
+            'FUNCTION_DURABLE_REQUIRES_VERSIONING',
+            { stack: false },
+          )
+        }
+
         // Convert camelCase config to PascalCase for CloudFormation
         const { executionTimeout, retentionPeriodInDays } =
           functionObject.durableConfig
@@ -1006,6 +1014,34 @@ class AwsCompileFunctions {
         }
 
         cfTemplate.Resources[aliasLogicalId] = aliasResource
+      }
+
+      // AWS rejects unqualified invocations of durable functions and also rejects
+      // `$LATEST` as a qualifier on `Lambda::Permission`, so every event source that
+      // gates via a resource-based permission needs a real version or alias. Publish
+      // a stable `durable` alias so all event-source integrations target it via the
+      // existing `targetAlias` plumbing. Mirrors the snapStart/provisionedConcurrency
+      // blocks above; skipped if either of those features already set `targetAlias`.
+      if (functionObject.durableConfig && !functionObject.targetAlias) {
+        const aliasLogicalId =
+          this.provider.naming.getLambdaDurableAliasLogicalId(functionName)
+        const aliasName =
+          this.provider.naming.getLambdaDurableEnabledAliasName()
+
+        functionObject.targetAlias = {
+          name: aliasName,
+          logicalId: aliasLogicalId,
+        }
+
+        cfTemplate.Resources[aliasLogicalId] = {
+          Type: 'AWS::Lambda::Alias',
+          Properties: {
+            FunctionName: { Ref: functionLogicalId },
+            FunctionVersion: { 'Fn::GetAtt': [versionLogicalId, 'Version'] },
+            Name: aliasName,
+          },
+          DependsOn: functionLogicalId,
+        }
       }
     }
 
