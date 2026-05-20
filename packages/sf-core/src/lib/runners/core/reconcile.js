@@ -139,12 +139,15 @@ const getInstancesRegions = (awsAccountInstances = []) => {
 const getRegionsStacks = async (regions, credentials) => {
   const logger = log.get('core:reconcile')
 
-  // Retry 3 times with the standard aws exponential backoff algorithm
+  // AWS SDK retry strategy with exponential backoff for throttling errors
+  // Retries up to 3 times with exponential backoff (base delay ~100ms, max ~20s)
+  // Automatically handles ThrottlingException, RequestLimitExceeded, etc.
   const retryStrategy = new StandardRetryStrategy(async () => 3)
 
   // Limit concurrent region requests to avoid CloudFormation API rate limits
   // CloudFormation ListStacks has rate limits (~1-5 req/sec per region)
-  // Processing 3-5 regions concurrently balances speed vs rate limits
+  // Processing 3 regions concurrently balances speed vs rate limits
+  // Combined with AWS SDK retries, this should handle throttling gracefully
   const CONCURRENCY_LIMIT = 3
 
   const awsAccountStacks = []
@@ -198,9 +201,24 @@ const getRegionsStacks = async (regions, credentials) => {
           )
         }
       } else {
-        logger.debug(
-          `Error fetching stacks in region ${region}: ${result.reason?.message}`,
-        )
+        const error = result.reason
+        const isThrottling =
+          error?.name === 'ThrottlingException' ||
+          error?.name === 'RequestLimitExceeded' ||
+          error?.name === 'TooManyRequestsException' ||
+          error?.code === 'ThrottlingException' ||
+          error?.code === 'RequestLimitExceeded' ||
+          error?.code === 'TooManyRequestsException'
+
+        if (isThrottling) {
+          logger.debug(
+            `Throttling error in region ${region} after retries: ${error?.message}. Skipping region.`,
+          )
+        } else {
+          logger.debug(
+            `Error fetching stacks in region ${region}: ${error?.message}`,
+          )
+        }
         failedRegions.push(region)
       }
     }
@@ -370,6 +388,12 @@ const commandReconcile = async ({ auth, credentials, versionFramework }) => {
   if (awsAccountStacks.length > 0) {
     logger.notice(
       `Found ${style.bold(awsAccountStacks.length)} CloudFormation stack${awsAccountStacks.length > 1 ? 's' : ''} to compare against ${style.bold(awsAccountInstances.length)} reported instance${awsAccountInstances.length > 1 ? 's' : ''}`,
+    )
+  }
+
+  if (failedRegions.length > 0) {
+    logger.warning(
+      `Unable to fetch stacks from ${style.bold(failedRegions.length)} region${failedRegions.length > 1 ? 's' : ''}: ${failedRegions.join(', ')}. Instances in these regions will be skipped.`,
     )
   }
 
