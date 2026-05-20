@@ -171,6 +171,28 @@ describe('resolve variables and parameters', () => {
       await runTest(path.join(dirPath, 'dotenv-without-stage-option'))
     })
 
+    // Explicit `useDotenv: true` behaves identically to omitting the key:
+    // local .env / .env.${stage} still load, no custom path involvement.
+    it('resolve environment variable set in .env file with explicit useDotenv: true', async () => {
+      process.env = {
+        ...originalEnv,
+        SHOULD_BE_OVERWRITTEN_BY_SYSTEM_ENV: 'system-value',
+      }
+      await runTest(path.join(dirPath, 'dotenv-explicit-true'), {
+        stage: 'foo',
+        s: 'foo',
+      })
+    })
+
+    // Stage resolution runs BEFORE env files are loaded, so a .env value
+    // cannot back-fill an env placeholder used inside provider.stage. The
+    // fixture sets provider.stage to ${env:STAGE_FROM_DOTENV, 'fallback-stage'}
+    // with the value present only in .env; the fallback must win.
+    it('does not see .env values during stage resolution (env file loads after)', async () => {
+      delete process.env.STAGE_FROM_DOTENV
+      await runTest(path.join(dirPath, 'dotenv-stage-from-env-file'))
+    })
+
     it('resolve environment variable in org, app, service, region', async () => {
       process.env = {
         ...originalEnv,
