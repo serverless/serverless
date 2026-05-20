@@ -222,6 +222,7 @@ const getInstancesToReconcile = (instances, stacks, failedRegions) => {
 
 /**
  * Reconcile the instances that are not in the correct state to be reconciled
+ * Handles large datasets by batching instances into multiple requests
  * @param {*} auth
  * @param {*} instancesToReconcile
  */
@@ -237,23 +238,52 @@ const reconcileInstances = async ({
       : 'serverless.com'
 
   const url = `https://core.${domain}/api/usage/instances/${auth.orgId}/reconcile`
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: buildHeaders(auth, versionFramework),
-    body: JSON.stringify({
-      instances: instancesToReconcile,
-      isQualified,
-    }),
-    dispatcher: getProxyDispatcher(url),
-  })
 
-  if (!response.ok) {
-    const errorMessage = `Failed to reconcile instances: ${response.statusText}`
+  // Batch size to avoid "Request Entity Too Large" errors
+  // 100 instances per request is a reasonable size that should work for most cases
+  const BATCH_SIZE = 100
+  const totalInstances = instancesToReconcile.length
+  const totalBatches = Math.ceil(totalInstances / BATCH_SIZE)
 
-    throw new ServerlessError(errorMessage, 'RECONCILIATION_FAILED', {
-      originalMessage: errorMessage,
-      stack: false,
+  const logger = log.get('core:reconcile')
+
+  // If we need to batch, inform the user
+  if (totalBatches > 1) {
+    logger.notice(
+      `Reconciling ${style.bold(totalInstances)} instances in ${style.bold(totalBatches)} batches...`,
+    )
+  }
+
+  // Process instances in batches
+  for (let i = 0; i < totalBatches; i++) {
+    const start = i * BATCH_SIZE
+    const end = Math.min(start + BATCH_SIZE, totalInstances)
+    const batch = instancesToReconcile.slice(start, end)
+
+    if (totalBatches > 1) {
+      logger.notice(
+        `Processing batch ${style.bold(i + 1)}/${style.bold(totalBatches)} (${style.bold(batch.length)} instances)...`,
+      )
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: buildHeaders(auth, versionFramework),
+      body: JSON.stringify({
+        instances: batch,
+        isQualified,
+      }),
+      dispatcher: getProxyDispatcher(url),
     })
+
+    if (!response.ok) {
+      const errorMessage = `Failed to reconcile instances (batch ${i + 1}/${totalBatches}): ${response.statusText}`
+
+      throw new ServerlessError(errorMessage, 'RECONCILIATION_FAILED', {
+        originalMessage: errorMessage,
+        stack: false,
+      })
+    }
   }
 }
 
@@ -319,9 +349,15 @@ const commandReconcile = async ({ auth, credentials, versionFramework }) => {
 
   progressMain.remove()
 
-  logger.success(
-    `Successfully reconciled ${style.bold.underline(auth.orgName)} org instances in AWS Account ${style.bold.underline(credentials.accountId)}.`,
-  )
+  if (instancesToReconcile.length > 0) {
+    logger.success(
+      `Successfully reconciled ${style.bold.underline(instancesToReconcile.length)} instances for ${style.bold.underline(auth.orgName)} org in AWS Account ${style.bold.underline(credentials.accountId)}.`,
+    )
+  } else {
+    logger.success(
+      `No instances to reconcile for ${style.bold.underline(auth.orgName)} org in AWS Account ${style.bold.underline(credentials.accountId)}.`,
+    )
+  }
 
   logger.blankLine()
 
