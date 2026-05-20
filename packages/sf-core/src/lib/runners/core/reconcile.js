@@ -130,20 +130,21 @@ const getInstancesRegions = (awsAccountInstances = []) => {
 /**
  * Lists all CloudFormation stacks across the specified AWS regions
  * Handles pagination with exponential backoff retry
+ * Processes regions in parallel for better performance with large datasets
  *
  * @param {*} regions
  * @param {*} credentials
  * @returns {Promise<Array>} Array of stack details
  */
 const getRegionsStacks = async (regions, credentials) => {
-  const awsAccountStacks = []
-  const failedRegions = []
+  const logger = log.get('core:reconcile')
 
   // Retry 3 times with the standard aws exponential backoff algorithm
   const retryStrategy = new StandardRetryStrategy(async () => 3)
 
-  for (const region of regions) {
-    try {
+  // Fetch stacks from all regions in parallel for better performance
+  const regionResults = await Promise.allSettled(
+    regions.map(async (region) => {
       const client = addProxyToAwsClient(
         new CloudFormationClient({
           credentials,
@@ -152,6 +153,7 @@ const getRegionsStacks = async (regions, credentials) => {
         }),
       )
 
+      const stacks = []
       let nextToken
 
       do {
@@ -162,13 +164,35 @@ const getRegionsStacks = async (regions, credentials) => {
         const response = await client.send(command)
 
         if (response.StackSummaries) {
-          awsAccountStacks.push(...response.StackSummaries)
+          stacks.push(...response.StackSummaries)
         }
 
         nextToken = response.NextToken
       } while (nextToken)
-    } catch (error) {
-      log.debug(`Error fetching stacks in region ${region}: ${error.message}`)
+
+      return { region, stacks }
+    }),
+  )
+
+  // Collect results and track failed regions
+  const awsAccountStacks = []
+  const failedRegions = []
+
+  for (let i = 0; i < regionResults.length; i++) {
+    const result = regionResults[i]
+    const region = regions[i]
+
+    if (result.status === 'fulfilled') {
+      awsAccountStacks.push(...result.value.stacks)
+      if (result.value.stacks.length > 0) {
+        logger.debug(
+          `Fetched ${result.value.stacks.length} stacks from region ${region}`,
+        )
+      }
+    } else {
+      logger.debug(
+        `Error fetching stacks in region ${region}: ${result.reason?.message}`,
+      )
       failedRegions.push(region)
     }
   }
@@ -322,11 +346,23 @@ const commandReconcile = async ({ auth, credentials, versionFramework }) => {
   // Get a list of all the regions the user has billable instances in
   const instancesRegions = getInstancesRegions(awsAccountInstances)
 
+  if (instancesRegions.length > 0) {
+    logger.notice(
+      `Fetching CloudFormation stacks from ${style.bold(instancesRegions.length)} region${instancesRegions.length > 1 ? 's' : ''}...`,
+    )
+  }
+
   // Get all the stacks in these particular regions regions
   const { awsAccountStacks, failedRegions } = await getRegionsStacks(
     instancesRegions,
     credentials,
   )
+
+  if (awsAccountStacks.length > 0) {
+    logger.notice(
+      `Found ${style.bold(awsAccountStacks.length)} CloudFormation stack${awsAccountStacks.length > 1 ? 's' : ''} to compare against ${style.bold(awsAccountInstances.length)} reported instance${awsAccountInstances.length > 1 ? 's' : ''}`,
+    )
+  }
 
   // compare the reported instances for this aws account with all the stacks across these regions
   // and get a list of instances that are not in the correct state to be reconciled
