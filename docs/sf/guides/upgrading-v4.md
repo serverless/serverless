@@ -197,6 +197,32 @@ In previous versions of Serverless Framework (<= V.3), the `useDotEnv` configura
 
 In V.4, these files are read automatically, without the `useDotEnv` property.
 
+#### Loading additional `.env` files from a custom location
+
+`useDotenv` can also point at an additional `.env` file (or files) outside the service directory — useful for monorepos that share configuration across multiple services. The local `.env` and `.env.${stage}` in the service directory are still loaded automatically.
+
+```yaml
+# api/serverless.yml
+useDotenv: ../ # load ../.env and ../.env.${stage} as shared defaults
+```
+
+The value can be a single path or an array of paths, each resolved relative to the service directory:
+
+```yaml
+useDotenv:
+  - ./overrides.env # specific overrides (file)
+  - ../ # shared defaults (directory)
+```
+
+- **File path** — loads exactly that file. No stage-suffix probing.
+- **Directory path** — loads `<dir>/.env.${stage}` (if the current stage is set) followed by `<dir>/.env`, mirroring the local file behavior.
+- **Array** — entries load in order. Earlier entries beat later ones for shared keys.
+- **Missing paths** — silently skipped, matching the existing behavior for missing local `.env` files.
+
+Precedence, highest to lowest: existing `process.env` → local `.env.${stage}` → local `.env` → custom entries in array order. The local files always win, so custom paths act as shared defaults that per-service files can override.
+
+Path strings are taken literally — Serverless variable placeholders (`${opt:stage}`, `${self:…}`, etc.) are not resolved inside `useDotenv` because the value is read before the resolver runs. Use the directory form for stage-specific custom files.
+
 ### Revised Dev Mode
 
 In previous versions of Serverless Framework (<= V.3), the `dev` command would work exclusively with Serverless Console or Serverless Framework Dashboard. However, `dev` has been completely re-imagined to only work with the CLI, not requiring Dashboard, and proxy events from your live AWS Lambda functions to your local code, enabling you to develop faster than ever.
