@@ -1,6 +1,9 @@
 import path from 'path'
 import { existsSync, statSync } from 'node:fs'
 import dotenv from 'dotenv'
+import { log } from '@serverless/util'
+
+const logger = log.get('core:resolver:env')
 
 /**
  * @typedef {Object} LoadEnvFilesOptions
@@ -48,7 +51,7 @@ export const loadEnvFiles = ({ stage, configFileDirPath, useDotenv } = {}) => {
   }
   const defaultEnvPath = path.resolve(configFileDirPath, '.env')
   if (existsSync(defaultEnvPath)) {
-    dotenv.config({ path: defaultEnvPath, quiet: true })
+    loadDotenvFile(defaultEnvPath)
   }
 
   // Custom paths — only when explicitly provided. Loaded after locals so
@@ -70,7 +73,7 @@ export const loadStageEnvFiles = ({ stage, configFileDirPath }) => {
   // Load .env.[stageName] file
   const stageEnvPath = path.resolve(configFileDirPath, `.env.${stage}`)
   if (existsSync(stageEnvPath)) {
-    dotenv.config({ path: stageEnvPath, quiet: true })
+    loadDotenvFile(stageEnvPath)
   }
 }
 
@@ -107,14 +110,43 @@ const loadCustomEnvFiles = ({ stage, configFileDirPath, customPath }) => {
     if (stage) {
       const stageEnvPath = path.join(resolved, `.env.${stage}`)
       if (existsSync(stageEnvPath)) {
-        dotenv.config({ path: stageEnvPath, quiet: true })
+        loadDotenvFile(stageEnvPath)
       }
     }
     const defaultEnvPath = path.join(resolved, '.env')
     if (existsSync(defaultEnvPath)) {
-      dotenv.config({ path: defaultEnvPath, quiet: true })
+      loadDotenvFile(defaultEnvPath)
     }
     return
   }
-  dotenv.config({ path: resolved, quiet: true })
+  loadDotenvFile(resolved)
+}
+
+/**
+ * Wrap dotenv.config with debug logging so users running with debug
+ * logging can see which env files loaded and which keys came from each
+ * one. All outcomes log at debug level — the loader has a tolerant
+ * "silently skip" personality (missing files, schema-coerced bogus
+ * paths, and `quiet: true` to dotenv itself), and we keep that
+ * personality consistent here. Users opt in to the diagnostic detail
+ * with debug logging.
+ *
+ * @param {string} filePath - The absolute path to the .env file.
+ */
+const loadDotenvFile = (filePath) => {
+  const result = dotenv.config({ path: filePath, quiet: true })
+  if (result.error) {
+    logger.debug(
+      `Skipped env file at ${filePath}: ${result.error.message}`,
+    )
+    return
+  }
+  const keys = Object.keys(result.parsed || {})
+  if (keys.length === 0) {
+    logger.debug(`Loaded env file at ${filePath} (no keys parsed)`)
+    return
+  }
+  logger.debug(
+    `Loaded env file at ${filePath} (${keys.length} key(s): ${keys.join(', ')})`,
+  )
 }

@@ -2,7 +2,12 @@ import { jest } from '@jest/globals'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { log } from '@serverless/util'
 import { loadEnvFiles } from '../../../src/lib/resolvers/env.js'
+
+// Same namespace used by env.js. log.get caches by name, so this resolves
+// to the exact same logger instance, which lets us spy on its methods.
+const envLogger = log.get('core:resolver:env')
 
 describe('loadEnvFiles (regression tests for current behavior)', () => {
   let originalEnv
@@ -335,6 +340,122 @@ describe('loadEnvFiles (regression tests for current behavior)', () => {
       const before = JSON.stringify(process.env)
       expect(() => loadEnvFiles({ configFileDirPath: tmpDir })).not.toThrow()
       expect(JSON.stringify(process.env)).toBe(before)
+    })
+  })
+
+  // Verifies the debug/warning logging added so users running with
+  // SLS_DEBUG=* (or equivalent) can see which env files were loaded
+  // and which keys were set, plus surface dotenv errors that would
+  // otherwise be silent.
+  describe('debug logging', () => {
+    let debugSpy
+    let warningSpy
+
+    beforeEach(() => {
+      debugSpy = jest.spyOn(envLogger, 'debug').mockImplementation(() => {})
+      warningSpy = jest.spyOn(envLogger, 'warning').mockImplementation(() => {})
+    })
+
+    it('logs a debug message with file path and key names on successful load', () => {
+      fs.writeFileSync(path.join(tmpDir, '.env'), 'A=1\nB=2\n')
+      delete process.env.A
+      delete process.env.B
+      loadEnvFiles({ configFileDirPath: tmpDir })
+      expect(debugSpy).toHaveBeenCalledTimes(1)
+      const message = debugSpy.mock.calls[0][0]
+      expect(message).toContain(path.join(tmpDir, '.env'))
+      expect(message).toContain('A')
+      expect(message).toContain('B')
+    })
+
+    it('does not log key values, only key names', () => {
+      fs.writeFileSync(
+        path.join(tmpDir, '.env'),
+        'SECRET=do-not-leak-this-value\n',
+      )
+      delete process.env.SECRET
+      loadEnvFiles({ configFileDirPath: tmpDir })
+      for (const call of debugSpy.mock.calls) {
+        expect(call[0]).not.toContain('do-not-leak-this-value')
+      }
+    })
+
+    it('logs once per file when both local files are present', () => {
+      fs.writeFileSync(path.join(tmpDir, '.env'), 'A=1\n')
+      fs.writeFileSync(path.join(tmpDir, '.env.dev'), 'B=2\n')
+      delete process.env.A
+      delete process.env.B
+      loadEnvFiles({ stage: 'dev', configFileDirPath: tmpDir })
+      expect(debugSpy).toHaveBeenCalledTimes(2)
+    })
+
+    it('logs once per loaded file when both local and custom paths exist', () => {
+      fs.writeFileSync(path.join(tmpDir, '.env'), 'LOCAL=1\n')
+      const sharedDir = path.join(tmpDir, 'shared')
+      fs.mkdirSync(sharedDir)
+      fs.writeFileSync(path.join(sharedDir, '.env'), 'SHARED=2\n')
+      delete process.env.LOCAL
+      delete process.env.SHARED
+      loadEnvFiles({ configFileDirPath: tmpDir, useDotenv: './shared' })
+      expect(debugSpy).toHaveBeenCalledTimes(2)
+    })
+
+    it('does not log for a missing file', () => {
+      loadEnvFiles({ configFileDirPath: tmpDir })
+      expect(debugSpy).not.toHaveBeenCalled()
+      expect(warningSpy).not.toHaveBeenCalled()
+    })
+
+    it('logs a debug message (no warning) for a file with no parseable keys', () => {
+      fs.writeFileSync(path.join(tmpDir, '.env'), '# only a comment\n')
+      loadEnvFiles({ configFileDirPath: tmpDir })
+      expect(warningSpy).not.toHaveBeenCalled()
+      expect(debugSpy).toHaveBeenCalledTimes(1)
+      expect(debugSpy.mock.calls[0][0]).toContain('no keys parsed')
+    })
+
+    it('logs at debug level (not warning) when dotenv.config returns an error', async () => {
+      // Force dotenv.config to return an error by mocking it. Done via
+      // jest.unstable_mockModule + dynamic re-import so the test stays
+      // isolated from the other tests in this file (which use the real
+      // dotenv). Verifies the loader stays quiet by default even when
+      // dotenv reports a failure — matching the rest of the loader's
+      // tolerant, silently-skip personality.
+      jest.resetModules()
+      const dotenvErrorMessage = 'simulated permission denied'
+      jest.unstable_mockModule('dotenv', () => ({
+        default: {
+          config: jest.fn(() => ({
+            error: new Error(dotenvErrorMessage),
+          })),
+        },
+      }))
+      // After resetModules, @serverless/util gets re-imported with its own
+      // fresh logger registry. Spy on THAT registry's logger (the same one
+      // the freshly-imported env.js will capture), not the top-of-file
+      // `log` reference (which now points at a stale registry).
+      const { log: isolatedLog } = await import('@serverless/util')
+      const isolatedLogger = isolatedLog.get('core:resolver:env')
+      const isolatedDebugSpy = jest
+        .spyOn(isolatedLogger, 'debug')
+        .mockImplementation(() => {})
+      const isolatedWarningSpy = jest
+        .spyOn(isolatedLogger, 'warning')
+        .mockImplementation(() => {})
+      const { loadEnvFiles: loadEnvFilesIsolated } =
+        await import('../../../src/lib/resolvers/env.js')
+
+      fs.writeFileSync(path.join(tmpDir, '.env'), 'A=1\n')
+      loadEnvFilesIsolated({ configFileDirPath: tmpDir })
+
+      expect(isolatedWarningSpy).not.toHaveBeenCalled()
+      expect(isolatedDebugSpy).toHaveBeenCalledTimes(1)
+      const message = isolatedDebugSpy.mock.calls[0][0]
+      expect(message).toContain(path.join(tmpDir, '.env'))
+      expect(message).toContain(dotenvErrorMessage)
+
+      // Restore for subsequent tests in this file.
+      jest.resetModules()
     })
   })
 })
