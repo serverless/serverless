@@ -250,4 +250,91 @@ describe('loadEnvFiles (regression tests for current behavior)', () => {
       expect(process.env.STAGE_KEY).toBeUndefined()
     })
   })
+
+  // Edge-case behavior for path interpretation and file-content quirks.
+  // configFileDirPath is the resolution anchor for relative paths only;
+  // absolute paths and ../-escaping paths are passed straight through to
+  // path.resolve(), with no security boundary.
+  describe('path interpretation and file content edge cases', () => {
+    it('accepts an absolute path and loads from it', () => {
+      const absDir = fs.mkdtempSync(path.join(os.tmpdir(), 'load-env-abs-'))
+      try {
+        fs.writeFileSync(path.join(absDir, '.env'), 'FROM_ABS_PATH=abs-value\n')
+        delete process.env.FROM_ABS_PATH
+        loadEnvFiles({ configFileDirPath: tmpDir, useDotenv: absDir })
+        expect(process.env.FROM_ABS_PATH).toBe('abs-value')
+      } finally {
+        fs.rmSync(absDir, { recursive: true, force: true })
+      }
+    })
+
+    it('accepts an absolute file path and loads exactly that file', () => {
+      const absDir = fs.mkdtempSync(path.join(os.tmpdir(), 'load-env-abs-'))
+      try {
+        const absFile = path.join(absDir, 'shared.env')
+        fs.writeFileSync(absFile, 'FROM_ABS_FILE=abs-file-value\n')
+        delete process.env.FROM_ABS_FILE
+        loadEnvFiles({ configFileDirPath: tmpDir, useDotenv: absFile })
+        expect(process.env.FROM_ABS_FILE).toBe('abs-file-value')
+      } finally {
+        fs.rmSync(absDir, { recursive: true, force: true })
+      }
+    })
+
+    it('allows paths that escape configFileDirPath via .. (no sandbox)', () => {
+      // The custom path is resolved with path.resolve and there is no check
+      // that the result is contained within configFileDirPath. This is by
+      // design — users opt in to useDotenv explicitly, and the monorepo use
+      // case requires traversing up to a shared parent directory.
+      const parent = path.dirname(tmpDir)
+      const sibling = fs.mkdtempSync(path.join(parent, 'load-env-sibling-'))
+      try {
+        fs.writeFileSync(
+          path.join(sibling, '.env'),
+          'FROM_SIBLING=sibling-value\n',
+        )
+        const relativeEscape = path.join('..', path.basename(sibling))
+        delete process.env.FROM_SIBLING
+        loadEnvFiles({
+          configFileDirPath: tmpDir,
+          useDotenv: relativeEscape,
+        })
+        expect(process.env.FROM_SIBLING).toBe('sibling-value')
+      } finally {
+        fs.rmSync(sibling, { recursive: true, force: true })
+      }
+    })
+
+    it('ignores garbage lines in a .env file and loads what it can parse', () => {
+      // dotenv is tolerant: lines that do not match KEY=value (or are
+      // pure garbage) are silently skipped. Valid KEY=value lines around
+      // the garbage still load.
+      fs.writeFileSync(
+        path.join(tmpDir, '.env'),
+        'GOOD_KEY=good\n!!!this is not valid!!!\nrandom text without equals\nANOTHER_GOOD=also-good\n',
+      )
+      delete process.env.GOOD_KEY
+      delete process.env.ANOTHER_GOOD
+      expect(() => loadEnvFiles({ configFileDirPath: tmpDir })).not.toThrow()
+      expect(process.env.GOOD_KEY).toBe('good')
+      expect(process.env.ANOTHER_GOOD).toBe('also-good')
+    })
+
+    it('treats a comments-only .env as a no-op', () => {
+      fs.writeFileSync(
+        path.join(tmpDir, '.env'),
+        '# this file has only comments\n# and blank lines\n\n',
+      )
+      const before = JSON.stringify(process.env)
+      expect(() => loadEnvFiles({ configFileDirPath: tmpDir })).not.toThrow()
+      expect(JSON.stringify(process.env)).toBe(before)
+    })
+
+    it('treats an empty .env as a no-op', () => {
+      fs.writeFileSync(path.join(tmpDir, '.env'), '')
+      const before = JSON.stringify(process.env)
+      expect(() => loadEnvFiles({ configFileDirPath: tmpDir })).not.toThrow()
+      expect(JSON.stringify(process.env)).toBe(before)
+    })
+  })
 })
