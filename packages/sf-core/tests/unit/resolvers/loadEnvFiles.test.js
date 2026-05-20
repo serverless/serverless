@@ -457,5 +457,59 @@ describe('loadEnvFiles (regression tests for current behavior)', () => {
       // Restore for subsequent tests in this file.
       jest.resetModules()
     })
+
+    it('does not throw when statSync fails after existsSync passes', async () => {
+      // Simulates a TOCTOU race / permission glitch: existsSync says yes,
+      // but statSync throws when we try to check the file type. Without
+      // the guard around statSync in loadCustomEnvFiles, the whole
+      // resolver pipeline would crash. Verifies the silent-skip contract
+      // holds for this failure mode too.
+      jest.resetModules()
+      const statErrorMessage = 'simulated permission denied on stat'
+      // Spread the real fs so transitive consumers (e.g. anything in
+      // @serverless/util that does `import fs from 'fs'`) keep working;
+      // only override existsSync and statSync for the loader under test.
+      const realFs = await import('node:fs')
+      const fsMock = {
+        ...realFs,
+        existsSync: jest.fn(() => true),
+        statSync: jest.fn(() => {
+          throw new Error(statErrorMessage)
+        }),
+      }
+      jest.unstable_mockModule('node:fs', () => ({
+        ...fsMock,
+        default: fsMock,
+      }))
+      const { log: isolatedLog } = await import('@serverless/util')
+      const isolatedLogger = isolatedLog.get('core:resolver:env')
+      const isolatedDebugSpy = jest
+        .spyOn(isolatedLogger, 'debug')
+        .mockImplementation(() => {})
+      const isolatedWarningSpy = jest
+        .spyOn(isolatedLogger, 'warning')
+        .mockImplementation(() => {})
+      const { loadEnvFiles: loadEnvFilesIsolated } =
+        await import('../../../src/lib/resolvers/env.js')
+
+      expect(() =>
+        loadEnvFilesIsolated({
+          configFileDirPath: tmpDir,
+          useDotenv: './shared',
+        }),
+      ).not.toThrow()
+      expect(isolatedWarningSpy).not.toHaveBeenCalled()
+      // The debug breadcrumb names the path and surfaces the underlying
+      // error message so users running with debug logging can see why
+      // a custom path was skipped.
+      const skipCall = isolatedDebugSpy.mock.calls.find((call) =>
+        call[0].includes(statErrorMessage),
+      )
+      expect(skipCall).toBeDefined()
+      expect(skipCall[0]).toContain(path.join(tmpDir, 'shared'))
+
+      // Restore for subsequent tests in this file.
+      jest.resetModules()
+    })
   })
 })

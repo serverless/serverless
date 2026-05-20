@@ -106,7 +106,18 @@ const loadCustomEnvFiles = ({ stage, configFileDirPath, customPath }) => {
   if (!existsSync(resolved)) {
     return
   }
-  if (statSync(resolved).isDirectory()) {
+  // statSync can throw if the file is unreadable or has disappeared between
+  // existsSync and statSync (permission glitch, TOCTOU race). Treat that the
+  // same as "path does not exist" — silent skip with a debug breadcrumb,
+  // matching the loader's overall tolerant personality.
+  let stat
+  try {
+    stat = statSync(resolved)
+  } catch (err) {
+    logger.debug(`Skipped env path at ${resolved}: ${err.message}`)
+    return
+  }
+  if (stat.isDirectory()) {
     if (stage) {
       const stageEnvPath = path.join(resolved, `.env.${stage}`)
       if (existsSync(stageEnvPath)) {
@@ -136,9 +147,7 @@ const loadCustomEnvFiles = ({ stage, configFileDirPath, customPath }) => {
 const loadDotenvFile = (filePath) => {
   const result = dotenv.config({ path: filePath, quiet: true })
   if (result.error) {
-    logger.debug(
-      `Skipped env file at ${filePath}: ${result.error.message}`,
-    )
+    logger.debug(`Skipped env file at ${filePath}: ${result.error.message}`)
     return
   }
   const keys = Object.keys(result.parsed || {})
