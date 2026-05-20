@@ -130,7 +130,7 @@ const getInstancesRegions = (awsAccountInstances = []) => {
 /**
  * Lists all CloudFormation stacks across the specified AWS regions
  * Handles pagination with exponential backoff retry
- * Processes regions in parallel for better performance with large datasets
+ * Processes regions with controlled concurrency to avoid API rate limits
  *
  * @param {*} regions
  * @param {*} credentials
@@ -142,58 +142,67 @@ const getRegionsStacks = async (regions, credentials) => {
   // Retry 3 times with the standard aws exponential backoff algorithm
   const retryStrategy = new StandardRetryStrategy(async () => 3)
 
-  // Fetch stacks from all regions in parallel for better performance
-  const regionResults = await Promise.allSettled(
-    regions.map(async (region) => {
-      const client = addProxyToAwsClient(
-        new CloudFormationClient({
-          credentials,
-          region,
-          retryStrategy,
-        }),
-      )
+  // Limit concurrent region requests to avoid CloudFormation API rate limits
+  // CloudFormation ListStacks has rate limits (~1-5 req/sec per region)
+  // Processing 3-5 regions concurrently balances speed vs rate limits
+  const CONCURRENCY_LIMIT = 3
 
-      const stacks = []
-      let nextToken
-
-      do {
-        const command = new ListStacksCommand({
-          NextToken: nextToken,
-        })
-
-        const response = await client.send(command)
-
-        if (response.StackSummaries) {
-          stacks.push(...response.StackSummaries)
-        }
-
-        nextToken = response.NextToken
-      } while (nextToken)
-
-      return { region, stacks }
-    }),
-  )
-
-  // Collect results and track failed regions
   const awsAccountStacks = []
   const failedRegions = []
 
-  for (let i = 0; i < regionResults.length; i++) {
-    const result = regionResults[i]
-    const region = regions[i]
+  // Process regions in batches with controlled concurrency
+  for (let i = 0; i < regions.length; i += CONCURRENCY_LIMIT) {
+    const regionBatch = regions.slice(i, i + CONCURRENCY_LIMIT)
 
-    if (result.status === 'fulfilled') {
-      awsAccountStacks.push(...result.value.stacks)
-      if (result.value.stacks.length > 0) {
-        logger.debug(
-          `Fetched ${result.value.stacks.length} stacks from region ${region}`,
+    const batchResults = await Promise.allSettled(
+      regionBatch.map(async (region) => {
+        const client = addProxyToAwsClient(
+          new CloudFormationClient({
+            credentials,
+            region,
+            retryStrategy,
+          }),
         )
+
+        const stacks = []
+        let nextToken
+
+        do {
+          const command = new ListStacksCommand({
+            NextToken: nextToken,
+          })
+
+          const response = await client.send(command)
+
+          if (response.StackSummaries) {
+            stacks.push(...response.StackSummaries)
+          }
+
+          nextToken = response.NextToken
+        } while (nextToken)
+
+        return { region, stacks }
+      }),
+    )
+
+    // Collect results from this batch
+    for (let j = 0; j < batchResults.length; j++) {
+      const result = batchResults[j]
+      const region = regionBatch[j]
+
+      if (result.status === 'fulfilled') {
+        awsAccountStacks.push(...result.value.stacks)
+        if (result.value.stacks.length > 0) {
+          logger.debug(
+            `Fetched ${result.value.stacks.length} stacks from region ${region}`,
+          )
+        }
+      } else {
+        logger.debug(
+          `Error fetching stacks in region ${region}: ${result.reason?.message}`,
+        )
+        failedRegions.push(region)
       }
-    } else {
-      logger.debug(
-        `Error fetching stacks in region ${region}: ${result.reason?.message}`,
-      )
-      failedRegions.push(region)
     }
   }
 
