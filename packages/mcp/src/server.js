@@ -20,11 +20,11 @@ const MAX_MESSAGE_SIZE = '4mb'
  * @returns {Object} - Server instance and express app
  */
 export async function startSseServer({ port = 3001, sendAnalytics } = {}) {
+  // Same wiring as @modelcontextprotocol/sdk createMcpExpressApp, but with
+  // a 4mb json body limit instead of express.json's 100kb default.
   const app = express()
-  // Reject DNS-rebinding / cross-origin requests by validating the Host
-  // header before any body is parsed.
-  app.use(hostHeaderValidation(['localhost', LOOPBACK_HOST, '[::1]']))
   app.use(express.json({ limit: MAX_MESSAGE_SIZE }))
+  app.use(hostHeaderValidation(['localhost', LOOPBACK_HOST, '[::1]']))
 
   // Create the MCP server instance.
   const server = new McpServer({
