@@ -1,0 +1,10 @@
+service: resolvers-env-test
+org: serverlesstestaccount
+
+useDotenv: ./shared
+
+functions:
+  hello:
+    handler: handler.hello
+    name: local
+    description: from-shared

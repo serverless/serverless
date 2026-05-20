@@ -193,6 +193,61 @@ describe('resolve variables and parameters', () => {
       await runTest(path.join(dirPath, 'dotenv-stage-from-env-file'))
     })
 
+    // useDotenv with a directory path: load .env.${stage} then .env from the
+    // custom directory in addition to local files. Local files win for shared
+    // keys; custom directory fills in keys missing locally.
+    it('loads env files from a custom directory path via useDotenv', async () => {
+      delete process.env.OVERLAP
+      delete process.env.SHARED_KEY
+      await runTest(path.join(dirPath, 'dotenv-custom-path-directory'), {
+        stage: 'foo',
+        s: 'foo',
+      })
+    })
+
+    // useDotenv with a file path: load that exact file, do NOT probe for
+    // <file>.<stage>. Stage is still 'foo' but .env.custom.foo must not be loaded.
+    it('loads exactly the file when useDotenv points to a file path', async () => {
+      delete process.env.FILE_KEY
+      delete process.env.STAGE_KEY
+      await runTest(path.join(dirPath, 'dotenv-custom-path-file'), {
+        stage: 'foo',
+        s: 'foo',
+      })
+    })
+
+    // useDotenv with an array: earlier entries win for shared keys
+    // (first-write-wins). Keys unique to a later entry still load.
+    it('loads multiple custom paths in array order (earlier wins)', async () => {
+      delete process.env.OVERLAP
+      delete process.env.ONLY_IN_SHARED
+      delete process.env.ONLY_IN_SPECIFIC
+      await runTest(path.join(dirPath, 'dotenv-custom-path-array'))
+    })
+
+    // useDotenv array entries can mix file and directory paths.
+    it('loads a mix of file and directory entries within a useDotenv array', async () => {
+      delete process.env.KEY_FROM_FILE
+      delete process.env.KEY_ONLY_IN_SHARED
+      await runTest(
+        path.join(dirPath, 'dotenv-custom-path-array-with-file-entry'),
+      )
+    })
+
+    // useDotenv pointing at a nonexistent path: silent skip, command still runs,
+    // fallback in ${env:..., 'default'} placeholder applies.
+    it('silently skips a missing custom path', async () => {
+      delete process.env.NEVER_SET
+      await runTest(path.join(dirPath, 'dotenv-custom-path-missing'))
+    })
+
+    // System process.env still beats values from custom .env files —
+    // dotenv defaults to no-override and the loader keeps that behavior.
+    it('keeps process.env winning over values from a custom path', async () => {
+      process.env = { ...originalEnv, OVERLAP: 'from-system' }
+      await runTest(path.join(dirPath, 'dotenv-custom-path-system-env-wins'))
+    })
+
     it('resolve environment variable in org, app, service, region', async () => {
       process.env = {
         ...originalEnv,

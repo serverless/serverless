@@ -1,0 +1,12 @@
+service: resolvers-env-test
+org: serverlesstestaccount
+
+useDotenv:
+  - ./specific
+  - ./shared
+
+functions:
+  hello:
+    handler: handler.hello
+    name: from-specific
+    description: shared-value specific-value

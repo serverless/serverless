@@ -1,0 +1,10 @@
+service: resolvers-env-test
+org: serverlesstestaccount
+
+useDotenv: ./shared/.env.custom
+
+functions:
+  hello:
+    handler: handler.hello
+    name: from-file
+    description: stage-key-not-loaded
