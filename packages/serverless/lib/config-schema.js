@@ -319,13 +319,19 @@ provider:
     },
     useDotenv: {
       description:
-        `Enable loading environment variables from .env files. ` +
-        `Set to true to load local .env and .env.\${stage} from the service ` +
-        `directory, or pass a path (or array of paths, file or directory, ` +
-        `relative to the service directory) for additional shared files. ` +
-        `Custom paths are loaded with lower precedence than the local files.`,
+        `Controls loading of environment variables from .env files. ` +
+        `Set to true (or omit) to load local .env and .env.\${stage} from ` +
+        `the service directory. Set to false to explicitly disable .env ` +
+        `loading entirely. Pass a path (or array of paths, file or directory, ` +
+        `relative to the service directory) to load additional shared files ` +
+        `on top of the locals. Custom paths are loaded with lower precedence ` +
+        `than the local files.`,
       anyOf: [
+        // Value-equality branches: const does not trigger AJV's coerceTypes,
+        // so boolean false stays boolean false and reaches the loader for
+        // the explicit-opt-out check.
         { const: true },
+        { const: false },
         { type: 'string', minLength: 1 },
         {
           type: 'array',

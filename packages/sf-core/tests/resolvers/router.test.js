@@ -184,6 +184,18 @@ describe('resolve variables and parameters', () => {
       })
     })
 
+    // Explicit useDotenv: false disables all .env loading (local + custom).
+    // Restores the v3-era semantic; closes a long-standing request
+    // (https://github.com/serverless/serverless/issues/8566).
+    it('does not load any .env files when useDotenv is false', async () => {
+      delete process.env.LOCAL_KEY
+      delete process.env.STAGE_KEY
+      await runTest(path.join(dirPath, 'dotenv-disabled'), {
+        stage: 'foo',
+        s: 'foo',
+      })
+    })
+
     // Stage resolution runs BEFORE env files are loaded, so a .env value
     // cannot back-fill an env placeholder used inside provider.stage. The
     // fixture sets provider.stage to ${env:STAGE_FROM_DOTENV, 'fallback-stage'}

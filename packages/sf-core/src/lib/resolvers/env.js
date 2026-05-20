@@ -9,16 +9,22 @@ const logger = log.get('core:resolver:env')
  * @typedef {Object} LoadEnvFilesOptions
  * @property {string} [stage] - The name of the stage.
  * @property {string} [configFileDirPath] - The path to the configuration directory.
- * @property {true|string|string[]} [useDotenv] - The user's `useDotenv` config
- *   value. When `true` (or omitted), only local `.env`/`.env.${stage}` files
- *   in `configFileDirPath` are loaded. When a string or array of strings,
- *   each entry is resolved against `configFileDirPath` and loaded as an
- *   additional file (or directory containing `.env`/`.env.${stage}`) with
- *   lower precedence than the local files.
+ * @property {true|false|string|string[]} [useDotenv] - The user's `useDotenv`
+ *   config value.
+ *   - `true` or omitted: load local `.env`/`.env.${stage}` files in
+ *     `configFileDirPath`.
+ *   - `false`: explicit opt-out. Skip all .env loading (local and custom).
+ *   - string or array of strings: load locals AND each entry as an
+ *     additional file or directory (containing `.env`/`.env.${stage}`),
+ *     loaded with lower precedence than the local files.
  */
 
 /**
  * Load environment variables from .env and .env.[stageName] files.
+ *
+ * `useDotenv === false` is an explicit opt-out: skip everything.
+ *
+ * Otherwise:
  *
  * Local files (always loaded):
  *   1. <configFileDirPath>/.env.${stage}   (if stage provided)
@@ -40,6 +46,13 @@ const logger = log.get('core:resolver:env')
  */
 
 export const loadEnvFiles = ({ stage, configFileDirPath, useDotenv } = {}) => {
+  // Explicit opt-out. Strict equality so only the literal boolean false
+  // triggers this — coerced values like the string 'false' or null pass
+  // through to the normal load path. Restores the v3-era semantic of
+  // useDotenv: false meaning "no env file loading at all" (see
+  // https://github.com/serverless/serverless/issues/8566).
+  if (useDotenv === false) return
+
   if (!configFileDirPath) {
     configFileDirPath = process.cwd()
   }
@@ -79,9 +92,11 @@ export const loadStageEnvFiles = ({ stage, configFileDirPath }) => {
 
 /**
  * Normalize the `useDotenv` config value into the list of custom paths to
- * load. `true` and other non-path values yield no custom paths — the local
- * files are still loaded by `loadEnvFiles`. Strings are wrapped to a
- * one-element array. Arrays are returned as-is.
+ * load. Strings are wrapped to a one-element array; arrays are returned
+ * as-is; anything else (including `true`, `false`, and `undefined`) yields
+ * no custom paths. The `false` opt-out is handled earlier in
+ * `loadEnvFiles` — by the time we reach this helper, we know we're loading
+ * something.
  *
  * @param {true|string|string[]|undefined} useDotenv
  * @returns {string[]}

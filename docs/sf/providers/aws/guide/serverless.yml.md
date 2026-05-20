@@ -95,13 +95,16 @@ foo: ${param:domain}
 
 ### Dotenv files
 
-`.env` and `.env.${stage}` in the service directory are loaded automatically — values become available as `${env:KEY}` placeholders throughout `serverless.yml`. The `useDotenv` property opts into additional `.env` file(s) outside the service directory, typically used to share configuration across services in a monorepo.
+`.env` and `.env.${stage}` in the service directory are loaded automatically — values become available as `${env:KEY}` placeholders throughout `serverless.yml`. The `useDotenv` property opts into additional `.env` file(s) outside the service directory, typically used to share configuration across services in a monorepo, or disables loading entirely.
 
 ```yml
 # serverless.yml
 
 # Equivalent to omitting `useDotenv` — local .env files only.
 useDotenv: true
+
+# Explicit opt-out: disables ALL .env loading (local and custom).
+useDotenv: false
 
 # Single custom path (file or directory), resolved relative to the
 # service directory.
@@ -113,11 +116,12 @@ useDotenv:
   - ../ # shared defaults (directory)
 ```
 
-| Entry shape       | What gets loaded                                                                    |
+| Value             | What gets loaded                                                                    |
 | ----------------- | ----------------------------------------------------------------------------------- |
 | `true` or omitted | Local `<serviceDir>/.env.${stage}` then `<serviceDir>/.env`                         |
-| File path         | Exactly that file. No stage-suffix probing.                                         |
-| Directory path    | `<dir>/.env.${stage}` (if a stage is set) then `<dir>/.env`                         |
+| `false`           | **Nothing.** All .env loading is skipped (local and custom).                        |
+| File path         | Locals **and** exactly that file. No stage-suffix probing on the file path.         |
+| Directory path    | Locals **and** `<dir>/.env.${stage}` (if a stage is set) then `<dir>/.env`          |
 | Array of paths    | Each entry processed in order with the rules above. Earlier entries win on overlap. |
 | Missing path      | Silently skipped — same as a missing local `.env`.                                  |
 

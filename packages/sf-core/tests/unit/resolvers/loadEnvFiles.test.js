@@ -96,6 +96,54 @@ describe('loadEnvFiles (regression tests for current behavior)', () => {
     })
   })
 
+  // Explicit opt-out: useDotenv: false skips ALL .env loading.
+  // Restores the v3-era semantic ("false means off"). See
+  // https://github.com/serverless/serverless/issues/8566 for the user
+  // request that motivated this; v3 originally treated false as the
+  // default-off, v4 inadvertently made loading automatic regardless.
+  describe('useDotenv: false (explicit opt-out)', () => {
+    it('skips loading local .env when useDotenv is false', () => {
+      fs.writeFileSync(
+        path.join(tmpDir, '.env'),
+        'SHOULD_NOT_LOAD=from-local\n',
+      )
+      delete process.env.SHOULD_NOT_LOAD
+      loadEnvFiles({ configFileDirPath: tmpDir, useDotenv: false })
+      expect(process.env.SHOULD_NOT_LOAD).toBeUndefined()
+    })
+
+    it('skips loading local .env.${stage} when useDotenv is false', () => {
+      fs.writeFileSync(
+        path.join(tmpDir, '.env.dev'),
+        'SHOULD_NOT_LOAD=from-stage\n',
+      )
+      delete process.env.SHOULD_NOT_LOAD
+      loadEnvFiles({
+        stage: 'dev',
+        configFileDirPath: tmpDir,
+        useDotenv: false,
+      })
+      expect(process.env.SHOULD_NOT_LOAD).toBeUndefined()
+    })
+
+    // Strict equality: only the literal boolean false opts out. Other
+    // falsy-ish values do NOT bypass loading. This guards against AJV
+    // coercion edge cases (the string 'false', null, 0, etc.) silently
+    // disabling loading for unintended configs.
+    it.each([
+      ['the string "false"', 'false'],
+      ['the string "0"', '0'],
+      ['null', null],
+      ['undefined (omitted)', undefined],
+      ['number 0', 0],
+    ])('does NOT opt out when useDotenv is %s', (_label, value) => {
+      fs.writeFileSync(path.join(tmpDir, '.env'), 'SHOULD_LOAD=from-local\n')
+      delete process.env.SHOULD_LOAD
+      loadEnvFiles({ configFileDirPath: tmpDir, useDotenv: value })
+      expect(process.env.SHOULD_LOAD).toBe('from-local')
+    })
+  })
+
   // Tests for the custom-path feature added with GitHub issue #10641.
   describe('custom useDotenv paths', () => {
     it('treats useDotenv: true as a no-op for custom loading (locals only)', () => {
