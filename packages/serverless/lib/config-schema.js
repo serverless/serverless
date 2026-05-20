@@ -318,8 +318,21 @@ provider:
       ],
     },
     useDotenv: {
-      description: `Enable loading environment variables from .env files.`,
-      const: true,
+      description:
+        `Enable loading environment variables from .env files. ` +
+        `Set to true to load local .env and .env.\${stage} from the service ` +
+        `directory, or pass a path (or array of paths, file or directory, ` +
+        `relative to the service directory) for additional shared files. ` +
+        `Custom paths are loaded with lower precedence than the local files.`,
+      anyOf: [
+        { const: true },
+        { type: 'string', minLength: 1 },
+        {
+          type: 'array',
+          items: { type: 'string', minLength: 1 },
+          minItems: 1,
+        },
+      ],
     },
     variablesResolutionMode: { type: 'string', enum: ['20210219', '20210326'] },
   },
