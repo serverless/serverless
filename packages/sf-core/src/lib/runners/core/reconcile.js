@@ -306,6 +306,8 @@ const reconcileInstances = async ({
   }
 
   // Process instances in batches
+  let reconciledCount = 0
+
   for (let i = 0; i < totalBatches; i++) {
     const start = i * BATCH_SIZE
     const end = Math.min(start + BATCH_SIZE, totalInstances)
@@ -317,23 +319,43 @@ const reconcileInstances = async ({
       )
     }
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: buildHeaders(auth, versionFramework),
-      body: JSON.stringify({
-        instances: batch,
-        isQualified,
-      }),
-      dispatcher: getProxyDispatcher(url),
-    })
-
-    if (!response.ok) {
-      const errorMessage = `Failed to reconcile instances (batch ${i + 1}/${totalBatches}): ${response.statusText}`
-
-      throw new ServerlessError(errorMessage, 'RECONCILIATION_FAILED', {
-        originalMessage: errorMessage,
-        stack: false,
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: buildHeaders(auth, versionFramework),
+        body: JSON.stringify({
+          instances: batch,
+          isQualified,
+        }),
+        dispatcher: getProxyDispatcher(url),
       })
+
+      if (!response.ok) {
+        const errorMessage = `Failed to reconcile instances (batch ${i + 1}/${totalBatches}): ${response.statusText}`
+
+        throw new ServerlessError(errorMessage, 'RECONCILIATION_FAILED', {
+          originalMessage: errorMessage,
+          stack: false,
+        })
+      }
+
+      // Track successfully reconciled instances
+      reconciledCount += batch.length
+    } catch (error) {
+      // If we've already successfully reconciled some batches, inform the user
+      if (reconciledCount > 0) {
+        logger.error(
+          `${style.bold.underline('Partial reconciliation completed')}: Successfully reconciled ${style.bold(reconciledCount)} of ${style.bold(totalInstances)} instances before encountering an error.`,
+        )
+        logger.blankLine()
+        logger.notice(
+          `Please run ${style.bold('serverless reconcile')} again to reconcile the remaining ${style.bold(totalInstances - reconciledCount)} instances.`,
+        )
+        logger.blankLine()
+      }
+
+      // Re-throw the original error
+      throw error
     }
   }
 }
