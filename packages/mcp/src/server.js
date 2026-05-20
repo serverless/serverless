@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 
-import express from 'express'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js'
+import { createMcpExpressApp } from '@modelcontextprotocol/sdk/server/express.js'
 import { registerTools } from './tools-definition.js'
 import { wrapServerWithAnalytics } from './utils/analytics-utils.js'
+
+const LOOPBACK_HOST = '127.0.0.1'
 
 /**
  * Starts the MCP SSE server
@@ -14,8 +16,10 @@ import { wrapServerWithAnalytics } from './utils/analytics-utils.js'
  * @returns {Object} - Server instance and express app
  */
 export async function startSseServer({ port = 3001, sendAnalytics } = {}) {
-  const app = express()
-  // IMPORTANT: Do not add any global body-parsing middleware so that the raw POST stream remains available
+  // createMcpExpressApp defaults host to 127.0.0.1 and installs Host-header
+  // validation middleware so cross-origin pages and DNS-rebinding attacks
+  // against the loopback server are rejected.
+  const app = createMcpExpressApp()
 
   // Create the MCP server instance.
   const server = new McpServer({
@@ -67,19 +71,28 @@ export async function startSseServer({ port = 3001, sendAnalytics } = {}) {
       res.status(500).send('No active SSE connection for the given sessionId.')
       return
     }
-    await transport.handlePostMessage(req, res)
+    // req.body is already parsed JSON because createMcpExpressApp installs
+    // express.json(); pass it through so the SDK does not try to re-read the
+    // (already consumed) raw stream.
+    await transport.handlePostMessage(req, res, req.body)
   })
 
-  // Start the server
-  const httpServer = app.listen(port, () => {
-    console.error(`MCP SSE server listening on http://localhost:${port}`)
+  // Bind to loopback only. Remote clients must use SSH port forwarding.
+  const httpServer = app.listen(port, LOOPBACK_HOST)
+  await new Promise((resolve, reject) => {
+    httpServer.once('listening', resolve)
+    httpServer.once('error', reject)
   })
+  const boundPort = httpServer.address().port
+  console.error(
+    `MCP SSE server listening on http://${LOOPBACK_HOST}:${boundPort}`,
+  )
 
   return {
     server,
     app,
     httpServer,
-    port,
+    port: boundPort,
     stop: () => {
       // Close all transports
       Object.values(activeTransports).forEach((transport) => {
