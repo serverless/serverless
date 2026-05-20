@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 
+import express from 'express'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js'
-import { createMcpExpressApp } from '@modelcontextprotocol/sdk/server/express.js'
+import { hostHeaderValidation } from '@modelcontextprotocol/sdk/server/middleware/hostHeaderValidation.js'
 import { registerTools } from './tools-definition.js'
 import { wrapServerWithAnalytics } from './utils/analytics-utils.js'
 
 const LOOPBACK_HOST = '127.0.0.1'
+// Matches MAXIMUM_MESSAGE_SIZE in @modelcontextprotocol/sdk/server/sse.js,
+// the limit the SDK applies when it reads the raw POST stream itself.
+const MAX_MESSAGE_SIZE = '4mb'
 
 /**
  * Starts the MCP SSE server
@@ -16,10 +20,11 @@ const LOOPBACK_HOST = '127.0.0.1'
  * @returns {Object} - Server instance and express app
  */
 export async function startSseServer({ port = 3001, sendAnalytics } = {}) {
-  // createMcpExpressApp defaults host to 127.0.0.1 and installs Host-header
-  // validation middleware so cross-origin pages and DNS-rebinding attacks
-  // against the loopback server are rejected.
-  const app = createMcpExpressApp()
+  const app = express()
+  // Reject DNS-rebinding / cross-origin requests by validating the Host
+  // header before any body is parsed.
+  app.use(hostHeaderValidation(['localhost', LOOPBACK_HOST, '[::1]']))
+  app.use(express.json({ limit: MAX_MESSAGE_SIZE }))
 
   // Create the MCP server instance.
   const server = new McpServer({
