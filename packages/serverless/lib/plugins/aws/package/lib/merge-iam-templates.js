@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import path from 'path'
 import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
+import buildFunctionLogGroupResources from './function-log-groups.js'
 
 export default {
   mergeIamTemplates() {
@@ -10,55 +11,20 @@ export default {
     }
 
     // create log group resources
-    this.serverless.service
-      .getAllFunctions()
-      .filter(
-        (functionName) =>
-          !this.serverless.service.getFunction(functionName).disableLogs,
-      )
-      .forEach((functionName) => {
-        const functionObject = this.serverless.service.getFunction(functionName)
-        if (
-          functionObject.logs?.logGroup ||
-          this.serverless.service.provider.logs?.lambda?.logGroup
-        ) {
-          return
-        }
-        const logGroupLogicalId =
-          this.provider.naming.getLogGroupLogicalId(functionName)
-        const newLogGroup = {
-          [logGroupLogicalId]: {
-            Type: 'AWS::Logs::LogGroup',
-            Properties: {
-              LogGroupName: this.provider.naming.getLogGroupName(
-                functionObject.name,
-              ),
-            },
-          },
-        }
-
-        const logRetentionInDays =
-          functionObject.logRetentionInDays ||
-          this.provider.getLogRetentionInDays()
-        if (logRetentionInDays) {
-          newLogGroup[logGroupLogicalId].Properties.RetentionInDays =
-            logRetentionInDays
-        }
-
-        const logDataProtectionPolicy =
-          functionObject.logDataProtectionPolicy ||
-          this.provider.getLogDataProtectionPolicy()
-        if (logDataProtectionPolicy) {
-          newLogGroup[logGroupLogicalId].Properties.DataProtectionPolicy =
-            logDataProtectionPolicy
-        }
-
-        _.merge(
-          this.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources,
-          newLogGroup,
-        )
+    this.serverless.service.getAllFunctions().forEach((functionName) => {
+      const functionObject = this.serverless.service.getFunction(functionName)
+      const logGroupResources = buildFunctionLogGroupResources({
+        functionName,
+        functionObject,
+        awsProvider: this.provider,
+        serviceProvider: this.serverless.service.provider,
       })
+      _.merge(
+        this.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources,
+        logGroupResources,
+      )
+    })
 
     const iamConfig = this.serverless.service.provider.iam || {}
     const iamRole = _.get(iamConfig, 'role', {})

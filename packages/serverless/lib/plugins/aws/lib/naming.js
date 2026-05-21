@@ -2,6 +2,18 @@ import _ from 'lodash'
 import crypto from 'crypto'
 
 /**
+ * CloudWatch Logs log group classes supported by the framework's `logGroupClass` configuration.
+ *
+ * AWS also defines a `DELIVERY` class, used internally for Lambda → S3/Firehose log delivery;
+ * it is intentionally not exposed here because it is configured through Lambda's log delivery
+ * destinations, not as a primary class for a function's log group.
+ */
+export const LOG_GROUP_CLASSES = Object.freeze({
+  STANDARD: 'STANDARD',
+  INFREQUENT_ACCESS: 'INFREQUENT_ACCESS',
+})
+
+/**
  * A centralized naming object that provides naming standards for the AWS provider plugin.  The
  * intent is for this to enable naming standards to be configured using a custom naming plugin or
  * a naming configuration feature, based on which of those is determined to in the best approach.
@@ -136,11 +148,38 @@ export default {
   },
 
   // Log Group
-  getLogGroupLogicalId(functionName) {
-    return `${this.getNormalizedFunctionName(functionName)}LogGroup`
+  /**
+   * Build the CloudFormation logical id of a function's log group resource.
+   *
+   * Note: function names normalized to end with `IA` (e.g. function key `fnIA`) would collide
+   * with the IA-class logical id of another function named `fn`. This is extremely rare in
+   * practice, but a future deploy failing with a CloudFormation "duplicate logical id" error
+   * for a `*IALogGroup` resource is the symptom.
+   *
+   * @param {string} functionName
+   * @param {{ logGroupClass?: 'STANDARD' | 'INFREQUENT_ACCESS' }} [options]
+   *   Plugin authors overriding this method should honor the second argument to support the
+   *   Infrequent Access log class.
+   * @returns {string}
+   */
+  getLogGroupLogicalId(functionName, { logGroupClass } = {}) {
+    const classSuffix =
+      logGroupClass === LOG_GROUP_CLASSES.INFREQUENT_ACCESS ? 'IA' : ''
+    return `${this.getNormalizedFunctionName(functionName)}${classSuffix}LogGroup`
   },
-  getLogGroupName(functionName) {
-    return `/aws/lambda/${functionName}`
+  /**
+   * Build the CloudWatch Logs log group name for a function.
+   *
+   * @param {string} functionName
+   * @param {{ logGroupClass?: 'STANDARD' | 'INFREQUENT_ACCESS' }} [options]
+   *   Plugin authors overriding this method should honor the second argument to support the
+   *   Infrequent Access log class.
+   * @returns {string}
+   */
+  getLogGroupName(functionName, { logGroupClass } = {}) {
+    const classSuffix =
+      logGroupClass === LOG_GROUP_CLASSES.INFREQUENT_ACCESS ? '-ia' : ''
+    return `/aws/lambda/${functionName}${classSuffix}`
   },
 
   // Lambda

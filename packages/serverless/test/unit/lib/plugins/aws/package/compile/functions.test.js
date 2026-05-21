@@ -73,8 +73,18 @@ describe('AwsCompileFunctions', () => {
       getLambdaLogicalId: jest.fn((name) => {
         return name.charAt(0).toUpperCase() + name.slice(1) + 'LambdaFunction'
       }),
-      getLogGroupLogicalId: jest.fn((name) => {
-        return name.charAt(0).toUpperCase() + name.slice(1) + 'LogGroup'
+      getLogGroupLogicalId: jest.fn((name, { logGroupClass } = {}) => {
+        const classSuffix = logGroupClass === 'INFREQUENT_ACCESS' ? 'IA' : ''
+        return (
+          name.charAt(0).toUpperCase() +
+          name.slice(1) +
+          classSuffix +
+          'LogGroup'
+        )
+      }),
+      getLogGroupName: jest.fn((name, { logGroupClass } = {}) => {
+        const classSuffix = logGroupClass === 'INFREQUENT_ACCESS' ? '-ia' : ''
+        return `/aws/lambda/${name}${classSuffix}`
       }),
       getServiceArtifactName: jest.fn(() => 'service.zip'),
       getFunctionArtifactName: jest.fn((name) => name + '.zip'),
@@ -1787,6 +1797,223 @@ describe('AwsCompileFunctions', () => {
       const funcResource = resources.FuncLambdaFunction
       const dependsOn = funcResource.DependsOn || []
       expect(dependsOn).toContain('FuncLogGroup')
+    })
+  })
+
+  describe('LoggingConfig', () => {
+    it('does not set Properties.LoggingConfig when no logs config is provided', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      expect(
+        resources.FuncLambdaFunction.Properties.LoggingConfig,
+      ).toBeUndefined()
+    })
+
+    it('exposes only the standard log group in DependsOn for a default function', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const dependsOn = resources.FuncLambdaFunction.DependsOn || []
+      expect(dependsOn).toEqual(['FuncLogGroup'])
+    })
+
+    it('emits Properties.LoggingConfig.LogFormat for a function with logs.logFormat: JSON and leaves LogGroup unset', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          logs: { logFormat: 'JSON' },
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const loggingConfig =
+        resources.FuncLambdaFunction.Properties.LoggingConfig
+      expect(loggingConfig).toEqual({ LogFormat: 'JSON' })
+      expect(loggingConfig).not.toHaveProperty('LogGroup')
+    })
+
+    it('sets LoggingConfig.LogGroup to the IA log group when function has logGroupClass: INFREQUENT_ACCESS', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          logs: { logGroupClass: 'INFREQUENT_ACCESS' },
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      expect(resources.FuncLambdaFunction.Properties.LoggingConfig).toEqual({
+        LogGroup: '/aws/lambda/func-ia',
+      })
+    })
+
+    it('preserves user-supplied LogFormat alongside the IA LogGroup', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          logs: { logGroupClass: 'INFREQUENT_ACCESS', logFormat: 'JSON' },
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      expect(resources.FuncLambdaFunction.Properties.LoggingConfig).toEqual({
+        LogFormat: 'JSON',
+        LogGroup: '/aws/lambda/func-ia',
+      })
+    })
+
+    it('uses provider-level logGroupClass when function does not override it', async () => {
+      awsCompileFunctions.serverless.service.provider.logs = {
+        lambda: { logGroupClass: 'INFREQUENT_ACCESS' },
+      }
+      awsCompileFunctions.serverless.service.functions = {
+        func: { handler: 'handler', name: 'func' },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      expect(resources.FuncLambdaFunction.Properties.LoggingConfig).toEqual({
+        LogGroup: '/aws/lambda/func-ia',
+      })
+    })
+
+    it('lists both the standard and IA log groups in DependsOn when IA is active', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          logs: { logGroupClass: 'INFREQUENT_ACCESS' },
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const dependsOn = resources.FuncLambdaFunction.DependsOn || []
+      expect(dependsOn).toEqual(
+        expect.arrayContaining(['FuncLogGroup', 'FuncIALogGroup']),
+      )
+    })
+
+    it('throws when logGroupClass is combined with logs.logGroup at the function level', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          logs: {
+            logGroupClass: 'INFREQUENT_ACCESS',
+            logGroup: 'my-custom-group',
+          },
+        },
+      }
+
+      await expect(awsCompileFunctions.compileFunctions()).rejects.toThrow(
+        /logGroupClass.*custom log group/i,
+      )
+    })
+
+    it('throws when logGroupClass is combined with provider.logs.lambda.logGroup', async () => {
+      awsCompileFunctions.serverless.service.provider.logs = {
+        lambda: { logGroup: 'service-wide-custom-group' },
+      }
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          logs: { logGroupClass: 'INFREQUENT_ACCESS' },
+        },
+      }
+
+      await expect(awsCompileFunctions.compileFunctions()).rejects.toThrow(
+        /logGroupClass.*custom log group/i,
+      )
+    })
+
+    it('throws when logGroupClass is combined with disableLogs', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          disableLogs: true,
+          logs: { logGroupClass: 'INFREQUENT_ACCESS' },
+        },
+      }
+
+      await expect(awsCompileFunctions.compileFunctions()).rejects.toThrow(
+        /logGroupClass.*disableLogs/i,
+      )
+    })
+
+    it('throws when provider-level logGroupClass is combined with function-level disableLogs', async () => {
+      awsCompileFunctions.serverless.service.provider.logs = {
+        lambda: { logGroupClass: 'INFREQUENT_ACCESS' },
+      }
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          disableLogs: true,
+        },
+      }
+
+      await expect(awsCompileFunctions.compileFunctions()).rejects.toThrow(
+        /logGroupClass.*disableLogs/i,
+      )
+    })
+
+    it('throws when provider-level logGroupClass is combined with a function-level custom logs.logGroup', async () => {
+      awsCompileFunctions.serverless.service.provider.logs = {
+        lambda: { logGroupClass: 'INFREQUENT_ACCESS' },
+      }
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          logs: { logGroup: 'my-externally-managed-group' },
+        },
+      }
+
+      await expect(awsCompileFunctions.compileFunctions()).rejects.toThrow(
+        /logGroupClass.*custom log group/i,
+      )
     })
   })
 

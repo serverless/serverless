@@ -711,6 +711,12 @@ provider:
       systemLogLevel: INFO
       # The LogGroup that will be used by default. If this is set the Framework will not create LogGroups for any functions
       logGroup: /aws/lambda/global-log-group
+      # The CloudWatch Logs log group class (default: standard).
+      # Valid values: standard, infrequent_access. Matched case-insensitively.
+      # When set to infrequent_access, each function gets an additional log group at
+      # /aws/lambda/{functionName}-ia and the function writes to it via LoggingConfig.LogGroup.
+      # The standard log group is still emitted to preserve any pre-existing logs.
+      logGroupClass: infrequent_access
 
     # Enable HTTP API logs
     # This can either be set to `httpApi: true` to use defaults, or configured via subproperties
@@ -928,6 +934,10 @@ functions:
       systemLogLevel: INFO
       # The LogGroup that will be used by default. If this is set the Framework will not create LogGroups for any functions
       logGroup: /aws/lambda/global-log-group
+      # The CloudWatch Logs log group class for this function (default: standard).
+      # Valid values: standard, infrequent_access. Matched case-insensitively.
+      # Overrides the provider-level value. Cannot be combined with logGroup or disableLogs.
+      logGroupClass: infrequent_access
     # Enable AWS Lambda tenant isolation mode for this function
     tenancy:
       mode: per_tenant

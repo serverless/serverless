@@ -1,6 +1,6 @@
 import AWS from '../../aws/v2/sdk.js'
 import _ from 'lodash'
-import naming from './lib/naming.js'
+import naming, { LOG_GROUP_CLASSES } from './lib/naming.js'
 import fsp from 'fs/promises'
 import getS3EndpointForRegion from './utils/get-s3-endpoint-for-region.js'
 import memoizeeMethods from 'memoizee/methods.js'
@@ -1076,6 +1076,18 @@ vpc:
             type: 'string',
             pattern: '^[/#A-Za-z0-9-_.]+$',
           },
+          awsLogGroupClass: {
+            description: `CloudWatch Logs log group class.`,
+            type: 'string',
+            // Case-insensitive enum: combining all classes into a single regex
+            // (rather than `anyOf` over per-value regexes) yields actionable
+            // validation errors that name the offending value and show the
+            // accepted patterns.
+            regexp: new RegExp(
+              `^(${Object.values(LOG_GROUP_CLASSES).join('|')})$`,
+              'i',
+            ).toString(),
+          },
           awsLogRetentionInDays: {
             description: `CloudWatch Logs retention period in days.`,
             type: 'number',
@@ -1105,6 +1117,10 @@ vpc:
                 pattern: '[\\.\\-_/#A-Za-z0-9]+',
                 minLength: 1,
                 maxLength: 512,
+              },
+              logGroupClass: {
+                description: `CloudWatch Logs log group class.`,
+                $ref: '#/definitions/awsLogGroupClass',
               },
               systemLogLevel: {
                 description: `System log level threshold.`,
@@ -3583,6 +3599,13 @@ destinations:
 
   getLogDataProtectionPolicy() {
     return this.serverless.service.provider.logDataProtectionPolicy
+  }
+
+  getLogGroupClass(functionObject) {
+    const raw =
+      functionObject?.logs?.logGroupClass ??
+      this.serverless.service.provider.logs?.lambda?.logGroupClass
+    return typeof raw === 'string' ? raw.toUpperCase() : raw
   }
 
   getStageSourceValue() {
