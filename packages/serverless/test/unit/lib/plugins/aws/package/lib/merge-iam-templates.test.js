@@ -249,7 +249,7 @@ describe('mergeIamTemplates - INFREQUENT_ACCESS log group', () => {
 
     runMerge(ctx)
 
-    const iaLogGroup = resources.HelloIALogGroup
+    const iaLogGroup = resources.HelloLogGroupIA
     expect(iaLogGroup).toBeDefined()
     expect(iaLogGroup.Type).toBe('AWS::Logs::LogGroup')
     expect(iaLogGroup.Properties.LogGroupName).toBe(
@@ -303,8 +303,8 @@ describe('mergeIamTemplates - INFREQUENT_ACCESS log group', () => {
 
     runMerge(ctx)
 
-    expect(resources.HelloIALogGroup.Properties.RetentionInDays).toBe(7)
-    expect(resources.HelloIALogGroup.Properties.DataProtectionPolicy).toEqual(
+    expect(resources.HelloLogGroupIA.Properties.RetentionInDays).toBe(7)
+    expect(resources.HelloLogGroupIA.Properties.DataProtectionPolicy).toEqual(
       policy,
     )
   })
@@ -322,8 +322,8 @@ describe('mergeIamTemplates - INFREQUENT_ACCESS log group', () => {
 
     runMerge(ctx)
 
-    expect(resources.HelloIALogGroup).toBeDefined()
-    expect(resources.WorldIALogGroup).toBeDefined()
+    expect(resources.HelloLogGroupIA).toBeDefined()
+    expect(resources.WorldLogGroupIA).toBeDefined()
   })
 
   test('function-level STANDARD override prevents IA group provisioning for that function', () => {
@@ -343,8 +343,8 @@ describe('mergeIamTemplates - INFREQUENT_ACCESS log group', () => {
 
     runMerge(ctx)
 
-    expect(resources.HelloIALogGroup).toBeDefined()
-    expect(resources).not.toHaveProperty('KeepStandardIALogGroup')
+    expect(resources.HelloLogGroupIA).toBeDefined()
+    expect(resources).not.toHaveProperty('KeepStandardLogGroupIA')
     expect(resources.KeepStandardLogGroup).toBeDefined()
   })
 })

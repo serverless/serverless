@@ -151,10 +151,10 @@ export default {
   /**
    * Build the CloudFormation logical id of a function's log group resource.
    *
-   * Note: function names normalized to end with `IA` (e.g. function key `fnIA`) would collide
-   * with the IA-class logical id of another function named `fn`. This is extremely rare in
-   * practice, but a future deploy failing with a CloudFormation "duplicate logical id" error
-   * for a `*IALogGroup` resource is the symptom.
+   * The Infrequent Access class id is `{Name}LogGroupIA` (suffix placed after `LogGroup`),
+   * not `{Name}IALogGroup`. This is deliberate: the position guarantees that no normalized
+   * function name can produce a standard id equal to another function's IA id, since the
+   * standard id ends with `LogGroup` and the IA id ends with `LogGroupIA`.
    *
    * @param {string} functionName
    * @param {{ logGroupClass?: 'STANDARD' | 'INFREQUENT_ACCESS' }} [options]
@@ -165,7 +165,7 @@ export default {
   getLogGroupLogicalId(functionName, { logGroupClass } = {}) {
     const classSuffix =
       logGroupClass === LOG_GROUP_CLASSES.INFREQUENT_ACCESS ? 'IA' : ''
-    return `${this.getNormalizedFunctionName(functionName)}${classSuffix}LogGroup`
+    return `${this.getNormalizedFunctionName(functionName)}LogGroup${classSuffix}`
   },
   /**
    * Build the CloudWatch Logs log group name for a function.

@@ -78,8 +78,8 @@ describe('AwsCompileFunctions', () => {
         return (
           name.charAt(0).toUpperCase() +
           name.slice(1) +
-          classSuffix +
-          'LogGroup'
+          'LogGroup' +
+          classSuffix
         )
       }),
       getLogGroupName: jest.fn((name, { logGroupClass } = {}) => {
@@ -1929,7 +1929,7 @@ describe('AwsCompileFunctions', () => {
           .compiledCloudFormationTemplate.Resources
       const dependsOn = resources.FuncLambdaFunction.DependsOn || []
       expect(dependsOn).toEqual(
-        expect.arrayContaining(['FuncLogGroup', 'FuncIALogGroup']),
+        expect.arrayContaining(['FuncLogGroup', 'FuncLogGroupIA']),
       )
     })
 

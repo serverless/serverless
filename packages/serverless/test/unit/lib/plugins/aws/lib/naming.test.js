@@ -67,12 +67,12 @@ describe('aws naming', () => {
   })
 
   describe('getLogGroupLogicalId with INFREQUENT_ACCESS class', () => {
-    test('appends IA to the normalized name before the LogGroup suffix', () => {
+    test('appends IA to the normalized name after the LogGroup suffix', () => {
       expect(
         naming.getLogGroupLogicalId('my-fn', {
           logGroupClass: 'INFREQUENT_ACCESS',
         }),
-      ).toBe('MyDashfnIALogGroup')
+      ).toBe('MyDashfnLogGroupIA')
     })
 
     test('returns the standard logical id when logGroupClass is STANDARD', () => {
@@ -83,6 +83,21 @@ describe('aws naming', () => {
 
     test('returns the standard logical id when no options are provided', () => {
       expect(naming.getLogGroupLogicalId('my-fn')).toBe('MyDashfnLogGroup')
+    })
+
+    test('IA logical id of one function cannot equal the standard logical id of another', () => {
+      // A function key ending in "IA" used to collide with the IA logical id of another
+      // function. With the suffix placed after "LogGroup", no normalized function name can
+      // produce an id that ends with another function's IA id, so collisions are structurally
+      // impossible.
+      const standardOfFnIa = naming.getLogGroupLogicalId('fnIA')
+      const iaOfFn = naming.getLogGroupLogicalId('fn', {
+        logGroupClass: 'INFREQUENT_ACCESS',
+      })
+      expect(standardOfFnIa).not.toBe(iaOfFn)
+
+      const standardOfFnLogGroupIa = naming.getLogGroupLogicalId('fnLogGroupIA')
+      expect(standardOfFnLogGroupIa).not.toBe(iaOfFn)
     })
   })
 })

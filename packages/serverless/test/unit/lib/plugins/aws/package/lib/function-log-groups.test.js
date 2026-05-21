@@ -9,9 +9,9 @@ const fakeAwsProvider = ({
 } = {}) => ({
   naming: {
     getLogGroupLogicalId: (name, { logGroupClass } = {}) =>
-      `${name[0].toUpperCase()}${name.slice(1)}${
+      `${name[0].toUpperCase()}${name.slice(1)}LogGroup${
         logGroupClass === 'INFREQUENT_ACCESS' ? 'IA' : ''
-      }LogGroup`,
+      }`,
     getLogGroupName: (name, { logGroupClass } = {}) =>
       `/aws/lambda/${name}${logGroupClass === 'INFREQUENT_ACCESS' ? '-ia' : ''}`,
   },
@@ -108,7 +108,7 @@ describe('buildFunctionLogGroupResources', () => {
       awsProvider: fakeAwsProvider({ effectiveClass: 'INFREQUENT_ACCESS' }),
       serviceProvider: {},
     })
-    expect(Object.keys(result).sort()).toEqual(['FnIALogGroup', 'FnLogGroup'])
+    expect(Object.keys(result).sort()).toEqual(['FnLogGroup', 'FnLogGroupIA'])
   })
 
   test('IA group carries LogGroupClass and DeletionPolicy: Retain', () => {
@@ -118,7 +118,7 @@ describe('buildFunctionLogGroupResources', () => {
       awsProvider: fakeAwsProvider({ effectiveClass: 'INFREQUENT_ACCESS' }),
       serviceProvider: {},
     })
-    expect(result.FnIALogGroup).toMatchObject({
+    expect(result.FnLogGroupIA).toMatchObject({
       Type: 'AWS::Logs::LogGroup',
       Properties: {
         LogGroupName: '/aws/lambda/svc-dev-fn-ia',
@@ -157,8 +157,8 @@ describe('buildFunctionLogGroupResources', () => {
     })
     expect(result.FnLogGroup.Properties.RetentionInDays).toBe(7)
     expect(result.FnLogGroup.Properties.DataProtectionPolicy).toEqual(policy)
-    expect(result.FnIALogGroup.Properties.RetentionInDays).toBe(7)
-    expect(result.FnIALogGroup.Properties.DataProtectionPolicy).toEqual(policy)
+    expect(result.FnLogGroupIA.Properties.RetentionInDays).toBe(7)
+    expect(result.FnLogGroupIA.Properties.DataProtectionPolicy).toEqual(policy)
   })
 
   test('STANDARD effective class produces only the standard group (no IA sibling)', () => {
