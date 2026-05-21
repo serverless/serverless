@@ -192,6 +192,39 @@ commands.set('info', {
   hasAwsExtension: true,
 })
 
+commands.set('diff', {
+  groupName: 'main',
+  usage:
+    'Show the difference between the local template and the deployed CloudFormation stack',
+  options: {
+    stage: {
+      usage: 'The service stage to diff against.',
+      type: 'string',
+    },
+    region: {
+      usage: 'The service region to diff against.',
+      type: 'string',
+    },
+    stack: {
+      usage: 'CloudFormation/SAM Only. Set the stack name.',
+      type: 'string',
+    },
+    package: {
+      usage:
+        'Path to an existing package directory to diff against. Skips the auto-package step when set.',
+      type: 'string',
+      shortcut: 'p',
+    },
+    json: {
+      usage: 'Output the diff in JSON format',
+      type: 'boolean',
+    },
+  },
+  lifecycleEvents: ['diff'],
+  serviceDependencyMode: 'required',
+  hasAwsExtension: true,
+})
+
 commands.set('dev', {
   groupName: 'main',
   usage: 'Start dev mode in this service',
