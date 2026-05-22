@@ -494,7 +494,7 @@ it('11. context contains numeric deadlineMs and no getRemainingTimeInMillis func
 })
 
 // ---------------------------------------------------------------------------
-// 12. M1-T5: memoryLimitInMB is passed from fn.memorySize
+// 12. memoryLimitInMB is passed from fn.memorySize
 // ---------------------------------------------------------------------------
 
 it('12. context.memoryLimitInMB is set from fn.memorySize', async () => {
@@ -552,7 +552,7 @@ it('13. context.memoryLimitInMB defaults to 1024 when fn.memorySize is not set',
 })
 
 // ---------------------------------------------------------------------------
-// 14. M1-T7: functionKey is passed to runner.invoke
+// 14. functionKey is passed to runner.invoke
 // ---------------------------------------------------------------------------
 
 it('14. runner.invoke receives functionKey equal to the function name', async () => {

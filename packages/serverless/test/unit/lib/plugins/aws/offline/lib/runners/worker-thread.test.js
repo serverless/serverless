@@ -219,7 +219,7 @@ describe('createWorkerThreadRunner', () => {
   })
 
   // -------------------------------------------------------------------------
-  // M1-T5: Full Lambda context shape
+  // Full Lambda context shape
   // -------------------------------------------------------------------------
 
   // 10. functionVersion defaults to '$LATEST'
@@ -548,7 +548,7 @@ describe('createWorkerThreadRunner', () => {
   })
 
   // -------------------------------------------------------------------------
-  // M1-T7: Pool-specific behaviour
+  // Pool-specific behaviour
   // -------------------------------------------------------------------------
 
   // Pool-1: Cold start — first invoke spawns a worker; second reuses it

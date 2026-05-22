@@ -31,7 +31,7 @@ function md5(body) {
  * object form `{ arn: '...' }` and the short string form `'arn:...'`.
  *
  * @param {string | { arn: string | object }} sqsEvent - The sqs key value from an event entry.
- * @returns {{ arn: string }}
+ * @returns {string}
  * @throws {ServerlessError} OFFLINE_SQS_UNRESOLVED_ARN if the ARN is a CFN intrinsic object.
  */
 function extractArn(sqsEvent) {

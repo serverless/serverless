@@ -2,7 +2,7 @@ import { workerData, parentPort } from 'node:worker_threads'
 import { pathToFileURL } from 'node:url'
 import { randomBytes } from 'node:crypto'
 
-const { handlerPath, handlerName, servicePath: _servicePath } = workerData
+const { handlerPath, handlerName } = workerData
 
 // ---------------------------------------------------------------------------
 // Helpers

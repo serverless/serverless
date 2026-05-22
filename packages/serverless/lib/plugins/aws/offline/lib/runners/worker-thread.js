@@ -36,8 +36,8 @@ function rebuildError({ name, message, stack }) {
  *
  * **Concurrency note**: concurrent invocations on the same `functionKey` are
  * serialized — they run one at a time on the single warm worker for that
- * function. This matches Lambda's per-function concurrency model at the M1
- * level (M5 will add per-function worker pools for true concurrency).
+ * function. A future update will introduce per-function worker pools to support
+ * concurrent invocations.
  *
  * @param {object} options
  * @param {string} options.servicePath              Absolute path to the Serverless service root.
@@ -158,6 +158,12 @@ export function createWorkerThreadRunner({
       }
 
       if (msg.type === 'success' || msg.type === 'error') {
+        // Guard: if a timeout already settled this invocation, pendingResult
+        // will be null and there is nothing left to do.
+        if (entry.pendingResult === null) {
+          return
+        }
+
         // Clear the invocation timeout.
         if (entry.pendingTimeout !== null) {
           clearTimeout(entry.pendingTimeout)
@@ -352,6 +358,7 @@ export function createWorkerThreadRunner({
           if (timeoutMs != null) {
             entry.pendingTimeout = setTimeout(() => {
               entry.pendingTimeout = null
+              entry.pendingResult = null
               pool.delete(functionKey)
               _terminateEntry(entry).catch(() => {})
               reject(
