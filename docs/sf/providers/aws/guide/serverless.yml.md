@@ -235,6 +235,8 @@ provider:
   # Can be overridden for each function separately inside the functions block, see below on page.
   # Valid values: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-loggroup.html
   logRetentionInDays: 14
+  # KMS key ARN to use for encryption of auto-created Lambda CloudWatch log groups. Optional.
+  logKmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
   # Policy defining how to monitor and mask sensitive data in CloudWatch logs. Optional.
   # Policy format: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data-start.html
   logDataProtectionPolicy:
@@ -868,6 +870,8 @@ functions:
     disableLogs: false
     # Duration for CloudWatch log retention (default: forever). Overrides provider setting.
     logRetentionInDays: 14
+    # KMS key ARN to use for encryption of this function's auto-created CloudWatch log group. Overrides provider setting.
+    logKmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
     # Optional Configuration of Lambda Logging Configuration, if this is also set at the provider level, then a given functions configuration will take priority.
     logs:
       # The Log Format to be used for all lambda functions (default: Text)

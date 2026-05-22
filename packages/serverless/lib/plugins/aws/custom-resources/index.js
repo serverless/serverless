@@ -216,6 +216,7 @@ async function addCustomResourceToService(
           LogGroupName:
             awsProvider.naming.getLogGroupName(absoluteFunctionName),
           RetentionInDays: awsProvider.getLogRetentionInDays(),
+          KmsKeyId: awsProvider.getLogKmsKeyArn(),
           DataProtectionPolicy: awsProvider.getLogDataProtectionPolicy(),
         },
       },
