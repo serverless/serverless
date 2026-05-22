@@ -180,3 +180,46 @@ it('7. resolves pseudo-parameter Ref in function environment', async () => {
 
   expect(sls.service.functions.myFn.environment.REGION).toBe(FAKE_REGION)
 })
+
+// ---------------------------------------------------------------------------
+// 8. Intrinsics in function events[] are resolved
+// ---------------------------------------------------------------------------
+
+it('8. resolves intrinsics in function events[] declarations', async () => {
+  const sls = makeServerless({
+    compiledResources: {
+      MyQueue: { Type: 'AWS::SQS::Queue', Properties: {} },
+    },
+    functions: {
+      consumer: {
+        handler: 'src/c.handler',
+        events: [{ sqs: { arn: { 'Fn::GetAtt': ['MyQueue', 'Arn'] } } }],
+      },
+    },
+  })
+
+  await provision(sls)
+
+  const arn = sls.service.functions.consumer.events[0].sqs.arn
+  expect(typeof arn).toBe('string')
+  expect(arn).toMatch(/^arn:aws:sqs:/)
+  expect(arn).toContain('MyQueue')
+})
+
+// ---------------------------------------------------------------------------
+// 9. Function with no events does not crash
+// ---------------------------------------------------------------------------
+
+it('9. function with no events property does not crash', async () => {
+  const sls = makeServerless({
+    compiledResources: {},
+    functions: {
+      myFn: {
+        handler: 'src/fn.handler',
+        // no `events` key at all
+      },
+    },
+  })
+
+  await expect(provision(sls)).resolves.not.toThrow()
+})

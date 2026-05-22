@@ -21,6 +21,9 @@ import { FAKE_ACCOUNT_ID, FAKE_REGION } from '../constants.js'
  * - **`serverless.service.functions[*].environment`** is replaced with a
  *   new plain object that merges provider-level and function-level
  *   environment variables, with all intrinsic functions resolved.
+ * - **`serverless.service.functions[*].events`** is replaced with a new
+ *   array where every event entry has had its intrinsic functions resolved
+ *   (e.g. `{ 'Fn::GetAtt': ['MyQueue', 'Arn'] }` → the real ARN string).
  *
  * @param {object} serverless
  *   The Serverless instance.  Must have `service`, `service.provider`,
@@ -84,6 +87,16 @@ export async function provision(serverless) {
     fn.environment = resolveIntrinsicsBound(merged)
   }
 
-  // 7. Return the populated registry and stack name.
+  // 7. Resolve intrinsics in function event declarations.
+  //    Event-source configs (e.g. SQS ARNs supplied as Fn::GetAtt) must be
+  //    resolved before the SQS poller reads them, otherwise they remain as
+  //    raw CFN objects and trigger OFFLINE_SQS_UNRESOLVED_ARN.
+  for (const fn of Object.values(functions)) {
+    if (Array.isArray(fn.events)) {
+      fn.events = fn.events.map((ev) => resolveIntrinsicsBound(ev))
+    }
+  }
+
+  // 9. Return the populated registry and stack name.
   return { registry, stackName }
 }
