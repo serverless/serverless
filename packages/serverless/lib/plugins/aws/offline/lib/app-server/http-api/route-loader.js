@@ -32,6 +32,11 @@ const NO_BODY_METHODS = new Set(['GET', 'HEAD', 'DELETE', 'OPTIONS', 'TRACE'])
  */
 function normalizeHttpApiEvent(httpApi) {
   if (typeof httpApi === 'string') {
+    // Special-case: bare '*' is the catch-all shorthand (method + path wildcard).
+    if (httpApi === '*') {
+      return { method: 'ANY', path: '*' }
+    }
+
     const spaceIndex = httpApi.indexOf(' ')
     const method = httpApi.slice(0, spaceIndex).toUpperCase()
     const path = httpApi.slice(spaceIndex + 1)
@@ -54,6 +59,11 @@ function normalizeHttpApiEvent(httpApi) {
  */
 function toHapiMethod(method) {
   if (method === 'ANY' || method === '*') return '*'
+  // Hapi v21 auto-serves HEAD for any GET route; explicit HEAD registration
+  // throws "Cannot set HEAD route".  Map HEAD → GET so Hapi handles it
+  // transparently.  The APIGW routeKey still uses the original 'HEAD' method
+  // because routeMeta.method is set from rawMethod before this call.
+  if (method === 'HEAD') return 'GET'
   return method
 }
 
@@ -67,6 +77,8 @@ function toHapiMethod(method) {
  * @returns {string}  The Hapi path (e.g. `/api/{any*}`).
  */
 function toHapiPath(apigwPath) {
+  // Bare '*' is the APIGW catch-all path shorthand; translate to Hapi's form.
+  if (apigwPath === '*') return '/{any*}'
   return apigwPath.replace(/\{proxy\+\}/g, '{any*}')
 }
 

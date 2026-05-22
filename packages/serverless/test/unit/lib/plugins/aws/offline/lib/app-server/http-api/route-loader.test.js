@@ -602,3 +602,159 @@ it('19b. body > 10 MB is rejected by Hapi with 413', async () => {
     await server.stop({ timeout: 5000 })
   }
 })
+
+// ---------------------------------------------------------------------------
+// 20. HEAD long-form: registered as GET in Hapi; routeKey preserves HEAD
+// ---------------------------------------------------------------------------
+
+it('20. HEAD long form: Hapi route uses GET; event.routeKey is "HEAD /ping"', async () => {
+  const stub = makeRouteStub()
+  registerHttpApiRoutes({
+    server: stub,
+    serverless: makeServerless({
+      myFn: {
+        events: [{ httpApi: { method: 'HEAD', path: '/ping' } }],
+      },
+    }),
+    stage: 'dev',
+    domainName: 'localhost:3000',
+    onRequest: jest.fn(),
+  })
+  // Bug A: Hapi route must be GET, not HEAD
+  expect(stub.routes[0].method).toBe('GET')
+
+  // Inject a real HEAD request and verify routeKey
+  const server = await makeServer()
+  const onRequest = jest.fn().mockResolvedValue({ statusCode: 200, body: 'ok' })
+  registerHttpApiRoutes({
+    server,
+    serverless: makeServerless({
+      myFn: {
+        events: [{ httpApi: { method: 'HEAD', path: '/ping' } }],
+      },
+    }),
+    stage: 'dev',
+    domainName: 'localhost:3000',
+    onRequest,
+  })
+  await server.start()
+  try {
+    const res = await server.inject({ method: 'HEAD', url: '/ping' })
+    expect(res.statusCode).toBe(200)
+    expect(onRequest).toHaveBeenCalledTimes(1)
+    const [, event] = onRequest.mock.calls[0]
+    expect(event.routeKey).toBe('HEAD /ping')
+  } finally {
+    await server.stop({ timeout: 5000 })
+  }
+})
+
+// ---------------------------------------------------------------------------
+// 21. HEAD short string form: same outcome as long form
+// ---------------------------------------------------------------------------
+
+it('21. HEAD short string "HEAD /ping": Hapi uses GET; routeKey is "HEAD /ping"', async () => {
+  const stub = makeRouteStub()
+  registerHttpApiRoutes({
+    server: stub,
+    serverless: makeServerless({
+      myFn: {
+        events: [{ httpApi: 'HEAD /ping' }],
+      },
+    }),
+    stage: 'dev',
+    domainName: 'localhost:3000',
+    onRequest: jest.fn(),
+  })
+  expect(stub.routes[0].method).toBe('GET')
+
+  const server = await makeServer()
+  const onRequest = jest.fn().mockResolvedValue({ statusCode: 200, body: 'ok' })
+  registerHttpApiRoutes({
+    server,
+    serverless: makeServerless({
+      myFn: {
+        events: [{ httpApi: 'HEAD /ping' }],
+      },
+    }),
+    stage: 'dev',
+    domainName: 'localhost:3000',
+    onRequest,
+  })
+  await server.start()
+  try {
+    const res = await server.inject({ method: 'HEAD', url: '/ping' })
+    expect(res.statusCode).toBe(200)
+    const [, event] = onRequest.mock.calls[0]
+    expect(event.routeKey).toBe('HEAD /ping')
+  } finally {
+    await server.stop({ timeout: 5000 })
+  }
+})
+
+// ---------------------------------------------------------------------------
+// 22. Bare '*' short form registers Hapi catch-all
+// ---------------------------------------------------------------------------
+
+it('22. bare "*" httpApi: registers Hapi method "*" with path "/{any*}"', async () => {
+  const stub = makeRouteStub()
+  registerHttpApiRoutes({
+    server: stub,
+    serverless: makeServerless({
+      myFn: {
+        events: [{ httpApi: '*' }],
+      },
+    }),
+    stage: 'dev',
+    domainName: 'localhost:3000',
+    onRequest: jest.fn(),
+  })
+  expect(stub.routes[0].method).toBe('*')
+  expect(stub.routes[0].path).toBe('/{any*}')
+
+  // Verify both GET and POST requests match on a real server
+  const server = await makeServer()
+  const onRequest = jest.fn().mockResolvedValue({ statusCode: 200, body: 'ok' })
+  registerHttpApiRoutes({
+    server,
+    serverless: makeServerless({
+      myFn: {
+        events: [{ httpApi: '*' }],
+      },
+    }),
+    stage: 'dev',
+    domainName: 'localhost:3000',
+    onRequest,
+  })
+  await server.start()
+  try {
+    const r1 = await server.inject({ method: 'GET', url: '/anything' })
+    const r2 = await server.inject({ method: 'POST', url: '/other/path' })
+    expect(r1.statusCode).toBe(200)
+    expect(r2.statusCode).toBe(200)
+    expect(onRequest).toHaveBeenCalledTimes(2)
+  } finally {
+    await server.stop({ timeout: 5000 })
+  }
+})
+
+// ---------------------------------------------------------------------------
+// 23. Regression: "GET /ping" still produces a GET Hapi route
+// ---------------------------------------------------------------------------
+
+it('23. regression: "GET /ping" still produces a Hapi GET route', () => {
+  const stub = makeRouteStub()
+  registerHttpApiRoutes({
+    server: stub,
+    serverless: makeServerless({
+      myFn: {
+        events: [{ httpApi: 'GET /ping' }],
+      },
+    }),
+    stage: 'dev',
+    domainName: 'localhost:3000',
+    onRequest: jest.fn(),
+  })
+  expect(stub.routes[0].method).toBe('GET')
+  expect(stub.routes[0].path).toBe('/ping')
+})
