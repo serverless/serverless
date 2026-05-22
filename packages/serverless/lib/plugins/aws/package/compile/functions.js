@@ -26,6 +26,10 @@ const runtimeManagementMap = new Map([
   ['onFunctionUpdate', 'FunctionUpdate'],
   ['manual', 'Manual'],
 ])
+const recursiveLoopMap = new Map([
+  ['allow', 'Allow'],
+  ['terminate', 'Terminate'],
+])
 
 class AwsCompileFunctions {
   constructor(serverless, options) {
@@ -771,7 +775,9 @@ class AwsCompileFunctions {
     }
 
     if (functionObject.recursiveLoop) {
-      functionResource.Properties.RecursiveLoop = functionObject.recursiveLoop
+      functionResource.Properties.RecursiveLoop = recursiveLoopMap.get(
+        functionObject.recursiveLoop.toLowerCase(),
+      )
     }
 
     if (

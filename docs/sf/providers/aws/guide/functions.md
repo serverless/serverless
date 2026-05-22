@@ -501,13 +501,13 @@ functions:
 
 ## Recursive Loop Detection
 
-By default, AWS Lambda [detects and stops recursive invocation loops](https://docs.aws.amazon.com/lambda/latest/dg/invocation-recursion.html) between supported AWS services. To allow recursive loops for a function, set `recursiveLoop` to `Allow`. To explicitly enforce termination (the default behavior), set it to `Terminate`.
+By default, AWS Lambda [detects and stops recursive invocation loops](https://docs.aws.amazon.com/lambda/latest/dg/invocation-recursion.html) between supported AWS services. To allow recursive loops for a function, set `recursiveLoop` to `allow`. To explicitly enforce termination (the default behavior), set it to `terminate`. The value is case-insensitive.
 
 ```yaml
 functions:
   hello:
     handler: handler.hello
-    recursiveLoop: Allow
+    recursiveLoop: allow
 ```
 
 ## VPC Configuration

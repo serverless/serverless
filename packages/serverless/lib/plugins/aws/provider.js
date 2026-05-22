@@ -2775,8 +2775,8 @@ destinations:
               ],
             }),
             recursiveLoop: {
-              description: `Recursive loop detection setting for this function.`,
-              enum: ['Allow', 'Terminate'],
+              description: `Recursive loop detection setting for this function. Case-insensitive.`,
+              anyOf: ['Allow', 'Terminate'].map(caseInsensitive),
             },
             reservedConcurrency: cfValue({
               description: `Reserved concurrency limit for this function.`,
