@@ -11,6 +11,7 @@ import { access } from 'node:fs/promises'
 import { resolve, join } from 'node:path'
 import ServerlessError from '../../../../../serverless-error.js'
 import { FAKE_REGION } from '../constants.js'
+import { getHandlerBaseDir } from '../handler-base-dir.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -167,8 +168,9 @@ export async function startSqsPollers({
   const functions = serverless.service.functions ?? {}
   const providerEnv = serverless.service.provider?.environment ?? {}
 
-  // serviceDir is read lazily inside the subscriber callback (not captured here)
-  // so that bundler plugins that swap serverless.config.servicePath during
+  // getHandlerBaseDir() is called lazily inside the subscriber callback (not
+  // captured here) so that bundler plugins (built-in esbuild or community
+  // serverless-esbuild) that modify servicePath / custom location during
   // before:offline:start are reflected when the first message arrives.
 
   /** @type {(() => void)[]} */
@@ -292,19 +294,16 @@ export async function startSqsPollers({
           memoryLimitInMB: fn.memorySize ?? 1024,
         }
 
-        // Read servicePath lazily each time a message arrives so the
-        // bundler-swapped path (set during before:offline:start) is used.
+        // Read the handler base directory lazily each time a message arrives
+        // so that bundler-swapped paths (built-in esbuild) and community
+        // serverless-esbuild custom locations set during before:offline:start
+        // are both reflected correctly.
         // Use the synchronous resolver so that runner.invoke() is called
         // within the same synchronous turn — this preserves the store's
         // synchronous notification contract.
-        const currentServiceDir =
-          serverless.serviceDir ??
-          serverless.config?.servicePath ??
-          process.cwd()
-
         const { handlerPath, handlerName } = resolveHandlerSync(
           fn.handler,
-          currentServiceDir,
+          getHandlerBaseDir(serverless),
         )
 
         runner

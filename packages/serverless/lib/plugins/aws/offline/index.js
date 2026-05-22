@@ -25,6 +25,7 @@ import { registerHttpApiRoutes } from './lib/app-server/http-api/route-loader.js
 import { createWatcher } from './lib/watcher.js'
 import { assertAllNodeRuntimes } from './lib/runtime-guard.js'
 import { arnFor } from './lib/provisioner/arn-synth.js'
+import { getHandlerBaseDir } from './lib/handler-base-dir.js'
 
 const logger = log.get(LOG_NAMESPACE)
 
@@ -116,13 +117,15 @@ export default class OfflinePlugin {
     })
 
     // Helper: resolve handler file path (tries .js, .mjs, .cjs extensions).
-    // Reads servicePath fresh each call so bundler-swapped paths are honoured.
+    // Calls getHandlerBaseDir fresh each invocation so that bundler-swapped
+    // paths (built-in esbuild) and community-plugin custom locations
+    // (serverless-esbuild's custom['serverless-offline'].location) are both
+    // honoured after before:offline:start fires.
     async function resolveHandlerPath(relPath) {
-      const currentServicePath =
-        serverless.serviceDir ?? serverless.config?.servicePath ?? process.cwd()
+      const baseDir = getHandlerBaseDir(serverless)
       const extensions = ['.js', '.mjs', '.cjs']
       for (const ext of extensions) {
-        const candidate = resolve(join(currentServicePath, relPath + ext))
+        const candidate = resolve(join(baseDir, relPath + ext))
         try {
           await access(candidate)
           return candidate
@@ -131,7 +134,7 @@ export default class OfflinePlugin {
         }
       }
       // Fall back to .js and let the runner surface the error at invocation time.
-      return resolve(join(currentServicePath, relPath + '.js'))
+      return resolve(join(baseDir, relPath + '.js'))
     }
 
     // Helper: invoke a Lambda function via the runner pool.
@@ -228,14 +231,14 @@ export default class OfflinePlugin {
     await bridge.fireBeforeStart()
 
     // 13. Start the native file watcher AFTER fireBeforeStart so it resolves
-    //     handler paths against the (possibly bundler-swapped) servicePath.
+    //     handler paths against the (possibly bundler-swapped) base directory.
+    //     getHandlerBaseDir() honours both the built-in esbuild swap and the
+    //     community serverless-esbuild custom location contract.
     //     (Auto-disabled when a bundler plugin owns invalidation via
     //     offline:functionsUpdated:cleanup.)
-    const currentServicePath =
-      serverless.serviceDir ?? serverless.config?.servicePath ?? process.cwd()
     const watcher = await createWatcher({
       serverless,
-      servicePath: currentServicePath,
+      servicePath: getHandlerBaseDir(serverless),
       runner,
       logger: log.get('sls:offline:watcher'),
     })
