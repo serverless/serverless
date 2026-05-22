@@ -1,12 +1,11 @@
 /**
  * Central lifecycle owner for sls offline.
  *
- * M0 orchestrator owns only its own start/ready/shutdown logging and a
+ * Owns process lifecycle logging (`starting`, `ready`, `stopping`) and a
  * keep-alive heartbeat that prevents Node from exiting the event loop
- * before a SIGINT/SIGTERM arrives. Later milestones (M1+) introduce
- * long-running resources (Hapi servers, runners, watchers, pollers) that
- * keep the loop alive on their own; this M0 heartbeat becomes redundant
- * but harmless.
+ * before SIGINT/SIGTERM arrives. Long-running resources registered later
+ * (e.g., Hapi servers, runners, watchers) keep the loop alive on their
+ * own; the heartbeat then becomes redundant but harmless.
  *
  * Teardown contract:
  * - Callbacks run in reverse registration order (LIFO).

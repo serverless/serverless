@@ -7,6 +7,7 @@ describe('createOrchestrator', () => {
     const o = createOrchestrator({ logger: { notice: jest.fn() } })
     await o.start({ onReady })
     expect(onReady).toHaveBeenCalledTimes(1)
+    await o.shutdown() // clean up keep-alive
   })
 
   it('shutdown() runs registered teardown callbacks in reverse-registration order', async () => {

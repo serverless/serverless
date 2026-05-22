@@ -11,12 +11,8 @@ const logger = log.get(LOG_NAMESPACE)
  * triggered by HTTP API, REST API, ALB, WebSocket, Schedule, S3, SQS,
  * SNS, and EventBridge events.
  *
- * M0 is the skeleton: command registers, schema is the empty shell
- * (subsequent milestones add keys), boot logs `starting` / `ready`,
- * SIGINT/SIGTERM triggers `stopping` and clean exit.
- *
- * Yields to the community `serverless-offline` plugin when present —
- * Framework's plugin-manager skips this plugin via
+ * Yields to the `serverless-offline` plugin when present in the user's
+ * `plugins:` list — Framework's plugin-manager skips this plugin via
  * `bundledPluginDefinitions.allowCommunityOverride`.
  */
 export default class OfflinePlugin {
@@ -57,10 +53,14 @@ export default class OfflinePlugin {
       },
     })
 
+    let shutdownError
     try {
       await shutdownPromise
+    } catch (err) {
+      shutdownError = err
     } finally {
       await bridge.fireEnd()
     }
+    if (shutdownError) throw shutdownError
   }
 }

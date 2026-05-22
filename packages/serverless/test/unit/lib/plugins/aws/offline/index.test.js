@@ -8,7 +8,6 @@ const makeServerless = () => ({
   },
   getProvider: jest.fn(() => ({ name: 'aws' })),
   pluginManager: {
-    spawn: jest.fn(async () => {}),
     hooks: {},
   },
   service: {
