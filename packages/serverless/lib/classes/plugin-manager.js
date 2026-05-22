@@ -70,6 +70,7 @@ import pluginAxiom from '../plugins/observability/axiom/index.js'
 import pluginPythonRequirements from '../plugins/python/index.js'
 import pluginAwsAppsync from '../plugins/aws/appsync/index.js'
 import pluginAwsBedrockAgentcore from '../plugins/aws/bedrock-agentcore/index.js'
+import pluginAwsOffline from '../plugins/aws/offline/index.js'
 import pluginPrune from '../plugins/prune/index.js'
 import { createRequire } from 'module'
 
@@ -94,6 +95,7 @@ const internalPlugins = [
   pluginAwsInvoke,
   pluginAwsInvokeAgent,
   pluginAwsDev,
+  pluginAwsOffline,
   pluginAwsInfo,
   pluginAwsLogs,
   pluginAwsLogsAgent,
@@ -186,6 +188,11 @@ const bundledPluginDefinitions = [
   {
     module: pluginPrune,
     externalNames: ['serverless-prune-plugin'],
+    allowCommunityOverride: true,
+  },
+  {
+    module: pluginAwsOffline,
+    externalNames: ['serverless-offline'],
     allowCommunityOverride: true,
   },
 ]
