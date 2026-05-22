@@ -1,7 +1,10 @@
 import {
   DEFAULT_APP_PORT,
   DEFAULT_AWS_API_PORT,
+  DEFAULT_HOST,
   DEFAULT_STAGE,
+  DEFAULT_TERMINATE_IDLE_LAMBDA_TIME,
+  DEFAULT_WATCH,
   FAKE_ACCOUNT_ID,
   FAKE_REGION,
   LOG_NAMESPACE,
@@ -24,5 +27,17 @@ describe('offline constants', () => {
 
   it('exposes the log namespace', () => {
     expect(LOG_NAMESPACE).toBe('sls:offline')
+  })
+
+  it('exposes default host', () => {
+    expect(DEFAULT_HOST).toBe('localhost')
+  })
+
+  it('exposes default watch flag', () => {
+    expect(DEFAULT_WATCH).toBe(true)
+  })
+
+  it('exposes default terminate idle lambda time in seconds', () => {
+    expect(DEFAULT_TERMINATE_IDLE_LAMBDA_TIME).toBe(60)
   })
 })

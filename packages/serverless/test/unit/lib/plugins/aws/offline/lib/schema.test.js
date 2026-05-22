@@ -9,10 +9,14 @@ describe('offline schema', () => {
     expect(offlineSchema.additionalProperties).toBe(false)
   })
 
-  it('defines appPort and awsApiPort properties', () => {
+  it('defines all six top-level properties', () => {
     expect(offlineSchema.properties).toEqual({
       awsApiPort: { type: 'integer', minimum: 1, maximum: 65535 },
       appPort: { type: 'integer', minimum: 1, maximum: 65535 },
+      host: { type: 'string' },
+      watch: { type: 'boolean' },
+      noWatch: { type: 'boolean' },
+      terminateIdleLambdaTime: { type: 'integer', minimum: 0 },
     })
   })
 
@@ -38,5 +42,24 @@ describe('offline schema', () => {
       offlineSchema.properties.appPort.minimum,
     )
     expect(3000).toBeLessThanOrEqual(offlineSchema.properties.appPort.maximum)
+  })
+
+  it('defines host as a string property', () => {
+    expect(offlineSchema.properties.host).toEqual({ type: 'string' })
+  })
+
+  it('defines watch as a boolean property', () => {
+    expect(offlineSchema.properties.watch).toEqual({ type: 'boolean' })
+  })
+
+  it('defines noWatch as a boolean property', () => {
+    expect(offlineSchema.properties.noWatch).toEqual({ type: 'boolean' })
+  })
+
+  it('defines terminateIdleLambdaTime as a non-negative integer property', () => {
+    expect(offlineSchema.properties.terminateIdleLambdaTime).toEqual({
+      type: 'integer',
+      minimum: 0,
+    })
   })
 })

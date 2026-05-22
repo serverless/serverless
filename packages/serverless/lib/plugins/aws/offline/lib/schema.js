@@ -13,6 +13,10 @@ const offlineSchema = {
   properties: {
     awsApiPort: { type: 'integer', minimum: 1, maximum: 65535 },
     appPort: { type: 'integer', minimum: 1, maximum: 65535 },
+    host: { type: 'string' },
+    watch: { type: 'boolean' },
+    noWatch: { type: 'boolean' },
+    terminateIdleLambdaTime: { type: 'integer', minimum: 0 },
   },
 }
 
