@@ -240,6 +240,7 @@ commands.set('offline', {
   groupName: 'main',
   usage:
     'Run your Lambda handlers locally with API Gateway, ALB, WebSocket, S3, SQS, SNS, EventBridge, and Schedule event sources emulated in-process.',
+  options: {},
   lifecycleEvents: ['offline'],
   serviceDependencyMode: 'required',
   hasAwsExtension: true,

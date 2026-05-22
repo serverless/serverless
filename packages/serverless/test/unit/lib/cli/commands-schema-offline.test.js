@@ -27,4 +27,8 @@ describe('commands-schema offline entry', () => {
   it('belongs to the main command group in `sls help` output', () => {
     expect(entry.groupName).toBe('main')
   })
+
+  it('provides an (initially empty) options object', () => {
+    expect(entry.options).toEqual({})
+  })
 })
