@@ -251,6 +251,9 @@ export async function startSqsPollers({
           // inflates this into getRemainingTimeInMillis().
           deadlineMs: Date.now() + timeoutMs,
           callbackWaitsForEmptyEventLoop: true,
+          // Pass through memorySize so the worker can set memoryLimitInMB and
+          // the corresponding AWS_LAMBDA_FUNCTION_MEMORY_SIZE env var correctly.
+          memoryLimitInMB: fn.memorySize ?? 1024,
         }
 
         runner

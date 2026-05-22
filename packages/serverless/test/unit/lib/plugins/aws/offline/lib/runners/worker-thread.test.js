@@ -202,4 +202,317 @@ describe('createWorkerThreadRunner', () => {
   it('terminate() resolves without throwing', async () => {
     await expect(runner.terminate()).resolves.toBeUndefined()
   })
+
+  // -------------------------------------------------------------------------
+  // M1-T5: Full Lambda context shape
+  // -------------------------------------------------------------------------
+
+  // 10. functionVersion defaults to '$LATEST'
+  it('context includes functionVersion === "$LATEST" when not provided', async () => {
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async (event, ctx) => ctx.functionVersion',
+    )
+    const result = await runner.invoke({
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'myFn',
+        awsRequestId: 'req-1',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:myFn',
+      },
+    })
+    expect(result).toBe('$LATEST')
+  })
+
+  // 11. memoryLimitInMB is a string
+  it('context includes memoryLimitInMB as a STRING', async () => {
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async (event, ctx) => ({ val: ctx.memoryLimitInMB, type: typeof ctx.memoryLimitInMB })',
+    )
+    const result = await runner.invoke({
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'myFn',
+        awsRequestId: 'req-1',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:myFn',
+        memoryLimitInMB: 256,
+      },
+    })
+    expect(result.val).toBe('256')
+    expect(result.type).toBe('string')
+  })
+
+  // 12. memoryLimitInMB defaults to '1024' when not provided
+  it('context memoryLimitInMB defaults to "1024" string when not provided', async () => {
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async (event, ctx) => ctx.memoryLimitInMB',
+    )
+    const result = await runner.invoke({
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'myFn',
+        awsRequestId: 'req-1',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:myFn',
+      },
+    })
+    expect(result).toBe('1024')
+  })
+
+  // 13. logGroupName defaults to /aws/lambda/<functionName>
+  it('context includes logGroupName defaulting to /aws/lambda/<functionName>', async () => {
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async (event, ctx) => ctx.logGroupName',
+    )
+    const result = await runner.invoke({
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'myFn',
+        awsRequestId: 'req-1',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:myFn',
+      },
+    })
+    expect(result).toBe('/aws/lambda/myFn')
+  })
+
+  // 14. logStreamName matches expected format
+  it('context includes logStreamName matching YYYY/MM/DD/[$LATEST]<hex>', async () => {
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async (event, ctx) => ctx.logStreamName',
+    )
+    const result = await runner.invoke({
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'myFn',
+        awsRequestId: 'req-1',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:myFn',
+      },
+    })
+    expect(result).toMatch(/^\d{4}\/\d{2}\/\d{2}\/\[\$LATEST\][0-9a-f]+$/)
+  })
+
+  // 15. identity and clientContext are null
+  it('context includes identity: null and clientContext: null', async () => {
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async (event, ctx) => ({ identity: ctx.identity, clientContext: ctx.clientContext })',
+    )
+    const result = await runner.invoke({
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'myFn',
+        awsRequestId: 'req-1',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:myFn',
+      },
+    })
+    expect(result.identity).toBeNull()
+    expect(result.clientContext).toBeNull()
+  })
+
+  // 16. context.done(null, value) posts a success message
+  it('context.done(null, value) resolves the invocation with that value', async () => {
+    const handlerPath = await writeTmpHandler(
+      'export function handler(event, context) { context.done(null, { legacy: true }) }',
+    )
+    const result = await runner.invoke({
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'myFn',
+        awsRequestId: 'req-1',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:myFn',
+      },
+    })
+    expect(result).toEqual({ legacy: true })
+  })
+
+  // 17. context.succeed(value) resolves the invocation
+  it('context.succeed(value) resolves the invocation with that value', async () => {
+    const handlerPath = await writeTmpHandler(
+      'export function handler(event, context) { context.succeed({ via: "succeed" }) }',
+    )
+    const result = await runner.invoke({
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'myFn',
+        awsRequestId: 'req-1',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:myFn',
+      },
+    })
+    expect(result).toEqual({ via: 'succeed' })
+  })
+
+  // 18. context.fail(error) rejects the invocation
+  it('context.fail(error) rejects the invocation with that error', async () => {
+    const handlerPath = await writeTmpHandler(
+      "export function handler(event, context) { context.fail(new Error('ctx-fail')) }",
+    )
+    await expect(
+      runner.invoke({
+        handlerPath,
+        handlerName: 'handler',
+        event: {},
+        context: {
+          functionName: 'myFn',
+          awsRequestId: 'req-1',
+          invokedFunctionArn:
+            'arn:aws:lambda:us-east-1:000000000000:function:myFn',
+        },
+      }),
+    ).rejects.toMatchObject({ message: 'ctx-fail' })
+  })
+
+  // 19. Only first settle wins — context.done called twice should only resolve once
+  it('calling done twice only settles once (first call wins)', async () => {
+    const handlerPath = await writeTmpHandler(
+      'export function handler(event, context) { context.done(null, "first"); context.done(null, "second") }',
+    )
+    const result = await runner.invoke({
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'myFn',
+        awsRequestId: 'req-1',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:myFn',
+      },
+    })
+    expect(result).toBe('first')
+  })
+
+  // 20. AWS_LAMBDA_FUNCTION_NAME visible inside the worker
+  it('AWS_LAMBDA_FUNCTION_NAME env var is visible inside the handler', async () => {
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async () => process.env.AWS_LAMBDA_FUNCTION_NAME',
+    )
+    const result = await runner.invoke({
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'myLambdaFn',
+        awsRequestId: 'req-1',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:myLambdaFn',
+      },
+    })
+    expect(result).toBe('myLambdaFn')
+  })
+
+  // 21. AWS_LAMBDA_FUNCTION_MEMORY_SIZE env var
+  it('AWS_LAMBDA_FUNCTION_MEMORY_SIZE env var matches memoryLimitInMB string', async () => {
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async () => process.env.AWS_LAMBDA_FUNCTION_MEMORY_SIZE',
+    )
+    const result = await runner.invoke({
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'myFn',
+        awsRequestId: 'req-1',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:myFn',
+        memoryLimitInMB: 512,
+      },
+    })
+    expect(result).toBe('512')
+  })
+
+  // 22. AWS_LAMBDA_FUNCTION_VERSION is '$LATEST'
+  it('AWS_LAMBDA_FUNCTION_VERSION env var is "$LATEST"', async () => {
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async () => process.env.AWS_LAMBDA_FUNCTION_VERSION',
+    )
+    const result = await runner.invoke({
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'myFn',
+        awsRequestId: 'req-1',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:myFn',
+      },
+    })
+    expect(result).toBe('$LATEST')
+  })
+
+  // 23. AWS_LAMBDA_INVOKED_FUNCTION_ARN matches invokedFunctionArn
+  it('AWS_LAMBDA_INVOKED_FUNCTION_ARN matches invokedFunctionArn context field', async () => {
+    const arn = 'arn:aws:lambda:us-east-1:000000000000:function:myFn'
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async () => process.env.AWS_LAMBDA_INVOKED_FUNCTION_ARN',
+    )
+    const result = await runner.invoke({
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'myFn',
+        awsRequestId: 'req-1',
+        invokedFunctionArn: arn,
+      },
+    })
+    expect(result).toBe(arn)
+  })
+
+  // 24. AWS_LAMBDA_LOG_GROUP_NAME matches expected default
+  it('AWS_LAMBDA_LOG_GROUP_NAME env var matches /aws/lambda/<functionName>', async () => {
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async () => process.env.AWS_LAMBDA_LOG_GROUP_NAME',
+    )
+    const result = await runner.invoke({
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'myFn',
+        awsRequestId: 'req-1',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:myFn',
+      },
+    })
+    expect(result).toBe('/aws/lambda/myFn')
+  })
+
+  // 25. AWS_LAMBDA_LOG_STREAM_NAME matches expected format
+  it('AWS_LAMBDA_LOG_STREAM_NAME env var matches YYYY/MM/DD/[$LATEST]<hex> format', async () => {
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async () => process.env.AWS_LAMBDA_LOG_STREAM_NAME',
+    )
+    const result = await runner.invoke({
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'myFn',
+        awsRequestId: 'req-1',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:myFn',
+      },
+    })
+    expect(result).toMatch(/^\d{4}\/\d{2}\/\d{2}\/\[\$LATEST\][0-9a-f]+$/)
+  })
 })

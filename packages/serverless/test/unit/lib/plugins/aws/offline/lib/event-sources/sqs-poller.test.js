@@ -492,3 +492,61 @@ it('11. context contains numeric deadlineMs and no getRemainingTimeInMillis func
   // The producer must NOT attach a function (functions cannot be cloned)
   expect(context.getRemainingTimeInMillis).toBeUndefined()
 })
+
+// ---------------------------------------------------------------------------
+// 12. M1-T5: memoryLimitInMB is passed from fn.memorySize
+// ---------------------------------------------------------------------------
+
+it('12. context.memoryLimitInMB is set from fn.memorySize', async () => {
+  const store = createQueueStore()
+  store.ensureQueue(QUEUE_URL)
+
+  const registry = makeRegistry()
+  const invokeMock = jest.fn().mockResolvedValue(undefined)
+  const runner = makeRunner(invokeMock)
+  const logger = makeLogger()
+
+  const serverless = makeServerless({
+    functions: {
+      myFn: {
+        handler: 'src/handler.main',
+        memorySize: 512,
+        events: [{ sqs: { arn: QUEUE_ARN } }],
+      },
+    },
+  })
+
+  await startSqsPollers({ serverless, registry, store, runner, logger })
+
+  store.send(QUEUE_URL, 'mem-test', {})
+
+  const { context } = invokeMock.mock.calls[0][0]
+  expect(context.memoryLimitInMB).toBe(512)
+})
+
+it('13. context.memoryLimitInMB defaults to 1024 when fn.memorySize is not set', async () => {
+  const store = createQueueStore()
+  store.ensureQueue(QUEUE_URL)
+
+  const registry = makeRegistry()
+  const invokeMock = jest.fn().mockResolvedValue(undefined)
+  const runner = makeRunner(invokeMock)
+  const logger = makeLogger()
+
+  const serverless = makeServerless({
+    functions: {
+      myFn: {
+        handler: 'src/handler.main',
+        // no memorySize
+        events: [{ sqs: { arn: QUEUE_ARN } }],
+      },
+    },
+  })
+
+  await startSqsPollers({ serverless, registry, store, runner, logger })
+
+  store.send(QUEUE_URL, 'mem-default-test', {})
+
+  const { context } = invokeMock.mock.calls[0][0]
+  expect(context.memoryLimitInMB).toBe(1024)
+})
