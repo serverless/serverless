@@ -236,6 +236,14 @@ commands.set('dev', {
   hasAwsExtension: true,
 })
 
+commands.set('offline', {
+  usage:
+    'Run your Lambda handlers locally with API Gateway, ALB, WebSocket, S3, SQS, SNS, EventBridge, and Schedule event sources emulated in-process.',
+  lifecycleEvents: ['offline'],
+  serviceDependencyMode: 'required',
+  hasAwsExtension: true,
+})
+
 commands.set('invoke', {
   groupName: 'main',
   usage: 'Invoke a deployed function or agent',
