@@ -1,4 +1,24 @@
+import path from 'path'
+import fsp from 'fs/promises'
+import { fileURLToPath } from 'url'
 import ServerlessError from '../../../../../serverless-error.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+// Path to Framework's static core CFN template.
+// compile-driver.js lives at lib/plugins/aws/offline/lib/provisioner/
+// The template lives at  lib/plugins/aws/package/lib/core-cloudformation-template.json
+// Segments up: provisioner/ -> lib/ -> offline/ -> aws/ (3 x ../) then package/lib/...
+const CORE_TEMPLATE_PATH = path.resolve(
+  __dirname,
+  '../../../package/lib/core-cloudformation-template.json',
+)
+
+async function loadCoreTemplate() {
+  const raw = await fsp.readFile(CORE_TEMPLATE_PATH, 'utf8')
+  return JSON.parse(raw)
+}
 
 /**
  * Drives the curated subset of Framework's `package:*` lifecycle events needed
@@ -6,16 +26,24 @@ import ServerlessError from '../../../../../serverless-error.js'
  * memory, without triggering deploy-only side effects such as S3 artifact
  * uploads, CloudFormation API calls for stack inspection, or function zipping.
  *
+ * ## Pre-step: load core CFN template directly from disk
+ *
+ * Before running any lifecycle event, `driveCompile` reads
+ * `lib/plugins/aws/package/lib/core-cloudformation-template.json` from disk and
+ * assigns it to `serverless.service.provider.compiledCloudFormationTemplate`.
+ * This replaces the `package:initialize` event, which was previously in the
+ * curated list but is now excluded because its registered hook in `AwsPackage`
+ * calls `setBucketName()` — an SSM `GetParameter` call for
+ * `/serverless-framework/deployment/s3-bucket` — before calling
+ * `generateCoreTemplate()`. That SSM call is fatal when the parameter doesn't
+ * exist or the user lacks `ssm:GetParameter` permission, which is the common
+ * case in offline use. By reading the JSON file directly we get the same
+ * template initialisation with pure file I/O and no AWS API dependency.
+ *
  * ## Chosen lifecycle event subset (invoked in order)
  *
  * | Event name                                             | Why included                                                                                     |
  * |--------------------------------------------------------|--------------------------------------------------------------------------------------------------|
- * | `package:initialize`                                   | Calls `generateCoreTemplate()`, which reads the static core CFN JSON and sets                    |
- * |                                                        | `compiledCloudFormationTemplate` on the service. The `AwsPackage` plugin's hook also             |
- * |                                                        | calls `setBucketName()` — a CloudFormation `describeStackResource` call — before                 |
- * |                                                        | `generateCoreTemplate`. That call's result is irrelevant for offline use (the bucket             |
- * |                                                        | is never created locally) and its catch block handles "stack does not exist" gracefully.         |
- * |                                                        | The call is unavoidable because both operations live in the same registered hook function.       |
  * | `package:setupProviderConfiguration`                   | Calls `mergeIamTemplates()`, which adds CloudWatch log group and IAM execution-role              |
  * |                                                        | resources to the template. These resources appear in the compiled template and are               |
  * |                                                        | needed by the resource provisioner to enumerate all declared resources.                          |
@@ -39,6 +67,10 @@ import ServerlessError from '../../../../../serverless-error.js'
  *
  * | Event name                           | Why excluded                                                                                       |
  * |--------------------------------------|----------------------------------------------------------------------------------------------------|
+ * | `package:initialize`                 | Its hook calls `setBucketName()` (SSM `GetParameter` for                                           |
+ * |                                      | `/serverless-framework/deployment/s3-bucket`) before `generateCoreTemplate()`. The SSM call       |
+ * |                                      | crashes when the parameter is absent or the caller lacks `ssm:GetParameter` permission.           |
+ * |                                      | Replaced by a direct file-system read of the core CFN template (see Pre-step above).              |
  * | `package:compileFunctions`           | Crashes offline: reads `function.package.artifact` (S3 URI from deploy upload step) when          |
  * |                                      | `function.package` is undefined. Re-add once artifact handling is decoupled.                      |
  * | `package:compileEvents`              | Depends on artifact metadata written by `compileFunctions`; same root cause.                      |
@@ -58,6 +90,18 @@ import ServerlessError from '../../../../../serverless-error.js'
 export async function driveCompile(serverless) {
   const { pluginManager } = serverless
 
+  // Pre-step: load the core CFN template directly from disk to avoid the SSM
+  // GetParameter call that package:initialize triggers via setBucketName().
+  // We merge any Resources already present on the existing template (e.g. from
+  // test stubs or a prior partial compile) into the freshly-loaded core template
+  // so they are preserved alongside the core template structure.
+  const coreTemplate = await loadCoreTemplate()
+  const existing = serverless.service.provider.compiledCloudFormationTemplate
+  const existingResources =
+    existing && typeof existing === 'object' ? (existing.Resources ?? {}) : {}
+  coreTemplate.Resources = { ...coreTemplate.Resources, ...existingResources }
+  serverless.service.provider.compiledCloudFormationTemplate = coreTemplate
+
   /**
    * The ordered list of lifecycle event names that constitute a complete,
    * side-effect-free CFN template synthesis. Each name maps to an entry in
@@ -66,9 +110,11 @@ export async function driveCompile(serverless) {
    *
    * `runHooks` iterates those arrays and awaits each handler in registration order,
    * which mirrors the Framework's own `invoke` implementation exactly.
+   *
+   * Note: `package:initialize` is intentionally absent — replaced by the direct
+   * file-read pre-step above. See JSDoc for full rationale.
    */
   const compileEvents = [
-    'package:initialize',
     'package:setupProviderConfiguration',
     'package:compileLayers',
     // NOTE: package:compileFunctions and package:compileEvents are intentionally
