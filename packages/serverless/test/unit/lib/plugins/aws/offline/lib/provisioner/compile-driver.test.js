@@ -111,8 +111,8 @@ describe('driveCompile', () => {
       'package:initialize',
       'package:setupProviderConfiguration',
       'package:compileLayers',
-      'package:compileFunctions',
-      'package:compileEvents',
+      // package:compileFunctions and package:compileEvents are intentionally skipped
+      // (artifact-dependent; see D-12). They must NOT appear in calls.
       'aws:package:finalize:addExportNameForOutputs',
       'aws:package:finalize:mergeCustomProviderResources',
       'aws:package:finalize:stripNullPropsFromTemplateResources',
@@ -131,8 +131,9 @@ describe('driveCompile', () => {
 
     const sentinelHook = { hook: jest.fn(), pluginName: 'test-plugin' }
     const pluginManager = makePluginManager()
-    // Pre-populate one hook to verify it is forwarded
-    pluginManager.hooks['package:compileFunctions'] = [sentinelHook]
+    // Pre-populate one hook to verify it is forwarded (use a curated event, not
+    // the skipped compileFunctions — see D-12)
+    pluginManager.hooks['package:compileLayers'] = [sentinelHook]
 
     const runHooksSpy = jest.fn().mockResolvedValue(undefined)
     pluginManager.runHooks = runHooksSpy
@@ -145,15 +146,38 @@ describe('driveCompile', () => {
     await driveCompile(serverless)
 
     // Verify the sentinel hook array was passed for the primary event name
-    const matchingCall = runHooksSpy.mock.calls.find(([name, arr]) =>
-      name === 'package:compileFunctions' && arr === sentinelHook
-        ? false
-        : name === 'package:compileFunctions',
-    )
-
-    expect(runHooksSpy).toHaveBeenCalledWith('package:compileFunctions', [
+    expect(runHooksSpy).toHaveBeenCalledWith('package:compileLayers', [
       sentinelHook,
     ])
+  })
+
+  it('3c. does NOT invoke package:compileFunctions or package:compileEvents (artifact-dependent, D-12)', async () => {
+    const template = { Resources: { Q: { Type: 'AWS::SQS::Queue' } } }
+    const calls = []
+
+    const runHooks = jest.fn(async (name) => {
+      calls.push(name)
+    })
+
+    const serverless = makeServerless({
+      compiledTemplate: template,
+      pluginManager: makePluginManager({ runHooks }),
+    })
+
+    await driveCompile(serverless)
+
+    const skipped = [
+      'package:compileFunctions',
+      'before:package:compileFunctions',
+      'after:package:compileFunctions',
+      'package:compileEvents',
+      'before:package:compileEvents',
+      'after:package:compileEvents',
+    ]
+
+    for (const name of skipped) {
+      expect(calls).not.toContain(name)
+    }
   })
 
   // -------------------------------------------------------------------------

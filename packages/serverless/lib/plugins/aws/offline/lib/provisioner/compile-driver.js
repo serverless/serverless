@@ -20,12 +20,6 @@ import ServerlessError from '../../../../../serverless-error.js'
  * |                                                        | resources to the template. These resources appear in the compiled template and are               |
  * |                                                        | needed by the resource provisioner to enumerate all declared resources.                          |
  * | `package:compileLayers`                                | Compiles Lambda layers declared in `layers:` into `AWS::Lambda::LayerVersion` resources.        |
- * | `package:compileFunctions`                             | Compiles each function declared in `functions:` into `AWS::Lambda::Function` resources.         |
- * |                                                        | Also triggers `before:package:compileFunctions` hooks (e.g., artifact dir generation,           |
- * |                                                        | CloudFront function preparation). These are pure template mutations — no I/O.                   |
- * | `package:compileEvents`                                | All event-source plugins (SQS, SNS, S3, EventBridge, HTTP API, …) hook here to add             |
- * |                                                        | their trigger resources (e.g., `AWS::SQS::Queue`, `AWS::Lambda::EventSourceMapping`).           |
- * |                                                        | This is the primary event that populates event-driven resource declarations.                     |
  * | `aws:package:finalize:addExportNameForOutputs`         | Adds `Export.Name` to stack Outputs so cross-stack references resolve correctly.                 |
  * |                                                        | Pure in-memory template mutation; no I/O.                                                       |
  * | `aws:package:finalize:mergeCustomProviderResources`    | Merges the user's `resources:` block (custom CFN resources and extensions) into the             |
@@ -34,10 +28,29 @@ import ServerlessError from '../../../../../serverless-error.js'
  * | `aws:package:finalize:stripNullPropsFromTemplateResources` | Removes properties whose value is `null` (a common pattern for conditional resources).      |
  * |                                                        | Keeps the template clean for downstream consumers. Pure in-memory operation.                    |
  *
+ * ## Known limitation (M0.5)
+ *
+ * `AWS::Lambda::Function` resources and event-source mappings are **not** lifted into the
+ * compiled template. `package:compileFunctions` reads `function.package.artifact` (an S3 URI
+ * written by the deploy artifact-upload step). Offline, we never package or upload —
+ * `function.package` is undefined, causing a crash. `package:compileEvents` similarly
+ * depends on artifact metadata for several event-source compilers (see D-12).
+ *
+ * For M0.5 this is acceptable: the SQS poller (T10) walks `service.functions` directly and
+ * does not need `AWS::Lambda::Function` resources in the template. Resources declared
+ * directly under `resources:` are still merged via `aws:package:finalize:mergeCustomProviderResources`.
+ *
+ * **M1+ follow-up:** Once handler-artifact resolution is decoupled from `package.artifact`
+ * (or a stub artifact is synthesized before compile), re-add `package:compileFunctions` and
+ * `package:compileEvents` to the list below. This file is the only place that needs updating.
+ *
  * ## Intentionally excluded events
  *
  * | Event name                           | Why excluded                                                                                       |
  * |--------------------------------------|----------------------------------------------------------------------------------------------------|
+ * | `package:compileFunctions`           | Crashes offline: reads `function.package.artifact` (S3 URI from deploy upload step) when          |
+ * |                                      | `function.package` is undefined. See D-12. Re-add in M1+ once artifact handling is in place.      |
+ * | `package:compileEvents`              | Depends on artifact metadata written by `compileFunctions`; same root cause. See D-12.            |
  * | `package:cleanup`                    | Deletes the `.serverless/` working directory via `aws:common:cleanupTempDir`. Destructive I/O.     |
  * | `package:createDeploymentArtifacts`  | Zips function code into deployment artifacts. Pure I/O, not template synthesis.                    |
  * | `aws:package:finalize:saveServiceState` | Writes the compiled template to `.serverless/cloudformation-template.json`, validates it,        |
@@ -67,8 +80,9 @@ export async function driveCompile(serverless) {
     'package:initialize',
     'package:setupProviderConfiguration',
     'package:compileLayers',
-    'package:compileFunctions',
-    'package:compileEvents',
+    // NOTE: package:compileFunctions and package:compileEvents are intentionally
+    // omitted here. See D-12 and the JSDoc above for the full rationale.
+    // M1+: re-add both once artifact handling is decoupled from package.artifact.
     'aws:package:finalize:addExportNameForOutputs',
     'aws:package:finalize:mergeCustomProviderResources',
     'aws:package:finalize:stripNullPropsFromTemplateResources',
@@ -76,8 +90,7 @@ export async function driveCompile(serverless) {
 
   for (const eventName of compileEvents) {
     // Collect before:/after: hooks alongside the primary event hooks so
-    // plugins that use before:/after: hooks (e.g., CloudFront's
-    // `before:package:compileFunctions`) are invoked correctly.
+    // plugins that use before:/after: hooks are invoked correctly.
     const before = pluginManager.hooks[`before:${eventName}`] || []
     const at = pluginManager.hooks[eventName] || []
     const after = pluginManager.hooks[`after:${eventName}`] || []
