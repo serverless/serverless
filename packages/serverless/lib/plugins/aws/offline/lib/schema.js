@@ -10,7 +10,10 @@
 const offlineSchema = {
   type: 'object',
   additionalProperties: false,
-  properties: {},
+  properties: {
+    awsApiPort: { type: 'integer', minimum: 1, maximum: 65535 },
+    appPort: { type: 'integer', minimum: 1, maximum: 65535 },
+  },
 }
 
 export default offlineSchema
