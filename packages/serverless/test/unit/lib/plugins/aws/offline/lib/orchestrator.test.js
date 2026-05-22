@@ -54,4 +54,25 @@ describe('createOrchestrator', () => {
     await expect(o.shutdown()).rejects.toThrow('boom')
     expect(calls).toEqual(['c', 'boom', 'a'])
   })
+
+  it('clears the keep-alive timer on shutdown so the event loop can exit', async () => {
+    // Capture the timer handle by spying setInterval / clearInterval
+    const realSetInterval = global.setInterval
+    const realClearInterval = global.clearInterval
+    const setSpy = jest.fn((fn, ms) => realSetInterval(fn, ms))
+    const clearSpy = jest.fn((h) => realClearInterval(h))
+    global.setInterval = setSpy
+    global.clearInterval = clearSpy
+    try {
+      const o = createOrchestrator({ logger: { notice: jest.fn() } })
+      await o.start({ onReady: () => {} })
+      expect(setSpy).toHaveBeenCalledTimes(1)
+      await o.shutdown()
+      expect(clearSpy).toHaveBeenCalledTimes(1)
+      expect(clearSpy).toHaveBeenCalledWith(setSpy.mock.results[0].value)
+    } finally {
+      global.setInterval = realSetInterval
+      global.clearInterval = realClearInterval
+    }
+  })
 })

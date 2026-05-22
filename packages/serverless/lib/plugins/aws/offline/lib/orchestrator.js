@@ -1,15 +1,15 @@
 /**
  * Central lifecycle owner for sls offline.
  *
- * M0 orchestrator owns only its own start/ready/shutdown logging. Later
- * milestones register long-running pieces (HTTP server, AWS-API server,
- * runners, watchers, pollers) by appending teardown callbacks via
- * `onShutdown()`. SIGINT/SIGTERM handlers (wired in index.js) call
- * `shutdown()` once.
+ * M0 orchestrator owns only its own start/ready/shutdown logging and a
+ * keep-alive heartbeat that prevents Node from exiting the event loop
+ * before a SIGINT/SIGTERM arrives. Later milestones (M1+) introduce
+ * long-running resources (Hapi servers, runners, watchers, pollers) that
+ * keep the loop alive on their own; this M0 heartbeat becomes redundant
+ * but harmless.
  *
  * Teardown contract:
- * - Callbacks run in reverse registration order (LIFO) so dependencies
- *   tear down after their dependents.
+ * - Callbacks run in reverse registration order (LIFO).
  * - If a callback throws, remaining callbacks still run; the first error
  *   is re-thrown after all teardown completes.
  * - shutdown() is idempotent — calling it twice runs teardown once.
@@ -17,10 +17,15 @@
 export function createOrchestrator({ logger }) {
   const teardowns = []
   let didShutdown = false
+  let keepAlive = null
 
   return {
     async start({ onReady }) {
       logger.notice('starting')
+      // Keep the event loop alive while we wait for a shutdown signal.
+      // The interval body is a no-op; the interval handle itself is what
+      // anchors the loop. Long delay → negligible CPU cost.
+      keepAlive = setInterval(() => {}, 1 << 30)
       await onReady()
       logger.notice('ready')
     },
@@ -33,6 +38,10 @@ export function createOrchestrator({ logger }) {
       if (didShutdown) return
       didShutdown = true
       logger.notice('stopping')
+      if (keepAlive) {
+        clearInterval(keepAlive)
+        keepAlive = null
+      }
       let firstError
       for (let i = teardowns.length - 1; i >= 0; i--) {
         try {
