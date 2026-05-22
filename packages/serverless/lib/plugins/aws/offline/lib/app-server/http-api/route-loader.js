@@ -1,0 +1,230 @@
+/**
+ * HTTP API route loader for the offline app server.
+ *
+ * Walks `serverless.service.functions[*].events[].httpApi`, translates AWS
+ * API Gateway path templates to Hapi path syntax, and registers Hapi route
+ * handlers for each HTTP API event.
+ */
+
+import { buildHttpApiV2Event } from './event-factory.js'
+
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * HTTP methods that cannot carry a request body.  Hapi refuses to set payload
+ * options on these methods, so we skip the payload configuration for them.
+ *
+ * @type {Set<string>}
+ */
+const NO_BODY_METHODS = new Set(['GET', 'HEAD', 'DELETE', 'OPTIONS', 'TRACE'])
+
+/**
+ * Normalize a raw `httpApi` event declaration to `{ method, path }`.
+ *
+ * Framework supports two YAML shapes:
+ *  - String:  `'GET /users/{id}'`
+ *  - Object:  `{ method: 'get', path: '/users/{id}' }`
+ *
+ * @param {string | { method: string, path: string }} httpApi
+ * @returns {{ method: string, path: string }}
+ */
+function normalizeHttpApiEvent(httpApi) {
+  if (typeof httpApi === 'string') {
+    const spaceIndex = httpApi.indexOf(' ')
+    const method = httpApi.slice(0, spaceIndex).toUpperCase()
+    const path = httpApi.slice(spaceIndex + 1)
+    return { method, path }
+  }
+
+  return {
+    method: httpApi.method.toUpperCase(),
+    path: httpApi.path,
+  }
+}
+
+/**
+ * Map the normalized method to the Hapi method.
+ *
+ * APIGW uses `'*'` and `'ANY'` for catch-all; Hapi uses `'*'`.
+ *
+ * @param {string} method  Uppercased method string.
+ * @returns {string}
+ */
+function toHapiMethod(method) {
+  if (method === 'ANY' || method === '*') return '*'
+  return method
+}
+
+/**
+ * Translate an APIGW path template to a Hapi path template.
+ *
+ * APIGW greedy proxy `{proxy+}` maps to Hapi catch-all `{any*}`.
+ * All other `{param}` placeholders are identical in both syntaxes.
+ *
+ * @param {string} apigwPath  The original APIGW path (e.g. `/api/{proxy+}`).
+ * @returns {string}  The Hapi path (e.g. `/api/{any*}`).
+ */
+function toHapiPath(apigwPath) {
+  return apigwPath.replace(/\{proxy\+\}/g, '{any*}')
+}
+
+/**
+ * Translate an AWS Lambda HTTP API v2 response to a Hapi response object.
+ *
+ * Supported result shapes:
+ *  - `null` / `undefined`                     → 200, empty body
+ *  - `string`                                 → 200, text/plain
+ *  - Plain object without `statusCode`        → 200, JSON-serialized, application/json
+ *  - Shaped object `{ statusCode, body, headers?, cookies?, isBase64Encoded? }`
+ *
+ * @param {unknown} result       The value returned by the Lambda handler.
+ * @param {import('@hapi/hapi').ResponseToolkit} h  Hapi response toolkit.
+ * @returns {import('@hapi/hapi').ResponseObject}
+ */
+function formatLambdaResponseAsHapi(result, h) {
+  // null / undefined → empty 200
+  if (result === null || result === undefined) {
+    return h.response('').code(200)
+  }
+
+  // Plain string → 200 text/plain
+  if (typeof result === 'string') {
+    return h.response(result).code(200).type('text/plain')
+  }
+
+  // Object without statusCode → 200 application/json
+  if (typeof result === 'object' && result.statusCode === undefined) {
+    return h.response(JSON.stringify(result)).code(200).type('application/json')
+  }
+
+  // Shaped Lambda response
+  const { statusCode, body, headers, cookies, isBase64Encoded } = result
+
+  let responseBody = body ?? ''
+
+  if (isBase64Encoded === true && typeof responseBody === 'string') {
+    responseBody = Buffer.from(responseBody, 'base64')
+  }
+
+  const response = h.response(responseBody).code(statusCode)
+
+  if (headers) {
+    for (const [name, value] of Object.entries(headers)) {
+      response.header(name, value)
+    }
+  }
+
+  if (Array.isArray(cookies)) {
+    for (const cookie of cookies) {
+      response.header('set-cookie', cookie, { append: true })
+    }
+  }
+
+  return response
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+/**
+ * Register HTTP API routes on a Hapi server instance.
+ *
+ * Walks `serverless.service.functions`, finds all `httpApi` events, translates
+ * APIGW paths to Hapi paths, and registers a Hapi route handler for each one.
+ * The handler builds an APIGW HTTP API v2.0 event via `buildHttpApiV2Event`
+ * and forwards it to `onRequest`.
+ *
+ * Route registration must happen before `server.start()`.
+ *
+ * @param {object} opts
+ * @param {import('@hapi/hapi').Server} opts.server
+ *   A Hapi server instance (started or unstarted).
+ * @param {object} opts.serverless
+ *   Framework's serverless instance. `service.functions` is walked.
+ * @param {string} opts.stage
+ *   API Gateway stage name (e.g. `'dev'`).
+ * @param {string} opts.domainName
+ *   Host and port string (e.g. `'localhost:3000'`).
+ * @param {(functionKey: string, event: object) => Promise<unknown>} opts.onRequest
+ *   Async callback invoked for every incoming HTTP request. Receives the
+ *   function key and the APIGW v2.0 event; returns the Lambda response shape.
+ */
+export function registerHttpApiRoutes({
+  server,
+  serverless,
+  stage,
+  domainName,
+  onRequest,
+}) {
+  const functions = serverless.service.functions ?? {}
+
+  for (const [functionKey, fn] of Object.entries(functions)) {
+    const events = fn.events ?? []
+
+    for (const eventEntry of events) {
+      if (!Object.prototype.hasOwnProperty.call(eventEntry, 'httpApi')) continue
+
+      const { method: rawMethod, path: apigwPath } = normalizeHttpApiEvent(
+        eventEntry.httpApi,
+      )
+
+      const hapiMethod = toHapiMethod(rawMethod)
+      const hapiPath = toHapiPath(apigwPath)
+
+      // Capture for the closure — `apigwPath` is used in the event factory so
+      // `routeKey` reflects the original APIGW template.
+      const routeMeta = {
+        method: rawMethod,
+        path: apigwPath,
+        functionName: functionKey,
+      }
+
+      // Hapi rejects payload options on GET / HEAD routes.  For wildcard ('*')
+      // we include payload options because some methods on that route can carry
+      // a body; GET will simply not parse anything.
+      const payloadOptions =
+        hapiMethod === '*' || !NO_BODY_METHODS.has(hapiMethod)
+          ? {
+              payload: {
+                parse: true,
+                output: 'data',
+                maxBytes: 10 * 1024 * 1024,
+              },
+            }
+          : {}
+
+      server.route({
+        method: hapiMethod,
+        path: hapiPath,
+        options: payloadOptions,
+        async handler(request, h) {
+          try {
+            const event = buildHttpApiV2Event({
+              request,
+              route: routeMeta,
+              stage,
+              domainName,
+            })
+            const result = await onRequest(functionKey, event)
+            return formatLambdaResponseAsHapi(result, h)
+          } catch (err) {
+            if (typeof serverless.serverlessLog === 'function') {
+              serverless.serverlessLog(
+                `Error in ${functionKey}: ${err.message}`,
+              )
+            } else {
+              console.error(`[offline] Error in ${functionKey}:`, err)
+            }
+            return h
+              .response(JSON.stringify({ message: 'Internal Server Error' }))
+              .code(500)
+              .type('application/json')
+          }
+        },
+      })
+    }
+  }
+}
