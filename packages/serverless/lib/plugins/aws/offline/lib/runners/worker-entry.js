@@ -8,6 +8,17 @@ if (environment) {
   Object.assign(process.env, environment)
 }
 
+// Inflate deadlineMs (a structured-clone-safe number) into a real function.
+// Functions cannot survive structured-clone (workerData channel), so producers
+// send a numeric deadline and we reconstruct the closure here.
+const lambdaContext = {
+  ...context,
+  getRemainingTimeInMillis:
+    typeof context?.deadlineMs === 'number'
+      ? () => Math.max(0, context.deadlineMs - Date.now())
+      : () => 0,
+}
+
 try {
   const mod = await import(pathToFileURL(handlerPath).href)
   const handler = mod[handlerName]
@@ -30,7 +41,7 @@ try {
 
     let returnValue
     try {
-      returnValue = handler(event, context, callback)
+      returnValue = handler(event, lambdaContext, callback)
     } catch (syncErr) {
       reject(syncErr)
       return

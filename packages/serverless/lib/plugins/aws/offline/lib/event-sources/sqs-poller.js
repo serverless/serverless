@@ -245,7 +245,10 @@ export async function startSqsPollers({
           functionName: fnName,
           awsRequestId: `offline-${Date.now()}`,
           invokedFunctionArn: `arn:aws:lambda:us-east-1:000000000000:function:${fnName}`,
-          getRemainingTimeInMillis: () => timeoutMs,
+          // Send a numeric deadline instead of a function — functions cannot be
+          // transferred via structured-clone (workerData). The worker entry
+          // inflates this into getRemainingTimeInMillis().
+          deadlineMs: Date.now() + timeoutMs,
           callbackWaitsForEmptyEventLoop: true,
         }
 

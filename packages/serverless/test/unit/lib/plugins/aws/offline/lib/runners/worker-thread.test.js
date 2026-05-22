@@ -116,6 +116,40 @@ describe('createWorkerThreadRunner', () => {
     expect(result).toBe('myFn')
   })
 
+  // 5b. deadlineMs is inflated into getRemainingTimeInMillis in the worker
+  it('deadlineMs is inflated into getRemainingTimeInMillis inside the worker', async () => {
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async (event, context) => ({' +
+        '  type: typeof context.getRemainingTimeInMillis,' +
+        '  value: context.getRemainingTimeInMillis(),' +
+        '})',
+    )
+    const deadlineMs = Date.now() + 60000
+    const result = await runner.invoke({
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: { deadlineMs },
+    })
+    expect(result.type).toBe('function')
+    expect(result.value).toBeGreaterThan(0)
+    expect(result.value).toBeLessThanOrEqual(60000)
+  })
+
+  // 5c. getRemainingTimeInMillis returns 0 when deadlineMs is absent
+  it('getRemainingTimeInMillis returns 0 when deadlineMs is absent', async () => {
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async (event, context) => context.getRemainingTimeInMillis()',
+    )
+    const result = await runner.invoke({
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {},
+    })
+    expect(result).toBe(0)
+  })
+
   // 6. Timeout
   it('rejects with ServerlessError OFFLINE_HANDLER_TIMEOUT when the handler exceeds timeoutMs', async () => {
     const handlerPath = await writeTmpHandler(

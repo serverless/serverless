@@ -451,3 +451,44 @@ it('10. short string form "sqs: <arn>" is also handled', async () => {
   expect(invokeMock).toHaveBeenCalledTimes(1)
   expect(invokeMock.mock.calls[0][0].event.Records[0].body).toBe('short-form')
 })
+
+// ---------------------------------------------------------------------------
+// 11. Context passed to runner.invoke uses deadlineMs, not getRemainingTimeInMillis
+// ---------------------------------------------------------------------------
+
+it('11. context contains numeric deadlineMs and no getRemainingTimeInMillis function', async () => {
+  const store = createQueueStore()
+  store.ensureQueue(QUEUE_URL)
+
+  const registry = makeRegistry()
+  const invokeMock = jest.fn().mockResolvedValue(undefined)
+  const runner = makeRunner(invokeMock)
+  const logger = makeLogger()
+
+  const before = Date.now()
+
+  const serverless = makeServerless({
+    functions: {
+      myFn: {
+        handler: 'src/handler.main',
+        timeout: 30,
+        events: [{ sqs: { arn: QUEUE_ARN } }],
+      },
+    },
+  })
+
+  await startSqsPollers({ serverless, registry, store, runner, logger })
+
+  store.send(QUEUE_URL, 'ctx-test', {})
+
+  const { context } = invokeMock.mock.calls[0][0]
+
+  // deadlineMs must be a number in the future
+  expect(typeof context.deadlineMs).toBe('number')
+  expect(context.deadlineMs).toBeGreaterThan(before)
+  // timeout is 30 s — deadline should be roughly now + 30 000 ms
+  expect(context.deadlineMs).toBeLessThanOrEqual(before + 30_000 + 50)
+
+  // The producer must NOT attach a function (functions cannot be cloned)
+  expect(context.getRemainingTimeInMillis).toBeUndefined()
+})
