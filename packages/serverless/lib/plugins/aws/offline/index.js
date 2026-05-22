@@ -80,8 +80,10 @@ export default class OfflinePlugin {
     const host = offline.host ?? DEFAULT_HOST
     const stage = provider.stage ?? DEFAULT_STAGE
     const domainName = `${host}:${appPort}`
-    const servicePath =
-      serverless.serviceDir ?? serverless.config?.servicePath ?? process.cwd()
+    // NOTE: servicePath is intentionally NOT captured here — it must be read
+    // lazily each time it's needed so that bundler plugins (e.g. built-in
+    // esbuild) that swap serverless.config.servicePath in their
+    // before:offline:start hook are reflected correctly.
     const terminateIdleLambdaTime =
       offline.terminateIdleLambdaTime ?? DEFAULT_TERMINATE_IDLE_LAMBDA_TIME
 
@@ -104,16 +106,23 @@ export default class OfflinePlugin {
     const sqsHandlers = createSqsHandlers({ store, registry })
 
     // 7. Create a worker-thread runner pool.
+    //    The runner receives handlerPath at invoke()-time (already fully resolved),
+    //    so servicePath in workerData is unused — pass a placeholder that will be
+    //    overwritten before any invocation. The real resolution happens lazily in
+    //    resolveHandlerPath below, after bridge.fireBeforeStart() has run.
     const runner = createWorkerThreadRunner({
-      servicePath,
+      servicePath: '', // placeholder; actual path is resolved per-invocation
       terminateIdleLambdaTime,
     })
 
     // Helper: resolve handler file path (tries .js, .mjs, .cjs extensions).
+    // Reads servicePath fresh each call so bundler-swapped paths are honoured.
     async function resolveHandlerPath(relPath) {
+      const currentServicePath =
+        serverless.serviceDir ?? serverless.config?.servicePath ?? process.cwd()
       const extensions = ['.js', '.mjs', '.cjs']
       for (const ext of extensions) {
-        const candidate = resolve(join(servicePath, relPath + ext))
+        const candidate = resolve(join(currentServicePath, relPath + ext))
         try {
           await access(candidate)
           return candidate
@@ -122,7 +131,7 @@ export default class OfflinePlugin {
         }
       }
       // Fall back to .js and let the runner surface the error at invocation time.
-      return resolve(join(servicePath, relPath + '.js'))
+      return resolve(join(currentServicePath, relPath + '.js'))
     }
 
     // Helper: invoke a Lambda function via the runner pool.
@@ -203,24 +212,38 @@ export default class OfflinePlugin {
       logger: log.get('sls:offline:aws-api'),
     })
 
-    // 11. Start the native file watcher (auto-disabled when bundler plugin is present).
+    // 11. Register teardowns for the servers and pollers (LIFO — runner and
+    //     watcher are added after bridge.fireBeforeStart so they appear last,
+    //     meaning they are torn down first).
+    //     Registration order so far: awsApiServer → appServer → pollers
+    //     LIFO teardown for these: pollers, appServer, awsApiServer.
+    orchestrator.onShutdown(() => awsApiServer.stop({ timeout: 5000 }))
+    orchestrator.onShutdown(() => appServer.stop({ timeout: 5000 }))
+    orchestrator.onShutdown(() => pollerController.stop())
+
+    // 12. Fire before:offline:start so that bundler plugins (e.g. built-in
+    //     esbuild) can bundle TS handlers and swap serverless.config.servicePath
+    //     to the build output directory BEFORE the watcher resolves handler
+    //     paths or the runner is used for the first time.
+    await bridge.fireBeforeStart()
+
+    // 13. Start the native file watcher AFTER fireBeforeStart so it resolves
+    //     handler paths against the (possibly bundler-swapped) servicePath.
+    //     (Auto-disabled when a bundler plugin owns invalidation via
+    //     offline:functionsUpdated:cleanup.)
+    const currentServicePath =
+      serverless.serviceDir ?? serverless.config?.servicePath ?? process.cwd()
     const watcher = await createWatcher({
       serverless,
-      servicePath,
+      servicePath: currentServicePath,
       runner,
       logger: log.get('sls:offline:watcher'),
     })
 
-    // 12. Register teardowns in LIFO order.
-    //     Registration order: awsApiServer → appServer → pollers → runner → watcher
-    //     LIFO teardown runs: watcher, runner, pollers, appServer, awsApiServer.
-    orchestrator.onShutdown(() => awsApiServer.stop({ timeout: 5000 }))
-    orchestrator.onShutdown(() => appServer.stop({ timeout: 5000 }))
-    orchestrator.onShutdown(() => pollerController.stop())
+    // Register runner + watcher teardowns last so they are first in LIFO order.
+    // LIFO teardown: watcher → runner → (pollers, appServer, awsApiServer above).
     orchestrator.onShutdown(() => runner.terminate())
     orchestrator.onShutdown(() => watcher.stop())
-
-    await bridge.fireBeforeStart()
     await orchestrator.start({
       onReady: async () => {
         await bridge.fireStart()

@@ -6,6 +6,7 @@
  */
 
 import { createHash } from 'node:crypto'
+import fs from 'node:fs'
 import { access } from 'node:fs/promises'
 import { resolve, join } from 'node:path'
 import ServerlessError from '../../../../../serverless-error.js'
@@ -96,6 +97,42 @@ async function resolveHandler(handlerString, serviceDir) {
   }
 }
 
+/**
+ * Synchronous variant of `resolveHandler`. Used inside the queue subscriber
+ * callback, which must remain synchronous so that the store's synchronous
+ * notification contract is preserved and tests can assert immediately after
+ * `store.send()`.
+ *
+ * Uses `fs.accessSync` instead of the promise-based `fs.access`.
+ *
+ * @param {string} handlerString - e.g. `'src/handler.main'`
+ * @param {string} serviceDir    - Absolute path to the service root.
+ * @returns {{ handlerPath: string, handlerName: string }}
+ */
+function resolveHandlerSync(handlerString, serviceDir) {
+  const lastDot = handlerString.lastIndexOf('.')
+  const relPath = handlerString.slice(0, lastDot)
+  const handlerName = handlerString.slice(lastDot + 1)
+
+  const extensions = ['.js', '.mjs', '.cjs']
+  for (const ext of extensions) {
+    const handlerPath = resolve(join(serviceDir, relPath + ext))
+    try {
+      fs.accessSync(handlerPath, fs.constants.F_OK)
+      return { handlerPath, handlerName }
+    } catch {
+      // File does not exist; try next extension.
+    }
+  }
+
+  // No matching file found — return the .js path and let the runner surface
+  // the error at invocation time (avoids blocking startup).
+  return {
+    handlerPath: resolve(join(serviceDir, relPath + '.js')),
+    handlerName,
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -130,8 +167,9 @@ export async function startSqsPollers({
   const functions = serverless.service.functions ?? {}
   const providerEnv = serverless.service.provider?.environment ?? {}
 
-  const serviceDir =
-    serverless.serviceDir ?? serverless.config?.servicePath ?? process.cwd()
+  // serviceDir is read lazily inside the subscriber callback (not captured here)
+  // so that bundler plugins that swap serverless.config.servicePath during
+  // before:offline:start are reflected when the first message arrives.
 
   /** @type {(() => void)[]} */
   const unsubscribers = []
@@ -202,14 +240,12 @@ export async function startSqsPollers({
 
       const timeoutMs = (fn.timeout ?? 6) * 1000
 
-      // ── Resolve handler path upfront (once per poller setup) ─────────────
-
-      const { handlerPath, handlerName } = await resolveHandler(
-        fn.handler,
-        serviceDir,
-      )
-
       // ── Subscribe ────────────────────────────────────────────────────────
+      // Handler path resolution is intentionally lazy (inside the callback)
+      // so that bundler plugins which swap serverless.config.servicePath in
+      // their before:offline:start hook are reflected when the first SQS
+      // message arrives, rather than being pinned to the source directory at
+      // poller-setup time.
 
       const unsubscribe = store.subscribe(queueUrl, (messageRecord) => {
         // Dequeue the one message that just arrived.
@@ -255,6 +291,21 @@ export async function startSqsPollers({
           // the corresponding AWS_LAMBDA_FUNCTION_MEMORY_SIZE env var correctly.
           memoryLimitInMB: fn.memorySize ?? 1024,
         }
+
+        // Read servicePath lazily each time a message arrives so the
+        // bundler-swapped path (set during before:offline:start) is used.
+        // Use the synchronous resolver so that runner.invoke() is called
+        // within the same synchronous turn — this preserves the store's
+        // synchronous notification contract.
+        const currentServiceDir =
+          serverless.serviceDir ??
+          serverless.config?.servicePath ??
+          process.cwd()
+
+        const { handlerPath, handlerName } = resolveHandlerSync(
+          fn.handler,
+          currentServiceDir,
+        )
 
         runner
           .invoke({
