@@ -223,3 +223,21 @@ it('9. function with no events property does not crash', async () => {
 
   await expect(provision(sls)).resolves.not.toThrow()
 })
+
+// ---------------------------------------------------------------------------
+// 10. Uses the configured awsApiPort in lifted queue URLs
+// ---------------------------------------------------------------------------
+
+it('10. uses the configured awsApiPort in lifted queue URLs', async () => {
+  const sls = makeServerless({
+    compiledResources: {
+      MyQueue: { Type: 'AWS::SQS::Queue' },
+    },
+  })
+
+  const { registry } = await provision(sls, { awsApiPort: 4567 })
+
+  const record = registry.sqs.get('MyQueue')
+  expect(record).toBeDefined()
+  expect(record.url).toContain(':4567/')
+})

@@ -126,3 +126,16 @@ it('6b. URL is http://localhost:3002/000000000000/<name>', () => {
   )
   expect(record.url).toBe('http://localhost:3002/000000000000/TheQueue')
 })
+
+// ---------------------------------------------------------------------------
+// 7. Respects awsApiPort from context
+// ---------------------------------------------------------------------------
+
+it('7. respects awsApiPort from context', () => {
+  const record = liftSqsQueue(
+    'MyQueue',
+    { Type: 'AWS::SQS::Queue' },
+    { ...makeContext(), awsApiPort: 4567 },
+  )
+  expect(record.url).toBe('http://localhost:4567/000000000000/MyQueue')
+})

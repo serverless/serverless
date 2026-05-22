@@ -1,8 +1,8 @@
 /**
  * In-memory SQS queue store for sls offline.
  *
- * Provides a minimal FIFO queue per URL with subscriber notifications.
- * The spike surface is limited to SendMessage and ReceiveMessage (D-5).
+ * Provides a minimal FIFO queue per URL with subscriber notifications,
+ * supporting SendMessage and ReceiveMessage operations.
  */
 
 import { randomUUID } from 'node:crypto'
@@ -21,7 +21,7 @@ import { randomUUID } from 'node:crypto'
  *
  * Each queue is keyed by its URL and holds an ordered list of messages.
  * Subscribers registered via `subscribe` are notified synchronously
- * after each successful `send`, enabling the SQS poller (T10) to
+ * after each successful `send`, enabling the SQS poller to
  * trigger Lambda invocations without any event-loop delay.
  *
  * @returns {{
@@ -97,8 +97,8 @@ export function createQueueStore() {
   /**
    * Dequeues and returns up to `maxMessages` messages from the front of the
    * queue in FIFO order. The returned messages are permanently removed from
-   * the queue — the spike does not track in-flight messages or visibility
-   * timeouts, so no delete step is required.
+   * the queue — in-flight messages and visibility timeouts are not tracked,
+   * so no delete step is required.
    *
    * @param {string} queueUrl   - The source queue URL.
    * @param {number} maxMessages - Maximum number of messages to return (≥ 1).

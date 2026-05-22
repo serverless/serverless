@@ -9,7 +9,7 @@ describe('offline schema', () => {
     expect(offlineSchema.additionalProperties).toBe(false)
   })
 
-  it('starts with an empty properties map (later milestones add keys)', () => {
+  it('defines appPort and awsApiPort properties', () => {
     expect(offlineSchema.properties).toEqual({
       awsApiPort: { type: 'integer', minimum: 1, maximum: 65535 },
       appPort: { type: 'integer', minimum: 1, maximum: 65535 },

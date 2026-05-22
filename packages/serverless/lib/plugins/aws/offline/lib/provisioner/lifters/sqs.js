@@ -1,5 +1,6 @@
 import { arnFor, queueUrlFor } from '../arn-synth.js'
 import ServerlessError from '../../../../../../serverless-error.js'
+import { DEFAULT_AWS_API_PORT } from '../../constants.js'
 
 /**
  * Reads one CloudFormation resource entry of type `AWS::SQS::Queue` and
@@ -16,10 +17,12 @@ import ServerlessError from '../../../../../../serverless-error.js'
  *   resolveIntrinsics: (value: unknown) => unknown,
  *   registry: object,
  *   pseudoParams: object,
+ *   awsApiPort?: number,
  * }} context
- *   Spike context.  `resolveIntrinsics` is called on the Properties object
+ *   Resolver context.  `resolveIntrinsics` is called on the Properties object
  *   before the record is constructed so callers can substitute
- *   `Ref` / `Fn::GetAtt` values.
+ *   `Ref` / `Fn::GetAtt` values.  `awsApiPort` controls the port embedded
+ *   in the synthesized queue URL; defaults to `DEFAULT_AWS_API_PORT`.
  *
  * @returns {{
  *   logicalId:  string,
@@ -40,20 +43,20 @@ export function liftSqsQueue(logicalId, cfnResource, context) {
     )
   }
 
-  const { resolveIntrinsics } = context
+  const { resolveIntrinsics, awsApiPort = DEFAULT_AWS_API_PORT } = context
 
   // Properties is optional in CloudFormation; default to empty object.
   const rawProperties = cfnResource.Properties ?? {}
   const properties = resolveIntrinsics(rawProperties)
 
   // Derive the queue name: use a literal QueueName if provided, otherwise
-  // fall back to the logical ID (CFN auto-generates a name; the spike uses
-  // the logical ID for simplicity).
+  // fall back to the logical ID (CFN auto-generates a name; uses logicalId
+  // for simplicity).
   const name =
     typeof properties.QueueName === 'string' ? properties.QueueName : logicalId
 
   const arn = arnFor('sqs', name)
-  const url = queueUrlFor(name)
+  const url = queueUrlFor(name, awsApiPort)
 
   return {
     logicalId,

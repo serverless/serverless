@@ -28,29 +28,20 @@ import ServerlessError from '../../../../../serverless-error.js'
  * | `aws:package:finalize:stripNullPropsFromTemplateResources` | Removes properties whose value is `null` (a common pattern for conditional resources).      |
  * |                                                        | Keeps the template clean for downstream consumers. Pure in-memory operation.                    |
  *
- * ## Known limitation (M0.5)
+ * ## Known limitation
  *
  * `AWS::Lambda::Function` resources and event-source mappings are **not** lifted into the
- * compiled template. `package:compileFunctions` reads `function.package.artifact` (an S3 URI
- * written by the deploy artifact-upload step). Offline, we never package or upload —
- * `function.package` is undefined, causing a crash. `package:compileEvents` similarly
- * depends on artifact metadata for several event-source compilers (see D-12).
- *
- * For M0.5 this is acceptable: the SQS poller (T10) walks `service.functions` directly and
- * does not need `AWS::Lambda::Function` resources in the template. Resources declared
- * directly under `resources:` are still merged via `aws:package:finalize:mergeCustomProviderResources`.
- *
- * **M1+ follow-up:** Once handler-artifact resolution is decoupled from `package.artifact`
- * (or a stub artifact is synthesized before compile), re-add `package:compileFunctions` and
- * `package:compileEvents` to the list below. This file is the only place that needs updating.
+ * compiled template because their compilers depend on packaged artifacts that don't exist
+ * in offline mode. Resources declared directly under `resources:` are still merged via
+ * `aws:package:finalize:mergeCustomProviderResources`.
  *
  * ## Intentionally excluded events
  *
  * | Event name                           | Why excluded                                                                                       |
  * |--------------------------------------|----------------------------------------------------------------------------------------------------|
  * | `package:compileFunctions`           | Crashes offline: reads `function.package.artifact` (S3 URI from deploy upload step) when          |
- * |                                      | `function.package` is undefined. See D-12. Re-add in M1+ once artifact handling is in place.      |
- * | `package:compileEvents`              | Depends on artifact metadata written by `compileFunctions`; same root cause. See D-12.            |
+ * |                                      | `function.package` is undefined. Re-add once artifact handling is decoupled.                      |
+ * | `package:compileEvents`              | Depends on artifact metadata written by `compileFunctions`; same root cause.                      |
  * | `package:cleanup`                    | Deletes the `.serverless/` working directory via `aws:common:cleanupTempDir`. Destructive I/O.     |
  * | `package:createDeploymentArtifacts`  | Zips function code into deployment artifacts. Pure I/O, not template synthesis.                    |
  * | `aws:package:finalize:saveServiceState` | Writes the compiled template to `.serverless/cloudformation-template.json`, validates it,        |
@@ -81,8 +72,7 @@ export async function driveCompile(serverless) {
     'package:setupProviderConfiguration',
     'package:compileLayers',
     // NOTE: package:compileFunctions and package:compileEvents are intentionally
-    // omitted here. See D-12 and the JSDoc above for the full rationale.
-    // M1+: re-add both once artifact handling is decoupled from package.artifact.
+    // omitted here. See the JSDoc above for the full rationale.
     'aws:package:finalize:addExportNameForOutputs',
     'aws:package:finalize:mergeCustomProviderResources',
     'aws:package:finalize:stripNullPropsFromTemplateResources',

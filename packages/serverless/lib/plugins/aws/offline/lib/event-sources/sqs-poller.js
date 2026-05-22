@@ -9,6 +9,7 @@ import { createHash } from 'node:crypto'
 import { access } from 'node:fs/promises'
 import { resolve, join } from 'node:path'
 import ServerlessError from '../../../../../serverless-error.js'
+import { FAKE_REGION } from '../constants.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -88,7 +89,7 @@ async function resolveHandler(handlerString, serviceDir) {
   }
 
   // No matching file found — return the .js path and let the runner surface
-  // the error at invocation time (avoids blocking startup for the spike).
+  // the error at invocation time (avoids blocking startup).
   return {
     handlerPath: resolve(join(serviceDir, relPath + '.js')),
     handlerName,
@@ -105,9 +106,9 @@ async function resolveHandler(handlerString, serviceDir) {
  *
  * @param {object} params
  * @param {object} params.serverless - Framework's serverless instance.
- * @param {object} params.registry  - T3 resource registry (registry.sqs).
- * @param {object} params.store     - T9 in-memory queue store.
- * @param {object} params.runner    - T7 worker-thread runner instance.
+ * @param {object} params.registry  - Resource registry (registry.sqs).
+ * @param {object} params.store     - In-memory queue store.
+ * @param {object} params.runner    - Worker-thread runner instance.
  * @param {object} params.logger    - Logger (log.get('sls:offline:sqs-poller')).
  *
  * @returns {Promise<{
@@ -191,8 +192,8 @@ export async function startSqsPollers({
       const environment = {
         ...providerEnv,
         ...(fn.environment ?? {}),
-        AWS_REGION: 'us-east-1',
-        AWS_DEFAULT_REGION: 'us-east-1',
+        AWS_REGION: FAKE_REGION,
+        AWS_DEFAULT_REGION: FAKE_REGION,
         AWS_LAMBDA_FUNCTION_NAME: fnName,
         IS_OFFLINE: 'true',
       }
@@ -236,7 +237,7 @@ export async function startSqsPollers({
               md5OfBody: md5(msg.body),
               eventSource: 'aws:sqs',
               eventSourceARN: arn,
-              awsRegion: 'us-east-1',
+              awsRegion: FAKE_REGION,
             },
           ],
         }
@@ -244,7 +245,7 @@ export async function startSqsPollers({
         const context = {
           functionName: fnName,
           awsRequestId: `offline-${Date.now()}`,
-          invokedFunctionArn: `arn:aws:lambda:us-east-1:000000000000:function:${fnName}`,
+          invokedFunctionArn: `arn:aws:lambda:${FAKE_REGION}:000000000000:function:${fnName}`,
           // Send a numeric deadline instead of a function — functions cannot be
           // transferred via structured-clone (workerData). The worker entry
           // inflates this into getRemainingTimeInMillis().

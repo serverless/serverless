@@ -56,18 +56,19 @@ export default class OfflinePlugin {
       process.once('SIGTERM', onSignal)
     })
 
-    // 1. Run the provisioner to populate the registry from CFN.
-    const { registry } = await provision(serverless)
-
-    // 2. Create a queue store.
-    const store = createQueueStore()
-
-    // 3. Create the SQS handlers bound to that store + registry.
-    const sqsHandlers = createSqsHandlers({ store, registry })
-
-    // 4. Read awsApiPort from user config.
+    // 1. Read awsApiPort from user config before provisioning so queue URLs
+    //    in the registry use the correct port.
     const awsApiPort =
       serverless.service.offline?.awsApiPort ?? DEFAULT_AWS_API_PORT
+
+    // 2. Run the provisioner to populate the registry from CFN.
+    const { registry } = await provision(serverless, { awsApiPort })
+
+    // 3. Create a queue store.
+    const store = createQueueStore()
+
+    // 4. Create the SQS handlers bound to that store + registry.
+    const sqsHandlers = createSqsHandlers({ store, registry })
 
     // Set process env vars for runtime env parity before booting the runner.
     process.env.IS_OFFLINE = 'true'
@@ -78,19 +79,13 @@ export default class OfflinePlugin {
     process.env.AWS_SECRET_ACCESS_KEY =
       process.env.AWS_SECRET_ACCESS_KEY ?? 'test'
 
-    // 5. Boot the AWS API server.
-    const awsApiServer = await createAwsApiServer({
-      awsApiPort,
-      handlers: { sqs: sqsHandlers },
-      logger: log.get('sls:offline:aws-api'),
-    })
-
-    // 6. Create a worker-thread runner.
+    // 5. Create a worker-thread runner.
     const serviceDir =
       serverless.serviceDir ?? serverless.config?.servicePath ?? process.cwd()
     const runner = createWorkerThreadRunner({ servicePath: serviceDir })
 
-    // 7. Start the SQS pollers.
+    // 6. Start the SQS pollers so subscribers are in place before the server
+    //    starts accepting connections.
     const pollerController = await startSqsPollers({
       serverless,
       registry,
@@ -99,11 +94,19 @@ export default class OfflinePlugin {
       logger: log.get('sls:offline:sqs-poller'),
     })
 
+    // 7. Boot the AWS API server (Hapi starts listening here — subscribers are
+    //    already registered, so no SendMessage can arrive without a consumer).
+    const awsApiServer = await createAwsApiServer({
+      awsApiPort,
+      handlers: { sqs: sqsHandlers },
+      logger: log.get('sls:offline:aws-api'),
+    })
+
     // 8. Register teardowns in LIFO order (last registered = first to run on shutdown).
-    //    Registration order: server → runner → pollers  (LIFO teardown runs: pollers, runner, server).
-    orchestrator.onShutdown(() => awsApiServer.stop({ timeout: 5000 }))
+    //    Registration order: runner → pollers → server  (LIFO teardown runs: server, pollers, runner).
     orchestrator.onShutdown(() => runner.terminate())
     orchestrator.onShutdown(() => pollerController.stop())
+    orchestrator.onShutdown(() => awsApiServer.stop({ timeout: 5000 }))
 
     await bridge.fireBeforeStart()
     await orchestrator.start({

@@ -1,10 +1,10 @@
 /**
  * Authorization-header-only service dispatcher for the offline AWS API server.
  *
- * Per spike design decision D-6, routing is performed exclusively by
- * inspecting the SigV4 Authorization header — specifically the service
- * segment within the Credential scope.  No body inspection, no
- * X-Amz-Target header, and no signature verification are performed.
+ * Routing is performed exclusively by inspecting the SigV4 Authorization
+ * header — specifically the service segment within the Credential scope.
+ * No body inspection, no X-Amz-Target header, and no signature verification
+ * are performed.
  */
 
 /**

@@ -1,11 +1,8 @@
 /**
- * Hapi route handler factory for SQS — offline spike surface (D-5).
+ * Hapi route handler factory for SQS.
  *
- * Supports the two operations needed for the spike:
- *   - AmazonSQS.SendMessage
- *   - AmazonSQS.ReceiveMessage
- *
- * SDK v3 sends SQS requests using the JSON-RPC protocol with:
+ * Implements SendMessage and ReceiveMessage operations. SDK v3 sends SQS
+ * requests using the JSON-RPC protocol with:
  *   - Content-Type: application/x-amz-json-1.0
  *   - X-Amz-Target: AmazonSQS.<Action>
  *   - Body: JSON with fields such as QueueUrl, MessageBody, etc.

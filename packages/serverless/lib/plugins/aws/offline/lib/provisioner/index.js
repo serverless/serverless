@@ -2,17 +2,21 @@ import { driveCompile } from './compile-driver.js'
 import { createRegistry, registerSqsQueue } from './registry.js'
 import { liftSqsQueue } from './lifters/sqs.js'
 import { resolveIntrinsics } from './local-intrinsic-resolver.js'
-import { FAKE_ACCOUNT_ID, FAKE_REGION } from '../constants.js'
+import {
+  DEFAULT_AWS_API_PORT,
+  DEFAULT_STAGE,
+  FAKE_ACCOUNT_ID,
+  FAKE_REGION,
+} from '../constants.js'
 
 /**
  * Boot-time orchestration for `sls offline`.
  *
- * Wires together the compile driver (T5), resource registry (T3),
- * intrinsic resolver (T2), ARN synthesizer (T1), and SQS lifter (T4)
- * to produce a fully populated registry from the service's CloudFormation
- * template, and re-renders every function's environment so intrinsic
- * references (e.g. `{ Ref: 'MyQueue' }`) are replaced with real local
- * values.
+ * Wires together the compile driver, resource registry, intrinsic resolver,
+ * ARN synthesizer, and SQS lifter modules to produce a fully populated
+ * registry from the service's CloudFormation template, and re-renders every
+ * function's environment so intrinsic references (e.g. `{ Ref: 'MyQueue' }`)
+ * are replaced with real local values.
  *
  * ## Side effects on `serverless.service`
  *
@@ -28,14 +32,20 @@ import { FAKE_ACCOUNT_ID, FAKE_REGION } from '../constants.js'
  * @param {object} serverless
  *   The Serverless instance.  Must have `service`, `service.provider`,
  *   `service.functions`, and `pluginManager` populated.
+ * @param {{ awsApiPort?: number }} [options]
+ *   Optional configuration. `awsApiPort` controls the port embedded in
+ *   synthesized queue URLs; defaults to `DEFAULT_AWS_API_PORT`.
  * @returns {Promise<{ registry: object, stackName: string }>}
  *   The populated resource registry and the derived CloudFormation stack name.
  */
-export async function provision(serverless) {
+export async function provision(
+  serverless,
+  { awsApiPort = DEFAULT_AWS_API_PORT } = {},
+) {
   const { service } = serverless
 
   // 1. Derive the CloudFormation stack name.
-  const stackName = `${service.service}-${service.provider.stage}`
+  const stackName = `${service.service}-${service.provider.stage ?? DEFAULT_STAGE}`
 
   // 2. Drive the compile lifecycle to populate compiledCloudFormationTemplate.
   await driveCompile(serverless)
@@ -46,6 +56,7 @@ export async function provision(serverless) {
   // 4. Build the intrinsic-resolver context and the bound helper.
   const context = {
     registry,
+    awsApiPort,
     parameters: service.params ?? {},
     pseudoParams: {
       'AWS::AccountId': FAKE_ACCOUNT_ID,
@@ -72,7 +83,7 @@ export async function provision(serverless) {
       })
       registerSqsQueue(registry, record)
     }
-    // All other resource types are silently skipped (M0.5 scope is SQS-only).
+    // All other resource types are silently skipped (only SQS is lifted in this build).
   }
 
   // 6. Re-render function environments.
@@ -97,6 +108,6 @@ export async function provision(serverless) {
     }
   }
 
-  // 9. Return the populated registry and stack name.
+  // 8. Return the populated registry and stack name.
   return { registry, stackName }
 }
