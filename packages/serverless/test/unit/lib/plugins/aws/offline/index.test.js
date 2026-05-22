@@ -1,0 +1,46 @@
+import { jest } from '@jest/globals'
+import OfflinePlugin from '../../../../../../lib/plugins/aws/offline/index.js'
+import offlineSchema from '../../../../../../lib/plugins/aws/offline/lib/schema.js'
+
+const makeServerless = () => ({
+  configSchemaHandler: {
+    defineTopLevelProperty: jest.fn(),
+  },
+  getProvider: jest.fn(() => ({ name: 'aws' })),
+  pluginManager: {
+    spawn: jest.fn(async () => {}),
+    hooks: {},
+  },
+  service: {
+    provider: { name: 'aws', stage: 'dev' },
+    functions: {},
+  },
+})
+
+describe('OfflinePlugin', () => {
+  it('registers the offline top-level schema exactly once', () => {
+    const sls = makeServerless()
+    new OfflinePlugin(sls, {})
+    expect(
+      sls.configSchemaHandler.defineTopLevelProperty,
+    ).toHaveBeenCalledTimes(1)
+    expect(sls.configSchemaHandler.defineTopLevelProperty).toHaveBeenCalledWith(
+      'offline',
+      offlineSchema,
+    )
+  })
+
+  it('stores serverless, options, aws provider', () => {
+    const sls = makeServerless()
+    const plugin = new OfflinePlugin(sls, { appPort: 4000 })
+    expect(plugin.serverless).toBe(sls)
+    expect(plugin.options).toEqual({ appPort: 4000 })
+    expect(plugin.provider).toEqual({ name: 'aws' })
+  })
+
+  it('declares a hook for offline:offline', () => {
+    const sls = makeServerless()
+    const plugin = new OfflinePlugin(sls, {})
+    expect(typeof plugin.hooks['offline:offline']).toBe('function')
+  })
+})
