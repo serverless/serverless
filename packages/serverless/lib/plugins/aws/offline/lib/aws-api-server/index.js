@@ -57,6 +57,18 @@ export async function createAwsApiServer({
   server.route({
     method: '*',
     path: '/{any*}',
+    options: {
+      payload: {
+        parse: true,
+        // Override the incoming Content-Type so Hapi always runs the JSON
+        // parser, regardless of what the AWS SDK sent (e.g.
+        // "application/x-amz-json-1.0").  No `allow` list is set so that
+        // any Content-Type is accepted at the gate; `override` already
+        // normalises it to application/json before parsing.
+        override: 'application/json',
+        maxBytes: 10 * 1024 * 1024, // 10 MB cap (AWS SQS limit is 256 KB; 10 MB is safely above)
+      },
+    },
     async handler(request, h) {
       const service = detectService(request)
 

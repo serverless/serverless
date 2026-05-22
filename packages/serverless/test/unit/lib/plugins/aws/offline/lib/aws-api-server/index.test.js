@@ -164,3 +164,76 @@ it('4. returns 501 OFFLINE_UNSUPPORTED_SERVICE when service is recognised but ha
     await server.stop({ timeout: 5000 })
   }
 })
+
+// ---------------------------------------------------------------------------
+// 5. Content-Type: application/x-amz-json-1.0 is accepted and body is parsed
+//    (regression guard for the AWS SDK v3 / SQS 415 bug)
+// ---------------------------------------------------------------------------
+
+it('5. parses body as JSON when Content-Type is application/x-amz-json-1.0', async () => {
+  const sqsHandler = jest.fn((request, h) =>
+    h.response({ received: request.payload }).code(200),
+  )
+
+  const server = await createAwsApiServer({
+    awsApiPort: 0,
+    host: 'localhost',
+    handlers: { sqs: sqsHandler },
+    logger: makeLogger(),
+  })
+
+  try {
+    const res = await server.inject({
+      method: 'POST',
+      url: '/anything',
+      headers: {
+        authorization: sigV4Header('sqs'),
+        'content-type': 'application/x-amz-json-1.0',
+      },
+      payload: JSON.stringify({ Foo: 'bar' }),
+    })
+
+    expect(res.statusCode).toBe(200)
+    expect(sqsHandler).toHaveBeenCalledTimes(1)
+    const [[calledRequest]] = sqsHandler.mock.calls
+    expect(calledRequest.payload).toEqual({ Foo: 'bar' })
+  } finally {
+    await server.stop({ timeout: 5000 })
+  }
+})
+
+// ---------------------------------------------------------------------------
+// 6. Content-Type: text/plain is accepted and body is still parsed as JSON
+// ---------------------------------------------------------------------------
+
+it('6. parses body as JSON when Content-Type is text/plain', async () => {
+  const sqsHandler = jest.fn((request, h) =>
+    h.response({ received: request.payload }).code(200),
+  )
+
+  const server = await createAwsApiServer({
+    awsApiPort: 0,
+    host: 'localhost',
+    handlers: { sqs: sqsHandler },
+    logger: makeLogger(),
+  })
+
+  try {
+    const res = await server.inject({
+      method: 'POST',
+      url: '/anything',
+      headers: {
+        authorization: sigV4Header('sqs'),
+        'content-type': 'text/plain',
+      },
+      payload: JSON.stringify({ Hello: 'world' }),
+    })
+
+    expect(res.statusCode).toBe(200)
+    expect(sqsHandler).toHaveBeenCalledTimes(1)
+    const [[calledRequest]] = sqsHandler.mock.calls
+    expect(calledRequest.payload).toEqual({ Hello: 'world' })
+  } finally {
+    await server.stop({ timeout: 5000 })
+  }
+})
