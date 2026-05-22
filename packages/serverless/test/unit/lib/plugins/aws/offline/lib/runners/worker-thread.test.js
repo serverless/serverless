@@ -841,6 +841,45 @@ describe('createWorkerThreadRunner', () => {
     await r.terminate()
   })
 
+  // Pool-T1: terminate() while busy rejects the in-flight invocation
+  it('pool: terminate() while busy rejects the in-flight invoke with OFFLINE_WORKER_TERMINATED', async () => {
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+    const handlerPath = await writeTmpHandler(
+      // Handler sleeps for 2 s — long enough for terminate() to race it.
+      'export const handler = () => new Promise(res => setTimeout(res, 2000))',
+    )
+
+    // Attach a catch handler immediately so the rejection is never unhandled,
+    // regardless of when terminate() fires relative to microtask scheduling.
+    let capturedErr
+    const invokePromise = r
+      .invoke({
+        functionKey: 'pool-t1',
+        handlerPath,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      .catch((e) => {
+        capturedErr = e
+      })
+
+    // Yield briefly so the worker thread gets scheduled and state advances to
+    // 'busy' (postMessage is delivered on the next tick after the promise
+    // returned by invoke() is created).
+    await new Promise((res) => setTimeout(res, 50))
+
+    // Terminate the runner while the invocation is in-flight.
+    await r.terminate()
+
+    // Wait for the invoke promise to settle.
+    await invokePromise
+
+    expect(capturedErr).toBeInstanceOf(ServerlessError)
+    expect(capturedErr.code).toBe('OFFLINE_WORKER_TERMINATED')
+  })
+
   // Pool-10: AWS_LAMBDA_* envs are set per-invocation inside the worker
   it('pool: AWS_LAMBDA_* envs are refreshed on every invocation (not stuck to first)', async () => {
     const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })

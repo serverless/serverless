@@ -224,10 +224,6 @@ export function createWorkerThreadRunner({
       clearTimeout(entry.idleTimer)
       entry.idleTimer = null
     }
-    if (entry.pendingTimeout !== null) {
-      clearTimeout(entry.pendingTimeout)
-      entry.pendingTimeout = null
-    }
     entry.state = 'terminating'
     // If the entry is being terminated before the worker sent 'ready',
     // reject workerReady so any invoke() awaiting it can detect the cancellation.
@@ -235,6 +231,24 @@ export function createWorkerThreadRunner({
       entry._rejectReady(new Error('Worker terminated before ready'))
       entry._resolveReady = null
       entry._rejectReady = null
+    }
+    // Reject any in-flight invocation so its promise does not hang.
+    if (entry.pendingResult) {
+      if (entry.pendingTimeout !== null) {
+        clearTimeout(entry.pendingTimeout)
+        entry.pendingTimeout = null
+      }
+      const { reject } = entry.pendingResult
+      entry.pendingResult = null
+      reject(
+        new ServerlessError(
+          'Lambda runner terminated during invocation',
+          'OFFLINE_WORKER_TERMINATED',
+        ),
+      )
+    } else if (entry.pendingTimeout !== null) {
+      clearTimeout(entry.pendingTimeout)
+      entry.pendingTimeout = null
     }
     // Wake any waiters so they can re-check and spawn a fresh entry.
     for (const next of entry.waiters.splice(0)) next()
