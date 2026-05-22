@@ -550,3 +550,33 @@ it('13. context.memoryLimitInMB defaults to 1024 when fn.memorySize is not set',
   const { context } = invokeMock.mock.calls[0][0]
   expect(context.memoryLimitInMB).toBe(1024)
 })
+
+// ---------------------------------------------------------------------------
+// 14. M1-T7: functionKey is passed to runner.invoke
+// ---------------------------------------------------------------------------
+
+it('14. runner.invoke receives functionKey equal to the function name', async () => {
+  const store = createQueueStore()
+  store.ensureQueue(QUEUE_URL)
+
+  const registry = makeRegistry()
+  const invokeMock = jest.fn().mockResolvedValue(undefined)
+  const runner = makeRunner(invokeMock)
+  const logger = makeLogger()
+
+  const serverless = makeServerless({
+    functions: {
+      myFn: {
+        handler: 'src/handler.main',
+        events: [{ sqs: { arn: QUEUE_ARN } }],
+      },
+    },
+  })
+
+  await startSqsPollers({ serverless, registry, store, runner, logger })
+
+  store.send(QUEUE_URL, 'key-test', {})
+
+  const callArgs = invokeMock.mock.calls[0][0]
+  expect(callArgs.functionKey).toBe('myFn')
+})

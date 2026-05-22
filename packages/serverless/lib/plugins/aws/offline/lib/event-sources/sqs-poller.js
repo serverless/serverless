@@ -258,6 +258,7 @@ export async function startSqsPollers({
 
         runner
           .invoke({
+            functionKey: fnName,
             handlerPath,
             handlerName,
             event: sqsEvent,

@@ -41,12 +41,17 @@ describe('createWorkerThreadRunner', () => {
     runner = createWorkerThreadRunner({ servicePath: os.tmpdir() })
   })
 
+  afterAll(async () => {
+    await runner.terminate()
+  })
+
   // 1. Happy path: async handler returns a value
   it('async handler returns a value', async () => {
     const handlerPath = await writeTmpHandler(
       'export async function handler(event) { return { ok: true, echo: event.x } }',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-1',
       handlerPath,
       handlerName: 'handler',
       event: { x: 42 },
@@ -61,6 +66,7 @@ describe('createWorkerThreadRunner', () => {
       'export function handler(event) { return event.x }',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-2',
       handlerPath,
       handlerName: 'handler',
       event: { x: 'sync' },
@@ -76,6 +82,7 @@ describe('createWorkerThreadRunner', () => {
     )
     await expect(
       runner.invoke({
+        functionKey: 'fn-3',
         handlerPath,
         handlerName: 'handler',
         event: {},
@@ -93,6 +100,7 @@ describe('createWorkerThreadRunner', () => {
       'export const handler = async () => process.env.FOO',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-4',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -108,6 +116,7 @@ describe('createWorkerThreadRunner', () => {
       'export const handler = async (event, context) => context.functionName',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-5',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -126,6 +135,7 @@ describe('createWorkerThreadRunner', () => {
     )
     const deadlineMs = Date.now() + 60000
     const result = await runner.invoke({
+      functionKey: 'fn-5b',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -142,6 +152,7 @@ describe('createWorkerThreadRunner', () => {
       'export const handler = async (event, context) => context.getRemainingTimeInMillis()',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-5c',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -157,6 +168,7 @@ describe('createWorkerThreadRunner', () => {
     )
     const err = await runner
       .invoke({
+        functionKey: 'fn-6',
         handlerPath,
         handlerName: 'handler',
         event: {},
@@ -175,6 +187,7 @@ describe('createWorkerThreadRunner', () => {
       'export function handler(event, context, callback) { callback(null, { ok: true }) }',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-7',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -190,6 +203,7 @@ describe('createWorkerThreadRunner', () => {
     )
     await expect(
       runner.invoke({
+        functionKey: 'fn-8',
         handlerPath,
         handlerName: 'handler',
         event: {},
@@ -198,9 +212,10 @@ describe('createWorkerThreadRunner', () => {
     ).rejects.toMatchObject({ message: 'cb-fail' })
   })
 
-  // 9. terminate() is a no-op
+  // 9. terminate() resolves without throwing
   it('terminate() resolves without throwing', async () => {
-    await expect(runner.terminate()).resolves.toBeUndefined()
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+    await expect(r.terminate()).resolves.toBeUndefined()
   })
 
   // -------------------------------------------------------------------------
@@ -213,6 +228,7 @@ describe('createWorkerThreadRunner', () => {
       'export const handler = async (event, ctx) => ctx.functionVersion',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-10',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -232,6 +248,7 @@ describe('createWorkerThreadRunner', () => {
       'export const handler = async (event, ctx) => ({ val: ctx.memoryLimitInMB, type: typeof ctx.memoryLimitInMB })',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-11',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -253,6 +270,7 @@ describe('createWorkerThreadRunner', () => {
       'export const handler = async (event, ctx) => ctx.memoryLimitInMB',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-12',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -272,6 +290,7 @@ describe('createWorkerThreadRunner', () => {
       'export const handler = async (event, ctx) => ctx.logGroupName',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-13',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -291,6 +310,7 @@ describe('createWorkerThreadRunner', () => {
       'export const handler = async (event, ctx) => ctx.logStreamName',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-14',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -310,6 +330,7 @@ describe('createWorkerThreadRunner', () => {
       'export const handler = async (event, ctx) => ({ identity: ctx.identity, clientContext: ctx.clientContext })',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-15',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -330,6 +351,7 @@ describe('createWorkerThreadRunner', () => {
       'export function handler(event, context) { context.done(null, { legacy: true }) }',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-16',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -349,6 +371,7 @@ describe('createWorkerThreadRunner', () => {
       'export function handler(event, context) { context.succeed({ via: "succeed" }) }',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-17',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -369,6 +392,7 @@ describe('createWorkerThreadRunner', () => {
     )
     await expect(
       runner.invoke({
+        functionKey: 'fn-18',
         handlerPath,
         handlerName: 'handler',
         event: {},
@@ -388,6 +412,7 @@ describe('createWorkerThreadRunner', () => {
       'export function handler(event, context) { context.done(null, "first"); context.done(null, "second") }',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-19',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -407,6 +432,7 @@ describe('createWorkerThreadRunner', () => {
       'export const handler = async () => process.env.AWS_LAMBDA_FUNCTION_NAME',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-20',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -426,6 +452,7 @@ describe('createWorkerThreadRunner', () => {
       'export const handler = async () => process.env.AWS_LAMBDA_FUNCTION_MEMORY_SIZE',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-21',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -446,6 +473,7 @@ describe('createWorkerThreadRunner', () => {
       'export const handler = async () => process.env.AWS_LAMBDA_FUNCTION_VERSION',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-22',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -466,6 +494,7 @@ describe('createWorkerThreadRunner', () => {
       'export const handler = async () => process.env.AWS_LAMBDA_INVOKED_FUNCTION_ARN',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-23',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -484,6 +513,7 @@ describe('createWorkerThreadRunner', () => {
       'export const handler = async () => process.env.AWS_LAMBDA_LOG_GROUP_NAME',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-24',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -503,6 +533,7 @@ describe('createWorkerThreadRunner', () => {
       'export const handler = async () => process.env.AWS_LAMBDA_LOG_STREAM_NAME',
     )
     const result = await runner.invoke({
+      functionKey: 'fn-25',
       handlerPath,
       handlerName: 'handler',
       event: {},
@@ -514,5 +545,329 @@ describe('createWorkerThreadRunner', () => {
       },
     })
     expect(result).toMatch(/^\d{4}\/\d{2}\/\d{2}\/\[\$LATEST\][0-9a-f]+$/)
+  })
+
+  // -------------------------------------------------------------------------
+  // M1-T7: Pool-specific behaviour
+  // -------------------------------------------------------------------------
+
+  // Pool-1: Cold start — first invoke spawns a worker; second reuses it
+  it('pool: second invoke on the same functionKey reuses the warm worker (no re-import)', async () => {
+    // Use a handler with a module-level call counter. If the worker is reused,
+    // the second invocation increments the same counter (returns 2).
+    // If a fresh worker were spawned, it would return 1 again.
+    const handlerPath = await writeTmpHandler(
+      `let invocations = 0
+       export const handler = async () => { invocations += 1; return invocations }`,
+    )
+    const opts = {
+      functionKey: 'pool-1',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {},
+    }
+    const r1 = await runner.invoke(opts)
+    const r2 = await runner.invoke(opts)
+    // If the worker is reused, counters increment: 1, 2.
+    expect(r1).toBe(1)
+    expect(r2).toBe(2)
+  })
+
+  // Pool-2: Idle eviction — after terminateIdleLambdaTime, a fresh worker is spawned
+  it('pool: idle eviction spawns a fresh worker after idle timeout', async () => {
+    const r = createWorkerThreadRunner({
+      servicePath: os.tmpdir(),
+      terminateIdleLambdaTime: 0.05, // 50 ms
+    })
+
+    // Module-level counter: if the worker is reused it returns 2; if fresh it returns 1.
+    const handlerPath = await writeTmpHandler(
+      `let invocations = 0
+       export const handler = async () => { invocations += 1; return invocations }`,
+    )
+    const opts = {
+      functionKey: 'pool-2',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {},
+    }
+
+    const r1 = await r.invoke(opts)
+    expect(r1).toBe(1)
+    // Wait longer than the 50 ms eviction window.
+    await new Promise((res) => setTimeout(res, 150))
+    const r2 = await r.invoke(opts)
+
+    // A fresh worker was spawned after eviction, so the counter resets to 1.
+    expect(r2).toBe(1)
+
+    await r.terminate()
+  })
+
+  // Pool-3: invalidate while idle — next invoke spins a fresh worker
+  it('pool: invalidate() while idle causes next invoke to spawn a fresh worker', async () => {
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+    // Module-level counter: if the worker is reused it returns 2; if fresh it returns 1.
+    const handlerPath = await writeTmpHandler(
+      `let invocations = 0
+       export const handler = async () => { invocations += 1; return invocations }`,
+    )
+    const opts = {
+      functionKey: 'pool-3',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {},
+    }
+
+    const r1 = await r.invoke(opts)
+    expect(r1).toBe(1)
+    r.invalidate('pool-3')
+    const r2 = await r.invoke(opts)
+
+    // A fresh worker was spawned, so the counter resets to 1.
+    expect(r2).toBe(1)
+
+    await r.terminate()
+  })
+
+  // Pool-4: invalidate while busy — current invocation completes; next invoke is fresh
+  it('pool: invalidate() while busy lets current invocation complete; next invoke is fresh', async () => {
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+    // Use a worker-scoped call counter to detect a fresh worker.
+    // A fresh worker resets the counter to 0; the old worker increments it.
+    const handlerPath = await writeTmpHandler(
+      `let callCount = 0
+       export const handler = async (event) => {
+         callCount += 1
+         // Simulate some work so the invocation is still in-flight when invalidate() runs.
+         await new Promise(res => setTimeout(res, 50))
+         return callCount
+       }`,
+    )
+    const opts = {
+      functionKey: 'pool-4',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {},
+    }
+
+    // Warm up the worker first so it is definitely in 'idle' state before the test.
+    await r.invoke(opts)
+
+    // Now start an invocation and immediately invalidate — the worker is warm,
+    // so it will quickly transition to 'busy'. Wait just a tick to let the
+    // postMessage reach the worker before we invalidate.
+    const p2 = r.invoke(opts)
+    await Promise.resolve() // yield to let the state machine advance
+    r.invalidate('pool-4')
+
+    // The in-flight invocation should still succeed (callCount goes to 2 on the old worker).
+    const count2 = await p2
+    expect(count2).toBe(2)
+
+    // The next invocation should use a fresh worker (counter resets: 0 → 1).
+    const count3 = await r.invoke(opts)
+    expect(count3).toBe(1)
+
+    await r.terminate()
+  })
+
+  // Pool-5: terminate() tears down all workers; next invoke spins fresh ones
+  it('pool: terminate() tears down all workers; subsequent invoke spins a fresh worker', async () => {
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+    // Module-level counter: reused worker returns 2; fresh worker returns 1.
+    const handlerPath = await writeTmpHandler(
+      `let invocations = 0
+       export const handler = async () => { invocations += 1; return invocations }`,
+    )
+    const optsA = {
+      functionKey: 'pool-5a',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {},
+    }
+    const optsB = {
+      functionKey: 'pool-5b',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {},
+    }
+
+    const r1a = await r.invoke(optsA)
+    const r1b = await r.invoke(optsB)
+    expect(r1a).toBe(1)
+    expect(r1b).toBe(1)
+
+    await r.terminate()
+
+    // After terminate(), a new invoke should succeed with a fresh worker (counter resets).
+    const r2a = await r.invoke(optsA)
+    expect(r2a).toBe(1)
+  })
+
+  // Pool-6: terminate() is idempotent — second call does not throw
+  it('pool: terminate() is idempotent', async () => {
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async () => 42',
+    )
+    await r.invoke({
+      functionKey: 'pool-6',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {},
+    })
+
+    await expect(r.terminate()).resolves.toBeUndefined()
+    await expect(r.terminate()).resolves.toBeUndefined()
+  })
+
+  // Pool-7: concurrent invocations on the same function are serialized
+  it('pool: concurrent invocations on the same functionKey are serialized', async () => {
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+    // Handler appends to a shared sequence array.
+    const handlerPath = await writeTmpHandler(
+      `const seq = []
+       export const handler = async (event) => {
+         seq.push(event.n + ':start')
+         await new Promise(res => setTimeout(res, 20))
+         seq.push(event.n + ':end')
+         return seq.slice()
+       }`,
+    )
+    const invoke = (n) =>
+      r.invoke({
+        functionKey: 'pool-7',
+        handlerPath,
+        handlerName: 'handler',
+        event: { n },
+        context: {},
+      })
+
+    // Fire two invocations without awaiting between them.
+    const [r1, r2] = await Promise.all([invoke(1), invoke(2)])
+
+    // Invocation 1 must have fully completed before invocation 2 started.
+    expect(r1).toEqual(['1:start', '1:end'])
+    expect(r2).toEqual(['1:start', '1:end', '2:start', '2:end'])
+
+    await r.terminate()
+  })
+
+  // Pool-8: handler error propagates and resets the worker to idle (reusable)
+  it('pool: handler error propagates; worker remains usable for next invocation', async () => {
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+    const handlerPath = await writeTmpHandler(
+      `let call = 0
+       export async function handler() {
+         call += 1
+         if (call === 1) throw new Error('first-fail')
+         return 'second-ok'
+       }`,
+    )
+    const opts = {
+      functionKey: 'pool-8',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {},
+    }
+
+    await expect(r.invoke(opts)).rejects.toMatchObject({
+      message: 'first-fail',
+    })
+
+    // Second invoke on the same worker should succeed.
+    const result = await r.invoke(opts)
+    expect(result).toBe('second-ok')
+
+    await r.terminate()
+  })
+
+  // Pool-9: handler timeout terminates the worker; next invoke spins a fresh one
+  it('pool: timeout terminates the worker; next invoke spawns a fresh worker', async () => {
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+    // Module-level counter: fresh worker resets to 0.
+    const handlerPath = await writeTmpHandler(
+      `let invocations = 0
+       export const handler = async (event) => {
+         invocations += 1
+         if (event.slow) {
+           await new Promise(res => setTimeout(res, 5000))
+         }
+         return invocations
+       }`,
+    )
+
+    const err = await r
+      .invoke({
+        functionKey: 'pool-9',
+        handlerPath,
+        handlerName: 'handler',
+        event: { slow: true },
+        context: {},
+        timeoutMs: 50,
+      })
+      .catch((e) => e)
+
+    expect(err).toBeInstanceOf(ServerlessError)
+    expect(err.code).toBe('OFFLINE_HANDLER_TIMEOUT')
+
+    // After timeout, the pool entry was removed. A fresh invoke should succeed
+    // and return 1 (fresh worker, counter reset).
+    const r2 = await r.invoke({
+      functionKey: 'pool-9',
+      handlerPath,
+      handlerName: 'handler',
+      event: { slow: false },
+      context: {},
+    })
+    expect(r2).toBe(1)
+
+    await r.terminate()
+  })
+
+  // Pool-10: AWS_LAMBDA_* envs are set per-invocation inside the worker
+  it('pool: AWS_LAMBDA_* envs are refreshed on every invocation (not stuck to first)', async () => {
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async () => process.env.AWS_LAMBDA_FUNCTION_NAME',
+    )
+    const invoke = (functionName) =>
+      r.invoke({
+        functionKey: 'pool-10',
+        handlerPath,
+        handlerName: 'handler',
+        event: {},
+        context: {
+          functionName,
+          awsRequestId: 'req-x',
+          invokedFunctionArn: `arn:aws:lambda:us-east-1:000000000000:function:${functionName}`,
+        },
+      })
+
+    const r1 = await invoke('FnFirst')
+    const r2 = await invoke('FnSecond')
+
+    // The env var must reflect the second invocation's context, not the first's.
+    expect(r1).toBe('FnFirst')
+    expect(r2).toBe('FnSecond')
+
+    await r.terminate()
   })
 })
