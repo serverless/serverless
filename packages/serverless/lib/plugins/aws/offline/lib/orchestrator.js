@@ -20,9 +20,9 @@ export function createOrchestrator({ logger }) {
 
   return {
     async start({ onReady }) {
-      logger.info('starting')
+      logger.notice('starting')
       await onReady()
-      logger.info('ready')
+      logger.notice('ready')
     },
 
     onShutdown(callback) {
@@ -32,7 +32,7 @@ export function createOrchestrator({ logger }) {
     async shutdown() {
       if (didShutdown) return
       didShutdown = true
-      logger.info('stopping')
+      logger.notice('stopping')
       let firstError
       for (let i = teardowns.length - 1; i >= 0; i--) {
         try {

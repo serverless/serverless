@@ -4,14 +4,14 @@ import { createOrchestrator } from '../../../../../../../lib/plugins/aws/offline
 describe('createOrchestrator', () => {
   it('start() resolves after onReady() callback returns', async () => {
     const onReady = jest.fn()
-    const o = createOrchestrator({ logger: { info: jest.fn() } })
+    const o = createOrchestrator({ logger: { notice: jest.fn() } })
     await o.start({ onReady })
     expect(onReady).toHaveBeenCalledTimes(1)
   })
 
   it('shutdown() runs registered teardown callbacks in reverse-registration order', async () => {
     const calls = []
-    const o = createOrchestrator({ logger: { info: jest.fn() } })
+    const o = createOrchestrator({ logger: { notice: jest.fn() } })
     o.onShutdown(async () => calls.push('a'))
     o.onShutdown(async () => calls.push('b'))
     o.onShutdown(async () => calls.push('c'))
@@ -21,7 +21,7 @@ describe('createOrchestrator', () => {
 
   it('shutdown() is idempotent', async () => {
     const teardown = jest.fn()
-    const o = createOrchestrator({ logger: { info: jest.fn() } })
+    const o = createOrchestrator({ logger: { notice: jest.fn() } })
     o.onShutdown(teardown)
     await o.shutdown()
     await o.shutdown()
@@ -29,18 +29,18 @@ describe('createOrchestrator', () => {
   })
 
   it('logs starting / ready / stopping at the right moments', async () => {
-    const info = jest.fn()
-    const o = createOrchestrator({ logger: { info } })
+    const notice = jest.fn()
+    const o = createOrchestrator({ logger: { notice } })
     await o.start({ onReady: () => {} })
     await o.shutdown()
-    expect(info).toHaveBeenCalledWith('starting')
-    expect(info).toHaveBeenCalledWith('ready')
-    expect(info).toHaveBeenCalledWith('stopping')
+    expect(notice).toHaveBeenCalledWith('starting')
+    expect(notice).toHaveBeenCalledWith('ready')
+    expect(notice).toHaveBeenCalledWith('stopping')
   })
 
   it('continues teardown even if one callback throws, and rethrows the first error after', async () => {
     const calls = []
-    const o = createOrchestrator({ logger: { info: jest.fn() } })
+    const o = createOrchestrator({ logger: { notice: jest.fn() } })
     o.onShutdown(async () => {
       calls.push('a')
     })
