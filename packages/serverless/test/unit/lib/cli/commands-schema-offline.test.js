@@ -23,4 +23,8 @@ describe('commands-schema offline entry', () => {
     expect(typeof entry.usage).toBe('string')
     expect(entry.usage.length).toBeGreaterThan(0)
   })
+
+  it('belongs to the main command group in `sls help` output', () => {
+    expect(entry.groupName).toBe('main')
+  })
 })
