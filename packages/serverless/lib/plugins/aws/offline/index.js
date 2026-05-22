@@ -41,6 +41,8 @@ export default class OfflinePlugin {
 
     const shutdownPromise = new Promise((resolve, reject) => {
       const onSignal = () => {
+        process.off('SIGINT', onSignal)
+        process.off('SIGTERM', onSignal)
         orchestrator.shutdown().then(resolve, reject)
       }
       process.once('SIGINT', onSignal)
@@ -55,7 +57,10 @@ export default class OfflinePlugin {
       },
     })
 
-    await shutdownPromise
-    await bridge.fireEnd()
+    try {
+      await shutdownPromise
+    } finally {
+      await bridge.fireEnd()
+    }
   }
 }
