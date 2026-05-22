@@ -1,17 +1,13 @@
 import ServerlessError from '../../../../../serverless-error.js'
 
-const KNOWN_INTRINSICS = new Set(['Ref', 'Fn::GetAtt', 'Fn::ImportValue'])
 const NO_VALUE = Symbol.for('AWS::NoValue')
 
 /**
- * Walks an arbitrary JSON-y CloudFormation value tree and replaces supported
- * intrinsics (`Ref`, `Fn::GetAtt`, `Fn::ImportValue`) with synthesised local
- * values sourced from the resource registry and pseudo-parameter map.
- *
- * This is a spike-scoped resolver (M0.5 / D-9): it supports only the minimum
- * intrinsics required for the SQS smoke fixture.  Unsupported `Fn::*` keys
- * throw `OFFLINE_UNSUPPORTED_INTRINSIC` so callers get an actionable error
- * rather than silently wrong values.
+ * Resolves a constrained set of CloudFormation intrinsic functions
+ * (`Ref`, `Fn::GetAtt`, `Fn::ImportValue`) against a local registry of
+ * provisioned resources and pseudo-parameter values. Unsupported `Fn::*`
+ * keys throw `OFFLINE_UNSUPPORTED_INTRINSIC` so callers get an actionable
+ * error rather than a silent miss.
  *
  * @param {unknown} value
  *   The CFN value tree to resolve.  May be a primitive, array, or plain
@@ -82,7 +78,7 @@ export function resolveIntrinsics(value, context) {
 
     if (key.startsWith('Fn::')) {
       throw new ServerlessError(
-        `Intrinsic "${key}" is not supported in offline mode (spike scope). It will be implemented in M7.5.`,
+        `Intrinsic "${key}" is not supported in offline mode.`,
         'OFFLINE_UNSUPPORTED_INTRINSIC',
       )
     }
