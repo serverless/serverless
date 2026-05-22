@@ -12,6 +12,7 @@ import pluginDeploy from '../plugins/deploy.js'
 import pluginInvoke from '../plugins/invoke.js'
 import pluginInfo from '../plugins/info.js'
 import pluginDev from '../plugins/dev.js'
+import pluginOffline from '../plugins/offline.js'
 import pluginLogs from '../plugins/logs.js'
 import pluginMetrics from '../plugins/metrics.js'
 import pluginPrint from '../plugins/print.js'
@@ -80,6 +81,7 @@ const internalPlugins = [
   pluginInvoke,
   pluginInfo,
   pluginDev,
+  pluginOffline,
   pluginLogs,
   pluginMetrics,
   pluginPrint,

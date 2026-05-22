@@ -30,6 +30,18 @@ describe('plugin-manager wires the offline plugin', () => {
     )
   })
 
+  it('imports the top-level Offline command shell', () => {
+    expect(pluginManagerSrc).toMatch(
+      /import\s+pluginOffline\s+from\s+['"]\.\.\/plugins\/offline\.js['"]/,
+    )
+  })
+
+  it('includes pluginOffline in the internalPlugins array', () => {
+    expect(pluginManagerSrc).toMatch(
+      /internalPlugins\s*=\s*\[[^\]]*pluginOffline/s,
+    )
+  })
+
   it('registers offline in bundledPluginDefinitions with community override allowed', () => {
     const re = /bundledPluginDefinitions\s*=\s*\[(.*?)\]\s*\n/s
     const match = pluginManagerSrc.match(re)
