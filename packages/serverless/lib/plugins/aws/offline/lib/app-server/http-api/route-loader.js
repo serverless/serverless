@@ -231,8 +231,8 @@ export function registerHttpApiRoutes({
               console.error(`[offline] Error in ${functionKey}:`, err)
             }
             return h
-              .response(JSON.stringify({ message: 'Internal Server Error' }))
-              .code(500)
+              .response(JSON.stringify({ message: 'Internal server error' }))
+              .code(502)
               .type('application/json')
           }
         },
