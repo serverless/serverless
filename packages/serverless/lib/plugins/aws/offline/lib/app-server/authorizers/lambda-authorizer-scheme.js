@@ -25,6 +25,7 @@ import {
   parseIdentitySource,
   extractIdentitySource,
 } from './identity-source.js'
+import { unauthorized, forbidden } from '../shared/auth-envelopes.js'
 
 const UNAUTHORIZED_LITERAL = 'Unauthorized'
 
@@ -147,22 +148,4 @@ function readAuthorizationHeader(request) {
   const raw = request?.headers?.authorization
   if (typeof raw === 'string' && raw.length > 0) return raw
   return null
-}
-
-function unauthorized(h) {
-  return h
-    .response({ message: 'Unauthorized' })
-    .code(401)
-    .type('application/json')
-    .header('x-amzn-ErrorType', 'UnauthorizedException')
-    .takeover()
-}
-
-function forbidden(h) {
-  return h
-    .response({ message: 'Forbidden' })
-    .code(403)
-    .type('application/json')
-    .header('x-amzn-ErrorType', 'ForbiddenException')
-    .takeover()
 }

@@ -15,6 +15,7 @@
  */
 
 import { decodeJwt } from 'jose'
+import { unauthorized } from '../shared/auth-envelopes.js'
 import {
   parseV2IdentitySource,
   extractV2IdentitySource,
@@ -119,13 +120,4 @@ function audienceMatches(claims, configured) {
   }
   if (claims.client_id && configured.includes(claims.client_id)) return true
   return false
-}
-
-function unauthorized(h) {
-  return h
-    .response({ message: 'Unauthorized' })
-    .code(401)
-    .type('application/json')
-    .header('x-amzn-ErrorType', 'UnauthorizedException')
-    .takeover()
 }

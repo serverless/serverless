@@ -10,6 +10,9 @@
  * @param {{ keys: Set<string> }} opts.store  API key store from buildApiKeyStore.
  * @returns {() => object}  Hapi scheme factory.
  */
+
+import { forbidden } from '../shared/auth-envelopes.js'
+
 export function createApiKeyScheme({ store }) {
   return function apiKeySchemeFactory() {
     return {
@@ -18,12 +21,7 @@ export function createApiKeyScheme({ store }) {
         if (typeof key === 'string' && store.keys.has(key)) {
           return h.authenticated({ credentials: { apiKey: key } })
         }
-        return h
-          .response({ message: 'Forbidden' })
-          .code(403)
-          .type('application/json')
-          .header('x-amzn-ErrorType', 'ForbiddenException')
-          .takeover()
+        return forbidden(h)
       },
     }
   }

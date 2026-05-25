@@ -26,6 +26,7 @@
 import crypto from 'node:crypto'
 import { buildV2RequestEvent } from './v2-lambda-authorizer-event.js'
 import { evaluatePolicy } from './policy-evaluator.js'
+import { unauthorized, forbidden } from '../shared/auth-envelopes.js'
 import {
   parseV2IdentitySource,
   extractV2IdentitySource,
@@ -133,22 +134,4 @@ export function createV2LambdaAuthorizerScheme({
       },
     }
   }
-}
-
-function unauthorized(h) {
-  return h
-    .response({ message: 'Unauthorized' })
-    .code(401)
-    .type('application/json')
-    .header('x-amzn-ErrorType', 'UnauthorizedException')
-    .takeover()
-}
-
-function forbidden(h) {
-  return h
-    .response({ message: 'Forbidden' })
-    .code(403)
-    .type('application/json')
-    .header('x-amzn-ErrorType', 'ForbiddenException')
-    .takeover()
 }
