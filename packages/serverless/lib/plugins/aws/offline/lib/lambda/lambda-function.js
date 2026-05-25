@@ -150,7 +150,6 @@ export function createLambdaFunction({
       const timeoutSeconds =
         fn.timeout ?? provider.timeout ?? DEFAULT_TIMEOUT_SECONDS
       const timeoutMs = timeoutSeconds * 1000
-      const deadlineMs = Date.now() + timeoutMs
 
       const memoryLimitInMB = String(
         fn.memorySize ?? provider.memorySize ?? DEFAULT_MEMORY_LIMIT_IN_MB,
@@ -164,7 +163,11 @@ export function createLambdaFunction({
         invokedFunctionArn: arnFor('lambda', functionKey),
         memoryLimitInMB,
         callbackWaitsForEmptyEventLoop: true,
-        deadlineMs,
+        // Configured per-invocation budget in ms. The worker reads this and
+        // uses its own monotonic `performance.now()` clock to compute
+        // `getRemainingTimeInMillis`, so NTP adjustments and parent/worker
+        // clock-skew can never make the value go non-monotonic.
+        timeoutMs,
         // Raw handler string — worker-entry sets process.env._HANDLER from it
         // for parity with the real Lambda execution environment.
         handler: fn.handler,

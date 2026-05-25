@@ -97,7 +97,9 @@ describe('createLambdaFunction', () => {
     expect(args.context.callbackWaitsForEmptyEventLoop).toBe(true)
     expect(typeof args.context.awsRequestId).toBe('string')
     expect(args.context.awsRequestId).toMatch(/^[0-9a-f-]{36}$/)
-    expect(args.context.deadlineMs).toBeGreaterThan(Date.now() - 1)
+    // The worker reads context.timeoutMs and measures against its own
+    // monotonic clock to compute getRemainingTimeInMillis.
+    expect(args.context.timeoutMs).toBe(9000)
     expect(args.context.handler).toBe('src/handler.main')
 
     expect(result).toEqual({ ok: true, args })
@@ -368,7 +370,7 @@ describe('createLambdaFunction', () => {
     expect(runner.calls[0].timeoutMs).toBe(30_000)
   })
 
-  test('each invocation gets a fresh awsRequestId and deadlineMs', async () => {
+  test('each invocation gets a fresh awsRequestId and the same configured timeoutMs', async () => {
     const runner = makeRunner()
     const fn = createLambdaFunction({
       serverless: makeServerless({
@@ -380,15 +382,17 @@ describe('createLambdaFunction', () => {
     })
 
     await fn.invoke({})
-    // Force a wall-clock advance so deadlineMs differs.
     await new Promise((r) => setTimeout(r, 5))
     await fn.invoke({})
 
     expect(runner.calls[0].context.awsRequestId).not.toBe(
       runner.calls[1].context.awsRequestId,
     )
-    expect(runner.calls[1].context.deadlineMs).toBeGreaterThan(
-      runner.calls[0].context.deadlineMs,
+    // timeoutMs is the configured budget — same on every call for the same
+    // function definition.
+    expect(runner.calls[1].context.timeoutMs).toBe(
+      runner.calls[0].context.timeoutMs,
     )
+    expect(runner.calls[0].context.timeoutMs).toBe(1000)
   })
 })

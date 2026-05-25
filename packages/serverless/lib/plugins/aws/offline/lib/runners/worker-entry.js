@@ -1,6 +1,7 @@
 import { workerData, parentPort } from 'node:worker_threads'
 import { pathToFileURL } from 'node:url'
 import { randomBytes } from 'node:crypto'
+import { performance } from 'node:perf_hooks'
 
 const { handlerPath, handlerName } = workerData
 
@@ -85,6 +86,13 @@ parentPort.on('message', async (msg) => {
   if (msg.type !== 'invoke') {
     return
   }
+
+  // Capture the per-invocation start time on the worker's monotonic clock
+  // before any work begins. `getRemainingTimeInMillis` reads against this
+  // anchor so NTP adjustments cannot warp the value, and the parent's clock
+  // is never compared against the worker's clock (they're independent in
+  // worker_threads — performance.timeOrigin is per-worker).
+  const invocationStartedAt = performance.now()
 
   const { event, context, environment } = msg
 
@@ -241,9 +249,20 @@ parentPort.on('message', async (msg) => {
     identity: null,
     clientContext: null,
     getRemainingTimeInMillis:
-      typeof context?.deadlineMs === 'number'
-        ? () => Math.max(0, context.deadlineMs - Date.now())
-        : () => 0,
+      typeof context?.timeoutMs === 'number'
+        ? () =>
+            Math.max(
+              0,
+              Math.floor(
+                context.timeoutMs - (performance.now() - invocationStartedAt),
+              ),
+            )
+        : // Legacy fallback for producers that still send a wall-clock
+          // `deadlineMs`. Kept so external callers of the worker (e.g.
+          // future runner variants) don't lose this functionality silently.
+          typeof context?.deadlineMs === 'number'
+          ? () => Math.max(0, context.deadlineMs - Date.now())
+          : () => 0,
     done(error, result) {
       if (error) {
         postError(error, { fromCallback: true })
