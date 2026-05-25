@@ -542,6 +542,38 @@ it('18. onRequest throws → response 502 with {"message":"Internal server error
 })
 
 // ---------------------------------------------------------------------------
+// 18b. Non-string body in shaped response → 502
+// ---------------------------------------------------------------------------
+
+it('18b. shaped response with non-string body → 502 with {"message":"Internal server error"}', async () => {
+  const server = await makeServer()
+  // Handler returns body as a plain object instead of JSON.stringify(...)
+  const onRequest = jest
+    .fn()
+    .mockResolvedValue({ statusCode: 200, body: { json: 'object' } })
+
+  registerHttpApiRoutes({
+    server,
+    serverless: makeServerless({
+      myFn: { events: [{ httpApi: { method: 'GET', path: '/bad-body' } }] },
+    }),
+    stage: 'dev',
+    domainName: 'localhost:3000',
+    onRequest,
+  })
+
+  await server.start()
+  try {
+    const res = await server.inject({ method: 'GET', url: '/bad-body' })
+    expect(res.statusCode).toBe(502)
+    const body = JSON.parse(res.payload)
+    expect(body.message).toBe('Internal server error')
+  } finally {
+    await server.stop({ timeout: 5000 })
+  }
+})
+
+// ---------------------------------------------------------------------------
 // 19. Body 10 MB allowed; body > 10 MB rejected by Hapi with 413
 // ---------------------------------------------------------------------------
 

@@ -114,6 +114,25 @@ function formatLambdaResponseAsHapi(result, h) {
   // Shaped Lambda response
   const { statusCode, body, headers, cookies, isBase64Encoded } = result
 
+  // Guard: if body is present and not a string and not base64 binary, the
+  // handler returned a non-stringified object. Real APIGW returns 502 in this
+  // case (reference: HttpServer.js:930-935).
+  if (
+    body !== undefined &&
+    body !== null &&
+    typeof body !== 'string' &&
+    isBase64Encoded !== true
+  ) {
+    return h
+      .response(
+        JSON.stringify({
+          message: 'Internal server error',
+        }),
+      )
+      .code(502)
+      .type('application/json')
+  }
+
   let responseBody = body ?? ''
 
   if (isBase64Encoded === true && typeof responseBody === 'string') {
