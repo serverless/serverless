@@ -804,3 +804,124 @@ it('30b. requestContext.operationName reflects the value declared on the route',
   })
   expect(event.requestContext.operationName).toBe('GetUserById')
 })
+
+// ---------------------------------------------------------------------------
+// 31. requestContext.authorizer
+// ---------------------------------------------------------------------------
+
+describe('buildHttpApiV2Event — requestContext.authorizer', () => {
+  function buildEvent(overrides = {}) {
+    const request = {
+      method: 'GET',
+      path: '/p',
+      url: new URL('http://localhost:3000/p'),
+      params: {},
+      headers: {},
+      info: { remoteAddress: '127.0.0.1', received: 0 },
+      payload: undefined,
+      ...overrides.request,
+      auth: overrides.request?.auth ?? { credentials: {} },
+    }
+    return buildHttpApiV2Event({
+      request,
+      route: { method: 'GET', path: '/p', functionName: 'fn' },
+      stage: 'dev',
+      accountId: '000000000000',
+      domainName: 'localhost:3000',
+    })
+  }
+
+  afterEach(() => {
+    delete process.env.AUTHORIZER
+  })
+
+  it('omits authorizer when no credentials, no env, no header', () => {
+    const event = buildEvent()
+    expect(event.requestContext.authorizer).toBeUndefined()
+  })
+
+  it('surfaces credentials.authorizer with jwt namespacing verbatim (built upstream)', () => {
+    const event = buildEvent({
+      request: {
+        auth: {
+          credentials: {
+            authorizer: {
+              jwt: {
+                claims: { sub: 'u-1', email: 'a@b.c' },
+                scopes: ['read'],
+              },
+            },
+          },
+        },
+      },
+    })
+    expect(event.requestContext.authorizer).toEqual({
+      jwt: {
+        claims: { sub: 'u-1', email: 'a@b.c' },
+        scopes: ['read'],
+      },
+    })
+  })
+
+  it('surfaces credentials.authorizer with lambda namespacing verbatim (built upstream)', () => {
+    const event = buildEvent({
+      request: {
+        auth: {
+          credentials: {
+            authorizer: { lambda: { principalId: 'u-1', tenantId: 't-7' } },
+          },
+        },
+      },
+    })
+    expect(event.requestContext.authorizer).toEqual({
+      lambda: { principalId: 'u-1', tenantId: 't-7' },
+    })
+  })
+
+  it('process.env.AUTHORIZER overrides credentials verbatim (no namespacing applied)', () => {
+    process.env.AUTHORIZER = JSON.stringify({
+      principalId: 'env-user',
+      role: 'admin',
+    })
+    const event = buildEvent({
+      request: {
+        auth: {
+          credentials: { authorizer: { lambda: { principalId: 'u-1' } } },
+        },
+      },
+    })
+    expect(event.requestContext.authorizer).toEqual({
+      principalId: 'env-user',
+      role: 'admin',
+    })
+  })
+
+  it('sls-offline-authorizer-override header wins over env and credentials', () => {
+    process.env.AUTHORIZER = JSON.stringify({ from: 'env' })
+    const event = buildEvent({
+      request: {
+        headers: {
+          'sls-offline-authorizer-override': JSON.stringify({ from: 'header' }),
+        },
+        auth: {
+          credentials: { authorizer: { lambda: { principalId: 'u' } } },
+        },
+      },
+    })
+    expect(event.requestContext.authorizer).toEqual({ from: 'header' })
+  })
+
+  it('invalid JSON in env.AUTHORIZER falls through to credentials', () => {
+    process.env.AUTHORIZER = 'not-json{'
+    const event = buildEvent({
+      request: {
+        auth: {
+          credentials: { authorizer: { lambda: { principalId: 'u' } } },
+        },
+      },
+    })
+    expect(event.requestContext.authorizer).toEqual({
+      lambda: { principalId: 'u' },
+    })
+  })
+})

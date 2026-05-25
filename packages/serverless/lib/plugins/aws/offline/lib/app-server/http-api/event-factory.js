@@ -10,10 +10,47 @@
 
 import crypto from 'node:crypto'
 import { FAKE_ACCOUNT_ID } from '../../constants.js'
+import { parseJsonSafe } from '../shared/json-utils.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
+
+/**
+ * Resolve the `requestContext.authorizer` value for the downstream Lambda
+ * event, applying the documented precedence:
+ *
+ *   1. `sls-offline-authorizer-override` request header (per-request).
+ *   2. `process.env.AUTHORIZER` (process-wide).
+ *   3. `request.auth.credentials.authorizer` (from the executed authorizer
+ *      Hapi scheme).
+ *
+ * Header / env JSON values are emitted VERBATIM — no `.jwt` / `.lambda`
+ * namespacing is applied. The credentials value is also passed through
+ * verbatim because the auth scheme is responsible for building the
+ * v2-namespaced shape (`{ jwt: { claims, scopes } }` or `{ lambda: <ctx> }`).
+ *
+ * Returns `undefined` when none apply — the event omits the field, matching
+ * AWS API Gateway when no authorizer is attached to the route.
+ *
+ * @param {object} request
+ * @returns {object | undefined}
+ */
+function resolveAuthorizer(request) {
+  const fromHeader = parseJsonSafe(
+    request?.headers?.['sls-offline-authorizer-override'],
+  )
+  if (fromHeader) return fromHeader
+
+  const fromEnv = parseJsonSafe(process.env.AUTHORIZER)
+  if (fromEnv) return fromEnv
+
+  const fromCredentials = request?.auth?.credentials?.authorizer
+  if (fromCredentials && typeof fromCredentials === 'object') {
+    return fromCredentials
+  }
+  return undefined
+}
 
 /**
  * Content-type prefixes / exact values that are treated as binary.  When a
@@ -304,6 +341,8 @@ export function buildHttpApiV2Event({
     }
   }
 
+  const authorizer = resolveAuthorizer(request)
+
   /** @type {object} */
   const event = {
     version: '2.0',
@@ -317,6 +356,7 @@ export function buildHttpApiV2Event({
     requestContext: {
       accountId,
       apiId: 'offline',
+      ...(authorizer ? { authorizer } : {}),
       domainName,
       domainPrefix: 'offline',
       http: {
