@@ -292,6 +292,9 @@ export async function startSqsPollers({
           // Pass through memorySize so the worker can set memoryLimitInMB and
           // the corresponding AWS_LAMBDA_FUNCTION_MEMORY_SIZE env var correctly.
           memoryLimitInMB: fn.memorySize ?? 1024,
+          // Pass the raw handler string so the worker can set process.env._HANDLER
+          // for parity with the real Lambda execution environment.
+          handler: fn.handler,
         }
 
         // Read the handler base directory lazily each time a message arrives

@@ -159,6 +159,9 @@ export default class OfflinePlugin {
         memoryLimitInMB,
         callbackWaitsForEmptyEventLoop: true,
         deadlineMs,
+        // Pass the raw handler string so the worker can set process.env._HANDLER
+        // for parity with the real Lambda execution environment.
+        handler,
       }
 
       const environment = {

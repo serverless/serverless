@@ -109,13 +109,48 @@ parentPort.on('message', async (msg) => {
     context?.logStreamName ??
     `${formatLogStreamDate(new Date())}/[$LATEST]${randomHexId()}`
 
-  // Set AWS_LAMBDA_* env vars for this invocation.
+  // ---------------------------------------------------------------------------
+  // Set Lambda-runtime env vars for this invocation.
+  //
+  // Dynamic values (per-invocation):
   process.env.AWS_LAMBDA_FUNCTION_NAME = functionName
   process.env.AWS_LAMBDA_FUNCTION_MEMORY_SIZE = memoryLimitInMB
   process.env.AWS_LAMBDA_FUNCTION_VERSION = functionVersion
   process.env.AWS_LAMBDA_INVOKED_FUNCTION_ARN = context?.invokedFunctionArn
   process.env.AWS_LAMBDA_LOG_GROUP_NAME = logGroupName
   process.env.AWS_LAMBDA_LOG_STREAM_NAME = logStreamName
+
+  // _HANDLER — the raw handler string (e.g. 'src/foo.handler').
+  // Passed in via context.handler by the caller (invokeFunctionViaRunner /
+  // sqs-poller).  Handlers that read process.env._HANDLER to detect the entry
+  // point (e.g. for dynamic dispatch) see the same value offline as in prod.
+  if (context?.handler != null) {
+    process.env._HANDLER = context.handler
+  }
+
+  // Region — the worker inherits from the parent process (set by OfflinePlugin
+  // before any worker is spawned) but we also set it explicitly so that
+  // handlers which read AWS_REGION / AWS_DEFAULT_REGION from process.env see
+  // a value even if the parent's env was not propagated for some reason.
+  const region = context?.region ?? process.env.AWS_REGION ?? 'us-east-1'
+  process.env.AWS_REGION = region
+  process.env.AWS_DEFAULT_REGION = region
+
+  // Static AWS Lambda container constants.
+  //
+  // These paths do NOT exist on the developer's machine — they mirror the real
+  // Lambda execution environment.  Handlers that try to read files at
+  // /var/task/... will get ENOENT both in Lambda and offline.  Setting these
+  // env vars is for parity: code that READS process.env.LAMBDA_TASK_ROOT
+  // (e.g. to locate sibling files or to detect "am I running in Lambda?")
+  // sees the same values offline as in production.
+  process.env.LAMBDA_TASK_ROOT = '/var/task'
+  process.env.LAMBDA_RUNTIME_DIR = '/var/runtime'
+  process.env.LANG = 'en_US.UTF-8'
+  process.env.LD_LIBRARY_PATH =
+    '/usr/local/lib64/node-v4.3.x/lib:/lib64:/usr/lib64:/var/runtime:/var/runtime/lib:/var/task:/var/task/lib:/opt/lib'
+  process.env.NODE_PATH = '/var/runtime:/var/task:/var/runtime/node_modules'
+  // ---------------------------------------------------------------------------
 
   // Settle tracking — only post ONE message to the parent (first wins).
   let settled = false

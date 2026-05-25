@@ -1022,4 +1022,130 @@ describe('createWorkerThreadRunner', () => {
 
     await r.terminate()
   })
+
+  // -------------------------------------------------------------------------
+  // Fix 7: missing AWS Lambda runtime env vars (#21)
+  // -------------------------------------------------------------------------
+
+  // ENV-1: process.env._HANDLER matches the handler string passed via context.
+  it('env: _HANDLER is set from context.handler', async () => {
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async () => process.env._HANDLER',
+    )
+    const result = await r.invoke({
+      functionKey: 'env-1',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'myFn',
+        awsRequestId: 'req-env-1',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:myFn',
+        handler: 'src/foo.handler',
+      },
+    })
+    expect(result).toBe('src/foo.handler')
+
+    await r.terminate()
+  })
+
+  // ENV-2: process.env.LAMBDA_TASK_ROOT is the AWS static value.
+  it('env: LAMBDA_TASK_ROOT is set to /var/task', async () => {
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async () => process.env.LAMBDA_TASK_ROOT',
+    )
+    const result = await r.invoke({
+      functionKey: 'env-2',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: { functionName: 'myFn', awsRequestId: 'req-env-2' },
+    })
+    expect(result).toBe('/var/task')
+
+    await r.terminate()
+  })
+
+  // ENV-3: process.env.LAMBDA_RUNTIME_DIR is the AWS static value.
+  it('env: LAMBDA_RUNTIME_DIR is set to /var/runtime', async () => {
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async () => process.env.LAMBDA_RUNTIME_DIR',
+    )
+    const result = await r.invoke({
+      functionKey: 'env-3',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: { functionName: 'myFn', awsRequestId: 'req-env-3' },
+    })
+    expect(result).toBe('/var/runtime')
+
+    await r.terminate()
+  })
+
+  // ENV-4: process.env.LANG is the AWS static value.
+  it('env: LANG is set to en_US.UTF-8', async () => {
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async () => process.env.LANG',
+    )
+    const result = await r.invoke({
+      functionKey: 'env-4',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: { functionName: 'myFn', awsRequestId: 'req-env-4' },
+    })
+    expect(result).toBe('en_US.UTF-8')
+
+    await r.terminate()
+  })
+
+  // ENV-5: process.env.LD_LIBRARY_PATH is the AWS-spec value.
+  it('env: LD_LIBRARY_PATH is set to the AWS-spec value', async () => {
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async () => process.env.LD_LIBRARY_PATH',
+    )
+    const result = await r.invoke({
+      functionKey: 'env-5',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: { functionName: 'myFn', awsRequestId: 'req-env-5' },
+    })
+    expect(result).toBe(
+      '/usr/local/lib64/node-v4.3.x/lib:/lib64:/usr/lib64:/var/runtime:/var/runtime/lib:/var/task:/var/task/lib:/opt/lib',
+    )
+
+    await r.terminate()
+  })
+
+  // ENV-6: process.env.NODE_PATH is the AWS-spec value.
+  it('env: NODE_PATH is set to the AWS-spec value', async () => {
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async () => process.env.NODE_PATH',
+    )
+    const result = await r.invoke({
+      functionKey: 'env-6',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: { functionName: 'myFn', awsRequestId: 'req-env-6' },
+    })
+    expect(result).toBe('/var/runtime:/var/task:/var/runtime/node_modules')
+
+    await r.terminate()
+  })
 })
