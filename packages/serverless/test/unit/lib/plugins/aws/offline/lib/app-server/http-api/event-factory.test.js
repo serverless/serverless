@@ -123,11 +123,13 @@ it('4b. rawQueryString is empty string when no query', () => {
 })
 
 // ---------------------------------------------------------------------------
-// 5. queryStringParameters omitted when no query
+// 5. queryStringParameters is null when no query (matches AWS API Gateway)
 // ---------------------------------------------------------------------------
 
-it('5. queryStringParameters field is OMITTED when no query', () => {
-  expect(build()).not.toHaveProperty('queryStringParameters')
+it('5. queryStringParameters is null when the request has no query string', () => {
+  const event = build()
+  expect(event).toHaveProperty('queryStringParameters')
+  expect(event.queryStringParameters).toBeNull()
 })
 
 // ---------------------------------------------------------------------------
@@ -268,7 +270,7 @@ it('11. multi-value headers joined by ","', () => {
 // 12. pathParameters omitted / present
 // ---------------------------------------------------------------------------
 
-it('12. pathParameters omitted when route has no placeholders', () => {
+it('12. pathParameters is null when the route has no placeholders', () => {
   const event = buildHttpApiV2Event({
     request: makeRequest({ params: {} }),
     route: { method: 'GET', path: '/health', functionName: 'healthCheck' },
@@ -276,7 +278,8 @@ it('12. pathParameters omitted when route has no placeholders', () => {
     accountId: '000000000000',
     domainName: 'localhost:3000',
   })
-  expect(event).not.toHaveProperty('pathParameters')
+  expect(event).toHaveProperty('pathParameters')
+  expect(event.pathParameters).toBeNull()
 })
 
 it('12b. pathParameters is present when the route has placeholders', () => {
@@ -408,7 +411,7 @@ it('20a. requestContext.http.userAgent from request.headers["user-agent"]', () =
   expect(event.requestContext.http.userAgent).toBe('TestAgent/1.0')
 })
 
-it('20b. requestContext.http.userAgent falls back to "curl/8.x" when header absent', () => {
+it('20b. requestContext.http.userAgent falls back to "" when header absent', () => {
   const event = buildHttpApiV2Event({
     request: makeRequest({ headers: { 'content-type': 'application/json' } }),
     route: defaultRoute,
@@ -416,7 +419,7 @@ it('20b. requestContext.http.userAgent falls back to "curl/8.x" when header abse
     accountId: '000000000000',
     domainName: 'localhost:3000',
   })
-  expect(event.requestContext.http.userAgent).toBe('curl/8.x')
+  expect(event.requestContext.http.userAgent).toBe('')
 })
 
 // ---------------------------------------------------------------------------
@@ -599,4 +602,34 @@ it('28. body is null and isBase64Encoded is false when payload is undefined', ()
   })
   expect(event.body).toBeNull()
   expect(event.isBase64Encoded).toBe(false)
+})
+
+// ---------------------------------------------------------------------------
+// 29. stageVariables is always present as null
+// ---------------------------------------------------------------------------
+
+it('29. stageVariables is always present and null', () => {
+  const event = build()
+  expect(event).toHaveProperty('stageVariables')
+  expect(event.stageVariables).toBeNull()
+})
+
+// ---------------------------------------------------------------------------
+// 30. requestContext.operationName
+// ---------------------------------------------------------------------------
+
+it('30a. requestContext.operationName is absent when the route does not declare one', () => {
+  const event = build()
+  expect(event.requestContext).not.toHaveProperty('operationName')
+})
+
+it('30b. requestContext.operationName reflects the value declared on the route', () => {
+  const event = buildHttpApiV2Event({
+    request: makeRequest(),
+    route: { ...defaultRoute, operationName: 'GetUserById' },
+    stage: 'dev',
+    accountId: '000000000000',
+    domainName: 'localhost:3000',
+  })
+  expect(event.requestContext.operationName).toBe('GetUserById')
 })

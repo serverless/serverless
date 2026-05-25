@@ -46,6 +46,7 @@ function normalizeHttpApiEvent(httpApi) {
   return {
     method: httpApi.method.toUpperCase(),
     path: httpApi.path,
+    operationName: httpApi.operationName,
   }
 }
 
@@ -198,9 +199,11 @@ export function registerHttpApiRoutes({
     for (const eventEntry of events) {
       if (!Object.prototype.hasOwnProperty.call(eventEntry, 'httpApi')) continue
 
-      const { method: rawMethod, path: apigwPath } = normalizeHttpApiEvent(
-        eventEntry.httpApi,
-      )
+      const {
+        method: rawMethod,
+        path: apigwPath,
+        operationName,
+      } = normalizeHttpApiEvent(eventEntry.httpApi)
 
       const hapiMethod = toHapiMethod(rawMethod)
       const hapiPath = toHapiPath(apigwPath)
@@ -211,6 +214,7 @@ export function registerHttpApiRoutes({
         method: rawMethod,
         path: apigwPath,
         functionName: functionKey,
+        ...(operationName !== undefined ? { operationName } : {}),
       }
 
       // Hapi rejects payload options on GET / HEAD routes.  For wildcard ('*')

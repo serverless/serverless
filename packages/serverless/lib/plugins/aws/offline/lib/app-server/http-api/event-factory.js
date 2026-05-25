@@ -100,10 +100,11 @@ function normaliseHeaders(rawHeaders) {
  * Multi-value keys (e.g. `?id=1&id=2`) are joined by `,` to match APIGW
  * behaviour.
  *
- * Returns `undefined` when there are no parameters at all.
+ * Returns `null` when there are no parameters at all — APIGW emits `null`,
+ * not an absent field, when the request had no query string.
  *
  * @param {URLSearchParams} searchParams
- * @returns {Record<string, string> | undefined}
+ * @returns {Record<string, string> | null}
  */
 function parseQueryStringParameters(searchParams) {
   /** @type {Map<string, string[]>} */
@@ -116,7 +117,7 @@ function parseQueryStringParameters(searchParams) {
     map.get(key).push(value)
   }
 
-  if (map.size === 0) return undefined
+  if (map.size === 0) return null
 
   /** @type {Record<string, string>} */
   const result = {}
@@ -156,6 +157,10 @@ function parseQueryStringParameters(searchParams) {
  *   NOT the Hapi-translated path (`/users/:id`).
  * @param {string} opts.route.functionName
  *   The name of the Lambda function handling this route.
+ * @param {string} [opts.route.operationName]
+ *   Optional operation name declared on the `httpApi` event (e.g. via the
+ *   `httpApi: { operationName: 'GetUsers' }` form).  When set, surfaced in
+ *   `requestContext.operationName` exactly as AWS API Gateway does.
  *
  * @param {string} opts.stage
  *   API Gateway stage name (e.g. `'dev'`).  Used in `requestContext.stage`.
@@ -202,11 +207,11 @@ export function buildHttpApiV2Event({
         .filter(Boolean)
     : undefined
 
-  // Path parameters — omit field when empty.
+  // Path parameters — APIGW emits `null` when the route has no placeholders.
   const pathParameters =
     request.params && Object.keys(request.params).length > 0
       ? request.params
-      : undefined
+      : null
 
   // Timestamps.
   const now = new Date()
@@ -243,8 +248,8 @@ export function buildHttpApiV2Event({
     rawQueryString,
     ...(cookies !== undefined ? { cookies } : {}),
     headers,
-    ...(queryStringParameters !== undefined ? { queryStringParameters } : {}),
-    ...(pathParameters !== undefined ? { pathParameters } : {}),
+    queryStringParameters,
+    pathParameters,
     requestContext: {
       accountId,
       apiId: 'offline',
@@ -255,14 +260,18 @@ export function buildHttpApiV2Event({
         path: rawPath,
         protocol: 'HTTP/1.1',
         sourceIp: request.info?.remoteAddress ?? '127.0.0.1',
-        userAgent: request.headers['user-agent'] ?? 'curl/8.x',
+        userAgent: request.headers['user-agent'] ?? '',
       },
+      ...(route.operationName !== undefined
+        ? { operationName: route.operationName }
+        : {}),
       requestId: crypto.randomUUID(),
       routeKey,
       stage,
       time,
       timeEpoch,
     },
+    stageVariables: null,
     body,
     isBase64Encoded,
   }
