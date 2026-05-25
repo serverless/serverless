@@ -266,6 +266,15 @@ commands.set('offline', {
       usage: 'Disable hot-reload of handler files',
       type: 'boolean',
     },
+    prefix: {
+      usage:
+        'Extra path segment to prepend after the stage in REST API URLs (e.g. --prefix api → /<stage>/api/<route>)',
+      type: 'string',
+    },
+    noPrependStageInUrl: {
+      usage: 'Do NOT prepend the deployment stage to REST API URLs',
+      type: 'boolean',
+    },
   },
   lifecycleEvents: ['offline'],
   serviceDependencyMode: 'required',

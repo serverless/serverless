@@ -39,6 +39,13 @@ describe('commands-schema offline entry', () => {
     })
   })
 
+  it('exposes --prefix and --noPrependStageInUrl for REST API mounting', () => {
+    expect(entry.options).toMatchObject({
+      prefix: { type: 'string' },
+      noPrependStageInUrl: { type: 'boolean' },
+    })
+  })
+
   it('every option has a non-empty usage string for sls --help', () => {
     for (const [name, def] of Object.entries(entry.options)) {
       expect(typeof def.usage).toBe('string')

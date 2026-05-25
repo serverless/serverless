@@ -9,7 +9,7 @@ describe('offline schema', () => {
     expect(offlineSchema.additionalProperties).toBe(false)
   })
 
-  it('defines all six top-level properties', () => {
+  it('defines all top-level properties', () => {
     expect(offlineSchema.properties).toEqual({
       awsApiPort: { type: 'integer', minimum: 1, maximum: 65535 },
       appPort: { type: 'integer', minimum: 1, maximum: 65535 },
@@ -17,6 +17,15 @@ describe('offline schema', () => {
       watch: { type: 'boolean' },
       noWatch: { type: 'boolean' },
       terminateIdleLambdaTime: { type: 'integer', minimum: 0 },
+      prefix: { type: 'string' },
+      noPrependStageInUrl: { type: 'boolean' },
+    })
+  })
+
+  it('accepts prefix and noPrependStageInUrl', () => {
+    expect(offlineSchema.properties.prefix).toEqual({ type: 'string' })
+    expect(offlineSchema.properties.noPrependStageInUrl).toEqual({
+      type: 'boolean',
     })
   })
 

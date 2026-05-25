@@ -20,6 +20,7 @@ import { createWorkerThreadRunner } from './lib/runners/worker-thread.js'
 import { startSqsPollers } from './lib/event-sources/sqs-poller.js'
 import { createAppServer } from './lib/app-server/index.js'
 import { registerHttpApiRoutes } from './lib/app-server/http-api/route-loader.js'
+import { registerRestApiRoutes } from './lib/app-server/rest-api/route-loader.js'
 import { createWatcher } from './lib/watcher.js'
 import { assertAllNodeRuntimes } from './lib/runtime-guard.js'
 import { getHandlerBaseDir } from './lib/handler-base-dir.js'
@@ -55,6 +56,7 @@ function coerceInt(value) {
  * @param {string} params.appUrl                              The HTTP API / REST / ALB / WebSocket endpoint.
  * @param {string} params.awsApiUrl                           The AWS SDK endpoint (Lambda Invoke, SQS, etc.).
  * @param {{ method: string, path: string, functionKey: string }[]} params.httpApiRoutes
+ * @param {{ method: string, path: string, mountedPath: string, functionKey: string }[]} [params.restApiRoutes]
  * @param {number} params.sqsPollerCount
  * @param {string} params.stage
  */
@@ -63,6 +65,7 @@ function logBootSummary({
   appUrl,
   awsApiUrl,
   httpApiRoutes,
+  restApiRoutes,
   sqsPollerCount,
   stage,
 }) {
@@ -88,6 +91,24 @@ function logBootSummary({
       // route key already documents them.
       logger.notice(
         `    ${r.method.padEnd(methodWidth)}  ${appUrl}${r.path}  →  ${r.functionKey}`,
+      )
+    }
+  }
+
+  if (restApiRoutes && restApiRoutes.length > 0) {
+    logger.notice('  REST API routes:')
+    // Sort by mounted URL then method so the table is stable across boots.
+    const sorted = [...restApiRoutes].sort(
+      (a, b) =>
+        a.mountedPath.localeCompare(b.mountedPath) ||
+        a.method.localeCompare(b.method),
+    )
+    const methodWidth = Math.max(...sorted.map((r) => r.method.length))
+    for (const r of sorted) {
+      // mountedPath already carries stage + optional --prefix, so we can join
+      // it straight onto appUrl.
+      logger.notice(
+        `    ${r.method.padEnd(methodWidth)}  ${appUrl}${r.mountedPath}  →  ${r.functionKey}`,
       )
     }
   }
@@ -168,6 +189,10 @@ export default class OfflinePlugin {
     const terminateIdleLambdaTime =
       offline.terminateIdleLambdaTime ?? DEFAULT_TERMINATE_IDLE_LAMBDA_TIME
     const noTimeout = cliOptions.noTimeout === true
+    const prefix = cliOptions.prefix ?? offline.prefix
+    const noPrependStageInUrl =
+      cliOptions.noPrependStageInUrl === true ||
+      offline.noPrependStageInUrl === true
     // watch defaults to true; --noWatch (CLI flag) or offline.noWatch (YAML)
     // disable it explicitly, --watch=false / offline.watch:false also disable.
     const watchEnabled =
@@ -253,6 +278,8 @@ export default class OfflinePlugin {
     // 9. Boot the app server (Hapi v21) for user traffic.
     /** @type {{ method: string, path: string, functionKey: string }[]} */
     let httpApiRoutes = []
+    /** @type {{ method: string, path: string, mountedPath: string, functionKey: string }[]} */
+    let restApiRoutes = []
     const appServer = await createAppServer({
       appPort,
       host,
@@ -267,7 +294,16 @@ export default class OfflinePlugin {
             return getLambdaFunction(functionKey).invoke(event)
           },
         })
-        // (M2+ will add registerRestApiRoutes, M4+ ALB and WebSocket, etc.)
+        restApiRoutes = registerRestApiRoutes({
+          server,
+          serverless,
+          stage,
+          prefix,
+          noPrependStageInUrl,
+          async onRequest(functionKey, event) {
+            return getLambdaFunction(functionKey).invoke(event)
+          },
+        })
       },
     })
 
@@ -326,6 +362,7 @@ export default class OfflinePlugin {
           appUrl: appServer.info.uri,
           awsApiUrl: awsApiServer.info.uri,
           httpApiRoutes,
+          restApiRoutes,
           sqsPollerCount: pollerController.pollerCount,
           stage,
         })

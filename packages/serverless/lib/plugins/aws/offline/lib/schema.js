@@ -17,6 +17,8 @@ const offlineSchema = {
     watch: { type: 'boolean' },
     noWatch: { type: 'boolean' },
     terminateIdleLambdaTime: { type: 'integer', minimum: 0 },
+    prefix: { type: 'string' },
+    noPrependStageInUrl: { type: 'boolean' },
   },
 }
 
