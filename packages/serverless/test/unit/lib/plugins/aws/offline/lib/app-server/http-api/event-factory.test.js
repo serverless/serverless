@@ -568,10 +568,10 @@ it('27d. isBase64Encoded true + base64 body for application/zip', () => {
 })
 
 // ---------------------------------------------------------------------------
-// 28. body and isBase64Encoded both omitted when payload is undefined
+// 28. body: null and isBase64Encoded: false when payload is undefined
 // ---------------------------------------------------------------------------
 
-it('28. body and isBase64Encoded are both OMITTED when payload is undefined', () => {
+it('28. body is null and isBase64Encoded is false when payload is undefined', () => {
   const event = buildHttpApiV2Event({
     request: makeRequest({ payload: undefined }),
     route: defaultRoute,
@@ -579,6 +579,6 @@ it('28. body and isBase64Encoded are both OMITTED when payload is undefined', ()
     accountId: '000000000000',
     domainName: 'localhost:3000',
   })
-  expect(event).not.toHaveProperty('body')
-  expect(event).not.toHaveProperty('isBase64Encoded')
+  expect(event.body).toBeNull()
+  expect(event.isBase64Encoded).toBe(false)
 })

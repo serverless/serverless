@@ -219,22 +219,24 @@ export function buildHttpApiV2Event({
   const time = formatApigwTime(now)
 
   // Body + isBase64Encoded.
-  let bodyFields = {}
+  // Always emit both fields: AWS always includes body (null when absent) and
+  // isBase64Encoded (false when body is null or non-binary).
+  let body = null
+  let isBase64Encoded = false
   if (request.payload !== undefined) {
     const contentType = request.headers['content-type'] ?? ''
     if (isBinaryContentType(contentType)) {
       const buf = Buffer.isBuffer(request.payload)
         ? request.payload
         : Buffer.from(request.payload)
-      bodyFields = { body: buf.toString('base64'), isBase64Encoded: true }
+      body = buf.toString('base64')
+      isBase64Encoded = true
     } else {
-      bodyFields = {
-        body:
-          typeof request.payload === 'string'
-            ? request.payload
-            : JSON.stringify(request.payload),
-        isBase64Encoded: false,
-      }
+      body =
+        typeof request.payload === 'string'
+          ? request.payload
+          : JSON.stringify(request.payload)
+      isBase64Encoded = false
     }
   }
 
@@ -266,7 +268,8 @@ export function buildHttpApiV2Event({
       time,
       timeEpoch,
     },
-    ...bodyFields,
+    body,
+    isBase64Encoded,
   }
 
   return event
