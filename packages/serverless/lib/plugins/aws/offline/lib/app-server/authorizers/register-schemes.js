@@ -52,8 +52,25 @@ export function registerAuthSchemes({
   stage,
   accountId,
   domainName,
+  customAuthStrategy,
 }) {
   const functions = serverless?.service?.functions ?? {}
+
+  const authorizerStrategies = new Map()
+  const v2AuthorizerStrategies = new Map()
+
+  // Custom-auth registration runs FIRST so its name takes precedence over
+  // any colliding Lambda/JWT names discovered by the subsequent v1 + v2
+  // scan loops (each loop checks `if (...has(name)) continue`).
+  if (customAuthStrategy) {
+    server.auth.scheme(
+      customAuthStrategy.scheme,
+      customAuthStrategy.getAuthenticateFunction,
+    )
+    server.auth.strategy(customAuthStrategy.name, customAuthStrategy.scheme)
+    authorizerStrategies.set(customAuthStrategy.name, customAuthStrategy.name)
+    v2AuthorizerStrategies.set(customAuthStrategy.name, customAuthStrategy.name)
+  }
 
   let anyPrivate = false
   const uniqueAuthorizers = new Map()
@@ -82,9 +99,8 @@ export function registerAuthSchemes({
     privateStrategy = 'api-key'
   }
 
-  const authorizerStrategies = new Map()
-
   for (const [name, def] of uniqueAuthorizers) {
+    if (authorizerStrategies.has(name)) continue
     const lambdaFunction = lambdas.get(name)
     if (!lambdaFunction) {
       // eslint-disable-next-line no-console
@@ -167,8 +183,8 @@ export function registerAuthSchemes({
     }
   }
 
-  const v2AuthorizerStrategies = new Map()
   for (const [name, def] of v2Authorizers) {
+    if (v2AuthorizerStrategies.has(name)) continue
     if (def.kind === 'jwt') {
       const schemeName = `jwt:${name}`
       server.auth.scheme(schemeName, createJwtScheme({ authorizerDef: def }))

@@ -454,3 +454,142 @@ describe('registerAuthSchemes — HTTP API v2', () => {
     expect(result.v2AuthorizerStrategies.size).toBe(1)
   })
 })
+
+describe('registerAuthSchemes — customAuthenticationProvider', () => {
+  function makeCustomAuthStrategy(name = 'custom-auth') {
+    return {
+      name,
+      scheme: `${name}-scheme`,
+      getAuthenticateFunction: () => ({
+        authenticate: (_request, h) => h.unauthenticated(new Error('nope')),
+      }),
+    }
+  }
+
+  it('registers the custom scheme + strategy when customAuthStrategy is provided; both maps have the name', () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const customAuthStrategy = makeCustomAuthStrategy('my-custom')
+    const result = registerAuthSchemes({
+      server,
+      serverless: makeServerless({}),
+      lambdas: makeLambdas(),
+      stage: 'dev',
+      accountId: '000000000000',
+      domainName: 'localhost',
+      customAuthStrategy,
+    })
+    expect(result.authorizerStrategies.get('my-custom')).toBe('my-custom')
+    expect(result.v2AuthorizerStrategies.get('my-custom')).toBe('my-custom')
+    expect(() =>
+      server.route({
+        method: 'GET',
+        path: '/x',
+        options: { auth: 'my-custom' },
+        handler: () => 'x',
+      }),
+    ).not.toThrow()
+  })
+
+  it('does NOT touch the maps when customAuthStrategy is null', () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const result = registerAuthSchemes({
+      server,
+      serverless: makeServerless({}),
+      lambdas: makeLambdas(),
+      stage: 'dev',
+      accountId: '000000000000',
+      domainName: 'localhost',
+      customAuthStrategy: null,
+    })
+    expect(result.authorizerStrategies.size).toBe(0)
+    expect(result.v2AuthorizerStrategies.size).toBe(0)
+  })
+
+  it('custom-auth name takes precedence over a colliding REST v1 Lambda authorizer name', () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const customAuthStrategy = makeCustomAuthStrategy('sharedName')
+    const result = registerAuthSchemes({
+      server,
+      serverless: makeServerless({
+        sharedName: { events: [] },
+        a: {
+          events: [
+            {
+              http: {
+                method: 'GET',
+                path: '/p',
+                authorizer: { name: 'sharedName', type: 'TOKEN' },
+              },
+            },
+          ],
+        },
+      }),
+      lambdas: makeLambdas({ sharedName: { invoke: jest.fn() } }),
+      stage: 'dev',
+      accountId: '000000000000',
+      domainName: 'localhost',
+      customAuthStrategy,
+    })
+    expect(result.authorizerStrategies.get('sharedName')).toBe('sharedName')
+    // The colliding Lambda authorizer strategy must NOT have been registered.
+    expect(() =>
+      server.route({
+        method: 'GET',
+        path: '/x',
+        options: { auth: 'lambda-authorizer:sharedName' },
+        handler: () => 'x',
+      }),
+    ).toThrow()
+  })
+
+  it('custom-auth name takes precedence over a colliding HTTP API v2 JWT authorizer name', () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const customAuthStrategy = makeCustomAuthStrategy('sharedName')
+    const result = registerAuthSchemes({
+      server,
+      serverless: {
+        service: {
+          provider: {
+            httpApi: {
+              authorizers: {
+                sharedName: {
+                  type: 'jwt',
+                  issuerUrl: 'https://issuer.example.com',
+                  audience: ['my-aud'],
+                },
+              },
+            },
+          },
+          functions: {
+            a: {
+              events: [
+                {
+                  httpApi: {
+                    method: 'GET',
+                    path: '/p',
+                    authorizer: { name: 'sharedName' },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+      lambdas: makeLambdas(),
+      stage: 'dev',
+      accountId: '000000000000',
+      domainName: 'localhost',
+      customAuthStrategy,
+    })
+    expect(result.v2AuthorizerStrategies.get('sharedName')).toBe('sharedName')
+    // The colliding JWT strategy must NOT have been registered.
+    expect(() =>
+      server.route({
+        method: 'GET',
+        path: '/x',
+        options: { auth: 'jwt:sharedName' },
+        handler: () => 'x',
+      }),
+    ).toThrow()
+  })
+})

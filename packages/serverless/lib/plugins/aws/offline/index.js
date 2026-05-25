@@ -23,6 +23,7 @@ import { createAppServer } from './lib/app-server/index.js'
 import { registerHttpApiRoutes } from './lib/app-server/http-api/route-loader.js'
 import { registerRestApiRoutes } from './lib/app-server/rest-api/route-loader.js'
 import { registerAuthSchemes } from './lib/app-server/authorizers/register-schemes.js'
+import { loadCustomAuthenticationProvider } from './lib/app-server/authorizers/custom-auth-loader.js'
 import { createWatcher } from './lib/watcher.js'
 import { assertAllNodeRuntimes } from './lib/runtime-guard.js'
 import { getHandlerBaseDir } from './lib/handler-base-dir.js'
@@ -290,6 +291,9 @@ export default class OfflinePlugin {
         // Register Hapi auth schemes + strategies BEFORE any routes — Hapi
         // rejects `route.options.auth` references to strategies that don't
         // exist yet at registration time.
+        const customAuthStrategy = await loadCustomAuthenticationProvider({
+          serverless,
+        })
         const authStrategies = registerAuthSchemes({
           server,
           serverless,
@@ -299,6 +303,7 @@ export default class OfflinePlugin {
           stage,
           accountId: FAKE_ACCOUNT_ID,
           domainName,
+          customAuthStrategy,
         })
 
         httpApiRoutes = registerHttpApiRoutes({
