@@ -12,11 +12,12 @@
  * time so users hit a documented boundary instead of a silent 500 mid-request.
  */
 
-import ServerlessError from '../../../../../../serverless-error.js'
 import { buildRestApiEvent } from './event-factory.js'
 import { formatRestApiResponse } from './response-mapper.js'
 import { detectIntegration } from './integration-detector.js'
 import { translateRestPath, buildMountedPath } from './path-translator.js'
+import { buildNonProxyEvent } from './non-proxy/event-factory.js'
+import { mapNonProxyResponse } from './non-proxy/response-mapper.js'
 import {
   normalizeCorsConfig,
   buildCorsOptionsRoute,
@@ -61,6 +62,77 @@ function normalizeHttpEvent(httpEvent) {
     method: httpEvent.method.toUpperCase(),
     path: httpEvent.path,
   }
+}
+
+/**
+ * Normalize the Framework YAML `http.response` block into the response map
+ * the non-proxy mapper consumes.
+ *
+ * Framework's YAML uses two shapes:
+ *
+ *   response:
+ *     template:            # → default response's responseTemplates
+ *       'application/json': '...'
+ *     headers:             # → default response's responseParameters
+ *       X-Custom: "'value'"
+ *     statusCodes:         # → keyed (non-default) responses
+ *       '404':
+ *         pattern: 'Not found.*'
+ *         template:
+ *           'application/json': '...'
+ *         headers:
+ *           X-Foo: 'integration.response.body.foo'
+ *
+ * Output shape consumed by `mapNonProxyResponse`:
+ *
+ *   { default: { statusCode: 200, responseTemplates, responseParameters },
+ *     '404':   { statusCode: 404, selectionPattern, responseTemplates,
+ *                responseParameters } }
+ *
+ * Header right-hand-sides pass through verbatim — the mapper handles the
+ * `'literal'`, `integration.response.body[.PATH]`, and bare-value forms.
+ *
+ * @param {object | undefined} responseConfig
+ * @returns {Record<string, object>}
+ */
+function normalizeResponses(responseConfig) {
+  if (!responseConfig) return { default: { statusCode: 200 } }
+
+  const headersToParameters = (headers) =>
+    Object.fromEntries(
+      Object.entries(headers).map(([name, value]) => [
+        `method.response.header.${name}`,
+        value,
+      ]),
+    )
+
+  const out = {
+    default: {
+      statusCode: 200,
+      ...(responseConfig.template
+        ? { responseTemplates: responseConfig.template }
+        : {}),
+      ...(responseConfig.headers
+        ? { responseParameters: headersToParameters(responseConfig.headers) }
+        : {}),
+    },
+  }
+
+  for (const [code, entry] of Object.entries(
+    responseConfig.statusCodes ?? {},
+  )) {
+    const numericCode = Number.parseInt(code, 10)
+    out[code] = {
+      statusCode: numericCode,
+      ...(entry.pattern ? { selectionPattern: entry.pattern } : {}),
+      ...(entry.template ? { responseTemplates: entry.template } : {}),
+      ...(entry.headers
+        ? { responseParameters: headersToParameters(entry.headers) }
+        : {}),
+    }
+  }
+
+  return out
 }
 
 /**
@@ -116,8 +188,6 @@ function toHapiMethod(method) {
  *   The list of routes that were registered (in declaration order). Consumed
  *   by the boot-diagnostics summary that prints the route table.
  *
- * @throws {ServerlessError} OFFLINE_REST_AWS_INTEGRATION_NOT_IMPLEMENTED
- *   When any function declares an `http` event with `integration: 'AWS'`.
  * @throws {ServerlessError} OFFLINE_UNSUPPORTED_INTEGRATION
  *   When the integration type is neither AWS_PROXY nor AWS.
  */
@@ -145,16 +215,17 @@ export function registerRestApiRoutes({
       const httpEvent = eventEntry.http
       const integration = detectIntegration(httpEvent)
 
-      if (integration === 'AWS') {
-        // Fast-fail at register time so the user gets a single clear error up
-        // front rather than discovering the gap mid-request. Surfacing the
-        // function key in the message lets the user pinpoint the declaration.
-        throw new ServerlessError(
-          `REST API AWS (non-proxy) integration is not yet supported by sls offline. ` +
-            `Function "${functionKey}" declares an http event with integration:'AWS'.`,
-          'OFFLINE_REST_AWS_INTEGRATION_NOT_IMPLEMENTED',
-        )
-      }
+      // Non-proxy (AWS / lambda) routes carry per-route request templates and
+      // response definitions; pre-extract them so the handler closure captures
+      // a stable shape. AWS_PROXY routes ignore both.
+      const requestTemplates =
+        integration === 'AWS' && typeof httpEvent === 'object'
+          ? (httpEvent.request?.template ?? null)
+          : null
+      const responses =
+        integration === 'AWS' && typeof httpEvent === 'object'
+          ? normalizeResponses(httpEvent.response)
+          : null
 
       const { method: rawMethod, path: apigwPath } =
         normalizeHttpEvent(httpEvent)
@@ -213,6 +284,52 @@ export function registerRestApiRoutes({
           },
         },
         async handler(request, h) {
+          if (integration === 'AWS') {
+            // Non-proxy: render request template → invoke → map response.
+            let event
+            try {
+              event = buildNonProxyEvent({
+                request,
+                stage,
+                resourcePath: apigwPath,
+                requestTemplates,
+              })
+            } catch (err) {
+              console.error(`[offline] ${functionKey}:`, err)
+              return h
+                .response(JSON.stringify({ message: 'Internal server error' }))
+                .code(502)
+                .type('application/json')
+            }
+
+            let result
+            let invokeError = null
+            try {
+              result = await onRequest(functionKey, event)
+            } catch (err) {
+              invokeError = err
+            }
+            const response = mapNonProxyResponse({
+              result,
+              err: invokeError,
+              responses,
+              request,
+              stage,
+              resourcePath: apigwPath,
+              h,
+            })
+            if (corsConfig) {
+              applyCorsResponseHeaders(
+                response,
+                corsConfig,
+                request.headers?.origin,
+              )
+            }
+            return response
+          }
+
+          // AWS_PROXY (default): build event, invoke, pass through Lambda
+          // response shape.
           try {
             const event = buildRestApiEvent({
               request,

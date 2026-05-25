@@ -209,30 +209,25 @@ describe('registerRestApiRoutes — registration', () => {
     expect(stub.routes[0].options.payload).toBeUndefined()
   })
 
-  it('AWS integration throws OFFLINE_REST_AWS_INTEGRATION_NOT_IMPLEMENTED at register time', () => {
+  it('AWS (non-proxy) integration registers a route (no longer throws)', () => {
     const stub = makeRouteStub()
-    let caught
-    try {
-      registerRestApiRoutes({
-        server: stub,
-        serverless: makeServerless({
-          f: {
-            events: [
-              {
-                http: { method: 'GET', path: '/aws', integration: 'AWS' },
-              },
-            ],
-          },
-        }),
-        stage: 'dev',
-        onRequest: jest.fn(),
-      })
-    } catch (err) {
-      caught = err
-    }
-    expect(caught).toBeDefined()
-    expect(caught.code).toBe('OFFLINE_REST_AWS_INTEGRATION_NOT_IMPLEMENTED')
-    expect(caught.message).toContain('"f"')
+    registerRestApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        f: {
+          events: [
+            {
+              http: { method: 'GET', path: '/aws', integration: 'AWS' },
+            },
+          ],
+        },
+      }),
+      stage: 'dev',
+      onRequest: jest.fn(),
+    })
+    expect(stub.routes).toHaveLength(1)
+    expect(stub.routes[0].method).toBe('GET')
+    expect(stub.routes[0].path).toBe('/dev/aws')
   })
 
   it('unsupported integration type bubbles up from the detector', () => {
@@ -473,5 +468,162 @@ describe('registerRestApiRoutes — CORS', () => {
       onRequest: jest.fn(),
     })
     expect(stub.routes.find((r) => r.method === 'OPTIONS')).toBeUndefined()
+  })
+})
+
+describe('registerRestApiRoutes — AWS (non-proxy) integration dispatch', () => {
+  let server
+  afterEach(async () => {
+    if (server) {
+      await server.stop({ timeout: 5000 })
+      server = null
+    }
+  })
+
+  it('AWS integration handler receives the rendered event from the request template', async () => {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    let captured
+    const onRequest = jest.fn(async (functionKey, event) => {
+      captured = { functionKey, event }
+      return { ok: true }
+    })
+    registerRestApiRoutes({
+      server,
+      serverless: makeServerless({
+        createItem: {
+          events: [
+            {
+              http: {
+                method: 'POST',
+                path: '/items/{id}',
+                integration: 'AWS',
+                request: {
+                  template: {
+                    'application/json':
+                      '{"id": "$input.params(\'id\')", "msg": $input.json(\'$.hello\')}',
+                  },
+                },
+              },
+            },
+          ],
+        },
+      }),
+      stage: 'dev',
+      onRequest,
+    })
+    await server.start()
+
+    const res = await server.inject({
+      method: 'POST',
+      url: '/dev/items/42',
+      headers: { 'content-type': 'application/json' },
+      payload: JSON.stringify({ hello: 'world' }),
+    })
+
+    expect(res.statusCode).toBe(200)
+    expect(captured.functionKey).toBe('createItem')
+    expect(captured.event).toEqual({ id: '42', msg: 'world' })
+  })
+
+  it('AWS integration: response selectionPattern picks the matching status on error', async () => {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    const onRequest = jest.fn(async () => {
+      throw new Error('Not found: user 42')
+    })
+    registerRestApiRoutes({
+      server,
+      serverless: makeServerless({
+        getItem: {
+          events: [
+            {
+              http: {
+                method: 'GET',
+                path: '/items/{id}',
+                integration: 'AWS',
+                response: {
+                  statusCodes: {
+                    200: { pattern: '' },
+                    404: { pattern: 'Not found.*' },
+                  },
+                },
+              },
+            },
+          ],
+        },
+      }),
+      stage: 'dev',
+      onRequest,
+    })
+    await server.start()
+
+    const res = await server.inject({
+      method: 'GET',
+      url: '/dev/items/42',
+    })
+    expect(res.statusCode).toBe(404)
+  })
+
+  it('AWS integration: response template renders the Lambda result', async () => {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    const onRequest = jest.fn(async () => ({ hello: 'world' }))
+    registerRestApiRoutes({
+      server,
+      serverless: makeServerless({
+        echo: {
+          events: [
+            {
+              http: {
+                method: 'GET',
+                path: '/items',
+                integration: 'AWS',
+                response: {
+                  template: {
+                    'application/json': '{"echo": "$input.path(\'$.hello\')"}',
+                  },
+                },
+              },
+            },
+          ],
+        },
+      }),
+      stage: 'dev',
+      onRequest,
+    })
+    await server.start()
+
+    const res = await server.inject({ method: 'GET', url: '/dev/items' })
+    expect(res.statusCode).toBe(200)
+    expect(JSON.parse(res.payload)).toEqual({ echo: 'world' })
+  })
+
+  it('AWS integration: response.headers literal maps to a response header', async () => {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    const onRequest = jest.fn(async () => ({ ok: true }))
+    registerRestApiRoutes({
+      server,
+      serverless: makeServerless({
+        h: {
+          events: [
+            {
+              http: {
+                method: 'GET',
+                path: '/h',
+                integration: 'AWS',
+                response: {
+                  headers: { 'X-Custom': "'literal-value'" },
+                },
+              },
+            },
+          ],
+        },
+      }),
+      stage: 'dev',
+      onRequest,
+    })
+    await server.start()
+
+    const res = await server.inject({ method: 'GET', url: '/dev/h' })
+    expect(res.statusCode).toBe(200)
+    expect(res.headers['x-custom']).toBe('literal-value')
   })
 })
