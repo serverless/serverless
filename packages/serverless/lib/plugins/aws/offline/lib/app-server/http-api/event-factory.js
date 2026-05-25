@@ -213,17 +213,22 @@ export function buildHttpApiV2Event({
       ? request.params
       : null
 
-  // Timestamps.
-  const now = new Date()
-  const timeEpoch = now.getTime()
+  // Timestamps. Prefer the actual request-received time the HTTP framework
+  // captured (Hapi sets `request.info.received` to the ms epoch when the TCP
+  // socket received the first byte); fall back to "now" if absent.
+  const receivedMs = request.info?.received ?? Date.now()
+  const now = new Date(receivedMs)
+  const timeEpoch = receivedMs
   const time = formatApigwTime(now)
 
   // Body + isBase64Encoded.
   // Always emit both fields: AWS always includes body (null when absent) and
-  // isBase64Encoded (false when body is null or non-binary).
+  // isBase64Encoded (false when body is null or non-binary). An empty-string
+  // request body is also surfaced as `null` — matching real APIGW, which
+  // treats "no body" and "empty body" as equivalent for the v2 payload.
   let body = null
   let isBase64Encoded = false
-  if (request.payload !== undefined) {
+  if (request.payload !== undefined && request.payload !== '') {
     const contentType = request.headers['content-type'] ?? ''
     if (isBinaryContentType(contentType)) {
       const buf = Buffer.isBuffer(request.payload)

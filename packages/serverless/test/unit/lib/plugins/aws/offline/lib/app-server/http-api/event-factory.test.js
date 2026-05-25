@@ -467,6 +467,30 @@ it('24. requestContext.timeEpoch is a number roughly equal to Date.now()', () =>
 })
 
 // ---------------------------------------------------------------------------
+// 24b. timeEpoch reflects request-received time, not event-build time
+// ---------------------------------------------------------------------------
+
+it('24b. requestContext.timeEpoch is taken from request.info.received when set', () => {
+  // Real Lambda timestamps the event at the request-received moment (the time
+  // the HTTP framework picked up the first byte from the socket), not at the
+  // moment the event JSON was built. Hapi exposes this as `request.info.received`.
+  const receivedMs = 1_700_000_000_000
+  const event = buildHttpApiV2Event({
+    request: makeRequest({
+      info: { remoteAddress: '127.0.0.1', received: receivedMs },
+    }),
+    route: defaultRoute,
+    stage: 'dev',
+    accountId: '000000000000',
+    domainName: 'localhost:3000',
+  })
+  expect(event.requestContext.timeEpoch).toBe(receivedMs)
+  // The strftime-formatted `time` should also reflect that moment.
+  // 1700000000000 ms = 2023-11-14T22:13:20.000Z → 14/Nov/2023:22:13:20 +0000
+  expect(event.requestContext.time).toBe('14/Nov/2023:22:13:20 +0000')
+})
+
+// ---------------------------------------------------------------------------
 // 25. body — string form for non-binary
 // ---------------------------------------------------------------------------
 
@@ -595,6 +619,29 @@ it('27e. multipart/form-data (with boundary) IS binary — isBase64Encoded true 
 it('28. body is null and isBase64Encoded is false when payload is undefined', () => {
   const event = buildHttpApiV2Event({
     request: makeRequest({ payload: undefined }),
+    route: defaultRoute,
+    stage: 'dev',
+    accountId: '000000000000',
+    domainName: 'localhost:3000',
+  })
+  expect(event.body).toBeNull()
+  expect(event.isBase64Encoded).toBe(false)
+})
+
+// ---------------------------------------------------------------------------
+// 28b. body is null when payload is an empty string (matches AWS)
+// ---------------------------------------------------------------------------
+
+it('28b. body is null when payload is the empty string', () => {
+  const event = buildHttpApiV2Event({
+    request: makeRequest({
+      method: 'POST',
+      payload: '',
+      headers: {
+        'content-type': 'application/json',
+        'user-agent': 'TestAgent/1.0',
+      },
+    }),
     route: defaultRoute,
     stage: 'dev',
     accountId: '000000000000',
