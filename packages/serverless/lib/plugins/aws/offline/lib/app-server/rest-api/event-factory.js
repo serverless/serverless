@@ -76,83 +76,62 @@ function formatClfTime(date) {
 }
 
 /**
- * Build the event `headers` map from Node's flat `rawHeaders` array
- * (`[name, value, name, value, ...]`). Names are lower-cased, duplicates for
- * the same name are joined with `,`. Unlike the HTTP API v2 factory, `cookie`
- * is included — REST v1 carries cookies via headers, not a separate field.
+ * Bucket request headers into a `Map<string, string[]>` keyed by lowercase
+ * header name. Prefers Node's flat `rawHeaders` array (preserves duplicates
+ * pre-fold); falls back to Hapi's collapsed `request.headers` map for
+ * in-process callers that don't carry the raw socket data.
  *
- * @param {string[]} rawHeaders
- * @returns {Record<string, string>}
+ * The cookie header is included in REST v1 (unlike v2, where it's surfaced
+ * separately on event.cookies).
+ *
+ * @param {object} request
+ * @returns {Map<string, string[]>}
  */
-function buildHeadersFromRaw(rawHeaders) {
+function bucketHeaders(request) {
+  const rawHeaders = request.raw?.req?.rawHeaders
   const acc = new Map()
-  for (let i = 0; i + 1 < rawHeaders.length; i += 2) {
-    const lk = rawHeaders[i].toLowerCase()
-    const list = acc.get(lk)
-    if (list) {
-      list.push(rawHeaders[i + 1])
-    } else {
-      acc.set(lk, [rawHeaders[i + 1]])
+  if (Array.isArray(rawHeaders) && rawHeaders.length > 0) {
+    for (let i = 0; i + 1 < rawHeaders.length; i += 2) {
+      const lk = rawHeaders[i].toLowerCase()
+      const list = acc.get(lk)
+      if (list) list.push(rawHeaders[i + 1])
+      else acc.set(lk, [rawHeaders[i + 1]])
     }
+    return acc
   }
-  const result = {}
-  for (const [key, values] of acc.entries()) {
-    result[key] = values.join(',')
+  for (const [k, v] of Object.entries(request.headers ?? {})) {
+    acc.set(k.toLowerCase(), Array.isArray(v) ? [...v] : [v])
   }
-  return result
+  return acc
 }
 
 /**
- * Fallback header builder for in-process callers (unit tests, simulated
- * requests) where Node's `rawHeaders` is not available. Folds Hapi's
- * pre-collapsed map down to lower-cased single-value entries.
+ * Build the event `headers` map. Names are lower-cased; multiple values for
+ * the same name are joined with `,`. Unlike the HTTP API v2 factory, `cookie`
+ * is included — REST v1 carries cookies via headers, not a separate field.
  *
- * @param {Record<string, string | string[]>} headers
+ * @param {object} request
  * @returns {Record<string, string>}
  */
-function buildHeadersFromHapi(headers) {
-  const result = {}
-  for (const [key, value] of Object.entries(headers)) {
-    result[key.toLowerCase()] = Array.isArray(value) ? value.join(',') : value
-  }
-  return result
+function buildHeaders(request) {
+  const buckets = bucketHeaders(request)
+  const out = {}
+  for (const [k, vs] of buckets.entries()) out[k] = vs.join(',')
+  return out
 }
 
 /**
  * Multi-value variant — one array per (lower-cased) header name. Cookies are
  * preserved (no special-casing).
  *
- * @param {string[]} rawHeaders
+ * @param {object} request
  * @returns {Record<string, string[]>}
  */
-function buildMultiValueHeadersFromRaw(rawHeaders) {
-  const acc = new Map()
-  for (let i = 0; i + 1 < rawHeaders.length; i += 2) {
-    const lk = rawHeaders[i].toLowerCase()
-    const list = acc.get(lk)
-    if (list) {
-      list.push(rawHeaders[i + 1])
-    } else {
-      acc.set(lk, [rawHeaders[i + 1]])
-    }
-  }
-  const result = {}
-  for (const [key, values] of acc.entries()) {
-    result[key] = values
-  }
-  return result
-}
-
-/**
- * @param {Record<string, string | string[]>} headers
- * @returns {Record<string, string[]>}
- */
-function buildMultiValueHeadersFromHapi(headers) {
-  const result = {}
-  for (const [key, value] of Object.entries(headers)) {
-    result[key.toLowerCase()] = Array.isArray(value) ? value : [value]
-  }
-  return result
+function buildMultiValueHeaders(request) {
+  const buckets = bucketHeaders(request)
+  const out = {}
+  for (const [k, vs] of buckets.entries()) out[k] = vs
+  return out
 }
 
 /**
@@ -274,14 +253,8 @@ export function buildRestApiEvent({
   // duplicate header lines are preserved verbatim. Fall back to Hapi's
   // pre-collapsed map for in-process callers (unit tests, simulated
   // requests) that don't carry the raw socket data.
-  const rawHeaders = request.raw?.req?.rawHeaders
-  const useRaw = Array.isArray(rawHeaders) && rawHeaders.length > 0
-  const headers = useRaw
-    ? buildHeadersFromRaw(rawHeaders)
-    : buildHeadersFromHapi(request.headers ?? {})
-  const multiValueHeaders = useRaw
-    ? buildMultiValueHeadersFromRaw(rawHeaders)
-    : buildMultiValueHeadersFromHapi(request.headers ?? {})
+  const headers = buildHeaders(request)
+  const multiValueHeaders = buildMultiValueHeaders(request)
 
   const { searchParams } = request.url
   const queryStringParameters = buildQueryStringParameters(searchParams)
