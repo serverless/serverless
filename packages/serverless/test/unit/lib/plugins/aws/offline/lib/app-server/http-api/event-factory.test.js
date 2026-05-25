@@ -299,6 +299,80 @@ it('10b. cookie header is excluded from headers', () => {
 })
 
 // ---------------------------------------------------------------------------
+// 10c–10e. headers from raw socket array (request.raw.req.rawHeaders)
+// ---------------------------------------------------------------------------
+
+it('10c. when request.raw.req.rawHeaders is set, headers come from the raw array (not Hapi-collapsed)', () => {
+  const event = buildHttpApiV2Event({
+    request: makeRequest({
+      // request.headers (Hapi collapsed) — incomplete on purpose
+      headers: { 'x-forwarded-for': '10.0.0.1' },
+      raw: {
+        req: {
+          rawHeaders: [
+            'X-Forwarded-For',
+            '10.0.0.1',
+            'X-Forwarded-For',
+            '10.0.0.2',
+            'Host',
+            'example.com',
+          ],
+        },
+      },
+    }),
+    route: defaultRoute,
+    stage: 'dev',
+    accountId: '000000000000',
+    domainName: 'localhost:3000',
+  })
+  // Multi-value joined with comma; both entries preserved from rawHeaders.
+  expect(event.headers['x-forwarded-for']).toBe('10.0.0.1,10.0.0.2')
+  expect(event.headers['host']).toBe('example.com')
+})
+
+it('10d. raw headers path lower-cases header names', () => {
+  const event = buildHttpApiV2Event({
+    request: makeRequest({
+      raw: {
+        req: {
+          rawHeaders: [
+            'Content-Type',
+            'application/json',
+            'X-Custom-Id',
+            'abc',
+          ],
+        },
+      },
+    }),
+    route: defaultRoute,
+    stage: 'dev',
+    accountId: '000000000000',
+    domainName: 'localhost:3000',
+  })
+  expect(event.headers['content-type']).toBe('application/json')
+  expect(event.headers['x-custom-id']).toBe('abc')
+  expect(event.headers).not.toHaveProperty('Content-Type')
+})
+
+it('10e. raw headers path excludes the cookie header', () => {
+  const event = buildHttpApiV2Event({
+    request: makeRequest({
+      raw: {
+        req: {
+          rawHeaders: ['Cookie', 'k=v', 'Content-Type', 'text/plain'],
+        },
+      },
+    }),
+    route: defaultRoute,
+    stage: 'dev',
+    accountId: '000000000000',
+    domainName: 'localhost:3000',
+  })
+  expect(event.headers).not.toHaveProperty('cookie')
+  expect(event.headers['content-type']).toBe('text/plain')
+})
+
+// ---------------------------------------------------------------------------
 // 11. Multi-value headers joined by ','
 // ---------------------------------------------------------------------------
 

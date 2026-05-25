@@ -96,6 +96,40 @@ function normaliseHeaders(rawHeaders) {
 }
 
 /**
+ * Build the event `headers` map from Node's flat `rawHeaders` array
+ * (`request.raw.req.rawHeaders`). The array is `[name1, value1, name2,
+ * value2, …]` exactly as Node received it off the socket, before Hapi folds
+ * duplicates or normalizes casing.
+ *
+ * Multiple header lines with the same name are joined with `,` to match the
+ * AWS API Gateway behavior for event.headers. The `cookie` header is excluded
+ * (it flows separately through event.cookies).
+ *
+ * @param {string[]} rawHeaders  Flat alternating name/value array.
+ * @returns {Record<string, string>}
+ */
+function normaliseRawHeaders(rawHeaders) {
+  /** @type {Map<string, string[]>} */
+  const acc = new Map()
+  for (let i = 0; i + 1 < rawHeaders.length; i += 2) {
+    const lk = rawHeaders[i].toLowerCase()
+    if (lk === 'cookie') continue
+    const list = acc.get(lk)
+    if (list) {
+      list.push(rawHeaders[i + 1])
+    } else {
+      acc.set(lk, [rawHeaders[i + 1]])
+    }
+  }
+  /** @type {Record<string, string>} */
+  const result = {}
+  for (const [key, values] of acc.entries()) {
+    result[key] = values.join(',')
+  }
+  return result
+}
+
+/**
  * Parse query-string parameters from a `URLSearchParams` instance.
  * Multi-value keys (e.g. `?id=1&id=2`) are joined by `,` to match APIGW
  * behaviour.
@@ -195,8 +229,16 @@ export function buildHttpApiV2Event({
     request.url.searchParams,
   )
 
-  // Headers — lower-cased, multi-value joined, cookie excluded.
-  const headers = normaliseHeaders(request.headers)
+  // Headers — read from Node's flat `rawHeaders` array when available so that
+  // duplicate header lines (e.g. two `X-Forwarded-For` from a proxy chain) are
+  // preserved and joined with `,` exactly the way real APIGW does. Falls back
+  // to Hapi's pre-folded `request.headers` for in-process callers (unit tests,
+  // simulated requests) that don't carry the raw socket data.
+  const rawHeaders = request.raw?.req?.rawHeaders
+  const headers =
+    Array.isArray(rawHeaders) && rawHeaders.length > 0
+      ? normaliseRawHeaders(rawHeaders)
+      : normaliseHeaders(request.headers)
 
   // Cookies — read from Hapi's parsed `request.state` map so values with
   // spaces, percent-encoding, or quoted segments are handled the same way
