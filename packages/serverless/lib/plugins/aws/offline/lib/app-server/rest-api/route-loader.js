@@ -29,6 +29,7 @@ import {
   normalizeHttpEvent,
 } from '../shared/hapi-helpers.js'
 import { logHandlerError } from '../shared/handler-logging.js'
+import { resolveAuthStrategy } from '../shared/auth-strategy-resolver.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -114,35 +115,6 @@ function normalizeResponses(responseConfig) {
   }
 
   return out
-}
-
-/**
- * Resolve the Hapi auth strategy name for a REST API route based on its
- * declaration. Returns `undefined` when no auth applies — Hapi leaves
- * `route.options.auth` unset and the route is public.
- *
- * Precedence:
- *   1. `http.private: true` → the api-key strategy (if registered at boot).
- *   2. `http.authorizer.name` (string or `{ name }`) → the matching
- *      per-authorizer strategy (`lambda-authorizer:<name>`).
- *
- * @param {object | string} httpEvent
- * @param {{ privateStrategy: string | null, authorizerStrategies: Map<string, string> } | undefined} authStrategies
- * @returns {string | undefined}
- */
-function resolveAuthStrategy(httpEvent, authStrategies) {
-  if (!authStrategies || typeof httpEvent !== 'object') return undefined
-  if (httpEvent.private === true && authStrategies.privateStrategy) {
-    return authStrategies.privateStrategy
-  }
-  const auth = httpEvent.authorizer
-  if (auth) {
-    const name = typeof auth === 'string' ? auth : auth?.name
-    if (typeof name === 'string') {
-      return authStrategies.authorizerStrategies.get(name)
-    }
-  }
-  return undefined
 }
 
 // ---------------------------------------------------------------------------
@@ -266,7 +238,11 @@ export function registerRestApiRoutes({
 
       // Resolve the Hapi auth strategy for this route, if any. Returns
       // undefined for public routes — Hapi leaves `options.auth` unset.
-      const authStrategy = resolveAuthStrategy(eventEntry.http, authStrategies)
+      const authStrategy = resolveAuthStrategy({
+        event: eventEntry.http,
+        privateStrategy: authStrategies?.privateStrategy ?? null,
+        authorizerStrategies: authStrategies?.authorizerStrategies ?? new Map(),
+      })
 
       server.route({
         method: hapiMethod,
