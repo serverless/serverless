@@ -3,15 +3,15 @@
  *
  * Wires `events: - sqs:` declarations to the in-memory queue store, so Lambda
  * handlers fire when a SendMessage lands in their target queue.
+ *
+ * Per-invocation Lambda context + environment building is delegated to the
+ * shared `LambdaFunction` facade (see `lib/lambda/lambda-function.js`) — the
+ * poller only constructs the SQS event envelope and dispatches the call.
  */
 
 import { createHash } from 'node:crypto'
-import fs from 'node:fs'
-import { access } from 'node:fs/promises'
-import { resolve, join } from 'node:path'
 import ServerlessError from '../../../../../serverless-error.js'
 import { FAKE_REGION } from '../constants.js'
-import { getHandlerBaseDir } from '../handler-base-dir.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -63,77 +63,6 @@ function extractArn(sqsEvent) {
   return raw
 }
 
-/**
- * Resolves a handler string of the form `<rel-path>.<exportName>` to an
- * absolute file path and the exported function name.
- *
- * Tries extensions `.js`, `.mjs`, `.cjs` in that order and returns the first
- * that exists on disk.
- *
- * @param {string} handlerString - e.g. `'src/handler.main'`
- * @param {string} serviceDir    - Absolute path to the service root.
- * @returns {Promise<{ handlerPath: string, handlerName: string }>}
- */
-async function resolveHandler(handlerString, serviceDir) {
-  const lastDot = handlerString.lastIndexOf('.')
-  const relPath = handlerString.slice(0, lastDot)
-  const handlerName = handlerString.slice(lastDot + 1)
-
-  const extensions = ['.js', '.mjs', '.cjs']
-  for (const ext of extensions) {
-    const handlerPath = resolve(join(serviceDir, relPath + ext))
-    try {
-      await access(handlerPath)
-      return { handlerPath, handlerName }
-    } catch {
-      // File does not exist; try next extension.
-    }
-  }
-
-  // No matching file found — return the .js path and let the runner surface
-  // the error at invocation time (avoids blocking startup).
-  return {
-    handlerPath: resolve(join(serviceDir, relPath + '.js')),
-    handlerName,
-  }
-}
-
-/**
- * Synchronous variant of `resolveHandler`. Used inside the queue subscriber
- * callback, which must remain synchronous so that the store's synchronous
- * notification contract is preserved and tests can assert immediately after
- * `store.send()`.
- *
- * Uses `fs.accessSync` instead of the promise-based `fs.access`.
- *
- * @param {string} handlerString - e.g. `'src/handler.main'`
- * @param {string} serviceDir    - Absolute path to the service root.
- * @returns {{ handlerPath: string, handlerName: string }}
- */
-function resolveHandlerSync(handlerString, serviceDir) {
-  const lastDot = handlerString.lastIndexOf('.')
-  const relPath = handlerString.slice(0, lastDot)
-  const handlerName = handlerString.slice(lastDot + 1)
-
-  const extensions = ['.js', '.mjs', '.cjs']
-  for (const ext of extensions) {
-    const handlerPath = resolve(join(serviceDir, relPath + ext))
-    try {
-      fs.accessSync(handlerPath, fs.constants.F_OK)
-      return { handlerPath, handlerName }
-    } catch {
-      // File does not exist; try next extension.
-    }
-  }
-
-  // No matching file found — return the .js path and let the runner surface
-  // the error at invocation time (avoids blocking startup).
-  return {
-    handlerPath: resolve(join(serviceDir, relPath + '.js')),
-    handlerName,
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -143,18 +72,19 @@ function resolveHandlerSync(handlerString, serviceDir) {
  * service's function definitions.
  *
  * @param {object} params
- * @param {object} params.serverless - Framework's serverless instance.
- * @param {object} params.registry  - Resource registry (registry.sqs).
- * @param {object} params.store     - In-memory queue store.
- * @param {object} params.runner    - Worker-thread runner instance.
- * @param {object} params.logger    - Logger (log.get('sls:offline:sqs-poller')).
+ * @param {object} params.serverless          - Framework's serverless instance.
+ * @param {object} params.registry            - Resource registry (registry.sqs).
+ * @param {object} params.store               - In-memory queue store.
+ * @param {(functionKey: string) => { invoke(event: unknown): Promise<unknown> }} params.getLambdaFunction
+ *        Lookup that returns a Lambda function facade for the given key.
+ * @param {object} params.logger              - Logger (log.get('sls:offline:sqs-poller')).
  *
  * @returns {Promise<{
  *   stop(): Promise<void>,
  *   pollerCount: number,
  * }>} Controller object.
  *
- * @throws {ServerlessError} OFFLINE_SQS_UNRESOLVED_ARN      — intrinsic ARN.
+ * @throws {ServerlessError} OFFLINE_SQS_UNRESOLVED_ARN       — intrinsic ARN.
  * @throws {ServerlessError} OFFLINE_SQS_QUEUE_NOT_PROVISIONED — unknown ARN.
  * @throws {ServerlessError} OFFLINE_SQS_DUPLICATE_CONSUMER   — two functions on same queue.
  */
@@ -162,16 +92,10 @@ export async function startSqsPollers({
   serverless,
   registry,
   store,
-  runner,
+  getLambdaFunction,
   logger,
 }) {
   const functions = serverless.service.functions ?? {}
-  const providerEnv = serverless.service.provider?.environment ?? {}
-
-  // getHandlerBaseDir() is called lazily inside the subscriber callback (not
-  // captured here) so that bundler plugins (built-in esbuild or community
-  // serverless-esbuild) that modify servicePath / custom location during
-  // before:offline:start are reflected when the first message arrives.
 
   /** @type {(() => void)[]} */
   const unsubscribers = []
@@ -227,34 +151,19 @@ export async function startSqsPollers({
 
       const { url: queueUrl } = queueRecord
 
-      // ── Build environment ────────────────────────────────────────────────
-
-      const environment = {
-        ...providerEnv,
-        ...(fn.environment ?? {}),
-        AWS_REGION: FAKE_REGION,
-        AWS_DEFAULT_REGION: FAKE_REGION,
-        AWS_LAMBDA_FUNCTION_NAME: fnName,
-        IS_OFFLINE: 'true',
-      }
-
-      // ── Timeout ──────────────────────────────────────────────────────────
-
-      const timeoutMs = (fn.timeout ?? 6) * 1000
-
       // ── Subscribe ────────────────────────────────────────────────────────
-      // Handler path resolution is intentionally lazy (inside the callback)
-      // so that bundler plugins which swap serverless.config.servicePath in
-      // their before:offline:start hook are reflected when the first SQS
-      // message arrives, rather than being pinned to the source directory at
-      // poller-setup time.
+      // The subscriber callback is synchronous (the store notifies subscribers
+      // synchronously on send). It builds the SQS event envelope and
+      // dispatches the call via the shared Lambda function facade, which
+      // resolves the handler path lazily and builds context + environment
+      // uniformly with every other trigger source.
 
       const unsubscribe = store.subscribe(queueUrl, (messageRecord) => {
         // Dequeue the one message that just arrived.
         const [msg] = store.receive(queueUrl, 1)
 
-        // The message may have already been consumed by a race (shouldn't
-        // happen with synchronous store, but guard anyway).
+        // Guard against an already-consumed race (shouldn't happen with
+        // the synchronous store, but stays correct under future changes).
         if (!msg) return
 
         const now = Date.now()
@@ -280,45 +189,8 @@ export async function startSqsPollers({
           ],
         }
 
-        const context = {
-          functionName: fnName,
-          awsRequestId: `offline-${Date.now()}`,
-          invokedFunctionArn: `arn:aws:lambda:${FAKE_REGION}:000000000000:function:${fnName}`,
-          // Send a numeric deadline instead of a function — functions cannot be
-          // transferred via structured-clone (workerData). The worker entry
-          // inflates this into getRemainingTimeInMillis().
-          deadlineMs: Date.now() + timeoutMs,
-          callbackWaitsForEmptyEventLoop: true,
-          // Pass through memorySize so the worker can set memoryLimitInMB and
-          // the corresponding AWS_LAMBDA_FUNCTION_MEMORY_SIZE env var correctly.
-          memoryLimitInMB: fn.memorySize ?? 1024,
-          // Pass the raw handler string so the worker can set process.env._HANDLER
-          // for parity with the real Lambda execution environment.
-          handler: fn.handler,
-        }
-
-        // Read the handler base directory lazily each time a message arrives
-        // so that bundler-swapped paths (built-in esbuild) and community
-        // serverless-esbuild custom locations set during before:offline:start
-        // are both reflected correctly.
-        // Use the synchronous resolver so that runner.invoke() is called
-        // within the same synchronous turn — this preserves the store's
-        // synchronous notification contract.
-        const { handlerPath, handlerName } = resolveHandlerSync(
-          fn.handler,
-          getHandlerBaseDir(serverless),
-        )
-
-        runner
-          .invoke({
-            functionKey: fnName,
-            handlerPath,
-            handlerName,
-            event: sqsEvent,
-            context,
-            environment,
-            timeoutMs,
-          })
+        getLambdaFunction(fnName)
+          .invoke(sqsEvent)
           .catch((err) => {
             logger.error(
               `[sls:offline:sqs-poller] Invocation of "${fnName}" failed: ${err.message}`,

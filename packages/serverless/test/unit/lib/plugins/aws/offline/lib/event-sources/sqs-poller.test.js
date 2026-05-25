@@ -2,7 +2,6 @@ import { jest } from '@jest/globals'
 import { createQueueStore } from '../../../../../../../../lib/plugins/aws/offline/lib/aws-api-server/sqs/queue-store.js'
 import { createRegistry } from '../../../../../../../../lib/plugins/aws/offline/lib/provisioner/registry.js'
 import { startSqsPollers } from '../../../../../../../../lib/plugins/aws/offline/lib/event-sources/sqs-poller.js'
-import ServerlessError from '../../../../../../../../lib/serverless-error.js'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -10,8 +9,6 @@ import ServerlessError from '../../../../../../../../lib/serverless-error.js'
 
 const QUEUE_ARN = 'arn:aws:sqs:us-east-1:000000000000:MyQueue'
 const QUEUE_URL = 'http://localhost:3002/000000000000/MyQueue'
-const QUEUE_ARN_2 = 'arn:aws:sqs:us-east-1:000000000000:OtherQueue'
-const QUEUE_URL_2 = 'http://localhost:3002/000000000000/OtherQueue'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -30,16 +27,30 @@ function makeLogger() {
 }
 
 /**
- * Builds a minimal stub runner. By default `invoke` resolves with undefined.
+ * Builds a stub Lambda function (the shared facade abstraction) whose
+ * `.invoke(event)` records each call and returns the given result.
  */
-function makeRunner(invokeFn) {
+function makeLambdaFn(invokeFn) {
   return {
     invoke: invokeFn ?? jest.fn().mockResolvedValue(undefined),
   }
 }
 
 /**
- * Populates a registry with one SQS record for QUEUE_ARN / QUEUE_URL.
+ * Builds a `getLambdaFunction` lookup keyed by function name. If `byKey` only
+ * contains one entry, that entry is returned regardless of the requested key.
+ */
+function makeGetLambdaFunction(byKey) {
+  return (functionKey) => {
+    const keys = Object.keys(byKey)
+    if (keys.length === 1) return byKey[keys[0]]
+    return byKey[functionKey]
+  }
+}
+
+/**
+ * Populates a registry with one SQS record for QUEUE_ARN / QUEUE_URL plus
+ * any extras provided.
  */
 function makeRegistry({ extraQueues = [] } = {}) {
   const registry = createRegistry()
@@ -67,23 +78,20 @@ function makeRegistry({ extraQueues = [] } = {}) {
  */
 function makeServerless({
   functions = {},
-  providerEnvironment = {},
   serviceDir = '/tmp/fake-service',
 } = {}) {
   return {
     serviceDir,
     config: { servicePath: serviceDir },
     service: {
-      provider: {
-        environment: providerEnvironment,
-      },
+      provider: {},
       functions,
     },
   }
 }
 
 // ---------------------------------------------------------------------------
-// 1. No events: - sqs declarations
+// Tests
 // ---------------------------------------------------------------------------
 
 it('1. no sqs events: pollerCount === 0 and stop() is a no-op', async () => {
@@ -97,14 +105,14 @@ it('1. no sqs events: pollerCount === 0 and stop() is a no-op', async () => {
       },
     },
   })
-  const runner = makeRunner()
+  const lambdaFn = makeLambdaFn()
   const logger = makeLogger()
 
   const controller = await startSqsPollers({
     serverless,
     registry,
     store,
-    runner,
+    getLambdaFunction: makeGetLambdaFunction({ myFn: lambdaFn }),
     logger,
   })
 
@@ -112,17 +120,13 @@ it('1. no sqs events: pollerCount === 0 and stop() is a no-op', async () => {
   await expect(controller.stop()).resolves.toBeUndefined()
 })
 
-// ---------------------------------------------------------------------------
-// 2. One sqs event with a literal ARN — triggers runner.invoke on send
-// ---------------------------------------------------------------------------
-
-it('2. one sqs event: subscription fires runner.invoke with correctly-shaped Records', async () => {
+it('2. one sqs event: subscription fires lambda.invoke with correctly-shaped Records', async () => {
   const store = createQueueStore()
   store.ensureQueue(QUEUE_URL)
 
   const registry = makeRegistry()
   const invokeMock = jest.fn().mockResolvedValue(undefined)
-  const runner = makeRunner(invokeMock)
+  const lambdaFn = makeLambdaFn(invokeMock)
   const logger = makeLogger()
 
   const serverless = makeServerless({
@@ -139,19 +143,18 @@ it('2. one sqs event: subscription fires runner.invoke with correctly-shaped Rec
     serverless,
     registry,
     store,
-    runner,
+    getLambdaFunction: makeGetLambdaFunction({ myFn: lambdaFn }),
     logger,
   })
 
   expect(controller.pollerCount).toBe(1)
 
-  // Sending a message should trigger invoke exactly once
   store.send(QUEUE_URL, 'hello world', {})
 
   expect(invokeMock).toHaveBeenCalledTimes(1)
 
-  const callArgs = invokeMock.mock.calls[0][0]
-  const records = callArgs.event.Records
+  const [event] = invokeMock.mock.calls[0]
+  const records = event.Records
   expect(records).toHaveLength(1)
   expect(records[0].eventSource).toBe('aws:sqs')
   expect(records[0].body).toBe('hello world')
@@ -160,14 +163,9 @@ it('2. one sqs event: subscription fires runner.invoke with correctly-shaped Rec
   await controller.stop()
 })
 
-// ---------------------------------------------------------------------------
-// 3. ARN not found in registry — throws OFFLINE_SQS_QUEUE_NOT_PROVISIONED
-// ---------------------------------------------------------------------------
-
 it('3. ARN not in registry throws OFFLINE_SQS_QUEUE_NOT_PROVISIONED', async () => {
   const store = createQueueStore()
-  const registry = createRegistry() // empty registry — no queues registered
-  const runner = makeRunner()
+  const registry = createRegistry()
   const logger = makeLogger()
 
   const unknownArn = 'arn:aws:sqs:us-east-1:000000000000:NonExistentQueue'
@@ -181,48 +179,49 @@ it('3. ARN not in registry throws OFFLINE_SQS_QUEUE_NOT_PROVISIONED', async () =
   })
 
   await expect(
-    startSqsPollers({ serverless, registry, store, runner, logger }),
+    startSqsPollers({
+      serverless,
+      registry,
+      store,
+      getLambdaFunction: makeGetLambdaFunction({ myFn: makeLambdaFn() }),
+      logger,
+    }),
   ).rejects.toMatchObject({
     code: 'OFFLINE_SQS_QUEUE_NOT_PROVISIONED',
     message: expect.stringContaining(unknownArn),
   })
 })
 
-// ---------------------------------------------------------------------------
-// 4. CFN intrinsic ARN object — throws OFFLINE_SQS_UNRESOLVED_ARN
-// ---------------------------------------------------------------------------
-
 it('4. CFN intrinsic ARN object throws OFFLINE_SQS_UNRESOLVED_ARN', async () => {
   const store = createQueueStore()
   const registry = makeRegistry()
-  const runner = makeRunner()
   const logger = makeLogger()
 
   const serverless = makeServerless({
     functions: {
       myFn: {
         handler: 'src/handler.main',
-        // 'Fn::GetAtt' intrinsic — not yet resolved
         events: [{ sqs: { arn: { 'Fn::GetAtt': ['MyQueue', 'Arn'] } } }],
       },
     },
   })
 
   await expect(
-    startSqsPollers({ serverless, registry, store, runner, logger }),
+    startSqsPollers({
+      serverless,
+      registry,
+      store,
+      getLambdaFunction: makeGetLambdaFunction({ myFn: makeLambdaFn() }),
+      logger,
+    }),
   ).rejects.toMatchObject({ code: 'OFFLINE_SQS_UNRESOLVED_ARN' })
 })
-
-// ---------------------------------------------------------------------------
-// 5. Two functions subscribing to the same queue — throws OFFLINE_SQS_DUPLICATE_CONSUMER
-// ---------------------------------------------------------------------------
 
 it('5. two functions on the same queue throw OFFLINE_SQS_DUPLICATE_CONSUMER', async () => {
   const store = createQueueStore()
   store.ensureQueue(QUEUE_URL)
 
   const registry = makeRegistry()
-  const runner = makeRunner()
   const logger = makeLogger()
 
   const serverless = makeServerless({
@@ -239,21 +238,26 @@ it('5. two functions on the same queue throw OFFLINE_SQS_DUPLICATE_CONSUMER', as
   })
 
   await expect(
-    startSqsPollers({ serverless, registry, store, runner, logger }),
+    startSqsPollers({
+      serverless,
+      registry,
+      store,
+      getLambdaFunction: makeGetLambdaFunction({
+        fnA: makeLambdaFn(),
+        fnB: makeLambdaFn(),
+      }),
+      logger,
+    }),
   ).rejects.toMatchObject({ code: 'OFFLINE_SQS_DUPLICATE_CONSUMER' })
 })
 
-// ---------------------------------------------------------------------------
-// 6. stop() unsubscribes all pollers — messages after stop do not invoke runner
-// ---------------------------------------------------------------------------
-
-it('6. stop() unsubscribes; messages sent after stop do not invoke runner', async () => {
+it('6. stop() unsubscribes; messages sent after stop do not invoke lambda', async () => {
   const store = createQueueStore()
   store.ensureQueue(QUEUE_URL)
 
   const registry = makeRegistry()
   const invokeMock = jest.fn().mockResolvedValue(undefined)
-  const runner = makeRunner(invokeMock)
+  const lambdaFn = makeLambdaFn(invokeMock)
   const logger = makeLogger()
 
   const serverless = makeServerless({
@@ -269,26 +273,20 @@ it('6. stop() unsubscribes; messages sent after stop do not invoke runner', asyn
     serverless,
     registry,
     store,
-    runner,
+    getLambdaFunction: makeGetLambdaFunction({ myFn: lambdaFn }),
     logger,
   })
 
-  // Confirm it works before stop
   store.send(QUEUE_URL, 'before-stop', {})
   expect(invokeMock).toHaveBeenCalledTimes(1)
 
   await controller.stop()
 
-  // After stop, no more invocations
   store.send(QUEUE_URL, 'after-stop', {})
   expect(invokeMock).toHaveBeenCalledTimes(1)
 })
 
-// ---------------------------------------------------------------------------
-// 7. Handler errors don't kill the poller
-// ---------------------------------------------------------------------------
-
-it('7. runner.invoke errors do not kill the poller — subsequent messages still invoke', async () => {
+it('7. lambda.invoke errors do not kill the poller — subsequent messages still invoke', async () => {
   const store = createQueueStore()
   store.ensureQueue(QUEUE_URL)
 
@@ -303,7 +301,7 @@ it('7. runner.invoke errors do not kill the poller — subsequent messages still
     }
     return Promise.resolve(undefined)
   })
-  const runner = makeRunner(invokeMock)
+  const lambdaFn = makeLambdaFn(invokeMock)
 
   const serverless = makeServerless({
     functions: {
@@ -318,22 +316,14 @@ it('7. runner.invoke errors do not kill the poller — subsequent messages still
     serverless,
     registry,
     store,
-    runner,
+    getLambdaFunction: makeGetLambdaFunction({ myFn: lambdaFn }),
     logger,
   })
 
-  // First message — invoke rejects but poller survives
   store.send(QUEUE_URL, 'msg-1', {})
-
-  // Need to allow the rejected promise to settle — since subscriber calls
-  // invoke and catches errors asynchronously, flush microtasks.
   await Promise.resolve()
-
-  // Second message — invoke succeeds
   store.send(QUEUE_URL, 'msg-2', {})
   await Promise.resolve()
-
-  // Third message — poller still alive
   store.send(QUEUE_URL, 'msg-3', {})
   await Promise.resolve()
 
@@ -342,17 +332,13 @@ it('7. runner.invoke errors do not kill the poller — subsequent messages still
   await controller.stop()
 })
 
-// ---------------------------------------------------------------------------
-// 8. Event envelope shape spot-check
-// ---------------------------------------------------------------------------
-
 it('8. event envelope matches AWS SQS shape', async () => {
   const store = createQueueStore()
   store.ensureQueue(QUEUE_URL)
 
   const registry = makeRegistry()
   const invokeMock = jest.fn().mockResolvedValue(undefined)
-  const runner = makeRunner(invokeMock)
+  const lambdaFn = makeLambdaFn(invokeMock)
   const logger = makeLogger()
 
   const serverless = makeServerless({
@@ -364,11 +350,17 @@ it('8. event envelope matches AWS SQS shape', async () => {
     },
   })
 
-  await startSqsPollers({ serverless, registry, store, runner, logger })
+  await startSqsPollers({
+    serverless,
+    registry,
+    store,
+    getLambdaFunction: makeGetLambdaFunction({ myFn: lambdaFn }),
+    logger,
+  })
 
   store.send(QUEUE_URL, '{"key":"value"}', {})
 
-  const { event } = invokeMock.mock.calls[0][0]
+  const [event] = invokeMock.mock.calls[0]
   expect(event).toHaveProperty('Records')
   expect(event.Records).toHaveLength(1)
 
@@ -385,184 +377,47 @@ it('8. event envelope matches AWS SQS shape', async () => {
   expect(rec.md5OfBody).toBeTruthy()
 })
 
-// ---------------------------------------------------------------------------
-// 9. Environment vars set on invoke
-// ---------------------------------------------------------------------------
-
-it('9. environment vars set correctly on invoke', async () => {
+it('9. short string form "sqs: <arn>" is also handled', async () => {
   const store = createQueueStore()
   store.ensureQueue(QUEUE_URL)
 
   const registry = makeRegistry()
   const invokeMock = jest.fn().mockResolvedValue(undefined)
-  const runner = makeRunner(invokeMock)
+  const lambdaFn = makeLambdaFn(invokeMock)
   const logger = makeLogger()
 
   const serverless = makeServerless({
     functions: {
       myFn: {
         handler: 'src/handler.main',
-        environment: { MY_VAR: 'fn-value' },
-        events: [{ sqs: { arn: QUEUE_ARN } }],
-      },
-    },
-    providerEnvironment: { PROVIDER_VAR: 'prov-value' },
-  })
-
-  await startSqsPollers({ serverless, registry, store, runner, logger })
-
-  store.send(QUEUE_URL, 'env-test', {})
-
-  const { environment } = invokeMock.mock.calls[0][0]
-  expect(environment.IS_OFFLINE).toBe('true')
-  expect(environment.AWS_REGION).toBe('us-east-1')
-  expect(environment.AWS_DEFAULT_REGION).toBe('us-east-1')
-  expect(environment.AWS_LAMBDA_FUNCTION_NAME).toBe('myFn')
-  expect(environment.MY_VAR).toBe('fn-value')
-  expect(environment.PROVIDER_VAR).toBe('prov-value')
-})
-
-// ---------------------------------------------------------------------------
-// 10. Short string form: events: - sqs: arn:aws:sqs:...:Q
-// ---------------------------------------------------------------------------
-
-it('10. short string form "sqs: <arn>" is also handled', async () => {
-  const store = createQueueStore()
-  store.ensureQueue(QUEUE_URL)
-
-  const registry = makeRegistry()
-  const invokeMock = jest.fn().mockResolvedValue(undefined)
-  const runner = makeRunner(invokeMock)
-  const logger = makeLogger()
-
-  const serverless = makeServerless({
-    functions: {
-      myFn: {
-        handler: 'src/handler.main',
-        // Short form: the sqs value is a string, not {arn: ...}
         events: [{ sqs: QUEUE_ARN }],
       },
     },
   })
 
-  await startSqsPollers({ serverless, registry, store, runner, logger })
+  await startSqsPollers({
+    serverless,
+    registry,
+    store,
+    getLambdaFunction: makeGetLambdaFunction({ myFn: lambdaFn }),
+    logger,
+  })
 
   store.send(QUEUE_URL, 'short-form', {})
   expect(invokeMock).toHaveBeenCalledTimes(1)
-  expect(invokeMock.mock.calls[0][0].event.Records[0].body).toBe('short-form')
+  expect(invokeMock.mock.calls[0][0].Records[0].body).toBe('short-form')
 })
 
-// ---------------------------------------------------------------------------
-// 11. Context passed to runner.invoke uses deadlineMs, not getRemainingTimeInMillis
-// ---------------------------------------------------------------------------
-
-it('11. context contains numeric deadlineMs and no getRemainingTimeInMillis function', async () => {
+it('10. getLambdaFunction is looked up using the function key', async () => {
   const store = createQueueStore()
   store.ensureQueue(QUEUE_URL)
 
   const registry = makeRegistry()
-  const invokeMock = jest.fn().mockResolvedValue(undefined)
-  const runner = makeRunner(invokeMock)
   const logger = makeLogger()
 
-  const before = Date.now()
-
-  const serverless = makeServerless({
-    functions: {
-      myFn: {
-        handler: 'src/handler.main',
-        timeout: 30,
-        events: [{ sqs: { arn: QUEUE_ARN } }],
-      },
-    },
-  })
-
-  await startSqsPollers({ serverless, registry, store, runner, logger })
-
-  store.send(QUEUE_URL, 'ctx-test', {})
-
-  const { context } = invokeMock.mock.calls[0][0]
-
-  // deadlineMs must be a number in the future
-  expect(typeof context.deadlineMs).toBe('number')
-  expect(context.deadlineMs).toBeGreaterThan(before)
-  // timeout is 30 s — deadline should be roughly now + 30 000 ms
-  expect(context.deadlineMs).toBeLessThanOrEqual(before + 30_000 + 50)
-
-  // The producer must NOT attach a function (functions cannot be cloned)
-  expect(context.getRemainingTimeInMillis).toBeUndefined()
-})
-
-// ---------------------------------------------------------------------------
-// 12. memoryLimitInMB is passed from fn.memorySize
-// ---------------------------------------------------------------------------
-
-it('12. context.memoryLimitInMB is set from fn.memorySize', async () => {
-  const store = createQueueStore()
-  store.ensureQueue(QUEUE_URL)
-
-  const registry = makeRegistry()
-  const invokeMock = jest.fn().mockResolvedValue(undefined)
-  const runner = makeRunner(invokeMock)
-  const logger = makeLogger()
-
-  const serverless = makeServerless({
-    functions: {
-      myFn: {
-        handler: 'src/handler.main',
-        memorySize: 512,
-        events: [{ sqs: { arn: QUEUE_ARN } }],
-      },
-    },
-  })
-
-  await startSqsPollers({ serverless, registry, store, runner, logger })
-
-  store.send(QUEUE_URL, 'mem-test', {})
-
-  const { context } = invokeMock.mock.calls[0][0]
-  expect(context.memoryLimitInMB).toBe(512)
-})
-
-it('13. context.memoryLimitInMB defaults to 1024 when fn.memorySize is not set', async () => {
-  const store = createQueueStore()
-  store.ensureQueue(QUEUE_URL)
-
-  const registry = makeRegistry()
-  const invokeMock = jest.fn().mockResolvedValue(undefined)
-  const runner = makeRunner(invokeMock)
-  const logger = makeLogger()
-
-  const serverless = makeServerless({
-    functions: {
-      myFn: {
-        handler: 'src/handler.main',
-        // no memorySize
-        events: [{ sqs: { arn: QUEUE_ARN } }],
-      },
-    },
-  })
-
-  await startSqsPollers({ serverless, registry, store, runner, logger })
-
-  store.send(QUEUE_URL, 'mem-default-test', {})
-
-  const { context } = invokeMock.mock.calls[0][0]
-  expect(context.memoryLimitInMB).toBe(1024)
-})
-
-// ---------------------------------------------------------------------------
-// 14. functionKey is passed to runner.invoke
-// ---------------------------------------------------------------------------
-
-it('14. runner.invoke receives functionKey equal to the function name', async () => {
-  const store = createQueueStore()
-  store.ensureQueue(QUEUE_URL)
-
-  const registry = makeRegistry()
-  const invokeMock = jest.fn().mockResolvedValue(undefined)
-  const runner = makeRunner(invokeMock)
-  const logger = makeLogger()
+  const getLambdaFunction = jest.fn(() =>
+    makeLambdaFn(jest.fn().mockResolvedValue(undefined)),
+  )
 
   const serverless = makeServerless({
     functions: {
@@ -573,10 +428,14 @@ it('14. runner.invoke receives functionKey equal to the function name', async ()
     },
   })
 
-  await startSqsPollers({ serverless, registry, store, runner, logger })
+  await startSqsPollers({
+    serverless,
+    registry,
+    store,
+    getLambdaFunction,
+    logger,
+  })
 
-  store.send(QUEUE_URL, 'key-test', {})
-
-  const callArgs = invokeMock.mock.calls[0][0]
-  expect(callArgs.functionKey).toBe('myFn')
+  store.send(QUEUE_URL, 'lookup-test', {})
+  expect(getLambdaFunction).toHaveBeenCalledWith('myFn')
 })

@@ -1,6 +1,3 @@
-import crypto from 'node:crypto'
-import { access } from 'node:fs/promises'
-import { resolve, join } from 'node:path'
 import { log } from '@serverless/util'
 import offlineSchema from './lib/schema.js'
 import {
@@ -24,8 +21,8 @@ import { createAppServer } from './lib/app-server/index.js'
 import { registerHttpApiRoutes } from './lib/app-server/http-api/route-loader.js'
 import { createWatcher } from './lib/watcher.js'
 import { assertAllNodeRuntimes } from './lib/runtime-guard.js'
-import { arnFor } from './lib/provisioner/arn-synth.js'
 import { getHandlerBaseDir } from './lib/handler-base-dir.js'
+import { createLambdaFunction } from './lib/lambda/lambda-function.js'
 
 const logger = log.get(LOG_NAMESPACE)
 
@@ -116,68 +113,22 @@ export default class OfflinePlugin {
       terminateIdleLambdaTime,
     })
 
-    // Helper: resolve handler file path (tries .js, .mjs, .cjs extensions).
-    // Calls getHandlerBaseDir fresh each invocation so that bundler-swapped
-    // paths (built-in esbuild) and community-plugin custom locations
-    // (serverless-esbuild's custom['serverless-offline'].location) are both
-    // honoured after before:offline:start fires.
-    async function resolveHandlerPath(relPath) {
-      const baseDir = getHandlerBaseDir(serverless)
-      const extensions = ['.js', '.mjs', '.cjs']
-      for (const ext of extensions) {
-        const candidate = resolve(join(baseDir, relPath + ext))
-        try {
-          await access(candidate)
-          return candidate
-        } catch {
-          // Extension not found — try the next one.
-        }
+    // Lambda function facade: single invocation entry point per function.
+    // Builds the per-invocation context + environment uniformly and dispatches
+    // to the runner pool. Used by every trigger source (HTTP API, SQS poller,
+    // future REST/WS/EB) so the shape stays consistent.
+    //
+    // Lazy resolution inside .invoke() keeps both bundler contracts working:
+    //  - built-in esbuild swaps serverless.config.servicePath
+    //  - community serverless-esbuild sets custom['serverless-offline'].location
+    const lambdaFunctions = new Map()
+    function getLambdaFunction(functionKey) {
+      let fn = lambdaFunctions.get(functionKey)
+      if (!fn) {
+        fn = createLambdaFunction({ serverless, functionKey, runner })
+        lambdaFunctions.set(functionKey, fn)
       }
-      // Fall back to .js and let the runner surface the error at invocation time.
-      return resolve(join(baseDir, relPath + '.js'))
-    }
-
-    // Helper: invoke a Lambda function via the runner pool.
-    async function invokeFunctionViaRunner(functionKey, event) {
-      const fn = serverless.service.functions[functionKey]
-      const handler = fn.handler
-      const lastDot = handler.lastIndexOf('.')
-      const relPath = handler.slice(0, lastDot)
-      const handlerName = handler.slice(lastDot + 1)
-
-      const handlerPath = await resolveHandlerPath(relPath)
-
-      const timeoutMs = (fn.timeout ?? 6) * 1000
-      const deadlineMs = Date.now() + timeoutMs
-      const memoryLimitInMB = String(fn.memorySize ?? 1024)
-      const functionArn = arnFor('lambda', functionKey)
-
-      const context = {
-        functionName: functionKey,
-        awsRequestId: crypto.randomUUID(),
-        invokedFunctionArn: functionArn,
-        memoryLimitInMB,
-        callbackWaitsForEmptyEventLoop: true,
-        deadlineMs,
-        // Pass the raw handler string so the worker can set process.env._HANDLER
-        // for parity with the real Lambda execution environment.
-        handler,
-      }
-
-      const environment = {
-        ...(provider.environment ?? {}),
-        ...(fn.environment ?? {}),
-      }
-
-      return runner.invoke({
-        functionKey,
-        handlerPath,
-        handlerName,
-        event,
-        context,
-        environment,
-        timeoutMs,
-      })
+      return fn
     }
 
     // 8. Start SQS pollers so subscribers are in place before the server
@@ -186,7 +137,7 @@ export default class OfflinePlugin {
       serverless,
       registry,
       store,
-      runner,
+      getLambdaFunction,
       logger: log.get('sls:offline:sqs-poller'),
     })
 
@@ -202,7 +153,7 @@ export default class OfflinePlugin {
           stage,
           domainName,
           async onRequest(functionKey, event) {
-            return invokeFunctionViaRunner(functionKey, event)
+            return getLambdaFunction(functionKey).invoke(event)
           },
         })
         // (M2+ will add registerRestApiRoutes, M4+ ALB and WebSocket, etc.)
