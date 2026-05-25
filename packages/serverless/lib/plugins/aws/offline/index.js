@@ -298,6 +298,7 @@ export default class OfflinePlugin {
           },
           stage,
           accountId: FAKE_ACCOUNT_ID,
+          domainName,
         })
 
         httpApiRoutes = registerHttpApiRoutes({
@@ -305,6 +306,7 @@ export default class OfflinePlugin {
           serverless,
           stage,
           domainName,
+          authStrategies,
           async onRequest(functionKey, event) {
             return getLambdaFunction(functionKey).invoke(event)
           },
