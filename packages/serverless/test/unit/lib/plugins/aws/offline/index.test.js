@@ -42,4 +42,31 @@ describe('OfflinePlugin', () => {
     const plugin = new OfflinePlugin(sls, {})
     expect(typeof plugin.hooks['offline:offline']).toBe('function')
   })
+
+  it('throws OFFLINE_PORT_COLLISION when appPort and awsApiPort resolve to the same value', async () => {
+    const sls = makeServerless()
+    // Both flags point to the same port — guard must fire before either
+    // Hapi server is constructed (the second .listen() would otherwise fail
+    // with an opaque EADDRINUSE from somewhere deep inside Hapi).
+    const plugin = new OfflinePlugin(sls, {
+      appPort: '4000',
+      awsApiPort: '4000',
+    })
+
+    await expect(plugin.hooks['offline:offline']()).rejects.toMatchObject({
+      code: 'OFFLINE_PORT_COLLISION',
+      message: expect.stringContaining('4000'),
+    })
+  })
+
+  it('throws OFFLINE_PORT_COLLISION when defaults collide because user matched one via flag', async () => {
+    // The default appPort is 3000 and awsApiPort is 3002. A user who passes
+    // --awsApiPort 3000 (matching the default appPort) hits the collision.
+    const sls = makeServerless()
+    const plugin = new OfflinePlugin(sls, { awsApiPort: '3000' })
+
+    await expect(plugin.hooks['offline:offline']()).rejects.toMatchObject({
+      code: 'OFFLINE_PORT_COLLISION',
+    })
+  })
 })

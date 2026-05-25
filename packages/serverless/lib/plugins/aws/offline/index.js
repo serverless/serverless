@@ -1,4 +1,5 @@
 import { log } from '@serverless/util'
+import ServerlessError from '../../../serverless-error.js'
 import offlineSchema from './lib/schema.js'
 import {
   LOG_NAMESPACE,
@@ -157,6 +158,18 @@ export default class OfflinePlugin {
       cliOptions.noWatch === true || offline.noWatch === true
         ? false
         : (cliOptions.watch ?? offline.watch ?? true)
+
+    // Refuse to start when both Hapi servers would bind to the same port —
+    // doing so produces an opaque EADDRINUSE deep inside Hapi instead of a
+    // clear actionable error. Run this check after CLI / YAML / default
+    // resolution so the values we test are the ones we'd actually bind.
+    if (appPort === awsApiPort) {
+      throw new ServerlessError(
+        `appPort and awsApiPort must differ (both resolved to ${appPort}). ` +
+          'Adjust --appPort, --awsApiPort, or the offline.appPort / offline.awsApiPort entries in serverless.yml.',
+        'OFFLINE_PORT_COLLISION',
+      )
+    }
 
     // 3. Set process env vars for runtime env parity before booting the runner.
     process.env.IS_OFFLINE = 'true'
