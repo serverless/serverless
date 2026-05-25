@@ -59,7 +59,7 @@ describe('registerRestApiRoutes — registration', () => {
     expect(stub.routes[0].path).toBe('/dev/users')
   })
 
-  it('translates {proxy+} to Hapi {any*}', () => {
+  it('translates {proxy+} to Hapi {proxy*}', () => {
     const stub = makeRouteStub()
     registerRestApiRoutes({
       server: stub,
@@ -69,7 +69,7 @@ describe('registerRestApiRoutes — registration', () => {
       stage: 'dev',
       onRequest: jest.fn(),
     })
-    expect(stub.routes[0].path).toBe('/dev/api/{any*}')
+    expect(stub.routes[0].path).toBe('/dev/api/{proxy*}')
   })
 
   it('ANY method maps to Hapi *', () => {

@@ -12,8 +12,11 @@ describe('translateRestPath', () => {
     expect(translateRestPath('/users/{id}')).toBe('/users/{id}')
   })
 
-  it('translates {proxy+} (APIGW greedy catch-all) to Hapi {any*}', () => {
-    expect(translateRestPath('/api/{proxy+}')).toBe('/api/{any*}')
+  it('translates {proxy+} to Hapi {proxy*} so matched value lands at params.proxy', () => {
+    // The Hapi catch-all syntax `{name*}` puts the matched path segments at
+    // request.params.<name>. Using `proxy` (not `any`) ensures the resulting
+    // event.pathParameters carries the key real APIGW emits.
+    expect(translateRestPath('/api/{proxy+}')).toBe('/api/{proxy*}')
   })
 
   it('translates a bare "*" path to Hapi /{any*}', () => {
@@ -29,7 +32,9 @@ describe('translateRestPath', () => {
   it('translates every {proxy+} occurrence in a path', () => {
     // The /g flag matters when (rare but possible) a single template carries
     // two greedy segments.
-    expect(translateRestPath('/{proxy+}/x/{proxy+}')).toBe('/{any*}/x/{any*}')
+    expect(translateRestPath('/{proxy+}/x/{proxy+}')).toBe(
+      '/{proxy*}/x/{proxy*}',
+    )
   })
 })
 

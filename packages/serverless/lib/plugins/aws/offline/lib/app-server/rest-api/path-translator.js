@@ -22,18 +22,19 @@
  *
  * APIGW v1 supports two placeholder forms that differ from Hapi:
  *  - Greedy proxy `{proxy+}` matches one or more path segments — Hapi spells
- *    this as `{any*}`.
+ *    this as `{proxy*}`.
  *  - Bare `*` is the catch-all path shorthand — Hapi requires it to be a named
  *    multi-segment parameter rooted at `/`.
  *
  * Every other `{param}` placeholder is identical in both syntaxes.
  *
  * @param {string} apigwPath  The original APIGW path (e.g. `/api/{proxy+}`).
- * @returns {string}  The Hapi path (e.g. `/api/{any*}`).
+ * @returns {string}  The Hapi path (e.g. `/api/{proxy*}`).
  */
 export function translateRestPath(apigwPath) {
   if (apigwPath === '*') return '/{any*}'
-  return apigwPath.replace(/\{proxy\+\}/g, '{any*}')
+  // Use {proxy*} (Hapi accepts the name) so the matched value lands at request.params.proxy, matching the APIGW event.pathParameters.proxy contract.
+  return apigwPath.replace(/\{proxy\+\}/g, '{proxy*}')
 }
 
 /**

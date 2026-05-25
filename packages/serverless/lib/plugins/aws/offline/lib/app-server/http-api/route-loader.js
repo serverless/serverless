@@ -75,16 +75,17 @@ function toHapiMethod(method) {
 /**
  * Translate an APIGW path template to a Hapi path template.
  *
- * APIGW greedy proxy `{proxy+}` maps to Hapi catch-all `{any*}`.
+ * APIGW greedy proxy `{proxy+}` maps to Hapi catch-all `{proxy*}`.
  * All other `{param}` placeholders are identical in both syntaxes.
  *
  * @param {string} apigwPath  The original APIGW path (e.g. `/api/{proxy+}`).
- * @returns {string}  The Hapi path (e.g. `/api/{any*}`).
+ * @returns {string}  The Hapi path (e.g. `/api/{proxy*}`).
  */
 function toHapiPath(apigwPath) {
   // Bare '*' is the APIGW catch-all path shorthand; translate to Hapi's form.
   if (apigwPath === '*') return '/{any*}'
-  return apigwPath.replace(/\{proxy\+\}/g, '{any*}')
+  // Use {proxy*} (Hapi accepts the name) so the matched value lands at request.params.proxy, matching the APIGW event.pathParameters.proxy contract.
+  return apigwPath.replace(/\{proxy\+\}/g, '{proxy*}')
 }
 
 /**

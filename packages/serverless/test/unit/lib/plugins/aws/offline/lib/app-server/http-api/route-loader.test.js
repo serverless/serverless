@@ -142,10 +142,10 @@ it('5. method: "*" maps to Hapi method "*"', () => {
 })
 
 // ---------------------------------------------------------------------------
-// 6. {proxy+} → {any*} translation
+// 6. {proxy+} → {proxy*} translation
 // ---------------------------------------------------------------------------
 
-it('6. {proxy+} in path is translated to {any*} for Hapi', () => {
+it('6. {proxy+} in path is translated to {proxy*} for Hapi', () => {
   const stub = makeRouteStub()
   registerHttpApiRoutes({
     server: stub,
@@ -158,7 +158,7 @@ it('6. {proxy+} in path is translated to {any*} for Hapi', () => {
     domainName: 'localhost:3000',
     onRequest: jest.fn(),
   })
-  expect(stub.routes[0].path).toBe('/api/{any*}')
+  expect(stub.routes[0].path).toBe('/api/{proxy*}')
 })
 
 // ---------------------------------------------------------------------------
