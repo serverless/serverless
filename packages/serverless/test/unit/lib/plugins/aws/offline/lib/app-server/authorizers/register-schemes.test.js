@@ -155,3 +155,302 @@ describe('registerAuthSchemes', () => {
     }
   })
 })
+
+describe('registerAuthSchemes — HTTP API v2', () => {
+  it('returns v2AuthorizerStrategies Map (empty when no v2 routes)', () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const result = registerAuthSchemes({
+      server,
+      serverless: makeServerless({}),
+      lambdas: makeLambdas(),
+      stage: 'dev',
+      accountId: '000000000000',
+      domainName: 'localhost',
+    })
+    expect(result.v2AuthorizerStrategies).toBeInstanceOf(Map)
+    expect(result.v2AuthorizerStrategies.size).toBe(0)
+  })
+
+  it('registers a JWT strategy when an httpApi authorizer has issuerUrl', () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const result = registerAuthSchemes({
+      server,
+      serverless: makeServerless({
+        a: {
+          events: [
+            {
+              httpApi: {
+                method: 'GET',
+                path: '/p',
+                authorizer: {
+                  name: 'jwt-1',
+                  issuerUrl: 'https://i',
+                  audience: ['c'],
+                },
+              },
+            },
+          ],
+        },
+      }),
+      lambdas: makeLambdas(),
+      stage: 'dev',
+      accountId: '000000000000',
+      domainName: 'localhost',
+    })
+    expect(result.v2AuthorizerStrategies.get('jwt-1')).toBe('jwt:jwt-1')
+    expect(() =>
+      server.route({
+        method: 'GET',
+        path: '/x',
+        options: { auth: 'jwt:jwt-1' },
+        handler: () => 'x',
+      }),
+    ).not.toThrow()
+  })
+
+  it('registers a v2 Lambda strategy when an httpApi authorizer has only a name', () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const result = registerAuthSchemes({
+      server,
+      serverless: makeServerless({
+        authFn: { events: [] },
+        a: {
+          events: [
+            {
+              httpApi: {
+                method: 'GET',
+                path: '/p',
+                authorizer: { name: 'authFn' },
+              },
+            },
+          ],
+        },
+      }),
+      lambdas: makeLambdas({ authFn: { invoke: jest.fn() } }),
+      stage: 'dev',
+      accountId: '000000000000',
+      domainName: 'localhost',
+    })
+    expect(result.v2AuthorizerStrategies.get('authFn')).toBe(
+      'lambda-authorizer:v2:authFn',
+    )
+  })
+
+  it('throws OFFLINE_HTTPAPI_AUTHORIZER_TOKEN_UNSUPPORTED when type is token on httpApi', () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    let caught
+    try {
+      registerAuthSchemes({
+        server,
+        serverless: makeServerless({
+          a: {
+            events: [
+              {
+                httpApi: {
+                  method: 'GET',
+                  path: '/p',
+                  authorizer: { name: 'x', type: 'token' },
+                },
+              },
+            ],
+          },
+        }),
+        lambdas: makeLambdas(),
+        stage: 'dev',
+        accountId: '000000000000',
+        domainName: 'localhost',
+      })
+    } catch (err) {
+      caught = err
+    }
+    expect(caught).toBeDefined()
+    expect(caught.code).toBe('OFFLINE_HTTPAPI_AUTHORIZER_TOKEN_UNSUPPORTED')
+    expect(caught.message).toContain('"a"')
+  })
+
+  it('warns and skips a v2 Lambda authorizer whose function is not registered', () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      const result = registerAuthSchemes({
+        server,
+        serverless: makeServerless({
+          a: {
+            events: [
+              {
+                httpApi: {
+                  method: 'GET',
+                  path: '/p',
+                  authorizer: { name: 'missing' },
+                },
+              },
+            ],
+          },
+        }),
+        lambdas: makeLambdas({}),
+        stage: 'dev',
+        accountId: '000000000000',
+        domainName: 'localhost',
+      })
+      expect(result.v2AuthorizerStrategies.size).toBe(0)
+      expect(warnSpy).toHaveBeenCalled()
+    } finally {
+      warnSpy.mockRestore()
+    }
+  })
+
+  it('resolves provider-level provider.httpApi.authorizers[name] as the base JWT config', () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const result = registerAuthSchemes({
+      server,
+      serverless: {
+        service: {
+          provider: {
+            httpApi: {
+              authorizers: {
+                'jwt-prov': {
+                  type: 'jwt',
+                  issuerUrl: 'https://issuer.example.com',
+                  audience: ['my-aud'],
+                  identitySource: '$request.header.Authorization',
+                },
+              },
+            },
+          },
+          functions: {
+            a: {
+              events: [
+                {
+                  httpApi: {
+                    method: 'GET',
+                    path: '/p',
+                    authorizer: { name: 'jwt-prov' },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+      lambdas: makeLambdas(),
+      stage: 'dev',
+      accountId: '000000000000',
+      domainName: 'localhost',
+    })
+    expect(result.v2AuthorizerStrategies.get('jwt-prov')).toBe('jwt:jwt-prov')
+  })
+
+  it('per-event inline fields override provider-level when both are present', () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const result = registerAuthSchemes({
+      server,
+      serverless: {
+        service: {
+          provider: {
+            httpApi: {
+              authorizers: {
+                'jwt-1': {
+                  type: 'jwt',
+                  issuerUrl: 'https://provider-issuer',
+                  audience: ['provider-aud'],
+                },
+              },
+            },
+          },
+          functions: {
+            a: {
+              events: [
+                {
+                  httpApi: {
+                    method: 'GET',
+                    path: '/p',
+                    authorizer: {
+                      name: 'jwt-1',
+                      audience: ['event-aud'],
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+      lambdas: makeLambdas(),
+      stage: 'dev',
+      accountId: '000000000000',
+      domainName: 'localhost',
+    })
+    expect(result.v2AuthorizerStrategies.get('jwt-1')).toBe('jwt:jwt-1')
+  })
+
+  it('warns and skips when name-only reference cannot be resolved (no provider entry)', () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      const result = registerAuthSchemes({
+        server,
+        serverless: makeServerless({
+          a: {
+            events: [
+              {
+                httpApi: {
+                  method: 'GET',
+                  path: '/p',
+                  authorizer: { name: 'phantom' },
+                },
+              },
+            ],
+          },
+        }),
+        lambdas: makeLambdas(),
+        stage: 'dev',
+        accountId: '000000000000',
+        domainName: 'localhost',
+      })
+      expect(result.v2AuthorizerStrategies.size).toBe(0)
+      expect(warnSpy).toHaveBeenCalled()
+    } finally {
+      warnSpy.mockRestore()
+    }
+  })
+
+  it('deduplicates JWT strategies across multiple routes that share the same authorizer name', () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const result = registerAuthSchemes({
+      server,
+      serverless: makeServerless({
+        a: {
+          events: [
+            {
+              httpApi: {
+                method: 'GET',
+                path: '/p1',
+                authorizer: {
+                  name: 'jwt-1',
+                  issuerUrl: 'https://i',
+                  audience: ['c'],
+                },
+              },
+            },
+            {
+              httpApi: {
+                method: 'GET',
+                path: '/p2',
+                authorizer: {
+                  name: 'jwt-1',
+                  issuerUrl: 'https://i',
+                  audience: ['c'],
+                },
+              },
+            },
+          ],
+        },
+      }),
+      lambdas: makeLambdas(),
+      stage: 'dev',
+      accountId: '000000000000',
+      domainName: 'localhost',
+    })
+    expect(result.v2AuthorizerStrategies.size).toBe(1)
+  })
+})
