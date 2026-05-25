@@ -167,6 +167,26 @@ describe('request → event delivered to the Lambda handler', () => {
     expect(lastEvent().headers).not.toHaveProperty('cookie')
   })
 
+  it('cookies survive a malformed cookie header without 400-ing the request', async () => {
+    // Real-world clients sometimes send cookies that Hapi's strict parser
+    // would reject (e.g. unquoted special characters). The route loader
+    // sets state.failAction: 'ignore' so the request still reaches the
+    // handler; the event's cookies field reflects whatever Hapi could parse.
+    const { server, lastEvent } = await bootWithFunctions({
+      me: { events: [{ httpApi: 'GET /me' }] },
+    })
+
+    const res = await server.inject({
+      method: 'GET',
+      url: '/me',
+      headers: { cookie: 'session=abc; weird="!@#$%"' },
+    })
+
+    expect(res.statusCode).toBe(200)
+    // The valid cookie made it through; the request didn't error out.
+    expect(lastEvent().cookies).toEqual(expect.arrayContaining(['session=abc']))
+  })
+
   it('exposes the request method uppercase in requestContext.http.method', async () => {
     const { server, lastEvent } = await bootWithFunctions({
       patch: {

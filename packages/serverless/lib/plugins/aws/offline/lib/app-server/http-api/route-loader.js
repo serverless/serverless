@@ -259,7 +259,17 @@ export function registerHttpApiRoutes({
       server.route({
         method: hapiMethod,
         path: hapiPath,
-        options: payloadOptions,
+        options: {
+          ...payloadOptions,
+          // Parse cookies into `request.state` for the event factory, but do
+          // not reject the request when a cookie value is malformed —
+          // real-world clients send all sorts of cookie strings and dev mode
+          // should observe what production observes, not surface a 400.
+          state: {
+            parse: true,
+            failAction: 'ignore',
+          },
+        },
         async handler(request, h) {
           try {
             const event = buildHttpApiV2Event({

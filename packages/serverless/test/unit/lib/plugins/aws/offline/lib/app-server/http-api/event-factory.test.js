@@ -214,6 +214,56 @@ it('9. cookies: ["k=v", "a=b"] for cookie: "k=v; a=b"', () => {
   expect(event.cookies).toEqual(['k=v', 'a=b'])
 })
 
+it('9b. cookies are read from request.state when populated, preserving values verbatim', () => {
+  // Hapi parses the Cookie header into request.state and decodes URL-encoded
+  // values. The event factory should produce `name=value` strings from that
+  // map.
+  const event = buildHttpApiV2Event({
+    request: makeRequest({
+      headers: { cookie: 'session=abc; lang=en-US' },
+      state: { session: 'abc', lang: 'en-US' },
+    }),
+    route: defaultRoute,
+    stage: 'dev',
+    accountId: '000000000000',
+    domainName: 'localhost:3000',
+  })
+  expect(event.cookies).toEqual(['session=abc', 'lang=en-US'])
+})
+
+it('9c. cookies handles a duplicate cookie name as multiple entries', () => {
+  // When a client sends two cookies with the same name (e.g. duplicate
+  // Set-Cookie roundtrips), Hapi surfaces the value as an array. The event
+  // factory should emit one `name=value` entry per array element.
+  const event = buildHttpApiV2Event({
+    request: makeRequest({
+      headers: { cookie: 'theme=light; theme=dark' },
+      state: { theme: ['light', 'dark'] },
+    }),
+    route: defaultRoute,
+    stage: 'dev',
+    accountId: '000000000000',
+    domainName: 'localhost:3000',
+  })
+  expect(event.cookies).toEqual(['theme=light', 'theme=dark'])
+})
+
+it('9d. cookies preserves percent-decoded values from request.state', () => {
+  // Hapi URL-decodes the cookie value when parsing. The event factory should
+  // pass the decoded value through; handlers see what Hapi handed back.
+  const event = buildHttpApiV2Event({
+    request: makeRequest({
+      headers: { cookie: 'q=hello%20world' },
+      state: { q: 'hello world' },
+    }),
+    route: defaultRoute,
+    stage: 'dev',
+    accountId: '000000000000',
+    domainName: 'localhost:3000',
+  })
+  expect(event.cookies).toEqual(['q=hello world'])
+})
+
 // ---------------------------------------------------------------------------
 // 10. headers — lower-cased keys, cookie excluded
 // ---------------------------------------------------------------------------

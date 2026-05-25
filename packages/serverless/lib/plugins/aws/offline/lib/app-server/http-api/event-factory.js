@@ -198,14 +198,31 @@ export function buildHttpApiV2Event({
   // Headers — lower-cased, multi-value joined, cookie excluded.
   const headers = normaliseHeaders(request.headers)
 
-  // Cookies — parsed from the cookie header; field omitted if absent.
-  const cookieHeader = request.headers['cookie'] ?? request.headers['Cookie']
-  const cookies = cookieHeader
-    ? cookieHeader
-        .split(';')
-        .map((c) => c.trim())
-        .filter(Boolean)
-    : undefined
+  // Cookies — read from Hapi's parsed `request.state` map so values with
+  // spaces, percent-encoding, or quoted segments are handled the same way
+  // Hapi itself handles them. Each entry becomes a `name=value` string;
+  // duplicate cookie names (which Hapi surfaces as an array) become multiple
+  // entries. Field omitted entirely if no cookies are present.
+  let cookies
+  if (request.state && Object.keys(request.state).length > 0) {
+    cookies = Object.entries(request.state).flatMap(([key, value]) =>
+      Array.isArray(value)
+        ? value.map((v) => `${key}=${v}`)
+        : `${key}=${value}`,
+    )
+  } else {
+    // Fallback: when Hapi has not populated request.state (e.g. the route
+    // didn't enable state parsing, or the cookie header was malformed),
+    // pass through the raw header tokens so downstream handlers still see
+    // *something*. Matches the previous behavior for plain "k=v; a=b" inputs.
+    const cookieHeader = request.headers['cookie'] ?? request.headers['Cookie']
+    cookies = cookieHeader
+      ? cookieHeader
+          .split(';')
+          .map((c) => c.trim())
+          .filter(Boolean)
+      : undefined
+  }
 
   // Path parameters — APIGW emits `null` when the route has no placeholders.
   const pathParameters =
