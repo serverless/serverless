@@ -120,13 +120,52 @@ parentPort.on('message', async (msg) => {
   // Settle tracking — only post ONE message to the parent (first wins).
   let settled = false
 
-  function postSuccess(value) {
+  /**
+   * Whether the handler set `context.callbackWaitsForEmptyEventLoop = false`.
+   * Initialized from the incoming context (defaults to `true` per AWS spec).
+   * The handler is allowed to mutate it at any time before calling callback/done/succeed/fail.
+   *
+   * When `false` and a callback-style settle fires, we post the result message
+   * immediately and then exit the worker process so the parent does not have to
+   * wait for pending timers/connections to drain.
+   *
+   * For async/Promise-returning handlers the flag has no effect — the promise
+   * resolving IS the termination signal (matching real AWS behavior).
+   *
+   * @type {boolean}
+   */
+  let userCallbackWaitsForEmptyEventLoop =
+    context?.callbackWaitsForEmptyEventLoop ?? true
+
+  /**
+   * Post a success result.  When `callbackWaitsForEmptyEventLoop` is `false`
+   * and this is a callback-originated settle, immediately signal the parent to
+   * drop this worker and exit the process (matching real Lambda behavior of
+   * returning without draining the event loop).
+   *
+   * @param {unknown} value
+   * @param {{ fromCallback?: boolean }} [opts]
+   */
+  function postSuccess(value, { fromCallback = false } = {}) {
     if (settled) return
     settled = true
     parentPort.postMessage({ type: 'success', value })
+    if (fromCallback && userCallbackWaitsForEmptyEventLoop === false) {
+      // Notify the parent this is an expected self-exit so it drops the
+      // pool entry quietly without treating it as an unexpected crash.
+      parentPort.postMessage({ type: 'shutdown-after-invocation' })
+      setImmediate(() => process.exit(0))
+    }
   }
 
-  function postError(err) {
+  /**
+   * Post an error result.  Same `callbackWaitsForEmptyEventLoop` handling as
+   * `postSuccess`.
+   *
+   * @param {Error | unknown} err
+   * @param {{ fromCallback?: boolean }} [opts]
+   */
+  function postError(err, { fromCallback = false } = {}) {
     if (settled) return
     settled = true
     parentPort.postMessage({
@@ -137,11 +176,26 @@ parentPort.on('message', async (msg) => {
         stack: err && err.stack != null ? err.stack : '',
       },
     })
+    if (fromCallback && userCallbackWaitsForEmptyEventLoop === false) {
+      parentPort.postMessage({ type: 'shutdown-after-invocation' })
+      setImmediate(() => process.exit(0))
+    }
   }
 
   const lambdaContext = {
-    callbackWaitsForEmptyEventLoop:
-      context?.callbackWaitsForEmptyEventLoop ?? true,
+    /**
+     * Mirror of `userCallbackWaitsForEmptyEventLoop`.  The handler may set this
+     * to `false` at any point; we read it when the callback fires.
+     *
+     * Using a getter/setter keeps our local variable in sync if the handler
+     * assigns to `context.callbackWaitsForEmptyEventLoop` directly.
+     */
+    get callbackWaitsForEmptyEventLoop() {
+      return userCallbackWaitsForEmptyEventLoop
+    },
+    set callbackWaitsForEmptyEventLoop(v) {
+      userCallbackWaitsForEmptyEventLoop = v
+    },
     functionName,
     functionVersion,
     invokedFunctionArn: context?.invokedFunctionArn,
@@ -157,16 +211,18 @@ parentPort.on('message', async (msg) => {
         : () => 0,
     done(error, result) {
       if (error) {
-        postError(error)
+        postError(error, { fromCallback: true })
       } else {
-        postSuccess(result)
+        postSuccess(result, { fromCallback: true })
       }
     },
     succeed(value) {
-      postSuccess(value)
+      postSuccess(value, { fromCallback: true })
     },
     fail(error) {
-      postError(error instanceof Error ? error : new Error(String(error)))
+      postError(error instanceof Error ? error : new Error(String(error)), {
+        fromCallback: true,
+      })
     },
   }
 
@@ -174,9 +230,15 @@ parentPort.on('message', async (msg) => {
   // Invoke the handler
   // ---------------------------------------------------------------------------
 
+  // Track whether the handler's settle came from the callback path so we
+  // can honor `callbackWaitsForEmptyEventLoop = false` after the await.
+  // Declared outside try/catch so it is accessible in both branches.
+  let settledViaCallback = false
+
   try {
     const result = await new Promise((resolve, reject) => {
       const callback = (err, value) => {
+        settledViaCallback = true
         if (err) {
           reject(err)
         } else {
@@ -193,6 +255,8 @@ parentPort.on('message', async (msg) => {
       }
 
       // If the handler returned a thenable, await it (promise / async handler).
+      // For the Promise path, callbackWaitsForEmptyEventLoop has no effect —
+      // the promise resolving IS the termination signal (matching real Lambda).
       if (returnValue != null && typeof returnValue.then === 'function') {
         Promise.resolve(returnValue).then(resolve, reject)
         return
@@ -207,8 +271,8 @@ parentPort.on('message', async (msg) => {
       // else: callback-style — the callback closure above will settle the promise.
     })
 
-    postSuccess(result)
+    postSuccess(result, { fromCallback: settledViaCallback })
   } catch (err) {
-    postError(err)
+    postError(err, { fromCallback: settledViaCallback })
   }
 })

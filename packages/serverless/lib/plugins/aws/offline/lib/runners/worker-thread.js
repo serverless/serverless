@@ -146,6 +146,11 @@ export function createWorkerThreadRunner({
       }
     })
 
+    // Handle clean worker self-exit (process.exit(0)) that the worker posts
+    // 'shutdown-after-invocation' before triggering.  We mark the entry as
+    // terminating so the subsequent 'exit' event is treated as expected.
+    let selfExitExpected = false
+
     // Set up the persistent per-invocation message handler for this worker.
     worker.on('message', (msg) => {
       if (msg.type === 'ready') {
@@ -153,6 +158,24 @@ export function createWorkerThreadRunner({
           entry._resolveReady()
           entry._resolveReady = null
           entry._rejectReady = null
+        }
+        return
+      }
+
+      if (msg.type === 'shutdown-after-invocation') {
+        // The worker called process.exit(0) after honoring
+        // callbackWaitsForEmptyEventLoop = false.  Mark the entry so the
+        // 'exit' listener below drops it quietly without firing errors.
+        // Also cancel any idle eviction timer that the success-message handler
+        // may have armed just before this message arrived.
+        selfExitExpected = true
+        if (entry.idleTimer !== null) {
+          clearTimeout(entry.idleTimer)
+          entry.idleTimer = null
+        }
+        entry.state = 'terminating'
+        if (pool.get(functionKey) === entry) {
+          pool.delete(functionKey)
         }
         return
       }
@@ -202,6 +225,45 @@ export function createWorkerThreadRunner({
         // Notify the next waiting invocation (if any).
         const next = entry.waiters.shift()
         if (next) next()
+      }
+    })
+
+    // Handle unexpected worker exit (crash, OOM, etc.).
+    // When `selfExitExpected` is true the exit was triggered by the worker
+    // itself after honoring `callbackWaitsForEmptyEventLoop = false` — the
+    // result has already been posted and the parent already removed the entry
+    // from the pool (or is about to via the message handler).  Drop quietly.
+    worker.once('exit', (code) => {
+      if (selfExitExpected) {
+        // Expected self-exit: just ensure the entry is no longer in the pool.
+        if (pool.get(functionKey) === entry) {
+          pool.delete(functionKey)
+        }
+        entry.state = 'terminating'
+        for (const next of entry.waiters.splice(0)) next()
+        return
+      }
+
+      // Unexpected exit (code !== 0, or code === 0 but no shutdown-after-invocation).
+      if (entry.state !== 'terminating') {
+        const exitErr = new ServerlessError(
+          `Worker for "${functionKey}" exited unexpectedly with code ${code}`,
+          'OFFLINE_WORKER_EXITED',
+        )
+        if (pool.get(functionKey) === entry) {
+          pool.delete(functionKey)
+        }
+        entry.state = 'terminating'
+        if (entry.pendingResult !== null) {
+          if (entry.pendingTimeout !== null) {
+            clearTimeout(entry.pendingTimeout)
+            entry.pendingTimeout = null
+          }
+          const { reject: rej } = entry.pendingResult
+          entry.pendingResult = null
+          rej(exitErr)
+        }
+        for (const next of entry.waiters.splice(0)) next()
       }
     })
 

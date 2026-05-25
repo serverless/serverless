@@ -880,6 +880,119 @@ describe('createWorkerThreadRunner', () => {
     expect(capturedErr.code).toBe('OFFLINE_WORKER_TERMINATED')
   })
 
+  // -------------------------------------------------------------------------
+  // callbackWaitsForEmptyEventLoop = false
+  // -------------------------------------------------------------------------
+
+  // CWFEL-1: handler sets flag to false + leaves a long setInterval pending —
+  // invoke must resolve promptly, not hang until timeoutMs.
+  it('callbackWaitsForEmptyEventLoop=false: callback resolves promptly even with pending setInterval', async () => {
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+    // The setInterval would normally keep the event loop alive for 100 s,
+    // but callbackWaitsForEmptyEventLoop = false must override that.
+    const handlerPath = await writeTmpHandler(
+      `export function handler(event, context, callback) {
+         context.callbackWaitsForEmptyEventLoop = false
+         setInterval(() => {}, 100000)
+         callback(null, 'done')
+       }`,
+    )
+
+    const start = Date.now()
+    const result = await r.invoke({
+      functionKey: 'cwfel-1',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: { functionName: 'cwfelFn', awsRequestId: 'req-cwfel-1' },
+      timeoutMs: 2000, // generous — should resolve well within this
+    })
+    const elapsed = Date.now() - start
+
+    expect(result).toBe('done')
+    // Must resolve within 500 ms — not after the 100 s interval or the 2 s timeout.
+    expect(elapsed).toBeLessThan(500)
+
+    // The entry should have been dropped from the pool; next invoke spawns fresh.
+    const handlerPath2 = await writeTmpHandler(
+      `let c = 0; export const handler = async () => { c += 1; return c }`,
+    )
+    const r2 = await r.invoke({
+      functionKey: 'cwfel-1',
+      handlerPath: handlerPath2,
+      handlerName: 'handler',
+      event: {},
+      context: {},
+    })
+    // Fresh worker → counter resets to 1.
+    expect(r2).toBe(1)
+
+    await r.terminate()
+  })
+
+  // CWFEL-2: async/Promise handler with the same pending setInterval and flag=false —
+  // must still resolve promptly when the promise resolves (flag has no effect on Promise path).
+  it('callbackWaitsForEmptyEventLoop=false: async Promise handler still resolves promptly', async () => {
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+    const handlerPath = await writeTmpHandler(
+      `export async function handler(event, context) {
+         context.callbackWaitsForEmptyEventLoop = false
+         setInterval(() => {}, 100000)
+         return 'promise-done'
+       }`,
+    )
+
+    const start = Date.now()
+    const result = await r.invoke({
+      functionKey: 'cwfel-2',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: { functionName: 'cwfelFn2', awsRequestId: 'req-cwfel-2' },
+      timeoutMs: 2000,
+    })
+    const elapsed = Date.now() - start
+
+    expect(result).toBe('promise-done')
+    expect(elapsed).toBeLessThan(500)
+
+    await r.terminate()
+  })
+
+  // CWFEL-3: default callbackWaitsForEmptyEventLoop=true — callback resolves,
+  // worker is NOT exited, and is reused on the next invocation.
+  it('callbackWaitsForEmptyEventLoop=true (default): worker is reused after callback resolves', async () => {
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+    // Module-level counter to detect worker reuse.
+    const handlerPath = await writeTmpHandler(
+      `let c = 0
+       export function handler(event, context, callback) {
+         c += 1
+         // Default: callbackWaitsForEmptyEventLoop is true — do NOT set it false.
+         callback(null, c)
+       }`,
+    )
+    const opts = {
+      functionKey: 'cwfel-3',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: { functionName: 'cwfelFn3', awsRequestId: 'req-cwfel-3' },
+    }
+
+    const r1 = await r.invoke(opts)
+    expect(r1).toBe(1)
+
+    // Worker must be reused — counter increments (not reset to 1).
+    const r2 = await r.invoke(opts)
+    expect(r2).toBe(2)
+
+    await r.terminate()
+  })
+
   // Pool-10: AWS_LAMBDA_* envs are set per-invocation inside the worker
   it('pool: AWS_LAMBDA_* envs are refreshed on every invocation (not stuck to first)', async () => {
     const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
