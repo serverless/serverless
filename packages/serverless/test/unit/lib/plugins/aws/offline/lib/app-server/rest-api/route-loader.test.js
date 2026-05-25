@@ -317,3 +317,136 @@ describe('registerRestApiRoutes — live request via server.inject()', () => {
     })
   })
 })
+
+describe('registerRestApiRoutes — CORS', () => {
+  it('http.cors:true registers an OPTIONS route at the mounted path', () => {
+    const stub = makeRouteStub()
+    registerRestApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        f: {
+          events: [{ http: { method: 'GET', path: '/x', cors: true } }],
+        },
+      }),
+      stage: 'dev',
+      onRequest: jest.fn(),
+    })
+    const opts = stub.routes.find((r) => r.method === 'OPTIONS')
+    expect(opts).toBeDefined()
+    expect(opts.path).toBe('/dev/x')
+  })
+
+  it('http.cors:false does NOT register an OPTIONS route', () => {
+    const stub = makeRouteStub()
+    registerRestApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        f: {
+          events: [{ http: { method: 'GET', path: '/x', cors: false } }],
+        },
+      }),
+      stage: 'dev',
+      onRequest: jest.fn(),
+    })
+    expect(stub.routes.find((r) => r.method === 'OPTIONS')).toBeUndefined()
+  })
+
+  it('http.cors absent does NOT register an OPTIONS route', () => {
+    const stub = makeRouteStub()
+    registerRestApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        f: {
+          events: [{ http: { method: 'GET', path: '/x' } }],
+        },
+      }),
+      stage: 'dev',
+      onRequest: jest.fn(),
+    })
+    expect(stub.routes.find((r) => r.method === 'OPTIONS')).toBeUndefined()
+  })
+
+  it('two routes sharing a path share a single OPTIONS handler', () => {
+    const stub = makeRouteStub()
+    registerRestApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        list: {
+          events: [{ http: { method: 'GET', path: '/x', cors: true } }],
+        },
+        create: {
+          events: [{ http: { method: 'POST', path: '/x', cors: true } }],
+        },
+      }),
+      stage: 'dev',
+      onRequest: jest.fn(),
+    })
+    const options = stub.routes.filter((r) => r.method === 'OPTIONS')
+    expect(options).toHaveLength(1)
+  })
+
+  it('http.cors object form is honored (custom origin)', () => {
+    const stub = makeRouteStub()
+    registerRestApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        f: {
+          events: [
+            {
+              http: {
+                method: 'GET',
+                path: '/x',
+                cors: { origin: 'https://example.com' },
+              },
+            },
+          ],
+        },
+      }),
+      stage: 'dev',
+      onRequest: jest.fn(),
+    })
+    // The OPTIONS route exists; the actual origin check happens at handler time.
+    // Verify by calling the synthesized handler with a request:
+    const opts = stub.routes.find((r) => r.method === 'OPTIONS')
+    expect(opts).toBeDefined()
+    const fakeH = () => {
+      const calls = { headers: [] }
+      const builder = {
+        code: (c) => {
+          calls.statusCode = c
+          return builder
+        },
+        header: (n, v) => {
+          calls.headers.push({ name: n, value: v })
+          return builder
+        },
+      }
+      return {
+        calls,
+        response: (p) => {
+          calls.payload = p
+          return builder
+        },
+      }
+    }
+    const h = fakeH()
+    opts.handler({ headers: { origin: 'https://example.com' } }, h)
+    const allowOrigin = h.calls.headers.find(
+      (x) => x.name.toLowerCase() === 'access-control-allow-origin',
+    )
+    expect(allowOrigin?.value).toBe('https://example.com')
+  })
+
+  it('short string form cannot declare CORS — no OPTIONS route synthesized', () => {
+    const stub = makeRouteStub()
+    registerRestApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        f: { events: [{ http: 'GET /x' }] },
+      }),
+      stage: 'dev',
+      onRequest: jest.fn(),
+    })
+    expect(stub.routes.find((r) => r.method === 'OPTIONS')).toBeUndefined()
+  })
+})

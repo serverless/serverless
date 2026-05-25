@@ -17,6 +17,10 @@ import { buildRestApiEvent } from './event-factory.js'
 import { formatRestApiResponse } from './response-mapper.js'
 import { detectIntegration } from './integration-detector.js'
 import { translateRestPath, buildMountedPath } from './path-translator.js'
+import {
+  normalizeCorsConfig,
+  buildCorsOptionsRoute,
+} from '../shared/cors-options.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -127,6 +131,9 @@ export function registerRestApiRoutes({
   const functions = serverless.service.functions ?? {}
   /** @type {{ method: string, path: string, mountedPath: string, functionKey: string }[]} */
   const registered = []
+  // Two routes sharing a path (e.g. GET /users + POST /users) need only one
+  // OPTIONS preflight handler — track which mounted paths already have one.
+  const corsMounted = new Set()
 
   for (const [functionKey, fn] of Object.entries(functions)) {
     const events = fn.events ?? []
@@ -220,6 +227,17 @@ export function registerRestApiRoutes({
         mountedPath,
         functionKey,
       })
+
+      // CORS preflight — only the long-form event object can declare it;
+      // short-form strings ("GET /users") have no place for the cors field.
+      const corsConfig =
+        typeof eventEntry.http === 'object'
+          ? normalizeCorsConfig(eventEntry.http.cors)
+          : null
+      if (corsConfig && !corsMounted.has(mountedPath)) {
+        server.route(buildCorsOptionsRoute({ path: mountedPath, corsConfig }))
+        corsMounted.add(mountedPath)
+      }
     }
   }
 
