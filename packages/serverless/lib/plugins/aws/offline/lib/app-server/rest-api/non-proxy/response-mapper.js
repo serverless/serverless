@@ -119,8 +119,14 @@ export function mapNonProxyResponse({
     body = serializePayload(payload)
   }
 
-  // 5. Build Hapi response.
-  const response = h.response(body).code(statusCode)
+  // 5. Build Hapi response. Pin the response Content-Type to the same
+  //    content type we used to select the response template (defaults to
+  //    `application/json`). Without this, Hapi falls back to `text/html`
+  //    for string bodies, which diverges from real APIGW behavior — the
+  //    integration response carries the template's content type, and a
+  //    null/object payload that we JSON-serialize must also surface as
+  //    JSON to the client.
+  const response = h.response(body).code(statusCode).type(responseContentType)
 
   // 6. Apply responseParameters (header subset only).
   const { responseParameters } = chosen

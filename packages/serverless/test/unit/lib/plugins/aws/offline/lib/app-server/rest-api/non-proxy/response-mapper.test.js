@@ -341,3 +341,59 @@ describe('mapNonProxyResponse — responseTemplates', () => {
     expect(JSON.parse(h.calls.payload)).toEqual({ msg: 'kaboom' })
   })
 })
+
+describe('mapNonProxyResponse — response Content-Type', () => {
+  it('defaults to application/json (not text/html, the Hapi default)', () => {
+    const h = makeH()
+    mapNonProxyResponse({
+      result: { ok: true },
+      err: null,
+      responses: { default: { statusCode: 200 } },
+      request: makeRequest(),
+      stage: 'dev',
+      resourcePath: '/x',
+      h,
+    })
+    expect(h.calls.contentType).toBe('application/json')
+  })
+
+  it('still application/json when the handler throws and no template matches', () => {
+    const h = makeH()
+    mapNonProxyResponse({
+      result: null,
+      err: new Error('boom'),
+      responses: { default: { statusCode: 500 } },
+      request: makeRequest(),
+      stage: 'dev',
+      resourcePath: '/x',
+      h,
+    })
+    expect(h.calls.contentType).toBe('application/json')
+  })
+
+  it('reflects the request Content-Type when responseTemplates targets that type', () => {
+    const h = makeH()
+    mapNonProxyResponse({
+      result: { hello: 'world' },
+      err: null,
+      responses: {
+        default: {
+          statusCode: 200,
+          responseTemplates: {
+            'application/xml': "<msg>$input.path('$.hello')</msg>",
+          },
+        },
+      },
+      // Simulate an XML-typed request so the mapper looks up the XML template.
+      request: makeRequest({
+        mime: 'application/xml',
+        headers: { 'content-type': 'application/xml' },
+      }),
+      stage: 'dev',
+      resourcePath: '/x',
+      h,
+    })
+    expect(h.calls.contentType).toBe('application/xml')
+    expect(h.calls.payload).toBe('<msg>world</msg>')
+  })
+})
