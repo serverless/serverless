@@ -13,6 +13,7 @@ const offlineSchema = {
   properties: {
     awsApiPort: { type: 'integer', minimum: 1, maximum: 65535 },
     appPort: { type: 'integer', minimum: 1, maximum: 65535 },
+    customAuthenticationProvider: { type: 'string' },
     host: { type: 'string' },
     watch: { type: 'boolean' },
     noWatch: { type: 'boolean' },
