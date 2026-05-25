@@ -911,3 +911,129 @@ it('25. headers and multiValueHeaders combine — single value plus appended one
     await server.stop({ timeout: 5000 })
   }
 })
+
+describe('registerHttpApiRoutes — provider.httpApi.cors (closes audit #16)', () => {
+  it('cors:true registers an OPTIONS route for every httpApi path', () => {
+    const stub = makeRouteStub()
+    registerHttpApiRoutes({
+      server: stub,
+      serverless: {
+        service: {
+          provider: { httpApi: { cors: true } },
+          functions: {
+            a: { events: [{ httpApi: 'GET /a' }] },
+            b: { events: [{ httpApi: { method: 'POST', path: '/b' } }] },
+          },
+        },
+      },
+      stage: 'dev',
+      domainName: 'localhost:3000',
+      onRequest: jest.fn(),
+    })
+    const options = stub.routes.filter((r) => r.method === 'OPTIONS')
+    expect(options.map((r) => r.path).sort()).toEqual(['/a', '/b'])
+  })
+
+  it('cors:false does not register any OPTIONS routes', () => {
+    const stub = makeRouteStub()
+    registerHttpApiRoutes({
+      server: stub,
+      serverless: {
+        service: {
+          provider: { httpApi: { cors: false } },
+          functions: { a: { events: [{ httpApi: 'GET /a' }] } },
+        },
+      },
+      stage: 'dev',
+      domainName: 'localhost:3000',
+      onRequest: jest.fn(),
+    })
+    expect(stub.routes.find((r) => r.method === 'OPTIONS')).toBeUndefined()
+  })
+
+  it('cors absent does not register any OPTIONS routes', () => {
+    const stub = makeRouteStub()
+    registerHttpApiRoutes({
+      server: stub,
+      serverless: {
+        service: {
+          functions: { a: { events: [{ httpApi: 'GET /a' }] } },
+        },
+      },
+      stage: 'dev',
+      domainName: 'localhost:3000',
+      onRequest: jest.fn(),
+    })
+    expect(stub.routes.find((r) => r.method === 'OPTIONS')).toBeUndefined()
+  })
+
+  it('two routes sharing a path share one OPTIONS handler', () => {
+    const stub = makeRouteStub()
+    registerHttpApiRoutes({
+      server: stub,
+      serverless: {
+        service: {
+          provider: { httpApi: { cors: true } },
+          functions: {
+            list: { events: [{ httpApi: { method: 'GET', path: '/x' } }] },
+            create: {
+              events: [{ httpApi: { method: 'POST', path: '/x' } }],
+            },
+          },
+        },
+      },
+      stage: 'dev',
+      domainName: 'localhost:3000',
+      onRequest: jest.fn(),
+    })
+    const options = stub.routes.filter((r) => r.method === 'OPTIONS')
+    expect(options).toHaveLength(1)
+    expect(options[0].path).toBe('/x')
+  })
+
+  it('cors object form is honored (custom origin echoes back)', () => {
+    const stub = makeRouteStub()
+    registerHttpApiRoutes({
+      server: stub,
+      serverless: {
+        service: {
+          provider: {
+            httpApi: { cors: { origin: 'https://example.com' } },
+          },
+          functions: { a: { events: [{ httpApi: 'GET /a' }] } },
+        },
+      },
+      stage: 'dev',
+      domainName: 'localhost:3000',
+      onRequest: jest.fn(),
+    })
+    const opts = stub.routes.find((r) => r.method === 'OPTIONS')
+    expect(opts).toBeDefined()
+    const fakeH = () => {
+      const calls = { headers: [] }
+      const builder = {
+        code: (c) => {
+          calls.statusCode = c
+          return builder
+        },
+        header: (n, v) => {
+          calls.headers.push({ name: n, value: v })
+          return builder
+        },
+      }
+      return {
+        calls,
+        response: (p) => {
+          calls.payload = p
+          return builder
+        },
+      }
+    }
+    const h = fakeH()
+    opts.handler({ headers: { origin: 'https://example.com' } }, h)
+    const allowOrigin = h.calls.headers.find(
+      (x) => x.name.toLowerCase() === 'access-control-allow-origin',
+    )
+    expect(allowOrigin?.value).toBe('https://example.com')
+  })
+})

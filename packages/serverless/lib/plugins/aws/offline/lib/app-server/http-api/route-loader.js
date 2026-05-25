@@ -7,6 +7,10 @@
  */
 
 import { buildHttpApiV2Event } from './event-factory.js'
+import {
+  normalizeCorsConfig,
+  buildCorsOptionsRoute,
+} from '../shared/cors-options.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -218,6 +222,14 @@ export function registerHttpApiRoutes({
   /** @type {{ method: string, path: string, functionKey: string }[]} */
   const registered = []
 
+  // Provider-wide CORS configuration (closes audit #16). When set, one
+  // OPTIONS preflight handler is synthesized per registered HTTP API path
+  // — real APIGW does the same for any HTTP API with CORS enabled.
+  const httpApiCorsConfig = normalizeCorsConfig(
+    serverless.service.provider?.httpApi?.cors,
+  )
+  const corsMounted = new Set()
+
   for (const [functionKey, fn] of Object.entries(functions)) {
     const events = fn.events ?? []
 
@@ -297,6 +309,16 @@ export function registerHttpApiRoutes({
       })
 
       registered.push({ method: rawMethod, path: apigwPath, functionKey })
+
+      if (httpApiCorsConfig && !corsMounted.has(hapiPath)) {
+        server.route(
+          buildCorsOptionsRoute({
+            path: hapiPath,
+            corsConfig: httpApiCorsConfig,
+          }),
+        )
+        corsMounted.add(hapiPath)
+      }
     }
   }
 
