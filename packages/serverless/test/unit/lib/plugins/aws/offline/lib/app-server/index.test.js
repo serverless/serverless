@@ -87,10 +87,11 @@ it('3. server.info.host matches the provided host option', async () => {
 })
 
 // ---------------------------------------------------------------------------
-// 4. logger.notice is called with a message that contains the real port
+// 4. Server exposes its bound URL via server.info.uri (the boot summary
+//    consumes this; the server module itself does not log on boot).
 // ---------------------------------------------------------------------------
 
-it('4. logger.notice is called after start with the actual listening port', async () => {
+it('4. server.info.uri exposes the bound URL so the boot summary can print it', async () => {
   const logger = makeLogger()
 
   server = await createAppServer({
@@ -100,11 +101,12 @@ it('4. logger.notice is called after start with the actual listening port', asyn
     registerRoutes: async () => {},
   })
 
-  expect(logger.notice).toHaveBeenCalledTimes(1)
-  const [msg] = logger.notice.mock.calls[0]
-  expect(typeof msg).toBe('string')
-  // Must contain the real port (which is > 0 since we passed appPort: 0)
-  expect(msg).toContain(String(server.info.port))
+  // The module no longer logs on boot — the consolidated boot summary owns
+  // that responsibility. Just expose the bound URL.
+  expect(logger.notice).not.toHaveBeenCalled()
+  expect(server.info.uri).toMatch(
+    new RegExp(`^http://localhost:${server.info.port}$`),
+  )
 })
 
 // ---------------------------------------------------------------------------

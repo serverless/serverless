@@ -45,18 +45,31 @@ function coerceInt(value) {
 
 /**
  * Print a structured boot summary once every subsystem is up. Groups the
- * "now ready" output so users see a single block instead of interleaved
- * "X listening on" lines per subsystem.
+ * "now ready" output so users see a single block with the bound endpoints
+ * at the top and full URLs in the route table — the per-server `listening
+ * on …` notices are intentionally omitted in favor of this consolidated
+ * view.
  *
  * @param {object} params
  * @param {{ notice: (msg: string) => void }} params.logger
+ * @param {string} params.appUrl                              The HTTP API / REST / ALB / WebSocket endpoint.
+ * @param {string} params.awsApiUrl                           The AWS SDK endpoint (Lambda Invoke, SQS, etc.).
  * @param {{ method: string, path: string, functionKey: string }[]} params.httpApiRoutes
  * @param {number} params.sqsPollerCount
  * @param {string} params.stage
  */
-function logBootSummary({ logger, httpApiRoutes, sqsPollerCount, stage }) {
+function logBootSummary({
+  logger,
+  appUrl,
+  awsApiUrl,
+  httpApiRoutes,
+  sqsPollerCount,
+  stage,
+}) {
   logger.notice('')
   logger.notice(`sls offline ready (stage: ${stage})`)
+  logger.notice(`  App endpoint:    ${appUrl}`)
+  logger.notice(`  AWS endpoint:    ${awsApiUrl}`)
 
   if (httpApiRoutes.length === 0) {
     logger.notice('  HTTP API routes: (none registered)')
@@ -70,15 +83,18 @@ function logBootSummary({ logger, httpApiRoutes, sqsPollerCount, stage }) {
     // Right-pad the method column so handler keys line up visually.
     const methodWidth = Math.max(...sorted.map((r) => r.method.length))
     for (const r of sorted) {
+      // Show the full URL (appUrl + path) so the user can copy-paste straight
+      // into curl. APIGW path placeholders stay literal (e.g. `{id}`) — the
+      // route key already documents them.
       logger.notice(
-        `    ${r.method.padEnd(methodWidth)}  ${r.path}  →  ${r.functionKey}`,
+        `    ${r.method.padEnd(methodWidth)}  ${appUrl}${r.path}  →  ${r.functionKey}`,
       )
     }
   }
 
   if (sqsPollerCount > 0) {
     logger.notice(
-      `  SQS pollers: ${sqsPollerCount} queue${sqsPollerCount === 1 ? '' : 's'} subscribed`,
+      `  SQS pollers:     ${sqsPollerCount} queue${sqsPollerCount === 1 ? '' : 's'} subscribed`,
     )
   }
 
@@ -303,9 +319,12 @@ export default class OfflinePlugin {
         await bridge.fireReady()
         // Boot summary — printed after every component is up so users get a
         // single coherent diagnostic block instead of interleaved listening
-        // lines per subsystem.
+        // lines per subsystem.  `server.info.uri` is the URL Hapi actually
+        // bound (matters when appPort/awsApiPort is 0 → OS-assigned).
         logBootSummary({
           logger,
+          appUrl: appServer.info.uri,
+          awsApiUrl: awsApiServer.info.uri,
           httpApiRoutes,
           sqsPollerCount: pollerController.pollerCount,
           stage,

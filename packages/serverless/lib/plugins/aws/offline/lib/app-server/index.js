@@ -32,9 +32,11 @@ import { DEFAULT_APP_PORT, DEFAULT_HOST } from '../constants.js'
  *   Interface to bind.  Defaults to loopback so the server is not reachable
  *   from outside the machine.
  *
- * @param {{ notice: (msg: string) => void }} opts.logger
- *   A logger instance (e.g. from `@serverless/util` via `log.get(...)`).
- *   Only `notice` is called by this module.
+ * @param {{ notice?: (msg: string) => void }} [opts.logger]
+ *   Optional logger instance (e.g. from `@serverless/util` via `log.get(...)`).
+ *   Currently unused — the bound URL is exposed via the returned server's
+ *   `server.info.uri` so the boot summary can include it alongside the
+ *   route table.  Accepted for future use (e.g. per-request access logs).
  *
  * @param {(server: import('@hapi/hapi').Server) => Promise<void>} opts.registerRoutes
  *   Async callback invoked with the Hapi server instance before
@@ -65,10 +67,6 @@ export async function createAppServer({
   await registerRoutes(server)
 
   await server.start()
-
-  logger.notice(
-    `HTTP API server listening on http://${host}:${server.info.port}`,
-  )
 
   return server
 }

@@ -38,10 +38,11 @@ import { detectService } from './dispatcher.js'
  *   Example: `{ sqs: async (request, h) => h.response({}).code(200) }`.
  *   Only services listed here will be served; others return 501.
  *
- * @param {{ debug?: (data: object) => void, notice?: (msg: string) => void }} [options.logger]
- *   A logger instance (e.g. from `@serverless/util`). `debug` is called on
- *   unrouted requests; `notice` is called once on boot with the bound URL.
- *   Both methods are optional.
+ * @param {{ debug?: (data: object) => void }} [options.logger]
+ *   Optional logger instance (e.g. from `@serverless/util`).  `debug` is
+ *   called on unrouted requests.  The bound URL is exposed via the
+ *   returned server's `server.info.uri` so the boot summary can include
+ *   it alongside the route table.
  *
  * @returns {Promise<import('@hapi/hapi').Server>}
  *   The started Hapi server.  Register teardown via
@@ -105,10 +106,6 @@ export async function createAwsApiServer({
   })
 
   await server.start()
-
-  logger?.notice?.(
-    `AWS API server listening on http://${host}:${server.info.port}`,
-  )
 
   return server
 }

@@ -1,11 +1,14 @@
 /**
  * Central lifecycle owner for sls offline.
  *
- * Owns process lifecycle logging (`starting`, `ready`, `stopping`) and a
- * keep-alive heartbeat that prevents Node from exiting the event loop
- * before SIGINT/SIGTERM arrives. Long-running resources registered later
- * (e.g., Hapi servers, runners, watchers) keep the loop alive on their
- * own; the heartbeat then becomes redundant but harmless.
+ * Owns a keep-alive heartbeat that prevents Node from exiting the event
+ * loop before SIGINT/SIGTERM arrives. Long-running resources registered
+ * later (e.g., Hapi servers, runners, watchers) keep the loop alive on
+ * their own; the heartbeat then becomes redundant but harmless.
+ *
+ * Emits a single `stopping` notice when shutdown begins so users know
+ * their Ctrl+C was received. The "ready" signal is the boot summary
+ * printed by the caller from the `onReady` callback.
  *
  * Teardown contract:
  * - Callbacks run in reverse registration order (LIFO).
@@ -20,13 +23,11 @@ export function createOrchestrator({ logger }) {
 
   return {
     async start({ onReady }) {
-      logger.notice('starting')
       // Keep the event loop alive while we wait for a shutdown signal.
       // The interval body is a no-op; the interval handle itself is what
       // anchors the loop. Long delay → negligible CPU cost.
       keepAlive = setInterval(() => {}, 1 << 30)
       await onReady()
-      logger.notice('ready')
     },
 
     onShutdown(callback) {

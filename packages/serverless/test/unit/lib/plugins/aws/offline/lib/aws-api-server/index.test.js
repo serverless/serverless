@@ -238,7 +238,7 @@ it('6. parses body as JSON when Content-Type is text/plain', async () => {
   }
 })
 
-it('emits a notice log line with the bound URL after the server starts', async () => {
+it('exposes the bound URL via server.info.uri (the boot summary owns the log line)', async () => {
   const notice = jest.fn()
   const server = await createAwsApiServer({
     awsApiPort: 0,
@@ -247,9 +247,12 @@ it('emits a notice log line with the bound URL after the server starts', async (
     logger: { notice },
   })
   try {
-    expect(notice).toHaveBeenCalledTimes(1)
-    const [line] = notice.mock.calls[0]
-    expect(line).toMatch(/^AWS API server listening on http:\/\/localhost:\d+$/)
+    // The server module no longer logs its own "listening on …" line —
+    // the consolidated boot summary printed by OfflinePlugin owns that.
+    expect(notice).not.toHaveBeenCalled()
+    expect(server.info.uri).toMatch(
+      new RegExp(`^http://localhost:${server.info.port}$`),
+    )
   } finally {
     await server.stop({ timeout: 5000 })
   }

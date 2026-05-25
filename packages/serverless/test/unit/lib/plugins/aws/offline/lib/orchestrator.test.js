@@ -29,13 +29,13 @@ describe('createOrchestrator', () => {
     expect(teardown).toHaveBeenCalledTimes(1)
   })
 
-  it('logs starting / ready / stopping at the right moments', async () => {
+  it('logs only "stopping" — the caller prints its own boot summary in onReady', async () => {
     const notice = jest.fn()
     const o = createOrchestrator({ logger: { notice } })
     await o.start({ onReady: () => {} })
+    expect(notice).not.toHaveBeenCalled()
     await o.shutdown()
-    expect(notice).toHaveBeenCalledWith('starting')
-    expect(notice).toHaveBeenCalledWith('ready')
+    expect(notice).toHaveBeenCalledTimes(1)
     expect(notice).toHaveBeenCalledWith('stopping')
   })
 
