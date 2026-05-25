@@ -18,6 +18,7 @@ import {
   normalizeHttpEvent,
 } from '../shared/hapi-helpers.js'
 import { formatLambdaProxyResponse } from '../shared/lambda-proxy-response.js'
+import { logHandlerError } from '../shared/handler-logging.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -168,13 +169,7 @@ export function registerHttpApiRoutes({
             }
             return response
           } catch (err) {
-            if (typeof serverless.serverlessLog === 'function') {
-              serverless.serverlessLog(
-                `Error in ${functionKey}: ${err.message}`,
-              )
-            } else {
-              console.error(`[offline] Error in ${functionKey}:`, err)
-            }
+            logHandlerError(serverless, functionKey, err)
             return h
               .response(JSON.stringify({ message: 'Internal server error' }))
               .code(502)

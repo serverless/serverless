@@ -28,6 +28,7 @@ import {
   toHapiMethod,
   normalizeHttpEvent,
 } from '../shared/hapi-helpers.js'
+import { logHandlerError } from '../shared/handler-logging.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -259,7 +260,7 @@ export function registerRestApiRoutes({
                 requestTemplates,
               })
             } catch (err) {
-              console.error(`[offline] ${functionKey}:`, err)
+              logHandlerError(serverless, functionKey, err)
               return h
                 .response(JSON.stringify({ message: 'Internal server error' }))
                 .code(502)
@@ -315,7 +316,7 @@ export function registerRestApiRoutes({
             }
             return response
           } catch (err) {
-            console.error(`[offline] Error in ${functionKey}:`, err)
+            logHandlerError(serverless, functionKey, err)
             return h
               .response(JSON.stringify({ message: 'Internal server error' }))
               .code(502)
