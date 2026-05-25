@@ -660,3 +660,81 @@ describe('registerRestApiRoutes — AWS (non-proxy) integration dispatch', () =>
     expect(res.headers['x-custom']).toBe('literal-value')
   })
 })
+
+describe('registerRestApiRoutes — auth strategy wiring', () => {
+  it('sets options.auth to "api-key" when route has private: true', () => {
+    const stub = makeRouteStub()
+    registerRestApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        a: { events: [{ http: { method: 'GET', path: '/p', private: true } }] },
+      }),
+      stage: 'dev',
+      onRequest: jest.fn(),
+      authStrategies: {
+        privateStrategy: 'api-key',
+        authorizerStrategies: new Map(),
+      },
+    })
+    expect(stub.routes[0].options.auth).toBe('api-key')
+  })
+
+  it('sets options.auth to the lambda-authorizer strategy when route declares authorizer.name', () => {
+    const stub = makeRouteStub()
+    registerRestApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        a: {
+          events: [
+            {
+              http: {
+                method: 'GET',
+                path: '/p',
+                authorizer: { name: 'authFn' },
+              },
+            },
+          ],
+        },
+      }),
+      stage: 'dev',
+      onRequest: jest.fn(),
+      authStrategies: {
+        privateStrategy: null,
+        authorizerStrategies: new Map([['authFn', 'lambda-authorizer:authFn']]),
+      },
+    })
+    expect(stub.routes[0].options.auth).toBe('lambda-authorizer:authFn')
+  })
+
+  it('leaves options.auth undefined for routes without private/authorizer', () => {
+    const stub = makeRouteStub()
+    registerRestApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        a: { events: [{ http: { method: 'GET', path: '/p' } }] },
+      }),
+      stage: 'dev',
+      onRequest: jest.fn(),
+      authStrategies: {
+        privateStrategy: null,
+        authorizerStrategies: new Map(),
+      },
+    })
+    expect(stub.routes[0].options.auth).toBeUndefined()
+  })
+
+  it('falls back gracefully when authStrategies is omitted (back-compat)', () => {
+    const stub = makeRouteStub()
+    expect(() =>
+      registerRestApiRoutes({
+        server: stub,
+        serverless: makeServerless({
+          a: { events: [{ http: { method: 'GET', path: '/p' } }] },
+        }),
+        stage: 'dev',
+        onRequest: jest.fn(),
+      }),
+    ).not.toThrow()
+    expect(stub.routes[0].options.auth).toBeUndefined()
+  })
+})

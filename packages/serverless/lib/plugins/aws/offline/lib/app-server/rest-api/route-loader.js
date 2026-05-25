@@ -116,6 +116,35 @@ function normalizeResponses(responseConfig) {
   return out
 }
 
+/**
+ * Resolve the Hapi auth strategy name for a REST API route based on its
+ * declaration. Returns `undefined` when no auth applies — Hapi leaves
+ * `route.options.auth` unset and the route is public.
+ *
+ * Precedence:
+ *   1. `http.private: true` → the api-key strategy (if registered at boot).
+ *   2. `http.authorizer.name` (string or `{ name }`) → the matching
+ *      per-authorizer strategy (`lambda-authorizer:<name>`).
+ *
+ * @param {object | string} httpEvent
+ * @param {{ privateStrategy: string | null, authorizerStrategies: Map<string, string> } | undefined} authStrategies
+ * @returns {string | undefined}
+ */
+function resolveAuthStrategy(httpEvent, authStrategies) {
+  if (!authStrategies || typeof httpEvent !== 'object') return undefined
+  if (httpEvent.private === true && authStrategies.privateStrategy) {
+    return authStrategies.privateStrategy
+  }
+  const auth = httpEvent.authorizer
+  if (auth) {
+    const name = typeof auth === 'string' ? auth : auth?.name
+    if (typeof name === 'string') {
+      return authStrategies.authorizerStrategies.get(name)
+    }
+  }
+  return undefined
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -163,6 +192,7 @@ export function registerRestApiRoutes({
   prefix,
   noPrependStageInUrl = false,
   onRequest,
+  authStrategies,
 }) {
   const functions = serverless.service.functions ?? {}
   /** @type {{ method: string, path: string, mountedPath: string, functionKey: string }[]} */
@@ -234,6 +264,10 @@ export function registerRestApiRoutes({
           ? normalizeCorsConfig(eventEntry.http.cors)
           : null
 
+      // Resolve the Hapi auth strategy for this route, if any. Returns
+      // undefined for public routes — Hapi leaves `options.auth` unset.
+      const authStrategy = resolveAuthStrategy(eventEntry.http, authStrategies)
+
       server.route({
         method: hapiMethod,
         path: mountedPath,
@@ -247,6 +281,7 @@ export function registerRestApiRoutes({
             parse: true,
             failAction: 'ignore',
           },
+          ...(authStrategy ? { auth: authStrategy } : {}),
         },
         async handler(request, h) {
           if (integration === 'AWS') {
