@@ -274,6 +274,67 @@ describe('createLambdaFunction', () => {
     expect(runner.calls[0].handlerName).toBe('handler')
   })
 
+  test('emits an execution-trace log line per invocation when a logger is provided', async () => {
+    const runner = makeRunner()
+    const logger = { notice: jest.fn() }
+
+    const fn = createLambdaFunction({
+      serverless: makeServerless({
+        servicePath: tmpDir,
+        functions: { hello: { handler: 'src/handler.main' } },
+      }),
+      functionKey: 'hello',
+      runner,
+      logger,
+    })
+
+    await fn.invoke({})
+
+    expect(logger.notice).toHaveBeenCalledTimes(1)
+    const line = logger.notice.mock.calls[0][0]
+    expect(line).toMatch(
+      /^\(λ: hello\) RequestId: [0-9a-f-]{36}  Duration: \d+\.\d{2} ms  Billed Duration: \d+ ms$/,
+    )
+  })
+
+  test('emits the trace line even when the handler invocation rejects', async () => {
+    const failingRunner = {
+      async invoke() {
+        throw new Error('handler boom')
+      },
+    }
+    const logger = { notice: jest.fn() }
+
+    const fn = createLambdaFunction({
+      serverless: makeServerless({
+        servicePath: tmpDir,
+        functions: { boom: { handler: 'src/handler.main' } },
+      }),
+      functionKey: 'boom',
+      runner: failingRunner,
+      logger,
+    })
+
+    await expect(fn.invoke({})).rejects.toThrow('handler boom')
+    expect(logger.notice).toHaveBeenCalledTimes(1)
+    expect(logger.notice.mock.calls[0][0]).toContain('(λ: boom)')
+  })
+
+  test('no logger → no log line, no error', async () => {
+    const runner = makeRunner()
+    const fn = createLambdaFunction({
+      serverless: makeServerless({
+        servicePath: tmpDir,
+        functions: { hello: { handler: 'src/handler.main' } },
+      }),
+      functionKey: 'hello',
+      runner,
+      // logger intentionally omitted
+    })
+
+    await expect(fn.invoke({})).resolves.toBeDefined()
+  })
+
   test('each invocation gets a fresh awsRequestId and deadlineMs', async () => {
     const runner = makeRunner()
     const fn = createLambdaFunction({

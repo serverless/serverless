@@ -17,6 +17,7 @@
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import { resolve, join } from 'node:path'
+import { performance } from 'node:perf_hooks'
 import { getHandlerBaseDir } from '../handler-base-dir.js'
 import { arnFor } from '../provisioner/arn-synth.js'
 
@@ -73,12 +74,40 @@ function resolveHandlerSync(handlerString, baseDir) {
  * @param {object} params.serverless    - Framework `serverless` instance.
  * @param {string} params.functionKey   - Function key in `service.functions`.
  * @param {object} params.runner        - Worker-thread runner (or compatible) with an `.invoke()` method.
+ * @param {object} [params.logger]      - Optional logger; `logger.notice(line)` is called once per
+ *                                        invocation with the per-call execution trace
+ *                                        `(λ: <functionKey>) RequestId: <id> Duration: X.XX ms Billed Duration: Y ms`.
+ *                                        When omitted, no trace is emitted (useful in tests).
  * @returns {{
  *   invoke(event: unknown): Promise<unknown>,
  *   readonly functionKey: string,
  * }}
  */
-export function createLambdaFunction({ serverless, functionKey, runner }) {
+export function createLambdaFunction({
+  serverless,
+  functionKey,
+  runner,
+  logger,
+}) {
+  /**
+   * Emit the per-invocation execution trace. Best-effort: silently no-ops if
+   * the logger is absent or its `.notice` method throws.
+   *
+   * @param {string} awsRequestId
+   * @param {number} durationMs Wall-clock duration in milliseconds (sub-ms precision).
+   */
+  function logExecution(awsRequestId, durationMs) {
+    if (!logger || typeof logger.notice !== 'function') return
+    const billedMs = Math.ceil(durationMs)
+    try {
+      logger.notice(
+        `(λ: ${functionKey}) RequestId: ${awsRequestId}  Duration: ${durationMs.toFixed(2)} ms  Billed Duration: ${billedMs} ms`,
+      )
+    } catch {
+      // Never propagate a logger fault into the invocation path.
+    }
+  }
+
   return {
     get functionKey() {
       return functionKey
@@ -97,13 +126,11 @@ export function createLambdaFunction({ serverless, functionKey, runner }) {
      * @param {unknown} event
      * @returns {Promise<unknown>}
      */
-    invoke(event) {
+    async invoke(event) {
       const fn = serverless.service.functions?.[functionKey]
       if (!fn) {
-        return Promise.reject(
-          new Error(
-            `Function "${functionKey}" not found in service.functions.`,
-          ),
+        throw new Error(
+          `Function "${functionKey}" not found in service.functions.`,
         )
       }
 
@@ -124,9 +151,11 @@ export function createLambdaFunction({ serverless, functionKey, runner }) {
         fn.memorySize ?? provider.memorySize ?? DEFAULT_MEMORY_LIMIT_IN_MB,
       )
 
+      const awsRequestId = crypto.randomUUID()
+
       const context = {
         functionName: functionKey,
-        awsRequestId: crypto.randomUUID(),
+        awsRequestId,
         invokedFunctionArn: arnFor('lambda', functionKey),
         memoryLimitInMB,
         callbackWaitsForEmptyEventLoop: true,
@@ -141,15 +170,24 @@ export function createLambdaFunction({ serverless, functionKey, runner }) {
         ...(fn.environment ?? {}),
       }
 
-      return runner.invoke({
-        functionKey,
-        handlerPath,
-        handlerName,
-        event,
-        context,
-        environment,
-        timeoutMs,
-      })
+      // Measure wall-clock duration around the runner invocation. Use the
+      // monotonic high-resolution clock so NTP adjustments cannot warp the
+      // measurement on long-running handlers.
+      const startedAt = performance.now()
+      try {
+        return await runner.invoke({
+          functionKey,
+          handlerPath,
+          handlerName,
+          event,
+          context,
+          environment,
+          timeoutMs,
+        })
+      } finally {
+        const durationMs = performance.now() - startedAt
+        logExecution(awsRequestId, durationMs)
+      }
     },
   }
 }

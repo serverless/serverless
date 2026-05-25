@@ -122,10 +122,16 @@ export default class OfflinePlugin {
     //  - built-in esbuild swaps serverless.config.servicePath
     //  - community serverless-esbuild sets custom['serverless-offline'].location
     const lambdaFunctions = new Map()
+    const lambdaLogger = log.get('sls:offline:lambda')
     function getLambdaFunction(functionKey) {
       let fn = lambdaFunctions.get(functionKey)
       if (!fn) {
-        fn = createLambdaFunction({ serverless, functionKey, runner })
+        fn = createLambdaFunction({
+          serverless,
+          functionKey,
+          runner,
+          logger: lambdaLogger,
+        })
         lambdaFunctions.set(functionKey, fn)
       }
       return fn
