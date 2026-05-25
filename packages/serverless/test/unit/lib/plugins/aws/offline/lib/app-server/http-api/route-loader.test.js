@@ -792,6 +792,50 @@ it('23. regression: "GET /ping" still produces a Hapi GET route', () => {
 })
 
 // ---------------------------------------------------------------------------
+// 26. registerHttpApiRoutes returns the list of registered routes
+//     so OfflinePlugin can print the boot diagnostics table.
+// ---------------------------------------------------------------------------
+
+it('26. returns the list of registered routes for boot diagnostics', () => {
+  const stub = makeRouteStub()
+  const registered = registerHttpApiRoutes({
+    server: stub,
+    serverless: makeServerless({
+      listUsers: {
+        events: [{ httpApi: 'GET /users' }],
+      },
+      getUser: {
+        events: [{ httpApi: { method: 'GET', path: '/users/{id}' } }],
+      },
+      createUser: {
+        events: [{ httpApi: { method: 'POST', path: '/users' } }],
+      },
+    }),
+    stage: 'dev',
+    domainName: 'localhost:3000',
+    onRequest: jest.fn(),
+  })
+
+  expect(registered).toEqual([
+    { method: 'GET', path: '/users', functionKey: 'listUsers' },
+    { method: 'GET', path: '/users/{id}', functionKey: 'getUser' },
+    { method: 'POST', path: '/users', functionKey: 'createUser' },
+  ])
+})
+
+it('27. returns an empty array when no httpApi events are declared', () => {
+  const stub = makeRouteStub()
+  const registered = registerHttpApiRoutes({
+    server: stub,
+    serverless: makeServerless({}),
+    stage: 'dev',
+    domainName: 'localhost:3000',
+    onRequest: jest.fn(),
+  })
+  expect(registered).toEqual([])
+})
+
+// ---------------------------------------------------------------------------
 // 24. multiValueHeaders sends one header line per value
 // ---------------------------------------------------------------------------
 

@@ -43,6 +43,48 @@ function coerceInt(value) {
 }
 
 /**
+ * Print a structured boot summary once every subsystem is up. Groups the
+ * "now ready" output so users see a single block instead of interleaved
+ * "X listening on" lines per subsystem.
+ *
+ * @param {object} params
+ * @param {{ notice: (msg: string) => void }} params.logger
+ * @param {{ method: string, path: string, functionKey: string }[]} params.httpApiRoutes
+ * @param {number} params.sqsPollerCount
+ * @param {string} params.stage
+ */
+function logBootSummary({ logger, httpApiRoutes, sqsPollerCount, stage }) {
+  logger.notice('')
+  logger.notice(`sls offline ready (stage: ${stage})`)
+
+  if (httpApiRoutes.length === 0) {
+    logger.notice('  HTTP API routes: (none registered)')
+  } else {
+    logger.notice('  HTTP API routes:')
+    // Sort: by path, then by method, so the table is stable across boots.
+    const sorted = [...httpApiRoutes].sort(
+      (a, b) =>
+        a.path.localeCompare(b.path) || a.method.localeCompare(b.method),
+    )
+    // Right-pad the method column so handler keys line up visually.
+    const methodWidth = Math.max(...sorted.map((r) => r.method.length))
+    for (const r of sorted) {
+      logger.notice(
+        `    ${r.method.padEnd(methodWidth)}  ${r.path}  →  ${r.functionKey}`,
+      )
+    }
+  }
+
+  if (sqsPollerCount > 0) {
+    logger.notice(
+      `  SQS pollers: ${sqsPollerCount} queue${sqsPollerCount === 1 ? '' : 's'} subscribed`,
+    )
+  }
+
+  logger.notice('')
+}
+
+/**
  * Built-in sls offline command — local dev loop for Lambda handlers
  * triggered by HTTP API, REST API, ALB, WebSocket, Schedule, S3, SQS,
  * SNS, and EventBridge events.
@@ -180,12 +222,14 @@ export default class OfflinePlugin {
     })
 
     // 9. Boot the app server (Hapi v21) for user traffic.
+    /** @type {{ method: string, path: string, functionKey: string }[]} */
+    let httpApiRoutes = []
     const appServer = await createAppServer({
       appPort,
       host,
       logger: log.get('sls:offline:app-server'),
       async registerRoutes(server) {
-        registerHttpApiRoutes({
+        httpApiRoutes = registerHttpApiRoutes({
           server,
           serverless,
           stage,
@@ -244,6 +288,15 @@ export default class OfflinePlugin {
       onReady: async () => {
         await bridge.fireStart()
         await bridge.fireReady()
+        // Boot summary — printed after every component is up so users get a
+        // single coherent diagnostic block instead of interleaved listening
+        // lines per subsystem.
+        logBootSummary({
+          logger,
+          httpApiRoutes,
+          sqsPollerCount: pollerController.pollerCount,
+          stage,
+        })
       },
     })
 

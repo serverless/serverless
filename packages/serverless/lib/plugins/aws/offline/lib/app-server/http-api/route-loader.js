@@ -202,6 +202,10 @@ function formatLambdaResponseAsHapi(result, h) {
  * @param {(functionKey: string, event: object) => Promise<unknown>} opts.onRequest
  *   Async callback invoked for every incoming HTTP request. Receives the
  *   function key and the APIGW v2.0 event; returns the Lambda response shape.
+ *
+ * @returns {{ method: string, path: string, functionKey: string }[]}
+ *   The list of routes that were registered (in declaration order). Consumed
+ *   by the boot-diagnostics summary that prints the route table.
  */
 export function registerHttpApiRoutes({
   server,
@@ -211,6 +215,8 @@ export function registerHttpApiRoutes({
   onRequest,
 }) {
   const functions = serverless.service.functions ?? {}
+  /** @type {{ method: string, path: string, functionKey: string }[]} */
+  const registered = []
 
   for (const [functionKey, fn] of Object.entries(functions)) {
     const events = fn.events ?? []
@@ -279,6 +285,10 @@ export function registerHttpApiRoutes({
           }
         },
       })
+
+      registered.push({ method: rawMethod, path: apigwPath, functionKey })
     }
   }
+
+  return registered
 }
