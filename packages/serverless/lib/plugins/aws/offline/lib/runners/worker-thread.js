@@ -7,6 +7,59 @@ import {
 
 const workerEntryPath = new URL('./worker-entry.js', import.meta.url)
 
+/**
+ * Names of parent process.env entries that are forwarded into every worker.
+ * Restricted to operating-system / runtime essentials so that secrets stored
+ * in the parent shell environment (CI tokens, SSH agent values, etc.) cannot
+ * leak into Lambda handlers.
+ *
+ * Native modules (`sharp`, `sqlite3`, …) typically need `PATH` for executable
+ * lookups and `HOME` for cache directories; `NODE_PATH`/`NODE_OPTIONS` keep
+ * Node's own module resolution working; locale variables prevent C extensions
+ * from defaulting to ASCII.
+ *
+ * @type {string[]}
+ */
+const BASE_ENV_ALLOWLIST = [
+  'PATH',
+  'HOME',
+  'USER',
+  'SHELL',
+  'TMPDIR',
+  'LANG',
+  'LC_ALL',
+  'LC_CTYPE',
+  'NODE_PATH',
+  'NODE_OPTIONS',
+  // AWS region / endpoint env vars that OfflinePlugin sets on the parent
+  // before any worker is spawned. Forwarded so handler code that constructs
+  // an SDK client picks up the local emulator endpoint and the configured
+  // provider.region without us having to plumb every var via context.
+  'AWS_REGION',
+  'AWS_DEFAULT_REGION',
+  'AWS_ENDPOINT_URL',
+  'AWS_ACCESS_KEY_ID',
+  'AWS_SECRET_ACCESS_KEY',
+  'AWS_SESSION_TOKEN',
+  'IS_OFFLINE',
+]
+
+/**
+ * Build the base `env` map to hand to `new Worker(..., { env })`. Only entries
+ * present on the parent's `process.env` and on the allowlist are copied.
+ *
+ * @returns {Record<string, string>}
+ */
+function buildBaseEnv() {
+  /** @type {Record<string, string>} */
+  const base = {}
+  for (const name of BASE_ENV_ALLOWLIST) {
+    const value = process.env[name]
+    if (value !== undefined) base[name] = value
+  }
+  return base
+}
+
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
@@ -115,6 +168,14 @@ export function createWorkerThreadRunner({
   function _spawnEntry({ functionKey, handlerPath, handlerName, set }) {
     const worker = new Worker(workerEntryPath, {
       workerData: { handlerPath, handlerName, servicePath },
+      // Replace the worker's process.env entirely instead of inheriting the
+      // parent's. Without this the parent's secrets (CI tokens, SSH agent,
+      // shell credentials, etc.) leak into every Lambda handler — production
+      // Lambda would never see them. Only operating-system essentials needed
+      // for Node module loading and native bindings are copied through; the
+      // per-invocation runtime env (provider/function `environment:`, AWS_*,
+      // Lambda env vars) is applied by the worker on each message.
+      env: buildBaseEnv(),
     })
 
     /** @type {WorkerEntry} */

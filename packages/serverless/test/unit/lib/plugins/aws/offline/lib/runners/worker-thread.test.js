@@ -1225,4 +1225,72 @@ describe('createWorkerThreadRunner', () => {
 
     await r.terminate()
   })
+
+  // ENV-7: secrets on the parent process.env are NOT visible to handlers.
+  it('env: parent secrets outside the allowlist do not leak into the worker', async () => {
+    // Set a fake secret on the parent right before spawning the runner. The
+    // worker must NOT see this value — env isolation only forwards the
+    // documented allowlist (PATH, HOME, LANG, NODE_PATH, AWS_*, IS_OFFLINE).
+    const secretName = 'OFFLINE_TEST_PARENT_SECRET'
+    process.env[secretName] = 'super-secret-token-xyz'
+
+    try {
+      const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+      const handlerPath = await writeTmpHandler(
+        `export const handler = async () => process.env.${secretName} ?? null`,
+      )
+      const result = await r.invoke({
+        functionKey: 'env-isolation',
+        handlerPath,
+        handlerName: 'handler',
+        event: {},
+        context: { functionName: 'myFn', awsRequestId: 'req-iso' },
+      })
+
+      expect(result).toBeNull()
+
+      await r.terminate()
+    } finally {
+      delete process.env[secretName]
+    }
+  })
+
+  // ENV-8: allowlisted parent env entries DO reach the worker (so native
+  // modules and Node module resolution keep working).
+  it('env: allowlisted parent variables (PATH, AWS_REGION) are forwarded', async () => {
+    // Capture the actual parent PATH so the test matches the real value.
+    const parentPath = process.env.PATH
+    const previousRegion = process.env.AWS_REGION
+    process.env.AWS_REGION = 'eu-central-1'
+
+    try {
+      const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+      const handlerPath = await writeTmpHandler(
+        'export const handler = async () => ({' +
+          '  PATH: process.env.PATH,' +
+          '  AWS_REGION: process.env.AWS_REGION,' +
+          '})',
+      )
+      const result = await r.invoke({
+        functionKey: 'env-allowlist',
+        handlerPath,
+        handlerName: 'handler',
+        event: {},
+        context: { functionName: 'myFn', awsRequestId: 'req-allow' },
+      })
+
+      expect(result.PATH).toBe(parentPath)
+      expect(result.AWS_REGION).toBe('eu-central-1')
+
+      await r.terminate()
+    } finally {
+      if (previousRegion !== undefined) {
+        process.env.AWS_REGION = previousRegion
+      } else {
+        delete process.env.AWS_REGION
+      }
+    }
+  })
 })
