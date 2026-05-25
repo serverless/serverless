@@ -4,10 +4,10 @@ import { liftSqsQueue } from './lifters/sqs.js'
 import { resolveIntrinsics } from './local-intrinsic-resolver.js'
 import {
   DEFAULT_AWS_API_PORT,
-  DEFAULT_STAGE,
   FAKE_ACCOUNT_ID,
   FAKE_REGION,
 } from '../constants.js'
+import { getStage } from '../stage.js'
 
 /**
  * Boot-time orchestration for `sls offline`.
@@ -45,7 +45,7 @@ export async function provision(
   const { service } = serverless
 
   // 1. Derive the CloudFormation stack name.
-  const stackName = `${service.service}-${service.provider.stage ?? DEFAULT_STAGE}`
+  const stackName = `${service.service}-${getStage(serverless)}`
 
   // 2. Drive the compile lifecycle to populate compiledCloudFormationTemplate.
   await driveCompile(serverless)

@@ -6,10 +6,10 @@ import {
   DEFAULT_APP_PORT,
   DEFAULT_AWS_API_PORT,
   DEFAULT_HOST,
-  DEFAULT_STAGE,
   DEFAULT_TERMINATE_IDLE_LAMBDA_TIME,
   FAKE_REGION,
 } from './lib/constants.js'
+import { getStage } from './lib/stage.js'
 import { createHookBridge } from './lib/hook-bridge.js'
 import { createOrchestrator } from './lib/orchestrator.js'
 import { provision } from './lib/provisioner/index.js'
@@ -143,7 +143,7 @@ export default class OfflinePlugin {
     const appPort =
       coerceInt(cliOptions.appPort) ?? offline.appPort ?? DEFAULT_APP_PORT
     const host = cliOptions.host ?? offline.host ?? DEFAULT_HOST
-    const stage = provider.stage ?? DEFAULT_STAGE
+    const stage = getStage(serverless)
     const domainName = `${host}:${appPort}`
     // NOTE: servicePath is intentionally NOT captured here — it must be read
     // lazily each time it's needed so that bundler plugins (e.g. built-in
