@@ -168,7 +168,15 @@ export default class OfflinePlugin {
     // 1. Guard: bail early if any function uses a non-Node runtime.
     assertAllNodeRuntimes(serverless)
 
-    const offline = serverless.service.offline ?? {}
+    // Framework v4 / sf-core stores top-level YAML blocks on
+    // `service.initialServerlessConfig` rather than as direct service
+    // properties. Read from the canonical raw-config location so users
+    // who declare config in YAML (e.g. `offline.appPort: 4000`) are
+    // honored, falling back to `service.offline` for compatibility.
+    const offline =
+      serverless.service.initialServerlessConfig?.offline ??
+      serverless.service.offline ??
+      {}
     const provider = serverless.service.provider ?? {}
     const cliOptions = this.options ?? {}
 

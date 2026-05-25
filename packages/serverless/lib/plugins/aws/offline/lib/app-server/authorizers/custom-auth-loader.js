@@ -36,8 +36,15 @@ import ServerlessError from '../../../../../../serverless-error.js'
  *   malformed shape.
  */
 export async function loadCustomAuthenticationProvider({ serverless }) {
-  const providerPath =
-    serverless?.service?.offline?.customAuthenticationProvider
+  // Framework v4 / sf-core stores top-level YAML blocks on
+  // `service.initialServerlessConfig` rather than as direct service
+  // properties. Read from the canonical raw-config location so users who
+  // declare `offline.customAuthenticationProvider:` in YAML are honored.
+  const offlineBlock =
+    serverless?.service?.initialServerlessConfig?.offline ??
+    serverless?.service?.offline ??
+    {}
+  const providerPath = offlineBlock.customAuthenticationProvider
   if (typeof providerPath !== 'string' || providerPath.length === 0) {
     return null
   }
