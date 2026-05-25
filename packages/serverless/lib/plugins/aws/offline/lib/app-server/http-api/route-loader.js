@@ -12,66 +12,15 @@ import {
   buildCorsOptionsRoute,
   applyCorsResponseHeaders,
 } from '../shared/cors-options.js'
+import {
+  NO_BODY_METHODS,
+  toHapiMethod,
+  normalizeHttpEvent,
+} from '../shared/hapi-helpers.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
-
-/**
- * HTTP methods that cannot carry a request body.  Hapi refuses to set payload
- * options on these methods, so we skip the payload configuration for them.
- *
- * @type {Set<string>}
- */
-const NO_BODY_METHODS = new Set(['GET', 'HEAD', 'DELETE', 'OPTIONS', 'TRACE'])
-
-/**
- * Normalize a raw `httpApi` event declaration to `{ method, path }`.
- *
- * Framework supports two YAML shapes:
- *  - String:  `'GET /users/{id}'`
- *  - Object:  `{ method: 'get', path: '/users/{id}' }`
- *
- * @param {string | { method: string, path: string }} httpApi
- * @returns {{ method: string, path: string }}
- */
-function normalizeHttpApiEvent(httpApi) {
-  if (typeof httpApi === 'string') {
-    // Special-case: bare '*' is the catch-all shorthand (method + path wildcard).
-    if (httpApi === '*') {
-      return { method: 'ANY', path: '*' }
-    }
-
-    const spaceIndex = httpApi.indexOf(' ')
-    const method = httpApi.slice(0, spaceIndex).toUpperCase()
-    const path = httpApi.slice(spaceIndex + 1)
-    return { method, path }
-  }
-
-  return {
-    method: httpApi.method.toUpperCase(),
-    path: httpApi.path,
-    operationName: httpApi.operationName,
-  }
-}
-
-/**
- * Map the normalized method to the Hapi method.
- *
- * APIGW uses `'*'` and `'ANY'` for catch-all; Hapi uses `'*'`.
- *
- * @param {string} method  Uppercased method string.
- * @returns {string}
- */
-function toHapiMethod(method) {
-  if (method === 'ANY' || method === '*') return '*'
-  // Hapi v21 auto-serves HEAD for any GET route; explicit HEAD registration
-  // throws "Cannot set HEAD route".  Map HEAD → GET so Hapi handles it
-  // transparently.  The APIGW routeKey still uses the original 'HEAD' method
-  // because routeMeta.method is set from rawMethod before this call.
-  if (method === 'HEAD') return 'GET'
-  return method
-}
 
 /**
  * Translate an APIGW path template to a Hapi path template.
@@ -238,11 +187,13 @@ export function registerHttpApiRoutes({
     for (const eventEntry of events) {
       if (!Object.prototype.hasOwnProperty.call(eventEntry, 'httpApi')) continue
 
-      const {
-        method: rawMethod,
-        path: apigwPath,
-        operationName,
-      } = normalizeHttpApiEvent(eventEntry.httpApi)
+      const { method: rawMethod, path: apigwPath } = normalizeHttpEvent(
+        eventEntry.httpApi,
+      )
+      const operationName =
+        typeof eventEntry.httpApi === 'object'
+          ? eventEntry.httpApi.operationName
+          : undefined
 
       const hapiMethod = toHapiMethod(rawMethod)
       const hapiPath = toHapiPath(apigwPath)

@@ -23,46 +23,15 @@ import {
   buildCorsOptionsRoute,
   applyCorsResponseHeaders,
 } from '../shared/cors-options.js'
+import {
+  NO_BODY_METHODS,
+  toHapiMethod,
+  normalizeHttpEvent,
+} from '../shared/hapi-helpers.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
-
-/**
- * HTTP methods that cannot carry a request body.  Hapi refuses payload options
- * on these methods, so we skip the payload configuration when the route's
- * method is one of them.
- *
- * @type {Set<string>}
- */
-const NO_BODY_METHODS = new Set(['GET', 'HEAD', 'DELETE', 'OPTIONS', 'TRACE'])
-
-/**
- * Normalize a raw `http` event declaration to `{ method, path }`.
- *
- * Framework accepts two YAML shapes for REST events:
- *  - String:  `'GET /users/{id}'` (and the bare `'*'` catch-all shorthand)
- *  - Object:  `{ method: 'get', path: '/users/{id}', ... }`
- *
- * @param {string | { method: string, path: string }} httpEvent
- * @returns {{ method: string, path: string }}
- */
-function normalizeHttpEvent(httpEvent) {
-  if (typeof httpEvent === 'string') {
-    // Bare '*' is the catch-all shorthand (any method, any path).
-    if (httpEvent === '*') return { method: 'ANY', path: '*' }
-
-    const spaceIndex = httpEvent.indexOf(' ')
-    const method = httpEvent.slice(0, spaceIndex).toUpperCase()
-    const path = httpEvent.slice(spaceIndex + 1)
-    return { method, path }
-  }
-
-  return {
-    method: httpEvent.method.toUpperCase(),
-    path: httpEvent.path,
-  }
-}
 
 /**
  * Normalize the Framework YAML `http.response` block into the response map
@@ -144,22 +113,6 @@ function normalizeResponses(responseConfig) {
   }
 
   return out
-}
-
-/**
- * Map the normalized method to the Hapi method.
- *
- * APIGW uses `'*'` and `'ANY'` for catch-all; Hapi uses `'*'`.  Hapi v21
- * auto-serves HEAD for any GET route — explicit HEAD registration throws —
- * so HEAD declarations are folded onto GET.
- *
- * @param {string} method  Uppercased method string.
- * @returns {string}
- */
-function toHapiMethod(method) {
-  if (method === 'ANY' || method === '*') return '*'
-  if (method === 'HEAD') return 'GET'
-  return method
 }
 
 // ---------------------------------------------------------------------------
