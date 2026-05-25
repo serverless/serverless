@@ -241,3 +241,99 @@ it('6. Unknown X-Amz-Target action returns 400 UnknownOperation', async () => {
   expect(result.statusCode).toBe(400)
   expect(result.payload.__type).toBe('AWS.SimpleQueueService.UnknownOperation')
 })
+
+// ---------------------------------------------------------------------------
+// 7. SendMessage without attributes omits MD5OfMessageAttributes
+// ---------------------------------------------------------------------------
+
+it('7. SendMessage without attributes does not return MD5OfMessageAttributes', async () => {
+  const { handler } = setup()
+  const h = makeH()
+
+  await handler(
+    makeRequest({
+      action: 'SendMessage',
+      body: { QueueUrl: QUEUE_URL, MessageBody: 'no attrs' },
+    }),
+    h,
+  )
+
+  expect(h._last().payload).not.toHaveProperty('MD5OfMessageAttributes')
+})
+
+// ---------------------------------------------------------------------------
+// 8. SendMessage with a String attribute returns the AWS-specified MD5
+// ---------------------------------------------------------------------------
+
+it('8. SendMessage with a String attribute returns the canonical MD5OfMessageAttributes', async () => {
+  const { handler } = setup()
+  const h = makeH()
+
+  await handler(
+    makeRequest({
+      action: 'SendMessage',
+      body: {
+        QueueUrl: QUEUE_URL,
+        MessageBody: 'hi',
+        MessageAttributes: {
+          Author: { DataType: 'String', StringValue: 'alice' },
+        },
+      },
+    }),
+    h,
+  )
+
+  // Canonical MD5 of one String attribute {Author: alice} computed against
+  // the AWS spec serialization (length-prefixed UTF-8 name + length-prefixed
+  // UTF-8 data type + transport-type byte + length-prefixed value). This is
+  // the exact value the AWS SDKs verify on response.
+  expect(h._last().payload.MD5OfMessageAttributes).toBe(
+    'e359dfbf3997df0b05607a5e2e457d9b',
+  )
+})
+
+// ---------------------------------------------------------------------------
+// 9. SendMessage with multiple attributes sorts by name before hashing
+// ---------------------------------------------------------------------------
+
+it('9. SendMessage with multiple attributes produces the same MD5 regardless of input key order', async () => {
+  const { handler: handlerA } = setup()
+  const { handler: handlerB } = setup()
+  const hA = makeH()
+  const hB = makeH()
+
+  const attrs = {
+    Beta: { DataType: 'String', StringValue: '2' },
+    Alpha: { DataType: 'String', StringValue: '1' },
+  }
+
+  await handlerA(
+    makeRequest({
+      action: 'SendMessage',
+      body: { QueueUrl: QUEUE_URL, MessageBody: 'x', MessageAttributes: attrs },
+    }),
+    hA,
+  )
+
+  const reordered = {
+    Alpha: attrs.Alpha,
+    Beta: attrs.Beta,
+  }
+
+  await handlerB(
+    makeRequest({
+      action: 'SendMessage',
+      body: {
+        QueueUrl: QUEUE_URL,
+        MessageBody: 'x',
+        MessageAttributes: reordered,
+      },
+    }),
+    hB,
+  )
+
+  expect(hA._last().payload.MD5OfMessageAttributes).toBe(
+    hB._last().payload.MD5OfMessageAttributes,
+  )
+  expect(hA._last().payload.MD5OfMessageAttributes).toMatch(/^[0-9a-f]{32}$/)
+})
