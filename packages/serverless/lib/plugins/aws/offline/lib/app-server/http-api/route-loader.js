@@ -19,6 +19,7 @@ import {
 } from '../shared/hapi-helpers.js'
 import { formatLambdaProxyResponse } from '../shared/lambda-proxy-response.js'
 import { logHandlerError } from '../shared/handler-logging.js'
+import { resolveAuthStrategy } from '../shared/auth-strategy-resolver.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -77,6 +78,7 @@ export function registerHttpApiRoutes({
   stage,
   domainName,
   onRequest,
+  authStrategies,
 }) {
   const functions = serverless.service.functions ?? {}
   /** @type {{ method: string, path: string, functionKey: string }[]} */
@@ -130,6 +132,16 @@ export function registerHttpApiRoutes({
             }
           : {}
 
+      // Resolve the v2 auth strategy for this route (JWT or v2 Lambda).
+      // Returns undefined for routes without an authorizer — the route stays
+      // public.
+      const authStrategy = resolveAuthStrategy({
+        event: eventEntry.httpApi,
+        privateStrategy: null, // HTTP API v2 has no private:true equivalent
+        authorizerStrategies:
+          authStrategies?.v2AuthorizerStrategies ?? new Map(),
+      })
+
       server.route({
         method: hapiMethod,
         path: hapiPath,
@@ -143,6 +155,7 @@ export function registerHttpApiRoutes({
             parse: true,
             failAction: 'ignore',
           },
+          ...(authStrategy ? { auth: authStrategy } : {}),
         },
         async handler(request, h) {
           try {

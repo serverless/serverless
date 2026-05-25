@@ -1067,3 +1067,100 @@ describe('registerHttpApiRoutes — provider.httpApi.cors (closes audit #16)', (
     }
   })
 })
+
+describe('registerHttpApiRoutes — auth strategy wiring', () => {
+  it('sets options.auth to the v2 JWT strategy when route declares JWT authorizer', () => {
+    const stub = makeRouteStub()
+    registerHttpApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        a: {
+          events: [
+            {
+              httpApi: {
+                method: 'GET',
+                path: '/p',
+                authorizer: { name: 'jwt-1' },
+              },
+            },
+          ],
+        },
+      }),
+      stage: 'dev',
+      domainName: 'localhost',
+      onRequest: jest.fn(),
+      authStrategies: {
+        privateStrategy: null,
+        authorizerStrategies: new Map(),
+        v2AuthorizerStrategies: new Map([['jwt-1', 'jwt:jwt-1']]),
+      },
+    })
+    expect(stub.routes[0].options.auth).toBe('jwt:jwt-1')
+  })
+
+  it('sets options.auth to the v2 Lambda strategy when route declares Lambda authorizer', () => {
+    const stub = makeRouteStub()
+    registerHttpApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        a: {
+          events: [
+            {
+              httpApi: {
+                method: 'GET',
+                path: '/p',
+                authorizer: { name: 'authFn' },
+              },
+            },
+          ],
+        },
+      }),
+      stage: 'dev',
+      domainName: 'localhost',
+      onRequest: jest.fn(),
+      authStrategies: {
+        privateStrategy: null,
+        authorizerStrategies: new Map(),
+        v2AuthorizerStrategies: new Map([
+          ['authFn', 'lambda-authorizer:v2:authFn'],
+        ]),
+      },
+    })
+    expect(stub.routes[0].options.auth).toBe('lambda-authorizer:v2:authFn')
+  })
+
+  it('leaves options.auth undefined for v2 routes without authorizer', () => {
+    const stub = makeRouteStub()
+    registerHttpApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        a: { events: [{ httpApi: { method: 'GET', path: '/p' } }] },
+      }),
+      stage: 'dev',
+      domainName: 'localhost',
+      onRequest: jest.fn(),
+      authStrategies: {
+        privateStrategy: null,
+        authorizerStrategies: new Map(),
+        v2AuthorizerStrategies: new Map(),
+      },
+    })
+    expect(stub.routes[0].options.auth).toBeUndefined()
+  })
+
+  it('falls back gracefully when authStrategies is omitted (back-compat)', () => {
+    const stub = makeRouteStub()
+    expect(() =>
+      registerHttpApiRoutes({
+        server: stub,
+        serverless: makeServerless({
+          a: { events: [{ httpApi: { method: 'GET', path: '/p' } }] },
+        }),
+        stage: 'dev',
+        domainName: 'localhost',
+        onRequest: jest.fn(),
+      }),
+    ).not.toThrow()
+    expect(stub.routes[0].options.auth).toBeUndefined()
+  })
+})
