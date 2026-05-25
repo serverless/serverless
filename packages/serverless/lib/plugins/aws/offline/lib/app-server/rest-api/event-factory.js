@@ -38,6 +38,55 @@ function isBinaryContentType(contentType) {
 }
 
 /**
+ * Resolve the `requestContext.authorizer` value for the downstream Lambda
+ * event, applying the documented precedence:
+ *
+ *   1. `sls-offline-authorizer-override` request header (per-request).
+ *   2. `process.env.AUTHORIZER` (process-wide).
+ *   3. `request.auth.credentials.authorizer` (from the executed authorizer
+ *      Hapi scheme).
+ *
+ * Returns `undefined` when none apply — the event omits the field, matching
+ * AWS API Gateway when no authorizer is attached to the route.
+ *
+ * @param {object} request
+ * @returns {object | undefined}
+ */
+function resolveAuthorizer(request) {
+  const fromHeader = parseJsonSafe(
+    request?.headers?.['sls-offline-authorizer-override'],
+  )
+  if (fromHeader) return fromHeader
+
+  const fromEnv = parseJsonSafe(process.env.AUTHORIZER)
+  if (fromEnv) return fromEnv
+
+  const fromCredentials = request?.auth?.credentials?.authorizer
+  if (fromCredentials && typeof fromCredentials === 'object') {
+    return fromCredentials
+  }
+
+  return undefined
+}
+
+/**
+ * Parse a string as JSON. On parse failure or non-object result return null
+ * — the caller treats null as "no override" and falls through.
+ *
+ * @param {unknown} value
+ * @returns {object | null}
+ */
+function parseJsonSafe(value) {
+  if (typeof value !== 'string' || value.length === 0) return null
+  try {
+    const parsed = JSON.parse(value)
+    return parsed && typeof parsed === 'object' ? parsed : null
+  } catch {
+    return null
+  }
+}
+
+/**
  * Month abbreviations indexed by `Date#getUTCMonth()` (0-based).
  *
  * @type {string[]}
@@ -279,6 +328,8 @@ export function buildRestApiEvent({
   const sourceIp = request.info?.remoteAddress ?? '127.0.0.1'
   const domainName = request.headers?.host ?? 'localhost'
 
+  const authorizer = resolveAuthorizer(request)
+
   return {
     body,
     headers,
@@ -292,6 +343,7 @@ export function buildRestApiEvent({
     requestContext: {
       accountId,
       apiId: 'offline',
+      ...(authorizer ? { authorizer } : {}),
       domainName,
       domainPrefix: 'offline',
       extendedRequestId: crypto.randomUUID(),

@@ -298,3 +298,98 @@ describe('REST API requestContext', () => {
     )
   })
 })
+
+describe('buildRestApiEvent — requestContext.authorizer', () => {
+  function buildEvent(overrides = {}) {
+    const request = {
+      method: 'GET',
+      path: '/dev/p',
+      url: new URL('http://localhost:3000/dev/p'),
+      params: {},
+      query: {},
+      headers: {},
+      info: { remoteAddress: '127.0.0.1', received: 0 },
+      raw: { req: { rawHeaders: [] } },
+      payload: undefined,
+      ...overrides.request,
+      auth: overrides.request?.auth ?? { credentials: {} },
+    }
+    return buildRestApiEvent({
+      request,
+      route: { apigwPath: '/p', method: 'GET', functionName: 'fn' },
+      stage: 'dev',
+    })
+  }
+
+  afterEach(() => {
+    delete process.env.AUTHORIZER
+  })
+
+  it('omits authorizer when no credentials, no env, no header', () => {
+    const event = buildEvent()
+    expect(event.requestContext.authorizer).toBeUndefined()
+  })
+
+  it('surfaces credentials.authorizer flat (REST v1 shape)', () => {
+    const event = buildEvent({
+      request: {
+        auth: {
+          credentials: { authorizer: { principalId: 'u-1', tenantId: 't-7' } },
+        },
+      },
+    })
+    expect(event.requestContext.authorizer).toEqual({
+      principalId: 'u-1',
+      tenantId: 't-7',
+    })
+  })
+
+  it('process.env.AUTHORIZER overrides credentials when set with valid JSON', () => {
+    process.env.AUTHORIZER = JSON.stringify({
+      principalId: 'env-user',
+      role: 'admin',
+    })
+    const event = buildEvent({
+      request: {
+        auth: { credentials: { authorizer: { principalId: 'u-1' } } },
+      },
+    })
+    expect(event.requestContext.authorizer).toEqual({
+      principalId: 'env-user',
+      role: 'admin',
+    })
+  })
+
+  it('sls-offline-authorizer-override header wins over env and credentials', () => {
+    process.env.AUTHORIZER = JSON.stringify({ from: 'env' })
+    const event = buildEvent({
+      request: {
+        headers: {
+          'sls-offline-authorizer-override': JSON.stringify({ from: 'header' }),
+        },
+        auth: { credentials: { authorizer: { principalId: 'u' } } },
+      },
+    })
+    expect(event.requestContext.authorizer).toEqual({ from: 'header' })
+  })
+
+  it('invalid JSON in env.AUTHORIZER falls through to credentials', () => {
+    process.env.AUTHORIZER = 'not-json{'
+    const event = buildEvent({
+      request: {
+        auth: { credentials: { authorizer: { principalId: 'u' } } },
+      },
+    })
+    expect(event.requestContext.authorizer).toEqual({ principalId: 'u' })
+  })
+
+  it('invalid JSON in the override header falls through to env, then credentials', () => {
+    process.env.AUTHORIZER = JSON.stringify({ from: 'env' })
+    const event = buildEvent({
+      request: {
+        headers: { 'sls-offline-authorizer-override': 'not-json{' },
+      },
+    })
+    expect(event.requestContext.authorizer).toEqual({ from: 'env' })
+  })
+})
