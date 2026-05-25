@@ -17,6 +17,7 @@ import {
   toHapiMethod,
   normalizeHttpEvent,
 } from '../shared/hapi-helpers.js'
+import { formatLambdaProxyResponse } from '../shared/lambda-proxy-response.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -36,99 +37,6 @@ function toHapiPath(apigwPath) {
   if (apigwPath === '*') return '/{any*}'
   // Use {proxy*} (Hapi accepts the name) so the matched value lands at request.params.proxy, matching the APIGW event.pathParameters.proxy contract.
   return apigwPath.replace(/\{proxy\+\}/g, '{proxy*}')
-}
-
-/**
- * Translate an AWS Lambda HTTP API v2 response to a Hapi response object.
- *
- * Supported result shapes:
- *  - `null` / `undefined`                     → 200, empty body
- *  - `string`                                 → 200, text/plain
- *  - Plain object without `statusCode`        → 200, JSON-serialized, application/json
- *  - Shaped object `{ statusCode, body, headers?, multiValueHeaders?, cookies?, isBase64Encoded? }`
- *
- * @param {unknown} result       The value returned by the Lambda handler.
- * @param {import('@hapi/hapi').ResponseToolkit} h  Hapi response toolkit.
- * @returns {import('@hapi/hapi').ResponseObject}
- */
-function formatLambdaResponseAsHapi(result, h) {
-  // null / undefined → empty 200
-  if (result === null || result === undefined) {
-    return h.response('').code(200)
-  }
-
-  // Plain string → 200 text/plain
-  if (typeof result === 'string') {
-    return h.response(result).code(200).type('text/plain')
-  }
-
-  // Object without statusCode → 200 application/json
-  if (typeof result === 'object' && result.statusCode === undefined) {
-    return h.response(JSON.stringify(result)).code(200).type('application/json')
-  }
-
-  // Shaped Lambda response
-  const {
-    statusCode,
-    body,
-    headers,
-    multiValueHeaders,
-    cookies,
-    isBase64Encoded,
-  } = result
-
-  // Guard: if body is present and not a string and not base64 binary, the
-  // handler returned a non-stringified object. Real APIGW returns 502 in this
-  // case rather than silently coercing the body.
-  if (
-    body !== undefined &&
-    body !== null &&
-    typeof body !== 'string' &&
-    isBase64Encoded !== true
-  ) {
-    return h
-      .response(
-        JSON.stringify({
-          message: 'Internal server error',
-        }),
-      )
-      .code(502)
-      .type('application/json')
-  }
-
-  let responseBody = body ?? ''
-
-  if (isBase64Encoded === true && typeof responseBody === 'string') {
-    responseBody = Buffer.from(responseBody, 'base64')
-  }
-
-  const response = h.response(responseBody).code(statusCode)
-
-  if (headers) {
-    for (const [name, value] of Object.entries(headers)) {
-      response.header(name, value)
-    }
-  }
-
-  // multiValueHeaders carries one or more values per header name and is
-  // appended after `headers` so handlers can mix the two shapes — single
-  // values via `headers`, repeated values via `multiValueHeaders`.
-  if (multiValueHeaders) {
-    for (const [name, values] of Object.entries(multiValueHeaders)) {
-      if (!Array.isArray(values)) continue
-      for (const value of values) {
-        response.header(name, value, { append: true })
-      }
-    }
-  }
-
-  if (Array.isArray(cookies)) {
-    for (const cookie of cookies) {
-      response.header('set-cookie', cookie, { append: true })
-    }
-  }
-
-  return response
 }
 
 // ---------------------------------------------------------------------------
@@ -244,7 +152,9 @@ export function registerHttpApiRoutes({
               domainName,
             })
             const result = await onRequest(functionKey, event)
-            const response = formatLambdaResponseAsHapi(result, h)
+            const response = formatLambdaProxyResponse(result, h, {
+              cookies: true,
+            })
             // Real APIGW adds Access-Control-Allow-Origin (and friends) to
             // every successful response from a CORS-enabled HTTP API, not
             // just to the OPTIONS preflight. Without it the browser blocks
