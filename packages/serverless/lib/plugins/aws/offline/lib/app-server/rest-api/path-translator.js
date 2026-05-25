@@ -4,10 +4,10 @@
  * REST API URLs deployed to AWS carry a stage segment by default — a request
  * to `/users` defined in `serverless.yml` is served at
  * `https://<id>.execute-api.<region>.amazonaws.com/<stage>/users`.  Reproducing
- * that locally keeps client code (URLs hard-coded with the stage in them) and
- * route definitions working without modification.  Users running the offline
- * server behind a reverse proxy can layer on an extra `--prefix` segment so
- * the local URL mirrors the proxied production URL exactly.
+ * that mounted path locally keeps client code (URLs hard-coded with the stage
+ * in them) and route definitions working without modification.  Users running
+ * the offline server behind a reverse proxy can layer on an extra `--prefix`
+ * segment so the local URL mirrors the proxied production URL exactly.
  *
  * These helpers are pure so the REST route loader can call them without IO
  * and they can be exercised by unit tests without a Hapi server.
@@ -37,33 +37,34 @@ export function translateRestPath(apigwPath) {
 }
 
 /**
- * Prepend the stage and/or a user-supplied prefix segment to a path.
+ * Build the final mounted URL for a path by applying optional stage and
+ * prefix segments.
  *
  * Combination rules:
  *  - `/<stage>/<path>` by default.
  *  - `/<stage>/<prefix>/<path>` when `prefix` is also set.
- *  - `/<prefix>/<path>` when `noPrependStage` is true and `prefix` is set.
- *  - The original path when `noPrependStage` is true and `prefix` is unset.
+ *  - `/<prefix>/<path>` when `includeStage` is false and `prefix` is set.
+ *  - The original path when `includeStage` is false and `prefix` is unset.
  *
  * The prefix is normalized — leading and trailing slashes are stripped so the
  * caller can pass `'api'`, `'/api'`, `'/api/'`, or `'api/'` interchangeably.
  *
- * @param {string} path  The path to prefix.  Expected to begin with `/`.
+ * @param {string} path  The path to mount.  Expected to begin with `/`.
  * @param {string} stage  The stage name (e.g. `'dev'`).
  * @param {object} [opts]
- * @param {boolean} [opts.noPrependStage=false]  Skip the stage segment.
- * @param {string} [opts.prefix]                 Extra segment to prepend.
+ * @param {boolean} [opts.includeStage=true]  Include the stage segment.
+ * @param {string} [opts.prefix]              Extra segment to prepend.
  * @returns {string}
  */
-export function prependStage(path, stage, opts = {}) {
-  const { noPrependStage = false, prefix } = opts
+export function buildMountedPath(path, stage, opts = {}) {
+  const { includeStage = true, prefix } = opts
 
   // Trim surrounding slashes so `'api'`, `'/api'`, `'/api/'` all yield `'api'`.
   // An empty / slash-only prefix is treated as no prefix at all.
   const normalizedPrefix = prefix ? prefix.replace(/^\/+|\/+$/g, '') : ''
   const segments = []
 
-  if (!noPrependStage) segments.push(stage)
+  if (includeStage) segments.push(stage)
   if (normalizedPrefix) segments.push(normalizedPrefix)
 
   // No segments to prepend — leave the path untouched so callers don't have to
