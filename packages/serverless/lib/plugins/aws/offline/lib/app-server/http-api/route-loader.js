@@ -90,7 +90,7 @@ function toHapiPath(apigwPath) {
  *  - `null` / `undefined`                     → 200, empty body
  *  - `string`                                 → 200, text/plain
  *  - Plain object without `statusCode`        → 200, JSON-serialized, application/json
- *  - Shaped object `{ statusCode, body, headers?, cookies?, isBase64Encoded? }`
+ *  - Shaped object `{ statusCode, body, headers?, multiValueHeaders?, cookies?, isBase64Encoded? }`
  *
  * @param {unknown} result       The value returned by the Lambda handler.
  * @param {import('@hapi/hapi').ResponseToolkit} h  Hapi response toolkit.
@@ -113,11 +113,18 @@ function formatLambdaResponseAsHapi(result, h) {
   }
 
   // Shaped Lambda response
-  const { statusCode, body, headers, cookies, isBase64Encoded } = result
+  const {
+    statusCode,
+    body,
+    headers,
+    multiValueHeaders,
+    cookies,
+    isBase64Encoded,
+  } = result
 
   // Guard: if body is present and not a string and not base64 binary, the
   // handler returned a non-stringified object. Real APIGW returns 502 in this
-  // case (reference: HttpServer.js:930-935).
+  // case rather than silently coercing the body.
   if (
     body !== undefined &&
     body !== null &&
@@ -145,6 +152,18 @@ function formatLambdaResponseAsHapi(result, h) {
   if (headers) {
     for (const [name, value] of Object.entries(headers)) {
       response.header(name, value)
+    }
+  }
+
+  // multiValueHeaders carries one or more values per header name and is
+  // appended after `headers` so handlers can mix the two shapes — single
+  // values via `headers`, repeated values via `multiValueHeaders`.
+  if (multiValueHeaders) {
+    for (const [name, values] of Object.entries(multiValueHeaders)) {
+      if (!Array.isArray(values)) continue
+      for (const value of values) {
+        response.header(name, value, { append: true })
+      }
     }
   }
 

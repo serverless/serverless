@@ -790,3 +790,80 @@ it('23. regression: "GET /ping" still produces a Hapi GET route', () => {
   expect(stub.routes[0].method).toBe('GET')
   expect(stub.routes[0].path).toBe('/ping')
 })
+
+// ---------------------------------------------------------------------------
+// 24. multiValueHeaders sends one header line per value
+// ---------------------------------------------------------------------------
+
+it('24. response.multiValueHeaders emits one header line per value', async () => {
+  const server = await makeServer()
+  const onRequest = jest.fn().mockResolvedValue({
+    statusCode: 200,
+    body: 'ok',
+    multiValueHeaders: {
+      'x-tag': ['alpha', 'beta', 'gamma'],
+    },
+  })
+
+  registerHttpApiRoutes({
+    server,
+    serverless: makeServerless({
+      myFn: { events: [{ httpApi: { method: 'GET', path: '/multi' } }] },
+    }),
+    stage: 'dev',
+    domainName: 'localhost:3000',
+    onRequest,
+  })
+
+  await server.start()
+  try {
+    const res = await server.inject({ method: 'GET', url: '/multi' })
+    expect(res.statusCode).toBe(200)
+    const tagHeader = res.headers['x-tag']
+    const values = Array.isArray(tagHeader)
+      ? tagHeader
+      : tagHeader.split(',').map((s) => s.trim())
+    expect(values).toEqual(expect.arrayContaining(['alpha', 'beta', 'gamma']))
+  } finally {
+    await server.stop({ timeout: 5000 })
+  }
+})
+
+// ---------------------------------------------------------------------------
+// 25. headers + multiValueHeaders are both applied (multi appended after single)
+// ---------------------------------------------------------------------------
+
+it('25. headers and multiValueHeaders combine — single value plus appended ones', async () => {
+  const server = await makeServer()
+  const onRequest = jest.fn().mockResolvedValue({
+    statusCode: 200,
+    body: 'ok',
+    headers: { 'x-trace': 'primary' },
+    multiValueHeaders: { 'x-trace': ['secondary', 'tertiary'] },
+  })
+
+  registerHttpApiRoutes({
+    server,
+    serverless: makeServerless({
+      myFn: { events: [{ httpApi: { method: 'GET', path: '/trace' } }] },
+    }),
+    stage: 'dev',
+    domainName: 'localhost:3000',
+    onRequest,
+  })
+
+  await server.start()
+  try {
+    const res = await server.inject({ method: 'GET', url: '/trace' })
+    expect(res.statusCode).toBe(200)
+    const trace = res.headers['x-trace']
+    const values = Array.isArray(trace)
+      ? trace
+      : trace.split(',').map((s) => s.trim())
+    expect(values).toEqual(
+      expect.arrayContaining(['primary', 'secondary', 'tertiary']),
+    )
+  } finally {
+    await server.stop({ timeout: 5000 })
+  }
+})
