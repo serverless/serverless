@@ -14,6 +14,7 @@
 
 import crypto from 'node:crypto'
 import { FAKE_ACCOUNT_ID } from '../../constants.js'
+import { parseJsonSafe } from '../shared/json-utils.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -67,23 +68,6 @@ function resolveAuthorizer(request) {
   }
 
   return undefined
-}
-
-/**
- * Parse a string as JSON. On parse failure or non-object result return null
- * — the caller treats null as "no override" and falls through.
- *
- * @param {unknown} value
- * @returns {object | null}
- */
-function parseJsonSafe(value) {
-  if (typeof value !== 'string' || value.length === 0) return null
-  try {
-    const parsed = JSON.parse(value)
-    return parsed && typeof parsed === 'object' ? parsed : null
-  } catch {
-    return null
-  }
 }
 
 /**
