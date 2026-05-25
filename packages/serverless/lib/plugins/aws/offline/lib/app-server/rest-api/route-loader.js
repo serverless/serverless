@@ -1,0 +1,227 @@
+/**
+ * REST API route loader for the offline app server.
+ *
+ * Walks `serverless.service.functions[*].events[].http`, classifies each entry
+ * by integration type, and — for the Lambda-proxy (AWS_PROXY) flavour, which
+ * is the default and overwhelmingly common case — registers a Hapi route that
+ * converts the incoming request into the APIGW REST API v1 event shape and
+ * forwards it to the supplied `onRequest` callback.  REST URLs deployed to AWS
+ * carry a stage segment in front of the user-declared path; we reproduce that
+ * mount so requests made locally hit the same URL clients use against the real
+ * gateway.  AWS (non-proxy) integration is detected and fast-fails at register
+ * time so users hit a documented boundary instead of a silent 500 mid-request.
+ */
+
+import ServerlessError from '../../../../../../serverless-error.js'
+import { buildRestApiEvent } from './event-factory.js'
+import { formatRestApiResponse } from './response-mapper.js'
+import { detectIntegration } from './integration-detector.js'
+import { translateRestPath, buildMountedPath } from './path-translator.js'
+
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * HTTP methods that cannot carry a request body.  Hapi refuses payload options
+ * on these methods, so we skip the payload configuration when the route's
+ * method is one of them.
+ *
+ * @type {Set<string>}
+ */
+const NO_BODY_METHODS = new Set(['GET', 'HEAD', 'DELETE', 'OPTIONS', 'TRACE'])
+
+/**
+ * Normalize a raw `http` event declaration to `{ method, path }`.
+ *
+ * Framework accepts two YAML shapes for REST events:
+ *  - String:  `'GET /users/{id}'` (and the bare `'*'` catch-all shorthand)
+ *  - Object:  `{ method: 'get', path: '/users/{id}', ... }`
+ *
+ * @param {string | { method: string, path: string }} httpEvent
+ * @returns {{ method: string, path: string }}
+ */
+function normalizeHttpEvent(httpEvent) {
+  if (typeof httpEvent === 'string') {
+    // Bare '*' is the catch-all shorthand (any method, any path).
+    if (httpEvent === '*') return { method: 'ANY', path: '*' }
+
+    const spaceIndex = httpEvent.indexOf(' ')
+    const method = httpEvent.slice(0, spaceIndex).toUpperCase()
+    const path = httpEvent.slice(spaceIndex + 1)
+    return { method, path }
+  }
+
+  return {
+    method: httpEvent.method.toUpperCase(),
+    path: httpEvent.path,
+  }
+}
+
+/**
+ * Map the normalized method to the Hapi method.
+ *
+ * APIGW uses `'*'` and `'ANY'` for catch-all; Hapi uses `'*'`.  Hapi v21
+ * auto-serves HEAD for any GET route — explicit HEAD registration throws —
+ * so HEAD declarations are folded onto GET.
+ *
+ * @param {string} method  Uppercased method string.
+ * @returns {string}
+ */
+function toHapiMethod(method) {
+  if (method === 'ANY' || method === '*') return '*'
+  if (method === 'HEAD') return 'GET'
+  return method
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+/**
+ * Register REST API routes on a Hapi server instance.
+ *
+ * Walks `serverless.service.functions`, finds every `http` event, validates
+ * the integration type (only AWS_PROXY is currently served — AWS non-proxy is
+ * rejected here with a clear error), translates the APIGW path to Hapi syntax,
+ * applies the stage / prefix mount, and registers a Hapi route per event.  The
+ * handler builds an APIGW REST API v1 Lambda-proxy event and forwards it to
+ * `onRequest`.
+ *
+ * Route registration must happen before `server.start()`.
+ *
+ * @param {object} opts
+ * @param {import('@hapi/hapi').Server} opts.server
+ *   A Hapi server instance (started or unstarted).
+ * @param {object} opts.serverless
+ *   Framework's serverless instance. `service.functions` is walked.
+ * @param {string} opts.stage
+ *   API Gateway stage name (e.g. `'dev'`).
+ * @param {string} [opts.prefix]
+ *   Extra path segment to apply after the stage (matches the `--prefix` flag).
+ * @param {boolean} [opts.noPrependStageInUrl=false]
+ *   When `true`, the `/<stage>/` segment is omitted from the mounted URL.
+ *   Matches the Framework CLI flag name.
+ * @param {(functionKey: string, event: object) => Promise<unknown>} opts.onRequest
+ *   Async callback invoked for every incoming HTTP request. Receives the
+ *   function key and the APIGW REST v1 event; returns the Lambda response
+ *   shape (string / object / `{ statusCode, body, ... }`).
+ *
+ * @returns {{ method: string, path: string, mountedPath: string, functionKey: string }[]}
+ *   The list of routes that were registered (in declaration order). Consumed
+ *   by the boot-diagnostics summary that prints the route table.
+ *
+ * @throws {ServerlessError} OFFLINE_REST_AWS_INTEGRATION_NOT_IMPLEMENTED
+ *   When any function declares an `http` event with `integration: 'AWS'`.
+ * @throws {ServerlessError} OFFLINE_UNSUPPORTED_INTEGRATION
+ *   When the integration type is neither AWS_PROXY nor AWS.
+ */
+export function registerRestApiRoutes({
+  server,
+  serverless,
+  stage,
+  prefix,
+  noPrependStageInUrl = false,
+  onRequest,
+}) {
+  const functions = serverless.service.functions ?? {}
+  /** @type {{ method: string, path: string, mountedPath: string, functionKey: string }[]} */
+  const registered = []
+
+  for (const [functionKey, fn] of Object.entries(functions)) {
+    const events = fn.events ?? []
+
+    for (const eventEntry of events) {
+      if (!Object.prototype.hasOwnProperty.call(eventEntry, 'http')) continue
+
+      const httpEvent = eventEntry.http
+      const integration = detectIntegration(httpEvent)
+
+      if (integration === 'AWS') {
+        // Fast-fail at register time so the user gets a single clear error up
+        // front rather than discovering the gap mid-request. Surfacing the
+        // function key in the message lets the user pinpoint the declaration.
+        throw new ServerlessError(
+          `REST API AWS (non-proxy) integration is not yet supported by sls offline. ` +
+            `Function "${functionKey}" declares an http event with integration:'AWS'.`,
+          'OFFLINE_REST_AWS_INTEGRATION_NOT_IMPLEMENTED',
+        )
+      }
+
+      const { method: rawMethod, path: apigwPath } =
+        normalizeHttpEvent(httpEvent)
+
+      const hapiMethod = toHapiMethod(rawMethod)
+      const hapiPath = translateRestPath(apigwPath)
+      const mountedPath = buildMountedPath(hapiPath, stage, {
+        includeStage: !noPrependStageInUrl,
+        prefix,
+      })
+
+      // Capture for the closure — `apigwPath` is the original APIGW template
+      // (with `{id}` etc. intact) so the event factory can surface it as
+      // `event.resource` / `requestContext.resourcePath`.
+      const routeMeta = {
+        method: rawMethod,
+        apigwPath,
+        functionName: functionKey,
+      }
+
+      // Hapi rejects payload options on GET / HEAD / DELETE / OPTIONS / TRACE.
+      // For wildcard ('*') we include payload options because some methods on
+      // that route can carry a body; GET will simply not parse anything.
+      const payloadOptions =
+        hapiMethod === '*' || !NO_BODY_METHODS.has(hapiMethod)
+          ? {
+              payload: {
+                parse: true,
+                output: 'data',
+                maxBytes: 10 * 1024 * 1024,
+              },
+            }
+          : {}
+
+      server.route({
+        method: hapiMethod,
+        path: mountedPath,
+        options: {
+          ...payloadOptions,
+          // Parse cookies into `request.state` for the event factory, but do
+          // not reject the request when a cookie value is malformed —
+          // real-world clients send all sorts of cookie strings and dev mode
+          // should observe what production observes, not surface a 400.
+          state: {
+            parse: true,
+            failAction: 'ignore',
+          },
+        },
+        async handler(request, h) {
+          try {
+            const event = buildRestApiEvent({
+              request,
+              route: routeMeta,
+              stage,
+            })
+            const result = await onRequest(functionKey, event)
+            return formatRestApiResponse(result, h)
+          } catch (err) {
+            console.error(`[offline] Error in ${functionKey}:`, err)
+            return h
+              .response(JSON.stringify({ message: 'Internal server error' }))
+              .code(502)
+              .type('application/json')
+          }
+        },
+      })
+
+      registered.push({
+        method: rawMethod,
+        path: apigwPath,
+        mountedPath,
+        functionKey,
+      })
+    }
+  }
+
+  return registered
+}
