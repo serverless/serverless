@@ -503,7 +503,7 @@ it('26. isBase64Encoded is false for non-binary content types', () => {
 // 27. isBase64Encoded: true + base64 body for binary content types
 // ---------------------------------------------------------------------------
 
-it('27a. isBase64Encoded true + base64 body for image/png', () => {
+it('27a. image/png is NOT binary — body is a UTF-8 string, isBase64Encoded false', () => {
   const buf = Buffer.from([0x89, 0x50, 0x4e, 0x47])
   const event = buildHttpApiV2Event({
     request: makeRequest({
@@ -515,8 +515,8 @@ it('27a. isBase64Encoded true + base64 body for image/png', () => {
     accountId: '000000000000',
     domainName: 'localhost:3000',
   })
-  expect(event.isBase64Encoded).toBe(true)
-  expect(event.body).toBe(buf.toString('base64'))
+  expect(event.isBase64Encoded).toBe(false)
+  expect(typeof event.body).toBe('string')
 })
 
 it('27b. isBase64Encoded true + base64 body for application/octet-stream', () => {
@@ -535,7 +535,7 @@ it('27b. isBase64Encoded true + base64 body for application/octet-stream', () =>
   expect(event.body).toBe(buf.toString('base64'))
 })
 
-it('27c. isBase64Encoded true + base64 body for application/pdf', () => {
+it('27c. application/pdf is NOT binary — body is a UTF-8 string, isBase64Encoded false', () => {
   const buf = Buffer.from('%PDF-1.4')
   const event = buildHttpApiV2Event({
     request: makeRequest({
@@ -547,16 +547,34 @@ it('27c. isBase64Encoded true + base64 body for application/pdf', () => {
     accountId: '000000000000',
     domainName: 'localhost:3000',
   })
-  expect(event.isBase64Encoded).toBe(true)
-  expect(event.body).toBe(buf.toString('base64'))
+  expect(event.isBase64Encoded).toBe(false)
+  expect(typeof event.body).toBe('string')
 })
 
-it('27d. isBase64Encoded true + base64 body for application/zip', () => {
+it('27d. application/zip is NOT binary — body is a UTF-8 string, isBase64Encoded false', () => {
   const buf = Buffer.from([0x50, 0x4b, 0x03, 0x04])
   const event = buildHttpApiV2Event({
     request: makeRequest({
       payload: buf,
       headers: { 'content-type': 'application/zip' },
+    }),
+    route: defaultRoute,
+    stage: 'dev',
+    accountId: '000000000000',
+    domainName: 'localhost:3000',
+  })
+  expect(event.isBase64Encoded).toBe(false)
+  expect(typeof event.body).toBe('string')
+})
+
+it('27e. multipart/form-data (with boundary) IS binary — isBase64Encoded true + base64 body', () => {
+  const buf = Buffer.from(
+    '--boundary\r\nContent-Disposition: form-data; name="field"\r\n\r\nvalue\r\n--boundary--',
+  )
+  const event = buildHttpApiV2Event({
+    request: makeRequest({
+      payload: buf,
+      headers: { 'content-type': 'multipart/form-data; boundary=boundary' },
     }),
     route: defaultRoute,
     stage: 'dev',

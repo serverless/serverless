@@ -22,12 +22,7 @@ import { FAKE_ACCOUNT_ID } from '../../constants.js'
  *
  * @type {string[]}
  */
-const BINARY_CONTENT_TYPES = [
-  'image/',
-  'application/octet-stream',
-  'application/pdf',
-  'application/zip',
-]
+const BINARY_CONTENT_TYPES = ['application/octet-stream', 'multipart/form-data']
 
 /**
  * Return `true` when the given content-type string is considered binary.
