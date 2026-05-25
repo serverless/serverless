@@ -181,10 +181,10 @@ export function buildHttpApiV2Event({
   const routeKey = `${method} ${route.path}`
   const rawPath = request.path
 
-  // Query string — empty string when absent (APIGW spec requirement).
-  const rawQueryString = request.url.search
-    ? request.url.search.slice(1) // strip leading '?'
-    : ''
+  // Query string — re-encode via URLSearchParams for consistent normalization
+  // (+ vs %20, percent-encoding). Returns '' when no query params, matching
+  // the APIGW spec requirement. Reference: LambdaProxyIntegrationEventV2.js:165
+  const rawQueryString = request.url.searchParams.toString()
 
   const queryStringParameters = parseQueryStringParameters(
     request.url.searchParams,
