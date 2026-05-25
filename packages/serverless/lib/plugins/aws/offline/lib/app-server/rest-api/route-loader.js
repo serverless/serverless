@@ -106,11 +106,20 @@ function normalizeResponses(responseConfig) {
       ]),
     )
 
+  // Framework's schema accepts two shapes for `template`:
+  //   - string                                → default content-type template
+  //   - { 'application/json': '...', ... }    → content-type-keyed map
+  // The mapper consumes the map shape exclusively, so coerce the string
+  // form into `{ 'application/json': <template> }` (the implicit default
+  // content type used everywhere else in the REST surface).
+  const coerceTemplate = (template) =>
+    typeof template === 'string' ? { 'application/json': template } : template
+
   const out = {
     default: {
       statusCode: 200,
       ...(responseConfig.template
-        ? { responseTemplates: responseConfig.template }
+        ? { responseTemplates: coerceTemplate(responseConfig.template) }
         : {}),
       ...(responseConfig.headers
         ? { responseParameters: headersToParameters(responseConfig.headers) }
@@ -125,7 +134,9 @@ function normalizeResponses(responseConfig) {
     out[code] = {
       statusCode: numericCode,
       ...(entry.pattern ? { selectionPattern: entry.pattern } : {}),
-      ...(entry.template ? { responseTemplates: entry.template } : {}),
+      ...(entry.template
+        ? { responseTemplates: coerceTemplate(entry.template) }
+        : {}),
       ...(entry.headers
         ? { responseParameters: headersToParameters(entry.headers) }
         : {}),

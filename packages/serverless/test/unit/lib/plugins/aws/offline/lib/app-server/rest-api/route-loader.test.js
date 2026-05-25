@@ -596,6 +596,39 @@ describe('registerRestApiRoutes — AWS (non-proxy) integration dispatch', () =>
     expect(JSON.parse(res.payload)).toEqual({ echo: 'world' })
   })
 
+  it('AWS integration: bare-string response.template is treated as the application/json default', async () => {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    const onRequest = jest.fn(async () => ({ hello: 'world' }))
+    registerRestApiRoutes({
+      server,
+      serverless: makeServerless({
+        echo2: {
+          events: [
+            {
+              http: {
+                method: 'GET',
+                path: '/items2',
+                integration: 'AWS',
+                // Framework's schema allows `response.template` as either a
+                // bare string (default content-type) or a content-type map.
+                response: {
+                  template: '{"defaulted": "$input.path(\'$.hello\')"}',
+                },
+              },
+            },
+          ],
+        },
+      }),
+      stage: 'dev',
+      onRequest,
+    })
+    await server.start()
+
+    const res = await server.inject({ method: 'GET', url: '/dev/items2' })
+    expect(res.statusCode).toBe(200)
+    expect(JSON.parse(res.payload)).toEqual({ defaulted: 'world' })
+  })
+
   it('AWS integration: response.headers literal maps to a response header', async () => {
     server = Hapi.server({ host: 'localhost', port: 0 })
     const onRequest = jest.fn(async () => ({ ok: true }))
