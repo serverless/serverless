@@ -27,6 +27,22 @@ import { createLambdaFunction } from './lib/lambda/lambda-function.js'
 const logger = log.get(LOG_NAMESPACE)
 
 /**
+ * Coerce a CLI-option string to an integer. CLI flags arrive as strings (e.g.
+ * `--appPort 4000` → `"4000"`), but YAML and defaults are already typed.
+ * Returns `undefined` for missing input or non-numeric strings so callers can
+ * fall through with `??` to the next precedence layer.
+ *
+ * @param {unknown} value
+ * @returns {number | undefined}
+ */
+function coerceInt(value) {
+  if (value === undefined || value === null || value === '') return undefined
+  if (typeof value === 'number') return value
+  const n = Number.parseInt(value, 10)
+  return Number.isNaN(n) ? undefined : n
+}
+
+/**
  * Built-in sls offline command — local dev loop for Lambda handlers
  * triggered by HTTP API, REST API, ALB, WebSocket, Schedule, S3, SQS,
  * SNS, and EventBridge events.
@@ -71,11 +87,19 @@ export default class OfflinePlugin {
 
     const offline = serverless.service.offline ?? {}
     const provider = serverless.service.provider ?? {}
+    const cliOptions = this.options ?? {}
 
     // 2. Read config values.
-    const awsApiPort = offline.awsApiPort ?? DEFAULT_AWS_API_PORT
-    const appPort = offline.appPort ?? DEFAULT_APP_PORT
-    const host = offline.host ?? DEFAULT_HOST
+    //    Precedence (highest wins): CLI flag → offline.<key> in YAML → built-in default.
+    //    Framework's CLI parser returns option values as strings (e.g. --appPort 4000
+    //    arrives as "4000"); coerce port strings to integers locally.
+    const awsApiPort =
+      coerceInt(cliOptions.awsApiPort) ??
+      offline.awsApiPort ??
+      DEFAULT_AWS_API_PORT
+    const appPort =
+      coerceInt(cliOptions.appPort) ?? offline.appPort ?? DEFAULT_APP_PORT
+    const host = cliOptions.host ?? offline.host ?? DEFAULT_HOST
     const stage = provider.stage ?? DEFAULT_STAGE
     const domainName = `${host}:${appPort}`
     // NOTE: servicePath is intentionally NOT captured here — it must be read
@@ -84,6 +108,13 @@ export default class OfflinePlugin {
     // before:offline:start hook are reflected correctly.
     const terminateIdleLambdaTime =
       offline.terminateIdleLambdaTime ?? DEFAULT_TERMINATE_IDLE_LAMBDA_TIME
+    const noTimeout = cliOptions.noTimeout === true
+    // watch defaults to true; --noWatch (CLI flag) or offline.noWatch (YAML)
+    // disable it explicitly, --watch=false / offline.watch:false also disable.
+    const watchEnabled =
+      cliOptions.noWatch === true || offline.noWatch === true
+        ? false
+        : (cliOptions.watch ?? offline.watch ?? true)
 
     // 3. Set process env vars for runtime env parity before booting the runner.
     process.env.IS_OFFLINE = 'true'
@@ -131,6 +162,7 @@ export default class OfflinePlugin {
           functionKey,
           runner,
           logger: lambdaLogger,
+          noTimeout,
         })
         lambdaFunctions.set(functionKey, fn)
       }
@@ -201,6 +233,7 @@ export default class OfflinePlugin {
       servicePath: getHandlerBaseDir(serverless),
       runner,
       logger: log.get('sls:offline:watcher'),
+      enabled: watchEnabled,
     })
 
     // Register runner + watcher teardowns last so they are first in LIFO order.

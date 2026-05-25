@@ -28,7 +28,23 @@ describe('commands-schema offline entry', () => {
     expect(entry.groupName).toBe('main')
   })
 
-  it('provides an (initially empty) options object', () => {
-    expect(entry.options).toEqual({})
+  it('exposes the basic runtime-knob options as CLI flags', () => {
+    expect(entry.options).toMatchObject({
+      appPort: { type: 'string' },
+      awsApiPort: { type: 'string' },
+      host: { type: 'string' },
+      noTimeout: { type: 'boolean' },
+      watch: { type: 'boolean' },
+      noWatch: { type: 'boolean' },
+    })
+  })
+
+  it('every option has a non-empty usage string for sls --help', () => {
+    for (const [name, def] of Object.entries(entry.options)) {
+      expect(typeof def.usage).toBe('string')
+      expect(def.usage.length).toBeGreaterThan(0)
+      // Make sure the usage text is the one we wrote, not a placeholder.
+      expect(def.usage).not.toBe(name)
+    }
   })
 })

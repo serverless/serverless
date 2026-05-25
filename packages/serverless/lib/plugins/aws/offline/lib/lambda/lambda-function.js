@@ -78,6 +78,10 @@ function resolveHandlerSync(handlerString, baseDir) {
  *                                        invocation with the per-call execution trace
  *                                        `(λ: <functionKey>) RequestId: <id> Duration: X.XX ms Billed Duration: Y ms`.
  *                                        When omitted, no trace is emitted (useful in tests).
+ * @param {boolean} [params.noTimeout]   - When `true`, the runner is invoked without a
+ *                                        `timeoutMs` so the handler can exceed
+ *                                        `functions[].timeout` without being terminated.
+ *                                        Useful when stepping through a handler in a debugger.
  * @returns {{
  *   invoke(event: unknown): Promise<unknown>,
  *   readonly functionKey: string,
@@ -88,6 +92,7 @@ export function createLambdaFunction({
   functionKey,
   runner,
   logger,
+  noTimeout = false,
 }) {
   /**
    * Emit the per-invocation execution trace. Best-effort: silently no-ops if
@@ -182,7 +187,9 @@ export function createLambdaFunction({
           event,
           context,
           environment,
-          timeoutMs,
+          // When timeout enforcement is disabled, omit timeoutMs entirely so
+          // the runner does not arm its termination timer.
+          timeoutMs: noTimeout ? undefined : timeoutMs,
         })
       } finally {
         const durationMs = performance.now() - startedAt

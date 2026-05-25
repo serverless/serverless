@@ -59,6 +59,10 @@ function resolveHandlerFile(handlerString, servicePath) {
  * @param {string} options.servicePath  Absolute path to the service root.
  * @param {object} options.runner       Worker-thread runner; must expose `invalidate(functionKey)`.
  * @param {object} options.logger       Logger (exposes `.notice()`, `.warning()`).
+ * @param {boolean} [options.enabled=true]  When `false`, the watcher is not
+ *   started — useful for the `--noWatch` CLI flag or `offline.noWatch: true`
+ *   in YAML. Returns an inert controller so the caller can wire teardown
+ *   uniformly.
  * @returns {Promise<{
  *   pollingActive: boolean,
  *   watchedFiles: Set<string>,
@@ -70,7 +74,21 @@ export async function createWatcher({
   servicePath,
   runner,
   logger,
+  enabled = true,
 }) {
+  // -------------------------------------------------------------------------
+  // Explicit disable from caller (CLI --noWatch or offline.noWatch:true)
+  // -------------------------------------------------------------------------
+
+  if (!enabled) {
+    logger.notice('Native file watcher disabled — hot reload is turned off')
+    return {
+      pollingActive: false,
+      watchedFiles: new Set(),
+      stop: async () => {},
+    }
+  }
+
   // -------------------------------------------------------------------------
   // Auto-disable check
   // -------------------------------------------------------------------------

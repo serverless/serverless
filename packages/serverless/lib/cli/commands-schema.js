@@ -240,7 +240,33 @@ commands.set('offline', {
   groupName: 'main',
   usage:
     'Run your Lambda handlers locally with API Gateway, ALB, WebSocket, S3, SQS, SNS, EventBridge, and Schedule event sources emulated in-process.',
-  options: {},
+  options: {
+    appPort: {
+      usage:
+        'Port for the HTTP API / REST / ALB / WebSocket server (default 3000)',
+      type: 'string',
+    },
+    awsApiPort: {
+      usage: 'Port for the AWS SDK endpoint (default 3002)',
+      type: 'string',
+    },
+    host: {
+      usage: 'Host the local servers bind to (default localhost)',
+      type: 'string',
+    },
+    noTimeout: {
+      usage: 'Disable handler timeout enforcement',
+      type: 'boolean',
+    },
+    watch: {
+      usage: 'Enable hot-reload of handler files (default true)',
+      type: 'boolean',
+    },
+    noWatch: {
+      usage: 'Disable hot-reload of handler files',
+      type: 'boolean',
+    },
+  },
   lifecycleEvents: ['offline'],
   serviceDependencyMode: 'required',
   hasAwsExtension: true,

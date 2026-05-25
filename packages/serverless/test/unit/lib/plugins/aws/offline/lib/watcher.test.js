@@ -408,4 +408,32 @@ describe('createWatcher', () => {
 
     expect(controller.watchedFiles).toEqual(new Set([fileA, fileB]))
   })
+
+  // ---------------------------------------------------------------------------
+  // enabled: false short-circuits before any chokidar setup
+  // ---------------------------------------------------------------------------
+
+  it('enabled:false returns an inert controller without starting chokidar', async () => {
+    const tmpDir = await makeTmpDir()
+    const serverless = makeServerless({
+      functions: { fnA: { handler: 'a.handler' } },
+    })
+    const logger = makeLogger()
+    const runner = makeRunner()
+
+    const controller = await createWatcher({
+      serverless,
+      servicePath: tmpDir,
+      runner,
+      logger,
+      enabled: false,
+    })
+    controllers.push(controller)
+
+    expect(controller.pollingActive).toBe(false)
+    expect(controller.watchedFiles).toEqual(new Set())
+    expect(logger.notice).toHaveBeenCalledWith(
+      'Native file watcher disabled — hot reload is turned off',
+    )
+  })
 })

@@ -335,6 +335,39 @@ describe('createLambdaFunction', () => {
     await expect(fn.invoke({})).resolves.toBeDefined()
   })
 
+  test('noTimeout:true causes runner.invoke to receive timeoutMs:undefined', async () => {
+    const runner = makeRunner()
+    const fn = createLambdaFunction({
+      serverless: makeServerless({
+        servicePath: tmpDir,
+        functions: { hello: { handler: 'src/handler.main', timeout: 30 } },
+      }),
+      functionKey: 'hello',
+      runner,
+      noTimeout: true,
+    })
+
+    await fn.invoke({})
+
+    expect(runner.calls[0].timeoutMs).toBeUndefined()
+  })
+
+  test('noTimeout omitted (default) passes the configured timeoutMs through', async () => {
+    const runner = makeRunner()
+    const fn = createLambdaFunction({
+      serverless: makeServerless({
+        servicePath: tmpDir,
+        functions: { hello: { handler: 'src/handler.main', timeout: 30 } },
+      }),
+      functionKey: 'hello',
+      runner,
+    })
+
+    await fn.invoke({})
+
+    expect(runner.calls[0].timeoutMs).toBe(30_000)
+  })
+
   test('each invocation gets a fresh awsRequestId and deadlineMs', async () => {
     const runner = makeRunner()
     const fn = createLambdaFunction({
