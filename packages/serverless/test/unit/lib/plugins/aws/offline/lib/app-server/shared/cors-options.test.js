@@ -284,6 +284,26 @@ describe('resolveAllowOrigin', () => {
     })
     expect(resolveAllowOrigin(cfg, 'https://evil.com')).toBe('https://a.com')
   })
+
+  it('matches origin case-insensitively against the allow-list', () => {
+    // Real APIGW lower-cases scheme/host before comparing — a mixed-case
+    // allow-list entry must still match a lowercased request origin.
+    const cfg = normalizeCorsConfig({
+      origins: ['https://Example.COM'],
+    })
+    expect(resolveAllowOrigin(cfg, 'https://example.com')).toBe(
+      'https://example.com',
+    )
+  })
+
+  it('matches a lowercase allow-list against a mixed-case request origin', () => {
+    const cfg = normalizeCorsConfig({
+      origins: ['https://example.com'],
+    })
+    expect(resolveAllowOrigin(cfg, 'https://EXAMPLE.com')).toBe(
+      'https://EXAMPLE.com',
+    )
+  })
 })
 
 describe('applyCorsResponseHeaders', () => {

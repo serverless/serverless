@@ -142,8 +142,17 @@ export function resolveAllowOrigin(corsConfig, requestOrigin) {
     }
     return '*'
   }
-  if (requestOrigin && corsConfig.origins.includes(requestOrigin)) {
-    return requestOrigin
+  // Real APIGW lower-cases the scheme/host of both sides before comparing
+  // (per RFC 6454, origins are case-insensitive in scheme + host). Browsers
+  // typically normalize already, but configured allow-list entries can be
+  // mixed-case in user YAML. Compare case-insensitively; echo the
+  // request's value back verbatim (matching what the browser sent).
+  if (requestOrigin) {
+    const lowerRequestOrigin = requestOrigin.toLowerCase()
+    const matches = corsConfig.origins.some(
+      (allowed) => allowed.toLowerCase() === lowerRequestOrigin,
+    )
+    if (matches) return requestOrigin
   }
   return corsConfig.origins[0]
 }
