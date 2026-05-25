@@ -7,6 +7,7 @@ import {
   DEFAULT_AWS_API_PORT,
   DEFAULT_HOST,
   DEFAULT_TERMINATE_IDLE_LAMBDA_TIME,
+  FAKE_ACCOUNT_ID,
   FAKE_REGION,
 } from './lib/constants.js'
 import { getStage } from './lib/stage.js'
@@ -21,6 +22,7 @@ import { startSqsPollers } from './lib/event-sources/sqs-poller.js'
 import { createAppServer } from './lib/app-server/index.js'
 import { registerHttpApiRoutes } from './lib/app-server/http-api/route-loader.js'
 import { registerRestApiRoutes } from './lib/app-server/rest-api/route-loader.js'
+import { registerAuthSchemes } from './lib/app-server/authorizers/register-schemes.js'
 import { createWatcher } from './lib/watcher.js'
 import { assertAllNodeRuntimes } from './lib/runtime-guard.js'
 import { getHandlerBaseDir } from './lib/handler-base-dir.js'
@@ -285,6 +287,19 @@ export default class OfflinePlugin {
       host,
       logger: log.get('sls:offline:app-server'),
       async registerRoutes(server) {
+        // Register Hapi auth schemes + strategies BEFORE any routes — Hapi
+        // rejects `route.options.auth` references to strategies that don't
+        // exist yet at registration time.
+        const authStrategies = registerAuthSchemes({
+          server,
+          serverless,
+          lambdas: {
+            get: (functionKey) => getLambdaFunction(functionKey),
+          },
+          stage,
+          accountId: FAKE_ACCOUNT_ID,
+        })
+
         httpApiRoutes = registerHttpApiRoutes({
           server,
           serverless,
@@ -300,6 +315,7 @@ export default class OfflinePlugin {
           stage,
           prefix,
           noPrependStageInUrl,
+          authStrategies,
           async onRequest(functionKey, event) {
             return getLambdaFunction(functionKey).invoke(event)
           },
