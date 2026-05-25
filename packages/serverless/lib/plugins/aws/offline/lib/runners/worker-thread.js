@@ -1,6 +1,9 @@
 import { Worker } from 'node:worker_threads'
 import ServerlessError from '../../../../../serverless-error.js'
-import { DEFAULT_TERMINATE_IDLE_LAMBDA_TIME } from '../constants.js'
+import {
+  DEFAULT_TERMINATE_IDLE_LAMBDA_TIME,
+  DEFAULT_MAX_CONCURRENT_INVOCATIONS,
+} from '../constants.js'
 
 const workerEntryPath = new URL('./worker-entry.js', import.meta.url)
 
@@ -29,19 +32,16 @@ function rebuildError({ name, message, stack }) {
 /**
  * Create a pooled worker-thread Lambda runner.
  *
- * Keeps one warm `worker_threads.Worker` per `functionKey`, reusing it across
- * invocations. Workers are evicted (terminated) after `terminateIdleLambdaTime`
- * seconds of inactivity. This eliminates the per-invocation worker-startup cost
- * (~50–200 ms) at the expense of keeping idle workers alive.
- *
- * **Concurrency note**: concurrent invocations on the same `functionKey` are
- * serialized — they run one at a time on the single warm worker for that
- * function. A future update will introduce per-function worker pools to support
- * concurrent invocations.
+ * Keeps a set of warm `worker_threads.Worker` instances per `functionKey`,
+ * reusing idle ones across invocations. Concurrent invocations on the same
+ * `functionKey` run in parallel (each gets its own worker), matching real
+ * Lambda's concurrency model. Workers are evicted (terminated) after
+ * `terminateIdleLambdaTime` seconds of inactivity.
  *
  * @param {object} options
- * @param {string} options.servicePath              Absolute path to the Serverless service root.
- * @param {number} [options.terminateIdleLambdaTime] Idle eviction timeout in seconds (default: 60).
+ * @param {string} options.servicePath                  Absolute path to the Serverless service root.
+ * @param {number} [options.terminateIdleLambdaTime]    Idle eviction timeout in seconds (default: 60).
+ * @param {number} [options.maxConcurrentInvocations]   Max concurrent workers per functionKey (default: 100).
  * @returns {{
  *   invoke(args: object): Promise<unknown>,
  *   invalidate(functionKey: string): void,
@@ -51,15 +51,19 @@ function rebuildError({ name, message, stack }) {
 export function createWorkerThreadRunner({
   servicePath,
   terminateIdleLambdaTime = DEFAULT_TERMINATE_IDLE_LAMBDA_TIME,
+  maxConcurrentInvocations = DEFAULT_MAX_CONCURRENT_INVOCATIONS,
 } = {}) {
   /**
    * Pool of warm workers, keyed by functionKey.
    *
-   * @type {Map<string, WorkerEntry>}
+   * Each value is a Set of WorkerEntry objects. A function can have multiple
+   * concurrent workers — one per in-flight invocation, up to maxConcurrentInvocations.
+   *
+   * @type {Map<string, Set<WorkerEntry>>}
    *
    * WorkerEntry shape:
    * {
-   *   state: 'idle' | 'busy' | 'terminating',
+   *   state: 'spawning' | 'idle' | 'busy' | 'terminating',
    *   worker: Worker,
    *   workerReady: Promise<void>,          // resolves once the worker sends 'ready'
    *   _resolveReady: () => void,           // resolves workerReady
@@ -70,33 +74,52 @@ export function createWorkerThreadRunner({
    *   handlerPath: string,
    *   handlerName: string,
    *   terminateAfterCurrent: boolean,      // set by invalidate() while busy
-   *   waiters: Array<() => void>,          // callbacks waiting for the entry to go idle
    * }
    */
   const pool = new Map()
 
+  /**
+   * Waiters blocked at the concurrency cap for a given functionKey.
+   * Each entry: { resolve: () => void }
+   *
+   * @type {Map<string, Array<{ resolve: () => void }>>}
+   */
+  const capWaiters = new Map()
+
   // ---------------------------------------------------------------------------
-  // Private: spawn a new WorkerEntry
+  // Private: wake a cap-level waiter for a functionKey
+  // ---------------------------------------------------------------------------
+
+  function _wakeCapWaiter(functionKey) {
+    const waiters = capWaiters.get(functionKey)
+    if (waiters && waiters.length > 0) {
+      waiters.shift().resolve()
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private: spawn a new WorkerEntry and add it to the set for functionKey
   // ---------------------------------------------------------------------------
 
   /**
    * Spawn a new worker for the given function and return its entry.
-   * The caller is responsible for inserting the entry into the pool.
+   * Automatically adds the entry to pool.get(functionKey).
    *
    * @param {object} params
    * @param {string} params.functionKey
    * @param {string} params.handlerPath
    * @param {string} params.handlerName
+   * @param {Set<WorkerEntry>} params.set  The set to add this entry to.
    * @returns {WorkerEntry}
    */
-  function _spawnEntry({ functionKey, handlerPath, handlerName }) {
+  function _spawnEntry({ functionKey, handlerPath, handlerName, set }) {
     const worker = new Worker(workerEntryPath, {
       workerData: { handlerPath, handlerName, servicePath },
     })
 
     /** @type {WorkerEntry} */
     const entry = {
-      state: 'idle',
+      state: 'spawning',
       worker,
       workerReady: null, // set below
       _resolveReady: null,
@@ -107,7 +130,6 @@ export function createWorkerThreadRunner({
       handlerPath,
       handlerName,
       terminateAfterCurrent: false,
-      waiters: [],
     }
 
     // Build the workerReady promise: resolves when the worker sends 'ready';
@@ -119,6 +141,9 @@ export function createWorkerThreadRunner({
     })
     // Prevent unhandled rejection if nobody is awaiting workerReady.
     entry.workerReady.catch(() => {})
+
+    // Add to the set immediately so the cap is enforced correctly.
+    set.add(entry)
 
     // Worker-level error before 'ready' is handled here.
     worker.once('error', (err) => {
@@ -135,14 +160,16 @@ export function createWorkerThreadRunner({
         }
         const { reject: rej } = entry.pendingResult
         entry.pendingResult = null
-        pool.delete(functionKey)
         entry.state = 'terminating'
+        set.delete(entry)
+        if (set.size === 0) pool.delete(functionKey)
+        _wakeCapWaiter(functionKey)
         rej(err)
-        for (const next of entry.waiters.splice(0)) next()
       } else {
-        pool.delete(functionKey)
         entry.state = 'terminating'
-        for (const next of entry.waiters.splice(0)) next()
+        set.delete(entry)
+        if (set.size === 0) pool.delete(functionKey)
+        _wakeCapWaiter(functionKey)
       }
     })
 
@@ -155,6 +182,7 @@ export function createWorkerThreadRunner({
     worker.on('message', (msg) => {
       if (msg.type === 'ready') {
         if (entry._resolveReady) {
+          entry.state = 'idle'
           entry._resolveReady()
           entry._resolveReady = null
           entry._rejectReady = null
@@ -174,9 +202,9 @@ export function createWorkerThreadRunner({
           entry.idleTimer = null
         }
         entry.state = 'terminating'
-        if (pool.get(functionKey) === entry) {
-          pool.delete(functionKey)
-        }
+        set.delete(entry)
+        if (set.size === 0) pool.delete(functionKey)
+        _wakeCapWaiter(functionKey)
         return
       }
 
@@ -203,16 +231,22 @@ export function createWorkerThreadRunner({
 
         if (shouldTerminate) {
           entry.state = 'terminating'
-          pool.delete(functionKey)
+          set.delete(entry)
+          if (set.size === 0) pool.delete(functionKey)
           _terminateEntry(entry).catch(() => {})
+          _wakeCapWaiter(functionKey)
         } else {
           entry.state = 'idle'
-          // Schedule idle eviction. unref() allows the process to exit
-          // cleanly even if the timer is still pending.
+          // Schedule per-entry idle eviction. unref() allows the process to
+          // exit cleanly even if the timer is still pending.
           entry.idleTimer = setTimeout(() => {
-            pool.delete(functionKey)
+            set.delete(entry)
+            if (set.size === 0) pool.delete(functionKey)
             _terminateEntry(entry).catch(() => {})
+            _wakeCapWaiter(functionKey)
           }, terminateIdleLambdaTime * 1000).unref()
+          // Wake a cap-waiter — the slot is now idle and available for reuse.
+          _wakeCapWaiter(functionKey)
         }
 
         // Resolve or reject the caller.
@@ -221,10 +255,6 @@ export function createWorkerThreadRunner({
         } else {
           reject(rebuildError(msg.error))
         }
-
-        // Notify the next waiting invocation (if any).
-        const next = entry.waiters.shift()
-        if (next) next()
       }
     })
 
@@ -232,15 +262,14 @@ export function createWorkerThreadRunner({
     // When `selfExitExpected` is true the exit was triggered by the worker
     // itself after honoring `callbackWaitsForEmptyEventLoop = false` — the
     // result has already been posted and the parent already removed the entry
-    // from the pool (or is about to via the message handler).  Drop quietly.
+    // from the set (or is about to via the message handler).  Drop quietly.
     worker.once('exit', (code) => {
       if (selfExitExpected) {
-        // Expected self-exit: just ensure the entry is no longer in the pool.
-        if (pool.get(functionKey) === entry) {
-          pool.delete(functionKey)
-        }
+        // Expected self-exit: ensure the entry is no longer in the set.
+        set.delete(entry)
+        if (set.size === 0) pool.delete(functionKey)
         entry.state = 'terminating'
-        for (const next of entry.waiters.splice(0)) next()
+        _wakeCapWaiter(functionKey)
         return
       }
 
@@ -250,10 +279,10 @@ export function createWorkerThreadRunner({
           `Worker for "${functionKey}" exited unexpectedly with code ${code}`,
           'OFFLINE_WORKER_EXITED',
         )
-        if (pool.get(functionKey) === entry) {
-          pool.delete(functionKey)
-        }
+        set.delete(entry)
+        if (set.size === 0) pool.delete(functionKey)
         entry.state = 'terminating'
+        _wakeCapWaiter(functionKey)
         if (entry.pendingResult !== null) {
           if (entry.pendingTimeout !== null) {
             clearTimeout(entry.pendingTimeout)
@@ -263,7 +292,6 @@ export function createWorkerThreadRunner({
           entry.pendingResult = null
           rej(exitErr)
         }
-        for (const next of entry.waiters.splice(0)) next()
       }
     })
 
@@ -312,8 +340,6 @@ export function createWorkerThreadRunner({
       clearTimeout(entry.pendingTimeout)
       entry.pendingTimeout = null
     }
-    // Wake any waiters so they can re-check and spawn a fresh entry.
-    for (const next of entry.waiters.splice(0)) next()
     await entry.worker.terminate()
   }
 
@@ -325,11 +351,14 @@ export function createWorkerThreadRunner({
     /**
      * Invoke a Node handler in a pooled worker_threads.Worker.
      *
-     * The worker is kept alive after each invocation and reused on the next
-     * call with the same `functionKey`. It is evicted after
-     * `terminateIdleLambdaTime` seconds of inactivity.
+     * Concurrent invocations on the same `functionKey` run in parallel — each
+     * gets its own worker (or reuses an idle one). This matches real Lambda's
+     * concurrency model. Up to `maxConcurrentInvocations` workers are allowed
+     * per functionKey; beyond that, new invocations wait for a slot to free up.
      *
-     * Concurrent invocations on the same `functionKey` are serialized.
+     * Workers are kept alive after each invocation and are available for reuse
+     * by later invocations. They are evicted after `terminateIdleLambdaTime`
+     * seconds of inactivity.
      *
      * @param {object} args
      * @param {string} args.functionKey  Unique key per function (typically the function name).
@@ -354,23 +383,75 @@ export function createWorkerThreadRunner({
     }) {
       // eslint-disable-next-line no-constant-condition
       while (true) {
-        let entry = pool.get(functionKey)
-
-        // Evict stale entry when handler path/name changed (e.g. config reload).
-        if (
-          entry &&
-          (entry.handlerPath !== handlerPath ||
-            entry.handlerName !== handlerName)
-        ) {
-          pool.delete(functionKey)
-          await _terminateEntry(entry)
-          entry = null
+        let set = pool.get(functionKey)
+        if (!set) {
+          set = new Set()
+          pool.set(functionKey, set)
         }
 
-        // Spin a fresh entry if none exists.
+        // Evict stale entries (different handlerPath/handlerName) lazily.
+        // This handles config reloads where the handler file changed.
+        const staleEntries = []
+        for (const e of set) {
+          if (
+            e.state !== 'terminating' &&
+            (e.handlerPath !== handlerPath || e.handlerName !== handlerName)
+          ) {
+            staleEntries.push(e)
+          }
+        }
+        for (const e of staleEntries) {
+          set.delete(e)
+          _terminateEntry(e).catch(() => {})
+        }
+        if (staleEntries.length > 0 && set.size === 0) {
+          pool.delete(functionKey)
+        }
+
+        // Find an existing IDLE entry for this functionKey.
+        let entry = null
+        for (const e of set) {
+          if (
+            e.state === 'idle' &&
+            e.handlerPath === handlerPath &&
+            e.handlerName === handlerName
+          ) {
+            entry = e
+            break
+          }
+        }
+
+        // Check concurrency cap before spawning.
+        if (!entry && set.size >= maxConcurrentInvocations) {
+          // Wait for some entry to free up a slot.
+          await new Promise((resolve) => {
+            let waiters = capWaiters.get(functionKey)
+            if (!waiters) {
+              waiters = []
+              capWaiters.set(functionKey, waiters)
+            }
+            waiters.push({ resolve })
+          })
+          // Re-check pool after waking (the set reference may have been replaced).
+          continue
+        }
+
+        // No idle entry — spawn a new one.
         if (!entry) {
-          entry = _spawnEntry({ functionKey, handlerPath, handlerName })
-          pool.set(functionKey, entry)
+          // Re-fetch set in case pool was rebuilt during a prior await.
+          let currentSet = pool.get(functionKey)
+          if (!currentSet) {
+            currentSet = new Set()
+            pool.set(functionKey, currentSet)
+          }
+          entry = _spawnEntry({
+            functionKey,
+            handlerPath,
+            handlerName,
+            set: currentSet,
+          })
+          // Update local `set` reference so the cap check below is consistent.
+          set = currentSet
         }
 
         // Wait for the worker to signal it has imported the handler.
@@ -380,42 +461,20 @@ export function createWorkerThreadRunner({
           await entry.workerReady
         } catch {
           // The worker was cancelled before it became ready.
-          // If this entry is still in the pool (shouldn't be, but guard),
-          // remove it and try again.
-          if (pool.get(functionKey) === entry) {
-            pool.delete(functionKey)
-          }
-          // Retry — the outer loop will spin a fresh entry.
+          // The 'error'/'exit' handlers already removed it from the set.
+          // Retry — the outer loop will use an idle entry or spawn a fresh one.
           continue
         }
 
-        // After workerReady resolves, verify the entry is still in the pool.
+        // After workerReady resolves, verify the entry is still in the set.
         // invalidate() may have evicted it while we were awaiting.
-        if (pool.get(functionKey) !== entry) {
-          // Entry was evicted; retry with whatever is in the pool now (or fresh).
+        const currentSet = pool.get(functionKey)
+        if (!currentSet || !currentSet.has(entry)) {
+          // Entry was evicted; retry.
           continue
         }
 
-        // Serialize concurrent invocations on the same functionKey.
-        while (entry.state === 'busy') {
-          await new Promise((resolve) => {
-            entry.waiters.push(resolve)
-          })
-          // After waking, re-check that this entry is still the active one.
-          if (pool.get(functionKey) !== entry) {
-            // Entry was replaced (e.g. invalidated); restart the outer loop.
-            break
-          }
-        }
-
-        // If the entry is no longer in the pool (replaced while we waited),
-        // restart the outer loop to get the new entry.
-        if (pool.get(functionKey) !== entry) {
-          continue
-        }
-
-        // If the entry was terminated while we waited (e.g. by a timeout),
-        // restart to spawn a fresh one.
+        // Guard: entry may have been marked terminating between ready and here.
         if (entry.state === 'terminating') {
           continue
         }
@@ -428,6 +487,9 @@ export function createWorkerThreadRunner({
 
         entry.state = 'busy'
 
+        // Capture the set reference for use in the timeout closure below.
+        const entrySet = currentSet
+
         return new Promise((resolve, reject) => {
           entry.pendingResult = { resolve, reject }
 
@@ -435,16 +497,16 @@ export function createWorkerThreadRunner({
             entry.pendingTimeout = setTimeout(() => {
               entry.pendingTimeout = null
               entry.pendingResult = null
-              pool.delete(functionKey)
+              entrySet.delete(entry)
+              if (entrySet.size === 0) pool.delete(functionKey)
               _terminateEntry(entry).catch(() => {})
+              _wakeCapWaiter(functionKey)
               reject(
                 new ServerlessError(
                   `Lambda invocation timed out after ${timeoutMs} ms`,
                   'OFFLINE_HANDLER_TIMEOUT',
                 ),
               )
-              // Wake up any waiters so they can spawn a fresh worker.
-              for (const next of entry.waiters.splice(0)) next()
             }, timeoutMs)
           }
 
@@ -459,30 +521,36 @@ export function createWorkerThreadRunner({
     },
 
     /**
-     * Mark a function's worker as stale and terminate it.
+     * Mark all workers for a function as stale and terminate them.
      *
-     * If the worker is currently idle (or initializing), it is terminated
-     * immediately and the pool entry is removed. The next `invoke()` call for
-     * this `functionKey` will spawn a fresh worker that imports the current
-     * code on disk.
-     *
-     * If the worker is busy, it is marked for termination after the current
-     * invocation completes — the in-flight invocation is not interrupted.
+     * Idle workers are terminated immediately. Busy workers are marked for
+     * termination after their current invocation completes — in-flight calls
+     * are not interrupted.
      *
      * @param {string} functionKey
      */
     invalidate(functionKey) {
-      const entry = pool.get(functionKey)
-      if (!entry) return
+      const set = pool.get(functionKey)
+      if (!set) return
 
-      if (entry.state === 'busy') {
-        // Let the current invocation finish; then terminate.
-        entry.terminateAfterCurrent = true
-      } else {
-        // Idle or still initializing — terminate immediately.
-        pool.delete(functionKey)
-        _terminateEntry(entry).catch(() => {})
+      for (const entry of set) {
+        if (entry.state === 'idle' || entry.state === 'spawning') {
+          // Terminate immediately.
+          set.delete(entry)
+          _terminateEntry(entry).catch(() => {})
+        } else if (entry.state === 'busy') {
+          // Let the current invocation finish; then terminate.
+          entry.terminateAfterCurrent = true
+        }
+        // 'terminating' entries are already on their way out — skip.
       }
+
+      if (set.size === 0 || [...set].every((e) => e.state === 'terminating')) {
+        pool.delete(functionKey)
+      }
+
+      // Wake cap-waiters so they can try again (the pool shrank).
+      _wakeCapWaiter(functionKey)
     },
 
     /**
@@ -495,9 +563,23 @@ export function createWorkerThreadRunner({
      * @returns {Promise<void>}
      */
     async terminate() {
-      const entries = [...pool.values()]
+      const terminatePromises = []
+
+      for (const [, set] of pool) {
+        for (const entry of set) {
+          terminatePromises.push(_terminateEntry(entry).catch(() => {}))
+        }
+        set.clear()
+      }
       pool.clear()
-      await Promise.all(entries.map((e) => _terminateEntry(e).catch(() => {})))
+
+      // Wake all cap-waiters so their invoke() calls can fail-fast or retry.
+      for (const [, waiters] of capWaiters) {
+        while (waiters.length) waiters.shift().resolve()
+      }
+      capWaiters.clear()
+
+      await Promise.all(terminatePromises)
     },
   }
 

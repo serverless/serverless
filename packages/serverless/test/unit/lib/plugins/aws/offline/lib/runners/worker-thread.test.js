@@ -733,35 +733,89 @@ describe('createWorkerThreadRunner', () => {
     await expect(r.terminate()).resolves.toBeUndefined()
   })
 
-  // Pool-7: concurrent invocations on the same function are serialized
-  it('pool: concurrent invocations on the same functionKey are serialized', async () => {
+  // Pool-7: concurrent invocations on the same functionKey run in PARALLEL
+  it('pool: concurrent invocations on the same functionKey run in parallel', async () => {
     const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
 
-    // Handler appends to a shared sequence array.
+    // Handler sleeps 200ms then returns timestamps — used to detect overlap.
     const handlerPath = await writeTmpHandler(
-      `const seq = []
-       export const handler = async (event) => {
-         seq.push(event.n + ':start')
-         await new Promise(res => setTimeout(res, 20))
-         seq.push(event.n + ':end')
-         return seq.slice()
+      `export const handler = async () => {
+         const start = Date.now()
+         await new Promise(res => setTimeout(res, 200))
+         return { start, end: Date.now() }
        }`,
     )
-    const invoke = (n) =>
+    const args = {
+      functionKey: 'pool-7',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'fn',
+        awsRequestId: 'r',
+        invokedFunctionArn: 'arn',
+      },
+      timeoutMs: 5000,
+    }
+
+    // Fire two invocations concurrently — they should run in parallel.
+    const [a, b] = await Promise.all([r.invoke(args), r.invoke(args)])
+
+    // Each invocation should have taken at least 200ms on its own worker.
+    expect(a.end - a.start).toBeGreaterThanOrEqual(150)
+    expect(b.end - b.start).toBeGreaterThanOrEqual(150)
+
+    // The two invocations must overlap in time (parallel, not serial).
+    // If they ran serially, total time would be ~400ms and min(end) > max(start)+200.
+    const overlapWindow = Math.min(a.end, b.end) - Math.max(a.start, b.start)
+    expect(overlapWindow).toBeGreaterThan(50)
+
+    await r.terminate()
+  })
+
+  // Pool-7b: concurrency cap — when maxConcurrentInvocations is reached, new invocations wait
+  it('pool: respects maxConcurrentInvocations cap — extra invocations wait for a free slot', async () => {
+    const r = createWorkerThreadRunner({
+      servicePath: os.tmpdir(),
+      maxConcurrentInvocations: 2,
+    })
+
+    // Handler sleeps 100ms — long enough to guarantee overlap.
+    const handlerPath = await writeTmpHandler(
+      `export const handler = async () => {
+         const start = Date.now()
+         await new Promise(res => setTimeout(res, 100))
+         return { start, end: Date.now() }
+       }`,
+    )
+    const invoke = () =>
       r.invoke({
-        functionKey: 'pool-7',
+        functionKey: 'pool-7b',
         handlerPath,
         handlerName: 'handler',
-        event: { n },
-        context: {},
+        event: {},
+        context: {
+          functionName: 'fn',
+          awsRequestId: 'r',
+          invokedFunctionArn: 'arn',
+        },
+        timeoutMs: 5000,
       })
 
-    // Fire two invocations without awaiting between them.
-    const [r1, r2] = await Promise.all([invoke(1), invoke(2)])
+    // Fire 3 concurrent invocations. With cap=2, the first two should start
+    // together; the third must wait until one of the first two finishes.
+    const globalStart = Date.now()
+    const [a, b, c] = await Promise.all([invoke(), invoke(), invoke()])
+    const totalElapsed = Date.now() - globalStart
 
-    // Invocation 1 must have fully completed before invocation 2 started.
-    expect(r1).toEqual(['1:start', '1:end'])
-    expect(r2).toEqual(['1:start', '1:end', '2:start', '2:end'])
+    // All three should succeed.
+    expect(a.end).toBeGreaterThan(a.start)
+    expect(b.end).toBeGreaterThan(b.start)
+    expect(c.end).toBeGreaterThan(c.start)
+
+    // Total elapsed must be >= 200ms (two serial batches of 100ms each).
+    // If all three ran in parallel it would be ~100ms — so this catches a broken cap.
+    expect(totalElapsed).toBeGreaterThanOrEqual(150)
 
     await r.terminate()
   })
