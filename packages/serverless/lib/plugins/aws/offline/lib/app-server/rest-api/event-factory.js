@@ -15,6 +15,7 @@
 import crypto from 'node:crypto'
 import { FAKE_ACCOUNT_ID } from '../../constants.js'
 import { parseJsonSafe } from '../shared/json-utils.js'
+import { formatClfTime } from '../shared/clf-time.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -68,44 +69,6 @@ function resolveAuthorizer(request) {
   }
 
   return undefined
-}
-
-/**
- * Month abbreviations indexed by `Date#getUTCMonth()` (0-based).
- *
- * @type {string[]}
- */
-const MONTH_ABBR = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-]
-
-/**
- * Format a `Date` as the APIGW Common Log Format timestamp used for
- * `requestContext.requestTime`: `dd/Mon/YYYY:HH:MM:SS +0000`.
- *
- * @param {Date} date
- * @returns {string}
- */
-function formatClfTime(date) {
-  const pad = (n) => String(n).padStart(2, '0')
-  const dd = pad(date.getUTCDate())
-  const mon = MONTH_ABBR[date.getUTCMonth()]
-  const yyyy = date.getUTCFullYear()
-  const hh = pad(date.getUTCHours())
-  const mm = pad(date.getUTCMinutes())
-  const ss = pad(date.getUTCSeconds())
-  return `${dd}/${mon}/${yyyy}:${hh}:${mm}:${ss} +0000`
 }
 
 /**

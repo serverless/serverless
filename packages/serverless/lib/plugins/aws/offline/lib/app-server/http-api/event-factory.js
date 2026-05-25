@@ -11,6 +11,7 @@
 import crypto from 'node:crypto'
 import { FAKE_ACCOUNT_ID } from '../../constants.js'
 import { parseJsonSafe } from '../shared/json-utils.js'
+import { formatClfTime } from '../shared/clf-time.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -71,48 +72,6 @@ function isBinaryContentType(contentType) {
   if (!contentType) return false
   const ct = contentType.toLowerCase()
   return BINARY_CONTENT_TYPES.some((prefix) => ct.startsWith(prefix))
-}
-
-/**
- * Month abbreviations indexed by `Date#getUTCMonth()` (0-based).
- *
- * @type {string[]}
- */
-const MONTH_ABBR = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-]
-
-/**
- * Format a `Date` as the APIGW access-log timestamp:
- * `dd/Mon/YYYY:HH:MM:SS +0000`
- *
- * This is the strftime pattern `%d/%b/%Y:%H:%M:%S %z` with UTC offset.
- *
- * @param {Date} date
- * @returns {string}
- */
-function formatApigwTime(date) {
-  const pad = (n) => String(n).padStart(2, '0')
-
-  const dd = pad(date.getUTCDate())
-  const mon = MONTH_ABBR[date.getUTCMonth()]
-  const yyyy = date.getUTCFullYear()
-  const hh = pad(date.getUTCHours())
-  const mm = pad(date.getUTCMinutes())
-  const ss = pad(date.getUTCSeconds())
-
-  return `${dd}/${mon}/${yyyy}:${hh}:${mm}:${ss} +0000`
 }
 
 /**
@@ -315,7 +274,7 @@ export function buildHttpApiV2Event({
   const receivedMs = request.info?.received ?? Date.now()
   const now = new Date(receivedMs)
   const timeEpoch = receivedMs
-  const time = formatApigwTime(now)
+  const time = formatClfTime(now)
 
   // Body + isBase64Encoded.
   // Always emit both fields: AWS always includes body (null when absent) and
