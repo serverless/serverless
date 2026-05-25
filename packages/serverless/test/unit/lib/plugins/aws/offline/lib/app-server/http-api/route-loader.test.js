@@ -1036,4 +1036,34 @@ describe('registerHttpApiRoutes — provider.httpApi.cors (closes audit #16)', (
     )
     expect(allowOrigin?.value).toBe('https://example.com')
   })
+
+  it('cors:true also adds CORS headers to non-OPTIONS responses', async () => {
+    const server = await makeServer()
+    registerHttpApiRoutes({
+      server,
+      serverless: {
+        service: {
+          provider: { httpApi: { cors: true } },
+          functions: {
+            a: { events: [{ httpApi: 'GET /a' }] },
+          },
+        },
+      },
+      stage: 'dev',
+      domainName: 'localhost:3000',
+      onRequest: async () => ({ statusCode: 200, body: 'ok' }),
+    })
+    await server.start()
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/a',
+        headers: { origin: 'https://example.com' },
+      })
+      expect(res.statusCode).toBe(200)
+      expect(res.headers['access-control-allow-origin']).toBe('*')
+    } finally {
+      await server.stop({ timeout: 5000 })
+    }
+  })
 })

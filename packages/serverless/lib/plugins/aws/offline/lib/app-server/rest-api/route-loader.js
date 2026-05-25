@@ -20,6 +20,7 @@ import { translateRestPath, buildMountedPath } from './path-translator.js'
 import {
   normalizeCorsConfig,
   buildCorsOptionsRoute,
+  applyCorsResponseHeaders,
 } from '../shared/cors-options.js'
 
 // ---------------------------------------------------------------------------
@@ -188,6 +189,15 @@ export function registerRestApiRoutes({
             }
           : {}
 
+      // CORS preflight — only the long-form event object can declare it;
+      // short-form strings ("GET /users") have no place for the cors field.
+      // Resolved up here so the request handler closure can also use it to
+      // decorate non-OPTIONS responses with the right CORS response headers.
+      const corsConfig =
+        typeof eventEntry.http === 'object'
+          ? normalizeCorsConfig(eventEntry.http.cors)
+          : null
+
       server.route({
         method: hapiMethod,
         path: mountedPath,
@@ -210,7 +220,19 @@ export function registerRestApiRoutes({
               stage,
             })
             const result = await onRequest(functionKey, event)
-            return formatRestApiResponse(result, h)
+            const response = formatRestApiResponse(result, h)
+            // Real APIGW adds Access-Control-Allow-Origin (and friends) to
+            // every successful response from a CORS-enabled endpoint, not
+            // just to the OPTIONS preflight. Without it the browser blocks
+            // the response even though the server returned a 200.
+            if (corsConfig) {
+              applyCorsResponseHeaders(
+                response,
+                corsConfig,
+                request.headers?.origin,
+              )
+            }
+            return response
           } catch (err) {
             console.error(`[offline] Error in ${functionKey}:`, err)
             return h
@@ -228,12 +250,6 @@ export function registerRestApiRoutes({
         functionKey,
       })
 
-      // CORS preflight — only the long-form event object can declare it;
-      // short-form strings ("GET /users") have no place for the cors field.
-      const corsConfig =
-        typeof eventEntry.http === 'object'
-          ? normalizeCorsConfig(eventEntry.http.cors)
-          : null
       if (corsConfig && !corsMounted.has(mountedPath)) {
         server.route(buildCorsOptionsRoute({ path: mountedPath, corsConfig }))
         corsMounted.add(mountedPath)

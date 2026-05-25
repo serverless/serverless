@@ -1,6 +1,8 @@
 import {
   normalizeCorsConfig,
   buildCorsOptionsRoute,
+  resolveAllowOrigin,
+  applyCorsResponseHeaders,
 } from '../../../../../../../../../lib/plugins/aws/offline/lib/app-server/shared/cors-options.js'
 
 describe('normalizeCorsConfig', () => {
@@ -248,5 +250,122 @@ describe('buildCorsOptionsRoute', () => {
     expect(namedHeaders(h.calls)['access-control-allow-origin']).toBe(
       'https://a.com',
     )
+  })
+})
+
+describe('resolveAllowOrigin', () => {
+  it('returns "*" under AWS defaults', () => {
+    const cfg = normalizeCorsConfig(true)
+    expect(resolveAllowOrigin(cfg, 'https://example.com')).toBe('*')
+  })
+
+  it('echoes request origin when "*" + credentials true + origin present', () => {
+    const cfg = normalizeCorsConfig({ origin: '*', allowCredentials: true })
+    expect(resolveAllowOrigin(cfg, 'https://example.com')).toBe(
+      'https://example.com',
+    )
+  })
+
+  it('falls back to "*" when "*" + credentials true + no origin', () => {
+    const cfg = normalizeCorsConfig({ origin: '*', allowCredentials: true })
+    expect(resolveAllowOrigin(cfg, undefined)).toBe('*')
+  })
+
+  it('echoes request origin when in allow-list', () => {
+    const cfg = normalizeCorsConfig({
+      origins: ['https://a.com', 'https://b.com'],
+    })
+    expect(resolveAllowOrigin(cfg, 'https://b.com')).toBe('https://b.com')
+  })
+
+  it('returns first configured origin when request origin not in list', () => {
+    const cfg = normalizeCorsConfig({
+      origins: ['https://a.com', 'https://b.com'],
+    })
+    expect(resolveAllowOrigin(cfg, 'https://evil.com')).toBe('https://a.com')
+  })
+})
+
+describe('applyCorsResponseHeaders', () => {
+  function makeResponse() {
+    const calls = { headers: [] }
+    return {
+      calls,
+      header(name, value) {
+        calls.headers.push({ name, value })
+        return this
+      },
+    }
+  }
+  const named = (calls) =>
+    Object.fromEntries(
+      calls.headers.map((x) => [x.name.toLowerCase(), x.value]),
+    )
+
+  it('adds Allow-Origin (defaults: "*")', () => {
+    const r = makeResponse()
+    applyCorsResponseHeaders(
+      r,
+      normalizeCorsConfig(true),
+      'https://example.com',
+    )
+    expect(named(r.calls)['access-control-allow-origin']).toBe('*')
+  })
+
+  it('omits Allow-Credentials when allowCredentials false', () => {
+    const r = makeResponse()
+    applyCorsResponseHeaders(r, normalizeCorsConfig(true), undefined)
+    expect(named(r.calls)['access-control-allow-credentials']).toBeUndefined()
+  })
+
+  it('adds Allow-Credentials: true when allowCredentials configured', () => {
+    const r = makeResponse()
+    applyCorsResponseHeaders(
+      r,
+      normalizeCorsConfig({ origin: 'https://x.com', allowCredentials: true }),
+      'https://x.com',
+    )
+    expect(named(r.calls)['access-control-allow-credentials']).toBe('true')
+  })
+
+  it('adds Expose-Headers when configured', () => {
+    const r = makeResponse()
+    applyCorsResponseHeaders(
+      r,
+      normalizeCorsConfig({ exposedHeaders: ['X-Total-Count'] }),
+      undefined,
+    )
+    expect(named(r.calls)['access-control-expose-headers']).toBe(
+      'X-Total-Count',
+    )
+  })
+
+  it('omits Expose-Headers when empty', () => {
+    const r = makeResponse()
+    applyCorsResponseHeaders(r, normalizeCorsConfig(true), undefined)
+    expect(named(r.calls)['access-control-expose-headers']).toBeUndefined()
+  })
+
+  it('does NOT add Allow-Headers, Allow-Methods, Max-Age (those are preflight-only)', () => {
+    const r = makeResponse()
+    applyCorsResponseHeaders(
+      r,
+      normalizeCorsConfig({
+        origin: 'https://x.com',
+        headers: ['X-Custom'],
+        methods: ['GET'],
+        maxAge: 3600,
+      }),
+      'https://x.com',
+    )
+    expect(named(r.calls)['access-control-allow-headers']).toBeUndefined()
+    expect(named(r.calls)['access-control-allow-methods']).toBeUndefined()
+    expect(named(r.calls)['access-control-max-age']).toBeUndefined()
+  })
+
+  it('returns the response object (allows chaining)', () => {
+    const r = makeResponse()
+    const out = applyCorsResponseHeaders(r, normalizeCorsConfig(true), '*')
+    expect(out).toBe(r)
   })
 })

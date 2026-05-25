@@ -316,6 +316,31 @@ describe('registerRestApiRoutes — live request via server.inject()', () => {
       message: 'Internal server error',
     })
   })
+
+  it('per-route cors:true adds CORS headers to non-OPTIONS responses', async () => {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    registerRestApiRoutes({
+      server,
+      serverless: makeServerless({
+        getUser: {
+          events: [
+            { http: { method: 'GET', path: '/users/{id}', cors: true } },
+          ],
+        },
+      }),
+      stage: 'dev',
+      onRequest: async () => ({ statusCode: 200, body: 'ok' }),
+    })
+    await server.start()
+
+    const res = await server.inject({
+      method: 'GET',
+      url: '/dev/users/42',
+      headers: { origin: 'https://example.com' },
+    })
+    expect(res.statusCode).toBe(200)
+    expect(res.headers['access-control-allow-origin']).toBe('*')
+  })
 })
 
 describe('registerRestApiRoutes — CORS', () => {

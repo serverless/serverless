@@ -115,11 +115,11 @@ export function normalizeCorsConfig(cors) {
 }
 
 /**
- * Build a Hapi route config that responds to OPTIONS preflight requests with
- * the configured Access-Control-* headers and a 204 status.
+ * Compute the value to use for the `Access-Control-Allow-Origin` response
+ * header given the request origin and the normalized CORS config.
  *
- * The handler computes `Access-Control-Allow-Origin` as follows:
- *  - If origins include `*`:
+ * Resolution rules (matching real APIGW):
+ *  - If the allow-list contains `*`:
  *      - `allowCredentials` is true AND request carries `Origin` → echo it
  *        (the spec forbids `*` together with credentials).
  *      - Otherwise → `*`.
@@ -128,6 +128,72 @@ export function normalizeCorsConfig(cors) {
  *  - Else → the first configured origin (APIGW still sends a header with a
  *    fixed value rather than omitting it).
  *
+ * Shared by both the OPTIONS preflight handler and the non-OPTIONS response
+ * header injector so the two code paths cannot drift.
+ *
+ * @param {ReturnType<typeof normalizeCorsConfig>} corsConfig
+ * @param {string | undefined} requestOrigin
+ * @returns {string}
+ */
+export function resolveAllowOrigin(corsConfig, requestOrigin) {
+  if (corsConfig.origins.includes('*')) {
+    if (corsConfig.allowCredentials && requestOrigin) {
+      return requestOrigin
+    }
+    return '*'
+  }
+  if (requestOrigin && corsConfig.origins.includes(requestOrigin)) {
+    return requestOrigin
+  }
+  return corsConfig.origins[0]
+}
+
+/**
+ * Add CORS response headers to a non-OPTIONS Hapi response. Real APIGW adds
+ * these to every successful response from a CORS-enabled endpoint so the
+ * browser doesn't block cross-origin requests after a preflight succeeds —
+ * without them, a successful 200 from a different origin is dropped by the
+ * browser and the caller sees a CORS error despite the server having
+ * responded normally.
+ *
+ * Emits:
+ *  - Access-Control-Allow-Origin (always; value resolved via resolveAllowOrigin)
+ *  - Access-Control-Allow-Credentials: 'true' (only when corsConfig.allowCredentials)
+ *  - Access-Control-Expose-Headers (only when exposedHeaders.length > 0)
+ *
+ * Does NOT emit Allow-Headers, Allow-Methods, or Max-Age — those are
+ * preflight-only per the AWS spec and have no meaning on a regular response.
+ *
+ * @param {import('@hapi/hapi').ResponseObject} response
+ * @param {ReturnType<typeof normalizeCorsConfig>} corsConfig
+ * @param {string | undefined} requestOrigin
+ * @returns {import('@hapi/hapi').ResponseObject} The same response, mutated.
+ */
+export function applyCorsResponseHeaders(response, corsConfig, requestOrigin) {
+  const allowOrigin = resolveAllowOrigin(corsConfig, requestOrigin)
+  response.header('Access-Control-Allow-Origin', allowOrigin)
+
+  if (corsConfig.allowCredentials) {
+    response.header('Access-Control-Allow-Credentials', 'true')
+  }
+
+  if (corsConfig.exposedHeaders.length > 0) {
+    response.header(
+      'Access-Control-Expose-Headers',
+      corsConfig.exposedHeaders.join(','),
+    )
+  }
+
+  return response
+}
+
+/**
+ * Build a Hapi route config that responds to OPTIONS preflight requests with
+ * the configured Access-Control-* headers and a 204 status.
+ *
+ * Origin resolution is delegated to `resolveAllowOrigin` so preflight and
+ * non-preflight responses share the exact same rules.
+ *
  * @param {{ path: string, corsConfig: ReturnType<typeof normalizeCorsConfig> }} params
  * @returns {{ method: 'OPTIONS', path: string, handler: Function }}
  */
@@ -135,19 +201,7 @@ export function buildCorsOptionsRoute({ path, corsConfig }) {
   return {
     handler(request, h) {
       const requestOrigin = request.headers?.origin
-
-      let allowOrigin
-      if (corsConfig.origins.includes('*')) {
-        if (corsConfig.allowCredentials && requestOrigin) {
-          allowOrigin = requestOrigin
-        } else {
-          allowOrigin = '*'
-        }
-      } else if (requestOrigin && corsConfig.origins.includes(requestOrigin)) {
-        allowOrigin = requestOrigin
-      } else {
-        allowOrigin = corsConfig.origins[0]
-      }
+      const allowOrigin = resolveAllowOrigin(corsConfig, requestOrigin)
 
       let response = h
         .response('')

@@ -10,6 +10,7 @@ import { buildHttpApiV2Event } from './event-factory.js'
 import {
   normalizeCorsConfig,
   buildCorsOptionsRoute,
+  applyCorsResponseHeaders,
 } from '../shared/cors-options.js'
 
 // ---------------------------------------------------------------------------
@@ -292,7 +293,19 @@ export function registerHttpApiRoutes({
               domainName,
             })
             const result = await onRequest(functionKey, event)
-            return formatLambdaResponseAsHapi(result, h)
+            const response = formatLambdaResponseAsHapi(result, h)
+            // Real APIGW adds Access-Control-Allow-Origin (and friends) to
+            // every successful response from a CORS-enabled HTTP API, not
+            // just to the OPTIONS preflight. Without it the browser blocks
+            // the response even though the server returned a 200.
+            if (httpApiCorsConfig) {
+              applyCorsResponseHeaders(
+                response,
+                httpApiCorsConfig,
+                request.headers?.origin,
+              )
+            }
+            return response
           } catch (err) {
             if (typeof serverless.serverlessLog === 'function') {
               serverless.serverlessLog(
