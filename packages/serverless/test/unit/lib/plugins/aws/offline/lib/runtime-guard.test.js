@@ -228,6 +228,11 @@ describe('assertSupportedRuntimes', () => {
     expect(() => assertSupportedRuntimes(sls)).not.toThrow()
   })
 
+  it('accepts provided.al2023 as a valid custom runtime', () => {
+    const sls = makeServerless('provided.al2023', { fn: {} })
+    expect(() => assertSupportedRuntimes(sls)).not.toThrow()
+  })
+
   it('accepts a mixed nodejs* + python3.x + ruby3.x + go*.x service', () => {
     const sls = makeServerless('nodejs20.x', {
       n: { runtime: 'nodejs22.x' },

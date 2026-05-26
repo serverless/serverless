@@ -16,7 +16,7 @@ const SUPPORTED_RUNTIME_REGEXES = [
   /^python\d+\.\d+$/, // python3.11, python3.12, python3.13
   /^ruby\d+\.\d+$/, // ruby3.2, ruby3.3, ruby3.4
   /^go\d+\.x?$/, // go1.x (legacy AL1 runtime family)
-  /^provided\.al2?$/, // provided.al, provided.al2 (used by current aws-lambda-go builds)
+  /^provided\.(al|al2|al2023)$/, // provided.al, provided.al2, provided.al2023 (custom runtimes — Go via aws-lambda-go, Java native-image, etc.)
   /^java\d+(\.al2)?$/, // java8.al2, java11, java17, java21, future java25+
 ]
 

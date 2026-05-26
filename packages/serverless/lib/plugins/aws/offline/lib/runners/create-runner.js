@@ -26,7 +26,7 @@ function _resolveRunnerKind(args, useInProcess) {
   if (/^ruby\d+\.\d+$/.test(runtime)) return 'ruby'
   if (/^go\d+\.x?$/.test(runtime)) return 'go'
   if (/^java\d+(\.al2)?$/.test(runtime)) return 'java'
-  if (/^provided\.al2?$/.test(runtime)) {
+  if (/^provided\.(al|al2|al2023)$/.test(runtime)) {
     const artifactPath = args?.artifactPath ?? ''
     return artifactPath.endsWith('.jar') ? 'java' : 'go'
   }
