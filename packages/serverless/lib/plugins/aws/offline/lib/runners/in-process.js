@@ -94,7 +94,14 @@ export function createInProcessRunner() {
      * @param {number} [args.timeoutMs]
      * @returns {Promise<unknown>}
      */
-    async invoke({ handlerPath, handlerName, event, context, environment }) {
+    async invoke({
+      handlerPath,
+      handlerName,
+      event,
+      context,
+      environment,
+      timeoutMs,
+    }) {
       const region = context?.region ?? process.env.AWS_REGION ?? 'us-east-1'
       const functionName = context?.functionName
       const memoryLimitInMB = String(context?.memoryLimitInMB ?? 1024)
@@ -169,6 +176,24 @@ export function createInProcessRunner() {
         },
       }
 
+      // Timeout candidate for the race: armed only when timeoutMs is set.
+      // The Lambda facade omits timeoutMs under `--noTimeout`; in that mode
+      // we must not arm the timer (it would force-reject otherwise-valid
+      // long-running handlers).
+      let timeoutId
+      const timeoutPromise =
+        timeoutMs == null
+          ? null
+          : new Promise((_res, rej) => {
+              timeoutId = setTimeout(() => {
+                rej(
+                  new Error(
+                    `Task timed out after ${(timeoutMs / 1000).toFixed(2)} seconds`,
+                  ),
+                )
+              }, timeoutMs)
+            })
+
       Object.assign(process.env, fullEnv)
       try {
         const handler = await loadHandler(handlerPath, handlerName)
@@ -187,8 +212,12 @@ export function createInProcessRunner() {
             candidates.push(Promise.resolve(ret))
           }
         }
+        if (timeoutPromise !== null) candidates.push(timeoutPromise)
         return await Promise.race(candidates)
       } finally {
+        // Clear the pending timer so it doesn't keep the event loop alive
+        // after the race has resolved by some other candidate.
+        if (timeoutId !== undefined) clearTimeout(timeoutId)
         for (const [key, prior] of Object.entries(snapshot)) {
           if (prior === undefined) {
             delete process.env[key]

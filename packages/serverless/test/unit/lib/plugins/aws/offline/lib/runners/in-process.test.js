@@ -221,4 +221,47 @@ describe('createInProcessRunner', () => {
     })
     expect(result).toEqual({ via: 'callback-first' })
   })
+
+  it('rejects with a timeout error when handler exceeds args.timeoutMs', async () => {
+    const runner = createInProcessRunner()
+    await expect(
+      runner.invoke({
+        functionKey: 'slow',
+        handlerPath: path.join(FIXTURES, 'slow.mjs'),
+        handlerName: 'handler',
+        event: {},
+        context: {
+          functionName: 'slow',
+          awsRequestId: 'r-slow',
+          invokedFunctionArn: 'arn:aws:lambda:us-east-1:0:function:slow',
+          memoryLimitInMB: '128',
+          timeoutMs: 50,
+          handler: 'src/slow.handler',
+        },
+        environment: {},
+        timeoutMs: 50,
+      }),
+    ).rejects.toThrow(/Task timed out/)
+  })
+
+  it('does NOT arm a timer when args.timeoutMs is undefined (--noTimeout parity)', async () => {
+    const runner = createInProcessRunner()
+    // Handler takes ~200ms; with no timeoutMs the runner must not abort it.
+    const result = await runner.invoke({
+      functionKey: 'slow',
+      handlerPath: path.join(FIXTURES, 'slow.mjs'),
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'slow',
+        awsRequestId: 'r-slow2',
+        invokedFunctionArn: 'arn:aws:lambda:us-east-1:0:function:slow',
+        memoryLimitInMB: '128',
+        handler: 'src/slow.handler',
+      },
+      environment: {},
+      // args.timeoutMs intentionally omitted
+    })
+    expect(result).toEqual({ slept: true })
+  })
 })
