@@ -137,6 +137,23 @@ const resolveLoadedModule = async (
   resolveVariableFunc,
   resolveConfigurationPropertyFunc,
 ) => {
+  // CJS<->ESM interop unwrap. When a transpiler (Babel, TypeScript, esbuild,
+  // tsx, ...) emits an ESM source as CJS, it marks the wrapping exports
+  // object with `__esModule: true` and puts the user's real default export
+  // at `.default`. Native dynamic `import()` collapses that layer for us;
+  // tsx's `tsImport` does not, so for a `.ts` file with `export default X`
+  // we see `{ default: { __esModule: true, default: X, ...named } }`. The
+  // inner namespace has a null prototype and crashes the resolver manager
+  // when it tries to interpolate it into a string. Peel one layer if the
+  // marker is present so the rest of this function operates on the user's
+  // intended module shape regardless of loader.
+  if (
+    module?.default &&
+    typeof module.default === 'object' &&
+    module.default.__esModule
+  ) {
+    module = module.default
+  }
   // ESM dynamic import returns an object with a `default` property
   // CommonJS `require` returns the exported value directly
   // We normalize the behavior to return the exported value directly

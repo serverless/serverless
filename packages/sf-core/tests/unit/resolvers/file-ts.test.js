@@ -214,3 +214,148 @@ describe('File Resolver - TS module resolution', () => {
     expect(mockTsImport).not.toHaveBeenCalled()
   })
 })
+
+describe('File Resolver - TS module __esModule unwrap', () => {
+  // tsx's `tsImport` compiles ESM-default-export TS to CJS-with-__esModule
+  // and returns a nested namespace: { default: { __esModule: true, default: X, ...named } }.
+  // The resolver unwraps one layer when it sees the `__esModule` marker so
+  // the value the rest of the pipeline operates on is the user's intended
+  // module shape, not tsx's interop wrapper. Without the unwrap, a
+  // selector-less `${file(./mod.ts)}` returned a null-prototype Module
+  // Namespace exotic that crashed downstream string interpolation in the
+  // resolver manager with `TypeError: Cannot convert object to primitive value`.
+  beforeEach(() => {
+    mockTsImport.mockReset()
+  })
+
+  test('returns the inner default for a selector-less reference to a default-only TS module', async () => {
+    // Shape emitted by tsx for: `export default { apiKey: 'k', region: 'r' }`.
+    mockTsImport.mockResolvedValue({
+      default: {
+        __esModule: true,
+        default: { apiKey: 'k', region: 'r' },
+      },
+    })
+
+    const result = await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'secrets.ts',
+    })
+
+    expect(result).toEqual({ apiKey: 'k', region: 'r' })
+  })
+
+  test('returns a plain object (not a null-prototype namespace) so downstream string interpolation works', async () => {
+    mockTsImport.mockResolvedValue({
+      default: {
+        __esModule: true,
+        default: { apiKey: 'k' },
+      },
+    })
+
+    const result = await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'secrets.ts',
+    })
+
+    expect(Object.getPrototypeOf(result)).toBe(Object.prototype)
+    // The exact symptom of the regression: `String.replace(/x/, result)`
+    // coerces `result` to primitive. A null-prototype namespace threw here.
+    expect('x'.replace('x', result)).toBe('[object Object]')
+  })
+
+  test('resolves a property selector against a named export under the __esModule wrap', async () => {
+    // Shape for: `export const getSecrets = async () => ({...})`.
+    const getSecrets = jest.fn().mockResolvedValue({ apiKey: 'from-fn' })
+    mockTsImport.mockResolvedValue({
+      default: {
+        __esModule: true,
+        getSecrets,
+      },
+    })
+
+    const result = await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'secrets.ts#getSecrets',
+    })
+
+    expect(result).toEqual({ apiKey: 'from-fn' })
+    expect(getSecrets).toHaveBeenCalledTimes(1)
+  })
+
+  test('resolves a property selector against the default-export object under the __esModule wrap', async () => {
+    // Mixed shape: both `export default {...}` and `export const … = …`.
+    mockTsImport.mockResolvedValue({
+      default: {
+        __esModule: true,
+        default: { apiKey: 'k' },
+        other: 'unused',
+      },
+    })
+
+    const result = await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'secrets.ts#apiKey',
+    })
+
+    expect(result).toBe('k')
+  })
+
+  test('invokes an async default-export function under the __esModule wrap', async () => {
+    const ran = jest.fn().mockResolvedValue({ apiKey: 'fn-result' })
+    mockTsImport.mockResolvedValue({
+      default: {
+        __esModule: true,
+        default: ran,
+      },
+    })
+
+    const result = await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'secrets.ts',
+    })
+
+    expect(result).toEqual({ apiKey: 'fn-result' })
+    expect(ran).toHaveBeenCalledTimes(1)
+    const ctx = ran.mock.calls[0][0]
+    expect(ctx).toHaveProperty('options')
+    expect(typeof ctx.resolveVariable).toBe('function')
+    expect(typeof ctx.resolveConfigurationProperty).toBe('function')
+  })
+
+  test('does not unwrap when __esModule marker is absent (pre-existing tsx/native shape)', async () => {
+    // Mirror of the pre-existing top-level test for default-export objects:
+    // returns `module.default` verbatim, no extra layer to peel.
+    mockTsImport.mockResolvedValue({
+      default: { apiKey: 'k', __esModule: false },
+    })
+
+    const result = await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'secrets.ts',
+    })
+
+    expect(result).toEqual({ apiKey: 'k', __esModule: false })
+  })
+
+  test('does not unwrap when the default export is not an object', async () => {
+    // `export default 42` — `__esModule` lookup would short-circuit on a
+    // non-object anyway, but assert it explicitly so a future refactor
+    // doesn't introduce a NPE here.
+    mockTsImport.mockResolvedValue({ default: 42 })
+
+    const result = await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'secrets.ts',
+    })
+
+    expect(result).toBe(42)
+  })
+})
