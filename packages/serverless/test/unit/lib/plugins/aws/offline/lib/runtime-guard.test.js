@@ -39,7 +39,7 @@ describe('assertSupportedRuntimes', () => {
   })
 
   it('throws when provider runtime is unsupported and no function overrides it', () => {
-    const sls = makeServerless('go1.x', {
+    const sls = makeServerless('java21', {
       myFn: {},
       otherFn: {},
     })
@@ -49,7 +49,7 @@ describe('assertSupportedRuntimes', () => {
   })
 
   it('lists every offending function and its runtime in the error message', () => {
-    const sls = makeServerless('go1.x', {
+    const sls = makeServerless('java21', {
       myFn: {},
       otherFn: {},
     })
@@ -60,13 +60,13 @@ describe('assertSupportedRuntimes', () => {
       error = err
     }
     expect(error.message).toContain('myFn')
-    expect(error.message).toContain('go1.x')
+    expect(error.message).toContain('java21')
     expect(error.message).toContain('otherFn')
   })
 
   it('function-level supported runtime override makes that function pass even with unsupported provider', () => {
-    // otherFn inherits go1.x → still throws; nodeOnlyFn is fine on its own
-    const sls = makeServerless('go1.x', {
+    // otherFn inherits java21 → still throws; nodeOnlyFn is fine on its own
+    const sls = makeServerless('java21', {
       nodeOnlyFn: { runtime: 'nodejs20.x' },
       otherFn: {},
     })
@@ -80,14 +80,14 @@ describe('assertSupportedRuntimes', () => {
     expect(error.code).toBe('OFFLINE_UNSUPPORTED_RUNTIME')
     // The Node function must not appear in the error
     expect(error.message).not.toContain('nodeOnlyFn')
-    // The go function must appear
+    // The Java function must appear
     expect(error.message).toContain('otherFn')
   })
 
   it('throws for a function-level unsupported override even when provider runtime is supported', () => {
     const sls = makeServerless('nodejs20.x', {
       goodFn: {},
-      badFn: { runtime: 'go1.x' },
+      badFn: { runtime: 'java21' },
     })
     let error
     try {
@@ -98,14 +98,14 @@ describe('assertSupportedRuntimes', () => {
     expect(error).toBeDefined()
     expect(error.code).toBe('OFFLINE_UNSUPPORTED_RUNTIME')
     expect(error.message).toContain('badFn')
-    expect(error.message).toContain('go1.x')
+    expect(error.message).toContain('java21')
     expect(error.message).not.toContain('goodFn')
   })
 
   it('lists multiple offenders with different unsupported runtimes in one error', () => {
     const sls = makeServerless('nodejs20.x', {
-      goFn: { runtime: 'go1.x' },
       javaFn: { runtime: 'java21' },
+      rustFn: { runtime: 'rust1.x' },
     })
     let error
     try {
@@ -114,10 +114,10 @@ describe('assertSupportedRuntimes', () => {
       error = err
     }
     expect(error).toBeDefined()
-    expect(error.message).toContain('goFn')
-    expect(error.message).toContain('go1.x')
     expect(error.message).toContain('javaFn')
     expect(error.message).toContain('java21')
+    expect(error.message).toContain('rustFn')
+    expect(error.message).toContain('rust1.x')
   })
 
   it('skips silently when both provider runtime and function runtime are undefined', () => {
@@ -131,7 +131,7 @@ describe('assertSupportedRuntimes', () => {
   })
 
   it('error code is OFFLINE_UNSUPPORTED_RUNTIME', () => {
-    const sls = makeServerless('go1.x', { fn: {} })
+    const sls = makeServerless('java21', { fn: {} })
     let error
     try {
       assertSupportedRuntimes(sls)
@@ -209,10 +209,40 @@ describe('assertSupportedRuntimes', () => {
     expect(() => assertSupportedRuntimes(sls)).not.toThrow()
   })
 
-  it('still rejects go, java with OFFLINE_UNSUPPORTED_RUNTIME', () => {
+  // M5d additions — go*.x and provided.al{,2} are now supported runtime
+  // families. provided.al{,2} is the canonical runtime for current
+  // aws-lambda-go builds (custom AL2 runtime); go1.x is the legacy AL1
+  // runtime kept for backward compatibility with older services.
+  it('accepts go1.x as a valid Go runtime', () => {
+    const sls = makeServerless('go1.x', { fn: {} })
+    expect(() => assertSupportedRuntimes(sls)).not.toThrow()
+  })
+
+  it('accepts provided.al2 as a valid Go runtime', () => {
+    const sls = makeServerless('provided.al2', { fn: {} })
+    expect(() => assertSupportedRuntimes(sls)).not.toThrow()
+  })
+
+  it('accepts provided.al as a valid Go runtime', () => {
+    const sls = makeServerless('provided.al', { fn: {} })
+    expect(() => assertSupportedRuntimes(sls)).not.toThrow()
+  })
+
+  it('accepts a mixed nodejs* + python3.x + ruby3.x + go*.x service', () => {
     const sls = makeServerless('nodejs20.x', {
+      n: { runtime: 'nodejs22.x' },
+      p: { runtime: 'python3.11' },
+      r: { runtime: 'ruby3.3' },
       g: { runtime: 'go1.x' },
+      a: { runtime: 'provided.al2' },
+    })
+    expect(() => assertSupportedRuntimes(sls)).not.toThrow()
+  })
+
+  it('still rejects java and rust with OFFLINE_UNSUPPORTED_RUNTIME', () => {
+    const sls = makeServerless('nodejs20.x', {
       j: { runtime: 'java21' },
+      r: { runtime: 'rust1.x' },
     })
     expect(() => assertSupportedRuntimes(sls)).toThrow(
       expect.objectContaining({ code: 'OFFLINE_UNSUPPORTED_RUNTIME' }),
