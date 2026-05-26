@@ -88,6 +88,34 @@ export function createInvocationQueue() {
     return s
   }
 
+  // Defined as a closure rather than `this.rejectAll` so callers can safely
+  // destructure the returned object (`const { clear } = createInvocationQueue()`)
+  // without losing the binding.
+  function rejectAllImpl(functionKey, reason) {
+    const s = queues.get(functionKey)
+    if (!s) return
+    for (const p of s.pending) {
+      if (p.timer !== null) clearTimeout(p.timer)
+      p.reject(reason)
+    }
+    s.pending.length = 0
+    for (const entry of s.inFlight.values()) {
+      if (entry.timer !== null) clearTimeout(entry.timer)
+      entry.reject(reason)
+    }
+    s.inFlight.clear()
+    // Parked waiters are HTTP long-pollers — they expect AbortError when
+    // their poll is cancelled, not the runner's terminate `reason`. The
+    // runner-side `reason` is only meaningful to `pending` + `inFlight`
+    // consumers (the original invoker).
+    const abortErr = createAbortError()
+    for (const w of s.waiters) {
+      _detachAbort(w)
+      w.rejectNext(abortErr)
+    }
+    s.waiters.length = 0
+  }
+
   return {
     enqueue(functionKey, { payload, timeoutMs, invokedFunctionArn = '' }) {
       const s = _state(functionKey)
@@ -95,9 +123,11 @@ export function createInvocationQueue() {
       const deadlineMs = Date.now() + timeoutMs
 
       return new Promise((resolve, reject) => {
-        // Arm the per-invocation timeout up front; both delivery paths
-        // (direct waiter hand-off and pending-queue) share the same timer
-        // lifecycle, settled on resolve/reject/rejectAll/clear.
+        // Arm the per-invocation timeout up front. The timer runs for the
+        // full `timeoutMs` window starting now — spanning both the
+        // pending-queue wait AND the in-flight handler execution. Cleared
+        // by any settle path (resolveInvocation / rejectInvocation /
+        // rejectAll / clear); fires here if none of those happen in time.
         const timer = setTimeout(() => {
           // Remove the entry from wherever it lives so the late
           // resolve/reject can't double-settle. The id is unique enough
@@ -210,35 +240,20 @@ export function createInvocationQueue() {
       entry.reject(errorBody)
     },
 
+    // Strict precheck against the `inFlight` map only — returns false for
+    // an id that's still in `pending` (the runtime hasn't polled /next for
+    // it yet), which is exactly what callers want for /response and /error
+    // routes: the runtime can only know an id it received from /next.
     has(functionKey, requestId) {
       const s = queues.get(functionKey)
       if (!s) return false
       return s.inFlight.has(requestId)
     },
 
-    rejectAll(functionKey, reason) {
-      const s = queues.get(functionKey)
-      if (!s) return
-      for (const p of s.pending) {
-        if (p.timer !== null) clearTimeout(p.timer)
-        p.reject(reason)
-      }
-      s.pending.length = 0
-      for (const entry of s.inFlight.values()) {
-        if (entry.timer !== null) clearTimeout(entry.timer)
-        entry.reject(reason)
-      }
-      s.inFlight.clear()
-      const abortErr = createAbortError()
-      for (const w of s.waiters) {
-        _detachAbort(w)
-        w.rejectNext(abortErr)
-      }
-      s.waiters.length = 0
-    },
+    rejectAll: rejectAllImpl,
 
     clear(functionKey) {
-      this.rejectAll(functionKey, new Error('Queue cleared'))
+      rejectAllImpl(functionKey, new Error('Queue cleared'))
       queues.delete(functionKey)
     },
   }

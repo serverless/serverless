@@ -167,4 +167,12 @@ describe('createInvocationQueue', () => {
     q.resolveInvocation('fn-a', next.requestId, { ok: true })
     await cleanupInvoke
   })
+
+  it('clear() works when destructured off the returned object', async () => {
+    const q = createInvocationQueue()
+    const { clear, enqueue } = q
+    const inv = enqueue.call(q, 'fn-a', { payload: {}, timeoutMs: 5000 })
+    expect(() => clear('fn-a')).not.toThrow()
+    await expect(inv).rejects.toBeDefined()
+  })
 })
