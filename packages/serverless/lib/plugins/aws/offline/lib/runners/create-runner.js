@@ -1,5 +1,6 @@
 import { createInProcessRunner } from './in-process.js'
 import { createPythonRunner } from './python.js'
+import { createRubyRunner } from './ruby.js'
 import { createWorkerThreadRunner } from './worker-thread.js'
 
 /**
@@ -23,6 +24,7 @@ import { createWorkerThreadRunner } from './worker-thread.js'
  */
 function _resolveRunnerKind(runtime, useInProcess) {
   if (/^python\d+\.\d+$/.test(runtime ?? '')) return 'python'
+  if (/^ruby\d+\.\d+$/.test(runtime ?? '')) return 'ruby'
   return useInProcess ? 'in-process' : 'worker-thread'
 }
 
@@ -44,10 +46,10 @@ function _resolveRunnerKind(runtime, useInProcess) {
  * The in-process runner trades isolation + hot-reload for lower per-
  * invocation overhead and direct stack traces, and is opt-in via the
  * `--useInProcess` CLI flag (or `offline.useInProcess: true` in YAML).
- * The Python runner is selected purely by the function's runtime — the
- * `useInProcess` flag has no effect for Python functions. Future M5c
- * runtimes (ruby, go, java) drop in as single-line additions to
- * `_resolveRunnerKind` plus their `createXRunner`.
+ * The Python AND Ruby runners are selected purely by the function's
+ * runtime — the `useInProcess` flag has no effect for non-Node
+ * functions. Future runtimes (go, java) drop in as single-line additions
+ * to `_resolveRunnerKind` plus their `createXRunner`.
  *
  * Unit conversion: `terminateIdleLambdaTime` is the user-facing SECONDS
  * value (matches `offline.terminateIdleLambdaTime` in YAML, `--terminate-
@@ -71,7 +73,7 @@ function _resolveRunnerKind(runtime, useInProcess) {
 export function createRunner({ useInProcess, terminateIdleLambdaTime }) {
   const idleEvictionMs = terminateIdleLambdaTime * 1000
 
-  /** @type {Map<'in-process' | 'worker-thread' | 'python', { invoke: Function, invalidate: Function, terminate: Function }>} */
+  /** @type {Map<'in-process' | 'worker-thread' | 'python' | 'ruby', { invoke: Function, invalidate: Function, terminate: Function }>} */
   const subs = new Map()
 
   function _get(kind) {
@@ -81,6 +83,8 @@ export function createRunner({ useInProcess, terminateIdleLambdaTime }) {
       r = createInProcessRunner()
     } else if (kind === 'python') {
       r = createPythonRunner({ idleEvictionMs })
+    } else if (kind === 'ruby') {
+      r = createRubyRunner({ idleEvictionMs })
     } else {
       r = createWorkerThreadRunner({ servicePath: '', idleEvictionMs })
     }

@@ -7,6 +7,7 @@ import { createRunner } from '../../../../../../../../lib/plugins/aws/offline/li
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const PYTHON_FIXTURES = path.resolve(here, '../../__fixtures__/handlers/python')
+const RUBY_FIXTURES = path.resolve(here, '../../__fixtures__/handlers/ruby')
 
 describe('createRunner — runtime-aware dispatch', () => {
   it('routes nodejs* runtime to the worker-thread runner by default', async () => {
@@ -52,6 +53,26 @@ describe('createRunner — runtime-aware dispatch', () => {
         runtime: 'python3.11',
       })
       expect(result).toEqual({ ok: true, echo: { hi: 1 }, fn: 'py-fn' })
+    } finally {
+      await r.terminate()
+    }
+  })
+
+  it('routes ruby* runtime to the Ruby child-process runner', async () => {
+    const r = createRunner({
+      useInProcess: false,
+      terminateIdleLambdaTime: 60,
+    })
+    try {
+      const result = await r.invoke({
+        functionKey: 'rb-fn',
+        handlerPath: path.join(RUBY_FIXTURES, 'sync_echo.rb'),
+        handlerName: 'handler',
+        event: { hi: 1 },
+        context: { functionName: 'rb-fn' },
+        runtime: 'ruby3.3',
+      })
+      expect(result).toEqual({ ok: true, echo: { hi: 1 }, fn: 'rb-fn' })
     } finally {
       await r.terminate()
     }
