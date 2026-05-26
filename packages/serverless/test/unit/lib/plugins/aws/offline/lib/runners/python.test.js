@@ -116,9 +116,12 @@ describe('createPythonRunner — log forwarding', () => {
 
 describe('createPythonRunner — pool + idle eviction', () => {
   // Use a counter fixture so we can prove the child was reused.
-  const counterFixture = path.join(FIXTURES, 'counter.py')
+  let counterFixture
   beforeAll(async () => {
     const fs = await import('node:fs/promises')
+    const os = await import('node:os')
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'sls-offline-py-pool-'))
+    counterFixture = path.join(tmp, 'counter.py')
     await fs.writeFile(
       counterFixture,
       [
