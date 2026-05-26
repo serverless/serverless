@@ -14,6 +14,7 @@ import ServerlessError from '../../../../serverless-error.js'
 const SUPPORTED_RUNTIME_REGEXES = [
   /^nodejs\d+\.?x?$/, // nodejs18.x, nodejs20.x, nodejs22.x, nodejs22
   /^python\d+\.\d+$/, // python3.11, python3.12, python3.13
+  /^ruby\d+\.\d+$/, // ruby3.2, ruby3.3, ruby3.4
 ]
 
 /**
@@ -58,7 +59,7 @@ export function assertSupportedRuntimes(serverless) {
     .join('\n')
   throw new ServerlessError(
     `sls offline does not yet support these runtimes:\n${list}\n` +
-      `Supported in this build: Node.js (nodejs*), Python (python3.x).`,
+      `Supported in this build: Node.js (nodejs*), Python (python3.x), Ruby (ruby3.x).`,
     'OFFLINE_UNSUPPORTED_RUNTIME',
   )
 }
