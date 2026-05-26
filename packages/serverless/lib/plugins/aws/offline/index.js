@@ -25,6 +25,10 @@ import { registerHttpApiRoutes } from './lib/app-server/http-api/route-loader.js
 import { registerRestApiRoutes } from './lib/app-server/rest-api/route-loader.js'
 import { registerAuthSchemes } from './lib/app-server/authorizers/register-schemes.js'
 import { loadCustomAuthenticationProvider } from './lib/app-server/authorizers/custom-auth-loader.js'
+import { createConnectionRegistry } from './lib/app-server/websocket/connection-registry.js'
+import { normalizeWebsocketEvents } from './lib/app-server/websocket/lifecycle-routes.js'
+import { createWebSocketServer } from './lib/app-server/websocket/server.js'
+import { registerManagementApiRoutes } from './lib/app-server/websocket/management-api-routes.js'
 import { createWatcher } from './lib/watcher.js'
 import { assertAllNodeRuntimes } from './lib/runtime-guard.js'
 import { getHandlerBaseDir } from './lib/handler-base-dir.js'
@@ -69,6 +73,7 @@ function logBootSummary({
   appUrl,
   awsApiUrl,
   albRoutes,
+  wsRoutes,
   httpApiRoutes,
   restApiRoutes,
   sqsPollerCount,
@@ -78,6 +83,26 @@ function logBootSummary({
   logger.notice(`sls offline ready (stage: ${stage})`)
   logger.notice(`  App endpoint:    ${appUrl}`)
   logger.notice(`  AWS endpoint:    ${awsApiUrl}`)
+
+  // WebSocket routes — emit first because the WS upgrade handler fires
+  // before any HTTP route resolution. Followed by the management-API
+  // mount note (ApiGatewayManagementApi endpoint clients should target).
+  if (wsRoutes && wsRoutes.size > 0) {
+    logger.notice('  WebSocket routes:')
+    const sortedRoutes = Array.from(wsRoutes.entries()).sort(([a], [b]) =>
+      a.localeCompare(b),
+    )
+    const widest = Math.max(...sortedRoutes.map(([r]) => r.length))
+    const wsUrl = appUrl.replace(/^http:/, 'ws:')
+    for (const [route, entry] of sortedRoutes) {
+      logger.notice(
+        `    ${route.padEnd(widest)}  ${wsUrl}/${stage}  →  ${entry.functionKey}`,
+      )
+    }
+    logger.notice(
+      `  Management API:  ${appUrl}/${stage}/@connections/{id}  (POST / GET / DELETE)`,
+    )
+  }
 
   // ALB routes register first on Hapi (and thus win path-collisions over
   // REST / HTTP API), so list them at the top of the boot table — the
@@ -312,6 +337,10 @@ export default class OfflinePlugin {
     let httpApiRoutes = []
     /** @type {{ method: string, path: string, mountedPath: string, functionKey: string }[]} */
     let restApiRoutes = []
+    /** @type {Map<string, { functionKey: string, authorizer?: object }>} */
+    let wsRoutes = new Map()
+    /** @type {{ stop: () => Promise<void> } | null} */
+    let wsServer = null
     const appServer = await createAppServer({
       appPort,
       host,
@@ -335,10 +364,37 @@ export default class OfflinePlugin {
           customAuthStrategy,
         })
 
-        // ALB routes register FIRST so their literal-path declarations win
-        // same-method-same-path collisions against REST / HTTP API routes
-        // (Hapi resolves by registration order). Master plan §M4: ALB
-        // shares appPort — no separate albPort.
+        // WebSocket: shared appPort. The Hapi server's `upgrade` event
+        // hands incoming WS handshakes to a dedicated ws.Server; HTTP
+        // routes (management API, ALB, REST, HTTP API) coexist
+        // independently. Master plan §M4: WS shares appPort — no
+        // separate websocketPort.
+        const wsRegistry = createConnectionRegistry()
+        wsRoutes = normalizeWebsocketEvents(serverless)
+        wsServer = createWebSocketServer({
+          hapiServer: server,
+          serverless,
+          onRequest: async (functionKey, event) =>
+            getLambdaFunction(functionKey).invoke(event),
+          registry: wsRegistry,
+          stage,
+          accountId: FAKE_ACCOUNT_ID,
+          region: FAKE_REGION,
+        })
+
+        // ApiGatewayManagementApi: HTTP routes at /<stage>/@connections/{id}.
+        // Register BEFORE ALB so the path always resolves to the
+        // management API regardless of any colliding ALB declaration.
+        registerManagementApiRoutes({
+          hapiServer: server,
+          registry: wsRegistry,
+          stage,
+        })
+
+        // ALB routes register FIRST (among the regular HTTP surfaces) so
+        // their literal-path declarations win same-method-same-path
+        // collisions against REST / HTTP API routes (Hapi resolves by
+        // registration order). Master plan §M4: ALB shares appPort.
         albRoutes = registerAlbRoutes({
           server,
           serverless,
@@ -387,6 +443,10 @@ export default class OfflinePlugin {
     //     LIFO teardown for these: pollers, appServer, awsApiServer.
     orchestrator.onShutdown(() => awsApiServer.stop({ timeout: 5000 }))
     orchestrator.onShutdown(() => appServer.stop({ timeout: 5000 }))
+    // The WS server closes all open sockets (code 1001) before the Hapi
+    // app server tears down its listener. Order matters: shut WS first so
+    // clients get a clean close frame, not a TCP RST.
+    orchestrator.onShutdown(() => (wsServer ? wsServer.stop() : undefined))
     orchestrator.onShutdown(() => pollerController.stop())
 
     // 12. Fire before:offline:start so that bundler plugins (e.g. built-in
@@ -426,6 +486,7 @@ export default class OfflinePlugin {
           appUrl: appServer.info.uri,
           awsApiUrl: awsApiServer.info.uri,
           albRoutes,
+          wsRoutes,
           httpApiRoutes,
           restApiRoutes,
           sqsPollerCount: pollerController.pollerCount,
