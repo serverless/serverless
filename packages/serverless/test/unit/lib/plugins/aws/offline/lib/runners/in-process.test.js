@@ -160,4 +160,65 @@ describe('createInProcessRunner', () => {
 
     expect(result).toEqual({ via: 'succeed', echoed: 'hi' })
   })
+
+  it('handles pure-callback handler (no return value)', async () => {
+    const runner = createInProcessRunner()
+    const result = await runner.invoke({
+      functionKey: 'cb',
+      handlerPath: path.join(FIXTURES, 'callback-only.mjs'),
+      handlerName: 'handler',
+      event: { v: 42 },
+      context: {
+        functionName: 'cb',
+        awsRequestId: 'r-cb',
+        invokedFunctionArn: 'arn:aws:lambda:us-east-1:0:function:cb',
+        memoryLimitInMB: '128',
+        timeoutMs: 6000,
+        handler: 'src/cb.handler',
+      },
+      environment: {},
+    })
+    expect(result).toEqual({ via: 'callback', v: 42 })
+  })
+
+  it('callback error rejects the invoke promise', async () => {
+    const runner = createInProcessRunner()
+    await expect(
+      runner.invoke({
+        functionKey: 'cbErr',
+        handlerPath: path.join(FIXTURES, 'callback-error.mjs'),
+        handlerName: 'handler',
+        event: {},
+        context: {
+          functionName: 'cbErr',
+          awsRequestId: 'r-cbErr',
+          invokedFunctionArn: 'arn:aws:lambda:us-east-1:0:function:cbErr',
+          memoryLimitInMB: '128',
+          timeoutMs: 6000,
+          handler: 'src/cbErr.handler',
+        },
+        environment: {},
+      }),
+    ).rejects.toThrow(/cb-fail/)
+  })
+
+  it('handler that calls callback then resolves promise returns the callback value', async () => {
+    const runner = createInProcessRunner()
+    const result = await runner.invoke({
+      functionKey: 'cbThenPromise',
+      handlerPath: path.join(FIXTURES, 'callback-then-promise.mjs'),
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'cbThenPromise',
+        awsRequestId: 'r-cbtp',
+        invokedFunctionArn: 'arn:aws:lambda:us-east-1:0:function:cbThenPromise',
+        memoryLimitInMB: '128',
+        timeoutMs: 6000,
+        handler: 'src/cbThenPromise.handler',
+      },
+      environment: {},
+    })
+    expect(result).toEqual({ via: 'callback-first' })
+  })
 })
