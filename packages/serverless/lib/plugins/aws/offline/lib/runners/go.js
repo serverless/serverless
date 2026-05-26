@@ -15,13 +15,15 @@ const NO_TIMEOUT_FALLBACK_MS = 365 * 24 * 60 * 60 * 1000
  * @typedef {object} PoolEntry
  * @property {import('node:child_process').ChildProcessWithoutNullStreams} child
  * @property {'idle' | 'busy' | 'terminating'} state
- * @property {'invalidate' | 'terminate' | null} cancelReason
- *   Set before the deliberate `child.kill()` that drops this entry. Mirrors
- *   the python/ruby runner shape so future shared code (telemetry, audit)
- *   can read it uniformly. The 'exit' handler does not branch on it today
- *   because the Go runner does not own the in-flight invocation envelope —
- *   the invocation queue does, and `rejectAll` already produces a clean
- *   ServerlessError for the runner-side path.
+ * @property {'invalidate' | 'terminate' | 'evict' | null} cancelReason
+ *   Set before the deliberate `child.kill()` that drops this entry. Three
+ *   shapes:
+ *   - `'invalidate'`: user-requested invalidation (file changed, hot reload).
+ *   - `'terminate'`: runner-wide shutdown.
+ *   - `'evict'`: automatic idle eviction (`idleEvictionMs` elapsed). Kept
+ *     distinct so future telemetry can tell user actions from automatic GC.
+ *   Mirrors the python/ruby runner shape so future shared code (telemetry,
+ *   audit) can read it uniformly.
  * @property {NodeJS.Timeout | null} pendingTimeout
  *   Armed by `_scheduleIdleEviction`; cleared on transition to busy, on
  *   invalidate/terminate, and on the 'exit'/'error' handlers (the
@@ -104,6 +106,18 @@ export function createGoRunner({
   /** @type {Map<string, PoolEntry>} */
   const pool = new Map()
 
+  // Closure-level shutdown flag. Set by `terminate()` BEFORE iterating the
+  // pool so a concurrent `_ensureEntry()` mid-await (between `ensureBuilt`
+  // returning and `spawnFn` running) can short-circuit and not orphan a
+  // freshly spawned child past shutdown.
+  let terminated = false
+
+  // Track in-flight `_ensureEntry` promises so `terminate()` can wait for
+  // any pre-flag spawns to complete and then kill them. Each promise is
+  // added on entry, removed on settle (success or failure).
+  /** @type {Set<Promise<unknown>>} */
+  const inFlightSpawns = new Set()
+
   /**
    * Strip scheme and trailing `/runtime` off `runtimeApiBase`, then append
    * the functionKey so the spawned child sees the per-function namespace
@@ -179,6 +193,16 @@ export function createGoRunner({
       buildCacheRoot: resolvedBuildCacheRoot,
     })
 
+    // Recheck the shutdown flag AFTER the await — `terminate()` may have
+    // run during the build. Without this guard a freshly-spawned child
+    // would outlive terminate() and become an orphan process.
+    if (terminated) {
+      throw new ServerlessError(
+        'Lambda runner terminated during invocation',
+        'OFFLINE_WORKER_TERMINATED',
+      )
+    }
+
     const context = args?.context ?? {}
     const region = context.region ?? process.env.AWS_REGION ?? 'us-east-1'
     const functionName = context.functionName
@@ -250,7 +274,7 @@ export function createGoRunner({
         runtimeApiQueue.rejectAll(
           functionKey,
           new ServerlessError(
-            `Go runtime exited (code=${code}, signal=${signal})`,
+            `Lambda bootstrap for ${functionKey} exited unexpectedly (code=${code}, signal=${signal})`,
             'OFFLINE_WORKER_EXITED',
           ),
         )
@@ -295,7 +319,7 @@ export function createGoRunner({
       entry.pendingTimeout = null
       if (entry.state !== 'idle') return
       entry.state = 'terminating'
-      entry.cancelReason = 'invalidate'
+      entry.cancelReason = 'evict'
       if (pool.get(functionKey) === entry) {
         pool.delete(functionKey)
       }
@@ -327,7 +351,20 @@ export function createGoRunner({
      */
     async invoke(args) {
       const { functionKey } = args
-      const entry = await _ensureEntry(functionKey, args)
+      if (terminated) {
+        throw new ServerlessError(
+          'Lambda runner terminated during invocation',
+          'OFFLINE_WORKER_TERMINATED',
+        )
+      }
+      const spawnPromise = _ensureEntry(functionKey, args)
+      inFlightSpawns.add(spawnPromise)
+      let entry
+      try {
+        entry = await spawnPromise
+      } finally {
+        inFlightSpawns.delete(spawnPromise)
+      }
 
       if (entry.state === 'terminating') {
         throw new ServerlessError(
@@ -399,6 +436,13 @@ export function createGoRunner({
      * @returns {Promise<void>}
      */
     async terminate() {
+      // Set the shutdown flag FIRST so any concurrent `_ensureEntry` mid-
+      // await (waiting on `ensureBuilt`) can re-check it after the await
+      // and bail out before spawning. Then drain any spawn promises that
+      // were already past the build but haven't yet returned to invoke().
+      terminated = true
+      await Promise.allSettled(inFlightSpawns)
+
       const exits = []
       for (const [functionKey, entry] of pool.entries()) {
         if (entry.pendingTimeout !== null) {
