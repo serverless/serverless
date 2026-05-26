@@ -2,7 +2,7 @@ import Hapi from '@hapi/hapi'
 import { registerRuntimeApiRoutes } from '../../../../../../../../lib/plugins/aws/offline/lib/aws-api-server/runtime-api-routes.js'
 import { createInvocationQueue } from '../../../../../../../../lib/plugins/aws/offline/lib/runners/invocation-queue.js'
 
-describe('registerRuntimeApiRoutes (scaffold)', () => {
+describe('registerRuntimeApiRoutes', () => {
   let server
   let queue
 
@@ -182,6 +182,21 @@ describe('registerRuntimeApiRoutes (scaffold)', () => {
     expect(res.statusCode).toBe(202)
     await expect(invocation).rejects.toMatchObject({
       errorMessage: 'plain-text-error',
+      errorType: 'Error',
+    })
+  })
+
+  it('POST /error rejects with synthesized empty-body shape', async () => {
+    const invocation = queue.enqueue('fn1', { payload: {}, timeoutMs: 5000 })
+    const next = await queue.awaitNext('fn1', {})
+    const res = await server.inject({
+      method: 'POST',
+      url: `/runtime/fn1/2018-06-01/runtime/invocation/${next.requestId}/error`,
+      payload: '',
+    })
+    expect(res.statusCode).toBe(202)
+    await expect(invocation).rejects.toEqual({
+      errorMessage: '',
       errorType: 'Error',
     })
   })
