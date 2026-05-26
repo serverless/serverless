@@ -178,6 +178,81 @@ describe('createGoRunner', () => {
     expect(capturedEnv.MY_USER_VAR).toBe('value-1')
   })
 
+  it('rejects in-flight invocations with OFFLINE_WORKER_TERMINATED on terminate()', async () => {
+    const runner = createGoRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      log: noopLog,
+      ensureBuilt: async () => ({
+        binaryPath: process.execPath,
+        fromCache: true,
+      }),
+      spawnOverride: (binaryPath, args, opts) =>
+        realSpawn(process.execPath, [stallingBootstrap], {
+          cwd: opts.cwd,
+          env: opts.env,
+          stdio: opts.stdio,
+        }),
+      servicePath: '/tmp',
+    })
+
+    // Long timeout so the timeout path doesn't race terminate() to settle first.
+    const inFlight = runner.invoke(makeInvokeArgs({ timeoutMs: 60_000 }))
+    // Attach the catch handler synchronously to avoid an unhandled-rejection
+    // signal between rejectAll() firing in terminate() and the test's later
+    // `await` on the promise.
+    const settled = inFlight.then(
+      (value) => ({ status: 'fulfilled', value }),
+      (reason) => ({ status: 'rejected', reason }),
+    )
+
+    // Give the bootstrap a moment to spawn and the queue to enter the
+    // in-flight state before we terminate.
+    await new Promise((r) => setTimeout(r, 100))
+
+    await runner.terminate()
+
+    const outcome = await settled
+    expect(outcome.status).toBe('rejected')
+    expect(outcome.reason).toMatchObject({
+      code: 'OFFLINE_WORKER_TERMINATED',
+    })
+  })
+
+  it('invalidate() clears any pending idle-eviction timer and kills the child', async () => {
+    const runner = createGoRunner({
+      // Short idle eviction so we can prove the timer existed before invalidate.
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      log: noopLog,
+      ensureBuilt: async () => ({
+        binaryPath: process.execPath,
+        fromCache: true,
+      }),
+      spawnOverride: (binaryPath, args, opts) =>
+        realSpawn(process.execPath, [fakeBootstrap], {
+          cwd: opts.cwd,
+          env: opts.env,
+          stdio: opts.stdio,
+        }),
+      servicePath: '/tmp',
+    })
+
+    try {
+      await runner.invoke(makeInvokeArgs())
+      // Entry should now be idle with pendingTimeout armed. invalidate()
+      // must clear that timer and SIGTERM the child without throwing.
+      expect(() => runner.invalidate('fn1')).not.toThrow()
+      // A second invalidate() on a now-gone entry must also not throw —
+      // pool eagerness + 'exit' cleanup must be idempotent.
+      expect(() => runner.invalidate('fn1')).not.toThrow()
+    } finally {
+      await runner.terminate()
+    }
+  })
+
   it('rejects with OFFLINE_HANDLER_TIMEOUT when the bootstrap never posts a response', async () => {
     const runner = createGoRunner({
       idleEvictionMs: 60_000,
