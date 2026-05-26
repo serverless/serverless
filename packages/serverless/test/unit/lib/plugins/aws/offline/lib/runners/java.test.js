@@ -244,4 +244,61 @@ describe('createJavaRunner (Docker)', () => {
       await runner.terminate()
     }
   })
+
+  it('passes Lambda runtime env vars + user environment into the container', async () => {
+    let capturedOpts
+    const runner = createJavaRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      dockerClient: makeFakeDockerClient(),
+      ensureImageReady: async () => {},
+      log: noopLog,
+      createContainerOverride: async (opts) => {
+        capturedOpts = opts
+        const apiBase = opts.Env.find((e) =>
+          e.startsWith('AWS_LAMBDA_RUNTIME_API='),
+        ).split('=')[1]
+        const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
+        setImmediate(async () => {
+          const next = await fetch(
+            `${httpBase}/2018-06-01/runtime/invocation/next`,
+          )
+          const requestId = next.headers.get('lambda-runtime-aws-request-id')
+          await fetch(
+            `${httpBase}/2018-06-01/runtime/invocation/${requestId}/response`,
+            { method: 'POST', body: JSON.stringify({ ok: true }) },
+          )
+        })
+        return makeFakeContainer()
+      },
+      servicePath: '/tmp',
+    })
+
+    try {
+      await runner.invoke(
+        makeInvokeArgs({
+          environment: { MY_USER_VAR: 'value-1' },
+        }),
+      )
+    } finally {
+      await runner.terminate()
+    }
+
+    const envMap = Object.fromEntries(
+      capturedOpts.Env.map((entry) => {
+        const idx = entry.indexOf('=')
+        return [entry.slice(0, idx), entry.slice(idx + 1)]
+      }),
+    )
+
+    const port = server.info.port
+    expect(envMap.AWS_LAMBDA_RUNTIME_API).toBe(
+      `host.docker.internal:${port}/runtime/fn1`,
+    )
+    expect(envMap._HANDLER).toBe('com.example.Hello::handleRequest')
+    expect(envMap.AWS_LAMBDA_FUNCTION_NAME).toBe('fn1')
+    expect(envMap.AWS_LAMBDA_FUNCTION_MEMORY_SIZE).toBe('512')
+    expect(envMap.MY_USER_VAR).toBe('value-1')
+  })
 })
