@@ -188,4 +188,60 @@ describe('createJavaRunner (Docker)', () => {
       '_HANDLER=com.example.Hello::handleRequest',
     )
   })
+
+  it('reuses the same container across consecutive invokes', async () => {
+    let createCount = 0
+    const fakeContainer = makeFakeContainer()
+    const runner = createJavaRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      dockerClient: makeFakeDockerClient(),
+      ensureImageReady: async () => {},
+      log: noopLog,
+      createContainerOverride: async (opts) => {
+        createCount++
+        const apiBase = opts.Env.find((e) =>
+          e.startsWith('AWS_LAMBDA_RUNTIME_API='),
+        ).split('=')[1]
+        const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
+        let running = true
+        ;(async () => {
+          while (running) {
+            try {
+              const next = await fetch(
+                `${httpBase}/2018-06-01/runtime/invocation/next`,
+              )
+              const requestId = next.headers.get(
+                'lambda-runtime-aws-request-id',
+              )
+              const payload = await next.json()
+              await fetch(
+                `${httpBase}/2018-06-01/runtime/invocation/${requestId}/response`,
+                {
+                  method: 'POST',
+                  body: JSON.stringify({ echoed: payload }),
+                  headers: { 'content-type': 'application/json' },
+                },
+              )
+            } catch {
+              running = false
+            }
+          }
+        })()
+        return fakeContainer
+      },
+      servicePath: '/tmp',
+    })
+
+    try {
+      const r1 = await runner.invoke(makeInvokeArgs({ event: { n: 1 } }))
+      const r2 = await runner.invoke(makeInvokeArgs({ event: { n: 2 } }))
+      expect(r1).toMatchObject({ echoed: { n: 1 } })
+      expect(r2).toMatchObject({ echoed: { n: 2 } })
+      expect(createCount).toBe(1)
+    } finally {
+      await runner.terminate()
+    }
+  })
 })
