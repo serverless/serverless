@@ -77,7 +77,7 @@ function coerceInt(value) {
  * @param {boolean} params.hasRubyFunctions  Whether any function declares a ruby3.x runtime.
  * @param {boolean} params.hasGoFunctions  Whether any function declares a go*.x or provided.al{,2,2023} runtime.
  * @param {boolean} params.hasJavaFunctions  Whether any function declares a java* or java8.al2 runtime.
- * @param {Set<string> | null} [params.javaImagesPulled]  Set of Docker image URIs pre-pulled at boot.
+ * @param {Set<string>} [params.javaImages]  Set of Docker image URIs discovered for Java functions.
  */
 function logBootSummary({
   logger,
@@ -94,7 +94,7 @@ function logBootSummary({
   hasRubyFunctions,
   hasGoFunctions,
   hasJavaFunctions,
-  javaImagesPulled,
+  javaImages,
 }) {
   logger.notice('')
   logger.notice(`sls offline ready (stage: ${stage})`)
@@ -113,12 +113,10 @@ function logBootSummary({
     logger.notice(`  Go runner:       child-process (bootstrap binary)`)
   }
   if (hasJavaFunctions) {
-    const tagsList = javaImagesPulled
-      ? Array.from(javaImagesPulled)
-          .map((img) => img.replace('public.ecr.aws/lambda/java:', ''))
-          .sort()
-          .join(',')
-      : 'N'
+    const tagsList = Array.from(javaImages)
+      .map((img) => img.replace('public.ecr.aws/lambda/java:', ''))
+      .sort()
+      .join(',')
     logger.notice(
       `  Java runner:     docker (public.ecr.aws/lambda/java:{${tagsList}})`,
     )
@@ -316,26 +314,28 @@ export default class OfflinePlugin {
       const rt = fn.runtime ?? serverless.service.provider.runtime
       return /^go\d+\.x?$/.test(rt ?? '') || /^provided\.al2?$/.test(rt ?? '')
     })
-    // Java detection covers the full Java runtime family (java8.al2,
-    // java11, java17, java21, future java25+). The `provided.al2(023)?`
-    // case is ambiguous between Go and Java; we don't disambiguate
-    // here — the multiplexer does that via the .jar artifact-extension
-    // check. For queue/routes gating we just need to know whether ANY
-    // Java function exists.
-    const hasJavaFunctions = Object.values(
-      serverless.service.functions ?? {},
-    ).some((fn) => {
-      const rt = fn.runtime ?? serverless.service.provider.runtime
-      return /^java\d+(\.al2)?$/.test(rt ?? '')
-    })
+    // Walk the service once to discover Java functions and the distinct
+    // Lambda container images we need. `provided.al*` is ambiguous between
+    // Go and Java — disambiguated downstream by the multiplexer via the
+    // `.jar` artifact-extension check — so we don't treat those as Java
+    // here. The runner's own dispatch handles them.
+    const javaImages = new Set()
+    for (const fn of Object.values(serverless.service.functions ?? {})) {
+      const rt = fn.runtime ?? serverless.service.provider.runtime ?? ''
+      if (/^java\d+(\.al2)?$/.test(rt)) {
+        javaImages.add(runtimeToImage(rt))
+      }
+    }
+    const hasJavaFunctions = javaImages.size > 0
     // Docker is a hard requirement when Java functions exist. The official
     // Lambda Java images include the runtime interface client; this runner
     // spawns one container per function.
     let dockerClient = null
     let ensureImageReady = null
-    let javaImagesPulled = null
     if (hasJavaFunctions) {
       dockerClient = new DockerClient()
+      // DockerClient holds no disposable resources — the underlying
+      // dockerode client owns its agent sockets internally.
       await assertDockerAvailable({ dockerClient })
 
       // Best-effort orphan cleanup. Never throws — boot continues even if
@@ -628,15 +628,7 @@ export default class OfflinePlugin {
     // Pre-pull every distinct Java image so users see download progress
     // up-front rather than discovering it on their first curl.
     if (hasJavaFunctions) {
-      const imagesToPull = new Set()
-      for (const [, fn] of Object.entries(serverless.service.functions ?? {})) {
-        const rt = fn.runtime ?? serverless.service.provider.runtime
-        if (/^java\d+(\.al2)?$/.test(rt ?? '')) {
-          imagesToPull.add(runtimeToImage(rt))
-        }
-      }
-      javaImagesPulled = imagesToPull
-      for (const image of imagesToPull) {
+      for (const image of javaImages) {
         await ensureImageReady({
           dockerClient,
           image,
@@ -668,7 +660,7 @@ export default class OfflinePlugin {
           hasRubyFunctions,
           hasGoFunctions,
           hasJavaFunctions,
-          javaImagesPulled,
+          javaImages,
         })
       },
     })
