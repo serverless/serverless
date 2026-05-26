@@ -132,6 +132,48 @@ describe('createGoRunner', () => {
     expect(typeof runner.terminate).toBe('function')
   })
 
+  it('spawns the bootstrap with AWS_LAMBDA_RUNTIME_API and Lambda runtime env vars', async () => {
+    let capturedEnv
+    const runner = createGoRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      log: noopLog,
+      ensureBuilt: async () => ({
+        binaryPath: process.execPath,
+        fromCache: true,
+      }),
+      spawnOverride: (binaryPath, args, opts) => {
+        capturedEnv = opts.env
+        return realSpawn(process.execPath, [fakeBootstrap], {
+          cwd: opts.cwd,
+          env: opts.env,
+          stdio: opts.stdio,
+        })
+      },
+      servicePath: '/tmp',
+    })
+
+    try {
+      await runner.invoke(
+        makeInvokeArgs({
+          environment: { MY_USER_VAR: 'value-1' },
+        }),
+      )
+    } finally {
+      await runner.terminate()
+    }
+
+    // Bare host:port/runtime/<functionKey> form — no scheme, no trailing slash.
+    const port = server.info.port
+    expect(capturedEnv.AWS_LAMBDA_RUNTIME_API).toBe(
+      `127.0.0.1:${port}/runtime/fn1`,
+    )
+    expect(capturedEnv.AWS_LAMBDA_FUNCTION_NAME).toBe('fn1')
+    expect(capturedEnv.AWS_LAMBDA_FUNCTION_MEMORY_SIZE).toBe('128')
+    expect(capturedEnv.MY_USER_VAR).toBe('value-1')
+  })
+
   it('reuses the same bootstrap child across consecutive invokes', async () => {
     const spawnCalls = []
     const runner = createGoRunner({
