@@ -190,6 +190,11 @@ export function createLambdaFunction({
           event,
           context,
           environment,
+          // Forward the function's runtime so the composite runner can
+          // route to the matching sub-runner (Node / Python / future).
+          // Falls back to the provider-level runtime; the multiplexer
+          // treats missing/empty as Node by default.
+          runtime: fn.runtime ?? provider.runtime,
           // When timeout enforcement is disabled, omit timeoutMs entirely so
           // the runner does not arm its termination timer.
           timeoutMs: noTimeout ? undefined : timeoutMs,
