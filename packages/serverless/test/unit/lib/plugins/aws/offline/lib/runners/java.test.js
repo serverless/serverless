@@ -113,4 +113,40 @@ describe('createJavaRunner', () => {
     expect(typeof runner.invalidate).toBe('function')
     expect(typeof runner.terminate).toBe('function')
   })
+
+  it('reuses the same JVM child across consecutive invokes', async () => {
+    const spawnCalls = []
+    const runner = createJavaRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      log: noopLog,
+      resolveClasspath: async () => ({
+        classpath: '/unused/cp',
+        artifactPath: '/unused/cp',
+        ricJarPath: '/unused/ric.jar',
+      }),
+      checkJavaVersion: async () => ({ majorVersion: 21, raw: '' }),
+      spawnOverride: (cmd, args, opts) => {
+        spawnCalls.push({ cmd })
+        return realSpawn(process.execPath, [fakeBootstrap], {
+          cwd: opts.cwd,
+          env: opts.env,
+          stdio: opts.stdio,
+        })
+      },
+      servicePath: '/tmp',
+    })
+
+    try {
+      const r1 = await runner.invoke(makeInvokeArgs({ event: { n: 1 } }))
+      const r2 = await runner.invoke(makeInvokeArgs({ event: { n: 2 } }))
+      expect(r1).toMatchObject({ received: { n: 1 } })
+      expect(r2).toMatchObject({ received: { n: 2 } })
+      // Pool reuse: a single JVM served both invokes.
+      expect(spawnCalls).toHaveLength(1)
+    } finally {
+      await runner.terminate()
+    }
+  })
 })
