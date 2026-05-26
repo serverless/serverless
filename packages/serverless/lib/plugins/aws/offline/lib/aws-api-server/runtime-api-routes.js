@@ -36,10 +36,13 @@ export function registerRuntimeApiRoutes(server, { queue }) {
     /**
      * Long-poll the invocation queue for the next event targeted at
      * `{functionKey}`. The handler parks on `queue.awaitNext` until an
-     * invocation is enqueued, then returns the event payload as the response
-     * body alongside the four Lambda Runtime API delivery headers
-     * (`Lambda-Runtime-Aws-Request-Id`, `Lambda-Runtime-Deadline-Ms`,
-     * `Lambda-Runtime-Invoked-Function-Arn`, plus `Content-Type`).
+     * invocation is enqueued, then returns the event payload as the
+     * response body alongside the three Lambda Runtime API delivery
+     * headers (`Lambda-Runtime-Aws-Request-Id`, `Lambda-Runtime-Deadline-Ms`,
+     * `Lambda-Runtime-Invoked-Function-Arn`) and `Content-Type`.
+     *
+     * `Lambda-Runtime-Trace-Id` is intentionally omitted — there is no
+     * X-Ray plumbing in offline mode.
      *
      * If the runtime client disconnects mid-long-poll, the wired
      * `AbortController` aborts the parked `awaitNext` so the waiter is
@@ -49,7 +52,15 @@ export function registerRuntimeApiRoutes(server, { queue }) {
     async handler(request, h) {
       const { functionKey } = request.params
       const controller = new AbortController()
-      request.raw.req.once('close', () => controller.abort())
+      // Pre-abort if the socket is already closed by the time the handler
+      // runs: Node only fires `'close'` once, so a late `.once()` listener
+      // would never fire and the waiter would leak in the queue.
+      const rawReq = request.raw.req
+      if (rawReq.closed || rawReq.destroyed) {
+        controller.abort()
+      } else {
+        rawReq.once('close', () => controller.abort())
+      }
 
       const next = await queue.awaitNext(functionKey, {
         signal: controller.signal,
