@@ -193,6 +193,16 @@ export function createLambdaFunction({
         runtime,
       )
 
+      // Resolve package.artifact to an absolute path so Java's classpath
+      // builder can read it without re-traversing the service tree.
+      // Function-level overrides provider-level. null when not declared
+      // (Node/Python/Ruby/Go runners ignore the field).
+      const artifactRel =
+        fn.package?.artifact ?? provider.package?.artifact ?? null
+      const artifactPath = artifactRel
+        ? resolve(join(baseDir, artifactRel))
+        : null
+
       const timeoutSeconds =
         fn.timeout ?? provider.timeout ?? DEFAULT_TIMEOUT_SECONDS
       const timeoutMs = timeoutSeconds * 1000
@@ -240,6 +250,10 @@ export function createLambdaFunction({
           // route to the matching sub-runner (Node / Python / future).
           // Same resolution used above for handlerPath extension selection.
           runtime,
+          // Absolute path to the user's compiled artifact (Java JAR).
+          // Null for non-Java runtimes; the multiplexer ignores it
+          // unless it routes the invoke to the Java sub-runner.
+          artifactPath,
           // When timeout enforcement is disabled, omit timeoutMs entirely so
           // the runner does not arm its termination timer.
           timeoutMs: noTimeout ? undefined : timeoutMs,
