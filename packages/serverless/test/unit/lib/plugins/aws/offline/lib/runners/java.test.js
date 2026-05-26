@@ -12,6 +12,10 @@ const fakeBootstrap = path.resolve(
   __dirname,
   '../../../../../../../fixtures/offline/m5e/fake-bootstrap.js',
 )
+const stallingBootstrap = path.resolve(
+  __dirname,
+  '../../../../../../../fixtures/offline/m5e/stalling-bootstrap.js',
+)
 
 describe('createJavaRunner', () => {
   let server
@@ -168,6 +172,36 @@ describe('createJavaRunner', () => {
       'com.amazonaws.services.lambda.runtime.api.client.AWSLambda',
     )
     expect(capturedArgs[cpIndex + 3]).toBe('com.example.Hello::handleRequest')
+  })
+
+  it('rejects with OFFLINE_HANDLER_TIMEOUT when the JVM never posts a response', async () => {
+    const runner = createJavaRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      log: noopLog,
+      resolveClasspath: async () => ({
+        classpath: '/u/cp',
+        artifactPath: '/u/cp',
+        ricJarPath: '/u/r',
+      }),
+      checkJavaVersion: async () => ({ majorVersion: 21, raw: '' }),
+      spawnOverride: (cmd, args, opts) =>
+        realSpawn(process.execPath, [stallingBootstrap], {
+          cwd: opts.cwd,
+          env: opts.env,
+          stdio: opts.stdio,
+        }),
+      servicePath: '/tmp',
+    })
+
+    try {
+      await expect(
+        runner.invoke(makeInvokeArgs({ timeoutMs: 200 })),
+      ).rejects.toMatchObject({ code: 'OFFLINE_HANDLER_TIMEOUT' })
+    } finally {
+      await runner.terminate()
+    }
   })
 
   describe('JAVA_OPTS env var', () => {
