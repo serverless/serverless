@@ -245,7 +245,9 @@ export function createGoRunner({
     }
 
     _forward(child.stdout, functionKey, 'debug')
-    _forward(child.stderr, functionKey, 'debug')
+    // Go panics and user-handler errors surface on stderr — log at
+    // `error` level so stack traces are visible by default.
+    _forward(child.stderr, functionKey, 'error')
 
     child.on('exit', (code, signal) => {
       // The 'exit' handler is the cleanup-of-last-resort. invalidate()

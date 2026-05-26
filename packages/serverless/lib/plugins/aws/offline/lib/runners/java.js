@@ -1,5 +1,4 @@
 import { spawn as nodeSpawn } from 'node:child_process'
-import path from 'node:path'
 
 import { buildLambdaRuntimeEnv } from './lambda-env.js'
 import { resolveClasspath as defaultResolveClasspath } from './java-classpath.js'
@@ -86,7 +85,7 @@ export function createJavaRunner({
   function _apiBaseFor(functionKey) {
     const trimmed = runtimeApiBase
       .replace(/^https?:\/\//, '')
-      .replace(/\/$/, '')
+      .replace(/\/+$/, '')
     return `${trimmed}/${functionKey}`
   }
 
@@ -195,7 +194,10 @@ export function createJavaRunner({
     }
 
     _forward(child.stdout, functionKey, 'debug')
-    _forward(child.stderr, functionKey, 'debug')
+    // Java RIC and user-handler exceptions surface on stderr — log at
+    // `error` level so stack traces are visible by default. (See M5d
+    // code-review note about the dead `'error'` branch — now wired.)
+    _forward(child.stderr, functionKey, 'error')
 
     child.on('exit', (code, signal) => {
       if (entry.pendingTimeout !== null) {
