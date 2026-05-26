@@ -20,6 +20,7 @@ import { createAwsApiServer } from './lib/aws-api-server/index.js'
 import { createWorkerThreadRunner } from './lib/runners/worker-thread.js'
 import { startSqsPollers } from './lib/event-sources/sqs-poller.js'
 import { createAppServer } from './lib/app-server/index.js'
+import { registerAlbRoutes } from './lib/app-server/alb/route-loader.js'
 import { registerHttpApiRoutes } from './lib/app-server/http-api/route-loader.js'
 import { registerRestApiRoutes } from './lib/app-server/rest-api/route-loader.js'
 import { registerAuthSchemes } from './lib/app-server/authorizers/register-schemes.js'
@@ -67,6 +68,7 @@ function logBootSummary({
   logger,
   appUrl,
   awsApiUrl,
+  albRoutes,
   httpApiRoutes,
   restApiRoutes,
   sqsPollerCount,
@@ -76,6 +78,23 @@ function logBootSummary({
   logger.notice(`sls offline ready (stage: ${stage})`)
   logger.notice(`  App endpoint:    ${appUrl}`)
   logger.notice(`  AWS endpoint:    ${awsApiUrl}`)
+
+  // ALB routes register first on Hapi (and thus win path-collisions over
+  // REST / HTTP API), so list them at the top of the boot table — the
+  // visual order matches the routing-precedence rule users hit at runtime.
+  if (albRoutes && albRoutes.length > 0) {
+    logger.notice('  ALB routes:')
+    const sorted = [...albRoutes].sort(
+      (a, b) =>
+        a.path.localeCompare(b.path) || a.method.localeCompare(b.method),
+    )
+    const methodWidth = Math.max(...sorted.map((r) => r.method.length))
+    for (const r of sorted) {
+      logger.notice(
+        `    ${r.method.padEnd(methodWidth)}  ${appUrl}${r.path}  →  ${r.functionKey}`,
+      )
+    }
+  }
 
   if (httpApiRoutes.length === 0) {
     logger.notice('  HTTP API routes: (none registered)')
@@ -288,6 +307,8 @@ export default class OfflinePlugin {
 
     // 9. Boot the app server (Hapi v21) for user traffic.
     /** @type {{ method: string, path: string, functionKey: string }[]} */
+    let albRoutes = []
+    /** @type {{ method: string, path: string, functionKey: string }[]} */
     let httpApiRoutes = []
     /** @type {{ method: string, path: string, mountedPath: string, functionKey: string }[]} */
     let restApiRoutes = []
@@ -312,6 +333,18 @@ export default class OfflinePlugin {
           accountId: FAKE_ACCOUNT_ID,
           domainName,
           customAuthStrategy,
+        })
+
+        // ALB routes register FIRST so their literal-path declarations win
+        // same-method-same-path collisions against REST / HTTP API routes
+        // (Hapi resolves by registration order). Master plan §M4: ALB
+        // shares appPort — no separate albPort.
+        albRoutes = registerAlbRoutes({
+          server,
+          serverless,
+          async onRequest(functionKey, event) {
+            return getLambdaFunction(functionKey).invoke(event)
+          },
         })
 
         httpApiRoutes = registerHttpApiRoutes({
@@ -392,6 +425,7 @@ export default class OfflinePlugin {
           logger,
           appUrl: appServer.info.uri,
           awsApiUrl: awsApiServer.info.uri,
+          albRoutes,
           httpApiRoutes,
           restApiRoutes,
           sqsPollerCount: pollerController.pollerCount,
