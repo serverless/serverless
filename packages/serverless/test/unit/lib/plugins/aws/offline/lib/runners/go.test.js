@@ -11,6 +11,10 @@ const fakeBootstrap = path.resolve(
   __dirname,
   '../../../../../../../fixtures/offline/m5d/fake-bootstrap.js',
 )
+const stallingBootstrap = path.resolve(
+  __dirname,
+  '../../../../../../../fixtures/offline/m5d/stalling-bootstrap.js',
+)
 
 describe('createGoRunner', () => {
   let server
@@ -172,6 +176,34 @@ describe('createGoRunner', () => {
     expect(capturedEnv.AWS_LAMBDA_FUNCTION_NAME).toBe('fn1')
     expect(capturedEnv.AWS_LAMBDA_FUNCTION_MEMORY_SIZE).toBe('128')
     expect(capturedEnv.MY_USER_VAR).toBe('value-1')
+  })
+
+  it('rejects with OFFLINE_HANDLER_TIMEOUT when the bootstrap never posts a response', async () => {
+    const runner = createGoRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      log: noopLog,
+      ensureBuilt: async () => ({
+        binaryPath: process.execPath,
+        fromCache: true,
+      }),
+      spawnOverride: (binaryPath, args, opts) =>
+        realSpawn(process.execPath, [stallingBootstrap], {
+          cwd: opts.cwd,
+          env: opts.env,
+          stdio: opts.stdio,
+        }),
+      servicePath: '/tmp',
+    })
+
+    try {
+      await expect(
+        runner.invoke(makeInvokeArgs({ timeoutMs: 200 })),
+      ).rejects.toMatchObject({ code: 'OFFLINE_HANDLER_TIMEOUT' })
+    } finally {
+      await runner.terminate()
+    }
   })
 
   it('reuses the same bootstrap child across consecutive invokes', async () => {
