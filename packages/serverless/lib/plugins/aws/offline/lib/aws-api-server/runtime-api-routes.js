@@ -125,12 +125,51 @@ export function registerRuntimeApiRoutes(server, { queue }) {
   server.route({
     method: 'POST',
     path: '/runtime/{functionKey}/2018-06-01/runtime/invocation/{requestId}/error',
-    handler: () => {
-      const e = new Error(
-        'Runtime API POST /invocation/{id}/error not implemented',
-      )
-      e.code = 'OFFLINE_NOT_IMPLEMENTED'
-      throw e
+    options: {
+      payload: {
+        // Same rationale as POST /response: take the raw Buffer so the
+        // handler can attempt JSON.parse and synthesize a minimal
+        // `{ errorMessage, errorType }` shape for non-JSON bodies instead
+        // of letting Hapi 400 on a Content-Type/body mismatch.
+        parse: false,
+        maxBytes: 10 * 1024 * 1024,
+      },
+    },
+    /**
+     * Settle an in-flight invocation by rejecting it with the runtime's
+     * reported error body.
+     *
+     * Behaviour:
+     *  - 404 when no in-flight invocation matches `{functionKey, requestId}`
+     *    — checked via `queue.has` to avoid silently swallowing late traffic
+     *    from a crashed/timed-out runtime.
+     *  - Otherwise parse the body: JSON when possible (AWS spec shape is
+     *    `{ errorMessage, errorType, stackTrace? }`, but we accept any JSON
+     *    object as-is). For non-JSON or empty bodies we synthesize a
+     *    minimal `{ errorMessage, errorType: 'Error' }` so downstream
+     *    consumers always see a consistent object. The parsed value
+     *    becomes the rejection reason of the original `enqueue()` promise.
+     *  - Returns 202 with an empty body, matching the AWS Runtime API spec.
+     */
+    handler(request, h) {
+      const { functionKey, requestId } = request.params
+      if (!queue.has(functionKey, requestId)) {
+        return h.response().code(404)
+      }
+
+      const raw = request.payload
+      let parsed = { errorMessage: '', errorType: 'Error' }
+      if (raw && raw.length) {
+        const text = raw.toString('utf8')
+        try {
+          parsed = JSON.parse(text)
+        } catch {
+          parsed = { errorMessage: text, errorType: 'Error' }
+        }
+      }
+
+      queue.rejectInvocation(functionKey, requestId, parsed)
+      return h.response().code(202)
     },
   })
 }

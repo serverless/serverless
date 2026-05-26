@@ -140,4 +140,49 @@ describe('registerRuntimeApiRoutes (scaffold)', () => {
     expect(res.statusCode).toBe(202)
     await expect(invocation).resolves.toBeNull()
   })
+
+  it('POST /error rejects the matching invocation', async () => {
+    const invocation = queue.enqueue('fn1', { payload: {}, timeoutMs: 5000 })
+    const next = await queue.awaitNext('fn1', {})
+    const res = await server.inject({
+      method: 'POST',
+      url: `/runtime/fn1/2018-06-01/runtime/invocation/${next.requestId}/error`,
+      payload: JSON.stringify({
+        errorMessage: 'boom',
+        errorType: 'RuntimeError',
+      }),
+      headers: { 'content-type': 'application/json' },
+    })
+    expect(res.statusCode).toBe(202)
+    await expect(invocation).rejects.toMatchObject({
+      errorMessage: 'boom',
+      errorType: 'RuntimeError',
+    })
+  })
+
+  it('POST /error returns 404 when requestId is unknown', async () => {
+    const res = await server.inject({
+      method: 'POST',
+      url: '/runtime/fn1/2018-06-01/runtime/invocation/no-such-id/error',
+      payload: '{}',
+      headers: { 'content-type': 'application/json' },
+    })
+    expect(res.statusCode).toBe(404)
+  })
+
+  it('POST /error synthesizes errorMessage/errorType for non-JSON body', async () => {
+    const invocation = queue.enqueue('fn1', { payload: {}, timeoutMs: 5000 })
+    const next = await queue.awaitNext('fn1', {})
+    const res = await server.inject({
+      method: 'POST',
+      url: `/runtime/fn1/2018-06-01/runtime/invocation/${next.requestId}/error`,
+      payload: 'plain-text-error',
+      headers: { 'content-type': 'text/plain' },
+    })
+    expect(res.statusCode).toBe(202)
+    await expect(invocation).rejects.toMatchObject({
+      errorMessage: 'plain-text-error',
+      errorType: 'Error',
+    })
+  })
 })
