@@ -301,4 +301,105 @@ describe('createJavaRunner (Docker)', () => {
     expect(envMap.AWS_LAMBDA_FUNCTION_MEMORY_SIZE).toBe('512')
     expect(envMap.MY_USER_VAR).toBe('value-1')
   })
+
+  describe('JAVA_OPTS env var', () => {
+    let originalJavaOpts
+
+    beforeEach(() => {
+      originalJavaOpts = process.env.JAVA_OPTS
+    })
+
+    afterEach(() => {
+      if (originalJavaOpts === undefined) {
+        delete process.env.JAVA_OPTS
+      } else {
+        process.env.JAVA_OPTS = originalJavaOpts
+      }
+    })
+
+    it('forwards JAVA_OPTS as JAVA_TOOL_OPTIONS into the container env', async () => {
+      process.env.JAVA_OPTS = '-Xmx256m -Dfoo=bar'
+      let capturedOpts
+      const runner = createJavaRunner({
+        idleEvictionMs: 60_000,
+        runtimeApiBase,
+        runtimeApiQueue: queue,
+        dockerClient: makeFakeDockerClient(),
+        ensureImageReady: async () => {},
+        log: noopLog,
+        createContainerOverride: async (opts) => {
+          capturedOpts = opts
+          const apiBase = opts.Env.find((e) =>
+            e.startsWith('AWS_LAMBDA_RUNTIME_API='),
+          ).split('=')[1]
+          const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
+          setImmediate(async () => {
+            const next = await fetch(
+              `${httpBase}/2018-06-01/runtime/invocation/next`,
+            )
+            const id = next.headers.get('lambda-runtime-aws-request-id')
+            await fetch(
+              `${httpBase}/2018-06-01/runtime/invocation/${id}/response`,
+              { method: 'POST', body: '{}' },
+            )
+          })
+          return makeFakeContainer()
+        },
+        servicePath: '/tmp',
+      })
+
+      try {
+        await runner.invoke(makeInvokeArgs())
+      } finally {
+        await runner.terminate()
+      }
+
+      const javaToolOptions = capturedOpts.Env.find((e) =>
+        e.startsWith('JAVA_TOOL_OPTIONS='),
+      )
+      expect(javaToolOptions).toBe('JAVA_TOOL_OPTIONS=-Xmx256m -Dfoo=bar')
+    })
+
+    it('omits JAVA_TOOL_OPTIONS when JAVA_OPTS is unset', async () => {
+      delete process.env.JAVA_OPTS
+      let capturedOpts
+      const runner = createJavaRunner({
+        idleEvictionMs: 60_000,
+        runtimeApiBase,
+        runtimeApiQueue: queue,
+        dockerClient: makeFakeDockerClient(),
+        ensureImageReady: async () => {},
+        log: noopLog,
+        createContainerOverride: async (opts) => {
+          capturedOpts = opts
+          const apiBase = opts.Env.find((e) =>
+            e.startsWith('AWS_LAMBDA_RUNTIME_API='),
+          ).split('=')[1]
+          const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
+          setImmediate(async () => {
+            const next = await fetch(
+              `${httpBase}/2018-06-01/runtime/invocation/next`,
+            )
+            const id = next.headers.get('lambda-runtime-aws-request-id')
+            await fetch(
+              `${httpBase}/2018-06-01/runtime/invocation/${id}/response`,
+              { method: 'POST', body: '{}' },
+            )
+          })
+          return makeFakeContainer()
+        },
+        servicePath: '/tmp',
+      })
+
+      try {
+        await runner.invoke(makeInvokeArgs())
+      } finally {
+        await runner.terminate()
+      }
+
+      expect(
+        capturedOpts.Env.find((e) => e.startsWith('JAVA_TOOL_OPTIONS=')),
+      ).toBeUndefined()
+    })
+  })
 })
