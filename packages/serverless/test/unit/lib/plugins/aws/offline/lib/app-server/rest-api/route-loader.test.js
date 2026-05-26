@@ -153,14 +153,35 @@ describe('registerRestApiRoutes — registration', () => {
       onRequest: jest.fn(),
     })
     expect(out).toEqual([
-      { method: 'GET', path: '/a', mountedPath: '/dev/a', functionKey: 'a' },
+      {
+        method: 'GET',
+        path: '/a',
+        mountedPath: '/dev/a',
+        apigwMountedPath: '/dev/a',
+        functionKey: 'a',
+      },
       {
         method: 'POST',
         path: '/b/{id}',
         mountedPath: '/dev/b/{id}',
+        apigwMountedPath: '/dev/b/{id}',
         functionKey: 'b',
       },
     ])
+  })
+
+  it('apigwMountedPath preserves APIGW {proxy+} template (Hapi {proxy*} stays in mountedPath)', () => {
+    const stub = makeRouteStub()
+    const out = registerRestApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        p: { events: [{ http: 'ANY /api/{proxy+}' }] },
+      }),
+      stage: 'dev',
+      onRequest: jest.fn(),
+    })
+    expect(out[0].mountedPath).toBe('/dev/api/{proxy*}')
+    expect(out[0].apigwMountedPath).toBe('/dev/api/{proxy+}')
   })
 
   it('configures Hapi state parsing with failAction:ignore', () => {

@@ -150,7 +150,7 @@ function normalizeResponses(responseConfig) {
  *   function key and the APIGW REST v1 event; returns the Lambda response
  *   shape (string / object / `{ statusCode, body, ... }`).
  *
- * @returns {{ method: string, path: string, mountedPath: string, functionKey: string }[]}
+ * @returns {{ method: string, path: string, mountedPath: string, apigwMountedPath: string, functionKey: string }[]}
  *   The list of routes that were registered (in declaration order). Consumed
  *   by the boot-diagnostics summary that prints the route table.
  *
@@ -167,7 +167,7 @@ export function registerRestApiRoutes({
   authStrategies,
 }) {
   const functions = serverless.service.functions ?? {}
-  /** @type {{ method: string, path: string, mountedPath: string, functionKey: string }[]} */
+  /** @type {{ method: string, path: string, mountedPath: string, apigwMountedPath: string, functionKey: string }[]} */
   const registered = []
   // Two routes sharing a path (e.g. GET /users + POST /users) need only one
   // OPTIONS preflight handler — track which mounted paths already have one.
@@ -199,10 +199,16 @@ export function registerRestApiRoutes({
 
       const hapiMethod = toHapiMethod(rawMethod)
       const hapiPath = translateRestPath(apigwPath)
-      const mountedPath = buildMountedPath(hapiPath, stage, {
+      const mountOpts = {
         includeStage: !noPrependStageInUrl,
         prefix,
-      })
+      }
+      const mountedPath = buildMountedPath(hapiPath, stage, mountOpts)
+      // Same stage/prefix decoration, but on the APIGW-style path so the
+      // boot summary can show users URLs that match their `serverless.yml`
+      // declarations (e.g. `{proxy+}` rather than the Hapi-translated
+      // `{proxy*}`).
+      const apigwMountedPath = buildMountedPath(apigwPath, stage, mountOpts)
 
       // Capture for the closure — `apigwPath` is the original APIGW template
       // (with `{id}` etc. intact) so the event factory can surface it as
@@ -341,6 +347,7 @@ export function registerRestApiRoutes({
         method: rawMethod,
         path: apigwPath,
         mountedPath,
+        apigwMountedPath,
         functionKey,
       })
 

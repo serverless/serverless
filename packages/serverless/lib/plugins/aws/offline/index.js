@@ -64,7 +64,7 @@ function coerceInt(value) {
  * @param {string} params.appUrl                              The HTTP API / REST / ALB / WebSocket endpoint.
  * @param {string} params.awsApiUrl                           The AWS SDK endpoint (Lambda Invoke, SQS, etc.).
  * @param {{ method: string, path: string, functionKey: string }[]} params.httpApiRoutes
- * @param {{ method: string, path: string, mountedPath: string, functionKey: string }[]} [params.restApiRoutes]
+ * @param {{ method: string, path: string, mountedPath: string, apigwMountedPath: string, functionKey: string }[]} [params.restApiRoutes]
  * @param {number} params.sqsPollerCount
  * @param {string} params.stage
  */
@@ -147,15 +147,16 @@ function logBootSummary({
     // Sort by mounted URL then method so the table is stable across boots.
     const sorted = [...restApiRoutes].sort(
       (a, b) =>
-        a.mountedPath.localeCompare(b.mountedPath) ||
+        a.apigwMountedPath.localeCompare(b.apigwMountedPath) ||
         a.method.localeCompare(b.method),
     )
     const methodWidth = Math.max(...sorted.map((r) => r.method.length))
     for (const r of sorted) {
-      // mountedPath already carries stage + optional --prefix, so we can join
-      // it straight onto appUrl.
+      // apigwMountedPath carries stage + optional --prefix on the APIGW
+      // path template ({proxy+} rather than the Hapi-translated {proxy*}),
+      // so users see the same form they wrote in serverless.yml.
       logger.notice(
-        `    ${r.method.padEnd(methodWidth)}  ${appUrl}${r.mountedPath}  →  ${r.functionKey}`,
+        `    ${r.method.padEnd(methodWidth)}  ${appUrl}${r.apigwMountedPath}  →  ${r.functionKey}`,
       )
     }
   }
