@@ -67,6 +67,7 @@ function coerceInt(value) {
  * @param {{ method: string, path: string, mountedPath: string, apigwMountedPath: string, functionKey: string }[]} [params.restApiRoutes]
  * @param {number} params.sqsPollerCount
  * @param {string} params.stage
+ * @param {boolean} params.useInProcess  Whether the in-process runner is active.
  */
 function logBootSummary({
   logger,
@@ -78,11 +79,15 @@ function logBootSummary({
   restApiRoutes,
   sqsPollerCount,
   stage,
+  useInProcess,
 }) {
   logger.notice('')
   logger.notice(`sls offline ready (stage: ${stage})`)
   logger.notice(`  App endpoint:    ${appUrl}`)
   logger.notice(`  AWS endpoint:    ${awsApiUrl}`)
+  logger.notice(
+    `  Runner:          ${useInProcess ? 'in-process' : 'worker-thread'}`,
+  )
 
   // WebSocket routes — emit first because the WS upgrade handler fires
   // before any HTTP route resolution. Followed by the management-API
@@ -498,6 +503,7 @@ export default class OfflinePlugin {
           restApiRoutes,
           sqsPollerCount: pollerController.pollerCount,
           stage,
+          useInProcess,
         })
       },
     })
