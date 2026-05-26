@@ -125,8 +125,10 @@ export function normalizeCorsConfig(cors) {
  *      - Otherwise → `*`.
  *  - Else if the request's origin matches one of the configured origins →
  *    echo the request origin.
- *  - Else → the first configured origin (APIGW still sends a header with a
- *    fixed value rather than omitting it).
+ *  - Else → the first configured origin. APIGW behaviorally still emits an
+ *    Allow-Origin header in this case (rather than omitting it or 403'ing
+ *    the request); the browser is left to enforce the mismatch, which it
+ *    will, blocking the response on the client side.
  *
  * Shared by both the OPTIONS preflight handler and the non-OPTIONS response
  * header injector so the two code paths cannot drift.
@@ -209,10 +211,12 @@ export function applyCorsResponseHeaders(response, corsConfig, requestOrigin) {
 export function buildCorsOptionsRoute({ path, corsConfig }) {
   return {
     handler(request, h) {
-      const requestOrigin = request.headers?.origin
+      const requestOrigin = request.headers.origin
       const allowOrigin = resolveAllowOrigin(corsConfig, requestOrigin)
 
-      let response = h
+      // Hapi's response.header() mutates and returns the same response
+      // object — so chained / repeated header() calls all act on `response`.
+      const response = h
         .response('')
         .code(204)
         .header('Access-Control-Allow-Origin', allowOrigin)
@@ -220,16 +224,13 @@ export function buildCorsOptionsRoute({ path, corsConfig }) {
         .header('Access-Control-Allow-Methods', corsConfig.methods.join(','))
 
       if (corsConfig.allowCredentials) {
-        response = response.header('Access-Control-Allow-Credentials', 'true')
+        response.header('Access-Control-Allow-Credentials', 'true')
       }
       if (corsConfig.maxAge !== undefined) {
-        response = response.header(
-          'Access-Control-Max-Age',
-          String(corsConfig.maxAge),
-        )
+        response.header('Access-Control-Max-Age', String(corsConfig.maxAge))
       }
       if (corsConfig.exposedHeaders.length > 0) {
-        response = response.header(
+        response.header(
           'Access-Control-Expose-Headers',
           corsConfig.exposedHeaders.join(','),
         )
