@@ -31,16 +31,18 @@ import { arnFor } from '../provisioner/arn-synth.js'
 const HANDLER_EXTENSIONS_BY_RUNTIME = {
   node: ['.js', '.mjs', '.cjs'],
   python: ['.py'],
+  ruby: ['.rb'],
 }
 
 /**
  * Resolve the runtime family from an effective runtime string.
  *
  * @param {string | undefined | null} runtime
- * @returns {'node' | 'python'}
+ * @returns {'node' | 'python' | 'ruby'}
  */
 function runtimeFamily(runtime) {
   if (/^python\d+\.\d+$/.test(runtime ?? '')) return 'python'
+  if (/^ruby\d+\.\d+$/.test(runtime ?? '')) return 'ruby'
   return 'node'
 }
 
