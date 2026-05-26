@@ -28,16 +28,6 @@ class FakeLambdaContext
   end
 end
 
-def attach_tty
-  unless Gem.win_platform? || $stdin.tty? || !File.exist?('/dev/tty')
-    $stdin.reopen('/dev/tty', 'a+')
-  end
-rescue StandardError
-  # /dev/tty unavailable (headless spawn from Jest / CI / detached child) —
-  # ignore. The protocol reads from $stdin which the parent has wired to a
-  # pipe, not /dev/tty, so the loop below is unaffected.
-end
-
 if __FILE__ == $PROGRAM_NAME
   unless ARGV[0] && ARGV[1]
     warn 'Usage: invoke.rb <handler_path> <handler_name>'
@@ -59,7 +49,10 @@ if __FILE__ == $PROGRAM_NAME
   handler_class ||= 'Kernel'
   resolved_class = Object.const_get(handler_class)
 
-  attach_tty
+  # NOTE: the community plugin calls `attach_tty` here to allow `binding.pry`
+  # in user code. We deliberately omit it — our streaming child owns stdin
+  # for the JSON-line protocol; reopening fd 0 to /dev/tty would either fail
+  # or starve subsequent reads.
 
   # Streaming protocol: one JSON event per line in, one JSON envelope per
   # result line out. Mirrors the M5b Python wrapper's structure so the
