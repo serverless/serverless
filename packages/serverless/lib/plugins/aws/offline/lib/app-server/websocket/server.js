@@ -62,7 +62,6 @@ export function createWebSocketServer({
       return { allow: false }
     }
     if (!result || typeof result !== 'object') return { allow: false }
-    if (result === 'Unauthorized') return { allow: false }
     const { principalId, policyDocument, context = {} } = result
     if (!principalId) return { allow: false }
     try {
