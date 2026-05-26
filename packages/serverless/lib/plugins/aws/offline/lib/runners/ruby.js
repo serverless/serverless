@@ -27,8 +27,7 @@ const logger = log.get('sls:offline:ruby')
  * @property {'invalidate' | 'terminate' | null} cancelReason
  *   Set before the deliberate `child.kill()` that drops this entry, so the
  *   'exit' handler picks the right error envelope for any in-flight invoke.
- *   `'terminate'` will produce ServerlessError(OFFLINE_WORKER_TERMINATED) once
- *   T9 lands; for T6 the branch is a placeholder Error. `'invalidate'` is
+ *   `'terminate'` produces ServerlessError(OFFLINE_WORKER_TERMINATED). `'invalidate'` is
  *   tagged symmetrically with the worker-thread runner but currently falls
  *   through to the generic exit diagnostic.
  * @property {Promise<void>} exited  Resolves when the child process emits 'exit'.
@@ -132,16 +131,20 @@ export function createRubyRunner({
         }
 
         // If an invocation was in flight, reject it. The 'terminate'
-        // branch is a deliberate placeholder for T9, which will swap in
-        // ServerlessError(OFFLINE_WORKER_TERMINATED) to match the
-        // worker-thread runner's M5a fix. Other paths fall through to
-        // the generic diagnostic (pre-pool T4 message) with any
-        // buffered stderr.
+        // branch produces ServerlessError(OFFLINE_WORKER_TERMINATED) to
+        // match the worker-thread runner's M5a fix. Other paths fall
+        // through to the generic diagnostic (pre-pool T4 message) with
+        // any buffered stderr.
         if (entry.pending !== null) {
           const { reject } = entry.pending
           entry.pending = null
           if (entry.cancelReason === 'terminate') {
-            reject(new Error('Ruby runner terminated during invocation'))
+            reject(
+              new ServerlessError(
+                'Lambda runner terminated during invocation',
+                'OFFLINE_WORKER_TERMINATED',
+              ),
+            )
           } else {
             const stderr = Buffer.concat(entry.stderrChunks).toString().trim()
             reject(

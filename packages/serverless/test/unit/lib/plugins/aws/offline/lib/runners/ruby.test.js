@@ -381,3 +381,60 @@ describe('createRubyRunner — timeout', () => {
     }
   })
 })
+
+describe('createRubyRunner — terminate contract', () => {
+  it('terminate() during in-flight invoke rejects with OFFLINE_WORKER_TERMINATED', async () => {
+    const fs = await import('node:fs/promises')
+    const os = await import('node:os')
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'sls-offline-rb-term-'))
+    const fixture = path.join(tmp, 'sleeper.rb')
+    await fs.writeFile(
+      fixture,
+      [
+        'def handler(event:, context:)',
+        '  sleep 2',
+        '  { unreached: true }',
+        'end',
+      ].join('\n') + '\n',
+    )
+
+    const r = createRubyRunner()
+    let capturedErr
+    const invokePromise = r
+      .invoke({
+        functionKey: 'sleeper',
+        handlerPath: fixture,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      .catch((e) => {
+        capturedErr = e
+      })
+    await new Promise((res) => setTimeout(res, 100))
+    await r.terminate()
+    await invokePromise
+    expect(capturedErr).toBeInstanceOf(ServerlessError)
+    expect(capturedErr.code).toBe('OFFLINE_WORKER_TERMINATED')
+  })
+
+  it('terminate() during spawn (no wait) also rejects with OFFLINE_WORKER_TERMINATED', async () => {
+    const r = createRubyRunner()
+    let capturedErr
+    const invokePromise = r
+      .invoke({
+        functionKey: 'sleeper-spawn',
+        handlerPath: path.join(FIXTURES, 'sync_echo.rb'),
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      .catch((e) => {
+        capturedErr = e
+      })
+    await r.terminate()
+    await invokePromise
+    expect(capturedErr).toBeInstanceOf(ServerlessError)
+    expect(capturedErr.code).toBe('OFFLINE_WORKER_TERMINATED')
+  })
+})
