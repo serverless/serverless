@@ -96,7 +96,8 @@
     "tsx": "^4.21.0",
     "type": "^2.7.3",
     "uuid": "^13.0.2",
-    "velocityjs": "^2.1.6"
+    "velocityjs": "^2.1.6",
+    "ws": "^8.21.0"
   },
   "devDependencies": {
     "@aws-sdk/client-cognito-identity-provider": "3.1043.0",
