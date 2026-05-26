@@ -93,9 +93,16 @@ describe('Java runner integration (real Docker)', () => {
           runtime: 'java21',
           timeoutMs: 30_000,
         })
+        // The committed fixture JAR (hello-1.0.jar) is the M5e smoke handler:
+        //   public Map<String,Object> handleRequest(Map input, Context ctx) {
+        //     return Map.of("greeting", "hello from Java", "echo", jsonify(input))
+        //   }
+        // We assert the keys are present and the echo round-trips our payload.
         expect(result).toMatchObject({
-          ok: true,
-          received: { greeting: 'integration-smoke' },
+          greeting: expect.any(String),
+        })
+        expect(JSON.parse(result.echo)).toEqual({
+          greeting: 'integration-smoke',
         })
       } finally {
         await runner.terminate()
