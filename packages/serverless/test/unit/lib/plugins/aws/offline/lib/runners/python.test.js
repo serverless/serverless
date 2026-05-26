@@ -113,3 +113,111 @@ describe('createPythonRunner — log forwarding', () => {
     }
   })
 })
+
+describe('createPythonRunner — pool + idle eviction', () => {
+  // Use a counter fixture so we can prove the child was reused.
+  const counterFixture = path.join(FIXTURES, 'counter.py')
+  beforeAll(async () => {
+    const fs = await import('node:fs/promises')
+    await fs.writeFile(
+      counterFixture,
+      [
+        'n = 0',
+        'def handler(event, context):',
+        '    global n',
+        '    n += 1',
+        '    return {"n": n}',
+      ].join('\n') + '\n',
+    )
+  })
+
+  it('reuses the same child process across invocations on the same functionKey', async () => {
+    const r = createPythonRunner({ terminateIdleLambdaTime: 60_000 })
+    try {
+      const r1 = await r.invoke({
+        functionKey: 'counter',
+        handlerPath: counterFixture,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      const r2 = await r.invoke({
+        functionKey: 'counter',
+        handlerPath: counterFixture,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      const r3 = await r.invoke({
+        functionKey: 'counter',
+        handlerPath: counterFixture,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      expect(r1).toEqual({ n: 1 })
+      expect(r2).toEqual({ n: 2 })
+      expect(r3).toEqual({ n: 3 })
+    } finally {
+      await r.terminate()
+    }
+  })
+
+  it('evicts the child after terminateIdleLambdaTime; next invoke spawns fresh', async () => {
+    const r = createPythonRunner({ terminateIdleLambdaTime: 100 })
+    try {
+      const r1 = await r.invoke({
+        functionKey: 'counter',
+        handlerPath: counterFixture,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      expect(r1).toEqual({ n: 1 })
+      // Wait past the eviction window.
+      await new Promise((res) => setTimeout(res, 250))
+      const r2 = await r.invoke({
+        functionKey: 'counter',
+        handlerPath: counterFixture,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      // Fresh child → counter resets to 1.
+      expect(r2).toEqual({ n: 1 })
+    } finally {
+      await r.terminate()
+    }
+  })
+
+  it('keeps separate child processes per functionKey', async () => {
+    const r = createPythonRunner({ terminateIdleLambdaTime: 60_000 })
+    try {
+      await r.invoke({
+        functionKey: 'fnA',
+        handlerPath: counterFixture,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      const a2 = await r.invoke({
+        functionKey: 'fnA',
+        handlerPath: counterFixture,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      const b1 = await r.invoke({
+        functionKey: 'fnB',
+        handlerPath: counterFixture,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      expect(a2).toEqual({ n: 2 })
+      expect(b1).toEqual({ n: 1 })
+    } finally {
+      await r.terminate()
+    }
+  })
+})
