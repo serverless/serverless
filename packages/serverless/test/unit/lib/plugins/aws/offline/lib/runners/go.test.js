@@ -1,4 +1,6 @@
 import { spawn as realSpawn } from 'node:child_process'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import Hapi from '@hapi/hapi'
@@ -176,6 +178,53 @@ describe('createGoRunner', () => {
     expect(capturedEnv.AWS_LAMBDA_FUNCTION_NAME).toBe('fn1')
     expect(capturedEnv.AWS_LAMBDA_FUNCTION_MEMORY_SIZE).toBe('128')
     expect(capturedEnv.MY_USER_VAR).toBe('value-1')
+  })
+
+  it('calls ensureBuilt with derived sourceDir/sourceFile and spawns the returned binary', async () => {
+    const servicePath = await mkdtemp(path.join(tmpdir(), 'go-runner-svc-'))
+    try {
+      const ensureBuiltCalls = []
+      const spawnCalls = []
+      const runner = createGoRunner({
+        idleEvictionMs: 60_000,
+        runtimeApiBase,
+        runtimeApiQueue: queue,
+        log: noopLog,
+        ensureBuilt: async (opts) => {
+          ensureBuiltCalls.push(opts)
+          return { binaryPath: process.execPath, fromCache: false }
+        },
+        spawnOverride: (binaryPath, args, opts) => {
+          spawnCalls.push({ binaryPath })
+          return realSpawn(process.execPath, [fakeBootstrap], {
+            cwd: opts.cwd,
+            env: opts.env,
+            stdio: opts.stdio,
+          })
+        },
+        servicePath,
+      })
+
+      try {
+        await runner.invoke(makeInvokeArgs())
+      } finally {
+        await runner.terminate()
+      }
+
+      expect(ensureBuiltCalls).toHaveLength(1)
+      expect(ensureBuiltCalls[0]).toMatchObject({
+        functionKey: 'fn1',
+        // Handler 'src/main.handler' → dirname('src/main') = 'src', resolved
+        // against servicePath.
+        sourceDir: path.resolve(servicePath, 'src'),
+        sourceFile: path.resolve(servicePath, 'src/main.go'),
+        servicePath,
+      })
+      expect(spawnCalls).toHaveLength(1)
+      expect(spawnCalls[0].binaryPath).toBe(process.execPath)
+    } finally {
+      await rm(servicePath, { recursive: true, force: true })
+    }
   })
 
   it('rejects in-flight invocations with OFFLINE_WORKER_TERMINATED on terminate()', async () => {
