@@ -1,0 +1,40 @@
+import ServerlessError from '../../../../../serverless-error.js'
+
+/**
+ * Verify that a Docker daemon is reachable before booting the Java runner.
+ *
+ * Calls `ping()` on the underlying dockerode client and translates failures
+ * into actionable `ServerlessError`s. Two error codes are surfaced:
+ *
+ *   - `OFFLINE_DOCKER_BINARY_MISSING` when the socket cannot be located
+ *     (dockerode raises `ENOENT`). Almost always means Docker isn't
+ *     installed on the host.
+ *   - `OFFLINE_DOCKER_DAEMON_NOT_RUNNING` for every other failure mode,
+ *     including `ECONNREFUSED` from a stopped daemon. Wraps the
+ *     underlying error message so the user sees the original cause.
+ *
+ * Resolves with `undefined` on success.
+ *
+ * @param {object} args
+ * @param {{ getDockerodeClient: () => { ping: () => Promise<unknown> } }} args.dockerClient
+ *   The shared `DockerClient` wrapper from `@serverless/util`.
+ * @returns {Promise<void>}
+ */
+export async function assertDockerAvailable({ dockerClient }) {
+  const docker = dockerClient.getDockerodeClient()
+  try {
+    await docker.ping()
+  } catch (err) {
+    if (err && err.code === 'ENOENT') {
+      throw new ServerlessError(
+        'Docker not found. Install Docker Desktop (macOS/Windows) or the Docker engine (Linux) and retry — Java functions require a running Docker daemon.',
+        'OFFLINE_DOCKER_BINARY_MISSING',
+      )
+    }
+    const detail = err && err.message ? err.message : String(err)
+    throw new ServerlessError(
+      `Docker daemon not reachable (${detail}). Start Docker Desktop or run \`systemctl start docker\` on Linux and retry.`,
+      'OFFLINE_DOCKER_DAEMON_NOT_RUNNING',
+    )
+  }
+}
