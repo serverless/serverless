@@ -76,7 +76,10 @@ describe('createJavaRunner (Docker)', () => {
       functionKey,
       handlerPath: '/unused',
       handlerName: 'unused',
-      artifactPath: overrides.artifactPath ?? '/tmp/target/hello.jar',
+      artifactPath:
+        'artifactPath' in overrides
+          ? overrides.artifactPath
+          : '/tmp/target/hello.jar',
       event: overrides.event ?? { hello: 'world' },
       context: {
         awsRequestId: 'rid',
@@ -401,5 +404,142 @@ describe('createJavaRunner (Docker)', () => {
         capturedOpts.Env.find((e) => e.startsWith('JAVA_TOOL_OPTIONS=')),
       ).toBeUndefined()
     })
+  })
+
+  it('rejects with OFFLINE_HANDLER_TIMEOUT when the container never posts a response', async () => {
+    const runner = createJavaRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      dockerClient: makeFakeDockerClient(),
+      ensureImageReady: async () => {},
+      log: noopLog,
+      createContainerOverride: async (opts) => {
+        // Stalling: poll /next but never POST /response.
+        const apiBase = opts.Env.find((e) =>
+          e.startsWith('AWS_LAMBDA_RUNTIME_API='),
+        ).split('=')[1]
+        const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
+        setImmediate(async () => {
+          try {
+            await fetch(`${httpBase}/2018-06-01/runtime/invocation/next`)
+          } catch {}
+        })
+        return makeFakeContainer()
+      },
+      servicePath: '/tmp',
+    })
+
+    try {
+      await expect(
+        runner.invoke(makeInvokeArgs({ timeoutMs: 200 })),
+      ).rejects.toMatchObject({ code: 'OFFLINE_HANDLER_TIMEOUT' })
+    } finally {
+      await runner.terminate()
+    }
+  })
+
+  it('rejects in-flight invocations with OFFLINE_WORKER_TERMINATED on terminate()', async () => {
+    const fakeContainer = makeFakeContainer()
+    const runner = createJavaRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      dockerClient: makeFakeDockerClient(),
+      ensureImageReady: async () => {},
+      log: noopLog,
+      createContainerOverride: async (opts) => {
+        // Stalling — no /response posted.
+        const apiBase = opts.Env.find((e) =>
+          e.startsWith('AWS_LAMBDA_RUNTIME_API='),
+        ).split('=')[1]
+        const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
+        setImmediate(async () => {
+          try {
+            await fetch(`${httpBase}/2018-06-01/runtime/invocation/next`)
+          } catch {}
+        })
+        return fakeContainer
+      },
+      servicePath: '/tmp',
+    })
+
+    const inFlight = runner.invoke(makeInvokeArgs({ timeoutMs: 60_000 }))
+    // Attach catch synchronously so the eventual rejection isn't
+    // surfaced as an unhandled-rejection.
+    const settled = inFlight.then(
+      (value) => ({ status: 'fulfilled', value }),
+      (reason) => ({ status: 'rejected', reason }),
+    )
+
+    // Let the spawn + enqueue happen.
+    await new Promise((r) => setTimeout(r, 100))
+
+    await runner.terminate()
+
+    const outcome = await settled
+    expect(outcome.status).toBe('rejected')
+    expect(outcome.reason).toMatchObject({ code: 'OFFLINE_WORKER_TERMINATED' })
+  })
+
+  it('invalidate() clears pendingTimeout and stops the container (idempotent)', async () => {
+    const fakeContainer = makeFakeContainer()
+    const runner = createJavaRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      dockerClient: makeFakeDockerClient(),
+      ensureImageReady: async () => {},
+      log: noopLog,
+      createContainerOverride: async (opts) => {
+        // Echo poller — invoke resolves quickly so pool entry is idle.
+        const apiBase = opts.Env.find((e) =>
+          e.startsWith('AWS_LAMBDA_RUNTIME_API='),
+        ).split('=')[1]
+        const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
+        setImmediate(async () => {
+          const next = await fetch(
+            `${httpBase}/2018-06-01/runtime/invocation/next`,
+          )
+          const id = next.headers.get('lambda-runtime-aws-request-id')
+          await fetch(
+            `${httpBase}/2018-06-01/runtime/invocation/${id}/response`,
+            { method: 'POST', body: '{}' },
+          )
+        })
+        return fakeContainer
+      },
+      servicePath: '/tmp',
+    })
+
+    try {
+      await runner.invoke(makeInvokeArgs())
+      expect(() => runner.invalidate('fn1')).not.toThrow()
+      // Second invalidate on a gone entry must also be safe.
+      expect(() => runner.invalidate('fn1')).not.toThrow()
+    } finally {
+      await runner.terminate()
+    }
+  })
+
+  it('throws OFFLINE_JAVA_ARTIFACT_MISSING when artifactPath is missing', async () => {
+    const runner = createJavaRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      dockerClient: makeFakeDockerClient(),
+      ensureImageReady: async () => {},
+      log: noopLog,
+      createContainerOverride: async () => makeFakeContainer(),
+      servicePath: '/tmp',
+    })
+
+    try {
+      await expect(
+        runner.invoke(makeInvokeArgs({ artifactPath: null })),
+      ).rejects.toMatchObject({ code: 'OFFLINE_JAVA_ARTIFACT_MISSING' })
+    } finally {
+      await runner.terminate()
+    }
   })
 })
