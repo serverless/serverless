@@ -114,6 +114,62 @@ describe('createJavaRunner', () => {
     expect(typeof runner.terminate).toBe('function')
   })
 
+  it('spawns the JVM with AWS_LAMBDA_RUNTIME_API, _HANDLER, and Lambda runtime env vars', async () => {
+    let capturedEnv
+    let capturedArgs
+    const runner = createJavaRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      log: noopLog,
+      resolveClasspath: async () => ({
+        classpath: '/u/a.jar:/u/ric.jar',
+        artifactPath: '/u/a.jar',
+        ricJarPath: '/u/ric.jar',
+      }),
+      checkJavaVersion: async () => ({ majorVersion: 21, raw: '' }),
+      spawnOverride: (cmd, args, opts) => {
+        capturedEnv = opts.env
+        capturedArgs = args
+        return realSpawn(process.execPath, [fakeBootstrap], {
+          cwd: opts.cwd,
+          env: opts.env,
+          stdio: opts.stdio,
+        })
+      },
+      servicePath: '/tmp',
+    })
+
+    try {
+      await runner.invoke(
+        makeInvokeArgs({
+          environment: { MY_USER_VAR: 'value-1' },
+        }),
+      )
+    } finally {
+      await runner.terminate()
+    }
+
+    const port = server.info.port
+    // Bare host:port/runtime/<functionKey> form — no scheme, no trailing slash.
+    expect(capturedEnv.AWS_LAMBDA_RUNTIME_API).toBe(
+      `127.0.0.1:${port}/runtime/fn1`,
+    )
+    expect(capturedEnv._HANDLER).toBe('com.example.Hello::handleRequest')
+    expect(capturedEnv.AWS_LAMBDA_FUNCTION_NAME).toBe('fn1')
+    expect(capturedEnv.AWS_LAMBDA_FUNCTION_MEMORY_SIZE).toBe('512')
+    expect(capturedEnv.MY_USER_VAR).toBe('value-1')
+
+    // Args ordering: -cp + classpath + RIC main + handler string trailing.
+    expect(capturedArgs).toContain('-cp')
+    const cpIndex = capturedArgs.indexOf('-cp')
+    expect(capturedArgs[cpIndex + 1]).toBe('/u/a.jar:/u/ric.jar')
+    expect(capturedArgs[cpIndex + 2]).toBe(
+      'com.amazonaws.services.lambda.runtime.api.client.AWSLambda',
+    )
+    expect(capturedArgs[cpIndex + 3]).toBe('com.example.Hello::handleRequest')
+  })
+
   it('reuses the same JVM child across consecutive invokes', async () => {
     const spawnCalls = []
     const runner = createJavaRunner({
