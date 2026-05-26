@@ -173,7 +173,13 @@ export function createJavaRunner({
       Env: Object.entries(containerEnv).map(([k, v]) => `${k}=${v}`),
       HostConfig: {
         AutoRemove: true,
-        Binds: [`${artifactDir}:/var/task:ro`],
+        // The AWS Lambda Java image classpath includes `/var/task/lib/*`
+        // for JAR dependencies; mounting the artifact directory there
+        // puts the user's compiled JAR on the classpath. Mounting at
+        // `/var/task` instead drops the JAR off the classpath (only
+        // loose .class files at /var/task/ are picked up there) and
+        // surfaces as ClassNotFoundException.
+        Binds: [`${artifactDir}:/var/task/lib:ro`],
         ExtraHosts: ['host.docker.internal:host-gateway'],
       },
     }

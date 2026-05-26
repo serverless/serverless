@@ -178,8 +178,12 @@ describe('createJavaRunner (Docker)', () => {
     expect(capturedCreateOpts.HostConfig.ExtraHosts).toEqual([
       'host.docker.internal:host-gateway',
     ])
+    // /var/task/lib is the directory the AWS Lambda Java image puts on
+    // the classpath via /var/task/lib/* — mounting the artifact directory
+    // at /var/task (rather than /var/task/lib) leaves the JAR off the
+    // classpath and surfaces as ClassNotFoundException at first invoke.
     expect(capturedCreateOpts.HostConfig.Binds).toEqual([
-      '/tmp/target:/var/task:ro',
+      '/tmp/target:/var/task/lib:ro',
     ])
     const apiEnv = capturedCreateOpts.Env.find((e) =>
       e.startsWith('AWS_LAMBDA_RUNTIME_API='),
