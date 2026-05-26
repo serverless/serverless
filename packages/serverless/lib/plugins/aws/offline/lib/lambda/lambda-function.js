@@ -25,35 +25,41 @@ import { arnFor } from '../provisioner/arn-synth.js'
  * Handler file extensions tried in order, keyed by runtime family.
  *
  * Node entries match Node's CJS/ESM module loader. Single-extension families
- * (Python `.py`, Ruby `.rb`, Go `.go`) match the single source-file convention
- * each language's child-process wrapper expects. For Go the `.go` extension
- * refers to the source file used by the auto-build path; pre-built binaries
- * are looked up under `.serverless-offline/builds/<functionKey>/bootstrap`
- * separately by the Go runner and do not flow through this table.
+ * (Python `.py`, Ruby `.rb`, Go `.go`, Java `.java`) match the single
+ * source-file convention each language's child-process wrapper expects. For
+ * Go the `.go` extension refers to the source file used by the auto-build
+ * path. Java handlers are FQCN strings (`com.example.Class::method`) — the
+ * `.java` extension is registered for future watcher source-change detection
+ * only; the runner resolves handlers via the user's compiled `.jar`
+ * artifact, not via this table.
  */
 const HANDLER_EXTENSIONS_BY_RUNTIME = {
   node: ['.js', '.mjs', '.cjs'],
   python: ['.py'],
   ruby: ['.rb'],
   go: ['.go'],
+  java: ['.java'],
 }
 
 /**
  * Resolve the runtime family from an effective runtime string.
  *
- * The `provided.al{,2}` family is treated as Go for handler resolution
+ * The `provided.al{,2}` family is treated as Go for handler-extension
  * purposes — that's the canonical runtime for current `aws-lambda-go`
- * builds. (Rust/.NET also target `provided.al*` in production, but neither
- * is supported by sls offline today; the runtime guard rejects them at
- * boot, so misclassifying here is unreachable.)
+ * builds. The Go-vs-Java disambiguation for `provided.al{,2}` happens
+ * later in `create-runner.js` via the `.jar` artifact-extension check —
+ * this coarse family classification is only used for handler-extension
+ * lookups, which neither Go (bootstrap binary) nor Java (FQCN handler)
+ * consult at runtime.
  *
  * @param {string | undefined | null} runtime
- * @returns {'node' | 'python' | 'ruby' | 'go'}
+ * @returns {'node' | 'python' | 'ruby' | 'go' | 'java'}
  */
 function runtimeFamily(runtime) {
   if (/^python\d+\.\d+$/.test(runtime ?? '')) return 'python'
   if (/^ruby\d+\.\d+$/.test(runtime ?? '')) return 'ruby'
   if (/^go\d+\.x?$/.test(runtime ?? '')) return 'go'
+  if (/^java\d+(\.al2)?$/.test(runtime ?? '')) return 'java'
   if (/^provided\.al2?$/.test(runtime ?? '')) return 'go'
   return 'node'
 }
