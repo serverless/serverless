@@ -87,6 +87,7 @@ function logBootSummary({
   hasPythonFunctions,
   hasRubyFunctions,
   hasGoFunctions,
+  hasJavaFunctions,
 }) {
   logger.notice('')
   logger.notice(`sls offline ready (stage: ${stage})`)
@@ -103,6 +104,9 @@ function logBootSummary({
   }
   if (hasGoFunctions) {
     logger.notice(`  Go runner:       child-process (bootstrap binary)`)
+  }
+  if (hasJavaFunctions) {
+    logger.notice(`  Java runner:     child-process (JVM + AWS RIC)`)
   }
 
   // WebSocket routes — emit first because the WS upgrade handler fires
@@ -297,6 +301,18 @@ export default class OfflinePlugin {
       const rt = fn.runtime ?? serverless.service.provider.runtime
       return /^go\d+\.x?$/.test(rt ?? '') || /^provided\.al2?$/.test(rt ?? '')
     })
+    // Java detection covers the full Java runtime family (java8.al2,
+    // java11, java17, java21, future java25+). The `provided.al2(023)?`
+    // case is ambiguous between Go and Java; we don't disambiguate
+    // here — the multiplexer does that via the .jar artifact-extension
+    // check. For queue/routes gating we just need to know whether ANY
+    // Java function exists.
+    const hasJavaFunctions = Object.values(
+      serverless.service.functions ?? {},
+    ).some((fn) => {
+      const rt = fn.runtime ?? serverless.service.provider.runtime
+      return /^java\d+(\.al2)?$/.test(rt ?? '')
+    })
     const noTimeout = cliOptions.noTimeout === true
     const prefix = cliOptions.prefix ?? offline.prefix
     const noPrependStageInUrl =
@@ -350,7 +366,13 @@ export default class OfflinePlugin {
     //    When any function uses the Go runtime family, also create the shared
     //    invocation queue that bridges the runner to the AWS Lambda Runtime
     //    API routes mounted on the aws-api-server (see step 10).
-    const runtimeApiQueue = hasGoFunctions ? createInvocationQueue() : null
+    // The Lambda Runtime API queue + Hapi routes are shared by every
+    // runner that uses the AWS RIC convention (Go via aws-lambda-go,
+    // Java via the official RIC).
+    const hasRuntimeApiFunctions = hasGoFunctions || hasJavaFunctions
+    const runtimeApiQueue = hasRuntimeApiFunctions
+      ? createInvocationQueue()
+      : null
     const runtimeApiBase = `http://${host}:${awsApiPort}/runtime`
     const runner = createRunner({
       useInProcess,
@@ -361,6 +383,14 @@ export default class OfflinePlugin {
             runtimeApiQueue,
             servicePath: getHandlerBaseDir(serverless),
             log: log.get('sls:offline:go'),
+          }
+        : undefined,
+      java: hasJavaFunctions
+        ? {
+            runtimeApiBase,
+            runtimeApiQueue,
+            servicePath: getHandlerBaseDir(serverless),
+            log: log.get('sls:offline:java'),
           }
         : undefined,
     })
@@ -569,6 +599,7 @@ export default class OfflinePlugin {
           hasPythonFunctions,
           hasRubyFunctions,
           hasGoFunctions,
+          hasJavaFunctions,
         })
       },
     })
