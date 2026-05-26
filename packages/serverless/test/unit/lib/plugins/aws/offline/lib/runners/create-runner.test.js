@@ -4,6 +4,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { createRunner } from '../../../../../../../../lib/plugins/aws/offline/lib/runners/create-runner.js'
+import { createInvocationQueue } from '../../../../../../../../lib/plugins/aws/offline/lib/runners/invocation-queue.js'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const PYTHON_FIXTURES = path.resolve(here, '../../__fixtures__/handlers/python')
@@ -178,5 +179,59 @@ describe('createRunner — runtime-aware dispatch', () => {
     } finally {
       await r.terminate()
     }
+  })
+
+  it('routes provided.al2 invocations to the Go runner branch (not worker-thread)', async () => {
+    // Confidence is built indirectly: if the multiplexer mistakenly routed
+    // to the worker-thread runner, the error would surface as a missing
+    // handler file. Routing to the Go runner surfaces an OFFLINE_HANDLER_TIMEOUT
+    // because nothing on the queue side ever drains the invocation.
+    const queue = createInvocationQueue()
+    const r = createRunner({
+      useInProcess: false,
+      terminateIdleLambdaTime: 60,
+      go: {
+        // Real port doesn't matter — we use ensureBuilt + spawnOverride
+        // injection through the runner internals would be needed for a
+        // full pass. Instead, prove dispatch via the short timeout path.
+        runtimeApiBase: 'http://127.0.0.1:1/runtime',
+        runtimeApiQueue: queue,
+        servicePath: os.tmpdir(),
+      },
+    })
+    try {
+      await expect(
+        r.invoke({
+          functionKey: 'go-fn',
+          handlerPath: '/tmp/src/main',
+          handlerName: 'handler',
+          event: {},
+          context: { handler: 'src/main.handler' },
+          runtime: 'provided.al2',
+          timeoutMs: 50,
+        }),
+      ).rejects.toMatchObject({ code: expect.stringMatching(/^OFFLINE_/) })
+    } finally {
+      await r.terminate()
+    }
+  })
+
+  it('throws an actionable error when a Go function arrives but no go.* options were supplied', async () => {
+    const r = createRunner({
+      useInProcess: false,
+      terminateIdleLambdaTime: 60,
+    })
+    await expect(
+      r.invoke({
+        functionKey: 'go-fn',
+        handlerPath: '/tmp/src/main',
+        handlerName: 'handler',
+        event: {},
+        context: { handler: 'src/main.handler' },
+        runtime: 'provided.al2',
+        timeoutMs: 1000,
+      }),
+    ).rejects.toThrow(/Go functions require/)
+    await r.terminate()
   })
 })

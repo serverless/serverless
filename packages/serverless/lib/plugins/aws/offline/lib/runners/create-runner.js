@@ -1,3 +1,4 @@
+import { createGoRunner } from './go.js'
 import { createInProcessRunner } from './in-process.js'
 import { createPythonRunner } from './python.js'
 import { createRubyRunner } from './ruby.js'
@@ -25,6 +26,8 @@ import { createWorkerThreadRunner } from './worker-thread.js'
 function _resolveRunnerKind(runtime, useInProcess) {
   if (/^python\d+\.\d+$/.test(runtime ?? '')) return 'python'
   if (/^ruby\d+\.\d+$/.test(runtime ?? '')) return 'ruby'
+  if (/^go\d+\.x?$/.test(runtime ?? '')) return 'go'
+  if (/^provided\.al2?$/.test(runtime ?? '')) return 'go'
   return useInProcess ? 'in-process' : 'worker-thread'
 }
 
@@ -59,21 +62,33 @@ function _resolveRunnerKind(runtime, useInProcess) {
  *
  * @param {object} params
  * @param {boolean} params.useInProcess  Selects the Node sub-runner.
- *   `true` → in-process; `false` → worker-thread. Ignored for Python.
+ *   `true` → in-process; `false` → worker-thread. Ignored for Python /
+ *   Ruby / Go.
  * @param {number} params.terminateIdleLambdaTime  Idle eviction window in
  *   SECONDS (user-facing unit). Forwarded as milliseconds to the worker-
  *   thread and Python sub-runners; the in-process runner has no idle
  *   workers to terminate.
+ * @param {object} [params.go]  Go sub-runner wiring; only consulted when a
+ *   function's runtime matches `/^go\d+\.x?$/` or `/^provided\.al2?$/`.
+ *   When the service has no Go functions, callers may omit this entirely.
+ * @param {string} [params.go.runtimeApiBase]  Full URL with scheme, e.g.
+ *   `http://localhost:3002/runtime`. Passed through verbatim to the Go
+ *   runner which strips the scheme before assembling `AWS_LAMBDA_RUNTIME_API`.
+ * @param {object} [params.go.runtimeApiQueue]  Invocation queue shared with
+ *   the aws-api-server Runtime API routes.
+ * @param {string} [params.go.servicePath]  Service root for build-cache and
+ *   handler-source resolution.
+ * @param {object} [params.go.log]  Logger forwarded to the Go runner.
  * @returns {{
  *   invoke(args: object): Promise<unknown>,
  *   invalidate(functionKey: string): void,
  *   terminate(): Promise<void>,
  * }}
  */
-export function createRunner({ useInProcess, terminateIdleLambdaTime }) {
+export function createRunner({ useInProcess, terminateIdleLambdaTime, go }) {
   const idleEvictionMs = terminateIdleLambdaTime * 1000
 
-  /** @type {Map<'in-process' | 'worker-thread' | 'python' | 'ruby', { invoke: Function, invalidate: Function, terminate: Function }>} */
+  /** @type {Map<'in-process' | 'worker-thread' | 'python' | 'ruby' | 'go', { invoke: Function, invalidate: Function, terminate: Function }>} */
   const subs = new Map()
 
   function _get(kind) {
@@ -85,6 +100,19 @@ export function createRunner({ useInProcess, terminateIdleLambdaTime }) {
       r = createPythonRunner({ idleEvictionMs })
     } else if (kind === 'ruby') {
       r = createRubyRunner({ idleEvictionMs })
+    } else if (kind === 'go') {
+      if (!go?.runtimeApiBase || !go?.runtimeApiQueue) {
+        throw new Error(
+          'createRunner: Go functions require `go.runtimeApiBase` and `go.runtimeApiQueue` options',
+        )
+      }
+      r = createGoRunner({
+        idleEvictionMs,
+        runtimeApiBase: go.runtimeApiBase,
+        runtimeApiQueue: go.runtimeApiQueue,
+        servicePath: go.servicePath,
+        log: go.log,
+      })
     } else {
       r = createWorkerThreadRunner({ servicePath: '', idleEvictionMs })
     }
