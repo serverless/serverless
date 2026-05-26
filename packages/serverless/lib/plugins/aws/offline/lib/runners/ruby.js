@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { log } from '@serverless/util'
 
+import { buildLambdaRuntimeEnv } from './lambda-env.js'
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const WRAPPER = path.resolve(__dirname, 'wrappers/ruby/invoke.rb')
@@ -291,14 +293,34 @@ export function createRubyRunner({
       handlerName,
       event,
       context,
+      environment,
       timeoutMs,
     }) {
       let entry = pool.get(functionKey)
       if (!entry || entry.state === 'terminating') {
-        // T7 will populate env with the AWS_LAMBDA_* runtime block + user
-        // env; for T6 we pass an empty object so the _spawn signature is
-        // already in place.
-        entry = _spawn(functionKey, handlerPath, handlerName, {})
+        // Env captured at spawn time and stable for the child's lifetime —
+        // matches real Lambda's per-execution-env model. Per-key isolation
+        // means each function gets its own snapshot of the runtime block +
+        // user env.
+        const region = context?.region ?? process.env.AWS_REGION ?? 'us-east-1'
+        const functionName = context?.functionName
+        const memoryLimitInMB = String(context?.memoryLimitInMB ?? 1024)
+        const logGroupName =
+          context?.logGroupName ?? `/aws/lambda/${functionName}`
+        const logStreamName = context?.logStreamName ?? ''
+        const lambdaEnv = buildLambdaRuntimeEnv({
+          functionName,
+          memoryLimitInMB,
+          invokedFunctionArn: context?.invokedFunctionArn,
+          logGroupName,
+          logStreamName,
+          handler: context?.handler,
+          region,
+        })
+        entry = _spawn(functionKey, handlerPath, handlerName, {
+          ...lambdaEnv,
+          ...(environment ?? {}),
+        })
         pool.set(functionKey, entry)
       }
       _clearEviction(entry)

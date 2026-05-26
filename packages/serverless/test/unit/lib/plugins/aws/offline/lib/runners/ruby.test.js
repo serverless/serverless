@@ -114,6 +114,81 @@ describe('createRubyRunner — log forwarding', () => {
   })
 })
 
+describe('createRubyRunner — env injection', () => {
+  it('sets AWS_LAMBDA_* env vars on the child process', async () => {
+    const fs = await import('node:fs/promises')
+    const os = await import('node:os')
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'sls-offline-rb-env-'))
+    const fixture = path.join(tmp, 'env_dump.rb')
+    await fs.writeFile(
+      fixture,
+      [
+        'def handler(event:, context:)',
+        '  {',
+        '    name: ENV["AWS_LAMBDA_FUNCTION_NAME"],',
+        '    memory: ENV["AWS_LAMBDA_FUNCTION_MEMORY_SIZE"],',
+        '    region: ENV["AWS_REGION"],',
+        '    version: ENV["AWS_LAMBDA_FUNCTION_VERSION"],',
+        '  }',
+        'end',
+      ].join('\n') + '\n',
+    )
+
+    const r = createRubyRunner({ idleEvictionMs: 60_000 })
+    try {
+      const result = await r.invoke({
+        functionKey: 'env-dump',
+        handlerPath: fixture,
+        handlerName: 'handler',
+        event: {},
+        context: {
+          functionName: 'envFn',
+          memoryLimitInMB: 512,
+          region: 'eu-west-1',
+        },
+      })
+      expect(result).toEqual({
+        name: 'envFn',
+        memory: '512',
+        region: 'eu-west-1',
+        version: '$LATEST',
+      })
+    } finally {
+      await r.terminate()
+    }
+  })
+
+  it('merges user environment from args.environment onto lambda env', async () => {
+    const fs = await import('node:fs/promises')
+    const os = await import('node:os')
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'sls-offline-rb-env-'))
+    const fixture = path.join(tmp, 'env_user.rb')
+    await fs.writeFile(
+      fixture,
+      [
+        'def handler(event:, context:)',
+        '  { DB_HOST: ENV["DB_HOST"] }',
+        'end',
+      ].join('\n') + '\n',
+    )
+
+    const r = createRubyRunner({ idleEvictionMs: 60_000 })
+    try {
+      const result = await r.invoke({
+        functionKey: 'env-user',
+        handlerPath: fixture,
+        handlerName: 'handler',
+        event: {},
+        context: { functionName: 'envFn' },
+        environment: { DB_HOST: 'localhost:5432' },
+      })
+      expect(result).toEqual({ DB_HOST: 'localhost:5432' })
+    } finally {
+      await r.terminate()
+    }
+  })
+})
+
 describe('createRubyRunner — pool + idle eviction', () => {
   let counterFixture
   beforeAll(async () => {
