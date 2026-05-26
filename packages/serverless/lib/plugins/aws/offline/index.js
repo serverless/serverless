@@ -69,6 +69,7 @@ function coerceInt(value) {
  * @param {string} params.stage
  * @param {boolean} params.useInProcess  Whether the in-process Node runner is active.
  * @param {boolean} params.hasPythonFunctions  Whether any function declares a python3.x runtime.
+ * @param {boolean} params.hasRubyFunctions  Whether any function declares a ruby3.x runtime.
  */
 function logBootSummary({
   logger,
@@ -82,6 +83,7 @@ function logBootSummary({
   stage,
   useInProcess,
   hasPythonFunctions,
+  hasRubyFunctions,
 }) {
   logger.notice('')
   logger.notice(`sls offline ready (stage: ${stage})`)
@@ -92,6 +94,9 @@ function logBootSummary({
   )
   if (hasPythonFunctions) {
     logger.notice(`  Python runner:   child-process (python3)`)
+  }
+  if (hasRubyFunctions) {
+    logger.notice(`  Ruby runner:     child-process (ruby)`)
   }
 
   // WebSocket routes — emit first because the WS upgrade handler fires
@@ -269,6 +274,12 @@ export default class OfflinePlugin {
     ).some((fn) => {
       const rt = fn.runtime ?? serverless.service.provider.runtime
       return /^python\d+\.\d+$/.test(rt ?? '')
+    })
+    const hasRubyFunctions = Object.values(
+      serverless.service.functions ?? {},
+    ).some((fn) => {
+      const rt = fn.runtime ?? serverless.service.provider.runtime
+      return /^ruby\d+\.\d+$/.test(rt ?? '')
     })
     const noTimeout = cliOptions.noTimeout === true
     const prefix = cliOptions.prefix ?? offline.prefix
@@ -520,6 +531,7 @@ export default class OfflinePlugin {
           stage,
           useInProcess,
           hasPythonFunctions,
+          hasRubyFunctions,
         })
       },
     })
