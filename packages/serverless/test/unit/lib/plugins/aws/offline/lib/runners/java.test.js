@@ -174,6 +174,80 @@ describe('createJavaRunner', () => {
     expect(capturedArgs[cpIndex + 3]).toBe('com.example.Hello::handleRequest')
   })
 
+  it('rejects in-flight invocations with OFFLINE_WORKER_TERMINATED on terminate()', async () => {
+    const runner = createJavaRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      log: noopLog,
+      resolveClasspath: async () => ({
+        classpath: '/u/cp',
+        artifactPath: '/u/cp',
+        ricJarPath: '/u/r',
+      }),
+      checkJavaVersion: async () => ({ majorVersion: 21, raw: '' }),
+      spawnOverride: (cmd, args, opts) =>
+        realSpawn(process.execPath, [stallingBootstrap], {
+          cwd: opts.cwd,
+          env: opts.env,
+          stdio: opts.stdio,
+        }),
+      servicePath: '/tmp',
+    })
+
+    // Long timeout so the queue's timeout doesn't race terminate().
+    const inFlight = runner.invoke(makeInvokeArgs({ timeoutMs: 60_000 }))
+    // Attach catch handler synchronously to avoid unhandled-rejection.
+    const settled = inFlight.then(
+      (value) => ({ status: 'fulfilled', value }),
+      (reason) => ({ status: 'rejected', reason }),
+    )
+
+    // Give the JVM a moment to spawn and the queue to enter inFlight.
+    await new Promise((r) => setTimeout(r, 100))
+
+    await runner.terminate()
+
+    const outcome = await settled
+    expect(outcome.status).toBe('rejected')
+    expect(outcome.reason).toMatchObject({
+      code: 'OFFLINE_WORKER_TERMINATED',
+    })
+  })
+
+  it('invalidate() clears any pending idle-eviction timer and kills the child', async () => {
+    const runner = createJavaRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      log: noopLog,
+      resolveClasspath: async () => ({
+        classpath: '/u/cp',
+        artifactPath: '/u/cp',
+        ricJarPath: '/u/r',
+      }),
+      checkJavaVersion: async () => ({ majorVersion: 21, raw: '' }),
+      spawnOverride: (cmd, args, opts) =>
+        realSpawn(process.execPath, [fakeBootstrap], {
+          cwd: opts.cwd,
+          env: opts.env,
+          stdio: opts.stdio,
+        }),
+      servicePath: '/tmp',
+    })
+
+    try {
+      await runner.invoke(makeInvokeArgs())
+      // Entry is idle with pendingTimeout armed; invalidate() must clear
+      // it and SIGTERM the child without throwing.
+      expect(() => runner.invalidate('fn1')).not.toThrow()
+      // Second invalidate on a gone entry must also be safe (idempotent).
+      expect(() => runner.invalidate('fn1')).not.toThrow()
+    } finally {
+      await runner.terminate()
+    }
+  })
+
   it('rejects with OFFLINE_HANDLER_TIMEOUT when the JVM never posts a response', async () => {
     const runner = createJavaRunner({
       idleEvictionMs: 60_000,
