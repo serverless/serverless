@@ -214,8 +214,9 @@ export function registerRestApiRoutes({
       }
 
       // Hapi rejects payload options on GET / HEAD / DELETE / OPTIONS / TRACE.
-      // For wildcard ('*') we include payload options because some methods on
-      // that route can carry a body; GET will simply not parse anything.
+      // For wildcard ('*') we still attach payload options because some
+      // methods that match the wildcard route can carry a body; for body-less
+      // methods routed through a wildcard, Hapi simply skips payload parsing.
       const payloadOptions =
         hapiMethod === '*' || !NO_BODY_METHODS.has(hapiMethod)
           ? {

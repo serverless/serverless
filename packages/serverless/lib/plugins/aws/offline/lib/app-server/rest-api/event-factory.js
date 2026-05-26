@@ -29,6 +29,16 @@ import { formatClfTime } from '../shared/clf-time.js'
  */
 const BINARY_CONTENT_TYPES = ['application/octet-stream', 'multipart/form-data']
 
+// Placeholder values that fill APIGW REST-API `requestContext` fields whose
+// real values would come from the deployed API (apiId / domainPrefix /
+// resourceId) or the gateway's HTTP protocol negotiation (protocol). Lifted
+// to named constants so the requestContext block at the bottom of the
+// factory reads as data, not as magic strings.
+const PLACEHOLDER_API_ID = 'offline'
+const PLACEHOLDER_DOMAIN_PREFIX = 'offline'
+const PLACEHOLDER_RESOURCE_ID = 'offline'
+const PLACEHOLDER_PROTOCOL = 'HTTP/1.1'
+
 /**
  * @param {string} contentType
  * @returns {boolean}
@@ -289,10 +299,10 @@ export function buildRestApiEvent({
     queryStringParameters,
     requestContext: {
       accountId,
-      apiId: 'offline',
+      apiId: PLACEHOLDER_API_ID,
       ...(authorizer ? { authorizer } : {}),
       domainName,
-      domainPrefix: 'offline',
+      domainPrefix: PLACEHOLDER_DOMAIN_PREFIX,
       extendedRequestId: crypto.randomUUID(),
       httpMethod,
       identity: {
@@ -310,11 +320,11 @@ export function buildRestApiEvent({
         userArn: null,
       },
       path,
-      protocol: 'HTTP/1.1',
+      protocol: PLACEHOLDER_PROTOCOL,
       requestId: crypto.randomUUID(),
       requestTime,
       requestTimeEpoch,
-      resourceId: 'offline',
+      resourceId: PLACEHOLDER_RESOURCE_ID,
       resourcePath: route.apigwPath,
       stage,
     },

@@ -13,10 +13,6 @@
  * and they can be exercised by unit tests without a Hapi server.
  */
 
-// ---------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------
-
 /**
  * Translate an APIGW v1 path template to a Hapi path template.
  *
