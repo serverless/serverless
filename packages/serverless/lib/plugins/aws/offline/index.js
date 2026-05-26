@@ -1,5 +1,9 @@
-import { log } from '@serverless/util'
+import { DockerClient, log } from '@serverless/util'
 import ServerlessError from '../../../serverless-error.js'
+import { assertDockerAvailable } from './lib/runners/docker-availability.js'
+import { cleanupOrphanContainers } from './lib/runners/docker-cleanup.js'
+import { createImageReadinessChecker } from './lib/runners/docker-image.js'
+import { runtimeToImage } from './lib/runners/java-image.js'
 import offlineSchema from './lib/schema.js'
 import {
   LOG_NAMESPACE,
@@ -73,6 +77,7 @@ function coerceInt(value) {
  * @param {boolean} params.hasRubyFunctions  Whether any function declares a ruby3.x runtime.
  * @param {boolean} params.hasGoFunctions  Whether any function declares a go*.x or provided.al{,2,2023} runtime.
  * @param {boolean} params.hasJavaFunctions  Whether any function declares a java* or java8.al2 runtime.
+ * @param {Set<string> | null} [params.javaImagesPulled]  Set of Docker image URIs pre-pulled at boot.
  */
 function logBootSummary({
   logger,
@@ -89,6 +94,7 @@ function logBootSummary({
   hasRubyFunctions,
   hasGoFunctions,
   hasJavaFunctions,
+  javaImagesPulled,
 }) {
   logger.notice('')
   logger.notice(`sls offline ready (stage: ${stage})`)
@@ -107,7 +113,15 @@ function logBootSummary({
     logger.notice(`  Go runner:       child-process (bootstrap binary)`)
   }
   if (hasJavaFunctions) {
-    logger.notice(`  Java runner:     child-process (JVM + AWS RIC)`)
+    const tagsList = javaImagesPulled
+      ? Array.from(javaImagesPulled)
+          .map((img) => img.replace('public.ecr.aws/lambda/java:', ''))
+          .sort()
+          .join(',')
+      : 'N'
+    logger.notice(
+      `  Java runner:     docker (public.ecr.aws/lambda/java:{${tagsList}})`,
+    )
   }
 
   // WebSocket routes — emit first because the WS upgrade handler fires
@@ -314,6 +328,26 @@ export default class OfflinePlugin {
       const rt = fn.runtime ?? serverless.service.provider.runtime
       return /^java\d+(\.al2)?$/.test(rt ?? '')
     })
+    // Docker is a hard requirement when Java functions exist. The official
+    // Lambda Java images include the runtime interface client; this runner
+    // spawns one container per function.
+    let dockerClient = null
+    let ensureImageReady = null
+    let javaImagesPulled = null
+    if (hasJavaFunctions) {
+      dockerClient = new DockerClient()
+      await assertDockerAvailable({ dockerClient })
+
+      // Best-effort orphan cleanup. Never throws — boot continues even if
+      // the daemon doesn't expose listContainers correctly.
+      await cleanupOrphanContainers({
+        dockerClient,
+        log: log.get('sls:offline:docker'),
+      })
+
+      const checker = createImageReadinessChecker()
+      ensureImageReady = checker.ensureImageReady
+    }
     const noTimeout = cliOptions.noTimeout === true
     const prefix = cliOptions.prefix ?? offline.prefix
     const noPrependStageInUrl =
@@ -374,7 +408,17 @@ export default class OfflinePlugin {
     const runtimeApiQueue = hasRuntimeApiFunctions
       ? createInvocationQueue()
       : null
-    const runtimeApiBase = `http://${host}:${awsApiPort}/runtime`
+    // Containers reach the host via host.docker.internal, which resolves
+    // to a non-loopback IP from the container's POV. A localhost-only
+    // bind would refuse the container's connection — bind to 0.0.0.0
+    // when Java functions are present.
+    const awsApiBindHost = hasJavaFunctions ? '0.0.0.0' : host
+    if (hasJavaFunctions && host !== '0.0.0.0') {
+      logger.notice(
+        'awsApiPort bound to 0.0.0.0 (required for Docker-based Java functions to reach the Runtime API via host.docker.internal).',
+      )
+    }
+    const runtimeApiBase = `http://${awsApiBindHost}:${awsApiPort}/runtime`
     const runner = createRunner({
       useInProcess,
       terminateIdleLambdaTime,
@@ -390,6 +434,8 @@ export default class OfflinePlugin {
         ? {
             runtimeApiBase,
             runtimeApiQueue,
+            dockerClient,
+            ensureImageReady,
             servicePath: getHandlerBaseDir(serverless),
             log: log.get('sls:offline:java'),
           }
@@ -532,7 +578,7 @@ export default class OfflinePlugin {
     //     already registered, so no SendMessage can arrive without a consumer).
     const awsApiServer = await createAwsApiServer({
       awsApiPort,
-      host,
+      host: awsApiBindHost,
       handlers: { sqs: sqsHandlers },
       logger: log.get('sls:offline:aws-api'),
       // Mount the Lambda Runtime API routes when any Go function is in
@@ -578,6 +624,27 @@ export default class OfflinePlugin {
     // LIFO teardown: watcher → runner → (pollers, appServer, awsApiServer above).
     orchestrator.onShutdown(() => runner.terminate())
     orchestrator.onShutdown(() => watcher.stop())
+
+    // Pre-pull every distinct Java image so users see download progress
+    // up-front rather than discovering it on their first curl.
+    if (hasJavaFunctions) {
+      const imagesToPull = new Set()
+      for (const [, fn] of Object.entries(serverless.service.functions ?? {})) {
+        const rt = fn.runtime ?? serverless.service.provider.runtime
+        if (/^java\d+(\.al2)?$/.test(rt ?? '')) {
+          imagesToPull.add(runtimeToImage(rt))
+        }
+      }
+      javaImagesPulled = imagesToPull
+      for (const image of imagesToPull) {
+        await ensureImageReady({
+          dockerClient,
+          image,
+          log: log.get('sls:offline:docker'),
+        })
+      }
+    }
+
     await orchestrator.start({
       onReady: async () => {
         await bridge.fireStart()
@@ -601,6 +668,7 @@ export default class OfflinePlugin {
           hasRubyFunctions,
           hasGoFunctions,
           hasJavaFunctions,
+          javaImagesPulled,
         })
       },
     })
