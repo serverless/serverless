@@ -17,7 +17,7 @@ import { provision } from './lib/provisioner/index.js'
 import { createQueueStore } from './lib/aws-api-server/sqs/queue-store.js'
 import { createSqsHandlers } from './lib/aws-api-server/sqs/handlers.js'
 import { createAwsApiServer } from './lib/aws-api-server/index.js'
-import { createWorkerThreadRunner } from './lib/runners/worker-thread.js'
+import { createRunner } from './lib/runners/create-runner.js'
 import { startSqsPollers } from './lib/event-sources/sqs-poller.js'
 import { createAppServer } from './lib/app-server/index.js'
 import { registerAlbRoutes } from './lib/app-server/alb/route-loader.js'
@@ -244,6 +244,12 @@ export default class OfflinePlugin {
     // before:offline:start hook are reflected correctly.
     const terminateIdleLambdaTime =
       offline.terminateIdleLambdaTime ?? DEFAULT_TERMINATE_IDLE_LAMBDA_TIME
+    // Runner selection: --useInProcess CLI flag → offline.useInProcess YAML
+    // key → default false (worker-thread runner). The in-process runner
+    // trades worker isolation for lower invocation overhead and direct
+    // stack traces — opt-in only for parity with serverless-offline.
+    const useInProcess =
+      cliOptions.useInProcess ?? offline.useInProcess ?? false
     const noTimeout = cliOptions.noTimeout === true
     const prefix = cliOptions.prefix ?? offline.prefix
     const noPrependStageInUrl =
@@ -286,15 +292,15 @@ export default class OfflinePlugin {
     // 6. Create the SQS handlers bound to that store + registry.
     const sqsHandlers = createSqsHandlers({ store, registry })
 
-    // 7. Create a worker-thread runner pool.
-    //    The runner receives handlerPath at invoke()-time (already fully resolved),
-    //    so servicePath in workerData is unused — pass a placeholder that will be
-    //    overwritten before any invocation. The real resolution happens lazily in
-    //    resolveHandlerPath below, after bridge.fireBeforeStart() has run.
-    const runner = createWorkerThreadRunner({
-      servicePath: '', // placeholder; actual path is resolved per-invocation
-      terminateIdleLambdaTime,
-    })
+    // 7. Create the runner.
+    //    Worker-thread (default) receives handlerPath at invoke()-time (already
+    //    fully resolved), so servicePath in workerData is unused — pass a
+    //    placeholder that will be overwritten before any invocation. The real
+    //    resolution happens lazily in resolveHandlerPath below, after
+    //    bridge.fireBeforeStart() has run.
+    //    In-process runner (--useInProcess) shares the offline server's process
+    //    and ignores terminateIdleLambdaTime (no workers to recycle).
+    const runner = createRunner({ useInProcess, terminateIdleLambdaTime })
 
     // Lambda function facade: single invocation entry point per function.
     // Builds the per-invocation context + environment uniformly and dispatches
