@@ -57,7 +57,24 @@ function buildRequestContext({
   apiId,
 }) {
   const now = Date.now()
-  const host = request?.headers?.host ?? 'localhost'
+  // Compose `domainName` from the Host header but fall back to the
+  // server's bound port when the client omits it from the header (some
+  // WS client libraries don't append the port to Host for HTTP upgrades,
+  // even when the port isn't the protocol default). Handlers compose
+  // ApiGatewayManagementApi endpoints from `domainName + '/' + stage`,
+  // so the port must always be present.
+  const hostHeader = request?.headers?.host
+  const localPort = request?.socket?.localPort
+  let host
+  if (hostHeader && hostHeader.includes(':')) {
+    host = hostHeader
+  } else if (hostHeader && localPort) {
+    host = `${hostHeader}:${localPort}`
+  } else if (localPort) {
+    host = `localhost:${localPort}`
+  } else {
+    host = hostHeader ?? 'localhost'
+  }
   const userAgent = request?.headers?.['user-agent'] ?? ''
   const sourceIp = request?.socket?.remoteAddress ?? '127.0.0.1'
   return {
@@ -154,6 +171,7 @@ export function buildMessageEvent({
   connectionId,
   route,
   payload,
+  request,
   stage,
   accountId,
   region,
@@ -166,7 +184,7 @@ export function buildMessageEvent({
       connectionId,
       eventType: 'MESSAGE',
       routeKey: route,
-      request: {},
+      request: request ?? {},
       stage,
       apiId,
     }),

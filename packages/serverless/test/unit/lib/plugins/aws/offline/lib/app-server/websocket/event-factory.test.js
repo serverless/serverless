@@ -225,6 +225,59 @@ describe('buildAuthorizerEvent', () => {
   })
 })
 
+describe('domainName host fallback', () => {
+  it('appends socket.localPort when Host header omits the port', () => {
+    const event = buildConnectEvent({
+      connectionId: 'c-1',
+      request: {
+        headers: { host: 'localhost', 'user-agent': 'x' },
+        rawHeaders: ['Host', 'localhost', 'User-Agent', 'x'],
+        socket: { remoteAddress: '127.0.0.1', localPort: 3000 },
+        url: '/dev',
+      },
+      stage: 'dev',
+      accountId: '000000000000',
+      region: 'us-east-1',
+      apiId: 'private',
+    })
+    expect(event.requestContext.domainName).toBe('localhost:3000')
+  })
+
+  it('passes Host header through verbatim when it already has a port', () => {
+    const event = buildConnectEvent({
+      connectionId: 'c-1',
+      request: {
+        headers: { host: 'localhost:3000', 'user-agent': 'x' },
+        rawHeaders: ['Host', 'localhost:3000', 'User-Agent', 'x'],
+        socket: { remoteAddress: '127.0.0.1', localPort: 4000 },
+        url: '/dev',
+      },
+      stage: 'dev',
+      accountId: '000000000000',
+      region: 'us-east-1',
+      apiId: 'private',
+    })
+    expect(event.requestContext.domainName).toBe('localhost:3000')
+  })
+
+  it('buildMessageEvent honors the same host fallback when request is passed', () => {
+    const event = buildMessageEvent({
+      connectionId: 'c-1',
+      route: 'broadcast',
+      payload: '{"action":"broadcast"}',
+      request: {
+        headers: { host: 'localhost' },
+        socket: { localPort: 3000 },
+      },
+      stage: 'dev',
+      accountId: '000000000000',
+      region: 'us-east-1',
+      apiId: 'private',
+    })
+    expect(event.requestContext.domainName).toBe('localhost:3000')
+  })
+})
+
 describe('common: requestContext fields', () => {
   it('apiId, domainName, stage, region pass through', () => {
     const event = buildConnectEvent({

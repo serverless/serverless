@@ -147,6 +147,7 @@ export function createWebSocketServer({
           connectionId,
           route,
           payload,
+          request,
           stage,
           accountId,
           region,
