@@ -30,7 +30,7 @@ import { normalizeWebsocketEvents } from './lib/app-server/websocket/lifecycle-r
 import { createWebSocketServer } from './lib/app-server/websocket/server.js'
 import { registerManagementApiRoutes } from './lib/app-server/websocket/management-api-routes.js'
 import { createWatcher } from './lib/watcher.js'
-import { assertAllNodeRuntimes } from './lib/runtime-guard.js'
+import { assertSupportedRuntimes } from './lib/runtime-guard.js'
 import { getHandlerBaseDir } from './lib/handler-base-dir.js'
 import { createLambdaFunction } from './lib/lambda/lambda-function.js'
 
@@ -216,7 +216,7 @@ export default class OfflinePlugin {
     })
 
     // 1. Guard: bail early if any function uses a non-Node runtime.
-    assertAllNodeRuntimes(serverless)
+    assertSupportedRuntimes(serverless)
 
     // Framework v4 / sf-core stores top-level YAML blocks on
     // `service.initialServerlessConfig` rather than as direct service

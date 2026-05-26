@@ -1,4 +1,4 @@
-import { assertAllNodeRuntimes } from '../../../../../../../lib/plugins/aws/offline/lib/runtime-guard.js'
+import { assertSupportedRuntimes } from '../../../../../../../lib/plugins/aws/offline/lib/runtime-guard.js'
 
 /**
  * Builds a minimal serverless-like object for use in tests.
@@ -14,18 +14,18 @@ const makeServerless = (providerRuntime, functions = {}) => ({
   },
 })
 
-describe('assertAllNodeRuntimes', () => {
+describe('assertSupportedRuntimes', () => {
   it('does not throw when all functions use a Node provider runtime', () => {
     const sls = makeServerless('nodejs20.x', {
       hello: {},
       world: {},
     })
-    expect(() => assertAllNodeRuntimes(sls)).not.toThrow()
+    expect(() => assertSupportedRuntimes(sls)).not.toThrow()
   })
 
   it('does not throw when functions map is empty', () => {
     const sls = makeServerless('nodejs20.x', {})
-    expect(() => assertAllNodeRuntimes(sls)).not.toThrow()
+    expect(() => assertSupportedRuntimes(sls)).not.toThrow()
   })
 
   it('does not throw when functions is absent (undefined)', () => {
@@ -35,44 +35,44 @@ describe('assertAllNodeRuntimes', () => {
         functions: undefined,
       },
     }
-    expect(() => assertAllNodeRuntimes(sls)).not.toThrow()
+    expect(() => assertSupportedRuntimes(sls)).not.toThrow()
   })
 
-  it('throws when provider runtime is non-Node and no function overrides it', () => {
-    const sls = makeServerless('python3.11', {
+  it('throws when provider runtime is unsupported and no function overrides it', () => {
+    const sls = makeServerless('ruby3.3', {
       myFn: {},
       otherFn: {},
     })
-    expect(() => assertAllNodeRuntimes(sls)).toThrow(
+    expect(() => assertSupportedRuntimes(sls)).toThrow(
       expect.objectContaining({ code: 'OFFLINE_UNSUPPORTED_RUNTIME' }),
     )
   })
 
   it('lists every offending function and its runtime in the error message', () => {
-    const sls = makeServerless('python3.11', {
+    const sls = makeServerless('ruby3.3', {
       myFn: {},
       otherFn: {},
     })
     let error
     try {
-      assertAllNodeRuntimes(sls)
+      assertSupportedRuntimes(sls)
     } catch (err) {
       error = err
     }
     expect(error.message).toContain('myFn')
-    expect(error.message).toContain('python3.11')
+    expect(error.message).toContain('ruby3.3')
     expect(error.message).toContain('otherFn')
   })
 
-  it('function-level Node runtime override makes that function pass even with non-Node provider', () => {
-    // otherFn inherits python3.11 → still throws; nodeOnlyFn is fine on its own
-    const sls = makeServerless('python3.11', {
+  it('function-level supported runtime override makes that function pass even with unsupported provider', () => {
+    // otherFn inherits ruby3.3 → still throws; nodeOnlyFn is fine on its own
+    const sls = makeServerless('ruby3.3', {
       nodeOnlyFn: { runtime: 'nodejs20.x' },
       otherFn: {},
     })
     let error
     try {
-      assertAllNodeRuntimes(sls)
+      assertSupportedRuntimes(sls)
     } catch (err) {
       error = err
     }
@@ -80,44 +80,44 @@ describe('assertAllNodeRuntimes', () => {
     expect(error.code).toBe('OFFLINE_UNSUPPORTED_RUNTIME')
     // The Node function must not appear in the error
     expect(error.message).not.toContain('nodeOnlyFn')
-    // The python function must appear
+    // The ruby function must appear
     expect(error.message).toContain('otherFn')
   })
 
-  it('throws for a function-level non-Node override even when provider runtime is Node', () => {
+  it('throws for a function-level unsupported override even when provider runtime is supported', () => {
     const sls = makeServerless('nodejs20.x', {
       goodFn: {},
-      badFn: { runtime: 'python3.11' },
+      badFn: { runtime: 'ruby3.3' },
     })
     let error
     try {
-      assertAllNodeRuntimes(sls)
+      assertSupportedRuntimes(sls)
     } catch (err) {
       error = err
     }
     expect(error).toBeDefined()
     expect(error.code).toBe('OFFLINE_UNSUPPORTED_RUNTIME')
     expect(error.message).toContain('badFn')
-    expect(error.message).toContain('python3.11')
+    expect(error.message).toContain('ruby3.3')
     expect(error.message).not.toContain('goodFn')
   })
 
-  it('lists multiple offenders with different non-Node runtimes in one error', () => {
+  it('lists multiple offenders with different unsupported runtimes in one error', () => {
     const sls = makeServerless('nodejs20.x', {
-      pyFn: { runtime: 'python3.11' },
-      rubyFn: { runtime: 'ruby3.2' },
+      goFn: { runtime: 'go1.x' },
+      rubyFn: { runtime: 'ruby3.3' },
     })
     let error
     try {
-      assertAllNodeRuntimes(sls)
+      assertSupportedRuntimes(sls)
     } catch (err) {
       error = err
     }
     expect(error).toBeDefined()
-    expect(error.message).toContain('pyFn')
-    expect(error.message).toContain('python3.11')
+    expect(error.message).toContain('goFn')
+    expect(error.message).toContain('go1.x')
     expect(error.message).toContain('rubyFn')
-    expect(error.message).toContain('ruby3.2')
+    expect(error.message).toContain('ruby3.3')
   })
 
   it('skips silently when both provider runtime and function runtime are undefined', () => {
@@ -127,14 +127,14 @@ describe('assertAllNodeRuntimes', () => {
         functions: { myFn: {} },
       },
     }
-    expect(() => assertAllNodeRuntimes(sls)).not.toThrow()
+    expect(() => assertSupportedRuntimes(sls)).not.toThrow()
   })
 
   it('error code is OFFLINE_UNSUPPORTED_RUNTIME', () => {
-    const sls = makeServerless('python3.11', { fn: {} })
+    const sls = makeServerless('ruby3.3', { fn: {} })
     let error
     try {
-      assertAllNodeRuntimes(sls)
+      assertSupportedRuntimes(sls)
     } catch (err) {
       error = err
     }
@@ -143,21 +143,56 @@ describe('assertAllNodeRuntimes', () => {
 
   it('accepts nodejs18.x as a valid Node runtime', () => {
     const sls = makeServerless('nodejs18.x', { fn: {} })
-    expect(() => assertAllNodeRuntimes(sls)).not.toThrow()
+    expect(() => assertSupportedRuntimes(sls)).not.toThrow()
   })
 
   it('accepts nodejs20.x as a valid Node runtime', () => {
     const sls = makeServerless('nodejs20.x', { fn: {} })
-    expect(() => assertAllNodeRuntimes(sls)).not.toThrow()
+    expect(() => assertSupportedRuntimes(sls)).not.toThrow()
   })
 
   it('accepts nodejs22.x as a valid Node runtime', () => {
     const sls = makeServerless('nodejs22.x', { fn: {} })
-    expect(() => assertAllNodeRuntimes(sls)).not.toThrow()
+    expect(() => assertSupportedRuntimes(sls)).not.toThrow()
   })
 
   it('accepts a bare nodejsN runtime without the .x suffix', () => {
     const sls = makeServerless('nodejs20', { fn: {} })
-    expect(() => assertAllNodeRuntimes(sls)).not.toThrow()
+    expect(() => assertSupportedRuntimes(sls)).not.toThrow()
+  })
+
+  // M5b additions — python3.x is now a supported runtime family.
+  it('accepts python3.11 as a valid Python runtime', () => {
+    const sls = makeServerless('python3.11', { fn: {} })
+    expect(() => assertSupportedRuntimes(sls)).not.toThrow()
+  })
+
+  it('accepts python3.12 and python3.13', () => {
+    expect(() =>
+      assertSupportedRuntimes(makeServerless('python3.12', { fn: {} })),
+    ).not.toThrow()
+    expect(() =>
+      assertSupportedRuntimes(makeServerless('python3.13', { fn: {} })),
+    ).not.toThrow()
+  })
+
+  it('accepts a mixed nodejs* + python3.x service', () => {
+    const sls = makeServerless('nodejs20.x', {
+      n: { runtime: 'nodejs22.x' },
+      p: { runtime: 'python3.11' },
+      q: { runtime: 'python3.13' },
+    })
+    expect(() => assertSupportedRuntimes(sls)).not.toThrow()
+  })
+
+  it('still rejects ruby, go, java with OFFLINE_UNSUPPORTED_RUNTIME', () => {
+    const sls = makeServerless('nodejs20.x', {
+      r: { runtime: 'ruby3.3' },
+      g: { runtime: 'go1.x' },
+      j: { runtime: 'java21' },
+    })
+    expect(() => assertSupportedRuntimes(sls)).toThrow(
+      expect.objectContaining({ code: 'OFFLINE_UNSUPPORTED_RUNTIME' }),
+    )
   })
 })

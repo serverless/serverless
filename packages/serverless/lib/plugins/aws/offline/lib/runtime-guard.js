@@ -1,22 +1,36 @@
 import ServerlessError from '../../../../serverless-error.js'
 
-/** Matches any Node.js runtime identifier (e.g. nodejs18.x, nodejs20.x, nodejs22). */
-const NODE_RUNTIME_RE = /^nodejs\d+\.?x?$/
+/**
+ * Runtime families that the offline runners can execute.
+ *
+ * Extend by adding regexes as new runners ship (M5c plans ruby*, go*,
+ * java*). Order is not significant — `some` short-circuits on the first
+ * match. Per the M5b lock: "supported" means the offline server has a
+ * runner for the FAMILY. The actual interpreter binary on PATH (e.g.
+ * `python3.11`) is NOT probed at boot — a missing binary surfaces as a
+ * child-process spawn error on the first invocation. Matches the
+ * community plugin's lazy-fail model.
+ */
+const SUPPORTED_RUNTIME_REGEXES = [
+  /^nodejs\d+\.?x?$/, // nodejs18.x, nodejs20.x, nodejs22.x, nodejs22
+  /^python\d+\.\d+$/, // python3.11, python3.12, python3.13
+]
 
 /**
- * Asserts that every function in the service uses a Node.js runtime.
+ * Asserts that every function in the service declares a runtime the
+ * offline server can execute.
  *
- * Resolution rule: `function.runtime ?? provider.runtime`. If neither is set,
- * the function is skipped — the Framework's own schema validation will surface
- * a clearer missing-runtime error.
+ * Resolution rule: `function.runtime ?? provider.runtime`. If neither is
+ * set, the function is skipped — Framework's own schema validation
+ * surfaces the missing-runtime error clearer than we could.
  *
  * @param {object} serverless - The Serverless instance.
  * @param {{ service: { provider: { runtime?: string }, functions?: Record<string, { runtime?: string }> } }} serverless
- * @throws {ServerlessError} With code `OFFLINE_UNSUPPORTED_RUNTIME` when one or
- *   more functions declare a non-Node runtime.
+ * @throws {ServerlessError} With code `OFFLINE_UNSUPPORTED_RUNTIME` when
+ *   one or more functions declare an unsupported runtime family.
  * @returns {undefined}
  */
-export function assertAllNodeRuntimes(serverless) {
+export function assertSupportedRuntimes(serverless) {
   const { provider, functions = {} } = serverless.service
   const providerRuntime = provider.runtime
 
@@ -29,7 +43,10 @@ export function assertAllNodeRuntimes(serverless) {
     // No runtime defined at all — skip and let Framework validation handle it.
     if (effectiveRuntime === undefined) continue
 
-    if (!NODE_RUNTIME_RE.test(effectiveRuntime)) {
+    const supported = SUPPORTED_RUNTIME_REGEXES.some((re) =>
+      re.test(effectiveRuntime),
+    )
+    if (!supported) {
       offenders.push({ name: functionName, runtime: effectiveRuntime })
     }
   }
@@ -40,7 +57,8 @@ export function assertAllNodeRuntimes(serverless) {
     .map(({ name, runtime }) => `  ${name} (${runtime})`)
     .join('\n')
   throw new ServerlessError(
-    `sls offline only supports Node.js runtimes in this build:\n${list}`,
+    `sls offline does not yet support these runtimes:\n${list}\n` +
+      `Supported in this build: Node.js (nodejs*), Python (python3.x).`,
     'OFFLINE_UNSUPPORTED_RUNTIME',
   )
 }
