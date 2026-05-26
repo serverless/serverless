@@ -1,33 +1,35 @@
 import { createGoRunner } from './go.js'
 import { createInProcessRunner } from './in-process.js'
+import { createJavaRunner } from './java.js'
 import { createPythonRunner } from './python.js'
 import { createRubyRunner } from './ruby.js'
 import { createWorkerThreadRunner } from './worker-thread.js'
 
 /**
- * Resolve a function's runtime + the global `useInProcess` flag to the
- * kind of sub-runner that should service the invoke.
+ * Resolve the runner kind for an invoke args object.
  *
- * `runtime ?? ''` so a missing/undefined runtime falls through to the
- * Node default path — matches the pre-M5b behaviour of branching purely
- * on `useInProcess` when no runtime is supplied.
- *
- * The Python regex matches `/^python\d+\.\d+$/` strictly (same shape as
- * `runtime-guard.js` from T1) — a hypothetical `python` (no version) is
- * rejected upstream by the guard, so keep the dispatch surface tight.
+ * Most runtimes map 1:1: `java21` → `java`, `go1.x` → `go`, `python3.11`
+ * → `python`. The `provided.al2` family is ambiguous (used by Go's
+ * compiled `bootstrap` binary AND Java's GraalVM native-image AND Java
+ * with the RIC), so we disambiguate via the user's `package.artifact`
+ * extension: `.jar` → Java; everything else → Go.
  *
  * Pure function; exported only for direct unit testing if needed.
  *
- * @param {string | undefined | null} runtime  AWS runtime identifier
- *   (e.g. `nodejs20.x`, `python3.11`).
+ * @param {object} args  Full invoke args; reads `runtime` and `artifactPath`.
  * @param {boolean} useInProcess
- * @returns {'python' | 'in-process' | 'worker-thread'}
+ * @returns {'python' | 'ruby' | 'go' | 'java' | 'in-process' | 'worker-thread'}
  */
-function _resolveRunnerKind(runtime, useInProcess) {
-  if (/^python\d+\.\d+$/.test(runtime ?? '')) return 'python'
-  if (/^ruby\d+\.\d+$/.test(runtime ?? '')) return 'ruby'
-  if (/^go\d+\.x?$/.test(runtime ?? '')) return 'go'
-  if (/^provided\.al2?$/.test(runtime ?? '')) return 'go'
+function _resolveRunnerKind(args, useInProcess) {
+  const runtime = args?.runtime ?? ''
+  if (/^python\d+\.\d+$/.test(runtime)) return 'python'
+  if (/^ruby\d+\.\d+$/.test(runtime)) return 'ruby'
+  if (/^go\d+\.x?$/.test(runtime)) return 'go'
+  if (/^java\d+(\.al2)?$/.test(runtime)) return 'java'
+  if (/^provided\.al2?$/.test(runtime)) {
+    const artifactPath = args?.artifactPath ?? ''
+    return artifactPath.endsWith('.jar') ? 'java' : 'go'
+  }
   return useInProcess ? 'in-process' : 'worker-thread'
 }
 
@@ -79,16 +81,28 @@ function _resolveRunnerKind(runtime, useInProcess) {
  * @param {string} [params.go.servicePath]  Service root for build-cache and
  *   handler-source resolution.
  * @param {object} [params.go.log]  Logger forwarded to the Go runner.
+ * @param {object} [params.java]  Java sub-runner wiring; consulted when a
+ *   function's runtime matches `/^java\d+/` or when `provided.al2` is
+ *   paired with a `.jar` artifact. Same shape as `params.go`.
+ * @param {string} [params.java.runtimeApiBase]
+ * @param {object} [params.java.runtimeApiQueue]
+ * @param {string} [params.java.servicePath]
+ * @param {object} [params.java.log]
  * @returns {{
  *   invoke(args: object): Promise<unknown>,
  *   invalidate(functionKey: string): void,
  *   terminate(): Promise<void>,
  * }}
  */
-export function createRunner({ useInProcess, terminateIdleLambdaTime, go }) {
+export function createRunner({
+  useInProcess,
+  terminateIdleLambdaTime,
+  go,
+  java,
+}) {
   const idleEvictionMs = terminateIdleLambdaTime * 1000
 
-  /** @type {Map<'in-process' | 'worker-thread' | 'python' | 'ruby' | 'go', { invoke: Function, invalidate: Function, terminate: Function }>} */
+  /** @type {Map<'in-process' | 'worker-thread' | 'python' | 'ruby' | 'go' | 'java', { invoke: Function, invalidate: Function, terminate: Function }>} */
   const subs = new Map()
 
   function _get(kind) {
@@ -113,6 +127,19 @@ export function createRunner({ useInProcess, terminateIdleLambdaTime, go }) {
         servicePath: go.servicePath,
         log: go.log,
       })
+    } else if (kind === 'java') {
+      if (!java?.runtimeApiBase || !java?.runtimeApiQueue) {
+        throw new Error(
+          'createRunner: Java functions require `java.runtimeApiBase` and `java.runtimeApiQueue` options',
+        )
+      }
+      r = createJavaRunner({
+        idleEvictionMs,
+        runtimeApiBase: java.runtimeApiBase,
+        runtimeApiQueue: java.runtimeApiQueue,
+        servicePath: java.servicePath,
+        log: java.log,
+      })
     } else {
       r = createWorkerThreadRunner({ servicePath: '', idleEvictionMs })
     }
@@ -122,7 +149,7 @@ export function createRunner({ useInProcess, terminateIdleLambdaTime, go }) {
 
   return {
     async invoke(args) {
-      const kind = _resolveRunnerKind(args?.runtime, useInProcess)
+      const kind = _resolveRunnerKind(args, useInProcess)
       return _get(kind).invoke(args)
     },
     invalidate(functionKey) {

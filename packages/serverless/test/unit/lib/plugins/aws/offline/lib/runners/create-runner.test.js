@@ -234,4 +234,115 @@ describe('createRunner — runtime-aware dispatch', () => {
     ).rejects.toThrow(/Go functions require/)
     await r.terminate()
   })
+
+  it('routes java21 functions to the Java runner branch', async () => {
+    const queue = createInvocationQueue()
+    const r = createRunner({
+      useInProcess: false,
+      terminateIdleLambdaTime: 60,
+      java: {
+        runtimeApiBase: 'http://127.0.0.1:1/runtime',
+        runtimeApiQueue: queue,
+        servicePath: os.tmpdir(),
+      },
+    })
+    try {
+      // Fake artifactPath that doesn't exist → Java runner's resolveClasspath
+      // surfaces OFFLINE_JAVA_ARTIFACT_MISSING, proving dispatch landed in
+      // the Java branch (not worker-thread or go).
+      await expect(
+        r.invoke({
+          functionKey: 'java-fn',
+          handlerPath: '/unused',
+          handlerName: 'h',
+          event: {},
+          context: { handler: 'com.example.X::handle' },
+          artifactPath: '/nonexistent/missing.jar',
+          runtime: 'java21',
+          timeoutMs: 1000,
+        }),
+      ).rejects.toMatchObject({ code: 'OFFLINE_JAVA_ARTIFACT_MISSING' })
+    } finally {
+      await r.terminate()
+    }
+  })
+
+  it('disambiguates provided.al2 with .jar artifact to Java runner', async () => {
+    const queue = createInvocationQueue()
+    const r = createRunner({
+      useInProcess: false,
+      terminateIdleLambdaTime: 60,
+      java: {
+        runtimeApiBase: 'http://127.0.0.1:1/runtime',
+        runtimeApiQueue: queue,
+        servicePath: os.tmpdir(),
+      },
+    })
+    try {
+      await expect(
+        r.invoke({
+          functionKey: 'mixed-fn',
+          handlerPath: '/unused',
+          handlerName: 'h',
+          event: {},
+          context: { handler: 'com.example.X::handle' },
+          artifactPath: '/nonexistent/missing.jar',
+          runtime: 'provided.al2',
+          timeoutMs: 1000,
+        }),
+      ).rejects.toMatchObject({ code: 'OFFLINE_JAVA_ARTIFACT_MISSING' })
+    } finally {
+      await r.terminate()
+    }
+  })
+
+  it('disambiguates provided.al2 without .jar artifact to Go runner', async () => {
+    const queue = createInvocationQueue()
+    const r = createRunner({
+      useInProcess: false,
+      terminateIdleLambdaTime: 60,
+      go: {
+        runtimeApiBase: 'http://127.0.0.1:1/runtime',
+        runtimeApiQueue: queue,
+        servicePath: os.tmpdir(),
+      },
+    })
+    try {
+      // Go path produces OFFLINE_GO_* errors, not OFFLINE_JAVA_*.
+      await expect(
+        r.invoke({
+          functionKey: 'go-fn',
+          handlerPath: '/tmp/src/main',
+          handlerName: 'handler',
+          event: {},
+          context: { handler: 'src/main.handler' },
+          artifactPath: null, // no jar → Go
+          runtime: 'provided.al2',
+          timeoutMs: 50,
+        }),
+      ).rejects.toMatchObject({ code: expect.stringMatching(/^OFFLINE_GO/) })
+    } finally {
+      await r.terminate()
+    }
+  })
+
+  it('throws an actionable error when a Java function arrives but no java.* options were supplied', async () => {
+    const r = createRunner({
+      useInProcess: false,
+      terminateIdleLambdaTime: 60,
+    })
+    await expect(
+      r.invoke({
+        functionKey: 'java-fn',
+        handlerPath: '/unused',
+        handlerName: 'h',
+        event: {},
+        context: { handler: 'com.example.X::handle' },
+        artifactPath: '/x.jar',
+        runtime: 'java21',
+        timeoutMs: 1000,
+      }),
+    ).rejects.toThrow(/Java functions require/)
+    await r.terminate()
+  })
 })
