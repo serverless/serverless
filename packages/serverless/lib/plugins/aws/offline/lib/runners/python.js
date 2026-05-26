@@ -2,11 +2,14 @@ import { spawn } from 'node:child_process'
 import { createInterface } from 'node:readline'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
+import { log } from '@serverless/util'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const WRAPPER = path.resolve(__dirname, 'wrappers/python/invoke.py')
 const ENVELOPE_KEY = '__offline_payload__'
+
+const logger = log.get('sls:offline:python')
 
 /**
  * Python child-process Lambda runner. Spawns a fresh `python3` process
@@ -72,8 +75,10 @@ export function createPythonRunner() {
           try {
             parsed = JSON.parse(line)
           } catch {
-            // print()/log — not an envelope. Forwarding to logger
-            // is T5's job; for now drop silently.
+            // Not JSON → handler print()/log line. Forward as notice so
+            // users see Python `print('debugging x')` in the same offline
+            // log stream as the rest of the request lifecycle.
+            if (line.length > 0) logger.notice(line)
             return
           }
           if (
@@ -87,7 +92,15 @@ export function createPythonRunner() {
           }
         })
 
-        child.stderr.on('data', (d) => stderrChunks.push(d))
+        child.stderr.on('data', (d) => {
+          const chunk = d.toString()
+          stderrChunks.push(d)
+          // Forward each line; trim the final newline so logger output
+          // doesn't double-space.
+          for (const line of chunk.split('\n')) {
+            if (line.length > 0) logger.error(line)
+          }
+        })
 
         child.once('error', (err) => {
           if (settled) return
