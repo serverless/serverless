@@ -124,6 +124,15 @@ export function createRubyRunner({
           pool.delete(functionKey)
         }
         _clearEviction(entry)
+        // Disarm the timeout timer if it's still pending — without this,
+        // a slow handler that crashes BEFORE its timeoutMs would leave a
+        // stale timer that wakes later, finds entry.pending = null (we
+        // null it below) and silently no-ops, but keeps an event-loop
+        // handle alive for up to timeoutMs.
+        if (entry.pendingTimeout !== null) {
+          clearTimeout(entry.pendingTimeout)
+          entry.pendingTimeout = null
+        }
         try {
           rl.close()
         } catch {
@@ -211,6 +220,10 @@ export function createRubyRunner({
     })
 
     child.once('error', (err) => {
+      if (entry.pendingTimeout !== null) {
+        clearTimeout(entry.pendingTimeout)
+        entry.pendingTimeout = null
+      }
       if (entry.pending !== null) {
         const { reject } = entry.pending
         entry.pending = null
