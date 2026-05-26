@@ -78,12 +78,47 @@ export function registerRuntimeApiRoutes(server, { queue }) {
   server.route({
     method: 'POST',
     path: '/runtime/{functionKey}/2018-06-01/runtime/invocation/{requestId}/response',
-    handler: () => {
-      const e = new Error(
-        'Runtime API POST /invocation/{id}/response not implemented',
-      )
-      e.code = 'OFFLINE_NOT_IMPLEMENTED'
-      throw e
+    options: {
+      payload: {
+        // Receive the raw Buffer so the handler can attempt JSON.parse and
+        // gracefully fall back to the raw string for non-JSON bodies.
+        // Otherwise Hapi would 400 on a Content-Type/body mismatch before
+        // the handler runs.
+        parse: false,
+        maxBytes: 10 * 1024 * 1024,
+      },
+    },
+    /**
+     * Settle an in-flight invocation with the runtime's response body.
+     *
+     * Behaviour:
+     *  - 404 when no in-flight invocation matches `{functionKey, requestId}`
+     *    — checked via `queue.has` to avoid silently swallowing late traffic
+     *    from a crashed/timed-out runtime.
+     *  - Otherwise parse the body: JSON when possible, raw string fallback
+     *    for non-JSON bodies, `null` for empty bodies. The parsed value
+     *    becomes the resolution value of the original `enqueue()` promise.
+     *  - Returns 202 with an empty body, matching the AWS Runtime API spec.
+     */
+    handler(request, h) {
+      const { functionKey, requestId } = request.params
+      if (!queue.has(functionKey, requestId)) {
+        return h.response().code(404)
+      }
+
+      const raw = request.payload
+      let parsed = null
+      if (raw && raw.length) {
+        const text = raw.toString('utf8')
+        try {
+          parsed = JSON.parse(text)
+        } catch {
+          parsed = text
+        }
+      }
+
+      queue.resolveInvocation(functionKey, requestId, parsed)
+      return h.response().code(202)
     },
   })
 

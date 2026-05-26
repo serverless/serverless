@@ -91,4 +91,41 @@ describe('registerRuntimeApiRoutes (scaffold)', () => {
     const res = await fn1Poll
     expect(JSON.parse(res.payload)).toEqual({ now: 'fn1' })
   })
+
+  it('POST /response resolves the matching invocation', async () => {
+    const invocation = queue.enqueue('fn1', { payload: {}, timeoutMs: 5000 })
+    const next = await queue.awaitNext('fn1', {})
+    const res = await server.inject({
+      method: 'POST',
+      url: `/runtime/fn1/2018-06-01/runtime/invocation/${next.requestId}/response`,
+      payload: JSON.stringify({ ok: true }),
+      headers: { 'content-type': 'application/json' },
+    })
+    expect(res.statusCode).toBe(202)
+    expect(res.payload).toBe('')
+    await expect(invocation).resolves.toEqual({ ok: true })
+  })
+
+  it('POST /response returns 404 when requestId is unknown', async () => {
+    const res = await server.inject({
+      method: 'POST',
+      url: '/runtime/fn1/2018-06-01/runtime/invocation/no-such-id/response',
+      payload: '{}',
+      headers: { 'content-type': 'application/json' },
+    })
+    expect(res.statusCode).toBe(404)
+  })
+
+  it('POST /response falls back to raw string for non-JSON body', async () => {
+    const invocation = queue.enqueue('fn1', { payload: {}, timeoutMs: 5000 })
+    const next = await queue.awaitNext('fn1', {})
+    const res = await server.inject({
+      method: 'POST',
+      url: `/runtime/fn1/2018-06-01/runtime/invocation/${next.requestId}/response`,
+      payload: 'not-json-at-all',
+      headers: { 'content-type': 'text/plain' },
+    })
+    expect(res.statusCode).toBe(202)
+    await expect(invocation).resolves.toBe('not-json-at-all')
+  })
 })
