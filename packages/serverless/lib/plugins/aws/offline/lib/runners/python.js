@@ -3,6 +3,7 @@ import { createInterface } from 'node:readline'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { log } from '@serverless/util'
+import { buildLambdaRuntimeEnv } from './lambda-env.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -74,16 +75,21 @@ export function createPythonRunner({
    * @param {string} functionKey
    * @param {string} handlerPath
    * @param {string} handlerName
+   * @param {Record<string, string>} env  Merged with process.env for the child.
    * @returns {PoolEntry}
    */
-  function _spawn(functionKey, handlerPath, handlerName) {
+  function _spawn(functionKey, handlerPath, handlerName, env) {
     const handlerDir = path.dirname(handlerPath)
     const handlerModule = path.basename(handlerPath).replace(/\.py$/, '')
 
     const child = spawn(
       'python3',
       ['-u', WRAPPER, handlerModule, handlerName],
-      { cwd: handlerDir, stdio: ['pipe', 'pipe', 'pipe'] },
+      {
+        cwd: handlerDir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        env: { ...process.env, ...env },
+      },
     )
 
     const rl = createInterface({ input: child.stdout })
@@ -253,12 +259,43 @@ export function createPythonRunner({
      * @param {string} args.handlerName
      * @param {unknown} args.event
      * @param {object} args.context
+     * @param {Record<string, string>} [args.environment]  User-level env vars
+     *   merged ON TOP of the AWS_LAMBDA_* runtime block at spawn time.
      * @returns {Promise<unknown>}
      */
-    async invoke({ functionKey, handlerPath, handlerName, event, context }) {
+    async invoke({
+      functionKey,
+      handlerPath,
+      handlerName,
+      event,
+      context,
+      environment,
+    }) {
       let entry = pool.get(functionKey)
       if (!entry || entry.state === 'terminating') {
-        entry = _spawn(functionKey, handlerPath, handlerName)
+        // Env is captured at spawn time and stable for the child's
+        // lifetime — matches real Lambda's per-execution-env model.
+        // The pool's per-key isolation means each function gets its
+        // own snapshot of the runtime block + user env.
+        const region = context?.region ?? process.env.AWS_REGION ?? 'us-east-1'
+        const functionName = context?.functionName
+        const memoryLimitInMB = String(context?.memoryLimitInMB ?? 1024)
+        const logGroupName =
+          context?.logGroupName ?? `/aws/lambda/${functionName}`
+        const logStreamName = context?.logStreamName ?? ''
+        const lambdaEnv = buildLambdaRuntimeEnv({
+          functionName,
+          memoryLimitInMB,
+          invokedFunctionArn: context?.invokedFunctionArn,
+          logGroupName,
+          logStreamName,
+          handler: context?.handler,
+          region,
+        })
+        entry = _spawn(functionKey, handlerPath, handlerName, {
+          ...lambdaEnv,
+          ...(environment ?? {}),
+        })
         pool.set(functionKey, entry)
       }
       _clearEviction(entry)
