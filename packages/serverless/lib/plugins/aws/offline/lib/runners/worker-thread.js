@@ -89,11 +89,14 @@ function rebuildError({ name, message, stack }) {
  * reusing idle ones across invocations. Concurrent invocations on the same
  * `functionKey` run in parallel (each gets its own worker), matching real
  * Lambda's concurrency model. Workers are evicted (terminated) after
- * `terminateIdleLambdaTime` seconds of inactivity.
+ * `idleEvictionMs` milliseconds of inactivity.
  *
  * @param {object} options
  * @param {string} options.servicePath                  Absolute path to the Serverless service root.
- * @param {number} [options.terminateIdleLambdaTime]    Idle eviction timeout in seconds (default: 60).
+ * @param {number} [options.idleEvictionMs]             Idle eviction timeout in milliseconds (default: 60_000).
+ *   Pass <= 0 to disable eviction entirely. Unit is milliseconds — the user-
+ *   facing `offline.terminateIdleLambdaTime` (seconds) is converted at the
+ *   `createRunner` boundary.
  * @param {number} [options.maxConcurrentInvocations]   Max concurrent workers per functionKey (default: 100).
  * @returns {{
  *   invoke(args: object): Promise<unknown>,
@@ -103,7 +106,7 @@ function rebuildError({ name, message, stack }) {
  */
 export function createWorkerThreadRunner({
   servicePath,
-  terminateIdleLambdaTime = DEFAULT_TERMINATE_IDLE_LAMBDA_TIME,
+  idleEvictionMs = DEFAULT_TERMINATE_IDLE_LAMBDA_TIME * 1000,
   maxConcurrentInvocations = DEFAULT_MAX_CONCURRENT_INVOCATIONS,
 } = {}) {
   /**
@@ -305,7 +308,7 @@ export function createWorkerThreadRunner({
             if (set.size === 0) pool.delete(functionKey)
             _terminateEntry(entry).catch(() => {})
             _wakeCapWaiter(functionKey)
-          }, terminateIdleLambdaTime * 1000).unref()
+          }, idleEvictionMs).unref()
           // Wake a cap-waiter — the slot is now idle and available for reuse.
           _wakeCapWaiter(functionKey)
         }
@@ -435,7 +438,7 @@ export function createWorkerThreadRunner({
      * per functionKey; beyond that, new invocations wait for a slot to free up.
      *
      * Workers are kept alive after each invocation and are available for reuse
-     * by later invocations. They are evicted after `terminateIdleLambdaTime`
+     * by later invocations. They are evicted after `idleEvictionMs`
      * seconds of inactivity.
      *
      * @param {object} args

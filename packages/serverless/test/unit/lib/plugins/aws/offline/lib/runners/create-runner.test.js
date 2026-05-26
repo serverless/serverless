@@ -12,7 +12,7 @@ describe('createRunner — runtime-aware dispatch', () => {
   it('routes nodejs* runtime to the worker-thread runner by default', async () => {
     const r = createRunner({
       useInProcess: false,
-      terminateIdleLambdaTime: 60_000,
+      terminateIdleLambdaTime: 60,
     })
     const tmp = await fs.mkdtemp(
       path.join(os.tmpdir(), 'sls-offline-dispatch-'),
@@ -40,7 +40,7 @@ describe('createRunner — runtime-aware dispatch', () => {
   it('routes python* runtime to the Python child-process runner', async () => {
     const r = createRunner({
       useInProcess: false,
-      terminateIdleLambdaTime: 60_000,
+      terminateIdleLambdaTime: 60,
     })
     try {
       const result = await r.invoke({
@@ -60,7 +60,7 @@ describe('createRunner — runtime-aware dispatch', () => {
   it('routes useInProcess to in-process Node runner', async () => {
     const r = createRunner({
       useInProcess: true,
-      terminateIdleLambdaTime: 60_000,
+      terminateIdleLambdaTime: 60,
     })
     const tmp = await fs.mkdtemp(
       path.join(os.tmpdir(), 'sls-offline-dispatch-'),
@@ -90,7 +90,7 @@ describe('createRunner — runtime-aware dispatch', () => {
     // function must still go to the Python runner.
     const r = createRunner({
       useInProcess: true,
-      terminateIdleLambdaTime: 60_000,
+      terminateIdleLambdaTime: 60,
     })
     try {
       const result = await r.invoke({
@@ -114,7 +114,7 @@ describe('createRunner — runtime-aware dispatch', () => {
   it('terminate() shuts down all sub-runners (idempotent no-op when none created)', async () => {
     const r = createRunner({
       useInProcess: false,
-      terminateIdleLambdaTime: 60_000,
+      terminateIdleLambdaTime: 60,
     })
     // No sub-runners yet — must be a no-op, not throw.
     await r.terminate()
@@ -125,7 +125,7 @@ describe('createRunner — runtime-aware dispatch', () => {
   it('accepts new invokes after terminate() (sub-runners are re-created lazily)', async () => {
     const r = createRunner({
       useInProcess: true,
-      terminateIdleLambdaTime: 60_000,
+      terminateIdleLambdaTime: 60,
     })
     const tmp = await fs.mkdtemp(
       path.join(os.tmpdir(), 'sls-offline-dispatch-'),

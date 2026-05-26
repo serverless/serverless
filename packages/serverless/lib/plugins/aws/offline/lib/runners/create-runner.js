@@ -49,12 +49,19 @@ function _resolveRunnerKind(runtime, useInProcess) {
  * runtimes (ruby, go, java) drop in as single-line additions to
  * `_resolveRunnerKind` plus their `createXRunner`.
  *
+ * Unit conversion: `terminateIdleLambdaTime` is the user-facing SECONDS
+ * value (matches `offline.terminateIdleLambdaTime` in YAML, `--terminate-
+ * idle-lambda-time` on the CLI). Sub-runners take `idleEvictionMs` so the
+ * unit is unambiguous inside the runner layer. Conversion happens here
+ * once; runners never see seconds.
+ *
  * @param {object} params
  * @param {boolean} params.useInProcess  Selects the Node sub-runner.
  *   `true` → in-process; `false` → worker-thread. Ignored for Python.
- * @param {number} params.terminateIdleLambdaTime  Forwarded to the
- *   worker-thread and Python sub-runners; the in-process runner has no
- *   idle workers to terminate.
+ * @param {number} params.terminateIdleLambdaTime  Idle eviction window in
+ *   SECONDS (user-facing unit). Forwarded as milliseconds to the worker-
+ *   thread and Python sub-runners; the in-process runner has no idle
+ *   workers to terminate.
  * @returns {{
  *   invoke(args: object): Promise<unknown>,
  *   invalidate(functionKey: string): void,
@@ -62,6 +69,8 @@ function _resolveRunnerKind(runtime, useInProcess) {
  * }}
  */
 export function createRunner({ useInProcess, terminateIdleLambdaTime }) {
+  const idleEvictionMs = terminateIdleLambdaTime * 1000
+
   /** @type {Map<'in-process' | 'worker-thread' | 'python', { invoke: Function, invalidate: Function, terminate: Function }>} */
   const subs = new Map()
 
@@ -71,19 +80,9 @@ export function createRunner({ useInProcess, terminateIdleLambdaTime }) {
     if (kind === 'in-process') {
       r = createInProcessRunner()
     } else if (kind === 'python') {
-      // Unit mismatch: `terminateIdleLambdaTime` is documented in SECONDS at
-      // the offline-plugin boundary (worker-thread.js multiplies by 1000
-      // when scheduling its timer); the Python runner internally uses ms.
-      // Convert here so both runners get the same wall-clock idle window.
-      // Follow-up: standardise on a single unit across the runner interface.
-      r = createPythonRunner({
-        terminateIdleLambdaTime: terminateIdleLambdaTime * 1000,
-      })
+      r = createPythonRunner({ idleEvictionMs })
     } else {
-      r = createWorkerThreadRunner({
-        servicePath: '',
-        terminateIdleLambdaTime,
-      })
+      r = createWorkerThreadRunner({ servicePath: '', idleEvictionMs })
     }
     subs.set(kind, r)
     return r

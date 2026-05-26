@@ -597,11 +597,11 @@ describe('createWorkerThreadRunner', () => {
     expect(r2).toBe(2)
   })
 
-  // Pool-2: Idle eviction — after terminateIdleLambdaTime, a fresh worker is spawned
+  // Pool-2: Idle eviction — after idleEvictionMs, a fresh worker is spawned
   it('pool: idle eviction spawns a fresh worker after idle timeout', async () => {
     const r = createWorkerThreadRunner({
       servicePath: os.tmpdir(),
-      terminateIdleLambdaTime: 0.05, // 50 ms
+      idleEvictionMs: 50,
     })
 
     // Module-level counter: if the worker is reused it returns 2; if fresh it returns 1.

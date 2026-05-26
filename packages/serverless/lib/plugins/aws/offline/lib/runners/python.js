@@ -41,10 +41,12 @@ const logger = log.get('sls:offline:python')
  * concurrency cap yet — single in-flight per key, which matches real
  * Lambda's per-execution-environment model).
  *
- * Idle eviction: `terminateIdleLambdaTime` ms after the last invoke
+ * Idle eviction: `idleEvictionMs` milliseconds after the last invoke
  * settles, the child is killed and removed from the pool; the next
  * invoke on that key spawns fresh. Set to 0 or a negative number to
  * disable eviction (children live until terminate()/invalidate()).
+ * The user-facing `offline.terminateIdleLambdaTime` (seconds) is
+ * converted to milliseconds at the `createRunner` boundary.
  *
  * The wrapper (lib/runners/wrappers/python/invoke.py) reads one JSON
  * event per line from stdin and writes one JSON envelope per result
@@ -57,7 +59,10 @@ const logger = log.get('sls:offline:python')
  * so the Lambda facade picks between runners without further changes.
  *
  * @param {object} [options]
- * @param {number} [options.terminateIdleLambdaTime]  Default 60_000 ms.
+ * @param {number} [options.idleEvictionMs]  Default 60_000 ms (60 seconds).
+ *   Pass <= 0 to disable eviction. Milliseconds — unit is explicit in the
+ *   name to disambiguate from the user-facing `terminateIdleLambdaTime`
+ *   which is in seconds.
  * @returns {{
  *   invoke(args: object): Promise<unknown>,
  *   invalidate(functionKey: string): void,
@@ -65,7 +70,7 @@ const logger = log.get('sls:offline:python')
  * }}
  */
 export function createPythonRunner({
-  terminateIdleLambdaTime = DEFAULT_TERMINATE_IDLE_LAMBDA_TIME,
+  idleEvictionMs = DEFAULT_TERMINATE_IDLE_LAMBDA_TIME * 1000,
 } = {}) {
   /** @type {Map<string, PoolEntry>} */
   const pool = new Map()
@@ -241,13 +246,13 @@ export function createPythonRunner({
 
   /**
    * Arm the idle-eviction timer for an entry. No-op if eviction is
-   * disabled (terminateIdleLambdaTime <= 0).
+   * disabled (idleEvictionMs <= 0).
    *
    * @param {string} functionKey
    * @param {PoolEntry} entry
    */
   function _scheduleEviction(functionKey, entry) {
-    if (terminateIdleLambdaTime <= 0) return
+    if (idleEvictionMs <= 0) return
     _clearEviction(entry)
     entry.idleTimer = setTimeout(() => {
       entry.idleTimer = null
@@ -261,7 +266,7 @@ export function createPythonRunner({
       } catch {
         // ignore — child may already be gone
       }
-    }, terminateIdleLambdaTime)
+    }, idleEvictionMs)
   }
 
   /**

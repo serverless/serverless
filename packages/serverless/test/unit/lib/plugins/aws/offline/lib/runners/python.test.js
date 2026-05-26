@@ -135,7 +135,7 @@ describe('createPythonRunner — env injection', () => {
       ].join('\n') + '\n',
     )
 
-    const r = createPythonRunner({ terminateIdleLambdaTime: 60_000 })
+    const r = createPythonRunner({ idleEvictionMs: 60_000 })
     try {
       const result = await r.invoke({
         functionKey: 'env-dump',
@@ -173,7 +173,7 @@ describe('createPythonRunner — env injection', () => {
       ].join('\n') + '\n',
     )
 
-    const r = createPythonRunner({ terminateIdleLambdaTime: 60_000 })
+    const r = createPythonRunner({ idleEvictionMs: 60_000 })
     try {
       const result = await r.invoke({
         functionKey: 'env-user',
@@ -211,7 +211,7 @@ describe('createPythonRunner — pool + idle eviction', () => {
   })
 
   it('reuses the same child process across invocations on the same functionKey', async () => {
-    const r = createPythonRunner({ terminateIdleLambdaTime: 60_000 })
+    const r = createPythonRunner({ idleEvictionMs: 60_000 })
     try {
       const r1 = await r.invoke({
         functionKey: 'counter',
@@ -242,8 +242,8 @@ describe('createPythonRunner — pool + idle eviction', () => {
     }
   })
 
-  it('evicts the child after terminateIdleLambdaTime; next invoke spawns fresh', async () => {
-    const r = createPythonRunner({ terminateIdleLambdaTime: 100 })
+  it('evicts the child after idleEvictionMs; next invoke spawns fresh', async () => {
+    const r = createPythonRunner({ idleEvictionMs: 100 })
     try {
       const r1 = await r.invoke({
         functionKey: 'counter',
@@ -270,7 +270,7 @@ describe('createPythonRunner — pool + idle eviction', () => {
   })
 
   it('keeps separate child processes per functionKey', async () => {
-    const r = createPythonRunner({ terminateIdleLambdaTime: 60_000 })
+    const r = createPythonRunner({ idleEvictionMs: 60_000 })
     try {
       await r.invoke({
         functionKey: 'fnA',
