@@ -87,8 +87,15 @@ if __name__ == '__main__':
         except (OSError, subprocess.CalledProcessError):
             pass
         else:
-            # Replace stdin with a TTY to enable pdb usage.
-            sys.stdin = open('/dev/tty')
+            # Replace stdin with a TTY to enable pdb usage. /dev/tty is only
+            # available when the process has a controlling terminal; when
+            # spawned headless (CI, Jest, detached child) the open() raises
+            # OSError. Failing here is harmless — `stdin` (the original) is
+            # already captured above, and the protocol loop reads from it.
+            try:
+                sys.stdin = open('/dev/tty')
+            except OSError:
+                pass
 
     while True:
         input = json.loads(stdin.readline())
