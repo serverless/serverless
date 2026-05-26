@@ -128,4 +128,16 @@ describe('registerRuntimeApiRoutes (scaffold)', () => {
     expect(res.statusCode).toBe(202)
     await expect(invocation).resolves.toBe('not-json-at-all')
   })
+
+  it('POST /response resolves to null for empty body', async () => {
+    const invocation = queue.enqueue('fn1', { payload: {}, timeoutMs: 5000 })
+    const next = await queue.awaitNext('fn1', {})
+    const res = await server.inject({
+      method: 'POST',
+      url: `/runtime/fn1/2018-06-01/runtime/invocation/${next.requestId}/response`,
+      payload: '',
+    })
+    expect(res.statusCode).toBe(202)
+    await expect(invocation).resolves.toBeNull()
+  })
 })
