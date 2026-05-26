@@ -170,6 +170,93 @@ describe('createJavaRunner', () => {
     expect(capturedArgs[cpIndex + 3]).toBe('com.example.Hello::handleRequest')
   })
 
+  describe('JAVA_OPTS env var', () => {
+    let originalJavaOpts
+
+    beforeEach(() => {
+      originalJavaOpts = process.env.JAVA_OPTS
+    })
+
+    afterEach(() => {
+      if (originalJavaOpts === undefined) {
+        delete process.env.JAVA_OPTS
+      } else {
+        process.env.JAVA_OPTS = originalJavaOpts
+      }
+    })
+
+    it('prepends JAVA_OPTS args to the JVM command line', async () => {
+      process.env.JAVA_OPTS = '-Xmx256m -Dfoo=bar'
+      let capturedArgs
+      const runner = createJavaRunner({
+        idleEvictionMs: 60_000,
+        runtimeApiBase,
+        runtimeApiQueue: queue,
+        log: noopLog,
+        resolveClasspath: async () => ({
+          classpath: '/u/a.jar:/u/ric.jar',
+          artifactPath: '/u/a.jar',
+          ricJarPath: '/u/ric.jar',
+        }),
+        checkJavaVersion: async () => ({ majorVersion: 21, raw: '' }),
+        spawnOverride: (cmd, args, opts) => {
+          capturedArgs = args
+          return realSpawn(process.execPath, [fakeBootstrap], {
+            cwd: opts.cwd,
+            env: opts.env,
+            stdio: opts.stdio,
+          })
+        },
+        servicePath: '/tmp',
+      })
+
+      try {
+        await runner.invoke(makeInvokeArgs())
+      } finally {
+        await runner.terminate()
+      }
+
+      // -Xmx256m and -Dfoo=bar come BEFORE -cp.
+      const cpIndex = capturedArgs.indexOf('-cp')
+      expect(capturedArgs.slice(0, cpIndex)).toEqual(['-Xmx256m', '-Dfoo=bar'])
+    })
+
+    it('omits JAVA_OPTS args when env var is unset', async () => {
+      delete process.env.JAVA_OPTS
+      let capturedArgs
+      const runner = createJavaRunner({
+        idleEvictionMs: 60_000,
+        runtimeApiBase,
+        runtimeApiQueue: queue,
+        log: noopLog,
+        resolveClasspath: async () => ({
+          classpath: '/u/cp',
+          artifactPath: '/u/cp',
+          ricJarPath: '/u/r',
+        }),
+        checkJavaVersion: async () => ({ majorVersion: 21, raw: '' }),
+        spawnOverride: (cmd, args, opts) => {
+          capturedArgs = args
+          return realSpawn(process.execPath, [fakeBootstrap], {
+            cwd: opts.cwd,
+            env: opts.env,
+            stdio: opts.stdio,
+          })
+        },
+        servicePath: '/tmp',
+      })
+
+      try {
+        await runner.invoke(makeInvokeArgs())
+      } finally {
+        await runner.terminate()
+      }
+
+      // First arg is -cp; nothing prepended.
+      expect(capturedArgs[0]).toBe('-cp')
+    })
+  })
+
   it('reuses the same JVM child across consecutive invokes', async () => {
     const spawnCalls = []
     const runner = createJavaRunner({
