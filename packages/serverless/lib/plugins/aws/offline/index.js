@@ -18,6 +18,7 @@ import { createQueueStore } from './lib/aws-api-server/sqs/queue-store.js'
 import { createSqsHandlers } from './lib/aws-api-server/sqs/handlers.js'
 import { createAwsApiServer } from './lib/aws-api-server/index.js'
 import { createRunner } from './lib/runners/create-runner.js'
+import { createInvocationQueue } from './lib/runners/invocation-queue.js'
 import { startSqsPollers } from './lib/event-sources/sqs-poller.js'
 import { createAppServer } from './lib/app-server/index.js'
 import { registerAlbRoutes } from './lib/app-server/alb/route-loader.js'
@@ -70,6 +71,7 @@ function coerceInt(value) {
  * @param {boolean} params.useInProcess  Whether the in-process Node runner is active.
  * @param {boolean} params.hasPythonFunctions  Whether any function declares a python3.x runtime.
  * @param {boolean} params.hasRubyFunctions  Whether any function declares a ruby3.x runtime.
+ * @param {boolean} params.hasGoFunctions  Whether any function declares a go*.x or provided.al{,2} runtime.
  */
 function logBootSummary({
   logger,
@@ -84,6 +86,7 @@ function logBootSummary({
   useInProcess,
   hasPythonFunctions,
   hasRubyFunctions,
+  hasGoFunctions,
 }) {
   logger.notice('')
   logger.notice(`sls offline ready (stage: ${stage})`)
@@ -97,6 +100,9 @@ function logBootSummary({
   }
   if (hasRubyFunctions) {
     logger.notice(`  Ruby runner:     child-process (ruby)`)
+  }
+  if (hasGoFunctions) {
+    logger.notice(`  Go runner:       child-process (bootstrap binary)`)
   }
 
   // WebSocket routes — emit first because the WS upgrade handler fires
@@ -281,6 +287,16 @@ export default class OfflinePlugin {
       const rt = fn.runtime ?? serverless.service.provider.runtime
       return /^ruby\d+\.\d+$/.test(rt ?? '')
     })
+    // Go detection covers the legacy `go1.x` runtime family and the
+    // current `provided.al{,2}` custom-runtime family used by current
+    // `aws-lambda-go` builds. Regex set matches runtime-guard.js so the
+    // "what counts as Go" decision lives in one place per family.
+    const hasGoFunctions = Object.values(
+      serverless.service.functions ?? {},
+    ).some((fn) => {
+      const rt = fn.runtime ?? serverless.service.provider.runtime
+      return /^go\d+\.x?$/.test(rt ?? '') || /^provided\.al2?$/.test(rt ?? '')
+    })
     const noTimeout = cliOptions.noTimeout === true
     const prefix = cliOptions.prefix ?? offline.prefix
     const noPrependStageInUrl =
@@ -331,7 +347,23 @@ export default class OfflinePlugin {
     //    bridge.fireBeforeStart() has run.
     //    In-process runner (--useInProcess) shares the offline server's process
     //    and ignores terminateIdleLambdaTime (no workers to recycle).
-    const runner = createRunner({ useInProcess, terminateIdleLambdaTime })
+    //    When any function uses the Go runtime family, also create the shared
+    //    invocation queue that bridges the runner to the AWS Lambda Runtime
+    //    API routes mounted on the aws-api-server (see step 10).
+    const runtimeApiQueue = hasGoFunctions ? createInvocationQueue() : null
+    const runtimeApiBase = `http://${host}:${awsApiPort}/runtime`
+    const runner = createRunner({
+      useInProcess,
+      terminateIdleLambdaTime,
+      go: hasGoFunctions
+        ? {
+            runtimeApiBase,
+            runtimeApiQueue,
+            servicePath: getHandlerBaseDir(serverless),
+            log: log.get('sls:offline:go'),
+          }
+        : undefined,
+    })
 
     // Lambda function facade: single invocation entry point per function.
     // Builds the per-invocation context + environment uniformly and dispatches
@@ -472,6 +504,10 @@ export default class OfflinePlugin {
       host,
       handlers: { sqs: sqsHandlers },
       logger: log.get('sls:offline:aws-api'),
+      // Mount the Lambda Runtime API routes when any Go function is in
+      // the service. The Go runner enqueues into this queue; the routes
+      // drain it via long-polling from the child bootstrap binary.
+      runtimeApi: runtimeApiQueue ? { queue: runtimeApiQueue } : undefined,
     })
 
     // 11. Register teardowns for the servers and pollers (LIFO — runner and
@@ -532,6 +568,7 @@ export default class OfflinePlugin {
           useInProcess,
           hasPythonFunctions,
           hasRubyFunctions,
+          hasGoFunctions,
         })
       },
     })

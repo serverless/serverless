@@ -9,6 +9,7 @@
 import Hapi from '@hapi/hapi'
 import { DEFAULT_AWS_API_PORT } from '../constants.js'
 import { detectService } from './dispatcher.js'
+import { registerRuntimeApiRoutes } from './runtime-api-routes.js'
 
 /**
  * Create and start a Hapi server that acts as a local AWS endpoint.
@@ -44,6 +45,14 @@ import { detectService } from './dispatcher.js'
  *   returned server's `server.info.uri` so the boot summary can include
  *   it alongside the route table.
  *
+ * @param {{ queue: object }} [options.runtimeApi]
+ *   When present, registers the AWS Lambda Runtime API routes
+ *   (`/runtime/{functionKey}/2018-06-01/runtime/invocation/...`) BEFORE
+ *   the catch-all so they take precedence in Hapi's match table. Required
+ *   when any function in the service uses the Go runtime; can be omitted
+ *   otherwise. `queue` is the shared invocation queue created by
+ *   `createInvocationQueue()`.
+ *
  * @returns {Promise<import('@hapi/hapi').Server>}
  *   The started Hapi server.  Register teardown via
  *   `server.stop({ timeout: 5000 })`.
@@ -53,8 +62,15 @@ export async function createAwsApiServer({
   host = 'localhost',
   handlers = {},
   logger,
+  runtimeApi,
 } = {}) {
   const server = Hapi.server({ host, port: awsApiPort })
+
+  // Runtime API routes (when supplied) must register BEFORE the catch-all
+  // so Hapi's match table prefers the specific Lambda paths over `* /{any*}`.
+  if (runtimeApi?.queue) {
+    registerRuntimeApiRoutes(server, { queue: runtimeApi.queue })
+  }
 
   server.route({
     method: '*',
