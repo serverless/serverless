@@ -115,4 +115,49 @@ describe('createInProcessRunner', () => {
 
     expect(process.env.AWS_LAMBDA_FUNCTION_NAME).toBe(priorFunctionName)
   })
+
+  it('inflates context.getRemainingTimeInMillis()', async () => {
+    const runner = createInProcessRunner()
+    const result = await runner.invoke({
+      functionKey: 'remaining',
+      handlerPath: path.join(FIXTURES, 'remaining.mjs'),
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'remaining',
+        awsRequestId: 'r-4',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:remaining',
+        memoryLimitInMB: '128',
+        timeoutMs: 1000,
+        handler: 'src/remaining.handler',
+      },
+      environment: {},
+    })
+
+    expect(result.remaining).toBeGreaterThan(0)
+    expect(result.remaining).toBeLessThanOrEqual(1000)
+  })
+
+  it('inflates legacy context.succeed / .fail / .done', async () => {
+    const runner = createInProcessRunner()
+    const result = await runner.invoke({
+      functionKey: 'legacySucceed',
+      handlerPath: path.join(FIXTURES, 'legacy-succeed.mjs'),
+      handlerName: 'handler',
+      event: { msg: 'hi' },
+      context: {
+        functionName: 'legacySucceed',
+        awsRequestId: 'r-5',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:legacySucceed',
+        memoryLimitInMB: '128',
+        timeoutMs: 6000,
+        handler: 'src/legacySucceed.handler',
+      },
+      environment: {},
+    })
+
+    expect(result).toEqual({ via: 'succeed', echoed: 'hi' })
+  })
 })

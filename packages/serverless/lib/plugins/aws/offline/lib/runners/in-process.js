@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto'
+import { performance } from 'node:perf_hooks'
 import { buildLambdaRuntimeEnv } from './lambda-env.js'
 import { loadHandler } from './load-handler.js'
 
@@ -108,10 +109,70 @@ export function createInProcessRunner() {
         snapshot[key] = process.env[key]
       }
 
+      // Inflate the Lambda context with runtime-injected methods that the
+      // facade's plain context dict doesn't have:
+      //   - getRemainingTimeInMillis() — monotonic via performance.now()
+      //   - legacy succeed/fail/done — all route through the callback closure
+      // The settle-once `callback` lets handlers using the legacy
+      // (event, context, callback) signature resolve the invoke. We race the
+      // callback resolution vs the handler's promise return (community
+      // plugin parity — see InProcessRunner.js lines 46–96). T8 adds a
+      // timeout candidate to the race.
+      const timeoutMsForContext = context?.timeoutMs ?? 6000
+      const startedAt = performance.now()
+      let settled = false
+      let callbackResolve
+      let callbackReject
+      const callbackPromise = new Promise((res, rej) => {
+        callbackResolve = res
+        callbackReject = rej
+      })
+      const callback = (err, data) => {
+        if (settled) return
+        settled = true
+        if (err) {
+          callbackReject(err instanceof Error ? err : new Error(String(err)))
+        } else {
+          callbackResolve(data)
+        }
+      }
+
+      const inflatedContext = {
+        ...context,
+        getRemainingTimeInMillis() {
+          const left = timeoutMsForContext - (performance.now() - startedAt)
+          return left > 0 ? Math.floor(left) : 0
+        },
+        succeed(res) {
+          callback(null, res)
+        },
+        fail(err) {
+          callback(err)
+        },
+        done(err, data) {
+          callback(err, data)
+        },
+      }
+
       Object.assign(process.env, fullEnv)
       try {
         const handler = await loadHandler(handlerPath, handlerName)
-        return await handler(event, context)
+        const ret = handler(event, inflatedContext, callback)
+        const candidates = [callbackPromise]
+        // Include handler's return value in the race:
+        //   - thenable (async handler / explicit Promise) → push directly
+        //   - non-thenable, non-undefined sync return → wrap so the race sees
+        //     it. (Real Lambda treats a sync return identically to
+        //     Promise.resolve(value).)
+        //   - undefined sync return → handler MUST use callback; nothing to push.
+        if (ret !== undefined) {
+          if (ret !== null && typeof ret.then === 'function') {
+            candidates.push(ret)
+          } else {
+            candidates.push(Promise.resolve(ret))
+          }
+        }
+        return await Promise.race(candidates)
       } finally {
         for (const [key, prior] of Object.entries(snapshot)) {
           if (prior === undefined) {
