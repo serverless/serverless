@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { log } from '@serverless/util'
 import { buildLambdaRuntimeEnv } from './lambda-env.js'
+import ServerlessError from '../../../../../serverless-error.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -18,6 +19,7 @@ const logger = log.get('sls:offline:python')
  * @property {import('node:child_process').ChildProcessWithoutNullStreams} child
  * @property {import('node:readline').Interface} rl
  * @property {NodeJS.Timeout | null} idleTimer
+ * @property {NodeJS.Timeout | null} pendingTimeout
  * @property {{ resolve: (v: unknown) => void, reject: (e: Error) => void } | null} pending
  * @property {Buffer[]} stderrChunks
  * @property {'spawning' | 'idle' | 'busy' | 'terminating'} state
@@ -99,6 +101,7 @@ export function createPythonRunner({
       child,
       rl,
       idleTimer: null,
+      pendingTimeout: null,
       pending: null,
       stderrChunks: [],
       state: 'spawning',
@@ -160,6 +163,10 @@ export function createPythonRunner({
         if (entry.pending === null) {
           // Stray envelope (no invocation in flight) — ignore.
           return
+        }
+        if (entry.pendingTimeout !== null) {
+          clearTimeout(entry.pendingTimeout)
+          entry.pendingTimeout = null
         }
         const { resolve } = entry.pending
         entry.pending = null
@@ -261,6 +268,9 @@ export function createPythonRunner({
      * @param {object} args.context
      * @param {Record<string, string>} [args.environment]  User-level env vars
      *   merged ON TOP of the AWS_LAMBDA_* runtime block at spawn time.
+     * @param {number} [args.timeoutMs]  When set, the invoke is raced against
+     *   a setTimeout — on expiry the child is killed, the pool entry dropped,
+     *   and the promise rejects with ServerlessError(OFFLINE_HANDLER_TIMEOUT).
      * @returns {Promise<unknown>}
      */
     async invoke({
@@ -270,6 +280,7 @@ export function createPythonRunner({
       event,
       context,
       environment,
+      timeoutMs,
     }) {
       let entry = pool.get(functionKey)
       if (!entry || entry.state === 'terminating') {
@@ -303,12 +314,37 @@ export function createPythonRunner({
 
       return new Promise((resolve, reject) => {
         entry.pending = { resolve, reject }
+        if (timeoutMs != null) {
+          entry.pendingTimeout = setTimeout(() => {
+            entry.pendingTimeout = null
+            entry.pending = null
+            entry.state = 'terminating'
+            if (pool.get(functionKey) === entry) {
+              pool.delete(functionKey)
+            }
+            try {
+              entry.child.kill()
+            } catch {
+              // ignore
+            }
+            reject(
+              new ServerlessError(
+                `Lambda invocation timed out after ${timeoutMs} ms`,
+                'OFFLINE_HANDLER_TIMEOUT',
+              ),
+            )
+          }, timeoutMs)
+        }
         try {
           entry.child.stdin.write(JSON.stringify({ event, context }))
           entry.child.stdin.write('\n')
         } catch (err) {
           // Synchronous write failure (e.g. child already dead) — reject
           // and let the stdin/error handlers do their cleanup.
+          if (entry.pendingTimeout !== null) {
+            clearTimeout(entry.pendingTimeout)
+            entry.pendingTimeout = null
+          }
           if (entry.pending !== null) {
             entry.pending = null
             reject(err)
