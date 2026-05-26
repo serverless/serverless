@@ -40,4 +40,55 @@ describe('registerRuntimeApiRoutes (scaffold)', () => {
     )
     expect(route).not.toBeNull()
   })
+
+  it('GET /next returns the next invocation with Lambda-Runtime-* headers', async () => {
+    queue.enqueue('fn1', {
+      payload: { hello: 'world' },
+      timeoutMs: 5000,
+      invokedFunctionArn: 'arn:aws:lambda:us-east-1:000000000000:function:fn1',
+    })
+    const res = await server.inject({
+      method: 'GET',
+      url: '/runtime/fn1/2018-06-01/runtime/invocation/next',
+    })
+    expect(res.statusCode).toBe(200)
+    expect(res.headers['lambda-runtime-aws-request-id']).toMatch(
+      /^[0-9a-f-]{36}$/,
+    )
+    expect(res.headers['lambda-runtime-deadline-ms']).toMatch(/^\d+$/)
+    expect(res.headers['lambda-runtime-invoked-function-arn']).toContain(':fn1')
+    expect(res.headers['content-type']).toMatch(/application\/json/)
+    expect(JSON.parse(res.payload)).toEqual({ hello: 'world' })
+  })
+
+  it('GET /next long-polls until enqueue happens', async () => {
+    setTimeout(() => {
+      queue.enqueue('fn1', { payload: { late: true }, timeoutMs: 5000 })
+    }, 50)
+    const res = await server.inject({
+      method: 'GET',
+      url: '/runtime/fn1/2018-06-01/runtime/invocation/next',
+    })
+    expect(JSON.parse(res.payload)).toEqual({ late: true })
+  })
+
+  it('GET /next does not deliver invocations enqueued for a different functionKey', async () => {
+    queue.enqueue('fn2', { payload: { for: 'fn2' }, timeoutMs: 5000 })
+    // Race: a GET on fn1 should stay parked while fn2 has work.
+    const fn1Poll = server.inject({
+      method: 'GET',
+      url: '/runtime/fn1/2018-06-01/runtime/invocation/next',
+    })
+    const sentinel = Symbol('parked')
+    const winner = await Promise.race([
+      fn1Poll,
+      new Promise((r) => setTimeout(() => r(sentinel), 30)),
+    ])
+    expect(winner).toBe(sentinel)
+
+    // Cleanup so fn1Poll doesn't dangle past the test.
+    queue.enqueue('fn1', { payload: { now: 'fn1' }, timeoutMs: 5000 })
+    const res = await fn1Poll
+    expect(JSON.parse(res.payload)).toEqual({ now: 'fn1' })
+  })
 })

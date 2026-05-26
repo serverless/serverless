@@ -30,17 +30,37 @@
  *   later route bodies from needing a re-registration step.
  */
 export function registerRuntimeApiRoutes(server, { queue }) {
-  // The scaffold doesn't read `queue`, but binding it to the closure here
-  // keeps the route bodies' future references stable.
-  void queue
-
   server.route({
     method: 'GET',
     path: '/runtime/{functionKey}/2018-06-01/runtime/invocation/next',
-    handler: () => {
-      const e = new Error('Runtime API GET /invocation/next not implemented')
-      e.code = 'OFFLINE_NOT_IMPLEMENTED'
-      throw e
+    /**
+     * Long-poll the invocation queue for the next event targeted at
+     * `{functionKey}`. The handler parks on `queue.awaitNext` until an
+     * invocation is enqueued, then returns the event payload as the response
+     * body alongside the four Lambda Runtime API delivery headers
+     * (`Lambda-Runtime-Aws-Request-Id`, `Lambda-Runtime-Deadline-Ms`,
+     * `Lambda-Runtime-Invoked-Function-Arn`, plus `Content-Type`).
+     *
+     * If the runtime client disconnects mid-long-poll, the wired
+     * `AbortController` aborts the parked `awaitNext` so the waiter is
+     * removed from the queue and the resulting `AbortError` propagates —
+     * Hapi handles the closed socket and does not attempt to write a body.
+     */
+    async handler(request, h) {
+      const { functionKey } = request.params
+      const controller = new AbortController()
+      request.raw.req.once('close', () => controller.abort())
+
+      const next = await queue.awaitNext(functionKey, {
+        signal: controller.signal,
+      })
+
+      return h
+        .response(JSON.stringify(next.payload))
+        .type('application/json')
+        .header('Lambda-Runtime-Aws-Request-Id', next.requestId)
+        .header('Lambda-Runtime-Deadline-Ms', String(next.deadlineMs))
+        .header('Lambda-Runtime-Invoked-Function-Arn', next.invokedFunctionArn)
     },
   })
 
