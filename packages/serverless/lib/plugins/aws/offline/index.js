@@ -67,7 +67,8 @@ function coerceInt(value) {
  * @param {{ method: string, path: string, mountedPath: string, apigwMountedPath: string, functionKey: string }[]} [params.restApiRoutes]
  * @param {number} params.sqsPollerCount
  * @param {string} params.stage
- * @param {boolean} params.useInProcess  Whether the in-process runner is active.
+ * @param {boolean} params.useInProcess  Whether the in-process Node runner is active.
+ * @param {boolean} params.hasPythonFunctions  Whether any function declares a python3.x runtime.
  */
 function logBootSummary({
   logger,
@@ -80,14 +81,18 @@ function logBootSummary({
   sqsPollerCount,
   stage,
   useInProcess,
+  hasPythonFunctions,
 }) {
   logger.notice('')
   logger.notice(`sls offline ready (stage: ${stage})`)
   logger.notice(`  App endpoint:    ${appUrl}`)
   logger.notice(`  AWS endpoint:    ${awsApiUrl}`)
   logger.notice(
-    `  Runner:          ${useInProcess ? 'in-process' : 'worker-thread'}`,
+    `  Node runner:     ${useInProcess ? 'in-process' : 'worker-thread'}`,
   )
+  if (hasPythonFunctions) {
+    logger.notice(`  Python runner:   child-process (python3)`)
+  }
 
   // WebSocket routes — emit first because the WS upgrade handler fires
   // before any HTTP route resolution. Followed by the management-API
@@ -255,6 +260,16 @@ export default class OfflinePlugin {
     // stack traces — opt-in only for parity with serverless-offline.
     const useInProcess =
       cliOptions.useInProcess ?? offline.useInProcess ?? false
+    // Detect Python functions so the boot summary advertises the python3
+    // child-process runner alongside the Node runner. Uses the same regex
+    // as runtime-guard.js to keep the "what counts as Python" definition
+    // in one place per family.
+    const hasPythonFunctions = Object.values(
+      serverless.service.functions ?? {},
+    ).some((fn) => {
+      const rt = fn.runtime ?? serverless.service.provider.runtime
+      return /^python\d+\.\d+$/.test(rt ?? '')
+    })
     const noTimeout = cliOptions.noTimeout === true
     const prefix = cliOptions.prefix ?? offline.prefix
     const noPrependStageInUrl =
@@ -504,6 +519,7 @@ export default class OfflinePlugin {
           sqsPollerCount: pollerController.pollerCount,
           stage,
           useInProcess,
+          hasPythonFunctions,
         })
       },
     })
