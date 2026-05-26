@@ -515,6 +515,7 @@ describe('createJavaRunner (Docker)', () => {
     try {
       await runner.invoke(makeInvokeArgs())
       expect(() => runner.invalidate('fn1')).not.toThrow()
+      expect(fakeContainer.stopped).toBe(true)
       // Second invalidate on a gone entry must also be safe.
       expect(() => runner.invalidate('fn1')).not.toThrow()
     } finally {
@@ -523,6 +524,7 @@ describe('createJavaRunner (Docker)', () => {
   })
 
   it('throws OFFLINE_JAVA_ARTIFACT_MISSING when artifactPath is missing', async () => {
+    let createCount = 0
     const runner = createJavaRunner({
       idleEvictionMs: 60_000,
       runtimeApiBase,
@@ -530,7 +532,10 @@ describe('createJavaRunner (Docker)', () => {
       dockerClient: makeFakeDockerClient(),
       ensureImageReady: async () => {},
       log: noopLog,
-      createContainerOverride: async () => makeFakeContainer(),
+      createContainerOverride: async () => {
+        createCount++
+        return makeFakeContainer()
+      },
       servicePath: '/tmp',
     })
 
@@ -538,6 +543,7 @@ describe('createJavaRunner (Docker)', () => {
       await expect(
         runner.invoke(makeInvokeArgs({ artifactPath: null })),
       ).rejects.toMatchObject({ code: 'OFFLINE_JAVA_ARTIFACT_MISSING' })
+      expect(createCount).toBe(0)
     } finally {
       await runner.terminate()
     }
