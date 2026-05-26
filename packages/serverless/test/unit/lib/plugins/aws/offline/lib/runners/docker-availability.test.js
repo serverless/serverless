@@ -26,6 +26,9 @@ describe('assertDockerAvailable', () => {
     await expect(assertDockerAvailable({ dockerClient })).rejects.toMatchObject(
       { code: 'OFFLINE_DOCKER_DAEMON_NOT_RUNNING' },
     )
+    await expect(assertDockerAvailable({ dockerClient })).rejects.toThrow(
+      /ECONNREFUSED|connect ECONNREFUSED/i,
+    )
   })
 
   it('throws OFFLINE_DOCKER_BINARY_MISSING on ENOENT', async () => {
@@ -54,6 +57,9 @@ describe('assertDockerAvailable', () => {
     })
     await expect(assertDockerAvailable({ dockerClient })).rejects.toMatchObject(
       { code: 'OFFLINE_DOCKER_DAEMON_NOT_RUNNING' },
+    )
+    await expect(assertDockerAvailable({ dockerClient })).rejects.toThrow(
+      /something weird happened/,
     )
   })
 })
