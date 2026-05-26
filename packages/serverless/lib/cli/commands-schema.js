@@ -275,6 +275,11 @@ commands.set('offline', {
       usage: 'Do NOT prepend the deployment stage to REST API URLs',
       type: 'boolean',
     },
+    useInProcess: {
+      usage:
+        'Run Lambda handlers in the offline server process (Node.js only) instead of spawning a worker thread per concurrent invocation. Faster invocation, but handler module state and process.env mutations persist between calls. Default: false.',
+      type: 'boolean',
+    },
   },
   lifecycleEvents: ['offline'],
   serviceDependencyMode: 'required',

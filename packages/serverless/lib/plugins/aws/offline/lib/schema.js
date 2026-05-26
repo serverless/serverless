@@ -20,6 +20,7 @@ const offlineSchema = {
     terminateIdleLambdaTime: { type: 'integer', minimum: 0 },
     prefix: { type: 'string' },
     noPrependStageInUrl: { type: 'boolean' },
+    useInProcess: { type: 'boolean' },
   },
 }
 

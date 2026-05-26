@@ -20,6 +20,7 @@ describe('offline schema', () => {
       terminateIdleLambdaTime: { type: 'integer', minimum: 0 },
       prefix: { type: 'string' },
       noPrependStageInUrl: { type: 'boolean' },
+      useInProcess: { type: 'boolean' },
     })
   })
 
@@ -77,5 +78,9 @@ describe('offline schema', () => {
       type: 'integer',
       minimum: 0,
     })
+  })
+
+  it('defines useInProcess as a boolean property', () => {
+    expect(offlineSchema.properties.useInProcess).toEqual({ type: 'boolean' })
   })
 })
