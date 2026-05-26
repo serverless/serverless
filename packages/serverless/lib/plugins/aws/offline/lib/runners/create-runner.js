@@ -82,10 +82,16 @@ function _resolveRunnerKind(args, useInProcess) {
  *   handler-source resolution.
  * @param {object} [params.go.log]  Logger forwarded to the Go runner.
  * @param {object} [params.java]  Java sub-runner wiring; consulted when a
- *   function's runtime matches `/^java\d+/` or when `provided.al2` is
- *   paired with a `.jar` artifact. Same shape as `params.go`.
+ *   function's runtime matches `/^java\d+/` or when `provided.al{,2,2023}`
+ *   is paired with a `.jar` artifact. Backed by Docker (the official
+ *   `public.ecr.aws/lambda/java:<N>` image). Required when Java functions
+ *   are present.
  * @param {string} [params.java.runtimeApiBase]
  * @param {object} [params.java.runtimeApiQueue]
+ * @param {object} [params.java.dockerClient]  DockerClient wrapper from
+ *   `@serverless/util`. Required.
+ * @param {Function} [params.java.ensureImageReady]  Cached pre-pull helper
+ *   from `docker-image.js`. Required.
  * @param {string} [params.java.servicePath]
  * @param {object} [params.java.log]
  * @returns {{
@@ -128,15 +134,22 @@ export function createRunner({
         log: go.log,
       })
     } else if (kind === 'java') {
-      if (!java?.runtimeApiBase || !java?.runtimeApiQueue) {
+      if (
+        !java?.runtimeApiBase ||
+        !java?.runtimeApiQueue ||
+        !java?.dockerClient ||
+        !java?.ensureImageReady
+      ) {
         throw new Error(
-          'createRunner: Java functions require `java.runtimeApiBase` and `java.runtimeApiQueue` options',
+          'createRunner: Java functions require `java.runtimeApiBase`, `java.runtimeApiQueue`, `java.dockerClient`, and `java.ensureImageReady` options',
         )
       }
       r = createJavaRunner({
         idleEvictionMs,
         runtimeApiBase: java.runtimeApiBase,
         runtimeApiQueue: java.runtimeApiQueue,
+        dockerClient: java.dockerClient,
+        ensureImageReady: java.ensureImageReady,
         servicePath: java.servicePath,
         log: java.log,
       })

@@ -244,12 +244,18 @@ describe('createRunner — runtime-aware dispatch', () => {
         runtimeApiBase: 'http://127.0.0.1:1/runtime',
         runtimeApiQueue: queue,
         servicePath: os.tmpdir(),
+        dockerClient: {
+          getDockerodeClient: () => ({
+            modem: { demuxStream() {} },
+          }),
+        },
+        ensureImageReady: async () => {},
       },
     })
     try {
-      // Fake artifactPath that doesn't exist → Java runner's resolveClasspath
-      // surfaces OFFLINE_JAVA_ARTIFACT_MISSING, proving dispatch landed in
-      // the Java branch (not worker-thread or go).
+      // artifactPath: null surfaces OFFLINE_JAVA_ARTIFACT_MISSING from the
+      // Java runner before any Docker call, proving dispatch landed in the
+      // Java branch (worker-thread and Go runners produce different codes).
       await expect(
         r.invoke({
           functionKey: 'java-fn',
@@ -257,7 +263,7 @@ describe('createRunner — runtime-aware dispatch', () => {
           handlerName: 'h',
           event: {},
           context: { handler: 'com.example.X::handle' },
-          artifactPath: '/nonexistent/missing.jar',
+          artifactPath: null,
           runtime: 'java21',
           timeoutMs: 1000,
         }),
@@ -269,6 +275,7 @@ describe('createRunner — runtime-aware dispatch', () => {
 
   it('disambiguates provided.al2 with .jar artifact to Java runner', async () => {
     const queue = createInvocationQueue()
+    const dispatchProof = new Error('java-dispatch-proof')
     const r = createRunner({
       useInProcess: false,
       terminateIdleLambdaTime: 60,
@@ -276,6 +283,16 @@ describe('createRunner — runtime-aware dispatch', () => {
         runtimeApiBase: 'http://127.0.0.1:1/runtime',
         runtimeApiQueue: queue,
         servicePath: os.tmpdir(),
+        dockerClient: {
+          getDockerodeClient: () => ({
+            modem: { demuxStream() {} },
+          }),
+        },
+        // Throwing here proves dispatch landed in the Java branch — only
+        // the Java runner calls ensureImageReady. The Go branch never does.
+        ensureImageReady: async () => {
+          throw dispatchProof
+        },
       },
     })
     try {
@@ -290,7 +307,7 @@ describe('createRunner — runtime-aware dispatch', () => {
           runtime: 'provided.al2',
           timeoutMs: 1000,
         }),
-      ).rejects.toMatchObject({ code: 'OFFLINE_JAVA_ARTIFACT_MISSING' })
+      ).rejects.toBe(dispatchProof)
     } finally {
       await r.terminate()
     }
