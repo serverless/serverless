@@ -957,6 +957,42 @@ describe('createWorkerThreadRunner', () => {
     expect(capturedErr.code).toBe('OFFLINE_WORKER_TERMINATED')
   })
 
+  // Pool-T2: terminate() while still spawning (no 'ready' yet) also rejects
+  // the in-flight invocation with OFFLINE_WORKER_TERMINATED. Without the
+  // runner-side reason tagging, terminate() during the spawn window quietly
+  // dropped the entry, the invoke loop retried with a fresh worker, and the
+  // handler ended up succeeding — surprising the caller who expected
+  // cancellation. The test fires terminate() in the same microtask as
+  // invoke() so the worker cannot possibly have signaled 'ready' yet,
+  // guaranteeing we exercise the spawn-window path.
+  it('pool: terminate() during spawn rejects the in-flight invoke with OFFLINE_WORKER_TERMINATED', async () => {
+    const r = createWorkerThreadRunner({ servicePath: os.tmpdir() })
+
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async () => "should not run"',
+    )
+
+    let capturedErr
+    const invokePromise = r
+      .invoke({
+        functionKey: 'pool-t2',
+        handlerPath,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      .catch((e) => {
+        capturedErr = e
+      })
+
+    // No wait — terminate immediately so the worker is still in 'spawning' state.
+    await r.terminate()
+    await invokePromise
+
+    expect(capturedErr).toBeInstanceOf(ServerlessError)
+    expect(capturedErr.code).toBe('OFFLINE_WORKER_TERMINATED')
+  })
+
   // -------------------------------------------------------------------------
   // callbackWaitsForEmptyEventLoop = false
   // -------------------------------------------------------------------------

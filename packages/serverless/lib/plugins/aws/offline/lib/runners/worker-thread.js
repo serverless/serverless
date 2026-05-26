@@ -364,13 +364,23 @@ export function createWorkerThreadRunner({
   // ---------------------------------------------------------------------------
 
   /**
-   * Terminate a worker entry, clearing its timers.
-   * Also cancels a pending workerReady so any invoke() awaiting it unblocks.
+   * Tear down a worker entry.
+   *
+   * The `reason` argument distinguishes the two contexts this is called from:
+   * - `'invalidate'` (default) — bundler told us the handler source changed,
+   *   or the worker errored out before becoming ready. The pending invoke()
+   *   that was awaiting this entry should RETRY against a fresh worker, so
+   *   we reject workerReady with a plain Error the invoke loop swallows.
+   * - `'terminate'` — the public `terminate()` method is shutting the runner
+   *   down. The pending invoke() should NOT silently retry against a new
+   *   worker; the caller asked for everything to stop. Reject workerReady
+   *   with a tagged ServerlessError that the invoke loop propagates.
    *
    * @param {WorkerEntry} entry
+   * @param {'invalidate' | 'terminate'} reason
    * @returns {Promise<void>}
    */
-  async function _terminateEntry(entry) {
+  async function _terminateEntry(entry, reason = 'invalidate') {
     if (entry.idleTimer !== null) {
       clearTimeout(entry.idleTimer)
       entry.idleTimer = null
@@ -379,7 +389,14 @@ export function createWorkerThreadRunner({
     // If the entry is being terminated before the worker sent 'ready',
     // reject workerReady so any invoke() awaiting it can detect the cancellation.
     if (entry._rejectReady) {
-      entry._rejectReady(new Error('Worker terminated before ready'))
+      const rejectErr =
+        reason === 'terminate'
+          ? new ServerlessError(
+              'Lambda runner terminated during invocation',
+              'OFFLINE_WORKER_TERMINATED',
+            )
+          : new Error('Worker terminated before ready')
+      entry._rejectReady(rejectErr)
       entry._resolveReady = null
       entry._rejectReady = null
     }
@@ -516,11 +533,20 @@ export function createWorkerThreadRunner({
         }
 
         // Wait for the worker to signal it has imported the handler.
-        // If the entry is cancelled (invalidated/terminated) before it sends
-        // 'ready', workerReady rejects and we retry with a fresh entry.
+        // If the entry is cancelled before it sends 'ready', workerReady
+        // rejects. We distinguish the two cancellation reasons:
+        //  - Runner shutdown (`terminate()`): propagate the tagged error so
+        //    the caller knows the invocation was aborted — silently retrying
+        //    against a fresh worker that gets spawned by a never-resolving
+        //    loop after teardown would surprise the caller.
+        //  - Anything else (invalidate, worker spawn error): retry the loop
+        //    so the invocation lands on a healthy worker.
         try {
           await entry.workerReady
-        } catch {
+        } catch (readyErr) {
+          if (readyErr?.code === 'OFFLINE_WORKER_TERMINATED') {
+            throw readyErr
+          }
           // The worker was cancelled before it became ready.
           // The 'error'/'exit' handlers already removed it from the set.
           // Retry — the outer loop will use an idle entry or spawn a fresh one.
@@ -628,7 +654,9 @@ export function createWorkerThreadRunner({
 
       for (const [, set] of pool) {
         for (const entry of set) {
-          terminatePromises.push(_terminateEntry(entry).catch(() => {}))
+          terminatePromises.push(
+            _terminateEntry(entry, 'terminate').catch(() => {}),
+          )
         }
         set.clear()
       }
