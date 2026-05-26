@@ -109,6 +109,13 @@ export function createPythonRunner() {
           )
         })
 
+        child.stdin.on('error', (err) => {
+          if (settled) return
+          settled = true
+          cleanup()
+          reject(err)
+        })
+
         child.stdin.write(JSON.stringify({ event, context }))
         child.stdin.write('\n')
       })

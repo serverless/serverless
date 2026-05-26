@@ -33,4 +33,20 @@ describe('createPythonRunner — happy path', () => {
     expect(typeof r.invalidate).toBe('function')
     expect(typeof r.terminate).toBe('function')
   })
+
+  it('drops non-envelope stdout lines (handler print()) and resolves on the envelope', async () => {
+    const r = createPythonRunner()
+    try {
+      const result = await r.invoke({
+        functionKey: 'with-print',
+        handlerPath: path.join(FIXTURES, 'with_print.py'),
+        handlerName: 'handler',
+        event: { x: 1 },
+        context: {},
+      })
+      expect(result).toEqual({ got: { x: 1 } })
+    } finally {
+      await r.terminate()
+    }
+  })
 })
