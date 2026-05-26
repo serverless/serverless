@@ -2,11 +2,14 @@ import { spawn } from 'node:child_process'
 import { createInterface } from 'node:readline'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
+import { log } from '@serverless/util'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const WRAPPER = path.resolve(__dirname, 'wrappers/ruby/invoke.rb')
 const ENVELOPE_KEY = '__offline_payload__'
+
+const logger = log.get('sls:offline:ruby')
 
 /**
  * Ruby child-process Lambda runner — happy-path skeleton (M5c T4).
@@ -104,7 +107,13 @@ export function createRubyRunner() {
         // surface whatever the Ruby wrapper printed before dying.
         const stderrChunks = []
         child.stderr.on('data', (d) => {
+          const chunk = d.toString()
           stderrChunks.push(d)
+          // Forward each line; trim the final newline so logger output
+          // doesn't double-space.
+          for (const line of chunk.split('\n')) {
+            if (line.length > 0) logger.error(line)
+          }
         })
 
         rl.on('line', (line) => {
@@ -113,8 +122,10 @@ export function createRubyRunner() {
           try {
             parsed = JSON.parse(line)
           } catch {
-            // Non-JSON line — handler `puts` / log output. T5 will route
-            // these through the offline logger; for T4 we just drop them.
+            // Not JSON → handler puts()/log line. Forward as notice so
+            // users see Ruby `puts 'debugging x'` in the same offline log
+            // stream as the rest of the request lifecycle.
+            if (line.length > 0) logger.notice(line)
             return
           }
           if (
