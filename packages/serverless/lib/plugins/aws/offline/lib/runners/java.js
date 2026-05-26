@@ -100,19 +100,6 @@ export function createJavaRunner({
     return `host.docker.internal:${url.port}${url.pathname.replace(/\/$/, '')}/${functionKey}`
   }
 
-  function _forwardStream(stream, functionKey, level) {
-    if (!stream) return
-    stream.on('data', (chunk) => {
-      const text = chunk.toString().trimEnd()
-      if (!text) return
-      // Method-call form preserves `this` binding inside the logger —
-      // destructuring would crash on access to `this.prefix`.
-      if (typeof log?.[level] === 'function') {
-        log[level](`[${functionKey}] ${text}`)
-      }
-    })
-  }
-
   async function _ensureEntry(functionKey, args) {
     const existing = pool.get(functionKey)
     if (existing && existing.state !== 'terminating') {
@@ -197,10 +184,11 @@ export function createJavaRunner({
 
     /** @type {import('dockerode').Container} */
     const container = await createContainerFn(createOpts)
-    await container.start()
 
-    // Attach for log streaming. demuxStream splits the multiplexed
-    // protocol Docker uses into stdout / stderr.
+    // Attach BEFORE start so we capture early container output (JIT
+    // warnings, class-load errors). Docker holds output until a consumer
+    // is attached. demuxStream splits the multiplexed protocol Docker
+    // uses into stdout / stderr.
     const stream = await container.attach({
       stream: true,
       stdout: true,
@@ -209,6 +197,8 @@ export function createJavaRunner({
     const stdoutSink = makeLineForwarder(functionKey, 'debug')
     const stderrSink = makeLineForwarder(functionKey, 'error')
     docker.modem.demuxStream(stream, stdoutSink, stderrSink)
+
+    await container.start()
 
     /** @type {PoolEntry} */
     const entry = {
@@ -277,6 +267,18 @@ export function createJavaRunner({
   }
 
   function _handleError(functionKey, entry, err) {
+    // AutoRemove: true causes the daemon to remove the container as soon
+    // as it exits. dockerode's container.wait() then frequently rejects
+    // with `(HTTP code 404) no such container`. Treat that as a clean
+    // exit (StatusCode 0) — the cancelReason branch below routes the
+    // rejection correctly for invalidate/terminate paths.
+    const statusCode = err?.statusCode ?? err?.status
+    const message = String(err?.message ?? err ?? '')
+    if (statusCode === 404 || /no such container/i.test(message)) {
+      _handleExit(functionKey, entry, 0)
+      return
+    }
+
     if (entry.pendingTimeout !== null) {
       clearTimeout(entry.pendingTimeout)
       entry.pendingTimeout = null
@@ -284,11 +286,23 @@ export function createJavaRunner({
     if (pool.get(functionKey) === entry) {
       pool.delete(functionKey)
     }
-    runtimeApiQueue.rejectAll(functionKey, err)
-    entry.state = 'terminating'
-    if (typeof log?.error === 'function') {
-      log.error(`[${functionKey}] Java container error: ${err.message ?? err}`)
+    if (entry.cancelReason !== null) {
+      runtimeApiQueue.rejectAll(
+        functionKey,
+        new ServerlessError(
+          'Lambda runner terminated during invocation',
+          'OFFLINE_WORKER_TERMINATED',
+        ),
+      )
+    } else {
+      runtimeApiQueue.rejectAll(functionKey, err)
+      if (typeof log?.error === 'function') {
+        log.error(
+          `[${functionKey}] Java container error: ${err.message ?? err}`,
+        )
+      }
     }
+    entry.state = 'terminating'
   }
 
   function _scheduleIdleEviction(functionKey, entry) {
@@ -399,7 +413,16 @@ export function createJavaRunner({
             'OFFLINE_WORKER_TERMINATED',
           ),
         )
-        stops.push(entry.container.stop({ t: 5 }).catch(() => {}))
+        // stop() resolves when the daemon accepts the request — not when
+        // the container has exited. Await wait() too so the container's
+        // wait() continuation can't fire AFTER terminate() resolves and
+        // call rejectAll on a torn-down queue.
+        stops.push(
+          Promise.all([
+            entry.container.stop({ t: 5 }).catch(() => {}),
+            entry.container.wait().catch(() => {}),
+          ]),
+        )
       }
       pool.clear()
       await Promise.all(stops)
