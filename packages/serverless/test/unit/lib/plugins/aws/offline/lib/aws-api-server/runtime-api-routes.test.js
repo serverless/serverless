@@ -42,11 +42,18 @@ describe('registerRuntimeApiRoutes', () => {
   })
 
   it('GET /next returns the next invocation with Lambda-Runtime-* headers', async () => {
-    queue.enqueue('fn1', {
-      payload: { hello: 'world' },
-      timeoutMs: 5000,
-      invokedFunctionArn: 'arn:aws:lambda:us-east-1:000000000000:function:fn1',
-    })
+    // The test only exercises GET /next; the invocation is never settled,
+    // so attach a swallowing catch to the enqueue promise to keep the
+    // eventual per-invocation timeout rejection from surfacing as an
+    // unhandled rejection.
+    queue
+      .enqueue('fn1', {
+        payload: { hello: 'world' },
+        timeoutMs: 5000,
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:fn1',
+      })
+      .catch(() => {})
     const res = await server.inject({
       method: 'GET',
       url: '/runtime/fn1/2018-06-01/runtime/invocation/next',
@@ -63,7 +70,10 @@ describe('registerRuntimeApiRoutes', () => {
 
   it('GET /next long-polls until enqueue happens', async () => {
     setTimeout(() => {
-      queue.enqueue('fn1', { payload: { late: true }, timeoutMs: 5000 })
+      // Swallow the eventual unsettled-invocation timeout rejection.
+      queue
+        .enqueue('fn1', { payload: { late: true }, timeoutMs: 5000 })
+        .catch(() => {})
     }, 50)
     const res = await server.inject({
       method: 'GET',
@@ -73,7 +83,13 @@ describe('registerRuntimeApiRoutes', () => {
   })
 
   it('GET /next does not deliver invocations enqueued for a different functionKey', async () => {
-    queue.enqueue('fn2', { payload: { for: 'fn2' }, timeoutMs: 5000 })
+    // Both enqueue calls below are never settled (the test only checks
+    // routing/parking behaviour). Attach swallowing catches so the
+    // eventual per-invocation timeouts don't surface as unhandled
+    // rejections after the test exits.
+    queue
+      .enqueue('fn2', { payload: { for: 'fn2' }, timeoutMs: 5000 })
+      .catch(() => {})
     // Race: a GET on fn1 should stay parked while fn2 has work.
     const fn1Poll = server.inject({
       method: 'GET',
@@ -87,7 +103,9 @@ describe('registerRuntimeApiRoutes', () => {
     expect(winner).toBe(sentinel)
 
     // Cleanup so fn1Poll doesn't dangle past the test.
-    queue.enqueue('fn1', { payload: { now: 'fn1' }, timeoutMs: 5000 })
+    queue
+      .enqueue('fn1', { payload: { now: 'fn1' }, timeoutMs: 5000 })
+      .catch(() => {})
     const res = await fn1Poll
     expect(JSON.parse(res.payload)).toEqual({ now: 'fn1' })
   })
