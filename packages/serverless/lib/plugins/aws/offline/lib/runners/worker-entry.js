@@ -1,8 +1,8 @@
 import { workerData, parentPort } from 'node:worker_threads'
-import { pathToFileURL } from 'node:url'
 import { randomBytes } from 'node:crypto'
 import { performance } from 'node:perf_hooks'
 import { buildLambdaRuntimeEnv } from './lambda-env.js'
+import { loadHandler } from './load-handler.js'
 
 const { handlerPath, handlerName } = workerData
 
@@ -42,21 +42,7 @@ function formatLogStreamDate(date) {
 let handler
 
 try {
-  const mod = await import(pathToFileURL(handlerPath).href)
-  handler = mod[handlerName]
-
-  if (typeof handler !== 'function') {
-    parentPort.postMessage({
-      type: 'error',
-      error: {
-        name: 'TypeError',
-        message: `Handler export "${handlerName}" is not a function in ${handlerPath}`,
-        stack: '',
-      },
-    })
-    // Exit; parent will see the error message before the worker exits.
-    process.exit(1)
-  }
+  handler = await loadHandler(handlerPath, handlerName)
 } catch (importErr) {
   parentPort.postMessage({
     type: 'error',
