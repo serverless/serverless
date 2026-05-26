@@ -17,6 +17,7 @@ const SUPPORTED_RUNTIME_REGEXES = [
   /^ruby\d+\.\d+$/, // ruby3.2, ruby3.3, ruby3.4
   /^go\d+\.x?$/, // go1.x (legacy AL1 runtime family)
   /^provided\.al2?$/, // provided.al, provided.al2 (used by current aws-lambda-go builds)
+  /^java\d+(\.al2)?$/, // java8.al2, java11, java17, java21, future java25+
 ]
 
 /**
@@ -61,7 +62,7 @@ export function assertSupportedRuntimes(serverless) {
     .join('\n')
   throw new ServerlessError(
     `sls offline does not yet support these runtimes:\n${list}\n` +
-      `Supported in this build: Node.js (nodejs*), Python (python3.x), Ruby (ruby3.x), Go (go*.x, provided.al, provided.al2).`,
+      `Supported in this build: Node.js (nodejs*), Python (python3.x), Ruby (ruby3.x), Go (go*.x, provided.al, provided.al2), Java (java*, java8.al2).`,
     'OFFLINE_UNSUPPORTED_RUNTIME',
   )
 }
