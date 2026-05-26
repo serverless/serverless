@@ -149,9 +149,11 @@ export function createGoRunner({
     stream.on('data', (chunk) => {
       const text = chunk.toString().trimEnd()
       if (!text) return
-      const emit = log?.[level]
-      if (typeof emit === 'function') {
-        emit(`[${functionKey}] ${text}`)
+      // Call as a method on `log` so the logger's `this.prefix` /
+      // `this.prefixColor` are intact — destructuring would drop the
+      // binding and crash inside the logger.
+      if (typeof log?.[level] === 'function') {
+        log[level](`[${functionKey}] ${text}`)
       }
     })
   }

@@ -94,9 +94,12 @@ export function createJavaRunner({
     stream.on('data', (chunk) => {
       const text = chunk.toString().trimEnd()
       if (!text) return
-      const emit = log?.[level]
-      if (typeof emit === 'function') {
-        emit(`[${functionKey}] ${text}`)
+      // Call as a method on `log` so the logger's `this.prefix` /
+      // `this.prefixColor` are intact — destructuring (`const emit =
+      // log[level]; emit(...)`) drops the binding and crashes with a
+      // `Cannot read properties of undefined (reading 'prefix')`.
+      if (typeof log?.[level] === 'function') {
+        log[level](`[${functionKey}] ${text}`)
       }
     })
   }
