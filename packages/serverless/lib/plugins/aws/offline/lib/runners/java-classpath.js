@@ -7,12 +7,23 @@ import ServerlessError from '../../../../../serverless-error.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-const VERSION_FILE = path.join(__dirname, 'wrappers', 'java', '.version')
+const WRAPPERS_DIR = path.join(__dirname, 'wrappers', 'java')
+const RIC_VERSION_FILE = path.join(WRAPPERS_DIR, '.version')
+const CORE_VERSION_FILE = path.join(WRAPPERS_DIR, '.version-core')
+const SERIALIZATION_VERSION_FILE = path.join(
+  WRAPPERS_DIR,
+  '.version-serialization',
+)
 
-// Read once at module init. The `.version` file is the single source of
-// truth for the pinned RIC version; bumping the dep means updating the
-// JAR, LICENSE, NOTICE, and `.version` together.
-const PINNED_VERSION = readFileSync(VERSION_FILE, 'utf8').trim()
+// Read once at module init. The `.version*` files are the single source
+// of truth for the pinned versions; bumping any dep means updating the
+// JAR, LICENSE, NOTICE, and version file together.
+const RIC_VERSION = readFileSync(RIC_VERSION_FILE, 'utf8').trim()
+const CORE_VERSION = readFileSync(CORE_VERSION_FILE, 'utf8').trim()
+const SERIALIZATION_VERSION = readFileSync(
+  SERIALIZATION_VERSION_FILE,
+  'utf8',
+).trim()
 
 /**
  * Absolute path to the vendored AWS Lambda Java Runtime Interface Client
@@ -20,10 +31,36 @@ const PINNED_VERSION = readFileSync(VERSION_FILE, 'utf8').trim()
  * user's compiled artifact.
  */
 export const RIC_JAR_PATH = path.join(
-  __dirname,
-  'wrappers',
-  'java',
-  `aws-lambda-java-runtime-interface-client-${PINNED_VERSION}.jar`,
+  WRAPPERS_DIR,
+  `aws-lambda-java-runtime-interface-client-${RIC_VERSION}.jar`,
+)
+
+/**
+ * Absolute path to the vendored `aws-lambda-java-core` JAR.
+ *
+ * The RIC depends on this at runtime for the canonical `Context`,
+ * `RequestHandler`, `RequestStreamHandler`, and `LambdaLogger`
+ * interfaces. We vendor it alongside the RIC because user-built JARs
+ * rarely shade `aws-lambda-java-core` (it's a `<scope>provided</scope>`
+ * — or `compile`-but-unbundled — Maven dep), and the RIC itself isn't
+ * shaded either.
+ */
+export const CORE_JAR_PATH = path.join(
+  WRAPPERS_DIR,
+  `aws-lambda-java-core-${CORE_VERSION}.jar`,
+)
+
+/**
+ * Absolute path to the vendored `aws-lambda-java-serialization` JAR.
+ *
+ * The RIC's `startRuntime` flow uses this for handler I/O JSON serde
+ * (`ReflectUtil`, `LambdaRuntimeLogger` plumbing). The JAR is shaded —
+ * it carries its own Jackson — so no separate Jackson vendoring is
+ * needed.
+ */
+export const SERIALIZATION_JAR_PATH = path.join(
+  WRAPPERS_DIR,
+  `aws-lambda-java-serialization-${SERIALIZATION_VERSION}.jar`,
 )
 
 /**
@@ -43,6 +80,8 @@ export const RIC_JAR_PATH = path.join(
  *   classpath: string,
  *   artifactPath: string,
  *   ricJarPath: string,
+ *   coreJarPath: string,
+ *   serializationJarPath: string,
  * }>}
  */
 export async function resolveClasspath({ functionKey, artifactPath }) {
@@ -66,9 +105,21 @@ export async function resolveClasspath({ functionKey, artifactPath }) {
     )
   }
 
+  // User artifact first so its classes win on conflicts, then the
+  // vendored RIC runtime closure (core interfaces, serialization helper,
+  // and the RIC's own main class). The serialization JAR carries shaded
+  // Jackson, so no separate Jackson dep is needed.
+  const classpath = [
+    artifactPath,
+    CORE_JAR_PATH,
+    SERIALIZATION_JAR_PATH,
+    RIC_JAR_PATH,
+  ].join(path.delimiter)
   return {
-    classpath: `${artifactPath}${path.delimiter}${RIC_JAR_PATH}`,
+    classpath,
     artifactPath,
     ricJarPath: RIC_JAR_PATH,
+    coreJarPath: CORE_JAR_PATH,
+    serializationJarPath: SERIALIZATION_JAR_PATH,
   }
 }

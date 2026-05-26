@@ -5,6 +5,8 @@ import path from 'node:path'
 import {
   resolveClasspath,
   RIC_JAR_PATH,
+  CORE_JAR_PATH,
+  SERIALIZATION_JAR_PATH,
 } from '../../../../../../../../lib/plugins/aws/offline/lib/runners/java-classpath.js'
 
 describe('resolveClasspath', () => {
@@ -25,16 +27,34 @@ describe('resolveClasspath', () => {
     )
   })
 
-  it('joins user artifact and RIC jar with path.delimiter', async () => {
+  it('exposes CORE_JAR_PATH pointing at the vendored aws-lambda-java-core JAR', async () => {
+    await expect(fs.access(CORE_JAR_PATH)).resolves.toBeUndefined()
+    expect(CORE_JAR_PATH).toMatch(/aws-lambda-java-core.*\.jar$/)
+  })
+
+  it('exposes SERIALIZATION_JAR_PATH pointing at the vendored aws-lambda-java-serialization JAR', async () => {
+    await expect(fs.access(SERIALIZATION_JAR_PATH)).resolves.toBeUndefined()
+    expect(SERIALIZATION_JAR_PATH).toMatch(
+      /aws-lambda-java-serialization.*\.jar$/,
+    )
+  })
+
+  it('joins user artifact, core jar, serialization jar, and RIC jar with path.delimiter (in that order)', async () => {
     const jarPath = path.join(tmp, 'hello.jar')
     await fs.writeFile(jarPath, 'placeholder')
     const result = await resolveClasspath({
       functionKey: 'hello',
       artifactPath: jarPath,
     })
-    expect(result.classpath).toBe(`${jarPath}${path.delimiter}${RIC_JAR_PATH}`)
+    expect(result.classpath).toBe(
+      [jarPath, CORE_JAR_PATH, SERIALIZATION_JAR_PATH, RIC_JAR_PATH].join(
+        path.delimiter,
+      ),
+    )
     expect(result.artifactPath).toBe(jarPath)
     expect(result.ricJarPath).toBe(RIC_JAR_PATH)
+    expect(result.coreJarPath).toBe(CORE_JAR_PATH)
+    expect(result.serializationJarPath).toBe(SERIALIZATION_JAR_PATH)
   })
 
   it('throws OFFLINE_JAVA_ARTIFACT_MISSING when artifact does not exist', async () => {
