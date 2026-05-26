@@ -71,7 +71,8 @@ function coerceInt(value) {
  * @param {boolean} params.useInProcess  Whether the in-process Node runner is active.
  * @param {boolean} params.hasPythonFunctions  Whether any function declares a python3.x runtime.
  * @param {boolean} params.hasRubyFunctions  Whether any function declares a ruby3.x runtime.
- * @param {boolean} params.hasGoFunctions  Whether any function declares a go*.x or provided.al{,2} runtime.
+ * @param {boolean} params.hasGoFunctions  Whether any function declares a go*.x or provided.al{,2,2023} runtime.
+ * @param {boolean} params.hasJavaFunctions  Whether any function declares a java* or java8.al2 runtime.
  */
 function logBootSummary({
   logger,
