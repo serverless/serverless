@@ -71,7 +71,14 @@ export function createRunner({ useInProcess, terminateIdleLambdaTime }) {
     if (kind === 'in-process') {
       r = createInProcessRunner()
     } else if (kind === 'python') {
-      r = createPythonRunner({ terminateIdleLambdaTime })
+      // Unit mismatch: `terminateIdleLambdaTime` is documented in SECONDS at
+      // the offline-plugin boundary (worker-thread.js multiplies by 1000
+      // when scheduling its timer); the Python runner internally uses ms.
+      // Convert here so both runners get the same wall-clock idle window.
+      // Follow-up: standardise on a single unit across the runner interface.
+      r = createPythonRunner({
+        terminateIdleLambdaTime: terminateIdleLambdaTime * 1000,
+      })
     } else {
       r = createWorkerThreadRunner({
         servicePath: '',

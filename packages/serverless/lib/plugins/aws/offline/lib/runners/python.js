@@ -330,6 +330,21 @@ export function createPythonRunner({
       _clearEviction(entry)
       entry.state = 'busy'
 
+      // Translate the JS-side context to the kwargs the wrapper's
+      // FakeLambdaContext recognises positionally. Without this the JS
+      // `functionName` arrives as an arbitrary attribute and the wrapper's
+      // `function_name` property keeps its 'Fake' default. The remaining
+      // camelCase fields are forwarded as-is so handlers that read them
+      // by their original JS name (uncommon in Python but possible) still
+      // see them on the context object.
+      const pythonContext = {
+        ...context,
+        ...(context?.functionName !== undefined
+          ? { name: context.functionName }
+          : {}),
+        ...(timeoutMs != null ? { timeout: timeoutMs / 1000 } : {}),
+      }
+
       return new Promise((resolve, reject) => {
         entry.pending = { resolve, reject }
         if (timeoutMs != null) {
@@ -354,7 +369,9 @@ export function createPythonRunner({
           }, timeoutMs)
         }
         try {
-          entry.child.stdin.write(JSON.stringify({ event, context }))
+          entry.child.stdin.write(
+            JSON.stringify({ event, context: pythonContext }),
+          )
           entry.child.stdin.write('\n')
         } catch (err) {
           // Synchronous write failure (e.g. child already dead) — reject

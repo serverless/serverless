@@ -21,8 +21,28 @@ import { performance } from 'node:perf_hooks'
 import { getHandlerBaseDir } from '../handler-base-dir.js'
 import { arnFor } from '../provisioner/arn-synth.js'
 
-/** Handler file extensions tried in order. Matches Node's CJS/ESM module loader. */
-const HANDLER_EXTENSIONS = ['.js', '.mjs', '.cjs']
+/**
+ * Handler file extensions tried in order, keyed by runtime family.
+ *
+ * Node entries match Node's CJS/ESM module loader. Python entries match the
+ * single source-file convention the M5b child-process wrapper expects (Python
+ * doesn't bundle multiple extensions for the same module name like Node does).
+ */
+const HANDLER_EXTENSIONS_BY_RUNTIME = {
+  node: ['.js', '.mjs', '.cjs'],
+  python: ['.py'],
+}
+
+/**
+ * Resolve the runtime family from an effective runtime string.
+ *
+ * @param {string | undefined | null} runtime
+ * @returns {'node' | 'python'}
+ */
+function runtimeFamily(runtime) {
+  if (/^python\d+\.\d+$/.test(runtime ?? '')) return 'python'
+  return 'node'
+}
 
 /** Real Lambda default memory (MB). */
 const DEFAULT_MEMORY_LIMIT_IN_MB = 1024
@@ -32,10 +52,11 @@ const DEFAULT_TIMEOUT_SECONDS = 6
 
 /**
  * Resolves a handler string of the form `<rel-path>.<exportName>` to an
- * absolute file path on disk and the exported function name.
- *
- * Tries `.js`, `.mjs`, `.cjs` in order; falls back to the `.js` path so the
- * runner can surface a clear ENOENT at invocation time rather than at boot.
+ * absolute file path on disk and the exported function name. Extension
+ * candidates are chosen by runtime family — Python uses `.py` only, Node
+ * tries `.js` / `.mjs` / `.cjs` in that order. Falls back to the first
+ * candidate extension so the runner can surface a clear ENOENT at
+ * invocation time rather than at boot.
  *
  * Synchronous on purpose — invoke() is called inside the synchronous SQS
  * subscriber tick, so doing async fs.access there would break the store's
@@ -43,14 +64,17 @@ const DEFAULT_TIMEOUT_SECONDS = 6
  *
  * @param {string} handlerString - e.g. `'src/handler.main'`
  * @param {string} baseDir       - Absolute service root (post-bundler swap).
+ * @param {string | undefined | null} runtime - Effective runtime; picks the
+ *   extension candidate list. Missing/unknown → Node defaults.
  * @returns {{ handlerPath: string, handlerName: string }}
  */
-function resolveHandlerSync(handlerString, baseDir) {
+function resolveHandlerSync(handlerString, baseDir, runtime) {
+  const extensions = HANDLER_EXTENSIONS_BY_RUNTIME[runtimeFamily(runtime)]
   const lastDot = handlerString.lastIndexOf('.')
   const relPath = handlerString.slice(0, lastDot)
   const handlerName = handlerString.slice(lastDot + 1)
 
-  for (const ext of HANDLER_EXTENSIONS) {
+  for (const ext of extensions) {
     const candidate = resolve(join(baseDir, relPath + ext))
     try {
       fs.accessSync(candidate, fs.constants.F_OK)
@@ -61,7 +85,7 @@ function resolveHandlerSync(handlerString, baseDir) {
   }
 
   return {
-    handlerPath: resolve(join(baseDir, relPath + '.js')),
+    handlerPath: resolve(join(baseDir, relPath + extensions[0])),
     handlerName,
   }
 }
@@ -142,9 +166,11 @@ export function createLambdaFunction({
       const provider = serverless.service.provider ?? {}
 
       const baseDir = getHandlerBaseDir(serverless)
+      const runtime = fn.runtime ?? provider.runtime
       const { handlerPath, handlerName } = resolveHandlerSync(
         fn.handler,
         baseDir,
+        runtime,
       )
 
       const timeoutSeconds =
@@ -192,9 +218,8 @@ export function createLambdaFunction({
           environment,
           // Forward the function's runtime so the composite runner can
           // route to the matching sub-runner (Node / Python / future).
-          // Falls back to the provider-level runtime; the multiplexer
-          // treats missing/empty as Node by default.
-          runtime: fn.runtime ?? provider.runtime,
+          // Same resolution used above for handlerPath extension selection.
+          runtime,
           // When timeout enforcement is disabled, omit timeoutMs entirely so
           // the runner does not arm its termination timer.
           timeoutMs: noTimeout ? undefined : timeoutMs,
