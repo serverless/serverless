@@ -22,7 +22,7 @@ const logger = log.get('sls:offline:python')
  * @property {NodeJS.Timeout | null} pendingTimeout
  * @property {{ resolve: (v: unknown) => void, reject: (e: Error) => void } | null} pending
  * @property {Buffer[]} stderrChunks
- * @property {'spawning' | 'idle' | 'busy' | 'terminating'} state
+ * @property {'idle' | 'busy' | 'terminating'} state
  * @property {'invalidate' | 'terminate' | null} cancelReason
  *   Set before the deliberate `child.kill()` that drops this entry, so the
  *   'exit' handler picks the right error envelope for any in-flight invoke.
@@ -115,7 +115,7 @@ export function createPythonRunner({
       pendingTimeout: null,
       pending: null,
       stderrChunks: [],
-      state: 'spawning',
+      state: 'idle',
       cancelReason: null,
       exited: null,
     }
@@ -405,6 +405,12 @@ export function createPythonRunner({
       entry.cancelReason = 'invalidate'
       pool.delete(functionKey)
       _clearEviction(entry)
+      // Symmetric with terminate(): clear any armed timeout so it can't fire
+      // after we've killed the child and rejected the pending invoke.
+      if (entry.pendingTimeout !== null) {
+        clearTimeout(entry.pendingTimeout)
+        entry.pendingTimeout = null
+      }
       entry.state = 'terminating'
       try {
         entry.child.kill()
