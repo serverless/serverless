@@ -5,6 +5,7 @@ import path from 'node:path'
 import { log } from '@serverless/util'
 
 import { buildLambdaRuntimeEnv } from './lambda-env.js'
+import ServerlessError from '../../../../../serverless-error.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -338,6 +339,25 @@ export function createRubyRunner({
 
       return new Promise((resolve, reject) => {
         entry.pending = { resolve, reject }
+        if (timeoutMs != null) {
+          entry.pendingTimeout = setTimeout(() => {
+            entry.pendingTimeout = null
+            entry.pending = null
+            entry.state = 'terminating'
+            if (pool.get(functionKey) === entry) pool.delete(functionKey)
+            try {
+              entry.child.kill()
+            } catch {
+              // ignore
+            }
+            reject(
+              new ServerlessError(
+                `Lambda invocation timed out after ${timeoutMs} ms`,
+                'OFFLINE_HANDLER_TIMEOUT',
+              ),
+            )
+          }, timeoutMs)
+        }
         try {
           entry.child.stdin.write(
             JSON.stringify({ event, context: wrapperContext }),

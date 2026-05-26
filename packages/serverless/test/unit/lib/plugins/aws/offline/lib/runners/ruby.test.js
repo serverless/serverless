@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { log } from '@serverless/util'
 import { createRubyRunner } from '../../../../../../../../lib/plugins/aws/offline/lib/runners/ruby.js'
+import ServerlessError from '../../../../../../../../lib/serverless-error.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -291,6 +292,90 @@ describe('createRubyRunner — pool + idle eviction', () => {
       })
       expect(a2).toEqual({ n: 2 })
       expect(b1).toEqual({ n: 1 })
+    } finally {
+      await r.terminate()
+    }
+  })
+})
+
+describe('createRubyRunner — timeout', () => {
+  it('rejects with OFFLINE_HANDLER_TIMEOUT when handler exceeds timeoutMs', async () => {
+    const fs = await import('node:fs/promises')
+    const os = await import('node:os')
+    const tmp = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'sls-offline-rb-timeout-'),
+    )
+    const fixture = path.join(tmp, 'slow.rb')
+    await fs.writeFile(
+      fixture,
+      [
+        'def handler(event:, context:)',
+        '  sleep 2',
+        '  { ok: true }',
+        'end',
+      ].join('\n') + '\n',
+    )
+
+    const r = createRubyRunner()
+    try {
+      const err = await r
+        .invoke({
+          functionKey: 'slow',
+          handlerPath: fixture,
+          handlerName: 'handler',
+          event: {},
+          context: {},
+          timeoutMs: 200,
+        })
+        .catch((e) => e)
+      expect(err).toBeInstanceOf(ServerlessError)
+      expect(err.code).toBe('OFFLINE_HANDLER_TIMEOUT')
+    } finally {
+      await r.terminate()
+    }
+  })
+
+  it('after a timeout, the next invoke spawns a fresh child', async () => {
+    const fs = await import('node:fs/promises')
+    const os = await import('node:os')
+    const tmp = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'sls-offline-rb-timeout-'),
+    )
+    const fixture = path.join(tmp, 'sometimes_slow.rb')
+    await fs.writeFile(
+      fixture,
+      [
+        '$n = 0',
+        'def handler(event:, context:)',
+        '  $n += 1',
+        '  sleep 2 if event["slow"]',
+        '  { n: $n }',
+        'end',
+      ].join('\n') + '\n',
+    )
+
+    const r = createRubyRunner()
+    try {
+      const err = await r
+        .invoke({
+          functionKey: 'sometimes-slow',
+          handlerPath: fixture,
+          handlerName: 'handler',
+          event: { slow: true },
+          context: {},
+          timeoutMs: 100,
+        })
+        .catch((e) => e)
+      expect(err.code).toBe('OFFLINE_HANDLER_TIMEOUT')
+
+      const ok = await r.invoke({
+        functionKey: 'sometimes-slow',
+        handlerPath: fixture,
+        handlerName: 'handler',
+        event: { slow: false },
+        context: {},
+      })
+      expect(ok).toEqual({ n: 1 })
     } finally {
       await r.terminate()
     }
