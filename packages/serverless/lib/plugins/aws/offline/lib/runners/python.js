@@ -23,6 +23,12 @@ const logger = log.get('sls:offline:python')
  * @property {{ resolve: (v: unknown) => void, reject: (e: Error) => void } | null} pending
  * @property {Buffer[]} stderrChunks
  * @property {'spawning' | 'idle' | 'busy' | 'terminating'} state
+ * @property {'invalidate' | 'terminate' | null} cancelReason
+ *   Set before the deliberate `child.kill()` that drops this entry, so the
+ *   'exit' handler picks the right error envelope for any in-flight invoke.
+ *   `'terminate'` produces ServerlessError(OFFLINE_WORKER_TERMINATED);
+ *   `'invalidate'` is tagged symmetrically with the worker-thread runner
+ *   but currently falls through to the generic exit diagnostic.
  * @property {Promise<void>} exited  Resolves when the child process emits 'exit'.
  */
 
@@ -105,6 +111,7 @@ export function createPythonRunner({
       pending: null,
       stderrChunks: [],
       state: 'spawning',
+      cancelReason: null,
       exited: null,
     }
 
@@ -123,20 +130,31 @@ export function createPythonRunner({
           // ignore
         }
 
-        // If an invocation was in flight, reject it with a diagnostic
-        // that includes any buffered stderr — matches the pre-pool
-        // (T4) error message.
+        // If an invocation was in flight, reject it. When the kill came
+        // from terminate() we surface the same ServerlessError shape as
+        // the worker-thread runner's M5a fix; otherwise fall back to the
+        // generic diagnostic (pre-pool T4 message) with any buffered
+        // stderr.
         if (entry.pending !== null) {
-          const stderr = Buffer.concat(entry.stderrChunks).toString().trim()
           const { reject } = entry.pending
           entry.pending = null
-          reject(
-            new Error(
-              `Python handler process exited with code ${code} before returning a result.${
-                stderr ? `\nstderr:\n${stderr}` : ''
-              }`,
-            ),
-          )
+          if (entry.cancelReason === 'terminate') {
+            reject(
+              new ServerlessError(
+                'Lambda runner terminated during invocation',
+                'OFFLINE_WORKER_TERMINATED',
+              ),
+            )
+          } else {
+            const stderr = Buffer.concat(entry.stderrChunks).toString().trim()
+            reject(
+              new Error(
+                `Python handler process exited with code ${code} before returning a result.${
+                  stderr ? `\nstderr:\n${stderr}` : ''
+                }`,
+              ),
+            )
+          }
         }
 
         entry.state = 'terminating'
@@ -362,6 +380,7 @@ export function createPythonRunner({
     invalidate(functionKey) {
       const entry = pool.get(functionKey)
       if (!entry) return
+      entry.cancelReason = 'invalidate'
       pool.delete(functionKey)
       _clearEviction(entry)
       entry.state = 'terminating'
@@ -380,8 +399,16 @@ export function createPythonRunner({
     async terminate() {
       const exits = []
       for (const entry of pool.values()) {
-        _clearEviction(entry)
+        entry.cancelReason = 'terminate'
         entry.state = 'terminating'
+        _clearEviction(entry)
+        // Clear any in-flight timeout timer so it can't fire after the
+        // kill and produce a stray OFFLINE_HANDLER_TIMEOUT alongside the
+        // terminate rejection.
+        if (entry.pendingTimeout !== null) {
+          clearTimeout(entry.pendingTimeout)
+          entry.pendingTimeout = null
+        }
         exits.push(entry.exited)
         try {
           entry.child.kill()

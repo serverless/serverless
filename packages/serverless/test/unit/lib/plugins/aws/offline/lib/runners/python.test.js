@@ -386,3 +386,62 @@ describe('createPythonRunner — timeout', () => {
     }
   })
 })
+
+describe('createPythonRunner — terminate contract', () => {
+  it('terminate() during in-flight invoke rejects with OFFLINE_WORKER_TERMINATED', async () => {
+    const fs = await import('node:fs/promises')
+    const os = await import('node:os')
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'sls-offline-py-term-'))
+    const fixture = path.join(tmp, 'sleeper.py')
+    await fs.writeFile(
+      fixture,
+      [
+        'import time',
+        'def handler(event, context):',
+        '    time.sleep(2)',
+        '    return {"unreached": True}',
+      ].join('\n') + '\n',
+    )
+
+    const r = createPythonRunner()
+    let capturedErr
+    const invokePromise = r
+      .invoke({
+        functionKey: 'sleeper',
+        handlerPath: fixture,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      .catch((e) => {
+        capturedErr = e
+      })
+    // Yield briefly so the child is spawned + busy.
+    await new Promise((res) => setTimeout(res, 100))
+    await r.terminate()
+    await invokePromise
+    expect(capturedErr).toBeInstanceOf(ServerlessError)
+    expect(capturedErr.code).toBe('OFFLINE_WORKER_TERMINATED')
+  })
+
+  it('terminate() during spawn (no wait) also rejects with OFFLINE_WORKER_TERMINATED', async () => {
+    const r = createPythonRunner()
+    let capturedErr
+    const invokePromise = r
+      .invoke({
+        functionKey: 'sleeper-spawn',
+        handlerPath: path.join(FIXTURES, 'sync_echo.py'),
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      .catch((e) => {
+        capturedErr = e
+      })
+    // No wait — terminate immediately.
+    await r.terminate()
+    await invokePromise
+    expect(capturedErr).toBeInstanceOf(ServerlessError)
+    expect(capturedErr.code).toBe('OFFLINE_WORKER_TERMINATED')
+  })
+})
