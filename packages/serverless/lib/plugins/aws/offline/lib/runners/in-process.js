@@ -44,18 +44,33 @@ function formatLogStreamDate(date) {
  *      Node's ESM loader),
  *   2. snapshots the keys it's about to write onto process.env,
  *   3. applies the Lambda runtime env block + user environment,
- *   4. calls handler(event, context),
- *   5. restores the snapshot (in a finally so a thrown handler still cleans up),
- *   6. returns its promise.
+ *   4. builds an inflated Lambda context (getRemainingTimeInMillis closure,
+ *      legacy done/fail/succeed methods, settle-once callback),
+ *   5. races handler(event, inflatedContext, callback)'s promise return vs
+ *      the callback's resolution (first to settle wins),
+ *   6. restores the snapshot (in a finally so a thrown handler still cleans up).
+ *
+ * Timeout enforcement (T8) adds a setTimeout-backed rejection to the race.
  *
  * Diverges from the community plugin (serverless-offline InProcessRunner)
- * which simply Object.assign's env once and never restores: our offline
- * server stays alive across many invocations of potentially many different
- * functions, so leaking would cross-pollute each call's AWS_LAMBDA_* values
- * and user environment into both the server itself and the next handler.
+ * in three documented ways:
  *
- * Subsequent tasks build out Lambda context inflation (T6), callback
- * handling + Promise.race (T7), and timeout enforcement (T8).
+ *  - Env snapshot/restore (vs community's single Object.assign that never
+ *    restores). Our offline server stays alive across many invocations of
+ *    potentially many different functions, so leaking would cross-pollute
+ *    each call's AWS_LAMBDA_* values and user env into both the server
+ *    itself and the next handler.
+ *
+ *  - Sync returns are wrapped in `Promise.resolve(ret)` and entered into
+ *    the race. Community plugin only races thenables, which works for its
+ *    fixtures but would hang our sync-return tests. Semantically equivalent
+ *    to real AWS Lambda Node 18+ runtime, where `return x` and
+ *    `return Promise.resolve(x)` behave identically.
+ *
+ *  - `context.callbackWaitsForEmptyEventLoop` is NOT honored. The flag's
+ *    purpose (drain pending timers/sockets before returning) doesn't fit a
+ *    single-process runner with no worker to terminate. Handlers that rely
+ *    on this flag should pick the worker-thread runner (the default).
  *
  * Public shape mirrors createWorkerThreadRunner so the Lambda facade in
  * lambda-function.js picks between runners without further changes.
