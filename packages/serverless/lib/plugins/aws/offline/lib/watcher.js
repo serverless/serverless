@@ -115,6 +115,7 @@ export async function createWatcher({
   const reverseMap = new Map()
 
   const functions = serverless.service?.functions ?? {}
+  const providerRuntime = serverless.service?.provider?.runtime
 
   for (const [functionKey, fnConfig] of Object.entries(functions)) {
     const handlerString = fnConfig?.handler
@@ -122,6 +123,16 @@ export async function createWatcher({
       logger.warning(
         `Function '${functionKey}' has no handler defined — skipping watcher.`,
       )
+      continue
+    }
+
+    // Non-Node runtimes (Python, Ruby, Go, Java) have their own source-file
+    // conventions that this watcher doesn't track — and AWS Lambda's runtime
+    // model doesn't support hot reload for them either, so skipping is
+    // correct (and quieter than a "Handler file not found" warning for
+    // every `.py` / `.rb` / `.go` handler at boot).
+    const effectiveRuntime = fnConfig?.runtime ?? providerRuntime
+    if (effectiveRuntime && !/^nodejs/.test(effectiveRuntime)) {
       continue
     }
 

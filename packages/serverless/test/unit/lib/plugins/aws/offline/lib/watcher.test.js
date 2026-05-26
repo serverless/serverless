@@ -29,7 +29,11 @@ async function writeFile(
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 /** Build a minimal serverless-like stub. */
-function makeServerless({ functions = {}, hookListeners = [] } = {}) {
+function makeServerless({
+  functions = {},
+  hookListeners = [],
+  providerRuntime,
+} = {}) {
   const hooks = {}
   if (hookListeners.length > 0) {
     hooks['offline:functionsUpdated:cleanup'] = hookListeners.map((fn) => ({
@@ -37,9 +41,10 @@ function makeServerless({ functions = {}, hookListeners = [] } = {}) {
       hook: fn,
     }))
   }
+  const provider = providerRuntime ? { runtime: providerRuntime } : {}
   return {
     pluginManager: { hooks },
-    service: { functions },
+    service: { functions, provider },
   }
 }
 
@@ -276,6 +281,64 @@ describe('createWatcher', () => {
   })
 
   // 9. Handler file missing: warning logged, function skipped, watcher continues
+  it('skips non-Node functions silently (no warning) so .py / .rb fixtures do not boot-spam', async () => {
+    const tmpDir = await makeTmpDir()
+    // Only the Node handler exists on disk; the python and ruby handlers
+    // intentionally do not — the watcher must skip them before resolution.
+    const nodeFile = path.join(tmpDir, 'src', 'node.js')
+    await writeFile(nodeFile)
+
+    const serverless = makeServerless({
+      functions: {
+        nodeFn: { handler: 'src/node.handler' },
+        pyFn: { handler: 'src/py.handler', runtime: 'python3.11' },
+        rbFn: { handler: 'src/rb.handler', runtime: 'ruby3.3' },
+      },
+    })
+    const logger = makeLogger()
+    const runner = makeRunner()
+
+    const controller = await createWatcher({
+      serverless,
+      servicePath: tmpDir,
+      runner,
+      logger,
+    })
+    controllers.push(controller)
+
+    // Only the Node handler is watched.
+    expect(controller.watchedFiles.has(nodeFile)).toBe(true)
+    expect(controller.watchedFiles.size).toBe(1)
+    // No "Handler file not found" warnings for py/rb (runtime skip is silent).
+    expect(logger.warning).not.toHaveBeenCalled()
+  })
+
+  it('skips non-Node functions by provider-level runtime too', async () => {
+    const tmpDir = await makeTmpDir()
+    // No handler file on disk; if the watcher tried to resolve it, the
+    // missing-file warning would fire. The silent skip prevents that.
+
+    const serverless = makeServerless({
+      providerRuntime: 'python3.11',
+      functions: {
+        pyFn: { handler: 'src/py.handler' },
+      },
+    })
+    const logger = makeLogger()
+    const runner = makeRunner()
+
+    const controller = await createWatcher({
+      serverless,
+      servicePath: tmpDir,
+      runner,
+      logger,
+    })
+    controllers.push(controller)
+
+    expect(controller.watchedFiles.size).toBe(0)
+    expect(logger.warning).not.toHaveBeenCalled()
+  })
+
   it('missing handler file: logs a warning, skips function, other functions still watched', async () => {
     const tmpDir = await makeTmpDir()
     const existingFile = path.join(tmpDir, 'src', 'existing.js')
