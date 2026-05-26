@@ -1,8 +1,0 @@
-AWS Lambda Java Runtime Interface Client
-Copyright Amazon.com, Inc. or its affiliates.
-
-This product includes software developed by Amazon.com, Inc.
-(https://www.amazon.com/).
-
-Upstream source: https://github.com/aws/aws-lambda-java-libs
-License: Apache 2.0 (see LICENSE alongside this file)
