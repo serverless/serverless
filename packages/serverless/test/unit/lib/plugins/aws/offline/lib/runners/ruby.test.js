@@ -113,3 +113,111 @@ describe('createRubyRunner — log forwarding', () => {
     }
   })
 })
+
+describe('createRubyRunner — pool + idle eviction', () => {
+  let counterFixture
+  beforeAll(async () => {
+    const fs = await import('node:fs/promises')
+    const os = await import('node:os')
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'sls-offline-rb-pool-'))
+    counterFixture = path.join(tmp, 'counter.rb')
+    await fs.writeFile(
+      counterFixture,
+      [
+        '$n = 0',
+        'def handler(event:, context:)',
+        '  $n += 1',
+        '  { n: $n }',
+        'end',
+      ].join('\n') + '\n',
+    )
+  })
+
+  it('reuses the same child process across invocations on the same functionKey', async () => {
+    const r = createRubyRunner({ idleEvictionMs: 60_000 })
+    try {
+      const r1 = await r.invoke({
+        functionKey: 'counter',
+        handlerPath: counterFixture,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      const r2 = await r.invoke({
+        functionKey: 'counter',
+        handlerPath: counterFixture,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      const r3 = await r.invoke({
+        functionKey: 'counter',
+        handlerPath: counterFixture,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      expect(r1).toEqual({ n: 1 })
+      expect(r2).toEqual({ n: 2 })
+      expect(r3).toEqual({ n: 3 })
+    } finally {
+      await r.terminate()
+    }
+  })
+
+  it('evicts the child after idleEvictionMs; next invoke spawns fresh', async () => {
+    const r = createRubyRunner({ idleEvictionMs: 100 })
+    try {
+      const r1 = await r.invoke({
+        functionKey: 'counter',
+        handlerPath: counterFixture,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      expect(r1).toEqual({ n: 1 })
+      await new Promise((res) => setTimeout(res, 250))
+      const r2 = await r.invoke({
+        functionKey: 'counter',
+        handlerPath: counterFixture,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      expect(r2).toEqual({ n: 1 })
+    } finally {
+      await r.terminate()
+    }
+  })
+
+  it('keeps separate child processes per functionKey', async () => {
+    const r = createRubyRunner({ idleEvictionMs: 60_000 })
+    try {
+      await r.invoke({
+        functionKey: 'fnA',
+        handlerPath: counterFixture,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      const a2 = await r.invoke({
+        functionKey: 'fnA',
+        handlerPath: counterFixture,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      const b1 = await r.invoke({
+        functionKey: 'fnB',
+        handlerPath: counterFixture,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+      })
+      expect(a2).toEqual({ n: 2 })
+      expect(b1).toEqual({ n: 1 })
+    } finally {
+      await r.terminate()
+    }
+  })
+})
