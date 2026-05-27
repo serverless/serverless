@@ -9,7 +9,10 @@
  * rather than failing silently at the first tick.
  */
 
+import { randomUUID } from 'node:crypto'
+
 import ServerlessError from '../../../../../serverless-error.js'
+import { FAKE_ACCOUNT_ID } from '../constants.js'
 
 const RATE_UNIT_MS = {
   minute: 60_000,
@@ -66,4 +69,38 @@ function _invalid(expr) {
       'Sub-minute rate() is unsupported (matches AWS).',
     'OFFLINE_SCHEDULE_INVALID_EXPRESSION',
   )
+}
+
+/**
+ * Build the synthesized AWS Scheduled Event envelope for a single tick.
+ *
+ * Shape matches what real AWS EventBridge delivers to a Lambda target:
+ * https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/EventTypes.html#schedule_event_type
+ *
+ * `time` is ISO-8601 without milliseconds (AWS quirk —
+ * `2020-02-09T14:13:57Z`, not `2020-02-09T14:13:57.123Z`).
+ *
+ * @param {object} args
+ * @param {string} args.functionKey
+ * @param {number} args.index   Position of the schedule entry inside the
+ *   function's `events:` array. Disambiguates the rule ARN when one
+ *   function has multiple schedules.
+ * @param {string} args.region
+ * @param {Date}   args.time    Tick time.
+ * @returns {object}
+ */
+export function buildScheduledEvent({ functionKey, index, region, time }) {
+  return {
+    account: FAKE_ACCOUNT_ID,
+    'detail-type': 'Scheduled Event',
+    detail: {},
+    id: randomUUID(),
+    region,
+    resources: [
+      `arn:aws:events:${region}:${FAKE_ACCOUNT_ID}:rule/${functionKey}-schedule-${index}`,
+    ],
+    source: 'aws.events',
+    time: time.toISOString().replace(/\.\d{3}Z$/, 'Z'),
+    version: '0',
+  }
 }

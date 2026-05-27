@@ -1,4 +1,7 @@
-import { parseExpression } from '../../../../../../../../lib/plugins/aws/offline/lib/event-sources/schedule.js'
+import {
+  parseExpression,
+  buildScheduledEvent,
+} from '../../../../../../../../lib/plugins/aws/offline/lib/event-sources/schedule.js'
 
 describe('parseExpression', () => {
   it.each([
@@ -47,5 +50,72 @@ describe('parseExpression', () => {
       caught = err
     }
     expect(caught.message).toContain('rate(5 seconds)')
+  })
+})
+
+describe('buildScheduledEvent', () => {
+  const fixedTime = new Date('2026-05-27T14:23:45.678Z')
+
+  it('returns the AWS Scheduled Event envelope with all required fields', () => {
+    const evt = buildScheduledEvent({
+      functionKey: 'myFn',
+      index: 0,
+      region: 'us-east-1',
+      time: fixedTime,
+    })
+
+    expect(evt).toMatchObject({
+      account: '000000000000',
+      'detail-type': 'Scheduled Event',
+      detail: {},
+      region: 'us-east-1',
+      source: 'aws.events',
+      version: '0',
+    })
+    expect(evt.resources).toEqual([
+      'arn:aws:events:us-east-1:000000000000:rule/myFn-schedule-0',
+    ])
+  })
+
+  it('strips milliseconds from the time field (AWS shape)', () => {
+    const evt = buildScheduledEvent({
+      functionKey: 'fn',
+      index: 0,
+      region: 'us-east-1',
+      time: fixedTime,
+    })
+    expect(evt.time).toBe('2026-05-27T14:23:45Z')
+    expect(evt.time).not.toMatch(/\./)
+  })
+
+  it('emits a UUID-shaped id, regenerated per call', () => {
+    const a = buildScheduledEvent({
+      functionKey: 'fn',
+      index: 0,
+      region: 'us-east-1',
+      time: fixedTime,
+    })
+    const b = buildScheduledEvent({
+      functionKey: 'fn',
+      index: 0,
+      region: 'us-east-1',
+      time: fixedTime,
+    })
+    expect(a.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+    )
+    expect(a.id).not.toBe(b.id)
+  })
+
+  it('encodes index into the resources ARN', () => {
+    const evt = buildScheduledEvent({
+      functionKey: 'multiFn',
+      index: 2,
+      region: 'eu-west-1',
+      time: fixedTime,
+    })
+    expect(evt.resources[0]).toBe(
+      'arn:aws:events:eu-west-1:000000000000:rule/multiFn-schedule-2',
+    )
   })
 })
