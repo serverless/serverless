@@ -432,4 +432,119 @@ describe('mergeIamTemplates - IAM role policy', () => {
       'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/my-service-dev-quiet:*`,
     })
   })
+
+  // Regression: a function that opts into Infrequent Access AND uses a
+  // custom `name:` (i.e. one that doesn't start with the canonical
+  // `<service>-<stage>` prefix) gets its real log group at
+  // `/aws/lambda/<customName>-ia`. The IAM grant must reference the same
+  // -ia group; otherwise `logs:PutLogEvents` is denied at runtime and
+  // nothing reaches CloudWatch. Verified end-to-end against a live AWS
+  // stack: before the fix the IA log group stayed empty; after the fix
+  // log lines land as expected. See PR #13601 review thread.
+  test('grants on the -ia log group when a custom-named function uses INFREQUENT_ACCESS', () => {
+    const { ctx, resources } = buildContext({
+      functions: {
+        custom: {
+          name: 'totally-custom-name',
+          handler: 'h.h',
+          logs: { logGroupClass: 'INFREQUENT_ACCESS' },
+        },
+      },
+    })
+
+    runMerge(ctx)
+
+    const statements = getRoleStatements(resources)
+    // CreateLogStream/CreateLogGroup/TagResource grant must reference -ia.
+    expect(statements[0].Resource).toContainEqual({
+      'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/totally-custom-name-ia:*`,
+    })
+    // PutLogEvents grant must reference -ia.
+    expect(statements[1].Resource).toContainEqual({
+      'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/totally-custom-name-ia:*:*`,
+    })
+    // The pre-fix (broken) ARN form must NOT be present — otherwise a
+    // refactor could silently leave the broken grant alongside the
+    // correct one and tests would still pass.
+    expect(statements[0].Resource).not.toContainEqual({
+      'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/totally-custom-name:*`,
+    })
+    expect(statements[1].Resource).not.toContainEqual({
+      'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/totally-custom-name:*:*`,
+    })
+  })
+
+  // Inverse safety net: with no logGroupClass, the IAM grant for a
+  // custom-named function stays on the bare (no `-ia`) prefix. This
+  // proves the unwrap is *only* applied when the user opted into IA —
+  // protecting every non-IA service from a behavior change.
+  test('grants stay on the bare prefix for a custom-named function without logGroupClass (no-op for existing users)', () => {
+    const { ctx, resources } = buildContext({
+      functions: {
+        custom: {
+          name: 'totally-custom-name',
+          handler: 'h.h',
+        },
+      },
+    })
+
+    runMerge(ctx)
+
+    const statements = getRoleStatements(resources)
+    expect(statements[0].Resource).toContainEqual({
+      'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/totally-custom-name:*`,
+    })
+    expect(statements[0].Resource).not.toContainEqual({
+      'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/totally-custom-name-ia:*`,
+    })
+  })
+
+  // Provider-level IA propagates to a custom-named function the same way
+  // function-level IA does — exercises the precedence path through
+  // getLogGroupClass.
+  test('uses provider-level logGroupClass when a custom-named function does not override it', () => {
+    const { ctx, resources } = buildContext({
+      functions: {
+        custom: { name: 'totally-custom-name', handler: 'h.h' },
+      },
+      providerOverrides: {
+        logs: { lambda: { logGroupClass: 'INFREQUENT_ACCESS' } },
+      },
+    })
+
+    runMerge(ctx)
+
+    const statements = getRoleStatements(resources)
+    expect(statements[1].Resource).toContainEqual({
+      'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/totally-custom-name-ia:*:*`,
+    })
+  })
+
+  // Function-level `logGroupClass: STANDARD` must override a provider-level
+  // IA default — IAM grant goes back to the bare name even though the
+  // service-wide default is IA. Asymmetry-safety check for getLogGroupClass.
+  test('function-level STANDARD overrides provider-level IA for a custom-named function', () => {
+    const { ctx, resources } = buildContext({
+      functions: {
+        custom: {
+          name: 'totally-custom-name',
+          handler: 'h.h',
+          logs: { logGroupClass: 'STANDARD' },
+        },
+      },
+      providerOverrides: {
+        logs: { lambda: { logGroupClass: 'INFREQUENT_ACCESS' } },
+      },
+    })
+
+    runMerge(ctx)
+
+    const statements = getRoleStatements(resources)
+    expect(statements[0].Resource).toContainEqual({
+      'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/totally-custom-name:*`,
+    })
+    expect(statements[0].Resource).not.toContainEqual({
+      'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/totally-custom-name-ia:*`,
+    })
+  })
 })

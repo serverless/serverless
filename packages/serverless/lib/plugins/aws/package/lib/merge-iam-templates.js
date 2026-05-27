@@ -133,11 +133,12 @@ export default {
 
     // Ensure policies for functions with custom name resolution
     this.serverless.service.getAllFunctions().forEach((functionName) => {
+      const functionObject = this.serverless.service.getFunction(functionName)
       const {
         name: resolvedFunctionName,
         disableLogs: areLogsDisabled,
         logs: { logGroup: customLogGroupName } = {},
-      } = this.serverless.service.getFunction(functionName)
+      } = functionObject
       const isDefaultLogGroupName =
         (!resolvedFunctionName ||
           resolvedFunctionName.startsWith(canonicalFunctionNamePrefix)) &&
@@ -154,7 +155,9 @@ export default {
       if (!areLogsDisabled && !allowedLogGroups.includes(customLogGroupName)) {
         const customFunctionNamelogGroupsPrefix =
           customLogGroupName ??
-          this.provider.naming.getLogGroupName(resolvedFunctionName)
+          this.provider.naming.getLogGroupName(resolvedFunctionName, {
+            logGroupClass: this.provider.getLogGroupClass(functionObject),
+          })
 
         policyDocumentStatements[0].Resource.push({
           'Fn::Sub':
