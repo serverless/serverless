@@ -32,3 +32,5 @@ functions:
 ```
 
 In the above example you're dynamically adding a prefix to the function names by referencing the `FUNC_PREFIX` env var. So you can easily change that prefix for all functions by changing the `FUNC_PREFIX` env var.
+
+Values come from `process.env` (system environment) and from `.env` / `.env.${stage}` files that the framework loads automatically. To load additional `.env` files from a custom location (e.g. a shared file in a monorepo), see the [`useDotenv` reference](../../providers/aws/guide/serverless.yml.md#dotenv-files).

@@ -327,6 +327,16 @@ describe('AwsCompileFunctions', () => {
   })
 
   describe('Durable Functions Support', () => {
+    beforeEach(() => {
+      provider.naming.getLambdaDurableAliasLogicalId = jest.fn(
+        (name) =>
+          `${name.charAt(0).toUpperCase() + name.slice(1)}DurableLambdaAlias`,
+      )
+      provider.naming.getLambdaDurableEnabledAliasName = jest.fn(
+        () => 'durable',
+      )
+    })
+
     it('should add DurableConfig and basic execution role policy', async () => {
       awsCompileFunctions.serverless.service.functions = {
         func: {
@@ -383,6 +393,129 @@ describe('AwsCompileFunctions', () => {
       await expect(awsCompileFunctions.compileFunctions()).rejects.toThrow(
         /Durable Functions are only supported for Node.js 22\+ and Python 3.13\+ runtimes/,
       )
+    })
+
+    describe('Alias', () => {
+      it('should create AWS::Lambda::Alias named "durable" when durableConfig is set', async () => {
+        awsCompileFunctions.serverless.service.functions = {
+          func: {
+            handler: 'handler',
+            name: 'func',
+            runtime: 'nodejs22.x',
+            durableConfig: { executionTimeout: 100 },
+          },
+        }
+        const resources =
+          awsCompileFunctions.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+        resources.IamRoleLambdaExecution = {
+          Properties: { ManagedPolicyArns: [] },
+        }
+
+        await awsCompileFunctions.compileFunctions()
+
+        const alias = resources.FuncDurableLambdaAlias
+        expect(alias).toBeDefined()
+        expect(alias.Type).toBe('AWS::Lambda::Alias')
+        expect(alias.Properties.Name).toBe('durable')
+        expect(alias.Properties.FunctionName).toEqual({
+          Ref: 'FuncLambdaFunction',
+        })
+        expect(alias.Properties.FunctionVersion['Fn::GetAtt'][1]).toBe(
+          'Version',
+        )
+        expect(alias.DependsOn).toBe('FuncLambdaFunction')
+      })
+
+      it('should set functionObject.targetAlias so downstream consumers pick it up', async () => {
+        const func = {
+          handler: 'handler',
+          name: 'func',
+          runtime: 'nodejs22.x',
+          durableConfig: { executionTimeout: 100 },
+        }
+        awsCompileFunctions.serverless.service.functions = { func }
+        awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+          { Properties: { ManagedPolicyArns: [] } }
+
+        await awsCompileFunctions.compileFunctions()
+
+        expect(func.targetAlias).toEqual({
+          name: 'durable',
+          logicalId: 'FuncDurableLambdaAlias',
+        })
+      })
+
+      it('should not overwrite a targetAlias already set by snapStart or provisionedConcurrency', async () => {
+        provider.naming.getLambdaSnapStartAliasLogicalId = jest.fn(
+          (name) =>
+            `${name.charAt(0).toUpperCase() + name.slice(1)}SnapStartAlias`,
+        )
+        provider.naming.getLambdaSnapStartEnabledAliasName = jest.fn(
+          () => 'snapstart',
+        )
+
+        const func = {
+          handler: 'handler',
+          name: 'func',
+          runtime: 'nodejs22.x',
+          durableConfig: { executionTimeout: 100 },
+          snapStart: true,
+        }
+        awsCompileFunctions.serverless.service.functions = { func }
+        awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+          { Properties: { ManagedPolicyArns: [] } }
+
+        await awsCompileFunctions.compileFunctions()
+
+        const resources =
+          awsCompileFunctions.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+
+        // snapStart's alias wins
+        expect(func.targetAlias.name).toBe('snapstart')
+        expect(resources.FuncSnapStartAlias).toBeDefined()
+        // durable does NOT create its own alias
+        expect(resources.FuncDurableLambdaAlias).toBeUndefined()
+      })
+
+      it('should create alias when durableConfig is combined with explicit versionFunction: true', async () => {
+        awsCompileFunctions.serverless.service.functions = {
+          func: {
+            handler: 'handler',
+            name: 'func',
+            runtime: 'nodejs22.x',
+            durableConfig: { executionTimeout: 100 },
+            versionFunction: true,
+          },
+        }
+        awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+          { Properties: { ManagedPolicyArns: [] } }
+
+        await awsCompileFunctions.compileFunctions()
+
+        const resources =
+          awsCompileFunctions.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+        expect(resources.FuncDurableLambdaAlias).toBeDefined()
+        expect(resources.FuncDurableLambdaAlias.Properties.Name).toBe('durable')
+      })
+
+      it('should throw error when durableConfig is combined with versionFunction: false', async () => {
+        awsCompileFunctions.serverless.service.functions = {
+          func: {
+            handler: 'handler',
+            name: 'func',
+            runtime: 'nodejs22.x',
+            durableConfig: { executionTimeout: 100 },
+            versionFunction: false,
+          },
+        }
+
+        await expect(awsCompileFunctions.compileFunctions()).rejects.toThrow(
+          /Durable Functions require versioning/i,
+        )
+      })
     })
   })
 
@@ -1357,6 +1490,121 @@ describe('AwsCompileFunctions', () => {
       const props = resources.FuncLambdaFunction.Properties
 
       expect(props.ReservedConcurrentExecutions).toBe(0)
+    })
+  })
+
+  describe('Recursive Loop', () => {
+    it('should support functions[].recursiveLoop set to Allow', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          recursiveLoop: 'Allow',
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const props = resources.FuncLambdaFunction.Properties
+
+      expect(props.RecursiveLoop).toBe('Allow')
+    })
+
+    it('should support functions[].recursiveLoop set to Terminate', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          recursiveLoop: 'Terminate',
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const props = resources.FuncLambdaFunction.Properties
+
+      expect(props.RecursiveLoop).toBe('Terminate')
+    })
+
+    it('should not set RecursiveLoop when functions[].recursiveLoop is not provided', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const props = resources.FuncLambdaFunction.Properties
+
+      expect(props.RecursiveLoop).toBeUndefined()
+    })
+
+    it('should normalize lowercase functions[].recursiveLoop to PascalCase', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          recursiveLoop: 'allow',
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const props = resources.FuncLambdaFunction.Properties
+
+      expect(props.RecursiveLoop).toBe('Allow')
+    })
+
+    it('should normalize uppercase functions[].recursiveLoop to PascalCase', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          recursiveLoop: 'TERMINATE',
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const props = resources.FuncLambdaFunction.Properties
+
+      expect(props.RecursiveLoop).toBe('Terminate')
+    })
+
+    it('should normalize mixed-case functions[].recursiveLoop to PascalCase', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          recursiveLoop: 'AlLoW',
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const props = resources.FuncLambdaFunction.Properties
+
+      expect(props.RecursiveLoop).toBe('Allow')
     })
   })
 

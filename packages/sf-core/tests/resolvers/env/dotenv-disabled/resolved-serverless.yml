@@ -1,0 +1,10 @@
+service: resolvers-env-test
+org: serverlesstestaccount
+
+useDotenv: false
+
+functions:
+  hello:
+    handler: handler.hello
+    name: default-not-loaded
+    description: stage-not-loaded

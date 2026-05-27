@@ -1,37 +1,82 @@
 import path from 'path'
-import { existsSync } from 'node:fs'
+import { existsSync, statSync } from 'node:fs'
 import dotenv from 'dotenv'
+import { log } from '@serverless/util'
+
+const logger = log.get('core:resolver:env')
 
 /**
  * @typedef {Object} LoadEnvFilesOptions
- * @property {string} stage - The name of the stage.
- * @property {string} configFileDirPath - The path to the configuration directory.
+ * @property {string} [stage] - The name of the stage.
+ * @property {string} [configFileDirPath] - The path to the configuration directory.
+ * @property {true|false|string|string[]} [useDotenv] - The user's `useDotenv`
+ *   config value.
+ *   - `true` or omitted: load local `.env`/`.env.${stage}` files in
+ *     `configFileDirPath`.
+ *   - `false`: explicit opt-out. Skip all .env loading (local and custom).
+ *   - string or array of strings: load locals AND each entry as an
+ *     additional file or directory (containing `.env`/`.env.${stage}`),
+ *     loaded with lower precedence than the local files.
  */
 
 /**
  * Load environment variables from .env and .env.[stageName] files.
- * This function is responsible for loading environment variables from .env and .env.[stageName] files.
- * If the .env or .env.[stageName] file does not exist, it will be ignored.
- * @param {LoadEnvFilesOptions} options - The options for loading environment variables.
+ *
+ * `useDotenv === false` is an explicit opt-out: skip everything.
+ *
+ * Otherwise:
+ *
+ * Local files (always loaded):
+ *   1. <configFileDirPath>/.env.${stage}   (if stage provided)
+ *   2. <configFileDirPath>/.env
+ *
+ * Custom files (loaded only when `useDotenv` is a string or array of strings;
+ * each entry processed in order):
+ *   3. <entry>/.env.${stage}               (if entry is a directory and stage provided)
+ *   4. <entry>/.env                        (if entry is a directory)
+ *   4'. <entry>                            (if entry is a file)
+ *
+ * Precedence is established by load order — dotenv.config defaults to
+ * first-write-wins (no override). `process.env` set before this function
+ * runs always wins, then locals, then custom entries in array order.
+ *
+ * Missing files at any layer are a silent no-op.
+ *
+ * @param {LoadEnvFilesOptions} options
  */
 
-export const loadEnvFiles = ({ stage, configFileDirPath }) => {
+export const loadEnvFiles = ({ stage, configFileDirPath, useDotenv } = {}) => {
+  // Explicit opt-out. Strict equality so only the literal boolean false
+  // triggers this — coerced values like the string 'false' or null pass
+  // through to the normal load path. Restores the v3-era semantic of
+  // useDotenv: false meaning "no env file loading at all" (see
+  // https://github.com/serverless/serverless/issues/8566).
+  if (useDotenv === false) return
+
   if (!configFileDirPath) {
     configFileDirPath = process.cwd()
   }
+
+  // Local files. .env.${stage} is loaded first so it wins over .env
+  // (dotenv defaults to first-write-wins).
   if (stage) {
-    // Load .env.[stageName] file
     loadStageEnvFiles({ stage, configFileDirPath })
   }
-  // Load .env file
   const defaultEnvPath = path.resolve(configFileDirPath, '.env')
   if (existsSync(defaultEnvPath)) {
-    dotenv.config({ path: defaultEnvPath, quiet: true })
+    loadDotenvFile(defaultEnvPath)
+  }
+
+  // Custom paths — only when explicitly provided. Loaded after locals so
+  // locals win for shared keys. Within the custom group, earlier array
+  // entries win for shared keys (first-write-wins).
+  for (const customPath of normalizeCustomPaths(useDotenv)) {
+    loadCustomEnvFiles({ stage, configFileDirPath, customPath })
   }
 }
 
 /**
- * Load environment variables from .env and .env.[stageName] files.
+ * Load environment variables from .env.[stageName] files.
  * @param {LoadEnvFilesOptions} options - The options for loading environment variables.
  */
 export const loadStageEnvFiles = ({ stage, configFileDirPath }) => {
@@ -41,6 +86,91 @@ export const loadStageEnvFiles = ({ stage, configFileDirPath }) => {
   // Load .env.[stageName] file
   const stageEnvPath = path.resolve(configFileDirPath, `.env.${stage}`)
   if (existsSync(stageEnvPath)) {
-    dotenv.config({ path: stageEnvPath, quiet: true })
+    loadDotenvFile(stageEnvPath)
   }
+}
+
+/**
+ * Normalize the `useDotenv` config value into the list of custom paths to
+ * load. Strings are wrapped to a one-element array; arrays are returned
+ * as-is; anything else (including `true`, `false`, and `undefined`) yields
+ * no custom paths. The `false` opt-out is handled earlier in
+ * `loadEnvFiles` — by the time we reach this helper, we know we're loading
+ * something.
+ *
+ * @param {true|string|string[]|undefined} useDotenv
+ * @returns {string[]}
+ */
+const normalizeCustomPaths = (useDotenv) => {
+  if (typeof useDotenv === 'string') return [useDotenv]
+  if (Array.isArray(useDotenv)) return useDotenv
+  return []
+}
+
+/**
+ * Load environment variables for a single custom path entry. The path is
+ * resolved against `configFileDirPath`. If it points to a directory we look
+ * inside for `.env.${stage}` (when stage is provided) and `.env`. If it
+ * points to a file we load that file directly without stage-suffix logic.
+ * Missing files are silently skipped.
+ *
+ * @param {{ stage?: string, configFileDirPath: string, customPath: string }} options
+ */
+const loadCustomEnvFiles = ({ stage, configFileDirPath, customPath }) => {
+  const resolved = path.resolve(configFileDirPath, customPath)
+  if (!existsSync(resolved)) {
+    return
+  }
+  // statSync can throw if the file is unreadable or has disappeared between
+  // existsSync and statSync (permission glitch, TOCTOU race). Treat that the
+  // same as "path does not exist" — silent skip with a debug breadcrumb,
+  // matching the loader's overall tolerant personality.
+  let stat
+  try {
+    stat = statSync(resolved)
+  } catch (err) {
+    logger.debug(`Skipped env path at ${resolved}: ${err.message}`)
+    return
+  }
+  if (stat.isDirectory()) {
+    if (stage) {
+      const stageEnvPath = path.join(resolved, `.env.${stage}`)
+      if (existsSync(stageEnvPath)) {
+        loadDotenvFile(stageEnvPath)
+      }
+    }
+    const defaultEnvPath = path.join(resolved, '.env')
+    if (existsSync(defaultEnvPath)) {
+      loadDotenvFile(defaultEnvPath)
+    }
+    return
+  }
+  loadDotenvFile(resolved)
+}
+
+/**
+ * Wrap dotenv.config with debug logging so users running with debug
+ * logging can see which env files loaded and which keys came from each
+ * one. All outcomes log at debug level — the loader has a tolerant
+ * "silently skip" personality (missing files, schema-coerced bogus
+ * paths, and `quiet: true` to dotenv itself), and we keep that
+ * personality consistent here. Users opt in to the diagnostic detail
+ * with debug logging.
+ *
+ * @param {string} filePath - The absolute path to the .env file.
+ */
+const loadDotenvFile = (filePath) => {
+  const result = dotenv.config({ path: filePath, quiet: true })
+  if (result.error) {
+    logger.debug(`Skipped env file at ${filePath}: ${result.error.message}`)
+    return
+  }
+  const keys = Object.keys(result.parsed || {})
+  if (keys.length === 0) {
+    logger.debug(`Loaded env file at ${filePath} (no keys parsed)`)
+    return
+  }
+  logger.debug(
+    `Loaded env file at ${filePath} (${keys.length} key(s): ${keys.join(', ')})`,
+  )
 }

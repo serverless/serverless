@@ -195,7 +195,7 @@ Here are _some_ of the many plugins which we've tested for V.4:
 
 In previous versions of Serverless Framework (<= V.3), the `useDotEnv` configuration in `serverless.yml` would have to be set in order to load `.env` and `.env.[stage]` files, and make their environment variables accessible within `serverless.yml`.
 
-In V.4, these files are read automatically, without the `useDotEnv` property.
+In V.4, these files are read automatically, without the `useDotEnv` property. `useDotenv` can still be set to a path (or array of paths) to load additional `.env` files from a custom location — useful for monorepos. See the [`useDotenv` reference](../providers/aws/guide/serverless.yml.md#dotenv-files) for details.
 
 ### Revised Dev Mode
 

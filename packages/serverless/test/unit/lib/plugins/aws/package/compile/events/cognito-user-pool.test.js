@@ -569,4 +569,299 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
       expect(customResources.length).toBe(2)
     })
   })
+
+  describe('PreTokenGeneration lambdaVersion', () => {
+    const getPool = (resources) =>
+      Object.entries(resources).find(
+        ([, r]) => r.Type === 'AWS::Cognito::UserPool',
+      )[1]
+
+    it('emits PreTokenGenerationConfig when lambdaVersion: V2_0', () => {
+      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
+        first: {
+          events: [
+            {
+              cognitoUserPool: {
+                pool: 'MyUserPool',
+                trigger: 'PreTokenGeneration',
+                lambdaVersion: 'V2_0',
+              },
+            },
+          ],
+        },
+      }
+
+      awsCompileCognitoUserPoolEvents.newCognitoUserPools()
+
+      const pool = getPool(
+        awsCompileCognitoUserPoolEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources,
+      )
+      expect(
+        pool.Properties.LambdaConfig.PreTokenGenerationConfig,
+      ).toBeDefined()
+      expect(
+        pool.Properties.LambdaConfig.PreTokenGenerationConfig.LambdaVersion,
+      ).toBe('V2_0')
+      expect(
+        pool.Properties.LambdaConfig.PreTokenGenerationConfig.LambdaArn,
+      ).toBeDefined()
+      expect(pool.Properties.LambdaConfig.PreTokenGeneration).toBeUndefined()
+    })
+
+    it('emits PreTokenGenerationConfig when lambdaVersion: V3_0', () => {
+      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
+        first: {
+          events: [
+            {
+              cognitoUserPool: {
+                pool: 'MyUserPool',
+                trigger: 'PreTokenGeneration',
+                lambdaVersion: 'V3_0',
+              },
+            },
+          ],
+        },
+      }
+
+      awsCompileCognitoUserPoolEvents.newCognitoUserPools()
+
+      const pool = getPool(
+        awsCompileCognitoUserPoolEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources,
+      )
+      expect(
+        pool.Properties.LambdaConfig.PreTokenGenerationConfig.LambdaVersion,
+      ).toBe('V3_0')
+      expect(pool.Properties.LambdaConfig.PreTokenGeneration).toBeUndefined()
+    })
+
+    it('preserves the legacy flat shape when lambdaVersion is omitted', () => {
+      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
+        first: {
+          events: [
+            {
+              cognitoUserPool: {
+                pool: 'MyUserPool',
+                trigger: 'PreTokenGeneration',
+              },
+            },
+          ],
+        },
+      }
+
+      awsCompileCognitoUserPoolEvents.newCognitoUserPools()
+
+      const pool = getPool(
+        awsCompileCognitoUserPoolEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources,
+      )
+      expect(pool.Properties.LambdaConfig.PreTokenGeneration).toBeDefined()
+      expect(
+        pool.Properties.LambdaConfig.PreTokenGenerationConfig,
+      ).toBeUndefined()
+    })
+
+    it('propagates LambdaVersion in UserPoolConfigs for existing pool', async () => {
+      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
+        first: {
+          name: 'first',
+          events: [
+            {
+              cognitoUserPool: {
+                pool: 'MyExistingPool',
+                trigger: 'PreTokenGeneration',
+                lambdaVersion: 'V2_0',
+                existing: true,
+              },
+            },
+          ],
+        },
+      }
+
+      await awsCompileCognitoUserPoolEvents.existingCognitoUserPools()
+
+      const resources =
+        awsCompileCognitoUserPoolEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const [, customResource] = Object.entries(resources).find(
+        ([, r]) => r.Type === 'Custom::CognitoUserPool',
+      )
+      expect(customResource.Properties.UserPoolConfigs[0]).toMatchObject({
+        Trigger: 'PreTokenGeneration',
+        LambdaVersion: 'V2_0',
+      })
+    })
+
+    it('omits LambdaVersion in UserPoolConfigs when not set (existing pool)', async () => {
+      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
+        first: {
+          name: 'first',
+          events: [
+            {
+              cognitoUserPool: {
+                pool: 'MyExistingPool',
+                trigger: 'PreTokenGeneration',
+                existing: true,
+              },
+            },
+          ],
+        },
+      }
+
+      await awsCompileCognitoUserPoolEvents.existingCognitoUserPools()
+
+      const resources =
+        awsCompileCognitoUserPoolEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const [, customResource] = Object.entries(resources).find(
+        ([, r]) => r.Type === 'Custom::CognitoUserPool',
+      )
+      expect(customResource.Properties.UserPoolConfigs[0]).toEqual({
+        Trigger: 'PreTokenGeneration',
+      })
+    })
+
+    it('throws on invalid version for PreTokenGeneration', () => {
+      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
+        first: {
+          events: [
+            {
+              cognitoUserPool: {
+                pool: 'MyUserPool',
+                trigger: 'PreTokenGeneration',
+                lambdaVersion: 'V99_0',
+              },
+            },
+          ],
+        },
+      }
+
+      expect(() =>
+        awsCompileCognitoUserPoolEvents.newCognitoUserPools(),
+      ).toThrow(/Invalid lambdaVersion "V99_0" for "PreTokenGeneration"/)
+    })
+
+    it('throws when V2_0 is set on CustomEmailSender', () => {
+      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
+        first: {
+          events: [
+            {
+              cognitoUserPool: {
+                pool: 'MyUserPool',
+                trigger: 'CustomEmailSender',
+                kmsKeyId:
+                  'arn:aws:kms:eu-west-1:111111111111:key/11111111-9abc-def0-1234-56789abcdef1',
+                lambdaVersion: 'V2_0',
+              },
+            },
+          ],
+        },
+      }
+
+      expect(() =>
+        awsCompileCognitoUserPoolEvents.newCognitoUserPools(),
+      ).toThrow(/Invalid lambdaVersion "V2_0" for "CustomEmailSender"/)
+    })
+
+    it('throws when lambdaVersion is set on an unsupported trigger', () => {
+      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
+        first: {
+          events: [
+            {
+              cognitoUserPool: {
+                pool: 'MyUserPool',
+                trigger: 'PreSignUp',
+                lambdaVersion: 'V1_0',
+              },
+            },
+          ],
+        },
+      }
+
+      expect(() =>
+        awsCompileCognitoUserPoolEvents.newCognitoUserPools(),
+      ).toThrow(/lambdaVersion is only supported for/)
+    })
+
+    it('emits PreTokenGenerationConfig when lambdaVersion: V1_0 is set explicitly', () => {
+      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
+        first: {
+          events: [
+            {
+              cognitoUserPool: {
+                pool: 'MyUserPool',
+                trigger: 'PreTokenGeneration',
+                lambdaVersion: 'V1_0',
+              },
+            },
+          ],
+        },
+      }
+
+      awsCompileCognitoUserPoolEvents.newCognitoUserPools()
+
+      const pool = getPool(
+        awsCompileCognitoUserPoolEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources,
+      )
+      expect(
+        pool.Properties.LambdaConfig.PreTokenGenerationConfig.LambdaVersion,
+      ).toBe('V1_0')
+      expect(pool.Properties.LambdaConfig.PreTokenGeneration).toBeUndefined()
+    })
+
+    it('propagates LambdaVersion: V3_0 in UserPoolConfigs for existing pool', async () => {
+      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
+        first: {
+          name: 'first',
+          events: [
+            {
+              cognitoUserPool: {
+                pool: 'MyExistingPool',
+                trigger: 'PreTokenGeneration',
+                lambdaVersion: 'V3_0',
+                existing: true,
+              },
+            },
+          ],
+        },
+      }
+
+      await awsCompileCognitoUserPoolEvents.existingCognitoUserPools()
+
+      const resources =
+        awsCompileCognitoUserPoolEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const [, customResource] = Object.entries(resources).find(
+        ([, r]) => r.Type === 'Custom::CognitoUserPool',
+      )
+      expect(customResource.Properties.UserPoolConfigs[0]).toMatchObject({
+        Trigger: 'PreTokenGeneration',
+        LambdaVersion: 'V3_0',
+      })
+    })
+
+    it('throws on invalid lambdaVersion for existing pool trigger', () => {
+      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
+        first: {
+          name: 'first',
+          events: [
+            {
+              cognitoUserPool: {
+                pool: 'MyExistingPool',
+                trigger: 'PreTokenGeneration',
+                lambdaVersion: 'V99_0',
+                existing: true,
+              },
+            },
+          ],
+        },
+      }
+
+      expect(() =>
+        awsCompileCognitoUserPoolEvents.existingCognitoUserPools(),
+      ).toThrow(/Invalid lambdaVersion "V99_0" for "PreTokenGeneration"/)
+    })
+  })
 })

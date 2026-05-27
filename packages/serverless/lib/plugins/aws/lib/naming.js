@@ -219,6 +219,12 @@ export default {
   getLambdaSnapStartEnabledAliasName() {
     return 'snapstart'
   },
+  getLambdaDurableAliasLogicalId(functionName) {
+    return `${this.getNormalizedFunctionName(functionName)}DurableLambdaAlias`
+  },
+  getLambdaDurableEnabledAliasName() {
+    return 'durable'
+  },
   getLambdaFunctionUrlOutputLogicalId(functionName) {
     return `${this.getNormalizedFunctionName(functionName)}LambdaFunctionUrl`
   },

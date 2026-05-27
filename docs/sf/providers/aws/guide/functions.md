@@ -325,6 +325,8 @@ Alternatively lambda environment can be configured through docker images. Image 
 
 Serverless will create an ECR repository for your image, but it currently does not manage updates to it. An ECR repository is created only for new services or the first time that a function configured with an `image` is deployed. In service configuration, you can configure the ECR repository to scan for CVEs via the `provider.ecr.scanOnPush` property, which is `false` by default. (See [documentation](https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html))
 
+To bound how much the repository grows over time, set `provider.ecr.maxImages` to a positive integer. The framework will attach an ECR [lifecycle policy](https://docs.aws.amazon.com/AmazonECR/latest/userguide/LifecyclePolicies.html) that expires older, superseded image versions once their count exceeds the configured value. Currently-tagged images — the live digest for every entry under `provider.ecr.images` — are never expired, so updating one image many times will not break another function's image that has not changed. Pick a value that comfortably covers the published Lambda function versions you might still need to roll back to, since they reference older image digests that the lifecycle rule may expire once the tag has moved on. The deployer principal needs `ecr:PutLifecyclePolicy` permission on the repository.
+
 In service configuration, images can be configured via `provider.ecr.images`. To define an image that will be built locally, you need to specify `path` property, which should point to valid docker context directory. Optionally, you can also set `file` to specify Dockerfile that should be used when building an image. It is also possible to define images that already exist in AWS ECR repository. In order to do that, you need to define `uri` property, which should follow `<account>.dkr.ecr.<region>.amazonaws.com/<repository>@<digest>` or `<account>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>` format.
 
 Additionally, you can define arguments that will be passed to the `docker build` command via the following properties:
@@ -345,6 +347,7 @@ provider:
   name: aws
   ecr:
     scanOnPush: true
+    maxImages: 10
     images:
       baseimage:
         path: ./path/to/context
@@ -413,7 +416,7 @@ functions:
         - flag
 ```
 
-During the first deployment when locally built images are used, Framework will automatically create a dedicated ECR repository to store these images, with name `serverless-<service>-<stage>`. Currently, the Framework will not remove older versions of images uploaded to ECR as they still might be in use by versioned functions. During `sls remove`, the created ECR repository will be removed. During deployment, Framework will attempt to `docker login` to ECR if needed. Depending on your local configuration, docker authorization token might be stored unencrypted. Please refer to documentation for more details: https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+During the first deployment when locally built images are used, Framework will automatically create a dedicated ECR repository to store these images, with name `serverless-<service>-<stage>`. By default the Framework keeps every pushed image in place, since previously published function versions may still point at older digests; opt in to automatic expiry with `provider.ecr.maxImages` (see above). During `sls remove`, the created ECR repository will be removed. During deployment, Framework will attempt to `docker login` to ECR if needed. Depending on your local configuration, docker authorization token might be stored unencrypted. Please refer to documentation for more details: https://docs.docker.com/engine/reference/commandline/login/#credentials-store
 
 ## Instruction set architecture
 
@@ -452,7 +455,7 @@ functions:
       retentionPeriodInDays: 14 # Optional. How long to retain execution history (1-90 days, default: 14)
 ```
 
-**Note:** Durable Functions are currently supported only for Node.js 22+ and Python 3.13+ runtimes. Enabling `durableConfig` will automatically enable function versioning (`versionFunctions: true`) as durable functions require qualified ARNs.
+**Note:** Durable Functions are currently supported only for Node.js 22+ and Python 3.13+ runtimes. Enabling `durableConfig` will automatically enable function versioning (`versionFunctions: true`) and publish an `AWS::Lambda::Alias` named `durable` pointing at the latest version, because AWS rejects unqualified invocations of durable functions. All event-source integrations (schedule, EventBridge, SNS, API Gateway, etc.) target this alias so invocations succeed without further configuration. Setting `versionFunction: false` together with `durableConfig` is rejected.
 
 When using the default IAM role, the `AWSLambdaBasicDurableExecutionRolePolicy` managed policy is automatically attached to grant necessary permissions. If you provide a custom role, you must ensure it has the required permissions.
 
@@ -498,6 +501,17 @@ functions:
 ```
 
 **Note:** Lambda SnapStart only supports the Java 11, Java 17 and Java 21 runtimes and does not support provisioned concurrency, the arm64 architecture, the Lambda Extensions API, Amazon Elastic File System (Amazon EFS), AWS X-Ray, or ephemeral storage greater than 512 MB.
+
+## Recursive Loop Detection
+
+By default, AWS Lambda [detects and stops recursive invocation loops](https://docs.aws.amazon.com/lambda/latest/dg/invocation-recursion.html) between supported AWS services. To allow recursive loops for a function, set `recursiveLoop` to `allow`. To explicitly enforce termination (the default behavior), set it to `terminate`. The value is case-insensitive.
+
+```yaml
+functions:
+  hello:
+    handler: handler.hello
+    recursiveLoop: allow
+```
 
 ## VPC Configuration
 

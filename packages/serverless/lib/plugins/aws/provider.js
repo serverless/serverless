@@ -2056,6 +2056,11 @@ iam:
                   description: `Enable ECR vulnerability scanning on image push.`,
                   type: 'boolean',
                 },
+                maxImages: {
+                  description: `Cap on how many superseded image versions the ECR repository retains. When set, the framework installs an ECR lifecycle rule that expires older untagged versions beyond this count. Currently-tagged images (the live digest for every entry under provider.ecr.images) are never expired.`,
+                  type: 'integer',
+                  minimum: 1,
+                },
                 images: {
                   description: `Named local image build definitions.`,
                   type: 'object',
@@ -2774,6 +2779,10 @@ destinations:
                 },
               ],
             }),
+            recursiveLoop: {
+              description: `Recursive loop detection setting for this function. Case-insensitive.`,
+              anyOf: ['Allow', 'Terminate'].map(caseInsensitive),
+            },
             reservedConcurrency: cfValue({
               description: `Reserved concurrency limit for this function.`,
               type: 'integer',
@@ -3803,7 +3812,7 @@ Object.defineProperties(
       { promise: true },
     ),
     getOrCreateEcrRepository: d(
-      async function (scanOnPush) {
+      async function (scanOnPush, maxImages) {
         const registryId = await this.getAccountId()
         const repositoryName = this.naming.getEcrRepositoryName()
         let repositoryUri
@@ -3828,6 +3837,31 @@ Object.defineProperties(
           })
           repositoryUri = result.repository.repositoryUri
         }
+        if (maxImages) {
+          await this.request('ECR', 'putLifecyclePolicy', {
+            repositoryName,
+            lifecyclePolicyText: JSON.stringify({
+              rules: [
+                {
+                  // High priority slot reserved so future tag-scoped rules can
+                  // occupy lower priorities. `tagStatus: untagged` keeps every
+                  // currently-tagged image (the live digest for each
+                  // `provider.ecr.images.*` entry) safe — only superseded
+                  // versions that have lost their tag are counted.
+                  rulePriority: 1000,
+                  description:
+                    'Expire superseded image versions (provider.ecr.maxImages)',
+                  selection: {
+                    tagStatus: 'untagged',
+                    countType: 'imageCountMoreThan',
+                    countNumber: maxImages,
+                  },
+                  action: { type: 'expire' },
+                },
+              ],
+            }),
+          })
+        }
         return {
           repositoryUri,
           repositoryName,
@@ -3846,6 +3880,7 @@ Object.defineProperties(
         platform,
         provenance,
         scanOnPush,
+        maxImages,
       }) {
         const imageProgress = progress.get(`containerImage:${imageName}`)
         await this.ensureDockerIsAvailable()
@@ -3871,7 +3906,7 @@ Object.defineProperties(
         }
 
         const { repositoryUri, repositoryName } =
-          await this.getOrCreateEcrRepository(scanOnPush)
+          await this.getOrCreateEcrRepository(scanOnPush, maxImages)
 
         const localTag = `${repositoryName}:${imageName}`
         const remoteTag = `${repositoryUri}:${imageName}`
@@ -4069,6 +4104,11 @@ Object.defineProperties(
           defaultScanOnPush,
         )
 
+        const maxImagesDefinedInProvider = _.get(
+          this.serverless.service.provider,
+          'ecr.maxImages',
+        )
+
         if (!imageDefinedInProvider) {
           throw new ServerlessError(
             `Referenced "${imageName}" not defined in "provider.ecr.images"`,
@@ -4135,6 +4175,7 @@ Object.defineProperties(
               provenance:
                 imageDefinedInProvider.provenance || defaultProvenance,
               scanOnPush: imageScanDefinedInProvider,
+              maxImages: maxImagesDefinedInProvider,
             })
           }
           return await this.resolveImageUriAndShaFromUri(
@@ -4155,6 +4196,7 @@ Object.defineProperties(
           platform: imageDefinedInProvider.platform || defaultPlatform,
           provenance: imageDefinedInProvider.provenance || defaultProvenance,
           scanOnPush: imageScanDefinedInProvider,
+          maxImages: maxImagesDefinedInProvider,
         })
       },
       { promise: true },
