@@ -440,4 +440,90 @@ describe('AwsProvider', () => {
       )
     })
   })
+
+  describe('#getOrCreateEcrRepository()', () => {
+    const repositoryName = 'serverless-test-dev'
+    const repositoryUri = `123456789012.dkr.ecr.us-east-1.amazonaws.com/${repositoryName}`
+
+    beforeEach(() => {
+      jest.spyOn(awsProvider, 'getCredentials').mockResolvedValue({})
+      jest.spyOn(awsProvider, 'getAccountId').mockResolvedValue('123456789012')
+      awsProvider.naming = { getEcrRepositoryName: () => repositoryName }
+    })
+
+    const mockEcrResponses = ({ describeFails = false } = {}) => {
+      mockAwsRequest.mockImplementation((_params, method) => {
+        if (method === 'describeRepositories') {
+          if (describeFails) {
+            const err = new Error('RepositoryNotFoundException')
+            err.providerError = { code: 'RepositoryNotFoundException' }
+            return Promise.reject(err)
+          }
+          return Promise.resolve({ repositories: [{ repositoryUri }] })
+        }
+        if (method === 'createRepository') {
+          return Promise.resolve({ repository: { repositoryUri } })
+        }
+        if (method === 'putLifecyclePolicy') {
+          return Promise.resolve({})
+        }
+        return Promise.resolve({})
+      })
+    }
+
+    it('should not call putLifecyclePolicy when maxImages is not set', async () => {
+      mockEcrResponses()
+
+      const result = await awsProvider.getOrCreateEcrRepository(false)
+
+      expect(result).toEqual({ repositoryUri, repositoryName })
+      const putCalls = mockAwsRequest.mock.calls.filter(
+        ([, method]) => method === 'putLifecyclePolicy',
+      )
+      expect(putCalls).toHaveLength(0)
+    })
+
+    it('should call putLifecyclePolicy on an existing repo when maxImages is set', async () => {
+      mockEcrResponses()
+
+      await awsProvider.getOrCreateEcrRepository(false, 10)
+
+      const putCall = mockAwsRequest.mock.calls.find(
+        ([, method]) => method === 'putLifecyclePolicy',
+      )
+      expect(putCall).toBeDefined()
+      const params = putCall[2]
+      expect(params.repositoryName).toBe(repositoryName)
+      expect(JSON.parse(params.lifecyclePolicyText)).toEqual({
+        rules: [
+          {
+            rulePriority: 1000,
+            description:
+              'Expire superseded image versions (provider.ecr.maxImages)',
+            selection: {
+              tagStatus: 'untagged',
+              countType: 'imageCountMoreThan',
+              countNumber: 10,
+            },
+            action: { type: 'expire' },
+          },
+        ],
+      })
+    })
+
+    it('should create the repo and apply the lifecycle policy when maxImages is set on a fresh repo', async () => {
+      mockEcrResponses({ describeFails: true })
+
+      await awsProvider.getOrCreateEcrRepository(true, 5)
+
+      const methods = mockAwsRequest.mock.calls.map(([, method]) => method)
+      expect(methods).toContain('createRepository')
+      const putCall = mockAwsRequest.mock.calls.find(
+        ([, method]) => method === 'putLifecyclePolicy',
+      )
+      expect(putCall).toBeDefined()
+      const policy = JSON.parse(putCall[2].lifecyclePolicyText)
+      expect(policy.rules[0].selection.countNumber).toBe(5)
+    })
+  })
 })
