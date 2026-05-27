@@ -1967,7 +1967,11 @@ describe('AwsCompileFunctions', () => {
       )
     })
 
-    it('throws when logGroupClass is combined with disableLogs', async () => {
+    // logGroupClass is intentionally allowed alongside disableLogs: when
+    // logs are disabled, the framework emits no log group resource and the
+    // class setting is silently inert. This matches how
+    // logRetentionInDays / logDataProtectionPolicy behave under disableLogs.
+    it('accepts function-level logGroupClass combined with disableLogs and emits no IA log group', async () => {
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'handler',
@@ -1977,12 +1981,26 @@ describe('AwsCompileFunctions', () => {
         },
       }
 
-      await expect(awsCompileFunctions.compileFunctions()).rejects.toThrow(
-        /logGroupClass.*disableLogs/i,
+      await expect(
+        awsCompileFunctions.compileFunctions(),
+      ).resolves.not.toThrow()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      // No standard or IA log group should be emitted for a disabled function.
+      const logGroups = Object.entries(resources).filter(
+        ([, r]) => r.Type === 'AWS::Logs::LogGroup',
       )
+      expect(logGroups).toHaveLength(0)
+      // LoggingConfig.LogGroup must NOT point at the -ia group either: with
+      // disableLogs the framework neither emits the log group nor grants
+      // IAM, so the reference would dangle.
+      const fnResource = resources.FuncLambdaFunction
+      expect(fnResource.Properties.LoggingConfig?.LogGroup).toBeUndefined()
     })
 
-    it('throws when provider-level logGroupClass is combined with function-level disableLogs', async () => {
+    it('accepts provider-level logGroupClass combined with function-level disableLogs', async () => {
       awsCompileFunctions.serverless.service.provider.logs = {
         lambda: { logGroupClass: 'INFREQUENT_ACCESS' },
       }
@@ -1994,9 +2012,9 @@ describe('AwsCompileFunctions', () => {
         },
       }
 
-      await expect(awsCompileFunctions.compileFunctions()).rejects.toThrow(
-        /logGroupClass.*disableLogs/i,
-      )
+      await expect(
+        awsCompileFunctions.compileFunctions(),
+      ).resolves.not.toThrow()
     })
 
     it('throws when provider-level logGroupClass is combined with a function-level custom logs.logGroup', async () => {

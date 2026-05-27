@@ -210,13 +210,6 @@ class AwsCompileFunctions {
         { stack: false },
       )
     }
-    if (effectiveLogGroupClass && functionObject.disableLogs) {
-      throw new ServerlessError(
-        `logGroupClass cannot be combined with disableLogs for function "${functionName}".`,
-        'FUNCTION_LOG_GROUP_CLASS_DISABLE_LOGS_CONFLICT',
-        { stack: false },
-      )
-    }
 
     let functionImageUri
     let functionImageSha
@@ -1110,8 +1103,14 @@ class AwsCompileFunctions {
       if (logGroup) {
         finalizedLogConfiguration.LogGroup = logGroup
       } else if (
-        effectiveLogGroupClass === LOG_GROUP_CLASSES.INFREQUENT_ACCESS
+        effectiveLogGroupClass === LOG_GROUP_CLASSES.INFREQUENT_ACCESS &&
+        !functionObject.disableLogs
       ) {
+        // Skip routing Lambda's log writes to the -ia group when logs are
+        // disabled for the function. The framework emits no log group
+        // resource and no IAM grant in that case, so setting LogGroup here
+        // would leave a dangling reference in the template that Lambda's
+        // runtime cannot resolve.
         finalizedLogConfiguration.LogGroup =
           this.provider.naming.getLogGroupName(functionObject.name, {
             logGroupClass: LOG_GROUP_CLASSES.INFREQUENT_ACCESS,
