@@ -763,10 +763,7 @@ The Infrequent Access class supports a reduced subset of CloudWatch Logs feature
 
 > **⚠️ Re-enabling Infrequent Access on a previously-orphaned group will fail.** Once an Infrequent Access log group has been retained out of the stack (by removing `logGroupClass` and redeploying), a subsequent attempt to re-enable `infrequent_access` for the same function deploys with `ResourceAlreadyExistsException` — CloudFormation tries to create a log group with a name that already exists in AWS but is no longer managed by the stack. Recover by either deleting the orphaned group from CloudWatch (loses the retained history) or importing it back into the stack with [`aws cloudformation create-change-set --change-set-type IMPORT`](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resource-import.html) (keeps it). Plan toggling between classes accordingly.
 
-`logGroupClass` cannot be combined with:
-
-- `disableLogs: true` — disabling logs already opts out of framework-managed log groups.
-- `logs.logGroup` or `provider.logs.lambda.logGroup` — when you supply a custom log group name you also own its class. Set `LogGroupClass` directly on that externally-managed log group.
+`logGroupClass` cannot be combined with `logs.logGroup` or `provider.logs.lambda.logGroup` — when you supply a custom log group name you also own its class. Set `LogGroupClass` directly on that externally-managed log group.
 
 ## Versioning Deployed Functions
 

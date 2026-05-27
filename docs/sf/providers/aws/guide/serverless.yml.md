@@ -936,7 +936,8 @@ functions:
       logGroup: /aws/lambda/global-log-group
       # The CloudWatch Logs log group class for this function (default: standard).
       # Valid values: standard, infrequent_access. Matched case-insensitively.
-      # Overrides the provider-level value. Cannot be combined with logGroup or disableLogs.
+      # Overrides the provider-level value. Cannot be combined with a custom
+      # logs.logGroup name.
       logGroupClass: infrequent_access
     # Enable AWS Lambda tenant isolation mode for this function
     tenancy:
