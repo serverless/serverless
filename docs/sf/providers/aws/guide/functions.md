@@ -499,6 +499,17 @@ functions:
 
 **Note:** Lambda SnapStart only supports the Java 11, Java 17 and Java 21 runtimes and does not support provisioned concurrency, the arm64 architecture, the Lambda Extensions API, Amazon Elastic File System (Amazon EFS), AWS X-Ray, or ephemeral storage greater than 512 MB.
 
+## Recursive Loop Detection
+
+By default, AWS Lambda [detects and stops recursive invocation loops](https://docs.aws.amazon.com/lambda/latest/dg/invocation-recursion.html) between supported AWS services. To allow recursive loops for a function, set `recursiveLoop` to `allow`. To explicitly enforce termination (the default behavior), set it to `terminate`. The value is case-insensitive.
+
+```yaml
+functions:
+  hello:
+    handler: handler.hello
+    recursiveLoop: allow
+```
+
 ## VPC Configuration
 
 You can add VPC configuration to a specific function in `serverless.yml` by adding a `vpc` object property in the function configuration. This object should contain the `securityGroupIds` and `subnetIds` array properties needed to construct VPC for this function. Optionally, you can also enable IPv6 outbound connections for dual-stack subnets with the `ipv6AllowedForDualStack` property. Here's an example configuration:

@@ -26,6 +26,10 @@ const runtimeManagementMap = new Map([
   ['onFunctionUpdate', 'FunctionUpdate'],
   ['manual', 'Manual'],
 ])
+const recursiveLoopMap = new Map([
+  ['allow', 'Allow'],
+  ['terminate', 'Terminate'],
+])
 
 class AwsCompileFunctions {
   constructor(serverless, options) {
@@ -778,6 +782,12 @@ class AwsCompileFunctions {
         functionObject.reservedConcurrency
     }
 
+    if (functionObject.recursiveLoop) {
+      functionResource.Properties.RecursiveLoop = recursiveLoopMap.get(
+        functionObject.recursiveLoop.toLowerCase(),
+      )
+    }
+
     if (
       !functionObject.disableLogs &&
       !functionObject?.logs?.logGroup &&
@@ -869,6 +879,7 @@ class AwsCompileFunctions {
       if (!functionObject.image) delete functionProperties.Code
       // Properties applied to function globally (not specific to version or alias)
       delete functionProperties.ReservedConcurrentExecutions
+      delete functionProperties.RecursiveLoop
       delete functionProperties.Tags
 
       const lambdaHashingVersion =
