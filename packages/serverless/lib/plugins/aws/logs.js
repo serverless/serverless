@@ -5,6 +5,7 @@ import wait from 'timers-ext/promise/sleep.js'
 import { style } from '@serverless/util'
 import validate from './lib/validate.js'
 import formatLambdaLogEvent from './utils/format-lambda-log-event.js'
+import { LOG_GROUP_CLASSES } from './lib/naming.js'
 import ServerlessError from '../../serverless-error.js'
 
 dayjs.extend(utc)
@@ -50,11 +51,23 @@ class AwsLogs {
   extendedValidate() {
     this.validate()
     // validate function exists in service
-    const lambdaName = this.serverless.service.getFunction(
+    const functionObject = this.serverless.service.getFunction(
       this.options.function,
-    ).name
+    )
+    const lambdaName = functionObject.name
     this.options.interval = this.options.interval || 1000
-    this.options.logGroupName = this.provider.naming.getLogGroupName(lambdaName)
+    const logGroupClass = this.provider.getLogGroupClass(functionObject)
+    this.options.logGroupName = this.provider.naming.getLogGroupName(
+      lambdaName,
+      { logGroupClass },
+    )
+    if (logGroupClass === LOG_GROUP_CLASSES.INFREQUENT_ACCESS) {
+      throw new ServerlessError(
+        `The "${this.options.function}" function writes to the INFREQUENT_ACCESS log group "${this.options.logGroupName}". This log class does not support the CloudWatch Logs APIs used by "sls logs". Use CloudWatch Logs Insights to read these logs.`,
+        'LOGS_INFREQUENT_ACCESS_NOT_SUPPORTED',
+        { stack: false },
+      )
+    }
   }
 
   async getLogStreams() {

@@ -13,7 +13,9 @@ function applyLogPermissions({
   const resolvedLogGroupName =
     functionObject?.logs?.logGroup ||
     configProvider.logs?.lambda?.logGroup ||
-    awsProvider.naming.getLogGroupName(functionObject.name)
+    awsProvider.naming.getLogGroupName(functionObject.name, {
+      logGroupClass: awsProvider.getLogGroupClass(functionObject),
+    })
 
   policyStatements[0] = {
     Effect: 'Allow',
