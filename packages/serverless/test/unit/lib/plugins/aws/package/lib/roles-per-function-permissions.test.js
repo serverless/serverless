@@ -10,8 +10,12 @@ describe('applyPerFunctionPermissions - Destination Permissions', () => {
   beforeEach(() => {
     provider = {
       naming: {
-        getLogGroupName: jest.fn((name) => `/aws/lambda/${name}`),
+        getLogGroupName: jest.fn((name, { logGroupClass } = {}) => {
+          const suffix = logGroupClass === 'INFREQUENT_ACCESS' ? '-ia' : ''
+          return `/aws/lambda/${name}${suffix}`
+        }),
       },
+      getLogGroupClass: jest.fn((fn) => fn?.logs?.logGroupClass ?? undefined),
     }
     serverless = {
       service: {
@@ -411,8 +415,12 @@ describe('applyPerFunctionPermissions - File System Permissions', () => {
   beforeEach(() => {
     provider = {
       naming: {
-        getLogGroupName: jest.fn((name) => `/aws/lambda/${name}`),
+        getLogGroupName: jest.fn((name, { logGroupClass } = {}) => {
+          const suffix = logGroupClass === 'INFREQUENT_ACCESS' ? '-ia' : ''
+          return `/aws/lambda/${name}${suffix}`
+        }),
       },
+      getLogGroupClass: jest.fn((fn) => fn?.logs?.logGroupClass ?? undefined),
     }
     serverless = {
       service: {
@@ -582,5 +590,93 @@ describe('applyPerFunctionPermissions - File System Permissions', () => {
             s.Action.includes('s3files:ClientMount')),
       ),
     ).toBe(false)
+  })
+})
+
+describe('applyPerFunctionPermissions - Log Permissions for INFREQUENT_ACCESS', () => {
+  let serverless
+  let provider
+  let policyStatements
+  let functionIamRole
+
+  beforeEach(() => {
+    provider = {
+      naming: {
+        getLogGroupName: jest.fn((name, { logGroupClass } = {}) => {
+          const suffix = logGroupClass === 'INFREQUENT_ACCESS' ? '-ia' : ''
+          return `/aws/lambda/${name}${suffix}`
+        }),
+      },
+      getLogGroupClass: jest.fn((fn) => fn?.logs?.logGroupClass ?? undefined),
+    }
+    serverless = {
+      service: {
+        provider: {},
+        getFunction: jest.fn((name) => ({
+          name: `test-service-dev-${name}`,
+        })),
+      },
+      getProvider: jest.fn(() => provider),
+    }
+    policyStatements = []
+    functionIamRole = {
+      Properties: {
+        ManagedPolicyArns: [],
+        AssumeRolePolicyDocument: {
+          Statement: [
+            {
+              Effect: 'Allow',
+              Principal: { Service: 'lambda.amazonaws.com' },
+              Action: 'sts:AssumeRole',
+            },
+          ],
+        },
+      },
+    }
+  })
+
+  it('grants logs:PutLogEvents on the IA log group for an INFREQUENT_ACCESS function', () => {
+    const functionObject = {
+      name: 'test-service-dev-myFunc',
+      logs: { logGroupClass: 'INFREQUENT_ACCESS' },
+    }
+
+    applyPerFunctionPermissions({
+      functionName: 'myFunc',
+      functionObject,
+      functionIamRole,
+      policyStatements,
+      serverless,
+      provider,
+      throwError: jest.fn(),
+    })
+
+    expect(policyStatements[0].Resource[0]).toEqual({
+      'Fn::Sub':
+        'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+        ':log-group:/aws/lambda/test-service-dev-myFunc-ia:*:*',
+    })
+  })
+
+  it('grants logs:PutLogEvents on the standard log group when no logGroupClass is set', () => {
+    const functionObject = {
+      name: 'test-service-dev-myFunc',
+    }
+
+    applyPerFunctionPermissions({
+      functionName: 'myFunc',
+      functionObject,
+      functionIamRole,
+      policyStatements,
+      serverless,
+      provider,
+      throwError: jest.fn(),
+    })
+
+    expect(policyStatements[0].Resource[0]).toEqual({
+      'Fn::Sub':
+        'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+        ':log-group:/aws/lambda/test-service-dev-myFunc:*:*',
+    })
   })
 })
