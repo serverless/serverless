@@ -54,7 +54,7 @@
     "chokidar": "^4.0.3",
     "d": "^1.0.2",
     "dayjs": "^1.11.20",
-    "esbuild": "0.27.4",
+    "esbuild": "0.28.0",
     "eventsource-parser": "^3.0.8",
     "ext": "^1.7.0",
     "fastest-levenshtein": "^1.0.16",
@@ -92,7 +92,7 @@
     "terminal-link": "^4.0.0",
     "timers-ext": "^0.1.8",
     "toml": "^3.0.0",
-    "tsx": "^4.21.0",
+    "tsx": "^4.22.3",
     "type": "^2.7.3",
     "uuid": "^13.0.2"
   },
