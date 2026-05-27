@@ -72,10 +72,24 @@ export function createImageReadinessChecker() {
             }
             resolve()
           },
-          // onProgress: per-event. Suppress per-layer noise; we already
-          // logged the start, and the finish callback logs the end. If
-          // anyone needs detailed layer progress, switch to log.debug.
-          (_event) => {},
+          // onProgress: per-event. Per-layer events are noisy in the
+          // default log stream (50–200 events for a typical Lambda image)
+          // but invaluable when a pull stalls. Forward at debug so
+          // `DEBUG=sls:offline:docker` reveals layer-by-layer heartbeat
+          // without polluting normal output.
+          (event) => {
+            if (typeof log?.debug !== 'function') return
+            if (!event) return
+            const id = event.id ? ` ${event.id}` : ''
+            const progress =
+              event.progressDetail &&
+              typeof event.progressDetail.current === 'number' &&
+              typeof event.progressDetail.total === 'number'
+                ? ` ${event.progressDetail.current}/${event.progressDetail.total}`
+                : ''
+            const status = event.status ?? ''
+            log.debug(`pull ${image}${id}: ${status}${progress}`.trimEnd())
+          },
         )
       })
     })

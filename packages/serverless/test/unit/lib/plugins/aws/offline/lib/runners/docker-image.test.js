@@ -90,6 +90,43 @@ describe('ensureImageReady (via createImageReadinessChecker)', () => {
     ).toBe(true)
   })
 
+  it('forwards per-layer pull events to log.debug', async () => {
+    const debugMessages = []
+    const debugLog = {
+      notice() {},
+      warning() {},
+      error() {},
+      debug(msg) {
+        debugMessages.push(msg)
+      },
+    }
+    const { ensureImageReady } = createImageReadinessChecker()
+    const dockerClient = stubDockerClient({
+      imagePresent: false,
+      pullEvents: [
+        { status: 'Pulling from lambda/java', id: '21' },
+        {
+          status: 'Downloading',
+          id: 'layer-abc',
+          progressDetail: { current: 1024, total: 4096 },
+        },
+        { status: 'Pull complete', id: 'layer-abc' },
+      ],
+    })
+    await ensureImageReady({
+      dockerClient,
+      image: 'public.ecr.aws/lambda/java:21',
+      log: debugLog,
+    })
+    // One debug line per pull event, with image + status visible.
+    expect(debugMessages.length).toBe(3)
+    expect(debugMessages[0]).toContain('public.ecr.aws/lambda/java:21')
+    expect(debugMessages[0]).toContain('Pulling from lambda/java')
+    expect(debugMessages[1]).toContain('Downloading')
+    expect(debugMessages[1]).toContain('1024/4096')
+    expect(debugMessages[2]).toContain('Pull complete')
+  })
+
   it('throws OFFLINE_DOCKER_IMAGE_PULL_FAILED on pull error', async () => {
     const { ensureImageReady } = createImageReadinessChecker()
     const dockerClient = stubDockerClient({
