@@ -514,8 +514,7 @@ export default class OfflinePlugin {
         // WebSocket: shared appPort. The Hapi server's `upgrade` event
         // hands incoming WS handshakes to a dedicated ws.Server; HTTP
         // routes (management API, ALB, REST, HTTP API) coexist
-        // independently. Master plan §M4: WS shares appPort — no
-        // separate websocketPort.
+        // independently — no separate websocketPort.
         const wsRegistry = createConnectionRegistry()
         wsRoutes = normalizeWebsocketEvents(serverless)
         wsServer = createWebSocketServer({
@@ -541,7 +540,7 @@ export default class OfflinePlugin {
         // ALB routes register FIRST (among the regular HTTP surfaces) so
         // their literal-path declarations win same-method-same-path
         // collisions against REST / HTTP API routes (Hapi resolves by
-        // registration order). Master plan §M4: ALB shares appPort.
+        // registration order). ALB shares appPort.
         albRoutes = registerAlbRoutes({
           server,
           serverless,
