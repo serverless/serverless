@@ -11,6 +11,7 @@ import pluginPackage from '../plugins/package/package.js'
 import pluginDeploy from '../plugins/deploy.js'
 import pluginInvoke from '../plugins/invoke.js'
 import pluginInfo from '../plugins/info.js'
+import pluginDiff from '../plugins/diff.js'
 import pluginDev from '../plugins/dev.js'
 import pluginLogs from '../plugins/logs.js'
 import pluginMetrics from '../plugins/metrics.js'
@@ -23,6 +24,7 @@ import pluginSearch from '../plugins/plugin/search.js'
 import pluginAwsProvider from '../plugins/aws/provider.js'
 import pluginAwsCommon from '../plugins/aws/common/index.js'
 import pluginAwsPackage from '../plugins/aws/package/index.js'
+import pluginAwsDiff from '../plugins/aws/diff/index.js'
 import pluginAwsDeploy from '../plugins/aws/deploy/index.js'
 import pluginAwsInvoke from '../plugins/aws/invoke.js'
 import pluginAwsInvokeAgent from '../plugins/aws/invoke-agent.js'
@@ -78,6 +80,7 @@ const internalPlugins = [
   pluginDeploy,
   pluginInvoke,
   pluginInfo,
+  pluginDiff,
   pluginDev,
   pluginLogs,
   pluginMetrics,
@@ -90,6 +93,7 @@ const internalPlugins = [
   pluginAwsProvider,
   pluginAwsCommon,
   pluginAwsPackage,
+  pluginAwsDiff,
   pluginAwsDeploy,
   pluginAwsInvoke,
   pluginAwsInvokeAgent,

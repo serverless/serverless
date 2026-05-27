@@ -19,6 +19,7 @@
   ],
   "main": "lib/serverless.js",
   "dependencies": {
+    "@aws-cdk/cloudformation-diff": "^2.187.1",
     "@aws-sdk/client-acm": "3.1050.0",
     "@aws-sdk/client-api-gateway": "3.1050.0",
     "@aws-sdk/client-apigatewayv2": "3.1050.0",
