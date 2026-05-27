@@ -10,8 +10,18 @@ import {
   CloudFormationClient,
   ListStacksCommand,
 } from '@aws-sdk/client-cloudformation'
-import { StandardRetryStrategy } from '@smithy/util-retry'
 import { addProxyToAwsClient } from '@serverless/util'
+
+// CloudFormation ListStacks is throttled at 10 req/sec per account per region.
+// Processing 3 regions concurrently (paginated requests are sequential per region)
+// stays well under the per-region quota while giving a meaningful speedup over
+// sequential processing.
+const REGION_CONCURRENCY_LIMIT = 3
+
+// Server-side body limit on POST /api/usage/instances/:orgId/reconcile is 1MB.
+// 100 instances per request keeps payloads well under the limit even for orgs
+// with thousands of open instances.
+const RECONCILE_BATCH_SIZE = 100
 
 /**
  * Get org subscription to check if qualified for v4
@@ -130,46 +140,69 @@ const getInstancesRegions = (awsAccountInstances = []) => {
 /**
  * Lists all CloudFormation stacks across the specified AWS regions
  * Handles pagination with exponential backoff retry
+ * Processes regions with controlled concurrency to avoid API rate limits
  *
  * @param {*} regions
  * @param {*} credentials
  * @returns {Promise<Array>} Array of stack details
  */
 const getRegionsStacks = async (regions, credentials) => {
+  const logger = log.get('core:reconcile')
+
   const awsAccountStacks = []
   const failedRegions = []
 
-  // Retry 3 times with the standard aws exponential backoff algorithm
-  const retryStrategy = new StandardRetryStrategy(async () => 3)
+  for (let i = 0; i < regions.length; i += REGION_CONCURRENCY_LIMIT) {
+    const regionBatch = regions.slice(i, i + REGION_CONCURRENCY_LIMIT)
 
-  for (const region of regions) {
-    try {
-      const client = addProxyToAwsClient(
-        new CloudFormationClient({
-          credentials,
-          region,
-          retryStrategy,
-        }),
-      )
+    const batchResults = await Promise.allSettled(
+      regionBatch.map(async (region) => {
+        const client = addProxyToAwsClient(
+          new CloudFormationClient({
+            credentials,
+            region,
+          }),
+        )
 
-      let nextToken
+        const stacks = []
+        let nextToken
 
-      do {
-        const command = new ListStacksCommand({
-          NextToken: nextToken,
-        })
+        do {
+          const command = new ListStacksCommand({
+            NextToken: nextToken,
+          })
 
-        const response = await client.send(command)
+          const response = await client.send(command)
 
-        if (response.StackSummaries) {
-          awsAccountStacks.push(...response.StackSummaries)
+          if (response.StackSummaries) {
+            stacks.push(...response.StackSummaries)
+          }
+
+          nextToken = response.NextToken
+        } while (nextToken)
+
+        return { region, stacks }
+      }),
+    )
+
+    // Collect results from this batch
+    for (let j = 0; j < batchResults.length; j++) {
+      const result = batchResults[j]
+      const region = regionBatch[j]
+
+      if (result.status === 'fulfilled') {
+        awsAccountStacks.push(...result.value.stacks)
+        if (result.value.stacks.length > 0) {
+          logger.debug(
+            `Fetched ${result.value.stacks.length} stacks from region ${region}`,
+          )
         }
-
-        nextToken = response.NextToken
-      } while (nextToken)
-    } catch (error) {
-      log.debug(`Error fetching stacks in region ${region}: ${error.message}`)
-      failedRegions.push(region)
+      } else {
+        logger.debug(
+          `Error fetching stacks in region ${region}: ${result.reason?.message}`,
+        )
+        failedRegions.push(region)
+      }
     }
   }
 
@@ -222,6 +255,7 @@ const getInstancesToReconcile = (instances, stacks, failedRegions) => {
 
 /**
  * Reconcile the instances that are not in the correct state to be reconciled
+ * Handles large datasets by batching instances into multiple requests
  * @param {*} auth
  * @param {*} instancesToReconcile
  */
@@ -230,6 +264,7 @@ const reconcileInstances = async ({
   instancesToReconcile,
   isQualified,
   versionFramework,
+  progressMain,
 }) => {
   const domain =
     process.env.SERVERLESS_PLATFORM_STAGE === 'dev'
@@ -237,23 +272,60 @@ const reconcileInstances = async ({
       : 'serverless.com'
 
   const url = `https://core.${domain}/api/usage/instances/${auth.orgId}/reconcile`
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: buildHeaders(auth, versionFramework),
-    body: JSON.stringify({
-      instances: instancesToReconcile,
-      isQualified,
-    }),
-    dispatcher: getProxyDispatcher(url),
-  })
 
-  if (!response.ok) {
-    const errorMessage = `Failed to reconcile instances: ${response.statusText}`
+  const totalInstances = instancesToReconcile.length
+  const totalBatches = Math.ceil(totalInstances / RECONCILE_BATCH_SIZE)
 
-    throw new ServerlessError(errorMessage, 'RECONCILIATION_FAILED', {
-      originalMessage: errorMessage,
-      stack: false,
-    })
+  const logger = log.get('core:reconcile')
+
+  let reconciledCount = 0
+
+  for (let i = 0; i < totalBatches; i++) {
+    const start = i * RECONCILE_BATCH_SIZE
+    const end = Math.min(start + RECONCILE_BATCH_SIZE, totalInstances)
+    const batch = instancesToReconcile.slice(start, end)
+
+    if (totalBatches > 1 && progressMain) {
+      progressMain.notice(
+        `Reconciling instances: batch ${style.bold(i + 1)}/${style.bold(totalBatches)} (${style.bold(reconciledCount + batch.length)}/${style.bold(totalInstances)} instances)`,
+      )
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: buildHeaders(auth, versionFramework),
+        body: JSON.stringify({
+          instances: batch,
+          isQualified,
+        }),
+        dispatcher: getProxyDispatcher(url),
+      })
+
+      if (!response.ok) {
+        const errorMessage = `Failed to reconcile instances (batch ${i + 1}/${totalBatches}): ${response.statusText}`
+
+        throw new ServerlessError(errorMessage, 'RECONCILIATION_FAILED', {
+          originalMessage: errorMessage,
+          stack: false,
+        })
+      }
+
+      reconciledCount += batch.length
+    } catch (error) {
+      if (reconciledCount > 0) {
+        logger.error(
+          `${style.bold.underline('Partial reconciliation completed')}: ${style.bold(reconciledCount)} of ${style.bold(totalInstances)} instances reconciled.`,
+        )
+        logger.blankLine()
+        logger.notice(
+          `Re-run ${style.bold('serverless reconcile')} to process the remaining ${style.bold(totalInstances - reconciledCount)} instances. Already-reconciled instances will be skipped automatically.`,
+        )
+        logger.blankLine()
+      }
+
+      throw error
+    }
   }
 }
 
@@ -292,11 +364,29 @@ const commandReconcile = async ({ auth, credentials, versionFramework }) => {
   // Get a list of all the regions the user has billable instances in
   const instancesRegions = getInstancesRegions(awsAccountInstances)
 
+  if (instancesRegions.length > 0) {
+    logger.debug(
+      `Fetching CloudFormation stacks from ${instancesRegions.length} region(s)`,
+    )
+  }
+
   // Get all the stacks in these particular regions regions
   const { awsAccountStacks, failedRegions } = await getRegionsStacks(
     instancesRegions,
     credentials,
   )
+
+  if (awsAccountStacks.length > 0) {
+    logger.debug(
+      `Found ${awsAccountStacks.length} CloudFormation stack(s) to compare against ${awsAccountInstances.length} reported instance(s)`,
+    )
+  }
+
+  if (failedRegions.length > 0) {
+    logger.warning(
+      `Unable to fetch stacks from ${style.bold(failedRegions.length)} region${failedRegions.length > 1 ? 's' : ''}: ${failedRegions.join(', ')}. Instances in these regions will be skipped.`,
+    )
+  }
 
   // compare the reported instances for this aws account with all the stacks across these regions
   // and get a list of instances that are not in the correct state to be reconciled
@@ -314,14 +404,21 @@ const commandReconcile = async ({ auth, credentials, versionFramework }) => {
       instancesToReconcile,
       isQualified,
       versionFramework,
+      progressMain,
     })
   }
 
   progressMain.remove()
 
-  logger.success(
-    `Successfully reconciled ${style.bold.underline(auth.orgName)} org instances in AWS Account ${style.bold.underline(credentials.accountId)}.`,
-  )
+  if (instancesToReconcile.length > 0) {
+    logger.success(
+      `Successfully reconciled ${style.bold.underline(instancesToReconcile.length)} instances for ${style.bold.underline(auth.orgName)} org in AWS Account ${style.bold.underline(credentials.accountId)}.`,
+    )
+  } else {
+    logger.success(
+      `No instances to reconcile for ${style.bold.underline(auth.orgName)} org in AWS Account ${style.bold.underline(credentials.accountId)}.`,
+    )
+  }
 
   logger.blankLine()
 
@@ -348,3 +445,4 @@ const buildHeaders = (auth, versionFramework) => {
 }
 
 export default commandReconcile
+export { reconcileInstances, getInstancesToReconcile, RECONCILE_BATCH_SIZE }
