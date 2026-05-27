@@ -1,8 +1,8 @@
-import { describe, it, expect } from '@jest/globals'
+import { describe, it, expect, jest } from '@jest/globals'
 import { Writable } from 'stream'
 import stripAnsi from 'strip-ansi'
 import cfDiff from '@aws-cdk/cloudformation-diff'
-import {
+import runDiffMixin, {
   renderDiff,
   normalizeForDiff,
   isStackNotFoundError,
@@ -657,3 +657,71 @@ function capture(write) {
   write(stream)
   return Buffer.concat(chunks).toString('utf8')
 }
+
+describe('_getRemoteCodeSha', () => {
+  // Bind the mixin to a minimal `this` and run the method in isolation.
+  // The mixin only touches `this.provider.request` and stays AWS-SDK
+  // version agnostic — we exercise both v2 (`providerError.code`) and v3
+  // (`name`) shapes for ResourceNotFoundException.
+  const bind = (request) => ({
+    provider: { request },
+    _getRemoteCodeSha: runDiffMixin._getRemoteCodeSha,
+  })
+
+  it('returns the CodeSha256 on success', async () => {
+    const request = jest
+      .fn()
+      .mockResolvedValue({ Configuration: { CodeSha256: 'abc=' } })
+    const ctx = bind(request)
+    await expect(ctx._getRemoteCodeSha('my-fn')).resolves.toBe('abc=')
+    expect(request).toHaveBeenCalledWith('Lambda', 'getFunction', {
+      FunctionName: 'my-fn',
+    })
+  })
+
+  it('returns null on ResourceNotFoundException via providerError.code (SDK v2 shape)', async () => {
+    const err = new Error('Function not found: arn:...')
+    err.providerError = { code: 'ResourceNotFoundException' }
+    const request = jest.fn().mockRejectedValue(err)
+    const ctx = bind(request)
+    await expect(ctx._getRemoteCodeSha('missing-fn')).resolves.toBeNull()
+  })
+
+  it('returns null on ResourceNotFoundException via err.name (SDK v3 shape)', async () => {
+    const err = new Error('Function not found: arn:...')
+    err.name = 'ResourceNotFoundException'
+    const request = jest.fn().mockRejectedValue(err)
+    const ctx = bind(request)
+    await expect(ctx._getRemoteCodeSha('missing-fn')).resolves.toBeNull()
+  })
+
+  it('returns null on ResourceNotFoundException via err.code (raw SDK shape)', async () => {
+    const err = new Error('Function not found: arn:...')
+    err.code = 'ResourceNotFoundException'
+    const request = jest.fn().mockRejectedValue(err)
+    const ctx = bind(request)
+    await expect(ctx._getRemoteCodeSha('missing-fn')).resolves.toBeNull()
+  })
+
+  it('still throws DIFF_FUNCTION_CODE_VERIFICATION_FAILED on AccessDenied (and similar non-RNF errors)', async () => {
+    const err = new Error(
+      'User: arn:aws:iam::123:user/x is not authorized to perform: lambda:GetFunction',
+    )
+    err.providerError = { code: 'AccessDeniedException' }
+    const request = jest.fn().mockRejectedValue(err)
+    const ctx = bind(request)
+    await expect(ctx._getRemoteCodeSha('forbidden-fn')).rejects.toMatchObject({
+      code: 'DIFF_FUNCTION_CODE_VERIFICATION_FAILED',
+      message: expect.stringContaining('forbidden-fn'),
+    })
+  })
+
+  it('throws DIFF_FUNCTION_CODE_VERIFICATION_FAILED when CodeSha256 is missing from a successful response', async () => {
+    const request = jest.fn().mockResolvedValue({ Configuration: {} })
+    const ctx = bind(request)
+    await expect(ctx._getRemoteCodeSha('shapeless-fn')).rejects.toMatchObject({
+      code: 'DIFF_FUNCTION_CODE_VERIFICATION_FAILED',
+      message: expect.stringContaining('CodeSha256 missing'),
+    })
+  })
+})

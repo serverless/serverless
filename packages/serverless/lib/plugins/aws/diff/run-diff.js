@@ -138,7 +138,9 @@ export default {
    * Compare every function's local zip hash against its deployed Lambda's
    * CodeSha256. Returns an array of `{ funcName, status }` where `status` is
    * one of:
-   *   - `'new'`: function exists locally but not in the deployed stack
+   *   - `'new'`: function exists locally but not in the deployed stack OR
+   *      the deployed Lambda is absent at AWS (e.g. forced replacement via
+   *      `name:` change)
    *   - `'changed'`: local zip hash differs from the deployed Lambda's CodeSha256
    *   - `'unchanged'`: hashes match
    *   - `'image'`: container-image function (no zip to hash)
@@ -151,10 +153,12 @@ export default {
    * worth showing in a diff. Surfacing them in the returned array still lets
    * future callers introspect them if needed.
    *
-   * If the deployed Lambda's `CodeSha256` can't be read (permission denied,
-   * function missing in Lambda while present in CFN, etc.), the entire diff
-   * fails fast with `DIFF_FUNCTION_CODE_VERIFICATION_FAILED`. Partial-state
-   * results don't help CI workflows that need a clear pass/fail signal.
+   * If the deployed Lambda's `CodeSha256` can't be read for an unexpected
+   * reason (permission denied, malformed response, transient AWS error), the
+   * entire diff fails fast with `DIFF_FUNCTION_CODE_VERIFICATION_FAILED`.
+   * Partial-state results don't help CI workflows that need a clear
+   * pass/fail signal. `ResourceNotFoundException` is the documented benign
+   * case and is mapped to `'new'` instead.
    */
   async _detectCodeChanges(deployedTemplate) {
     const functionNames = this.serverless.service.getAllFunctions()
@@ -232,6 +236,15 @@ export default {
 
         const localHash = zipHashByPath.get(zipPath)
         const remoteHash = await this._getRemoteCodeSha(funcObj.name)
+        // A null remoteHash means the resolved Lambda name doesn't exist at
+        // AWS yet. The logical id is already in the deployed CFN template
+        // (otherwise we would have short-circuited above as `status: 'new'`),
+        // so this is a function-rename or otherwise replacement-forcing
+        // change: the existing physical Lambda is being destroyed and a new
+        // one created under a new name. Surface the code as new — the
+        // template diff will show the matching [-] destroy / [+] create on
+        // the function resource.
+        if (remoteHash === null) return { funcName, status: 'new' }
         return {
           funcName,
           status: localHash === remoteHash ? 'unchanged' : 'changed',
@@ -241,12 +254,18 @@ export default {
   },
 
   /**
-   * Look up the deployed Lambda's CodeSha256. Throws a `ServerlessError` —
-   * with the offending function name included in the message — if AWS can't
-   * be queried (missing IAM permission, Lambda function missing in spite of
-   * being present in the deployed CloudFormation template, etc.). The diff
-   * command is meant to produce a definite answer, so partial-failure states
-   * fail fast rather than silently degrade.
+   * Look up the deployed Lambda's CodeSha256.
+   *
+   * Returns `null` when the function is absent at AWS — typically because the
+   * resolved name is being introduced for the first time by this change
+   * (forced replacement via `name:`, or a function deleted out-of-band from
+   * a stack that still references it). The caller classifies that as new
+   * code.
+   *
+   * Throws `DIFF_FUNCTION_CODE_VERIFICATION_FAILED` for every other failure
+   * mode (missing IAM permission, malformed response, transient AWS error)
+   * — the diff command is meant to produce a definite answer, so partial-
+   * failure states fail fast rather than silently degrade.
    */
   async _getRemoteCodeSha(awsFunctionName) {
     let res
@@ -255,6 +274,12 @@ export default {
         FunctionName: awsFunctionName,
       })
     } catch (err) {
+      // `ResourceNotFoundException` is the normal way AWS signals "this
+      // function doesn't exist (yet)". Both SDK v2 and v3 expose the code
+      // via `providerError.code` on the framework's wrapped error; fall
+      // back to a name-match on the underlying error for safety.
+      const code = err.providerError?.code || err.code || err.name
+      if (code === 'ResourceNotFoundException') return null
       throw new ServerlessError(
         `Failed to verify code for function "${awsFunctionName}": ${err.message}`,
         'DIFF_FUNCTION_CODE_VERIFICATION_FAILED',
