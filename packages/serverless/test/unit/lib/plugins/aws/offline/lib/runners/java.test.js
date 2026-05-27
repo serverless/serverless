@@ -552,4 +552,101 @@ describe('createJavaRunner (Docker)', () => {
       await runner.terminate()
     }
   })
+
+  it('demotes stderr output to debug level after terminate() to hide RIC shutdown noise', async () => {
+    const logEvents = []
+    const captureLog = {
+      debug(msg) {
+        logEvents.push(['debug', msg])
+      },
+      notice(msg) {
+        logEvents.push(['notice', msg])
+      },
+      warning(msg) {
+        logEvents.push(['warning', msg])
+      },
+      error(msg) {
+        logEvents.push(['error', msg])
+      },
+    }
+
+    let capturedStderrSink
+    const captureDockerClient = {
+      getDockerodeClient() {
+        return {
+          modem: {
+            demuxStream(_stream, _stdoutSink, stderrSink) {
+              capturedStderrSink = stderrSink
+            },
+          },
+        }
+      },
+    }
+
+    const fakeContainer = makeFakeContainer()
+    const runner = createJavaRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      dockerClient: captureDockerClient,
+      ensureImageReady: async () => {},
+      log: captureLog,
+      createContainerOverride: async (opts) => {
+        // Stalling poller — we don't need a real response, just need the
+        // sink wired up before terminate().
+        const apiBase = opts.Env.find((e) =>
+          e.startsWith('AWS_LAMBDA_RUNTIME_API='),
+        ).split('=')[1]
+        const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
+        setImmediate(async () => {
+          try {
+            await fetch(`${httpBase}/2018-06-01/runtime/invocation/next`)
+          } catch {}
+        })
+        return fakeContainer
+      },
+      servicePath: '/tmp',
+    })
+
+    // Kick an invoke so the runner spawns and demuxStream wires up the sink.
+    const inFlight = runner.invoke(makeInvokeArgs({ timeoutMs: 60_000 }))
+    const settled = inFlight.then(
+      (v) => ({ status: 'fulfilled', value: v }),
+      (r) => ({ status: 'rejected', reason: r }),
+    )
+    await new Promise((r) => setTimeout(r, 50))
+    expect(typeof capturedStderrSink?.write).toBe('function')
+
+    // Before terminate(): stderr → error.
+    capturedStderrSink.write(Buffer.from('startup exception line\n'))
+    expect(
+      logEvents.find(
+        ([level, msg]) =>
+          level === 'error' && msg.includes('startup exception line'),
+      ),
+    ).toBeDefined()
+
+    // After terminate(): the RIC's interrupted-poll stack trace must go
+    // to debug, not error.
+    await runner.terminate()
+    capturedStderrSink.write(
+      Buffer.from(
+        'LambdaRuntimeClientException: Failed to get next. Response code: 500\n',
+      ),
+    )
+    expect(
+      logEvents.find(
+        ([level, msg]) =>
+          level === 'error' && msg.includes('LambdaRuntimeClientException'),
+      ),
+    ).toBeUndefined()
+    expect(
+      logEvents.find(
+        ([level, msg]) =>
+          level === 'debug' && msg.includes('LambdaRuntimeClientException'),
+      ),
+    ).toBeDefined()
+
+    await settled
+  })
 })

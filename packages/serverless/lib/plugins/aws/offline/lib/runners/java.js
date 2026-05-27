@@ -236,8 +236,14 @@ export function createJavaRunner({
       write(chunk) {
         const text = chunk.toString().trimEnd()
         if (!text) return
-        if (typeof log?.[level] === 'function') {
-          log[level](`[${functionKey}] ${text}`)
+        // During shutdown the in-container RIC dumps a Java stack trace
+        // when its in-flight `/next` long-poll is interrupted by the
+        // aws-api-server tearing down. Demote that visually alarming
+        // output to `debug` — the container is exiting cleanly anyway
+        // (see container.wait() → _handleExit, no orphan resources).
+        const effectiveLevel = terminated ? 'debug' : level
+        if (typeof log?.[effectiveLevel] === 'function') {
+          log[effectiveLevel](`[${functionKey}] ${text}`)
         }
       },
     }
