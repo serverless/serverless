@@ -192,61 +192,59 @@ export function createScheduler({
       if (!event || !('schedule' in event)) continue
 
       const raw = event.schedule
-      /** @type {{ rate: string | string[], enabled?: boolean, input?: unknown }} */
+      /** @type {{ rate: string, enabled?: boolean, input?: unknown }} */
       const def = typeof raw === 'string' ? { rate: raw } : { ...raw }
       const enabled = def.enabled !== false
-      const rates = Array.isArray(def.rate) ? def.rate : [def.rate]
+      const rateExpr = def.rate
 
-      for (const rateExpr of rates) {
-        scheduledCount++
+      scheduledCount++
 
-        // Validate-always: parse (and for cron, attempt croner construction)
-        // even when enabled:false so a typo throws at boot regardless of the
-        // flag. We just don't push the entry or arm a timer in that branch —
-        // flipping enabled later shouldn't surface a latent syntax error.
-        const parsed = parseExpression(rateExpr)
+      // Validate-always: parse (and for cron, attempt croner construction)
+      // even when enabled:false so a typo throws at boot regardless of the
+      // flag. We just don't push the entry or arm a timer in that branch —
+      // flipping enabled later shouldn't surface a latent syntax error.
+      const parsed = parseExpression(rateExpr)
 
-        /** @type {Entry} */
-        const entry = {
-          functionKey,
-          index,
-          // Capture presence of `input` so literal-null user input
-          // (`input: null`) is delivered verbatim rather than swallowed by
-          // a truthiness check.
-          hasInput: 'input' in def,
-          input: def.input,
-          parsed,
-          armed: false,
-        }
-
-        if (parsed.kind === 'cron') {
-          try {
-            entry.cron = new Cron(
-              parsed.expression,
-              { timezone: 'UTC', paused: true },
-              () => _onTick(entry),
-            )
-          } catch (err) {
-            throw new ServerlessError(
-              `Invalid cron pattern in "${rateExpr}": ${err.message}`,
-              'OFFLINE_SCHEDULE_INVALID_EXPRESSION',
-            )
-          }
-        }
-
-        if (!enabled) {
-          disabledCount++
-          // Discard the validated entry; release the croner timer so it
-          // doesn't sit paused-but-allocated.
-          if (entry.cron !== undefined) entry.cron.stop()
-          logger.notice(
-            `Schedule for ${functionKey} #${index} disabled by enabled:false`,
-          )
-          continue
-        }
-
-        entries.push(entry)
+      /** @type {Entry} */
+      const entry = {
+        functionKey,
+        index,
+        // Capture presence of `input` so literal-null user input
+        // (`input: null`) is delivered verbatim rather than swallowed by
+        // a truthiness check.
+        hasInput: 'input' in def,
+        input: def.input,
+        parsed,
+        armed: false,
       }
+
+      if (parsed.kind === 'cron') {
+        try {
+          entry.cron = new Cron(
+            parsed.expression,
+            { timezone: 'UTC', paused: true },
+            () => _onTick(entry),
+          )
+        } catch (err) {
+          throw new ServerlessError(
+            `Invalid cron pattern in "${rateExpr}": ${err.message}`,
+            'OFFLINE_SCHEDULE_INVALID_EXPRESSION',
+          )
+        }
+      }
+
+      if (!enabled) {
+        disabledCount++
+        // Discard the validated entry; release the croner timer so it
+        // doesn't sit paused-but-allocated.
+        if (entry.cron !== undefined) entry.cron.stop()
+        logger.notice(
+          `Schedule for ${functionKey} #${index} disabled by enabled:false`,
+        )
+        continue
+      }
+
+      entries.push(entry)
     }
   }
 

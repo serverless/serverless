@@ -550,37 +550,6 @@ describe('createScheduler', () => {
     await scheduler.stop()
   })
 
-  it('rate-array form expands to multiple scheduled entries', async () => {
-    const runner = makeStubRunner()
-    const logger = makeLogger()
-    const scheduler = createScheduler({
-      serverless: makeServerless({
-        fn: {
-          events: [
-            {
-              schedule: {
-                rate: ['rate(1 minute)', 'rate(2 minutes)'],
-              },
-            },
-          ],
-        },
-      }),
-      getLambdaFunction: runner.getLambdaFunction,
-      logger,
-      region: 'us-east-1',
-    })
-
-    expect(scheduler.scheduledCount).toBe(2)
-    expect(scheduler.disabledCount).toBe(0)
-
-    scheduler.start()
-    await jest.advanceTimersByTimeAsync(120_000)
-
-    // rate(1 minute) fires twice + rate(2 minutes) fires once = 3 total
-    expect(runner.calls.length).toBe(3)
-    await scheduler.stop()
-  })
-
   it('no overlap, no warn — fast-resolving invokes never trip the counter', async () => {
     const runner = makeStubRunner()
     const logger = makeLogger()
