@@ -178,6 +178,11 @@ export function createScheduler({
   /** @type {Map<string, number>} */
   const inFlight = new Map()
 
+  // Tracks every in-flight invocation promise so stop() can await drain.
+  // Each promise removes itself from the set in its finally handler.
+  /** @type {Set<Promise<unknown>>} */
+  const inFlightPromises = new Set()
+
   const functions = serverless.service.functions ?? {}
 
   for (const [functionKey, fn] of Object.entries(functions)) {
@@ -268,8 +273,9 @@ export function createScheduler({
     }
     inFlight.set(key, inFlightCount + 1)
 
-    // Fire-and-forget — real AWS does not serialize ticks.
-    getLambdaFunction(entry.functionKey)
+    // Fire-and-forget — real AWS does not serialize ticks. Tracked in
+    // inFlightPromises so stop() can await drain at shutdown.
+    const invocationPromise = getLambdaFunction(entry.functionKey)
       .invoke(event)
       .catch((err) => {
         logger.error(
@@ -280,7 +286,9 @@ export function createScheduler({
         // Decrement on BOTH success and failure so a single hung invocation
         // doesn't latch the counter past its lifetime.
         inFlight.set(key, (inFlight.get(key) ?? 1) - 1)
+        inFlightPromises.delete(invocationPromise)
       })
+    inFlightPromises.add(invocationPromise)
   }
 
   return {
@@ -316,6 +324,15 @@ export function createScheduler({
           entry.intervalId = undefined
         }
         entry.armed = false
+      }
+
+      // Wait up to 5s for in-flight invocations to drain. Resolve
+      // regardless — shutdown must not hang on a stuck handler.
+      if (inFlightPromises.size > 0) {
+        await Promise.race([
+          Promise.allSettled([...inFlightPromises]),
+          new Promise((resolve) => setTimeout(resolve, 5000)),
+        ])
       }
     },
   }

@@ -635,7 +635,11 @@ describe('createScheduler', () => {
     expect(overlapWarnings[0][1]).toMatch(
       /Schedule overlap.*fn.*tick fired while 1 invocation/,
     )
-    await scheduler.stop()
+    // Two invokes are hung — stop() will hit its 5s drain budget. Advance
+    // the fake clock past that budget so the race resolves promptly.
+    const stopPromise = scheduler.stop()
+    await jest.advanceTimersByTimeAsync(5000)
+    await stopPromise
   })
 
   it('counter decrements on success — tick after a settled invoke does not warn', async () => {
@@ -677,7 +681,10 @@ describe('createScheduler', () => {
       ([level, msg]) => level === 'warning' && msg.includes('overlap'),
     )
     expect(overlapWarnings.length).toBe(1)
-    await scheduler.stop()
+    // Two invokes are still hung — drain past the 5s stop() budget.
+    const stopPromise = scheduler.stop()
+    await jest.advanceTimersByTimeAsync(5000)
+    await stopPromise
   })
 
   it('counter decrements on failure — rejected invoke clears the slot', async () => {
@@ -710,6 +717,62 @@ describe('createScheduler', () => {
       ([level, msg]) => level === 'warning' && msg.includes('overlap'),
     )
     expect(overlapWarnings.length).toBe(0)
-    await scheduler.stop()
+    // Tick 2's invoke is hung — drain past the 5s stop() budget.
+    const stopPromise = scheduler.stop()
+    await jest.advanceTimersByTimeAsync(5000)
+    await stopPromise
+  })
+
+  // stop() drain tests use REAL timers throughout — the race between
+  // setTimeout(5000) and the in-flight promise needs a single, consistent
+  // clock. Switching fake↔real mid-test abandons queued fake-timer callbacks.
+  describe('stop() drains in-flight invocations', () => {
+    beforeEach(() => {
+      jest.useRealTimers()
+    })
+
+    it('resolves immediately when no invocation is in-flight', async () => {
+      const runner = makeStubRunner()
+      const logger = makeLogger()
+      const scheduler = createScheduler({
+        serverless: makeServerless({
+          fn: { events: [{ schedule: 'rate(1 minute)' }] },
+        }),
+        getLambdaFunction: runner.getLambdaFunction,
+        logger,
+        region: 'us-east-1',
+      })
+
+      scheduler.start()
+      const startMs = Date.now()
+      await scheduler.stop()
+      const elapsedMs = Date.now() - startMs
+      expect(elapsedMs).toBeLessThan(100)
+    })
+
+    it('times out at 5s and resolves anyway when an invocation hangs', async () => {
+      const runner = makeStubRunner()
+      const logger = makeLogger()
+      runner.setInvokeImpl(() => new Promise(() => {})) // never resolves
+      const scheduler = createScheduler({
+        serverless: makeServerless({
+          fn: { events: [{ schedule: 'rate(1 minute)' }] },
+        }),
+        getLambdaFunction: runner.getLambdaFunction,
+        logger,
+        region: 'us-east-1',
+      })
+      jest.useFakeTimers({ doNotFake: ['nextTick'] })
+      scheduler.start()
+      await jest.advanceTimersByTimeAsync(60_000)
+      expect(runner.calls.length).toBe(1)
+      jest.useRealTimers()
+
+      const startMs = Date.now()
+      await scheduler.stop()
+      const elapsedMs = Date.now() - startMs
+      expect(elapsedMs).toBeGreaterThanOrEqual(4900)
+      expect(elapsedMs).toBeLessThan(5500)
+    }, 10_000)
   })
 })
