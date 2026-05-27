@@ -453,4 +453,131 @@ describe('createScheduler', () => {
     expect(errorLogs[0][1]).toContain('boom')
     await scheduler.stop()
   })
+
+  it('start() is idempotent — calling twice does not double-arm', async () => {
+    const runner = makeStubRunner()
+    const logger = makeLogger()
+    const scheduler = createScheduler({
+      serverless: makeServerless({
+        fn: { events: [{ schedule: 'rate(1 minute)' }] },
+      }),
+      getLambdaFunction: runner.getLambdaFunction,
+      logger,
+      region: 'us-east-1',
+    })
+
+    scheduler.start()
+    scheduler.start()
+    await jest.advanceTimersByTimeAsync(60_000)
+
+    expect(runner.calls.length).toBe(1)
+    await scheduler.stop()
+  })
+
+  it('stop() is idempotent — calling twice does not throw', async () => {
+    const runner = makeStubRunner()
+    const logger = makeLogger()
+    const scheduler = createScheduler({
+      serverless: makeServerless({
+        fn: { events: [{ schedule: 'rate(1 minute)' }] },
+      }),
+      getLambdaFunction: runner.getLambdaFunction,
+      logger,
+      region: 'us-east-1',
+    })
+
+    scheduler.start()
+    await scheduler.stop()
+    await expect(scheduler.stop()).resolves.toBeUndefined()
+    await jest.advanceTimersByTimeAsync(60_000)
+    expect(runner.calls.length).toBe(0)
+  })
+
+  it('stop() then start() re-arms timers', async () => {
+    const runner = makeStubRunner()
+    const logger = makeLogger()
+    const scheduler = createScheduler({
+      serverless: makeServerless({
+        fn: { events: [{ schedule: 'rate(1 minute)' }] },
+      }),
+      getLambdaFunction: runner.getLambdaFunction,
+      logger,
+      region: 'us-east-1',
+    })
+
+    scheduler.start()
+    await jest.advanceTimersByTimeAsync(60_000)
+    expect(runner.calls.length).toBe(1)
+
+    await scheduler.stop()
+    await jest.advanceTimersByTimeAsync(60_000)
+    expect(runner.calls.length).toBe(1)
+
+    scheduler.start()
+    await jest.advanceTimersByTimeAsync(60_000)
+    expect(runner.calls.length).toBe(2)
+    await scheduler.stop()
+  })
+
+  it('multiple schedules on one function get distinct resource ARNs by index', async () => {
+    const runner = makeStubRunner()
+    const logger = makeLogger()
+    const scheduler = createScheduler({
+      serverless: makeServerless({
+        multiFn: {
+          events: [
+            { schedule: 'rate(1 minute)' },
+            { schedule: 'rate(2 minutes)' },
+          ],
+        },
+      }),
+      getLambdaFunction: runner.getLambdaFunction,
+      logger,
+      region: 'us-east-1',
+    })
+
+    scheduler.start()
+    await jest.advanceTimersByTimeAsync(120_000)
+
+    expect(runner.calls.length).toBe(3) // rate(1) fires twice, rate(2) once
+    const arns = runner.calls.map((c) => c.event.resources[0])
+    expect(arns).toContain(
+      'arn:aws:events:us-east-1:000000000000:rule/multiFn-schedule-0',
+    )
+    expect(arns).toContain(
+      'arn:aws:events:us-east-1:000000000000:rule/multiFn-schedule-1',
+    )
+    await scheduler.stop()
+  })
+
+  it('rate-array form expands to multiple scheduled entries', async () => {
+    const runner = makeStubRunner()
+    const logger = makeLogger()
+    const scheduler = createScheduler({
+      serverless: makeServerless({
+        fn: {
+          events: [
+            {
+              schedule: {
+                rate: ['rate(1 minute)', 'rate(2 minutes)'],
+              },
+            },
+          ],
+        },
+      }),
+      getLambdaFunction: runner.getLambdaFunction,
+      logger,
+      region: 'us-east-1',
+    })
+
+    expect(scheduler.scheduledCount).toBe(2)
+    expect(scheduler.disabledCount).toBe(0)
+
+    scheduler.start()
+    await jest.advanceTimersByTimeAsync(120_000)
+
+    // rate(1 minute) fires twice + rate(2 minutes) fires once = 3 total
+    expect(runner.calls.length).toBe(3)
+    await scheduler.stop()
+  })
 })
