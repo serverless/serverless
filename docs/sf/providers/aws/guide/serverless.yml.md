@@ -93,6 +93,53 @@ foo: ${param:domain}
 
 **Note:** Specifying parameters under the `stage` property as shown in the previous section is the preferred way of setting parameters in v4 of the Serverless Framework.
 
+### Dotenv files
+
+`.env` and `.env.${stage}` in the service directory are loaded automatically — values become available as `${env:KEY}` placeholders throughout `serverless.yml`. The `useDotenv` property opts into additional `.env` file(s) outside the service directory, typically used to share configuration across services in a monorepo, or disables loading entirely.
+
+```yml
+# serverless.yml
+
+# Equivalent to omitting `useDotenv` — local .env files only.
+useDotenv: true
+
+# Explicit opt-out: disables ALL .env loading (local and custom).
+useDotenv: false
+
+# Single custom path (file or directory), resolved relative to the
+# service directory.
+useDotenv: ../shared
+
+# Array of paths. Earlier entries beat later ones for shared keys.
+useDotenv:
+  - ./overrides.env # specific overrides (file)
+  - ../ # shared defaults (directory)
+```
+
+| Value             | What gets loaded                                                                    |
+| ----------------- | ----------------------------------------------------------------------------------- |
+| `true` or omitted | Local `<serviceDir>/.env.${stage}` then `<serviceDir>/.env`                         |
+| `false`           | **Nothing.** All .env loading is skipped (local and custom).                        |
+| File path         | Locals **and** exactly that file. No stage-suffix probing on the file path.         |
+| Directory path    | Locals **and** `<dir>/.env.${stage}` (if a stage is set) then `<dir>/.env`          |
+| Array of paths    | Each entry processed in order with the rules above. Earlier entries win on overlap. |
+| Missing path      | Silently skipped — same as a missing local `.env`.                                  |
+
+**Precedence**, highest to lowest:
+
+1. `process.env` (system environment) — set before the framework runs
+2. Local `<serviceDir>/.env.${stage}`
+3. Local `<serviceDir>/.env`
+4. Custom entries in array order (within a directory entry, `.env.${stage}` beats `.env`)
+
+Local files always win over custom files; custom paths act as shared defaults that per-service files can override. `dotenv` uses first-write-wins, so the load order above produces the precedence chain directly.
+
+**Notes:**
+
+- Path strings are taken literally. Serverless variable placeholders (`${opt:stage}`, `${self:…}`, etc.) are **not** resolved inside `useDotenv` because the value is read before the resolver runs. Use the directory form when you need stage-specific custom files.
+- `useDotenv` is per-service. Setting it at the top level of `serverless-compose.yml` has no effect; each child service declares its own.
+- `${env:…}` placeholders inside `provider.stage` cannot reference values from any `.env` file (local or custom) — stage resolution runs before `.env` files are loaded.
+
 ## Provider
 
 Use this block to specify Service-wide AWS-specific details.

@@ -1,0 +1,12 @@
+service: resolvers-env-test
+org: serverlesstestaccount
+
+useDotenv:
+  - ./overrides.env
+  - ./shared
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${env:KEY_FROM_FILE}
+    description: ${env:KEY_ONLY_IN_SHARED}
