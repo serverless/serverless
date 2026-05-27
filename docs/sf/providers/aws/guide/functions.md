@@ -759,7 +759,9 @@ The Infrequent Access class supports a reduced subset of CloudWatch Logs feature
 **Framework behavior notes:**
 
 - `sls logs -f <function>` cannot read an Infrequent Access log group and fails fast with a clear error. Read these logs through CloudWatch Logs Insights instead.
-- AWS does not allow the class of an existing log group to be changed in place. If you later remove `logGroupClass` from your configuration, the framework stops emitting the Infrequent Access log group resource. Because of `DeletionPolicy: Retain`, the AWS log group and its logs are preserved, but the resource is no longer tracked by your stack. Re-enabling `infrequent_access` later will fail with `ResourceAlreadyExistsException` unless you first delete or import the orphaned log group.
+- AWS does not allow the class of an existing log group to be changed in place. If you later remove `logGroupClass` from your configuration, the framework stops emitting the Infrequent Access log group resource. Because of `DeletionPolicy: Retain`, the AWS log group and its logs are preserved, but the resource is no longer tracked by your stack.
+
+> **⚠️ Re-enabling Infrequent Access on a previously-orphaned group will fail.** Once an Infrequent Access log group has been retained out of the stack (by removing `logGroupClass` and redeploying), a subsequent attempt to re-enable `infrequent_access` for the same function deploys with `ResourceAlreadyExistsException` — CloudFormation tries to create a log group with a name that already exists in AWS but is no longer managed by the stack. Recover by either deleting the orphaned group from CloudWatch (loses the retained history) or importing it back into the stack with [`aws cloudformation create-change-set --change-set-type IMPORT`](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resource-import.html) (keeps it). Plan toggling between classes accordingly.
 
 `logGroupClass` cannot be combined with:
 
