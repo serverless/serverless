@@ -11,6 +11,12 @@ rm -f dist/test-*.js dist/test-*.js.map
 
 # --uid/--gid/--uname/--gname: normalize ownership to 0/0 to avoid leaking the
 # invoking user into the archive.
+#
+# `db.json.gz` is the AWS resource-spec database used by `serverless diff` —
+# the bundled code resolves its path relative to its own location at the
+# package root, so the file must sit there as a sibling of `package.json`
+# rather than under `dist/`/`lib/`/`docs/`. It's copied into place by
+# `prepareDistributionTarballs.js` before this script runs.
 if tar --version 2>&1 | grep -q 'GNU'; then
     tar czf "serverlessinc-framework-alpha-${version}.tgz" \
         --transform='s,^,package/,' \
