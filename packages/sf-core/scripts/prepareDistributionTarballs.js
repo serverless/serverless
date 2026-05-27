@@ -97,6 +97,19 @@ cpPromises.push(
   ),
 )
 
+// `serverless diff` needs the AWS resource-spec database shipped alongside
+// the bundle. The library reads the file via a `__dirname`-relative path
+// from inside the bundled code; when sf-core.js is loaded from
+// `<package>/dist/`, that path resolves to `<package>/db.json.gz`. Copy it
+// there so the diff command can render structured output against deployed
+// stacks.
+cpPromises.push(
+  cp(
+    resolveFromServerless.resolve('@aws-cdk/aws-service-spec/db.json.gz'),
+    '../../framework-dist/db.json.gz',
+  ),
+)
+
 // Copy Python plugin files
 cpPromises.push(
   cp(

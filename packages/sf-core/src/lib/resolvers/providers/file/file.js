@@ -225,11 +225,19 @@ const resolveTsModule = async (
   resolveConfigurationPropertyFunc,
 ) => {
   // Lazy-load tsx so the loader is only paid for when a `.ts` reference is
-  // actually present in the configuration.
-  const { tsImport } = await import('tsx/esm/api')
+  // actually present in the configuration. We use tsx's CJS API (the same
+  // path the framework already uses for `serverless.ts` loading in
+  // configuration/read.js and plugin-manager.js) rather than the ESM API:
+  // the ESM API's `tsImport` registers Node's ESM loader hook, which Node
+  // can only honor as a real `.mjs` file on disk. Once tsx is bundled into
+  // the published `sf-core.js` distribution, that file isn't extracted and
+  // the import fails at runtime with `ERR_MODULE_NOT_FOUND` for
+  // `tsx/dist/esm/index.mjs`. The CJS API patches Node's `require`
+  // synchronously and runs entirely from the bundle.
+  const { require: tsxRequire } = await import('tsx/cjs/api')
   let module
   try {
-    module = await tsImport(pathToFileURL(filePath).href, import.meta.url)
+    module = tsxRequire(filePath, import.meta.url)
   } catch (error) {
     throw new Error(
       `Cannot load TS module "${filePath}": ${error.stack || error}`,
