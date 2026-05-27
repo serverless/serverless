@@ -17,7 +17,34 @@ const validTriggerSources = [
   'UserMigration',
 ].concat(customSenderSources)
 
-const validLambdaVersions = ['V1_0']
+const customSenderLambdaVersions = ['V1_0']
+const preTokenGenerationLambdaVersions = ['V1_0', 'V2_0', 'V3_0']
+
+function validateLambdaVersion(trigger, lambdaVersion) {
+  if (!lambdaVersion) return
+  if (customSenderSources.includes(trigger)) {
+    if (!customSenderLambdaVersions.includes(lambdaVersion)) {
+      throw new ServerlessError(
+        `Invalid lambdaVersion "${lambdaVersion}" for "${trigger}". Allowed: ${customSenderLambdaVersions.join(', ')}.`,
+        'COGNITO_INVALID_LAMBDA_VERSION',
+      )
+    }
+    return
+  }
+  if (trigger === 'PreTokenGeneration') {
+    if (!preTokenGenerationLambdaVersions.includes(lambdaVersion)) {
+      throw new ServerlessError(
+        `Invalid lambdaVersion "${lambdaVersion}" for "${trigger}". Allowed: ${preTokenGenerationLambdaVersions.join(', ')}.`,
+        'COGNITO_INVALID_LAMBDA_VERSION',
+      )
+    }
+    return
+  }
+  throw new ServerlessError(
+    `lambdaVersion is only supported for CustomSMSSender, CustomEmailSender, and PreTokenGeneration triggers. Got "${trigger}".`,
+    'COGNITO_LAMBDA_VERSION_NOT_SUPPORTED',
+  )
+}
 
 class AwsCompileCognitoUserPoolEvents {
   constructor(serverless, options) {
@@ -70,6 +97,10 @@ cognitoUserPool:
           kmsKeyId: {
             description: `KMS key id or ARN for custom sender triggers.`,
             $ref: '#/definitions/awsKmsArn',
+          },
+          lambdaVersion: {
+            description: `Trigger contract version. Valid for CustomSMSSender/CustomEmailSender (V1_0 only) and PreTokenGeneration (V1_0, V2_0, V3_0). V2_0/V3_0 require Cognito feature plan Essentials or Plus.`,
+            enum: ['V1_0', 'V2_0', 'V3_0'],
           },
         },
         required: ['pool', 'trigger'],
@@ -189,6 +220,8 @@ cognitoUserPool:
               event.cognitoUserPool
             usesExistingCognitoUserPool = funcUsesExistingCognitoUserPool = true
 
+            validateLambdaVersion(trigger, lambdaVersion)
+
             if (!currentPoolName) {
               currentPoolName = pool
             }
@@ -233,12 +266,14 @@ cognitoUserPool:
               userPoolConfig = {
                 ...userPoolConfig,
                 ...{
-                  LambdaVersion: lambdaVersion || validLambdaVersions[0],
+                  LambdaVersion: lambdaVersion || customSenderLambdaVersions[0],
                 },
               }
 
               this.checkKmsArn(kmsKeyId, poolKmsIdMap, pool)
               userPoolConfig.KMSKeyID = kmsKeyId
+            } else if (trigger === 'PreTokenGeneration' && lambdaVersion) {
+              userPoolConfig.LambdaVersion = lambdaVersion
             }
 
             if (numEventsForFunc === 1) {
@@ -375,6 +410,11 @@ cognitoUserPool:
           if (event.cognitoUserPool) {
             if (event.cognitoUserPool.existing) return
 
+            validateLambdaVersion(
+              event.cognitoUserPool.trigger,
+              event.cognitoUserPool.lambdaVersion,
+            )
+
             // Save trigger functions so we can use them to generate
             // IAM permissions later
             cognitoUserPoolTriggerFunctions.push({
@@ -408,11 +448,21 @@ cognitoUserPool:
         triggerObject = {
           [value.triggerSource]: {
             LambdaArn: resolveLambdaTarget(value.functionName, functionObj),
-            LambdaVersion: value.lambdaVersion || validLambdaVersions[0],
+            LambdaVersion: value.lambdaVersion || customSenderLambdaVersions[0],
           },
         }
         this.checkKmsArn(value.kmsKeyId, poolKmsIdMap, poolName)
         triggerObject.KMSKeyID = value.kmsKeyId
+      } else if (
+        value.triggerSource === 'PreTokenGeneration' &&
+        value.lambdaVersion
+      ) {
+        triggerObject = {
+          PreTokenGenerationConfig: {
+            LambdaArn: resolveLambdaTarget(value.functionName, functionObj),
+            LambdaVersion: value.lambdaVersion,
+          },
+        }
       } else {
         triggerObject = {
           [value.triggerSource]: resolveLambdaTarget(

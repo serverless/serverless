@@ -1,0 +1,10 @@
+service: resolvers-env-test
+org: serverlesstestaccount
+
+useDotenv: true
+
+functions:
+  hello:
+    handler: handler.hello
+    name: foo-hello-bar
+    description: stage-value system-value

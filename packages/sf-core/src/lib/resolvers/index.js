@@ -134,8 +134,15 @@ const createResolverManager = async ({
   // If a user does not define stage using the stage option,
   // we need to resolve the stage from provider.stage or default to 'dev'
   const stage = await manager.resolveStage()
-  // Load environment variables from .env file and .env.[stage] file
-  loadEnvFiles({ configFileDirPath, stage })
+  // Load environment variables from .env file and .env.[stage] file.
+  // `serviceConfigFile.useDotenv` opts into additional custom paths (a single
+  // path string or an array of paths) loaded with lower precedence than the
+  // local files. See loadEnvFiles for full precedence details.
+  loadEnvFiles({
+    configFileDirPath,
+    stage,
+    useDotenv: serviceConfigFile.useDotenv,
+  })
 
   // Resolve provider.resolver key
   await manager.resolveProviderResolver()

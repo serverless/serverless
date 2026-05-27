@@ -1,0 +1,12 @@
+service: resolvers-env-test
+org: serverlesstestaccount
+
+useDotenv:
+  - ./specific
+  - ./shared
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${env:OVERLAP}
+    description: ${env:ONLY_IN_SHARED} ${env:ONLY_IN_SPECIFIC}

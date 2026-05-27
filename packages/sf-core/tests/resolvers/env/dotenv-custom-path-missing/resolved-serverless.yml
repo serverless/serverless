@@ -1,0 +1,9 @@
+service: resolvers-env-test
+org: serverlesstestaccount
+
+useDotenv: ./does-not-exist
+
+functions:
+  hello:
+    handler: handler.hello
+    description: fallback-applied
