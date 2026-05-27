@@ -15,11 +15,11 @@ if tar --version 2>&1 | grep -q 'GNU'; then
     tar czf "serverlessinc-framework-alpha-${version}.tgz" \
         --transform='s,^,package/,' \
         --owner=0 --group=0 --numeric-owner \
-        package.json dist lib docs
+        package.json dist lib docs db.json.gz
 else
     # BSD tar (macOS)
     tar czf "serverlessinc-framework-alpha-${version}.tgz" \
         -s ',^,package/,' \
         --uid=0 --gid=0 --uname='' --gname='' \
-        package.json dist lib docs
+        package.json dist lib docs db.json.gz
 fi
