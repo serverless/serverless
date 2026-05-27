@@ -59,8 +59,8 @@ export default async function commandMcp({
         }
       }
 
-  // Get transport type from options (default: sse)
-  const transport = options?.transport || 'sse'
+  // Get transport type from options (default: stdio, matching CLI schema)
+  const transport = options?.transport || 'stdio'
 
   // Get port from options (default: 3001)
   const port = options?.port || 3001

@@ -143,6 +143,27 @@ resources:
 
 **NOTE:** The only supported value for lambdaVersion is `V1_0`, as documented [by AWS](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-customsmssender.html).
 
+### PreTokenGeneration Trigger
+
+The `PreTokenGeneration` trigger supports multiple Lambda contract versions, [documented by AWS](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-pre-token-generation.html). Set `lambdaVersion` to opt into a newer contract:
+
+- `V1_0` (default behavior when `lambdaVersion` is omitted): ID token customization only.
+- `V2_0`: ID and access token customization.
+- `V3_0`: Adds machine-to-machine (M2M) client-credentials grants.
+
+```yml
+functions:
+  preTokenGenerationV2:
+    handler: preToken.handler
+    events:
+      - cognitoUserPool:
+          pool: MyUserPool
+          trigger: PreTokenGeneration
+          lambdaVersion: V2_0
+```
+
+**NOTE:** `V2_0` and `V3_0` require the Cognito User Pool to be on the Essentials or Plus feature plan.
+
 ### Custom Sender Triggers Handlers
 
 For custom senders, the `event.triggerSource` type does not get populated by the type of custom sender, rather may be populated by another trigger source. Instead, `event.request.type` is populated with either `customEmailSenderRequestV1` or `customSMSSenderRequestV1`, respectively documented by AWS [here](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-custom-email-sender.html) and [here](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-custom-sms-sender.html)
