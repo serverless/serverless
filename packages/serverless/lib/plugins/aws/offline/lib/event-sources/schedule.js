@@ -58,7 +58,18 @@ export function parseExpression(expr) {
     if (inner.length === 0) {
       throw _invalid(expr)
     }
-    return { kind: 'cron', expression: inner }
+    // AWS EventBridge accepts 6-field cron (min hour dom month dow year).
+    // Croner's 6-field form is (sec min hour dom month dow) — incompatible.
+    // Translate by dropping the AWS year field; the remaining 5 fields are
+    // POSIX-cron-shaped, which croner accepts directly. 5-field input
+    // passes through unchanged.
+    const fields = inner.split(/\s+/)
+    if (fields.length < 5 || fields.length > 6) {
+      throw _invalid(expr)
+    }
+    const cronerExpression =
+      fields.length === 6 ? fields.slice(0, 5).join(' ') : inner
+    return { kind: 'cron', expression: cronerExpression }
   }
 
   throw _invalid(expr)

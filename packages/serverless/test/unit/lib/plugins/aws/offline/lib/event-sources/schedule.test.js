@@ -19,15 +19,6 @@ describe('parseExpression', () => {
   })
 
   it.each([
-    'cron(0 12 * * ? *)',
-    'cron(*/5 * * * ? *)',
-    'cron(0 18 ? * MON-FRI *)',
-  ])('parses %s as cron', (expr) => {
-    const inner = expr.slice('cron('.length, -1)
-    expect(parseExpression(expr)).toEqual({ kind: 'cron', expression: inner })
-  })
-
-  it.each([
     'rate(5 seconds)',
     'rate(1 year)',
     'rate(0 minutes)',
@@ -53,6 +44,37 @@ describe('parseExpression', () => {
       caught = err
     }
     expect(caught.message).toContain('rate(5 seconds)')
+  })
+
+  describe('cron AWS→croner translation', () => {
+    it.each([
+      // AWS 6-field input → croner-ready output (year dropped)
+      ['cron(0 12 * * ? *)', '0 12 * * ?'],
+      ['cron(*/5 * * * ? *)', '*/5 * * * ?'],
+      ['cron(0 18 ? * MON-FRI *)', '0 18 ? * MON-FRI'],
+      ['cron(15 10 ? * 6L 2002-2005)', '15 10 ? * 6L'],
+      // AWS 5-field (POSIX-shaped) passes through
+      ['cron(0 12 * * ?)', '0 12 * * ?'],
+      ['cron(*/5 * * * *)', '*/5 * * * *'],
+    ])('translates %s to croner pattern %s', (input, expected) => {
+      expect(parseExpression(input)).toEqual({
+        kind: 'cron',
+        expression: expected,
+      })
+    })
+
+    it.each([
+      'cron(0 12)', // 2 fields — too few
+      'cron(0 12 *)', // 3 fields — too few
+      'cron(0 12 * *)', // 4 fields — too few
+      'cron(0 12 * * ? * extra)', // 7 fields — too many
+    ])('rejects %s with OFFLINE_SCHEDULE_INVALID_EXPRESSION', (expr) => {
+      expect(() => parseExpression(expr)).toThrow(
+        expect.objectContaining({
+          code: 'OFFLINE_SCHEDULE_INVALID_EXPRESSION',
+        }),
+      )
+    })
   })
 })
 
@@ -213,16 +235,14 @@ describe('createScheduler', () => {
     )
   })
 
-  it('cron fires at the expected minute boundary', async () => {
-    // 6-field cron in croner order: sec min hour dom month dow.
-    // "0 0 12 * * *" → fires at 12:00:00 UTC daily.
+  it('cron(0 12 * * ? *) fires at next noon UTC', async () => {
     jest.setSystemTime(new Date('2026-05-27T11:59:00Z'))
 
     const runner = makeStubRunner()
     const logger = makeLogger()
     const scheduler = createScheduler({
       serverless: makeServerless({
-        fn: { events: [{ schedule: 'cron(0 0 12 * * *)' }] },
+        fn: { events: [{ schedule: 'cron(0 12 * * ? *)' }] },
       }),
       getLambdaFunction: runner.getLambdaFunction,
       logger,
@@ -230,11 +250,9 @@ describe('createScheduler', () => {
     })
 
     scheduler.start()
-    // Croner internally caps its setTimeout at 30s and re-schedules, so a
-    // single 60s advance fires two timer callbacks: the first finds the
-    // wall-clock still short of noon, the second crosses the boundary.
+    // Croner caps its internal setTimeout and re-schedules; advance by 60s
+    // and flush a few microtask rounds so the trigger callback resolves.
     jest.advanceTimersByTime(60_000)
-    // Flush microtasks queued by croner's async _trigger() path.
     for (let i = 0; i < 5; i++) await Promise.resolve()
 
     expect(runner.calls.length).toBe(1)
